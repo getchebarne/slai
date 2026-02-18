@@ -1,0 +1,12 @@
+[package]
+name = "slai"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "slai"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.24", features = ["extension-module"] }
+rand = "0.9"
