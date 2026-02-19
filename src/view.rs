@@ -23,7 +23,7 @@ pub struct ViewEffectTemplate {
 #[derive(Debug, Clone)]
 pub struct ViewCard {
     pub name: String,
-    pub type_: String,
+    pub kind: String,
     pub color: String,
     pub rarity: String,
     pub cost: u8,
@@ -243,7 +243,7 @@ fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<ViewModifier> 
     out
 }
 
-use crate::state::Card;
+use crate::cards::Card;
 
 fn build_view_card(card: &Card, is_active: bool) -> ViewCard {
     ViewCard {
@@ -252,7 +252,7 @@ fn build_view_card(card: &Card, is_active: bool) -> ViewCard {
         } else {
             card.name.as_str().to_string()
         },
-        type_: format!("{:?}", card.type_),
+        kind: format!("{:?}", card.kind),
         color: format!("{:?}", card.color),
         rarity: format!("{:?}", card.rarity),
         cost: card.cost,
