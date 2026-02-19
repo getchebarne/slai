@@ -6,7 +6,8 @@ use rand::SeedableRng;
 use rand::rngs::SmallRng;
 
 use crate::action::{Action, handle_action};
-use crate::card;
+use crate::cards::Card;
+use crate::cards::get_card;
 use crate::effect::Effect;
 use crate::map::generate_map;
 use crate::modifier::modifiers_new;
@@ -125,17 +126,17 @@ fn silent_health(ascension: u8) -> (u16, u16) {
 
 fn silent_starter_deck() -> Vec<Card> {
     vec![
-        card::get_card(CardName::Strike, false),
-        card::get_card(CardName::Strike, false),
-        card::get_card(CardName::Strike, false),
-        card::get_card(CardName::Strike, false),
-        card::get_card(CardName::Strike, false),
-        card::get_card(CardName::Defend, false),
-        card::get_card(CardName::Defend, false),
-        card::get_card(CardName::Defend, false),
-        card::get_card(CardName::Defend, false),
-        card::get_card(CardName::Defend, false),
-        card::get_card(CardName::Survivor, false),
-        card::get_card(CardName::Neutralize, false),
+        get_card(CardName::Strike, false),
+        get_card(CardName::Strike, false),
+        get_card(CardName::Strike, false),
+        get_card(CardName::Strike, false),
+        get_card(CardName::Strike, false),
+        get_card(CardName::Defend, false),
+        get_card(CardName::Defend, false),
+        get_card(CardName::Defend, false),
+        get_card(CardName::Defend, false),
+        get_card(CardName::Defend, false),
+        get_card(CardName::Survivor, false),
+        get_card(CardName::Neutralize, false),
     ]
 }

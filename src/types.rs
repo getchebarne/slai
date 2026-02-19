@@ -73,7 +73,7 @@ impl CardName {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CardType {
+pub enum CardKind {
     Attack,
     Curse,
     Power,

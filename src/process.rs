@@ -2,7 +2,8 @@
 
 use rand::Rng;
 
-use crate::card::{self, REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON};
+use crate::cards::{REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON};
+use crate::cards::get_card;
 use crate::effect::{Effect, EffectTemplate, SelectionKind, TargetKind};
 use crate::modifier::*;
 use crate::monster;
@@ -354,7 +355,7 @@ fn process_card_play(state: &mut GameState, card_idx: usize) -> EffectResult {
     // Exhaust vs power vs discard
     if card.exhaust {
         effects.push(Effect::CardExhaust { card_idx });
-    } else if card.type_ == CardType::Power {
+    } else if card.kind == CardKind::Power {
         effects.push(Effect::CardRemove { card_idx });
     } else {
         effects.push(Effect::CardDiscard { card_idx });
@@ -384,7 +385,7 @@ fn process_card_play(state: &mut GameState, card_idx: usize) -> EffectResult {
     }
 
     // Sharp Hide: if the card is an Attack, each monster with SharpHide damages character
-    if card.type_ == CardType::Attack {
+    if card.kind == CardKind::Attack {
         for (_i, m) in state.monsters.iter().enumerate() {
             if modifier_has(&m.vitals.modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(&m.vitals.modifiers, ModifierKind::SharpHide);
@@ -402,7 +403,7 @@ fn process_card_play(state: &mut GameState, card_idx: usize) -> EffectResult {
 
     // Burst: double skill effects
     if modifier_has(&state.character.vitals.modifiers, ModifierKind::Burst)
-        && card.type_ == CardType::Skill
+        && card.kind == CardKind::Skill
     {
         let extra = instantiate_templates(card.effects, ActorId::Character, state);
         effects.extend(extra);
@@ -441,7 +442,7 @@ fn process_card_remove(state: &mut GameState, card_idx: usize) -> EffectResult {
 }
 
 fn process_add_shivs(state: &mut GameState, count: u8) -> EffectResult {
-    let shiv = card::get_card(CardName::Shiv, false);
+    let shiv = get_card(CardName::Shiv, false);
     for _ in 0..count {
         let idx = state.combat_cards.len();
         state.combat_cards.push(shiv);
@@ -466,7 +467,7 @@ fn process_calculated_gamble(state: &mut GameState) -> EffectResult {
 
 fn process_card_upgrade(state: &mut GameState, deck_idx: usize) -> EffectResult {
     let old = state.deck[deck_idx];
-    state.deck[deck_idx] = card::get_card(old.name, true);
+    state.deck[deck_idx] = get_card(old.name, true);
     EffectResult::empty()
 }
 
@@ -493,7 +494,7 @@ fn process_card_reward_roll(state: &mut GameState) -> EffectResult {
             name = pool[state.rng.random_range(0..pool.len())];
         }
         rolled_names.push(name);
-        state.card_rewards.push(card::get_card(name, false));
+        state.card_rewards.push(get_card(name, false));
     }
 
     EffectResult::bot(vec![Effect::AwaitCardReward])

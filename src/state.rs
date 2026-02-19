@@ -4,64 +4,11 @@ use std::collections::VecDeque;
 
 use rand::rngs::SmallRng;
 
+use crate::cards::Card;
 use crate::effect::Effect;
+use crate::effect::EffectTemplate;
 use crate::modifier::{Modifiers, modifiers_new};
 use crate::types::*;
-
-// ---------------------------------------------------------------------------
-// Card: immutable card blueprint
-// ---------------------------------------------------------------------------
-
-use crate::effect::EffectTemplate;
-
-#[derive(Debug, Clone, Copy)]
-pub struct Card {
-    pub name: CardName,
-    pub type_: CardType,
-    pub color: CardColor,
-    pub rarity: CardRarity,
-    pub cost: u8,
-    pub upgraded: bool,
-    pub exhaust: bool,
-    pub innate: bool,
-    pub effects: &'static [EffectTemplate],
-}
-
-impl Card {
-    pub fn requires_target(&self) -> bool {
-        use crate::effect::TargetKind;
-        self.effects.iter().any(|e| {
-            matches!(
-                e,
-                EffectTemplate::DamagePhysical {
-                    target: TargetKind::CardTarget,
-                    ..
-                } | EffectTemplate::BlockGain {
-                    target: TargetKind::CardTarget,
-                    ..
-                } | EffectTemplate::ModifierGain {
-                    target: TargetKind::CardTarget,
-                    ..
-                } | EffectTemplate::ModifierRemove {
-                    target: TargetKind::CardTarget,
-                    ..
-                }
-            )
-        })
-    }
-
-    pub fn requires_discard(&self) -> bool {
-        use crate::effect::SelectionKind;
-        self.effects.iter().any(|e| {
-            matches!(
-                e,
-                EffectTemplate::CardDiscard {
-                    selection: SelectionKind::Input
-                }
-            )
-        })
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Vitals: shared health/block/modifier state

@@ -2,24 +2,23 @@
 
 use pyo3::prelude::*;
 
-mod types;
-mod modifier;
-mod effect;
-mod state;
-mod card;
-mod monster;
-mod map;
-mod process;
 mod action;
+mod cards;
+mod effect;
 mod game;
+mod map;
+mod modifier;
+mod monster;
+mod process;
+mod state;
+mod types;
 mod view;
 
 use action::Action;
 use game::{create_game_state, initialize, step};
 use view::{
-    ViewGameState, ViewCard, ViewCharacter, ViewMonster, ViewIntent,
-    ViewEnergy, ViewMap, ViewMapNode, ViewModifier, ViewEffectTemplate,
-    build_view,
+    ViewCard, ViewCharacter, ViewEffectTemplate, ViewEnergy, ViewGameState, ViewIntent, ViewMap,
+    ViewMapNode, ViewModifier, ViewMonster, build_view,
 };
 
 #[pyclass]
@@ -66,14 +65,24 @@ impl GameEnv {
 
 fn decode_action(action_type: u8, action_index: i32) -> Action {
     match action_type {
-        0 => Action::PlayCard { hand_idx: action_index as usize },
+        0 => Action::PlayCard {
+            hand_idx: action_index as usize,
+        },
         1 => Action::EndTurn,
-        2 => Action::SelectMonster { monster_idx: action_index as u8 },
-        3 => Action::SelectMapNode { column: action_index as usize },
-        4 => Action::SelectCardReward { reward_idx: action_index as usize },
+        2 => Action::SelectMonster {
+            monster_idx: action_index as u8,
+        },
+        3 => Action::SelectMapNode {
+            column: action_index as usize,
+        },
+        4 => Action::SelectCardReward {
+            reward_idx: action_index as usize,
+        },
         5 => Action::SkipCardReward,
         6 => Action::Rest,
-        7 => Action::Upgrade { deck_idx: action_index as usize },
+        7 => Action::Upgrade {
+            deck_idx: action_index as usize,
+        },
         _ => panic!("Unknown action type: {action_type}"),
     }
 }
