@@ -6,8 +6,8 @@ use rand::rngs::SmallRng;
 
 use crate::cards::Card;
 use crate::effect::Effect;
-use crate::effect::EffectTemplate;
 use crate::modifier::{Modifiers, modifiers_new};
+use crate::monsters::Monster;
 use crate::types::*;
 
 // ---------------------------------------------------------------------------
@@ -39,106 +39,6 @@ pub fn vitals_new(health: u16, health_max: u16) -> Vitals {
 pub struct Character {
     pub vitals: Vitals,
     pub reward_roll_offset: i8,
-}
-
-// ---------------------------------------------------------------------------
-// Intent (for monsters)
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Clone, Copy, Default)]
-pub struct Intent {
-    pub damage: Option<u16>,
-    pub instances: Option<u8>,
-    pub block: bool,
-    pub buff: bool,
-    pub debuff: bool,
-}
-
-impl Intent {
-    pub const fn attack(damage: u16, instances: u8) -> Self {
-        Intent {
-            damage: Some(damage),
-            instances: Some(instances),
-            block: false,
-            buff: false,
-            debuff: false,
-        }
-    }
-
-    pub const fn attack_block(damage: u16, instances: u8) -> Self {
-        Intent {
-            damage: Some(damage),
-            instances: Some(instances),
-            block: true,
-            buff: false,
-            debuff: false,
-        }
-    }
-
-    pub const fn buff() -> Self {
-        Intent {
-            damage: None,
-            instances: None,
-            block: false,
-            buff: true,
-            debuff: false,
-        }
-    }
-
-    pub const fn buff_block() -> Self {
-        Intent {
-            damage: None,
-            instances: None,
-            block: true,
-            buff: true,
-            debuff: false,
-        }
-    }
-
-    pub const fn block_only() -> Self {
-        Intent {
-            damage: None,
-            instances: None,
-            block: true,
-            buff: false,
-            debuff: false,
-        }
-    }
-
-    pub const fn debuff() -> Self {
-        Intent {
-            damage: None,
-            instances: None,
-            block: false,
-            buff: false,
-            debuff: true,
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Monster Move
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Clone)]
-pub struct Move {
-    pub name: &'static str,
-    pub effects: &'static [EffectTemplate],
-    pub intent: Intent,
-}
-
-// ---------------------------------------------------------------------------
-// Monster
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Clone)]
-pub struct Monster {
-    pub name: MonsterName,
-    pub kind: MonsterKind,
-    pub vitals: Vitals,
-    pub moves: Vec<Move>,
-    pub move_current: Option<usize>,
-    pub move_history: Vec<usize>,
 }
 
 // ---------------------------------------------------------------------------

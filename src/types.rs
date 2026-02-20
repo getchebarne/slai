@@ -101,10 +101,8 @@ pub enum CardRarity {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MonsterName {
     Cultist,
-    Dummy,
     FungiBeast,
     JawWorm,
-    LouseGreen,
     TheGuardian,
 }
 
@@ -112,10 +110,8 @@ impl MonsterName {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Cultist => "Cultist",
-            Self::Dummy => "Dummy",
             Self::FungiBeast => "Fungi Beast",
             Self::JawWorm => "Jaw Worm",
-            Self::LouseGreen => "Louse (green)",
             Self::TheGuardian => "The Guardian",
         }
     }

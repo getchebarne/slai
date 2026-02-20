@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 
 use crate::effect::EffectTemplate;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
+use crate::monsters::Intent;
 use crate::process::FACTOR_VULN;
 use crate::state::GameState;
 
@@ -182,10 +183,25 @@ fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
         .map(|m| {
             let intent = if let Some(move_idx) = m.move_current {
                 let mv = &m.moves[move_idx];
-                let mut damage = mv.intent.damage;
 
-                // Correct intent damage with modifiers
-                if let Some(d) = damage {
+                let (base_damage, instances, block, buff, debuff) = match mv.intent {
+                    Intent::Attack { damage, instances } => {
+                        (Some(damage), Some(instances), false, false, false)
+                    }
+                    Intent::AttackBlock { damage, instances } => {
+                        (Some(damage), Some(instances), true, false, false)
+                    }
+                    Intent::AttackBuff { damage, instances } => {
+                        (Some(damage), Some(instances), false, true, false)
+                    }
+                    Intent::Block => (None, None, true, false, false),
+                    Intent::BlockBuff => (None, None, true, true, false),
+                    Intent::Buff => (None, None, false, true, false),
+                    Intent::Debuff => (None, None, false, false, true),
+                    Intent::DebuffPowerful => (None, None, false, false, true),
+                };
+
+                let damage = if let Some(d) = base_damage {
                     let mut dmg = d as f32;
                     if modifier_has(&m.vitals.modifiers, ModifierKind::Strength) {
                         dmg += modifier_stacks(&m.vitals.modifiers, ModifierKind::Strength) as f32;
@@ -196,15 +212,17 @@ fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
                     if modifier_has(&state.character.vitals.modifiers, ModifierKind::Vulnerable) {
                         dmg *= FACTOR_VULN;
                     }
-                    damage = Some(dmg as u16);
-                }
+                    Some(dmg as u16)
+                } else {
+                    None
+                };
 
                 ViewIntent {
                     damage,
-                    instances: mv.intent.instances,
-                    block: mv.intent.block,
-                    buff: mv.intent.buff,
-                    debuff: mv.intent.debuff,
+                    instances,
+                    block,
+                    buff,
+                    debuff,
                 }
             } else {
                 ViewIntent {

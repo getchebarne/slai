@@ -8,7 +8,7 @@ mod effect;
 mod game;
 mod map;
 mod modifier;
-mod monster;
+mod monsters;
 mod process;
 mod state;
 mod types;

@@ -1,0 +1,256 @@
+use crate::effect::EffectTemplate;
+use crate::effect::TargetKind;
+use crate::modifier::MODIFIER_COUNT;
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::modifier::modifier_apply;
+use crate::modifier::modifier_has;
+use crate::monsters::Intent;
+use crate::monsters::Monster;
+use crate::monsters::Move;
+use crate::state::Vitals;
+use crate::types::MonsterKind;
+use crate::types::MonsterName;
+
+static MOVE_CHARGING_UP: Move = Move {
+    name: "Charging Up",
+    effects: &[EffectTemplate::BlockGain {
+        amount: 9,
+        target: TargetKind::Source,
+    }],
+    intent: Intent::Block,
+};
+static MOVE_FIERCE_BASH_32: Move = Move {
+    name: "Fierce Bash",
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 32,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 32,
+        instances: 1,
+    },
+};
+static MOVE_FIERCE_BASH_36: Move = Move {
+    name: "Fierce Bash",
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 36,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 36,
+        instances: 1,
+    },
+};
+static MOVE_VENT_STEAM: Move = Move {
+    name: "Vent Steam",
+    effects: &[
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::Weak,
+            stacks: 2,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::Vulnerable,
+            stacks: 2,
+            target: TargetKind::Character,
+        },
+    ],
+    intent: Intent::DebuffPowerful,
+};
+static MOVE_WHIRLWIND: Move = Move {
+    name: "Whirlwind",
+    effects: &[
+        EffectTemplate::DamagePhysical {
+            base: 5,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 5,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 5,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 5,
+            target: TargetKind::Character,
+        },
+    ],
+    intent: Intent::Attack {
+        damage: 5,
+        instances: 4,
+    },
+};
+static MOVE_DEFENSIVE_MODE_3: Move = Move {
+    name: "Defensive Mode",
+    effects: &[EffectTemplate::ModifierGain {
+        kind: ModifierKind::SharpHide,
+        target: TargetKind::Source,
+        stacks: 3,
+    }],
+    intent: Intent::Buff,
+};
+static MOVE_DEFENSIVE_MODE_4: Move = Move {
+    name: "Defensive Mode",
+    effects: &[EffectTemplate::ModifierGain {
+        kind: ModifierKind::SharpHide,
+        target: TargetKind::Source,
+        stacks: 4,
+    }],
+    intent: Intent::Buff,
+};
+static MOVE_ROLL_ATTACK_9: Move = Move {
+    name: "Roll Attack",
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 9,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 9,
+        instances: 1,
+    },
+};
+static MOVE_ROLL_ATTACK_10: Move = Move {
+    name: "Roll Attack",
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 10,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 10,
+        instances: 1,
+    },
+};
+static MOVE_TWIN_SLAM: Move = Move {
+    name: "Twin Slam",
+    effects: &[
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+    ],
+    intent: Intent::AttackBuff {
+        damage: 8,
+        instances: 2,
+    },
+};
+static MOVES_ASC0: [Move; 7] = [
+    MOVE_CHARGING_UP,
+    MOVE_FIERCE_BASH_32,
+    MOVE_VENT_STEAM,
+    MOVE_WHIRLWIND,
+    MOVE_DEFENSIVE_MODE_3,
+    MOVE_ROLL_ATTACK_9,
+    MOVE_TWIN_SLAM,
+];
+static MOVES_ASC4: [Move; 7] = [
+    MOVE_CHARGING_UP,
+    MOVE_FIERCE_BASH_36, // +4 damage
+    MOVE_VENT_STEAM,
+    MOVE_WHIRLWIND,
+    MOVE_DEFENSIVE_MODE_3,
+    MOVE_ROLL_ATTACK_10, // +1 damage
+    MOVE_TWIN_SLAM,
+];
+static MOVES_ASC19: [Move; 7] = [
+    MOVE_CHARGING_UP,
+    MOVE_FIERCE_BASH_36,
+    MOVE_VENT_STEAM,
+    MOVE_WHIRLWIND,
+    MOVE_DEFENSIVE_MODE_4,
+    MOVE_ROLL_ATTACK_10,
+    MOVE_TWIN_SLAM,
+];
+
+pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
+    // Max health
+    let health_max = if ascension_level < 9 { 240 } else { 250 };
+
+    // Moves
+    let moves: &'static [Move] = if ascension_level < 4 {
+        &MOVES_ASC0
+    } else if ascension_level < 19 {
+        &MOVES_ASC4
+    } else {
+        &MOVES_ASC19
+    };
+
+    // Vitals
+    let mut vitals = Vitals {
+        health: health_max,
+        health_max: health_max,
+        block: 0,
+        modifiers: Modifiers {
+            stacks: [0; MODIFIER_COUNT],
+            is_new: [false; MODIFIER_COUNT],
+            active: 0,
+        },
+    };
+    let mode_shift_stacks = if ascension_level < 9 {
+        30
+    } else if ascension_level < 19 {
+        35
+    } else {
+        40
+    };
+    modifier_apply(
+        &mut vitals.modifiers,
+        ModifierKind::ModeShift,
+        mode_shift_stacks,
+    );
+
+    Monster {
+        name: MonsterName::TheGuardian,
+        kind: MonsterKind::Boss,
+        vitals: vitals,
+        moves: moves,
+        move_current: None,
+        move_history: Vec::new(),
+    }
+}
+
+pub fn get_next_move_the_guardian(monster: &Monster) -> usize {
+    if monster.move_current.is_none() {
+        return 0; // Charging Up
+    }
+    let move_last = monster
+        .move_history
+        .last()
+        .copied()
+        .expect("`move_history` cannot be empty here");
+
+    if modifier_has(&monster.vitals.modifiers, ModifierKind::ModeShift) {
+        // Offensive mode
+        match move_last {
+            0 => 1,
+            1 => 2,
+            2 => 3,
+            3 => 0,
+            6 => 3,
+            _ => unreachable!(
+                "Invalid 'The Guardian' move in offensive mode: {}",
+                move_last
+            ),
+        }
+    } else {
+        // Defensive mode
+        if modifier_has(&monster.vitals.modifiers, ModifierKind::SharpHide) {
+            match move_last {
+                4 => 5,
+                5 => 6,
+                _ => unreachable!(
+                    "Invalid 'The Guardian' move in defensive mode: {}",
+                    move_last
+                ),
+            }
+        } else {
+            4
+        }
+    }
+}

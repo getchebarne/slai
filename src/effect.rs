@@ -166,7 +166,7 @@ pub enum Effect {
     TurnEnd {
         actor: ActorId,
     },
-    MonsterMoveUpdate {
+    MoveUpdate {
         monster_idx: u8,
     },
     RoomEnter,

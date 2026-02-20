@@ -2,11 +2,11 @@
 
 use rand::Rng;
 
-use crate::cards::{REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON};
 use crate::cards::get_card;
+use crate::cards::{REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON};
 use crate::effect::{Effect, EffectTemplate, SelectionKind, TargetKind};
 use crate::modifier::*;
-use crate::monster;
+use crate::monsters;
 use crate::state::*;
 use crate::types::*;
 
@@ -169,9 +169,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> EffectResult {
         Effect::CombatEnd => process_combat_end(state),
         Effect::TurnStart { actor } => process_turn_start(state, actor),
         Effect::TurnEnd { actor } => process_turn_end(state, actor),
-        Effect::MonsterMoveUpdate { monster_idx } => {
-            process_monster_move_update(state, monster_idx)
-        }
+        Effect::MoveUpdate { monster_idx } => process_monster_move_update(state, monster_idx),
         Effect::RoomEnter => process_room_enter(state),
         Effect::GameEnd => {
             // Re-insert so determine_fsm can see it
@@ -597,7 +595,7 @@ fn process_health_loss(state: &mut GameState, target: ActorId, amount: u16) -> E
                     ModifierKind::ModeShift,
                 );
                 if let ActorId::Monster(i) = target {
-                    effects.push(Effect::MonsterMoveUpdate { monster_idx: i });
+                    effects.push(Effect::MoveUpdate { monster_idx: i });
                 }
             } else {
                 vitals_mut(state, target).modifiers.stacks[ModifierKind::ModeShift as usize] =
@@ -775,7 +773,7 @@ fn process_combat_start(state: &mut GameState) -> EffectResult {
 
     let mut effects: Vec<Effect> = Vec::new();
     for i in 0..state.monsters.len() {
-        effects.push(Effect::MonsterMoveUpdate {
+        effects.push(Effect::MoveUpdate {
             monster_idx: i as u8,
         });
     }
@@ -927,7 +925,7 @@ fn process_turn_end(state: &mut GameState, actor: ActorId) -> EffectResult {
             effects.extend(move_effects);
         }
 
-        effects.push(Effect::MonsterMoveUpdate {
+        effects.push(Effect::MoveUpdate {
             monster_idx: i as u8,
         });
         effects.push(Effect::TurnEnd { actor: mi });
@@ -948,9 +946,9 @@ fn process_turn_end(state: &mut GameState, actor: ActorId) -> EffectResult {
 
 fn process_monster_move_update(state: &mut GameState, monster_idx: u8) -> EffectResult {
     let i = monster_idx as usize;
-    let next = monster::select_next_move(&state.monsters[i], state.ascension, &mut state.rng);
-    state.monsters[i].move_current = Some(next);
-    state.monsters[i].move_history.push(next);
+    let move_next = monsters::get_next_move(&state.monsters[i], &mut state.rng);
+    state.monsters[i].move_current = Some(move_next);
+    state.monsters[i].move_history.push(move_next);
     EffectResult::empty()
 }
 
@@ -958,8 +956,8 @@ fn process_room_enter(state: &mut GameState) -> EffectResult {
     let room = state.map.active_room_type().unwrap();
     match room {
         RoomType::CombatBoss => {
-            // Spawn The Guardian
-            state.monsters = vec![monster::spawn_monster(
+            // Spawn The Guardian TODO: add more bosses
+            state.monsters = vec![monsters::spawn_monster(
                 MonsterName::TheGuardian,
                 state.ascension,
                 &mut state.rng,
@@ -970,23 +968,23 @@ fn process_room_enter(state: &mut GameState) -> EffectResult {
             // Random encounter
             let encounter: u8 = state.rng.random_range(0..3);
             state.monsters = match encounter {
-                0 => vec![monster::spawn_monster(
+                0 => vec![monsters::spawn_monster(
                     MonsterName::JawWorm,
                     state.ascension,
                     &mut state.rng,
                 )],
-                1 => vec![monster::spawn_monster(
+                1 => vec![monsters::spawn_monster(
                     MonsterName::Cultist,
                     state.ascension,
                     &mut state.rng,
                 )],
                 2 => vec![
-                    monster::spawn_monster(
+                    monsters::spawn_monster(
                         MonsterName::FungiBeast,
                         state.ascension,
                         &mut state.rng,
                     ),
-                    monster::spawn_monster(
+                    monsters::spawn_monster(
                         MonsterName::FungiBeast,
                         state.ascension,
                         &mut state.rng,
