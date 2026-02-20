@@ -589,7 +589,7 @@ fn process_health_loss(state: &mut GameState, target: ActorId, amount: u16) -> E
         if modifier_has(&vitals.modifiers, ModifierKind::ModeShift) {
             let new_stacks =
                 modifier_stacks(&vitals.modifiers, ModifierKind::ModeShift) - amount as i16;
-            if new_stacks < modifier_def(ModifierKind::ModeShift).min_stacks {
+            if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
                 modifier_remove(
                     &mut vitals_mut(state, target).modifiers,
                     ModifierKind::ModeShift,
@@ -649,7 +649,7 @@ fn process_modifier_gain(
             let idx = kind as usize;
             mods.stacks[idx] += stacks;
             let cfg = modifier_def(kind);
-            if mods.stacks[idx] < cfg.min_stacks {
+            if mods.stacks[idx] < cfg.stacks_min {
                 modifier_remove(mods, kind);
             }
         }

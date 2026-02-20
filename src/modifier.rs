@@ -1,4 +1,4 @@
-// Modifier system: fixed-size arrays + bitmask, all free functions.
+// Modifier system
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -35,152 +35,152 @@ impl ModifierKind {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Modifier {
+pub struct ModifierDef {
     pub kind: ModifierKind,
     pub is_buff: bool,
     pub stacks_duration: bool,
-    pub min_stacks: i16,
-    pub max_stacks: i16,
+    pub stacks_min: i16,
+    pub stacks_max: i16,
 }
 
-static MODIFIERS: [Modifier; MODIFIER_COUNT] = [
-    Modifier {
+static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
+    ModifierDef {
         kind: ModifierKind::Accuracy,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::AfterImage,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::Blur,
         is_buff: true,
         stacks_duration: true,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::Burst,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::Dexterity,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: -999,
-        max_stacks: 999,
+        stacks_min: -999,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::DoubleDamage,
         is_buff: true,
         stacks_duration: true,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::InfiniteBlades,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::ModeShift,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::NextTurnBlock,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::NextTurnEnergy,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::Phantasmal,
         is_buff: true,
         stacks_duration: true,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::Ritual,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::SharpHide,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::SporeCloud,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::Strength,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: -999,
-        max_stacks: 999,
+        stacks_min: -999,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::ThousandCuts,
         is_buff: true,
         stacks_duration: false,
-        min_stacks: 1,
-        max_stacks: 999,
+        stacks_min: 1,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::Vulnerable,
         is_buff: false,
         stacks_duration: true,
-        min_stacks: 0,
-        max_stacks: 999,
+        stacks_min: 0,
+        stacks_max: 999,
     },
-    Modifier {
+    ModifierDef {
         kind: ModifierKind::Weak,
         is_buff: false,
         stacks_duration: true,
-        min_stacks: 0,
-        max_stacks: 999,
+        stacks_min: 0,
+        stacks_max: 999,
     },
 ];
-
-pub fn modifier_def(kind: ModifierKind) -> &'static Modifier {
-    &MODIFIERS[kind as usize]
-}
 
 #[derive(Debug, Clone)]
 pub struct Modifiers {
     pub stacks: [i16; MODIFIER_COUNT],
     pub is_new: [bool; MODIFIER_COUNT],
-    pub active: u32,
+    pub active: u32, // bitmask
+}
+
+pub fn modifier_def(kind: ModifierKind) -> &'static ModifierDef {
+    &MODIFIER_DEFS[kind as usize]
 }
 
 pub fn modifiers_new() -> Modifiers {
@@ -203,9 +203,9 @@ pub fn modifier_apply(mods: &mut Modifiers, kind: ModifierKind, stacks: i16) {
     let cfg = modifier_def(kind);
     let idx = kind as usize;
     if modifier_has(mods, kind) {
-        mods.stacks[idx] = (mods.stacks[idx] + stacks).clamp(cfg.min_stacks, cfg.max_stacks);
+        mods.stacks[idx] = (mods.stacks[idx] + stacks).clamp(cfg.stacks_min, cfg.stacks_max);
     } else {
-        mods.stacks[idx] = stacks.clamp(cfg.min_stacks, cfg.max_stacks);
+        mods.stacks[idx] = stacks.clamp(cfg.stacks_min, cfg.stacks_max);
         mods.is_new[idx] = true;
         mods.active |= 1 << kind as u32;
     }
@@ -227,7 +227,7 @@ pub fn modifier_tick(mods: &mut Modifiers) {
         let cfg = modifier_def(kind);
         if cfg.stacks_duration && !mods.is_new[idx] {
             mods.stacks[idx] -= 1;
-            if mods.stacks[idx] < cfg.min_stacks {
+            if mods.stacks[idx] < cfg.stacks_min {
                 modifier_remove(mods, kind);
             }
         }
@@ -243,3 +243,12 @@ pub fn modifier_clear(mods: &mut Modifiers) {
     mods.is_new = [false; MODIFIER_COUNT];
     mods.active = 0;
 }
+
+// Check that modifier definitons are in the correct order
+const _: () = {
+    let mut i = 0;
+    while i < MODIFIER_COUNT {
+        assert!(MODIFIER_DEFS[i].kind as usize == i);
+        i += 1;
+    }
+};
