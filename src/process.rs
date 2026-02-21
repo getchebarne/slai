@@ -4,27 +4,12 @@ use rand::Rng;
 
 use crate::cards::get_card;
 use crate::cards::{REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON};
+use crate::consts::*;
 use crate::effect::{Effect, EffectTemplate, SelectionKind, TargetKind};
 use crate::modifier::*;
 use crate::monsters;
 use crate::state::*;
 use crate::types::*;
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-pub const MAX_SIZE_HAND: usize = 10;
-pub const CARDS_DRAWN_PER_TURN: u8 = 5;
-pub const MAX_COMBAT_CARD_REWARD: usize = 3;
-pub const REST_SITE_HEAL_FACTOR: f32 = 0.30;
-pub const FACTOR_WEAK: f32 = 0.75;
-pub const FACTOR_VULN: f32 = 1.50;
-const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;
-const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
-const CHANCE_RARE: i32 = 3;
-const CHANCE_UNCOMMON: i32 = 40;
-const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
 
 // ---------------------------------------------------------------------------
 // EffectResult

@@ -1,7 +1,7 @@
 // Action handling: player input -> effects.
 
 use crate::effect::Effect;
-use crate::process::REST_SITE_HEAL_FACTOR;
+use crate::consts::REST_SITE_HEAL_FACTOR;
 use crate::state::GameState;
 use crate::types::*;
 
@@ -138,7 +138,7 @@ fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
 fn handle_rest(state: &mut GameState) -> Vec<Effect> {
     let heal = (REST_SITE_HEAL_FACTOR * state.character.vitals.health_max as f32) as u16;
 
-    let is_last_floor = state.map.active_y == Some(crate::map::MAP_HEIGHT - 1);
+    let is_last_floor = state.map.active_y == Some(crate::consts::MAP_HEIGHT - 1);
 
     let mut effects = vec![
         Effect::HealthGain { target: ActorId::Character, amount: heal },
@@ -157,7 +157,7 @@ fn handle_rest(state: &mut GameState) -> Vec<Effect> {
 }
 
 fn handle_upgrade(state: &mut GameState, deck_idx: usize) -> Vec<Effect> {
-    let is_last_floor = state.map.active_y == Some(crate::map::MAP_HEIGHT - 1);
+    let is_last_floor = state.map.active_y == Some(crate::consts::MAP_HEIGHT - 1);
 
     let mut effects = vec![
         Effect::CardUpgrade { deck_idx },

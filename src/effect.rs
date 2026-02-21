@@ -139,7 +139,7 @@ pub enum Effect {
         amount: u8,
     },
 
-    // Modifiers (one variant, not 17)
+    // Modifiers
     ModifierGain {
         target: ActorId,
         kind: ModifierKind,

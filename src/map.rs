@@ -2,16 +2,9 @@
 
 use rand::Rng;
 
+use crate::consts::*;
 use crate::state::{Map, MapNode};
 use crate::types::RoomType;
-
-pub const MAP_HEIGHT: usize = 15;
-pub const MAP_WIDTH: usize = 7;
-
-const PATH_DENSITY: usize = 6;
-const ANCESTOR_GAP_MIN: usize = 3;
-const ANCESTOR_GAP_MAX: usize = 5;
-const FACTOR_NUM_REST_SITE: f32 = 0.25;
 
 pub fn generate_map(rng: &mut impl Rng) -> Map {
     let mut nodes = initialize_nodes();

@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use crate::effect::EffectTemplate;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::monsters::Intent;
-use crate::process::FACTOR_VULN;
+use crate::consts::FACTOR_VULN;
 use crate::state::GameState;
 
 // ---------------------------------------------------------------------------
