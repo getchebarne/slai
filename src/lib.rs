@@ -6,6 +6,7 @@ mod action;
 mod cards;
 mod consts;
 mod effect;
+mod engine;
 mod game;
 mod map;
 mod modifier;
@@ -13,6 +14,7 @@ mod monsters;
 mod process;
 mod state;
 mod types;
+mod utils;
 mod view;
 
 use action::Action;
