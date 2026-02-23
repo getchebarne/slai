@@ -11,7 +11,6 @@ mod game;
 mod map;
 mod modifier;
 mod monsters;
-mod process;
 mod state;
 mod types;
 mod utils;

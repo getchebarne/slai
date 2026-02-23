@@ -3,8 +3,6 @@ use crate::cards::get_card;
 use crate::consts::MAX_SIZE_HAND;
 use crate::engine::ProcessEffectResult;
 use crate::types::CardName;
-use crate::utils::remove_card_from_hand;
-
 pub fn process_effect_add_shivs(
     count: u8,
     combat_cards: &mut Vec<Card>,

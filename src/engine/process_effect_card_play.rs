@@ -60,7 +60,7 @@ pub fn process_effect_card_play(
 
     // Sharp hide
     if card.kind == CardKind::Attack {
-        for (i, monster) in monsters.iter().enumerate() {
+        for (_i, monster) in monsters.iter().enumerate() {
             let monster_modifiers = &monster.vitals.modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);

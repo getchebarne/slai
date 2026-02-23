@@ -1,5 +1,6 @@
 use crate::consts::MAX_SIZE_HAND;
 use crate::engine::ProcessEffectResult;
+use crate::utils::shuffle;
 
 use rand::Rng;
 
@@ -16,12 +17,7 @@ pub fn process_effect_card_draw(
             // TODO: this should create a shuffle effect
             draw_pile.append(disc_pile);
 
-            // Fisher-Yates shuffle
-            let draw_pile_len = draw_pile.len();
-            for i in (1..draw_pile_len).rev() {
-                let j = rng.random_range(0..=i);
-                draw_pile.swap(i, j);
-            }
+            shuffle(draw_pile, rng);
         }
 
         if draw_pile.is_empty() {

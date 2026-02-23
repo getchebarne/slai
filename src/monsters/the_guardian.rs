@@ -12,6 +12,10 @@ use crate::state::Vitals;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 
+const MODE_SHIFT_STACKS_30: i16 = 30;
+const MODE_SHIFT_STACKS_35: i16 = 35;
+const MODE_SHIFT_STACKS_40: i16 = 40;
+
 static MOVE_CHARGING_UP: Move = Move {
     name: "Charging Up",
     effects: &[EffectTemplate::BlockGain {
@@ -123,7 +127,7 @@ static MOVE_ROLL_ATTACK_10: Move = Move {
         instances: 1,
     },
 };
-static MOVE_TWIN_SLAM: Move = Move {
+static MOVE_TWIN_SLAM_30: Move = Move {
     name: "Twin Slam",
     effects: &[
         EffectTemplate::DamagePhysical {
@@ -133,6 +137,67 @@ static MOVE_TWIN_SLAM: Move = Move {
         EffectTemplate::DamagePhysical {
             base: 8,
             target: TargetKind::Character,
+        },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::ModeShift,
+            stacks: MODE_SHIFT_STACKS_30,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::ModifierRemove {
+            kind: ModifierKind::SharpHide,
+            target: TargetKind::Source,
+        },
+    ],
+    intent: Intent::AttackBuff {
+        damage: 8,
+        instances: 2,
+    },
+};
+static MOVE_TWIN_SLAM_35: Move = Move {
+    name: "Twin Slam",
+    effects: &[
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::ModeShift,
+            stacks: MODE_SHIFT_STACKS_35,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::ModifierRemove {
+            kind: ModifierKind::SharpHide,
+            target: TargetKind::Source,
+        },
+    ],
+    intent: Intent::AttackBuff {
+        damage: 8,
+        instances: 2,
+    },
+};
+static MOVE_TWIN_SLAM_40: Move = Move {
+    name: "Twin Slam",
+    effects: &[
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::ModeShift,
+            stacks: MODE_SHIFT_STACKS_40,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::ModifierRemove {
+            kind: ModifierKind::SharpHide,
+            target: TargetKind::Source,
         },
     ],
     intent: Intent::AttackBuff {
@@ -147,7 +212,7 @@ static MOVES_ASC0: [Move; 7] = [
     MOVE_WHIRLWIND,
     MOVE_DEFENSIVE_MODE_3,
     MOVE_ROLL_ATTACK_9,
-    MOVE_TWIN_SLAM,
+    MOVE_TWIN_SLAM_35,
 ];
 static MOVES_ASC4: [Move; 7] = [
     MOVE_CHARGING_UP,
@@ -156,7 +221,16 @@ static MOVES_ASC4: [Move; 7] = [
     MOVE_WHIRLWIND,
     MOVE_DEFENSIVE_MODE_3,
     MOVE_ROLL_ATTACK_10, // +1 damage
-    MOVE_TWIN_SLAM,
+    MOVE_TWIN_SLAM_35,
+];
+static MOVES_ASC9: [Move; 7] = [
+    MOVE_CHARGING_UP,
+    MOVE_FIERCE_BASH_36, // +4 damage
+    MOVE_VENT_STEAM,
+    MOVE_WHIRLWIND,
+    MOVE_DEFENSIVE_MODE_3,
+    MOVE_ROLL_ATTACK_10, // +1 damage
+    MOVE_TWIN_SLAM_40,   // + 5 stacks
 ];
 static MOVES_ASC19: [Move; 7] = [
     MOVE_CHARGING_UP,
@@ -165,7 +239,7 @@ static MOVES_ASC19: [Move; 7] = [
     MOVE_WHIRLWIND,
     MOVE_DEFENSIVE_MODE_4,
     MOVE_ROLL_ATTACK_10,
-    MOVE_TWIN_SLAM,
+    MOVE_TWIN_SLAM_40, // + 10 stacks
 ];
 
 pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
@@ -193,11 +267,11 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
         },
     };
     let mode_shift_stacks = if ascension_level < 9 {
-        30
+        MODE_SHIFT_STACKS_30
     } else if ascension_level < 19 {
-        35
+        MODE_SHIFT_STACKS_35
     } else {
-        40
+        MODE_SHIFT_STACKS_40
     };
     modifier_apply(
         &mut vitals.modifiers,
