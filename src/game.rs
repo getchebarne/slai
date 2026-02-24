@@ -30,8 +30,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
             health,
             health_max,
             block: 0,
-            modifiers: modifiers_new(),
         },
+        modifiers: modifiers_new(),
         reward_roll_offset: 5,
     };
 

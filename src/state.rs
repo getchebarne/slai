@@ -6,12 +6,12 @@ use rand::rngs::SmallRng;
 
 use crate::cards::Card;
 use crate::effect::Effect;
-use crate::modifier::{Modifiers, modifiers_new};
+use crate::modifier::Modifiers;
 use crate::monsters::Monster;
 use crate::types::*;
 
 // ---------------------------------------------------------------------------
-// Vitals: shared health/block/modifier state
+// Vitals: physical combat state
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone)]
@@ -19,7 +19,6 @@ pub struct Vitals {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
-    pub modifiers: Modifiers,
 }
 
 pub fn vitals_new(health: u16, health_max: u16) -> Vitals {
@@ -27,7 +26,6 @@ pub fn vitals_new(health: u16, health_max: u16) -> Vitals {
         health,
         health_max,
         block: 0,
-        modifiers: modifiers_new(),
     }
 }
 
@@ -39,6 +37,7 @@ pub fn vitals_new(health: u16, health_max: u16) -> Vitals {
 pub struct Character {
     pub id: EntityId,
     pub vitals: Vitals,
+    pub modifiers: Modifiers,
     pub reward_roll_offset: i8,
 }
 

@@ -171,7 +171,7 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
         health_current: c.vitals.health,
         health_max: c.vitals.health_max,
         block_current: c.vitals.block,
-        modifiers: build_view_modifiers(&c.vitals.modifiers),
+        modifiers: build_view_modifiers(&c.modifiers),
         card_reward_roll_offset: c.reward_roll_offset,
     }
 }
@@ -203,13 +203,13 @@ fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
 
                 let damage = if let Some(d) = base_damage {
                     let mut dmg = d as f32;
-                    if modifier_has(&m.vitals.modifiers, ModifierKind::Strength) {
-                        dmg += modifier_stacks(&m.vitals.modifiers, ModifierKind::Strength) as f32;
+                    if modifier_has(&m.modifiers, ModifierKind::Strength) {
+                        dmg += modifier_stacks(&m.modifiers, ModifierKind::Strength) as f32;
                     }
-                    if modifier_has(&m.vitals.modifiers, ModifierKind::Weak) {
+                    if modifier_has(&m.modifiers, ModifierKind::Weak) {
                         dmg *= 0.75;
                     }
-                    if modifier_has(&state.character.vitals.modifiers, ModifierKind::Vulnerable) {
+                    if modifier_has(&state.character.modifiers, ModifierKind::Vulnerable) {
                         dmg *= FACTOR_VULN;
                     }
                     Some(dmg as u16)
@@ -239,7 +239,7 @@ fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
                 health_current: m.vitals.health,
                 health_max: m.vitals.health_max,
                 block_current: m.vitals.block,
-                modifiers: build_view_modifiers(&m.vitals.modifiers),
+                modifiers: build_view_modifiers(&m.modifiers),
                 intent,
             }
         })

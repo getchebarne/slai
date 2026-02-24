@@ -73,24 +73,24 @@ pub fn spawn_fungi_beast(id: EntityId, ascension_level: u8, rng: &mut impl Rng) 
         &MOVES_ASC17
     };
 
-    // Vitals. Spawn with 2 stacks of Spore Cloud
-    let mut vitals = Vitals {
+    let vitals = Vitals {
         health: health_max,
         health_max: health_max,
         block: 0,
-        modifiers: Modifiers {
-            stacks: [0; MODIFIER_COUNT],
-            is_new: [false; MODIFIER_COUNT],
-            active: 0,
-        },
     };
-    modifier_apply(&mut vitals.modifiers, ModifierKind::SporeCloud, 2);
+    let mut modifiers = Modifiers {
+        stacks: [0; MODIFIER_COUNT],
+        is_new: [false; MODIFIER_COUNT],
+        active: 0,
+    };
+    modifier_apply(&mut modifiers, ModifierKind::SporeCloud, 2);
 
     Monster {
         id,
         name: MonsterName::FungiBeast,
         kind: MonsterKind::Normal,
-        vitals: vitals,
+        vitals,
+        modifiers,
         moves: moves,
         move_current: None,
         move_history: Vec::new(),

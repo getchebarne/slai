@@ -4,6 +4,7 @@ pub mod jaw_worm;
 pub mod the_guardian;
 
 use crate::effect::EffectTemplate;
+use crate::modifier::Modifiers;
 use crate::state::Vitals;
 use crate::types::EntityId;
 use crate::types::MonsterKind;
@@ -35,6 +36,7 @@ pub struct Monster {
     pub name: MonsterName,
     pub kind: MonsterKind,
     pub vitals: Vitals,
+    pub modifiers: Modifiers,
     pub moves: &'static [Move],
     pub move_current: Option<usize>,
     pub move_history: Vec<usize>,

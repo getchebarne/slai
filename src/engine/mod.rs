@@ -35,6 +35,7 @@ pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 
 use crate::effect::{Effect, EffectTemplate, SelectionKind, TargetKind};
+use crate::modifier::Modifiers;
 use crate::monsters::Monster;
 use crate::state::{GameState, Vitals};
 use crate::types::EntityId;
@@ -66,6 +67,28 @@ fn vitals_ref(state: &GameState, id: EntityId) -> &Vitals {
         .find(|m| m.id == id)
         .expect("Entity not found")
         .vitals
+}
+
+fn modifiers_mut(state: &mut GameState, id: EntityId) -> &mut Modifiers {
+    if id == state.character.id {
+        return &mut state.character.modifiers;
+    }
+    &mut state.monsters
+        .iter_mut()
+        .find(|m| m.id == id)
+        .expect("Entity not found")
+        .modifiers
+}
+
+fn modifiers_ref(state: &GameState, id: EntityId) -> &Modifiers {
+    if id == state.character.id {
+        return &state.character.modifiers;
+    }
+    &state.monsters
+        .iter()
+        .find(|m| m.id == id)
+        .expect("Entity not found")
+        .modifiers
 }
 
 pub fn resolve_target_kind(
@@ -250,8 +273,8 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         Effect::DamagePhysical { source, target, base } => {
-            let source_mods = &vitals_ref(state, source).modifiers;
-            let target_mods = &vitals_ref(state, target).modifiers;
+            let source_mods = modifiers_ref(state, source);
+            let target_mods = modifiers_ref(state, target);
             process_effect_damage_physical::process_effect_damage_physical(
                 source_mods,
                 target_mods,
@@ -269,12 +292,32 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         }
         Effect::HealthLoss { target, amount } => {
             let character_id = state.character.id;
-            let vitals = vitals_mut(state, target);
-            process_effect_health_loss::process_effect_health_loss(vitals, target, amount, character_id)
+            if target == character_id {
+                process_effect_health_loss::process_effect_health_loss(
+                    &mut state.character.vitals, &mut state.character.modifiers,
+                    target, amount, character_id,
+                )
+            } else {
+                let monster = state.monsters.iter_mut().find(|m| m.id == target)
+                    .expect("Entity not found");
+                process_effect_health_loss::process_effect_health_loss(
+                    &mut monster.vitals, &mut monster.modifiers,
+                    target, amount, character_id,
+                )
+            }
         }
         Effect::BlockGain { target, amount, from_card } => {
-            let vitals = vitals_mut(state, target);
-            process_effect_block_gain::process_effect_block_gain(vitals, amount, from_card)
+            if target == state.character.id {
+                process_effect_block_gain::process_effect_block_gain(
+                    &mut state.character.vitals, &state.character.modifiers, amount, from_card,
+                )
+            } else {
+                let monster = state.monsters.iter_mut().find(|m| m.id == target)
+                    .expect("Entity not found");
+                process_effect_block_gain::process_effect_block_gain(
+                    &mut monster.vitals, &monster.modifiers, amount, from_card,
+                )
+            }
         }
         Effect::BlockSet { target, amount } => {
             let vitals = vitals_mut(state, target);
@@ -295,14 +338,14 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         Effect::ModifierGain { target, kind, stacks } => {
             if let Some(monster) = state.monsters.iter_mut().find(|m| m.id == target) {
                 process_effect_modifier_gain::process_effect_modifier_gain(
-                    &mut monster.vitals.modifiers,
+                    &mut monster.modifiers,
                     kind,
                     stacks,
                     Some(&monster.move_history),
                 )
             } else {
                 process_effect_modifier_gain::process_effect_modifier_gain(
-                    &mut state.character.vitals.modifiers,
+                    &mut state.character.modifiers,
                     kind,
                     stacks,
                     None,
@@ -310,11 +353,11 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             }
         }
         Effect::ModifierRemove { target, kind } => {
-            let modifiers = &mut vitals_mut(state, target).modifiers;
+            let modifiers = modifiers_mut(state, target);
             process_effect_modifier_remove::process_effect_modifier_remove(modifiers, kind)
         }
         Effect::ModifierTick { target } => {
-            let modifiers = &mut vitals_mut(state, target).modifiers;
+            let modifiers = modifiers_mut(state, target);
             process_effect_modifier_tick::process_effect_modifier_tick(modifiers)
         }
         Effect::ModifierSetNotNew => {
@@ -351,7 +394,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 &mut state.combat_cards,
                 &mut state.card_active,
                 &mut state.card_target,
-                &mut state.character.vitals.modifiers,
+                &mut state.character.modifiers,
                 &state.map,
             )
         }
@@ -361,6 +404,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             if actor == character_id {
                 process_effect_turn_start::process_effect_turn_start(
                     &mut state.character.vitals,
+                    &mut state.character.modifiers,
                     actor,
                     &state.energy,
                     &monster_ids,
@@ -371,6 +415,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                     .expect("Monster not found for TurnStart");
                 process_effect_turn_start::process_effect_turn_start(
                     &mut monster.vitals,
+                    &mut monster.modifiers,
                     actor,
                     &state.energy,
                     &monster_ids,
@@ -382,6 +427,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             if actor == state.character.id {
                 process_effect_turn_end::process_effect_turn_end_character(
                     &mut state.character.vitals,
+                    &mut state.character.modifiers,
                     &state.monsters,
                     state.card_target,
                     state.character.id,
@@ -391,6 +437,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                     .expect("Monster not found for TurnEnd");
                 process_effect_turn_end::process_effect_turn_end_monster(
                     &mut monster.vitals,
+                    &monster.modifiers,
                     actor,
                 )
             }

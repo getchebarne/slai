@@ -1,18 +1,19 @@
 use crate::effect::Effect;
 use crate::engine::{ProcessEffectResult, instantiate_templates};
-use crate::modifier::{ModifierKind, modifier_has, modifier_remove, modifier_stacks};
+use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
 use crate::monsters::Monster;
 use crate::state::Vitals;
 use crate::types::EntityId;
 
 pub fn process_effect_turn_end_monster(
-    vitals: &mut Vitals,
+    _vitals: &mut Vitals,
+    modifiers: &Modifiers,
     actor: EntityId,
 ) -> ProcessEffectResult {
-    if modifier_has(&vitals.modifiers, ModifierKind::Ritual)
-        && !vitals.modifiers.is_new[ModifierKind::Ritual as usize]
+    if modifier_has(modifiers, ModifierKind::Ritual)
+        && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
-        let stacks = modifier_stacks(&vitals.modifiers, ModifierKind::Ritual);
+        let stacks = modifier_stacks(modifiers, ModifierKind::Ritual);
         return ProcessEffectResult::Continue {
             top: vec![Effect::ModifierGain {
                 target: actor,
@@ -26,17 +27,18 @@ pub fn process_effect_turn_end_monster(
 }
 
 pub fn process_effect_turn_end_character(
-    character_vitals: &mut Vitals,
+    _character_vitals: &mut Vitals,
+    character_modifiers: &mut Modifiers,
     monsters: &[Monster],
     card_target: Option<EntityId>,
     character_id: EntityId,
 ) -> ProcessEffectResult {
     let mut effects = Vec::new();
 
-    if modifier_has(&character_vitals.modifiers, ModifierKind::Ritual)
-        && !character_vitals.modifiers.is_new[ModifierKind::Ritual as usize]
+    if modifier_has(character_modifiers, ModifierKind::Ritual)
+        && !character_modifiers.is_new[ModifierKind::Ritual as usize]
     {
-        let stacks = modifier_stacks(&character_vitals.modifiers, ModifierKind::Ritual);
+        let stacks = modifier_stacks(character_modifiers, ModifierKind::Ritual);
         effects.push(Effect::ModifierGain {
             target: character_id,
             kind: ModifierKind::Strength,
@@ -63,8 +65,8 @@ pub fn process_effect_turn_end_character(
 
     effects.push(Effect::TurnStart { actor: character_id });
 
-    if modifier_has(&character_vitals.modifiers, ModifierKind::Burst) {
-        modifier_remove(&mut character_vitals.modifiers, ModifierKind::Burst);
+    if modifier_has(character_modifiers, ModifierKind::Burst) {
+        modifier_remove(character_modifiers, ModifierKind::Burst);
     }
 
     ProcessEffectResult::Continue {

@@ -32,7 +32,7 @@ pub fn process_effect_card_play(
         top_effects.push(Effect::CardDiscard { card_idx })
     };
 
-    let character_modifiers = &character.vitals.modifiers;
+    let character_modifiers = &character.modifiers;
     if modifier_has(character_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(character_modifiers, ModifierKind::AfterImage);
         top_effects.push(Effect::BlockGain {
@@ -55,7 +55,7 @@ pub fn process_effect_card_play(
 
     if card.kind == CardKind::Attack {
         for monster in monsters.iter() {
-            let monster_modifiers = &monster.vitals.modifiers;
+            let monster_modifiers = &monster.modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
                 top_effects.push(Effect::DamageDeal {

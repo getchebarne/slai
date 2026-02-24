@@ -126,11 +126,11 @@ pub fn spawn_jaw_worm(id: EntityId, ascension_level: u8, rng: &mut impl Rng) -> 
             health: health_max,
             health_max: health_max,
             block: 0,
-            modifiers: Modifiers {
-                stacks: [0; MODIFIER_COUNT],
-                is_new: [false; MODIFIER_COUNT],
-                active: 0,
-            },
+        },
+        modifiers: Modifiers {
+            stacks: [0; MODIFIER_COUNT],
+            is_new: [false; MODIFIER_COUNT],
+            active: 0,
         },
         moves: moves,
         move_current: None,

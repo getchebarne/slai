@@ -21,9 +21,9 @@ pub fn process_effect_death(
 
     let mut effects = Vec::new();
 
-    if modifier_has(&monsters[idx].vitals.modifiers, ModifierKind::SporeCloud) {
+    if modifier_has(&monsters[idx].modifiers, ModifierKind::SporeCloud) {
         let stacks =
-            modifier_stacks(&monsters[idx].vitals.modifiers, ModifierKind::SporeCloud);
+            modifier_stacks(&monsters[idx].modifiers, ModifierKind::SporeCloud);
         effects.push(Effect::ModifierGain {
             target: character_id,
             kind: ModifierKind::Vulnerable,

@@ -256,16 +256,10 @@ pub fn spawn_the_guardian(id: EntityId, ascension_level: u8) -> Monster {
         &MOVES_ASC19
     };
 
-    // Vitals
-    let mut vitals = Vitals {
+    let vitals = Vitals {
         health: health_max,
         health_max: health_max,
         block: 0,
-        modifiers: Modifiers {
-            stacks: [0; MODIFIER_COUNT],
-            is_new: [false; MODIFIER_COUNT],
-            active: 0,
-        },
     };
     let mode_shift_stacks = if ascension_level < 9 {
         MODE_SHIFT_STACKS_30
@@ -274,8 +268,13 @@ pub fn spawn_the_guardian(id: EntityId, ascension_level: u8) -> Monster {
     } else {
         MODE_SHIFT_STACKS_40
     };
+    let mut modifiers = Modifiers {
+        stacks: [0; MODIFIER_COUNT],
+        is_new: [false; MODIFIER_COUNT],
+        active: 0,
+    };
     modifier_apply(
-        &mut vitals.modifiers,
+        &mut modifiers,
         ModifierKind::ModeShift,
         mode_shift_stacks,
     );
@@ -284,7 +283,8 @@ pub fn spawn_the_guardian(id: EntityId, ascension_level: u8) -> Monster {
         id,
         name: MonsterName::TheGuardian,
         kind: MonsterKind::Boss,
-        vitals: vitals,
+        vitals,
+        modifiers,
         moves: moves,
         move_current: None,
         move_history: Vec::new(),
@@ -301,7 +301,7 @@ pub fn get_next_move_the_guardian(monster: &Monster) -> usize {
         .copied()
         .expect("`move_history` cannot be empty here");
 
-    if modifier_has(&monster.vitals.modifiers, ModifierKind::ModeShift) {
+    if modifier_has(&monster.modifiers, ModifierKind::ModeShift) {
         // Offensive mode
         match move_last {
             0 => 1,
@@ -316,7 +316,7 @@ pub fn get_next_move_the_guardian(monster: &Monster) -> usize {
         }
     } else {
         // Defensive mode
-        if modifier_has(&monster.vitals.modifiers, ModifierKind::SharpHide) {
+        if modifier_has(&monster.modifiers, ModifierKind::SharpHide) {
             match move_last {
                 4 => 5,
                 5 => 6,

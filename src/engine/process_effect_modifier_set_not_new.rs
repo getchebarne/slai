@@ -7,9 +7,9 @@ pub fn process_effect_modifier_set_not_new(
     character: &mut Character,
     monsters: &mut [Monster],
 ) -> ProcessEffectResult {
-    modifier_set_not_new(&mut character.vitals.modifiers);
+    modifier_set_not_new(&mut character.modifiers);
     for m in monsters.iter_mut() {
-        modifier_set_not_new(&mut m.vitals.modifiers);
+        modifier_set_not_new(&mut m.modifiers);
     }
     ProcessEffectResult::Pass
 }
