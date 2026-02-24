@@ -23,7 +23,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Vec<Effect> {
             handle_play_card(state, hand_idx)
         }
         (Fsm::CombatDefault, Action::EndTurn) => {
-            vec![Effect::TurnEnd { actor: ActorId::Character }]
+            vec![Effect::TurnEnd { actor: state.character.id }]
         }
         (Fsm::CombatAwaitTarget, Action::SelectMonster { monster_idx }) => {
             handle_select_monster(state, monster_idx)
@@ -54,7 +54,6 @@ fn handle_play_card(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
     let card_idx = state.hand[hand_idx];
     let card = &state.combat_cards[card_idx];
 
-    // Energy check
     assert!(
         card.cost <= state.energy.current,
         "Not enough energy: need {}, have {}",
@@ -62,10 +61,10 @@ fn handle_play_card(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
     );
 
     if card.requires_target() {
-        // If only one monster, auto-target (fast_mode behavior)
         if state.monsters.len() == 1 {
+            let target = state.monsters[0].id;
             vec![
-                Effect::TargetSet { monster_idx: 0 },
+                Effect::TargetSet { target },
                 Effect::CardActiveClear,
                 Effect::CardPlay { card_idx },
                 Effect::TargetClear,
@@ -80,8 +79,9 @@ fn handle_play_card(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
 
 fn handle_select_monster(state: &mut GameState, monster_idx: u8) -> Vec<Effect> {
     let card_idx = state.card_active.expect("No active card for monster select");
+    let target = state.monsters[monster_idx as usize].id;
     vec![
-        Effect::TargetSet { monster_idx },
+        Effect::TargetSet { target },
         Effect::CardActiveClear,
         Effect::CardPlay { card_idx },
         Effect::TargetClear,
@@ -90,16 +90,13 @@ fn handle_select_monster(state: &mut GameState, monster_idx: u8) -> Vec<Effect> 
 
 fn handle_select_discard(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
     let card_idx = state.hand[hand_idx];
-    // Remove the AwaitDiscard from the front of the queue
     state.effect_queue.pop_front();
     vec![Effect::CardDiscard { card_idx }]
 }
 
 fn handle_select_map_node(state: &mut GameState, column: usize) -> Vec<Effect> {
-    // Remove the AwaitMapNode from the front of the queue
     state.effect_queue.pop_front();
 
-    // Set map active
     let y = if state.map.active_y.is_none() {
         0
     } else {
@@ -109,14 +106,12 @@ fn handle_select_map_node(state: &mut GameState, column: usize) -> Vec<Effect> {
     state.map.active_y = Some(y);
     state.map.active_x = Some(column);
 
-    // Reset card rewards
     state.card_rewards.clear();
 
     vec![Effect::RoomEnter]
 }
 
 fn handle_card_reward_select(state: &mut GameState, reward_idx: usize) -> Vec<Effect> {
-    // Remove AwaitCardReward from queue
     state.effect_queue.pop_front();
 
     vec![
@@ -126,7 +121,6 @@ fn handle_card_reward_select(state: &mut GameState, reward_idx: usize) -> Vec<Ef
 }
 
 fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
-    // Remove AwaitCardReward from queue
     state.effect_queue.pop_front();
 
     vec![
@@ -141,13 +135,12 @@ fn handle_rest(state: &mut GameState) -> Vec<Effect> {
     let is_last_floor = state.map.active_y == Some(crate::consts::MAP_HEIGHT - 1);
 
     let mut effects = vec![
-        Effect::HealthGain { target: ActorId::Character, amount: heal },
+        Effect::HealthGain { target: state.character.id, amount: heal },
     ];
 
     if is_last_floor {
-        // Boss fight: go directly to boss room
         state.map.active_y = Some(state.map.boss_room_y);
-        state.map.active_x = Some(0); // boss doesn't have a real column
+        state.map.active_x = Some(0);
         effects.push(Effect::RoomEnter);
     } else {
         effects.push(Effect::AwaitMapNode);

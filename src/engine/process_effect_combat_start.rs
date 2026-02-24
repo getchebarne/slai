@@ -3,7 +3,7 @@ use rand::Rng;
 use crate::cards::Card;
 use crate::effect::Effect;
 use crate::engine::ProcessEffectResult;
-use crate::types::ActorId;
+use crate::types::EntityId;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
@@ -14,48 +14,40 @@ pub fn process_effect_combat_start(
     discard_pile: &mut Vec<usize>,
     exhaust_pile: &mut Vec<usize>,
     card_active: &mut Option<usize>,
-    card_target: &mut Option<u8>,
-    num_monsters: usize,
+    card_target: &mut Option<EntityId>,
+    monster_ids: &[EntityId],
+    character_id: EntityId,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     *combat_cards = deck.to_vec();
-    let num_cards = combat_cards.len();
+    let n = combat_cards.len();
 
-    let mut idxs_innate: Vec<usize> = Vec::new();
-    let mut idxs_other: Vec<usize> = Vec::new();
-    for i in 0..num_cards {
+    let mut innate_indices: Vec<usize> = Vec::new();
+    let mut other_indices: Vec<usize> = Vec::new();
+    for i in 0..n {
         if combat_cards[i].innate {
-            idxs_innate.push(i);
+            innate_indices.push(i);
         } else {
-            idxs_other.push(i);
+            other_indices.push(i);
         }
     }
-    // Shuffle non-innate card indexes
-    shuffle(&mut idxs_other, rng);
 
-    // Assemble draw pile
-    *draw_pile = idxs_innate;
-    draw_pile.extend(idxs_other);
+    shuffle(&mut other_indices, rng);
 
-    // Intialize the remaining combat elements
+    *draw_pile = innate_indices;
+    draw_pile.extend(other_indices);
+
     hand.clear();
     discard_pile.clear();
     exhaust_pile.clear();
     *card_active = None;
     *card_target = None;
 
-    // Queue effects
-    // Monsters' move updates
     let mut effects: Vec<Effect> = Vec::new();
-    for i in 0..num_monsters {
-        effects.push(Effect::MoveUpdate {
-            monster_idx: i as u8,
-        });
+    for &id in monster_ids {
+        effects.push(Effect::MoveUpdate { monster: id });
     }
-    // Character's turn start
-    effects.push(Effect::TurnStart {
-        actor: ActorId::Character,
-    });
+    effects.push(Effect::TurnStart { actor: character_id });
 
     ProcessEffectResult::Continue {
         top: effects,

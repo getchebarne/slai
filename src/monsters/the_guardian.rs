@@ -10,6 +10,7 @@ use crate::monsters::Monster;
 use crate::monsters::Move;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
+use crate::types::EntityId;
 use crate::types::MonsterName;
 
 const MODE_SHIFT_STACKS_30: i16 = 30;
@@ -242,7 +243,7 @@ static MOVES_ASC19: [Move; 7] = [
     MOVE_TWIN_SLAM_40, // + 10 stacks
 ];
 
-pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
+pub fn spawn_the_guardian(id: EntityId, ascension_level: u8) -> Monster {
     // Max health
     let health_max = if ascension_level < 9 { 240 } else { 250 };
 
@@ -280,6 +281,7 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
     );
 
     Monster {
+        id,
         name: MonsterName::TheGuardian,
         kind: MonsterKind::Boss,
         vitals: vitals,

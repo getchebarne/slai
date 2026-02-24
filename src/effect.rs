@@ -1,7 +1,7 @@
 // Effect system: runtime effects + card/monster-level effect templates.
 
 use crate::modifier::ModifierKind;
-use crate::types::ActorId;
+use crate::types::EntityId;
 
 // ---------------------------------------------------------------------------
 // EffectTemplate: stored on Card and Move, used for RL encoding + instantiation
@@ -99,37 +99,37 @@ pub enum Effect {
 
     // Targeting
     TargetSet {
-        monster_idx: u8,
+        target: EntityId,
     },
     TargetClear,
 
     // Damage
     DamagePhysical {
-        source: ActorId,
-        target: ActorId,
+        source: EntityId,
+        target: EntityId,
         base: u16,
     },
     DamageDeal {
-        target: ActorId,
+        target: EntityId,
         amount: u16,
     },
 
     // Vitals
     HealthGain {
-        target: ActorId,
+        target: EntityId,
         amount: u16,
     },
     HealthLoss {
-        target: ActorId,
+        target: EntityId,
         amount: u16,
     },
     BlockGain {
-        target: ActorId,
+        target: EntityId,
         amount: u16,
         from_card: bool,
     },
     BlockSet {
-        target: ActorId,
+        target: EntityId,
         amount: u16,
     },
     EnergyGain {
@@ -141,33 +141,33 @@ pub enum Effect {
 
     // Modifiers
     ModifierGain {
-        target: ActorId,
+        target: EntityId,
         kind: ModifierKind,
         stacks: i16,
     },
     ModifierRemove {
-        target: ActorId,
+        target: EntityId,
         kind: ModifierKind,
     },
     ModifierTick {
-        target: ActorId,
+        target: EntityId,
     },
     ModifierSetNotNew,
 
     // Lifecycle
     Death {
-        actor: ActorId,
+        actor: EntityId,
     },
     CombatStart,
     CombatEnd,
     TurnStart {
-        actor: ActorId,
+        actor: EntityId,
     },
     TurnEnd {
-        actor: ActorId,
+        actor: EntityId,
     },
     MoveUpdate {
-        monster_idx: u8,
+        monster: EntityId,
     },
     RoomEnter,
     GameEnd,

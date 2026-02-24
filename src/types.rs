@@ -144,7 +144,6 @@ pub enum Fsm {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ActorId {
-    Character,
-    Monster(u8),
-}
+pub struct EntityId(pub u32);
+
+

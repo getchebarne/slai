@@ -5,6 +5,7 @@ pub mod the_guardian;
 
 use crate::effect::EffectTemplate;
 use crate::state::Vitals;
+use crate::types::EntityId;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use rand::Rng;
@@ -30,6 +31,7 @@ pub struct Move {
 
 #[derive(Debug, Clone)]
 pub struct Monster {
+    pub id: EntityId,
     pub name: MonsterName,
     pub kind: MonsterKind,
     pub vitals: Vitals,
@@ -39,15 +41,16 @@ pub struct Monster {
 }
 
 pub fn spawn_monster(
+    id: EntityId,
     monster_name: MonsterName,
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> Monster {
     match monster_name {
-        MonsterName::Cultist => cultist::spawn_cultist(ascension_level, rng),
-        MonsterName::JawWorm => jaw_worm::spawn_jaw_worm(ascension_level, rng),
-        MonsterName::TheGuardian => the_guardian::spawn_the_guardian(ascension_level),
-        MonsterName::FungiBeast => fungi_beast::spawn_fungi_beast(ascension_level, rng),
+        MonsterName::Cultist => cultist::spawn_cultist(id, ascension_level, rng),
+        MonsterName::JawWorm => jaw_worm::spawn_jaw_worm(id, ascension_level, rng),
+        MonsterName::TheGuardian => the_guardian::spawn_the_guardian(id, ascension_level),
+        MonsterName::FungiBeast => fungi_beast::spawn_fungi_beast(id, ascension_level, rng),
     }
 }
 

@@ -8,6 +8,7 @@ use crate::monsters::Monster;
 use crate::monsters::Move;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
+use crate::types::EntityId;
 use crate::types::MonsterName;
 use rand::Rng;
 
@@ -99,7 +100,7 @@ static MOVES_ASC0: [Move; 3] = [MOVE_CHOMP_11, MOVE_BELLOW_3_6, MOVE_THRASH];
 static MOVES_ASC2: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_4_6, MOVE_THRASH];
 static MOVES_ASC17: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_5_9, MOVE_THRASH];
 
-pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Monster {
+pub fn spawn_jaw_worm(id: EntityId, ascension_level: u8, rng: &mut impl Rng) -> Monster {
     // Roll max health
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (40, 44)
@@ -118,6 +119,7 @@ pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Monster {
     };
 
     Monster {
+        id,
         name: MonsterName::JawWorm,
         kind: MonsterKind::Normal,
         vitals: Vitals {

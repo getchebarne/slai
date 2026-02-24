@@ -9,6 +9,7 @@ use crate::monsters::Monster;
 use crate::monsters::Move;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
+use crate::types::EntityId;
 use crate::types::MonsterName;
 use rand::Rng;
 
@@ -54,7 +55,7 @@ static MOVES_ASC0: [Move; 2] = [MOVE_GROW_3, MOVE_BITE];
 static MOVES_ASC2: [Move; 2] = [MOVE_GROW_4, MOVE_BITE];
 static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];
 
-pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Monster {
+pub fn spawn_fungi_beast(id: EntityId, ascension_level: u8, rng: &mut impl Rng) -> Monster {
     // Roll max health
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (22, 28)
@@ -86,6 +87,7 @@ pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Monster {
     modifier_apply(&mut vitals.modifiers, ModifierKind::SporeCloud, 2);
 
     Monster {
+        id,
         name: MonsterName::FungiBeast,
         kind: MonsterKind::Normal,
         vitals: vitals,

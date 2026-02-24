@@ -3,7 +3,7 @@ use crate::effect::Effect;
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{Modifiers, modifier_clear};
 use crate::state::Map;
-use crate::types::RoomType;
+use crate::types::{EntityId, RoomType};
 
 pub fn process_effect_combat_end(
     hand: &mut Vec<usize>,
@@ -12,11 +12,10 @@ pub fn process_effect_combat_end(
     exhaust_pile: &mut Vec<usize>,
     combat_cards: &mut Vec<Card>,
     card_active: &mut Option<usize>,
-    card_target: &mut Option<u8>,
+    card_target: &mut Option<EntityId>,
     character_modifiers: &mut Modifiers,
     map: &Map,
 ) -> ProcessEffectResult {
-    // Clear combat elements
     hand.clear();
     draw_pile.clear();
     discard_pile.clear();
@@ -26,7 +25,6 @@ pub fn process_effect_combat_end(
     *card_target = None;
     modifier_clear(character_modifiers);
 
-    // Route according to current room type
     let room = map.active_room_type().unwrap();
     match room {
         RoomType::CombatBoss => ProcessEffectResult::Continue {

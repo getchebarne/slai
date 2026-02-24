@@ -25,6 +25,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     // Character (Silent)
     let (health, health_max) = silent_health(ascension);
     let character = Character {
+        id: EntityId(0),
         vitals: Vitals {
             health,
             health_max,
@@ -56,6 +57,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         card_target: None,
         monsters: Vec::new(),
         card_rewards: Vec::new(),
+        next_entity_id: 1,
         map,
         effect_queue: VecDeque::new(),
     }

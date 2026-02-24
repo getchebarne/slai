@@ -3,13 +3,14 @@ use crate::effect::Effect;
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, modifier_has, modifier_remove, modifier_stacks};
 use crate::state::{Energy, Vitals};
-use crate::types::ActorId;
+use crate::types::EntityId;
 
 pub fn process_effect_turn_start(
     vitals: &mut Vitals,
-    actor: ActorId,
+    actor: EntityId,
     energy: &Energy,
-    num_monsters: usize,
+    monster_ids: &[EntityId],
+    character_id: EntityId,
 ) -> ProcessEffectResult {
     let mut effects = Vec::new();
 
@@ -31,13 +32,13 @@ pub fn process_effect_turn_start(
         });
     }
 
-    if actor == ActorId::Character {
+    if actor == character_id {
         effects.push(Effect::CardDraw { count: CARDS_DRAWN_PER_TURN });
         let energy_gain = energy.max - energy.current;
         effects.push(Effect::EnergyGain { amount: energy_gain });
-        effects.push(Effect::ModifierTick { target: ActorId::Character });
-        for i in 0..num_monsters {
-            effects.push(Effect::ModifierTick { target: ActorId::Monster(i as u8) });
+        effects.push(Effect::ModifierTick { target: character_id });
+        for &mid in monster_ids {
+            effects.push(Effect::ModifierTick { target: mid });
         }
 
         if modifier_has(&vitals.modifiers, ModifierKind::NextTurnEnergy) {

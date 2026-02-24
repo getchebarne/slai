@@ -3,11 +3,11 @@ use crate::engine::{ProcessEffectResult, instantiate_templates};
 use crate::modifier::{ModifierKind, modifier_has, modifier_remove, modifier_stacks};
 use crate::monsters::Monster;
 use crate::state::Vitals;
-use crate::types::ActorId;
+use crate::types::EntityId;
 
 pub fn process_effect_turn_end_monster(
     vitals: &mut Vitals,
-    actor: ActorId,
+    actor: EntityId,
 ) -> ProcessEffectResult {
     if modifier_has(&vitals.modifiers, ModifierKind::Ritual)
         && !vitals.modifiers.is_new[ModifierKind::Ritual as usize]
@@ -28,7 +28,8 @@ pub fn process_effect_turn_end_monster(
 pub fn process_effect_turn_end_character(
     character_vitals: &mut Vitals,
     monsters: &[Monster],
-    card_target: Option<u8>,
+    card_target: Option<EntityId>,
+    character_id: EntityId,
 ) -> ProcessEffectResult {
     let mut effects = Vec::new();
 
@@ -37,7 +38,7 @@ pub fn process_effect_turn_end_character(
     {
         let stacks = modifier_stacks(&character_vitals.modifiers, ModifierKind::Ritual);
         effects.push(Effect::ModifierGain {
-            target: ActorId::Character,
+            target: character_id,
             kind: ModifierKind::Strength,
             stacks,
         });
@@ -46,21 +47,21 @@ pub fn process_effect_turn_end_character(
     effects.push(Effect::CardDiscardAll);
     effects.push(Effect::ModifierSetNotNew);
 
-    for i in 0..monsters.len() {
-        let mi = ActorId::Monster(i as u8);
-        effects.push(Effect::TurnStart { actor: mi });
+    for monster in monsters.iter() {
+        let mid = monster.id;
+        effects.push(Effect::TurnStart { actor: mid });
 
-        if let Some(move_idx) = monsters[i].move_current {
+        if let Some(move_idx) = monster.move_current {
             let move_effects =
-                instantiate_templates(monsters[i].moves[move_idx].effects, mi, card_target, monsters);
+                instantiate_templates(monster.moves[move_idx].effects, mid, card_target, character_id, monsters);
             effects.extend(move_effects);
         }
 
-        effects.push(Effect::MoveUpdate { monster_idx: i as u8 });
-        effects.push(Effect::TurnEnd { actor: mi });
+        effects.push(Effect::MoveUpdate { monster: mid });
+        effects.push(Effect::TurnEnd { actor: mid });
     }
 
-    effects.push(Effect::TurnStart { actor: ActorId::Character });
+    effects.push(Effect::TurnStart { actor: character_id });
 
     if modifier_has(&character_vitals.modifiers, ModifierKind::Burst) {
         modifier_remove(&mut character_vitals.modifiers, ModifierKind::Burst);

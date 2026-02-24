@@ -8,6 +8,7 @@ use crate::monsters::Monster;
 use crate::monsters::Move;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
+use crate::types::EntityId;
 use crate::types::MonsterName;
 use rand::Rng;
 
@@ -53,7 +54,7 @@ static MOVES_ASC0: [Move; 2] = [MOVE_INCANTATION_3, MOVE_DARK_STRIKE];
 static MOVES_ASC2: [Move; 2] = [MOVE_INCANTATION_4, MOVE_DARK_STRIKE];
 static MOVES_ASC17: [Move; 2] = [MOVE_INCANTATION_5, MOVE_DARK_STRIKE];
 
-pub fn spawn_cultist(ascension_level: u8, rng: &mut impl Rng) -> Monster {
+pub fn spawn_cultist(id: EntityId, ascension_level: u8, rng: &mut impl Rng) -> Monster {
     // Roll max health
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (48, 54)
@@ -72,6 +73,7 @@ pub fn spawn_cultist(ascension_level: u8, rng: &mut impl Rng) -> Monster {
     };
 
     Monster {
+        id,
         name: MonsterName::Cultist,
         kind: MonsterKind::Normal,
         vitals: Vitals {

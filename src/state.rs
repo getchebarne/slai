@@ -37,6 +37,7 @@ pub fn vitals_new(health: u16, health_max: u16) -> Vitals {
 
 #[derive(Debug, Clone)]
 pub struct Character {
+    pub id: EntityId,
     pub vitals: Vitals,
     pub reward_roll_offset: i8,
 }
@@ -121,7 +122,7 @@ pub struct GameState {
 
     // Active card / target
     pub card_active: Option<usize>,
-    pub card_target: Option<u8>,
+    pub card_target: Option<EntityId>,
 
     // Monsters
     pub monsters: Vec<Monster>,
@@ -131,6 +132,9 @@ pub struct GameState {
 
     // Map
     pub map: Map,
+
+    // Entity ID counter (0 is reserved for CHARACTER)
+    pub next_entity_id: u32,
 
     // Effect queue
     pub effect_queue: VecDeque<Effect>,
