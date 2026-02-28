@@ -4,10 +4,7 @@ use crate::engine::ProcessEffectResult;
 use crate::monsters;
 use crate::state::Entity;
 
-pub fn process_effect_move_update(
-    entity: &mut Entity,
-    rng: &mut impl Rng,
-) -> ProcessEffectResult {
+pub fn process_effect_move_update(entity: &mut Entity, rng: &mut impl Rng) -> ProcessEffectResult {
     let m = entity.kind.monster_mut();
     let move_next = monsters::get_next_move(m, rng);
     m.move_current = Some(move_next);

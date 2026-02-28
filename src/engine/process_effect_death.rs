@@ -1,12 +1,14 @@
 use crate::effect::Effect;
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
-use crate::state::{Entity, EntityKind};
+use crate::state::Entity;
 use crate::types::EntityId;
 
 pub fn process_effect_death(
     actor: EntityId,
-    entities: &mut [Option<Entity>],
+    entities: &mut [Entity],
+    monsters: &[EntityId],
+    monster_count: u8,
 ) -> ProcessEffectResult {
     if actor.0 == 0 {
         return ProcessEffectResult::Continue {
@@ -17,8 +19,8 @@ pub fn process_effect_death(
 
     let mut effects = Vec::new();
 
-    if let Some(entity) = &entities[actor.0 as usize] {
-        let (_, modifiers) = entity.kind.combatant_ref();
+    {
+        let (_, modifiers) = entities[actor.0 as usize].kind.combatant_ref();
         if modifier_has(modifiers, ModifierKind::SporeCloud) {
             let stacks = modifier_stacks(modifiers, ModifierKind::SporeCloud);
             effects.push(Effect::ModifierGain {
@@ -29,12 +31,12 @@ pub fn process_effect_death(
         }
     }
 
-    entities[actor.0 as usize] = None;
+    entities[actor.0 as usize].kind.monster_mut().dead = true;
 
-    let any_monsters_alive = entities.iter().any(|s|
-        matches!(s, Some(Entity { kind: EntityKind::Monster(..) }))
-    );
-    if !any_monsters_alive {
+    let any_alive = monsters[..monster_count as usize]
+        .iter()
+        .any(|&id| !entities[id.0 as usize].kind.monster_ref().dead);
+    if !any_alive {
         effects.push(Effect::CombatEnd);
     }
 

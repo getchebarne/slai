@@ -3,9 +3,9 @@ use crate::effect::TargetKind;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifiers_new;
 use crate::monsters::Intent;
-use crate::monsters::Move;
-use crate::monsters::Monster;
 use crate::monsters::MAX_MOVE_HISTORY;
+use crate::monsters::Monster;
+use crate::monsters::Move;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -72,12 +72,17 @@ pub fn spawn_cultist(ascension_level: u8, rng: &mut impl Rng) -> Monster {
     Monster {
         name: MonsterName::Cultist,
         monster_kind: MonsterKind::Normal,
-        vitals: Vitals { health: health_max, health_max, block: 0 },
+        vitals: Vitals {
+            health: health_max,
+            health_max,
+            block: 0,
+        },
         modifiers: modifiers_new(),
         moves,
         move_current: None,
         move_history: [0; MAX_MOVE_HISTORY],
         move_history_len: 0,
+        dead: false,
     }
 }
 

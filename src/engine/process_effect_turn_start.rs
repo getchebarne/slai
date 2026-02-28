@@ -22,7 +22,10 @@ pub fn process_effect_turn_start(
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
         modifier_remove(modifiers, ModifierKind::NextTurnBlock);
     }
-    effects.push(Effect::BlockSet { target: actor, amount: new_block });
+    effects.push(Effect::BlockSet {
+        target: actor,
+        amount: new_block,
+    });
 
     if modifier_has(modifiers, ModifierKind::Phantasmal) {
         effects.push(Effect::ModifierGain {
@@ -33,23 +36,33 @@ pub fn process_effect_turn_start(
     }
 
     if actor.0 == 0 {
-        effects.push(Effect::CardDraw { count: CARDS_DRAWN_PER_TURN });
+        effects.push(Effect::CardDraw {
+            count: CARDS_DRAWN_PER_TURN,
+        });
         let energy_gain = energy.max - energy.current;
-        effects.push(Effect::EnergyGain { amount: energy_gain });
-        effects.push(Effect::ModifierTick { target: EntityId(0) });
+        effects.push(Effect::EnergyGain {
+            amount: energy_gain,
+        });
+        effects.push(Effect::ModifierTick {
+            target: EntityId(0),
+        });
         for &mid in monster_ids {
             effects.push(Effect::ModifierTick { target: mid });
         }
 
         if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
-            effects.push(Effect::EnergyGain { amount: stacks as u8 });
+            effects.push(Effect::EnergyGain {
+                amount: stacks as u8,
+            });
             modifier_remove(modifiers, ModifierKind::NextTurnEnergy);
         }
 
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
-            effects.push(Effect::AddShivs { count: stacks as u8 });
+            effects.push(Effect::AddShivs {
+                count: stacks as u8,
+            });
         }
     }
 

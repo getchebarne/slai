@@ -1,4 +1,4 @@
-// Game loop: step, initialize, FSM determination.
+// Game loop: step, initialize, Phase determination.
 
 use std::collections::VecDeque;
 
@@ -6,12 +6,13 @@ use rand::SeedableRng;
 use rand::rngs::SmallRng;
 
 use crate::action::{Action, handle_action};
-use crate::character::{spawn_silent, silent_starter_deck};
+use crate::consts::MAX_MONSTERS;
+use crate::character::{silent_starter_deck, spawn_silent};
 use crate::effect::Effect;
-use crate::map::generate_map;
 use crate::engine::process_queue;
+use crate::map::generate_map;
 use crate::state::*;
-use crate::types::*;
+use crate::types::{EntityId, Phase, RoomType};
 
 // ---------------------------------------------------------------------------
 // Create + initialize
@@ -29,9 +30,12 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
     GameState {
         ascension,
-        fsm: Fsm::Map,
+        phase: Phase::Map,
         rng,
-        entities: vec![Some(character)],
+        entities: vec![character],
+        character: EntityId(0),
+        monsters: [EntityId(0); MAX_MONSTERS],
+        monster_count: 0,
         energy: Energy { current: 3, max: 3 },
         deck,
         draw_pile: Vec::new(),
@@ -48,45 +52,45 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
 pub fn initialize(state: &mut GameState) {
     state.effect_queue.push_back(Effect::AwaitMapNode);
-    state.fsm = determine_fsm(state);
+    state.phase = determine_phase(state);
 }
 
 // ---------------------------------------------------------------------------
 // Step
 // ---------------------------------------------------------------------------
 
-pub fn step(state: &mut GameState, action: Action) {
-    let effects = handle_action(state, action);
+pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
+    let effects = handle_action(state, action)?;
     for e in effects {
         state.effect_queue.push_back(e);
     }
     process_queue(state);
-    state.fsm = determine_fsm(state);
+    state.phase = determine_phase(state);
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
-// FSM determination
+// Phase determination
 // ---------------------------------------------------------------------------
 
-pub fn determine_fsm(state: &GameState) -> Fsm {
+pub fn determine_phase(state: &GameState) -> Phase {
     if let Some(front) = state.effect_queue.front() {
         return match front {
-            Effect::GameEnd => Fsm::GameOver,
-            Effect::AwaitDiscard => Fsm::CombatAwaitDiscard,
-            Effect::AwaitMapNode => Fsm::Map,
-            Effect::AwaitCardReward => Fsm::CardReward,
+            Effect::GameEnd => Phase::GameOver,
+            Effect::AwaitDiscard => Phase::CombatAwaitDiscard,
+            Effect::AwaitMapNode => Phase::Map,
+            Effect::AwaitCardReward => Phase::CardReward,
             _ => panic!("Unexpected pending effect: {:?}", front),
         };
     }
 
     if state.card_active.is_some() {
-        return Fsm::CombatAwaitTarget;
+        return Phase::CombatAwaitTarget;
     }
 
     match state.map.active_room_type() {
-        Some(RoomType::RestSite) => Fsm::RestSite,
-        Some(RoomType::CombatMonster) | Some(RoomType::CombatBoss) => Fsm::CombatDefault,
-        None => Fsm::Map,
+        Some(RoomType::RestSite) => Phase::RestSite,
+        Some(RoomType::CombatMonster) | Some(RoomType::CombatBoss) => Phase::CombatDefault,
+        None => Phase::Map,
     }
 }
-

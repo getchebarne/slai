@@ -133,7 +133,7 @@ pub enum RoomType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
-pub enum Fsm {
+pub enum Phase {
     CardReward,
     CombatDefault,
     CombatAwaitTarget,
@@ -145,5 +145,3 @@ pub enum Fsm {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct EntityId(pub u32);
-
-

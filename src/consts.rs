@@ -5,6 +5,7 @@ pub const MAX_COMBAT_CARD_REWARD: usize = 3;
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_VULN: f32 = 1.50;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
+pub const MAX_MONSTERS: usize = 5;
 
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;

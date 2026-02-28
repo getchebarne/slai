@@ -11,7 +11,8 @@ pub fn process_effect_combat_end(
     exhaust_pile: &mut Vec<EntityId>,
     card_active: &mut Option<EntityId>,
     card_target: &mut Option<EntityId>,
-    entities: &mut Vec<Option<Entity>>,
+    entities: &mut Vec<Entity>,
+    monster_count: &mut u8,
     map: &Map,
 ) -> ProcessEffectResult {
     hand.clear();
@@ -21,18 +22,10 @@ pub fn process_effect_combat_end(
     *card_active = None;
     *card_target = None;
 
-    // Clear character modifiers and remove all non-character entities
-    for (i, slot) in entities.iter_mut().enumerate() {
-        if i == 0 {
-            if let Some(entity) = slot {
-                let (_, modifiers) = entity.kind.combatant_mut();
-                modifier_clear(modifiers);
-            }
-        } else {
-            *slot = None;
-        }
-    }
+    let (_, modifiers) = entities[0].kind.combatant_mut();
+    modifier_clear(modifiers);
     entities.truncate(1);
+    *monster_count = 0;
 
     let room = map.active_room_type().unwrap();
     match room {

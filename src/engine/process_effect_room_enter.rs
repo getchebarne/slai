@@ -4,19 +4,37 @@ use crate::effect::Effect;
 use crate::engine::ProcessEffectResult;
 use crate::monsters;
 use crate::state::{Entity, EntityKind, Map};
-use crate::types::{MonsterName, RoomType};
+use crate::types::{EntityId, MonsterName, RoomType};
+
+fn push_monster(
+    monster: crate::monsters::Monster,
+    entities: &mut Vec<Entity>,
+    monsters: &mut [EntityId],
+    monster_count: &mut u8,
+) {
+    let id = EntityId(entities.len() as u32);
+    entities.push(Entity {
+        kind: EntityKind::Monster(monster),
+    });
+    monsters[*monster_count as usize] = id;
+    *monster_count += 1;
+}
 
 pub fn process_effect_room_enter(
     map: &Map,
     ascension: u8,
-    entities: &mut Vec<Option<Entity>>,
+    entities: &mut Vec<Entity>,
+    monsters: &mut [EntityId],
+    monster_count: &mut u8,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
+    *monster_count = 0;
+
     let room = map.active_room_type().unwrap();
     match room {
         RoomType::CombatBoss => {
             let m = monsters::spawn_monster(MonsterName::TheGuardian, ascension, rng);
-            entities.push(Some(Entity { kind: EntityKind::Monster(m) }));
+            push_monster(m, entities, monsters, monster_count);
             ProcessEffectResult::Continue {
                 top: vec![Effect::CombatStart],
                 bot: Vec::new(),
@@ -27,17 +45,17 @@ pub fn process_effect_room_enter(
             match encounter {
                 0 => {
                     let m = monsters::spawn_monster(MonsterName::JawWorm, ascension, rng);
-                    entities.push(Some(Entity { kind: EntityKind::Monster(m) }));
+                    push_monster(m, entities, monsters, monster_count);
                 }
                 1 => {
                     let m = monsters::spawn_monster(MonsterName::Cultist, ascension, rng);
-                    entities.push(Some(Entity { kind: EntityKind::Monster(m) }));
+                    push_monster(m, entities, monsters, monster_count);
                 }
                 2 => {
                     let m1 = monsters::spawn_monster(MonsterName::FungiBeast, ascension, rng);
                     let m2 = monsters::spawn_monster(MonsterName::FungiBeast, ascension, rng);
-                    entities.push(Some(Entity { kind: EntityKind::Monster(m1) }));
-                    entities.push(Some(Entity { kind: EntityKind::Monster(m2) }));
+                    push_monster(m1, entities, monsters, monster_count);
+                    push_monster(m2, entities, monsters, monster_count);
                 }
                 _ => unreachable!(),
             };

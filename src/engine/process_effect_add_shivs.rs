@@ -6,7 +6,7 @@ use crate::types::{CardName, EntityId};
 
 pub fn process_effect_add_shivs(
     count: u8,
-    entities: &mut Vec<Option<Entity>>,
+    entities: &mut Vec<Entity>,
     hand: &mut Vec<EntityId>,
     disc_pile: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
@@ -14,7 +14,9 @@ pub fn process_effect_add_shivs(
 
     for _ in 0..count {
         let card_id = EntityId(entities.len() as u32);
-        entities.push(Some(Entity { kind: EntityKind::Card(shiv) }));
+        entities.push(Entity {
+            kind: EntityKind::Card(shiv),
+        });
 
         if hand.len() < MAX_SIZE_HAND {
             hand.push(card_id)

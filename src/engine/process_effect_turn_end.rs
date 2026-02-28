@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::engine::{ProcessEffectResult, instantiate_templates};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::state::{Entity, EntityKind, Vitals};
+use crate::state::{Entity, Vitals};
 use crate::types::EntityId;
 
 pub fn process_effect_turn_end_monster(
@@ -26,11 +26,11 @@ pub fn process_effect_turn_end_monster(
 }
 
 pub fn process_effect_turn_end_character(
-    entities: &[Option<Entity>],
+    entities: &[Entity],
     card_target: Option<EntityId>,
+    alive_monsters: &[EntityId],
 ) -> ProcessEffectResult {
-    let character_entity = entities[0].as_ref().unwrap();
-    let (_, character_modifiers) = character_entity.kind.combatant_ref();
+    let (_, character_modifiers) = entities[0].kind.combatant_ref();
 
     let mut effects = Vec::new();
 
@@ -48,21 +48,18 @@ pub fn process_effect_turn_end_character(
     effects.push(Effect::CardDiscardAll);
     effects.push(Effect::ModifierSetNotNew);
 
-    for (i, slot) in entities.iter().enumerate() {
-        if let Some(Entity { kind: EntityKind::Monster(m) }) = slot {
-            let mid = EntityId(i as u32);
-            effects.push(Effect::TurnStart { actor: mid });
+    for &mid in alive_monsters {
+        let m = entities[mid.0 as usize].kind.monster_ref();
+        effects.push(Effect::TurnStart { actor: mid });
 
-            if let Some(move_idx) = m.move_current {
-                let move_effects = instantiate_templates(
-                    m.moves[move_idx].effects, mid, card_target, entities,
-                );
-                effects.extend(move_effects);
-            }
-
-            effects.push(Effect::MoveUpdate { monster: mid });
-            effects.push(Effect::TurnEnd { actor: mid });
+        if let Some(move_idx) = m.move_current {
+            let move_effects =
+                instantiate_templates(m.moves[move_idx].effects, mid, card_target, alive_monsters);
+            effects.extend(move_effects);
         }
+
+        effects.push(Effect::MoveUpdate { monster: mid });
+        effects.push(Effect::TurnEnd { actor: mid });
     }
 
     effects.push(Effect::TurnStart { actor: EntityId(0) });

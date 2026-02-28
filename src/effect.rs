@@ -78,10 +78,6 @@ pub enum Effect {
     CardRemove {
         card_id: EntityId,
     },
-    CardActiveSet {
-        card_id: EntityId,
-    },
-    CardActiveClear,
     AddShivs {
         count: u8,
     },

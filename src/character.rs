@@ -13,7 +13,11 @@ pub struct Character {
 pub fn spawn_silent(ascension: u8) -> Character {
     let (health, health_max) = silent_health(ascension);
     Character {
-        vitals: Vitals { health, health_max, block: 0 },
+        vitals: Vitals {
+            health,
+            health_max,
+            block: 0,
+        },
         modifiers: modifiers_new(),
         reward_roll_offset: 5,
     }

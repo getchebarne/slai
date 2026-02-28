@@ -3,9 +3,9 @@ use crate::effect::TargetKind;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifiers_new;
 use crate::monsters::Intent;
-use crate::monsters::Move;
-use crate::monsters::Monster;
 use crate::monsters::MAX_MOVE_HISTORY;
+use crate::monsters::Monster;
+use crate::monsters::Move;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -17,7 +17,10 @@ static MOVE_CHOMP_11: Move = Move {
         base: 11,
         target: TargetKind::Character,
     }],
-    intent: Intent::Attack { damage: 11, instances: 1 },
+    intent: Intent::Attack {
+        damage: 11,
+        instances: 1,
+    },
 };
 static MOVE_CHOMP_12: Move = Move {
     name: "Chomp",
@@ -25,37 +28,70 @@ static MOVE_CHOMP_12: Move = Move {
         base: 12,
         target: TargetKind::Character,
     }],
-    intent: Intent::Attack { damage: 12, instances: 1 },
+    intent: Intent::Attack {
+        damage: 12,
+        instances: 1,
+    },
 };
 static MOVE_THRASH: Move = Move {
     name: "Thrash",
     effects: &[
-        EffectTemplate::DamagePhysical { base: 7, target: TargetKind::Character },
-        EffectTemplate::BlockGain { amount: 5, target: TargetKind::Source },
+        EffectTemplate::DamagePhysical {
+            base: 7,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::BlockGain {
+            amount: 5,
+            target: TargetKind::Source,
+        },
     ],
-    intent: Intent::AttackBlock { damage: 7, instances: 1 },
+    intent: Intent::AttackBlock {
+        damage: 7,
+        instances: 1,
+    },
 };
 static MOVE_BELLOW_3_6: Move = Move {
     name: "Bellow",
     effects: &[
-        EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 3, target: TargetKind::Source },
-        EffectTemplate::BlockGain { amount: 6, target: TargetKind::Source },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::Strength,
+            stacks: 3,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::BlockGain {
+            amount: 6,
+            target: TargetKind::Source,
+        },
     ],
     intent: Intent::BlockBuff,
 };
 static MOVE_BELLOW_4_6: Move = Move {
     name: "Bellow",
     effects: &[
-        EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 4, target: TargetKind::Source },
-        EffectTemplate::BlockGain { amount: 6, target: TargetKind::Source },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::Strength,
+            stacks: 4,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::BlockGain {
+            amount: 6,
+            target: TargetKind::Source,
+        },
     ],
     intent: Intent::BlockBuff,
 };
 static MOVE_BELLOW_5_9: Move = Move {
     name: "Bellow",
     effects: &[
-        EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 5, target: TargetKind::Source },
-        EffectTemplate::BlockGain { amount: 9, target: TargetKind::Source },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::Strength,
+            stacks: 5,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::BlockGain {
+            amount: 9,
+            target: TargetKind::Source,
+        },
     ],
     intent: Intent::BlockBuff,
 };
@@ -82,12 +118,17 @@ pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Monster {
     Monster {
         name: MonsterName::JawWorm,
         monster_kind: MonsterKind::Normal,
-        vitals: Vitals { health: health_max, health_max, block: 0 },
+        vitals: Vitals {
+            health: health_max,
+            health_max,
+            block: 0,
+        },
         modifiers: modifiers_new(),
         moves,
         move_current: None,
         move_history: [0; MAX_MOVE_HISTORY],
         move_history_len: 0,
+        dead: false,
     }
 }
 

@@ -3,11 +3,11 @@
 use pyo3::prelude::*;
 
 use crate::cards::Card;
+use crate::consts::FACTOR_VULN;
 use crate::effect::EffectTemplate;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::monsters::Intent;
-use crate::consts::FACTOR_VULN;
-use crate::state::{Entity, EntityKind, GameState};
+use crate::state::{Entity, GameState};
 use crate::types::EntityId;
 
 // ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ pub struct ViewGameState {
     pub reward_combat: Vec<ViewCard>,
     pub energy: ViewEnergy,
     pub map: ViewMap,
-    pub fsm: String,
+    pub phase: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -124,34 +124,48 @@ pub fn build_view(state: &GameState) -> ViewGameState {
     ViewGameState {
         character: build_view_character(state),
         monsters: build_view_monsters(state),
-        deck: state.deck.iter().map(|c| build_view_card_template(c, false)).collect(),
-        hand: state.hand.iter().map(|&id| {
-            let is_active = state.card_active == Some(id);
-            let card = state.entities[id.0 as usize].as_ref().expect("Missing card").kind.card_ref();
-            build_view_card_template(card, is_active)
-        }).collect(),
+        deck: state
+            .deck
+            .iter()
+            .map(|c| build_view_card_template(c, false))
+            .collect(),
+        hand: state
+            .hand
+            .iter()
+            .map(|&id| {
+                let is_active = state.card_active == Some(id);
+                let card = state.entities[id.0 as usize].kind.card_ref();
+                build_view_card_template(card, is_active)
+            })
+            .collect(),
         pile_draw: build_view_pile(&state.entities, &state.draw_pile),
         pile_disc: build_view_pile(&state.entities, &state.discard_pile),
         pile_exhaust: build_view_pile(&state.entities, &state.exhaust_pile),
-        reward_combat: state.card_rewards.iter().map(|c| build_view_card_template(c, false)).collect(),
+        reward_combat: state
+            .card_rewards
+            .iter()
+            .map(|c| build_view_card_template(c, false))
+            .collect(),
         energy: ViewEnergy {
             current: state.energy.current,
             max: state.energy.max,
         },
         map: build_view_map(state),
-        fsm: format!("{:?}", state.fsm),
+        phase: format!("{:?}", state.phase),
     }
 }
 
-fn build_view_pile(entities: &[Option<Entity>], pile: &[EntityId]) -> Vec<ViewCard> {
-    pile.iter().map(|&id| {
-        let card = entities[id.0 as usize].as_ref().expect("Missing card").kind.card_ref();
-        build_view_card_template(card, false)
-    }).collect()
+fn build_view_pile(entities: &[Entity], pile: &[EntityId]) -> Vec<ViewCard> {
+    pile.iter()
+        .map(|&id| {
+            let card = entities[id.0 as usize].kind.card_ref();
+            build_view_card_template(card, false)
+        })
+        .collect()
 }
 
 fn build_view_character(state: &GameState) -> ViewCharacter {
-    let c = state.entities[0].as_ref().unwrap().kind.character_ref();
+    let c = state.entities[0].kind.character_ref();
     ViewCharacter {
         name: "Silent".to_string(),
         health_current: c.vitals.health,
@@ -163,58 +177,74 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
 }
 
 fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
-    let character_modifiers = {
-        let (_, mods) = state.entities[0].as_ref().unwrap().kind.combatant_ref();
-        mods
-    };
+    let (_, character_modifiers) = state.entities[0].kind.combatant_ref();
 
-    state.entities.iter().filter_map(|slot| {
-        let entity = slot.as_ref()?;
-        let EntityKind::Monster(m) = &entity.kind else {
-            return None;
-        };
+    state
+        .alive_monster_ids()
+        .iter()
+        .map(|&mid| {
+            let m = state.entities[mid.0 as usize].kind.monster_ref();
 
-        let intent = if let Some(move_idx) = m.move_current {
-            let mv = &m.moves[move_idx];
-            let (base_damage, instances, block, buff, debuff) = match mv.intent {
-                Intent::Attack { damage, instances } => (Some(damage), Some(instances), false, false, false),
-                Intent::AttackBlock { damage, instances } => (Some(damage), Some(instances), true, false, false),
-                Intent::AttackBuff { damage, instances } => (Some(damage), Some(instances), false, true, false),
-                Intent::Block => (None, None, true, false, false),
-                Intent::BlockBuff => (None, None, true, true, false),
-                Intent::Buff => (None, None, false, true, false),
-                Intent::Debuff => (None, None, false, false, true),
-                Intent::DebuffPowerful => (None, None, false, false, true),
+            let intent = if let Some(move_idx) = m.move_current {
+                let mv = &m.moves[move_idx];
+                let (base_damage, instances, block, buff, debuff) = match mv.intent {
+                    Intent::Attack { damage, instances } => {
+                        (Some(damage), Some(instances), false, false, false)
+                    }
+                    Intent::AttackBlock { damage, instances } => {
+                        (Some(damage), Some(instances), true, false, false)
+                    }
+                    Intent::AttackBuff { damage, instances } => {
+                        (Some(damage), Some(instances), false, true, false)
+                    }
+                    Intent::Block => (None, None, true, false, false),
+                    Intent::BlockBuff => (None, None, true, true, false),
+                    Intent::Buff => (None, None, false, true, false),
+                    Intent::Debuff => (None, None, false, false, true),
+                    Intent::DebuffPowerful => (None, None, false, false, true),
+                };
+
+                let damage = base_damage.map(|d| {
+                    let mut dmg = d as f32;
+                    if modifier_has(&m.modifiers, ModifierKind::Strength) {
+                        dmg += modifier_stacks(&m.modifiers, ModifierKind::Strength) as f32;
+                    }
+                    if modifier_has(&m.modifiers, ModifierKind::Weak) {
+                        dmg *= 0.75;
+                    }
+                    if modifier_has(character_modifiers, ModifierKind::Vulnerable) {
+                        dmg *= FACTOR_VULN;
+                    }
+                    dmg as u16
+                });
+
+                ViewIntent {
+                    damage,
+                    instances,
+                    block,
+                    buff,
+                    debuff,
+                }
+            } else {
+                ViewIntent {
+                    damage: None,
+                    instances: None,
+                    block: false,
+                    buff: false,
+                    debuff: false,
+                }
             };
 
-            let damage = base_damage.map(|d| {
-                let mut dmg = d as f32;
-                if modifier_has(&m.modifiers, ModifierKind::Strength) {
-                    dmg += modifier_stacks(&m.modifiers, ModifierKind::Strength) as f32;
-                }
-                if modifier_has(&m.modifiers, ModifierKind::Weak) {
-                    dmg *= 0.75;
-                }
-                if modifier_has(character_modifiers, ModifierKind::Vulnerable) {
-                    dmg *= FACTOR_VULN;
-                }
-                dmg as u16
-            });
-
-            ViewIntent { damage, instances, block, buff, debuff }
-        } else {
-            ViewIntent { damage: None, instances: None, block: false, buff: false, debuff: false }
-        };
-
-        Some(ViewMonster {
-            name: m.name.as_str().to_string(),
-            health_current: m.vitals.health,
-            health_max: m.vitals.health_max,
-            block_current: m.vitals.block,
-            modifiers: build_view_modifiers(&m.modifiers),
-            intent,
+            ViewMonster {
+                name: m.name.as_str().to_string(),
+                health_current: m.vitals.health,
+                health_max: m.vitals.health_max,
+                block_current: m.vitals.block,
+                modifiers: build_view_modifiers(&m.modifiers),
+                intent,
+            }
         })
-    }).collect()
+        .collect()
 }
 
 fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<ViewModifier> {
@@ -234,7 +264,11 @@ fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<ViewModifier> 
 
 fn build_view_card_template(card: &Card, is_active: bool) -> ViewCard {
     ViewCard {
-        name: if card.upgraded { format!("{}+", card.name.as_str()) } else { card.name.as_str().to_string() },
+        name: if card.upgraded {
+            format!("{}+", card.name.as_str())
+        } else {
+            card.name.as_str().to_string()
+        },
         kind: format!("{:?}", card.kind),
         color: format!("{:?}", card.color),
         rarity: format!("{:?}", card.rarity),
@@ -261,7 +295,11 @@ fn view_effect_template(tmpl: &EffectTemplate) -> ViewEffectTemplate {
             value: Some(*amount as i32),
             target: Some(format!("{:?}", target)),
         },
-        EffectTemplate::ModifierGain { kind, stacks, target } => ViewEffectTemplate {
+        EffectTemplate::ModifierGain {
+            kind,
+            stacks,
+            target,
+        } => ViewEffectTemplate {
             effect_type: format!("ModifierGain_{:?}", kind),
             value: Some(*stacks as i32),
             target: Some(format!("{:?}", target)),
@@ -300,14 +338,21 @@ fn view_effect_template(tmpl: &EffectTemplate) -> ViewEffectTemplate {
 }
 
 fn build_view_map(state: &GameState) -> ViewMap {
-    let nodes = state.map.nodes.iter().map(|row| {
-        row.iter().map(|n| {
-            n.as_ref().map(|node| ViewMapNode {
-                room_type: format!("{:?}", node.room_type),
-                x_next: node.x_next.clone(),
-            })
-        }).collect()
-    }).collect();
+    let nodes = state
+        .map
+        .nodes
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|n| {
+                    n.as_ref().map(|node| ViewMapNode {
+                        room_type: format!("{:?}", node.room_type),
+                        x_next: node.x_next.clone(),
+                    })
+                })
+                .collect()
+        })
+        .collect();
 
     ViewMap {
         nodes,

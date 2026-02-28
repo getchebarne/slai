@@ -4,9 +4,9 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_apply;
 use crate::modifier::modifiers_new;
 use crate::monsters::Intent;
-use crate::monsters::Move;
-use crate::monsters::Monster;
 use crate::monsters::MAX_MOVE_HISTORY;
+use crate::monsters::Monster;
+use crate::monsters::Move;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -14,22 +14,40 @@ use rand::Rng;
 
 static MOVE_BITE: Move = Move {
     name: "Bite",
-    effects: &[EffectTemplate::DamagePhysical { base: 6, target: TargetKind::Character }],
-    intent: Intent::Attack { damage: 6, instances: 1 },
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 6,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 6,
+        instances: 1,
+    },
 };
 static MOVE_GROW_3: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 3, target: TargetKind::Source }],
+    effects: &[EffectTemplate::ModifierGain {
+        kind: ModifierKind::Strength,
+        stacks: 3,
+        target: TargetKind::Source,
+    }],
     intent: Intent::Buff,
 };
 static MOVE_GROW_4: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 4, target: TargetKind::Source }],
+    effects: &[EffectTemplate::ModifierGain {
+        kind: ModifierKind::Strength,
+        stacks: 4,
+        target: TargetKind::Source,
+    }],
     intent: Intent::Buff,
 };
 static MOVE_GROW_5: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 5, target: TargetKind::Source }],
+    effects: &[EffectTemplate::ModifierGain {
+        kind: ModifierKind::Strength,
+        stacks: 5,
+        target: TargetKind::Source,
+    }],
     intent: Intent::Buff,
 };
 static MOVES_ASC0: [Move; 2] = [MOVE_GROW_3, MOVE_BITE];
@@ -52,7 +70,11 @@ pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Monster {
         &MOVES_ASC17
     };
 
-    let vitals = Vitals { health: health_max, health_max, block: 0 };
+    let vitals = Vitals {
+        health: health_max,
+        health_max,
+        block: 0,
+    };
     let mut modifiers = modifiers_new();
     modifier_apply(&mut modifiers, ModifierKind::SporeCloud, 2);
 
@@ -65,6 +87,7 @@ pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Monster {
         move_current: None,
         move_history: [0; MAX_MOVE_HISTORY],
         move_history_len: 0,
+        dead: false,
     }
 }
 
@@ -75,7 +98,11 @@ pub fn get_next_move_fungi_beast(
 ) -> usize {
     let roll = rng.random_range(0..99);
     if roll < 60 {
-        if move_history.ends_with(&[1, 1]) { 0 } else { 1 }
+        if move_history.ends_with(&[1, 1]) {
+            0
+        } else {
+            1
+        }
     } else if move_history.last().copied() == Some(0) {
         1
     } else {

@@ -40,6 +40,7 @@ pub struct Monster {
     pub move_current: Option<usize>,
     pub move_history: [u8; MAX_MOVE_HISTORY],
     pub move_history_len: u8,
+    pub dead: bool,
 }
 
 impl Monster {
@@ -74,8 +75,16 @@ pub fn get_next_move(monster: &Monster, rng: &mut impl Rng) -> usize {
     let history = monster.history_slice();
     match monster.name {
         MonsterName::Cultist => cultist::get_next_move_cultist(monster.move_current, history),
-        MonsterName::JawWorm => jaw_worm::get_next_move_jaw_worm(monster.move_current, history, monster.moves, rng),
-        MonsterName::TheGuardian => the_guardian::get_next_move_the_guardian_full(monster.move_current, history, &monster.modifiers),
-        MonsterName::FungiBeast => fungi_beast::get_next_move_fungi_beast(monster.move_current, history, rng),
+        MonsterName::JawWorm => {
+            jaw_worm::get_next_move_jaw_worm(monster.move_current, history, monster.moves, rng)
+        }
+        MonsterName::TheGuardian => the_guardian::get_next_move_the_guardian_full(
+            monster.move_current,
+            history,
+            &monster.modifiers,
+        ),
+        MonsterName::FungiBeast => {
+            fungi_beast::get_next_move_fungi_beast(monster.move_current, history, rng)
+        }
     }
 }

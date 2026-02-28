@@ -6,6 +6,7 @@ use rand::rngs::SmallRng;
 
 use crate::cards::Card;
 use crate::character::Character;
+use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::modifier::Modifiers;
 use crate::monsters::Monster;
@@ -151,10 +152,17 @@ impl Map {
 #[derive(Debug, Clone)]
 pub struct GameState {
     pub ascension: u8,
-    pub fsm: Fsm,
+    pub phase: Phase,
     pub rng: SmallRng,
 
-    pub entities: Vec<Option<Entity>>,
+    pub entities: Vec<Entity>,
+
+    // Character
+    pub character: EntityId,
+
+    // Monsters
+    pub monsters: [EntityId; MAX_MONSTERS],
+    pub monster_count: u8,
 
     pub energy: Energy,
 
@@ -176,4 +184,14 @@ pub struct GameState {
     pub map: Map,
 
     pub effect_queue: VecDeque<Effect>,
+}
+
+impl GameState {
+    pub fn alive_monster_ids(&self) -> Vec<EntityId> {
+        self.monsters[..self.monster_count as usize]
+            .iter()
+            .copied()
+            .filter(|&id| !self.entities[id.0 as usize].kind.monster_ref().dead)
+            .collect()
+    }
 }

@@ -1,110 +1,150 @@
 // Action handling: player input -> effects.
 
-use crate::effect::Effect;
 use crate::consts::REST_SITE_HEAL_FACTOR;
-use crate::state::{EntityKind, GameState};
-use crate::types::*;
+use crate::effect::Effect;
+use crate::state::GameState;
+use crate::types::{EntityId, Phase};
 
 #[derive(Debug, Clone, Copy)]
 pub enum Action {
-    PlayCard { hand_idx: usize },
+    CardDiscard {
+        hand_idx: usize,
+    },
+    CardPlay {
+        hand_idx: usize,
+        monster_idx: Option<usize>,
+    },
+    CardUpgrade {
+        deck_idx: usize,
+    },
+    CardRewardSelect {
+        reward_idx: usize,
+    },
+    CardRewardSkip,
     EndTurn,
-    SelectMonster { monster_idx: u8 },
-    SelectMapNode { column: usize },
-    SelectCardReward { reward_idx: usize },
-    SkipCardReward,
+    MapNodeSelect {
+        column: usize,
+    },
     Rest,
-    Upgrade { deck_idx: usize },
 }
 
-pub fn handle_action(state: &mut GameState, action: Action) -> Vec<Effect> {
-    match (state.fsm, action) {
-        (Fsm::CombatDefault, Action::PlayCard { hand_idx }) => {
-            handle_play_card(state, hand_idx)
+pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
+    let phase = state.phase;
+    match action {
+        Action::CardDiscard { hand_idx } => {
+            require_phase(phase, Phase::CombatAwaitDiscard, &action)?;
+            handle_card_discard(state, hand_idx)
         }
-        (Fsm::CombatDefault, Action::EndTurn) => {
-            vec![Effect::TurnEnd { actor: EntityId(0) }]
+        Action::CardPlay {
+            hand_idx,
+            monster_idx,
+        } => {
+            require_phase(phase, Phase::CombatDefault, &action)?;
+            handle_card_play(state, hand_idx, monster_idx)
         }
-        (Fsm::CombatAwaitTarget, Action::SelectMonster { monster_idx }) => {
-            handle_select_monster(state, monster_idx)
+        Action::CardUpgrade { deck_idx } => {
+            require_phase(phase, Phase::RestSite, &action)?;
+            handle_card_upgrade(state, deck_idx)
         }
-        (Fsm::CombatAwaitDiscard, Action::PlayCard { hand_idx }) => {
-            handle_select_discard(state, hand_idx)
-        }
-        (Fsm::Map, Action::SelectMapNode { column }) => {
-            handle_select_map_node(state, column)
-        }
-        (Fsm::CardReward, Action::SelectCardReward { reward_idx }) => {
+        Action::CardRewardSelect { reward_idx } => {
+            require_phase(phase, Phase::CardReward, &action)?;
             handle_card_reward_select(state, reward_idx)
         }
-        (Fsm::CardReward, Action::SkipCardReward) => {
-            handle_card_reward_skip(state)
+        Action::CardRewardSkip => {
+            require_phase(phase, Phase::CardReward, &action)?;
+            Ok(handle_card_reward_skip(state))
         }
-        (Fsm::RestSite, Action::Rest) => {
-            handle_rest(state)
+        Action::EndTurn => {
+            require_phase(phase, Phase::CombatDefault, &action)?;
+            Ok(handle_end_turn(state))
         }
-        (Fsm::RestSite, Action::Upgrade { deck_idx }) => {
-            handle_upgrade(state, deck_idx)
+        Action::MapNodeSelect { column } => {
+            require_phase(phase, Phase::Map, &action)?;
+            Ok(handle_map_node_select(state, column))
         }
-        _ => panic!("Invalid action {:?} in state {:?}", action, state.fsm),
+        Action::Rest => {
+            require_phase(phase, Phase::RestSite, &action)?;
+            Ok(handle_rest(state))
+        }
     }
 }
 
-fn handle_play_card(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
-    let card_id = state.hand[hand_idx];
-    let card = state.entities[card_id.0 as usize].as_ref().expect("Missing card").kind.card_ref();
+fn require_phase(current: Phase, expected: Phase, action: &Action) -> Result<(), String> {
+    if current != expected {
+        return Err(format!(
+            "{:?} invalid in phase {:?} (expected {:?})",
+            action, current, expected
+        ));
+    }
+    Ok(())
+}
 
-    assert!(
-        card.cost <= state.energy.current,
-        "Not enough energy: need {}, have {}",
-        card.cost, state.energy.current
-    );
+fn handle_end_turn(state: &GameState) -> Vec<Effect> {
+    vec![Effect::TurnEnd {
+        actor: state.character,
+    }]
+}
+
+fn handle_card_play(
+    state: &mut GameState,
+    hand_idx: usize,
+    monster_idx: Option<usize>,
+) -> Result<Vec<Effect>, String> {
+    if hand_idx >= state.hand.len() {
+        return Err(format!(
+            "Invalid hand index {}: hand has {} cards",
+            hand_idx,
+            state.hand.len()
+        ));
+    }
+
+    let card_id = state.hand[hand_idx];
+    let card = state.entities[card_id.0 as usize].kind.card_ref();
+
+    if card.cost > state.energy.current {
+        return Err(format!(
+            "Not enough energy to play {:?}: need {}, have {}",
+            card.name, card.cost, state.energy.current
+        ));
+    }
 
     if card.requires_target() {
-        let monster_count = state.entities.iter()
-            .filter(|s| matches!(s, Some(e) if matches!(e.kind, EntityKind::Monster(..))))
-            .count();
-        if monster_count == 1 {
-            let target = state.entities.iter().enumerate()
-                .find(|(_, s)| matches!(s, Some(e) if matches!(e.kind, EntityKind::Monster(..))))
-                .map(|(i, _)| EntityId(i as u32))
-                .unwrap();
-            vec![
-                Effect::TargetSet { target },
-                Effect::CardActiveClear,
-                Effect::CardPlay { card_id },
-                Effect::TargetClear,
-            ]
-        } else {
-            vec![Effect::CardActiveSet { card_id }]
+        match monster_idx {
+            Some(idx) => {
+                let alive = state.alive_monster_ids();
+                let target = *alive
+                    .get(idx)
+                    .ok_or_else(|| format!("Invalid monster index: {}", idx))?;
+                Ok(vec![
+                    Effect::TargetSet { target },
+                    Effect::CardPlay { card_id },
+                    Effect::TargetClear,
+                ])
+            }
+            None => Err(format!(
+                "Card {:?} requires a target: provide monster_idx",
+                card.name
+            )),
         }
     } else {
-        vec![Effect::CardPlay { card_id }]
+        Ok(vec![Effect::CardPlay { card_id }])
     }
 }
 
-fn handle_select_monster(state: &mut GameState, monster_idx: u8) -> Vec<Effect> {
-    let card_id = state.card_active.expect("No active card for monster select");
-    let target = state.entities.iter().enumerate()
-        .filter(|(_, s)| matches!(s, Some(e) if matches!(e.kind, EntityKind::Monster(..))))
-        .nth(monster_idx as usize)
-        .map(|(i, _)| EntityId(i as u32))
-        .expect("Invalid monster index");
-    vec![
-        Effect::TargetSet { target },
-        Effect::CardActiveClear,
-        Effect::CardPlay { card_id },
-        Effect::TargetClear,
-    ]
-}
-
-fn handle_select_discard(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
+fn handle_card_discard(state: &mut GameState, hand_idx: usize) -> Result<Vec<Effect>, String> {
+    if hand_idx >= state.hand.len() {
+        return Err(format!(
+            "Invalid hand index {}: hand has {} cards",
+            hand_idx,
+            state.hand.len()
+        ));
+    }
     let card_id = state.hand[hand_idx];
     state.effect_queue.pop_front();
-    vec![Effect::CardDiscard { card_id }]
+    Ok(vec![Effect::CardDiscard { card_id }])
 }
 
-fn handle_select_map_node(state: &mut GameState, column: usize) -> Vec<Effect> {
+fn handle_map_node_select(state: &mut GameState, column: usize) -> Vec<Effect> {
     state.effect_queue.pop_front();
 
     let y = match state.map.active_y {
@@ -120,31 +160,39 @@ fn handle_select_map_node(state: &mut GameState, column: usize) -> Vec<Effect> {
     vec![Effect::RoomEnter]
 }
 
-fn handle_card_reward_select(state: &mut GameState, reward_idx: usize) -> Vec<Effect> {
+fn handle_card_reward_select(
+    state: &mut GameState,
+    reward_idx: usize,
+) -> Result<Vec<Effect>, String> {
+    if reward_idx >= state.card_rewards.len() {
+        return Err(format!(
+            "Invalid reward index {}: {} rewards available",
+            reward_idx,
+            state.card_rewards.len()
+        ));
+    }
     state.effect_queue.pop_front();
-    vec![
+    Ok(vec![
         Effect::CardRewardSelect { reward_idx },
         Effect::AwaitMapNode,
-    ]
+    ])
 }
 
 fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
     state.effect_queue.pop_front();
-    vec![
-        Effect::CardRewardClear,
-        Effect::AwaitMapNode,
-    ]
+    vec![Effect::CardRewardClear, Effect::AwaitMapNode]
 }
 
 fn handle_rest(state: &mut GameState) -> Vec<Effect> {
-    let (vitals, _) = state.entities[0].as_ref().unwrap().kind.combatant_ref();
+    let (vitals, _) = state.entities[0].kind.combatant_ref();
     let heal = (REST_SITE_HEAL_FACTOR * vitals.health_max as f32) as u16;
 
     let is_last_floor = state.map.active_y == Some(crate::consts::MAP_HEIGHT - 1);
 
-    let mut effects = vec![
-        Effect::HealthGain { target: EntityId(0), amount: heal },
-    ];
+    let mut effects = vec![Effect::HealthGain {
+        target: EntityId(0),
+        amount: heal,
+    }];
 
     if is_last_floor {
         state.map.active_y = Some(state.map.boss_room_y);
@@ -157,12 +205,18 @@ fn handle_rest(state: &mut GameState) -> Vec<Effect> {
     effects
 }
 
-fn handle_upgrade(state: &mut GameState, deck_idx: usize) -> Vec<Effect> {
+fn handle_card_upgrade(state: &mut GameState, deck_idx: usize) -> Result<Vec<Effect>, String> {
+    if deck_idx >= state.deck.len() {
+        return Err(format!(
+            "Invalid deck index {}: deck has {} cards",
+            deck_idx,
+            state.deck.len()
+        ));
+    }
+
     let is_last_floor = state.map.active_y == Some(crate::consts::MAP_HEIGHT - 1);
 
-    let mut effects = vec![
-        Effect::CardUpgrade { deck_idx },
-    ];
+    let mut effects = vec![Effect::CardUpgrade { deck_idx }];
 
     if is_last_floor {
         state.map.active_y = Some(state.map.boss_room_y);
@@ -172,5 +226,5 @@ fn handle_upgrade(state: &mut GameState, deck_idx: usize) -> Vec<Effect> {
         effects.push(Effect::AwaitMapNode);
     }
 
-    effects
+    Ok(effects)
 }

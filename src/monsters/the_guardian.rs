@@ -6,9 +6,9 @@ use crate::modifier::modifier_apply;
 use crate::modifier::modifier_has;
 use crate::modifier::modifiers_new;
 use crate::monsters::Intent;
-use crate::monsters::Move;
-use crate::monsters::Monster;
 use crate::monsters::MAX_MOVE_HISTORY;
+use crate::monsters::Monster;
+use crate::monsters::Move;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -27,97 +27,220 @@ static MOVE_CHARGING_UP: Move = Move {
 };
 static MOVE_FIERCE_BASH_32: Move = Move {
     name: "Fierce Bash",
-    effects: &[EffectTemplate::DamagePhysical { base: 32, target: TargetKind::Character }],
-    intent: Intent::Attack { damage: 32, instances: 1 },
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 32,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 32,
+        instances: 1,
+    },
 };
 static MOVE_FIERCE_BASH_36: Move = Move {
     name: "Fierce Bash",
-    effects: &[EffectTemplate::DamagePhysical { base: 36, target: TargetKind::Character }],
-    intent: Intent::Attack { damage: 36, instances: 1 },
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 36,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 36,
+        instances: 1,
+    },
 };
 static MOVE_VENT_STEAM: Move = Move {
     name: "Vent Steam",
     effects: &[
-        EffectTemplate::ModifierGain { kind: ModifierKind::Weak, stacks: 2, target: TargetKind::Character },
-        EffectTemplate::ModifierGain { kind: ModifierKind::Vulnerable, stacks: 2, target: TargetKind::Character },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::Weak,
+            stacks: 2,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::Vulnerable,
+            stacks: 2,
+            target: TargetKind::Character,
+        },
     ],
     intent: Intent::DebuffPowerful,
 };
 static MOVE_WHIRLWIND: Move = Move {
     name: "Whirlwind",
     effects: &[
-        EffectTemplate::DamagePhysical { base: 5, target: TargetKind::Character },
-        EffectTemplate::DamagePhysical { base: 5, target: TargetKind::Character },
-        EffectTemplate::DamagePhysical { base: 5, target: TargetKind::Character },
-        EffectTemplate::DamagePhysical { base: 5, target: TargetKind::Character },
+        EffectTemplate::DamagePhysical {
+            base: 5,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 5,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 5,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 5,
+            target: TargetKind::Character,
+        },
     ],
-    intent: Intent::Attack { damage: 5, instances: 4 },
+    intent: Intent::Attack {
+        damage: 5,
+        instances: 4,
+    },
 };
 static MOVE_DEFENSIVE_MODE_3: Move = Move {
     name: "Defensive Mode",
-    effects: &[EffectTemplate::ModifierGain { kind: ModifierKind::SharpHide, target: TargetKind::Source, stacks: 3 }],
+    effects: &[EffectTemplate::ModifierGain {
+        kind: ModifierKind::SharpHide,
+        target: TargetKind::Source,
+        stacks: 3,
+    }],
     intent: Intent::Buff,
 };
 static MOVE_DEFENSIVE_MODE_4: Move = Move {
     name: "Defensive Mode",
-    effects: &[EffectTemplate::ModifierGain { kind: ModifierKind::SharpHide, target: TargetKind::Source, stacks: 4 }],
+    effects: &[EffectTemplate::ModifierGain {
+        kind: ModifierKind::SharpHide,
+        target: TargetKind::Source,
+        stacks: 4,
+    }],
     intent: Intent::Buff,
 };
 static MOVE_ROLL_ATTACK_9: Move = Move {
     name: "Roll Attack",
-    effects: &[EffectTemplate::DamagePhysical { base: 9, target: TargetKind::Character }],
-    intent: Intent::Attack { damage: 9, instances: 1 },
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 9,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 9,
+        instances: 1,
+    },
 };
 static MOVE_ROLL_ATTACK_10: Move = Move {
     name: "Roll Attack",
-    effects: &[EffectTemplate::DamagePhysical { base: 10, target: TargetKind::Character }],
-    intent: Intent::Attack { damage: 10, instances: 1 },
+    effects: &[EffectTemplate::DamagePhysical {
+        base: 10,
+        target: TargetKind::Character,
+    }],
+    intent: Intent::Attack {
+        damage: 10,
+        instances: 1,
+    },
 };
 static MOVE_TWIN_SLAM_30: Move = Move {
     name: "Twin Slam",
     effects: &[
-        EffectTemplate::DamagePhysical { base: 8, target: TargetKind::Character },
-        EffectTemplate::DamagePhysical { base: 8, target: TargetKind::Character },
-        EffectTemplate::ModifierGain { kind: ModifierKind::ModeShift, stacks: MODE_SHIFT_STACKS_30, target: TargetKind::Source },
-        EffectTemplate::ModifierRemove { kind: ModifierKind::SharpHide, target: TargetKind::Source },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::ModeShift,
+            stacks: MODE_SHIFT_STACKS_30,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::ModifierRemove {
+            kind: ModifierKind::SharpHide,
+            target: TargetKind::Source,
+        },
     ],
-    intent: Intent::AttackBuff { damage: 8, instances: 2 },
+    intent: Intent::AttackBuff {
+        damage: 8,
+        instances: 2,
+    },
 };
 static MOVE_TWIN_SLAM_35: Move = Move {
     name: "Twin Slam",
     effects: &[
-        EffectTemplate::DamagePhysical { base: 8, target: TargetKind::Character },
-        EffectTemplate::DamagePhysical { base: 8, target: TargetKind::Character },
-        EffectTemplate::ModifierGain { kind: ModifierKind::ModeShift, stacks: MODE_SHIFT_STACKS_35, target: TargetKind::Source },
-        EffectTemplate::ModifierRemove { kind: ModifierKind::SharpHide, target: TargetKind::Source },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::ModeShift,
+            stacks: MODE_SHIFT_STACKS_35,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::ModifierRemove {
+            kind: ModifierKind::SharpHide,
+            target: TargetKind::Source,
+        },
     ],
-    intent: Intent::AttackBuff { damage: 8, instances: 2 },
+    intent: Intent::AttackBuff {
+        damage: 8,
+        instances: 2,
+    },
 };
 static MOVE_TWIN_SLAM_40: Move = Move {
     name: "Twin Slam",
     effects: &[
-        EffectTemplate::DamagePhysical { base: 8, target: TargetKind::Character },
-        EffectTemplate::DamagePhysical { base: 8, target: TargetKind::Character },
-        EffectTemplate::ModifierGain { kind: ModifierKind::ModeShift, stacks: MODE_SHIFT_STACKS_40, target: TargetKind::Source },
-        EffectTemplate::ModifierRemove { kind: ModifierKind::SharpHide, target: TargetKind::Source },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::DamagePhysical {
+            base: 8,
+            target: TargetKind::Character,
+        },
+        EffectTemplate::ModifierGain {
+            kind: ModifierKind::ModeShift,
+            stacks: MODE_SHIFT_STACKS_40,
+            target: TargetKind::Source,
+        },
+        EffectTemplate::ModifierRemove {
+            kind: ModifierKind::SharpHide,
+            target: TargetKind::Source,
+        },
     ],
-    intent: Intent::AttackBuff { damage: 8, instances: 2 },
+    intent: Intent::AttackBuff {
+        damage: 8,
+        instances: 2,
+    },
 };
 static MOVES_ASC0: [Move; 7] = [
-    MOVE_CHARGING_UP, MOVE_FIERCE_BASH_32, MOVE_VENT_STEAM, MOVE_WHIRLWIND,
-    MOVE_DEFENSIVE_MODE_3, MOVE_ROLL_ATTACK_9, MOVE_TWIN_SLAM_35,
+    MOVE_CHARGING_UP,
+    MOVE_FIERCE_BASH_32,
+    MOVE_VENT_STEAM,
+    MOVE_WHIRLWIND,
+    MOVE_DEFENSIVE_MODE_3,
+    MOVE_ROLL_ATTACK_9,
+    MOVE_TWIN_SLAM_35,
 ];
 static MOVES_ASC4: [Move; 7] = [
-    MOVE_CHARGING_UP, MOVE_FIERCE_BASH_36, MOVE_VENT_STEAM, MOVE_WHIRLWIND,
-    MOVE_DEFENSIVE_MODE_3, MOVE_ROLL_ATTACK_10, MOVE_TWIN_SLAM_35,
+    MOVE_CHARGING_UP,
+    MOVE_FIERCE_BASH_36,
+    MOVE_VENT_STEAM,
+    MOVE_WHIRLWIND,
+    MOVE_DEFENSIVE_MODE_3,
+    MOVE_ROLL_ATTACK_10,
+    MOVE_TWIN_SLAM_35,
 ];
 static MOVES_ASC9: [Move; 7] = [
-    MOVE_CHARGING_UP, MOVE_FIERCE_BASH_36, MOVE_VENT_STEAM, MOVE_WHIRLWIND,
-    MOVE_DEFENSIVE_MODE_3, MOVE_ROLL_ATTACK_10, MOVE_TWIN_SLAM_40,
+    MOVE_CHARGING_UP,
+    MOVE_FIERCE_BASH_36,
+    MOVE_VENT_STEAM,
+    MOVE_WHIRLWIND,
+    MOVE_DEFENSIVE_MODE_3,
+    MOVE_ROLL_ATTACK_10,
+    MOVE_TWIN_SLAM_40,
 ];
 static MOVES_ASC19: [Move; 7] = [
-    MOVE_CHARGING_UP, MOVE_FIERCE_BASH_36, MOVE_VENT_STEAM, MOVE_WHIRLWIND,
-    MOVE_DEFENSIVE_MODE_4, MOVE_ROLL_ATTACK_10, MOVE_TWIN_SLAM_40,
+    MOVE_CHARGING_UP,
+    MOVE_FIERCE_BASH_36,
+    MOVE_VENT_STEAM,
+    MOVE_WHIRLWIND,
+    MOVE_DEFENSIVE_MODE_4,
+    MOVE_ROLL_ATTACK_10,
+    MOVE_TWIN_SLAM_40,
 ];
 
 pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
@@ -131,7 +254,11 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
         &MOVES_ASC19
     };
 
-    let vitals = Vitals { health: health_max, health_max, block: 0 };
+    let vitals = Vitals {
+        health: health_max,
+        health_max,
+        block: 0,
+    };
     let mode_shift_stacks = if ascension_level < 9 {
         MODE_SHIFT_STACKS_30
     } else if ascension_level < 19 {
@@ -151,6 +278,7 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
         move_current: None,
         move_history: [0; MAX_MOVE_HISTORY],
         move_history_len: 0,
+        dead: false,
     }
 }
 
@@ -174,13 +302,19 @@ pub fn get_next_move_the_guardian_full(
             2 => 3,
             3 => 0,
             6 => 3,
-            _ => unreachable!("Invalid 'The Guardian' move in offensive mode: {}", move_last),
+            _ => unreachable!(
+                "Invalid 'The Guardian' move in offensive mode: {}",
+                move_last
+            ),
         }
     } else if modifier_has(modifiers, ModifierKind::SharpHide) {
         match move_last {
             4 => 5,
             5 => 6,
-            _ => unreachable!("Invalid 'The Guardian' move in defensive mode: {}", move_last),
+            _ => unreachable!(
+                "Invalid 'The Guardian' move in defensive mode: {}",
+                move_last
+            ),
         }
     } else {
         4

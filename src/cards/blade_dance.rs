@@ -1,5 +1,5 @@
-use crate::effect::EffectTemplate;
 use crate::cards::Card;
+use crate::effect::EffectTemplate;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;

@@ -1,7 +1,7 @@
+use crate::cards::Card;
 use crate::effect::EffectTemplate;
 use crate::effect::SelectionKind;
 use crate::effect::TargetKind;
-use crate::cards::Card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
