@@ -15,6 +15,7 @@ pub static STRIKE: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[EffectTemplate::DamagePhysical {
         base: 6,
         target: TargetKind::CardTarget,
@@ -30,6 +31,7 @@ pub static STRIKE_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[EffectTemplate::DamagePhysical {
         base: 9, // +3 damage
         target: TargetKind::CardTarget,

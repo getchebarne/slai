@@ -15,6 +15,7 @@ pub static BACKSTAB: Card = Card {
     upgraded: false,
     exhaust: true,
     innate: true,
+    requires_target: true,
     effects: &[EffectTemplate::DamagePhysical {
         base: 11,
         target: TargetKind::CardTarget,
@@ -30,6 +31,7 @@ pub static BACKSTAB_PLUS: Card = Card {
     upgraded: true,
     exhaust: true,
     innate: true,
+    requires_target: true,
     effects: &[EffectTemplate::DamagePhysical {
         base: 15, // +4 damage
         target: TargetKind::CardTarget,

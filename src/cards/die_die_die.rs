@@ -15,6 +15,7 @@ pub static DIE_DIE_DIE: Card = Card {
     upgraded: false,
     exhaust: true,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::DamagePhysical {
         base: 13,
         target: TargetKind::AllMonsters,
@@ -30,8 +31,9 @@ pub static DIE_DIE_DIE_PLUS: Card = Card {
     upgraded: true,
     exhaust: true,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::DamagePhysical {
-        base: 17, // + 4 damage
+        base: 17, // +4 damage
         target: TargetKind::AllMonsters,
     }],
 };

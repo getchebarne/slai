@@ -14,6 +14,7 @@ pub static CALCULATED_GAMBLE: Card = Card {
     upgraded: false,
     exhaust: true,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::CalculatedGamble],
 };
 // Upgraded
@@ -26,5 +27,6 @@ pub static CALCULATED_GAMBLE_PLUS: Card = Card {
     upgraded: true,
     exhaust: false, // doesn't exhaust
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::CalculatedGamble],
 };

@@ -32,7 +32,7 @@ pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 
-use crate::effect::{Effect, EffectTemplate, SelectionKind, TargetKind};
+use crate::effect::{Effect, EffectTemplate, TargetKind};
 use crate::state::{EntityKind, GameState};
 use crate::types::EntityId;
 
@@ -114,14 +114,12 @@ pub fn instantiate_templates(
             EffectTemplate::CardDraw { count } => {
                 out.push(Effect::CardDraw { count });
             }
-            EffectTemplate::CardDiscard { selection } => match selection {
-                SelectionKind::Input => {
-                    out.push(Effect::AwaitDiscard);
-                }
-                SelectionKind::Random => {
-                    out.push(Effect::CardDiscardAll);
-                }
-            },
+            EffectTemplate::CardDiscardInput => {
+                out.push(Effect::AwaitDiscard);
+            }
+            EffectTemplate::CardDiscardRandom => {
+                out.push(Effect::CardDiscardAll);
+            }
             EffectTemplate::CalculatedGamble => {
                 out.push(Effect::CalculatedGamble);
             }

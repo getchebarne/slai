@@ -14,6 +14,7 @@ pub static ADRENALINE: Card = Card {
     upgraded: false,
     exhaust: true,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::EnergyGain { amount: 1 },
         EffectTemplate::CardDraw { count: 2 },
@@ -29,6 +30,7 @@ pub static ADRENALINE_PLUS: Card = Card {
     upgraded: true,
     exhaust: true,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::EnergyGain { amount: 2 }, // +1 energy gain
         EffectTemplate::CardDraw { count: 2 },

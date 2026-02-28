@@ -16,6 +16,7 @@ pub static BLUR: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 5,
@@ -38,6 +39,7 @@ pub static BLUR_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 8, // +3 block

@@ -15,6 +15,7 @@ pub static DEFLECT: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::BlockGain {
         amount: 4,
         target: TargetKind::Character,
@@ -30,6 +31,7 @@ pub static DEFLECT_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::BlockGain {
         amount: 7, // +3 block
         target: TargetKind::Character,

@@ -16,6 +16,7 @@ pub static DODGE_AND_ROLL: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 4,
@@ -38,6 +39,7 @@ pub static DODGE_AND_ROLL_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 6, // +2 block

@@ -16,6 +16,7 @@ pub static ACCURACY: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Accuracy,
         stacks: 4,
@@ -32,6 +33,7 @@ pub static ACCURACY_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Accuracy,
         stacks: 6, // +2 stacks

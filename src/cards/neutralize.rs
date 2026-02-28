@@ -16,6 +16,7 @@ pub static NEUTRALIZE: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[
         EffectTemplate::DamagePhysical {
             base: 3,
@@ -38,6 +39,7 @@ pub static NEUTRALIZE_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[
         EffectTemplate::DamagePhysical {
             base: 4, // +1 damage

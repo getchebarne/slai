@@ -16,12 +16,6 @@ pub enum TargetKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum SelectionKind {
-    Input,
-    Random,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectTemplate {
     DamagePhysical {
         base: u16,
@@ -49,9 +43,8 @@ pub enum EffectTemplate {
     CardDraw {
         count: u8,
     },
-    CardDiscard {
-        selection: SelectionKind,
-    },
+    CardDiscardInput,
+    CardDiscardRandom,
     CalculatedGamble,
 }
 

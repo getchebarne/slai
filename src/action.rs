@@ -108,7 +108,7 @@ fn handle_card_play(
         ));
     }
 
-    if card.requires_target() {
+    if card.requires_target {
         match monster_idx {
             Some(idx) => {
                 let alive = state.alive_monster_ids();
@@ -140,6 +140,8 @@ fn handle_card_discard(state: &mut GameState, hand_idx: usize) -> Result<Vec<Eff
         ));
     }
     let card_id = state.hand[hand_idx];
+
+    // TODO: revisit
     state.effect_queue.pop_front();
     Ok(vec![Effect::CardDiscard { card_id }])
 }

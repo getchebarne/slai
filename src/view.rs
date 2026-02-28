@@ -35,7 +35,6 @@ pub struct ViewCard {
     pub innate: bool,
     pub is_active: bool,
     pub requires_target: bool,
-    pub requires_discard: bool,
     pub effects: Vec<ViewEffectTemplate>,
 }
 
@@ -277,8 +276,7 @@ fn build_view_card_template(card: &Card, is_active: bool) -> ViewCard {
         exhaust: card.exhaust,
         innate: card.innate,
         is_active,
-        requires_target: card.requires_target(),
-        requires_discard: card.requires_discard(),
+        requires_target: card.requires_target,
         effects: card.effects.iter().map(view_effect_template).collect(),
     }
 }
@@ -324,10 +322,15 @@ fn view_effect_template(tmpl: &EffectTemplate) -> ViewEffectTemplate {
             value: Some(*count as i32),
             target: None,
         },
-        EffectTemplate::CardDiscard { selection } => ViewEffectTemplate {
-            effect_type: "CardDiscard".to_string(),
+        EffectTemplate::CardDiscardInput => ViewEffectTemplate {
+            effect_type: "CardDiscardInput".to_string(),
             value: None,
-            target: Some(format!("{:?}", selection)),
+            target: None,
+        },
+        EffectTemplate::CardDiscardRandom => ViewEffectTemplate {
+            effect_type: "CardDiscardRandom".to_string(),
+            value: None,
+            target: None,
         },
         EffectTemplate::CalculatedGamble => ViewEffectTemplate {
             effect_type: "CalculatedGamble".to_string(),

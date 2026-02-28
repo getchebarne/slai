@@ -15,6 +15,7 @@ pub static DEFEND: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::BlockGain {
         amount: 5,
         target: TargetKind::Character,
@@ -30,6 +31,7 @@ pub static DEFEND_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::BlockGain {
         amount: 8, // +3 block
         target: TargetKind::Character,

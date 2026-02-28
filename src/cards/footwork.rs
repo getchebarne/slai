@@ -16,6 +16,7 @@ pub static FOOTWORK: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Dexterity,
         stacks: 2,
@@ -32,6 +33,7 @@ pub static FOOTWORK_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Dexterity,
         stacks: 3, // +1 dexterity

@@ -16,6 +16,7 @@ pub static PHANTASMAL_KILLER: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Phantasmal,
         stacks: 1,
@@ -32,6 +33,7 @@ pub static PHANTASMAL_KILLER_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Phantasmal,
         stacks: 1,

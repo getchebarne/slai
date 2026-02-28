@@ -16,6 +16,7 @@ pub static TERROR: Card = Card {
     upgraded: false,
     exhaust: true,
     innate: false,
+    requires_target: true,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Vulnerable,
         stacks: 99,
@@ -32,6 +33,7 @@ pub static TERROR_PLUS: Card = Card {
     upgraded: true,
     exhaust: true,
     innate: false,
+    requires_target: true,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Vulnerable,
         stacks: 99,

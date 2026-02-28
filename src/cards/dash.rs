@@ -15,6 +15,7 @@ pub static DASH: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 10,
@@ -36,6 +37,7 @@ pub static DASH_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 13, // +3 damage

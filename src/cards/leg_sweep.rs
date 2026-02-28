@@ -16,6 +16,7 @@ pub static LEG_SWEEP: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 11,
@@ -38,6 +39,7 @@ pub static LEG_SWEEP_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 14, // +3 block

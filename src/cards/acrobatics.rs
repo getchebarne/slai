@@ -1,6 +1,5 @@
 use crate::cards::Card;
 use crate::effect::EffectTemplate;
-use crate::effect::SelectionKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -15,11 +14,10 @@ pub static ACROBATICS: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::CardDraw { count: 3 },
-        EffectTemplate::CardDiscard {
-            selection: SelectionKind::Input,
-        },
+        EffectTemplate::CardDiscardInput,
     ],
 };
 // Upgraded
@@ -32,10 +30,9 @@ pub static ACROBATICS_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::CardDraw { count: 4 }, // +1 draw
-        EffectTemplate::CardDiscard {
-            selection: SelectionKind::Input,
-        },
+        EffectTemplate::CardDiscardInput,
     ],
 };

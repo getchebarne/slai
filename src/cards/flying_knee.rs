@@ -16,6 +16,7 @@ pub static FLYING_KNEE: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[
         EffectTemplate::DamagePhysical {
             base: 8,
@@ -38,6 +39,7 @@ pub static FLYING_KNEE_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: true,
     effects: &[
         EffectTemplate::DamagePhysical {
             base: 11, // +3 damage

@@ -14,6 +14,7 @@ pub static BLADE_DANCE: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::AddShivs { count: 3 }],
 };
 // Upgraded
@@ -26,5 +27,6 @@ pub static BLADE_DANCE_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::AddShivs { count: 4 }], // +1 shiv
 };

@@ -16,6 +16,7 @@ pub static OUTMANEUVER: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::NextTurnEnergy,
         stacks: 2,
@@ -32,6 +33,7 @@ pub static OUTMANEUVER_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::NextTurnEnergy,
         stacks: 3, // +1 next-turn-energy

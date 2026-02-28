@@ -16,6 +16,7 @@ pub static AFTER_IMAGE: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::AfterImage,
         stacks: 1,
@@ -32,6 +33,7 @@ pub static AFTER_IMAGE_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: true, // is innate
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::AfterImage,
         stacks: 1,

@@ -30,7 +30,6 @@ pub mod survivor;
 pub mod terror;
 
 use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -46,42 +45,8 @@ pub struct Card {
     pub upgraded: bool,
     pub exhaust: bool,
     pub innate: bool,
+    pub requires_target: bool,
     pub effects: &'static [EffectTemplate],
-}
-
-impl Card {
-    pub fn requires_target(&self) -> bool {
-        self.effects.iter().any(|e| {
-            matches!(
-                e,
-                EffectTemplate::DamagePhysical {
-                    target: TargetKind::CardTarget,
-                    ..
-                } | EffectTemplate::BlockGain {
-                    target: TargetKind::CardTarget,
-                    ..
-                } | EffectTemplate::ModifierGain {
-                    target: TargetKind::CardTarget,
-                    ..
-                } | EffectTemplate::ModifierRemove {
-                    target: TargetKind::CardTarget,
-                    ..
-                }
-            )
-        })
-    }
-
-    pub fn requires_discard(&self) -> bool {
-        use crate::effect::SelectionKind;
-        self.effects.iter().any(|e| {
-            matches!(
-                e,
-                EffectTemplate::CardDiscard {
-                    selection: SelectionKind::Input
-                }
-            )
-        })
-    }
 }
 
 pub fn get_card(name: CardName, upgraded: bool) -> Card {

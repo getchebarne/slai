@@ -15,6 +15,7 @@ pub static SHIV: Card = Card {
     upgraded: false,
     exhaust: true,
     innate: false,
+    requires_target: true,
     effects: &[EffectTemplate::DamagePhysical {
         base: 4,
         target: TargetKind::CardTarget,
@@ -30,6 +31,7 @@ pub static SHIV_PLUS: Card = Card {
     upgraded: true,
     exhaust: true,
     innate: false,
+    requires_target: true,
     effects: &[EffectTemplate::DamagePhysical {
         base: 6, // +2 damage
         target: TargetKind::CardTarget,

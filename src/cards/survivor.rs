@@ -1,6 +1,5 @@
 use crate::cards::Card;
 use crate::effect::EffectTemplate;
-use crate::effect::SelectionKind;
 use crate::effect::TargetKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -16,14 +15,13 @@ pub static SURVIVOR: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 8,
             target: TargetKind::Character,
         },
-        EffectTemplate::CardDiscard {
-            selection: SelectionKind::Input,
-        },
+        EffectTemplate::CardDiscardInput,
     ],
 };
 // Upgraded
@@ -36,13 +34,12 @@ pub static SURVIVOR_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 11, // +3 block
             target: TargetKind::Character,
         },
-        EffectTemplate::CardDiscard {
-            selection: SelectionKind::Input,
-        },
+        EffectTemplate::CardDiscardInput,
     ],
 };

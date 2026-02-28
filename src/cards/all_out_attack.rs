@@ -1,6 +1,5 @@
 use crate::cards::Card;
 use crate::effect::EffectTemplate;
-use crate::effect::SelectionKind;
 use crate::effect::TargetKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -16,14 +15,13 @@ pub static ALL_OUT_ATTACK: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::DamagePhysical {
             base: 10,
             target: TargetKind::AllMonsters,
         },
-        EffectTemplate::CardDiscard {
-            selection: SelectionKind::Random,
-        },
+        EffectTemplate::CardDiscardRandom,
     ],
 };
 // Upgraded
@@ -36,13 +34,12 @@ pub static ALL_OUT_ATTACK_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::DamagePhysical {
             base: 14, // +4 damage
             target: TargetKind::AllMonsters,
         },
-        EffectTemplate::CardDiscard {
-            selection: SelectionKind::Random,
-        },
+        EffectTemplate::CardDiscardRandom,
     ],
 };

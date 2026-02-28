@@ -15,6 +15,7 @@ pub static CLOAK_AND_DAGGER: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 6,
@@ -33,6 +34,7 @@ pub static CLOAK_AND_DAGGER_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 6,

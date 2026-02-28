@@ -16,6 +16,7 @@ pub static BURST: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Burst,
         stacks: 1,
@@ -32,6 +33,7 @@ pub static BURST_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[EffectTemplate::ModifierGain {
         kind: ModifierKind::Burst,
         stacks: 2, // +1 stack

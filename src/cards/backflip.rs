@@ -15,6 +15,7 @@ pub static BACKFLIP: Card = Card {
     upgraded: false,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 5,
@@ -33,6 +34,7 @@ pub static BACKFLIP_PLUS: Card = Card {
     upgraded: true,
     exhaust: false,
     innate: false,
+    requires_target: false,
     effects: &[
         EffectTemplate::BlockGain {
             amount: 8, // +3 block
