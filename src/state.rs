@@ -5,6 +5,7 @@ use std::collections::VecDeque;
 use rand::rngs::SmallRng;
 
 use crate::cards::Card;
+use crate::character::Character;
 use crate::effect::Effect;
 use crate::modifier::Modifiers;
 use crate::monsters::Monster;
@@ -14,31 +15,80 @@ use crate::types::*;
 // Vitals: physical combat state
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vitals {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
 }
 
-pub fn vitals_new(health: u16, health_max: u16) -> Vitals {
-    Vitals {
-        health,
-        health_max,
-        block: 0,
-    }
-}
-
 // ---------------------------------------------------------------------------
-// Character
+// Entity: the universal unit of identity
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone)]
-pub struct Character {
-    pub id: EntityId,
-    pub vitals: Vitals,
-    pub modifiers: Modifiers,
-    pub reward_roll_offset: i8,
+pub struct Entity {
+    pub kind: EntityKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum EntityKind {
+    Character(Character),
+    Monster(Monster),
+    Card(Card),
+}
+
+impl EntityKind {
+    pub fn combatant_mut(&mut self) -> (&mut Vitals, &mut Modifiers) {
+        match self {
+            EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
+            EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
+            _ => panic!("Not a combatant"),
+        }
+    }
+
+    pub fn combatant_ref(&self) -> (&Vitals, &Modifiers) {
+        match self {
+            EntityKind::Character(c) => (&c.vitals, &c.modifiers),
+            EntityKind::Monster(m) => (&m.vitals, &m.modifiers),
+            _ => panic!("Not a combatant"),
+        }
+    }
+
+    pub fn character_ref(&self) -> &Character {
+        match self {
+            EntityKind::Character(c) => c,
+            _ => panic!("Not a character"),
+        }
+    }
+
+    pub fn character_mut(&mut self) -> &mut Character {
+        match self {
+            EntityKind::Character(c) => c,
+            _ => panic!("Not a character"),
+        }
+    }
+
+    pub fn monster_ref(&self) -> &Monster {
+        match self {
+            EntityKind::Monster(m) => m,
+            _ => panic!("Not a monster"),
+        }
+    }
+
+    pub fn monster_mut(&mut self) -> &mut Monster {
+        match self {
+            EntityKind::Monster(m) => m,
+            _ => panic!("Not a monster"),
+        }
+    }
+
+    pub fn card_ref(&self) -> &Card {
+        match self {
+            EntityKind::Card(card) => card,
+            _ => panic!("Not a card"),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -76,7 +126,7 @@ impl Map {
         let y = self.active_y?;
         let x = self.active_x?;
         if y >= self.nodes.len() {
-            return None; // boss room is virtual, not in the grid
+            return None;
         }
         self.nodes[y][x].as_ref()
     }
@@ -100,41 +150,30 @@ impl Map {
 
 #[derive(Debug, Clone)]
 pub struct GameState {
-    // Meta
     pub ascension: u8,
     pub fsm: Fsm,
     pub rng: SmallRng,
 
-    // Character
-    pub character: Character,
+    pub entities: Vec<Option<Entity>>,
+
     pub energy: Energy,
 
-    // Permanent deck
+    // Permanent deck (template — copied into entity array at combat start)
     pub deck: Vec<Card>,
 
-    // Combat card pool + piles (indices into combat_cards)
-    pub combat_cards: Vec<Card>,
-    pub draw_pile: Vec<usize>,
-    pub hand: Vec<usize>,
-    pub discard_pile: Vec<usize>,
-    pub exhaust_pile: Vec<usize>,
+    // Card piles (EntityIds referencing Card entities)
+    pub draw_pile: Vec<EntityId>,
+    pub hand: Vec<EntityId>,
+    pub discard_pile: Vec<EntityId>,
+    pub exhaust_pile: Vec<EntityId>,
 
-    // Active card / target
-    pub card_active: Option<usize>,
+    pub card_active: Option<EntityId>,
     pub card_target: Option<EntityId>,
 
-    // Monsters
-    pub monsters: Vec<Monster>,
-
-    // Card rewards
+    // Card rewards (templates, not entities)
     pub card_rewards: Vec<Card>,
 
-    // Map
     pub map: Map,
 
-    // Entity ID counter (0 is reserved for CHARACTER)
-    pub next_entity_id: u32,
-
-    // Effect queue
     pub effect_queue: VecDeque<Effect>,
 }

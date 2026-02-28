@@ -172,7 +172,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
 ];
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Modifiers {
     pub stacks: [i16; MODIFIER_COUNT],
     pub is_new: [bool; MODIFIER_COUNT],

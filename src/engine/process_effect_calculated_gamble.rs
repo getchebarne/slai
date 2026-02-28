@@ -1,8 +1,9 @@
 use crate::effect::Effect;
 use crate::engine::ProcessEffectResult;
+use crate::types::EntityId;
 
 pub fn process_effect_calculated_gamble(
-    hand: &mut Vec<usize>,
+    hand: &mut [EntityId],
 ) -> ProcessEffectResult {
     let num_cards = hand.len();
 
@@ -10,9 +11,7 @@ pub fn process_effect_calculated_gamble(
         bot: Vec::new(),
         top: vec![
             Effect::CardDiscardAll,
-            Effect::CardDraw {
-                count: num_cards as u8,
-            },
+            Effect::CardDraw { count: num_cards as u8 },
         ],
     }
 }

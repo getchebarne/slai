@@ -1,13 +1,13 @@
 use crate::engine::ProcessEffectResult;
+use crate::types::EntityId;
 use crate::utils::remove_card_from_hand;
 
 pub fn process_effect_card_discard(
-    card_idx: usize,
-    hand: &mut Vec<usize>,
-    disc_pile: &mut Vec<usize>,
+    card_id: EntityId,
+    hand: &mut Vec<EntityId>,
+    disc_pile: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
-    remove_card_from_hand(card_idx, hand);
-    disc_pile.push(card_idx);
-
+    remove_card_from_hand(card_id, hand);
+    disc_pile.push(card_id);
     ProcessEffectResult::Pass
 }

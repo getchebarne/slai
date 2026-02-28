@@ -6,11 +6,9 @@ use rand::SeedableRng;
 use rand::rngs::SmallRng;
 
 use crate::action::{Action, handle_action};
-use crate::cards::Card;
-use crate::cards::get_card;
+use crate::character::{spawn_silent, silent_starter_deck};
 use crate::effect::Effect;
 use crate::map::generate_map;
-use crate::modifier::modifiers_new;
 use crate::engine::process_queue;
 use crate::state::*;
 use crate::types::*;
@@ -22,42 +20,27 @@ use crate::types::*;
 pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
 
-    // Character (Silent)
-    let (health, health_max) = silent_health(ascension);
-    let character = Character {
-        id: EntityId(0),
-        vitals: Vitals {
-            health,
-            health_max,
-            block: 0,
-        },
-        modifiers: modifiers_new(),
-        reward_roll_offset: 5,
+    let character = Entity {
+        kind: EntityKind::Character(spawn_silent(ascension)),
     };
 
-    // Starter deck
     let deck = silent_starter_deck();
-
-    // Map
     let map = generate_map(&mut rng);
 
     GameState {
         ascension,
-        fsm: Fsm::Map, // will be set properly by initialize
+        fsm: Fsm::Map,
         rng,
-        character,
+        entities: vec![Some(character)],
         energy: Energy { current: 3, max: 3 },
         deck,
-        combat_cards: Vec::new(),
         draw_pile: Vec::new(),
         hand: Vec::new(),
         discard_pile: Vec::new(),
         exhaust_pile: Vec::new(),
         card_active: None,
         card_target: None,
-        monsters: Vec::new(),
         card_rewards: Vec::new(),
-        next_entity_id: 1,
         map,
         effect_queue: VecDeque::new(),
     }
@@ -107,38 +90,3 @@ pub fn determine_fsm(state: &GameState) -> Fsm {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Silent character
-// ---------------------------------------------------------------------------
-
-fn silent_health(ascension: u8) -> (u16, u16) {
-    let mut health_max: u16 = 70;
-    let mut health: u16 = health_max;
-
-    if ascension >= 14 {
-        health_max -= 4;
-        health = health_max;
-    }
-    if ascension >= 6 {
-        health = (0.90 * health as f32) as u16;
-    }
-
-    (health, health_max)
-}
-
-fn silent_starter_deck() -> Vec<Card> {
-    vec![
-        get_card(CardName::Strike, false),
-        get_card(CardName::Strike, false),
-        get_card(CardName::Strike, false),
-        get_card(CardName::Strike, false),
-        get_card(CardName::Strike, false),
-        get_card(CardName::Defend, false),
-        get_card(CardName::Defend, false),
-        get_card(CardName::Defend, false),
-        get_card(CardName::Defend, false),
-        get_card(CardName::Defend, false),
-        get_card(CardName::Survivor, false),
-        get_card(CardName::Neutralize, false),
-    ]
-}

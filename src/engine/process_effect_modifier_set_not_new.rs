@@ -1,15 +1,16 @@
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_set_not_new;
-use crate::monsters::Monster;
-use crate::state::Character;
+use crate::state::{Entity, EntityKind};
 
 pub fn process_effect_modifier_set_not_new(
-    character: &mut Character,
-    monsters: &mut [Monster],
+    entities: &mut [Option<Entity>],
 ) -> ProcessEffectResult {
-    modifier_set_not_new(&mut character.modifiers);
-    for m in monsters.iter_mut() {
-        modifier_set_not_new(&mut m.modifiers);
+    for entity in entities.iter_mut().flatten() {
+        match &mut entity.kind {
+            EntityKind::Character(c) => modifier_set_not_new(&mut c.modifiers),
+            EntityKind::Monster(m) => modifier_set_not_new(&mut m.modifiers),
+            _ => {}
+        }
     }
     ProcessEffectResult::Pass
 }

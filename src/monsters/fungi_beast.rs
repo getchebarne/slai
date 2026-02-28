@@ -1,62 +1,42 @@
 use crate::effect::EffectTemplate;
 use crate::effect::TargetKind;
-use crate::modifier::MODIFIER_COUNT;
 use crate::modifier::ModifierKind;
-use crate::modifier::Modifiers;
 use crate::modifier::modifier_apply;
+use crate::modifier::modifiers_new;
 use crate::monsters::Intent;
-use crate::monsters::Monster;
 use crate::monsters::Move;
+use crate::monsters::Monster;
+use crate::monsters::MAX_MOVE_HISTORY;
 use crate::state::Vitals;
 use crate::types::MonsterKind;
-use crate::types::EntityId;
 use crate::types::MonsterName;
 use rand::Rng;
 
 static MOVE_BITE: Move = Move {
     name: "Bite",
-    effects: &[EffectTemplate::DamagePhysical {
-        base: 6,
-        target: TargetKind::Character,
-    }],
-    intent: Intent::Attack {
-        damage: 6,
-        instances: 1,
-    },
+    effects: &[EffectTemplate::DamagePhysical { base: 6, target: TargetKind::Character }],
+    intent: Intent::Attack { damage: 6, instances: 1 },
 };
 static MOVE_GROW_3: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::Strength,
-        stacks: 3,
-        target: TargetKind::Source,
-    }],
+    effects: &[EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 3, target: TargetKind::Source }],
     intent: Intent::Buff,
 };
 static MOVE_GROW_4: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::Strength,
-        stacks: 4, // +1 strength
-        target: TargetKind::Source,
-    }],
+    effects: &[EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 4, target: TargetKind::Source }],
     intent: Intent::Buff,
 };
 static MOVE_GROW_5: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::Strength,
-        stacks: 5, // +2 strength
-        target: TargetKind::Source,
-    }],
+    effects: &[EffectTemplate::ModifierGain { kind: ModifierKind::Strength, stacks: 5, target: TargetKind::Source }],
     intent: Intent::Buff,
 };
 static MOVES_ASC0: [Move; 2] = [MOVE_GROW_3, MOVE_BITE];
 static MOVES_ASC2: [Move; 2] = [MOVE_GROW_4, MOVE_BITE];
 static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];
 
-pub fn spawn_fungi_beast(id: EntityId, ascension_level: u8, rng: &mut impl Rng) -> Monster {
-    // Roll max health
+pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Monster {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (22, 28)
     } else {
@@ -64,7 +44,6 @@ pub fn spawn_fungi_beast(id: EntityId, ascension_level: u8, rng: &mut impl Rng) 
     };
     let health_max = rng.random_range(health_max_min..=health_max_max);
 
-    // Moves
     let moves: &'static [Move] = if ascension_level < 2 {
         &MOVES_ASC0
     } else if ascension_level < 17 {
@@ -73,41 +52,33 @@ pub fn spawn_fungi_beast(id: EntityId, ascension_level: u8, rng: &mut impl Rng) 
         &MOVES_ASC17
     };
 
-    let vitals = Vitals {
-        health: health_max,
-        health_max: health_max,
-        block: 0,
-    };
-    let mut modifiers = Modifiers {
-        stacks: [0; MODIFIER_COUNT],
-        is_new: [false; MODIFIER_COUNT],
-        active: 0,
-    };
+    let vitals = Vitals { health: health_max, health_max, block: 0 };
+    let mut modifiers = modifiers_new();
     modifier_apply(&mut modifiers, ModifierKind::SporeCloud, 2);
 
     Monster {
-        id,
         name: MonsterName::FungiBeast,
-        kind: MonsterKind::Normal,
+        monster_kind: MonsterKind::Normal,
         vitals,
         modifiers,
-        moves: moves,
+        moves,
         move_current: None,
-        move_history: Vec::new(),
+        move_history: [0; MAX_MOVE_HISTORY],
+        move_history_len: 0,
     }
 }
 
-pub fn get_next_move_fungi_beast(monster: &Monster, rng: &mut impl Rng) -> usize {
+pub fn get_next_move_fungi_beast(
+    _move_current: Option<usize>,
+    move_history: &[u8],
+    rng: &mut impl Rng,
+) -> usize {
     let roll = rng.random_range(0..99);
-
     if roll < 60 {
-        return if monster.move_history.ends_with(&[1, 1]) {
-            0
-        } else {
-            1
-        };
-    } else if monster.move_history.last().copied() == Some(0) {
-        return 1;
+        if move_history.ends_with(&[1, 1]) { 0 } else { 1 }
+    } else if move_history.last().copied() == Some(0) {
+        1
+    } else {
+        0
     }
-    0
 }

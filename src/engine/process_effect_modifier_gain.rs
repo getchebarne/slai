@@ -5,13 +5,13 @@ use crate::modifier::{
 };
 
 // TODO: shared constant
-const TWIN_SLAM_MOVE_IDX: usize = 6;
+const TWIN_SLAM_MOVE_IDX: u8 = 6;
 
 pub fn process_effect_modifier_gain(
     modifiers: &mut Modifiers,
     kind: ModifierKind,
     stacks: i16,
-    move_history: Option<&[usize]>,
+    move_history: Option<&[u8]>,
 ) -> ProcessEffectResult {
     if kind == ModifierKind::ModeShift {
         if let Some(history) = move_history {
@@ -38,7 +38,7 @@ pub fn process_effect_modifier_gain(
 fn process_mode_shift_gain(
     modifiers: &mut Modifiers,
     stacks: i16,
-    move_history: &[usize],
+    move_history: &[u8],
 ) -> ProcessEffectResult {
     let cycle_count = move_history
         .iter()

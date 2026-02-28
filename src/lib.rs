@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 
 mod action;
 mod cards;
+mod character;
 mod consts;
 mod effect;
 mod engine;

@@ -2,7 +2,7 @@
 
 use crate::effect::Effect;
 use crate::consts::REST_SITE_HEAL_FACTOR;
-use crate::state::GameState;
+use crate::state::{EntityKind, GameState};
 use crate::types::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -23,7 +23,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Vec<Effect> {
             handle_play_card(state, hand_idx)
         }
         (Fsm::CombatDefault, Action::EndTurn) => {
-            vec![Effect::TurnEnd { actor: state.character.id }]
+            vec![Effect::TurnEnd { actor: EntityId(0) }]
         }
         (Fsm::CombatAwaitTarget, Action::SelectMonster { monster_idx }) => {
             handle_select_monster(state, monster_idx)
@@ -51,8 +51,8 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Vec<Effect> {
 }
 
 fn handle_play_card(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
-    let card_idx = state.hand[hand_idx];
-    let card = &state.combat_cards[card_idx];
+    let card_id = state.hand[hand_idx];
+    let card = state.entities[card_id.0 as usize].as_ref().expect("Missing card").kind.card_ref();
 
     assert!(
         card.cost <= state.energy.current,
@@ -61,46 +61,55 @@ fn handle_play_card(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
     );
 
     if card.requires_target() {
-        if state.monsters.len() == 1 {
-            let target = state.monsters[0].id;
+        let monster_count = state.entities.iter()
+            .filter(|s| matches!(s, Some(e) if matches!(e.kind, EntityKind::Monster(..))))
+            .count();
+        if monster_count == 1 {
+            let target = state.entities.iter().enumerate()
+                .find(|(_, s)| matches!(s, Some(e) if matches!(e.kind, EntityKind::Monster(..))))
+                .map(|(i, _)| EntityId(i as u32))
+                .unwrap();
             vec![
                 Effect::TargetSet { target },
                 Effect::CardActiveClear,
-                Effect::CardPlay { card_idx },
+                Effect::CardPlay { card_id },
                 Effect::TargetClear,
             ]
         } else {
-            vec![Effect::CardActiveSet { card_idx }]
+            vec![Effect::CardActiveSet { card_id }]
         }
     } else {
-        vec![Effect::CardPlay { card_idx }]
+        vec![Effect::CardPlay { card_id }]
     }
 }
 
 fn handle_select_monster(state: &mut GameState, monster_idx: u8) -> Vec<Effect> {
-    let card_idx = state.card_active.expect("No active card for monster select");
-    let target = state.monsters[monster_idx as usize].id;
+    let card_id = state.card_active.expect("No active card for monster select");
+    let target = state.entities.iter().enumerate()
+        .filter(|(_, s)| matches!(s, Some(e) if matches!(e.kind, EntityKind::Monster(..))))
+        .nth(monster_idx as usize)
+        .map(|(i, _)| EntityId(i as u32))
+        .expect("Invalid monster index");
     vec![
         Effect::TargetSet { target },
         Effect::CardActiveClear,
-        Effect::CardPlay { card_idx },
+        Effect::CardPlay { card_id },
         Effect::TargetClear,
     ]
 }
 
 fn handle_select_discard(state: &mut GameState, hand_idx: usize) -> Vec<Effect> {
-    let card_idx = state.hand[hand_idx];
+    let card_id = state.hand[hand_idx];
     state.effect_queue.pop_front();
-    vec![Effect::CardDiscard { card_idx }]
+    vec![Effect::CardDiscard { card_id }]
 }
 
 fn handle_select_map_node(state: &mut GameState, column: usize) -> Vec<Effect> {
     state.effect_queue.pop_front();
 
-    let y = if state.map.active_y.is_none() {
-        0
-    } else {
-        state.map.active_y.unwrap() + 1
+    let y = match state.map.active_y {
+        None => 0,
+        Some(prev) => prev + 1,
     };
 
     state.map.active_y = Some(y);
@@ -113,7 +122,6 @@ fn handle_select_map_node(state: &mut GameState, column: usize) -> Vec<Effect> {
 
 fn handle_card_reward_select(state: &mut GameState, reward_idx: usize) -> Vec<Effect> {
     state.effect_queue.pop_front();
-
     vec![
         Effect::CardRewardSelect { reward_idx },
         Effect::AwaitMapNode,
@@ -122,7 +130,6 @@ fn handle_card_reward_select(state: &mut GameState, reward_idx: usize) -> Vec<Ef
 
 fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
     state.effect_queue.pop_front();
-
     vec![
         Effect::CardRewardClear,
         Effect::AwaitMapNode,
@@ -130,12 +137,13 @@ fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
 }
 
 fn handle_rest(state: &mut GameState) -> Vec<Effect> {
-    let heal = (REST_SITE_HEAL_FACTOR * state.character.vitals.health_max as f32) as u16;
+    let (vitals, _) = state.entities[0].as_ref().unwrap().kind.combatant_ref();
+    let heal = (REST_SITE_HEAL_FACTOR * vitals.health_max as f32) as u16;
 
     let is_last_floor = state.map.active_y == Some(crate::consts::MAP_HEIGHT - 1);
 
     let mut effects = vec![
-        Effect::HealthGain { target: state.character.id, amount: heal },
+        Effect::HealthGain { target: EntityId(0), amount: heal },
     ];
 
     if is_last_floor {

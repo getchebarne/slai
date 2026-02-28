@@ -9,7 +9,6 @@ pub fn process_effect_health_loss(
     modifiers: &mut Modifiers,
     target: EntityId,
     amount: u16,
-    character_id: EntityId,
 ) -> ProcessEffectResult {
     vitals.health = vitals.health.saturating_sub(amount);
 
@@ -22,7 +21,7 @@ pub fn process_effect_health_loss(
             modifier_stacks(modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(modifiers, ModifierKind::ModeShift);
-            if target != character_id {
+            if target.0 != 0 {
                 effects.push(Effect::MoveUpdate { monster: target });
             }
         } else {

@@ -1,11 +1,10 @@
 use crate::engine::ProcessEffectResult;
+use crate::types::EntityId;
 
 pub fn process_effect_card_discard_all(
-    hand: &mut Vec<usize>,
-    disc_pile: &mut Vec<usize>,
+    hand: &mut Vec<EntityId>,
+    disc_pile: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
-    let hand_copy: Vec<usize> = hand.drain(..).collect();
-    disc_pile.extend(hand_copy);
-
+    disc_pile.append(hand);
     ProcessEffectResult::Pass
 }

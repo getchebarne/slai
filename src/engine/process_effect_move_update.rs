@@ -1,14 +1,16 @@
 use rand::Rng;
 
 use crate::engine::ProcessEffectResult;
-use crate::monsters::{self, Monster};
+use crate::monsters;
+use crate::state::Entity;
 
 pub fn process_effect_move_update(
-    monster: &mut Monster,
+    entity: &mut Entity,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let move_next = monsters::get_next_move(monster, rng);
-    monster.move_current = Some(move_next);
-    monster.move_history.push(move_next);
+    let m = entity.kind.monster_mut();
+    let move_next = monsters::get_next_move(m, rng);
+    m.move_current = Some(move_next);
+    m.push_history(move_next as u8);
     ProcessEffectResult::Pass
 }

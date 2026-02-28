@@ -1,25 +1,25 @@
-use crate::cards::Card;
 use crate::cards::get_card;
 use crate::consts::MAX_SIZE_HAND;
 use crate::engine::ProcessEffectResult;
-use crate::types::CardName;
+use crate::state::{Entity, EntityKind};
+use crate::types::{CardName, EntityId};
+
 pub fn process_effect_add_shivs(
     count: u8,
-    combat_cards: &mut Vec<Card>,
-    hand: &mut Vec<usize>,
-    disc_pile: &mut Vec<usize>,
+    entities: &mut Vec<Option<Entity>>,
+    hand: &mut Vec<EntityId>,
+    disc_pile: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
-    // Create the Shivs
     let shiv = get_card(CardName::Shiv, false);
 
     for _ in 0..count {
-        let card_idx = combat_cards.len();
-        combat_cards.push(shiv);
+        let card_id = EntityId(entities.len() as u32);
+        entities.push(Some(Entity { kind: EntityKind::Card(shiv) }));
 
         if hand.len() < MAX_SIZE_HAND {
-            hand.push(card_idx)
+            hand.push(card_id)
         } else {
-            disc_pile.push(card_idx)
+            disc_pile.push(card_id)
         }
     }
 

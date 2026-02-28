@@ -35,9 +35,7 @@ pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 
 use crate::effect::{Effect, EffectTemplate, SelectionKind, TargetKind};
-use crate::modifier::Modifiers;
-use crate::monsters::Monster;
-use crate::state::{GameState, Vitals};
+use crate::state::{Entity, EntityKind, GameState};
 use crate::types::EntityId;
 
 pub enum ProcessEffectResult {
@@ -47,61 +45,19 @@ pub enum ProcessEffectResult {
     Pause,
 }
 
-fn vitals_mut(state: &mut GameState, id: EntityId) -> &mut Vitals {
-    if id == state.character.id {
-        return &mut state.character.vitals;
-    }
-    &mut state.monsters
-        .iter_mut()
-        .find(|m| m.id == id)
-        .expect("Entity not found")
-        .vitals
-}
-
-fn vitals_ref(state: &GameState, id: EntityId) -> &Vitals {
-    if id == state.character.id {
-        return &state.character.vitals;
-    }
-    &state.monsters
-        .iter()
-        .find(|m| m.id == id)
-        .expect("Entity not found")
-        .vitals
-}
-
-fn modifiers_mut(state: &mut GameState, id: EntityId) -> &mut Modifiers {
-    if id == state.character.id {
-        return &mut state.character.modifiers;
-    }
-    &mut state.monsters
-        .iter_mut()
-        .find(|m| m.id == id)
-        .expect("Entity not found")
-        .modifiers
-}
-
-fn modifiers_ref(state: &GameState, id: EntityId) -> &Modifiers {
-    if id == state.character.id {
-        return &state.character.modifiers;
-    }
-    &state.monsters
-        .iter()
-        .find(|m| m.id == id)
-        .expect("Entity not found")
-        .modifiers
-}
-
 pub fn resolve_target_kind(
     target_kind: TargetKind,
     source: EntityId,
     card_target: Option<EntityId>,
-    character_id: EntityId,
-    monsters: &[Monster],
+    entities: &[Option<Entity>],
 ) -> Vec<EntityId> {
     match target_kind {
         TargetKind::CardTarget => vec![card_target.unwrap()],
-        TargetKind::Character => vec![character_id],
-        TargetKind::AllMonsters => monsters.iter().map(|m| m.id).collect(),
+        TargetKind::Character => vec![EntityId(0)],
+        TargetKind::AllMonsters => entities.iter().enumerate()
+            .filter(|(_, s)| matches!(s, Some(Entity { kind: EntityKind::Monster(..) })))
+            .map(|(i, _)| EntityId(i as u32))
+            .collect(),
         TargetKind::Source => vec![source],
     }
 }
@@ -110,29 +66,28 @@ pub fn instantiate_templates(
     templates: &[EffectTemplate],
     source: EntityId,
     card_target: Option<EntityId>,
-    character_id: EntityId,
-    monsters: &[Monster],
+    entities: &[Option<Entity>],
 ) -> Vec<Effect> {
     let mut out = Vec::new();
     for tmpl in templates {
         match *tmpl {
             EffectTemplate::DamagePhysical { base, target } => {
-                for actor in resolve_target_kind(target, source, card_target, character_id, monsters) {
+                for actor in resolve_target_kind(target, source, card_target, entities) {
                     out.push(Effect::DamagePhysical { source, target: actor, base });
                 }
             }
             EffectTemplate::BlockGain { amount, target } => {
-                for actor in resolve_target_kind(target, source, card_target, character_id, monsters) {
+                for actor in resolve_target_kind(target, source, card_target, entities) {
                     out.push(Effect::BlockGain { target: actor, amount, from_card: true });
                 }
             }
             EffectTemplate::ModifierGain { kind, stacks, target } => {
-                for actor in resolve_target_kind(target, source, card_target, character_id, monsters) {
+                for actor in resolve_target_kind(target, source, card_target, entities) {
                     out.push(Effect::ModifierGain { target: actor, kind, stacks });
                 }
             }
             EffectTemplate::ModifierRemove { kind, target } => {
-                for actor in resolve_target_kind(target, source, card_target, character_id, monsters) {
+                for actor in resolve_target_kind(target, source, card_target, entities) {
                     out.push(Effect::ModifierRemove { target: actor, kind });
                 }
             }
@@ -176,19 +131,16 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 &mut state.rng,
             )
         }
-        Effect::CardPlay { card_idx } => {
+        Effect::CardPlay { card_id } => {
             process_effect_card_play::process_effect_card_play(
-                card_idx,
-                &state.character,
-                &state.monsters,
+                card_id,
+                &state.entities,
                 state.card_target,
-                &state.combat_cards,
-                state.character.id,
             )
         }
-        Effect::CardDiscard { card_idx } => {
+        Effect::CardDiscard { card_id } => {
             process_effect_card_discard::process_effect_card_discard(
-                card_idx,
+                card_id,
                 &mut state.hand,
                 &mut state.discard_pile,
             )
@@ -199,23 +151,23 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 &mut state.discard_pile,
             )
         }
-        Effect::CardExhaust { card_idx } => {
+        Effect::CardExhaust { card_id } => {
             process_effect_card_exhaust::process_effect_card_exhaust(
-                card_idx,
+                card_id,
                 &mut state.hand,
                 &mut state.exhaust_pile,
             )
         }
-        Effect::CardRemove { card_idx } => {
+        Effect::CardRemove { card_id } => {
             process_effect_card_remove::process_effect_card_remove(
-                card_idx,
+                card_id,
                 &mut state.hand,
             )
         }
-        Effect::CardActiveSet { card_idx } => {
+        Effect::CardActiveSet { card_id } => {
             process_effect_card_active_set::process_effect_card_active_set(
                 &mut state.card_active,
-                card_idx,
+                card_id,
             )
         }
         Effect::CardActiveClear => {
@@ -226,7 +178,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         Effect::AddShivs { count } => {
             process_effect_add_shivs::process_effect_add_shivs(
                 count,
-                &mut state.combat_cards,
+                &mut state.entities,
                 &mut state.hand,
                 &mut state.discard_pile,
             )
@@ -243,9 +195,10 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         Effect::CardRewardRoll => {
+            let c = state.entities[0].as_mut().unwrap().kind.character_mut();
             process_effect_card_reward_roll::process_effect_card_reward_roll(
                 &mut state.card_rewards,
-                &mut state.character.reward_roll_offset,
+                &mut c.reward_roll_offset,
                 &mut state.rng,
             )
         }
@@ -273,54 +226,39 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         Effect::DamagePhysical { source, target, base } => {
-            let source_mods = modifiers_ref(state, source);
-            let target_mods = modifiers_ref(state, target);
+            let source_entity = state.entities[source.0 as usize].as_ref().expect("Dead source");
+            let target_entity = state.entities[target.0 as usize].as_ref().expect("Dead target");
+            let (_, source_mods) = source_entity.kind.combatant_ref();
+            let (_, target_mods) = target_entity.kind.combatant_ref();
             process_effect_damage_physical::process_effect_damage_physical(
-                source_mods,
-                target_mods,
-                target,
-                base,
+                source_mods, target_mods, target, base,
             )
         }
         Effect::DamageDeal { target, amount } => {
-            let vitals = vitals_mut(state, target);
+            let entity = state.entities[target.0 as usize].as_mut().expect("Dead entity");
+            let (vitals, _) = entity.kind.combatant_mut();
             process_effect_damage_deal::process_effect_damage_deal(vitals, target, amount)
         }
         Effect::HealthGain { target, amount } => {
-            let vitals = vitals_mut(state, target);
+            let entity = state.entities[target.0 as usize].as_mut().expect("Dead entity");
+            let (vitals, _) = entity.kind.combatant_mut();
             process_effect_health_gain::process_effect_health_gain(vitals, amount)
         }
         Effect::HealthLoss { target, amount } => {
-            let character_id = state.character.id;
-            if target == character_id {
-                process_effect_health_loss::process_effect_health_loss(
-                    &mut state.character.vitals, &mut state.character.modifiers,
-                    target, amount, character_id,
-                )
-            } else {
-                let monster = state.monsters.iter_mut().find(|m| m.id == target)
-                    .expect("Entity not found");
-                process_effect_health_loss::process_effect_health_loss(
-                    &mut monster.vitals, &mut monster.modifiers,
-                    target, amount, character_id,
-                )
-            }
+            let entity = state.entities[target.0 as usize].as_mut().expect("Dead entity");
+            let (vitals, modifiers) = entity.kind.combatant_mut();
+            process_effect_health_loss::process_effect_health_loss(
+                vitals, modifiers, target, amount,
+            )
         }
         Effect::BlockGain { target, amount, from_card } => {
-            if target == state.character.id {
-                process_effect_block_gain::process_effect_block_gain(
-                    &mut state.character.vitals, &state.character.modifiers, amount, from_card,
-                )
-            } else {
-                let monster = state.monsters.iter_mut().find(|m| m.id == target)
-                    .expect("Entity not found");
-                process_effect_block_gain::process_effect_block_gain(
-                    &mut monster.vitals, &monster.modifiers, amount, from_card,
-                )
-            }
+            let entity = state.entities[target.0 as usize].as_mut().expect("Dead entity");
+            let (vitals, modifiers) = entity.kind.combatant_mut();
+            process_effect_block_gain::process_effect_block_gain(vitals, modifiers, amount, from_card)
         }
         Effect::BlockSet { target, amount } => {
-            let vitals = vitals_mut(state, target);
+            let entity = state.entities[target.0 as usize].as_mut().expect("Dead entity");
+            let (vitals, _) = entity.kind.combatant_mut();
             process_effect_block_set::process_effect_block_set(vitals, amount)
         }
         Effect::EnergyGain { amount } => {
@@ -336,52 +274,44 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         Effect::ModifierGain { target, kind, stacks } => {
-            if let Some(monster) = state.monsters.iter_mut().find(|m| m.id == target) {
-                process_effect_modifier_gain::process_effect_modifier_gain(
-                    &mut monster.modifiers,
-                    kind,
-                    stacks,
-                    Some(&monster.move_history),
-                )
-            } else {
-                process_effect_modifier_gain::process_effect_modifier_gain(
-                    &mut state.character.modifiers,
-                    kind,
-                    stacks,
-                    None,
-                )
-            }
+            let entity = state.entities[target.0 as usize].as_mut().expect("Dead entity");
+            let monster_copy = match &entity.kind {
+                EntityKind::Monster(m) => Some(*m),
+                _ => None,
+            };
+            let (_, modifiers) = entity.kind.combatant_mut();
+            process_effect_modifier_gain::process_effect_modifier_gain(
+                modifiers, kind, stacks, monster_copy.as_ref().map(|m| m.history_slice()),
+            )
         }
         Effect::ModifierRemove { target, kind } => {
-            let modifiers = modifiers_mut(state, target);
+            let entity = state.entities[target.0 as usize].as_mut().expect("Dead entity");
+            let (_, modifiers) = entity.kind.combatant_mut();
             process_effect_modifier_remove::process_effect_modifier_remove(modifiers, kind)
         }
         Effect::ModifierTick { target } => {
-            let modifiers = modifiers_mut(state, target);
+            let entity = state.entities[target.0 as usize].as_mut().expect("Dead entity");
+            let (_, modifiers) = entity.kind.combatant_mut();
             process_effect_modifier_tick::process_effect_modifier_tick(modifiers)
         }
         Effect::ModifierSetNotNew => {
             process_effect_modifier_set_not_new::process_effect_modifier_set_not_new(
-                &mut state.character,
-                &mut state.monsters,
+                &mut state.entities,
             )
         }
         Effect::Death { actor } => {
-            process_effect_death::process_effect_death(actor, &mut state.monsters, state.character.id)
+            process_effect_death::process_effect_death(actor, &mut state.entities)
         }
         Effect::CombatStart => {
-            let monster_ids: Vec<EntityId> = state.monsters.iter().map(|m| m.id).collect();
             process_effect_combat_start::process_effect_combat_start(
                 &state.deck,
-                &mut state.combat_cards,
+                &mut state.entities,
                 &mut state.draw_pile,
                 &mut state.hand,
                 &mut state.discard_pile,
                 &mut state.exhaust_pile,
                 &mut state.card_active,
                 &mut state.card_target,
-                &monster_ids,
-                state.character.id,
                 &mut state.rng,
             )
         }
@@ -391,68 +321,46 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 &mut state.draw_pile,
                 &mut state.discard_pile,
                 &mut state.exhaust_pile,
-                &mut state.combat_cards,
                 &mut state.card_active,
                 &mut state.card_target,
-                &mut state.character.modifiers,
+                &mut state.entities,
                 &state.map,
             )
         }
         Effect::TurnStart { actor } => {
-            let character_id = state.character.id;
-            let monster_ids: Vec<EntityId> = state.monsters.iter().map(|m| m.id).collect();
-            if actor == character_id {
-                process_effect_turn_start::process_effect_turn_start(
-                    &mut state.character.vitals,
-                    &mut state.character.modifiers,
-                    actor,
-                    &state.energy,
-                    &monster_ids,
-                    character_id,
-                )
-            } else {
-                let monster = state.monsters.iter_mut().find(|m| m.id == actor)
-                    .expect("Monster not found for TurnStart");
-                process_effect_turn_start::process_effect_turn_start(
-                    &mut monster.vitals,
-                    &mut monster.modifiers,
-                    actor,
-                    &state.energy,
-                    &monster_ids,
-                    character_id,
-                )
-            }
+            let monster_ids: Vec<EntityId> = state.entities.iter().enumerate()
+                .filter(|(_, s)| matches!(s, Some(Entity { kind: EntityKind::Monster(..) })))
+                .map(|(i, _)| EntityId(i as u32))
+                .collect();
+            let entity = state.entities[actor.0 as usize].as_mut().expect("Dead entity");
+            let (vitals, modifiers) = entity.kind.combatant_mut();
+            process_effect_turn_start::process_effect_turn_start(
+                vitals, modifiers, actor, &state.energy, &monster_ids,
+            )
         }
         Effect::TurnEnd { actor } => {
-            if actor == state.character.id {
+            if actor.0 == 0 {
                 process_effect_turn_end::process_effect_turn_end_character(
-                    &mut state.character.vitals,
-                    &mut state.character.modifiers,
-                    &state.monsters,
-                    state.card_target,
-                    state.character.id,
+                    &state.entities, state.card_target,
                 )
             } else {
-                let monster = state.monsters.iter_mut().find(|m| m.id == actor)
-                    .expect("Monster not found for TurnEnd");
+                let entity = state.entities[actor.0 as usize].as_mut().expect("Dead entity");
+                let (vitals, modifiers) = entity.kind.combatant_mut();
                 process_effect_turn_end::process_effect_turn_end_monster(
-                    &mut monster.vitals,
-                    &monster.modifiers,
-                    actor,
+                    vitals, modifiers, actor,
                 )
             }
         }
         Effect::MoveUpdate { monster } => {
-            let m = state.monsters.iter_mut().find(|m| m.id == monster)
+            let entity = state.entities[monster.0 as usize].as_mut()
                 .expect("Monster not found for MoveUpdate");
-            process_effect_move_update::process_effect_move_update(m, &mut state.rng)
+            process_effect_move_update::process_effect_move_update(entity, &mut state.rng)
         }
         Effect::RoomEnter => {
             process_effect_room_enter::process_effect_room_enter(
                 &state.map,
                 state.ascension,
-                &mut state.monsters,
-                &mut state.next_entity_id,
+                &mut state.entities,
                 &mut state.rng,
             )
         }

@@ -11,7 +11,6 @@ pub fn process_effect_turn_start(
     actor: EntityId,
     energy: &Energy,
     monster_ids: &[EntityId],
-    character_id: EntityId,
 ) -> ProcessEffectResult {
     let mut effects = Vec::new();
 
@@ -33,11 +32,11 @@ pub fn process_effect_turn_start(
         });
     }
 
-    if actor == character_id {
+    if actor.0 == 0 {
         effects.push(Effect::CardDraw { count: CARDS_DRAWN_PER_TURN });
         let energy_gain = energy.max - energy.current;
         effects.push(Effect::EnergyGain { amount: energy_gain });
-        effects.push(Effect::ModifierTick { target: character_id });
+        effects.push(Effect::ModifierTick { target: EntityId(0) });
         for &mid in monster_ids {
             effects.push(Effect::ModifierTick { target: mid });
         }

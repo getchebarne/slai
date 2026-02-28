@@ -66,20 +66,20 @@ pub enum Effect {
         count: u8,
     },
     CardPlay {
-        card_idx: usize,
+        card_id: EntityId,
     },
     CardDiscard {
-        card_idx: usize,
+        card_id: EntityId,
     },
     CardDiscardAll,
     CardExhaust {
-        card_idx: usize,
+        card_id: EntityId,
     },
     CardRemove {
-        card_idx: usize,
+        card_id: EntityId,
     },
     CardActiveSet {
-        card_idx: usize,
+        card_id: EntityId,
     },
     CardActiveClear,
     AddShivs {
