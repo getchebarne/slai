@@ -181,13 +181,16 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             process_effect_calculated_gamble::process_effect_calculated_gamble(&mut state.hand)
         }
         Effect::CardUpgrade { deck_idx } => {
-            process_effect_card_upgrade::process_effect_card_upgrade(deck_idx, &mut state.deck)
+            process_effect_card_upgrade::process_effect_card_upgrade(
+                deck_idx,
+                &state.deck,
+                &mut state.entities,
+            )
         }
         Effect::CardRewardRoll => {
-            let c = state.entities[0].kind.character_mut();
             process_effect_card_reward_roll::process_effect_card_reward_roll(
                 &mut state.card_rewards,
-                &mut c.reward_roll_offset,
+                &mut state.entities,
                 &mut state.rng,
             )
         }

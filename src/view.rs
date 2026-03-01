@@ -126,7 +126,10 @@ pub fn build_view(state: &GameState) -> ViewGameState {
         deck: state
             .deck
             .iter()
-            .map(|c| build_view_card_template(c, false))
+            .map(|&id| {
+                let card = state.entities[id.0 as usize].kind.card_ref();
+                build_view_card_template(card, false)
+            })
             .collect(),
         hand: state
             .hand
@@ -143,7 +146,10 @@ pub fn build_view(state: &GameState) -> ViewGameState {
         reward_combat: state
             .card_rewards
             .iter()
-            .map(|c| build_view_card_template(c, false))
+            .map(|&id| {
+                let card = state.entities[id.0 as usize].kind.card_ref();
+                build_view_card_template(card, false)
+            })
             .collect(),
         energy: ViewEnergy {
             current: state.energy.current,

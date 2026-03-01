@@ -1,6 +1,5 @@
 use rand::Rng;
 
-use crate::cards::Card;
 use crate::effect::Effect;
 use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
@@ -8,7 +7,7 @@ use crate::types::EntityId;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
-    deck: &[Card],
+    deck: &[EntityId],
     entities: &mut Vec<Entity>,
     draw_pile: &mut Vec<EntityId>,
     hand: &mut Vec<EntityId>,
@@ -23,10 +22,11 @@ pub fn process_effect_combat_start(
     let mut innate_ids: Vec<EntityId> = Vec::new();
     let mut other_ids: Vec<EntityId> = Vec::new();
 
-    for card in deck {
+    for &deck_id in deck {
+        let card = *entities[deck_id.0 as usize].kind.card_ref();
         let id = EntityId(entities.len() as u32);
         entities.push(Entity {
-            kind: EntityKind::Card(*card),
+            kind: EntityKind::Card(card),
         });
         if card.innate {
             innate_ids.push(id);

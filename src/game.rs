@@ -25,14 +25,22 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         kind: EntityKind::Character(spawn_silent(ascension)),
     };
 
-    let deck = silent_starter_deck();
+    let deck_templates = silent_starter_deck();
     let map = generate_map(&mut rng);
+
+    let mut entities = vec![character];
+    let mut deck = Vec::with_capacity(deck_templates.len());
+    for card in deck_templates {
+        let id = EntityId(entities.len() as u32);
+        entities.push(Entity { kind: EntityKind::Card(card) });
+        deck.push(id);
+    }
 
     GameState {
         ascension,
         phase: Phase::Map,
         rng,
-        entities: vec![character],
+        entities,
         character: EntityId(0),
         monsters: [EntityId(0); MAX_MONSTERS],
         monster_count: 0,

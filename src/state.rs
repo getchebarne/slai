@@ -90,6 +90,13 @@ impl EntityKind {
             _ => panic!("Not a card"),
         }
     }
+
+    pub fn card_mut(&mut self) -> &mut Card {
+        match self {
+            EntityKind::Card(card) => card,
+            _ => panic!("Not a card"),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -164,10 +171,11 @@ pub struct GameState {
     pub monsters: [EntityId; MAX_MONSTERS],
     pub monster_count: u8,
 
+    // Energy
     pub energy: Energy,
 
-    // Permanent deck (template — copied into entity array at combat start)
-    pub deck: Vec<Card>,
+    // Permanent deck (EntityIds referencing Card entities)
+    pub deck: Vec<EntityId>,
 
     // Card piles (EntityIds referencing Card entities)
     pub draw_pile: Vec<EntityId>,
@@ -178,8 +186,8 @@ pub struct GameState {
     pub card_active: Option<EntityId>,
     pub card_target: Option<EntityId>,
 
-    // Card rewards (templates, not entities)
-    pub card_rewards: Vec<Card>,
+    // Card rewards (EntityIds referencing Card entities)
+    pub card_rewards: Vec<EntityId>,
 
     pub map: Map,
 

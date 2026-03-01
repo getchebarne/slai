@@ -1,10 +1,16 @@
-use crate::cards::Card;
 use crate::cards::get_card;
 use crate::engine::ProcessEffectResult;
+use crate::state::Entity;
+use crate::types::EntityId;
 
-pub fn process_effect_card_upgrade(card_idx: usize, deck: &mut Vec<Card>) -> ProcessEffectResult {
-    let card_old = deck[card_idx];
-    deck[card_idx] = get_card(card_old.name, true);
+pub fn process_effect_card_upgrade(
+    card_idx: usize,
+    deck: &[EntityId],
+    entities: &mut Vec<Entity>,
+) -> ProcessEffectResult {
+    let entity_id = deck[card_idx];
+    let card = entities[entity_id.0 as usize].kind.card_mut();
+    *card = get_card(card.name, true);
 
     ProcessEffectResult::Pass
 }

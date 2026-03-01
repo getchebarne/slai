@@ -24,7 +24,6 @@ pub fn process_effect_combat_end(
 
     let (_, modifiers) = entities[0].kind.combatant_mut();
     modifier_clear(modifiers);
-    entities.truncate(1);
     *monster_count = 0;
 
     let room = map.active_room_type().unwrap();
