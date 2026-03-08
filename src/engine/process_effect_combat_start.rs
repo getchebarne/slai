@@ -58,7 +58,7 @@ pub fn process_effect_combat_start(
         target: Some(EntityId(0)),
     });
 
-    ProcessEffectResult::Continue {
+    ProcessEffectResult::AddAndContinue {
         top: effects,
         bot: Vec::new(),
     }

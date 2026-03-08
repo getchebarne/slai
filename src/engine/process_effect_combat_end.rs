@@ -26,7 +26,7 @@ pub fn process_effect_combat_end(
 
     let room = map.active_room_type().unwrap();
     match room {
-        RoomType::CombatBoss => ProcessEffectResult::Continue {
+        RoomType::CombatBoss => ProcessEffectResult::AddAndContinue {
             top: vec![Effect {
                 kind: EffectKind::GameEnd,
                 source: None,
@@ -34,7 +34,7 @@ pub fn process_effect_combat_end(
             }],
             bot: Vec::new(),
         },
-        RoomType::CombatMonster => ProcessEffectResult::Continue {
+        RoomType::CombatMonster => ProcessEffectResult::AddAndContinue {
             top: Vec::new(),
             bot: vec![Effect {
                 kind: EffectKind::CardRewardRoll,

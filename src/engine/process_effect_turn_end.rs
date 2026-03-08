@@ -16,7 +16,7 @@ pub fn process_effect_turn_end_monster(
         && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(modifiers, ModifierKind::Ritual);
-        return ProcessEffectResult::Continue {
+        return ProcessEffectResult::AddAndContinue {
             top: vec![Effect {
                 kind: EffectKind::ModifierGain {
                     kind: ModifierKind::Strength,
@@ -28,7 +28,7 @@ pub fn process_effect_turn_end_monster(
             bot: Vec::new(),
         };
     }
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }
 
 pub fn process_effect_turn_end_character(
@@ -114,7 +114,7 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    ProcessEffectResult::Continue {
+    ProcessEffectResult::AddAndContinue {
         top: effects,
         bot: Vec::new(),
     }

@@ -25,5 +25,5 @@ pub fn process_effect_add_shivs(
         }
     }
 
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

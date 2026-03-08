@@ -48,7 +48,7 @@ pub fn process_effect_card_reward_roll(
 
     entities[0].kind.character_mut().reward_roll_offset = reward_roll_offset;
 
-    ProcessEffectResult::Continue {
+    ProcessEffectResult::AddAndContinue {
         top: Vec::new(),
         bot: vec![Effect {
             kind: EffectKind::AwaitCardReward,

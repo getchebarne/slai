@@ -30,5 +30,5 @@ pub fn process_effect_card_draw(
             disc_pile.push(card_id);
         }
     }
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

@@ -6,5 +6,5 @@ pub fn process_effect_card_discard_all(
     disc_pile: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
     disc_pile.append(hand);
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

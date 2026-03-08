@@ -12,7 +12,7 @@ pub fn process_effect_card_reward_select(
     deck.push(card_id);
 
     // Queue top-effect to clear the queue
-    ProcessEffectResult::Continue {
+    ProcessEffectResult::AddAndContinue {
         top: vec![Effect {
             kind: EffectKind::CardRewardClear,
             source: None,

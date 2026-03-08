@@ -9,5 +9,5 @@ pub fn process_effect_move_update(entity: &mut Entity, rng: &mut impl Rng) -> Pr
     let move_next = monsters::get_next_move(m, rng);
     m.move_current = Some(move_next);
     m.push_history(move_next as u8);
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

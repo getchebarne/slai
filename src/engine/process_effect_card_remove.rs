@@ -7,5 +7,5 @@ pub fn process_effect_card_remove(
     hand: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
     remove_card_from_hand(card_id, hand);
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

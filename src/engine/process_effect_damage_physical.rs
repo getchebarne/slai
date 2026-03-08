@@ -30,7 +30,7 @@ pub fn process_effect_damage_physical(
 
     let final_damage = value as u16;
     if final_damage > 0 {
-        ProcessEffectResult::Continue {
+        ProcessEffectResult::AddAndContinue {
             top: vec![Effect {
                 kind: EffectKind::DamageDeal {
                     amount: final_damage,
@@ -41,6 +41,6 @@ pub fn process_effect_damage_physical(
             bot: Vec::new(),
         }
     } else {
-        ProcessEffectResult::Pass
+        ProcessEffectResult::Continue
     }
 }

@@ -11,5 +11,5 @@ pub fn process_effect_modifier_set_not_new(
     for &mid in alive_monsters {
         modifier_set_not_new(&mut entities[mid.0 as usize].kind.monster_mut().modifiers);
     }
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

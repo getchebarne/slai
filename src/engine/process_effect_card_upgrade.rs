@@ -12,5 +12,5 @@ pub fn process_effect_card_upgrade(
     let card = entities[entity_id.0 as usize].kind.card_mut();
     *card = get_card(card.name, true);
 
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

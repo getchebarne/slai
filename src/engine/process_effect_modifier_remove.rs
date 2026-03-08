@@ -6,5 +6,5 @@ pub fn process_effect_modifier_remove(
     kind: ModifierKind,
 ) -> ProcessEffectResult {
     modifier_remove(modifiers, kind);
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

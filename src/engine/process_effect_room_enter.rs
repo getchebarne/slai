@@ -35,7 +35,7 @@ pub fn process_effect_room_enter(
         RoomType::CombatBoss => {
             let m = monsters::spawn_monster(MonsterName::TheGuardian, ascension, rng);
             push_monster(m, entities, monsters, monster_count);
-            ProcessEffectResult::Continue {
+            ProcessEffectResult::AddAndContinue {
                 top: vec![Effect {
                     kind: EffectKind::CombatStart,
                     source: None,
@@ -63,7 +63,7 @@ pub fn process_effect_room_enter(
                 }
                 _ => unreachable!(),
             };
-            ProcessEffectResult::Continue {
+            ProcessEffectResult::AddAndContinue {
                 top: vec![Effect {
                     kind: EffectKind::CombatStart,
                     source: None,
@@ -72,6 +72,6 @@ pub fn process_effect_room_enter(
                 bot: Vec::new(),
             }
         }
-        RoomType::RestSite => ProcessEffectResult::Pass,
+        RoomType::RestSite => ProcessEffectResult::Continue,
     }
 }

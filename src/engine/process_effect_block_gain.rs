@@ -18,5 +18,5 @@ pub fn process_effect_block_gain(
     if value > 0 {
         vitals.block = (vitals.block + value as u16).min(999);
     }
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

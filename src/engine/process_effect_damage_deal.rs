@@ -12,7 +12,7 @@ pub fn process_effect_damage_deal(
     vitals.block = vitals.block.saturating_sub(amount);
 
     if damage_over_block > 0 {
-        ProcessEffectResult::Continue {
+        ProcessEffectResult::AddAndContinue {
             top: vec![Effect {
                 kind: EffectKind::HealthLoss {
                     amount: damage_over_block,
@@ -23,6 +23,6 @@ pub fn process_effect_damage_deal(
             bot: Vec::new(),
         }
     } else {
-        ProcessEffectResult::Pass
+        ProcessEffectResult::Continue
     }
 }

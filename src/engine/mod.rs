@@ -40,10 +40,9 @@ use crate::types::EntityId;
 use crate::utils::{get_alive_monster_ids, shuffle};
 
 pub enum ProcessEffectResult {
-    Continue { top: Vec<Effect>, bot: Vec<Effect> },
+    AddAndContinue { top: Vec<Effect>, bot: Vec<Effect> },
+    Continue,
     Replace(Vec<Effect>),
-    Pass,
-    Halt,
     Pause,
 }
 
@@ -387,7 +386,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         ),
         EffectKind::GameEnd => {
             state.effect_queue.push_front(effect);
-            ProcessEffectResult::Halt
+            ProcessEffectResult::Pause
         }
         EffectKind::AwaitMapNode => {
             state.effect_queue.push_front(effect);
@@ -410,11 +409,16 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
 
 pub fn process_queue(state: &mut GameState) {
     while let Some(effect) = state.effect_queue.pop_front() {
+        // Process the effect
         let result = process_effect(state, effect);
 
+        // Gate based on the processing result
         match result {
-            ProcessEffectResult::Pass => {}
-            ProcessEffectResult::Continue { top, bot } => {
+            // Continue to next effect immediately
+            ProcessEffectResult::Continue => {}
+
+            // Prepend and/or append and continue to next effect
+            ProcessEffectResult::AddAndContinue { top, bot } => {
                 for e in top.into_iter().rev() {
                     state.effect_queue.push_front(e);
                 }
@@ -422,13 +426,17 @@ pub fn process_queue(state: &mut GameState) {
                     state.effect_queue.push_back(e);
                 }
             }
+
+            // Replace queue w/ new one
             ProcessEffectResult::Replace(effects) => {
                 state.effect_queue.clear();
                 for e in effects {
                     state.effect_queue.push_back(e);
                 }
             }
-            ProcessEffectResult::Halt | ProcessEffectResult::Pause => return,
+
+            // Return, potentially leaving unprocessed effects
+            ProcessEffectResult::Pause => return,
         }
     }
 }

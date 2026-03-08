@@ -113,7 +113,7 @@ pub fn process_effect_card_play(
     } else {
         top_effects.extend(card_effects);
     }
-    ProcessEffectResult::Continue {
+    ProcessEffectResult::AddAndContinue {
         bot: Vec::new(),
         top: top_effects,
     }

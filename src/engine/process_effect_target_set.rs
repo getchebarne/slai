@@ -6,5 +6,5 @@ pub fn process_effect_target_set(
     target: EntityId,
 ) -> ProcessEffectResult {
     *card_target = Some(target);
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

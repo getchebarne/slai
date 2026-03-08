@@ -28,11 +28,11 @@ pub fn process_effect_modifier_gain(
                 modifier_remove(modifiers, kind);
             }
         }
-        return ProcessEffectResult::Pass;
+        return ProcessEffectResult::Continue;
     }
 
     modifier_apply(modifiers, kind, stacks);
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }
 
 fn process_mode_shift_gain(
@@ -49,5 +49,5 @@ fn process_mode_shift_gain(
     modifier_apply(modifiers, ModifierKind::ModeShift, stacks + increase);
     modifiers.is_new[ModifierKind::ModeShift as usize] = false;
 
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

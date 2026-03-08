@@ -9,5 +9,5 @@ pub fn process_effect_card_exhaust(
 ) -> ProcessEffectResult {
     remove_card_from_hand(card_id, hand);
     exh_pile.push(card_id);
-    ProcessEffectResult::Pass
+    ProcessEffectResult::Continue
 }

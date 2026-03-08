@@ -11,7 +11,7 @@ pub fn process_effect_death(
     monster_count: u8,
 ) -> ProcessEffectResult {
     if actor.0 == 0 {
-        return ProcessEffectResult::Continue {
+        return ProcessEffectResult::AddAndContinue {
             top: vec![Effect {
                 kind: EffectKind::GameEnd,
                 source: None,
@@ -52,9 +52,9 @@ pub fn process_effect_death(
         });
         ProcessEffectResult::Replace(effects)
     } else if effects.is_empty() {
-        ProcessEffectResult::Pass
+        ProcessEffectResult::Continue
     } else {
-        ProcessEffectResult::Continue {
+        ProcessEffectResult::AddAndContinue {
             top: effects,
             bot: Vec::new(),
         }

@@ -5,7 +5,7 @@ use crate::types::EntityId;
 pub fn process_effect_calculated_gamble(hand: &mut [EntityId]) -> ProcessEffectResult {
     let num_cards = hand.len();
 
-    ProcessEffectResult::Continue {
+    ProcessEffectResult::AddAndContinue {
         bot: Vec::new(),
         top: vec![
             Effect {
