@@ -157,8 +157,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         ),
         EffectKind::CardPlay => {
             let card_id = effect.target.unwrap();
-            let alive =
-                get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
+            let alive = get_alive_monster_ids(state);
             process_effect_card_play::process_effect_card_play(
                 card_id,
                 &state.entities,
@@ -308,8 +307,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             process_effect_modifier_tick::process_effect_modifier_tick(modifiers)
         }
         EffectKind::ModifierSetNotNew => {
-            let alive =
-                get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
+            let alive = get_alive_monster_ids(state);
             process_effect_modifier_set_not_new::process_effect_modifier_set_not_new(
                 &mut state.entities,
                 &alive,
@@ -348,8 +346,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         ),
         EffectKind::TurnStart => {
             let actor = effect.target.unwrap();
-            let monster_ids =
-                get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
+            let monster_ids = get_alive_monster_ids(state);
             let (vitals, modifiers) = state.entities[actor.0 as usize].kind.combatant_mut();
             process_effect_turn_start::process_effect_turn_start(
                 vitals,
@@ -362,8 +359,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         EffectKind::TurnEnd => {
             let actor = effect.target.unwrap();
             if actor.0 == 0 {
-                let alive =
-                    get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
+                let alive = get_alive_monster_ids(state);
                 process_effect_turn_end::process_effect_turn_end_character(
                     &state.entities,
                     state.card_target,

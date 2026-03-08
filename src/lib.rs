@@ -148,8 +148,8 @@ impl ActionCardUpgrade {
 fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
     if let Ok(a) = py_action.extract::<ActionCardPlay>() {
         return Ok(Action::CardPlay {
-            hand_idx: a.hand_idx,
-            monster_idx: a.monster_idx,
+            idx_hand: a.hand_idx,
+            idx_monster: a.monster_idx,
         });
     }
     if py_action.extract::<ActionEndTurn>().is_ok() {
@@ -157,15 +157,15 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
     }
     if let Ok(a) = py_action.extract::<ActionCardDiscard>() {
         return Ok(Action::CardDiscard {
-            hand_idx: a.hand_idx,
+            idx_hand: a.hand_idx,
         });
     }
     if let Ok(a) = py_action.extract::<ActionMapNodeSelect>() {
-        return Ok(Action::MapNodeSelect { column: a.column });
+        return Ok(Action::MapNodeSelect { idx_row: a.column });
     }
     if let Ok(a) = py_action.extract::<ActionCardRewardSelect>() {
         return Ok(Action::CardRewardSelect {
-            reward_idx: a.reward_idx,
+            idx_reward: a.reward_idx,
         });
     }
     if py_action.extract::<ActionCardRewardSkip>().is_ok() {
@@ -176,7 +176,7 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
     }
     if let Ok(a) = py_action.extract::<ActionCardUpgrade>() {
         return Ok(Action::CardUpgrade {
-            deck_idx: a.deck_idx,
+            idx_deck: a.deck_idx,
         });
     }
     Err(pyo3::exceptions::PyTypeError::new_err(format!(

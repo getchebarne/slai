@@ -183,7 +183,7 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
 fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
     let (_, character_modifiers) = state.entities[0].kind.combatant_ref();
 
-    get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities)
+    get_alive_monster_ids(state)
         .iter()
         .map(|&mid| {
             let m = state.entities[mid.0 as usize].kind.monster_ref();
