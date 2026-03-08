@@ -33,6 +33,7 @@ pub fn process_effect_turn_end_monster(
 
 pub fn process_effect_turn_end_character(
     entities: &[Entity],
+    hand: &[EntityId],
     card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
     rng: &mut impl Rng,
@@ -55,11 +56,13 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    effects.push(Effect {
-        kind: EffectKind::CardDiscardAll,
-        source: None,
-        target: None,
-    });
+    for &card_id in hand {
+        effects.push(Effect {
+            kind: EffectKind::CardDiscard,
+            source: None,
+            target: Some(card_id),
+        });
+    }
     effects.push(Effect {
         kind: EffectKind::ModifierSetNotNew,
         source: None,

@@ -21,7 +21,6 @@ pub enum EffectKind {
     CardPlay,
     CardExhaust,
     CardRemove,
-    CardDiscardAll,
     CardUpgrade { deck_idx: usize },
     CardRewardRoll,
     CardRewardSelect { idx_reward: usize },

@@ -3,7 +3,6 @@ pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_discard;
-pub mod process_effect_card_discard_all;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_play;
@@ -174,12 +173,6 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 &mut state.discard_pile,
             )
         }
-        EffectKind::CardDiscardAll => {
-            process_effect_card_discard_all::process_effect_card_discard_all(
-                &mut state.hand,
-                &mut state.discard_pile,
-            )
-        }
         EffectKind::CardExhaust => {
             let card_id = effect.target.unwrap();
             process_effect_card_exhaust::process_effect_card_exhaust(
@@ -199,7 +192,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             &mut state.discard_pile,
         ),
         EffectKind::CalculatedGamble => {
-            process_effect_calculated_gamble::process_effect_calculated_gamble(&mut state.hand)
+            process_effect_calculated_gamble::process_effect_calculated_gamble(&state.hand)
         }
         EffectKind::CardUpgrade { deck_idx } => {
             process_effect_card_upgrade::process_effect_card_upgrade(
@@ -366,6 +359,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 let alive = get_alive_monster_ids(state);
                 process_effect_turn_end::process_effect_turn_end_character(
                     &state.entities,
+                    &state.hand,
                     state.card_target,
                     &alive,
                     &mut state.rng,
