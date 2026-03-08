@@ -159,11 +159,20 @@ impl Map {
 #[derive(Debug, Clone)]
 pub struct GameState {
     pub ascension: u8,
-    pub phase: Phase,
     pub rng: SmallRng,
+
+    // State-machine to track game phases, e.g.
+    //     map
+    //     combat (default or discard selection)
+    //     rest site
+    //     card reward selection
+    pub phase: Phase,
 
     // Effect queue (the program)
     pub effect_queue: VecDeque<Effect>,
+
+    // Map
+    pub map: Map,
 
     // Energy
     pub energy: Energy,
@@ -179,6 +188,9 @@ pub struct GameState {
     pub monsters: [EntityId; MAX_MONSTERS],
     pub monster_count: u8,
 
+    // Entities / Monsters / Target
+    pub card_target: Option<EntityId>,
+
     // Entities / Card / Deck
     pub deck: Vec<EntityId>,
 
@@ -188,13 +200,8 @@ pub struct GameState {
     pub discard_pile: Vec<EntityId>,
     pub exhaust_pile: Vec<EntityId>,
 
-    // Entities / Combat piles
-    pub card_target: Option<EntityId>,
-
-    // Card rewards (EntityIds referencing Card entities)
+    // Entities /Card / Combat piles
     pub card_rewards: Vec<EntityId>,
-
-    pub map: Map,
 }
 
 impl GameState {

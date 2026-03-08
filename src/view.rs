@@ -33,7 +33,6 @@ pub struct ViewCard {
     pub upgraded: bool,
     pub exhaust: bool,
     pub innate: bool,
-    pub is_active: bool,
     pub requires_target: bool,
     pub effects: Vec<ViewEffectTemplate>,
 }
@@ -128,7 +127,7 @@ pub fn build_view(state: &GameState) -> ViewGameState {
             .iter()
             .map(|&id| {
                 let card = state.entities[id.0 as usize].kind.card_ref();
-                build_view_card_template(card, false)
+                build_view_card_template(card)
             })
             .collect(),
         hand: state
@@ -136,7 +135,7 @@ pub fn build_view(state: &GameState) -> ViewGameState {
             .iter()
             .map(|&id| {
                 let card = state.entities[id.0 as usize].kind.card_ref();
-                build_view_card_template(card, false)
+                build_view_card_template(card)
             })
             .collect(),
         pile_draw: build_view_pile(&state.entities, &state.draw_pile),
@@ -147,7 +146,7 @@ pub fn build_view(state: &GameState) -> ViewGameState {
             .iter()
             .map(|&id| {
                 let card = state.entities[id.0 as usize].kind.card_ref();
-                build_view_card_template(card, false)
+                build_view_card_template(card)
             })
             .collect(),
         energy: ViewEnergy {
@@ -163,7 +162,7 @@ fn build_view_pile(entities: &[Entity], pile: &[EntityId]) -> Vec<ViewCard> {
     pile.iter()
         .map(|&id| {
             let card = entities[id.0 as usize].kind.card_ref();
-            build_view_card_template(card, false)
+            build_view_card_template(card)
         })
         .collect()
 }
@@ -266,7 +265,7 @@ fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<ViewModifier> 
     out
 }
 
-fn build_view_card_template(card: &Card, is_active: bool) -> ViewCard {
+fn build_view_card_template(card: &Card) -> ViewCard {
     ViewCard {
         name: if card.upgraded {
             format!("{}+", card.name.as_str())
@@ -280,7 +279,6 @@ fn build_view_card_template(card: &Card, is_active: bool) -> ViewCard {
         upgraded: card.upgraded,
         exhaust: card.exhaust,
         innate: card.innate,
-        is_active,
         requires_target: card.requires_target,
         effects: card.effects.iter().map(view_effect_template).collect(),
     }
