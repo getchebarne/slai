@@ -3,8 +3,10 @@ use crate::engine::ProcessEffectResult;
 use crate::types::EntityId;
 
 pub fn process_effect_calculated_gamble(hand: &[EntityId]) -> ProcessEffectResult {
+    // Calculate number of cards to discard / draw
     let num_cards = hand.len();
 
+    // For each card in the hand, create an effect to discard it
     let mut top: Vec<Effect> = hand
         .iter()
         .map(|&card_id| Effect {
@@ -14,6 +16,7 @@ pub fn process_effect_calculated_gamble(hand: &[EntityId]) -> ProcessEffectResul
         })
         .collect();
 
+    // Add a final effect to draw that many cards
     top.push(Effect {
         kind: EffectKind::CardDraw {
             count: num_cards as u8,
@@ -22,6 +25,7 @@ pub fn process_effect_calculated_gamble(hand: &[EntityId]) -> ProcessEffectResul
         target: None,
     });
 
+    // Continue w/ top effects
     ProcessEffectResult::AddAndContinue {
         top,
         bot: Vec::new(),

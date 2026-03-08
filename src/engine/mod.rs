@@ -168,7 +168,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         EffectKind::CardDiscard => {
             let card_id = effect.target.unwrap();
             process_effect_card_discard::process_effect_card_discard(
-                vec![card_id],
+                card_id,
                 &mut state.hand,
                 &mut state.discard_pile,
             )
