@@ -17,10 +17,7 @@ pub static CLOAK_AND_DAGGER: Card = Card {
     requires_target: false,
     effects: &[
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 6,
-                from_card: true,
-            },
+            kind: EffectKind::BlockGain { amount: 6 },
             targeting: Some(Targeting {
                 candidates: Candidates::Character,
                 selection: SelectionKind::All,
@@ -45,10 +42,7 @@ pub static CLOAK_AND_DAGGER_PLUS: Card = Card {
     requires_target: false,
     effects: &[
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 6,
-                from_card: true,
-            },
+            kind: EffectKind::BlockGain { amount: 6 },
             targeting: Some(Targeting {
                 candidates: Candidates::Character,
                 selection: SelectionKind::All,

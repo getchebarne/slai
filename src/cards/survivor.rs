@@ -17,10 +17,7 @@ pub static SURVIVOR: Card = Card {
     requires_target: false,
     effects: &[
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 8,
-                from_card: true,
-            },
+            kind: EffectKind::BlockGain { amount: 8 },
             targeting: Some(Targeting {
                 candidates: Candidates::Character,
                 selection: SelectionKind::All,
@@ -50,7 +47,6 @@ pub static SURVIVOR_PLUS: Card = Card {
         EffectTemplate {
             kind: EffectKind::BlockGain {
                 amount: 11, // +3 block
-                from_card: true,
             },
             targeting: Some(Targeting {
                 candidates: Candidates::Character,

@@ -8,7 +8,7 @@ use crate::types::EntityId;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
     DamagePhysical { base: u16 },
-    BlockGain { amount: u16, from_card: bool },
+    BlockGain { amount: u16 },
     ModifierGain { kind: ModifierKind, stacks: i16 },
     ModifierRemove { kind: ModifierKind },
     EnergyGain { amount: u8 },

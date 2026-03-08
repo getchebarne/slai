@@ -263,8 +263,12 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 vitals, modifiers, target, amount,
             )
         }
-        EffectKind::BlockGain { amount, from_card } => {
+        EffectKind::BlockGain { amount } => {
             let target = effect.target.unwrap();
+            let from_card = effect
+                .source
+                .map(|id| matches!(state.entities[id.0 as usize].kind, EntityKind::Card(_)))
+                .unwrap_or(false);
             let (vitals, modifiers) = state.entities[target.0 as usize].kind.combatant_mut();
             process_effect_block_gain::process_effect_block_gain(
                 vitals, modifiers, amount, from_card,

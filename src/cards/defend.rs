@@ -16,10 +16,7 @@ pub static DEFEND: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[EffectTemplate {
-        kind: EffectKind::BlockGain {
-            amount: 5,
-            from_card: true,
-        },
+        kind: EffectKind::BlockGain { amount: 5 },
         targeting: Some(Targeting {
             candidates: Candidates::Character,
             selection: SelectionKind::All,
@@ -40,7 +37,6 @@ pub static DEFEND_PLUS: Card = Card {
     effects: &[EffectTemplate {
         kind: EffectKind::BlockGain {
             amount: 8, // +3 block
-            from_card: true,
         },
         targeting: Some(Targeting {
             candidates: Candidates::Character,

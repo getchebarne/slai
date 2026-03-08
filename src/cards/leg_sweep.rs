@@ -18,10 +18,7 @@ pub static LEG_SWEEP: Card = Card {
     requires_target: true,
     effects: &[
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 11,
-                from_card: true,
-            },
+            kind: EffectKind::BlockGain { amount: 11 },
             targeting: Some(Targeting {
                 candidates: Candidates::Character,
                 selection: SelectionKind::All,
@@ -54,7 +51,6 @@ pub static LEG_SWEEP_PLUS: Card = Card {
         EffectTemplate {
             kind: EffectKind::BlockGain {
                 amount: 14, // +3 block
-                from_card: true,
             },
             targeting: Some(Targeting {
                 candidates: Candidates::Character,

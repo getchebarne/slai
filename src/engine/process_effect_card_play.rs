@@ -54,7 +54,6 @@ pub fn process_effect_card_play(
         top_effects.push(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
-                from_card: false,
             },
             source: None,
             target: Some(EntityId(0)),

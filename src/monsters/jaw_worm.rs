@@ -53,10 +53,7 @@ static MOVE_THRASH: Move = Move {
             }),
         },
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 5,
-                from_card: false,
-            },
+            kind: EffectKind::BlockGain { amount: 5 },
             targeting: Some(Targeting {
                 candidates: Candidates::Source,
                 selection: SelectionKind::All,
@@ -82,10 +79,7 @@ static MOVE_BELLOW_3_6: Move = Move {
             }),
         },
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 6,
-                from_card: false,
-            },
+            kind: EffectKind::BlockGain { amount: 6 },
             targeting: Some(Targeting {
                 candidates: Candidates::Source,
                 selection: SelectionKind::All,
@@ -108,10 +102,7 @@ static MOVE_BELLOW_4_6: Move = Move {
             }),
         },
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 6,
-                from_card: false,
-            },
+            kind: EffectKind::BlockGain { amount: 6 },
             targeting: Some(Targeting {
                 candidates: Candidates::Source,
                 selection: SelectionKind::All,
@@ -134,10 +125,7 @@ static MOVE_BELLOW_5_9: Move = Move {
             }),
         },
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 9,
-                from_card: false,
-            },
+            kind: EffectKind::BlockGain { amount: 9 },
             targeting: Some(Targeting {
                 candidates: Candidates::Source,
                 selection: SelectionKind::All,

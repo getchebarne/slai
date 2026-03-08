@@ -17,10 +17,7 @@ pub static DASH: Card = Card {
     requires_target: true,
     effects: &[
         EffectTemplate {
-            kind: EffectKind::BlockGain {
-                amount: 10,
-                from_card: true,
-            },
+            kind: EffectKind::BlockGain { amount: 10 },
             targeting: Some(Targeting {
                 candidates: Candidates::Character,
                 selection: SelectionKind::All,
@@ -50,7 +47,6 @@ pub static DASH_PLUS: Card = Card {
         EffectTemplate {
             kind: EffectKind::BlockGain {
                 amount: 13, // +3 damage
-                from_card: true,
             },
             targeting: Some(Targeting {
                 candidates: Candidates::Character,

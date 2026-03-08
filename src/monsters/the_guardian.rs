@@ -23,10 +23,7 @@ const MODE_SHIFT_STACKS_40: i16 = 40;
 static MOVE_CHARGING_UP: Move = Move {
     name: "Charging Up",
     effects: &[EffectTemplate {
-        kind: EffectKind::BlockGain {
-            amount: 9,
-            from_card: false,
-        },
+        kind: EffectKind::BlockGain { amount: 9 },
         targeting: Some(Targeting {
             candidates: Candidates::Source,
             selection: SelectionKind::All,

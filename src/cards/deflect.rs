@@ -16,10 +16,7 @@ pub static DEFLECT: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[EffectTemplate {
-        kind: EffectKind::BlockGain {
-            amount: 4,
-            from_card: true,
-        },
+        kind: EffectKind::BlockGain { amount: 4 },
         targeting: Some(Targeting {
             candidates: Candidates::Character,
             selection: SelectionKind::All,
@@ -40,7 +37,6 @@ pub static DEFLECT_PLUS: Card = Card {
     effects: &[EffectTemplate {
         kind: EffectKind::BlockGain {
             amount: 7, // +3 block
-            from_card: true,
         },
         targeting: Some(Targeting {
             candidates: Candidates::Character,
