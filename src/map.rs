@@ -58,8 +58,8 @@ pub fn generate_map(rng: &mut impl Rng) -> Map {
 
     Map {
         nodes,
-        active_y: None,
-        active_x: None,
+        y_current: None,
+        x_current: None,
     }
 }
 

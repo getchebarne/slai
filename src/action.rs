@@ -2,7 +2,7 @@
 
 use crate::consts::{MAP_HEIGHT, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind};
-use crate::state::GameState;
+use crate::state::{GameState, Map};
 use crate::types::{EntityId, Phase};
 use crate::utils::get_alive_monster_ids;
 
@@ -15,7 +15,7 @@ pub enum Action {
         idx_hand: usize,
         idx_monster: Option<usize>,
     },
-    CardUpgrade {
+    RestSiteCardUpgrade {
         idx_deck: usize,
     },
     CardRewardSelect {
@@ -26,14 +26,14 @@ pub enum Action {
     MapNodeSelect {
         idx_row: usize,
     },
-    Rest,
+    RestSiteRest,
 }
 
 fn validate_phase(current_phase: Phase, action: &Action) -> Result<(), String> {
     let expected = match action {
         Action::CardDiscard { .. } => Phase::CombatAwaitDiscard,
         Action::CardPlay { .. } | Action::EndTurn => Phase::CombatDefault,
-        Action::CardUpgrade { .. } | Action::Rest => Phase::RestSite,
+        Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest => Phase::RestSite,
         Action::CardRewardSelect { .. } | Action::CardRewardSkip => Phase::CardReward,
         Action::MapNodeSelect { .. } => Phase::Map,
     };
@@ -55,16 +55,42 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
             idx_hand,
             idx_monster,
         } => handle_card_play(state, idx_hand, idx_monster),
-        Action::CardUpgrade { idx_deck } => handle_card_upgrade(state, idx_deck),
+        Action::RestSiteCardUpgrade { idx_deck } => handle_rest_site_card_upgrade(state, idx_deck),
         Action::CardRewardSelect { idx_reward } => handle_card_reward_select(state, idx_reward),
         Action::CardRewardSkip => Ok(handle_card_reward_skip(state)),
         Action::EndTurn => Ok(handle_end_turn(state)),
         Action::MapNodeSelect { idx_row } => Ok(handle_map_node_select(state, idx_row)),
-        Action::Rest => Ok(handle_rest(state)),
+        Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
     }
 }
 
+fn rest_site_exit(map: &mut Map) -> Effect {
+    if map.y_current == Some(MAP_HEIGHT - 1) {
+        map.y_current = Some(MAP_HEIGHT);
+        map.x_current = Some(0);
+        Effect {
+            kind: EffectKind::RoomEnter,
+            source: None,
+            target: None,
+        }
+    } else {
+        Effect {
+            kind: EffectKind::AwaitMapNode,
+            source: None,
+            target: None,
+        }
+    }
+}
+
+fn validate_idx(slice: &[EntityId], idx: usize) -> Result<EntityId, String> {
+    slice
+        .get(idx)
+        .copied()
+        .ok_or_else(|| format!("Invalid index {}: {} available", idx, slice.len()))
+}
+
 fn handle_end_turn(state: &GameState) -> Vec<Effect> {
+    // Return effect to end the character's turn
     vec![Effect {
         kind: EffectKind::TurnEnd,
         source: None,
@@ -77,16 +103,7 @@ fn handle_card_play(
     idx_hand: usize,
     idx_monster: Option<usize>,
 ) -> Result<Vec<Effect>, String> {
-    if idx_hand >= state.hand.len() {
-        return Err(format!(
-            "Invalid hand index {}: hand has {} cards",
-            idx_hand,
-            state.hand.len()
-        ));
-    }
-
-    // Get card
-    let id_card = state.hand[idx_hand];
+    let id_card = validate_idx(&state.hand, idx_hand)?;
     let card = state.entities[id_card.0 as usize].kind.card_ref();
 
     // Check energy
@@ -100,16 +117,18 @@ fn handle_card_play(
     // Resolver target if needed
     if card.requires_target {
         match idx_monster {
-            Some(idx) => {
-                let alive = get_alive_monster_ids(state);
-                let target = *alive
-                    .get(idx)
-                    .ok_or_else(|| format!("Invalid monster index: {}", idx))?;
+            Some(idx_monster) => {
+                let id_monsters_alive = get_alive_monster_ids(state);
+                let id_monster_target = *id_monsters_alive
+                    .get(idx_monster)
+                    .ok_or_else(|| format!("Invalid monster index: {}", idx_monster))?;
+
+                // Return effects to set the card's target, play the card, and then clear it
                 Ok(vec![
                     Effect {
                         kind: EffectKind::TargetSet,
                         source: None,
-                        target: Some(target),
+                        target: Some(id_monster_target),
                     },
                     Effect {
                         kind: EffectKind::CardPlay,
@@ -129,6 +148,7 @@ fn handle_card_play(
             )),
         }
     } else {
+        // Return effect to play the card
         Ok(vec![Effect {
             kind: EffectKind::CardPlay,
             source: None,
@@ -138,17 +158,12 @@ fn handle_card_play(
 }
 
 fn handle_card_discard(state: &mut GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
-    if idx_hand >= state.hand.len() {
-        return Err(format!(
-            "Invalid hand index {}: hand has {} cards",
-            idx_hand,
-            state.hand.len()
-        ));
-    }
-    let card_id = state.hand[idx_hand];
+    let card_id = validate_idx(&state.hand, idx_hand)?;
 
-    // TODO: revisit
+    // TODO: revisit halting effects
     state.effect_queue.pop_front();
+
+    // Return effect to discard the card
     Ok(vec![Effect {
         kind: EffectKind::CardDiscard,
         source: None,
@@ -157,18 +172,20 @@ fn handle_card_discard(state: &mut GameState, idx_hand: usize) -> Result<Vec<Eff
 }
 
 fn handle_map_node_select(state: &mut GameState, idx_row: usize) -> Vec<Effect> {
+    // TODO: revisit halting effects
     state.effect_queue.pop_front();
 
-    let y = match state.map.active_y {
+    // Get next y-coordinate
+    let y_next = match state.map.y_current {
         None => 0,
-        Some(prev) => prev + 1,
+        Some(y_current) => y_current + 1,
     };
 
-    state.map.active_y = Some(y);
-    state.map.active_x = Some(idx_row);
+    // Update coordinates
+    state.map.y_current = Some(y_next);
+    state.map.x_current = Some(idx_row);
 
-    state.card_rewards.clear();
-
+    // Return effect to enter the room
     vec![Effect {
         kind: EffectKind::RoomEnter,
         source: None,
@@ -180,19 +197,15 @@ fn handle_card_reward_select(
     state: &mut GameState,
     idx_reward: usize,
 ) -> Result<Vec<Effect>, String> {
-    if idx_reward >= state.card_rewards.len() {
-        return Err(format!(
-            "Invalid reward index {}: {} rewards available",
-            idx_reward,
-            state.card_rewards.len()
-        ));
-    }
+    validate_idx(&state.card_rewards, idx_reward)?;
+    // TODO: revisit halting effects
     state.effect_queue.pop_front();
+
+    // Return effects to select the card reward and then halt the queue,
+    // awaiting for the player's map node selection
     Ok(vec![
         Effect {
-            kind: EffectKind::CardRewardSelect {
-                reward_idx: idx_reward,
-            },
+            kind: EffectKind::CardRewardSelect { idx_reward },
             source: None,
             target: None,
         },
@@ -205,7 +218,11 @@ fn handle_card_reward_select(
 }
 
 fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
+    // TODO: revisit halting effects
     state.effect_queue.pop_front();
+
+    // Return effects to clear the card rewards and then halt the queue,
+    // awaiting for the player's map node selection
     vec![
         Effect {
             kind: EffectKind::CardRewardClear,
@@ -220,69 +237,38 @@ fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
     ]
 }
 
-fn handle_rest(state: &mut GameState) -> Vec<Effect> {
-    let (vitals, _) = state.entities[0].kind.combatant_ref();
-    let heal = (REST_SITE_HEAL_FACTOR * vitals.health_max as f32) as u16;
+fn handle_rest_site_rest(state: &mut GameState) -> Vec<Effect> {
+    // Get character's vitals
+    let id_character = state.character;
+    let (vitals, _) = state.entities[id_character.0 as usize].kind.combatant_ref();
 
-    let is_last_floor = state.map.active_y == Some(MAP_HEIGHT - 1);
+    // Calculate heal amount
+    let heal_amt = (REST_SITE_HEAL_FACTOR * vitals.health_max as f32) as u16;
 
-    let mut effects = vec![Effect {
-        kind: EffectKind::HealthGain { amount: heal },
+    // Create heal effect
+    let heal_effect = Effect {
+        kind: EffectKind::HealthGain { amount: heal_amt },
         source: None,
-        target: Some(EntityId(0)),
-    }];
+        target: Some(id_character),
+    };
 
-    if is_last_floor {
-        state.map.active_y = Some(MAP_HEIGHT);
-        state.map.active_x = Some(0);
-        effects.push(Effect {
-            kind: EffectKind::RoomEnter,
-            source: None,
-            target: None,
-        });
-    } else {
-        effects.push(Effect {
-            kind: EffectKind::AwaitMapNode,
-            source: None,
-            target: None,
-        });
-    }
-
-    effects
+    // Return effects to heal the character and exit the rest site
+    vec![heal_effect, rest_site_exit(&mut state.map)]
 }
 
-fn handle_card_upgrade(state: &mut GameState, idx_deck: usize) -> Result<Vec<Effect>, String> {
-    if idx_deck >= state.deck.len() {
-        return Err(format!(
-            "Invalid deck index {}: deck has {} cards",
-            idx_deck,
-            state.deck.len()
-        ));
-    }
+fn handle_rest_site_card_upgrade(
+    state: &mut GameState,
+    idx_deck: usize,
+) -> Result<Vec<Effect>, String> {
+    validate_idx(&state.deck, idx_deck)?;
 
-    let is_last_floor = state.map.active_y == Some(MAP_HEIGHT - 1);
-
-    let mut effects = vec![Effect {
-        kind: EffectKind::CardUpgrade { deck_idx: idx_deck },
-        source: None,
-        target: None,
-    }];
-
-    if is_last_floor {
-        state.map.active_y = Some(MAP_HEIGHT);
-        state.map.active_x = Some(0);
-        effects.push(Effect {
-            kind: EffectKind::RoomEnter,
+    // Return effects to upgrade the card and exit the rest site
+    Ok(vec![
+        Effect {
+            kind: EffectKind::CardUpgrade { deck_idx: idx_deck },
             source: None,
             target: None,
-        });
-    } else {
-        effects.push(Effect {
-            kind: EffectKind::AwaitMapNode,
-            source: None,
-            target: None,
-        });
-    }
-
-    Ok(effects)
+        },
+        rest_site_exit(&mut state.map),
+    ])
 }

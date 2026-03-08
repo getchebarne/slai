@@ -215,9 +215,9 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 &mut state.rng,
             )
         }
-        EffectKind::CardRewardSelect { reward_idx } => {
+        EffectKind::CardRewardSelect { idx_reward } => {
             process_effect_card_reward_select::process_effect_card_reward_select(
-                reward_idx,
+                idx_reward,
                 &mut state.card_rewards,
                 &mut state.deck,
             )

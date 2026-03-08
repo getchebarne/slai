@@ -24,7 +24,7 @@ pub enum EffectKind {
     CardDiscardAll,
     CardUpgrade { deck_idx: usize },
     CardRewardRoll,
-    CardRewardSelect { reward_idx: usize },
+    CardRewardSelect { idx_reward: usize },
     CardRewardClear,
     TargetSet,
     TargetClear,

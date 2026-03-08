@@ -362,7 +362,7 @@ fn build_view_map(state: &GameState) -> ViewMap {
 
     ViewMap {
         nodes,
-        y_current: state.map.active_y,
-        x_current: state.map.active_x,
+        y_current: state.map.y_current,
+        x_current: state.map.x_current,
     }
 }

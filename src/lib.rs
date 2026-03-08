@@ -93,14 +93,14 @@ impl ActionMapNodeSelect {
 #[derive(Clone)]
 struct ActionCardRewardSelect {
     #[pyo3(get)]
-    reward_idx: usize,
+    idx_reward: usize,
 }
 
 #[pymethods]
 impl ActionCardRewardSelect {
     #[new]
-    fn new(reward_idx: usize) -> Self {
-        Self { reward_idx }
+    fn new(idx_reward: usize) -> Self {
+        Self { idx_reward }
     }
 }
 
@@ -165,17 +165,17 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
     }
     if let Ok(a) = py_action.extract::<ActionCardRewardSelect>() {
         return Ok(Action::CardRewardSelect {
-            idx_reward: a.reward_idx,
+            idx_reward: a.idx_reward,
         });
     }
     if py_action.extract::<ActionCardRewardSkip>().is_ok() {
         return Ok(Action::CardRewardSkip);
     }
     if py_action.extract::<ActionRest>().is_ok() {
-        return Ok(Action::Rest);
+        return Ok(Action::RestSiteRest);
     }
     if let Ok(a) = py_action.extract::<ActionCardUpgrade>() {
-        return Ok(Action::CardUpgrade {
+        return Ok(Action::RestSiteCardUpgrade {
             idx_deck: a.deck_idx,
         });
     }

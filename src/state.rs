@@ -133,14 +133,14 @@ impl MapNode {
 #[derive(Debug, Clone, Copy)]
 pub struct Map {
     pub nodes: [[Option<MapNode>; MAP_WIDTH]; MAP_HEIGHT],
-    pub active_y: Option<usize>,
-    pub active_x: Option<usize>,
+    pub y_current: Option<usize>,
+    pub x_current: Option<usize>,
 }
 
 impl Map {
     pub fn active_node(&self) -> Option<&MapNode> {
-        let y = self.active_y?;
-        let x = self.active_x?;
+        let y = self.y_current?;
+        let x = self.x_current?;
         if y >= MAP_HEIGHT {
             return None;
         }
@@ -148,7 +148,7 @@ impl Map {
     }
 
     pub fn active_room_type(&self) -> Option<RoomType> {
-        let y = self.active_y?;
+        let y = self.y_current?;
         if y == MAP_HEIGHT {
             return Some(RoomType::CombatBoss);
         }
@@ -156,7 +156,7 @@ impl Map {
     }
 
     pub fn is_boss_room(&self) -> bool {
-        self.active_y == Some(MAP_HEIGHT)
+        self.y_current == Some(MAP_HEIGHT)
     }
 }
 
