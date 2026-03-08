@@ -43,15 +43,15 @@ pub fn process_effect_death(
     let any_alive = monsters[..monster_count as usize]
         .iter()
         .any(|&id| !entities[id.0 as usize].kind.monster_ref().dead);
+
     if !any_alive {
         effects.push(Effect {
             kind: EffectKind::CombatEnd,
             source: None,
             target: None,
         });
-    }
-
-    if effects.is_empty() {
+        ProcessEffectResult::Replace(effects)
+    } else if effects.is_empty() {
         ProcessEffectResult::Pass
     } else {
         ProcessEffectResult::Continue {

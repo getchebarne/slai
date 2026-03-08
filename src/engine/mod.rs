@@ -41,6 +41,7 @@ use crate::utils::{get_alive_monster_ids, shuffle};
 
 pub enum ProcessEffectResult {
     Continue { top: Vec<Effect>, bot: Vec<Effect> },
+    Replace(Vec<Effect>),
     Pass,
     Halt,
     Pause,
@@ -409,10 +410,6 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
 
 pub fn process_queue(state: &mut GameState) {
     while let Some(effect) = state.effect_queue.pop_front() {
-        if matches!(effect.kind, EffectKind::CombatEnd) {
-            state.effect_queue.clear();
-        }
-
         let result = process_effect(state, effect);
 
         match result {
@@ -422,6 +419,12 @@ pub fn process_queue(state: &mut GameState) {
                     state.effect_queue.push_front(e);
                 }
                 for e in bot {
+                    state.effect_queue.push_back(e);
+                }
+            }
+            ProcessEffectResult::Replace(effects) => {
+                state.effect_queue.clear();
+                for e in effects {
                     state.effect_queue.push_back(e);
                 }
             }
