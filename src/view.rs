@@ -88,7 +88,7 @@ pub struct ViewEnergy {
 #[derive(Debug, Clone)]
 pub struct ViewMapNode {
     pub room_type: String,
-    pub x_next: Vec<usize>,
+    pub edges: Vec<usize>,
 }
 
 #[pyclass(frozen, get_all)]
@@ -353,7 +353,7 @@ fn build_view_map(state: &GameState) -> ViewMap {
                 .map(|n| {
                     n.as_ref().map(|node| ViewMapNode {
                         room_type: format!("{:?}", node.room_type),
-                        x_next: node.x_next.clone(),
+                        edges: node.edge_indices().collect(),
                     })
                 })
                 .collect()

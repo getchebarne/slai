@@ -6,7 +6,7 @@ use rand::rngs::SmallRng;
 
 use crate::cards::Card;
 use crate::character::Character;
-use crate::consts::MAX_MONSTERS;
+use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::Effect;
 use crate::modifier::Modifiers;
 use crate::monsters::Monster;
@@ -113,27 +113,35 @@ pub struct Energy {
 // Map
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct MapNode {
-    pub y: usize,
-    pub x: usize,
     pub room_type: RoomType,
-    pub x_next: Vec<usize>,
+    pub edges: u8,
 }
 
-#[derive(Debug, Clone)]
+impl MapNode {
+    pub fn has_edge(&self, x: usize) -> bool {
+        self.edges & (1 << x) != 0
+    }
+
+    pub fn edge_indices(&self) -> impl Iterator<Item = usize> {
+        let edges = self.edges;
+        (0..MAP_WIDTH).filter(move |&x| edges & (1 << x) != 0)
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct Map {
-    pub nodes: Vec<Vec<Option<MapNode>>>,
+    pub nodes: [[Option<MapNode>; MAP_WIDTH]; MAP_HEIGHT],
     pub active_y: Option<usize>,
     pub active_x: Option<usize>,
-    pub boss_room_y: usize,
 }
 
 impl Map {
     pub fn active_node(&self) -> Option<&MapNode> {
         let y = self.active_y?;
         let x = self.active_x?;
-        if y >= self.nodes.len() {
+        if y >= MAP_HEIGHT {
             return None;
         }
         self.nodes[y][x].as_ref()
@@ -141,14 +149,14 @@ impl Map {
 
     pub fn active_room_type(&self) -> Option<RoomType> {
         let y = self.active_y?;
-        if y == self.boss_room_y {
+        if y == MAP_HEIGHT {
             return Some(RoomType::CombatBoss);
         }
         self.active_node().map(|n| n.room_type)
     }
 
     pub fn is_boss_room(&self) -> bool {
-        self.active_y == Some(self.boss_room_y)
+        self.active_y == Some(MAP_HEIGHT)
     }
 }
 
