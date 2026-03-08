@@ -15,16 +15,19 @@ pub fn process_effect_combat_end(
     monster_count: &mut u8,
     map: &Map,
 ) -> ProcessEffectResult {
+    // Reset combat piles
     hand.clear();
     draw_pile.clear();
     discard_pile.clear();
     exhaust_pile.clear();
     *card_target = None;
 
+    // Clear character modifiers and monsters
     let (_, modifiers) = entities[character.0 as usize].kind.combatant_mut();
     modifier_clear(modifiers);
     *monster_count = 0;
 
+    // Next step depends on room type
     let room = map.active_room_type().unwrap();
     match room {
         RoomType::CombatBoss => ProcessEffectResult::AddAndContinue {

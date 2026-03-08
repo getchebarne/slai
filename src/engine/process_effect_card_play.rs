@@ -51,52 +51,53 @@ pub fn process_effect_card_play(
         })
     };
 
-    // Modifier-specific effects. Get character's modifiers
-    // TODO: some monster modifiers will affect this too
+    // Get character's modifiers
     let (_, char_modifiers) = entities[character.0 as usize].kind.combatant_ref();
 
-    // After Image
+    // Modifier / After Image
     if modifier_has(char_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
         top_effects.push(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
-            source: None,
+            source: Some(character),
             target: Some(character),
         })
     }
 
-    // Thousand Cuts
+    // Modifier / Thousand Cuts
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
-        for &mid in alive_monsters {
+        for &id_monster in alive_monsters {
             top_effects.push(Effect {
                 kind: EffectKind::DamagePhysical {
                     base: stacks as u16,
                 },
                 source: Some(character),
-                target: Some(mid),
+                target: Some(id_monster),
             });
         }
     }
 
+    // Modifier / Sharp Hide
     if card.kind == CardKind::Attack {
-        for &mid in alive_monsters {
-            let (_, monster_modifiers) = entities[mid.0 as usize].kind.combatant_ref();
+        for &id_monster in alive_monsters {
+            let (_, monster_modifiers) = entities[id_monster.0 as usize].kind.combatant_ref();
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
                 top_effects.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks as u16,
                     },
-                    source: None,
+                    source: Some(id_monster),
                     target: Some(character),
                 });
             }
         }
     }
 
+    // Instante card's effect templates
     let card_effects = instantiate_templates(
         card.effects,
         character,
@@ -107,6 +108,7 @@ pub fn process_effect_card_play(
         rng,
     );
 
+    // Modifier / Burst
     if modifier_has(char_modifiers, ModifierKind::Burst) && card.kind == CardKind::Skill {
         top_effects.extend(card_effects.iter().cloned());
         top_effects.extend(card_effects);
@@ -115,12 +117,14 @@ pub fn process_effect_card_play(
                 kind: ModifierKind::Burst,
                 stacks: -1,
             },
-            source: None,
+            source: Some(character),
             target: Some(character),
         });
     } else {
         top_effects.extend(card_effects);
     }
+
+    // Add and continue
     ProcessEffectResult::AddAndContinue {
         bot: Vec::new(),
         top: top_effects,

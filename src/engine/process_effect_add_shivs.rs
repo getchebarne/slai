@@ -10,20 +10,15 @@ pub fn process_effect_add_shivs(
     hand: &mut Vec<EntityId>,
     disc_pile: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
-    // Get Shiv card definition
     let shiv = get_card(CardName::Shiv, false);
 
-    // Create entities
+    // Create shiv entities, overflow to discard pile if hand is full
     for _ in 0..count {
-        // Get id
         let id_card = EntityId(entities.len() as u32);
-
-        // Create and push entity
         entities.push(Entity {
             kind: EntityKind::Card(shiv),
         });
 
-        // Add to hand or discard pile, depending on hand size
         if hand.len() < MAX_SIZE_HAND {
             hand.push(id_card)
         } else {

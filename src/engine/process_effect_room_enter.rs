@@ -30,6 +30,7 @@ pub fn process_effect_room_enter(
 ) -> ProcessEffectResult {
     *monster_count = 0;
 
+    // Spawn monsters based on room type
     let room = map.active_room_type().unwrap();
     match room {
         RoomType::CombatBoss => {

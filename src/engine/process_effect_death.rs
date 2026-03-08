@@ -11,6 +11,7 @@ pub fn process_effect_death(
     monsters: &[EntityId],
     monster_count: u8,
 ) -> ProcessEffectResult {
+    // Character death ends the game
     if actor == character {
         return ProcessEffectResult::AddAndContinue {
             top: vec![Effect {
@@ -24,6 +25,7 @@ pub fn process_effect_death(
 
     let mut effects = Vec::new();
 
+    // Modifier / SporeCloud (on-death effect)
     {
         let (_, modifiers) = entities[actor.0 as usize].kind.combatant_ref();
         if modifier_has(modifiers, ModifierKind::SporeCloud) {
@@ -39,8 +41,10 @@ pub fn process_effect_death(
         }
     }
 
+    // Mark monster as dead
     entities[actor.0 as usize].kind.monster_mut().dead = true;
 
+    // If all monsters dead, replace queue w/ combat end
     let any_alive = monsters[..monster_count as usize]
         .iter()
         .any(|&id| !entities[id.0 as usize].kind.monster_ref().dead);

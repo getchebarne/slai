@@ -16,13 +16,18 @@ pub fn process_effect_card_reward_roll(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    card_rewards.clear();
-    let mut reward_roll_offset = entities[character.0 as usize].kind.character_ref().reward_roll_offset;
+    // Read current roll offset
+    let mut reward_roll_offset = entities[character.0 as usize]
+        .kind
+        .character_ref()
+        .reward_roll_offset;
     let mut rolled_card_names: Vec<CardName> = Vec::new();
 
     for _ in 0..MAX_COMBAT_CARD_REWARD {
+        // Roll rarity w/ pity offset
         let roll = rng.random_range(0i32..99) + reward_roll_offset as i32;
 
+        // Select pool and update offset
         let pool = if roll < CHANCE_RARE {
             reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE;
             REWARD_POOL_RARE
@@ -33,13 +38,15 @@ pub fn process_effect_card_reward_roll(
             REWARD_POOL_COMMON
         };
 
+        // Pick a card name, re-roll on duplicates
         let mut name = pool[rng.random_range(0..pool.len())];
         while rolled_card_names.contains(&name) {
             name = pool[rng.random_range(0..pool.len())];
         }
 
+        // Create the card entity and add to rewards
         rolled_card_names.push(name);
-        let card = get_card(name, false);
+        let card = get_card(name, false); // TODO: can generate upgraded cards on Act2+
         let id = EntityId(entities.len() as u32);
         entities.push(Entity {
             kind: EntityKind::Card(card),
@@ -47,8 +54,13 @@ pub fn process_effect_card_reward_roll(
         card_rewards.push(id);
     }
 
-    entities[character.0 as usize].kind.character_mut().reward_roll_offset = reward_roll_offset;
+    // Persist updated roll offset
+    entities[character.0 as usize]
+        .kind
+        .character_mut()
+        .reward_roll_offset = reward_roll_offset;
 
+    // Await player's card reward selection
     ProcessEffectResult::AddAndContinue {
         top: Vec::new(),
         bot: vec![Effect {

@@ -19,6 +19,7 @@ pub fn process_effect_combat_start(
     monster_count: u8,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
+    // Clone deck cards into combat copies, separating innate from non-innate
     let mut innate_ids: Vec<EntityId> = Vec::new();
     let mut other_ids: Vec<EntityId> = Vec::new();
 
@@ -35,16 +36,18 @@ pub fn process_effect_combat_start(
         }
     }
 
+    // Build draw pile: shuffled non-innate on bottom, innate on top
     shuffle(&mut other_ids, rng);
-
     *draw_pile = other_ids;
     draw_pile.extend(innate_ids);
 
+    // Reset combat piles
     hand.clear();
     discard_pile.clear();
     exhaust_pile.clear();
     *card_target = None;
 
+    // Queue initial monster moves and character's first turn
     let mut effects: Vec<Effect> = Vec::new();
     for &id in &monsters[..monster_count as usize] {
         effects.push(Effect {
@@ -59,6 +62,7 @@ pub fn process_effect_combat_start(
         target: Some(character),
     });
 
+    // Add and continue
     ProcessEffectResult::AddAndContinue {
         top: effects,
         bot: Vec::new(),

@@ -13,12 +13,14 @@ pub fn process_effect_modifier_gain(
     stacks: i16,
     move_history: Option<&[u8]>,
 ) -> ProcessEffectResult {
+    // ModeShift has special scaling logic
     if kind == ModifierKind::ModeShift {
         if let Some(history) = move_history {
             return process_mode_shift_gain(modifiers, stacks, history);
         }
     }
 
+    // Negative stacks reduce existing modifier, removing if below minimum
     if stacks < 0 {
         if modifier_has(modifiers, kind) {
             let idx = kind as usize;
@@ -40,6 +42,7 @@ fn process_mode_shift_gain(
     stacks: i16,
     move_history: &[u8],
 ) -> ProcessEffectResult {
+    // ModeShift threshold increases each cycle (counted by Twin Slam appearances)
     let cycle_count = move_history
         .iter()
         .filter(|&&m| m == TWIN_SLAM_MOVE_IDX)

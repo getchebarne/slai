@@ -15,6 +15,7 @@ pub fn process_effect_turn_start(
 ) -> ProcessEffectResult {
     let mut effects = Vec::new();
 
+    // Resolve new block (Blur retains, NextTurnBlock adds)
     let mut new_block: u16 = 0;
     if modifier_has(modifiers, ModifierKind::Blur) {
         new_block += vitals.block;
@@ -29,6 +30,7 @@ pub fn process_effect_turn_start(
         target: Some(actor),
     });
 
+    // Modifier / Phantasmal
     if modifier_has(modifiers, ModifierKind::Phantasmal) {
         effects.push(Effect {
             kind: EffectKind::ModifierGain {
@@ -40,7 +42,9 @@ pub fn process_effect_turn_start(
         });
     }
 
+    // Character-only effects
     if actor == character {
+        // Draw cards and restore energy
         effects.push(Effect {
             kind: EffectKind::CardDraw {
                 count: CARDS_DRAWN_PER_TURN,
@@ -56,6 +60,8 @@ pub fn process_effect_turn_start(
             source: None,
             target: None,
         });
+
+        // Tick all combatant modifiers
         effects.push(Effect {
             kind: EffectKind::ModifierTick,
             source: None,
@@ -69,6 +75,7 @@ pub fn process_effect_turn_start(
             });
         }
 
+        // Modifier / NextTurnEnergy
         if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
             effects.push(Effect {
@@ -81,6 +88,7 @@ pub fn process_effect_turn_start(
             modifier_remove(modifiers, ModifierKind::NextTurnEnergy);
         }
 
+        // Modifier / InfiniteBlades
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
             effects.push(Effect {
@@ -93,6 +101,7 @@ pub fn process_effect_turn_start(
         }
     }
 
+    // Add and continue
     ProcessEffectResult::AddAndContinue {
         top: effects,
         bot: Vec::new(),

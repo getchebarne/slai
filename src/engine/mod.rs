@@ -77,7 +77,14 @@ fn resolve_targets(
     alive_monsters: &[EntityId],
     rng: &mut impl Rng,
 ) -> TargetResolution {
-    let mut ids = resolve_candidates(candidates, source, character, hand, card_target, alive_monsters);
+    let mut ids = resolve_candidates(
+        candidates,
+        source,
+        character,
+        hand,
+        card_target,
+        alive_monsters,
+    );
     match selection {
         SelectionKind::All => TargetResolution::Resolved(ids),
         SelectionKind::Random { count } => {

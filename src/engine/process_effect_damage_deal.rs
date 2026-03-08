@@ -8,6 +8,7 @@ pub fn process_effect_damage_deal(
     target: EntityId,
     amount: u16,
 ) -> ProcessEffectResult {
+    // Absorb w/ block, pass remainder as health loss
     let damage_over_block = amount.saturating_sub(vitals.block);
     vitals.block = vitals.block.saturating_sub(amount);
 

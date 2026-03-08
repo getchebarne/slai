@@ -12,6 +12,7 @@ pub fn process_effect_turn_end_monster(
     modifiers: &Modifiers,
     actor: EntityId,
 ) -> ProcessEffectResult {
+    // Modifier / Ritual (skip if newly applied)
     if modifier_has(modifiers, ModifierKind::Ritual)
         && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
@@ -40,9 +41,9 @@ pub fn process_effect_turn_end_character(
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     let (_, character_modifiers) = entities[character.0 as usize].kind.combatant_ref();
-
     let mut effects = Vec::new();
 
+    // Modifier / Ritual (skip if newly applied)
     if modifier_has(character_modifiers, ModifierKind::Ritual)
         && !character_modifiers.is_new[ModifierKind::Ritual as usize]
     {
@@ -57,6 +58,7 @@ pub fn process_effect_turn_end_character(
         });
     }
 
+    // Discard entire hand
     for &id_card in hand {
         effects.push(Effect {
             kind: EffectKind::CardDiscard,
@@ -70,6 +72,7 @@ pub fn process_effect_turn_end_character(
         target: None,
     });
 
+    // Queue each monster's turn: start, execute move, update move, end
     for &mid in alive_monsters {
         let m = entities[mid.0 as usize].kind.monster_ref();
         effects.push(Effect {
@@ -103,12 +106,14 @@ pub fn process_effect_turn_end_character(
         });
     }
 
+    // Start character's next turn
     effects.push(Effect {
         kind: EffectKind::TurnStart,
         source: None,
         target: Some(character),
     });
 
+    // Modifier / Burst (consume at end of turn)
     if modifier_has(character_modifiers, ModifierKind::Burst) {
         effects.push(Effect {
             kind: EffectKind::ModifierRemove {
@@ -119,6 +124,7 @@ pub fn process_effect_turn_end_character(
         });
     }
 
+    // Add and continue
     ProcessEffectResult::AddAndContinue {
         top: effects,
         bot: Vec::new(),
