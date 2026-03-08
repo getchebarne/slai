@@ -1,7 +1,7 @@
 // Action handling: player input -> effects.
 
 use crate::consts::REST_SITE_HEAL_FACTOR;
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::state::GameState;
 use crate::types::{EntityId, Phase};
 
@@ -80,8 +80,10 @@ fn require_phase(current: Phase, expected: Phase, action: &Action) -> Result<(),
 }
 
 fn handle_end_turn(state: &GameState) -> Vec<Effect> {
-    vec![Effect::TurnEnd {
-        actor: state.character,
+    vec![Effect {
+        kind: EffectKind::TurnEnd,
+        source: None,
+        target: Some(state.character),
     }]
 }
 
@@ -116,9 +118,9 @@ fn handle_card_play(
                     .get(idx)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx))?;
                 Ok(vec![
-                    Effect::TargetSet { target },
-                    Effect::CardPlay { card_id },
-                    Effect::TargetClear,
+                    Effect { kind: EffectKind::TargetSet, source: None, target: Some(target) },
+                    Effect { kind: EffectKind::CardPlay, source: None, target: Some(card_id) },
+                    Effect { kind: EffectKind::TargetClear, source: None, target: None },
                 ])
             }
             None => Err(format!(
@@ -127,7 +129,7 @@ fn handle_card_play(
             )),
         }
     } else {
-        Ok(vec![Effect::CardPlay { card_id }])
+        Ok(vec![Effect { kind: EffectKind::CardPlay, source: None, target: Some(card_id) }])
     }
 }
 
@@ -143,7 +145,7 @@ fn handle_card_discard(state: &mut GameState, hand_idx: usize) -> Result<Vec<Eff
 
     // TODO: revisit
     state.effect_queue.pop_front();
-    Ok(vec![Effect::CardDiscard { card_id }])
+    Ok(vec![Effect { kind: EffectKind::CardDiscard, source: None, target: Some(card_id) }])
 }
 
 fn handle_map_node_select(state: &mut GameState, column: usize) -> Vec<Effect> {
@@ -159,7 +161,7 @@ fn handle_map_node_select(state: &mut GameState, column: usize) -> Vec<Effect> {
 
     state.card_rewards.clear();
 
-    vec![Effect::RoomEnter]
+    vec![Effect { kind: EffectKind::RoomEnter, source: None, target: None }]
 }
 
 fn handle_card_reward_select(
@@ -175,14 +177,17 @@ fn handle_card_reward_select(
     }
     state.effect_queue.pop_front();
     Ok(vec![
-        Effect::CardRewardSelect { reward_idx },
-        Effect::AwaitMapNode,
+        Effect { kind: EffectKind::CardRewardSelect { reward_idx }, source: None, target: None },
+        Effect { kind: EffectKind::AwaitMapNode, source: None, target: None },
     ])
 }
 
 fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
     state.effect_queue.pop_front();
-    vec![Effect::CardRewardClear, Effect::AwaitMapNode]
+    vec![
+        Effect { kind: EffectKind::CardRewardClear, source: None, target: None },
+        Effect { kind: EffectKind::AwaitMapNode, source: None, target: None },
+    ]
 }
 
 fn handle_rest(state: &mut GameState) -> Vec<Effect> {
@@ -191,17 +196,18 @@ fn handle_rest(state: &mut GameState) -> Vec<Effect> {
 
     let is_last_floor = state.map.active_y == Some(crate::consts::MAP_HEIGHT - 1);
 
-    let mut effects = vec![Effect::HealthGain {
-        target: EntityId(0),
-        amount: heal,
+    let mut effects = vec![Effect {
+        kind: EffectKind::HealthGain { amount: heal },
+        source: None,
+        target: Some(EntityId(0)),
     }];
 
     if is_last_floor {
         state.map.active_y = Some(state.map.boss_room_y);
         state.map.active_x = Some(0);
-        effects.push(Effect::RoomEnter);
+        effects.push(Effect { kind: EffectKind::RoomEnter, source: None, target: None });
     } else {
-        effects.push(Effect::AwaitMapNode);
+        effects.push(Effect { kind: EffectKind::AwaitMapNode, source: None, target: None });
     }
 
     effects
@@ -218,14 +224,14 @@ fn handle_card_upgrade(state: &mut GameState, deck_idx: usize) -> Result<Vec<Eff
 
     let is_last_floor = state.map.active_y == Some(crate::consts::MAP_HEIGHT - 1);
 
-    let mut effects = vec![Effect::CardUpgrade { deck_idx }];
+    let mut effects = vec![Effect { kind: EffectKind::CardUpgrade { deck_idx }, source: None, target: None }];
 
     if is_last_floor {
         state.map.active_y = Some(state.map.boss_room_y);
         state.map.active_x = Some(0);
-        effects.push(Effect::RoomEnter);
+        effects.push(Effect { kind: EffectKind::RoomEnter, source: None, target: None });
     } else {
-        effects.push(Effect::AwaitMapNode);
+        effects.push(Effect { kind: EffectKind::AwaitMapNode, source: None, target: None });
     }
 
     Ok(effects)

@@ -1,4 +1,4 @@
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::state::Vitals;
 use crate::types::EntityId;
@@ -13,9 +13,10 @@ pub fn process_effect_damage_deal(
 
     if damage_over_block > 0 {
         ProcessEffectResult::Continue {
-            top: vec![Effect::HealthLoss {
-                target,
-                amount: damage_over_block,
+            top: vec![Effect {
+                kind: EffectKind::HealthLoss { amount: damage_over_block },
+                source: None,
+                target: Some(target),
             }],
             bot: Vec::new(),
         }

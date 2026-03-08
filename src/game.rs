@@ -8,7 +8,7 @@ use rand::rngs::SmallRng;
 use crate::action::{Action, handle_action};
 use crate::consts::MAX_MONSTERS;
 use crate::character::{silent_starter_deck, spawn_silent};
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::process_queue;
 use crate::map::generate_map;
 use crate::state::*;
@@ -59,7 +59,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 }
 
 pub fn initialize(state: &mut GameState) {
-    state.effect_queue.push_back(Effect::AwaitMapNode);
+    state.effect_queue.push_back(Effect { kind: EffectKind::AwaitMapNode, source: None, target: None });
     state.phase = determine_phase(state);
 }
 
@@ -83,11 +83,11 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
 
 pub fn determine_phase(state: &GameState) -> Phase {
     if let Some(front) = state.effect_queue.front() {
-        return match front {
-            Effect::GameEnd => Phase::GameOver,
-            Effect::AwaitDiscard => Phase::CombatAwaitDiscard,
-            Effect::AwaitMapNode => Phase::Map,
-            Effect::AwaitCardReward => Phase::CardReward,
+        return match front.kind {
+            EffectKind::GameEnd => Phase::GameOver,
+            EffectKind::AwaitDiscard => Phase::CombatAwaitDiscard,
+            EffectKind::AwaitMapNode => Phase::Map,
+            EffectKind::AwaitCardReward => Phase::CardReward,
             _ => panic!("Unexpected pending effect: {:?}", front),
         };
     }

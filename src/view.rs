@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 
 use crate::cards::Card;
 use crate::consts::FACTOR_VULN;
-use crate::effect::EffectTemplate;
+use crate::effect::{EffectKind, EffectTemplate};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::monsters::Intent;
 use crate::state::{Entity, GameState};
@@ -288,58 +288,58 @@ fn build_view_card_template(card: &Card, is_active: bool) -> ViewCard {
 }
 
 fn view_effect_template(tmpl: &EffectTemplate) -> ViewEffectTemplate {
-    match tmpl {
-        EffectTemplate::DamagePhysical { base, target } => ViewEffectTemplate {
+    let target_str = tmpl.targeting.map(|t| format!("{:?}", t.candidates));
+    match tmpl.kind {
+        EffectKind::DamagePhysical { base } => ViewEffectTemplate {
             effect_type: "DamagePhysical".to_string(),
-            value: Some(*base as i32),
-            target: Some(format!("{:?}", target)),
+            value: Some(base as i32),
+            target: target_str,
         },
-        EffectTemplate::BlockGain { amount, target } => ViewEffectTemplate {
+        EffectKind::BlockGain { amount, .. } => ViewEffectTemplate {
             effect_type: "BlockGain".to_string(),
-            value: Some(*amount as i32),
-            target: Some(format!("{:?}", target)),
+            value: Some(amount as i32),
+            target: target_str,
         },
-        EffectTemplate::ModifierGain {
-            kind,
-            stacks,
-            target,
-        } => ViewEffectTemplate {
+        EffectKind::ModifierGain { kind, stacks } => ViewEffectTemplate {
             effect_type: format!("ModifierGain_{:?}", kind),
-            value: Some(*stacks as i32),
-            target: Some(format!("{:?}", target)),
+            value: Some(stacks as i32),
+            target: target_str,
         },
-        EffectTemplate::ModifierRemove { kind, target } => ViewEffectTemplate {
+        EffectKind::ModifierRemove { kind } => ViewEffectTemplate {
             effect_type: format!("ModifierRemove_{:?}", kind),
             value: None,
-            target: Some(format!("{:?}", target)),
+            target: target_str,
         },
-        EffectTemplate::EnergyGain { amount } => ViewEffectTemplate {
+        EffectKind::EnergyGain { amount } => ViewEffectTemplate {
             effect_type: "EnergyGain".to_string(),
-            value: Some(*amount as i32),
+            value: Some(amount as i32),
             target: None,
         },
-        EffectTemplate::AddShivs { count } => ViewEffectTemplate {
+        EffectKind::AddShivs { count } => ViewEffectTemplate {
             effect_type: "AddShivs".to_string(),
-            value: Some(*count as i32),
+            value: Some(count as i32),
             target: None,
         },
-        EffectTemplate::CardDraw { count } => ViewEffectTemplate {
+        EffectKind::CardDraw { count } => ViewEffectTemplate {
             effect_type: "CardDraw".to_string(),
-            value: Some(*count as i32),
+            value: Some(count as i32),
             target: None,
         },
-        EffectTemplate::CardDiscardInput => ViewEffectTemplate {
-            effect_type: "CardDiscardInput".to_string(),
-            value: None,
-            target: None,
+        EffectKind::CardDiscard => {
+            let selection_str = tmpl.targeting.map(|t| format!("{:?}", t.selection));
+            ViewEffectTemplate {
+                effect_type: format!("CardDiscard_{}", selection_str.unwrap_or_default()),
+                value: None,
+                target: None,
+            }
         },
-        EffectTemplate::CardDiscardRandom => ViewEffectTemplate {
-            effect_type: "CardDiscardRandom".to_string(),
-            value: None,
-            target: None,
-        },
-        EffectTemplate::CalculatedGamble => ViewEffectTemplate {
+        EffectKind::CalculatedGamble => ViewEffectTemplate {
             effect_type: "CalculatedGamble".to_string(),
+            value: None,
+            target: None,
+        },
+        _ => ViewEffectTemplate {
+            effect_type: format!("{:?}", tmpl.kind),
             value: None,
             target: None,
         },

@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -17,11 +16,23 @@ pub static SURVIVOR: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::BlockGain {
-            amount: 8,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 8,
+                from_card: true,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::CardDiscardInput,
+        EffectTemplate {
+            kind: EffectKind::CardDiscard,
+            targeting: Some(Targeting {
+                candidates: Candidates::Hand,
+                selection: SelectionKind::Input { count: 1 },
+            }),
+        },
     ],
 };
 // Upgraded
@@ -36,10 +47,22 @@ pub static SURVIVOR_PLUS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::BlockGain {
-            amount: 11, // +3 block
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 11, // +3 block
+                from_card: true,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::CardDiscardInput,
+        EffectTemplate {
+            kind: EffectKind::CardDiscard,
+            targeting: Some(Targeting {
+                candidates: Candidates::Hand,
+                selection: SelectionKind::Input { count: 1 },
+            }),
+        },
     ],
 };

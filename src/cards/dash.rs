@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -17,13 +16,22 @@ pub static DASH: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate::BlockGain {
-            amount: 10,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 10,
+                from_card: true,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::DamagePhysical {
-            base: 10,
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical { base: 10 },
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
     ],
 };
@@ -39,13 +47,24 @@ pub static DASH_PLUS: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate::BlockGain {
-            amount: 13, // +3 damage
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 13, // +3 damage
+                from_card: true,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::DamagePhysical {
-            base: 13, // +3 block
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical {
+                base: 13, // +3 block
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
     ],
 };

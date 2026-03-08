@@ -1,5 +1,5 @@
 use crate::consts::{FACTOR_VULN, FACTOR_WEAK};
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::types::EntityId;
@@ -31,9 +31,10 @@ pub fn process_effect_damage_physical(
     let final_damage = value as u16;
     if final_damage > 0 {
         ProcessEffectResult::Continue {
-            top: vec![Effect::DamageDeal {
-                target,
-                amount: final_damage,
+            top: vec![Effect {
+                kind: EffectKind::DamageDeal { amount: final_damage },
+                source: None,
+                target: Some(target),
             }],
             bot: Vec::new(),
         }

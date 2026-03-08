@@ -1,5 +1,8 @@
+use crate::effect::Candidates;
+use crate::effect::EffectKind;
 use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::SelectionKind;
+use crate::effect::Targeting;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifiers_new;
 use crate::monsters::Intent;
@@ -13,9 +16,12 @@ use rand::Rng;
 
 static MOVE_DARK_STRIKE: Move = Move {
     name: "Dark Strike",
-    effects: &[EffectTemplate::DamagePhysical {
-        base: 6,
-        target: TargetKind::Character,
+    effects: &[EffectTemplate {
+        kind: EffectKind::DamagePhysical { base: 6 },
+        targeting: Some(Targeting {
+            candidates: Candidates::Character,
+            selection: SelectionKind::All,
+        }),
     }],
     intent: Intent::Attack {
         damage: 6,
@@ -24,28 +30,43 @@ static MOVE_DARK_STRIKE: Move = Move {
 };
 static MOVE_INCANTATION_3: Move = Move {
     name: "Incantation",
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::Ritual,
-        stacks: 3,
-        target: TargetKind::Source,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Ritual,
+            stacks: 3,
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::Source,
+            selection: SelectionKind::All,
+        }),
     }],
     intent: Intent::Buff,
 };
 static MOVE_INCANTATION_4: Move = Move {
     name: "Incantation",
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::Ritual,
-        stacks: 4,
-        target: TargetKind::Source,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Ritual,
+            stacks: 4,
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::Source,
+            selection: SelectionKind::All,
+        }),
     }],
     intent: Intent::Buff,
 };
 static MOVE_INCANTATION_5: Move = Move {
     name: "Incantation",
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::Ritual,
-        stacks: 5,
-        target: TargetKind::Source,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Ritual,
+            stacks: 5,
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::Source,
+            selection: SelectionKind::All,
+        }),
     }],
     intent: Intent::Buff,
 };

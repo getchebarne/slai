@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -18,14 +17,22 @@ pub static NEUTRALIZE: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 3,
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical { base: 3 },
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::Weak,
-            stacks: 1,
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Weak,
+                stacks: 1,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
     ],
 };
@@ -41,14 +48,22 @@ pub static NEUTRALIZE_PLUS: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 4, // +1 damage
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical { base: 4 }, // +1 damage
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::Weak,
-            stacks: 2, // +1 stack
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Weak,
+                stacks: 2, // +1 stack
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
     ],
 };

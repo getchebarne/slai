@@ -1,168 +1,96 @@
-// Effect system: runtime effects + card/monster-level effect templates.
-
 use crate::modifier::ModifierKind;
 use crate::types::EntityId;
 
 // ---------------------------------------------------------------------------
-// EffectTemplate: stored on Card and Move, used for RL encoding + instantiation
+// EffectKind: the shared "what happens" enum, used by both templates and runtime
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum TargetKind {
+pub enum EffectKind {
+    DamagePhysical { base: u16 },
+    BlockGain { amount: u16, from_card: bool },
+    ModifierGain { kind: ModifierKind, stacks: i16 },
+    ModifierRemove { kind: ModifierKind },
+    EnergyGain { amount: u8 },
+    AddShivs { count: u8 },
+    CardDraw { count: u8 },
+    CardDiscard,
+    CalculatedGamble,
+
+    // Runtime only (for now)
+    CardPlay,
+    CardExhaust,
+    CardRemove,
+    CardDiscardAll,
+    CardUpgrade { deck_idx: usize },
+    CardRewardRoll,
+    CardRewardSelect { reward_idx: usize },
+    CardRewardClear,
+    TargetSet,
+    TargetClear,
+    DamageDeal { amount: u16 },
+    HealthGain { amount: u16 },
+    HealthLoss { amount: u16 },
+    BlockSet { amount: u16 },
+    EnergyLoss { amount: u8 },
+    ModifierTick,
+    ModifierSetNotNew,
+    Death,
+    CombatStart,
+    CombatEnd,
+    TurnStart,
+    TurnEnd,
+    MoveUpdate,
+    RoomEnter,
+    GameEnd,
+    AwaitMapNode,
+    AwaitCardReward,
+    AwaitDiscard,
+}
+
+// ---------------------------------------------------------------------------
+// Targeting: abstract targeting for card/monster effect definitions
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Candidates {
+    Hand,
     CardTarget,
     Character,
-    AllMonsters,
+    Monsters,
     Source,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum EffectTemplate {
-    DamagePhysical {
-        base: u16,
-        target: TargetKind,
-    },
-    BlockGain {
-        amount: u16,
-        target: TargetKind,
-    },
-    ModifierGain {
-        kind: ModifierKind,
-        stacks: i16,
-        target: TargetKind,
-    },
-    ModifierRemove {
-        kind: ModifierKind,
-        target: TargetKind,
-    },
-    EnergyGain {
-        amount: u8,
-    },
-    AddShivs {
-        count: u8,
-    },
-    CardDraw {
-        count: u8,
-    },
-    CardDiscardInput,
-    CardDiscardRandom,
-    CalculatedGamble,
+pub enum SelectionKind {
+    All,
+    Random { count: u8 },
+    Input { count: u8 },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Targeting {
+    pub candidates: Candidates,
+    pub selection: SelectionKind,
 }
 
 // ---------------------------------------------------------------------------
-// Effect: runtime effect queued during gameplay
+// EffectTemplate: card/monster effect definitions (abstract targeting)
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Effect {
-    // Card operations
-    CardDraw {
-        count: u8,
-    },
-    CardPlay {
-        card_id: EntityId,
-    },
-    CardDiscard {
-        card_id: EntityId,
-    },
-    CardDiscardAll,
-    CardExhaust {
-        card_id: EntityId,
-    },
-    CardRemove {
-        card_id: EntityId,
-    },
-    AddShivs {
-        count: u8,
-    },
-    CalculatedGamble,
-    CardUpgrade {
-        deck_idx: usize,
-    },
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EffectTemplate {
+    pub kind: EffectKind,
+    pub targeting: Option<Targeting>,
+}
 
-    // Card rewards
-    CardRewardRoll,
-    CardRewardSelect {
-        reward_idx: usize,
-    },
-    CardRewardClear,
+// ---------------------------------------------------------------------------
+// Effect: runtime effect queued during gameplay (resolved entity IDs)
+// ---------------------------------------------------------------------------
 
-    // Targeting
-    TargetSet {
-        target: EntityId,
-    },
-    TargetClear,
-
-    // Damage
-    DamagePhysical {
-        source: EntityId,
-        target: EntityId,
-        base: u16,
-    },
-    DamageDeal {
-        target: EntityId,
-        amount: u16,
-    },
-
-    // Vitals
-    HealthGain {
-        target: EntityId,
-        amount: u16,
-    },
-    HealthLoss {
-        target: EntityId,
-        amount: u16,
-    },
-    BlockGain {
-        target: EntityId,
-        amount: u16,
-        from_card: bool,
-    },
-    BlockSet {
-        target: EntityId,
-        amount: u16,
-    },
-    EnergyGain {
-        amount: u8,
-    },
-    EnergyLoss {
-        amount: u8,
-    },
-
-    // Modifiers
-    ModifierGain {
-        target: EntityId,
-        kind: ModifierKind,
-        stacks: i16,
-    },
-    ModifierRemove {
-        target: EntityId,
-        kind: ModifierKind,
-    },
-    ModifierTick {
-        target: EntityId,
-    },
-    ModifierSetNotNew,
-
-    // Lifecycle
-    Death {
-        actor: EntityId,
-    },
-    CombatStart,
-    CombatEnd,
-    TurnStart {
-        actor: EntityId,
-    },
-    TurnEnd {
-        actor: EntityId,
-    },
-    MoveUpdate {
-        monster: EntityId,
-    },
-    RoomEnter,
-    GameEnd,
-
-    // Await input (pause the queue)
-    AwaitMapNode,
-    AwaitCardReward,
-    AwaitDiscard,
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Effect {
+    pub kind: EffectKind,
+    pub source: Option<EntityId>,
+    pub target: Option<EntityId>,
 }

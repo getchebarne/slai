@@ -1,4 +1,4 @@
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::state::Entity;
@@ -12,7 +12,7 @@ pub fn process_effect_death(
 ) -> ProcessEffectResult {
     if actor.0 == 0 {
         return ProcessEffectResult::Continue {
-            top: vec![Effect::GameEnd],
+            top: vec![Effect { kind: EffectKind::GameEnd, source: None, target: None }],
             bot: Vec::new(),
         };
     }
@@ -23,10 +23,13 @@ pub fn process_effect_death(
         let (_, modifiers) = entities[actor.0 as usize].kind.combatant_ref();
         if modifier_has(modifiers, ModifierKind::SporeCloud) {
             let stacks = modifier_stacks(modifiers, ModifierKind::SporeCloud);
-            effects.push(Effect::ModifierGain {
-                target: EntityId(0),
-                kind: ModifierKind::Vulnerable,
-                stacks,
+            effects.push(Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Vulnerable,
+                    stacks,
+                },
+                source: None,
+                target: Some(EntityId(0)),
             });
         }
     }
@@ -37,7 +40,7 @@ pub fn process_effect_death(
         .iter()
         .any(|&id| !entities[id.0 as usize].kind.monster_ref().dead);
     if !any_alive {
-        effects.push(Effect::CombatEnd);
+        effects.push(Effect { kind: EffectKind::CombatEnd, source: None, target: None });
     }
 
     if effects.is_empty() {

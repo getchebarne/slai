@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
+use crate::effect::{EffectKind, EffectTemplate};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -16,8 +16,14 @@ pub static ADRENALINE: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::EnergyGain { amount: 1 },
-        EffectTemplate::CardDraw { count: 2 },
+        EffectTemplate {
+            kind: EffectKind::EnergyGain { amount: 1 },
+            targeting: None,
+        },
+        EffectTemplate {
+            kind: EffectKind::CardDraw { count: 2 },
+            targeting: None,
+        },
     ],
 };
 // Upgraded
@@ -32,7 +38,13 @@ pub static ADRENALINE_PLUS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::EnergyGain { amount: 2 }, // +1 energy gain
-        EffectTemplate::CardDraw { count: 2 },
+        EffectTemplate {
+            kind: EffectKind::EnergyGain { amount: 2 }, // +1 energy gain
+            targeting: None,
+        },
+        EffectTemplate {
+            kind: EffectKind::CardDraw { count: 2 },
+            targeting: None,
+        },
     ],
 };

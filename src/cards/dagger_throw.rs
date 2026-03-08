@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -17,12 +16,24 @@ pub static DAGGER_THROW: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 9,
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical { base: 9 },
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::CardDraw { count: 1 },
-        EffectTemplate::CardDiscardInput,
+        EffectTemplate {
+            kind: EffectKind::CardDraw { count: 1 },
+            targeting: None,
+        },
+        EffectTemplate {
+            kind: EffectKind::CardDiscard,
+            targeting: Some(Targeting {
+                candidates: Candidates::Hand,
+                selection: SelectionKind::Input { count: 1 },
+            }),
+        },
     ],
 };
 // Upgraded
@@ -37,11 +48,23 @@ pub static DAGGER_THROW_PLUS: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 12, // +3 damage
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical { base: 12 }, // +3 damage
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::CardDraw { count: 1 },
-        EffectTemplate::CardDiscardInput,
+        EffectTemplate {
+            kind: EffectKind::CardDraw { count: 1 },
+            targeting: None,
+        },
+        EffectTemplate {
+            kind: EffectKind::CardDiscard,
+            targeting: Some(Targeting {
+                candidates: Candidates::Hand,
+                selection: SelectionKind::Input { count: 1 },
+            }),
+        },
     ],
 };

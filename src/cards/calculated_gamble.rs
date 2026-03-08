@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
+use crate::effect::{EffectKind, EffectTemplate};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -15,7 +15,10 @@ pub static CALCULATED_GAMBLE: Card = Card {
     exhaust: true,
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate::CalculatedGamble],
+    effects: &[EffectTemplate {
+        kind: EffectKind::CalculatedGamble,
+        targeting: None,
+    }],
 };
 // Upgraded
 pub static CALCULATED_GAMBLE_PLUS: Card = Card {
@@ -28,5 +31,8 @@ pub static CALCULATED_GAMBLE_PLUS: Card = Card {
     exhaust: false, // doesn't exhaust
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate::CalculatedGamble],
+    effects: &[EffectTemplate {
+        kind: EffectKind::CalculatedGamble,
+        targeting: None,
+    }],
 };

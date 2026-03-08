@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -16,9 +15,12 @@ pub static STRIKE: Card = Card {
     exhaust: false,
     innate: false,
     requires_target: true,
-    effects: &[EffectTemplate::DamagePhysical {
-        base: 6,
-        target: TargetKind::CardTarget,
+    effects: &[EffectTemplate {
+        kind: EffectKind::DamagePhysical { base: 6 },
+        targeting: Some(Targeting {
+            candidates: Candidates::CardTarget,
+            selection: SelectionKind::All,
+        }),
     }],
 };
 // Upgraded
@@ -32,8 +34,11 @@ pub static STRIKE_PLUS: Card = Card {
     exhaust: false,
     innate: false,
     requires_target: true,
-    effects: &[EffectTemplate::DamagePhysical {
-        base: 9, // +3 damage
-        target: TargetKind::CardTarget,
+    effects: &[EffectTemplate {
+        kind: EffectKind::DamagePhysical { base: 9 }, // +3 damage
+        targeting: Some(Targeting {
+            candidates: Candidates::CardTarget,
+            selection: SelectionKind::All,
+        }),
     }],
 };

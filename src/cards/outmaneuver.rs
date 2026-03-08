@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -17,10 +16,15 @@ pub static OUTMANEUVER: Card = Card {
     exhaust: false,
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::NextTurnEnergy,
-        stacks: 2,
-        target: TargetKind::Character,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::NextTurnEnergy,
+            stacks: 2,
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::Character,
+            selection: SelectionKind::All,
+        }),
     }],
 };
 // Upgraded
@@ -34,9 +38,14 @@ pub static OUTMANEUVER_PLUS: Card = Card {
     exhaust: false,
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::NextTurnEnergy,
-        stacks: 3, // +1 next-turn-energy
-        target: TargetKind::Character,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::NextTurnEnergy,
+            stacks: 3, // +1 next-turn-energy
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::Character,
+            selection: SelectionKind::All,
+        }),
     }],
 };

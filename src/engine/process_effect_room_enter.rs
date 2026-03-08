@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::monsters;
 use crate::state::{Entity, EntityKind, Map};
@@ -36,7 +36,7 @@ pub fn process_effect_room_enter(
             let m = monsters::spawn_monster(MonsterName::TheGuardian, ascension, rng);
             push_monster(m, entities, monsters, monster_count);
             ProcessEffectResult::Continue {
-                top: vec![Effect::CombatStart],
+                top: vec![Effect { kind: EffectKind::CombatStart, source: None, target: None }],
                 bot: Vec::new(),
             }
         }
@@ -60,7 +60,7 @@ pub fn process_effect_room_enter(
                 _ => unreachable!(),
             };
             ProcessEffectResult::Continue {
-                top: vec![Effect::CombatStart],
+                top: vec![Effect { kind: EffectKind::CombatStart, source: None, target: None }],
                 bot: Vec::new(),
             }
         }

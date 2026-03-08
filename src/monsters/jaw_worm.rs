@@ -1,5 +1,8 @@
+use crate::effect::Candidates;
+use crate::effect::EffectKind;
 use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::SelectionKind;
+use crate::effect::Targeting;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifiers_new;
 use crate::monsters::Intent;
@@ -13,9 +16,12 @@ use rand::Rng;
 
 static MOVE_CHOMP_11: Move = Move {
     name: "Chomp",
-    effects: &[EffectTemplate::DamagePhysical {
-        base: 11,
-        target: TargetKind::Character,
+    effects: &[EffectTemplate {
+        kind: EffectKind::DamagePhysical { base: 11 },
+        targeting: Some(Targeting {
+            candidates: Candidates::Character,
+            selection: SelectionKind::All,
+        }),
     }],
     intent: Intent::Attack {
         damage: 11,
@@ -24,9 +30,12 @@ static MOVE_CHOMP_11: Move = Move {
 };
 static MOVE_CHOMP_12: Move = Move {
     name: "Chomp",
-    effects: &[EffectTemplate::DamagePhysical {
-        base: 12,
-        target: TargetKind::Character,
+    effects: &[EffectTemplate {
+        kind: EffectKind::DamagePhysical { base: 12 },
+        targeting: Some(Targeting {
+            candidates: Candidates::Character,
+            selection: SelectionKind::All,
+        }),
     }],
     intent: Intent::Attack {
         damage: 12,
@@ -36,13 +45,22 @@ static MOVE_CHOMP_12: Move = Move {
 static MOVE_THRASH: Move = Move {
     name: "Thrash",
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 7,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical { base: 7 },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::BlockGain {
-            amount: 5,
-            target: TargetKind::Source,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 5,
+                from_card: false,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Source,
+                selection: SelectionKind::All,
+            }),
         },
     ],
     intent: Intent::AttackBlock {
@@ -53,14 +71,25 @@ static MOVE_THRASH: Move = Move {
 static MOVE_BELLOW_3_6: Move = Move {
     name: "Bellow",
     effects: &[
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::Strength,
-            stacks: 3,
-            target: TargetKind::Source,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks: 3,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Source,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::BlockGain {
-            amount: 6,
-            target: TargetKind::Source,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 6,
+                from_card: false,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Source,
+                selection: SelectionKind::All,
+            }),
         },
     ],
     intent: Intent::BlockBuff,
@@ -68,14 +97,25 @@ static MOVE_BELLOW_3_6: Move = Move {
 static MOVE_BELLOW_4_6: Move = Move {
     name: "Bellow",
     effects: &[
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::Strength,
-            stacks: 4,
-            target: TargetKind::Source,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks: 4,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Source,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::BlockGain {
-            amount: 6,
-            target: TargetKind::Source,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 6,
+                from_card: false,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Source,
+                selection: SelectionKind::All,
+            }),
         },
     ],
     intent: Intent::BlockBuff,
@@ -83,14 +123,25 @@ static MOVE_BELLOW_4_6: Move = Move {
 static MOVE_BELLOW_5_9: Move = Move {
     name: "Bellow",
     effects: &[
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::Strength,
-            stacks: 5,
-            target: TargetKind::Source,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks: 5,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Source,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::BlockGain {
-            amount: 9,
-            target: TargetKind::Source,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 9,
+                from_card: false,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Source,
+                selection: SelectionKind::All,
+            }),
         },
     ],
     intent: Intent::BlockBuff,

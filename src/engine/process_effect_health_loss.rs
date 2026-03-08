@@ -1,4 +1,4 @@
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{
     ModifierKind, Modifiers, modifier_def, modifier_has, modifier_remove, modifier_stacks,
@@ -17,13 +17,13 @@ pub fn process_effect_health_loss(
     let mut effects = Vec::new();
 
     if vitals.health == 0 {
-        effects.push(Effect::Death { actor: target });
+        effects.push(Effect { kind: EffectKind::Death, source: None, target: Some(target) });
     } else if modifier_has(modifiers, ModifierKind::ModeShift) {
         let new_stacks = modifier_stacks(modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(modifiers, ModifierKind::ModeShift);
             if target.0 != 0 {
-                effects.push(Effect::MoveUpdate { monster: target });
+                effects.push(Effect { kind: EffectKind::MoveUpdate, source: None, target: Some(target) });
             }
         } else {
             modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;

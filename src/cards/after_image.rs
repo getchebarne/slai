@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -17,10 +16,15 @@ pub static AFTER_IMAGE: Card = Card {
     exhaust: false,
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::AfterImage,
-        stacks: 1,
-        target: TargetKind::Character,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::AfterImage,
+            stacks: 1,
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::Character,
+            selection: SelectionKind::All,
+        }),
     }],
 };
 // Upgraded
@@ -34,9 +38,14 @@ pub static AFTER_IMAGE_PLUS: Card = Card {
     exhaust: false,
     innate: true, // is innate
     requires_target: false,
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::AfterImage,
-        stacks: 1,
-        target: TargetKind::Character,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::AfterImage,
+            stacks: 1,
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::Character,
+            selection: SelectionKind::All,
+        }),
     }],
 };

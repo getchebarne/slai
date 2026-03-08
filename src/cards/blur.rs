@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -18,14 +17,25 @@ pub static BLUR: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::BlockGain {
-            amount: 5,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 5,
+                from_card: true,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::Blur,
-            stacks: 1,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Blur,
+                stacks: 1,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
     ],
 };
@@ -41,14 +51,25 @@ pub static BLUR_PLUS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::BlockGain {
-            amount: 8, // +3 block
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 8, // +3 block
+                from_card: true,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::Blur,
-            stacks: 1,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Blur,
+                stacks: 1,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
     ],
 };

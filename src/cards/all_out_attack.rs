@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -17,11 +16,20 @@ pub static ALL_OUT_ATTACK: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 10,
-            target: TargetKind::AllMonsters,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical { base: 10 },
+            targeting: Some(Targeting {
+                candidates: Candidates::Monsters,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::CardDiscardRandom,
+        EffectTemplate {
+            kind: EffectKind::CardDiscard,
+            targeting: Some(Targeting {
+                candidates: Candidates::Hand,
+                selection: SelectionKind::Random { count: 1 },
+            }),
+        },
     ],
 };
 // Upgraded
@@ -36,10 +44,21 @@ pub static ALL_OUT_ATTACK_PLUS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 14, // +4 damage
-            target: TargetKind::AllMonsters,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical {
+                base: 14, // +4 damage
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Monsters,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::CardDiscardRandom,
+        EffectTemplate {
+            kind: EffectKind::CardDiscard,
+            targeting: Some(Targeting {
+                candidates: Candidates::Hand,
+                selection: SelectionKind::Random { count: 1 },
+            }),
+        },
     ],
 };

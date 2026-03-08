@@ -160,14 +160,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         kind: ModifierKind::Vulnerable,
         is_buff: false,
         stacks_duration: true,
-        stacks_min: 0,
+        stacks_min: 1,
         stacks_max: 999,
     },
     ModifierDef {
         kind: ModifierKind::Weak,
         is_buff: false,
         stacks_duration: true,
-        stacks_min: 0,
+        stacks_min: 1,
         stacks_max: 999,
     },
 ];

@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -18,14 +17,22 @@ pub static FLYING_KNEE: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 8,
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical { base: 8 },
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::NextTurnEnergy,
-            stacks: 1,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::NextTurnEnergy,
+                stacks: 1,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
     ],
 };
@@ -41,14 +48,24 @@ pub static FLYING_KNEE_PLUS: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate::DamagePhysical {
-            base: 11, // +3 damage
-            target: TargetKind::CardTarget,
+        EffectTemplate {
+            kind: EffectKind::DamagePhysical {
+                base: 11, // +3 damage
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::CardTarget,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::ModifierGain {
-            kind: ModifierKind::NextTurnEnergy,
-            stacks: 1,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::NextTurnEnergy,
+                stacks: 1,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
     ],
 };

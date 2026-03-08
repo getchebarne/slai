@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
 use crate::types::EntityId;
@@ -37,8 +37,8 @@ pub fn process_effect_combat_start(
 
     shuffle(&mut other_ids, rng);
 
-    *draw_pile = innate_ids;
-    draw_pile.extend(other_ids);
+    *draw_pile = other_ids;
+    draw_pile.extend(innate_ids);
 
     hand.clear();
     discard_pile.clear();
@@ -48,9 +48,9 @@ pub fn process_effect_combat_start(
 
     let mut effects: Vec<Effect> = Vec::new();
     for &id in &monsters[..monster_count as usize] {
-        effects.push(Effect::MoveUpdate { monster: id });
+        effects.push(Effect { kind: EffectKind::MoveUpdate, source: None, target: Some(id) });
     }
-    effects.push(Effect::TurnStart { actor: EntityId(0) });
+    effects.push(Effect { kind: EffectKind::TurnStart, source: None, target: Some(EntityId(0)) });
 
     ProcessEffectResult::Continue {
         top: effects,

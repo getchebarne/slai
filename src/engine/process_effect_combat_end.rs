@@ -1,4 +1,4 @@
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_clear;
 use crate::state::{Entity, Map};
@@ -29,12 +29,12 @@ pub fn process_effect_combat_end(
     let room = map.active_room_type().unwrap();
     match room {
         RoomType::CombatBoss => ProcessEffectResult::Continue {
-            top: vec![Effect::GameEnd],
+            top: vec![Effect { kind: EffectKind::GameEnd, source: None, target: None }],
             bot: Vec::new(),
         },
         RoomType::CombatMonster => ProcessEffectResult::Continue {
             top: Vec::new(),
-            bot: vec![Effect::CardRewardRoll],
+            bot: vec![Effect { kind: EffectKind::CardRewardRoll, source: None, target: None }],
         },
         RoomType::RestSite => unreachable!("combat end in rest site"),
     }

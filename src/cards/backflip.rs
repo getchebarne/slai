@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -17,11 +16,20 @@ pub static BACKFLIP: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::BlockGain {
-            amount: 5,
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 5,
+                from_card: true,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::CardDraw { count: 2 },
+        EffectTemplate {
+            kind: EffectKind::CardDraw { count: 2 },
+            targeting: None,
+        },
     ],
 };
 // Upgraded
@@ -36,10 +44,19 @@ pub static BACKFLIP_PLUS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate::BlockGain {
-            amount: 8, // +3 block
-            target: TargetKind::Character,
+        EffectTemplate {
+            kind: EffectKind::BlockGain {
+                amount: 8, // +3 block
+                from_card: true,
+            },
+            targeting: Some(Targeting {
+                candidates: Candidates::Character,
+                selection: SelectionKind::All,
+            }),
         },
-        EffectTemplate::CardDraw { count: 2 },
+        EffectTemplate {
+            kind: EffectKind::CardDraw { count: 2 },
+            targeting: None,
+        },
     ],
 };

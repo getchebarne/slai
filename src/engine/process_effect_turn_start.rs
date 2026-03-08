@@ -1,5 +1,5 @@
 use crate::consts::CARDS_DRAWN_PER_TURN;
-use crate::effect::Effect;
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
 use crate::state::{Energy, Vitals};
@@ -22,46 +22,56 @@ pub fn process_effect_turn_start(
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
         modifier_remove(modifiers, ModifierKind::NextTurnBlock);
     }
-    effects.push(Effect::BlockSet {
-        target: actor,
-        amount: new_block,
+    effects.push(Effect {
+        kind: EffectKind::BlockSet { amount: new_block },
+        source: None,
+        target: Some(actor),
     });
 
     if modifier_has(modifiers, ModifierKind::Phantasmal) {
-        effects.push(Effect::ModifierGain {
-            target: actor,
-            kind: ModifierKind::DoubleDamage,
-            stacks: 1,
+        effects.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::DoubleDamage,
+                stacks: 1,
+            },
+            source: None,
+            target: Some(actor),
         });
     }
 
     if actor.0 == 0 {
-        effects.push(Effect::CardDraw {
-            count: CARDS_DRAWN_PER_TURN,
+        effects.push(Effect {
+            kind: EffectKind::CardDraw { count: CARDS_DRAWN_PER_TURN },
+            source: None,
+            target: None,
         });
         let energy_gain = energy.max - energy.current;
-        effects.push(Effect::EnergyGain {
-            amount: energy_gain,
+        effects.push(Effect {
+            kind: EffectKind::EnergyGain { amount: energy_gain },
+            source: None,
+            target: None,
         });
-        effects.push(Effect::ModifierTick {
-            target: EntityId(0),
-        });
+        effects.push(Effect { kind: EffectKind::ModifierTick, source: None, target: Some(EntityId(0)) });
         for &mid in monster_ids {
-            effects.push(Effect::ModifierTick { target: mid });
+            effects.push(Effect { kind: EffectKind::ModifierTick, source: None, target: Some(mid) });
         }
 
         if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
-            effects.push(Effect::EnergyGain {
-                amount: stacks as u8,
+            effects.push(Effect {
+                kind: EffectKind::EnergyGain { amount: stacks as u8 },
+                source: None,
+                target: None,
             });
             modifier_remove(modifiers, ModifierKind::NextTurnEnergy);
         }
 
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
-            effects.push(Effect::AddShivs {
-                count: stacks as u8,
+            effects.push(Effect {
+                kind: EffectKind::AddShivs { count: stacks as u8 },
+                source: None,
+                target: None,
             });
         }
     }

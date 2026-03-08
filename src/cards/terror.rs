@@ -1,6 +1,5 @@
 use crate::cards::Card;
-use crate::effect::EffectTemplate;
-use crate::effect::TargetKind;
+use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -17,10 +16,15 @@ pub static TERROR: Card = Card {
     exhaust: true,
     innate: false,
     requires_target: true,
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::Vulnerable,
-        stacks: 99,
-        target: TargetKind::CardTarget,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Vulnerable,
+            stacks: 99,
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::CardTarget,
+            selection: SelectionKind::All,
+        }),
     }],
 };
 // Upgraded
@@ -34,9 +38,14 @@ pub static TERROR_PLUS: Card = Card {
     exhaust: true,
     innate: false,
     requires_target: true,
-    effects: &[EffectTemplate::ModifierGain {
-        kind: ModifierKind::Vulnerable,
-        stacks: 99,
-        target: TargetKind::CardTarget,
+    effects: &[EffectTemplate {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Vulnerable,
+            stacks: 99,
+        },
+        targeting: Some(Targeting {
+            candidates: Candidates::CardTarget,
+            selection: SelectionKind::All,
+        }),
     }],
 };
