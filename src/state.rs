@@ -162,12 +162,17 @@ pub struct GameState {
     pub phase: Phase,
     pub rng: SmallRng,
 
+    // Effect queue (the program)
+    pub effect_queue: VecDeque<Effect>,
+
+    // Entities
+    // --------
     pub entities: Vec<Entity>,
 
-    // Character
+    // Entities / Character
     pub character: EntityId,
 
-    // Monsters
+    // Entities / Monsters
     pub monsters: [EntityId; MAX_MONSTERS],
     pub monster_count: u8,
 
@@ -190,8 +195,6 @@ pub struct GameState {
     pub card_rewards: Vec<EntityId>,
 
     pub map: Map,
-
-    pub effect_queue: VecDeque<Effect>,
 }
 
 impl GameState {

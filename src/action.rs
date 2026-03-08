@@ -28,48 +28,14 @@ pub enum Action {
     Rest,
 }
 
-pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
-    let phase = state.phase;
-    match action {
-        Action::CardDiscard { hand_idx } => {
-            require_phase(phase, Phase::CombatAwaitDiscard, &action)?;
-            handle_card_discard(state, hand_idx)
-        }
-        Action::CardPlay {
-            hand_idx,
-            monster_idx,
-        } => {
-            require_phase(phase, Phase::CombatDefault, &action)?;
-            handle_card_play(state, hand_idx, monster_idx)
-        }
-        Action::CardUpgrade { deck_idx } => {
-            require_phase(phase, Phase::RestSite, &action)?;
-            handle_card_upgrade(state, deck_idx)
-        }
-        Action::CardRewardSelect { reward_idx } => {
-            require_phase(phase, Phase::CardReward, &action)?;
-            handle_card_reward_select(state, reward_idx)
-        }
-        Action::CardRewardSkip => {
-            require_phase(phase, Phase::CardReward, &action)?;
-            Ok(handle_card_reward_skip(state))
-        }
-        Action::EndTurn => {
-            require_phase(phase, Phase::CombatDefault, &action)?;
-            Ok(handle_end_turn(state))
-        }
-        Action::MapNodeSelect { column } => {
-            require_phase(phase, Phase::Map, &action)?;
-            Ok(handle_map_node_select(state, column))
-        }
-        Action::Rest => {
-            require_phase(phase, Phase::RestSite, &action)?;
-            Ok(handle_rest(state))
-        }
-    }
-}
-
-fn require_phase(current: Phase, expected: Phase, action: &Action) -> Result<(), String> {
+fn validate_phase(current: Phase, action: &Action) -> Result<(), String> {
+    let expected = match action {
+        Action::CardDiscard { .. } => Phase::CombatAwaitDiscard,
+        Action::CardPlay { .. } | Action::EndTurn => Phase::CombatDefault,
+        Action::CardUpgrade { .. } | Action::Rest => Phase::RestSite,
+        Action::CardRewardSelect { .. } | Action::CardRewardSkip => Phase::CardReward,
+        Action::MapNodeSelect { .. } => Phase::Map,
+    };
     if current != expected {
         return Err(format!(
             "{:?} invalid in phase {:?} (expected {:?})",
@@ -77,6 +43,21 @@ fn require_phase(current: Phase, expected: Phase, action: &Action) -> Result<(),
         ));
     }
     Ok(())
+}
+
+pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
+    validate_phase(state.phase, &action)?;
+
+    match action {
+        Action::CardDiscard { hand_idx } => handle_card_discard(state, hand_idx),
+        Action::CardPlay { hand_idx, monster_idx } => handle_card_play(state, hand_idx, monster_idx),
+        Action::CardUpgrade { deck_idx } => handle_card_upgrade(state, deck_idx),
+        Action::CardRewardSelect { reward_idx } => handle_card_reward_select(state, reward_idx),
+        Action::CardRewardSkip => Ok(handle_card_reward_skip(state)),
+        Action::EndTurn => Ok(handle_end_turn(state)),
+        Action::MapNodeSelect { column } => Ok(handle_map_node_select(state, column)),
+        Action::Rest => Ok(handle_rest(state)),
+    }
 }
 
 fn handle_end_turn(state: &GameState) -> Vec<Effect> {
