@@ -200,16 +200,6 @@ pub struct GameState {
     pub discard_pile: Vec<EntityId>,
     pub exhaust_pile: Vec<EntityId>,
 
-    // Entities /Card / Combat piles
+    // Entities / Card / Combat piles
     pub card_rewards: Vec<EntityId>,
-}
-
-impl GameState {
-    pub fn alive_monster_ids(&self) -> Vec<EntityId> {
-        self.monsters[..self.monster_count as usize]
-            .iter()
-            .copied()
-            .filter(|&id| !self.entities[id.0 as usize].kind.monster_ref().dead)
-            .collect()
-    }
 }

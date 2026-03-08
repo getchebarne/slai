@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::state::Entity;
 use crate::types::EntityId;
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
@@ -7,6 +8,18 @@ pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
         let j = rng.random_range(0..=i);
         slice.swap(i, j);
     }
+}
+
+pub fn get_alive_monster_ids(
+    monsters: &[EntityId],
+    monster_count: u8,
+    entities: &[Entity],
+) -> Vec<EntityId> {
+    monsters[..monster_count as usize]
+        .iter()
+        .copied()
+        .filter(|&id| !entities[id.0 as usize].kind.monster_ref().dead)
+        .collect()
 }
 
 pub fn remove_card_from_hand(card_id: EntityId, hand: &mut Vec<EntityId>) {

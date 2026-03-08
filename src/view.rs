@@ -9,6 +9,7 @@ use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::monsters::Intent;
 use crate::state::{Entity, GameState};
 use crate::types::EntityId;
+use crate::utils::get_alive_monster_ids;
 
 // ---------------------------------------------------------------------------
 // View types (PyO3 classes)
@@ -182,8 +183,7 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
 fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
     let (_, character_modifiers) = state.entities[0].kind.combatant_ref();
 
-    state
-        .alive_monster_ids()
+    get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities)
         .iter()
         .map(|&mid| {
             let m = state.entities[mid.0 as usize].kind.monster_ref();
@@ -329,7 +329,7 @@ fn view_effect_template(tmpl: &EffectTemplate) -> ViewEffectTemplate {
                 value: None,
                 target: None,
             }
-        },
+        }
         EffectKind::CalculatedGamble => ViewEffectTemplate {
             effect_type: "CalculatedGamble".to_string(),
             value: None,

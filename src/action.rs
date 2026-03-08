@@ -4,6 +4,7 @@ use crate::consts::REST_SITE_HEAL_FACTOR;
 use crate::effect::{Effect, EffectKind};
 use crate::state::GameState;
 use crate::types::{EntityId, Phase};
+use crate::utils::get_alive_monster_ids;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Action {
@@ -94,7 +95,7 @@ fn handle_card_play(
     if card.requires_target {
         match monster_idx {
             Some(idx) => {
-                let alive = state.alive_monster_ids();
+                let alive = get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
                 let target = *alive
                     .get(idx)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx))?;

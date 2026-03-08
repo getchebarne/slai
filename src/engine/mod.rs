@@ -37,7 +37,7 @@ use rand::Rng;
 use crate::effect::{Candidates, Effect, EffectKind, EffectTemplate, SelectionKind};
 use crate::state::{EntityKind, GameState};
 use crate::types::EntityId;
-use crate::utils::shuffle;
+use crate::utils::{get_alive_monster_ids, shuffle};
 
 pub enum ProcessEffectResult {
     Continue { top: Vec<Effect>, bot: Vec<Effect> },
@@ -106,17 +106,30 @@ pub fn instantiate_templates(
     for tmpl in templates {
         match tmpl.targeting {
             None => {
-                out.push(Effect { kind: tmpl.kind, source: None, target: None });
+                out.push(Effect {
+                    kind: tmpl.kind,
+                    source: None,
+                    target: None,
+                });
             }
             Some(targeting) => {
                 let resolution = resolve_targets(
-                    targeting.candidates, targeting.selection,
-                    source, hand, card_target, alive_monsters, rng,
+                    targeting.candidates,
+                    targeting.selection,
+                    source,
+                    hand,
+                    card_target,
+                    alive_monsters,
+                    rng,
                 );
                 match resolution {
                     TargetResolution::Resolved(ids) => {
                         for t in ids {
-                            out.push(Effect { kind: tmpl.kind, source: Some(source), target: Some(t) });
+                            out.push(Effect {
+                                kind: tmpl.kind,
+                                source: Some(source),
+                                target: Some(t),
+                            });
                         }
                     }
                     TargetResolution::AwaitInput => {
@@ -144,7 +157,8 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         ),
         EffectKind::CardPlay => {
             let card_id = effect.target.unwrap();
-            let alive = state.alive_monster_ids();
+            let alive =
+                get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
             process_effect_card_play::process_effect_card_play(
                 card_id,
                 &state.entities,
@@ -294,7 +308,8 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             process_effect_modifier_tick::process_effect_modifier_tick(modifiers)
         }
         EffectKind::ModifierSetNotNew => {
-            let alive = state.alive_monster_ids();
+            let alive =
+                get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
             process_effect_modifier_set_not_new::process_effect_modifier_set_not_new(
                 &mut state.entities,
                 &alive,
@@ -333,7 +348,8 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         ),
         EffectKind::TurnStart => {
             let actor = effect.target.unwrap();
-            let monster_ids = state.alive_monster_ids();
+            let monster_ids =
+                get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
             let (vitals, modifiers) = state.entities[actor.0 as usize].kind.combatant_mut();
             process_effect_turn_start::process_effect_turn_start(
                 vitals,
@@ -346,7 +362,8 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         EffectKind::TurnEnd => {
             let actor = effect.target.unwrap();
             if actor.0 == 0 {
-                let alive = state.alive_monster_ids();
+                let alive =
+                    get_alive_monster_ids(&state.monsters, state.monster_count, &state.entities);
                 process_effect_turn_end::process_effect_turn_end_character(
                     &state.entities,
                     state.card_target,
