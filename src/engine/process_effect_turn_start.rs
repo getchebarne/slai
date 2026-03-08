@@ -41,25 +41,39 @@ pub fn process_effect_turn_start(
 
     if actor.0 == 0 {
         effects.push(Effect {
-            kind: EffectKind::CardDraw { count: CARDS_DRAWN_PER_TURN },
+            kind: EffectKind::CardDraw {
+                count: CARDS_DRAWN_PER_TURN,
+            },
             source: None,
             target: None,
         });
         let energy_gain = energy.max - energy.current;
         effects.push(Effect {
-            kind: EffectKind::EnergyGain { amount: energy_gain },
+            kind: EffectKind::EnergyGain {
+                amount: energy_gain,
+            },
             source: None,
             target: None,
         });
-        effects.push(Effect { kind: EffectKind::ModifierTick, source: None, target: Some(EntityId(0)) });
+        effects.push(Effect {
+            kind: EffectKind::ModifierTick,
+            source: None,
+            target: Some(EntityId(0)),
+        });
         for &mid in monster_ids {
-            effects.push(Effect { kind: EffectKind::ModifierTick, source: None, target: Some(mid) });
+            effects.push(Effect {
+                kind: EffectKind::ModifierTick,
+                source: None,
+                target: Some(mid),
+            });
         }
 
         if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
             effects.push(Effect {
-                kind: EffectKind::EnergyGain { amount: stacks as u8 },
+                kind: EffectKind::EnergyGain {
+                    amount: stacks as u8,
+                },
                 source: None,
                 target: None,
             });
@@ -69,7 +83,9 @@ pub fn process_effect_turn_start(
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
             effects.push(Effect {
-                kind: EffectKind::AddShivs { count: stacks as u8 },
+                kind: EffectKind::AddShivs {
+                    count: stacks as u8,
+                },
                 source: None,
                 target: None,
             });

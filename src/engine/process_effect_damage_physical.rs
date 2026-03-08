@@ -32,7 +32,9 @@ pub fn process_effect_damage_physical(
     if final_damage > 0 {
         ProcessEffectResult::Continue {
             top: vec![Effect {
-                kind: EffectKind::DamageDeal { amount: final_damage },
+                kind: EffectKind::DamageDeal {
+                    amount: final_damage,
+                },
                 source: None,
                 target: Some(target),
             }],

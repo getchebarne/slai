@@ -6,8 +6,8 @@ use rand::SeedableRng;
 use rand::rngs::SmallRng;
 
 use crate::action::{Action, handle_action};
-use crate::consts::MAX_MONSTERS;
 use crate::character::{silent_starter_deck, spawn_silent};
+use crate::consts::MAX_MONSTERS;
 use crate::effect::{Effect, EffectKind};
 use crate::engine::process_queue;
 use crate::map::generate_map;
@@ -32,7 +32,9 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut deck = Vec::with_capacity(deck_templates.len());
     for card in deck_templates {
         let id = EntityId(entities.len() as u32);
-        entities.push(Entity { kind: EntityKind::Card(card) });
+        entities.push(Entity {
+            kind: EntityKind::Card(card),
+        });
         deck.push(id);
     }
 
@@ -58,7 +60,11 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 }
 
 pub fn initialize(state: &mut GameState) {
-    state.effect_queue.push_back(Effect { kind: EffectKind::AwaitMapNode, source: None, target: None });
+    state.effect_queue.push_back(Effect {
+        kind: EffectKind::AwaitMapNode,
+        source: None,
+        target: None,
+    });
     state.phase = determine_phase(state);
 }
 

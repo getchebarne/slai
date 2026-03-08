@@ -8,9 +8,15 @@ pub fn process_effect_calculated_gamble(hand: &mut [EntityId]) -> ProcessEffectR
     ProcessEffectResult::Continue {
         bot: Vec::new(),
         top: vec![
-            Effect { kind: EffectKind::CardDiscardAll, source: None, target: None },
             Effect {
-                kind: EffectKind::CardDraw { count: num_cards as u8 },
+                kind: EffectKind::CardDiscardAll,
+                source: None,
+                target: None,
+            },
+            Effect {
+                kind: EffectKind::CardDraw {
+                    count: num_cards as u8,
+                },
                 source: None,
                 target: None,
             },

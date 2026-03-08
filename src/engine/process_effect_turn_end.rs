@@ -1,8 +1,8 @@
 use rand::Rng;
 
 use crate::effect::{Effect, EffectKind};
-use crate::engine::instantiate_templates;
 use crate::engine::ProcessEffectResult;
+use crate::engine::instantiate_templates;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::state::{Entity, Vitals};
 use crate::types::EntityId;
@@ -55,12 +55,24 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    effects.push(Effect { kind: EffectKind::CardDiscardAll, source: None, target: None });
-    effects.push(Effect { kind: EffectKind::ModifierSetNotNew, source: None, target: None });
+    effects.push(Effect {
+        kind: EffectKind::CardDiscardAll,
+        source: None,
+        target: None,
+    });
+    effects.push(Effect {
+        kind: EffectKind::ModifierSetNotNew,
+        source: None,
+        target: None,
+    });
 
     for &mid in alive_monsters {
         let m = entities[mid.0 as usize].kind.monster_ref();
-        effects.push(Effect { kind: EffectKind::TurnStart, source: None, target: Some(mid) });
+        effects.push(Effect {
+            kind: EffectKind::TurnStart,
+            source: None,
+            target: Some(mid),
+        });
 
         if let Some(move_idx) = m.move_current {
             let move_effects = instantiate_templates(
@@ -74,11 +86,23 @@ pub fn process_effect_turn_end_character(
             effects.extend(move_effects);
         }
 
-        effects.push(Effect { kind: EffectKind::MoveUpdate, source: None, target: Some(mid) });
-        effects.push(Effect { kind: EffectKind::TurnEnd, source: None, target: Some(mid) });
+        effects.push(Effect {
+            kind: EffectKind::MoveUpdate,
+            source: None,
+            target: Some(mid),
+        });
+        effects.push(Effect {
+            kind: EffectKind::TurnEnd,
+            source: None,
+            target: Some(mid),
+        });
     }
 
-    effects.push(Effect { kind: EffectKind::TurnStart, source: None, target: Some(EntityId(0)) });
+    effects.push(Effect {
+        kind: EffectKind::TurnStart,
+        source: None,
+        target: Some(EntityId(0)),
+    });
 
     if modifier_has(character_modifiers, ModifierKind::Burst) {
         effects.push(Effect {

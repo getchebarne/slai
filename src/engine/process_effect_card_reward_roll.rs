@@ -50,6 +50,10 @@ pub fn process_effect_card_reward_roll(
 
     ProcessEffectResult::Continue {
         top: Vec::new(),
-        bot: vec![Effect { kind: EffectKind::AwaitCardReward, source: None, target: None }],
+        bot: vec![Effect {
+            kind: EffectKind::AwaitCardReward,
+            source: None,
+            target: None,
+        }],
     }
 }

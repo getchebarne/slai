@@ -12,7 +12,11 @@ pub fn process_effect_death(
 ) -> ProcessEffectResult {
     if actor.0 == 0 {
         return ProcessEffectResult::Continue {
-            top: vec![Effect { kind: EffectKind::GameEnd, source: None, target: None }],
+            top: vec![Effect {
+                kind: EffectKind::GameEnd,
+                source: None,
+                target: None,
+            }],
             bot: Vec::new(),
         };
     }
@@ -40,7 +44,11 @@ pub fn process_effect_death(
         .iter()
         .any(|&id| !entities[id.0 as usize].kind.monster_ref().dead);
     if !any_alive {
-        effects.push(Effect { kind: EffectKind::CombatEnd, source: None, target: None });
+        effects.push(Effect {
+            kind: EffectKind::CombatEnd,
+            source: None,
+            target: None,
+        });
     }
 
     if effects.is_empty() {

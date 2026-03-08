@@ -86,12 +86,9 @@ fn create_target(
         if py == y_source && px == x_source {
             continue;
         }
-        if let Some(ancestor) = get_common_ancestor(
-            (py, px),
-            (y_source, x_source),
-            nodes,
-            ANCESTOR_GAP_MAX,
-        ) {
+        if let Some(ancestor) =
+            get_common_ancestor((py, px), (y_source, x_source), nodes, ANCESTOR_GAP_MAX)
+        {
             let ancestor_gap = y_target - ancestor.0;
             if ancestor_gap < ANCESTOR_GAP_MIN {
                 let new_offset = if x_target > x_source {

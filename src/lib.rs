@@ -40,7 +40,10 @@ impl ActionCardPlay {
     #[new]
     #[pyo3(signature = (hand_idx, monster_idx=None))]
     fn new(hand_idx: usize, monster_idx: Option<usize>) -> Self {
-        Self { hand_idx, monster_idx }
+        Self {
+            hand_idx,
+            monster_idx,
+        }
     }
 }
 
@@ -51,7 +54,9 @@ struct ActionEndTurn;
 #[pymethods]
 impl ActionEndTurn {
     #[new]
-    fn new() -> Self { Self }
+    fn new() -> Self {
+        Self
+    }
 }
 
 #[pyclass(frozen)]
@@ -64,7 +69,9 @@ struct ActionCardDiscard {
 #[pymethods]
 impl ActionCardDiscard {
     #[new]
-    fn new(hand_idx: usize) -> Self { Self { hand_idx } }
+    fn new(hand_idx: usize) -> Self {
+        Self { hand_idx }
+    }
 }
 
 #[pyclass(frozen)]
@@ -77,7 +84,9 @@ struct ActionMapNodeSelect {
 #[pymethods]
 impl ActionMapNodeSelect {
     #[new]
-    fn new(column: usize) -> Self { Self { column } }
+    fn new(column: usize) -> Self {
+        Self { column }
+    }
 }
 
 #[pyclass(frozen)]
@@ -90,7 +99,9 @@ struct ActionCardRewardSelect {
 #[pymethods]
 impl ActionCardRewardSelect {
     #[new]
-    fn new(reward_idx: usize) -> Self { Self { reward_idx } }
+    fn new(reward_idx: usize) -> Self {
+        Self { reward_idx }
+    }
 }
 
 #[pyclass(frozen)]
@@ -100,7 +111,9 @@ struct ActionCardRewardSkip;
 #[pymethods]
 impl ActionCardRewardSkip {
     #[new]
-    fn new() -> Self { Self }
+    fn new() -> Self {
+        Self
+    }
 }
 
 #[pyclass(frozen)]
@@ -110,7 +123,9 @@ struct ActionRest;
 #[pymethods]
 impl ActionRest {
     #[new]
-    fn new() -> Self { Self }
+    fn new() -> Self {
+        Self
+    }
 }
 
 #[pyclass(frozen)]
@@ -123,26 +138,35 @@ struct ActionCardUpgrade {
 #[pymethods]
 impl ActionCardUpgrade {
     #[new]
-    fn new(deck_idx: usize) -> Self { Self { deck_idx } }
+    fn new(deck_idx: usize) -> Self {
+        Self { deck_idx }
+    }
 }
 
 // ---- Decode PyAny -> Action ----
 
 fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
     if let Ok(a) = py_action.extract::<ActionCardPlay>() {
-        return Ok(Action::CardPlay { hand_idx: a.hand_idx, monster_idx: a.monster_idx });
+        return Ok(Action::CardPlay {
+            hand_idx: a.hand_idx,
+            monster_idx: a.monster_idx,
+        });
     }
     if py_action.extract::<ActionEndTurn>().is_ok() {
         return Ok(Action::EndTurn);
     }
     if let Ok(a) = py_action.extract::<ActionCardDiscard>() {
-        return Ok(Action::CardDiscard { hand_idx: a.hand_idx });
+        return Ok(Action::CardDiscard {
+            hand_idx: a.hand_idx,
+        });
     }
     if let Ok(a) = py_action.extract::<ActionMapNodeSelect>() {
         return Ok(Action::MapNodeSelect { column: a.column });
     }
     if let Ok(a) = py_action.extract::<ActionCardRewardSelect>() {
-        return Ok(Action::CardRewardSelect { reward_idx: a.reward_idx });
+        return Ok(Action::CardRewardSelect {
+            reward_idx: a.reward_idx,
+        });
     }
     if py_action.extract::<ActionCardRewardSkip>().is_ok() {
         return Ok(Action::CardRewardSkip);
@@ -151,7 +175,9 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
         return Ok(Action::Rest);
     }
     if let Ok(a) = py_action.extract::<ActionCardUpgrade>() {
-        return Ok(Action::CardUpgrade { deck_idx: a.deck_idx });
+        return Ok(Action::CardUpgrade {
+            deck_idx: a.deck_idx,
+        });
     }
     Err(pyo3::exceptions::PyTypeError::new_err(format!(
         "Unknown action type: {}",
@@ -182,8 +208,7 @@ impl GameEnv {
 
     fn step(&mut self, action: &Bound<'_, PyAny>) -> PyResult<(ViewGameState, bool)> {
         let action = decode_action(action)?;
-        step(&mut self.state, action)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e))?;
+        step(&mut self.state, action).map_err(|e| pyo3::exceptions::PyValueError::new_err(e))?;
         let done = self.state.phase == types::Phase::GameOver;
         Ok((build_view(&self.state), done))
     }

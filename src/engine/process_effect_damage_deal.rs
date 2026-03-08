@@ -14,7 +14,9 @@ pub fn process_effect_damage_deal(
     if damage_over_block > 0 {
         ProcessEffectResult::Continue {
             top: vec![Effect {
-                kind: EffectKind::HealthLoss { amount: damage_over_block },
+                kind: EffectKind::HealthLoss {
+                    amount: damage_over_block,
+                },
                 source: None,
                 target: Some(target),
             }],

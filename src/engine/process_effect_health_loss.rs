@@ -17,13 +17,21 @@ pub fn process_effect_health_loss(
     let mut effects = Vec::new();
 
     if vitals.health == 0 {
-        effects.push(Effect { kind: EffectKind::Death, source: None, target: Some(target) });
+        effects.push(Effect {
+            kind: EffectKind::Death,
+            source: None,
+            target: Some(target),
+        });
     } else if modifier_has(modifiers, ModifierKind::ModeShift) {
         let new_stacks = modifier_stacks(modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(modifiers, ModifierKind::ModeShift);
             if target.0 != 0 {
-                effects.push(Effect { kind: EffectKind::MoveUpdate, source: None, target: Some(target) });
+                effects.push(Effect {
+                    kind: EffectKind::MoveUpdate,
+                    source: None,
+                    target: Some(target),
+                });
             }
         } else {
             modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;

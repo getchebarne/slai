@@ -36,7 +36,11 @@ pub fn process_effect_room_enter(
             let m = monsters::spawn_monster(MonsterName::TheGuardian, ascension, rng);
             push_monster(m, entities, monsters, monster_count);
             ProcessEffectResult::Continue {
-                top: vec![Effect { kind: EffectKind::CombatStart, source: None, target: None }],
+                top: vec![Effect {
+                    kind: EffectKind::CombatStart,
+                    source: None,
+                    target: None,
+                }],
                 bot: Vec::new(),
             }
         }
@@ -60,7 +64,11 @@ pub fn process_effect_room_enter(
                 _ => unreachable!(),
             };
             ProcessEffectResult::Continue {
-                top: vec![Effect { kind: EffectKind::CombatStart, source: None, target: None }],
+                top: vec![Effect {
+                    kind: EffectKind::CombatStart,
+                    source: None,
+                    target: None,
+                }],
                 bot: Vec::new(),
             }
         }

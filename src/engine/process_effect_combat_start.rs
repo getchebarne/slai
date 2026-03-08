@@ -46,9 +46,17 @@ pub fn process_effect_combat_start(
 
     let mut effects: Vec<Effect> = Vec::new();
     for &id in &monsters[..monster_count as usize] {
-        effects.push(Effect { kind: EffectKind::MoveUpdate, source: None, target: Some(id) });
+        effects.push(Effect {
+            kind: EffectKind::MoveUpdate,
+            source: None,
+            target: Some(id),
+        });
     }
-    effects.push(Effect { kind: EffectKind::TurnStart, source: None, target: Some(EntityId(0)) });
+    effects.push(Effect {
+        kind: EffectKind::TurnStart,
+        source: None,
+        target: Some(EntityId(0)),
+    });
 
     ProcessEffectResult::Continue {
         top: effects,

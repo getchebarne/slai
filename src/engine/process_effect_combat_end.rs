@@ -27,12 +27,20 @@ pub fn process_effect_combat_end(
     let room = map.active_room_type().unwrap();
     match room {
         RoomType::CombatBoss => ProcessEffectResult::Continue {
-            top: vec![Effect { kind: EffectKind::GameEnd, source: None, target: None }],
+            top: vec![Effect {
+                kind: EffectKind::GameEnd,
+                source: None,
+                target: None,
+            }],
             bot: Vec::new(),
         },
         RoomType::CombatMonster => ProcessEffectResult::Continue {
             top: Vec::new(),
-            bot: vec![Effect { kind: EffectKind::CardRewardRoll, source: None, target: None }],
+            bot: vec![Effect {
+                kind: EffectKind::CardRewardRoll,
+                source: None,
+                target: None,
+            }],
         },
         RoomType::RestSite => unreachable!("combat end in rest site"),
     }
