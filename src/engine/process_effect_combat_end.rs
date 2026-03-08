@@ -5,6 +5,7 @@ use crate::state::{Entity, Map};
 use crate::types::{EntityId, RoomType};
 
 pub fn process_effect_combat_end(
+    character: EntityId,
     hand: &mut Vec<EntityId>,
     draw_pile: &mut Vec<EntityId>,
     discard_pile: &mut Vec<EntityId>,
@@ -20,7 +21,7 @@ pub fn process_effect_combat_end(
     exhaust_pile.clear();
     *card_target = None;
 
-    let (_, modifiers) = entities[0].kind.combatant_mut();
+    let (_, modifiers) = entities[character.0 as usize].kind.combatant_mut();
     modifier_clear(modifiers);
     *monster_count = 0;
 

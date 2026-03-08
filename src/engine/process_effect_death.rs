@@ -6,11 +6,12 @@ use crate::types::EntityId;
 
 pub fn process_effect_death(
     actor: EntityId,
+    character: EntityId,
     entities: &mut [Entity],
     monsters: &[EntityId],
     monster_count: u8,
 ) -> ProcessEffectResult {
-    if actor.0 == 0 {
+    if actor == character {
         return ProcessEffectResult::AddAndContinue {
             top: vec![Effect {
                 kind: EffectKind::GameEnd,
@@ -33,7 +34,7 @@ pub fn process_effect_death(
                     stacks,
                 },
                 source: None,
-                target: Some(EntityId(0)),
+                target: Some(character),
             });
         }
     }

@@ -3,9 +3,9 @@ use crate::types::EntityId;
 use crate::utils::remove_card_from_hand;
 
 pub fn process_effect_card_remove(
-    card_id: EntityId,
+    id_card: EntityId,
     hand: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
-    remove_card_from_hand(card_id, hand);
+    remove_card_from_hand(id_card, hand);
     ProcessEffectResult::Continue
 }

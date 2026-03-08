@@ -9,6 +9,7 @@ pub fn process_effect_turn_start(
     vitals: &mut Vitals,
     modifiers: &mut Modifiers,
     actor: EntityId,
+    character: EntityId,
     energy: &Energy,
     monster_ids: &[EntityId],
 ) -> ProcessEffectResult {
@@ -39,7 +40,7 @@ pub fn process_effect_turn_start(
         });
     }
 
-    if actor.0 == 0 {
+    if actor == character {
         effects.push(Effect {
             kind: EffectKind::CardDraw {
                 count: CARDS_DRAWN_PER_TURN,
@@ -58,7 +59,7 @@ pub fn process_effect_turn_start(
         effects.push(Effect {
             kind: EffectKind::ModifierTick,
             source: None,
-            target: Some(EntityId(0)),
+            target: Some(character),
         });
         for &mid in monster_ids {
             effects.push(Effect {

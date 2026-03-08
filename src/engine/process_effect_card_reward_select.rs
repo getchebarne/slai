@@ -3,13 +3,13 @@ use crate::engine::ProcessEffectResult;
 use crate::types::EntityId;
 
 pub fn process_effect_card_reward_select(
-    card_idx: usize,
+    id_cardx: usize,
     card_rewards: &mut Vec<EntityId>,
     deck: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
     // Get card id
-    let card_id = card_rewards[card_idx];
-    deck.push(card_id);
+    let id_card = card_rewards[id_cardx];
+    deck.push(id_card);
 
     // Queue top-effect to clear the queue
     ProcessEffectResult::AddAndContinue {

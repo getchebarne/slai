@@ -11,63 +11,71 @@ use crate::types::CardKind;
 use crate::types::EntityId;
 
 pub fn process_effect_card_play(
-    card_id: EntityId,
+    id_card: EntityId,
+    id_card_target: Option<EntityId>,
+    character: EntityId,
     entities: &[Entity],
-    card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let card = entities[card_id.0 as usize].kind.card_ref();
+    let card = entities[id_card.0 as usize].kind.card_ref();
 
+    // Create emtpy container for top effects
     let mut top_effects = Vec::new();
 
+    // Push top effects. Start w/ energy loss
     top_effects.push(Effect {
         kind: EffectKind::EnergyLoss { amount: card.cost },
         source: None,
         target: None,
     });
 
+    // Exhaust vs. remove vs. discard
     if card.exhaust {
         top_effects.push(Effect {
             kind: EffectKind::CardExhaust,
             source: None,
-            target: Some(card_id),
+            target: Some(id_card),
         })
     } else if card.kind == CardKind::Power {
         top_effects.push(Effect {
             kind: EffectKind::CardRemove,
             source: None,
-            target: Some(card_id),
+            target: Some(id_card),
         })
     } else {
         top_effects.push(Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            target: Some(card_id),
+            target: Some(id_card),
         })
     };
 
-    let (_, character_modifiers) = entities[0].kind.combatant_ref();
+    // Modifier-specific effects. Get character's modifiers
+    // TODO: some monster modifiers will affect this too
+    let (_, char_modifiers) = entities[character.0 as usize].kind.combatant_ref();
 
-    if modifier_has(character_modifiers, ModifierKind::AfterImage) {
-        let stacks = modifier_stacks(character_modifiers, ModifierKind::AfterImage);
+    // After Image
+    if modifier_has(char_modifiers, ModifierKind::AfterImage) {
+        let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
         top_effects.push(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
             source: None,
-            target: Some(EntityId(0)),
+            target: Some(character),
         })
     }
 
-    if modifier_has(character_modifiers, ModifierKind::ThousandCuts) {
-        let stacks = modifier_stacks(character_modifiers, ModifierKind::ThousandCuts);
+    // Thousand Cuts
+    if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
+        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &mid in alive_monsters {
             top_effects.push(Effect {
                 kind: EffectKind::DamagePhysical {
                     base: stacks as u16,
                 },
-                source: Some(EntityId(0)),
+                source: Some(character),
                 target: Some(mid),
             });
         }
@@ -83,7 +91,7 @@ pub fn process_effect_card_play(
                         amount: stacks as u16,
                     },
                     source: None,
-                    target: Some(EntityId(0)),
+                    target: Some(character),
                 });
             }
         }
@@ -91,14 +99,15 @@ pub fn process_effect_card_play(
 
     let card_effects = instantiate_templates(
         card.effects,
-        EntityId(0),
+        character,
+        character,
         &[],
-        card_target,
+        id_card_target,
         alive_monsters,
         rng,
     );
 
-    if modifier_has(character_modifiers, ModifierKind::Burst) && card.kind == CardKind::Skill {
+    if modifier_has(char_modifiers, ModifierKind::Burst) && card.kind == CardKind::Skill {
         top_effects.extend(card_effects.iter().cloned());
         top_effects.extend(card_effects);
         top_effects.push(Effect {
@@ -107,7 +116,7 @@ pub fn process_effect_card_play(
                 stacks: -1,
             },
             source: None,
-            target: Some(EntityId(0)),
+            target: Some(character),
         });
     } else {
         top_effects.extend(card_effects);

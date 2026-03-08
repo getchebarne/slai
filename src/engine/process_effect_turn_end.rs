@@ -32,13 +32,14 @@ pub fn process_effect_turn_end_monster(
 }
 
 pub fn process_effect_turn_end_character(
+    character: EntityId,
     entities: &[Entity],
     hand: &[EntityId],
     card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let (_, character_modifiers) = entities[0].kind.combatant_ref();
+    let (_, character_modifiers) = entities[character.0 as usize].kind.combatant_ref();
 
     let mut effects = Vec::new();
 
@@ -52,15 +53,15 @@ pub fn process_effect_turn_end_character(
                 stacks,
             },
             source: None,
-            target: Some(EntityId(0)),
+            target: Some(character),
         });
     }
 
-    for &card_id in hand {
+    for &id_card in hand {
         effects.push(Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            target: Some(card_id),
+            target: Some(id_card),
         });
     }
     effects.push(Effect {
@@ -81,6 +82,7 @@ pub fn process_effect_turn_end_character(
             let move_effects = instantiate_templates(
                 m.moves[move_idx].effects,
                 mid,
+                character,
                 &[],
                 card_target,
                 alive_monsters,
@@ -104,7 +106,7 @@ pub fn process_effect_turn_end_character(
     effects.push(Effect {
         kind: EffectKind::TurnStart,
         source: None,
-        target: Some(EntityId(0)),
+        target: Some(character),
     });
 
     if modifier_has(character_modifiers, ModifierKind::Burst) {
@@ -113,7 +115,7 @@ pub fn process_effect_turn_end_character(
                 kind: ModifierKind::Burst,
             },
             source: None,
-            target: Some(EntityId(0)),
+            target: Some(character),
         });
     }
 

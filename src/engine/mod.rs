@@ -53,6 +53,7 @@ pub enum TargetResolution {
 fn resolve_candidates(
     candidates: Candidates,
     source: EntityId,
+    character: EntityId,
     hand: &[EntityId],
     card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
@@ -60,7 +61,7 @@ fn resolve_candidates(
     match candidates {
         Candidates::Hand => hand.to_vec(),
         Candidates::CardTarget => vec![card_target.unwrap()],
-        Candidates::Character => vec![EntityId(0)],
+        Candidates::Character => vec![character],
         Candidates::Monsters => alive_monsters.to_vec(),
         Candidates::Source => vec![source],
     }
@@ -70,12 +71,13 @@ fn resolve_targets(
     candidates: Candidates,
     selection: SelectionKind,
     source: EntityId,
+    character: EntityId,
     hand: &[EntityId],
     card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
     rng: &mut impl Rng,
 ) -> TargetResolution {
-    let mut ids = resolve_candidates(candidates, source, hand, card_target, alive_monsters);
+    let mut ids = resolve_candidates(candidates, source, character, hand, card_target, alive_monsters);
     match selection {
         SelectionKind::All => TargetResolution::Resolved(ids),
         SelectionKind::Random { count } => {
@@ -96,6 +98,7 @@ fn resolve_targets(
 pub fn instantiate_templates(
     templates: &[EffectTemplate],
     source: EntityId,
+    character: EntityId,
     hand: &[EntityId],
     card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
@@ -116,6 +119,7 @@ pub fn instantiate_templates(
                     targeting.candidates,
                     targeting.selection,
                     source,
+                    character,
                     hand,
                     card_target,
                     alive_monsters,
@@ -155,35 +159,36 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             &mut state.rng,
         ),
         EffectKind::CardPlay => {
-            let card_id = effect.target.unwrap();
+            let id_card = effect.target.unwrap();
             let alive = get_alive_monster_ids(state);
             process_effect_card_play::process_effect_card_play(
-                card_id,
-                &state.entities,
+                id_card,
                 state.card_target,
+                state.character,
+                &state.entities,
                 &alive,
                 &mut state.rng,
             )
         }
         EffectKind::CardDiscard => {
-            let card_id = effect.target.unwrap();
+            let id_card = effect.target.unwrap();
             process_effect_card_discard::process_effect_card_discard(
-                card_id,
+                id_card,
                 &mut state.hand,
                 &mut state.discard_pile,
             )
         }
         EffectKind::CardExhaust => {
-            let card_id = effect.target.unwrap();
+            let id_card = effect.target.unwrap();
             process_effect_card_exhaust::process_effect_card_exhaust(
-                card_id,
+                id_card,
                 &mut state.hand,
                 &mut state.exhaust_pile,
             )
         }
         EffectKind::CardRemove => {
-            let card_id = effect.target.unwrap();
-            process_effect_card_remove::process_effect_card_remove(card_id, &mut state.hand)
+            let id_card = effect.target.unwrap();
+            process_effect_card_remove::process_effect_card_remove(id_card, &mut state.hand)
         }
         EffectKind::AddShivs { count } => process_effect_add_shivs::process_effect_add_shivs(
             count,
@@ -203,6 +208,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         }
         EffectKind::CardRewardRoll => {
             process_effect_card_reward_roll::process_effect_card_reward_roll(
+                state.character,
                 &mut state.card_rewards,
                 &mut state.entities,
                 &mut state.rng,
@@ -306,6 +312,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         EffectKind::ModifierSetNotNew => {
             let alive = get_alive_monster_ids(state);
             process_effect_modifier_set_not_new::process_effect_modifier_set_not_new(
+                state.character,
                 &mut state.entities,
                 &alive,
             )
@@ -314,12 +321,14 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             let actor = effect.target.unwrap();
             process_effect_death::process_effect_death(
                 actor,
+                state.character,
                 &mut state.entities,
                 &state.monsters,
                 state.monster_count,
             )
         }
         EffectKind::CombatStart => process_effect_combat_start::process_effect_combat_start(
+            state.character,
             &state.deck,
             &mut state.entities,
             &mut state.draw_pile,
@@ -332,6 +341,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             &mut state.rng,
         ),
         EffectKind::CombatEnd => process_effect_combat_end::process_effect_combat_end(
+            state.character,
             &mut state.hand,
             &mut state.draw_pile,
             &mut state.discard_pile,
@@ -349,15 +359,17 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 vitals,
                 modifiers,
                 actor,
+                state.character,
                 &state.energy,
                 &monster_ids,
             )
         }
         EffectKind::TurnEnd => {
             let actor = effect.target.unwrap();
-            if actor.0 == 0 {
+            if actor == state.character {
                 let alive = get_alive_monster_ids(state);
                 process_effect_turn_end::process_effect_turn_end_character(
+                    state.character,
                     &state.entities,
                     &state.hand,
                     state.card_target,

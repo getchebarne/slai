@@ -169,7 +169,7 @@ fn build_view_pile(entities: &[Entity], pile: &[EntityId]) -> Vec<ViewCard> {
 }
 
 fn build_view_character(state: &GameState) -> ViewCharacter {
-    let c = state.entities[0].kind.character_ref();
+    let c = state.entities[state.character.0 as usize].kind.character_ref();
     ViewCharacter {
         name: "Silent".to_string(),
         health_current: c.vitals.health,
@@ -181,7 +181,7 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
 }
 
 fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
-    let (_, character_modifiers) = state.entities[0].kind.combatant_ref();
+    let (_, character_modifiers) = state.entities[state.character.0 as usize].kind.combatant_ref();
 
     get_alive_monster_ids(state)
         .iter()

@@ -7,6 +7,7 @@ use crate::types::EntityId;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
+    character: EntityId,
     deck: &[EntityId],
     entities: &mut Vec<Entity>,
     draw_pile: &mut Vec<EntityId>,
@@ -55,7 +56,7 @@ pub fn process_effect_combat_start(
     effects.push(Effect {
         kind: EffectKind::TurnStart,
         source: None,
-        target: Some(EntityId(0)),
+        target: Some(character),
     });
 
     ProcessEffectResult::AddAndContinue {

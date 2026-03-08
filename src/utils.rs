@@ -18,10 +18,10 @@ pub fn get_alive_monster_ids(state: &GameState) -> Vec<EntityId> {
         .collect()
 }
 
-pub fn remove_card_from_hand(card_id: EntityId, hand: &mut Vec<EntityId>) {
+pub fn remove_card_from_hand(id_card: EntityId, hand: &mut Vec<EntityId>) {
     let hand_idx = hand
         .iter()
-        .position(|&elem| elem == card_id)
+        .position(|&elem| elem == id_card)
         .expect("Can't discard a card that's not in the hand");
 
     hand.remove(hand_idx);

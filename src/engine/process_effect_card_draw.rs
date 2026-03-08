@@ -14,21 +14,27 @@ pub fn process_effect_card_draw(
 ) -> ProcessEffectResult {
     for _ in 0..count {
         if draw_pile.is_empty() {
+            // Move discard pile cards to draw pile & shuffle draw pile
             // TODO: this should create a shuffle effect
             draw_pile.append(disc_pile);
             shuffle(draw_pile, rng);
         }
 
+        // If the draw pile is still empty, no cards can be drawn. Should only
+        // happen for very thin decks
         if draw_pile.is_empty() {
             break;
         }
 
-        let card_id = draw_pile.pop().unwrap();
+        // Get the card's id and add it to the hand or discard pile according to hand length
+        let id_card = draw_pile.pop().unwrap();
         if hand.len() < MAX_SIZE_HAND {
-            hand.push(card_id);
+            hand.push(id_card);
         } else {
-            disc_pile.push(card_id);
+            disc_pile.push(id_card);
         }
     }
+
+    // Continue
     ProcessEffectResult::Continue
 }

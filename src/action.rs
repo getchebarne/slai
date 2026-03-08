@@ -158,7 +158,7 @@ fn handle_card_play(
 }
 
 fn handle_card_discard(state: &mut GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
-    let card_id = validate_idx(&state.hand, idx_hand)?;
+    let id_card = validate_idx(&state.hand, idx_hand)?;
 
     // TODO: revisit halting effects
     state.effect_queue.pop_front();
@@ -167,7 +167,7 @@ fn handle_card_discard(state: &mut GameState, idx_hand: usize) -> Result<Vec<Eff
     Ok(vec![Effect {
         kind: EffectKind::CardDiscard,
         source: None,
-        target: Some(card_id),
+        target: Some(id_card),
     }])
 }
 

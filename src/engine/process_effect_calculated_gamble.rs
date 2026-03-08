@@ -9,10 +9,10 @@ pub fn process_effect_calculated_gamble(hand: &[EntityId]) -> ProcessEffectResul
     // For each card in the hand, create an effect to discard it
     let mut top: Vec<Effect> = hand
         .iter()
-        .map(|&card_id| Effect {
+        .map(|&id_card| Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            target: Some(card_id),
+            target: Some(id_card),
         })
         .collect();
 

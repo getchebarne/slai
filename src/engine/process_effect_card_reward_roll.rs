@@ -11,12 +11,13 @@ use crate::state::{Entity, EntityKind};
 use crate::types::{CardName, EntityId};
 
 pub fn process_effect_card_reward_roll(
+    character: EntityId,
     card_rewards: &mut Vec<EntityId>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     card_rewards.clear();
-    let mut reward_roll_offset = entities[0].kind.character_ref().reward_roll_offset;
+    let mut reward_roll_offset = entities[character.0 as usize].kind.character_ref().reward_roll_offset;
     let mut rolled_card_names: Vec<CardName> = Vec::new();
 
     for _ in 0..MAX_COMBAT_CARD_REWARD {
@@ -46,7 +47,7 @@ pub fn process_effect_card_reward_roll(
         card_rewards.push(id);
     }
 
-    entities[0].kind.character_mut().reward_roll_offset = reward_roll_offset;
+    entities[character.0 as usize].kind.character_mut().reward_roll_offset = reward_roll_offset;
 
     ProcessEffectResult::AddAndContinue {
         top: Vec::new(),
