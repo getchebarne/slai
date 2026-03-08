@@ -165,6 +165,9 @@ pub struct GameState {
     // Effect queue (the program)
     pub effect_queue: VecDeque<Effect>,
 
+    // Energy
+    pub energy: Energy,
+
     // Entities
     // --------
     pub entities: Vec<Entity>,
@@ -176,19 +179,16 @@ pub struct GameState {
     pub monsters: [EntityId; MAX_MONSTERS],
     pub monster_count: u8,
 
-    // Energy
-    pub energy: Energy,
-
-    // Permanent deck (EntityIds referencing Card entities)
+    // Entities / Card / Deck
     pub deck: Vec<EntityId>,
 
-    // Card piles (EntityIds referencing Card entities)
+    // Entities / Card / Combat piles
     pub draw_pile: Vec<EntityId>,
     pub hand: Vec<EntityId>,
     pub discard_pile: Vec<EntityId>,
     pub exhaust_pile: Vec<EntityId>,
 
-    pub card_active: Option<EntityId>,
+    // Entities / Combat piles
     pub card_target: Option<EntityId>,
 
     // Card rewards (EntityIds referencing Card entities)

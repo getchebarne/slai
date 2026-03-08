@@ -50,7 +50,6 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         hand: Vec::new(),
         discard_pile: Vec::new(),
         exhaust_pile: Vec::new(),
-        card_active: None,
         card_target: None,
         card_rewards: Vec::new(),
         map,
@@ -90,10 +89,6 @@ pub fn determine_phase(state: &GameState) -> Phase {
             EffectKind::AwaitCardReward => Phase::CardReward,
             _ => panic!("Unexpected pending effect: {:?}", front),
         };
-    }
-
-    if state.card_active.is_some() {
-        return Phase::CombatAwaitTarget;
     }
 
     match state.map.active_room_type() {

@@ -9,7 +9,6 @@ pub fn process_effect_combat_end(
     draw_pile: &mut Vec<EntityId>,
     discard_pile: &mut Vec<EntityId>,
     exhaust_pile: &mut Vec<EntityId>,
-    card_active: &mut Option<EntityId>,
     card_target: &mut Option<EntityId>,
     entities: &mut Vec<Entity>,
     monster_count: &mut u8,
@@ -19,7 +18,6 @@ pub fn process_effect_combat_end(
     draw_pile.clear();
     discard_pile.clear();
     exhaust_pile.clear();
-    *card_active = None;
     *card_target = None;
 
     let (_, modifiers) = entities[0].kind.combatant_mut();

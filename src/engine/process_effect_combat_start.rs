@@ -13,7 +13,6 @@ pub fn process_effect_combat_start(
     hand: &mut Vec<EntityId>,
     discard_pile: &mut Vec<EntityId>,
     exhaust_pile: &mut Vec<EntityId>,
-    card_active: &mut Option<EntityId>,
     card_target: &mut Option<EntityId>,
     monsters: &[EntityId],
     monster_count: u8,
@@ -43,7 +42,6 @@ pub fn process_effect_combat_start(
     hand.clear();
     discard_pile.clear();
     exhaust_pile.clear();
-    *card_active = None;
     *card_target = None;
 
     let mut effects: Vec<Effect> = Vec::new();

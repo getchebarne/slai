@@ -135,9 +135,8 @@ pub fn build_view(state: &GameState) -> ViewGameState {
             .hand
             .iter()
             .map(|&id| {
-                let is_active = state.card_active == Some(id);
                 let card = state.entities[id.0 as usize].kind.card_ref();
-                build_view_card_template(card, is_active)
+                build_view_card_template(card, false)
             })
             .collect(),
         pile_draw: build_view_pile(&state.entities, &state.draw_pile),
