@@ -38,10 +38,7 @@ pub enum EffectKind {
     TurnEnd,
     MoveUpdate,
     RoomEnter,
-    GameEnd,
-    AwaitMapNode,
-    AwaitCardReward,
-    AwaitDiscard,
+    RestSiteExit,
 }
 
 // Targeting: abstract targeting for card/monster effect definitions

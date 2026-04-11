@@ -11,7 +11,8 @@ pub fn process_effect_card_reward_select(
     let id_card = card_rewards[idx_reward];
     deck.push(id_card);
 
-    // Queue top-effect to clear the rewards
+    // Queue top-effect to clear the rewards. The clear handler halts on
+    // AwaitMapNode after clearing, which is the post-reward transition.
     ProcessEffectResult::AddAndContinue {
         top: vec![Effect {
             kind: EffectKind::CardRewardClear,

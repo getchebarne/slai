@@ -1,8 +1,8 @@
 // Action handling: player input -> effects.
 
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH, REST_SITE_HEAL_FACTOR};
+use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind};
-use crate::state::{GameState, Map};
+use crate::state::GameState;
 use crate::types::{EntityId, Phase};
 use crate::utils::get_alive_monster_ids;
 
@@ -57,28 +57,10 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         } => handle_card_play(state, idx_hand, idx_monster),
         Action::RestSiteCardUpgrade { idx_deck } => handle_rest_site_card_upgrade(state, idx_deck),
         Action::CardRewardSelect { idx_reward } => handle_card_reward_select(state, idx_reward),
-        Action::CardRewardSkip => Ok(handle_card_reward_skip(state)),
+        Action::CardRewardSkip => Ok(handle_card_reward_skip()),
         Action::EndTurn => Ok(handle_end_turn(state)),
         Action::MapNodeSelect { idx_column } => handle_map_node_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
-    }
-}
-
-fn rest_site_exit(map: &mut Map) -> Effect {
-    if map.y_current == Some(MAP_HEIGHT - 1) {
-        map.y_current = Some(MAP_HEIGHT);
-        map.x_current = Some(0);
-        Effect {
-            kind: EffectKind::RoomEnter,
-            source: None,
-            target: None,
-        }
-    } else {
-        Effect {
-            kind: EffectKind::AwaitMapNode,
-            source: None,
-            target: None,
-        }
     }
 }
 
@@ -157,11 +139,8 @@ fn handle_card_play(
     }
 }
 
-fn handle_card_discard(state: &mut GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
+fn handle_card_discard(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
     let id_card = validate_idx(&state.hand, idx_hand)?;
-
-    // TODO: revisit halting effects
-    state.effect_queue.pop_front();
 
     // Return effect to discard the card
     Ok(vec![Effect {
@@ -171,12 +150,13 @@ fn handle_card_discard(state: &mut GameState, idx_hand: usize) -> Result<Vec<Eff
     }])
 }
 
-fn handle_map_node_select(
-    state: &mut GameState,
-    idx_column: usize,
-) -> Result<Vec<Effect>, String> {
+fn handle_map_node_select(state: &mut GameState, idx_column: usize) -> Result<Vec<Effect>, String> {
     if idx_column >= MAP_WIDTH {
-        return Err(format!("Invalid column {}: max is {}", idx_column, MAP_WIDTH - 1));
+        return Err(format!(
+            "Invalid column {}: max is {}",
+            idx_column,
+            MAP_WIDTH - 1
+        ));
     }
 
     // Compute next y-coordinate
@@ -195,12 +175,12 @@ fn handle_map_node_select(
         let x = state.map.x_current.unwrap();
         let current_node = state.map.nodes[y][x].as_ref().unwrap();
         if !current_node.has_edge(idx_column) {
-            return Err(format!("No edge from ({}, {}) to ({}, {})", y, x, y_next, idx_column));
+            return Err(format!(
+                "No edge from ({}, {}) to ({}, {})",
+                y, x, y_next, idx_column
+            ));
         }
     }
-
-    // TODO: revisit halting effects
-    state.effect_queue.pop_front();
 
     // Update coordinates
     state.map.y_current = Some(y_next);
@@ -214,51 +194,28 @@ fn handle_map_node_select(
     }])
 }
 
-fn handle_card_reward_select(
-    state: &mut GameState,
-    idx_reward: usize,
-) -> Result<Vec<Effect>, String> {
+fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
     validate_idx(&state.card_rewards, idx_reward)?;
-    // TODO: revisit halting effects
-    state.effect_queue.pop_front();
 
-    // Return effects to select the card reward and then halt the queue,
-    // awaiting for the player's map node selection
-    Ok(vec![
-        Effect {
-            kind: EffectKind::CardRewardSelect { idx_reward },
-            source: None,
-            target: None,
-        },
-        Effect {
-            kind: EffectKind::AwaitMapNode,
-            source: None,
-            target: None,
-        },
-    ])
+    // The CardRewardSelect handler adds the chosen card to the deck, enqueues
+    // CardRewardClear, and that handler halts on AwaitMapNode.
+    Ok(vec![Effect {
+        kind: EffectKind::CardRewardSelect { idx_reward },
+        source: None,
+        target: None,
+    }])
 }
 
-fn handle_card_reward_skip(state: &mut GameState) -> Vec<Effect> {
-    // TODO: revisit halting effects
-    state.effect_queue.pop_front();
-
-    // Return effects to clear the card rewards and then halt the queue,
-    // awaiting for the player's map node selection
-    vec![
-        Effect {
-            kind: EffectKind::CardRewardClear,
-            source: None,
-            target: None,
-        },
-        Effect {
-            kind: EffectKind::AwaitMapNode,
-            source: None,
-            target: None,
-        },
-    ]
+fn handle_card_reward_skip() -> Vec<Effect> {
+    // CardRewardClear halts on AwaitMapNode once the rewards are cleared.
+    vec![Effect {
+        kind: EffectKind::CardRewardClear,
+        source: None,
+        target: None,
+    }]
 }
 
-fn handle_rest_site_rest(state: &mut GameState) -> Vec<Effect> {
+fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
     // Get character's vitals
     let id_character = state.character;
     let (vitals, _) = state.entities[id_character.0 as usize].kind.combatant_ref();
@@ -266,30 +223,38 @@ fn handle_rest_site_rest(state: &mut GameState) -> Vec<Effect> {
     // Calculate heal amount
     let heal_amt = (REST_SITE_HEAL_FACTOR * vitals.health_max as f32) as u16;
 
-    // Create heal effect
-    let heal_effect = Effect {
-        kind: EffectKind::HealthGain { amount: heal_amt },
-        source: None,
-        target: Some(id_character),
-    };
-
-    // Return effects to heal the character and exit the rest site
-    vec![heal_effect, rest_site_exit(&mut state.map)]
+    // Heal, then let the RestSiteExit handler decide whether to halt or enter boss
+    vec![
+        Effect {
+            kind: EffectKind::HealthGain { amount: heal_amt },
+            source: None,
+            target: Some(id_character),
+        },
+        Effect {
+            kind: EffectKind::RestSiteExit,
+            source: None,
+            target: None,
+        },
+    ]
 }
 
 fn handle_rest_site_card_upgrade(
-    state: &mut GameState,
+    state: &GameState,
     idx_deck: usize,
 ) -> Result<Vec<Effect>, String> {
     validate_idx(&state.deck, idx_deck)?;
 
-    // Return effects to upgrade the card and exit the rest site
+    // Upgrade, then let the RestSiteExit handler decide whether to halt or enter boss
     Ok(vec![
         Effect {
             kind: EffectKind::CardUpgrade { idx_deck },
             source: None,
             target: None,
         },
-        rest_site_exit(&mut state.map),
+        Effect {
+            kind: EffectKind::RestSiteExit,
+            source: None,
+            target: None,
+        },
     ])
 }

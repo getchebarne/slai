@@ -1,5 +1,5 @@
 use crate::effect::{Effect, EffectKind};
-use crate::engine::ProcessEffectResult;
+use crate::engine::{HaltReason, ProcessEffectResult};
 use crate::modifier::modifier_clear;
 use crate::state::{Entity, Map};
 use crate::types::{EntityId, RoomType};
@@ -30,14 +30,7 @@ pub fn process_effect_combat_end(
     // Next step depends on room type
     let room = map.active_room_type().unwrap();
     match room {
-        RoomType::CombatBoss => ProcessEffectResult::AddAndContinue {
-            top: vec![Effect {
-                kind: EffectKind::GameEnd,
-                source: None,
-                target: None,
-            }],
-            bot: Vec::new(),
-        },
+        RoomType::CombatBoss => ProcessEffectResult::Halt(HaltReason::GameOver),
         RoomType::CombatMonster => ProcessEffectResult::AddAndContinue {
             top: Vec::new(),
             bot: vec![Effect {

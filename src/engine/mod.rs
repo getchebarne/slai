@@ -25,6 +25,7 @@ pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_set_not_new;
 pub mod process_effect_modifier_tick;
 pub mod process_effect_move_update;
+pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
@@ -42,7 +43,17 @@ pub enum ProcessEffectResult {
     AddAndContinue { top: Vec<Effect>, bot: Vec<Effect> },
     Continue,
     Replace(Vec<Effect>),
-    Pause,
+    Halt(HaltReason),
+}
+
+// HaltReason: why `process_queue` stopped running. Ephemeral — returned from
+// `process_queue`, converted to `Phase`, then discarded. Never stored on `GameState`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HaltReason {
+    GameOver,
+    AwaitMapNode,
+    AwaitCardReward,
+    AwaitDiscard,
 }
 
 pub enum TargetResolution {
@@ -403,27 +414,15 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             &mut state.monster_count,
             &mut state.rng,
         ),
-        EffectKind::GameEnd => {
-            state.effect_queue.push_front(effect);
-            ProcessEffectResult::Pause
-        }
-        EffectKind::AwaitMapNode => {
-            state.effect_queue.push_front(effect);
-            ProcessEffectResult::Pause
-        }
-        EffectKind::AwaitCardReward => {
-            state.effect_queue.push_front(effect);
-            ProcessEffectResult::Pause
-        }
-        EffectKind::AwaitDiscard => {
-            state.effect_queue.push_front(effect);
-            ProcessEffectResult::Pause
+        EffectKind::RestSiteExit => {
+            process_effect_rest_site_exit::process_effect_rest_site_exit(&mut state.map)
         }
     }
 }
 
-// Queue processing loop
-pub fn process_queue(state: &mut GameState) {
+// Queue processing loop. Returns `Some(reason)` if a handler halted, `None` if
+// the queue drained. The caller (`step`) converts this into `Phase`.
+pub fn process_queue(state: &mut GameState) -> Option<HaltReason> {
     while let Some(effect) = state.effect_queue.pop_front() {
         // Process the effect
         let result = process_effect(state, effect);
@@ -451,8 +450,9 @@ pub fn process_queue(state: &mut GameState) {
                 }
             }
 
-            // Return, potentially leaving unprocessed effects
-            ProcessEffectResult::Pause => return,
+            // Return halt reason to caller, leaving any unprocessed effects in place
+            ProcessEffectResult::Halt(reason) => return Some(reason),
         }
     }
+    None
 }

@@ -8,8 +8,7 @@ use rand::rngs::SmallRng;
 use crate::action::{Action, handle_action};
 use crate::character::{silent_starter_deck, spawn_silent};
 use crate::consts::MAX_MONSTERS;
-use crate::effect::{Effect, EffectKind};
-use crate::engine::process_queue;
+use crate::engine::{HaltReason, process_queue};
 use crate::map::generate_map;
 use crate::state::*;
 use crate::types::{EntityId, Phase, RoomType};
@@ -57,12 +56,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 }
 
 pub fn initialize(state: &mut GameState) {
-    state.effect_queue.push_back(Effect {
-        kind: EffectKind::AwaitMapNode,
-        source: None,
-        target: None,
-    });
-    state.phase = determine_phase(state);
+    // Fresh game starts waiting for the player's first map node pick.
+    state.phase = determine_phase(Some(HaltReason::AwaitMapNode), state);
 }
 
 // Step
@@ -71,21 +66,21 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     for effect in effects {
         state.effect_queue.push_back(effect);
     }
-    process_queue(state);
-    state.phase = determine_phase(state);
+    let halt = process_queue(state);
+    state.phase = determine_phase(halt, state);
     Ok(())
 }
 
-// Phase determination
-pub fn determine_phase(state: &GameState) -> Phase {
-    if let Some(effect) = state.effect_queue.front() {
-        return match effect.kind {
-            EffectKind::GameEnd => Phase::GameOver,
-            EffectKind::AwaitDiscard => Phase::CombatAwaitDiscard,
-            EffectKind::AwaitMapNode => Phase::Map,
-            EffectKind::AwaitCardReward => Phase::CardReward,
-            _ => panic!("Unexpected pending effect: {:?}", effect),
-        };
+// Phase determination. `halt` is the ephemeral result of the most recent
+// `process_queue` call. When it's `None`, the engine is mid-room and phase is
+// derived from the active room.
+pub fn determine_phase(halt: Option<HaltReason>, state: &GameState) -> Phase {
+    match halt {
+        Some(HaltReason::GameOver) => return Phase::GameOver,
+        Some(HaltReason::AwaitDiscard) => return Phase::CombatAwaitDiscard,
+        Some(HaltReason::AwaitMapNode) => return Phase::Map,
+        Some(HaltReason::AwaitCardReward) => return Phase::CardReward,
+        None => {}
     }
 
     match state.map.active_room_type() {
