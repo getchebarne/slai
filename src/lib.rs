@@ -18,7 +18,7 @@ mod utils;
 mod view;
 
 use action::Action;
-use game::{create_game_state, initialize, step};
+use game::{create_game_state, step};
 use view::{
     ViewCard, ViewCharacter, ViewEffectTemplate, ViewEnergy, ViewGameState, ViewIntent, ViewMap,
     ViewMapNode, ViewModifier, ViewMonster, build_view,
@@ -161,7 +161,9 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
         });
     }
     if let Ok(a) = py_action.extract::<ActionMapNodeSelect>() {
-        return Ok(Action::MapNodeSelect { idx_column: a.column });
+        return Ok(Action::MapNodeSelect {
+            idx_column: a.column,
+        });
     }
     if let Ok(a) = py_action.extract::<ActionCardRewardSelect>() {
         return Ok(Action::CardRewardSelect {
@@ -197,8 +199,7 @@ impl GameEnv {
     #[new]
     #[pyo3(signature = (ascension=0, seed=42))]
     fn new(ascension: u8, seed: u64) -> Self {
-        let mut state = create_game_state(ascension, seed);
-        initialize(&mut state);
+        let state = create_game_state(ascension, seed);
         GameEnv { state }
     }
 
@@ -216,7 +217,6 @@ impl GameEnv {
     fn reset(&mut self, seed: u64) -> ViewGameState {
         let asc = self.state.ascension;
         self.state = create_game_state(asc, seed);
-        initialize(&mut self.state);
         build_view(&self.state)
     }
 

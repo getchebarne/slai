@@ -55,11 +55,6 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     }
 }
 
-pub fn initialize(state: &mut GameState) {
-    // Fresh game starts waiting for the player's first map node pick.
-    state.phase = determine_phase(Some(HaltReason::AwaitMapNode), state);
-}
-
 // Step
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     let effects = handle_action(state, action)?;
@@ -67,14 +62,15 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
         state.effect_queue.push_back(effect);
     }
     let halt = process_queue(state);
-    state.phase = determine_phase(halt, state);
+    let room_type_active = state.map.active_room_type();
+    state.phase = determine_phase(halt, room_type_active);
     Ok(())
 }
 
 // Phase determination. `halt` is the ephemeral result of the most recent
 // `process_queue` call. When it's `None`, the engine is mid-room and phase is
 // derived from the active room.
-pub fn determine_phase(halt: Option<HaltReason>, state: &GameState) -> Phase {
+pub fn determine_phase(halt: Option<HaltReason>, room_type_active: Option<RoomType>) -> Phase {
     match halt {
         Some(HaltReason::GameOver) => return Phase::GameOver,
         Some(HaltReason::AwaitDiscard) => return Phase::CombatAwaitDiscard,
@@ -83,7 +79,7 @@ pub fn determine_phase(halt: Option<HaltReason>, state: &GameState) -> Phase {
         None => {}
     }
 
-    match state.map.active_room_type() {
+    match room_type_active {
         Some(RoomType::RestSite) => Phase::RestSite,
         Some(RoomType::CombatMonster) | Some(RoomType::CombatBoss) => Phase::CombatDefault,
         None => Phase::Map,
