@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -17,22 +17,24 @@ pub static DODGE_AND_ROLL: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::BlockGain { amount: 4 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::NextTurnBlock,
                 stacks: 4,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
 };
@@ -48,24 +50,26 @@ pub static DODGE_AND_ROLL_PLUS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::BlockGain {
                 amount: 6, // +2 block
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::NextTurnBlock,
                 stacks: 6, // +2 next-turn-block
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
 };

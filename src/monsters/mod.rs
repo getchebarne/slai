@@ -3,7 +3,7 @@ pub mod fungi_beast;
 pub mod jaw_worm;
 pub mod the_guardian;
 
-use crate::effect::EffectTemplate;
+use crate::effect::Effect;
 use crate::modifier::Modifiers;
 use crate::state::Vitals;
 use crate::types::{MonsterKind, MonsterName};
@@ -26,7 +26,7 @@ pub enum Intent {
 #[derive(Debug, Clone, Copy)]
 pub struct Move {
     pub name: &'static str,
-    pub effects: &'static [EffectTemplate],
+    pub effects: &'static [Effect],
     pub intent: Intent,
 }
 

@@ -20,7 +20,7 @@ mod view;
 use action::Action;
 use game::{create_game_state, step};
 use view::{
-    ViewCard, ViewCharacter, ViewEffectTemplate, ViewEnergy, ViewGameState, ViewIntent, ViewMap,
+    ViewCard, ViewCharacter, ViewEffect, ViewEnergy, ViewGameState, ViewIntent, ViewMap,
     ViewMapNode, ViewModifier, ViewMonster, build_view,
 };
 
@@ -61,16 +61,16 @@ impl ActionEndTurn {
 
 #[pyclass(frozen)]
 #[derive(Clone)]
-struct ActionCardDiscard {
+struct ActionInputResolve {
     #[pyo3(get)]
-    hand_idx: usize,
+    indices: Vec<usize>,
 }
 
 #[pymethods]
-impl ActionCardDiscard {
+impl ActionInputResolve {
     #[new]
-    fn new(hand_idx: usize) -> Self {
-        Self { hand_idx }
+    fn new(indices: Vec<usize>) -> Self {
+        Self { indices }
     }
 }
 
@@ -155,10 +155,8 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
     if py_action.extract::<ActionEndTurn>().is_ok() {
         return Ok(Action::EndTurn);
     }
-    if let Ok(a) = py_action.extract::<ActionCardDiscard>() {
-        return Ok(Action::CardDiscard {
-            idx_hand: a.hand_idx,
-        });
+    if let Ok(a) = py_action.extract::<ActionInputResolve>() {
+        return Ok(Action::InputResolve { indices: a.indices });
     }
     if let Ok(a) = py_action.extract::<ActionMapNodeSelect>() {
         return Ok(Action::MapNodeSelect {
@@ -236,7 +234,7 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<GameEnv>()?;
     m.add_class::<ActionCardPlay>()?;
     m.add_class::<ActionEndTurn>()?;
-    m.add_class::<ActionCardDiscard>()?;
+    m.add_class::<ActionInputResolve>()?;
     m.add_class::<ActionMapNodeSelect>()?;
     m.add_class::<ActionCardRewardSelect>()?;
     m.add_class::<ActionCardRewardSkip>()?;
@@ -251,6 +249,6 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ViewMap>()?;
     m.add_class::<ViewMapNode>()?;
     m.add_class::<ViewModifier>()?;
-    m.add_class::<ViewEffectTemplate>()?;
+    m.add_class::<ViewEffect>()?;
     Ok(())
 }

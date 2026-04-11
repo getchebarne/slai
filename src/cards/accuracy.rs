@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -16,15 +16,16 @@ pub static ACCURACY: Card = Card {
     exhaust: false,
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Accuracy,
             stacks: 4,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Character,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Character,
             selection: SelectionKind::All,
-        }),
+        },
     }],
 };
 // Upgraded
@@ -38,14 +39,15 @@ pub static ACCURACY_PLUS: Card = Card {
     exhaust: false,
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Accuracy,
             stacks: 6, // +2 stacks
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Character,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Character,
             selection: SelectionKind::All,
-        }),
+        },
     }],
 };

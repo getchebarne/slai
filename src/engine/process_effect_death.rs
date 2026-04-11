@@ -1,5 +1,5 @@
-use crate::effect::{Effect, EffectKind};
-use crate::engine::{HaltReason, ProcessEffectResult};
+use crate::effect::{Effect, EffectKind, Targeting};
+use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::state::Entity;
 use crate::types::EntityId;
@@ -13,7 +13,10 @@ pub fn process_effect_death(
 ) -> ProcessEffectResult {
     // Character death ends the game
     if actor == character {
-        return ProcessEffectResult::Halt(HaltReason::GameOver);
+        return ProcessEffectResult::AddAndContinue {
+            top: vec![crate::effect::Effect::direct(crate::effect::EffectKind::GameOver, None, None)],
+            bot: Vec::new(),
+        };
     }
 
     let mut effects = Vec::new();
@@ -29,7 +32,7 @@ pub fn process_effect_death(
                     stacks,
                 },
                 source: None,
-                target: Some(character),
+                targeting: Targeting::Direct(Some(character)),
             });
         }
     }
@@ -46,7 +49,7 @@ pub fn process_effect_death(
         effects.push(Effect {
             kind: EffectKind::CombatEnd,
             source: None,
-            target: None,
+            targeting: Targeting::Direct(None),
         });
         ProcessEffectResult::Replace(effects)
     } else if effects.is_empty() {

@@ -1,7 +1,10 @@
 use crate::modifier::ModifierKind;
 use crate::types::EntityId;
 
-// EffectKind: the shared "what happens" enum, used by both templates and runtime
+// EffectKind: the shared "what happens" enum. Every variant describes a unit
+// of work the engine can apply. Halt-kind variants (SelectMapNode,
+// SelectCardReward, GameOver) represent pending player decisions: their
+// dispatch arms either resolve automatically or return Halt.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
     DamagePhysical { base: u16 },
@@ -18,9 +21,8 @@ pub enum EffectKind {
     CardPlay,
     CardExhaust,
     CardRemove,
-    CardUpgrade { idx_deck: usize },
+    CardUpgrade,
     CardRewardRoll,
-    CardRewardSelect { idx_reward: usize },
     CardRewardClear,
     TargetSet,
     TargetClear,
@@ -39,16 +41,23 @@ pub enum EffectKind {
     MoveUpdate,
     RoomEnter,
     RestSiteExit,
+
+    // Halt-kind variants — pending player decisions
+    SelectMapNode,
+    SelectCardReward,
+    GameOver,
 }
 
-// Targeting: abstract targeting for card/monster effect definitions
+// CandidatePool: abstract source pool for a Resolve effect's target resolution.
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Candidates {
+pub enum CandidatePool {
     Hand,
     CardTarget,
     Character,
     Monsters,
     Source,
+    MapNodeNextRow,
+    CardRewardPool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -58,23 +67,45 @@ pub enum SelectionKind {
     Input { count: u8 },
 }
 
+// Targeting: whether an Effect's target is already known (Direct) or must be
+// resolved against live state when the effect is dequeued (Resolve).
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct Targeting {
-    pub candidates: Candidates,
-    pub selection: SelectionKind,
+pub enum Targeting {
+    /// Target is known (or not needed). Dispatch runs the handler directly.
+    /// `None` means the effect takes no target (CardDraw, EnergyGain, etc.).
+    Direct(Option<EntityId>),
+
+    /// Target must be resolved against live state at dequeue time. The
+    /// dispatcher runs `resolve_targets` and either fans out to `Direct`
+    /// effects or halts on input.
+    Resolve {
+        candidates: CandidatePool,
+        selection: SelectionKind,
+    },
 }
 
-// EffectTemplate: card/monster effect definitions (abstract targeting)
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct EffectTemplate {
-    pub kind: EffectKind,
-    pub targeting: Option<Targeting>,
-}
-
-// Effect: runtime effect queued during gameplay (resolved entity IDs)
+// Effect: a unit of work in the queue. Unified type used for both static card
+// and monster-move definitions (which use `Resolve` targeting) and
+// runtime-synthesized effects (which use `Direct` targeting).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effect {
     pub kind: EffectKind,
     pub source: Option<EntityId>,
-    pub target: Option<EntityId>,
+    pub targeting: Targeting,
+}
+
+impl Effect {
+    /// Constructs an `Effect` with `Direct` targeting. Convenience for the
+    /// common case where a runtime-synthesized effect already knows its target.
+    pub const fn direct(
+        kind: EffectKind,
+        source: Option<EntityId>,
+        target: Option<EntityId>,
+    ) -> Self {
+        Self {
+            kind,
+            source,
+            targeting: Targeting::Direct(target),
+        }
+    }
 }

@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -16,16 +16,18 @@ pub static ACROBATICS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDraw { count: 3 },
-            targeting: None,
+            source: None,
+            targeting: Targeting::Direct(None),
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDiscard,
-            targeting: Some(Targeting {
-                candidates: Candidates::Hand,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
-            }),
+            },
         },
     ],
 };
@@ -41,16 +43,18 @@ pub static ACROBATICS_PLUS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDraw { count: 4 }, // +1 draw
-            targeting: None,
+            source: None,
+            targeting: Targeting::Direct(None),
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDiscard,
-            targeting: Some(Targeting {
-                candidates: Candidates::Hand,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
-            }),
+            },
         },
     ],
 };

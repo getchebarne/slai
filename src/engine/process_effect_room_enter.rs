@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{Effect, EffectKind, Targeting};
 use crate::engine::ProcessEffectResult;
 use crate::monsters;
 use crate::state::{Entity, EntityKind, Map};
@@ -31,7 +31,7 @@ pub fn process_effect_room_enter(
     *monster_count = 0;
 
     // Spawn monsters based on room type
-    let room = map.active_room_type().unwrap();
+    let room = map.active_room_type(entities).unwrap();
     match room {
         RoomType::CombatBoss => {
             let m = monsters::spawn_monster(MonsterName::TheGuardian, ascension, rng);
@@ -40,7 +40,7 @@ pub fn process_effect_room_enter(
                 top: vec![Effect {
                     kind: EffectKind::CombatStart,
                     source: None,
-                    target: None,
+                    targeting: Targeting::Direct(None),
                 }],
                 bot: Vec::new(),
             }
@@ -68,7 +68,7 @@ pub fn process_effect_room_enter(
                 top: vec![Effect {
                     kind: EffectKind::CombatStart,
                     source: None,
-                    target: None,
+                    targeting: Targeting::Direct(None),
                 }],
                 bot: Vec::new(),
             }

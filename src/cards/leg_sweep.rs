@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -17,22 +17,24 @@ pub static LEG_SWEEP: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::BlockGain { amount: 11 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
 };
@@ -48,24 +50,26 @@ pub static LEG_SWEEP_PLUS: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::BlockGain {
                 amount: 14, // +3 block
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Weak,
                 stacks: 3, // +1 stack
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
 };

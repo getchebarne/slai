@@ -8,8 +8,11 @@ use rand::rngs::SmallRng;
 use crate::action::{Action, handle_action};
 use crate::character::{silent_starter_deck, spawn_silent};
 use crate::consts::MAX_MONSTERS;
-use crate::engine::{HaltReason, process_queue};
-use crate::map::generate_map;
+use crate::effect::{
+    CandidatePool, Effect, EffectKind, SelectionKind, Targeting,
+};
+use crate::engine::process_queue;
+use crate::map::{entitize_map, generate_map};
 use crate::state::*;
 use crate::types::{EntityId, Phase, RoomType};
 
@@ -22,7 +25,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     };
 
     let deck_templates = silent_starter_deck();
-    let map = generate_map(&mut rng);
+    let map_grid = generate_map(&mut rng);
 
     let mut entities = vec![character];
     let mut deck = Vec::with_capacity(deck_templates.len());
@@ -34,7 +37,23 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         deck.push(id);
     }
 
-    GameState {
+    // Entitize the map: push each node into entities and rewrite the grid
+    // to reference them by id.
+    let map = entitize_map(map_grid, &mut entities);
+
+    // Seed the queue with the initial SelectMapNode prompt so the player
+    // starts halted on the first map pick.
+    let mut effect_queue = VecDeque::new();
+    effect_queue.push_back(Effect {
+        kind: EffectKind::SelectMapNode,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::MapNodeNextRow,
+            selection: SelectionKind::Input { count: 1 },
+        },
+    });
+
+    let mut state = GameState {
         ascension,
         phase: Phase::Map,
         rng,
@@ -51,42 +70,68 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         card_target: None,
         card_rewards: Vec::new(),
         map,
-        effect_queue: VecDeque::new(),
-    }
+        effect_queue,
+    };
+
+    // Run the queue so the initial halt registers.
+    process_queue(&mut state);
+    state.phase = determine_phase(&state);
+    state
 }
 
 // Step
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
+    let was_halted = is_halt_phase(state.phase);
+
     // Get effects from action handler
     let effects = handle_action(state, action)?;
+
+    if was_halted {
+        // Consume the unresolved halt effect at the queue front. Player
+        // action handlers never touch the queue; step() owns this cleanup.
+        state.effect_queue.pop_front();
+    }
 
     // Put effects into the queue in order
     for effect in effects {
         state.effect_queue.push_back(effect);
     }
 
-    // Process the queue, get back an (optional) halt reason
-    let halt_reason = process_queue(state);
+    // Process the queue (peek-before-pop)
+    process_queue(state);
 
-    // Determine new phase
-    let room_type_active = state.map.active_room_type();
-    state.phase = determine_phase(halt_reason, room_type_active);
+    // Determine new phase from the current queue front
+    state.phase = determine_phase(state);
     Ok(())
 }
 
-// Phase determination. `halt` is the ephemeral result of the most recent
-// `process_queue` call. When it's `None`, the engine is mid-room and phase is
-// derived from the active room.
-pub fn determine_phase(halt: Option<HaltReason>, room_type_active: Option<RoomType>) -> Phase {
-    match halt {
-        Some(HaltReason::GameOver) => return Phase::GameOver,
-        Some(HaltReason::AwaitDiscard) => return Phase::CombatAwaitDiscard,
-        Some(HaltReason::AwaitMapNode) => return Phase::Map,
-        Some(HaltReason::AwaitCardReward) => return Phase::CardReward,
-        None => {}
+fn is_halt_phase(phase: Phase) -> bool {
+    matches!(
+        phase,
+        Phase::Map | Phase::CardReward | Phase::CombatAwaitInput | Phase::GameOver
+    )
+}
+
+// Phase determination: peek the queue front and map halt effects to phases.
+// Anything else falls through to room-state derivation. Read-only peek.
+pub fn determine_phase(state: &GameState) -> Phase {
+    if let Some(effect) = state.effect_queue.front() {
+        match effect.kind {
+            EffectKind::GameOver => return Phase::GameOver,
+            EffectKind::SelectMapNode => return Phase::Map,
+            EffectKind::SelectCardReward => return Phase::CardReward,
+            _ => {}
+        }
+        if let Targeting::Resolve {
+            selection: SelectionKind::Input { .. },
+            ..
+        } = effect.targeting
+        {
+            return Phase::CombatAwaitInput;
+        }
     }
 
-    match room_type_active {
+    match state.map.active_room_type(&state.entities) {
         Some(RoomType::RestSite) => Phase::RestSite,
         Some(RoomType::CombatMonster) | Some(RoomType::CombatBoss) => Phase::CombatDefault,
         None => Phase::Map,

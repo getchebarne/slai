@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -15,12 +15,13 @@ pub static DIE_DIE_DIE: Card = Card {
     exhaust: true,
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 13 },
-        targeting: Some(Targeting {
-            candidates: Candidates::Monsters,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Monsters,
             selection: SelectionKind::All,
-        }),
+        },
     }],
 };
 // Upgraded
@@ -34,13 +35,14 @@ pub static DIE_DIE_DIE_PLUS: Card = Card {
     exhaust: true,
     innate: false,
     requires_target: false,
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical {
             base: 17, // +4 damage
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Monsters,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Monsters,
             selection: SelectionKind::All,
-        }),
+        },
     }],
 };

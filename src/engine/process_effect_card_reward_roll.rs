@@ -5,7 +5,7 @@ use crate::consts::{
     CARD_REWARD_ROLL_OFFSET_BASE, CARD_REWARD_ROLL_OFFSET_MIN, CHANCE_RARE, CHANCE_UNCOMMON,
     MAX_COMBAT_CARD_REWARD,
 };
-use crate::engine::{HaltReason, ProcessEffectResult};
+use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
 use crate::types::{CardName, EntityId};
 
@@ -60,5 +60,15 @@ pub fn process_effect_card_reward_roll(
         .reward_roll_offset = reward_roll_offset;
 
     // Halt and wait for player's card reward selection
-    ProcessEffectResult::Halt(HaltReason::AwaitCardReward)
+    ProcessEffectResult::AddAndContinue {
+            top: vec![crate::effect::Effect {
+                kind: crate::effect::EffectKind::SelectCardReward,
+                source: None,
+                targeting: crate::effect::Targeting::Resolve {
+                    candidates: crate::effect::CandidatePool::CardRewardPool,
+                    selection: crate::effect::SelectionKind::Input { count: 1 },
+                },
+            }],
+            bot: Vec::new(),
+        }
 }

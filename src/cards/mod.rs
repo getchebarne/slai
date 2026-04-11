@@ -29,7 +29,7 @@ pub mod strike;
 pub mod survivor;
 pub mod terror;
 
-use crate::effect::EffectTemplate;
+use crate::effect::Effect;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -46,7 +46,7 @@ pub struct Card {
     pub exhaust: bool,
     pub innate: bool,
     pub requires_target: bool,
-    pub effects: &'static [EffectTemplate],
+    pub effects: &'static [Effect],
 }
 
 pub fn get_card(name: CardName, upgraded: bool) -> Card {

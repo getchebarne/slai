@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -17,22 +17,24 @@ pub static NEUTRALIZE: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 3 },
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Weak,
                 stacks: 1,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
 };
@@ -48,22 +50,24 @@ pub static NEUTRALIZE_PLUS: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 4 }, // +1 damage
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Weak,
                 stacks: 2, // +1 stack
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
 };

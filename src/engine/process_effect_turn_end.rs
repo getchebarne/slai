@@ -1,8 +1,7 @@
 use rand::Rng;
 
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{Effect, EffectKind, Targeting};
 use crate::engine::ProcessEffectResult;
-use crate::engine::instantiate_templates;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::state::{Entity, Vitals};
 use crate::types::EntityId;
@@ -24,7 +23,7 @@ pub fn process_effect_turn_end_monster(
                     stacks,
                 },
                 source: None,
-                target: Some(actor),
+                targeting: Targeting::Direct(Some(actor)),
             }],
             bot: Vec::new(),
         };
@@ -36,9 +35,9 @@ pub fn process_effect_turn_end_character(
     character: EntityId,
     entities: &[Entity],
     hand: &[EntityId],
-    card_target: Option<EntityId>,
+    _card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
-    rng: &mut impl Rng,
+    _rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     let (_, character_modifiers) = entities[character.0 as usize].kind.combatant_ref();
     let mut effects = Vec::new();
@@ -54,7 +53,7 @@ pub fn process_effect_turn_end_character(
                 stacks,
             },
             source: None,
-            target: Some(character),
+            targeting: Targeting::Direct(Some(character)),
         });
     }
 
@@ -63,13 +62,13 @@ pub fn process_effect_turn_end_character(
         effects.push(Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            target: Some(id_card),
+            targeting: Targeting::Direct(Some(id_card)),
         });
     }
     effects.push(Effect {
         kind: EffectKind::ModifierSetNotNew,
         source: None,
-        target: None,
+        targeting: Targeting::Direct(None),
     });
 
     // Queue each monster's turn: start, execute move, update move, end
@@ -78,31 +77,27 @@ pub fn process_effect_turn_end_character(
         effects.push(Effect {
             kind: EffectKind::TurnStart,
             source: None,
-            target: Some(mid),
+            targeting: Targeting::Direct(Some(mid)),
         });
 
         if let Some(move_idx) = m.move_current {
-            let move_effects = instantiate_templates(
-                m.moves[move_idx].effects,
-                mid,
-                character,
-                &[],
-                card_target,
-                alive_monsters,
-                rng,
-            );
-            effects.extend(move_effects);
+            // Copy the move's effects with source stamped. Resolution happens
+            // lazily in the dispatcher when each effect is dequeued.
+            effects.extend(m.moves[move_idx].effects.iter().map(|e| Effect {
+                source: Some(mid),
+                ..*e
+            }));
         }
 
         effects.push(Effect {
             kind: EffectKind::MoveUpdate,
             source: None,
-            target: Some(mid),
+            targeting: Targeting::Direct(Some(mid)),
         });
         effects.push(Effect {
             kind: EffectKind::TurnEnd,
             source: None,
-            target: Some(mid),
+            targeting: Targeting::Direct(Some(mid)),
         });
     }
 
@@ -110,7 +105,7 @@ pub fn process_effect_turn_end_character(
     effects.push(Effect {
         kind: EffectKind::TurnStart,
         source: None,
-        target: Some(character),
+        targeting: Targeting::Direct(Some(character)),
     });
 
     // Modifier / Burst (consume at end of turn)
@@ -120,7 +115,7 @@ pub fn process_effect_turn_end_character(
                 kind: ModifierKind::Burst,
             },
             source: None,
-            target: Some(character),
+            targeting: Targeting::Direct(Some(character)),
         });
     }
 

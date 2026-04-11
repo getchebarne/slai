@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -16,23 +16,26 @@ pub static DAGGER_THROW: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 9 },
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDraw { count: 1 },
-            targeting: None,
+            source: None,
+            targeting: Targeting::Direct(None),
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDiscard,
-            targeting: Some(Targeting {
-                candidates: Candidates::Hand,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
-            }),
+            },
         },
     ],
 };
@@ -48,23 +51,26 @@ pub static DAGGER_THROW_PLUS: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 12 }, // +3 damage
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDraw { count: 1 },
-            targeting: None,
+            source: None,
+            targeting: Targeting::Direct(None),
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDiscard,
-            targeting: Some(Targeting {
-                candidates: Candidates::Hand,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
-            }),
+            },
         },
     ],
 };

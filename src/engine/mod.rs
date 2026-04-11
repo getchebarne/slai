@@ -9,7 +9,6 @@ pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
 pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_reward_roll;
-pub mod process_effect_card_reward_select;
 pub mod process_effect_card_upgrade;
 pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
@@ -34,8 +33,9 @@ pub mod process_effect_turn_start;
 
 use rand::Rng;
 
-use crate::effect::{Candidates, Effect, EffectKind, EffectTemplate, SelectionKind};
-use crate::state::{EntityKind, GameState};
+use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Targeting};
+use crate::state::{Entity, EntityKind, GameState, Map};
 use crate::types::EntityId;
 use crate::utils::{get_alive_monster_ids, shuffle};
 
@@ -43,16 +43,10 @@ pub enum ProcessEffectResult {
     AddAndContinue { top: Vec<Effect>, bot: Vec<Effect> },
     Continue,
     Replace(Vec<Effect>),
-    Halt(HaltReason),
-}
-
-// HaltReason: why `process_queue` stopped running
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum HaltReason {
-    GameOver,
-    AwaitMapNode,
-    AwaitCardReward,
-    AwaitDiscard,
+    /// Unit variant: the effect stays at the queue front because the driver
+    /// never popped it (peek-before-pop protocol). `determine_phase` looks at
+    /// the queue front to figure out why we halted.
+    Halt,
 }
 
 pub enum TargetResolution {
@@ -60,40 +54,73 @@ pub enum TargetResolution {
     AwaitInput,
 }
 
-fn resolve_candidates(
-    candidates: Candidates,
+pub(crate) fn resolve_candidates(
+    candidates: CandidatePool,
     source: EntityId,
     character: EntityId,
     hand: &[EntityId],
     card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
+    map: &Map,
+    entities: &[Entity],
+    card_rewards: &[EntityId],
 ) -> Vec<EntityId> {
     match candidates {
-        Candidates::Hand => hand.to_vec(),
-        Candidates::CardTarget => vec![card_target.unwrap()],
-        Candidates::Character => vec![character],
-        Candidates::Monsters => alive_monsters.to_vec(),
-        Candidates::Source => vec![source],
+        CandidatePool::Hand => hand.to_vec(),
+        CandidatePool::CardTarget => vec![card_target.unwrap()],
+        CandidatePool::Character => vec![character],
+        CandidatePool::Monsters => alive_monsters.to_vec(),
+        CandidatePool::Source => vec![source],
+        CandidatePool::CardRewardPool => card_rewards.to_vec(),
+        CandidatePool::MapNodeNextRow => {
+            let y_next = match map.y_current {
+                None => 0,
+                Some(y) => y + 1,
+            };
+            if y_next >= MAP_HEIGHT {
+                return Vec::new();
+            }
+            let mut out = Vec::new();
+            if let Some(y) = map.y_current {
+                let x = map.x_current.unwrap();
+                if let Some(current_id) = map.nodes[y][x] {
+                    let current_node = entities[current_id.0 as usize].kind.map_node_ref();
+                    for col in 0..MAP_WIDTH {
+                        if current_node.has_edge(col) {
+                            if let Some(id) = map.nodes[y_next][col] {
+                                out.push(id);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for col in 0..MAP_WIDTH {
+                    if let Some(id) = map.nodes[0][col] {
+                        out.push(id);
+                    }
+                }
+            }
+            out
+        }
     }
 }
 
 fn resolve_targets(
-    candidates: Candidates,
+    candidates: CandidatePool,
     selection: SelectionKind,
     source: EntityId,
     character: EntityId,
     hand: &[EntityId],
     card_target: Option<EntityId>,
     alive_monsters: &[EntityId],
+    map: &Map,
+    entities: &[Entity],
+    card_rewards: &[EntityId],
     rng: &mut impl Rng,
 ) -> TargetResolution {
     let mut ids = resolve_candidates(
-        candidates,
-        source,
-        character,
-        hand,
-        card_target,
-        alive_monsters,
+        candidates, source, character, hand, card_target, alive_monsters,
+        map, entities, card_rewards,
     );
     match selection {
         SelectionKind::All => TargetResolution::Resolved(ids),
@@ -112,59 +139,70 @@ fn resolve_targets(
     }
 }
 
-pub fn instantiate_templates(
-    templates: &[EffectTemplate],
-    source: EntityId,
-    character: EntityId,
-    hand: &[EntityId],
-    card_target: Option<EntityId>,
-    alive_monsters: &[EntityId],
-    rng: &mut impl Rng,
-) -> Vec<Effect> {
-    let mut out = Vec::new();
-    for tmpl in templates {
-        match tmpl.targeting {
-            None => {
-                out.push(Effect {
-                    kind: tmpl.kind,
-                    source: None,
-                    target: None,
-                });
-            }
-            Some(targeting) => {
-                let resolution = resolve_targets(
-                    targeting.candidates,
-                    targeting.selection,
-                    source,
-                    character,
-                    hand,
-                    card_target,
-                    alive_monsters,
-                    rng,
-                );
-                match resolution {
-                    TargetResolution::Resolved(ids) => {
-                        for t in ids {
-                            out.push(Effect {
-                                kind: tmpl.kind,
-                                source: Some(source),
-                                target: Some(t),
-                            });
-                        }
-                    }
-                    TargetResolution::AwaitInput => {
-                        // TODO: handle await input
-                    }
-                }
-            }
+// Dispatcher entry point. Branches on `Targeting`:
+//  - `Direct(t)` runs the kind-specific handler with an already-known target.
+//  - `Resolve { .. }` runs the resolver; on success, fans out to `Direct`
+//    effects; on input-needed, returns `Halt` (the effect stays at the front
+//    because the driver uses peek-before-pop and won't have popped it yet).
+pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectResult {
+    let target = match effect.targeting {
+        Targeting::Direct(t) => t,
+        Targeting::Resolve { candidates, selection } => {
+            return resolve_or_halt(state, effect.kind, effect.source, candidates, selection);
         }
-    }
-    out
+    };
+
+    dispatch_by_kind(state, effect.kind, effect.source, target)
 }
 
-// Dispatcher
-pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectResult {
-    match effect.kind {
+fn resolve_or_halt(
+    state: &mut GameState,
+    kind: EffectKind,
+    source: Option<EntityId>,
+    candidates: CandidatePool,
+    selection: SelectionKind,
+) -> ProcessEffectResult {
+    let alive = get_alive_monster_ids(state);
+    let src_id = source.unwrap_or(state.character);
+    let resolution = resolve_targets(
+        candidates,
+        selection,
+        src_id,
+        state.character,
+        &state.hand,
+        state.card_target,
+        &alive,
+        &state.map,
+        &state.entities,
+        &state.card_rewards,
+        &mut state.rng,
+    );
+    match resolution {
+        TargetResolution::Resolved(ids) => {
+            let fanout: Vec<Effect> = ids
+                .into_iter()
+                .map(|id| Effect {
+                    kind,
+                    source,
+                    targeting: Targeting::Direct(Some(id)),
+                })
+                .collect();
+            ProcessEffectResult::AddAndContinue {
+                top: fanout,
+                bot: Vec::new(),
+            }
+        }
+        TargetResolution::AwaitInput => ProcessEffectResult::Halt,
+    }
+}
+
+fn dispatch_by_kind(
+    state: &mut GameState,
+    kind: EffectKind,
+    source: Option<EntityId>,
+    target: Option<EntityId>,
+) -> ProcessEffectResult {
+    match kind {
         EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
             count,
             &mut state.draw_pile,
@@ -173,7 +211,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             &mut state.rng,
         ),
         EffectKind::CardPlay => {
-            let id_card = effect.target.unwrap();
+            let id_card = target.unwrap();
             let alive = get_alive_monster_ids(state);
             process_effect_card_play::process_effect_card_play(
                 id_card,
@@ -186,7 +224,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::CardDiscard => {
-            let id_card = effect.target.unwrap();
+            let id_card = target.unwrap();
             process_effect_card_discard::process_effect_card_discard(
                 id_card,
                 &mut state.hand,
@@ -194,7 +232,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::CardExhaust => {
-            let id_card = effect.target.unwrap();
+            let id_card = target.unwrap();
             process_effect_card_exhaust::process_effect_card_exhaust(
                 id_card,
                 &mut state.hand,
@@ -202,7 +240,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::CardRemove => {
-            let id_card = effect.target.unwrap();
+            let id_card = target.unwrap();
             process_effect_card_remove::process_effect_card_remove(id_card, &mut state.hand)
         }
         EffectKind::AddShivs { count } => process_effect_add_shivs::process_effect_add_shivs(
@@ -214,12 +252,9 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(&state.hand)
         }
-        EffectKind::CardUpgrade { idx_deck } => {
-            process_effect_card_upgrade::process_effect_card_upgrade(
-                idx_deck,
-                &state.deck,
-                &mut state.entities,
-            )
+        EffectKind::CardUpgrade => {
+            let id_card = target.unwrap();
+            process_effect_card_upgrade::process_effect_card_upgrade(id_card, &mut state.entities)
         }
         EffectKind::CardRewardRoll => {
             process_effect_card_reward_roll::process_effect_card_reward_roll(
@@ -229,28 +264,21 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 &mut state.rng,
             )
         }
-        EffectKind::CardRewardSelect { idx_reward } => {
-            process_effect_card_reward_select::process_effect_card_reward_select(
-                idx_reward,
-                &mut state.card_rewards,
-                &mut state.deck,
-            )
-        }
         EffectKind::CardRewardClear => {
             process_effect_card_reward_clear::process_effect_card_reward_clear(
                 &mut state.card_rewards,
             )
         }
         EffectKind::TargetSet => {
-            let target = effect.target.unwrap();
+            let target = target.unwrap();
             process_effect_target_set::process_effect_target_set(&mut state.card_target, target)
         }
         EffectKind::TargetClear => {
             process_effect_target_clear::process_effect_target_clear(&mut state.card_target)
         }
         EffectKind::DamagePhysical { base } => {
-            let source = effect.source.unwrap();
-            let target = effect.target.unwrap();
+            let source = source.unwrap();
+            let target = target.unwrap();
             let (_, source_mods) = state.entities[source.0 as usize].kind.combatant_ref();
             let (_, target_mods) = state.entities[target.0 as usize].kind.combatant_ref();
             process_effect_damage_physical::process_effect_damage_physical(
@@ -261,17 +289,17 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::DamageDeal { amount } => {
-            let target = effect.target.unwrap();
+            let target = target.unwrap();
             let (vitals, _) = state.entities[target.0 as usize].kind.combatant_mut();
             process_effect_damage_deal::process_effect_damage_deal(vitals, target, amount)
         }
         EffectKind::HealthGain { amount } => {
-            let target = effect.target.unwrap();
+            let target = target.unwrap();
             let (vitals, _) = state.entities[target.0 as usize].kind.combatant_mut();
             process_effect_health_gain::process_effect_health_gain(vitals, amount)
         }
         EffectKind::HealthLoss { amount } => {
-            let target = effect.target.unwrap();
+            let target = target.unwrap();
             let (vitals, modifiers) = state.entities[target.0 as usize].kind.combatant_mut();
             process_effect_health_loss::process_effect_health_loss(
                 vitals,
@@ -282,9 +310,8 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::BlockGain { amount } => {
-            let target = effect.target.unwrap();
-            let from_card = effect
-                .source
+            let target = target.unwrap();
+            let from_card = source
                 .map(|id| matches!(state.entities[id.0 as usize].kind, EntityKind::Card(_)))
                 .unwrap_or(false);
             let (vitals, modifiers) = state.entities[target.0 as usize].kind.combatant_mut();
@@ -293,7 +320,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::BlockSet { amount } => {
-            let target = effect.target.unwrap();
+            let target = target.unwrap();
             let (vitals, _) = state.entities[target.0 as usize].kind.combatant_mut();
             process_effect_block_set::process_effect_block_set(vitals, amount)
         }
@@ -304,7 +331,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             process_effect_energy_loss::process_effect_energy_loss(&mut state.energy, amount)
         }
         EffectKind::ModifierGain { kind, stacks } => {
-            let target = effect.target.unwrap();
+            let target = target.unwrap();
             let entity = &mut state.entities[target.0 as usize];
             let monster_copy = match &entity.kind {
                 EntityKind::Monster(m) => Some(*m),
@@ -319,12 +346,12 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::ModifierRemove { kind } => {
-            let target = effect.target.unwrap();
+            let target = target.unwrap();
             let (_, modifiers) = state.entities[target.0 as usize].kind.combatant_mut();
             process_effect_modifier_remove::process_effect_modifier_remove(modifiers, kind)
         }
         EffectKind::ModifierTick => {
-            let target = effect.target.unwrap();
+            let target = target.unwrap();
             let (_, modifiers) = state.entities[target.0 as usize].kind.combatant_mut();
             process_effect_modifier_tick::process_effect_modifier_tick(modifiers)
         }
@@ -337,7 +364,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::Death => {
-            let actor = effect.target.unwrap();
+            let actor = target.unwrap();
             process_effect_death::process_effect_death(
                 actor,
                 state.character,
@@ -371,7 +398,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             &state.map,
         ),
         EffectKind::TurnStart => {
-            let actor = effect.target.unwrap();
+            let actor = target.unwrap();
             let monster_ids = get_alive_monster_ids(state);
             let (vitals, modifiers) = state.entities[actor.0 as usize].kind.combatant_mut();
             process_effect_turn_start::process_effect_turn_start(
@@ -384,7 +411,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             )
         }
         EffectKind::TurnEnd => {
-            let actor = effect.target.unwrap();
+            let actor = target.unwrap();
             if actor == state.character {
                 let alive = get_alive_monster_ids(state);
                 process_effect_turn_end::process_effect_turn_end_character(
@@ -401,7 +428,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             }
         }
         EffectKind::MoveUpdate => {
-            let monster = effect.target.unwrap();
+            let monster = target.unwrap();
             let entity = &mut state.entities[monster.0 as usize];
             process_effect_move_update::process_effect_move_update(entity, &mut state.rng)
         }
@@ -416,23 +443,47 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         EffectKind::RestSiteExit => {
             process_effect_rest_site_exit::process_effect_rest_site_exit(&mut state.map)
         }
+        // Halt-kind variants: represent pending player decisions.
+        // SelectMapNode and SelectCardReward in their `Direct` form (after
+        // the resolver picked a target) complete the transition. Before
+        // resolution they're handled by the `Resolve` branch in `process_effect`.
+        EffectKind::SelectMapNode => {
+            let node_id = target.expect("SelectMapNode Direct form must have target");
+            let node = *state.entities[node_id.0 as usize].kind.map_node_ref();
+            state.map.y_current = Some(node.y);
+            state.map.x_current = Some(node.x);
+            ProcessEffectResult::AddAndContinue {
+                top: vec![Effect::direct(EffectKind::RoomEnter, None, None)],
+                bot: Vec::new(),
+            }
+        }
+        EffectKind::SelectCardReward => {
+            let card_id = target.expect("SelectCardReward Direct form must have target");
+            state.deck.push(card_id);
+            ProcessEffectResult::AddAndContinue {
+                top: vec![Effect::direct(EffectKind::CardRewardClear, None, None)],
+                bot: Vec::new(),
+            }
+        }
+        EffectKind::GameOver => ProcessEffectResult::Halt,
     }
 }
 
-// Queue processing loop. Returns `Some(reason)` if a handler halted, `None` if
-// the queue drained. The caller (`step`) converts this into `Phase`.
-pub fn process_queue(state: &mut GameState) -> Option<HaltReason> {
-    while let Some(effect) = state.effect_queue.pop_front() {
-        // Process the effect
-        let result = process_effect(state, effect);
+// Queue processing loop. Peek-before-pop: we look at the queue front, dispatch
+// it, and only pop on non-halt results. `Halt` leaves the effect naturally at
+// the front for `determine_phase` to inspect.
+pub fn process_queue(state: &mut GameState) {
+    loop {
+        let Some(effect) = state.effect_queue.front().copied() else {
+            break;
+        };
 
-        // Gate based on the processing result
-        match result {
-            // Continue to next effect immediately
-            ProcessEffectResult::Continue => {}
-
-            // Prepend and/or append and continue to next effect
+        match process_effect(state, effect) {
+            ProcessEffectResult::Continue => {
+                state.effect_queue.pop_front();
+            }
             ProcessEffectResult::AddAndContinue { top, bot } => {
+                state.effect_queue.pop_front();
                 for e in top.into_iter().rev() {
                     state.effect_queue.push_front(e);
                 }
@@ -440,18 +491,15 @@ pub fn process_queue(state: &mut GameState) -> Option<HaltReason> {
                     state.effect_queue.push_back(e);
                 }
             }
-
-            // Replace queue w/ new one
             ProcessEffectResult::Replace(effects) => {
                 state.effect_queue.clear();
                 for e in effects {
                     state.effect_queue.push_back(e);
                 }
             }
-
-            // Return halt reason to caller, leaving any unprocessed effects in place
-            ProcessEffectResult::Halt(reason) => return Some(reason),
+            ProcessEffectResult::Halt => {
+                break;
+            }
         }
     }
-    None
 }

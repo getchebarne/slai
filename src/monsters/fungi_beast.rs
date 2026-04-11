@@ -1,6 +1,6 @@
-use crate::effect::Candidates;
+use crate::effect::CandidatePool;
 use crate::effect::EffectKind;
-use crate::effect::EffectTemplate;
+use crate::effect::Effect;
 use crate::effect::SelectionKind;
 use crate::effect::Targeting;
 use crate::modifier::ModifierKind;
@@ -17,12 +17,13 @@ use rand::Rng;
 
 static MOVE_BITE: Move = Move {
     name: "Bite",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 6 },
-        targeting: Some(Targeting {
-            candidates: Candidates::Character,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Character,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Attack {
         damage: 6,
@@ -31,43 +32,46 @@ static MOVE_BITE: Move = Move {
 };
 static MOVE_GROW_3: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Strength,
             stacks: 3,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Buff,
 };
 static MOVE_GROW_4: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Strength,
             stacks: 4,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Buff,
 };
 static MOVE_GROW_5: Move = Move {
     name: "Grow",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Strength,
             stacks: 5,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Buff,
 };

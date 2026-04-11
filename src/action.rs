@@ -1,15 +1,16 @@
 // Action handling: player input -> effects.
 
 use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{Effect, EffectKind, SelectionKind, Targeting};
+use crate::engine::resolve_candidates;
 use crate::state::GameState;
 use crate::types::{EntityId, Phase};
 use crate::utils::get_alive_monster_ids;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Action {
-    CardDiscard {
-        idx_hand: usize,
+    InputResolve {
+        indices: Vec<usize>,
     },
     CardPlay {
         idx_hand: usize,
@@ -31,7 +32,7 @@ pub enum Action {
 
 fn validate_phase(current_phase: Phase, action: &Action) -> Result<(), String> {
     let expected = match action {
-        Action::CardDiscard { .. } => Phase::CombatAwaitDiscard,
+        Action::InputResolve { .. } => Phase::CombatAwaitInput,
         Action::CardPlay { .. } | Action::EndTurn => Phase::CombatDefault,
         Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest => Phase::RestSite,
         Action::CardRewardSelect { .. } | Action::CardRewardSkip => Phase::CardReward,
@@ -50,7 +51,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
     validate_phase(state.phase, &action)?;
 
     match action {
-        Action::CardDiscard { idx_hand } => handle_card_discard(state, idx_hand),
+        Action::InputResolve { indices } => handle_input_resolve(state, indices),
         Action::CardPlay {
             idx_hand,
             idx_monster,
@@ -76,7 +77,7 @@ fn handle_end_turn(state: &GameState) -> Vec<Effect> {
     vec![Effect {
         kind: EffectKind::TurnEnd,
         source: None,
-        target: Some(state.character),
+        targeting: Targeting::Direct(Some(state.character)),
     }]
 }
 
@@ -110,17 +111,17 @@ fn handle_card_play(
                     Effect {
                         kind: EffectKind::TargetSet,
                         source: None,
-                        target: Some(id_monster_target),
+                        targeting: Targeting::Direct(Some(id_monster_target)),
                     },
                     Effect {
                         kind: EffectKind::CardPlay,
                         source: None,
-                        target: Some(id_card),
+                        targeting: Targeting::Direct(Some(id_card)),
                     },
                     Effect {
                         kind: EffectKind::TargetClear,
                         source: None,
-                        target: None,
+                        targeting: Targeting::Direct(None),
                     },
                 ])
             }
@@ -134,23 +135,62 @@ fn handle_card_play(
         Ok(vec![Effect {
             kind: EffectKind::CardPlay,
             source: None,
-            target: Some(id_card),
+            targeting: Targeting::Direct(Some(id_card)),
         }])
     }
 }
 
-fn handle_card_discard(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
-    let id_card = validate_idx(&state.hand, idx_hand)?;
+fn handle_input_resolve(state: &GameState, indices: Vec<usize>) -> Result<Vec<Effect>, String> {
+    // Peek the unresolved halt effect at the queue front. step() will pop it
+    // after we return Ok.
+    let unresolved = state
+        .effect_queue
+        .front()
+        .ok_or_else(|| "No halt effect at queue front".to_string())?;
 
-    // Return effect to discard the card
-    Ok(vec![Effect {
-        kind: EffectKind::CardDiscard,
-        source: None,
-        target: Some(id_card),
-    }])
+    let (candidates, count) = match unresolved.targeting {
+        Targeting::Resolve {
+            candidates,
+            selection: SelectionKind::Input { count },
+        } => (candidates, count),
+        _ => return Err("Queue front is not an unresolved input prompt".into()),
+    };
+
+    if indices.len() != count as usize {
+        return Err(format!("Expected {} picks, got {}", count, indices.len()));
+    }
+
+    // Re-resolve candidates against current state.
+    let alive = get_alive_monster_ids(state);
+    let src_id = unresolved.source.unwrap_or(state.character);
+    let ids = resolve_candidates(
+        candidates,
+        src_id,
+        state.character,
+        &state.hand,
+        state.card_target,
+        &alive,
+        &state.map,
+        &state.entities,
+        &state.card_rewards,
+    );
+
+    let mut effects = Vec::with_capacity(indices.len());
+    for &idx in &indices {
+        let target = *ids
+            .get(idx)
+            .ok_or_else(|| format!("Invalid index {}: {} candidates", idx, ids.len()))?;
+        effects.push(Effect {
+            kind: unresolved.kind,
+            source: unresolved.source,
+            targeting: Targeting::Direct(Some(target)),
+        });
+    }
+
+    Ok(effects)
 }
 
-fn handle_map_node_select(state: &mut GameState, idx_column: usize) -> Result<Vec<Effect>, String> {
+fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect>, String> {
     if idx_column >= MAP_WIDTH {
         return Err(format!(
             "Invalid column {}: max is {}",
@@ -165,15 +205,17 @@ fn handle_map_node_select(state: &mut GameState, idx_column: usize) -> Result<Ve
         Some(y) => y + 1,
     };
 
-    // Validate node exists
-    if state.map.nodes[y_next][idx_column].is_none() {
-        return Err(format!("No node at ({}, {})", y_next, idx_column));
-    }
+    // Validate node exists at (y_next, idx_column)
+    let target_id = state.map.nodes[y_next][idx_column]
+        .ok_or_else(|| format!("No node at ({}, {})", y_next, idx_column))?;
 
     // Validate edge from current node (skip for first move)
     if let Some(y) = state.map.y_current {
         let x = state.map.x_current.unwrap();
-        let current_node = state.map.nodes[y][x].as_ref().unwrap();
+        let current_node = state
+            .map
+            .node_at(&state.entities, y, x)
+            .expect("current map node missing");
         if !current_node.has_edge(idx_column) {
             return Err(format!(
                 "No edge from ({}, {}) to ({}, {})",
@@ -182,28 +224,25 @@ fn handle_map_node_select(state: &mut GameState, idx_column: usize) -> Result<Ve
         }
     }
 
-    // Update coordinates
-    state.map.y_current = Some(y_next);
-    state.map.x_current = Some(idx_column);
-
-    // Return effect to enter the room
-    Ok(vec![Effect {
-        kind: EffectKind::RoomEnter,
-        source: None,
-        target: None,
-    }])
+    // Return a Direct SelectMapNode effect. Its dispatch arm will update
+    // state.map.y_current/x_current and push a RoomEnter effect.
+    Ok(vec![Effect::direct(
+        EffectKind::SelectMapNode,
+        None,
+        Some(target_id),
+    )])
 }
 
 fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    validate_idx(&state.card_rewards, idx_reward)?;
+    let id_card = validate_idx(&state.card_rewards, idx_reward)?;
 
-    // The CardRewardSelect handler adds the chosen card to the deck, enqueues
-    // CardRewardClear, and that handler halts on AwaitMapNode.
-    Ok(vec![Effect {
-        kind: EffectKind::CardRewardSelect { idx_reward },
-        source: None,
-        target: None,
-    }])
+    // Direct SelectCardReward: handler adds the target card to the deck and
+    // enqueues CardRewardClear, which in turn enqueues SelectMapNode.
+    Ok(vec![Effect::direct(
+        EffectKind::SelectCardReward,
+        None,
+        Some(id_card),
+    )])
 }
 
 fn handle_card_reward_skip() -> Vec<Effect> {
@@ -211,7 +250,7 @@ fn handle_card_reward_skip() -> Vec<Effect> {
     vec![Effect {
         kind: EffectKind::CardRewardClear,
         source: None,
-        target: None,
+        targeting: Targeting::Direct(None),
     }]
 }
 
@@ -228,12 +267,12 @@ fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
         Effect {
             kind: EffectKind::HealthGain { amount: heal_amt },
             source: None,
-            target: Some(id_character),
+            targeting: Targeting::Direct(Some(id_character)),
         },
         Effect {
             kind: EffectKind::RestSiteExit,
             source: None,
-            target: None,
+            targeting: Targeting::Direct(None),
         },
     ]
 }
@@ -242,19 +281,12 @@ fn handle_rest_site_card_upgrade(
     state: &GameState,
     idx_deck: usize,
 ) -> Result<Vec<Effect>, String> {
-    validate_idx(&state.deck, idx_deck)?;
+    let id_card = validate_idx(&state.deck, idx_deck)?;
 
-    // Upgrade, then let the RestSiteExit handler decide whether to halt or enter boss
+    // Upgrade by entity id, then let the RestSiteExit handler decide whether
+    // to halt (non-final row) or enter the boss room (final row).
     Ok(vec![
-        Effect {
-            kind: EffectKind::CardUpgrade { idx_deck },
-            source: None,
-            target: None,
-        },
-        Effect {
-            kind: EffectKind::RestSiteExit,
-            source: None,
-            target: None,
-        },
+        Effect::direct(EffectKind::CardUpgrade, None, Some(id_card)),
+        Effect::direct(EffectKind::RestSiteExit, None, None),
     ])
 }

@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -16,19 +16,21 @@ pub static SURVIVOR: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::BlockGain { amount: 8 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDiscard,
-            targeting: Some(Targeting {
-                candidates: Candidates::Hand,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
-            }),
+            },
         },
     ],
 };
@@ -44,21 +46,23 @@ pub static SURVIVOR_PLUS: Card = Card {
     innate: false,
     requires_target: false,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::BlockGain {
                 amount: 11, // +3 block
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::CardDiscard,
-            targeting: Some(Targeting {
-                candidates: Candidates::Hand,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
-            }),
+            },
         },
     ],
 };

@@ -4,12 +4,15 @@
 use rand::Rng;
 
 use crate::consts::*;
-use crate::state::{Map, MapNode};
-use crate::types::RoomType;
+use crate::state::{Entity, EntityKind, Map, MapNode};
+use crate::types::{EntityId, RoomType};
 
 type Grid = [[Option<MapNode>; MAP_WIDTH]; MAP_HEIGHT];
 
-pub fn generate_map(rng: &mut impl Rng) -> Map {
+/// Generates a map as an intermediate grid of inline `MapNode`s. Callers
+/// are expected to entitize the grid via `entitize_map` before storing it
+/// in `GameState`.
+pub fn generate_map(rng: &mut impl Rng) -> Grid {
     let mut nodes: Grid = [[None; MAP_WIDTH]; MAP_HEIGHT];
 
     let mut x_source_first: Option<usize> = None;
@@ -26,6 +29,8 @@ pub fn generate_map(rng: &mut impl Rng) -> Map {
         let mut y_source: usize = 0;
         if nodes[y_source][x_source].is_none() {
             nodes[y_source][x_source] = Some(MapNode {
+                y: y_source,
+                x: x_source,
                 room_type: RoomType::CombatMonster,
                 edges: 0,
             });
@@ -40,6 +45,8 @@ pub fn generate_map(rng: &mut impl Rng) -> Map {
 
             if nodes[y_target][x_target].is_none() {
                 nodes[y_target][x_target] = Some(MapNode {
+                    y: y_target,
+                    x: x_target,
                     room_type: RoomType::CombatMonster,
                     edges: 0,
                 });
@@ -57,6 +64,25 @@ pub fn generate_map(rng: &mut impl Rng) -> Map {
     trim_redundant_first_row_edges(&mut nodes);
     assign_room_types(&mut nodes, rng);
 
+    nodes
+}
+
+/// Entitizes a generated grid: each `Some(node)` is pushed into `entities`
+/// as an `EntityKind::MapNode`, and the returned `Map` stores the entity ids.
+pub fn entitize_map(grid: Grid, entities: &mut Vec<Entity>) -> Map {
+    let mut nodes: [[Option<EntityId>; MAP_WIDTH]; MAP_HEIGHT] =
+        [[None; MAP_WIDTH]; MAP_HEIGHT];
+    for (y, row) in grid.iter().enumerate() {
+        for (x, cell) in row.iter().enumerate() {
+            if let Some(node) = cell {
+                let id = EntityId(entities.len() as u32);
+                entities.push(Entity {
+                    kind: EntityKind::MapNode(*node),
+                });
+                nodes[y][x] = Some(id);
+            }
+        }
+    }
     Map {
         nodes,
         y_current: None,

@@ -1,5 +1,5 @@
 use crate::consts::CARDS_DRAWN_PER_TURN;
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{Effect, EffectKind, Targeting};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
 use crate::state::{Energy, Vitals};
@@ -27,7 +27,7 @@ pub fn process_effect_turn_start(
     effects.push(Effect {
         kind: EffectKind::BlockSet { amount: new_block },
         source: None,
-        target: Some(actor),
+        targeting: Targeting::Direct(Some(actor)),
     });
 
     // Modifier / Phantasmal
@@ -38,7 +38,7 @@ pub fn process_effect_turn_start(
                 stacks: 1,
             },
             source: None,
-            target: Some(actor),
+            targeting: Targeting::Direct(Some(actor)),
         });
     }
 
@@ -50,7 +50,7 @@ pub fn process_effect_turn_start(
                 count: CARDS_DRAWN_PER_TURN,
             },
             source: None,
-            target: None,
+            targeting: Targeting::Direct(None),
         });
         // TODO: may need a "reset energy" effect
         let energy_gain = energy.max.saturating_sub(energy.current);
@@ -59,20 +59,20 @@ pub fn process_effect_turn_start(
                 amount: energy_gain,
             },
             source: None,
-            target: None,
+            targeting: Targeting::Direct(None),
         });
 
         // Tick all combatant modifiers
         effects.push(Effect {
             kind: EffectKind::ModifierTick,
             source: None,
-            target: Some(character),
+            targeting: Targeting::Direct(Some(character)),
         });
         for &mid in monster_ids {
             effects.push(Effect {
                 kind: EffectKind::ModifierTick,
                 source: None,
-                target: Some(mid),
+                targeting: Targeting::Direct(Some(mid)),
             });
         }
 
@@ -84,7 +84,7 @@ pub fn process_effect_turn_start(
                     amount: stacks as u8,
                 },
                 source: None,
-                target: None,
+                targeting: Targeting::Direct(None),
             });
             modifier_remove(modifiers, ModifierKind::NextTurnEnergy);
         }
@@ -97,7 +97,7 @@ pub fn process_effect_turn_start(
                     count: stacks as u8,
                 },
                 source: None,
-                target: None,
+                targeting: Targeting::Direct(None),
             });
         }
     }

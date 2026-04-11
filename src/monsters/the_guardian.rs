@@ -1,6 +1,6 @@
-use crate::effect::Candidates;
+use crate::effect::CandidatePool;
 use crate::effect::EffectKind;
-use crate::effect::EffectTemplate;
+use crate::effect::Effect;
 use crate::effect::SelectionKind;
 use crate::effect::Targeting;
 use crate::modifier::ModifierKind;
@@ -22,23 +22,25 @@ const MODE_SHIFT_STACKS_40: i16 = 40;
 
 static MOVE_CHARGING_UP: Move = Move {
     name: "Charging Up",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::BlockGain { amount: 9 },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Block,
 };
 static MOVE_FIERCE_BASH_32: Move = Move {
     name: "Fierce Bash",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 32 },
-        targeting: Some(Targeting {
-            candidates: Candidates::Character,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Character,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Attack {
         damage: 32,
@@ -47,12 +49,13 @@ static MOVE_FIERCE_BASH_32: Move = Move {
 };
 static MOVE_FIERCE_BASH_36: Move = Move {
     name: "Fierce Bash",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 36 },
-        targeting: Some(Targeting {
-            candidates: Candidates::Character,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Character,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Attack {
         damage: 36,
@@ -62,25 +65,27 @@ static MOVE_FIERCE_BASH_36: Move = Move {
 static MOVE_VENT_STEAM: Move = Move {
     name: "Vent Steam",
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
     intent: Intent::DebuffPowerful,
@@ -88,33 +93,37 @@ static MOVE_VENT_STEAM: Move = Move {
 static MOVE_WHIRLWIND: Move = Move {
     name: "Whirlwind",
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 5 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 5 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 5 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 5 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
     intent: Intent::Attack {
@@ -124,40 +133,43 @@ static MOVE_WHIRLWIND: Move = Move {
 };
 static MOVE_DEFENSIVE_MODE_3: Move = Move {
     name: "Defensive Mode",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::SharpHide,
             stacks: 3,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Buff,
 };
 static MOVE_DEFENSIVE_MODE_4: Move = Move {
     name: "Defensive Mode",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::SharpHide,
             stacks: 4,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Buff,
 };
 static MOVE_ROLL_ATTACK_9: Move = Move {
     name: "Roll Attack",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 9 },
-        targeting: Some(Targeting {
-            candidates: Candidates::Character,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Character,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Attack {
         damage: 9,
@@ -166,12 +178,13 @@ static MOVE_ROLL_ATTACK_9: Move = Move {
 };
 static MOVE_ROLL_ATTACK_10: Move = Move {
     name: "Roll Attack",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 10 },
-        targeting: Some(Targeting {
-            candidates: Candidates::Character,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Character,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Attack {
         damage: 10,
@@ -181,38 +194,42 @@ static MOVE_ROLL_ATTACK_10: Move = Move {
 static MOVE_TWIN_SLAM_30: Move = Move {
     name: "Twin Slam",
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::ModeShift,
                 stacks: MODE_SHIFT_STACKS_30,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Source,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::SharpHide,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Source,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
     intent: Intent::AttackBuff {
@@ -223,38 +240,42 @@ static MOVE_TWIN_SLAM_30: Move = Move {
 static MOVE_TWIN_SLAM_35: Move = Move {
     name: "Twin Slam",
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::ModeShift,
                 stacks: MODE_SHIFT_STACKS_35,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Source,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::SharpHide,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Source,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
     intent: Intent::AttackBuff {
@@ -265,38 +286,42 @@ static MOVE_TWIN_SLAM_35: Move = Move {
 static MOVE_TWIN_SLAM_40: Move = Move {
     name: "Twin Slam",
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::ModeShift,
                 stacks: MODE_SHIFT_STACKS_40,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Source,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::SharpHide,
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Source,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
     intent: Intent::AttackBuff {

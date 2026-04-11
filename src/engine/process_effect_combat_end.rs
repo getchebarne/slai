@@ -1,5 +1,5 @@
-use crate::effect::{Effect, EffectKind};
-use crate::engine::{HaltReason, ProcessEffectResult};
+use crate::effect::{Effect, EffectKind, Targeting};
+use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_clear;
 use crate::state::{Entity, Map};
 use crate::types::{EntityId, RoomType};
@@ -22,21 +22,24 @@ pub fn process_effect_combat_end(
     exhaust_pile.clear();
     *card_target = None;
 
+    // Next step depends on room type — read it before mutating entities
+    let room = map.active_room_type(entities).unwrap();
+
     // Clear character modifiers and monsters
     let (_, modifiers) = entities[character.0 as usize].kind.combatant_mut();
     modifier_clear(modifiers);
     *monster_count = 0;
-
-    // Next step depends on room type
-    let room = map.active_room_type().unwrap();
     match room {
-        RoomType::CombatBoss => ProcessEffectResult::Halt(HaltReason::GameOver),
+        RoomType::CombatBoss => ProcessEffectResult::AddAndContinue {
+            top: vec![crate::effect::Effect::direct(crate::effect::EffectKind::GameOver, None, None)],
+            bot: Vec::new(),
+        },
         RoomType::CombatMonster => ProcessEffectResult::AddAndContinue {
             top: Vec::new(),
             bot: vec![Effect {
                 kind: EffectKind::CardRewardRoll,
                 source: None,
-                target: None,
+                targeting: Targeting::Direct(None),
             }],
         },
         RoomType::RestSite => unreachable!("combat end in rest site"),

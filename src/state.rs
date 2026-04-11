@@ -31,6 +31,7 @@ pub enum EntityKind {
     Character(Character),
     Monster(Monster),
     Card(Card),
+    MapNode(MapNode),
 }
 
 impl EntityKind {
@@ -91,6 +92,13 @@ impl EntityKind {
             _ => panic!("Not a card"),
         }
     }
+
+    pub fn map_node_ref(&self) -> &MapNode {
+        match self {
+            EntityKind::MapNode(node) => node,
+            _ => panic!("Not a map node"),
+        }
+    }
 }
 
 // Energy
@@ -103,6 +111,8 @@ pub struct Energy {
 // Map
 #[derive(Debug, Clone, Copy)]
 pub struct MapNode {
+    pub y: usize,
+    pub x: usize,
     pub room_type: RoomType,
     pub edges: u8,
 }
@@ -120,27 +130,32 @@ impl MapNode {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Map {
-    pub nodes: [[Option<MapNode>; MAP_WIDTH]; MAP_HEIGHT],
+    pub nodes: [[Option<EntityId>; MAP_WIDTH]; MAP_HEIGHT],
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
 }
 
 impl Map {
-    pub fn active_node(&self) -> Option<&MapNode> {
+    pub fn node_at<'a>(&self, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a MapNode> {
+        let id = self.nodes[y][x]?;
+        Some(entities[id.0 as usize].kind.map_node_ref())
+    }
+
+    pub fn active_node<'a>(&self, entities: &'a [Entity]) -> Option<&'a MapNode> {
         let y = self.y_current?;
         let x = self.x_current?;
         if y >= MAP_HEIGHT {
             return None;
         }
-        self.nodes[y][x].as_ref()
+        self.node_at(entities, y, x)
     }
 
-    pub fn active_room_type(&self) -> Option<RoomType> {
+    pub fn active_room_type(&self, entities: &[Entity]) -> Option<RoomType> {
         let y = self.y_current?;
         if y == MAP_HEIGHT {
             return Some(RoomType::CombatBoss);
         }
-        self.active_node().map(|n| n.room_type)
+        self.active_node(entities).map(|n| n.room_type)
     }
 
     pub fn is_boss_room(&self) -> bool {

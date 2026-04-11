@@ -1,6 +1,6 @@
-use crate::effect::Candidates;
+use crate::effect::CandidatePool;
 use crate::effect::EffectKind;
-use crate::effect::EffectTemplate;
+use crate::effect::Effect;
 use crate::effect::SelectionKind;
 use crate::effect::Targeting;
 use crate::modifier::ModifierKind;
@@ -16,12 +16,13 @@ use rand::Rng;
 
 static MOVE_DARK_STRIKE: Move = Move {
     name: "Dark Strike",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 6 },
-        targeting: Some(Targeting {
-            candidates: Candidates::Character,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Character,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Attack {
         damage: 6,
@@ -30,43 +31,46 @@ static MOVE_DARK_STRIKE: Move = Move {
 };
 static MOVE_INCANTATION_3: Move = Move {
     name: "Incantation",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Ritual,
             stacks: 3,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Buff,
 };
 static MOVE_INCANTATION_4: Move = Move {
     name: "Incantation",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Ritual,
             stacks: 4,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Buff,
 };
 static MOVE_INCANTATION_5: Move = Move {
     name: "Incantation",
-    effects: &[EffectTemplate {
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Ritual,
             stacks: 5,
         },
-        targeting: Some(Targeting {
-            candidates: Candidates::Source,
+        source: None,
+        targeting: Targeting::Resolve {
+            candidates: CandidatePool::Source,
             selection: SelectionKind::All,
-        }),
+        },
     }],
     intent: Intent::Buff,
 };

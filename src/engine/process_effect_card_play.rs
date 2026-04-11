@@ -1,8 +1,7 @@
 use rand::Rng;
 
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{Effect, EffectKind, Targeting};
 use crate::engine::ProcessEffectResult;
-use crate::engine::instantiate_templates;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
@@ -12,12 +11,12 @@ use crate::types::EntityId;
 
 pub fn process_effect_card_play(
     id_card: EntityId,
-    id_card_target: Option<EntityId>,
+    _id_card_target: Option<EntityId>,
     character: EntityId,
     entities: &[Entity],
-    hand: &[EntityId],
+    _hand: &[EntityId],
     alive_monsters: &[EntityId],
-    rng: &mut impl Rng,
+    _rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     let card = entities[id_card.0 as usize].kind.card_ref();
 
@@ -28,7 +27,7 @@ pub fn process_effect_card_play(
     top_effects.push(Effect {
         kind: EffectKind::EnergyLoss { amount: card.cost },
         source: None,
-        target: None,
+        targeting: Targeting::Direct(None),
     });
 
     // Exhaust vs. remove vs. discard
@@ -36,19 +35,19 @@ pub fn process_effect_card_play(
         top_effects.push(Effect {
             kind: EffectKind::CardExhaust,
             source: None,
-            target: Some(id_card),
+            targeting: Targeting::Direct(Some(id_card)),
         })
     } else if card.kind == CardKind::Power {
         top_effects.push(Effect {
             kind: EffectKind::CardRemove,
             source: None,
-            target: Some(id_card),
+            targeting: Targeting::Direct(Some(id_card)),
         })
     } else {
         top_effects.push(Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            target: Some(id_card),
+            targeting: Targeting::Direct(Some(id_card)),
         })
     };
 
@@ -63,7 +62,7 @@ pub fn process_effect_card_play(
                 amount: stacks as u16,
             },
             source: Some(character),
-            target: Some(character),
+            targeting: Targeting::Direct(Some(character)),
         })
     }
 
@@ -76,7 +75,7 @@ pub fn process_effect_card_play(
                     base: stacks as u16,
                 },
                 source: Some(character),
-                target: Some(id_monster),
+                targeting: Targeting::Direct(Some(id_monster)),
             });
         }
     }
@@ -92,22 +91,23 @@ pub fn process_effect_card_play(
                         amount: stacks as u16,
                     },
                     source: Some(id_monster),
-                    target: Some(character),
+                    targeting: Targeting::Direct(Some(character)),
                 });
             }
         }
     }
 
-    // Instantiate card's effect templates
-    let card_effects = instantiate_templates(
-        card.effects,
-        character,
-        character,
-        hand,
-        id_card_target,
-        alive_monsters,
-        rng,
-    );
+    // Copy the card's effects into the queue, stamping source with the card id.
+    // Effects with `Targeting::Resolve` will be resolved lazily by the dispatcher
+    // against live state when they're dequeued — no eager instantiation here.
+    let card_effects: Vec<Effect> = card
+        .effects
+        .iter()
+        .map(|e| Effect {
+            source: Some(id_card),
+            ..*e
+        })
+        .collect();
 
     // Modifier / Burst
     if modifier_has(char_modifiers, ModifierKind::Burst) && card.kind == CardKind::Skill {
@@ -119,7 +119,7 @@ pub fn process_effect_card_play(
                 stacks: -1,
             },
             source: Some(character),
-            target: Some(character),
+            targeting: Targeting::Direct(Some(character)),
         });
     } else {
         top_effects.extend(card_effects);

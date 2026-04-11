@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 
 use crate::cards::Card;
 use crate::consts::FACTOR_VULN;
-use crate::effect::{EffectKind, EffectTemplate};
+use crate::effect::{Effect, EffectKind, Targeting};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::monsters::Intent;
 use crate::state::{Entity, GameState};
@@ -14,7 +14,7 @@ use crate::utils::get_alive_monster_ids;
 // View types (PyO3 classes)
 #[pyclass(frozen, get_all)]
 #[derive(Debug, Clone)]
-pub struct ViewEffectTemplate {
+pub struct ViewEffect {
     pub effect_type: String,
     pub value: Option<i32>,
     pub target: Option<String>,
@@ -32,7 +32,7 @@ pub struct ViewCard {
     pub exhaust: bool,
     pub innate: bool,
     pub requires_target: bool,
-    pub effects: Vec<ViewEffectTemplate>,
+    pub effects: Vec<ViewEffect>,
 }
 
 #[pyclass(frozen, get_all)]
@@ -278,63 +278,70 @@ fn build_view_card_template(card: &Card) -> ViewCard {
         exhaust: card.exhaust,
         innate: card.innate,
         requires_target: card.requires_target,
-        effects: card.effects.iter().map(view_effect_template).collect(),
+        effects: card.effects.iter().map(view_effect).collect(),
     }
 }
 
-fn view_effect_template(tmpl: &EffectTemplate) -> ViewEffectTemplate {
-    let target_str = tmpl.targeting.map(|t| format!("{:?}", t.candidates));
-    match tmpl.kind {
-        EffectKind::DamagePhysical { base } => ViewEffectTemplate {
+fn view_effect(effect: &Effect) -> ViewEffect {
+    let target_str = match effect.targeting {
+        Targeting::Direct(_) => None,
+        Targeting::Resolve { candidates, .. } => Some(format!("{:?}", candidates)),
+    };
+    let selection = match effect.targeting {
+        Targeting::Resolve { selection, .. } => Some(selection),
+        Targeting::Direct(_) => None,
+    };
+    match effect.kind {
+        EffectKind::DamagePhysical { base } => ViewEffect {
             effect_type: "DamagePhysical".to_string(),
             value: Some(base as i32),
             target: target_str,
         },
-        EffectKind::BlockGain { amount, .. } => ViewEffectTemplate {
+        EffectKind::BlockGain { amount, .. } => ViewEffect {
             effect_type: "BlockGain".to_string(),
             value: Some(amount as i32),
             target: target_str,
         },
-        EffectKind::ModifierGain { kind, stacks } => ViewEffectTemplate {
+        EffectKind::ModifierGain { kind, stacks } => ViewEffect {
             effect_type: format!("ModifierGain_{:?}", kind),
             value: Some(stacks as i32),
             target: target_str,
         },
-        EffectKind::ModifierRemove { kind } => ViewEffectTemplate {
+        EffectKind::ModifierRemove { kind } => ViewEffect {
             effect_type: format!("ModifierRemove_{:?}", kind),
             value: None,
             target: target_str,
         },
-        EffectKind::EnergyGain { amount } => ViewEffectTemplate {
+        EffectKind::EnergyGain { amount } => ViewEffect {
             effect_type: "EnergyGain".to_string(),
             value: Some(amount as i32),
             target: None,
         },
-        EffectKind::AddShivs { count } => ViewEffectTemplate {
+        EffectKind::AddShivs { count } => ViewEffect {
             effect_type: "AddShivs".to_string(),
             value: Some(count as i32),
             target: None,
         },
-        EffectKind::CardDraw { count } => ViewEffectTemplate {
+        EffectKind::CardDraw { count } => ViewEffect {
             effect_type: "CardDraw".to_string(),
             value: Some(count as i32),
             target: None,
         },
         EffectKind::CardDiscard => {
-            let selection_str = tmpl.targeting.map(|t| format!("{:?}", t.selection));
-            ViewEffectTemplate {
+            let selection_str = selection.map(|s| format!("{:?}", s));
+            ViewEffect {
                 effect_type: format!("CardDiscard_{}", selection_str.unwrap_or_default()),
                 value: None,
                 target: None,
             }
         }
-        EffectKind::CalculatedGamble => ViewEffectTemplate {
+        EffectKind::CalculatedGamble => ViewEffect {
             effect_type: "CalculatedGamble".to_string(),
             value: None,
             target: None,
         },
-        _ => ViewEffectTemplate {
-            effect_type: format!("{:?}", tmpl.kind),
+        _ => ViewEffect {
+            effect_type: format!("{:?}", effect.kind),
             value: None,
             target: None,
         },
@@ -348,10 +355,13 @@ fn build_view_map(state: &GameState) -> ViewMap {
         .iter()
         .map(|row| {
             row.iter()
-                .map(|n| {
-                    n.as_ref().map(|node| ViewMapNode {
-                        room_type: format!("{:?}", node.room_type),
-                        edges: node.edge_indices().collect(),
+                .map(|cell| {
+                    cell.map(|id| {
+                        let node = state.entities[id.0 as usize].kind.map_node_ref();
+                        ViewMapNode {
+                            room_type: format!("{:?}", node.room_type),
+                            edges: node.edge_indices().collect(),
+                        }
                     })
                 })
                 .collect()

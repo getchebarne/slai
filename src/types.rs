@@ -136,7 +136,7 @@ pub enum RoomType {
 pub enum Phase {
     CardReward,
     CombatDefault,
-    CombatAwaitDiscard,
+    CombatAwaitInput,
     GameOver,
     Map,
     RestSite,

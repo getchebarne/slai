@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{Effect, EffectKind, Targeting};
 use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
 use crate::types::EntityId;
@@ -53,13 +53,13 @@ pub fn process_effect_combat_start(
         effects.push(Effect {
             kind: EffectKind::MoveUpdate,
             source: None,
-            target: Some(id),
+            targeting: Targeting::Direct(Some(id)),
         });
     }
     effects.push(Effect {
         kind: EffectKind::TurnStart,
         source: None,
-        target: Some(character),
+        targeting: Targeting::Direct(Some(character)),
     });
 
     // Add and continue

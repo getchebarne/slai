@@ -1,4 +1,4 @@
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{Effect, EffectKind, Targeting};
 use crate::engine::ProcessEffectResult;
 use crate::types::EntityId;
 
@@ -12,7 +12,7 @@ pub fn process_effect_calculated_gamble(hand: &[EntityId]) -> ProcessEffectResul
         .map(|&id_card| Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            target: Some(id_card),
+            targeting: Targeting::Direct(Some(id_card)),
         })
         .collect();
 
@@ -22,7 +22,7 @@ pub fn process_effect_calculated_gamble(hand: &[EntityId]) -> ProcessEffectResul
             count: num_cards as u8,
         },
         source: None,
-        target: None,
+        targeting: Targeting::Direct(None),
     });
 
     // Continue w/ top effects

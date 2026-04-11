@@ -1,6 +1,6 @@
 use crate::consts::MAP_HEIGHT;
-use crate::effect::{Effect, EffectKind};
-use crate::engine::{HaltReason, ProcessEffectResult};
+use crate::effect::{Effect, EffectKind, Targeting};
+use crate::engine::ProcessEffectResult;
 use crate::state::Map;
 
 pub fn process_effect_rest_site_exit(map: &mut Map) -> ProcessEffectResult {
@@ -12,12 +12,22 @@ pub fn process_effect_rest_site_exit(map: &mut Map) -> ProcessEffectResult {
             top: vec![Effect {
                 kind: EffectKind::RoomEnter,
                 source: None,
-                target: None,
+                targeting: Targeting::Direct(None),
             }],
             bot: Vec::new(),
         }
     } else {
         // Non-final row — halt and wait for the player to pick the next map node
-        ProcessEffectResult::Halt(HaltReason::AwaitMapNode)
+        ProcessEffectResult::AddAndContinue {
+            top: vec![crate::effect::Effect {
+                kind: crate::effect::EffectKind::SelectMapNode,
+                source: None,
+                targeting: crate::effect::Targeting::Resolve {
+                    candidates: crate::effect::CandidatePool::MapNodeNextRow,
+                    selection: crate::effect::SelectionKind::Input { count: 1 },
+                },
+            }],
+            bot: Vec::new(),
+        }
     }
 }

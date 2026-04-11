@@ -1,5 +1,5 @@
 use crate::consts::{FACTOR_VULN, FACTOR_WEAK};
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{Effect, EffectKind, Targeting};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::types::EntityId;
@@ -37,7 +37,7 @@ pub fn process_effect_damage_physical(
                     amount: final_damage,
                 },
                 source: None,
-                target: Some(target),
+                targeting: Targeting::Direct(Some(target)),
             }],
             bot: Vec::new(),
         }

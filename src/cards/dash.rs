@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Candidates, EffectKind, EffectTemplate, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -16,19 +16,21 @@ pub static DASH: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::BlockGain { amount: 10 },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical { base: 10 },
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
 };
@@ -44,23 +46,25 @@ pub static DASH_PLUS: Card = Card {
     innate: false,
     requires_target: true,
     effects: &[
-        EffectTemplate {
+        Effect {
             kind: EffectKind::BlockGain {
                 amount: 13, // +3 damage
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::Character,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
-            }),
+            },
         },
-        EffectTemplate {
+        Effect {
             kind: EffectKind::DamagePhysical {
                 base: 13, // +3 block
             },
-            targeting: Some(Targeting {
-                candidates: Candidates::CardTarget,
+            source: None,
+            targeting: Targeting::Resolve {
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
-            }),
+            },
         },
     ],
 };
