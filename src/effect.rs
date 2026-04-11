@@ -1,10 +1,7 @@
 use crate::modifier::ModifierKind;
 use crate::types::EntityId;
 
-// ---------------------------------------------------------------------------
 // EffectKind: the shared "what happens" enum, used by both templates and runtime
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
     DamagePhysical { base: u16 },
@@ -47,10 +44,7 @@ pub enum EffectKind {
     AwaitDiscard,
 }
 
-// ---------------------------------------------------------------------------
 // Targeting: abstract targeting for card/monster effect definitions
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Candidates {
     Hand,
@@ -73,20 +67,14 @@ pub struct Targeting {
     pub selection: SelectionKind,
 }
 
-// ---------------------------------------------------------------------------
 // EffectTemplate: card/monster effect definitions (abstract targeting)
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EffectTemplate {
     pub kind: EffectKind,
     pub targeting: Option<Targeting>,
 }
 
-// ---------------------------------------------------------------------------
 // Effect: runtime effect queued during gameplay (resolved entity IDs)
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effect {
     pub kind: EffectKind,

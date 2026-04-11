@@ -12,10 +12,7 @@ use crate::modifier::Modifiers;
 use crate::monsters::Monster;
 use crate::types::*;
 
-// ---------------------------------------------------------------------------
 // Vitals: physical combat state
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
     pub health: u16,
@@ -23,10 +20,7 @@ pub struct Vitals {
     pub block: u16,
 }
 
-// ---------------------------------------------------------------------------
 // Entity: the universal unit of identity
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone)]
 pub struct Entity {
     pub kind: EntityKind,
@@ -99,20 +93,14 @@ impl EntityKind {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Energy
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy)]
 pub struct Energy {
     pub current: u8,
     pub max: u8,
 }
 
-// ---------------------------------------------------------------------------
 // Map
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy)]
 pub struct MapNode {
     pub room_type: RoomType,
@@ -160,10 +148,7 @@ impl Map {
     }
 }
 
-// ---------------------------------------------------------------------------
 // GameState: the single source of truth
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone)]
 pub struct GameState {
     pub ascension: u8,

@@ -422,10 +422,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
     }
 }
 
-// ---------------------------------------------------------------------------
 // Queue processing loop
-// ---------------------------------------------------------------------------
-
 pub fn process_queue(state: &mut GameState) {
     while let Some(effect) = state.effect_queue.pop_front() {
         // Process the effect

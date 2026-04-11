@@ -14,10 +14,7 @@ use crate::map::generate_map;
 use crate::state::*;
 use crate::types::{EntityId, Phase, RoomType};
 
-// ---------------------------------------------------------------------------
 // Create + initialize
-// ---------------------------------------------------------------------------
-
 pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
 
@@ -68,10 +65,7 @@ pub fn initialize(state: &mut GameState) {
     state.phase = determine_phase(state);
 }
 
-// ---------------------------------------------------------------------------
 // Step
-// ---------------------------------------------------------------------------
-
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     let effects = handle_action(state, action)?;
     for e in effects {
@@ -82,10 +76,7 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
 // Phase determination
-// ---------------------------------------------------------------------------
-
 pub fn determine_phase(state: &GameState) -> Phase {
     if let Some(front) = state.effect_queue.front() {
         return match front.kind {

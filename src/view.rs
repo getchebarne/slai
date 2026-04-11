@@ -11,10 +11,7 @@ use crate::state::{Entity, GameState};
 use crate::types::EntityId;
 use crate::utils::get_alive_monster_ids;
 
-// ---------------------------------------------------------------------------
 // View types (PyO3 classes)
-// ---------------------------------------------------------------------------
-
 #[pyclass(frozen, get_all)]
 #[derive(Debug, Clone)]
 pub struct ViewEffectTemplate {
@@ -115,10 +112,7 @@ pub struct ViewGameState {
     pub phase: String,
 }
 
-// ---------------------------------------------------------------------------
 // Build functions
-// ---------------------------------------------------------------------------
-
 pub fn build_view(state: &GameState) -> ViewGameState {
     ViewGameState {
         character: build_view_character(state),
