@@ -46,8 +46,7 @@ pub enum ProcessEffectResult {
     Halt(HaltReason),
 }
 
-// HaltReason: why `process_queue` stopped running. Ephemeral — returned from
-// `process_queue`, converted to `Phase`, then discarded. Never stored on `GameState`.
+// HaltReason: why `process_queue` stopped running
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HaltReason {
     GameOver,

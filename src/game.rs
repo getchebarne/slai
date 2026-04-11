@@ -57,13 +57,20 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
 // Step
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
+    // Get effects from action handler
     let effects = handle_action(state, action)?;
+
+    // Put effects into the queue in order
     for effect in effects {
         state.effect_queue.push_back(effect);
     }
-    let halt = process_queue(state);
+
+    // Process the queue, get back an (optional) halt reason
+    let halt_reason = process_queue(state);
+
+    // Determine new phase
     let room_type_active = state.map.active_room_type();
-    state.phase = determine_phase(halt, room_type_active);
+    state.phase = determine_phase(halt_reason, room_type_active);
     Ok(())
 }
 
