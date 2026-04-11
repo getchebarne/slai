@@ -6,6 +6,8 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
+const STACKS_TERROR: i16 = 99;
+
 pub static TERROR: Card = Card {
     name: CardName::Terror,
     kind: CardKind::Skill,
@@ -19,7 +21,7 @@ pub static TERROR: Card = Card {
     effects: &[EffectTemplate {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vulnerable,
-            stacks: 99,
+            stacks: STACKS_TERROR,
         },
         targeting: Some(Targeting {
             candidates: Candidates::CardTarget,
@@ -41,7 +43,7 @@ pub static TERROR_PLUS: Card = Card {
     effects: &[EffectTemplate {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vulnerable,
-            stacks: 99,
+            stacks: STACKS_TERROR,
         },
         targeting: Some(Targeting {
             candidates: Candidates::CardTarget,

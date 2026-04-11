@@ -346,8 +346,10 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
 
     let moves: &'static [Move] = if ascension_level < 4 {
         &MOVES_ASC0
-    } else if ascension_level < 19 {
+    } else if ascension_level < 9 {
         &MOVES_ASC4
+    } else if ascension_level < 19 {
+        &MOVES_ASC9
     } else {
         &MOVES_ASC19
     };

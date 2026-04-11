@@ -1,10 +1,12 @@
 use crate::cards::{Card, get_card};
+use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::modifier::{Modifiers, modifiers_new};
 use crate::state::Vitals;
 use crate::types::CardName;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Character {
+    pub name: &'static str,
     pub vitals: Vitals,
     pub modifiers: Modifiers,
     pub reward_roll_offset: i8,
@@ -13,13 +15,14 @@ pub struct Character {
 pub fn spawn_silent(ascension: u8) -> Character {
     let (health, health_max) = silent_health(ascension);
     Character {
+        name: "Silent",
         vitals: Vitals {
             health,
             health_max,
             block: 0,
         },
         modifiers: modifiers_new(),
-        reward_roll_offset: 5,
+        reward_roll_offset: CARD_REWARD_ROLL_OFFSET_BASE,
     }
 }
 

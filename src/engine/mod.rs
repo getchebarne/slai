@@ -152,10 +152,7 @@ pub fn instantiate_templates(
     out
 }
 
-// ---------------------------------------------------------------------------
-// Dispatch
-// ---------------------------------------------------------------------------
-
+// Dispatcher
 pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectResult {
     match effect.kind {
         EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
@@ -173,6 +170,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
                 state.card_target,
                 state.character,
                 &state.entities,
+                &state.hand,
                 &alive,
                 &mut state.rng,
             )
@@ -206,9 +204,9 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(&state.hand)
         }
-        EffectKind::CardUpgrade { deck_idx } => {
+        EffectKind::CardUpgrade { idx_deck } => {
             process_effect_card_upgrade::process_effect_card_upgrade(
-                deck_idx,
+                idx_deck,
                 &state.deck,
                 &mut state.entities,
             )
@@ -266,7 +264,11 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectRes
             let target = effect.target.unwrap();
             let (vitals, modifiers) = state.entities[target.0 as usize].kind.combatant_mut();
             process_effect_health_loss::process_effect_health_loss(
-                vitals, modifiers, target, amount,
+                vitals,
+                modifiers,
+                target,
+                state.character,
+                amount,
             )
         }
         EffectKind::BlockGain { amount } => {

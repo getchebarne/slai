@@ -1,6 +1,6 @@
 // Action handling: player input -> effects.
 
-use crate::consts::{MAP_HEIGHT, REST_SITE_HEAL_FACTOR};
+use crate::consts::{MAP_HEIGHT, MAP_WIDTH, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind};
 use crate::state::{GameState, Map};
 use crate::types::{EntityId, Phase};
@@ -24,7 +24,7 @@ pub enum Action {
     CardRewardSkip,
     EndTurn,
     MapNodeSelect {
-        idx_row: usize,
+        idx_column: usize,
     },
     RestSiteRest,
 }
@@ -59,7 +59,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::CardRewardSelect { idx_reward } => handle_card_reward_select(state, idx_reward),
         Action::CardRewardSkip => Ok(handle_card_reward_skip(state)),
         Action::EndTurn => Ok(handle_end_turn(state)),
-        Action::MapNodeSelect { idx_row } => Ok(handle_map_node_select(state, idx_row)),
+        Action::MapNodeSelect { idx_column } => handle_map_node_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
     }
 }
@@ -114,7 +114,7 @@ fn handle_card_play(
         ));
     }
 
-    // Resolver target if needed
+    // Resolve target if needed
     if card.requires_target {
         match idx_monster {
             Some(idx_monster) => {
@@ -171,26 +171,47 @@ fn handle_card_discard(state: &mut GameState, idx_hand: usize) -> Result<Vec<Eff
     }])
 }
 
-fn handle_map_node_select(state: &mut GameState, idx_row: usize) -> Vec<Effect> {
+fn handle_map_node_select(
+    state: &mut GameState,
+    idx_column: usize,
+) -> Result<Vec<Effect>, String> {
+    if idx_column >= MAP_WIDTH {
+        return Err(format!("Invalid column {}: max is {}", idx_column, MAP_WIDTH - 1));
+    }
+
+    // Compute next y-coordinate
+    let y_next = match state.map.y_current {
+        None => 0,
+        Some(y) => y + 1,
+    };
+
+    // Validate node exists
+    if state.map.nodes[y_next][idx_column].is_none() {
+        return Err(format!("No node at ({}, {})", y_next, idx_column));
+    }
+
+    // Validate edge from current node (skip for first move)
+    if let Some(y) = state.map.y_current {
+        let x = state.map.x_current.unwrap();
+        let current_node = state.map.nodes[y][x].as_ref().unwrap();
+        if !current_node.has_edge(idx_column) {
+            return Err(format!("No edge from ({}, {}) to ({}, {})", y, x, y_next, idx_column));
+        }
+    }
+
     // TODO: revisit halting effects
     state.effect_queue.pop_front();
 
-    // Get next y-coordinate
-    let y_next = match state.map.y_current {
-        None => 0,
-        Some(y_current) => y_current + 1,
-    };
-
     // Update coordinates
     state.map.y_current = Some(y_next);
-    state.map.x_current = Some(idx_row);
+    state.map.x_current = Some(idx_column);
 
     // Return effect to enter the room
-    vec![Effect {
+    Ok(vec![Effect {
         kind: EffectKind::RoomEnter,
         source: None,
         target: None,
-    }]
+    }])
 }
 
 fn handle_card_reward_select(
@@ -265,7 +286,7 @@ fn handle_rest_site_card_upgrade(
     // Return effects to upgrade the card and exit the rest site
     Ok(vec![
         Effect {
-            kind: EffectKind::CardUpgrade { deck_idx: idx_deck },
+            kind: EffectKind::CardUpgrade { idx_deck },
             source: None,
             target: None,
         },

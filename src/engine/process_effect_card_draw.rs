@@ -9,14 +9,14 @@ pub fn process_effect_card_draw(
     count: u8,
     draw_pile: &mut Vec<EntityId>,
     hand: &mut Vec<EntityId>,
-    disc_pile: &mut Vec<EntityId>,
+    discard_pile: &mut Vec<EntityId>,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     for _ in 0..count {
         if draw_pile.is_empty() {
             // Move discard pile cards to draw pile & shuffle draw pile
             // TODO: this should create a shuffle effect
-            draw_pile.append(disc_pile);
+            draw_pile.append(discard_pile);
             shuffle(draw_pile, rng);
         }
 
@@ -31,7 +31,7 @@ pub fn process_effect_card_draw(
         if hand.len() < MAX_SIZE_HAND {
             hand.push(id_card);
         } else {
-            disc_pile.push(id_card);
+            discard_pile.push(id_card);
         }
     }
 

@@ -8,7 +8,7 @@ pub fn process_effect_add_shivs(
     count: u8,
     entities: &mut Vec<Entity>,
     hand: &mut Vec<EntityId>,
-    disc_pile: &mut Vec<EntityId>,
+    discard_pile: &mut Vec<EntityId>,
 ) -> ProcessEffectResult {
     let shiv = get_card(CardName::Shiv, false);
 
@@ -22,7 +22,7 @@ pub fn process_effect_add_shivs(
         if hand.len() < MAX_SIZE_HAND {
             hand.push(id_card)
         } else {
-            disc_pile.push(id_card)
+            discard_pile.push(id_card)
         }
     }
 

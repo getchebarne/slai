@@ -10,6 +10,7 @@ pub fn process_effect_health_loss(
     vitals: &mut Vitals,
     modifiers: &mut Modifiers,
     target: EntityId,
+    character: EntityId,
     amount: u16,
 ) -> ProcessEffectResult {
     vitals.health = vitals.health.saturating_sub(amount);
@@ -22,12 +23,13 @@ pub fn process_effect_health_loss(
             source: None,
             target: Some(target),
         });
+
     // Modifier / ModeShift (damage reduces stacks, triggers move update on break)
     } else if modifier_has(modifiers, ModifierKind::ModeShift) {
         let new_stacks = modifier_stacks(modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(modifiers, ModifierKind::ModeShift);
-            if target.0 != 0 {
+            if target != character {
                 effects.push(Effect {
                     kind: EffectKind::MoveUpdate,
                     source: None,

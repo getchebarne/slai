@@ -161,7 +161,7 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
         });
     }
     if let Ok(a) = py_action.extract::<ActionMapNodeSelect>() {
-        return Ok(Action::MapNodeSelect { idx_row: a.column });
+        return Ok(Action::MapNodeSelect { idx_column: a.column });
     }
     if let Ok(a) = py_action.extract::<ActionCardRewardSelect>() {
         return Ok(Action::CardRewardSelect {

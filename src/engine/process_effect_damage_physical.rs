@@ -29,7 +29,7 @@ pub fn process_effect_damage_physical(
     }
 
     // Emit DamageDeal if positive
-    let final_damage = value as u16;
+    let final_damage = value.max(0.0) as u16;
     if final_damage > 0 {
         ProcessEffectResult::AddAndContinue {
             top: vec![Effect {

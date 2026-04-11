@@ -15,12 +15,13 @@ pub fn process_effect_card_play(
     id_card_target: Option<EntityId>,
     character: EntityId,
     entities: &[Entity],
+    hand: &[EntityId],
     alive_monsters: &[EntityId],
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     let card = entities[id_card.0 as usize].kind.card_ref();
 
-    // Create emtpy container for top effects
+    // Create empty container for top effects
     let mut top_effects = Vec::new();
 
     // Push top effects. Start w/ energy loss
@@ -97,12 +98,12 @@ pub fn process_effect_card_play(
         }
     }
 
-    // Instante card's effect templates
+    // Instantiate card's effect templates
     let card_effects = instantiate_templates(
         card.effects,
         character,
         character,
-        &[],
+        hand,
         id_card_target,
         alive_monsters,
         rng,
@@ -126,7 +127,7 @@ pub fn process_effect_card_play(
 
     // Add and continue
     ProcessEffectResult::AddAndContinue {
-        bot: Vec::new(),
         top: top_effects,
+        bot: Vec::new(),
     }
 }

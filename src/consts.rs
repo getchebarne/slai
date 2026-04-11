@@ -19,7 +19,6 @@ pub const MAP_HEIGHT: usize = 15;
 pub const MAP_WIDTH: usize = 7;
 pub const PATH_DENSITY: usize = 6;
 pub const ANCESTOR_GAP_MIN: usize = 3;
-pub const ANCESTOR_GAP_MAX: usize = 5;
 pub const FACTOR_NUM_REST_SITE: f32 = 0.25;
 
 // Rest site

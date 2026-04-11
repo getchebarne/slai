@@ -1,4 +1,5 @@
-// Map generation: ported from map_.py.
+// Map generation
+// TODO: check if this is the exact same logic from the de-compiled original Java code
 
 use rand::Rng;
 
@@ -86,9 +87,7 @@ fn create_target(
         if py == y_source && px == x_source {
             continue;
         }
-        if let Some(ancestor) =
-            get_common_ancestor((py, px), (y_source, x_source), nodes, ANCESTOR_GAP_MAX)
-        {
+        if let Some(ancestor) = get_common_ancestor((py, px), (y_source, x_source), nodes) {
             let ancestor_gap = y_target - ancestor.0;
             if ancestor_gap < ANCESTOR_GAP_MIN {
                 let new_offset = if x_target > x_source {
@@ -150,36 +149,18 @@ fn get_common_ancestor(
     node1: (usize, usize),
     node2: (usize, usize),
     nodes: &Grid,
-    max_gap: usize,
 ) -> Option<(usize, usize)> {
     if node1.0 != node2.0 || node1.1 == node2.1 {
         return None;
     }
 
-    let (left, right) = if node1.1 < node2.1 {
-        (node1, node2)
-    } else {
-        (node2, node1)
-    };
+    let parents_a = get_node_parents(node1.0, node1.1, nodes);
+    let parents_b = get_node_parents(node2.0, node2.1, nodes);
 
-    let parents_left = get_node_parents(left.0, left.1, nodes);
-    if parents_left.is_empty() {
-        return None;
-    }
-    let parents_right = get_node_parents(right.0, right.1, nodes);
-    if parents_right.is_empty() {
-        return None;
-    }
-
-    let mut y_cur = node1.0;
-    let y_min = node1.0.saturating_sub(max_gap);
-    while y_cur >= y_min && y_cur > 0 {
-        let pl = parents_left.iter().max_by_key(|p| p.1)?;
-        let pr = parents_right.iter().min_by_key(|p| p.1)?;
-        if pl == pr {
-            return Some(*pl);
+    for pa in &parents_a {
+        if parents_b.contains(pa) {
+            return Some(*pa);
         }
-        y_cur -= 1;
     }
     None
 }

@@ -52,7 +52,8 @@ pub fn process_effect_turn_start(
             source: None,
             target: None,
         });
-        let energy_gain = energy.max - energy.current;
+        // TODO: may need a "reset energy" effect
+        let energy_gain = energy.max.saturating_sub(energy.current);
         effects.push(Effect {
             kind: EffectKind::EnergyGain {
                 amount: energy_gain,
