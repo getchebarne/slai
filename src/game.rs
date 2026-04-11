@@ -68,8 +68,8 @@ pub fn initialize(state: &mut GameState) {
 // Step
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     let effects = handle_action(state, action)?;
-    for e in effects {
-        state.effect_queue.push_back(e);
+    for effect in effects {
+        state.effect_queue.push_back(effect);
     }
     process_queue(state);
     state.phase = determine_phase(state);
@@ -78,13 +78,13 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
 
 // Phase determination
 pub fn determine_phase(state: &GameState) -> Phase {
-    if let Some(front) = state.effect_queue.front() {
-        return match front.kind {
+    if let Some(effect) = state.effect_queue.front() {
+        return match effect.kind {
             EffectKind::GameEnd => Phase::GameOver,
             EffectKind::AwaitDiscard => Phase::CombatAwaitDiscard,
             EffectKind::AwaitMapNode => Phase::Map,
             EffectKind::AwaitCardReward => Phase::CardReward,
-            _ => panic!("Unexpected pending effect: {:?}", front),
+            _ => panic!("Unexpected pending effect: {:?}", effect),
         };
     }
 
