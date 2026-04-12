@@ -1,7 +1,7 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_clear;
-use crate::state::{Entity, Map};
+use crate::state::{Entity, EntityKind, Map};
 use crate::types::{EntityId, RoomType};
 
 pub fn process_effect_combat_end(
@@ -26,7 +26,8 @@ pub fn process_effect_combat_end(
     let room = map.active_room_type(entities).unwrap();
 
     // Clear character modifiers and monsters
-    let (_, modifiers) = entities[character.0 as usize].kind.combatant_mut();
+    let EntityKind::Character(c) = &mut entities[character.0 as usize].kind else { unreachable!() };
+    let modifiers = &mut c.modifiers;
     modifier_clear(modifiers);
     *monster_count = 0;
     match room {

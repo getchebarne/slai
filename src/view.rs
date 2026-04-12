@@ -12,7 +12,7 @@ use crate::consts::FACTOR_VULN;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::monsters::Intent;
-use crate::state::{Entity, GameState};
+use crate::state::{Entity, EntityKind, GameState};
 use crate::types::{EntityId, Phase};
 use crate::utils::get_alive_monster_ids;
 
@@ -298,7 +298,7 @@ pub fn build_view(py: Python<'_>, state: &GameState) -> ViewGameState {
             .deck
             .iter()
             .map(|&id| {
-                let card = state.entities[id.0 as usize].kind.card_ref();
+                let EntityKind::Card(card) = & state.entities[id.0 as usize].kind else { unreachable!() };
                 wrap(build_view_card_template(py, card))
             })
             .collect(),
@@ -306,7 +306,7 @@ pub fn build_view(py: Python<'_>, state: &GameState) -> ViewGameState {
             .hand
             .iter()
             .map(|&id| {
-                let card = state.entities[id.0 as usize].kind.card_ref();
+                let EntityKind::Card(card) = & state.entities[id.0 as usize].kind else { unreachable!() };
                 wrap(build_view_card_template(py, card))
             })
             .collect(),
@@ -317,7 +317,7 @@ pub fn build_view(py: Python<'_>, state: &GameState) -> ViewGameState {
             .card_rewards
             .iter()
             .map(|&id| {
-                let card = state.entities[id.0 as usize].kind.card_ref();
+                let EntityKind::Card(card) = & state.entities[id.0 as usize].kind else { unreachable!() };
                 wrap(build_view_card_template(py, card))
             })
             .collect(),
@@ -348,16 +348,16 @@ pub fn phase_variant_name(phase: Phase) -> String {
 fn build_view_pile(py: Python<'_>, entities: &[Entity], pile: &[EntityId]) -> Vec<Py<ViewCard>> {
     pile.iter()
         .map(|&id| {
-            let card = entities[id.0 as usize].kind.card_ref();
+            let EntityKind::Card(card) = & entities[id.0 as usize].kind else { unreachable!() };
             Py::new(py, build_view_card_template(py, card)).unwrap()
         })
         .collect()
 }
 
 fn build_view_character(state: &GameState) -> ViewCharacter {
-    let character = state.entities[state.character.0 as usize]
-        .kind
-        .character_ref();
+    let EntityKind::Character(character) = &state.entities[state.character.0 as usize].kind else {
+        unreachable!()
+    };
     ViewCharacter {
         name: character.name.to_string(),
         health_current: character.vitals.health,
@@ -369,14 +369,13 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
 }
 
 fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
-    let (_, character_modifiers) = state.entities[state.character.0 as usize]
-        .kind
-        .combatant_ref();
+    let EntityKind::Character(c) = &state.entities[state.character.0 as usize].kind else { unreachable!() };
+    let character_modifiers = &c.modifiers;
 
     get_alive_monster_ids(state)
         .iter()
         .map(|&mid| {
-            let m = state.entities[mid.0 as usize].kind.monster_ref();
+            let EntityKind::Monster(m) = & state.entities[mid.0 as usize].kind else { unreachable!() };
 
             let intent = if let Some(move_idx) = m.move_current {
                 let mv = &m.moves[move_idx];
@@ -618,7 +617,7 @@ fn build_view_map(state: &GameState) -> ViewMap {
             row.iter()
                 .map(|cell| {
                     cell.map(|id| {
-                        let node = state.entities[id.0 as usize].kind.map_node_ref();
+                        let EntityKind::MapNode(node) = & state.entities[id.0 as usize].kind else { unreachable!() };
                         ViewMapNode {
                             room_type: format!("{:?}", node.room_type),
                             edges: node.edge_indices().collect(),

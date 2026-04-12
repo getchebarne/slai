@@ -2,9 +2,9 @@
 
 use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
-use crate::state::GameState;
 use crate::types::{EntityId, Phase};
 use crate::utils::get_alive_monster_ids;
+use crate::state::{EntityKind, GameState};
 
 #[derive(Debug, Clone)]
 pub enum Action {
@@ -88,7 +88,7 @@ fn handle_card_play(
     idx_monster: Option<usize>,
 ) -> Result<Vec<Effect>, String> {
     let id_card = validate_idx(&state.hand, idx_hand)?;
-    let card = state.entities[id_card.0 as usize].kind.card_ref();
+    let EntityKind::Card(card) = & state.entities[id_card.0 as usize].kind else { unreachable!() };
 
     // Check energy
     if card.cost > state.energy.current {
@@ -225,7 +225,8 @@ fn handle_card_reward_skip() -> Vec<Effect> {
 fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
     // Get character's vitals
     let id_character = state.character;
-    let (vitals, _) = state.entities[id_character.0 as usize].kind.combatant_ref();
+    let EntityKind::Character(c) = &state.entities[id_character.0 as usize].kind else { unreachable!() };
+    let vitals = &c.vitals;
 
     // Calculate heal amount
     let heal_amt = (REST_SITE_HEAL_FACTOR * vitals.health_max as f32) as u16;

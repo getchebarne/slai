@@ -3,7 +3,7 @@ use rand::Rng;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::state::{Entity, Vitals};
+use crate::state::{Entity, EntityKind, Vitals};
 use crate::types::EntityId;
 
 pub fn process_effect_turn_end_monster(
@@ -39,7 +39,8 @@ pub fn process_effect_turn_end_character(
     alive_monsters: &[EntityId],
     _rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let (_, character_modifiers) = entities[character.0 as usize].kind.combatant_ref();
+    let EntityKind::Character(c) = &entities[character.0 as usize].kind else { unreachable!() };
+    let character_modifiers = &c.modifiers;
     let mut effects = Vec::new();
 
     // Modifier / Ritual (skip if newly applied)
@@ -73,7 +74,7 @@ pub fn process_effect_turn_end_character(
 
     // Queue each monster's turn: start, execute move, update move, end
     for &mid in alive_monsters {
-        let m = entities[mid.0 as usize].kind.monster_ref();
+        let EntityKind::Monster(m) = & entities[mid.0 as usize].kind else { unreachable!() };
         effects.push(Effect {
             kind: EffectKind::TurnStart,
             source: None,

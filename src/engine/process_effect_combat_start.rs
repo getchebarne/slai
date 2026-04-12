@@ -24,7 +24,8 @@ pub fn process_effect_combat_start(
     let mut other_ids: Vec<EntityId> = Vec::new();
 
     for &deck_id in deck {
-        let card = *entities[deck_id.0 as usize].kind.card_ref();
+        let EntityKind::Card(card) = & entities[deck_id.0 as usize].kind else { unreachable!() };
+    let card = *card;
         let id = EntityId(entities.len() as u32);
         entities.push(Entity {
             kind: EntityKind::Card(card),

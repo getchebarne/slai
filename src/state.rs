@@ -8,7 +8,6 @@ use crate::cards::Card;
 use crate::character::Character;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::Effect;
-use crate::modifier::Modifiers;
 use crate::monsters::Monster;
 use crate::types::*;
 
@@ -32,74 +31,6 @@ pub enum EntityKind {
     Monster(Monster),
     Card(Card),
     MapNode(MapNode),
-}
-
-// TODO: dismantle this
-impl EntityKind {
-    pub fn combatant_mut(&mut self) -> (&mut Vitals, &mut Modifiers) {
-        match self {
-            EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-            EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-            _ => panic!("Not a combatant"),
-        }
-    }
-
-    pub fn combatant_ref(&self) -> (&Vitals, &Modifiers) {
-        match self {
-            EntityKind::Character(c) => (&c.vitals, &c.modifiers),
-            EntityKind::Monster(m) => (&m.vitals, &m.modifiers),
-            _ => panic!("Not a combatant"),
-        }
-    }
-
-    pub fn character_ref(&self) -> &Character {
-        match self {
-            EntityKind::Character(c) => c,
-            _ => panic!("Not a character"),
-        }
-    }
-
-    pub fn character_mut(&mut self) -> &mut Character {
-        match self {
-            EntityKind::Character(c) => c,
-            _ => panic!("Not a character"),
-        }
-    }
-
-    pub fn monster_ref(&self) -> &Monster {
-        match self {
-            EntityKind::Monster(m) => m,
-            _ => panic!("Not a monster"),
-        }
-    }
-
-    pub fn monster_mut(&mut self) -> &mut Monster {
-        match self {
-            EntityKind::Monster(m) => m,
-            _ => panic!("Not a monster"),
-        }
-    }
-
-    pub fn card_ref(&self) -> &Card {
-        match self {
-            EntityKind::Card(card) => card,
-            _ => panic!("Not a card"),
-        }
-    }
-
-    pub fn card_mut(&mut self) -> &mut Card {
-        match self {
-            EntityKind::Card(card) => card,
-            _ => panic!("Not a card"),
-        }
-    }
-
-    pub fn map_node_ref(&self) -> &MapNode {
-        match self {
-            EntityKind::MapNode(node) => node,
-            _ => panic!("Not a map node"),
-        }
-    }
 }
 
 // Energy
@@ -139,7 +70,10 @@ pub struct Map {
 impl Map {
     pub fn node_at<'a>(&self, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a MapNode> {
         let id = self.nodes[y][x]?;
-        Some(entities[id.0 as usize].kind.map_node_ref())
+        let EntityKind::MapNode(node) = &entities[id.0 as usize].kind else {
+            unreachable!()
+        };
+        Some(node)
     }
 
     pub fn active_node<'a>(&self, entities: &'a [Entity]) -> Option<&'a MapNode> {
@@ -186,7 +120,7 @@ pub struct GameState {
     // Energy
     pub energy: Energy,
 
-    // Entities
+    // Entities TODO: max entities?
     // --------
     pub entities: Vec<Entity>,
 

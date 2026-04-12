@@ -8,6 +8,7 @@ use crate::consts::{
 use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
+
 use crate::types::{CardName, EntityId};
 
 pub fn process_effect_card_reward_roll(
@@ -16,11 +17,10 @@ pub fn process_effect_card_reward_roll(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    // Read current roll offset
-    let mut reward_roll_offset = entities[character.0 as usize]
-        .kind
-        .character_ref()
-        .reward_roll_offset;
+    let EntityKind::Character(char_data) = &entities[character.0 as usize].kind else {
+        unreachable!()
+    };
+    let mut reward_roll_offset = char_data.reward_roll_offset;
     let mut rolled_card_names: Vec<CardName> = Vec::new();
 
     for _ in 0..MAX_COMBAT_CARD_REWARD {
@@ -54,11 +54,10 @@ pub fn process_effect_card_reward_roll(
         card_rewards.push(id);
     }
 
-    // Persist updated roll offset
-    entities[character.0 as usize]
-        .kind
-        .character_mut()
-        .reward_roll_offset = reward_roll_offset;
+    let EntityKind::Character(char_data) = &mut entities[character.0 as usize].kind else {
+        unreachable!()
+    };
+    char_data.reward_roll_offset = reward_roll_offset;
 
     ProcessEffectResult::AddAndContinue {
         top: vec![Effect::direct(EffectKind::AwaitCardReward, None, None)],
