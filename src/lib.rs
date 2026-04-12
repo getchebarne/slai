@@ -61,13 +61,13 @@ impl ActionEndTurn {
 
 #[pyclass(frozen)]
 #[derive(Clone)]
-struct ActionInputResolve {
+struct ActionCardDiscard {
     #[pyo3(get)]
     indices: Vec<usize>,
 }
 
 #[pymethods]
-impl ActionInputResolve {
+impl ActionCardDiscard {
     #[new]
     fn new(indices: Vec<usize>) -> Self {
         Self { indices }
@@ -155,7 +155,7 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
     if py_action.extract::<ActionEndTurn>().is_ok() {
         return Ok(Action::EndTurn);
     }
-    if let Ok(a) = py_action.extract::<ActionInputResolve>() {
+    if let Ok(a) = py_action.extract::<ActionCardDiscard>() {
         return Ok(Action::CardDiscard {
             idx_hand: a.indices,
         });
@@ -229,14 +229,13 @@ impl GameEnv {
     }
 }
 
-// ---- Module ----
-
+// Module
 #[pymodule]
 fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<GameEnv>()?;
     m.add_class::<ActionCardPlay>()?;
     m.add_class::<ActionEndTurn>()?;
-    m.add_class::<ActionInputResolve>()?;
+    m.add_class::<ActionCardDiscard>()?;
     m.add_class::<ActionMapNodeSelect>()?;
     m.add_class::<ActionCardRewardSelect>()?;
     m.add_class::<ActionCardRewardSkip>()?;
