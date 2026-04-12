@@ -1,8 +1,7 @@
 // Action handling: player input -> effects.
 
 use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
-use crate::effect::{Effect, EffectKind, SelectionKind, Target};
-use crate::engine::resolve_candidates;
+use crate::effect::{Effect, EffectKind, Target};
 use crate::state::GameState;
 use crate::types::{EntityId, Phase};
 use crate::utils::get_alive_monster_ids;
