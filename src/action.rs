@@ -147,19 +147,16 @@ fn handle_card_play(
 }
 
 fn handle_card_discard(state: &GameState, idx_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
-    // TODO: add support for multiple discards
-    let id_target = Some(state.hand[idx_hand[0]]);
-
-    // No AwaitCombatAction needed here — the card-play effect chain that
-    // triggered the discard prompt already has one queued after it.
-    Ok(vec![
-        Effect {
-            kind: EffectKind::CardDiscard,
-            source: None,
-            target: Target::Direct(id_target),
-        },
-        Effect::direct(EffectKind::AwaitCombatAction, None, None),
-    ])
+    let mut effects = Vec::with_capacity(idx_hand.len() + 1);
+    for &idx in &idx_hand {
+        let id = *state
+            .hand
+            .get(idx)
+            .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.hand.len()))?;
+        effects.push(Effect::direct(EffectKind::CardDiscard, None, Some(id)));
+    }
+    effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
+    Ok(effects)
 }
 
 fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect>, String> {
