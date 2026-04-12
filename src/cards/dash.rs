@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -19,7 +19,7 @@ pub static DASH: Card = Card {
         Effect {
             kind: EffectKind::BlockGain { amount: 10 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
@@ -27,7 +27,7 @@ pub static DASH: Card = Card {
         Effect {
             kind: EffectKind::DamagePhysical { base: 10 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
             },
@@ -51,7 +51,7 @@ pub static DASH_PLUS: Card = Card {
                 amount: 13, // +3 damage
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
@@ -61,7 +61,7 @@ pub static DASH_PLUS: Card = Card {
                 base: 13, // +3 block
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
             },

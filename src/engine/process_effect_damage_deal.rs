@@ -1,4 +1,4 @@
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::state::Vitals;
 use crate::types::EntityId;
@@ -19,7 +19,7 @@ pub fn process_effect_damage_deal(
                     amount: damage_over_block,
                 },
                 source: None,
-                targeting: Targeting::Direct(Some(target)),
+                target: Target::Direct(Some(target)),
             }],
             bot: Vec::new(),
         }

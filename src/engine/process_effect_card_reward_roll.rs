@@ -61,14 +61,14 @@ pub fn process_effect_card_reward_roll(
 
     // Halt and wait for player's card reward selection
     ProcessEffectResult::AddAndContinue {
-            top: vec![crate::effect::Effect {
-                kind: crate::effect::EffectKind::SelectCardReward,
-                source: None,
-                targeting: crate::effect::Targeting::Resolve {
-                    candidates: crate::effect::CandidatePool::CardRewardPool,
-                    selection: crate::effect::SelectionKind::Input { count: 1 },
-                },
-            }],
-            bot: Vec::new(),
-        }
+        top: vec![crate::effect::Effect {
+            kind: crate::effect::EffectKind::SelectCardReward,
+            source: None,
+            target: crate::effect::Target::Resolve {
+                candidates: crate::effect::CandidatePool::CardRewardPool,
+                selection: crate::effect::SelectionKind::Input { count: 1 },
+            },
+        }],
+        bot: Vec::new(),
+    }
 }

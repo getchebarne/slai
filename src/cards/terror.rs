@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -24,7 +24,7 @@ pub static TERROR: Card = Card {
             stacks: STACKS_TERROR,
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
         },
@@ -47,7 +47,7 @@ pub static TERROR_PLUS: Card = Card {
             stacks: STACKS_TERROR,
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
         },

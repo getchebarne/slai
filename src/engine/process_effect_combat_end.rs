@@ -1,4 +1,4 @@
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_clear;
 use crate::state::{Entity, Map};
@@ -39,7 +39,7 @@ pub fn process_effect_combat_end(
             bot: vec![Effect {
                 kind: EffectKind::CardRewardRoll,
                 source: None,
-                targeting: Targeting::Direct(None),
+                target: Target::Direct(None),
             }],
         },
         RoomType::RestSite => unreachable!("combat end in rest site"),

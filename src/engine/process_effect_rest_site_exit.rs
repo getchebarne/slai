@@ -1,5 +1,5 @@
 use crate::consts::MAP_HEIGHT;
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::state::Map;
 
@@ -12,7 +12,7 @@ pub fn process_effect_rest_site_exit(map: &mut Map) -> ProcessEffectResult {
             top: vec![Effect {
                 kind: EffectKind::RoomEnter,
                 source: None,
-                targeting: Targeting::Direct(None),
+                target: Target::Direct(None),
             }],
             bot: Vec::new(),
         }
@@ -22,7 +22,7 @@ pub fn process_effect_rest_site_exit(map: &mut Map) -> ProcessEffectResult {
             top: vec![crate::effect::Effect {
                 kind: crate::effect::EffectKind::SelectMapNode,
                 source: None,
-                targeting: crate::effect::Targeting::Resolve {
+                target: crate::effect::Target::Resolve {
                     candidates: crate::effect::CandidatePool::MapNodeNextRow,
                     selection: crate::effect::SelectionKind::Input { count: 1 },
                 },

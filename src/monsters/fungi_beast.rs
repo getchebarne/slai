@@ -1,8 +1,8 @@
 use crate::effect::CandidatePool;
-use crate::effect::EffectKind;
 use crate::effect::Effect;
+use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
-use crate::effect::Targeting;
+use crate::effect::Target;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_apply;
 use crate::modifier::modifiers_new;
@@ -20,7 +20,7 @@ static MOVE_BITE: Move = Move {
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 6 },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },
@@ -38,7 +38,7 @@ static MOVE_GROW_3: Move = Move {
             stacks: 3,
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,
         },
@@ -53,7 +53,7 @@ static MOVE_GROW_4: Move = Move {
             stacks: 4,
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,
         },
@@ -68,7 +68,7 @@ static MOVE_GROW_5: Move = Move {
             stacks: 5,
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,
         },

@@ -1,7 +1,7 @@
 // Action handling: player input -> effects.
 
 use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
-use crate::effect::{Effect, EffectKind, SelectionKind, Targeting};
+use crate::effect::{Effect, EffectKind, SelectionKind, Target};
 use crate::engine::resolve_candidates;
 use crate::state::GameState;
 use crate::types::{EntityId, Phase};
@@ -77,7 +77,7 @@ fn handle_end_turn(state: &GameState) -> Vec<Effect> {
     vec![Effect {
         kind: EffectKind::TurnEnd,
         source: None,
-        targeting: Targeting::Direct(Some(state.character)),
+        target: Target::Direct(Some(state.character)),
     }]
 }
 
@@ -111,17 +111,17 @@ fn handle_card_play(
                     Effect {
                         kind: EffectKind::TargetSet,
                         source: None,
-                        targeting: Targeting::Direct(Some(id_monster_target)),
+                        target: Target::Direct(Some(id_monster_target)),
                     },
                     Effect {
                         kind: EffectKind::CardPlay,
                         source: None,
-                        targeting: Targeting::Direct(Some(id_card)),
+                        target: Target::Direct(Some(id_card)),
                     },
                     Effect {
                         kind: EffectKind::TargetClear,
                         source: None,
-                        targeting: Targeting::Direct(None),
+                        target: Target::Direct(None),
                     },
                 ])
             }
@@ -135,7 +135,7 @@ fn handle_card_play(
         Ok(vec![Effect {
             kind: EffectKind::CardPlay,
             source: None,
-            targeting: Targeting::Direct(Some(id_card)),
+            target: Target::Direct(Some(id_card)),
         }])
     }
 }
@@ -148,8 +148,8 @@ fn handle_input_resolve(state: &GameState, indices: Vec<usize>) -> Result<Vec<Ef
         .front()
         .ok_or_else(|| "No halt effect at queue front".to_string())?;
 
-    let (candidates, count) = match unresolved.targeting {
-        Targeting::Resolve {
+    let (candidates, count) = match unresolved.target {
+        Target::Resolve {
             candidates,
             selection: SelectionKind::Input { count },
         } => (candidates, count),
@@ -183,7 +183,7 @@ fn handle_input_resolve(state: &GameState, indices: Vec<usize>) -> Result<Vec<Ef
         effects.push(Effect {
             kind: unresolved.kind,
             source: unresolved.source,
-            targeting: Targeting::Direct(Some(target)),
+            target: Target::Direct(Some(target)),
         });
     }
 
@@ -250,7 +250,7 @@ fn handle_card_reward_skip() -> Vec<Effect> {
     vec![Effect {
         kind: EffectKind::CardRewardClear,
         source: None,
-        targeting: Targeting::Direct(None),
+        target: Target::Direct(None),
     }]
 }
 
@@ -267,12 +267,12 @@ fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
         Effect {
             kind: EffectKind::HealthGain { amount: heal_amt },
             source: None,
-            targeting: Targeting::Direct(Some(id_character)),
+            target: Target::Direct(Some(id_character)),
         },
         Effect {
             kind: EffectKind::RestSiteExit,
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
     ]
 }

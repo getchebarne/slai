@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Target};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -22,7 +22,7 @@ pub static OUTMANEUVER: Card = Card {
             stacks: 2,
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },
@@ -45,7 +45,7 @@ pub static OUTMANEUVER_PLUS: Card = Card {
             stacks: 3, // +1 next-turn-energy
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },

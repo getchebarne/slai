@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -18,7 +18,7 @@ pub static BACKSTAB: Card = Card {
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 11 },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
         },
@@ -38,7 +38,7 @@ pub static BACKSTAB_PLUS: Card = Card {
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 15 }, // +4 damage
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
         },

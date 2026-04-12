@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -18,7 +18,7 @@ pub static STRIKE: Card = Card {
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 6 },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
         },
@@ -38,7 +38,7 @@ pub static STRIKE_PLUS: Card = Card {
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 9 }, // +3 damage
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
         },

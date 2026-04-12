@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -18,7 +18,7 @@ pub static DIE_DIE_DIE: Card = Card {
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 13 },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Monsters,
             selection: SelectionKind::All,
         },
@@ -40,7 +40,7 @@ pub static DIE_DIE_DIE_PLUS: Card = Card {
             base: 17, // +4 damage
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Monsters,
             selection: SelectionKind::All,
         },

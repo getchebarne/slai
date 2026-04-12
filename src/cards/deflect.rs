@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -18,7 +18,7 @@ pub static DEFLECT: Card = Card {
     effects: &[Effect {
         kind: EffectKind::BlockGain { amount: 4 },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },
@@ -40,7 +40,7 @@ pub static DEFLECT_PLUS: Card = Card {
             amount: 7, // +3 block
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },

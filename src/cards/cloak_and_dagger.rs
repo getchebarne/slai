@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -19,7 +19,7 @@ pub static CLOAK_AND_DAGGER: Card = Card {
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
@@ -27,7 +27,7 @@ pub static CLOAK_AND_DAGGER: Card = Card {
         Effect {
             kind: EffectKind::AddShivs { count: 1 },
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
     ],
 };
@@ -46,7 +46,7 @@ pub static CLOAK_AND_DAGGER_PLUS: Card = Card {
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
@@ -54,7 +54,7 @@ pub static CLOAK_AND_DAGGER_PLUS: Card = Card {
         Effect {
             kind: EffectKind::AddShivs { count: 2 }, // +1 shiv
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
     ],
 };

@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -19,7 +19,7 @@ pub static DAGGER_THROW: Card = Card {
         Effect {
             kind: EffectKind::DamagePhysical { base: 9 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
             },
@@ -27,12 +27,12 @@ pub static DAGGER_THROW: Card = Card {
         Effect {
             kind: EffectKind::CardDraw { count: 1 },
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
             },
@@ -54,7 +54,7 @@ pub static DAGGER_THROW_PLUS: Card = Card {
         Effect {
             kind: EffectKind::DamagePhysical { base: 12 }, // +3 damage
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
             },
@@ -62,12 +62,12 @@ pub static DAGGER_THROW_PLUS: Card = Card {
         Effect {
             kind: EffectKind::CardDraw { count: 1 },
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
             },

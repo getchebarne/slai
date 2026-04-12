@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -19,7 +19,7 @@ pub static ALL_OUT_ATTACK: Card = Card {
         Effect {
             kind: EffectKind::DamagePhysical { base: 10 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Monsters,
                 selection: SelectionKind::All,
             },
@@ -27,7 +27,7 @@ pub static ALL_OUT_ATTACK: Card = Card {
         Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Random { count: 1 },
             },
@@ -51,7 +51,7 @@ pub static ALL_OUT_ATTACK_PLUS: Card = Card {
                 base: 14, // +4 damage
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Monsters,
                 selection: SelectionKind::All,
             },
@@ -59,7 +59,7 @@ pub static ALL_OUT_ATTACK_PLUS: Card = Card {
         Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Random { count: 1 },
             },

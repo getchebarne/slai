@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -18,7 +18,7 @@ pub static BLADE_DANCE: Card = Card {
     effects: &[Effect {
         kind: EffectKind::AddShivs { count: 3 },
         source: None,
-        targeting: Targeting::Direct(None),
+        target: Target::Direct(None),
     }],
 };
 // Upgraded
@@ -35,6 +35,6 @@ pub static BLADE_DANCE_PLUS: Card = Card {
     effects: &[Effect {
         kind: EffectKind::AddShivs { count: 4 }, // +1 shiv
         source: None,
-        targeting: Targeting::Direct(None),
+        target: Target::Direct(None),
     }],
 };

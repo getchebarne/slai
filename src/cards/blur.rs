@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Target};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -20,7 +20,7 @@ pub static BLUR: Card = Card {
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
@@ -31,7 +31,7 @@ pub static BLUR: Card = Card {
                 stacks: 1,
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
@@ -55,7 +55,7 @@ pub static BLUR_PLUS: Card = Card {
                 amount: 8, // +3 block
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
@@ -66,7 +66,7 @@ pub static BLUR_PLUS: Card = Card {
                 stacks: 1,
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },

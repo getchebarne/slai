@@ -20,8 +20,8 @@ mod view;
 use action::Action;
 use game::{create_game_state, step};
 use view::{
-    ViewCard, ViewCharacter, ViewEffect, ViewEnergy, ViewGameState, ViewIntent, ViewMap,
-    ViewMapNode, ViewModifier, ViewMonster, build_view,
+    ViewCard, ViewCharacter, ViewEnergy, ViewGameState, ViewIntent, ViewMap, ViewMapNode,
+    ViewModifier, ViewMonster, build_view,
 };
 
 // ---- Python action classes ----
@@ -201,21 +201,25 @@ impl GameEnv {
         GameEnv { state }
     }
 
-    fn get_view(&self) -> ViewGameState {
-        build_view(&self.state)
+    fn get_view(&self, py: Python<'_>) -> ViewGameState {
+        build_view(py, &self.state)
     }
 
-    fn step(&mut self, action: &Bound<'_, PyAny>) -> PyResult<(ViewGameState, bool)> {
+    fn step(
+        &mut self,
+        py: Python<'_>,
+        action: &Bound<'_, PyAny>,
+    ) -> PyResult<(ViewGameState, bool)> {
         let action = decode_action(action)?;
         step(&mut self.state, action).map_err(|e| pyo3::exceptions::PyValueError::new_err(e))?;
         let done = self.state.phase == types::Phase::GameOver;
-        Ok((build_view(&self.state), done))
+        Ok((build_view(py, &self.state), done))
     }
 
-    fn reset(&mut self, seed: u64) -> ViewGameState {
+    fn reset(&mut self, py: Python<'_>, seed: u64) -> ViewGameState {
         let asc = self.state.ascension;
         self.state = create_game_state(asc, seed);
-        build_view(&self.state)
+        build_view(py, &self.state)
     }
 
     fn phase(&self) -> u8 {
@@ -249,6 +253,19 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ViewMap>()?;
     m.add_class::<ViewMapNode>()?;
     m.add_class::<ViewModifier>()?;
-    m.add_class::<ViewEffect>()?;
+    // Selection variants
+    m.add_class::<view::ViewSelectionAll>()?;
+    m.add_class::<view::ViewSelectionRandom>()?;
+    m.add_class::<view::ViewSelectionInput>()?;
+    // Effect variants
+    m.add_class::<view::ViewDamagePhysical>()?;
+    m.add_class::<view::ViewBlockGain>()?;
+    m.add_class::<view::ViewModifierGain>()?;
+    m.add_class::<view::ViewModifierRemove>()?;
+    m.add_class::<view::ViewEnergyGain>()?;
+    m.add_class::<view::ViewAddShivs>()?;
+    m.add_class::<view::ViewCardDraw>()?;
+    m.add_class::<view::ViewCardDiscard>()?;
+    m.add_class::<view::ViewCalculatedGamble>()?;
     Ok(())
 }

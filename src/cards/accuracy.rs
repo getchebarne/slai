@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -22,7 +22,7 @@ pub static ACCURACY: Card = Card {
             stacks: 4,
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },
@@ -45,7 +45,7 @@ pub static ACCURACY_PLUS: Card = Card {
             stacks: 6, // +2 stacks
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },

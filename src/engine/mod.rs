@@ -34,13 +34,16 @@ pub mod process_effect_turn_start;
 use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::state::{Entity, EntityKind, GameState, Map};
 use crate::types::EntityId;
 use crate::utils::{get_alive_monster_ids, shuffle};
 
 pub enum ProcessEffectResult {
-    AddAndContinue { top: Vec<Effect>, bot: Vec<Effect> },
+    AddAndContinue {
+        top: Vec<Effect>,
+        bot: Vec<Effect>,
+    },
     Continue,
     Replace(Vec<Effect>),
     /// Unit variant: the effect stays at the queue front because the driver
@@ -119,8 +122,15 @@ fn resolve_targets(
     rng: &mut impl Rng,
 ) -> TargetResolution {
     let mut ids = resolve_candidates(
-        candidates, source, character, hand, card_target, alive_monsters,
-        map, entities, card_rewards,
+        candidates,
+        source,
+        character,
+        hand,
+        card_target,
+        alive_monsters,
+        map,
+        entities,
+        card_rewards,
     );
     match selection {
         SelectionKind::All => TargetResolution::Resolved(ids),
@@ -139,15 +149,18 @@ fn resolve_targets(
     }
 }
 
-// Dispatcher entry point. Branches on `Targeting`:
+// Dispatcher entry point. Branches on `Target`:
 //  - `Direct(t)` runs the kind-specific handler with an already-known target.
 //  - `Resolve { .. }` runs the resolver; on success, fans out to `Direct`
 //    effects; on input-needed, returns `Halt` (the effect stays at the front
 //    because the driver uses peek-before-pop and won't have popped it yet).
 pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectResult {
-    let target = match effect.targeting {
-        Targeting::Direct(t) => t,
-        Targeting::Resolve { candidates, selection } => {
+    let target = match effect.target {
+        Target::Direct(t) => t,
+        Target::Resolve {
+            candidates,
+            selection,
+        } => {
             return resolve_or_halt(state, effect.kind, effect.source, candidates, selection);
         }
     };
@@ -184,7 +197,7 @@ fn resolve_or_halt(
                 .map(|id| Effect {
                     kind,
                     source,
-                    targeting: Targeting::Direct(Some(id)),
+                    target: Target::Direct(Some(id)),
                 })
                 .collect();
             ProcessEffectResult::AddAndContinue {

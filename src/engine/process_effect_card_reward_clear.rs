@@ -10,7 +10,7 @@ pub fn process_effect_card_reward_clear(card_rewards: &mut Vec<EntityId>) -> Pro
             top: vec![crate::effect::Effect {
                 kind: crate::effect::EffectKind::SelectMapNode,
                 source: None,
-                targeting: crate::effect::Targeting::Resolve {
+                target: crate::effect::Target::Resolve {
                     candidates: crate::effect::CandidatePool::MapNodeNextRow,
                     selection: crate::effect::SelectionKind::Input { count: 1 },
                 },

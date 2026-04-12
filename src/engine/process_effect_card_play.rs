@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
@@ -27,7 +27,7 @@ pub fn process_effect_card_play(
     top_effects.push(Effect {
         kind: EffectKind::EnergyLoss { amount: card.cost },
         source: None,
-        targeting: Targeting::Direct(None),
+        target: Target::Direct(None),
     });
 
     // Exhaust vs. remove vs. discard
@@ -35,19 +35,19 @@ pub fn process_effect_card_play(
         top_effects.push(Effect {
             kind: EffectKind::CardExhaust,
             source: None,
-            targeting: Targeting::Direct(Some(id_card)),
+            target: Target::Direct(Some(id_card)),
         })
     } else if card.kind == CardKind::Power {
         top_effects.push(Effect {
             kind: EffectKind::CardRemove,
             source: None,
-            targeting: Targeting::Direct(Some(id_card)),
+            target: Target::Direct(Some(id_card)),
         })
     } else {
         top_effects.push(Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            targeting: Targeting::Direct(Some(id_card)),
+            target: Target::Direct(Some(id_card)),
         })
     };
 
@@ -62,7 +62,7 @@ pub fn process_effect_card_play(
                 amount: stacks as u16,
             },
             source: Some(character),
-            targeting: Targeting::Direct(Some(character)),
+            target: Target::Direct(Some(character)),
         })
     }
 
@@ -75,7 +75,7 @@ pub fn process_effect_card_play(
                     base: stacks as u16,
                 },
                 source: Some(character),
-                targeting: Targeting::Direct(Some(id_monster)),
+                target: Target::Direct(Some(id_monster)),
             });
         }
     }
@@ -91,7 +91,7 @@ pub fn process_effect_card_play(
                         amount: stacks as u16,
                     },
                     source: Some(id_monster),
-                    targeting: Targeting::Direct(Some(character)),
+                    target: Target::Direct(Some(character)),
                 });
             }
         }
@@ -117,7 +117,7 @@ pub fn process_effect_card_play(
                 stacks: -1,
             },
             source: Some(character),
-            targeting: Targeting::Direct(Some(character)),
+            target: Target::Direct(Some(character)),
         });
     } else {
         top_effects.extend(card_effects);

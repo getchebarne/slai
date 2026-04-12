@@ -1,4 +1,4 @@
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::state::Entity;
@@ -32,7 +32,7 @@ pub fn process_effect_death(
                     stacks,
                 },
                 source: None,
-                targeting: Targeting::Direct(Some(character)),
+                target: Target::Direct(Some(character)),
             });
         }
     }
@@ -49,7 +49,7 @@ pub fn process_effect_death(
         effects.push(Effect {
             kind: EffectKind::CombatEnd,
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         });
         ProcessEffectResult::Replace(effects)
     } else if effects.is_empty() {

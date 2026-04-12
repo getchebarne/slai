@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -19,12 +19,12 @@ pub static ADRENALINE: Card = Card {
         Effect {
             kind: EffectKind::EnergyGain { amount: 1 },
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDraw { count: 2 },
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
     ],
 };
@@ -43,12 +43,12 @@ pub static ADRENALINE_PLUS: Card = Card {
         Effect {
             kind: EffectKind::EnergyGain { amount: 2 }, // +1 energy gain
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDraw { count: 2 },
             source: None,
-            targeting: Targeting::Direct(None),
+            target: Target::Direct(None),
         },
     ],
 };

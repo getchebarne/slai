@@ -8,9 +8,7 @@ use rand::rngs::SmallRng;
 use crate::action::{Action, handle_action};
 use crate::character::{silent_starter_deck, spawn_silent};
 use crate::consts::MAX_MONSTERS;
-use crate::effect::{
-    CandidatePool, Effect, EffectKind, SelectionKind, Targeting,
-};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
 use crate::map::{entitize_map, generate_map};
 use crate::state::*;
@@ -47,7 +45,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     effect_queue.push_back(Effect {
         kind: EffectKind::SelectMapNode,
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::MapNodeNextRow,
             selection: SelectionKind::Input { count: 1 },
         },
@@ -122,10 +120,10 @@ pub fn determine_phase(state: &GameState) -> Phase {
             EffectKind::SelectCardReward => return Phase::CardReward,
             _ => {}
         }
-        if let Targeting::Resolve {
+        if let Target::Resolve {
             selection: SelectionKind::Input { .. },
             ..
-        } = effect.targeting
+        } = effect.target
         {
             return Phase::CombatAwaitInput;
         }

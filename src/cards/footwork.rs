@@ -1,5 +1,5 @@
 use crate::cards::Card;
-use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Targeting};
+use crate::effect::{CandidatePool, EffectKind, Effect, SelectionKind, Target};
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -22,7 +22,7 @@ pub static FOOTWORK: Card = Card {
             stacks: 2,
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },
@@ -45,7 +45,7 @@ pub static FOOTWORK_PLUS: Card = Card {
             stacks: 3, // +1 dexterity
         },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },

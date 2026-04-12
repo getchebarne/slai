@@ -1,8 +1,8 @@
 use crate::effect::CandidatePool;
-use crate::effect::EffectKind;
 use crate::effect::Effect;
+use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
-use crate::effect::Targeting;
+use crate::effect::Target;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifiers_new;
 use crate::monsters::Intent;
@@ -19,7 +19,7 @@ static MOVE_CHOMP_11: Move = Move {
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 11 },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },
@@ -34,7 +34,7 @@ static MOVE_CHOMP_12: Move = Move {
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 12 },
         source: None,
-        targeting: Targeting::Resolve {
+        target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
         },
@@ -50,7 +50,7 @@ static MOVE_THRASH: Move = Move {
         Effect {
             kind: EffectKind::DamagePhysical { base: 7 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
@@ -58,7 +58,7 @@ static MOVE_THRASH: Move = Move {
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
             },
@@ -78,7 +78,7 @@ static MOVE_BELLOW_3_6: Move = Move {
                 stacks: 3,
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
             },
@@ -86,7 +86,7 @@ static MOVE_BELLOW_3_6: Move = Move {
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
             },
@@ -103,7 +103,7 @@ static MOVE_BELLOW_4_6: Move = Move {
                 stacks: 4,
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
             },
@@ -111,7 +111,7 @@ static MOVE_BELLOW_4_6: Move = Move {
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
             },
@@ -128,7 +128,7 @@ static MOVE_BELLOW_5_9: Move = Move {
                 stacks: 5,
             },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
             },
@@ -136,7 +136,7 @@ static MOVE_BELLOW_5_9: Move = Move {
         Effect {
             kind: EffectKind::BlockGain { amount: 9 },
             source: None,
-            targeting: Targeting::Resolve {
+            target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
             },

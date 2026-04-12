@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::monsters;
 use crate::state::{Entity, EntityKind, Map};
@@ -40,7 +40,7 @@ pub fn process_effect_room_enter(
                 top: vec![Effect {
                     kind: EffectKind::CombatStart,
                     source: None,
-                    targeting: Targeting::Direct(None),
+                    target: Target::Direct(None),
                 }],
                 bot: Vec::new(),
             }
@@ -68,7 +68,7 @@ pub fn process_effect_room_enter(
                 top: vec![Effect {
                     kind: EffectKind::CombatStart,
                     source: None,
-                    targeting: Targeting::Direct(None),
+                    target: Target::Direct(None),
                 }],
                 bot: Vec::new(),
             }

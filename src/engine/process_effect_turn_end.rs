@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::state::{Entity, Vitals};
@@ -23,7 +23,7 @@ pub fn process_effect_turn_end_monster(
                     stacks,
                 },
                 source: None,
-                targeting: Targeting::Direct(Some(actor)),
+                target: Target::Direct(Some(actor)),
             }],
             bot: Vec::new(),
         };
@@ -53,7 +53,7 @@ pub fn process_effect_turn_end_character(
                 stacks,
             },
             source: None,
-            targeting: Targeting::Direct(Some(character)),
+            target: Target::Direct(Some(character)),
         });
     }
 
@@ -62,13 +62,13 @@ pub fn process_effect_turn_end_character(
         effects.push(Effect {
             kind: EffectKind::CardDiscard,
             source: None,
-            targeting: Targeting::Direct(Some(id_card)),
+            target: Target::Direct(Some(id_card)),
         });
     }
     effects.push(Effect {
         kind: EffectKind::ModifierSetNotNew,
         source: None,
-        targeting: Targeting::Direct(None),
+        target: Target::Direct(None),
     });
 
     // Queue each monster's turn: start, execute move, update move, end
@@ -77,7 +77,7 @@ pub fn process_effect_turn_end_character(
         effects.push(Effect {
             kind: EffectKind::TurnStart,
             source: None,
-            targeting: Targeting::Direct(Some(mid)),
+            target: Target::Direct(Some(mid)),
         });
 
         if let Some(move_idx) = m.move_current {
@@ -92,12 +92,12 @@ pub fn process_effect_turn_end_character(
         effects.push(Effect {
             kind: EffectKind::MoveUpdate,
             source: None,
-            targeting: Targeting::Direct(Some(mid)),
+            target: Target::Direct(Some(mid)),
         });
         effects.push(Effect {
             kind: EffectKind::TurnEnd,
             source: None,
-            targeting: Targeting::Direct(Some(mid)),
+            target: Target::Direct(Some(mid)),
         });
     }
 
@@ -105,7 +105,7 @@ pub fn process_effect_turn_end_character(
     effects.push(Effect {
         kind: EffectKind::TurnStart,
         source: None,
-        targeting: Targeting::Direct(Some(character)),
+        target: Target::Direct(Some(character)),
     });
 
     // Modifier / Burst (consume at end of turn)
@@ -115,7 +115,7 @@ pub fn process_effect_turn_end_character(
                 kind: ModifierKind::Burst,
             },
             source: None,
-            targeting: Targeting::Direct(Some(character)),
+            target: Target::Direct(Some(character)),
         });
     }
 

@@ -1,4 +1,4 @@
-use crate::effect::{Effect, EffectKind, Targeting};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{
     ModifierKind, Modifiers, modifier_def, modifier_has, modifier_remove, modifier_stacks,
@@ -21,7 +21,7 @@ pub fn process_effect_health_loss(
         effects.push(Effect {
             kind: EffectKind::Death,
             source: None,
-            targeting: Targeting::Direct(Some(target)),
+            target: Target::Direct(Some(target)),
         });
 
     // Modifier / ModeShift (damage reduces stacks, triggers move update on break)
@@ -33,7 +33,7 @@ pub fn process_effect_health_loss(
                 effects.push(Effect {
                     kind: EffectKind::MoveUpdate,
                     source: None,
-                    targeting: Targeting::Direct(Some(target)),
+                    target: Target::Direct(Some(target)),
                 });
             }
         } else {

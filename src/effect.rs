@@ -67,10 +67,10 @@ pub enum SelectionKind {
     Input { count: u8 },
 }
 
-// Targeting: whether an Effect's target is already known (Direct) or must be
+// Target: whether an Effect's target is already known (Direct) or must be
 // resolved against live state when the effect is dequeued (Resolve).
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Targeting {
+pub enum Target {
     /// Target is known (or not needed). Dispatch runs the handler directly.
     /// `None` means the effect takes no target (CardDraw, EnergyGain, etc.).
     Direct(Option<EntityId>),
@@ -85,17 +85,17 @@ pub enum Targeting {
 }
 
 // Effect: a unit of work in the queue. Unified type used for both static card
-// and monster-move definitions (which use `Resolve` targeting) and
-// runtime-synthesized effects (which use `Direct` targeting).
+// and monster-move definitions (which use `Resolve` target) and
+// runtime-synthesized effects (which use `Direct` target).
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effect {
     pub kind: EffectKind,
     pub source: Option<EntityId>,
-    pub targeting: Targeting,
+    pub target: Target,
 }
 
 impl Effect {
-    /// Constructs an `Effect` with `Direct` targeting. Convenience for the
+    /// Constructs an `Effect` with `Direct` target. Convenience for the
     /// common case where a runtime-synthesized effect already knows its target.
     pub const fn direct(
         kind: EffectKind,
@@ -105,7 +105,7 @@ impl Effect {
         Self {
             kind,
             source,
-            targeting: Targeting::Direct(target),
+            target: Target::Direct(target),
         }
     }
 }
