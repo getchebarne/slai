@@ -211,6 +211,9 @@ fn resolve_or_halt(
             EffectKind::CardDiscard => ProcessEffectResult::Halt {
                 phase_new: Phase::CombatAwaitDiscard { num },
             },
+            EffectKind::MapNodeSelect => ProcessEffectResult::Halt {
+                phase_new: Phase::Map,
+            },
             _ => panic!("Unsupported effect kind for halting: {:?}", kind),
         },
     }
@@ -507,7 +510,7 @@ pub fn determine_phase(
 // the front for `determine_phase` to inspect.
 pub fn process_queue(state: &mut GameState) {
     loop {
-        let Some(effect) = state.effect_queue.front().copied() else {
+        let Some(effect) = state.effect_queue.pop_front() else {
             break;
         };
 
@@ -518,10 +521,9 @@ pub fn process_queue(state: &mut GameState) {
 
         match process_effect_result {
             ProcessEffectResult::Continue => {
-                state.effect_queue.pop_front();
+                continue;
             }
             ProcessEffectResult::AddAndContinue { top, bot } => {
-                state.effect_queue.pop_front();
                 for e in top.into_iter().rev() {
                     state.effect_queue.push_front(e);
                 }

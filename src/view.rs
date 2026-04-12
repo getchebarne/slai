@@ -13,7 +13,7 @@ use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::monsters::Intent;
 use crate::state::{Entity, GameState};
-use crate::types::EntityId;
+use crate::types::{EntityId, Phase};
 use crate::utils::get_alive_monster_ids;
 
 // ───────── Selection variants ─────────
@@ -255,6 +255,8 @@ pub struct ViewGameState {
     pub map: ViewMap,
     #[pyo3(get)]
     pub phase: String,
+    #[pyo3(get)]
+    pub discard_count: Option<u8>,
 }
 
 #[pymethods]
@@ -324,7 +326,22 @@ pub fn build_view(py: Python<'_>, state: &GameState) -> ViewGameState {
             max: state.energy.max,
         },
         map: build_view_map(state),
-        phase: format!("{:?}", state.phase),
+        phase: phase_variant_name(state.phase),
+        discard_count: match state.phase {
+            Phase::CombatAwaitDiscard { num } => Some(num),
+            _ => None,
+        },
+    }
+}
+
+pub fn phase_variant_name(phase: Phase) -> String {
+    match phase {
+        Phase::Map => "Map".to_string(),
+        Phase::CombatDefault => "CombatDefault".to_string(),
+        Phase::CombatAwaitDiscard { .. } => "CombatAwaitDiscard".to_string(),
+        Phase::CombatReward => "CombatReward".to_string(),
+        Phase::RestSite => "RestSite".to_string(),
+        Phase::GameOver => "GameOver".to_string(),
     }
 }
 
@@ -481,8 +498,13 @@ fn view_effect(py: Python<'_>, effect: &Effect) -> PyObject {
             };
             (cand, sel)
         }
-        Target::Direct(_) => unreachable!(
-            "view_effect: static card/monster effects must use Target::Resolve, got Direct"
+        Target::Direct(None) => {
+            let sel = Py::new(py, ViewSelectionAll).unwrap().into_py(py);
+            ("None".to_string(), sel)
+        }
+        Target::Direct(Some(_)) => panic!(
+            "view_effect: unexpected Direct(Some) on static card effect: {:?}",
+            effect,
         ),
     };
 

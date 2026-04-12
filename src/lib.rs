@@ -156,7 +156,9 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
         return Ok(Action::EndTurn);
     }
     if let Ok(a) = py_action.extract::<ActionInputResolve>() {
-        return Ok(Action::InputResolve { indices: a.indices });
+        return Ok(Action::CardDiscard {
+            idx_hand: a.indices,
+        });
     }
     if let Ok(a) = py_action.extract::<ActionMapNodeSelect>() {
         return Ok(Action::MapNodeSelect {
@@ -222,12 +224,8 @@ impl GameEnv {
         build_view(py, &self.state)
     }
 
-    fn phase(&self) -> u8 {
-        self.state.phase as u8
-    }
-
     fn phase_name(&self) -> String {
-        format!("{:?}", self.state.phase)
+        view::phase_variant_name(self.state.phase)
     }
 }
 
