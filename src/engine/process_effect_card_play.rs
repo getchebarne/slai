@@ -97,14 +97,12 @@ pub fn process_effect_card_play(
         }
     }
 
-    // Copy the card's effects into the queue, stamping source with the card id.
-    // Effects with `Targeting::Resolve` will be resolved lazily by the dispatcher
-    // against live state when they're dequeued — no eager instantiation here.
+    // Copy the card's effects into the queue, stamping source with the character
     let card_effects: Vec<Effect> = card
         .effects
         .iter()
         .map(|e| Effect {
-            source: Some(id_card),
+            source: Some(character),
             ..*e
         })
         .collect();
