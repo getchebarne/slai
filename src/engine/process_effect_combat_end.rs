@@ -2,7 +2,7 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_clear;
 use crate::state::{Entity, Map};
-use crate::types::{EntityId, RoomType};
+use crate::types::{EntityId, Phase, RoomType};
 
 pub fn process_effect_combat_end(
     character: EntityId,
@@ -30,9 +30,8 @@ pub fn process_effect_combat_end(
     modifier_clear(modifiers);
     *monster_count = 0;
     match room {
-        RoomType::CombatBoss => ProcessEffectResult::AddAndContinue {
-            top: vec![crate::effect::Effect::direct(crate::effect::EffectKind::GameOver, None, None)],
-            bot: Vec::new(),
+        RoomType::CombatBoss => ProcessEffectResult::Halt {
+            phase_new: Phase::GameOver,
         },
         RoomType::CombatMonster => ProcessEffectResult::AddAndContinue {
             top: Vec::new(),

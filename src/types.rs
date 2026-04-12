@@ -134,9 +134,9 @@ pub enum RoomType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum Phase {
-    CardReward,
+    CombatReward,
     CombatDefault,
-    CombatAwaitInput,
+    CombatAwaitDiscard { num: u8 },
     GameOver,
     Map,
     RestSite,

@@ -20,7 +20,7 @@ pub fn process_effect_rest_site_exit(map: &mut Map) -> ProcessEffectResult {
         // Non-final row — halt and wait for the player to pick the next map node
         ProcessEffectResult::AddAndContinue {
             top: vec![crate::effect::Effect {
-                kind: crate::effect::EffectKind::SelectMapNode,
+                kind: crate::effect::EffectKind::MapNodeSelect,
                 source: None,
                 target: crate::effect::Target::Resolve {
                     candidates: crate::effect::CandidatePool::MapNodeNextRow,

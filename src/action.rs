@@ -9,8 +9,8 @@ use crate::utils::get_alive_monster_ids;
 
 #[derive(Debug, Clone)]
 pub enum Action {
-    InputResolve {
-        indices: Vec<usize>,
+    CardDiscard {
+        idx_hand: Vec<usize>,
     },
     CardPlay {
         idx_hand: usize,
@@ -30,28 +30,28 @@ pub enum Action {
     RestSiteRest,
 }
 
-fn validate_phase(current_phase: Phase, action: &Action) -> Result<(), String> {
-    let expected = match action {
-        Action::InputResolve { .. } => Phase::CombatAwaitInput,
-        Action::CardPlay { .. } | Action::EndTurn => Phase::CombatDefault,
-        Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest => Phase::RestSite,
-        Action::CardRewardSelect { .. } | Action::CardRewardSkip => Phase::CardReward,
-        Action::MapNodeSelect { .. } => Phase::Map,
+fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
+    let valid = match (action, current_phase) {
+        (Action::CardDiscard { idx_hand }, Phase::CombatAwaitDiscard { num }) => {
+            idx_hand.len() == num as usize
+        }
+        (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
+        (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
+        (Action::CardRewardSelect { .. } | Action::CardRewardSkip, Phase::CombatReward) => true,
+        (Action::MapNodeSelect { .. }, Phase::Map) => true,
+        _ => false,
     };
-    if current_phase != expected {
-        return Err(format!(
-            "{:?} invalid in phase {:?} (expected {:?})",
-            action, current_phase, expected
-        ));
+    if !valid {
+        return Err(format!("{:?} invalid in phase {:?}", action, current_phase));
     }
     Ok(())
 }
 
 pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
-    validate_phase(state.phase, &action)?;
+    validate_phase(&action, state.phase)?;
 
     match action {
-        Action::InputResolve { indices } => handle_input_resolve(state, indices),
+        Action::CardDiscard { idx_hand } => handle_card_discard(state, idx_hand),
         Action::CardPlay {
             idx_hand,
             idx_monster,
@@ -140,54 +140,15 @@ fn handle_card_play(
     }
 }
 
-fn handle_input_resolve(state: &GameState, indices: Vec<usize>) -> Result<Vec<Effect>, String> {
-    // Peek the unresolved halt effect at the queue front. step() will pop it
-    // after we return Ok.
-    let unresolved = state
-        .effect_queue
-        .front()
-        .ok_or_else(|| "No halt effect at queue front".to_string())?;
+fn handle_card_discard(state: &GameState, idx_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
+    // TODO: add support for multiple discards
+    let id_target = Some(state.hand[idx_hand[0]]);
 
-    let (candidates, count) = match unresolved.target {
-        Target::Resolve {
-            candidates,
-            selection: SelectionKind::Input { count },
-        } => (candidates, count),
-        _ => return Err("Queue front is not an unresolved input prompt".into()),
-    };
-
-    if indices.len() != count as usize {
-        return Err(format!("Expected {} picks, got {}", count, indices.len()));
-    }
-
-    // Re-resolve candidates against current state.
-    let alive = get_alive_monster_ids(state);
-    let src_id = unresolved.source.unwrap_or(state.character);
-    let ids = resolve_candidates(
-        candidates,
-        src_id,
-        state.character,
-        &state.hand,
-        state.card_target,
-        &alive,
-        &state.map,
-        &state.entities,
-        &state.card_rewards,
-    );
-
-    let mut effects = Vec::with_capacity(indices.len());
-    for &idx in &indices {
-        let target = *ids
-            .get(idx)
-            .ok_or_else(|| format!("Invalid index {}: {} candidates", idx, ids.len()))?;
-        effects.push(Effect {
-            kind: unresolved.kind,
-            source: unresolved.source,
-            target: Target::Direct(Some(target)),
-        });
-    }
-
-    Ok(effects)
+    Ok(vec![Effect {
+        kind: EffectKind::CardDiscard,
+        source: None, // TODO: source is the character
+        target: Target::Direct(id_target),
+    }])
 }
 
 fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect>, String> {
@@ -224,10 +185,10 @@ fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Ef
         }
     }
 
-    // Return a Direct SelectMapNode effect. Its dispatch arm will update
+    // Return a Direct MapNodeSelect effect. Its dispatch arm will update
     // state.map.y_current/x_current and push a RoomEnter effect.
     Ok(vec![Effect::direct(
-        EffectKind::SelectMapNode,
+        EffectKind::MapNodeSelect,
         None,
         Some(target_id),
     )])
@@ -236,10 +197,10 @@ fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Ef
 fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
     let id_card = validate_idx(&state.card_rewards, idx_reward)?;
 
-    // Direct SelectCardReward: handler adds the target card to the deck and
-    // enqueues CardRewardClear, which in turn enqueues SelectMapNode.
+    // Direct CardRewardSelect: handler adds the target card to the deck and
+    // enqueues CardRewardClear, which in turn enqueues MapNodeSelect.
     Ok(vec![Effect::direct(
-        EffectKind::SelectCardReward,
+        EffectKind::CardRewardSelect,
         None,
         Some(id_card),
     )])

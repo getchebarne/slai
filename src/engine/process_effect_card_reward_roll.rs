@@ -7,7 +7,7 @@ use crate::consts::{
 };
 use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
-use crate::types::{CardName, EntityId};
+use crate::types::{CardName, EntityId, Phase};
 
 pub fn process_effect_card_reward_roll(
     character: EntityId,
@@ -59,16 +59,8 @@ pub fn process_effect_card_reward_roll(
         .character_mut()
         .reward_roll_offset = reward_roll_offset;
 
-    // Halt and wait for player's card reward selection
-    ProcessEffectResult::AddAndContinue {
-        top: vec![crate::effect::Effect {
-            kind: crate::effect::EffectKind::SelectCardReward,
-            source: None,
-            target: crate::effect::Target::Resolve {
-                candidates: crate::effect::CandidatePool::CardRewardPool,
-                selection: crate::effect::SelectionKind::Input { count: 1 },
-            },
-        }],
-        bot: Vec::new(),
+    // Halt and wait for player's combat reward selection
+    ProcessEffectResult::Halt {
+        phase_new: Phase::CombatReward,
     }
 }

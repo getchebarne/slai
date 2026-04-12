@@ -2,12 +2,12 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::monsters;
+use crate::monsters::{Monster, spawn_monster};
 use crate::state::{Entity, EntityKind, Map};
 use crate::types::{EntityId, MonsterName, RoomType};
 
 fn push_monster(
-    monster: crate::monsters::Monster,
+    monster: Monster,
     entities: &mut Vec<Entity>,
     monsters: &mut [EntityId],
     monster_count: &mut u8,
@@ -34,7 +34,8 @@ pub fn process_effect_room_enter(
     let room = map.active_room_type(entities).unwrap();
     match room {
         RoomType::CombatBoss => {
-            let m = monsters::spawn_monster(MonsterName::TheGuardian, ascension, rng);
+            // TODO: other bosses
+            let m = spawn_monster(MonsterName::TheGuardian, ascension, rng);
             push_monster(m, entities, monsters, monster_count);
             ProcessEffectResult::AddAndContinue {
                 top: vec![Effect {
@@ -49,16 +50,16 @@ pub fn process_effect_room_enter(
             let encounter: u8 = rng.random_range(0..3);
             match encounter {
                 0 => {
-                    let m = monsters::spawn_monster(MonsterName::JawWorm, ascension, rng);
+                    let m = spawn_monster(MonsterName::JawWorm, ascension, rng);
                     push_monster(m, entities, monsters, monster_count);
                 }
                 1 => {
-                    let m = monsters::spawn_monster(MonsterName::Cultist, ascension, rng);
+                    let m = spawn_monster(MonsterName::Cultist, ascension, rng);
                     push_monster(m, entities, monsters, monster_count);
                 }
                 2 => {
-                    let m1 = monsters::spawn_monster(MonsterName::FungiBeast, ascension, rng);
-                    let m2 = monsters::spawn_monster(MonsterName::FungiBeast, ascension, rng);
+                    let m1 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
+                    let m2 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
                     push_monster(m1, entities, monsters, monster_count);
                     push_monster(m2, entities, monsters, monster_count);
                 }

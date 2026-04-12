@@ -36,7 +36,7 @@ use rand::Rng;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::state::{Entity, EntityKind, GameState, Map};
-use crate::types::EntityId;
+use crate::types::{EntityId, Phase, RoomType};
 use crate::utils::{get_alive_monster_ids, shuffle};
 
 pub enum ProcessEffectResult {
@@ -49,12 +49,14 @@ pub enum ProcessEffectResult {
     /// Unit variant: the effect stays at the queue front because the driver
     /// never popped it (peek-before-pop protocol). `determine_phase` looks at
     /// the queue front to figure out why we halted.
-    Halt,
+    Halt {
+        phase_new: Phase,
+    },
 }
 
 pub enum TargetResolution {
     Resolved(Vec<EntityId>),
-    AwaitInput,
+    AwaitInput { num: u8 },
 }
 
 pub(crate) fn resolve_candidates(
@@ -143,7 +145,7 @@ fn resolve_targets(
             if count as usize >= ids.len() {
                 TargetResolution::Resolved(ids)
             } else {
-                TargetResolution::AwaitInput
+                TargetResolution::AwaitInput { num: count }
             }
         }
     }
@@ -205,7 +207,12 @@ fn resolve_or_halt(
                 bot: Vec::new(),
             }
         }
-        TargetResolution::AwaitInput => ProcessEffectResult::Halt,
+        TargetResolution::AwaitInput { num } => match kind {
+            EffectKind::CardDiscard => ProcessEffectResult::Halt {
+                phase_new: Phase::CombatAwaitDiscard { num },
+            },
+            _ => panic!("Unsupported effect kind for halting: {:?}", kind),
+        },
     }
 }
 
@@ -457,11 +464,11 @@ fn dispatch_by_kind(
             process_effect_rest_site_exit::process_effect_rest_site_exit(&mut state.map)
         }
         // Halt-kind variants: represent pending player decisions.
-        // SelectMapNode and SelectCardReward in their `Direct` form (after
+        // MapNodeSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before
         // resolution they're handled by the `Resolve` branch in `process_effect`.
-        EffectKind::SelectMapNode => {
-            let node_id = target.expect("SelectMapNode Direct form must have target");
+        EffectKind::MapNodeSelect => {
+            let node_id = target.expect("MapNodeSelect Direct form must have target");
             let node = *state.entities[node_id.0 as usize].kind.map_node_ref();
             state.map.y_current = Some(node.y);
             state.map.x_current = Some(node.x);
@@ -470,15 +477,28 @@ fn dispatch_by_kind(
                 bot: Vec::new(),
             }
         }
-        EffectKind::SelectCardReward => {
-            let card_id = target.expect("SelectCardReward Direct form must have target");
+        EffectKind::CardRewardSelect => {
+            let card_id = target.expect("CardRewardSelect Direct form must have target");
             state.deck.push(card_id);
             ProcessEffectResult::AddAndContinue {
                 top: vec![Effect::direct(EffectKind::CardRewardClear, None, None)],
                 bot: Vec::new(),
             }
         }
-        EffectKind::GameOver => ProcessEffectResult::Halt,
+    }
+}
+
+pub fn determine_phase(
+    process_effect_result: &ProcessEffectResult,
+    active_room_type: Option<RoomType>,
+) -> Phase {
+    match process_effect_result {
+        ProcessEffectResult::Halt { phase_new } => *phase_new,
+        _ => match active_room_type {
+            Some(RoomType::RestSite) => Phase::RestSite,
+            Some(RoomType::CombatMonster) | Some(RoomType::CombatBoss) => Phase::CombatDefault,
+            None => Phase::Map,
+        },
     }
 }
 
@@ -491,7 +511,12 @@ pub fn process_queue(state: &mut GameState) {
             break;
         };
 
-        match process_effect(state, effect) {
+        // Process and determine new phase
+        let process_effect_result = process_effect(state, effect);
+        let active_room_type = state.map.active_room_type(&state.entities);
+        state.phase = determine_phase(&process_effect_result, active_room_type);
+
+        match process_effect_result {
             ProcessEffectResult::Continue => {
                 state.effect_queue.pop_front();
             }
@@ -510,7 +535,7 @@ pub fn process_queue(state: &mut GameState) {
                     state.effect_queue.push_back(e);
                 }
             }
-            ProcessEffectResult::Halt => {
+            ProcessEffectResult::Halt { .. } => {
                 break;
             }
         }

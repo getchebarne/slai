@@ -1,10 +1,7 @@
 use crate::modifier::ModifierKind;
 use crate::types::EntityId;
 
-// EffectKind: the shared "what happens" enum. Every variant describes a unit
-// of work the engine can apply. Halt-kind variants (SelectMapNode,
-// SelectCardReward, GameOver) represent pending player decisions: their
-// dispatch arms either resolve automatically or return Halt.
+// EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
     DamagePhysical { base: u16 },
@@ -43,9 +40,8 @@ pub enum EffectKind {
     RestSiteExit,
 
     // Halt-kind variants — pending player decisions
-    SelectMapNode,
-    SelectCardReward,
-    GameOver,
+    MapNodeSelect,
+    CardRewardSelect,
 }
 
 // CandidatePool: abstract source pool for a Resolve effect's target resolution.

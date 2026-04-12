@@ -34,6 +34,7 @@ pub enum EntityKind {
     MapNode(MapNode),
 }
 
+// TODO: dismantle this
 impl EntityKind {
     pub fn combatant_mut(&mut self) -> (&mut Vitals, &mut Modifiers) {
         match self {
