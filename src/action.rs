@@ -50,12 +50,7 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
 pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
     validate_phase(&action, state.phase)?;
 
-    let needs_combat_halt = matches!(
-        action,
-        Action::CardPlay { .. } | Action::CardDiscard { .. }
-    );
-
-    let mut effects = match action {
+    let effects = match action {
         Action::CardDiscard { idx_hand } => handle_card_discard(state, idx_hand),
         Action::CardPlay {
             idx_hand,
@@ -68,14 +63,6 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::MapNodeSelect { idx_column } => handle_map_node_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
     }?;
-
-    // CardPlay and CardDiscard don't naturally end with a halt — their
-    // effect chains drain without producing one. Append AwaitCombatAction
-    // so the player gets control back after the effects process.
-    // EndTurn chains to TurnStart which pushes its own AwaitCombatAction.
-    if needs_combat_halt {
-        effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
-    }
 
     Ok(effects)
 }
@@ -138,6 +125,7 @@ fn handle_card_play(
                         source: None,
                         target: Target::Direct(None),
                     },
+                    Effect::direct(EffectKind::AwaitCombatAction, None, None),
                 ])
             }
             None => Err(format!(
@@ -147,11 +135,14 @@ fn handle_card_play(
         }
     } else {
         // Return effect to play the card
-        Ok(vec![Effect {
-            kind: EffectKind::CardPlay,
-            source: None,
-            target: Target::Direct(Some(id_card)),
-        }])
+        Ok(vec![
+            Effect {
+                kind: EffectKind::CardPlay,
+                source: None,
+                target: Target::Direct(Some(id_card)),
+            },
+            Effect::direct(EffectKind::AwaitCombatAction, None, None),
+        ])
     }
 }
 
@@ -161,11 +152,14 @@ fn handle_card_discard(state: &GameState, idx_hand: Vec<usize>) -> Result<Vec<Ef
 
     // No AwaitCombatAction needed here — the card-play effect chain that
     // triggered the discard prompt already has one queued after it.
-    Ok(vec![Effect {
-        kind: EffectKind::CardDiscard,
-        source: None,
-        target: Target::Direct(id_target),
-    }])
+    Ok(vec![
+        Effect {
+            kind: EffectKind::CardDiscard,
+            source: None,
+            target: Target::Direct(id_target),
+        },
+        Effect::direct(EffectKind::AwaitCombatAction, None, None),
+    ])
 }
 
 fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect>, String> {
