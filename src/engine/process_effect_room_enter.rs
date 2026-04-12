@@ -74,6 +74,9 @@ pub fn process_effect_room_enter(
                 bot: Vec::new(),
             }
         }
-        RoomType::RestSite => ProcessEffectResult::Continue,
+        RoomType::RestSite => ProcessEffectResult::AddAndContinue {
+            top: vec![Effect::direct(EffectKind::AwaitRestSiteAction, None, None)],
+            bot: Vec::new(),
+        },
     }
 }

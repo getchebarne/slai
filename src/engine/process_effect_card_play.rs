@@ -123,7 +123,6 @@ pub fn process_effect_card_play(
         top_effects.extend(card_effects);
     }
 
-    // Add and continue
     ProcessEffectResult::AddAndContinue {
         top: top_effects,
         bot: Vec::new(),

@@ -5,9 +5,10 @@ use crate::consts::{
     CARD_REWARD_ROLL_OFFSET_BASE, CARD_REWARD_ROLL_OFFSET_MIN, CHANCE_RARE, CHANCE_UNCOMMON,
     MAX_COMBAT_CARD_REWARD,
 };
+use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
-use crate::types::{CardName, EntityId, Phase};
+use crate::types::{CardName, EntityId};
 
 pub fn process_effect_card_reward_roll(
     character: EntityId,
@@ -59,8 +60,8 @@ pub fn process_effect_card_reward_roll(
         .character_mut()
         .reward_roll_offset = reward_roll_offset;
 
-    // Halt and wait for player's combat reward selection
-    ProcessEffectResult::Halt {
-        phase_new: Phase::CombatReward,
+    ProcessEffectResult::AddAndContinue {
+        top: vec![Effect::direct(EffectKind::AwaitCardReward, None, None)],
+        bot: Vec::new(),
     }
 }

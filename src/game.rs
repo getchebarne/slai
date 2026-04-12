@@ -1,7 +1,6 @@
 // Game loop: step, initialize, Phase determination.
 
 use std::collections::VecDeque;
-use std::os::unix::process;
 
 use rand::SeedableRng;
 use rand::rngs::SmallRng;
@@ -10,10 +9,10 @@ use crate::action::{Action, handle_action};
 use crate::character::{silent_starter_deck, spawn_silent};
 use crate::consts::MAX_MONSTERS;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::engine::{ProcessEffectResult, process_queue};
+use crate::engine::process_queue;
 use crate::map::{entitize_map, generate_map};
 use crate::state::*;
-use crate::types::{EntityId, Phase, RoomType};
+use crate::types::{EntityId, Phase};
 
 // Create and initialize
 pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
@@ -77,51 +76,18 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     state
 }
 
-// Step
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
-    // Get effects from action handler
     let effects = handle_action(state, action)?;
 
-    // Put effects into the queue in order
-    for effect in effects {
-        state.effect_queue.push_back(effect);
+    // Push action effects to the FRONT of the queue (in order). When the
+    // engine halts mid-chain (e.g., a discard prompt during a card play),
+    // the remaining effects from the interrupted chain are still in the
+    // queue. The player's response must be inserted before them so the
+    // response processes first, then the chain resumes.
+    for effect in effects.into_iter().rev() {
+        state.effect_queue.push_front(effect);
     }
 
-    // Process the queue (peek-before-pop)
     process_queue(state);
-
-    // Determine new phase from the current queue front
     Ok(())
 }
-
-// always consume the effect
-// if target cannot be resolved: return halt reason (e.g., must select map // card to discard)
-// what determines phase:
-//   - action to perform (e.g., discard / upgrade )
-//   - number of targets
-//   - entities to choose from (CandidatePool)
-// skippable?
-// halt -> PlayerInputNeeded
-
-// Phase determination: peek the queue front and map halt effects to phases.
-// Anything else falls through to room-state derivation. Read-only peek.
-//     if let Some(effect) = state.effect_queue.front() {
-//         match effect.kind {
-//             EffectKind::MapNodeSelect => return Phase::Map,
-//             _ => {}
-//         }
-//         if let Target::Resolve {
-//             selection: SelectionKind::Input { .. },
-//             ..
-//         } = effect.target
-//         {
-//             return Phase::CombatAwaitInput;
-//         }
-//     }
-
-//     match state.map.active_room_type(&state.entities) {
-//         Some(RoomType::RestSite) => Phase::RestSite,
-//         Some(RoomType::CombatMonster) | Some(RoomType::CombatBoss) => Phase::CombatDefault,
-//         None => Phase::Map,
-//     }
-// }

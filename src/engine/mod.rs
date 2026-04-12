@@ -36,7 +36,7 @@ use rand::Rng;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::state::{Entity, EntityKind, GameState, Map};
-use crate::types::{EntityId, Phase, RoomType};
+use crate::types::{EntityId, Phase};
 use crate::utils::{get_alive_monster_ids, shuffle};
 
 pub enum ProcessEffectResult {
@@ -46,9 +46,7 @@ pub enum ProcessEffectResult {
     },
     Continue,
     Replace(Vec<Effect>),
-    /// Unit variant: the effect stays at the queue front because the driver
-    /// never popped it (peek-before-pop protocol). `determine_phase` looks at
-    /// the queue front to figure out why we halted.
+    /// The queue driver sets `state.phase = phase_new` and returns.
     Halt {
         phase_new: Phase,
     },
@@ -488,41 +486,28 @@ fn dispatch_by_kind(
                 bot: Vec::new(),
             }
         }
-    }
-}
-
-pub fn determine_phase(
-    process_effect_result: &ProcessEffectResult,
-    active_room_type: Option<RoomType>,
-) -> Phase {
-    match process_effect_result {
-        ProcessEffectResult::Halt { phase_new } => *phase_new,
-        _ => match active_room_type {
-            Some(RoomType::RestSite) => Phase::RestSite,
-            Some(RoomType::CombatMonster) | Some(RoomType::CombatBoss) => Phase::CombatDefault,
-            None => Phase::Map,
+        EffectKind::GameOver => ProcessEffectResult::Halt {
+            phase_new: Phase::GameOver,
+        },
+        EffectKind::AwaitCombatAction => ProcessEffectResult::Halt {
+            phase_new: Phase::CombatDefault,
+        },
+        EffectKind::AwaitRestSiteAction => ProcessEffectResult::Halt {
+            phase_new: Phase::RestSite,
+        },
+        EffectKind::AwaitCardReward => ProcessEffectResult::Halt {
+            phase_new: Phase::CombatReward,
         },
     }
 }
 
-// Queue processing loop. Peek-before-pop: we look at the queue front, dispatch
-// it, and only pop on non-halt results. `Halt` leaves the effect naturally at
-// the front for `determine_phase` to inspect.
 pub fn process_queue(state: &mut GameState) {
     loop {
         let Some(effect) = state.effect_queue.pop_front() else {
-            break;
+            panic!("process_queue: queue drained without halting");
         };
-
-        // Process and determine new phase
-        let process_effect_result = process_effect(state, effect);
-        let active_room_type = state.map.active_room_type(&state.entities);
-        state.phase = determine_phase(&process_effect_result, active_room_type);
-
-        match process_effect_result {
-            ProcessEffectResult::Continue => {
-                continue;
-            }
+        match process_effect(state, effect) {
+            ProcessEffectResult::Continue => {}
             ProcessEffectResult::AddAndContinue { top, bot } => {
                 for e in top.into_iter().rev() {
                     state.effect_queue.push_front(e);
@@ -537,8 +522,9 @@ pub fn process_queue(state: &mut GameState) {
                     state.effect_queue.push_back(e);
                 }
             }
-            ProcessEffectResult::Halt { .. } => {
-                break;
+            ProcessEffectResult::Halt { phase_new } => {
+                state.phase = phase_new;
+                return;
             }
         }
     }

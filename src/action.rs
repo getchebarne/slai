@@ -50,7 +50,12 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
 pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
     validate_phase(&action, state.phase)?;
 
-    match action {
+    let needs_combat_halt = matches!(
+        action,
+        Action::CardPlay { .. } | Action::CardDiscard { .. }
+    );
+
+    let mut effects = match action {
         Action::CardDiscard { idx_hand } => handle_card_discard(state, idx_hand),
         Action::CardPlay {
             idx_hand,
@@ -62,7 +67,17 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::EndTurn => Ok(handle_end_turn(state)),
         Action::MapNodeSelect { idx_column } => handle_map_node_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
+    }?;
+
+    // CardPlay and CardDiscard don't naturally end with a halt — their
+    // effect chains drain without producing one. Append AwaitCombatAction
+    // so the player gets control back after the effects process.
+    // EndTurn chains to TurnStart which pushes its own AwaitCombatAction.
+    if needs_combat_halt {
+        effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
     }
+
+    Ok(effects)
 }
 
 fn validate_idx(slice: &[EntityId], idx: usize) -> Result<EntityId, String> {
@@ -144,9 +159,11 @@ fn handle_card_discard(state: &GameState, idx_hand: Vec<usize>) -> Result<Vec<Ef
     // TODO: add support for multiple discards
     let id_target = Some(state.hand[idx_hand[0]]);
 
+    // No AwaitCombatAction needed here — the card-play effect chain that
+    // triggered the discard prompt already has one queued after it.
     Ok(vec![Effect {
         kind: EffectKind::CardDiscard,
-        source: None, // TODO: source is the character
+        source: None,
         target: Target::Direct(id_target),
     }])
 }

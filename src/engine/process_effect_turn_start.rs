@@ -100,6 +100,8 @@ pub fn process_effect_turn_start(
                 target: Target::Direct(None),
             });
         }
+
+        effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
     }
 
     // Add and continue

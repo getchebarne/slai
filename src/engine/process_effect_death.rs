@@ -2,7 +2,7 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::state::Entity;
-use crate::types::{EntityId, Phase};
+use crate::types::EntityId;
 
 pub fn process_effect_death(
     actor: EntityId,
@@ -11,11 +11,10 @@ pub fn process_effect_death(
     monsters: &[EntityId],
     monster_count: u8,
 ) -> ProcessEffectResult {
-    // Character death ends the game
     if actor == character {
-        return ProcessEffectResult::Halt {
-            phase_new: Phase::GameOver,
-        };
+        return ProcessEffectResult::Replace(vec![
+            Effect::direct(EffectKind::GameOver, None, None),
+        ]);
     }
 
     let mut effects = Vec::new();

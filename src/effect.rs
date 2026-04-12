@@ -39,9 +39,14 @@ pub enum EffectKind {
     RoomEnter,
     RestSiteExit,
 
-    // Halt-kind variants — pending player decisions
+    // Halt-kind variants — pending player decisions.
+    // Each one's dispatch arm returns ProcessEffectResult::Halt { phase_new }.
     MapNodeSelect,
     CardRewardSelect,
+    GameOver,
+    AwaitCombatAction,
+    AwaitRestSiteAction,
+    AwaitCardReward,
 }
 
 // CandidatePool: abstract source pool for a Resolve effect's target resolution.
