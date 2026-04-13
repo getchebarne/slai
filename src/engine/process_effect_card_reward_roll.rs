@@ -9,15 +9,15 @@ use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
 
-use crate::types::{CardName, EntityId};
+use crate::types::CardName;
 
 pub fn process_effect_card_reward_roll(
-    character: EntityId,
-    card_rewards: &mut Vec<EntityId>,
+    character: usize,
+    card_rewards: &mut Vec<usize>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let EntityKind::Character(char_data) = &entities[character.0 as usize].kind else {
+    let EntityKind::Character(char_data) = &entities[character].kind else {
         unreachable!()
     };
     let mut reward_roll_offset = char_data.reward_roll_offset;
@@ -47,14 +47,14 @@ pub fn process_effect_card_reward_roll(
         // Create the card entity and add to rewards
         rolled_card_names.push(name);
         let card = get_card(name, false); // TODO: can generate upgraded cards on Act2+
-        let id = EntityId(entities.len() as u32);
+        let id = entities.len();
         entities.push(Entity {
             kind: EntityKind::Card(card),
         });
         card_rewards.push(id);
     }
 
-    let EntityKind::Character(char_data) = &mut entities[character.0 as usize].kind else {
+    let EntityKind::Character(char_data) = &mut entities[character].kind else {
         unreachable!()
     };
     char_data.reward_roll_offset = reward_roll_offset;

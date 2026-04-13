@@ -4,13 +4,12 @@ use crate::modifier::{
     ModifierKind, Modifiers, modifier_def, modifier_has, modifier_remove, modifier_stacks,
 };
 use crate::state::Vitals;
-use crate::types::EntityId;
 
 pub fn process_effect_health_loss(
     vitals: &mut Vitals,
     modifiers: &mut Modifiers,
-    target: EntityId,
-    character: EntityId,
+    target: usize,
+    character: usize,
     amount: u16,
 ) -> ProcessEffectResult {
     vitals.health = vitals.health.saturating_sub(amount);

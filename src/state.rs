@@ -62,7 +62,7 @@ impl MapNode {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Map {
-    pub nodes: [[Option<EntityId>; MAP_WIDTH]; MAP_HEIGHT],
+    pub nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
 }
@@ -70,7 +70,7 @@ pub struct Map {
 impl Map {
     pub fn node_at<'a>(&self, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a MapNode> {
         let id = self.nodes[y][x]?;
-        let EntityKind::MapNode(node) = &entities[id.0 as usize].kind else {
+        let EntityKind::MapNode(node) = &entities[id].kind else {
             unreachable!()
         };
         Some(node)
@@ -125,24 +125,24 @@ pub struct GameState {
     pub entities: Vec<Entity>,
 
     // Entities / Character
-    pub character: EntityId,
+    pub character: usize,
 
     // Entities / Monsters
-    pub monsters: [EntityId; MAX_MONSTERS],
+    pub monsters: [usize; MAX_MONSTERS],
     pub monster_count: u8,
 
     // Entities / Monsters / Target
-    pub card_target: Option<EntityId>,
+    pub card_target: Option<usize>,
 
     // Entities / Card / Deck
-    pub deck: Vec<EntityId>,
+    pub deck: Vec<usize>,
 
     // Entities / Card / Combat piles
-    pub draw_pile: Vec<EntityId>,
-    pub hand: Vec<EntityId>,
-    pub discard_pile: Vec<EntityId>,
-    pub exhaust_pile: Vec<EntityId>,
+    pub draw_pile: Vec<usize>,
+    pub hand: Vec<usize>,
+    pub discard_pile: Vec<usize>,
+    pub exhaust_pile: Vec<usize>,
 
     // Entities / Card / Combat piles
-    pub card_rewards: Vec<EntityId>,
+    pub card_rewards: Vec<usize>,
 }

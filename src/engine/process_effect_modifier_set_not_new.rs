@@ -1,20 +1,19 @@
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_set_not_new;
 use crate::state::{Entity, EntityKind};
-use crate::types::EntityId;
 
 pub fn process_effect_modifier_set_not_new(
-    character: EntityId,
+    character: usize,
     entities: &mut [Entity],
-    alive_monsters: &[EntityId],
+    alive_monsters: &[usize],
 ) -> ProcessEffectResult {
-    let EntityKind::Character(c) = &mut entities[character.0 as usize].kind else {
+    let EntityKind::Character(c) = &mut entities[character].kind else {
         unreachable!()
     };
     modifier_set_not_new(&mut c.modifiers);
 
     for &mid in alive_monsters {
-        let EntityKind::Monster(m) = &mut entities[mid.0 as usize].kind else {
+        let EntityKind::Monster(m) = &mut entities[mid].kind else {
             unreachable!()
         };
         modifier_set_not_new(&mut m.modifiers);

@@ -12,7 +12,7 @@ use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
 use crate::map::{entitize_map, generate_map};
 use crate::state::*;
-use crate::types::{EntityId, Phase};
+use crate::types::Phase;
 
 // Create and initialize
 pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
@@ -28,7 +28,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut entities = vec![character];
     let mut deck = Vec::with_capacity(deck_templates.len());
     for card in deck_templates {
-        let id = EntityId(entities.len() as u32);
+        let id = entities.len();
         entities.push(Entity {
             kind: EntityKind::Card(card),
         });
@@ -56,8 +56,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         phase: Phase::Map,
         rng,
         entities,
-        character: EntityId(0),
-        monsters: [EntityId(0); MAX_MONSTERS],
+        character: 0,
+        monsters: [0; MAX_MONSTERS],
         monster_count: 0,
         energy: Energy { current: 3, max: 3 },
         deck,

@@ -3,30 +3,29 @@ use rand::Rng;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::state::{Entity, EntityKind};
-use crate::types::EntityId;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
-    character: EntityId,
-    deck: &[EntityId],
+    character: usize,
+    deck: &[usize],
     entities: &mut Vec<Entity>,
-    draw_pile: &mut Vec<EntityId>,
-    hand: &mut Vec<EntityId>,
-    discard_pile: &mut Vec<EntityId>,
-    exhaust_pile: &mut Vec<EntityId>,
-    card_target: &mut Option<EntityId>,
-    monsters: &[EntityId],
+    draw_pile: &mut Vec<usize>,
+    hand: &mut Vec<usize>,
+    discard_pile: &mut Vec<usize>,
+    exhaust_pile: &mut Vec<usize>,
+    card_target: &mut Option<usize>,
+    monsters: &[usize],
     monster_count: u8,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     // Clone deck cards into combat copies, separating innate from non-innate
-    let mut innate_ids: Vec<EntityId> = Vec::new();
-    let mut other_ids: Vec<EntityId> = Vec::new();
+    let mut innate_ids: Vec<usize> = Vec::new();
+    let mut other_ids: Vec<usize> = Vec::new();
 
     for &deck_id in deck {
-        let EntityKind::Card(card) = & entities[deck_id.0 as usize].kind else { unreachable!() };
+        let EntityKind::Card(card) = & entities[deck_id].kind else { unreachable!() };
     let card = *card;
-        let id = EntityId(entities.len() as u32);
+        let id = entities.len();
         entities.push(Entity {
             kind: EntityKind::Card(card),
         });

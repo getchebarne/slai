@@ -1,8 +1,7 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::types::EntityId;
 
-pub fn process_effect_calculated_gamble(hand: &[EntityId]) -> ProcessEffectResult {
+pub fn process_effect_calculated_gamble(hand: &[usize]) -> ProcessEffectResult {
     // Calculate number of cards to discard / draw
     let num_cards = hand.len();
 

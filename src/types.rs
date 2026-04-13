@@ -141,5 +141,3 @@ pub enum Phase {
     RestSite,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct EntityId(pub u32);

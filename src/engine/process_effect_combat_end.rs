@@ -2,15 +2,15 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_clear;
 use crate::state::{Entity, EntityKind, Map};
-use crate::types::{EntityId, RoomType};
+use crate::types::RoomType;
 
 pub fn process_effect_combat_end(
-    character: EntityId,
-    hand: &mut Vec<EntityId>,
-    draw_pile: &mut Vec<EntityId>,
-    discard_pile: &mut Vec<EntityId>,
-    exhaust_pile: &mut Vec<EntityId>,
-    card_target: &mut Option<EntityId>,
+    character: usize,
+    hand: &mut Vec<usize>,
+    draw_pile: &mut Vec<usize>,
+    discard_pile: &mut Vec<usize>,
+    exhaust_pile: &mut Vec<usize>,
+    card_target: &mut Option<usize>,
     entities: &mut Vec<Entity>,
     monster_count: &mut u8,
     map: &Map,
@@ -26,7 +26,7 @@ pub fn process_effect_combat_end(
     let room = map.active_room_type(entities).unwrap();
 
     // Clear character modifiers and monsters
-    let EntityKind::Character(c) = &mut entities[character.0 as usize].kind else { unreachable!() };
+    let EntityKind::Character(c) = &mut entities[character].kind else { unreachable!() };
     let modifiers = &mut c.modifiers;
     modifier_clear(modifiers);
     *monster_count = 0;

@@ -4,15 +4,15 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::monsters::{Monster, spawn_monster};
 use crate::state::{Entity, EntityKind, Map};
-use crate::types::{EntityId, MonsterName, RoomType};
+use crate::types::{MonsterName, RoomType};
 
 fn push_monster(
     monster: Monster,
     entities: &mut Vec<Entity>,
-    monsters: &mut [EntityId],
+    monsters: &mut [usize],
     monster_count: &mut u8,
 ) {
-    let id = EntityId(entities.len() as u32);
+    let id = entities.len();
     entities.push(Entity {
         kind: EntityKind::Monster(monster),
     });
@@ -24,7 +24,7 @@ pub fn process_effect_room_enter(
     map: &Map,
     ascension: u8,
     entities: &mut Vec<Entity>,
-    monsters: &mut [EntityId],
+    monsters: &mut [usize],
     monster_count: &mut u8,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {

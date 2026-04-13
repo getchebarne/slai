@@ -5,7 +5,7 @@ use rand::Rng;
 
 use crate::consts::*;
 use crate::state::{Entity, EntityKind, Map, MapNode};
-use crate::types::{EntityId, RoomType};
+use crate::types::RoomType;
 
 type Grid = [[Option<MapNode>; MAP_WIDTH]; MAP_HEIGHT];
 
@@ -70,11 +70,11 @@ pub fn generate_map(rng: &mut impl Rng) -> Grid {
 /// Entitizes a generated grid: each `Some(node)` is pushed into `entities`
 /// as an `EntityKind::MapNode`, and the returned `Map` stores the entity ids.
 pub fn entitize_map(grid: Grid, entities: &mut Vec<Entity>) -> Map {
-    let mut nodes: [[Option<EntityId>; MAP_WIDTH]; MAP_HEIGHT] = [[None; MAP_WIDTH]; MAP_HEIGHT];
+    let mut nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT] = [[None; MAP_WIDTH]; MAP_HEIGHT];
     for (y, row) in grid.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
             if let Some(node) = cell {
-                let id = EntityId(entities.len() as u32);
+                let id = entities.len();
                 entities.push(Entity {
                     kind: EntityKind::MapNode(*node),
                 });

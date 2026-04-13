@@ -2,12 +2,11 @@ use crate::consts::{FACTOR_VULN, FACTOR_WEAK};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::types::EntityId;
 
 pub fn process_effect_damage_physical(
     source_mods: &Modifiers,
     target_mods: &Modifiers,
-    target: EntityId,
+    target: usize,
     base: u16,
 ) -> ProcessEffectResult {
     let mut value = base as f32;

@@ -6,19 +6,18 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
-use crate::types::EntityId;
 use crate::state::{Entity, EntityKind};
 
 pub fn process_effect_card_play(
-    id_card: EntityId,
-    _id_card_target: Option<EntityId>,
-    character: EntityId,
+    id_card: usize,
+    _id_card_target: Option<usize>,
+    character: usize,
     entities: &[Entity],
-    _hand: &[EntityId],
-    alive_monsters: &[EntityId],
+    _hand: &[usize],
+    alive_monsters: &[usize],
     _rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let EntityKind::Card(card) = & entities[id_card.0 as usize].kind else { unreachable!() };
+    let EntityKind::Card(card) = & entities[id_card].kind else { unreachable!() };
 
     // Create empty container for top effects
     let mut top_effects = Vec::new();
@@ -52,7 +51,7 @@ pub fn process_effect_card_play(
     };
 
     // Get character's modifiers
-    let EntityKind::Character(c) = &entities[character.0 as usize].kind else { unreachable!() };
+    let EntityKind::Character(c) = &entities[character].kind else { unreachable!() };
     let char_modifiers = &c.modifiers;
 
     // Modifier / After Image
@@ -84,7 +83,7 @@ pub fn process_effect_card_play(
     // Modifier / Sharp Hide
     if card.kind == CardKind::Attack {
         for &id_monster in alive_monsters {
-            let EntityKind::Monster(m) = &entities[id_monster.0 as usize].kind else { unreachable!() };
+            let EntityKind::Monster(m) = &entities[id_monster].kind else { unreachable!() };
             let monster_modifiers = &m.modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);

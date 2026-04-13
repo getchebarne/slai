@@ -1,15 +1,14 @@
 use crate::consts::MAX_SIZE_HAND;
 use crate::engine::ProcessEffectResult;
-use crate::types::EntityId;
 use crate::utils::shuffle;
 
 use rand::Rng;
 
 pub fn process_effect_card_draw(
     count: u8,
-    draw_pile: &mut Vec<EntityId>,
-    hand: &mut Vec<EntityId>,
-    discard_pile: &mut Vec<EntityId>,
+    draw_pile: &mut Vec<usize>,
+    hand: &mut Vec<usize>,
+    discard_pile: &mut Vec<usize>,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
     for _ in 0..count {

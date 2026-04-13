@@ -1,5 +1,4 @@
 use crate::modifier::ModifierKind;
-use crate::types::EntityId;
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -74,7 +73,7 @@ pub enum SelectionKind {
 pub enum Target {
     /// Target is known (or not needed). Dispatch runs the handler directly.
     /// `None` means the effect takes no target (CardDraw, EnergyGain, etc.).
-    Direct(Option<EntityId>),
+    Direct(Option<usize>),
 
     /// Target must be resolved against live state at dequeue time. The
     /// dispatcher runs `resolve_targets` and either fans out to `Direct`
@@ -91,7 +90,7 @@ pub enum Target {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effect {
     pub kind: EffectKind,
-    pub source: Option<EntityId>,
+    pub source: Option<usize>,
     pub target: Target,
 }
 
@@ -100,8 +99,8 @@ impl Effect {
     /// common case where a runtime-synthesized effect already knows its target.
     pub const fn direct(
         kind: EffectKind,
-        source: Option<EntityId>,
-        target: Option<EntityId>,
+        source: Option<usize>,
+        target: Option<usize>,
     ) -> Self {
         Self {
             kind,

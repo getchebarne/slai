@@ -4,12 +4,11 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::state::{Entity, EntityKind, Vitals};
-use crate::types::EntityId;
 
 pub fn process_effect_turn_end_monster(
     _vitals: &mut Vitals,
     modifiers: &Modifiers,
-    actor: EntityId,
+    actor: usize,
 ) -> ProcessEffectResult {
     // Modifier / Ritual (skip if newly applied)
     if modifier_has(modifiers, ModifierKind::Ritual)
@@ -32,14 +31,14 @@ pub fn process_effect_turn_end_monster(
 }
 
 pub fn process_effect_turn_end_character(
-    character: EntityId,
+    character: usize,
     entities: &[Entity],
-    hand: &[EntityId],
-    _card_target: Option<EntityId>,
-    alive_monsters: &[EntityId],
+    hand: &[usize],
+    _card_target: Option<usize>,
+    alive_monsters: &[usize],
     _rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let EntityKind::Character(c) = &entities[character.0 as usize].kind else { unreachable!() };
+    let EntityKind::Character(c) = &entities[character].kind else { unreachable!() };
     let character_modifiers = &c.modifiers;
     let mut effects = Vec::new();
 
@@ -74,7 +73,7 @@ pub fn process_effect_turn_end_character(
 
     // Queue each monster's turn: start, execute move, update move, end
     for &mid in alive_monsters {
-        let EntityKind::Monster(m) = & entities[mid.0 as usize].kind else { unreachable!() };
+        let EntityKind::Monster(m) = & entities[mid].kind else { unreachable!() };
         effects.push(Effect {
             kind: EffectKind::TurnStart,
             source: None,

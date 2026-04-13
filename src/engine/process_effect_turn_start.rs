@@ -3,15 +3,14 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
 use crate::state::{Energy, Vitals};
-use crate::types::EntityId;
 
 pub fn process_effect_turn_start(
     vitals: &mut Vitals,
     modifiers: &mut Modifiers,
-    actor: EntityId,
-    character: EntityId,
+    actor: usize,
+    character: usize,
     energy: &Energy,
-    monster_ids: &[EntityId],
+    monster_ids: &[usize],
 ) -> ProcessEffectResult {
     let mut effects = Vec::new();
 

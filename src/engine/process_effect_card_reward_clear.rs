@@ -4,9 +4,8 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::engine::ProcessEffectResult;
-use crate::types::EntityId;
 
-pub fn process_effect_card_reward_clear(card_rewards: &mut Vec<EntityId>) -> ProcessEffectResult {
+pub fn process_effect_card_reward_clear(card_rewards: &mut Vec<usize>) -> ProcessEffectResult {
     // Clear card rewards
     card_rewards.clear();
 

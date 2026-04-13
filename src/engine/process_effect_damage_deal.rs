@@ -1,11 +1,10 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::state::Vitals;
-use crate::types::EntityId;
 
 pub fn process_effect_damage_deal(
     vitals: &mut Vitals,
-    target: EntityId,
+    target: usize,
     amount: u16,
 ) -> ProcessEffectResult {
     // Absorb w/ block, pass remainder as health loss
