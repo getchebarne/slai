@@ -11,14 +11,6 @@ use crate::effect::Effect;
 use crate::monsters::Monster;
 use crate::types::*;
 
-// Vitals: physical combat state. Shared by character and monsters
-#[derive(Debug, Clone, Copy)]
-pub struct Vitals {
-    pub health: u16,
-    pub health_max: u16,
-    pub block: u16,
-}
-
 // Entity: the universal unit of identity
 #[derive(Debug, Clone)]
 pub struct Entity {

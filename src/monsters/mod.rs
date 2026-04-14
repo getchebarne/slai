@@ -5,7 +5,7 @@ pub mod the_guardian;
 
 use crate::effect::Effect;
 use crate::modifier::Modifiers;
-use crate::state::Vitals;
+use crate::types::Vitals;
 use crate::types::{MonsterKind, MonsterName};
 use rand::Rng;
 

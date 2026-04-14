@@ -9,7 +9,7 @@ use crate::monsters::Intent;
 use crate::monsters::MAX_MOVE_HISTORY;
 use crate::monsters::Monster;
 use crate::monsters::Move;
-use crate::state::Vitals;
+use crate::types::Vitals;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use rand::Rng;

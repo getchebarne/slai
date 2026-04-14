@@ -3,7 +3,7 @@ use crate::engine::ProcessEffectResult;
 use crate::modifier::{
     ModifierKind, Modifiers, modifier_def, modifier_has, modifier_remove, modifier_stacks,
 };
-use crate::state::Vitals;
+use crate::types::Vitals;
 
 pub fn process_effect_health_loss(
     vitals: &mut Vitals,

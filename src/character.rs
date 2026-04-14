@@ -1,7 +1,7 @@
 use crate::cards::{Card, get_card};
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::modifier::{Modifiers, modifiers_new};
-use crate::state::Vitals;
+use crate::types::Vitals;
 use crate::types::CardName;
 
 #[derive(Debug, Clone, Copy)]

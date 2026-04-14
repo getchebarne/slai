@@ -1,5 +1,13 @@
 // Core type enums shared across the engine.
 
+// Vitals: physical combat state. Shared by character and monsters.
+#[derive(Debug, Clone, Copy)]
+pub struct Vitals {
+    pub health: u16,
+    pub health_max: u16,
+    pub block: u16,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum CardName {

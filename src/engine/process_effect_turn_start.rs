@@ -2,7 +2,8 @@ use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
-use crate::state::{Energy, Vitals};
+use crate::state::{Energy};
+use crate::types::Vitals;
 
 pub fn process_effect_turn_start(
     vitals: &mut Vitals,

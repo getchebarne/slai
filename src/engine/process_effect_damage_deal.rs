@@ -1,6 +1,6 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::state::Vitals;
+use crate::types::Vitals;
 
 pub fn process_effect_damage_deal(
     vitals: &mut Vitals,

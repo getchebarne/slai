@@ -3,7 +3,8 @@ use rand::Rng;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::state::{Entity, EntityKind, Vitals};
+use crate::state::{Entity, EntityKind};
+use crate::types::Vitals;
 
 pub fn process_effect_turn_end_monster(
     _vitals: &mut Vitals,

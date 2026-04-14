@@ -1,7 +1,7 @@
 use crate::consts::MAX_BLOCK;
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::state::Vitals;
+use crate::types::Vitals;
 
 // TODO: frail
 pub fn process_effect_block_gain(
