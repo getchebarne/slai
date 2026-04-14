@@ -3,6 +3,7 @@ use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_clear;
 use crate::state::{Entity, EntityKind, Map};
 use crate::types::RoomType;
+use crate::map::{active_room_type};
 
 pub fn process_effect_combat_end(
     character: usize,
@@ -23,7 +24,7 @@ pub fn process_effect_combat_end(
     *card_target = None;
 
     // Next step depends on room type — read it before mutating entities
-    let room = map.active_room_type(entities).unwrap();
+    let room = active_room_type(&map, entities).unwrap();
 
     // Clear character modifiers and monsters
     let EntityKind::Character(c) = &mut entities[character].kind else { unreachable!() };

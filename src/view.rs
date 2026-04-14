@@ -15,6 +15,7 @@ use crate::monsters::Intent;
 use crate::state::{Entity, EntityKind, GameState};
 use crate::types::Phase;
 use crate::utils::get_alive_monster_ids;
+use crate::map::{edge_indices};
 
 // ───────── Selection variants ─────────
 
@@ -620,7 +621,7 @@ fn build_view_map(state: &GameState) -> ViewMap {
                         let EntityKind::MapNode(node) = & state.entities[id].kind else { unreachable!() };
                         ViewMapNode {
                             room_type: format!("{:?}", node.room_type),
-                            edges: node.edge_indices().collect(),
+                            edges: edge_indices(node).collect(),
                         }
                     })
                 })

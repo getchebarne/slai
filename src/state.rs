@@ -30,7 +30,7 @@ pub enum EntityKind {
     Character(Character),
     Monster(Monster),
     Card(Card),
-    MapNode(MapNode),
+    MapNode(MapNode), // TODO: rename to `Room`
 }
 
 // Energy
@@ -40,7 +40,7 @@ pub struct Energy {
     pub max: u8,
 }
 
-// Map
+// Map — pure data. Operations live as free functions in `crate::map`.
 #[derive(Debug, Clone, Copy)]
 pub struct MapNode {
     pub y: usize,
@@ -49,53 +49,11 @@ pub struct MapNode {
     pub edges: u8,
 }
 
-impl MapNode {
-    pub fn has_edge(&self, x: usize) -> bool {
-        self.edges & (1 << x) != 0
-    }
-
-    pub fn edge_indices(&self) -> impl Iterator<Item = usize> {
-        let edges = self.edges;
-        (0..MAP_WIDTH).filter(move |&x| edges & (1 << x) != 0)
-    }
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct Map {
     pub nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
-}
-
-impl Map {
-    pub fn node_at<'a>(&self, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a MapNode> {
-        let id = self.nodes[y][x]?;
-        let EntityKind::MapNode(node) = &entities[id].kind else {
-            unreachable!()
-        };
-        Some(node)
-    }
-
-    pub fn active_node<'a>(&self, entities: &'a [Entity]) -> Option<&'a MapNode> {
-        let y = self.y_current?;
-        let x = self.x_current?;
-        if y >= MAP_HEIGHT {
-            return None;
-        }
-        self.node_at(entities, y, x)
-    }
-
-    pub fn active_room_type(&self, entities: &[Entity]) -> Option<RoomType> {
-        let y = self.y_current?;
-        if y == MAP_HEIGHT {
-            return Some(RoomType::CombatBoss);
-        }
-        self.active_node(entities).map(|n| n.room_type)
-    }
-
-    pub fn is_boss_room(&self) -> bool {
-        self.y_current == Some(MAP_HEIGHT)
-    }
 }
 
 // GameState: the single source of truth

@@ -1,4 +1,4 @@
-// Map generation
+// Map generation and queries.
 // TODO: check if this is the exact same logic from the de-compiled original Java code
 
 use rand::Rng;
@@ -8,6 +8,51 @@ use crate::state::{Entity, EntityKind, Map, MapNode};
 use crate::types::RoomType;
 
 type Grid = [[Option<MapNode>; MAP_WIDTH]; MAP_HEIGHT];
+
+// ───────── Queries ─────────
+
+/// True if `node` has an edge to column `x` in the next row.
+pub fn has_edge(node: &MapNode, x: usize) -> bool {
+    node.edges & (1 << x) != 0
+}
+
+/// Every next-row column reachable from `node`.
+pub fn edge_indices(node: &MapNode) -> impl Iterator<Item = usize> {
+    let edges = node.edges;
+    (0..MAP_WIDTH).filter(move |&x| edges & (1 << x) != 0)
+}
+
+/// Look up the node at `(y, x)` via the entity array.
+pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a MapNode> {
+    let id = map.nodes[y][x]?;
+    let EntityKind::MapNode(node) = &entities[id].kind else {
+        unreachable!()
+    };
+    Some(node)
+}
+
+/// Look up the node at the player's current position, if any. Returns
+/// `None` when the player is in the boss room (y_current == MAP_HEIGHT).
+pub fn active_node<'a>(map: &Map, entities: &'a [Entity]) -> Option<&'a MapNode> {
+    let y = map.y_current?;
+    let x = map.x_current?;
+    if y >= MAP_HEIGHT {
+        return None;
+    }
+    node_at(map, entities, y, x)
+}
+
+/// The room type of the player's current position. Returns
+/// `Some(CombatBoss)` when in the boss room.
+pub fn active_room_type(map: &Map, entities: &[Entity]) -> Option<RoomType> {
+    let y = map.y_current?;
+    if y == MAP_HEIGHT {
+        return Some(RoomType::CombatBoss);
+    }
+    active_node(map, entities).map(|n| n.room_type)
+}
+
+// ───────── Generation ─────────
 
 /// Generates a map as an intermediate grid of inline `MapNode`s. Callers
 /// are expected to entitize the grid via `entitize_map` before storing it
@@ -131,7 +176,7 @@ fn create_target(
     if x_source > 0 {
         let x_left = x_source - 1;
         if let Some(ref node_left) = nodes[y_source][x_left] {
-            for x_t in node_left.edge_indices() {
+            for x_t in edge_indices(node_left) {
                 if x_t > x_target {
                     x_target = x_t;
                 }
@@ -143,7 +188,7 @@ fn create_target(
     if x_source < MAP_WIDTH - 1 {
         let x_right = x_source + 1;
         if let Some(ref node_right) = nodes[y_source][x_right] {
-            for x_t in node_right.edge_indices() {
+            for x_t in edge_indices(node_right) {
                 if x_t < x_target {
                     x_target = x_t;
                 }
@@ -162,7 +207,7 @@ fn get_node_parents(y: usize, x: usize, nodes: &Grid) -> Vec<(usize, usize)> {
     let mut parents = Vec::new();
     for (px, node) in nodes[y_parent].iter().enumerate() {
         if let Some(n) = node {
-            if n.has_edge(x) {
+            if has_edge(n, x) {
                 parents.push((y_parent, px));
             }
         }

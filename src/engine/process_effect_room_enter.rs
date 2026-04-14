@@ -5,6 +5,7 @@ use crate::engine::ProcessEffectResult;
 use crate::monsters::{Monster, spawn_monster};
 use crate::state::{Entity, EntityKind, Map};
 use crate::types::{MonsterName, RoomType};
+use crate::map::{active_room_type};
 
 fn push_monster(
     monster: Monster,
@@ -31,7 +32,7 @@ pub fn process_effect_room_enter(
     *monster_count = 0;
 
     // Spawn monsters based on room type
-    let room = map.active_room_type(entities).unwrap();
+    let room = active_room_type(&map, entities).unwrap();
     match room {
         RoomType::CombatBoss => {
             // TODO: other bosses
