@@ -39,14 +39,14 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     // to reference them by id.
     let map = entitize_map(map_grid, &mut entities);
 
-    // Seed the queue with the initial MapNodeSelect prompt so the player
+    // Seed the queue with the initial RoomSelect prompt so the player
     // starts halted on the first map pick.
     let mut effect_queue = VecDeque::new();
     effect_queue.push_back(Effect {
-        kind: EffectKind::MapNodeSelect,
+        kind: EffectKind::RoomSelect,
         source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::MapNodeNextRow,
+            candidates: CandidatePool::NextRowRooms,
             selection: SelectionKind::Input { count: 1 },
         },
     });

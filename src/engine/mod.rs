@@ -76,7 +76,7 @@ pub(crate) fn resolve_candidates(
         CandidatePool::Monsters => alive_monsters.to_vec(),
         CandidatePool::Source => vec![source],
         CandidatePool::CardRewardPool => card_rewards.to_vec(),
-        CandidatePool::MapNodeNextRow => {
+        CandidatePool::NextRowRooms => {
             let mut out = Vec::new();
             match map.position {
                 Position::Start => {
@@ -213,7 +213,7 @@ fn resolve_or_halt(
             EffectKind::CardDiscard => ProcessEffectResult::Halt {
                 phase_new: Phase::CombatAwaitDiscard { num },
             },
-            EffectKind::MapNodeSelect => ProcessEffectResult::Halt {
+            EffectKind::RoomSelect => ProcessEffectResult::Halt {
                 phase_new: Phase::Map,
             },
             _ => panic!("Unsupported effect kind for halting: {:?}", kind),
@@ -541,11 +541,11 @@ fn dispatch_by_kind(
             process_effect_rest_site_exit::process_effect_rest_site_exit(&mut state.map)
         }
         // Halt-kind variants: represent pending player decisions.
-        // MapNodeSelect and CardRewardSelect in their `Direct` form (after
+        // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before
         // resolution they're handled by the `Resolve` branch in `process_effect`.
-        EffectKind::MapNodeSelect => {
-            let node_id = target.expect("MapNodeSelect Direct form must have target");
+        EffectKind::RoomSelect => {
+            let node_id = target.expect("RoomSelect Direct form must have target");
             let EntityKind::Room(node) = &state.entities[node_id].kind else {
                 unreachable!()
             };
@@ -573,7 +573,7 @@ fn dispatch_by_kind(
         EffectKind::AwaitRestSiteAction => ProcessEffectResult::Halt {
             phase_new: Phase::RestSite,
         },
-        EffectKind::AwaitCardReward => ProcessEffectResult::Halt {
+        EffectKind::AwaitCardRewardRoll => ProcessEffectResult::Halt {
             phase_new: Phase::CombatReward,
         },
     }

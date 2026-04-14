@@ -24,7 +24,7 @@ pub enum Action {
     },
     CardRewardSkip,
     EndTurn,
-    MapNodeSelect {
+    RoomSelect {
         idx_column: usize,
     },
     RestSiteRest,
@@ -38,7 +38,7 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
         (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
         (Action::CardRewardSelect { .. } | Action::CardRewardSkip, Phase::CombatReward) => true,
-        (Action::MapNodeSelect { .. }, Phase::Map) => true,
+        (Action::RoomSelect { .. }, Phase::Map) => true,
         _ => false,
     };
     if !valid {
@@ -60,7 +60,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::CardRewardSelect { idx_reward } => handle_card_reward_select(state, idx_reward),
         Action::CardRewardSkip => Ok(handle_card_reward_skip()),
         Action::EndTurn => Ok(handle_end_turn(state)),
-        Action::MapNodeSelect { idx_column } => handle_map_node_select(state, idx_column),
+        Action::RoomSelect { idx_column } => handle_room_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
     }?;
 
@@ -159,7 +159,7 @@ fn handle_card_discard(state: &GameState, idx_hand: Vec<usize>) -> Result<Vec<Ef
     Ok(effects)
 }
 
-fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect>, String> {
+fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect>, String> {
     if idx_column >= MAP_WIDTH {
         return Err(format!(
             "Invalid column {}: max is {}",
@@ -191,10 +191,10 @@ fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Ef
         }
     }
 
-    // Return a Direct MapNodeSelect effect. Its dispatch arm will update
+    // Return a Direct RoomSelect effect. Its dispatch arm will update
     // state.map.position and push a RoomEnter effect.
     Ok(vec![Effect::direct(
-        EffectKind::MapNodeSelect,
+        EffectKind::RoomSelect,
         None,
         Some(target_id),
     )])
@@ -204,7 +204,7 @@ fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec
     let id_card = validate_idx(&state.card_rewards, idx_reward)?;
 
     // Direct CardRewardSelect: handler adds the target card to the deck and
-    // enqueues CardRewardClear, which in turn enqueues MapNodeSelect.
+    // enqueues CardRewardClear, which in turn enqueues RoomSelect.
     Ok(vec![Effect::direct(
         EffectKind::CardRewardSelect,
         None,

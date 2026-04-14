@@ -11,7 +11,7 @@ use crate::effect::Effect;
 use crate::monsters::Monster;
 use crate::types::*;
 
-// Vitals: physical combat state
+// Vitals: physical combat state. Shared by character and monsters
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
     pub health: u16,

@@ -38,14 +38,21 @@ pub enum EffectKind {
     RoomEnter,
     RestSiteExit,
 
-    // Halt-kind variants — pending player decisions.
-    // Each one's dispatch arm returns ProcessEffectResult::Halt { phase_new }.
-    MapNodeSelect,
+    // Select: halts the queue asking the player to pick a target. After the
+    // pick, the same EffectKind runs as `Direct` with the chosen entity,
+    // mutating state and pushing follow-up effects
+    RoomSelect,
     CardRewardSelect,
-    GameOver,
+
+    // Await: pure halts. No target, no payload, no post-pick dispatch logic.
+    // Exist only to stop the queue so the player can take their next action
+    // (which will be processed as a separate effect chain)
     AwaitCombatAction,
     AwaitRestSiteAction,
-    AwaitCardReward,
+    AwaitCardRewardRoll,
+
+    // Terminal: the game is over. No further effects will be processed
+    GameOver,
 }
 
 // CandidatePool: abstract source pool for a Resolve effect's target resolution.
@@ -56,7 +63,7 @@ pub enum CandidatePool {
     Character,
     Monsters,
     Source,
-    MapNodeNextRow,
+    NextRowRooms,
     CardRewardPool,
 }
 
@@ -97,11 +104,7 @@ pub struct Effect {
 impl Effect {
     /// Constructs an `Effect` with `Direct` target. Convenience for the
     /// common case where a runtime-synthesized effect already knows its target.
-    pub const fn direct(
-        kind: EffectKind,
-        source: Option<usize>,
-        target: Option<usize>,
-    ) -> Self {
+    pub const fn direct(kind: EffectKind, source: Option<usize>, target: Option<usize>) -> Self {
         Self {
             kind,
             source,

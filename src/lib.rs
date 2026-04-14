@@ -76,13 +76,13 @@ impl ActionCardDiscard {
 
 #[pyclass(frozen)]
 #[derive(Clone)]
-struct ActionMapNodeSelect {
+struct ActionRoomSelect {
     #[pyo3(get)]
     column: usize,
 }
 
 #[pymethods]
-impl ActionMapNodeSelect {
+impl ActionRoomSelect {
     #[new]
     fn new(column: usize) -> Self {
         Self { column }
@@ -160,8 +160,8 @@ fn decode_action(py_action: &Bound<'_, PyAny>) -> PyResult<Action> {
             idx_hand: a.indices,
         });
     }
-    if let Ok(a) = py_action.extract::<ActionMapNodeSelect>() {
-        return Ok(Action::MapNodeSelect {
+    if let Ok(a) = py_action.extract::<ActionRoomSelect>() {
+        return Ok(Action::RoomSelect {
             idx_column: a.column,
         });
     }
@@ -236,7 +236,7 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ActionCardPlay>()?;
     m.add_class::<ActionEndTurn>()?;
     m.add_class::<ActionCardDiscard>()?;
-    m.add_class::<ActionMapNodeSelect>()?;
+    m.add_class::<ActionRoomSelect>()?;
     m.add_class::<ActionCardRewardSelect>()?;
     m.add_class::<ActionCardRewardSkip>()?;
     m.add_class::<ActionRest>()?;

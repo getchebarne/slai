@@ -60,7 +60,7 @@ pub fn process_effect_card_reward_roll(
     char_data.reward_roll_offset = reward_roll_offset;
 
     ProcessEffectResult::AddAndContinue {
-        top: vec![Effect::direct(EffectKind::AwaitCardReward, None, None)],
+        top: vec![Effect::direct(EffectKind::AwaitCardRewardRoll, None, None)],
         bot: Vec::new(),
     }
 }
