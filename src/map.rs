@@ -4,28 +4,28 @@
 use rand::Rng;
 
 use crate::consts::*;
-use crate::state::{Entity, EntityKind, Map, MapNode, Position};
+use crate::state::{Entity, EntityKind, Map, Room, Position};
 use crate::types::RoomType;
 
-type Grid = [[Option<MapNode>; MAP_WIDTH]; MAP_HEIGHT];
+type Grid = [[Option<Room>; MAP_WIDTH]; MAP_HEIGHT];
 
 // ───────── Queries ─────────
 
 /// True if `node` has an edge to column `x` in the next row.
-pub fn has_edge(node: &MapNode, x: usize) -> bool {
+pub fn has_edge(node: &Room, x: usize) -> bool {
     node.edges & (1 << x) != 0
 }
 
 /// Every next-row column reachable from `node`.
-pub fn edge_indices(node: &MapNode) -> impl Iterator<Item = usize> {
+pub fn edge_indices(node: &Room) -> impl Iterator<Item = usize> {
     let edges = node.edges;
     (0..MAP_WIDTH).filter(move |&x| edges & (1 << x) != 0)
 }
 
 /// Look up the node at `(y, x)` via the entity array.
-pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a MapNode> {
+pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a Room> {
     let id = map.nodes[y][x]?;
-    let EntityKind::MapNode(node) = &entities[id].kind else {
+    let EntityKind::Room(node) = &entities[id].kind else {
         unreachable!()
     };
     Some(node)
@@ -33,7 +33,7 @@ pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Opt
 
 /// Look up the node at the player's current position, if any. Returns
 /// `None` at `Start` (no node picked yet) and at `BossRoom` (off the grid).
-pub fn active_node<'a>(map: &Map, entities: &'a [Entity]) -> Option<&'a MapNode> {
+pub fn active_node<'a>(map: &Map, entities: &'a [Entity]) -> Option<&'a Room> {
     match map.position {
         Position::Overworld { y, x } => node_at(map, entities, y, x),
         Position::Start | Position::BossRoom => None,
@@ -52,7 +52,7 @@ pub fn active_room_type(map: &Map, entities: &[Entity]) -> Option<RoomType> {
 
 // ───────── Generation ─────────
 
-/// Generates a map as an intermediate grid of inline `MapNode`s. Callers
+/// Generates a map as an intermediate grid of inline `Room`s. Callers
 /// are expected to entitize the grid via `entitize_map` before storing it
 /// in `GameState`.
 pub fn generate_map(rng: &mut impl Rng) -> Grid {
@@ -71,7 +71,7 @@ pub fn generate_map(rng: &mut impl Rng) -> Grid {
 
         let mut y_source: usize = 0;
         if nodes[y_source][x_source].is_none() {
-            nodes[y_source][x_source] = Some(MapNode {
+            nodes[y_source][x_source] = Some(Room {
                 y: y_source,
                 x: x_source,
                 room_type: RoomType::CombatMonster,
@@ -87,7 +87,7 @@ pub fn generate_map(rng: &mut impl Rng) -> Grid {
             let (y_target, x_target) = create_target(y_source, x_source, &nodes, rng);
 
             if nodes[y_target][x_target].is_none() {
-                nodes[y_target][x_target] = Some(MapNode {
+                nodes[y_target][x_target] = Some(Room {
                     y: y_target,
                     x: x_target,
                     room_type: RoomType::CombatMonster,
@@ -111,7 +111,7 @@ pub fn generate_map(rng: &mut impl Rng) -> Grid {
 }
 
 /// Entitizes a generated grid: each `Some(node)` is pushed into `entities`
-/// as an `EntityKind::MapNode`, and the returned `Map` stores the entity ids.
+/// as an `EntityKind::Room`, and the returned `Map` stores the entity ids.
 pub fn entitize_map(grid: Grid, entities: &mut Vec<Entity>) -> Map {
     let mut nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT] = [[None; MAP_WIDTH]; MAP_HEIGHT];
     for (y, row) in grid.iter().enumerate() {
@@ -119,7 +119,7 @@ pub fn entitize_map(grid: Grid, entities: &mut Vec<Entity>) -> Map {
             if let Some(node) = cell {
                 let id = entities.len();
                 entities.push(Entity {
-                    kind: EntityKind::MapNode(*node),
+                    kind: EntityKind::Room(*node),
                 });
                 nodes[y][x] = Some(id);
             }

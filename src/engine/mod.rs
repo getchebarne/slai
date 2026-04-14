@@ -92,7 +92,7 @@ pub(crate) fn resolve_candidates(
                         return Vec::new();
                     }
                     if let Some(current_id) = map.nodes[y][x] {
-                        let EntityKind::MapNode(current_node) = &entities[current_id].kind
+                        let EntityKind::Room(current_node) = &entities[current_id].kind
                         else {
                             unreachable!()
                         };
@@ -546,7 +546,7 @@ fn dispatch_by_kind(
         // resolution they're handled by the `Resolve` branch in `process_effect`.
         EffectKind::MapNodeSelect => {
             let node_id = target.expect("MapNodeSelect Direct form must have target");
-            let EntityKind::MapNode(node) = &state.entities[node_id].kind else {
+            let EntityKind::Room(node) = &state.entities[node_id].kind else {
                 unreachable!()
             };
             let node = *node;

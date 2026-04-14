@@ -219,7 +219,7 @@ pub struct ViewEnergy {
     pub max: u8,
 }
 
-#[pyclass(name = "MapNode", frozen, get_all)]
+#[pyclass(name = "Room", frozen, get_all)]
 #[derive(Debug, Clone)]
 pub struct ViewMapNode {
     pub room_type: String,
@@ -618,7 +618,7 @@ fn build_view_map(state: &GameState) -> ViewMap {
             row.iter()
                 .map(|cell| {
                     cell.map(|id| {
-                        let EntityKind::MapNode(node) = & state.entities[id].kind else { unreachable!() };
+                        let EntityKind::Room(node) = & state.entities[id].kind else { unreachable!() };
                         ViewMapNode {
                             room_type: format!("{:?}", node.room_type),
                             edges: edge_indices(node).collect(),

@@ -30,7 +30,7 @@ pub enum EntityKind {
     Character(Character),
     Monster(Monster),
     Card(Card),
-    MapNode(MapNode), // TODO: rename to `Room`
+    Room(Room),
 }
 
 // Energy
@@ -40,9 +40,9 @@ pub struct Energy {
     pub max: u8,
 }
 
-// Map — pure data. Operations live as free functions in `crate::map`.
+// Map
 #[derive(Debug, Clone, Copy)]
-pub struct MapNode {
+pub struct Room {
     pub y: usize,
     pub x: usize,
     pub room_type: RoomType,
@@ -51,11 +51,11 @@ pub struct MapNode {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Position {
-    /// Fresh run — haven't picked a starting node yet.
+    // Fresh run — haven't picked a starting node yet
     Start,
-    /// On a map node at `(y, x)` where `y < MAP_HEIGHT`.
+    // On a map node at `(y, x)` where `y < MAP_HEIGHT`
     Overworld { y: usize, x: usize },
-    /// In the boss room. The boss room isn't part of the grid.
+    // In the boss room. The boss room isn't part of the grid
     BossRoom,
 }
 
