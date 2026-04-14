@@ -29,25 +29,8 @@ pub mod strike;
 pub mod survivor;
 pub mod terror;
 
-use crate::effect::Effect;
-use crate::types::CardColor;
-use crate::types::CardKind;
+use crate::entities::Card;
 use crate::types::CardName;
-use crate::types::CardRarity;
-
-#[derive(Debug, Clone, Copy)]
-pub struct Card {
-    pub name: CardName,
-    pub kind: CardKind,
-    pub color: CardColor,
-    pub rarity: CardRarity,
-    pub cost: u8,
-    pub upgraded: bool,
-    pub exhaust: bool,
-    pub innate: bool,
-    pub requires_target: bool,
-    pub effects: &'static [Effect],
-}
 
 pub fn get_card(name: CardName, upgraded: bool) -> Card {
     match (name, upgraded) {

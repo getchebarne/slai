@@ -10,6 +10,7 @@ use crate::character::{silent_starter_deck, spawn_silent};
 use crate::consts::MAX_MONSTERS;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
+use crate::entities::{Entity, EntityKind};
 use crate::map::{entitize_map, generate_map};
 use crate::state::*;
 use crate::types::Phase;

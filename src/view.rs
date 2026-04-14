@@ -7,12 +7,13 @@
 
 use pyo3::prelude::*;
 
-use crate::cards::Card;
+use crate::entities::Card;
 use crate::consts::FACTOR_VULN;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
-use crate::monsters::Intent;
-use crate::state::{Entity, EntityKind, GameState, Position};
+use crate::entities::Intent;
+use crate::state::{GameState, Position};
+use crate::entities::{Entity, EntityKind};
 use crate::types::Phase;
 use crate::utils::get_alive_monster_ids;
 use crate::map::{edge_indices};

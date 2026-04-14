@@ -1,6 +1,6 @@
 use crate::cards::get_card;
 use crate::engine::ProcessEffectResult;
-use crate::state::{Entity, EntityKind};
+use crate::entities::{Entity, EntityKind};
 
 pub fn process_effect_card_upgrade(
     target: usize,

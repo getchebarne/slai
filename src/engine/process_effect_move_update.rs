@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::engine::ProcessEffectResult;
 use crate::monsters;
-use crate::state::{Entity, EntityKind};
+use crate::entities::{Entity, EntityKind};
 
 pub fn process_effect_move_update(entity: &mut Entity, rng: &mut impl Rng) -> ProcessEffectResult {
     let EntityKind::Monster(m) = &mut entity.kind else { unreachable!() };

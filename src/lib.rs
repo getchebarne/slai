@@ -8,6 +8,7 @@ mod character;
 mod consts;
 mod effect;
 mod engine;
+mod entities;
 mod game;
 mod map;
 mod modifier;

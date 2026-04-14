@@ -2,8 +2,10 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::monsters::{Monster, spawn_monster};
-use crate::state::{Entity, EntityKind, Map};
+use crate::monsters::spawn_monster;
+use crate::entities::Monster;
+use crate::state::Map;
+use crate::entities::{Entity, EntityKind};
 use crate::types::{MonsterName, RoomType};
 use crate::map::{active_room_type};
 

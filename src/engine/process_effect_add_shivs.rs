@@ -1,7 +1,7 @@
 use crate::cards::get_card;
 use crate::consts::MAX_SIZE_HAND;
 use crate::engine::ProcessEffectResult;
-use crate::state::{Entity, EntityKind};
+use crate::entities::{Entity, EntityKind};
 use crate::types::CardName;
 
 pub fn process_effect_add_shivs(

@@ -7,7 +7,7 @@ use crate::consts::{
 };
 use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
-use crate::state::{Entity, EntityKind};
+use crate::entities::{Entity, EntityKind};
 
 use crate::types::CardName;
 

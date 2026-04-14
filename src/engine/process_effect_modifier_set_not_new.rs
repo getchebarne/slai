@@ -1,6 +1,6 @@
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_set_not_new;
-use crate::state::{Entity, EntityKind};
+use crate::entities::{Entity, EntityKind};
 
 pub fn process_effect_modifier_set_not_new(
     character: usize,

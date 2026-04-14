@@ -1,6 +1,7 @@
 use rand::Rng;
 
-use crate::state::{EntityKind, GameState};
+use crate::state::GameState;
+use crate::entities::EntityKind;
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
     for i in (1..slice.len()).rev() {

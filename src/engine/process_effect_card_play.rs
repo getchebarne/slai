@@ -6,7 +6,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
-use crate::state::{Entity, EntityKind};
+use crate::entities::{Entity, EntityKind};
 
 pub fn process_effect_card_play(
     id_card: usize,

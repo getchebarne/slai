@@ -4,7 +4,8 @@ use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::types::Phase;
 use crate::utils::get_alive_monster_ids;
-use crate::state::{EntityKind, GameState, Position};
+use crate::state::{GameState, Position};
+use crate::entities::EntityKind;
 use crate::map::{has_edge, node_at};
 
 #[derive(Debug, Clone)]

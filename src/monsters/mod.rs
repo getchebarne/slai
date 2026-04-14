@@ -3,60 +3,9 @@ pub mod fungi_beast;
 pub mod jaw_worm;
 pub mod the_guardian;
 
-use crate::effect::Effect;
-use crate::modifier::Modifiers;
-use crate::types::Vitals;
-use crate::types::{MonsterKind, MonsterName};
+use crate::entities::Monster;
+use crate::types::MonsterName;
 use rand::Rng;
-
-pub const MAX_MOVE_HISTORY: usize = 64;
-
-#[derive(Debug, Clone, Copy)]
-pub enum Intent {
-    Attack { damage: u16, instances: u8 },
-    AttackBlock { damage: u16, instances: u8 },
-    AttackBuff { damage: u16, instances: u8 },
-    Block,
-    BlockBuff,
-    Buff,
-    Debuff,
-    DebuffPowerful,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Move {
-    pub name: &'static str,
-    pub effects: &'static [Effect],
-    pub intent: Intent,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Monster {
-    pub name: MonsterName,
-    pub monster_kind: MonsterKind,
-    pub vitals: Vitals,
-    pub modifiers: Modifiers,
-    pub moves: &'static [Move],
-    pub move_current: Option<usize>,
-    pub move_history: [u8; MAX_MOVE_HISTORY],
-    pub move_history_len: u8,
-    pub dead: bool,
-}
-
-impl Monster {
-    pub fn push_history(&mut self, move_idx: u8) {
-        assert!(
-            (self.move_history_len as usize) < MAX_MOVE_HISTORY,
-            "move_history overflow"
-        );
-        self.move_history[self.move_history_len as usize] = move_idx;
-        self.move_history_len += 1;
-    }
-
-    pub fn history_slice(&self) -> &[u8] {
-        &self.move_history[..self.move_history_len as usize]
-    }
-}
 
 pub fn spawn_monster(
     monster_name: MonsterName,

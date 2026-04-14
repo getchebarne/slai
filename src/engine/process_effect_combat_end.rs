@@ -1,7 +1,8 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::modifier_clear;
-use crate::state::{Entity, EntityKind, Map};
+use crate::state::Map;
+use crate::entities::{Entity, EntityKind};
 use crate::types::RoomType;
 use crate::map::{active_room_type};
 

@@ -1,7 +1,7 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
-use crate::state::{Entity, EntityKind};
+use crate::entities::{Entity, EntityKind};
 
 pub fn process_effect_death(
     id_target: usize,

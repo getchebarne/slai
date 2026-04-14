@@ -35,7 +35,8 @@ use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::state::{Entity, EntityKind, GameState, Map, Position};
+use crate::state::{GameState, Map, Position};
+use crate::entities::{Entity, EntityKind};
 use crate::types::Phase;
 use crate::utils::{get_alive_monster_ids, shuffle};
 use crate::map::{has_edge};

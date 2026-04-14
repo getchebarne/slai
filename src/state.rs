@@ -4,41 +4,16 @@ use std::collections::VecDeque;
 
 use rand::rngs::SmallRng;
 
-use crate::cards::Card;
-use crate::character::Character;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::Effect;
-use crate::monsters::Monster;
+use crate::entities::Entity;
 use crate::types::*;
-
-// Entity: the universal unit of identity
-#[derive(Debug, Clone)]
-pub struct Entity {
-    pub kind: EntityKind,
-}
-
-#[derive(Debug, Clone)]
-pub enum EntityKind {
-    Character(Character),
-    Monster(Monster),
-    Card(Card),
-    Room(Room),
-}
 
 // Energy
 #[derive(Debug, Clone, Copy)]
 pub struct Energy {
     pub current: u8,
     pub max: u8,
-}
-
-// Map
-#[derive(Debug, Clone, Copy)]
-pub struct Room {
-    pub y: usize,
-    pub x: usize,
-    pub room_type: RoomType,
-    pub edges: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -102,6 +77,6 @@ pub struct GameState {
     pub discard_pile: Vec<usize>,
     pub exhaust_pile: Vec<usize>,
 
-    // Entities / Card / Combat piles
+    // Entities / Card / Combat rewards
     pub card_rewards: Vec<usize>,
 }

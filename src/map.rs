@@ -4,7 +4,8 @@
 use rand::Rng;
 
 use crate::consts::*;
-use crate::state::{Entity, EntityKind, Map, Room, Position};
+use crate::state::{Map, Position};
+use crate::entities::{Entity, EntityKind, Room};
 use crate::types::RoomType;
 
 type Grid = [[Option<Room>; MAP_WIDTH]; MAP_HEIGHT];

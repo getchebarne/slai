@@ -1,4 +1,4 @@
-use crate::cards::Card;
+use crate::entities::Card;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::types::CardColor;
 use crate::types::CardKind;
