@@ -35,7 +35,7 @@ use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::state::{Entity, EntityKind, GameState, Map};
+use crate::state::{Entity, EntityKind, GameState, Map, Position};
 use crate::types::Phase;
 use crate::utils::{get_alive_monster_ids, shuffle};
 use crate::map::{has_edge};
@@ -77,34 +77,35 @@ pub(crate) fn resolve_candidates(
         CandidatePool::Source => vec![source],
         CandidatePool::CardRewardPool => card_rewards.to_vec(),
         CandidatePool::MapNodeNextRow => {
-            let y_next = match map.y_current {
-                None => 0,
-                Some(y) => y + 1,
-            };
-            if y_next >= MAP_HEIGHT {
-                return Vec::new();
-            }
             let mut out = Vec::new();
-            if let Some(y) = map.y_current {
-                let x = map.x_current.unwrap();
-                if let Some(current_id) = map.nodes[y][x] {
-                    let EntityKind::MapNode(current_node) = &entities[current_id].kind else {
-                        unreachable!()
-                    };
+            match map.position {
+                Position::Start => {
                     for col in 0..MAP_WIDTH {
-                        if has_edge(current_node, col) {
-                            if let Some(id) = map.nodes[y_next][col] {
-                                out.push(id);
+                        if let Some(id) = map.nodes[0][col] {
+                            out.push(id);
+                        }
+                    }
+                }
+                Position::Overworld { y, x } => {
+                    let y_next = y + 1;
+                    if y_next >= MAP_HEIGHT {
+                        return Vec::new();
+                    }
+                    if let Some(current_id) = map.nodes[y][x] {
+                        let EntityKind::MapNode(current_node) = &entities[current_id].kind
+                        else {
+                            unreachable!()
+                        };
+                        for col in 0..MAP_WIDTH {
+                            if has_edge(current_node, col) {
+                                if let Some(id) = map.nodes[y_next][col] {
+                                    out.push(id);
+                                }
                             }
                         }
                     }
                 }
-            } else {
-                for col in 0..MAP_WIDTH {
-                    if let Some(id) = map.nodes[0][col] {
-                        out.push(id);
-                    }
-                }
+                Position::BossRoom => {}
             }
             out
         }
@@ -549,8 +550,7 @@ fn dispatch_by_kind(
                 unreachable!()
             };
             let node = *node;
-            state.map.y_current = Some(node.y);
-            state.map.x_current = Some(node.x);
+            state.map.position = Position::Overworld { y: node.y, x: node.x };
             ProcessEffectResult::AddAndContinue {
                 top: vec![Effect::direct(EffectKind::RoomEnter, None, None)],
                 bot: Vec::new(),

@@ -4,7 +4,7 @@
 use rand::Rng;
 
 use crate::consts::*;
-use crate::state::{Entity, EntityKind, Map, MapNode};
+use crate::state::{Entity, EntityKind, Map, MapNode, Position};
 use crate::types::RoomType;
 
 type Grid = [[Option<MapNode>; MAP_WIDTH]; MAP_HEIGHT];
@@ -32,24 +32,22 @@ pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Opt
 }
 
 /// Look up the node at the player's current position, if any. Returns
-/// `None` when the player is in the boss room (y_current == MAP_HEIGHT).
+/// `None` at `Start` (no node picked yet) and at `BossRoom` (off the grid).
 pub fn active_node<'a>(map: &Map, entities: &'a [Entity]) -> Option<&'a MapNode> {
-    let y = map.y_current?;
-    let x = map.x_current?;
-    if y >= MAP_HEIGHT {
-        return None;
+    match map.position {
+        Position::Overworld { y, x } => node_at(map, entities, y, x),
+        Position::Start | Position::BossRoom => None,
     }
-    node_at(map, entities, y, x)
 }
 
-/// The room type of the player's current position. Returns
-/// `Some(CombatBoss)` when in the boss room.
+/// The room type of the player's current position. Returns `None` at
+/// `Start`, `Some(CombatBoss)` in the boss room.
 pub fn active_room_type(map: &Map, entities: &[Entity]) -> Option<RoomType> {
-    let y = map.y_current?;
-    if y == MAP_HEIGHT {
-        return Some(RoomType::CombatBoss);
+    match map.position {
+        Position::Start => None,
+        Position::BossRoom => Some(RoomType::CombatBoss),
+        Position::Overworld { y, x } => node_at(map, entities, y, x).map(|n| n.room_type),
     }
-    active_node(map, entities).map(|n| n.room_type)
 }
 
 // ───────── Generation ─────────
@@ -129,8 +127,7 @@ pub fn entitize_map(grid: Grid, entities: &mut Vec<Entity>) -> Map {
     }
     Map {
         nodes,
-        y_current: None,
-        x_current: None,
+        position: Position::Start,
     }
 }
 

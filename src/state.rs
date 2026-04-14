@@ -49,11 +49,20 @@ pub struct MapNode {
     pub edges: u8,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Position {
+    /// Fresh run — haven't picked a starting node yet.
+    Start,
+    /// On a map node at `(y, x)` where `y < MAP_HEIGHT`.
+    Overworld { y: usize, x: usize },
+    /// In the boss room. The boss room isn't part of the grid.
+    BossRoom,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct Map {
     pub nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-    pub y_current: Option<usize>,
-    pub x_current: Option<usize>,
+    pub position: Position,
 }
 
 // GameState: the single source of truth

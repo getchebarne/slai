@@ -4,7 +4,7 @@ use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::types::Phase;
 use crate::utils::get_alive_monster_ids;
-use crate::state::{EntityKind, GameState};
+use crate::state::{EntityKind, GameState, Position};
 use crate::map::{has_edge, node_at};
 
 #[derive(Debug, Clone)]
@@ -168,10 +168,11 @@ fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Ef
         ));
     }
 
-    // Compute next y-coordinate
-    let y_next = match state.map.y_current {
-        None => 0,
-        Some(y) => y + 1,
+    // Compute next y-coordinate from current position
+    let y_next = match state.map.position {
+        Position::Start => 0,
+        Position::Overworld { y, .. } => y + 1,
+        Position::BossRoom => return Err("Cannot pick a map node from the boss room".into()),
     };
 
     // Validate node exists at (y_next, idx_column)
@@ -179,8 +180,7 @@ fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Ef
         .ok_or_else(|| format!("No node at ({}, {})", y_next, idx_column))?;
 
     // Validate edge from current node (skip for first move)
-    if let Some(y) = state.map.y_current {
-        let x = state.map.x_current.unwrap();
+    if let Position::Overworld { y, x } = state.map.position {
         let current_node = node_at(&state.map, &state.entities, y, x)
             .expect("current map node missing");
         if !has_edge(current_node, idx_column) {
@@ -192,7 +192,7 @@ fn handle_map_node_select(state: &GameState, idx_column: usize) -> Result<Vec<Ef
     }
 
     // Return a Direct MapNodeSelect effect. Its dispatch arm will update
-    // state.map.y_current/x_current and push a RoomEnter effect.
+    // state.map.position and push a RoomEnter effect.
     Ok(vec![Effect::direct(
         EffectKind::MapNodeSelect,
         None,

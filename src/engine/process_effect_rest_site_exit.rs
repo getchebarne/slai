@@ -1,30 +1,27 @@
 use crate::consts::MAP_HEIGHT;
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::state::Map;
+use crate::state::{Map, Position};
 
 pub fn process_effect_rest_site_exit(map: &mut Map) -> ProcessEffectResult {
-    if map.y_current == Some(MAP_HEIGHT - 1) {
+    let at_final_row = matches!(map.position, Position::Overworld { y, .. } if y == MAP_HEIGHT - 1);
+
+    if at_final_row {
         // Final row — advance into the boss room and let RoomEnter do the setup
-        map.y_current = Some(MAP_HEIGHT);
-        map.x_current = Some(0);
+        map.position = Position::BossRoom;
         ProcessEffectResult::AddAndContinue {
-            top: vec![Effect {
-                kind: EffectKind::RoomEnter,
-                source: None,
-                target: Target::Direct(None),
-            }],
+            top: vec![Effect::direct(EffectKind::RoomEnter, None, None)],
             bot: Vec::new(),
         }
     } else {
         // Non-final row — halt and wait for the player to pick the next map node
         ProcessEffectResult::AddAndContinue {
-            top: vec![crate::effect::Effect {
-                kind: crate::effect::EffectKind::MapNodeSelect,
+            top: vec![Effect {
+                kind: EffectKind::MapNodeSelect,
                 source: None,
-                target: crate::effect::Target::Resolve {
-                    candidates: crate::effect::CandidatePool::MapNodeNextRow,
-                    selection: crate::effect::SelectionKind::Input { count: 1 },
+                target: Target::Resolve {
+                    candidates: CandidatePool::MapNodeNextRow,
+                    selection: SelectionKind::Input { count: 1 },
                 },
             }],
             bot: Vec::new(),

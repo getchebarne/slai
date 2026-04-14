@@ -12,7 +12,7 @@ use crate::consts::FACTOR_VULN;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::monsters::Intent;
-use crate::state::{Entity, EntityKind, GameState};
+use crate::state::{Entity, EntityKind, GameState, Position};
 use crate::types::Phase;
 use crate::utils::get_alive_monster_ids;
 use crate::map::{edge_indices};
@@ -629,9 +629,17 @@ fn build_view_map(state: &GameState) -> ViewMap {
         })
         .collect();
 
+    // Derive flat (y, x) for the Python view from the Position enum so the
+    // frontend keeps its simple shape. Start -> (None, None); Overworld -> both
+    // Some; BossRoom -> (Some(MAP_HEIGHT), Some(0)) — the out-of-grid sentinel.
+    let (y_current, x_current) = match state.map.position {
+        Position::Start => (None, None),
+        Position::Overworld { y, x } => (Some(y), Some(x)),
+        Position::BossRoom => (Some(crate::consts::MAP_HEIGHT), Some(0)),
+    };
     ViewMap {
         nodes,
-        y_current: state.map.y_current,
-        x_current: state.map.x_current,
+        y_current,
+        x_current,
     }
 }
