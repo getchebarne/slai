@@ -11,5 +11,5 @@ pub fn process_effect_card_discard(
     discard_pile.push(id_card);
 
     // Continue
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

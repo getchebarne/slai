@@ -5,5 +5,5 @@ pub fn process_effect_target_set(
     target: usize,
 ) -> ProcessEffectResult {
     *card_target = Some(target);
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

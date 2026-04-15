@@ -1,7 +1,7 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
+use crate::entities::Entity;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
-use crate::entities::{Entity, EntityKind};
 
 pub fn process_effect_death(
     id_target: usize,
@@ -20,13 +20,11 @@ pub fn process_effect_death(
 
     let mut effects = Vec::new();
 
-    let EntityKind::Monster(m) = &mut entities[id_target].kind else {
-        unreachable!()
-    };
+    let monster = &mut entities[id_target];
 
     // Modifier / SporeCloud (on-death effect)
-    if modifier_has(&m.modifiers, ModifierKind::SporeCloud) {
-        let stacks = modifier_stacks(&m.modifiers, ModifierKind::SporeCloud);
+    if modifier_has(&monster.modifiers, ModifierKind::SporeCloud) {
+        let stacks = modifier_stacks(&monster.modifiers, ModifierKind::SporeCloud);
         effects.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Vulnerable,
@@ -37,15 +35,11 @@ pub fn process_effect_death(
         });
     }
 
-    m.dead = true;
+    monster.dead = true;
 
-    // If all monsters dead, replace queue w/ combat end
-    let any_alive = id_monsters[..monster_count as usize].iter().any(|&id| {
-        let EntityKind::Monster(m) = &entities[id].kind else {
-            unreachable!()
-        };
-        !m.dead
-    });
+    let any_alive = id_monsters[..monster_count as usize]
+        .iter()
+        .any(|&id| !entities[id].dead);
 
     if !any_alive {
         effects.push(Effect {
@@ -55,9 +49,9 @@ pub fn process_effect_death(
         });
         ProcessEffectResult::Replace(effects)
     } else if effects.is_empty() {
-        ProcessEffectResult::Continue
+        ProcessEffectResult::Continue { top: vec![], bot: vec![] }
     } else {
-        ProcessEffectResult::AddAndContinue {
+        ProcessEffectResult::Continue {
             top: effects,
             bot: Vec::new(),
         }

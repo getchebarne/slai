@@ -35,18 +35,17 @@ use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entities::{Entity, EntityType};
+use crate::map::has_edge;
 use crate::state::{GameState, Map, Position};
-use crate::entities::{Entity, EntityKind};
 use crate::types::Phase;
 use crate::utils::{get_alive_monster_ids, shuffle};
-use crate::map::{has_edge};
 
 pub enum ProcessEffectResult {
-    AddAndContinue {
+    Continue {
         top: Vec<Effect>,
         bot: Vec<Effect>,
     },
-    Continue,
     Replace(Vec<Effect>),
     /// The queue driver sets `state.phase = phase_new` and returns.
     Halt {
@@ -93,12 +92,9 @@ pub(crate) fn resolve_candidates(
                         return Vec::new();
                     }
                     if let Some(current_id) = map.nodes[y][x] {
-                        let EntityKind::Room(current_node) = &entities[current_id].kind
-                        else {
-                            unreachable!()
-                        };
+                        let current_node = &entities[current_id];
                         for col in 0..MAP_WIDTH {
-                            if has_edge(current_node, col) {
+                            if has_edge(current_node.edges, col) {
                                 if let Some(id) = map.nodes[y_next][col] {
                                     out.push(id);
                                 }
@@ -205,7 +201,7 @@ fn resolve_or_halt(
                     target: Target::Direct(Some(id)),
                 })
                 .collect();
-            ProcessEffectResult::AddAndContinue {
+            ProcessEffectResult::Continue {
                 top: fanout,
                 bot: Vec::new(),
             }
@@ -305,20 +301,8 @@ fn dispatch_by_kind(
         EffectKind::DamagePhysical { base } => {
             let source = source.unwrap();
             let target = target.unwrap();
-            let (_, source_mods) = match &state.entities[source].kind {
-                EntityKind::Character(c) => (&c.vitals, &c.modifiers),
-
-                EntityKind::Monster(m) => (&m.vitals, &m.modifiers),
-
-                _ => unreachable!(),
-            };
-            let (_, target_mods) = match &state.entities[target].kind {
-                EntityKind::Character(c) => (&c.vitals, &c.modifiers),
-
-                EntityKind::Monster(m) => (&m.vitals, &m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let source_mods = &state.entities[source].modifiers;
+            let target_mods = &state.entities[target].modifiers;
             process_effect_damage_physical::process_effect_damage_physical(
                 source_mods,
                 target_mods,
@@ -328,38 +312,20 @@ fn dispatch_by_kind(
         }
         EffectKind::DamageDeal { amount } => {
             let target = target.unwrap();
-            let (vitals, _) = match &mut state.entities[target].kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let vitals = &mut state.entities[target].vitals;
             process_effect_damage_deal::process_effect_damage_deal(vitals, target, amount)
         }
         EffectKind::HealthGain { amount } => {
             let target = target.unwrap();
-            let (vitals, _) = match &mut state.entities[target].kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let vitals = &mut state.entities[target].vitals;
             process_effect_health_gain::process_effect_health_gain(vitals, amount)
         }
         EffectKind::HealthLoss { amount } => {
             let target = target.unwrap();
-            let (vitals, modifiers) = match &mut state.entities[target].kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let entity = &mut state.entities[target];
             process_effect_health_loss::process_effect_health_loss(
-                vitals,
-                modifiers,
+                &mut entity.vitals,
+                &mut entity.modifiers,
                 target,
                 state.character,
                 amount,
@@ -368,28 +334,19 @@ fn dispatch_by_kind(
         EffectKind::BlockGain { amount } => {
             let target = target.unwrap();
             let from_card = source
-                .map(|id| matches!(state.entities[id].kind, EntityKind::Card(_)))
+                .map(|id| state.entities[id].kind == EntityType::Card)
                 .unwrap_or(false);
-            let (vitals, modifiers) = match &mut state.entities[target].kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let entity = &mut state.entities[target];
             process_effect_block_gain::process_effect_block_gain(
-                vitals, modifiers, amount, from_card,
+                &mut entity.vitals,
+                &mut entity.modifiers,
+                amount,
+                from_card,
             )
         }
         EffectKind::BlockSet { amount } => {
             let target = target.unwrap();
-            let (vitals, _) = match &mut state.entities[target].kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let vitals = &mut state.entities[target].vitals;
             process_effect_block_set::process_effect_block_set(vitals, amount)
         }
         EffectKind::EnergyGain { amount } => {
@@ -401,44 +358,31 @@ fn dispatch_by_kind(
         EffectKind::ModifierGain { kind, stacks } => {
             let target = target.unwrap();
             let entity = &mut state.entities[target];
-            let monster_copy = match &entity.kind {
-                EntityKind::Monster(m) => Some(*m),
-                _ => None,
-            };
-            let (_, modifiers) = match &mut entity.kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
+            let is_monster = entity.kind == EntityType::Monster;
+            // Borrow history immutably first, clone into owned-enough-for-call form,
+            // then mutably borrow modifiers. move_history is a fixed array — copy it.
+            let history_buf = entity.move_history;
+            let history_len = entity.move_history_len as usize;
+            let history = if is_monster {
+                Some(&history_buf[..history_len])
+            } else {
+                None
             };
             process_effect_modifier_gain::process_effect_modifier_gain(
-                modifiers,
+                &mut entity.modifiers,
                 kind,
                 stacks,
-                monster_copy.as_ref().map(|m| m.history_slice()),
+                history,
             )
         }
         EffectKind::ModifierRemove { kind } => {
             let target = target.unwrap();
-            let (_, modifiers) = match &mut state.entities[target].kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let modifiers = &mut state.entities[target].modifiers;
             process_effect_modifier_remove::process_effect_modifier_remove(modifiers, kind)
         }
         EffectKind::ModifierTick => {
             let target = target.unwrap();
-            let (_, modifiers) = match &mut state.entities[target].kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let modifiers = &mut state.entities[target].modifiers;
             process_effect_modifier_tick::process_effect_modifier_tick(modifiers)
         }
         EffectKind::ModifierSetNotNew => {
@@ -486,16 +430,10 @@ fn dispatch_by_kind(
         EffectKind::TurnStart => {
             let actor = target.unwrap();
             let monster_ids = get_alive_monster_ids(state);
-            let (vitals, modifiers) = match &mut state.entities[actor].kind {
-                EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                _ => unreachable!(),
-            };
+            let entity = &mut state.entities[actor];
             process_effect_turn_start::process_effect_turn_start(
-                vitals,
-                modifiers,
+                &mut entity.vitals,
+                &mut entity.modifiers,
                 actor,
                 state.character,
                 &state.energy,
@@ -515,14 +453,12 @@ fn dispatch_by_kind(
                     &mut state.rng,
                 )
             } else {
-                let (vitals, modifiers) = match &mut state.entities[actor].kind {
-                    EntityKind::Character(c) => (&mut c.vitals, &mut c.modifiers),
-
-                    EntityKind::Monster(m) => (&mut m.vitals, &mut m.modifiers),
-
-                    _ => unreachable!(),
-                };
-                process_effect_turn_end::process_effect_turn_end_monster(vitals, modifiers, actor)
+                let entity = &mut state.entities[actor];
+                process_effect_turn_end::process_effect_turn_end_monster(
+                    &mut entity.vitals,
+                    &mut entity.modifiers,
+                    actor,
+                )
             }
         }
         EffectKind::MoveUpdate => {
@@ -547,12 +483,12 @@ fn dispatch_by_kind(
         // resolution they're handled by the `Resolve` branch in `process_effect`.
         EffectKind::RoomSelect => {
             let node_id = target.expect("RoomSelect Direct form must have target");
-            let EntityKind::Room(node) = &state.entities[node_id].kind else {
-                unreachable!()
+            let node = &state.entities[node_id];
+            state.map.position = Position::Overworld {
+                y: node.node_y,
+                x: node.node_x,
             };
-            let node = *node;
-            state.map.position = Position::Overworld { y: node.y, x: node.x };
-            ProcessEffectResult::AddAndContinue {
+            ProcessEffectResult::Continue {
                 top: vec![Effect::direct(EffectKind::RoomEnter, None, None)],
                 bot: Vec::new(),
             }
@@ -560,7 +496,7 @@ fn dispatch_by_kind(
         EffectKind::CardRewardSelect => {
             let card_id = target.expect("CardRewardSelect Direct form must have target");
             state.deck.push(card_id);
-            ProcessEffectResult::AddAndContinue {
+            ProcessEffectResult::Continue {
                 top: vec![Effect::direct(EffectKind::CardRewardClear, None, None)],
                 bot: Vec::new(),
             }
@@ -586,8 +522,7 @@ pub fn process_queue(state: &mut GameState) {
             panic!("process_queue: queue drained without halting");
         };
         match process_effect(state, effect) {
-            ProcessEffectResult::Continue => {}
-            ProcessEffectResult::AddAndContinue { top, bot } => {
+            ProcessEffectResult::Continue { top, bot } => {
                 for e in top.into_iter().rev() {
                     state.effect_queue.push_front(e);
                 }

@@ -41,9 +41,9 @@ pub fn process_effect_health_loss(
     }
 
     if effects.is_empty() {
-        ProcessEffectResult::Continue
+        ProcessEffectResult::Continue { top: vec![], bot: vec![] }
     } else {
-        ProcessEffectResult::AddAndContinue {
+        ProcessEffectResult::Continue {
             top: effects,
             bot: Vec::new(),
         }

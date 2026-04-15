@@ -7,8 +7,7 @@ use crate::consts::{
 };
 use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
-use crate::entities::{Entity, EntityKind};
-
+use crate::entities::{Entity, make_entity_from_card};
 use crate::types::CardName;
 
 pub fn process_effect_card_reward_roll(
@@ -17,10 +16,7 @@ pub fn process_effect_card_reward_roll(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let EntityKind::Character(char_data) = &entities[character].kind else {
-        unreachable!()
-    };
-    let mut reward_roll_offset = char_data.reward_roll_offset;
+    let mut reward_roll_offset = entities[character].reward_roll_offset;
     let mut rolled_card_names: Vec<CardName> = Vec::new();
 
     for _ in 0..MAX_COMBAT_CARD_REWARD {
@@ -44,22 +40,16 @@ pub fn process_effect_card_reward_roll(
             name = pool[rng.random_range(0..pool.len())];
         }
 
-        // Create the card entity and add to rewards
         rolled_card_names.push(name);
         let card = get_card(name, false); // TODO: can generate upgraded cards on Act2+
         let id = entities.len();
-        entities.push(Entity {
-            kind: EntityKind::Card(card),
-        });
+        entities.push(make_entity_from_card(card));
         card_rewards.push(id);
     }
 
-    let EntityKind::Character(char_data) = &mut entities[character].kind else {
-        unreachable!()
-    };
-    char_data.reward_roll_offset = reward_roll_offset;
+    entities[character].reward_roll_offset = reward_roll_offset;
 
-    ProcessEffectResult::AddAndContinue {
+    ProcessEffectResult::Continue {
         top: vec![Effect::direct(EffectKind::AwaitCardRewardRoll, None, None)],
         bot: Vec::new(),
     }

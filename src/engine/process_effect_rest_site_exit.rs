@@ -9,13 +9,13 @@ pub fn process_effect_rest_site_exit(map: &mut Map) -> ProcessEffectResult {
     if at_final_row {
         // Final row — advance into the boss room and let RoomEnter do the setup
         map.position = Position::BossRoom;
-        ProcessEffectResult::AddAndContinue {
+        ProcessEffectResult::Continue {
             top: vec![Effect::direct(EffectKind::RoomEnter, None, None)],
             bot: Vec::new(),
         }
     } else {
         // Non-final row — halt and wait for the player to pick the next map node
-        ProcessEffectResult::AddAndContinue {
+        ProcessEffectResult::Continue {
             top: vec![Effect {
                 kind: EffectKind::RoomSelect,
                 source: None,

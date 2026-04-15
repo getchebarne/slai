@@ -10,7 +10,7 @@ pub fn process_effect_card_reward_clear(card_rewards: &mut Vec<usize>) -> Proces
     card_rewards.clear();
 
     // Card reward resolution always transitions back to map-node selection.
-    ProcessEffectResult::AddAndContinue {
+    ProcessEffectResult::Continue {
         top: vec![Effect {
             kind: EffectKind::RoomSelect,
             source: None,

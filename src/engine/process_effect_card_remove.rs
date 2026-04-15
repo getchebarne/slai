@@ -9,5 +9,5 @@ pub fn process_effect_card_remove(
     remove_card_from_hand(id_card, hand);
 
     // Continue
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

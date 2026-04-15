@@ -7,16 +7,14 @@
 
 use pyo3::prelude::*;
 
-use crate::entities::Card;
 use crate::consts::FACTOR_VULN;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entities::{Entity, Intent};
+use crate::map::edge_indices;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
-use crate::entities::Intent;
 use crate::state::{GameState, Position};
-use crate::entities::{Entity, EntityKind};
 use crate::types::Phase;
 use crate::utils::get_alive_monster_ids;
-use crate::map::{edge_indices};
 
 // ───────── Selection variants ─────────
 
@@ -299,18 +297,12 @@ pub fn build_view(py: Python<'_>, state: &GameState) -> ViewGameState {
         deck: state
             .deck
             .iter()
-            .map(|&id| {
-                let EntityKind::Card(card) = & state.entities[id].kind else { unreachable!() };
-                wrap(build_view_card_template(py, card))
-            })
+            .map(|&id| wrap(build_view_card_template(py, &state.entities[id])))
             .collect(),
         hand: state
             .hand
             .iter()
-            .map(|&id| {
-                let EntityKind::Card(card) = & state.entities[id].kind else { unreachable!() };
-                wrap(build_view_card_template(py, card))
-            })
+            .map(|&id| wrap(build_view_card_template(py, &state.entities[id])))
             .collect(),
         pile_draw: build_view_pile(py, &state.entities, &state.draw_pile),
         pile_disc: build_view_pile(py, &state.entities, &state.discard_pile),
@@ -318,10 +310,7 @@ pub fn build_view(py: Python<'_>, state: &GameState) -> ViewGameState {
         reward_combat: state
             .card_rewards
             .iter()
-            .map(|&id| {
-                let EntityKind::Card(card) = & state.entities[id].kind else { unreachable!() };
-                wrap(build_view_card_template(py, card))
-            })
+            .map(|&id| wrap(build_view_card_template(py, &state.entities[id])))
             .collect(),
         energy: ViewEnergy {
             current: state.energy.current,
@@ -349,19 +338,14 @@ pub fn phase_variant_name(phase: Phase) -> String {
 
 fn build_view_pile(py: Python<'_>, entities: &[Entity], pile: &[usize]) -> Vec<Py<ViewCard>> {
     pile.iter()
-        .map(|&id| {
-            let EntityKind::Card(card) = & entities[id].kind else { unreachable!() };
-            Py::new(py, build_view_card_template(py, card)).unwrap()
-        })
+        .map(|&id| Py::new(py, build_view_card_template(py, &entities[id])).unwrap())
         .collect()
 }
 
 fn build_view_character(state: &GameState) -> ViewCharacter {
-    let EntityKind::Character(character) = &state.entities[state.character].kind else {
-        unreachable!()
-    };
+    let character = &state.entities[state.character];
     ViewCharacter {
-        name: character.name.to_string(),
+        name: character.character_name.to_string(),
         health_current: character.vitals.health,
         health_max: character.vitals.health_max,
         block_current: character.vitals.block,
@@ -371,13 +355,12 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
 }
 
 fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
-    let EntityKind::Character(c) = &state.entities[state.character].kind else { unreachable!() };
-    let character_modifiers = &c.modifiers;
+    let character_modifiers = &state.entities[state.character].modifiers;
 
     get_alive_monster_ids(state)
         .iter()
         .map(|&mid| {
-            let EntityKind::Monster(m) = & state.entities[mid].kind else { unreachable!() };
+            let m = &state.entities[mid];
 
             let intent = if let Some(move_idx) = m.move_current {
                 let mv = &m.moves[move_idx];
@@ -430,7 +413,7 @@ fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
             };
 
             ViewMonster {
-                name: m.name.as_str().to_string(),
+                name: m.monster_name.as_str().to_string(),
                 health_current: m.vitals.health,
                 health_max: m.vitals.health_max,
                 block_current: m.vitals.block,
@@ -456,22 +439,26 @@ fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<ViewModifier> 
     out
 }
 
-fn build_view_card_template(py: Python<'_>, card: &Card) -> ViewCard {
+fn build_view_card_template(py: Python<'_>, card: &Entity) -> ViewCard {
     ViewCard {
-        name: if card.upgraded {
-            format!("{}+", card.name.as_str())
+        name: if card.card_upgraded {
+            format!("{}+", card.card_name.as_str())
         } else {
-            card.name.as_str().to_string()
+            card.card_name.as_str().to_string()
         },
-        kind: format!("{:?}", card.kind),
-        color: format!("{:?}", card.color),
-        rarity: format!("{:?}", card.rarity),
-        cost: card.cost,
-        upgraded: card.upgraded,
-        exhaust: card.exhaust,
-        innate: card.innate,
-        requires_target: card.requires_target,
-        effects: card.effects.iter().map(|e| view_effect(py, e)).collect(),
+        kind: format!("{:?}", card.card_kind),
+        color: format!("{:?}", card.card_color),
+        rarity: format!("{:?}", card.card_rarity),
+        cost: card.card_cost,
+        upgraded: card.card_upgraded,
+        exhaust: card.card_exhaust,
+        innate: card.card_innate,
+        requires_target: card.card_requires_target,
+        effects: card
+            .card_effects
+            .iter()
+            .map(|e| view_effect(py, e))
+            .collect(),
     }
 }
 
@@ -619,10 +606,10 @@ fn build_view_map(state: &GameState) -> ViewMap {
             row.iter()
                 .map(|cell| {
                     cell.map(|id| {
-                        let EntityKind::Room(node) = & state.entities[id].kind else { unreachable!() };
+                        let node = &state.entities[id];
                         ViewMapNode {
                             room_type: format!("{:?}", node.room_type),
-                            edges: edge_indices(node).collect(),
+                            edges: edge_indices(node.edges).collect(),
                         }
                     })
                 })

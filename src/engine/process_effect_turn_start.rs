@@ -105,7 +105,7 @@ pub fn process_effect_turn_start(
     }
 
     // Add and continue
-    ProcessEffectResult::AddAndContinue {
+    ProcessEffectResult::Continue {
         top: effects,
         bot: Vec::new(),
     }

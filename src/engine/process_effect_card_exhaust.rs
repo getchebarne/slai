@@ -11,5 +11,5 @@ pub fn process_effect_card_exhaust(
     exh_pile.push(id_card);
 
     // Continue
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

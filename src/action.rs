@@ -2,11 +2,10 @@
 
 use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
+use crate::map::{has_edge, node_at};
+use crate::state::{GameState, Position};
 use crate::types::Phase;
 use crate::utils::get_alive_monster_ids;
-use crate::state::{GameState, Position};
-use crate::entities::EntityKind;
-use crate::map::{has_edge, node_at};
 
 #[derive(Debug, Clone)]
 pub enum Action {
@@ -90,18 +89,16 @@ fn handle_card_play(
     idx_monster: Option<usize>,
 ) -> Result<Vec<Effect>, String> {
     let id_card = validate_idx(&state.hand, idx_hand)?;
-    let EntityKind::Card(card) = & state.entities[id_card].kind else { unreachable!() };
+    let card = &state.entities[id_card];
 
-    // Check energy
-    if card.cost > state.energy.current {
+    if card.card_cost > state.energy.current {
         return Err(format!(
             "Not enough energy to play {:?}: need {}, have {}",
-            card.name, card.cost, state.energy.current
+            card.card_name, card.card_cost, state.energy.current
         ));
     }
 
-    // Resolve target if needed
-    if card.requires_target {
+    if card.card_requires_target {
         match idx_monster {
             Some(idx_monster) => {
                 let id_monsters_alive = get_alive_monster_ids(state);
@@ -131,7 +128,7 @@ fn handle_card_play(
             }
             None => Err(format!(
                 "Card {:?} requires a target: provide idx_monster",
-                card.name
+                card.card_name
             )),
         }
     } else {
@@ -184,7 +181,7 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
     if let Position::Overworld { y, x } = state.map.position {
         let current_node = node_at(&state.map, &state.entities, y, x)
             .expect("current map node missing");
-        if !has_edge(current_node, idx_column) {
+        if !has_edge(current_node.edges, idx_column) {
             return Err(format!(
                 "No edge from ({}, {}) to ({}, {})",
                 y, x, y_next, idx_column
@@ -223,13 +220,9 @@ fn handle_card_reward_skip() -> Vec<Effect> {
 }
 
 fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
-    // Get character's vitals
     let id_character = state.character;
-    let EntityKind::Character(c) = &state.entities[id_character].kind else { unreachable!() };
-    let vitals = &c.vitals;
-
-    // Calculate heal amount
-    let heal_amt = (REST_SITE_HEAL_FACTOR * vitals.health_max as f32) as u16;
+    let health_max = state.entities[id_character].vitals.health_max;
+    let heal_amt = (REST_SITE_HEAL_FACTOR * health_max as f32) as u16;
 
     // Heal, then let the RestSiteExit handler decide whether to halt or enter boss
     vec![

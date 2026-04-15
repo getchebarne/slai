@@ -1,7 +1,6 @@
 use rand::Rng;
 
 use crate::state::GameState;
-use crate::entities::EntityKind;
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
     for i in (1..slice.len()).rev() {
@@ -14,12 +13,7 @@ pub fn get_alive_monster_ids(state: &GameState) -> Vec<usize> {
     state.monsters[..state.monster_count as usize]
         .iter()
         .copied()
-        .filter(|&id| {
-            let EntityKind::Monster(m) = &state.entities[id].kind else {
-                unreachable!()
-            };
-            !m.dead
-        })
+        .filter(|&id| !state.entities[id].dead)
         .collect()
 }
 

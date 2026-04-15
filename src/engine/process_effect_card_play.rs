@@ -6,7 +6,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
-use crate::entities::{Entity, EntityKind};
+use crate::entities::Entity;
 
 pub fn process_effect_card_play(
     id_card: usize,
@@ -17,26 +17,25 @@ pub fn process_effect_card_play(
     alive_monsters: &[usize],
     _rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let EntityKind::Card(card) = & entities[id_card].kind else { unreachable!() };
+    let card = &entities[id_card];
 
-    // Create empty container for top effects
     let mut top_effects = Vec::new();
 
-    // Push top effects. Start w/ energy loss
     top_effects.push(Effect {
-        kind: EffectKind::EnergyLoss { amount: card.cost },
+        kind: EffectKind::EnergyLoss {
+            amount: card.card_cost,
+        },
         source: None,
         target: Target::Direct(None),
     });
 
-    // Exhaust vs. remove vs. discard
-    if card.exhaust {
+    if card.card_exhaust {
         top_effects.push(Effect {
             kind: EffectKind::CardExhaust,
             source: None,
             target: Target::Direct(Some(id_card)),
         })
-    } else if card.kind == CardKind::Power {
+    } else if card.card_kind == CardKind::Power {
         top_effects.push(Effect {
             kind: EffectKind::CardRemove,
             source: None,
@@ -50,9 +49,7 @@ pub fn process_effect_card_play(
         })
     };
 
-    // Get character's modifiers
-    let EntityKind::Character(c) = &entities[character].kind else { unreachable!() };
-    let char_modifiers = &c.modifiers;
+    let char_modifiers = &entities[character].modifiers;
 
     // Modifier / After Image
     if modifier_has(char_modifiers, ModifierKind::AfterImage) {
@@ -81,10 +78,9 @@ pub fn process_effect_card_play(
     }
 
     // Modifier / Sharp Hide
-    if card.kind == CardKind::Attack {
+    if card.card_kind == CardKind::Attack {
         for &id_monster in alive_monsters {
-            let EntityKind::Monster(m) = &entities[id_monster].kind else { unreachable!() };
-            let monster_modifiers = &m.modifiers;
+            let monster_modifiers = &entities[id_monster].modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
                 top_effects.push(Effect {
@@ -98,9 +94,8 @@ pub fn process_effect_card_play(
         }
     }
 
-    // Copy the card's effects into the queue, stamping source with the character
     let card_effects: Vec<Effect> = card
-        .effects
+        .card_effects
         .iter()
         .map(|e| Effect {
             source: Some(character),
@@ -108,8 +103,7 @@ pub fn process_effect_card_play(
         })
         .collect();
 
-    // Modifier / Burst
-    if modifier_has(char_modifiers, ModifierKind::Burst) && card.kind == CardKind::Skill {
+    if modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill {
         top_effects.extend(card_effects.iter().cloned());
         top_effects.extend(card_effects);
         top_effects.push(Effect {
@@ -124,7 +118,7 @@ pub fn process_effect_card_play(
         top_effects.extend(card_effects);
     }
 
-    ProcessEffectResult::AddAndContinue {
+    ProcessEffectResult::Continue {
         top: top_effects,
         bot: Vec::new(),
     }

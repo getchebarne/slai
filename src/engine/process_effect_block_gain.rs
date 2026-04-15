@@ -23,5 +23,5 @@ pub fn process_effect_block_gain(
     }
 
     // Continue
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

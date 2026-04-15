@@ -4,37 +4,33 @@
 use rand::Rng;
 
 use crate::consts::*;
+use crate::entities::{Entity, Room, make_entity_from_room};
 use crate::state::{Map, Position};
-use crate::entities::{Entity, EntityKind, Room};
 use crate::types::RoomType;
 
 type Grid = [[Option<Room>; MAP_WIDTH]; MAP_HEIGHT];
 
 // ───────── Queries ─────────
 
-/// True if `node` has an edge to column `x` in the next row.
-pub fn has_edge(node: &Room, x: usize) -> bool {
-    node.edges & (1 << x) != 0
+/// True if the edge bitmap has an edge to column `x` in the next row.
+pub fn has_edge(edges: u8, x: usize) -> bool {
+    edges & (1 << x) != 0
 }
 
-/// Every next-row column reachable from `node`.
-pub fn edge_indices(node: &Room) -> impl Iterator<Item = usize> {
-    let edges = node.edges;
+/// Every next-row column reachable from an edge bitmap.
+pub fn edge_indices(edges: u8) -> impl Iterator<Item = usize> {
     (0..MAP_WIDTH).filter(move |&x| edges & (1 << x) != 0)
 }
 
 /// Look up the node at `(y, x)` via the entity array.
-pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a Room> {
+pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a Entity> {
     let id = map.nodes[y][x]?;
-    let EntityKind::Room(node) = &entities[id].kind else {
-        unreachable!()
-    };
-    Some(node)
+    Some(&entities[id])
 }
 
 /// Look up the node at the player's current position, if any. Returns
 /// `None` at `Start` (no node picked yet) and at `BossRoom` (off the grid).
-pub fn active_node<'a>(map: &Map, entities: &'a [Entity]) -> Option<&'a Room> {
+pub fn active_node<'a>(map: &Map, entities: &'a [Entity]) -> Option<&'a Entity> {
     match map.position {
         Position::Overworld { y, x } => node_at(map, entities, y, x),
         Position::Start | Position::BossRoom => None,
@@ -112,16 +108,14 @@ pub fn generate_map(rng: &mut impl Rng) -> Grid {
 }
 
 /// Entitizes a generated grid: each `Some(node)` is pushed into `entities`
-/// as an `EntityKind::Room`, and the returned `Map` stores the entity ids.
+/// via `make_entity_from_room`, and the returned `Map` stores the entity ids.
 pub fn entitize_map(grid: Grid, entities: &mut Vec<Entity>) -> Map {
     let mut nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT] = [[None; MAP_WIDTH]; MAP_HEIGHT];
     for (y, row) in grid.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
             if let Some(node) = cell {
                 let id = entities.len();
-                entities.push(Entity {
-                    kind: EntityKind::Room(*node),
-                });
+                entities.push(make_entity_from_room(*node));
                 nodes[y][x] = Some(id);
             }
         }
@@ -174,7 +168,7 @@ fn create_target(
     if x_source > 0 {
         let x_left = x_source - 1;
         if let Some(ref node_left) = nodes[y_source][x_left] {
-            for x_t in edge_indices(node_left) {
+            for x_t in edge_indices(node_left.edges) {
                 if x_t > x_target {
                     x_target = x_t;
                 }
@@ -186,7 +180,7 @@ fn create_target(
     if x_source < MAP_WIDTH - 1 {
         let x_right = x_source + 1;
         if let Some(ref node_right) = nodes[y_source][x_right] {
-            for x_t in edge_indices(node_right) {
+            for x_t in edge_indices(node_right.edges) {
                 if x_t < x_target {
                     x_target = x_t;
                 }
@@ -205,7 +199,7 @@ fn get_node_parents(y: usize, x: usize, nodes: &Grid) -> Vec<(usize, usize)> {
     let mut parents = Vec::new();
     for (px, node) in nodes[y_parent].iter().enumerate() {
         if let Some(n) = node {
-            if has_edge(n, x) {
+            if has_edge(n.edges, x) {
                 parents.push((y_parent, px));
             }
         }

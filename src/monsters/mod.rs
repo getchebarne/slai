@@ -3,7 +3,7 @@ pub mod fungi_beast;
 pub mod jaw_worm;
 pub mod the_guardian;
 
-use crate::entities::Monster;
+use crate::entities::{Entity, Monster, get_move_history_slice};
 use crate::types::MonsterName;
 use rand::Rng;
 
@@ -20,20 +20,20 @@ pub fn spawn_monster(
     }
 }
 
-pub fn get_next_move(monster: &Monster, rng: &mut impl Rng) -> usize {
-    let history = monster.history_slice();
-    match monster.name {
-        MonsterName::Cultist => cultist::get_next_move_cultist(monster.move_current, history),
+pub fn get_next_move(entity: &Entity, rng: &mut impl Rng) -> usize {
+    let history = get_move_history_slice(entity);
+    match entity.monster_name {
+        MonsterName::Cultist => cultist::get_next_move_cultist(entity.move_current, history),
         MonsterName::JawWorm => {
-            jaw_worm::get_next_move_jaw_worm(monster.move_current, history, monster.moves, rng)
+            jaw_worm::get_next_move_jaw_worm(entity.move_current, history, entity.moves, rng)
         }
         MonsterName::TheGuardian => the_guardian::get_next_move_the_guardian_full(
-            monster.move_current,
+            entity.move_current,
             history,
-            &monster.modifiers,
+            &entity.modifiers,
         ),
         MonsterName::FungiBeast => {
-            fungi_beast::get_next_move_fungi_beast(monster.move_current, history, rng)
+            fungi_beast::get_next_move_fungi_beast(entity.move_current, history, rng)
         }
     }
 }

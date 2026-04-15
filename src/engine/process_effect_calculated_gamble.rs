@@ -25,7 +25,7 @@ pub fn process_effect_calculated_gamble(hand: &[usize]) -> ProcessEffectResult {
     });
 
     // Continue w/ top effects
-    ProcessEffectResult::AddAndContinue {
+    ProcessEffectResult::Continue {
         top,
         bot: Vec::new(),
     }

@@ -1,7 +1,7 @@
 use crate::cards::get_card;
 use crate::consts::MAX_SIZE_HAND;
 use crate::engine::ProcessEffectResult;
-use crate::entities::{Entity, EntityKind};
+use crate::entities::{Entity, make_entity_from_card};
 use crate::types::CardName;
 
 pub fn process_effect_add_shivs(
@@ -12,12 +12,9 @@ pub fn process_effect_add_shivs(
 ) -> ProcessEffectResult {
     let shiv = get_card(CardName::Shiv, false);
 
-    // Create shiv entities, overflow to discard pile if hand is full
     for _ in 0..count {
         let id_card = entities.len();
-        entities.push(Entity {
-            kind: EntityKind::Card(shiv),
-        });
+        entities.push(make_entity_from_card(shiv));
 
         if hand.len() < MAX_SIZE_HAND {
             hand.push(id_card)
@@ -26,6 +23,5 @@ pub fn process_effect_add_shivs(
         }
     }
 
-    // Continue
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

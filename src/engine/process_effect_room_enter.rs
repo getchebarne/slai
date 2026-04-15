@@ -2,12 +2,11 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
+use crate::entities::{Entity, Monster, make_entity_from_monster};
+use crate::map::active_room_type;
 use crate::monsters::spawn_monster;
-use crate::entities::Monster;
 use crate::state::Map;
-use crate::entities::{Entity, EntityKind};
 use crate::types::{MonsterName, RoomType};
-use crate::map::{active_room_type};
 
 fn push_monster(
     monster: Monster,
@@ -16,9 +15,7 @@ fn push_monster(
     monster_count: &mut u8,
 ) {
     let id = entities.len();
-    entities.push(Entity {
-        kind: EntityKind::Monster(monster),
-    });
+    entities.push(make_entity_from_monster(monster));
     monsters[*monster_count as usize] = id;
     *monster_count += 1;
 }
@@ -40,7 +37,7 @@ pub fn process_effect_room_enter(
             // TODO: other bosses
             let m = spawn_monster(MonsterName::TheGuardian, ascension, rng);
             push_monster(m, entities, monsters, monster_count);
-            ProcessEffectResult::AddAndContinue {
+            ProcessEffectResult::Continue {
                 top: vec![Effect {
                     kind: EffectKind::CombatStart,
                     source: None,
@@ -68,7 +65,7 @@ pub fn process_effect_room_enter(
                 }
                 _ => unreachable!(),
             };
-            ProcessEffectResult::AddAndContinue {
+            ProcessEffectResult::Continue {
                 top: vec![Effect {
                     kind: EffectKind::CombatStart,
                     source: None,
@@ -77,7 +74,7 @@ pub fn process_effect_room_enter(
                 bot: Vec::new(),
             }
         }
-        RoomType::RestSite => ProcessEffectResult::AddAndContinue {
+        RoomType::RestSite => ProcessEffectResult::Continue {
             top: vec![Effect::direct(EffectKind::AwaitRestSiteAction, None, None)],
             bot: Vec::new(),
         },

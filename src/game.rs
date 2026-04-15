@@ -10,7 +10,7 @@ use crate::character::{silent_starter_deck, spawn_silent};
 use crate::consts::MAX_MONSTERS;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
-use crate::entities::{Entity, EntityKind};
+use crate::entities::{make_entity_from_card, make_entity_from_character};
 use crate::map::{entitize_map, generate_map};
 use crate::state::*;
 use crate::types::Phase;
@@ -19,9 +19,7 @@ use crate::types::Phase;
 pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
 
-    let character = Entity {
-        kind: EntityKind::Character(spawn_silent(ascension)),
-    };
+    let character = make_entity_from_character(spawn_silent(ascension));
 
     let deck_templates = silent_starter_deck();
     let map_grid = generate_map(&mut rng);
@@ -30,9 +28,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut deck = Vec::with_capacity(deck_templates.len());
     for card in deck_templates {
         let id = entities.len();
-        entities.push(Entity {
-            kind: EntityKind::Card(card),
-        });
+        entities.push(make_entity_from_card(card));
         deck.push(id);
     }
 

@@ -5,5 +5,5 @@ pub fn process_effect_block_set(vitals: &mut Vitals, amount: u16) -> ProcessEffe
     vitals.block = amount;
 
     // Continue
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

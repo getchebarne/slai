@@ -30,11 +30,11 @@ pub fn process_effect_modifier_gain(
                 modifier_remove(modifiers, kind);
             }
         }
-        return ProcessEffectResult::Continue;
+        return ProcessEffectResult::Continue { top: vec![], bot: vec![] };
     }
 
     modifier_apply(modifiers, kind, stacks);
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }
 
 fn process_mode_shift_gain(
@@ -52,5 +52,5 @@ fn process_mode_shift_gain(
     modifier_apply(modifiers, ModifierKind::ModeShift, stacks + increase);
     modifiers.is_new[ModifierKind::ModeShift as usize] = false;
 
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

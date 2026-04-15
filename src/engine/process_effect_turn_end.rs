@@ -3,7 +3,7 @@ use rand::Rng;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::entities::{Entity, EntityKind};
+use crate::entities::Entity;
 use crate::types::Vitals;
 
 pub fn process_effect_turn_end_monster(
@@ -16,7 +16,7 @@ pub fn process_effect_turn_end_monster(
         && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(modifiers, ModifierKind::Ritual);
-        return ProcessEffectResult::AddAndContinue {
+        return ProcessEffectResult::Continue {
             top: vec![Effect {
                 kind: EffectKind::ModifierGain {
                     kind: ModifierKind::Strength,
@@ -28,7 +28,7 @@ pub fn process_effect_turn_end_monster(
             bot: Vec::new(),
         };
     }
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }
 
 pub fn process_effect_turn_end_character(
@@ -39,8 +39,7 @@ pub fn process_effect_turn_end_character(
     alive_monsters: &[usize],
     _rng: &mut impl Rng,
 ) -> ProcessEffectResult {
-    let EntityKind::Character(c) = &entities[character].kind else { unreachable!() };
-    let character_modifiers = &c.modifiers;
+    let character_modifiers = &entities[character].modifiers;
     let mut effects = Vec::new();
 
     // Modifier / Ritual (skip if newly applied)
@@ -74,17 +73,15 @@ pub fn process_effect_turn_end_character(
 
     // Queue each monster's turn: start, execute move, update move, end
     for &mid in alive_monsters {
-        let EntityKind::Monster(m) = & entities[mid].kind else { unreachable!() };
+        let monster = &entities[mid];
         effects.push(Effect {
             kind: EffectKind::TurnStart,
             source: None,
             target: Target::Direct(Some(mid)),
         });
 
-        if let Some(move_idx) = m.move_current {
-            // Copy the move's effects with source stamped. Resolution happens
-            // lazily in the dispatcher when each effect is dequeued.
-            effects.extend(m.moves[move_idx].effects.iter().map(|e| Effect {
+        if let Some(move_idx) = monster.move_current {
+            effects.extend(monster.moves[move_idx].effects.iter().map(|e| Effect {
                 source: Some(mid),
                 ..*e
             }));
@@ -121,7 +118,7 @@ pub fn process_effect_turn_end_character(
     }
 
     // Add and continue
-    ProcessEffectResult::AddAndContinue {
+    ProcessEffectResult::Continue {
         top: effects,
         bot: Vec::new(),
     }

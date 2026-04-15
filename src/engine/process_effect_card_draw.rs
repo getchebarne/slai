@@ -35,5 +35,5 @@ pub fn process_effect_card_draw(
     }
 
     // Continue
-    ProcessEffectResult::Continue
+    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
 }

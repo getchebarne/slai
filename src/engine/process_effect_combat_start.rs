@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::entities::{Entity, EntityKind};
+use crate::entities::Entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
@@ -23,13 +23,10 @@ pub fn process_effect_combat_start(
     let mut other_ids: Vec<usize> = Vec::new();
 
     for &deck_id in deck {
-        let EntityKind::Card(card) = & entities[deck_id].kind else { unreachable!() };
-    let card = *card;
+        let card = entities[deck_id];
         let id = entities.len();
-        entities.push(Entity {
-            kind: EntityKind::Card(card),
-        });
-        if card.innate {
+        entities.push(card);
+        if card.card_innate {
             innate_ids.push(id);
         } else {
             other_ids.push(id);
@@ -63,7 +60,7 @@ pub fn process_effect_combat_start(
     });
 
     // Add and continue
-    ProcessEffectResult::AddAndContinue {
+    ProcessEffectResult::Continue {
         top: effects,
         bot: Vec::new(),
     }
