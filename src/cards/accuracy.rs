@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static ACCURACY: Card = Card {
-    name: CardName::Accuracy,
-    kind: CardKind::Power,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static ACCURACY: Entity = card_entity(
+    CardName::Accuracy, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
+    1, false, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Accuracy,
             stacks: 4,
@@ -27,19 +17,12 @@ pub static ACCURACY: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);
 // Upgraded
-pub static ACCURACY_PLUS: Card = Card {
-    name: CardName::Accuracy,
-    kind: CardKind::Power,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static ACCURACY_PLUS: Entity = card_entity(
+    CardName::Accuracy, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
+    1, true, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Accuracy,
             stacks: 6, // +2 stacks
@@ -50,4 +33,4 @@ pub static ACCURACY_PLUS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);

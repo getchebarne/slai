@@ -183,12 +183,14 @@ pub fn modifier_def(kind: ModifierKind) -> &'static ModifierDef {
     &MODIFIER_DEFS[kind as usize]
 }
 
+pub const ZERO_MODIFIERS: Modifiers = Modifiers {
+    stacks: [0; MODIFIER_COUNT],
+    is_new: [false; MODIFIER_COUNT],
+    active: 0,
+};
+
 pub fn modifiers_new() -> Modifiers {
-    Modifiers {
-        stacks: [0; MODIFIER_COUNT],
-        is_new: [false; MODIFIER_COUNT],
-        active: 0,
-    }
+    ZERO_MODIFIERS
 }
 
 pub fn modifier_stacks(mods: &Modifiers, kind: ModifierKind) -> i16 {

@@ -1,17 +1,7 @@
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
-use crate::modifier::ModifierKind;
-use crate::modifier::modifiers_new;
-use crate::entities::Intent;
-use crate::entities::MAX_MOVE_HISTORY;
-use crate::entities::Monster;
-use crate::entities::Move;
-use crate::types::Vitals;
-use crate::types::MonsterKind;
-use crate::types::MonsterName;
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, Intent, Move, monster_entity};
+use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
+use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
 static MOVE_CHOMP_11: Move = Move {
@@ -148,7 +138,7 @@ static MOVES_ASC0: [Move; 3] = [MOVE_CHOMP_11, MOVE_BELLOW_3_6, MOVE_THRASH];
 static MOVES_ASC2: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_4_6, MOVE_THRASH];
 static MOVES_ASC17: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_5_9, MOVE_THRASH];
 
-pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Monster {
+pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (40, 44)
     } else {
@@ -164,21 +154,13 @@ pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Monster {
         &MOVES_ASC17
     };
 
-    Monster {
-        name: MonsterName::JawWorm,
-        monster_kind: MonsterKind::Normal,
-        vitals: Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers: modifiers_new(),
+    monster_entity(
+        MonsterName::JawWorm,
+        MonsterKind::Normal,
+        Vitals { health: health_max, health_max, block: 0 },
+        ZERO_MODIFIERS,
         moves,
-        move_current: None,
-        move_history: [0; MAX_MOVE_HISTORY],
-        move_history_len: 0,
-        dead: false,
-    }
+    )
 }
 
 pub fn get_next_move_jaw_worm(

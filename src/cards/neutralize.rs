@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static NEUTRALIZE: Card = Card {
-    name: CardName::Neutralize,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Basic,
-    cost: 0,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static NEUTRALIZE: Entity = card_entity(
+    CardName::Neutralize, CardKind::Attack, CardColor::Green, CardRarity::Basic,
+    0, false, false, false, true,
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 3 },
             source: None,
@@ -37,19 +27,12 @@ pub static NEUTRALIZE: Card = Card {
             },
         },
     ],
-};
+);
 // Upgraded
-pub static NEUTRALIZE_PLUS: Card = Card {
-    name: CardName::Neutralize,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Basic,
-    cost: 0,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static NEUTRALIZE_PLUS: Entity = card_entity(
+    CardName::Neutralize, CardKind::Attack, CardColor::Green, CardRarity::Basic,
+    0, true, false, false, true,
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 4 }, // +1 damage
             source: None,
@@ -70,4 +53,4 @@ pub static NEUTRALIZE_PLUS: Card = Card {
             },
         },
     ],
-};
+);

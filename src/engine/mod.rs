@@ -35,7 +35,7 @@ use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entities::{Entity, EntityType};
+use crate::entity::{Entity, EntityType};
 use crate::map::has_edge;
 use crate::state::{GameState, Map, Position};
 use crate::types::Phase;

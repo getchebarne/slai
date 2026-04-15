@@ -2,20 +2,20 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::entities::{Entity, Monster, make_entity_from_monster};
+use crate::entity::Entity;
 use crate::map::active_room_type;
 use crate::monsters::spawn_monster;
 use crate::state::Map;
 use crate::types::{MonsterName, RoomType};
 
 fn push_monster(
-    monster: Monster,
+    monster: Entity,
     entities: &mut Vec<Entity>,
     monsters: &mut [usize],
     monster_count: &mut u8,
 ) {
     let id = entities.len();
-    entities.push(make_entity_from_monster(monster));
+    entities.push(monster);
     monsters[*monster_count as usize] = id;
     *monster_count += 1;
 }

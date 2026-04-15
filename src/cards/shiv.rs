@@ -1,21 +1,11 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::entity::{Entity, card_entity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static SHIV: Card = Card {
-    name: CardName::Shiv,
-    kind: CardKind::Attack,
-    color: CardColor::Colorless,
-    rarity: CardRarity::Special,
-    cost: 0,
-    upgraded: false,
-    exhaust: true,
-    innate: false,
-    requires_target: true,
-    effects: &[Effect {
+pub static SHIV: Entity = card_entity(
+    CardName::Shiv, CardKind::Attack, CardColor::Colorless, CardRarity::Special,
+    0, false, true, false, true,
+    &[Effect {
         kind: EffectKind::DamagePhysical { base: 4 },
         source: None,
         target: Target::Resolve {
@@ -23,19 +13,12 @@ pub static SHIV: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);
 // Upgraded
-pub static SHIV_PLUS: Card = Card {
-    name: CardName::Shiv,
-    kind: CardKind::Attack,
-    color: CardColor::Colorless,
-    rarity: CardRarity::Special,
-    cost: 0,
-    upgraded: true,
-    exhaust: true,
-    innate: false,
-    requires_target: true,
-    effects: &[Effect {
+pub static SHIV_PLUS: Entity = card_entity(
+    CardName::Shiv, CardKind::Attack, CardColor::Colorless, CardRarity::Special,
+    0, true, true, false, true,
+    &[Effect {
         kind: EffectKind::DamagePhysical { base: 6 }, // +2 damage
         source: None,
         target: Target::Resolve {
@@ -43,4 +26,4 @@ pub static SHIV_PLUS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);

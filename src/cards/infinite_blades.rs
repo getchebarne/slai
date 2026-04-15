@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static INFINITE_BLADES: Card = Card {
-    name: CardName::InfiniteBlades,
-    kind: CardKind::Power,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static INFINITE_BLADES: Entity = card_entity(
+    CardName::InfiniteBlades, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
+    1, false, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::InfiniteBlades,
             stacks: 1,
@@ -27,19 +17,12 @@ pub static INFINITE_BLADES: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);
 // Upgraded
-pub static INFINITE_BLADES_PLUS: Card = Card {
-    name: CardName::InfiniteBlades,
-    kind: CardKind::Power,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: true, // is innate
-    requires_target: false,
-    effects: &[Effect {
+pub static INFINITE_BLADES_PLUS: Entity = card_entity(
+    CardName::InfiniteBlades, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
+    1, true, false, true, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::InfiniteBlades,
             stacks: 1,
@@ -50,4 +33,4 @@ pub static INFINITE_BLADES_PLUS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);

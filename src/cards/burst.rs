@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static BURST: Card = Card {
-    name: CardName::Burst,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Rare,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static BURST: Entity = card_entity(
+    CardName::Burst, CardKind::Skill, CardColor::Green, CardRarity::Rare,
+    1, false, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Burst,
             stacks: 1,
@@ -27,19 +17,12 @@ pub static BURST: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);
 // Upgraded
-pub static BURST_PLUS: Card = Card {
-    name: CardName::Burst,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Rare,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static BURST_PLUS: Entity = card_entity(
+    CardName::Burst, CardKind::Skill, CardColor::Green, CardRarity::Rare,
+    1, true, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Burst,
             stacks: 2, // +1 stack
@@ -50,4 +33,4 @@ pub static BURST_PLUS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);

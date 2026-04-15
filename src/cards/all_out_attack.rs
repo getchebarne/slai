@@ -1,21 +1,11 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::entity::{Entity, card_entity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static ALL_OUT_ATTACK: Card = Card {
-    name: CardName::AllOutAttack,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[
+pub static ALL_OUT_ATTACK: Entity = card_entity(
+    CardName::AllOutAttack, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
+    1, false, false, false, false,
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 10 },
             source: None,
@@ -33,19 +23,12 @@ pub static ALL_OUT_ATTACK: Card = Card {
             },
         },
     ],
-};
+);
 // Upgraded
-pub static ALL_OUT_ATTACK_PLUS: Card = Card {
-    name: CardName::AllOutAttack,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[
+pub static ALL_OUT_ATTACK_PLUS: Entity = card_entity(
+    CardName::AllOutAttack, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
+    1, true, false, false, false,
+    &[
         Effect {
             kind: EffectKind::DamagePhysical {
                 base: 14, // +4 damage
@@ -65,4 +48,4 @@ pub static ALL_OUT_ATTACK_PLUS: Card = Card {
             },
         },
     ],
-};
+);

@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static A_THOUSAND_CUTS: Card = Card {
-    name: CardName::AThousandCuts,
-    kind: CardKind::Power,
-    color: CardColor::Green,
-    rarity: CardRarity::Rare,
-    cost: 2,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static A_THOUSAND_CUTS: Entity = card_entity(
+    CardName::AThousandCuts, CardKind::Power, CardColor::Green, CardRarity::Rare,
+    2, false, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::ThousandCuts,
             stacks: 1,
@@ -27,19 +17,12 @@ pub static A_THOUSAND_CUTS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);
 // Upgraded
-pub static A_THOUSAND_CUTS_PLUS: Card = Card {
-    name: CardName::AThousandCuts,
-    kind: CardKind::Power,
-    color: CardColor::Green,
-    rarity: CardRarity::Rare,
-    cost: 2,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static A_THOUSAND_CUTS_PLUS: Entity = card_entity(
+    CardName::AThousandCuts, CardKind::Power, CardColor::Green, CardRarity::Rare,
+    2, true, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::ThousandCuts,
             stacks: 2, // +1 stack
@@ -50,4 +33,4 @@ pub static A_THOUSAND_CUTS_PLUS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);

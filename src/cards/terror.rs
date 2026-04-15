@@ -1,24 +1,14 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 const STACKS_TERROR: i16 = 99;
 
-pub static TERROR: Card = Card {
-    name: CardName::Terror,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 1,
-    upgraded: false,
-    exhaust: true,
-    innate: false,
-    requires_target: true,
-    effects: &[Effect {
+pub static TERROR: Entity = card_entity(
+    CardName::Terror, CardKind::Skill, CardColor::Green, CardRarity::Uncommon,
+    1, false, true, false, true,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vulnerable,
             stacks: STACKS_TERROR,
@@ -29,19 +19,12 @@ pub static TERROR: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);
 // Upgraded
-pub static TERROR_PLUS: Card = Card {
-    name: CardName::Terror,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 0, // -1 cost
-    upgraded: true,
-    exhaust: true,
-    innate: false,
-    requires_target: true,
-    effects: &[Effect {
+pub static TERROR_PLUS: Entity = card_entity(
+    CardName::Terror, CardKind::Skill, CardColor::Green, CardRarity::Uncommon,
+    0, true, true, false, true,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vulnerable,
             stacks: STACKS_TERROR,
@@ -52,4 +35,4 @@ pub static TERROR_PLUS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);

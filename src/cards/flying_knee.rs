@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static FLYING_KNEE: Card = Card {
-    name: CardName::FlyingKnee,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static FLYING_KNEE: Entity = card_entity(
+    CardName::FlyingKnee, CardKind::Attack, CardColor::Green, CardRarity::Common,
+    1, false, false, false, true,
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
             source: None,
@@ -37,19 +27,12 @@ pub static FLYING_KNEE: Card = Card {
             },
         },
     ],
-};
+);
 // Upgraded
-pub static FLYING_KNEE_PLUS: Card = Card {
-    name: CardName::FlyingKnee,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static FLYING_KNEE_PLUS: Entity = card_entity(
+    CardName::FlyingKnee, CardKind::Attack, CardColor::Green, CardRarity::Common,
+    1, true, false, false, true,
+    &[
         Effect {
             kind: EffectKind::DamagePhysical {
                 base: 11, // +3 damage
@@ -72,4 +55,4 @@ pub static FLYING_KNEE_PLUS: Card = Card {
             },
         },
     ],
-};
+);

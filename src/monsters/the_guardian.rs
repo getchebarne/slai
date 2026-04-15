@@ -1,20 +1,7 @@
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
-use crate::modifier::ModifierKind;
-use crate::modifier::Modifiers;
-use crate::modifier::modifier_apply;
-use crate::modifier::modifier_has;
-use crate::modifier::modifiers_new;
-use crate::entities::Intent;
-use crate::entities::MAX_MOVE_HISTORY;
-use crate::entities::Monster;
-use crate::entities::Move;
-use crate::types::Vitals;
-use crate::types::MonsterKind;
-use crate::types::MonsterName;
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, Intent, Move, monster_entity};
+use crate::modifier::{ModifierKind, Modifiers, ZERO_MODIFIERS, modifier_apply, modifier_has};
+use crate::types::{MonsterKind, MonsterName, Vitals};
 
 const MODE_SHIFT_STACKS_30: i16 = 30;
 const MODE_SHIFT_STACKS_35: i16 = 35;
@@ -366,7 +353,7 @@ static MOVES_ASC19: [Move; 7] = [
     MOVE_TWIN_SLAM_40,
 ];
 
-pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
+pub fn spawn_the_guardian(ascension_level: u8) -> Entity {
     let health_max = if ascension_level < 9 { 240 } else { 250 };
 
     let moves: &'static [Move] = if ascension_level < 4 {
@@ -379,11 +366,6 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
         &MOVES_ASC19
     };
 
-    let vitals = Vitals {
-        health: health_max,
-        health_max,
-        block: 0,
-    };
     let mode_shift_stacks = if ascension_level < 9 {
         MODE_SHIFT_STACKS_30
     } else if ascension_level < 19 {
@@ -391,20 +373,16 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Monster {
     } else {
         MODE_SHIFT_STACKS_40
     };
-    let mut modifiers = modifiers_new();
+    let mut modifiers = ZERO_MODIFIERS;
     modifier_apply(&mut modifiers, ModifierKind::ModeShift, mode_shift_stacks);
 
-    Monster {
-        name: MonsterName::TheGuardian,
-        monster_kind: MonsterKind::Boss,
-        vitals,
+    monster_entity(
+        MonsterName::TheGuardian,
+        MonsterKind::Boss,
+        Vitals { health: health_max, health_max, block: 0 },
         modifiers,
         moves,
-        move_current: None,
-        move_history: [0; MAX_MOVE_HISTORY],
-        move_history_len: 0,
-        dead: false,
-    }
+    )
 }
 
 pub fn get_next_move_the_guardian_full(

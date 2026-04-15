@@ -1,21 +1,11 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::entity::{Entity, card_entity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static DASH: Card = Card {
-    name: CardName::Dash,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 2,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static DASH: Entity = card_entity(
+    CardName::Dash, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
+    2, false, false, false, true,
+    &[
         Effect {
             kind: EffectKind::BlockGain { amount: 10 },
             source: None,
@@ -33,19 +23,12 @@ pub static DASH: Card = Card {
             },
         },
     ],
-};
+);
 // Upgraded
-pub static DASH_PLUS: Card = Card {
-    name: CardName::Dash,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 2,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static DASH_PLUS: Entity = card_entity(
+    CardName::Dash, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
+    2, true, false, false, true,
+    &[
         Effect {
             kind: EffectKind::BlockGain {
                 amount: 13, // +3 damage
@@ -67,4 +50,4 @@ pub static DASH_PLUS: Card = Card {
             },
         },
     ],
-};
+);

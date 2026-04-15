@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static LEG_SWEEP: Card = Card {
-    name: CardName::LegSweep,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 2,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static LEG_SWEEP: Entity = card_entity(
+    CardName::LegSweep, CardKind::Skill, CardColor::Green, CardRarity::Uncommon,
+    2, false, false, false, true,
+    &[
         Effect {
             kind: EffectKind::BlockGain { amount: 11 },
             source: None,
@@ -37,19 +27,12 @@ pub static LEG_SWEEP: Card = Card {
             },
         },
     ],
-};
+);
 // Upgraded
-pub static LEG_SWEEP_PLUS: Card = Card {
-    name: CardName::LegSweep,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Uncommon,
-    cost: 2,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static LEG_SWEEP_PLUS: Entity = card_entity(
+    CardName::LegSweep, CardKind::Skill, CardColor::Green, CardRarity::Uncommon,
+    2, true, false, false, true,
+    &[
         Effect {
             kind: EffectKind::BlockGain {
                 amount: 14, // +3 block
@@ -72,4 +55,4 @@ pub static LEG_SWEEP_PLUS: Card = Card {
             },
         },
     ],
-};
+);

@@ -1,21 +1,11 @@
-use crate::entities::Card;
 use crate::effect::{Effect, EffectKind, Target};
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::entity::{Entity, card_entity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static ADRENALINE: Card = Card {
-    name: CardName::Adrenaline,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Rare,
-    cost: 0,
-    upgraded: false,
-    exhaust: true,
-    innate: false,
-    requires_target: false,
-    effects: &[
+pub static ADRENALINE: Entity = card_entity(
+    CardName::Adrenaline, CardKind::Skill, CardColor::Green, CardRarity::Rare,
+    0, false, true, false, false,
+    &[
         Effect {
             kind: EffectKind::EnergyGain { amount: 1 },
             source: None,
@@ -27,19 +17,12 @@ pub static ADRENALINE: Card = Card {
             target: Target::Direct(None),
         },
     ],
-};
+);
 // Upgraded
-pub static ADRENALINE_PLUS: Card = Card {
-    name: CardName::Adrenaline,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Rare,
-    cost: 0,
-    upgraded: true,
-    exhaust: true,
-    innate: false,
-    requires_target: false,
-    effects: &[
+pub static ADRENALINE_PLUS: Entity = card_entity(
+    CardName::Adrenaline, CardKind::Skill, CardColor::Green, CardRarity::Rare,
+    0, true, true, false, false,
+    &[
         Effect {
             kind: EffectKind::EnergyGain { amount: 2 }, // +1 energy gain
             source: None,
@@ -51,4 +34,4 @@ pub static ADRENALINE_PLUS: Card = Card {
             target: Target::Direct(None),
         },
     ],
-};
+);

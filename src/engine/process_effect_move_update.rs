@@ -1,7 +1,7 @@
 use rand::Rng;
 
 use crate::engine::ProcessEffectResult;
-use crate::entities::{Entity, push_move_history};
+use crate::entity::{Entity, push_move_history};
 use crate::monsters;
 
 pub fn process_effect_move_update(entity: &mut Entity, rng: &mut impl Rng) -> ProcessEffectResult {

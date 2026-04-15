@@ -1,21 +1,11 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::entity::{Entity, card_entity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static DAGGER_THROW: Card = Card {
-    name: CardName::DaggerThrow,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static DAGGER_THROW: Entity = card_entity(
+    CardName::DaggerThrow, CardKind::Attack, CardColor::Green, CardRarity::Common,
+    1, false, false, false, true,
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 9 },
             source: None,
@@ -38,19 +28,12 @@ pub static DAGGER_THROW: Card = Card {
             },
         },
     ],
-};
+);
 // Upgraded
-pub static DAGGER_THROW_PLUS: Card = Card {
-    name: CardName::DaggerThrow,
-    kind: CardKind::Attack,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: true,
-    effects: &[
+pub static DAGGER_THROW_PLUS: Entity = card_entity(
+    CardName::DaggerThrow, CardKind::Attack, CardColor::Green, CardRarity::Common,
+    1, true, false, false, true,
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 12 }, // +3 damage
             source: None,
@@ -73,4 +56,4 @@ pub static DAGGER_THROW_PLUS: Card = Card {
             },
         },
     ],
-};
+);

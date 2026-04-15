@@ -9,7 +9,7 @@ use pyo3::prelude::*;
 
 use crate::consts::FACTOR_VULN;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entities::{Entity, Intent};
+use crate::entity::{Entity, Intent};
 use crate::map::edge_indices;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::state::{GameState, Position};

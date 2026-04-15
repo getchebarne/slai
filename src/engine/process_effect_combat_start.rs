@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::entities::Entity;
+use crate::entity::Entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(

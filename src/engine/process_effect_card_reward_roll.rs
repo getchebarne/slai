@@ -7,7 +7,7 @@ use crate::consts::{
 };
 use crate::effect::{Effect, EffectKind};
 use crate::engine::ProcessEffectResult;
-use crate::entities::{Entity, make_entity_from_card};
+use crate::entity::Entity;
 use crate::types::CardName;
 
 pub fn process_effect_card_reward_roll(
@@ -43,7 +43,7 @@ pub fn process_effect_card_reward_roll(
         rolled_card_names.push(name);
         let card = get_card(name, false); // TODO: can generate upgraded cards on Act2+
         let id = entities.len();
-        entities.push(make_entity_from_card(card));
+        entities.push(card);
         card_rewards.push(id);
     }
 

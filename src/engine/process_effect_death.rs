@@ -1,6 +1,6 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::ProcessEffectResult;
-use crate::entities::Entity;
+use crate::entity::Entity;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 
 pub fn process_effect_death(

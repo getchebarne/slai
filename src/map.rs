@@ -4,9 +4,19 @@
 use rand::Rng;
 
 use crate::consts::*;
-use crate::entities::{Entity, Room, make_entity_from_room};
+use crate::entity::{Entity, room_entity};
 use crate::state::{Map, Position};
 use crate::types::RoomType;
+
+// Intermediate grid-cell during map generation. Converted to `Entity` via
+// `entitize_map` once the grid is finalized.
+#[derive(Debug, Clone, Copy)]
+struct Room {
+    pub y: usize,
+    pub x: usize,
+    pub room_type: RoomType,
+    pub edges: u8,
+}
 
 type Grid = [[Option<Room>; MAP_WIDTH]; MAP_HEIGHT];
 
@@ -49,10 +59,14 @@ pub fn active_room_type(map: &Map, entities: &[Entity]) -> Option<RoomType> {
 
 // ───────── Generation ─────────
 
-/// Generates a map as an intermediate grid of inline `Room`s. Callers
-/// are expected to entitize the grid via `entitize_map` before storing it
-/// in `GameState`.
-pub fn generate_map(rng: &mut impl Rng) -> Grid {
+/// Generates a map and pushes each room into `entities`. Returns a `Map`
+/// whose grid stores entity ids referencing the entities just pushed.
+pub fn generate_map(rng: &mut impl Rng, entities: &mut Vec<Entity>) -> Map {
+    let grid = generate_grid(rng);
+    entitize_grid(grid, entities)
+}
+
+fn generate_grid(rng: &mut impl Rng) -> Grid {
     let mut nodes: Grid = [[None; MAP_WIDTH]; MAP_HEIGHT];
 
     let mut x_source_first: Option<usize> = None;
@@ -107,15 +121,13 @@ pub fn generate_map(rng: &mut impl Rng) -> Grid {
     nodes
 }
 
-/// Entitizes a generated grid: each `Some(node)` is pushed into `entities`
-/// via `make_entity_from_room`, and the returned `Map` stores the entity ids.
-pub fn entitize_map(grid: Grid, entities: &mut Vec<Entity>) -> Map {
+fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> Map {
     let mut nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT] = [[None; MAP_WIDTH]; MAP_HEIGHT];
     for (y, row) in grid.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
             if let Some(node) = cell {
                 let id = entities.len();
-                entities.push(make_entity_from_room(*node));
+                entities.push(room_entity(node.y, node.x, node.room_type, node.edges));
                 nodes[y][x] = Some(id);
             }
         }

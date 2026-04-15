@@ -3,7 +3,7 @@ pub mod fungi_beast;
 pub mod jaw_worm;
 pub mod the_guardian;
 
-use crate::entities::{Entity, Monster, get_move_history_slice};
+use crate::entity::{Entity, get_move_history_slice};
 use crate::types::MonsterName;
 use rand::Rng;
 
@@ -11,7 +11,7 @@ pub fn spawn_monster(
     monster_name: MonsterName,
     ascension_level: u8,
     rng: &mut impl Rng,
-) -> Monster {
+) -> Entity {
     match monster_name {
         MonsterName::Cultist => cultist::spawn_cultist(ascension_level, rng),
         MonsterName::JawWorm => jaw_worm::spawn_jaw_worm(ascension_level, rng),

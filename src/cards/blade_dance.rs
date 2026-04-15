@@ -1,40 +1,23 @@
-use crate::entities::Card;
 use crate::effect::{Effect, EffectKind, Target};
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::entity::{Entity, card_entity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static BLADE_DANCE: Card = Card {
-    name: CardName::BladeDance,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static BLADE_DANCE: Entity = card_entity(
+    CardName::BladeDance, CardKind::Skill, CardColor::Green, CardRarity::Common,
+    1, false, false, false, false,
+    &[Effect {
         kind: EffectKind::AddShivs { count: 3 },
         source: None,
         target: Target::Direct(None),
     }],
-};
+);
 // Upgraded
-pub static BLADE_DANCE_PLUS: Card = Card {
-    name: CardName::BladeDance,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static BLADE_DANCE_PLUS: Entity = card_entity(
+    CardName::BladeDance, CardKind::Skill, CardColor::Green, CardRarity::Common,
+    1, true, false, false, false,
+    &[Effect {
         kind: EffectKind::AddShivs { count: 4 }, // +1 shiv
         source: None,
         target: Target::Direct(None),
     }],
-};
+);

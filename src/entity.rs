@@ -1,0 +1,214 @@
+// Entities: every kind of thing that lives in `GameState.entities`.
+//
+// One flat "fat" Entity struct holds all fields from all kinds. A runtime
+// `EntityType` tag distinguishes them. Variant-specific `const fn`
+// constructors below (`card_entity`, `monster_entity`, etc.) are the only
+// way to build an Entity — they set the relevant fields and zero the rest.
+
+use crate::effect::Effect;
+use crate::modifier::{Modifiers, ZERO_MODIFIERS};
+use crate::types::{
+    CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RoomType, Vitals,
+};
+
+// ───────── Constants ─────────
+
+pub const MAX_MOVE_HISTORY: usize = 64;
+
+pub const ZERO_VITALS: Vitals = Vitals {
+    health: 0,
+    health_max: 0,
+    block: 0,
+};
+
+// ───────── EntityType tag ─────────
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum EntityType {
+    Character,
+    Monster,
+    Card,
+    Room,
+}
+
+// ───────── Intent / Move (monster-facing) ─────────
+
+#[derive(Debug, Clone, Copy)]
+pub enum Intent {
+    Attack { damage: u16, instances: u8 },
+    AttackBlock { damage: u16, instances: u8 },
+    AttackBuff { damage: u16, instances: u8 },
+    Block,
+    BlockBuff,
+    Buff,
+    Debuff,
+    DebuffPowerful,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Move {
+    pub name: &'static str,
+    pub effects: &'static [Effect],
+    pub intent: Intent,
+}
+
+// ───────── Fat Entity struct ─────────
+
+#[derive(Debug, Clone, Copy)]
+pub struct Entity {
+    pub kind: EntityType,
+
+    // Combatant (Character + Monster)
+    pub vitals: Vitals,
+    pub modifiers: Modifiers,
+
+    // Character-only
+    pub character_name: &'static str,
+    pub reward_roll_offset: i8,
+
+    // Monster-only
+    pub monster_name: MonsterName,
+    pub monster_kind: MonsterKind,
+    pub moves: &'static [Move],
+    pub move_current: Option<usize>,
+    pub move_history: [u8; MAX_MOVE_HISTORY],
+    pub move_history_len: u8,
+    pub dead: bool,
+
+    // Card-only
+    pub card_name: CardName,
+    pub card_kind: CardKind,
+    pub card_color: CardColor,
+    pub card_rarity: CardRarity,
+    pub card_cost: u8,
+    pub card_upgraded: bool,
+    pub card_exhaust: bool,
+    pub card_innate: bool,
+    pub card_requires_target: bool,
+    pub card_effects: &'static [Effect],
+
+    // Room-only
+    pub node_y: usize,
+    pub node_x: usize,
+    pub room_type: RoomType,
+    pub edges: u8,
+}
+
+// Private zero-fill used by the public const fn constructors below.
+// Not exported — external code must go through one of the `*_entity` fns.
+const ZERO_ENTITY: Entity = Entity {
+    kind: EntityType::Character,
+    vitals: ZERO_VITALS,
+    modifiers: ZERO_MODIFIERS,
+    character_name: "",
+    reward_roll_offset: 0,
+    monster_name: MonsterName::Cultist,
+    monster_kind: MonsterKind::Normal,
+    moves: &[],
+    move_current: None,
+    move_history: [0; MAX_MOVE_HISTORY],
+    move_history_len: 0,
+    dead: false,
+    card_name: CardName::Strike,
+    card_kind: CardKind::Attack,
+    card_color: CardColor::Colorless,
+    card_rarity: CardRarity::Basic,
+    card_cost: 0,
+    card_upgraded: false,
+    card_exhaust: false,
+    card_innate: false,
+    card_requires_target: false,
+    card_effects: &[],
+    node_y: 0,
+    node_x: 0,
+    room_type: RoomType::CombatBoss,
+    edges: 0,
+};
+
+// ───────── Constructors (const fn, variant-specific) ─────────
+
+pub const fn character_entity(
+    name: &'static str,
+    vitals: Vitals,
+    reward_roll_offset: i8,
+) -> Entity {
+    Entity {
+        kind: EntityType::Character,
+        vitals,
+        character_name: name,
+        reward_roll_offset,
+        ..ZERO_ENTITY
+    }
+}
+
+pub const fn monster_entity(
+    name: MonsterName,
+    monster_kind: MonsterKind,
+    vitals: Vitals,
+    modifiers: Modifiers,
+    moves: &'static [Move],
+) -> Entity {
+    Entity {
+        kind: EntityType::Monster,
+        vitals,
+        modifiers,
+        monster_name: name,
+        monster_kind,
+        moves,
+        ..ZERO_ENTITY
+    }
+}
+
+pub const fn card_entity(
+    name: CardName,
+    kind: CardKind,
+    color: CardColor,
+    rarity: CardRarity,
+    cost: u8,
+    upgraded: bool,
+    exhaust: bool,
+    innate: bool,
+    requires_target: bool,
+    effects: &'static [Effect],
+) -> Entity {
+    Entity {
+        kind: EntityType::Card,
+        card_name: name,
+        card_kind: kind,
+        card_color: color,
+        card_rarity: rarity,
+        card_cost: cost,
+        card_upgraded: upgraded,
+        card_exhaust: exhaust,
+        card_innate: innate,
+        card_requires_target: requires_target,
+        card_effects: effects,
+        ..ZERO_ENTITY
+    }
+}
+
+pub const fn room_entity(y: usize, x: usize, room_type: RoomType, edges: u8) -> Entity {
+    Entity {
+        kind: EntityType::Room,
+        node_y: y,
+        node_x: x,
+        room_type,
+        edges,
+        ..ZERO_ENTITY
+    }
+}
+
+// ───────── Monster-history helpers ─────────
+
+pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
+    assert!(
+        (entity.move_history_len as usize) < MAX_MOVE_HISTORY,
+        "move_history overflow"
+    );
+    entity.move_history[entity.move_history_len as usize] = move_idx;
+    entity.move_history_len += 1;
+}
+
+pub fn get_move_history_slice(entity: &Entity) -> &[u8] {
+    &entity.move_history[..entity.move_history_len as usize]
+}

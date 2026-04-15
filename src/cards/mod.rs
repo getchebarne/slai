@@ -29,10 +29,10 @@ pub mod strike;
 pub mod survivor;
 pub mod terror;
 
-use crate::entities::Card;
+use crate::entity::Entity;
 use crate::types::CardName;
 
-pub fn get_card(name: CardName, upgraded: bool) -> Card {
+pub fn get_card(name: CardName, upgraded: bool) -> Entity {
     match (name, upgraded) {
         (CardName::AThousandCuts, false) => a_thousand_cuts::A_THOUSAND_CUTS,
         (CardName::AThousandCuts, true) => a_thousand_cuts::A_THOUSAND_CUTS_PLUS,

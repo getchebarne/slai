@@ -1,21 +1,11 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::entity::{Entity, card_entity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static DEFEND: Card = Card {
-    name: CardName::Defend,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Basic,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static DEFEND: Entity = card_entity(
+    CardName::Defend, CardKind::Skill, CardColor::Green, CardRarity::Basic,
+    1, false, false, false, false,
+    &[Effect {
         kind: EffectKind::BlockGain { amount: 5 },
         source: None,
         target: Target::Resolve {
@@ -23,19 +13,12 @@ pub static DEFEND: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);
 // Upgraded
-pub static DEFEND_PLUS: Card = Card {
-    name: CardName::Defend,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Basic,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static DEFEND_PLUS: Entity = card_entity(
+    CardName::Defend, CardKind::Skill, CardColor::Green, CardRarity::Basic,
+    1, true, false, false, false,
+    &[Effect {
         kind: EffectKind::BlockGain {
             amount: 8, // +3 block
         },
@@ -45,4 +28,4 @@ pub static DEFEND_PLUS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);

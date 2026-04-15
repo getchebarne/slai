@@ -1,7 +1,7 @@
 use crate::cards::get_card;
 use crate::consts::MAX_SIZE_HAND;
 use crate::engine::ProcessEffectResult;
-use crate::entities::{Entity, make_entity_from_card};
+use crate::entity::Entity;
 use crate::types::CardName;
 
 pub fn process_effect_add_shivs(
@@ -14,7 +14,7 @@ pub fn process_effect_add_shivs(
 
     for _ in 0..count {
         let id_card = entities.len();
-        entities.push(make_entity_from_card(shiv));
+        entities.push(shiv);
 
         if hand.len() < MAX_SIZE_HAND {
             hand.push(id_card)

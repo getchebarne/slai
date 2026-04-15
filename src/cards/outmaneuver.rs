@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static OUTMANEUVER: Card = Card {
-    name: CardName::Outmaneuver,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static OUTMANEUVER: Entity = card_entity(
+    CardName::Outmaneuver, CardKind::Skill, CardColor::Green, CardRarity::Common,
+    1, false, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::NextTurnEnergy,
             stacks: 2,
@@ -27,19 +17,12 @@ pub static OUTMANEUVER: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);
 // Upgraded
-pub static OUTMANEUVER_PLUS: Card = Card {
-    name: CardName::Outmaneuver,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[Effect {
+pub static OUTMANEUVER_PLUS: Entity = card_entity(
+    CardName::Outmaneuver, CardKind::Skill, CardColor::Green, CardRarity::Common,
+    1, true, false, false, false,
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::NextTurnEnergy,
             stacks: 3, // +1 next-turn-energy
@@ -50,4 +33,4 @@ pub static OUTMANEUVER_PLUS: Card = Card {
             selection: SelectionKind::All,
         },
     }],
-};
+);

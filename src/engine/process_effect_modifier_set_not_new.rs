@@ -1,5 +1,5 @@
 use crate::engine::ProcessEffectResult;
-use crate::entities::Entity;
+use crate::entity::Entity;
 use crate::modifier::modifier_set_not_new;
 
 pub fn process_effect_modifier_set_not_new(

@@ -1,21 +1,11 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::entity::{Entity, card_entity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static ACROBATICS: Card = Card {
-    name: CardName::Acrobatics,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[
+pub static ACROBATICS: Entity = card_entity(
+    CardName::Acrobatics, CardKind::Skill, CardColor::Green, CardRarity::Common,
+    1, false, false, false, false,
+    &[
         Effect {
             kind: EffectKind::CardDraw { count: 3 },
             source: None,
@@ -30,19 +20,12 @@ pub static ACROBATICS: Card = Card {
             },
         },
     ],
-};
+);
 // Upgraded
-pub static ACROBATICS_PLUS: Card = Card {
-    name: CardName::Acrobatics,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[
+pub static ACROBATICS_PLUS: Entity = card_entity(
+    CardName::Acrobatics, CardKind::Skill, CardColor::Green, CardRarity::Common,
+    1, true, false, false, false,
+    &[
         Effect {
             kind: EffectKind::CardDraw { count: 4 }, // +1 draw
             source: None,
@@ -57,4 +40,4 @@ pub static ACROBATICS_PLUS: Card = Card {
             },
         },
     ],
-};
+);

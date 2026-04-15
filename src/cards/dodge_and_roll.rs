@@ -1,22 +1,12 @@
-use crate::entities::Card;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, card_entity};
 use crate::modifier::ModifierKind;
-use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardName;
-use crate::types::CardRarity;
+use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static DODGE_AND_ROLL: Card = Card {
-    name: CardName::DodgeAndRoll,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: false,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[
+pub static DODGE_AND_ROLL: Entity = card_entity(
+    CardName::DodgeAndRoll, CardKind::Skill, CardColor::Green, CardRarity::Common,
+    1, false, false, false, false,
+    &[
         Effect {
             kind: EffectKind::BlockGain { amount: 4 },
             source: None,
@@ -37,19 +27,12 @@ pub static DODGE_AND_ROLL: Card = Card {
             },
         },
     ],
-};
+);
 // Upgraded
-pub static DODGE_AND_ROLL_PLUS: Card = Card {
-    name: CardName::DodgeAndRoll,
-    kind: CardKind::Skill,
-    color: CardColor::Green,
-    rarity: CardRarity::Common,
-    cost: 1,
-    upgraded: true,
-    exhaust: false,
-    innate: false,
-    requires_target: false,
-    effects: &[
+pub static DODGE_AND_ROLL_PLUS: Entity = card_entity(
+    CardName::DodgeAndRoll, CardKind::Skill, CardColor::Green, CardRarity::Common,
+    1, true, false, false, false,
+    &[
         Effect {
             kind: EffectKind::BlockGain {
                 amount: 6, // +2 block
@@ -72,4 +55,4 @@ pub static DODGE_AND_ROLL_PLUS: Card = Card {
             },
         },
     ],
-};
+);

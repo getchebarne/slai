@@ -6,7 +6,7 @@ use rand::rngs::SmallRng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::Effect;
-use crate::entities::Entity;
+use crate::entity::Entity;
 use crate::types::*;
 
 // Energy
