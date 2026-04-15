@@ -7,6 +7,11 @@ const MODE_SHIFT_STACKS_30: i16 = 30;
 const MODE_SHIFT_STACKS_35: i16 = 35;
 const MODE_SHIFT_STACKS_40: i16 = 40;
 
+// Index of MOVE_TWIN_SLAM_* in the MOVES arrays. Completing a Twin Slam
+// marks the end of an attack/defense cycle; used to increment
+// Entity::cycle_count which scales the next ModeShift threshold.
+pub const MOVE_IDX_TWIN_SLAM: u8 = 6;
+
 static MOVE_CHARGING_UP: Move = Move {
     name: "Charging Up",
     effects: &[Effect {

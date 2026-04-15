@@ -20,6 +20,15 @@ pub fn spawn_monster(
     }
 }
 
+// True if completing `move_idx` marks the end of one of this monster's
+// attack/defense cycles. Callers increment `Entity::cycle_count` on true.
+pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
+    match name {
+        MonsterName::TheGuardian => move_idx == the_guardian::MOVE_IDX_TWIN_SLAM,
+        _ => false,
+    }
+}
+
 pub fn get_next_move(entity: &Entity, rng: &mut impl Rng) -> usize {
     let history = get_move_history_slice(entity);
     match entity.monster_name {

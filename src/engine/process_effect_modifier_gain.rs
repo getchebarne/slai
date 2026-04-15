@@ -4,19 +4,16 @@ use crate::modifier::{
     ModifierKind, Modifiers, modifier_apply, modifier_def, modifier_has, modifier_remove,
 };
 
-// TODO: shared constant
-const TWIN_SLAM_MOVE_IDX: u8 = 6;
-
 pub fn process_effect_modifier_gain(
     modifiers: &mut Modifiers,
     kind: ModifierKind,
     stacks: i16,
-    move_history: Option<&[u8]>,
+    cycle_count: Option<u8>,
 ) -> ProcessEffectResult {
     // ModeShift has special scaling logic
     if kind == ModifierKind::ModeShift {
-        if let Some(history) = move_history {
-            return process_mode_shift_gain(modifiers, stacks, history);
+        if let Some(cc) = cycle_count {
+            return process_mode_shift_gain(modifiers, stacks, cc);
         }
     }
 
@@ -40,13 +37,9 @@ pub fn process_effect_modifier_gain(
 fn process_mode_shift_gain(
     modifiers: &mut Modifiers,
     stacks: i16,
-    move_history: &[u8],
+    cycle_count: u8,
 ) -> ProcessEffectResult {
-    // ModeShift threshold increases each cycle (counted by Twin Slam appearances)
-    let cycle_count = move_history
-        .iter()
-        .filter(|&&m| m == TWIN_SLAM_MOVE_IDX)
-        .count();
+    // ModeShift threshold increases each completed cycle.
     let increase = MODE_SHIFT_INCREASE_PER_CYCLE * cycle_count as i16;
 
     modifier_apply(modifiers, ModifierKind::ModeShift, stacks + increase);

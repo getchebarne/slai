@@ -358,13 +358,8 @@ fn dispatch_by_kind(
         EffectKind::ModifierGain { kind, stacks } => {
             let target = target.unwrap();
             let entity = &mut state.entities[target];
-            let is_monster = entity.kind == EntityType::Monster;
-            // Borrow history immutably first, clone into owned-enough-for-call form,
-            // then mutably borrow modifiers. move_history is a fixed array — copy it.
-            let history_buf = entity.move_history;
-            let history_len = entity.move_history_len as usize;
-            let history = if is_monster {
-                Some(&history_buf[..history_len])
+            let cycle_count = if entity.kind == EntityType::Monster {
+                Some(entity.cycle_count)
             } else {
                 None
             };
@@ -372,7 +367,7 @@ fn dispatch_by_kind(
                 &mut entity.modifiers,
                 kind,
                 stacks,
-                history,
+                cycle_count,
             )
         }
         EffectKind::ModifierRemove { kind } => {

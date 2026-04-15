@@ -73,6 +73,10 @@ pub struct Entity {
     pub move_current: Option<usize>,
     pub move_history: [u8; MAX_MOVE_HISTORY],
     pub move_history_len: u8,
+    // Count of completed attack/defense cycles (monster-specific AI concept;
+    // e.g., The Guardian increments this on each Twin Slam). Used for scaling
+    // modifier thresholds like ModeShift.
+    pub cycle_count: u8,
     pub dead: bool,
 
     // Card-only
@@ -108,6 +112,7 @@ const ZERO_ENTITY: Entity = Entity {
     move_current: None,
     move_history: [0; MAX_MOVE_HISTORY],
     move_history_len: 0,
+    cycle_count: 0,
     dead: false,
     card_name: CardName::Strike,
     card_kind: CardKind::Attack,
