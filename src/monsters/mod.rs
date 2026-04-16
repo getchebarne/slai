@@ -24,7 +24,7 @@ pub fn spawn_monster(
 // attack/defense cycles. Callers increment `Entity::cycle_count` on true.
 pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
     match name {
-        MonsterName::TheGuardian => move_idx == the_guardian::MOVE_IDX_TWIN_SLAM,
+        MonsterName::TheGuardian => move_idx == the_guardian::IDX_MOVE_TWIN_SLAM as u8,
         _ => false,
     }
 }

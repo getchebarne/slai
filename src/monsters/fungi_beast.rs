@@ -68,6 +68,9 @@ static MOVES_ASC0: [Move; 2] = [MOVE_GROW_3, MOVE_BITE];
 static MOVES_ASC2: [Move; 2] = [MOVE_GROW_4, MOVE_BITE];
 static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];
 
+const IDX_MOVE_GROW: usize = 0;
+const IDX_MOVE_BITE: usize = 1;
+
 pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (22, 28)
@@ -103,14 +106,14 @@ pub fn get_next_move_fungi_beast(
 ) -> usize {
     let roll = rng.random_range(0..99);
     if roll < 60 {
-        if move_history.ends_with(&[1, 1]) {
-            0
+        if move_history.ends_with(&[IDX_MOVE_BITE as u8, IDX_MOVE_BITE as u8]) {
+            IDX_MOVE_GROW
         } else {
-            1
+            IDX_MOVE_BITE
         }
-    } else if move_history.last().copied() == Some(0) {
-        1
+    } else if move_history.last().copied() == Some(IDX_MOVE_GROW as u8) {
+        IDX_MOVE_BITE
     } else {
-        0
+        IDX_MOVE_GROW
     }
 }

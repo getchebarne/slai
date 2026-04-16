@@ -138,6 +138,10 @@ static MOVES_ASC0: [Move; 3] = [MOVE_CHOMP_11, MOVE_BELLOW_3_6, MOVE_THRASH];
 static MOVES_ASC2: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_4_6, MOVE_THRASH];
 static MOVES_ASC17: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_5_9, MOVE_THRASH];
 
+const IDX_MOVE_CHOMP: usize = 0;
+const IDX_MOVE_BELLOW: usize = 1;
+const IDX_MOVE_THRASH: usize = 2;
+
 pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (40, 44)
@@ -170,29 +174,26 @@ pub fn get_next_move_jaw_worm(
     rng: &mut impl Rng,
 ) -> usize {
     if move_current.is_none() {
-        return 0;
+        return IDX_MOVE_CHOMP;
     }
 
     let roll = rng.random_range(0..99);
-    let move_last = move_history
-        .last()
-        .copied()
-        .expect("`move_history` cannot be empty here");
+    let move_last = *move_history.last().expect("`move_history` cannot be empty here") as usize;
 
     if roll < 25 {
-        if move_last == 0 {
-            return if rng.random_bool(0.5625) { 1 } else { 2 };
+        if move_last == IDX_MOVE_CHOMP {
+            return if rng.random_bool(0.5625) { IDX_MOVE_BELLOW } else { IDX_MOVE_THRASH };
         }
-        0
+        IDX_MOVE_CHOMP
     } else if roll < 55 {
-        if move_history.ends_with(&[2, 2]) {
-            return if rng.random_bool(0.357) { 0 } else { 1 };
+        if move_history.ends_with(&[IDX_MOVE_THRASH as u8, IDX_MOVE_THRASH as u8]) {
+            return if rng.random_bool(0.357) { IDX_MOVE_CHOMP } else { IDX_MOVE_BELLOW };
         }
-        2
+        IDX_MOVE_THRASH
     } else {
-        if move_last == 1 {
-            return if rng.random_bool(0.416) { 0 } else { 2 };
+        if move_last == IDX_MOVE_BELLOW {
+            return if rng.random_bool(0.416) { IDX_MOVE_CHOMP } else { IDX_MOVE_THRASH };
         }
-        1
+        IDX_MOVE_BELLOW
     }
 }

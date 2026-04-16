@@ -58,9 +58,10 @@ pub struct Move {
 pub struct Entity {
     pub kind: EntityType,
 
-    // Combatant (Character + Monster)
+    // Combatant (Character or Monster)
     pub vitals: Vitals,
     pub modifiers: Modifiers,
+    pub dead: bool,
 
     // Character-only
     pub character_name: &'static str,
@@ -73,11 +74,7 @@ pub struct Entity {
     pub move_current: Option<usize>,
     pub move_history: [u8; MAX_MOVE_HISTORY],
     pub move_history_len: u8,
-    // Count of completed attack/defense cycles (monster-specific AI concept;
-    // e.g., The Guardian increments this on each Twin Slam). Used for scaling
-    // modifier thresholds like ModeShift.
-    pub cycle_count: u8,
-    pub dead: bool,
+    pub cycle_count: u8, // Only used by "The Guardian"
 
     // Card-only
     pub card_name: CardName,

@@ -68,6 +68,9 @@ static MOVES_ASC0: [Move; 2] = [MOVE_INCANTATION_3, MOVE_DARK_STRIKE];
 static MOVES_ASC2: [Move; 2] = [MOVE_INCANTATION_4, MOVE_DARK_STRIKE];
 static MOVES_ASC17: [Move; 2] = [MOVE_INCANTATION_5, MOVE_DARK_STRIKE];
 
+const IDX_MOVE_INCANTATION: usize = 0;
+const IDX_MOVE_DARK_STRIKE: usize = 1;
+
 pub fn spawn_cultist(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (48, 54)
@@ -94,5 +97,5 @@ pub fn spawn_cultist(ascension_level: u8, rng: &mut impl Rng) -> Entity {
 }
 
 pub fn get_next_move_cultist(move_current: Option<usize>, _move_history: &[u8]) -> usize {
-    if move_current.is_none() { 0 } else { 1 }
+    if move_current.is_none() { IDX_MOVE_INCANTATION } else { IDX_MOVE_DARK_STRIKE }
 }

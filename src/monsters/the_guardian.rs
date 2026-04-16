@@ -7,11 +7,6 @@ const MODE_SHIFT_STACKS_30: i16 = 30;
 const MODE_SHIFT_STACKS_35: i16 = 35;
 const MODE_SHIFT_STACKS_40: i16 = 40;
 
-// Index of MOVE_TWIN_SLAM_* in the MOVES arrays. Completing a Twin Slam
-// marks the end of an attack/defense cycle; used to increment
-// Entity::cycle_count which scales the next ModeShift threshold.
-pub const MOVE_IDX_TWIN_SLAM: u8 = 6;
-
 static MOVE_CHARGING_UP: Move = Move {
     name: "Charging Up",
     effects: &[Effect {
@@ -358,6 +353,14 @@ static MOVES_ASC19: [Move; 7] = [
     MOVE_TWIN_SLAM_40,
 ];
 
+const IDX_MOVE_CHARGING_UP: usize = 0;
+const IDX_MOVE_FIERCE_BASH: usize = 1;
+const IDX_MOVE_VENT_STEAM: usize = 2;
+const IDX_MOVE_WHIRLWIND: usize = 3;
+const IDX_MOVE_DEFENSIVE_MODE: usize = 4;
+const IDX_MOVE_ROLL_ATTACK: usize = 5;
+pub const IDX_MOVE_TWIN_SLAM: usize = 6;
+
 pub fn spawn_the_guardian(ascension_level: u8) -> Entity {
     let health_max = if ascension_level < 9 { 240 } else { 250 };
 
@@ -396,20 +399,17 @@ pub fn get_next_move_the_guardian_full(
     modifiers: &Modifiers,
 ) -> usize {
     if move_current.is_none() {
-        return 0;
+        return IDX_MOVE_CHARGING_UP;
     }
-    let move_last = move_history
-        .last()
-        .copied()
-        .expect("`move_history` cannot be empty here");
+    let move_last = *move_history.last().expect("`move_history` cannot be empty here") as usize;
 
     if modifier_has(modifiers, ModifierKind::ModeShift) {
         match move_last {
-            0 => 1,
-            1 => 2,
-            2 => 3,
-            3 => 0,
-            6 => 3,
+            IDX_MOVE_CHARGING_UP => IDX_MOVE_FIERCE_BASH,
+            IDX_MOVE_FIERCE_BASH => IDX_MOVE_VENT_STEAM,
+            IDX_MOVE_VENT_STEAM => IDX_MOVE_WHIRLWIND,
+            IDX_MOVE_WHIRLWIND => IDX_MOVE_CHARGING_UP,
+            IDX_MOVE_TWIN_SLAM => IDX_MOVE_WHIRLWIND,
             _ => unreachable!(
                 "Invalid 'The Guardian' move in offensive mode: {}",
                 move_last
@@ -417,14 +417,14 @@ pub fn get_next_move_the_guardian_full(
         }
     } else if modifier_has(modifiers, ModifierKind::SharpHide) {
         match move_last {
-            4 => 5,
-            5 => 6,
+            IDX_MOVE_DEFENSIVE_MODE => IDX_MOVE_ROLL_ATTACK,
+            IDX_MOVE_ROLL_ATTACK => IDX_MOVE_TWIN_SLAM,
             _ => unreachable!(
                 "Invalid 'The Guardian' move in defensive mode: {}",
                 move_last
             ),
         }
     } else {
-        4
+        IDX_MOVE_DEFENSIVE_MODE
     }
 }
