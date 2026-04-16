@@ -1,8 +1,8 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static DEFLECT: Entity = card_entity(
+pub static DEFLECT: Entity = make_entity_card(
     CardName::Deflect, CardKind::Skill, CardColor::Green, CardRarity::Common,
     0, false, false, false, false,
     &[Effect {
@@ -15,7 +15,7 @@ pub static DEFLECT: Entity = card_entity(
     }],
 );
 // Upgraded
-pub static DEFLECT_PLUS: Entity = card_entity(
+pub static DEFLECT_PLUS: Entity = make_entity_card(
     CardName::Deflect, CardKind::Skill, CardColor::Green, CardRarity::Common,
     0, true, false, false, false,
     &[Effect {

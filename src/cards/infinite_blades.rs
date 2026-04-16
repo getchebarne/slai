@@ -1,9 +1,9 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static INFINITE_BLADES: Entity = card_entity(
+pub static INFINITE_BLADES: Entity = make_entity_card(
     CardName::InfiniteBlades, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
     1, false, false, false, false,
     &[Effect {
@@ -19,7 +19,7 @@ pub static INFINITE_BLADES: Entity = card_entity(
     }],
 );
 // Upgraded
-pub static INFINITE_BLADES_PLUS: Entity = card_entity(
+pub static INFINITE_BLADES_PLUS: Entity = make_entity_card(
     CardName::InfiniteBlades, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
     1, true, false, true, false,
     &[Effect {

@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, Intent, Move, monster_entity};
+use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
@@ -158,7 +158,7 @@ pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Entity {
         &MOVES_ASC17
     };
 
-    monster_entity(
+    make_entity_monster(
         MonsterName::JawWorm,
         MonsterKind::Normal,
         Vitals { health: health_max, health_max, block: 0 },

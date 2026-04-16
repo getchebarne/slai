@@ -1,8 +1,8 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static ACROBATICS: Entity = card_entity(
+pub static ACROBATICS: Entity = make_entity_card(
     CardName::Acrobatics, CardKind::Skill, CardColor::Green, CardRarity::Common,
     1, false, false, false, false,
     &[
@@ -22,7 +22,7 @@ pub static ACROBATICS: Entity = card_entity(
     ],
 );
 // Upgraded
-pub static ACROBATICS_PLUS: Entity = card_entity(
+pub static ACROBATICS_PLUS: Entity = make_entity_card(
     CardName::Acrobatics, CardKind::Skill, CardColor::Green, CardRarity::Common,
     1, true, false, false, false,
     &[

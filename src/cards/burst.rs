@@ -1,9 +1,9 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static BURST: Entity = card_entity(
+pub static BURST: Entity = make_entity_card(
     CardName::Burst, CardKind::Skill, CardColor::Green, CardRarity::Rare,
     1, false, false, false, false,
     &[Effect {
@@ -19,7 +19,7 @@ pub static BURST: Entity = card_entity(
     }],
 );
 // Upgraded
-pub static BURST_PLUS: Entity = card_entity(
+pub static BURST_PLUS: Entity = make_entity_card(
     CardName::Burst, CardKind::Skill, CardColor::Green, CardRarity::Rare,
     1, true, false, false, false,
     &[Effect {

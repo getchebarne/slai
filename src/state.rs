@@ -30,8 +30,7 @@ pub struct GameState {
     // Effect queue
     pub effect_queue: VecDeque<Effect>,
 
-    // Map
-    pub id_rooms: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    // Location
     pub location: Location,
 
     // Energy
@@ -39,6 +38,9 @@ pub struct GameState {
 
     // Entities
     pub entities: Vec<Entity>,
+
+    // Rooms
+    pub id_rooms: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
 
     // Entities / Character
     pub id_character: usize,

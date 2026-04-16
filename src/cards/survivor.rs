@@ -1,8 +1,8 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static SURVIVOR: Entity = card_entity(
+pub static SURVIVOR: Entity = make_entity_card(
     CardName::Survivor, CardKind::Skill, CardColor::Green, CardRarity::Basic,
     1, false, false, false, false,
     &[
@@ -25,7 +25,7 @@ pub static SURVIVOR: Entity = card_entity(
     ],
 );
 // Upgraded
-pub static SURVIVOR_PLUS: Entity = card_entity(
+pub static SURVIVOR_PLUS: Entity = make_entity_card(
     CardName::Survivor, CardKind::Skill, CardColor::Green, CardRarity::Basic,
     1, true, false, false, false,
     &[

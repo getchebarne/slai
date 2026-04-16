@@ -1,9 +1,9 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static LEG_SWEEP: Entity = card_entity(
+pub static LEG_SWEEP: Entity = make_entity_card(
     CardName::LegSweep, CardKind::Skill, CardColor::Green, CardRarity::Uncommon,
     2, false, false, false, true,
     &[
@@ -29,7 +29,7 @@ pub static LEG_SWEEP: Entity = card_entity(
     ],
 );
 // Upgraded
-pub static LEG_SWEEP_PLUS: Entity = card_entity(
+pub static LEG_SWEEP_PLUS: Entity = make_entity_card(
     CardName::LegSweep, CardKind::Skill, CardColor::Green, CardRarity::Uncommon,
     2, true, false, false, true,
     &[

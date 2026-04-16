@@ -388,7 +388,10 @@ fn dispatch_by_kind(
         }
         EffectKind::TargetSet => {
             let id_target = id_target.unwrap();
-            process_effect_target_set::process_effect_target_set(&mut state.id_card_target, id_target)
+            process_effect_target_set::process_effect_target_set(
+                &mut state.id_card_target,
+                id_target,
+            )
         }
         EffectKind::TargetClear => {
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)

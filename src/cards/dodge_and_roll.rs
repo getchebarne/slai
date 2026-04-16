@@ -1,9 +1,9 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static DODGE_AND_ROLL: Entity = card_entity(
+pub static DODGE_AND_ROLL: Entity = make_entity_card(
     CardName::DodgeAndRoll, CardKind::Skill, CardColor::Green, CardRarity::Common,
     1, false, false, false, false,
     &[
@@ -29,7 +29,7 @@ pub static DODGE_AND_ROLL: Entity = card_entity(
     ],
 );
 // Upgraded
-pub static DODGE_AND_ROLL_PLUS: Entity = card_entity(
+pub static DODGE_AND_ROLL_PLUS: Entity = make_entity_card(
     CardName::DodgeAndRoll, CardKind::Skill, CardColor::Green, CardRarity::Common,
     1, true, false, false, false,
     &[

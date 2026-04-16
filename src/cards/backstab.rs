@@ -1,8 +1,8 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static BACKSTAB: Entity = card_entity(
+pub static BACKSTAB: Entity = make_entity_card(
     CardName::Backstab, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
     0, false, true, true, true,
     &[Effect {
@@ -15,7 +15,7 @@ pub static BACKSTAB: Entity = card_entity(
     }],
 );
 // Upgraded
-pub static BACKSTAB_PLUS: Entity = card_entity(
+pub static BACKSTAB_PLUS: Entity = make_entity_card(
     CardName::Backstab, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
     0, true, true, true, true,
     &[Effect {

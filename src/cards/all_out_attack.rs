@@ -1,8 +1,8 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static ALL_OUT_ATTACK: Entity = card_entity(
+pub static ALL_OUT_ATTACK: Entity = make_entity_card(
     CardName::AllOutAttack, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
     1, false, false, false, false,
     &[
@@ -25,7 +25,7 @@ pub static ALL_OUT_ATTACK: Entity = card_entity(
     ],
 );
 // Upgraded
-pub static ALL_OUT_ATTACK_PLUS: Entity = card_entity(
+pub static ALL_OUT_ATTACK_PLUS: Entity = make_entity_card(
     CardName::AllOutAttack, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
     1, true, false, false, false,
     &[

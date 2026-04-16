@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, Intent, Move, monster_entity};
+use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, Modifiers, ZERO_MODIFIERS, modifier_apply, modifier_has};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 
@@ -384,7 +384,7 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Entity {
     let mut modifiers = ZERO_MODIFIERS;
     modifier_apply(&mut modifiers, ModifierKind::ModeShift, mode_shift_stacks);
 
-    monster_entity(
+    make_entity_monster(
         MonsterName::TheGuardian,
         MonsterKind::Boss,
         Vitals { health: health_max, health_max, block: 0 },

@@ -1,9 +1,9 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static NEUTRALIZE: Entity = card_entity(
+pub static NEUTRALIZE: Entity = make_entity_card(
     CardName::Neutralize, CardKind::Attack, CardColor::Green, CardRarity::Basic,
     0, false, false, false, true,
     &[
@@ -29,7 +29,7 @@ pub static NEUTRALIZE: Entity = card_entity(
     ],
 );
 // Upgraded
-pub static NEUTRALIZE_PLUS: Entity = card_entity(
+pub static NEUTRALIZE_PLUS: Entity = make_entity_card(
     CardName::Neutralize, CardKind::Attack, CardColor::Green, CardRarity::Basic,
     0, true, false, false, true,
     &[

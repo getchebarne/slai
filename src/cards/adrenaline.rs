@@ -1,8 +1,8 @@
 use crate::effect::{Effect, EffectKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static ADRENALINE: Entity = card_entity(
+pub static ADRENALINE: Entity = make_entity_card(
     CardName::Adrenaline, CardKind::Skill, CardColor::Green, CardRarity::Rare,
     0, false, true, false, false,
     &[
@@ -19,7 +19,7 @@ pub static ADRENALINE: Entity = card_entity(
     ],
 );
 // Upgraded
-pub static ADRENALINE_PLUS: Entity = card_entity(
+pub static ADRENALINE_PLUS: Entity = make_entity_card(
     CardName::Adrenaline, CardKind::Skill, CardColor::Green, CardRarity::Rare,
     0, true, true, false, false,
     &[

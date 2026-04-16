@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, Intent, Move, monster_entity};
+use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
@@ -90,7 +90,7 @@ pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let mut modifiers = ZERO_MODIFIERS;
     modifier_apply(&mut modifiers, ModifierKind::SporeCloud, 2);
 
-    monster_entity(
+    make_entity_monster(
         MonsterName::FungiBeast,
         MonsterKind::Normal,
         Vitals { health: health_max, health_max, block: 0 },

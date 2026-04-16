@@ -1,8 +1,8 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static STRIKE: Entity = card_entity(
+pub static STRIKE: Entity = make_entity_card(
     CardName::Strike, CardKind::Attack, CardColor::Green, CardRarity::Basic,
     1, false, false, false, true,
     &[Effect {
@@ -15,7 +15,7 @@ pub static STRIKE: Entity = card_entity(
     }],
 );
 // Upgraded
-pub static STRIKE_PLUS: Entity = card_entity(
+pub static STRIKE_PLUS: Entity = make_entity_card(
     CardName::Strike, CardKind::Attack, CardColor::Green, CardRarity::Basic,
     1, true, false, false, true,
     &[Effect {

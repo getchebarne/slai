@@ -1,9 +1,9 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static A_THOUSAND_CUTS: Entity = card_entity(
+pub static A_THOUSAND_CUTS: Entity = make_entity_card(
     CardName::AThousandCuts, CardKind::Power, CardColor::Green, CardRarity::Rare,
     2, false, false, false, false,
     &[Effect {
@@ -19,7 +19,7 @@ pub static A_THOUSAND_CUTS: Entity = card_entity(
     }],
 );
 // Upgraded
-pub static A_THOUSAND_CUTS_PLUS: Entity = card_entity(
+pub static A_THOUSAND_CUTS_PLUS: Entity = make_entity_card(
     CardName::AThousandCuts, CardKind::Power, CardColor::Green, CardRarity::Rare,
     2, true, false, false, false,
     &[Effect {

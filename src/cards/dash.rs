@@ -1,8 +1,8 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static DASH: Entity = card_entity(
+pub static DASH: Entity = make_entity_card(
     CardName::Dash, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
     2, false, false, false, true,
     &[
@@ -25,7 +25,7 @@ pub static DASH: Entity = card_entity(
     ],
 );
 // Upgraded
-pub static DASH_PLUS: Entity = card_entity(
+pub static DASH_PLUS: Entity = make_entity_card(
     CardName::Dash, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
     2, true, false, false, true,
     &[

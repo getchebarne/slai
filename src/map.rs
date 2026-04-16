@@ -4,7 +4,7 @@
 use rand::Rng;
 
 use crate::consts::*;
-use crate::entity::{Entity, room_entity};
+use crate::entity::{Entity, make_entity_room};
 use crate::state::Location;
 use crate::types::RoomType;
 
@@ -127,7 +127,7 @@ fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> (IdRooms, Location) 
         for (x, cell) in row.iter().enumerate() {
             if let Some(room) = cell {
                 let id_room = entities.len();
-                entities.push(room_entity(room.y, room.x, room.room_type, room.edges));
+                entities.push(make_entity_room(room.y, room.x, room.room_type, room.edges));
                 id_rooms[y][x] = Some(id_room);
             }
         }

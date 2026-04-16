@@ -1,8 +1,8 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, card_entity};
+use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static SHIV: Entity = card_entity(
+pub static SHIV: Entity = make_entity_card(
     CardName::Shiv, CardKind::Attack, CardColor::Colorless, CardRarity::Special,
     0, false, true, false, true,
     &[Effect {
@@ -15,7 +15,7 @@ pub static SHIV: Entity = card_entity(
     }],
 );
 // Upgraded
-pub static SHIV_PLUS: Entity = card_entity(
+pub static SHIV_PLUS: Entity = make_entity_card(
     CardName::Shiv, CardKind::Attack, CardColor::Colorless, CardRarity::Special,
     0, true, true, false, true,
     &[Effect {

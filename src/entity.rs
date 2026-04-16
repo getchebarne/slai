@@ -2,7 +2,7 @@
 //
 // One flat "fat" Entity struct holds all fields from all kinds. A runtime
 // `EntityType` tag distinguishes them. Variant-specific `const fn`
-// constructors below (`card_entity`, `monster_entity`, etc.) are the only
+// constructors below (`make_entity_card`, `make_entity_monster`, etc.) are the only
 // way to build an Entity — they set the relevant fields and zero the rest.
 
 use crate::effect::Effect;
@@ -127,9 +127,8 @@ const ZERO_ENTITY: Entity = Entity {
     edges: 0,
 };
 
-// ───────── Constructors (const fn, variant-specific) ─────────
-
-pub const fn character_entity(
+// Constructors
+pub const fn make_entity_character(
     name: &'static str,
     vitals: Vitals,
     reward_roll_offset: i8,
@@ -143,7 +142,7 @@ pub const fn character_entity(
     }
 }
 
-pub const fn monster_entity(
+pub const fn make_entity_monster(
     name: MonsterName,
     monster_kind: MonsterKind,
     vitals: Vitals,
@@ -161,7 +160,7 @@ pub const fn monster_entity(
     }
 }
 
-pub const fn card_entity(
+pub const fn make_entity_card(
     name: CardName,
     kind: CardKind,
     color: CardColor,
@@ -189,7 +188,7 @@ pub const fn card_entity(
     }
 }
 
-pub const fn room_entity(y: usize, x: usize, room_type: RoomType, edges: u8) -> Entity {
+pub const fn make_entity_room(y: usize, x: usize, room_type: RoomType, edges: u8) -> Entity {
     Entity {
         kind: EntityType::Room,
         room_y: y,
