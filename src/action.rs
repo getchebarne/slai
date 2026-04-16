@@ -1,5 +1,3 @@
-// Action handling: player input -> effects.
-
 use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::map::{has_edge, room_at};
@@ -180,8 +178,8 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
         .ok_or_else(|| format!("No room at ({}, {})", y_next, idx_column))?;
 
     if let Location::Overworld { y, x } = state.location {
-        let current_room = room_at(&state.id_rooms, &state.entities, y, x)
-            .expect("current room missing");
+        let current_room =
+            room_at(&state.id_rooms, &state.entities, y, x).expect("current room missing");
         if !has_edge(current_room.edges, idx_column) {
             return Err(format!(
                 "No edge from ({}, {}) to ({}, {})",
