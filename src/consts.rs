@@ -1,3 +1,6 @@
+// Entity
+pub const MAX_MOVE_HISTORY: usize = 64;
+
 // Combat
 pub const MAX_SIZE_HAND: usize = 10;
 pub const CARDS_DRAWN_PER_TURN: u8 = 5;

@@ -5,23 +5,13 @@
 // constructors below (`make_entity_card`, `make_entity_monster`, etc.) are the only
 // way to build an Entity — they set the relevant fields and zero the rest.
 
+use crate::consts::MAX_MOVE_HISTORY;
 use crate::effect::Effect;
 use crate::modifier::{Modifiers, ZERO_MODIFIERS};
 use crate::types::{
     CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RoomType, Vitals,
+    ZERO_VITALS,
 };
-
-// ───────── Constants ─────────
-
-pub const MAX_MOVE_HISTORY: usize = 64;
-
-pub const ZERO_VITALS: Vitals = Vitals {
-    health: 0,
-    health_max: 0,
-    block: 0,
-};
-
-// ───────── EntityType tag ─────────
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EntityType {
@@ -30,8 +20,6 @@ pub enum EntityType {
     Card,
     Room,
 }
-
-// ───────── Intent / Move (monster-facing) ─────────
 
 #[derive(Debug, Clone, Copy)]
 pub enum Intent {
@@ -52,8 +40,7 @@ pub struct Move {
     pub intent: Intent,
 }
 
-// ───────── Fat Entity struct ─────────
-
+// Fat Entity
 #[derive(Debug, Clone, Copy)]
 pub struct Entity {
     pub kind: EntityType,

@@ -8,6 +8,12 @@ pub struct Vitals {
     pub block: u16,
 }
 
+pub const ZERO_VITALS: Vitals = Vitals {
+    health: 0,
+    health_max: 0,
+    block: 0,
+};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum CardName {
