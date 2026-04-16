@@ -25,6 +25,8 @@ pub struct GameState {
     pub ascension: u8,
     pub rng: SmallRng,
 
+    // Finite-state-machine-like to track in which "screen" the game is in
+    // e.g. combat, awaiting card discard selection, room selection, etc.
     pub phase: Phase,
 
     // Effect queue
