@@ -11,7 +11,7 @@ pub static AFTER_IMAGE: Entity = card_entity(
             kind: ModifierKind::AfterImage,
             stacks: 1,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -27,7 +27,7 @@ pub static AFTER_IMAGE_PLUS: Entity = card_entity(
             kind: ModifierKind::AfterImage,
             stacks: 1,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,

@@ -11,7 +11,7 @@ pub static OUTMANEUVER: Entity = card_entity(
             kind: ModifierKind::NextTurnEnergy,
             stacks: 2,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -27,7 +27,7 @@ pub static OUTMANEUVER_PLUS: Entity = card_entity(
             kind: ModifierKind::NextTurnEnergy,
             stacks: 3, // +1 next-turn-energy
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,

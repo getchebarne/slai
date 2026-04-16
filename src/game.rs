@@ -23,11 +23,11 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
     let mut entities = Vec::with_capacity(256);
     entities.push(character);
-    let mut deck = Vec::with_capacity(deck_templates.len());
+    let mut id_deck = Vec::with_capacity(deck_templates.len());
     for card in deck_templates {
-        let id = entities.len();
+        let id_card = entities.len();
         entities.push(card);
-        deck.push(id);
+        id_deck.push(id_card);
     }
 
     let map = generate_map(&mut rng, &mut entities);
@@ -37,7 +37,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut effect_queue = VecDeque::with_capacity(64);
     effect_queue.push_back(Effect {
         kind: EffectKind::RoomSelect,
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::NextRowRooms,
             selection: SelectionKind::Input { count: 1 },
@@ -49,17 +49,17 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         phase: Phase::Map,
         rng,
         entities,
-        character: 0,
-        monsters: [0; MAX_MONSTERS],
+        id_character: 0,
+        id_monsters: [0; MAX_MONSTERS],
         monster_count: 0,
         energy: Energy { current: 3, max: 3 },
-        deck,
-        draw_pile: Vec::with_capacity(64),
-        hand: Vec::with_capacity(MAX_SIZE_HAND),
-        discard_pile: Vec::with_capacity(64),
-        exhaust_pile: Vec::with_capacity(32),
-        card_target: None,
-        card_rewards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
+        id_deck,
+        id_draw_pile: Vec::with_capacity(64),
+        id_hand: Vec::with_capacity(MAX_SIZE_HAND),
+        id_discard_pile: Vec::with_capacity(64),
+        id_exhaust_pile: Vec::with_capacity(32),
+        id_card_target: None,
+        id_card_rewards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
         map,
         effect_queue,
     };

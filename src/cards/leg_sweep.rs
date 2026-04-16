@@ -9,7 +9,7 @@ pub static LEG_SWEEP: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 11 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -20,7 +20,7 @@ pub static LEG_SWEEP: Entity = card_entity(
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -37,7 +37,7 @@ pub static LEG_SWEEP_PLUS: Entity = card_entity(
             kind: EffectKind::BlockGain {
                 amount: 14, // +3 block
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -48,7 +48,7 @@ pub static LEG_SWEEP_PLUS: Entity = card_entity(
                 kind: ModifierKind::Weak,
                 stacks: 3, // +1 stack
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,

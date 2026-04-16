@@ -3,10 +3,10 @@ use crate::engine::DispatchResult;
 use crate::entity::Entity;
 
 pub fn process_effect_card_upgrade(
-    target: usize,
+    id_target: usize,
     entities: &mut [Entity],
 ) -> DispatchResult {
-    let name = entities[target].card_name;
-    entities[target] = get_card(name, true);
+    let name = entities[id_target].card_name;
+    entities[id_target] = get_card(name, true);
     DispatchResult::Continue
 }

@@ -16,7 +16,7 @@ static MOVE_CHARGING_UP: Move = Move {
     name: "Charging Up",
     effects: &[Effect {
         kind: EffectKind::BlockGain { amount: 9 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,
@@ -28,7 +28,7 @@ static MOVE_FIERCE_BASH_32: Move = Move {
     name: "Fierce Bash",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 32 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -43,7 +43,7 @@ static MOVE_FIERCE_BASH_36: Move = Move {
     name: "Fierce Bash",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 36 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -62,7 +62,7 @@ static MOVE_VENT_STEAM: Move = Move {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -73,7 +73,7 @@ static MOVE_VENT_STEAM: Move = Move {
                 kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -87,7 +87,7 @@ static MOVE_WHIRLWIND: Move = Move {
     effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 5 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -95,7 +95,7 @@ static MOVE_WHIRLWIND: Move = Move {
         },
         Effect {
             kind: EffectKind::DamagePhysical { base: 5 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -103,7 +103,7 @@ static MOVE_WHIRLWIND: Move = Move {
         },
         Effect {
             kind: EffectKind::DamagePhysical { base: 5 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -111,7 +111,7 @@ static MOVE_WHIRLWIND: Move = Move {
         },
         Effect {
             kind: EffectKind::DamagePhysical { base: 5 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -130,7 +130,7 @@ static MOVE_DEFENSIVE_MODE_3: Move = Move {
             kind: ModifierKind::SharpHide,
             stacks: 3,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,
@@ -145,7 +145,7 @@ static MOVE_DEFENSIVE_MODE_4: Move = Move {
             kind: ModifierKind::SharpHide,
             stacks: 4,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,
@@ -157,7 +157,7 @@ static MOVE_ROLL_ATTACK_9: Move = Move {
     name: "Roll Attack",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 9 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -172,7 +172,7 @@ static MOVE_ROLL_ATTACK_10: Move = Move {
     name: "Roll Attack",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 10 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -188,7 +188,7 @@ static MOVE_TWIN_SLAM_30: Move = Move {
     effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -196,7 +196,7 @@ static MOVE_TWIN_SLAM_30: Move = Move {
         },
         Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -207,7 +207,7 @@ static MOVE_TWIN_SLAM_30: Move = Move {
                 kind: ModifierKind::ModeShift,
                 stacks: MODE_SHIFT_STACKS_30,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -217,7 +217,7 @@ static MOVE_TWIN_SLAM_30: Move = Move {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::SharpHide,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -234,7 +234,7 @@ static MOVE_TWIN_SLAM_35: Move = Move {
     effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -242,7 +242,7 @@ static MOVE_TWIN_SLAM_35: Move = Move {
         },
         Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -253,7 +253,7 @@ static MOVE_TWIN_SLAM_35: Move = Move {
                 kind: ModifierKind::ModeShift,
                 stacks: MODE_SHIFT_STACKS_35,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -263,7 +263,7 @@ static MOVE_TWIN_SLAM_35: Move = Move {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::SharpHide,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -280,7 +280,7 @@ static MOVE_TWIN_SLAM_40: Move = Move {
     effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -288,7 +288,7 @@ static MOVE_TWIN_SLAM_40: Move = Move {
         },
         Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -299,7 +299,7 @@ static MOVE_TWIN_SLAM_40: Move = Move {
                 kind: ModifierKind::ModeShift,
                 stacks: MODE_SHIFT_STACKS_40,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -309,7 +309,7 @@ static MOVE_TWIN_SLAM_40: Move = Move {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::SharpHide,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,

@@ -8,7 +8,7 @@ static MOVE_CHOMP_11: Move = Move {
     name: "Chomp",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 11 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -23,7 +23,7 @@ static MOVE_CHOMP_12: Move = Move {
     name: "Chomp",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 12 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -39,7 +39,7 @@ static MOVE_THRASH: Move = Move {
     effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 7 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -47,7 +47,7 @@ static MOVE_THRASH: Move = Move {
         },
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -67,7 +67,7 @@ static MOVE_BELLOW_3_6: Move = Move {
                 kind: ModifierKind::Strength,
                 stacks: 3,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -75,7 +75,7 @@ static MOVE_BELLOW_3_6: Move = Move {
         },
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -92,7 +92,7 @@ static MOVE_BELLOW_4_6: Move = Move {
                 kind: ModifierKind::Strength,
                 stacks: 4,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -100,7 +100,7 @@ static MOVE_BELLOW_4_6: Move = Move {
         },
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -117,7 +117,7 @@ static MOVE_BELLOW_5_9: Move = Move {
                 kind: ModifierKind::Strength,
                 stacks: 5,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,
@@ -125,7 +125,7 @@ static MOVE_BELLOW_5_9: Move = Move {
         },
         Effect {
             kind: EffectKind::BlockGain { amount: 9 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
                 selection: SelectionKind::All,

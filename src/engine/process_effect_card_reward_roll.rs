@@ -13,13 +13,13 @@ use crate::entity::Entity;
 use crate::types::CardName;
 
 pub fn process_effect_card_reward_roll(
-    character: usize,
-    card_rewards: &mut Vec<usize>,
+    id_character: usize,
+    id_card_rewards: &mut Vec<usize>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let mut reward_roll_offset = entities[character].reward_roll_offset;
+    let mut reward_roll_offset = entities[id_character].reward_roll_offset;
     let mut rolled_card_names: Vec<CardName> = Vec::new();
 
     for _ in 0..MAX_COMBAT_CARD_REWARD {
@@ -45,12 +45,12 @@ pub fn process_effect_card_reward_roll(
 
         rolled_card_names.push(name);
         let card = get_card(name, false); // TODO: can generate upgraded cards on Act2+
-        let id = entities.len();
+        let id_card = entities.len();
         entities.push(card);
-        card_rewards.push(id);
+        id_card_rewards.push(id_card);
     }
 
-    entities[character].reward_roll_offset = reward_roll_offset;
+    entities[id_character].reward_roll_offset = reward_roll_offset;
 
     queue.push_front(Effect::direct(EffectKind::AwaitCardRewardRoll, None, None));
     DispatchResult::Continue

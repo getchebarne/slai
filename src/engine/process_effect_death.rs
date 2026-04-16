@@ -30,7 +30,7 @@ pub fn process_effect_death(
                 kind: ModifierKind::Vulnerable,
                 stacks,
             },
-            source: None,
+            id_source: None,
             target: Target::Direct(Some(id_character)),
         })
     } else {
@@ -51,7 +51,7 @@ pub fn process_effect_death(
         }
         queue.push_back(Effect {
             kind: EffectKind::CombatEnd,
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         });
     } else if let Some(e) = spore_effect {

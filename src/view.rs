@@ -295,22 +295,22 @@ pub fn build_view(py: Python<'_>, state: &GameState) -> ViewGameState {
         character: build_view_character(state),
         monsters: build_view_monsters(state),
         deck: state
-            .deck
+            .id_deck
             .iter()
-            .map(|&id| wrap(build_view_card_template(py, &state.entities[id])))
+            .map(|&id_card| wrap(build_view_card_template(py, &state.entities[id_card])))
             .collect(),
         hand: state
-            .hand
+            .id_hand
             .iter()
-            .map(|&id| wrap(build_view_card_template(py, &state.entities[id])))
+            .map(|&id_card| wrap(build_view_card_template(py, &state.entities[id_card])))
             .collect(),
-        pile_draw: build_view_pile(py, &state.entities, &state.draw_pile),
-        pile_disc: build_view_pile(py, &state.entities, &state.discard_pile),
-        pile_exhaust: build_view_pile(py, &state.entities, &state.exhaust_pile),
+        pile_draw: build_view_pile(py, &state.entities, &state.id_draw_pile),
+        pile_disc: build_view_pile(py, &state.entities, &state.id_discard_pile),
+        pile_exhaust: build_view_pile(py, &state.entities, &state.id_exhaust_pile),
         reward_combat: state
-            .card_rewards
+            .id_card_rewards
             .iter()
-            .map(|&id| wrap(build_view_card_template(py, &state.entities[id])))
+            .map(|&id_card| wrap(build_view_card_template(py, &state.entities[id_card])))
             .collect(),
         energy: ViewEnergy {
             current: state.energy.current,
@@ -343,7 +343,7 @@ fn build_view_pile(py: Python<'_>, entities: &[Entity], pile: &[usize]) -> Vec<P
 }
 
 fn build_view_character(state: &GameState) -> ViewCharacter {
-    let character = &state.entities[state.character];
+    let character = &state.entities[state.id_character];
     ViewCharacter {
         name: character.character_name.to_string(),
         health_current: character.vitals.health,
@@ -355,14 +355,16 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
 }
 
 fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
-    let character_modifiers = &state.entities[state.character].modifiers;
+    let character_modifiers = &state.entities[state.id_character].modifiers;
 
-    let mut buf = [0usize; MAX_MONSTERS];
-    let n = fill_alive_monster_ids(state, &mut buf);
-    buf[..n]
+    // Stack locals
+    let mut buf_alive = [0usize; MAX_MONSTERS];
+
+    let n = fill_alive_monster_ids(state, &mut buf_alive);
+    buf_alive[..n]
         .iter()
-        .map(|&mid| {
-            let m = &state.entities[mid];
+        .map(|&id_monster| {
+            let m = &state.entities[id_monster];
 
             let intent = if let Some(move_idx) = m.move_current {
                 let mv = &m.moves[move_idx];
@@ -602,7 +604,7 @@ fn candidate_pool_str(c: CandidatePool) -> String {
 fn build_view_map(state: &GameState) -> ViewMap {
     let nodes = state
         .map
-        .nodes
+        .id_nodes
         .iter()
         .map(|row| {
             row.iter()

@@ -11,7 +11,7 @@ pub static BURST: Entity = card_entity(
             kind: ModifierKind::Burst,
             stacks: 1,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -27,7 +27,7 @@ pub static BURST_PLUS: Entity = card_entity(
             kind: ModifierKind::Burst,
             stacks: 2, // +1 stack
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,

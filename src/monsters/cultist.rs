@@ -8,7 +8,7 @@ static MOVE_DARK_STRIKE: Move = Move {
     name: "Dark Strike",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { base: 6 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -26,7 +26,7 @@ static MOVE_INCANTATION_3: Move = Move {
             kind: ModifierKind::Ritual,
             stacks: 3,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,
@@ -41,7 +41,7 @@ static MOVE_INCANTATION_4: Move = Move {
             kind: ModifierKind::Ritual,
             stacks: 4,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,
@@ -56,7 +56,7 @@ static MOVE_INCANTATION_5: Move = Move {
             kind: ModifierKind::Ritual,
             stacks: 5,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
             selection: SelectionKind::All,

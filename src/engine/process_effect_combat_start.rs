@@ -8,15 +8,15 @@ use crate::entity::Entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
-    character: usize,
-    deck: &[usize],
+    id_character: usize,
+    id_deck: &[usize],
     entities: &mut Vec<Entity>,
-    draw_pile: &mut Vec<usize>,
-    hand: &mut Vec<usize>,
-    discard_pile: &mut Vec<usize>,
-    exhaust_pile: &mut Vec<usize>,
-    card_target: &mut Option<usize>,
-    monsters: &[usize],
+    id_draw_pile: &mut Vec<usize>,
+    id_hand: &mut Vec<usize>,
+    id_discard_pile: &mut Vec<usize>,
+    id_exhaust_pile: &mut Vec<usize>,
+    id_card_target: &mut Option<usize>,
+    id_monsters: &[usize],
     monster_count: u8,
     rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
@@ -28,38 +28,38 @@ pub fn process_effect_combat_start(
     let mut innate_ids: Vec<usize> = Vec::new();
     let mut other_ids: Vec<usize> = Vec::new();
 
-    for &deck_id in deck {
-        let card = entities[deck_id];
-        let id = entities.len();
+    for &id_card_src in id_deck {
+        let card = entities[id_card_src];
+        let id_card = entities.len();
         entities.push(card);
         if card.card_innate {
-            innate_ids.push(id);
+            innate_ids.push(id_card);
         } else {
-            other_ids.push(id);
+            other_ids.push(id_card);
         }
     }
 
     shuffle(&mut other_ids, rng);
-    *draw_pile = other_ids;
-    draw_pile.extend(innate_ids);
+    *id_draw_pile = other_ids;
+    id_draw_pile.extend(innate_ids);
 
-    hand.clear();
-    discard_pile.clear();
-    exhaust_pile.clear();
-    *card_target = None;
+    id_hand.clear();
+    id_discard_pile.clear();
+    id_exhaust_pile.clear();
+    *id_card_target = None;
 
     // Queue initial effects: MoveUpdate for each monster (original order), then TurnStart.
     // Push TurnStart first (it runs last), then monsters in reverse.
     queue.push_front(Effect {
         kind: EffectKind::TurnStart,
-        source: None,
-        target: Target::Direct(Some(character)),
+        id_source: None,
+        target: Target::Direct(Some(id_character)),
     });
-    for &id in monsters[..monster_count as usize].iter().rev() {
+    for &id_monster in id_monsters[..monster_count as usize].iter().rev() {
         queue.push_front(Effect {
             kind: EffectKind::MoveUpdate,
-            source: None,
-            target: Target::Direct(Some(id)),
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
         });
     }
 

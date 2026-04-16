@@ -8,12 +8,12 @@ pub static ACROBATICS: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::CardDraw { count: 3 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDiscard,
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
@@ -28,12 +28,12 @@ pub static ACROBATICS_PLUS: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::CardDraw { count: 4 }, // +1 draw
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDiscard,
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },

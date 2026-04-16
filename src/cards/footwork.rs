@@ -11,7 +11,7 @@ pub static FOOTWORK: Entity = card_entity(
             kind: ModifierKind::Dexterity,
             stacks: 2,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -27,7 +27,7 @@ pub static FOOTWORK_PLUS: Entity = card_entity(
             kind: ModifierKind::Dexterity,
             stacks: 3, // +1 dexterity
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,

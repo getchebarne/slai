@@ -8,7 +8,7 @@ pub static ALL_OUT_ATTACK: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 10 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Monsters,
                 selection: SelectionKind::All,
@@ -16,7 +16,7 @@ pub static ALL_OUT_ATTACK: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::CardDiscard,
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Random { count: 1 },
@@ -33,7 +33,7 @@ pub static ALL_OUT_ATTACK_PLUS: Entity = card_entity(
             kind: EffectKind::DamagePhysical {
                 base: 14, // +4 damage
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Monsters,
                 selection: SelectionKind::All,
@@ -41,7 +41,7 @@ pub static ALL_OUT_ATTACK_PLUS: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::CardDiscard,
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Random { count: 1 },

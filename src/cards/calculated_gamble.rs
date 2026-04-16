@@ -7,7 +7,7 @@ pub static CALCULATED_GAMBLE: Entity = card_entity(
     0, false, true, false, false,
     &[Effect {
         kind: EffectKind::CalculatedGamble,
-        source: None,
+        id_source: None,
         target: Target::Direct(None),
     }],
 );
@@ -17,7 +17,7 @@ pub static CALCULATED_GAMBLE_PLUS: Entity = card_entity(
     0, true, false, false, false,
     &[Effect {
         kind: EffectKind::CalculatedGamble,
-        source: None,
+        id_source: None,
         target: Target::Direct(None),
     }],
 );

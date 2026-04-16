@@ -6,7 +6,7 @@ use crate::types::Vitals;
 
 pub fn process_effect_damage_deal(
     vitals: &mut Vitals,
-    target: usize,
+    id_target: usize,
     amount: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
@@ -18,8 +18,8 @@ pub fn process_effect_damage_deal(
             kind: EffectKind::HealthLoss {
                 amount: damage_over_block,
             },
-            source: None,
-            target: Target::Direct(Some(target)),
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
         });
     }
     DispatchResult::Continue

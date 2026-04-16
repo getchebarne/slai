@@ -8,12 +8,12 @@ pub static ADRENALINE: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::EnergyGain { amount: 1 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDraw { count: 2 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
     ],
@@ -25,12 +25,12 @@ pub static ADRENALINE_PLUS: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::EnergyGain { amount: 2 }, // +1 energy gain
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDraw { count: 2 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
     ],

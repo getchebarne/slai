@@ -10,13 +10,14 @@ use crate::types::Vitals;
 pub fn process_effect_turn_start(
     vitals: &mut Vitals,
     modifiers: &mut Modifiers,
-    actor: usize,
-    character: usize,
+    id_actor: usize,
+    id_character: usize,
     energy: &Energy,
-    monster_ids: &[usize],
+    id_monsters: &[usize],
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let mut top = EffectBuf::new();
+    // Stack locals
+    let mut buf_effects = EffectBuf::new();
 
     // Resolve new block (Blur retains, NextTurnBlock adds)
     let mut new_block: u16 = 0;
@@ -27,66 +28,66 @@ pub fn process_effect_turn_start(
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
         modifier_remove(modifiers, ModifierKind::NextTurnBlock);
     }
-    top.push(Effect {
+    buf_effects.push(Effect {
         kind: EffectKind::BlockSet { amount: new_block },
-        source: None,
-        target: Target::Direct(Some(actor)),
+        id_source: None,
+        target: Target::Direct(Some(id_actor)),
     });
 
     // Modifier / Phantasmal
     if modifier_has(modifiers, ModifierKind::Phantasmal) {
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::DoubleDamage,
                 stacks: 1,
             },
-            source: None,
-            target: Target::Direct(Some(actor)),
+            id_source: None,
+            target: Target::Direct(Some(id_actor)),
         });
     }
 
     // Character-only effects
-    if actor == character {
+    if id_actor == id_character {
         // Draw cards and restore energy
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::CardDraw {
                 count: CARDS_DRAWN_PER_TURN,
             },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         });
         // TODO: may need a "reset energy" effect
         let energy_gain = energy.max.saturating_sub(energy.current);
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::EnergyGain {
                 amount: energy_gain,
             },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         });
 
         // Tick all combatant modifiers
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::ModifierTick,
-            source: None,
-            target: Target::Direct(Some(character)),
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
         });
-        for &mid in monster_ids {
-            top.push(Effect {
+        for &id_monster in id_monsters {
+            buf_effects.push(Effect {
                 kind: EffectKind::ModifierTick,
-                source: None,
-                target: Target::Direct(Some(mid)),
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
             });
         }
 
         // Modifier / NextTurnEnergy
         if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
-            top.push(Effect {
+            buf_effects.push(Effect {
                 kind: EffectKind::EnergyGain {
                     amount: stacks as u8,
                 },
-                source: None,
+                id_source: None,
                 target: Target::Direct(None),
             });
             modifier_remove(modifiers, ModifierKind::NextTurnEnergy);
@@ -95,18 +96,18 @@ pub fn process_effect_turn_start(
         // Modifier / InfiniteBlades
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
-            top.push(Effect {
+            buf_effects.push(Effect {
                 kind: EffectKind::AddShivs {
                     count: stacks as u8,
                 },
-                source: None,
+                id_source: None,
                 target: Target::Direct(None),
             });
         }
 
-        top.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
+        buf_effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
     }
 
-    top.push_all_front(queue);
+    buf_effects.push_all_front(queue);
     DispatchResult::Continue
 }

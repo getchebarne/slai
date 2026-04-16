@@ -9,7 +9,7 @@ pub static FLYING_KNEE: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 8 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -20,7 +20,7 @@ pub static FLYING_KNEE: Entity = card_entity(
                 kind: ModifierKind::NextTurnEnergy,
                 stacks: 1,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -37,7 +37,7 @@ pub static FLYING_KNEE_PLUS: Entity = card_entity(
             kind: EffectKind::DamagePhysical {
                 base: 11, // +3 damage
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -48,7 +48,7 @@ pub static FLYING_KNEE_PLUS: Entity = card_entity(
                 kind: ModifierKind::NextTurnEnergy,
                 stacks: 1,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,

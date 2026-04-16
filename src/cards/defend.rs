@@ -7,7 +7,7 @@ pub static DEFEND: Entity = card_entity(
     1, false, false, false, false,
     &[Effect {
         kind: EffectKind::BlockGain { amount: 5 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -22,7 +22,7 @@ pub static DEFEND_PLUS: Entity = card_entity(
         kind: EffectKind::BlockGain {
             amount: 8, // +3 block
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,

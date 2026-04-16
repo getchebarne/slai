@@ -8,7 +8,7 @@ pub static DAGGER_THROW: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 9 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -16,12 +16,12 @@ pub static DAGGER_THROW: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::CardDraw { count: 1 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDiscard,
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },
@@ -36,7 +36,7 @@ pub static DAGGER_THROW_PLUS: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 12 }, // +3 damage
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -44,12 +44,12 @@ pub static DAGGER_THROW_PLUS: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::CardDraw { count: 1 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
         Effect {
             kind: EffectKind::CardDiscard,
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input { count: 1 },

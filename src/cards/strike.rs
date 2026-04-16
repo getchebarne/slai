@@ -7,7 +7,7 @@ pub static STRIKE: Entity = card_entity(
     1, false, false, false, true,
     &[Effect {
         kind: EffectKind::DamagePhysical { base: 6 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
@@ -20,7 +20,7 @@ pub static STRIKE_PLUS: Entity = card_entity(
     1, true, false, false, true,
     &[Effect {
         kind: EffectKind::DamagePhysical { base: 9 }, // +3 damage
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,

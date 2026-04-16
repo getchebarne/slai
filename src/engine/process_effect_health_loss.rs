@@ -10,8 +10,8 @@ use crate::types::Vitals;
 pub fn process_effect_health_loss(
     vitals: &mut Vitals,
     modifiers: &mut Modifiers,
-    target: usize,
-    character: usize,
+    id_target: usize,
+    id_character: usize,
     amount: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
@@ -20,19 +20,19 @@ pub fn process_effect_health_loss(
     if vitals.health == 0 {
         queue.push_front(Effect {
             kind: EffectKind::Death,
-            source: None,
-            target: Target::Direct(Some(target)),
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
         });
     } else if modifier_has(modifiers, ModifierKind::ModeShift) {
         // ModeShift: damage reduces stacks, triggers move update on break.
         let new_stacks = modifier_stacks(modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(modifiers, ModifierKind::ModeShift);
-            if target != character {
+            if id_target != id_character {
                 queue.push_front(Effect {
                     kind: EffectKind::MoveUpdate,
-                    source: None,
-                    target: Target::Direct(Some(target)),
+                    id_source: None,
+                    target: Target::Direct(Some(id_target)),
                 });
             }
         } else {

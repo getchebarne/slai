@@ -34,8 +34,8 @@ pub fn edge_indices(edges: u8) -> impl Iterator<Item = usize> {
 
 /// Look up the node at `(y, x)` via the entity array.
 pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a Entity> {
-    let id = map.nodes[y][x]?;
-    Some(&entities[id])
+    let id_room = map.id_nodes[y][x]?;
+    Some(&entities[id_room])
 }
 
 /// Look up the node at the player's current position, if any. Returns
@@ -122,18 +122,18 @@ fn generate_grid(rng: &mut impl Rng) -> Grid {
 }
 
 fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> Map {
-    let mut nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT] = [[None; MAP_WIDTH]; MAP_HEIGHT];
+    let mut id_nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT] = [[None; MAP_WIDTH]; MAP_HEIGHT];
     for (y, row) in grid.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
             if let Some(node) = cell {
                 let id = entities.len();
                 entities.push(room_entity(node.y, node.x, node.room_type, node.edges));
-                nodes[y][x] = Some(id);
+                id_nodes[y][x] = Some(id);
             }
         }
     }
     Map {
-        nodes,
+        id_nodes,
         position: Position::Start,
     }
 }

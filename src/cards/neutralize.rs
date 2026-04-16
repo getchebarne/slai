@@ -9,7 +9,7 @@ pub static NEUTRALIZE: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 3 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -20,7 +20,7 @@ pub static NEUTRALIZE: Entity = card_entity(
                 kind: ModifierKind::Weak,
                 stacks: 1,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -35,7 +35,7 @@ pub static NEUTRALIZE_PLUS: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::DamagePhysical { base: 4 }, // +1 damage
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -46,7 +46,7 @@ pub static NEUTRALIZE_PLUS: Entity = card_entity(
                 kind: ModifierKind::Weak,
                 stacks: 2, // +1 stack
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,

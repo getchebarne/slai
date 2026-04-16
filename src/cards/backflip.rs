@@ -8,7 +8,7 @@ pub static BACKFLIP: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -16,7 +16,7 @@ pub static BACKFLIP: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::CardDraw { count: 2 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
     ],
@@ -30,7 +30,7 @@ pub static BACKFLIP_PLUS: Entity = card_entity(
             kind: EffectKind::BlockGain {
                 amount: 8, // +3 block
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -38,7 +38,7 @@ pub static BACKFLIP_PLUS: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::CardDraw { count: 2 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
     ],

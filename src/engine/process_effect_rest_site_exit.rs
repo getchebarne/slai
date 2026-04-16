@@ -17,7 +17,7 @@ pub fn process_effect_rest_site_exit(
     } else {
         queue.push_front(Effect {
             kind: EffectKind::RoomSelect,
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::NextRowRooms,
                 selection: SelectionKind::Input { count: 1 },

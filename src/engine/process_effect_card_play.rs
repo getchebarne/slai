@@ -11,7 +11,7 @@ use crate::types::CardKind;
 pub fn process_effect_card_play(
     id_card: usize,
     _id_card_target: Option<usize>,
-    character: usize,
+    id_character: usize,
     entities: &[Entity],
     _hand: &[usize],
     alive_monsters: &[usize],
@@ -20,47 +20,48 @@ pub fn process_effect_card_play(
 ) -> DispatchResult {
     let card = &entities[id_card];
 
-    let mut top = EffectBuf::new();
+    // Stack locals
+    let mut buf_effects = EffectBuf::new();
 
-    top.push(Effect {
+    buf_effects.push(Effect {
         kind: EffectKind::EnergyLoss {
             amount: card.card_cost,
         },
-        source: None,
+        id_source: None,
         target: Target::Direct(None),
     });
 
     if card.card_exhaust {
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::CardExhaust,
-            source: None,
+            id_source: None,
             target: Target::Direct(Some(id_card)),
         });
     } else if card.card_kind == CardKind::Power {
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::CardRemove,
-            source: None,
+            id_source: None,
             target: Target::Direct(Some(id_card)),
         });
     } else {
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::CardDiscard,
-            source: None,
+            id_source: None,
             target: Target::Direct(Some(id_card)),
         });
     }
 
-    let char_modifiers = &entities[character].modifiers;
+    let char_modifiers = &entities[id_character].modifiers;
 
     // AfterImage
     if modifier_has(char_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
-            source: Some(character),
-            target: Target::Direct(Some(character)),
+            id_source: Some(id_character),
+            target: Target::Direct(Some(id_character)),
         });
     }
 
@@ -68,11 +69,11 @@ pub fn process_effect_card_play(
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &id_monster in alive_monsters {
-            top.push(Effect {
+            buf_effects.push(Effect {
                 kind: EffectKind::DamagePhysical {
                     base: stacks as u16,
                 },
-                source: Some(character),
+                id_source: Some(id_character),
                 target: Target::Direct(Some(id_monster)),
             });
         }
@@ -84,12 +85,12 @@ pub fn process_effect_card_play(
             let monster_modifiers = &entities[id_monster].modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
-                top.push(Effect {
+                buf_effects.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks as u16,
                     },
-                    source: Some(id_monster),
-                    target: Target::Direct(Some(character)),
+                    id_source: Some(id_monster),
+                    target: Target::Direct(Some(id_character)),
                 });
             }
         }
@@ -100,23 +101,23 @@ pub fn process_effect_card_play(
     let reps = if burst { 2 } else { 1 };
     for _ in 0..reps {
         for e in card.card_effects.iter() {
-            top.push(Effect {
-                source: Some(character),
+            buf_effects.push(Effect {
+                id_source: Some(id_character),
                 ..*e
             });
         }
     }
     if burst {
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Burst,
                 stacks: -1,
             },
-            source: Some(character),
-            target: Target::Direct(Some(character)),
+            id_source: Some(id_character),
+            target: Target::Direct(Some(id_character)),
         });
     }
 
-    top.push_all_front(queue);
+    buf_effects.push_all_front(queue);
     DispatchResult::Continue
 }

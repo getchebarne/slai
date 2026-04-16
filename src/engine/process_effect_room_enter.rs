@@ -13,12 +13,12 @@ use crate::types::{MonsterName, RoomType};
 fn push_monster(
     monster: Entity,
     entities: &mut Vec<Entity>,
-    monsters: &mut [usize],
+    id_monsters: &mut [usize],
     monster_count: &mut u8,
 ) {
-    let id = entities.len();
+    let id_monster = entities.len();
     entities.push(monster);
-    monsters[*monster_count as usize] = id;
+    id_monsters[*monster_count as usize] = id_monster;
     *monster_count += 1;
 }
 
@@ -26,7 +26,7 @@ pub fn process_effect_room_enter(
     map: &Map,
     ascension: u8,
     entities: &mut Vec<Entity>,
-    monsters: &mut [usize],
+    id_monsters: &mut [usize],
     monster_count: &mut u8,
     rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
@@ -37,10 +37,10 @@ pub fn process_effect_room_enter(
     match room {
         RoomType::CombatBoss => {
             let m = spawn_monster(MonsterName::TheGuardian, ascension, rng);
-            push_monster(m, entities, monsters, monster_count);
+            push_monster(m, entities, id_monsters, monster_count);
             queue.push_front(Effect {
                 kind: EffectKind::CombatStart,
-                source: None,
+                id_source: None,
                 target: Target::Direct(None),
             });
         }
@@ -49,23 +49,23 @@ pub fn process_effect_room_enter(
             match encounter {
                 0 => {
                     let m = spawn_monster(MonsterName::JawWorm, ascension, rng);
-                    push_monster(m, entities, monsters, monster_count);
+                    push_monster(m, entities, id_monsters, monster_count);
                 }
                 1 => {
                     let m = spawn_monster(MonsterName::Cultist, ascension, rng);
-                    push_monster(m, entities, monsters, monster_count);
+                    push_monster(m, entities, id_monsters, monster_count);
                 }
                 2 => {
                     let m1 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
                     let m2 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
-                    push_monster(m1, entities, monsters, monster_count);
-                    push_monster(m2, entities, monsters, monster_count);
+                    push_monster(m1, entities, id_monsters, monster_count);
+                    push_monster(m2, entities, id_monsters, monster_count);
                 }
                 _ => unreachable!(),
             };
             queue.push_front(Effect {
                 kind: EffectKind::CombatStart,
-                source: None,
+                id_source: None,
                 target: Target::Direct(None),
             });
         }

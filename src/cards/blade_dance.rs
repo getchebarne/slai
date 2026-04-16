@@ -7,7 +7,7 @@ pub static BLADE_DANCE: Entity = card_entity(
     1, false, false, false, false,
     &[Effect {
         kind: EffectKind::AddShivs { count: 3 },
-        source: None,
+        id_source: None,
         target: Target::Direct(None),
     }],
 );
@@ -17,7 +17,7 @@ pub static BLADE_DANCE_PLUS: Entity = card_entity(
     1, true, false, false, false,
     &[Effect {
         kind: EffectKind::AddShivs { count: 4 }, // +1 shiv
-        source: None,
+        id_source: None,
         target: Target::Direct(None),
     }],
 );

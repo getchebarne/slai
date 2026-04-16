@@ -11,7 +11,7 @@ pub static INFINITE_BLADES: Entity = card_entity(
             kind: ModifierKind::InfiniteBlades,
             stacks: 1,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -27,7 +27,7 @@ pub static INFINITE_BLADES_PLUS: Entity = card_entity(
             kind: ModifierKind::InfiniteBlades,
             stacks: 1,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,

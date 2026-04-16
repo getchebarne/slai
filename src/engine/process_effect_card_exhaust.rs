@@ -3,12 +3,11 @@ use crate::utils::remove_card_from_hand;
 
 pub fn process_effect_card_exhaust(
     id_card: usize,
-    hand: &mut Vec<usize>,
-    exh_pile: &mut Vec<usize>,
+    id_hand: &mut Vec<usize>,
+    id_exhaust_pile: &mut Vec<usize>,
 ) -> DispatchResult {
-    // Remove card from hand and send it to the exhaust pile
-    remove_card_from_hand(id_card, hand);
-    exh_pile.push(id_card);
+    remove_card_from_hand(id_card, id_hand);
+    id_exhaust_pile.push(id_card);
 
     // Continue
     DispatchResult::Continue

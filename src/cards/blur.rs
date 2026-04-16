@@ -9,7 +9,7 @@ pub static BLUR: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -20,7 +20,7 @@ pub static BLUR: Entity = card_entity(
                 kind: ModifierKind::Blur,
                 stacks: 1,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -37,7 +37,7 @@ pub static BLUR_PLUS: Entity = card_entity(
             kind: EffectKind::BlockGain {
                 amount: 8, // +3 block
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -48,7 +48,7 @@ pub static BLUR_PLUS: Entity = card_entity(
                 kind: ModifierKind::Blur,
                 stacks: 1,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,

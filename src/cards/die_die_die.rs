@@ -7,7 +7,7 @@ pub static DIE_DIE_DIE: Entity = card_entity(
     1, false, true, false, false,
     &[Effect {
         kind: EffectKind::DamagePhysical { base: 13 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Monsters,
             selection: SelectionKind::All,
@@ -22,7 +22,7 @@ pub static DIE_DIE_DIE_PLUS: Entity = card_entity(
         kind: EffectKind::DamagePhysical {
             base: 17, // +4 damage
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Monsters,
             selection: SelectionKind::All,

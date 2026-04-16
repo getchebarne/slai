@@ -7,7 +7,7 @@ pub static SHIV: Entity = card_entity(
     0, false, true, false, true,
     &[Effect {
         kind: EffectKind::DamagePhysical { base: 4 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
@@ -20,7 +20,7 @@ pub static SHIV_PLUS: Entity = card_entity(
     0, true, true, false, true,
     &[Effect {
         kind: EffectKind::DamagePhysical { base: 6 }, // +2 damage
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,

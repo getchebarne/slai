@@ -28,7 +28,7 @@ pub enum Position {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Map {
-    pub nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    pub id_nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     pub position: Position,
 }
 
@@ -59,24 +59,24 @@ pub struct GameState {
     pub entities: Vec<Entity>,
 
     // Entities / Character
-    pub character: usize,
+    pub id_character: usize,
 
     // Entities / Monsters
-    pub monsters: [usize; MAX_MONSTERS],
+    pub id_monsters: [usize; MAX_MONSTERS],
     pub monster_count: u8,
 
     // Entities / Monsters / Target
-    pub card_target: Option<usize>,
+    pub id_card_target: Option<usize>,
 
     // Entities / Card / Deck
-    pub deck: Vec<usize>,
+    pub id_deck: Vec<usize>,
 
     // Entities / Card / Combat piles
-    pub draw_pile: Vec<usize>,
-    pub hand: Vec<usize>,
-    pub discard_pile: Vec<usize>,
-    pub exhaust_pile: Vec<usize>,
+    pub id_draw_pile: Vec<usize>,
+    pub id_hand: Vec<usize>,
+    pub id_discard_pile: Vec<usize>,
+    pub id_exhaust_pile: Vec<usize>,
 
     // Entities / Card / Combat rewards
-    pub card_rewards: Vec<usize>,
+    pub id_card_rewards: Vec<usize>,
 }

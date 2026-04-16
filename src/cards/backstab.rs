@@ -7,7 +7,7 @@ pub static BACKSTAB: Entity = card_entity(
     0, false, true, true, true,
     &[Effect {
         kind: EffectKind::DamagePhysical { base: 11 },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
@@ -20,7 +20,7 @@ pub static BACKSTAB_PLUS: Entity = card_entity(
     0, true, true, true, true,
     &[Effect {
         kind: EffectKind::DamagePhysical { base: 15 }, // +4 damage
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,

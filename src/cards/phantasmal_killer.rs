@@ -11,7 +11,7 @@ pub static PHANTASMAL_KILLER: Entity = card_entity(
             kind: ModifierKind::Phantasmal,
             stacks: 1,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -27,7 +27,7 @@ pub static PHANTASMAL_KILLER_PLUS: Entity = card_entity(
             kind: ModifierKind::Phantasmal,
             stacks: 1,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,

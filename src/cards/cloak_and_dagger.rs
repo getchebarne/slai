@@ -8,7 +8,7 @@ pub static CLOAK_AND_DAGGER: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -16,7 +16,7 @@ pub static CLOAK_AND_DAGGER: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::AddShivs { count: 1 },
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
     ],
@@ -28,7 +28,7 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -36,7 +36,7 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::AddShivs { count: 2 }, // +1 shiv
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
     ],

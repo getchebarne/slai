@@ -3,6 +3,7 @@ use crate::modifier::ModifierKind;
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
+    Noop,
     DamagePhysical { base: u16 },
     BlockGain { amount: u16 },
     ModifierGain { kind: ModifierKind, stacks: i16 },
@@ -97,18 +98,16 @@ pub enum Target {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effect {
     pub kind: EffectKind,
-    pub source: Option<usize>,
+    pub id_source: Option<usize>,
     pub target: Target,
 }
 
 impl Effect {
-    /// Constructs an `Effect` with `Direct` target. Convenience for the
-    /// common case where a runtime-synthesized effect already knows its target.
-    pub const fn direct(kind: EffectKind, source: Option<usize>, target: Option<usize>) -> Self {
+    pub const fn direct(kind: EffectKind, id_source: Option<usize>, id_target: Option<usize>) -> Self {
         Self {
             kind,
-            source,
-            target: Target::Direct(target),
+            id_source,
+            target: Target::Direct(id_target),
         }
     }
 }

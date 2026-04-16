@@ -78,8 +78,8 @@ fn handle_end_turn(state: &GameState) -> Vec<Effect> {
     // Return effect to end the character's turn
     vec![Effect {
         kind: EffectKind::TurnEnd,
-        source: None,
-        target: Target::Direct(Some(state.character)),
+        id_source: None,
+        target: Target::Direct(Some(state.id_character)),
     }]
 }
 
@@ -88,7 +88,7 @@ fn handle_card_play(
     idx_hand: usize,
     idx_monster: Option<usize>,
 ) -> Result<Vec<Effect>, String> {
-    let id_card = validate_idx(&state.hand, idx_hand)?;
+    let id_card = validate_idx(&state.id_hand, idx_hand)?;
     let card = &state.entities[id_card];
 
     if card.card_cost > state.energy.current {
@@ -101,9 +101,11 @@ fn handle_card_play(
     if card.card_requires_target {
         match idx_monster {
             Some(idx_monster) => {
-                let mut buf = [0usize; MAX_MONSTERS];
-                let n = fill_alive_monster_ids(state, &mut buf);
-                let id_monster_target = *buf[..n]
+                // Stack locals
+                let mut buf_alive = [0usize; MAX_MONSTERS];
+
+                let n = fill_alive_monster_ids(state, &mut buf_alive);
+                let id_monster_target = *buf_alive[..n]
                     .get(idx_monster)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx_monster))?;
 
@@ -111,17 +113,17 @@ fn handle_card_play(
                 Ok(vec![
                     Effect {
                         kind: EffectKind::TargetSet,
-                        source: None,
+                        id_source: None,
                         target: Target::Direct(Some(id_monster_target)),
                     },
                     Effect {
                         kind: EffectKind::CardPlay,
-                        source: None,
+                        id_source: None,
                         target: Target::Direct(Some(id_card)),
                     },
                     Effect {
                         kind: EffectKind::TargetClear,
-                        source: None,
+                        id_source: None,
                         target: Target::Direct(None),
                     },
                     Effect::direct(EffectKind::AwaitCombatAction, None, None),
@@ -137,7 +139,7 @@ fn handle_card_play(
         Ok(vec![
             Effect {
                 kind: EffectKind::CardPlay,
-                source: None,
+                id_source: None,
                 target: Target::Direct(Some(id_card)),
             },
             Effect::direct(EffectKind::AwaitCombatAction, None, None),
@@ -148,11 +150,11 @@ fn handle_card_play(
 fn handle_card_discard(state: &GameState, idx_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
     let mut effects = Vec::with_capacity(idx_hand.len() + 1);
     for &idx in &idx_hand {
-        let id = *state
-            .hand
+        let id_card = *state
+            .id_hand
             .get(idx)
-            .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.hand.len()))?;
-        effects.push(Effect::direct(EffectKind::CardDiscard, None, Some(id)));
+            .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.id_hand.len()))?;
+        effects.push(Effect::direct(EffectKind::CardDiscard, None, Some(id_card)));
     }
     effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
     Ok(effects)
@@ -175,7 +177,7 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
     };
 
     // Validate node exists at (y_next, idx_column)
-    let target_id = state.map.nodes[y_next][idx_column]
+    let id_room = state.map.id_nodes[y_next][idx_column]
         .ok_or_else(|| format!("No node at ({}, {})", y_next, idx_column))?;
 
     // Validate edge from current node (skip for first move)
@@ -195,12 +197,12 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
     Ok(vec![Effect::direct(
         EffectKind::RoomSelect,
         None,
-        Some(target_id),
+        Some(id_room),
     )])
 }
 
 fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    let id_card = validate_idx(&state.card_rewards, idx_reward)?;
+    let id_card = validate_idx(&state.id_card_rewards, idx_reward)?;
 
     // Direct CardRewardSelect: handler adds the target card to the deck and
     // enqueues CardRewardClear, which in turn enqueues RoomSelect.
@@ -215,13 +217,13 @@ fn handle_card_reward_skip() -> Vec<Effect> {
     // CardRewardClear halts on AwaitMapNode once the rewards are cleared.
     vec![Effect {
         kind: EffectKind::CardRewardClear,
-        source: None,
+        id_source: None,
         target: Target::Direct(None),
     }]
 }
 
 fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
-    let id_character = state.character;
+    let id_character = state.id_character;
     let health_max = state.entities[id_character].vitals.health_max;
     let heal_amt = (REST_SITE_HEAL_FACTOR * health_max as f32) as u16;
 
@@ -229,12 +231,12 @@ fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
     vec![
         Effect {
             kind: EffectKind::HealthGain { amount: heal_amt },
-            source: None,
+            id_source: None,
             target: Target::Direct(Some(id_character)),
         },
         Effect {
             kind: EffectKind::RestSiteExit,
-            source: None,
+            id_source: None,
             target: Target::Direct(None),
         },
     ]
@@ -244,7 +246,7 @@ fn handle_rest_site_card_upgrade(
     state: &GameState,
     idx_deck: usize,
 ) -> Result<Vec<Effect>, String> {
-    let id_card = validate_idx(&state.deck, idx_deck)?;
+    let id_card = validate_idx(&state.id_deck, idx_deck)?;
 
     // Upgrade by entity id, then let the RestSiteExit handler decide whether
     // to halt (non-final row) or enter the boss room (final row).

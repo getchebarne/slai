@@ -11,7 +11,7 @@ pub static ACCURACY: Entity = card_entity(
             kind: ModifierKind::Accuracy,
             stacks: 4,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,
@@ -27,7 +27,7 @@ pub static ACCURACY_PLUS: Entity = card_entity(
             kind: ModifierKind::Accuracy,
             stacks: 6, // +2 stacks
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
             selection: SelectionKind::All,

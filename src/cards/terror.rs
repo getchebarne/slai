@@ -13,7 +13,7 @@ pub static TERROR: Entity = card_entity(
             kind: ModifierKind::Vulnerable,
             stacks: STACKS_TERROR,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
@@ -29,7 +29,7 @@ pub static TERROR_PLUS: Entity = card_entity(
             kind: ModifierKind::Vulnerable,
             stacks: STACKS_TERROR,
         },
-        source: None,
+        id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,

@@ -8,7 +8,7 @@ use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 pub fn process_effect_damage_physical(
     source_mods: &Modifiers,
     target_mods: &Modifiers,
-    target: usize,
+    id_target: usize,
     base: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
@@ -36,8 +36,8 @@ pub fn process_effect_damage_physical(
             kind: EffectKind::DamageDeal {
                 amount: final_damage,
             },
-            source: None,
-            target: Target::Direct(Some(target)),
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
         });
     }
     DispatchResult::Continue

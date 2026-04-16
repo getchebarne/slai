@@ -57,8 +57,8 @@ pub enum DispatchResult {
 pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
 
 const ZERO_EFFECT: Effect = Effect {
-    kind: EffectKind::CardDiscard,
-    source: None,
+    kind: EffectKind::Noop,
+    id_source: None,
     target: Target::Direct(None),
 };
 
@@ -140,28 +140,28 @@ pub enum TargetResolution {
 
 pub(crate) fn resolve_candidates(
     candidates: CandidatePool,
-    source: usize,
-    character: usize,
-    hand: &[usize],
-    card_target: Option<usize>,
-    alive_monsters: &[usize],
+    id_source: usize,
+    id_character: usize,
+    id_hand: &[usize],
+    id_card_target: Option<usize>,
+    id_alive_monsters: &[usize],
     map: &Map,
     entities: &[Entity],
-    card_rewards: &[usize],
-    out: &mut CandidateBuf,
+    id_card_rewards: &[usize],
+    buf_cands: &mut CandidateBuf,
 ) {
     match candidates {
-        CandidatePool::Hand => out.extend_from_slice(hand),
-        CandidatePool::CardTarget => out.push(card_target.unwrap()),
-        CandidatePool::Character => out.push(character),
-        CandidatePool::Monsters => out.extend_from_slice(alive_monsters),
-        CandidatePool::Source => out.push(source),
-        CandidatePool::CardRewardPool => out.extend_from_slice(card_rewards),
+        CandidatePool::Hand => buf_cands.extend_from_slice(id_hand),
+        CandidatePool::CardTarget => buf_cands.push(id_card_target.unwrap()),
+        CandidatePool::Character => buf_cands.push(id_character),
+        CandidatePool::Monsters => buf_cands.extend_from_slice(id_alive_monsters),
+        CandidatePool::Source => buf_cands.push(id_source),
+        CandidatePool::CardRewardPool => buf_cands.extend_from_slice(id_card_rewards),
         CandidatePool::NextRowRooms => match map.position {
             Position::Start => {
                 for col in 0..MAP_WIDTH {
-                    if let Some(id) = map.nodes[0][col] {
-                        out.push(id);
+                    if let Some(id_room) = map.id_nodes[0][col] {
+                        buf_cands.push(id_room);
                     }
                 }
             }
@@ -170,12 +170,12 @@ pub(crate) fn resolve_candidates(
                 if y_next >= MAP_HEIGHT {
                     return;
                 }
-                if let Some(current_id) = map.nodes[y][x] {
-                    let current_node = &entities[current_id];
+                if let Some(id_current) = map.id_nodes[y][x] {
+                    let current_node = &entities[id_current];
                     for col in 0..MAP_WIDTH {
                         if has_edge(current_node.edges, col) {
-                            if let Some(id) = map.nodes[y_next][col] {
-                                out.push(id);
+                            if let Some(id_room) = map.id_nodes[y_next][col] {
+                                buf_cands.push(id_room);
                             }
                         }
                     }
@@ -189,38 +189,38 @@ pub(crate) fn resolve_candidates(
 fn resolve_targets(
     candidates: CandidatePool,
     selection: SelectionKind,
-    source: usize,
-    character: usize,
-    hand: &[usize],
-    card_target: Option<usize>,
-    alive_monsters: &[usize],
+    id_source: usize,
+    id_character: usize,
+    id_hand: &[usize],
+    id_card_target: Option<usize>,
+    id_alive_monsters: &[usize],
     map: &Map,
     entities: &[Entity],
-    card_rewards: &[usize],
+    id_card_rewards: &[usize],
     rng: &mut impl Rng,
-    out: &mut CandidateBuf,
+    buf_cands: &mut CandidateBuf,
 ) -> TargetResolution {
     resolve_candidates(
         candidates,
-        source,
-        character,
-        hand,
-        card_target,
-        alive_monsters,
+        id_source,
+        id_character,
+        id_hand,
+        id_card_target,
+        id_alive_monsters,
         map,
         entities,
-        card_rewards,
-        out,
+        id_card_rewards,
+        buf_cands,
     );
     match selection {
         SelectionKind::All => TargetResolution::Resolved,
         SelectionKind::Random { count } => {
-            shuffle(out.as_mut_slice(), rng);
-            out.truncate(count as usize);
+            shuffle(buf_cands.as_mut_slice(), rng);
+            buf_cands.truncate(count as usize);
             TargetResolution::Resolved
         }
         SelectionKind::Input { count } => {
-            if count as usize >= out.len {
+            if count as usize >= buf_cands.len {
                 TargetResolution::Resolved
             } else {
                 TargetResolution::AwaitInput { num: count }
@@ -235,53 +235,55 @@ fn resolve_targets(
 //    effects; on input-needed, returns `Halt` (the effect stays at the front
 //    because the driver uses peek-before-pop and won't have popped it yet).
 pub fn process_effect(state: &mut GameState, effect: Effect) -> DispatchResult {
-    let target = match effect.target {
+    let id_target = match effect.target {
         Target::Direct(t) => t,
         Target::Resolve {
             candidates,
             selection,
         } => {
-            return resolve_or_halt(state, effect.kind, effect.source, candidates, selection);
+            return resolve_or_halt(state, effect.kind, effect.id_source, candidates, selection);
         }
     };
 
-    dispatch_by_kind(state, effect.kind, effect.source, target)
+    dispatch_by_kind(state, effect.kind, effect.id_source, id_target)
 }
 
 fn resolve_or_halt(
     state: &mut GameState,
     kind: EffectKind,
-    source: Option<usize>,
+    id_source: Option<usize>,
     candidates: CandidatePool,
     selection: SelectionKind,
 ) -> DispatchResult {
-    let mut alive_buf = [0usize; MAX_MONSTERS];
-    let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
-    let src_id = source.unwrap_or(state.character);
-    let mut cands = CandidateBuf::new();
+    // Stack locals
+    let mut buf_alive = [0usize; MAX_MONSTERS];
+    let mut buf_cands = CandidateBuf::new();
+
+    let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+    let id_source_resolved = id_source.unwrap_or(state.id_character);
     let resolution = resolve_targets(
         candidates,
         selection,
-        src_id,
-        state.character,
-        &state.hand,
-        state.card_target,
-        &alive_buf[..alive_n],
+        id_source_resolved,
+        state.id_character,
+        &state.id_hand,
+        state.id_card_target,
+        &buf_alive[..alive_n],
         &state.map,
         &state.entities,
-        &state.card_rewards,
+        &state.id_card_rewards,
         &mut state.rng,
-        &mut cands,
+        &mut buf_cands,
     );
     match resolution {
         TargetResolution::Resolved => {
             // Push one Direct-target effect per resolved id. push_front reverses
             // order, so iterate in reverse to preserve id order in the queue.
-            for &id in cands.as_slice().iter().rev() {
+            for &id_target in buf_cands.as_slice().iter().rev() {
                 state.effect_queue.push_front(Effect {
                     kind,
-                    source,
-                    target: Target::Direct(Some(id)),
+                    id_source,
+                    target: Target::Direct(Some(id_target)),
                 });
             }
             DispatchResult::Continue
@@ -301,72 +303,74 @@ fn resolve_or_halt(
 fn dispatch_by_kind(
     state: &mut GameState,
     kind: EffectKind,
-    source: Option<usize>,
-    target: Option<usize>,
+    id_source: Option<usize>,
+    id_target: Option<usize>,
 ) -> DispatchResult {
     match kind {
         EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
             count,
-            &mut state.draw_pile,
-            &mut state.hand,
-            &mut state.discard_pile,
+            &mut state.id_draw_pile,
+            &mut state.id_hand,
+            &mut state.id_discard_pile,
             &mut state.rng,
         ),
         EffectKind::CardPlay => {
-            let id_card = target.unwrap();
-            let mut alive_buf = [0usize; MAX_MONSTERS];
-            let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
+            let id_card = id_target.unwrap();
+            // Stack locals
+            let mut buf_alive = [0usize; MAX_MONSTERS];
+
+            let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             process_effect_card_play::process_effect_card_play(
                 id_card,
-                state.card_target,
-                state.character,
+                state.id_card_target,
+                state.id_character,
                 &state.entities,
-                &state.hand,
-                &alive_buf[..alive_n],
+                &state.id_hand,
+                &buf_alive[..alive_n],
                 &mut state.rng,
                 &mut state.effect_queue,
             )
         }
         EffectKind::CardDiscard => {
-            let id_card = target.unwrap();
+            let id_card = id_target.unwrap();
             process_effect_card_discard::process_effect_card_discard(
                 id_card,
-                &mut state.hand,
-                &mut state.discard_pile,
+                &mut state.id_hand,
+                &mut state.id_discard_pile,
             )
         }
         EffectKind::CardExhaust => {
-            let id_card = target.unwrap();
+            let id_card = id_target.unwrap();
             process_effect_card_exhaust::process_effect_card_exhaust(
                 id_card,
-                &mut state.hand,
-                &mut state.exhaust_pile,
+                &mut state.id_hand,
+                &mut state.id_exhaust_pile,
             )
         }
         EffectKind::CardRemove => {
-            let id_card = target.unwrap();
-            process_effect_card_remove::process_effect_card_remove(id_card, &mut state.hand)
+            let id_card = id_target.unwrap();
+            process_effect_card_remove::process_effect_card_remove(id_card, &mut state.id_hand)
         }
         EffectKind::AddShivs { count } => process_effect_add_shivs::process_effect_add_shivs(
             count,
             &mut state.entities,
-            &mut state.hand,
-            &mut state.discard_pile,
+            &mut state.id_hand,
+            &mut state.id_discard_pile,
         ),
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(
-                &state.hand,
+                &state.id_hand,
                 &mut state.effect_queue,
             )
         }
         EffectKind::CardUpgrade => {
-            let id_card = target.unwrap();
+            let id_card = id_target.unwrap();
             process_effect_card_upgrade::process_effect_card_upgrade(id_card, &mut state.entities)
         }
         EffectKind::CardRewardRoll => {
             process_effect_card_reward_roll::process_effect_card_reward_roll(
-                state.character,
-                &mut state.card_rewards,
+                state.id_character,
+                &mut state.id_card_rewards,
                 &mut state.entities,
                 &mut state.rng,
                 &mut state.effect_queue,
@@ -374,63 +378,63 @@ fn dispatch_by_kind(
         }
         EffectKind::CardRewardClear => {
             process_effect_card_reward_clear::process_effect_card_reward_clear(
-                &mut state.card_rewards,
+                &mut state.id_card_rewards,
                 &mut state.effect_queue,
             )
         }
         EffectKind::TargetSet => {
-            let target = target.unwrap();
-            process_effect_target_set::process_effect_target_set(&mut state.card_target, target)
+            let id_target = id_target.unwrap();
+            process_effect_target_set::process_effect_target_set(&mut state.id_card_target, id_target)
         }
         EffectKind::TargetClear => {
-            process_effect_target_clear::process_effect_target_clear(&mut state.card_target)
+            process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
         EffectKind::DamagePhysical { base } => {
-            let source = source.unwrap();
-            let target = target.unwrap();
-            let source_mods = &state.entities[source].modifiers;
-            let target_mods = &state.entities[target].modifiers;
+            let id_source_unwrapped = id_source.unwrap();
+            let id_target = id_target.unwrap();
+            let source_mods = &state.entities[id_source_unwrapped].modifiers;
+            let target_mods = &state.entities[id_target].modifiers;
             process_effect_damage_physical::process_effect_damage_physical(
                 source_mods,
                 target_mods,
-                target,
+                id_target,
                 base,
                 &mut state.effect_queue,
             )
         }
         EffectKind::DamageDeal { amount } => {
-            let target = target.unwrap();
-            let vitals = &mut state.entities[target].vitals;
+            let id_target = id_target.unwrap();
+            let vitals = &mut state.entities[id_target].vitals;
             process_effect_damage_deal::process_effect_damage_deal(
                 vitals,
-                target,
+                id_target,
                 amount,
                 &mut state.effect_queue,
             )
         }
         EffectKind::HealthGain { amount } => {
-            let target = target.unwrap();
-            let vitals = &mut state.entities[target].vitals;
+            let id_target = id_target.unwrap();
+            let vitals = &mut state.entities[id_target].vitals;
             process_effect_health_gain::process_effect_health_gain(vitals, amount)
         }
         EffectKind::HealthLoss { amount } => {
-            let target = target.unwrap();
-            let entity = &mut state.entities[target];
+            let id_target = id_target.unwrap();
+            let entity = &mut state.entities[id_target];
             process_effect_health_loss::process_effect_health_loss(
                 &mut entity.vitals,
                 &mut entity.modifiers,
-                target,
-                state.character,
+                id_target,
+                state.id_character,
                 amount,
                 &mut state.effect_queue,
             )
         }
         EffectKind::BlockGain { amount } => {
-            let target = target.unwrap();
-            let from_card = source
+            let id_target = id_target.unwrap();
+            let from_card = id_source
                 .map(|id| state.entities[id].kind == EntityType::Card)
                 .unwrap_or(false);
-            let entity = &mut state.entities[target];
+            let entity = &mut state.entities[id_target];
             process_effect_block_gain::process_effect_block_gain(
                 &mut entity.vitals,
                 &mut entity.modifiers,
@@ -439,8 +443,8 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::BlockSet { amount } => {
-            let target = target.unwrap();
-            let vitals = &mut state.entities[target].vitals;
+            let id_target = id_target.unwrap();
+            let vitals = &mut state.entities[id_target].vitals;
             process_effect_block_set::process_effect_block_set(vitals, amount)
         }
         EffectKind::EnergyGain { amount } => {
@@ -450,8 +454,8 @@ fn dispatch_by_kind(
             process_effect_energy_loss::process_effect_energy_loss(&mut state.energy, amount)
         }
         EffectKind::ModifierGain { kind, stacks } => {
-            let target = target.unwrap();
-            let entity = &mut state.entities[target];
+            let id_target = id_target.unwrap();
+            let entity = &mut state.entities[id_target];
             let cycle_count = if entity.kind == EntityType::Monster {
                 Some(entity.cycle_count)
             } else {
@@ -465,110 +469,117 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::ModifierRemove { kind } => {
-            let target = target.unwrap();
-            let modifiers = &mut state.entities[target].modifiers;
+            let id_target = id_target.unwrap();
+            let modifiers = &mut state.entities[id_target].modifiers;
             process_effect_modifier_remove::process_effect_modifier_remove(modifiers, kind)
         }
         EffectKind::ModifierTick => {
-            let target = target.unwrap();
-            let modifiers = &mut state.entities[target].modifiers;
+            let id_target = id_target.unwrap();
+            let modifiers = &mut state.entities[id_target].modifiers;
             process_effect_modifier_tick::process_effect_modifier_tick(modifiers)
         }
         EffectKind::ModifierSetNotNew => {
-            let mut alive_buf = [0usize; MAX_MONSTERS];
-            let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
+            // Stack locals
+            let mut buf_alive = [0usize; MAX_MONSTERS];
+
+            let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             process_effect_modifier_set_not_new::process_effect_modifier_set_not_new(
-                state.character,
+                state.id_character,
                 &mut state.entities,
-                &alive_buf[..alive_n],
+                &buf_alive[..alive_n],
             )
         }
         EffectKind::Death => {
-            let actor = target.unwrap();
+            let id_actor = id_target.unwrap();
             process_effect_death::process_effect_death(
-                actor,
-                state.character,
-                &state.monsters,
+                id_actor,
+                state.id_character,
+                &state.id_monsters,
                 state.monster_count,
                 &mut state.entities,
                 &mut state.effect_queue,
             )
         }
         EffectKind::CombatStart => process_effect_combat_start::process_effect_combat_start(
-            state.character,
-            &state.deck,
+            state.id_character,
+            &state.id_deck,
             &mut state.entities,
-            &mut state.draw_pile,
-            &mut state.hand,
-            &mut state.discard_pile,
-            &mut state.exhaust_pile,
-            &mut state.card_target,
-            &state.monsters,
+            &mut state.id_draw_pile,
+            &mut state.id_hand,
+            &mut state.id_discard_pile,
+            &mut state.id_exhaust_pile,
+            &mut state.id_card_target,
+            &state.id_monsters,
             state.monster_count,
             &mut state.rng,
             &mut state.effect_queue,
         ),
         EffectKind::CombatEnd => process_effect_combat_end::process_effect_combat_end(
-            state.character,
-            &mut state.hand,
-            &mut state.draw_pile,
-            &mut state.discard_pile,
-            &mut state.exhaust_pile,
-            &mut state.card_target,
+            state.id_character,
+            &mut state.id_hand,
+            &mut state.id_draw_pile,
+            &mut state.id_discard_pile,
+            &mut state.id_exhaust_pile,
+            &mut state.id_card_target,
             &mut state.entities,
             &mut state.monster_count,
             &state.map,
             &mut state.effect_queue,
         ),
         EffectKind::TurnStart => {
-            let actor = target.unwrap();
-            let mut alive_buf = [0usize; MAX_MONSTERS];
-            let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
-            let entity = &mut state.entities[actor];
+            let id_actor = id_target.unwrap();
+
+            // Stack locals
+            let mut buf_alive = [0usize; MAX_MONSTERS];
+
+            let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+            let entity = &mut state.entities[id_actor];
             process_effect_turn_start::process_effect_turn_start(
                 &mut entity.vitals,
                 &mut entity.modifiers,
-                actor,
-                state.character,
+                id_actor,
+                state.id_character,
                 &state.energy,
-                &alive_buf[..alive_n],
+                &buf_alive[..alive_n],
                 &mut state.effect_queue,
             )
         }
         EffectKind::TurnEnd => {
-            let actor = target.unwrap();
-            if actor == state.character {
-                let mut alive_buf = [0usize; MAX_MONSTERS];
-                let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
+            let id_actor = id_target.unwrap();
+            if id_actor == state.id_character {
+                // Stack locals
+                let mut buf_alive = [0usize; MAX_MONSTERS];
+
+                let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
                 process_effect_turn_end::process_effect_turn_end_character(
-                    state.character,
+                    state.id_character,
                     &state.entities,
-                    &state.hand,
-                    state.card_target,
-                    &alive_buf[..alive_n],
+                    &state.id_hand,
+                    state.id_card_target,
+                    &buf_alive[..alive_n],
                     &mut state.rng,
                     &mut state.effect_queue,
                 )
             } else {
-                let entity = &mut state.entities[actor];
+                let entity = &mut state.entities[id_actor];
                 process_effect_turn_end::process_effect_turn_end_monster(
                     &mut entity.vitals,
                     &mut entity.modifiers,
-                    actor,
+                    id_actor,
                     &mut state.effect_queue,
                 )
             }
         }
         EffectKind::MoveUpdate => {
-            let monster = target.unwrap();
-            let entity = &mut state.entities[monster];
+            let id_monster = id_target.unwrap();
+            let entity = &mut state.entities[id_monster];
             process_effect_move_update::process_effect_move_update(entity, &mut state.rng)
         }
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(
             &state.map,
             state.ascension,
             &mut state.entities,
-            &mut state.monsters,
+            &mut state.id_monsters,
             &mut state.monster_count,
             &mut state.rng,
             &mut state.effect_queue,
@@ -582,8 +593,8 @@ fn dispatch_by_kind(
         // the resolver picked a target) complete the transition. Before
         // resolution they're handled by the `Resolve` branch in `process_effect`.
         EffectKind::RoomSelect => {
-            let node_id = target.expect("RoomSelect Direct form must have target");
-            let node = &state.entities[node_id];
+            let id_room = id_target.expect("RoomSelect Direct form must have target");
+            let node = &state.entities[id_room];
             state.map.position = Position::Overworld {
                 y: node.node_y,
                 x: node.node_x,
@@ -594,8 +605,8 @@ fn dispatch_by_kind(
             DispatchResult::Continue
         }
         EffectKind::CardRewardSelect => {
-            let card_id = target.expect("CardRewardSelect Direct form must have target");
-            state.deck.push(card_id);
+            let id_card = id_target.expect("CardRewardSelect Direct form must have target");
+            state.id_deck.push(id_card);
             state
                 .effect_queue
                 .push_front(Effect::direct(EffectKind::CardRewardClear, None, None));
@@ -613,6 +624,7 @@ fn dispatch_by_kind(
         EffectKind::AwaitCardRewardRoll => DispatchResult::Halt {
             phase_new: Phase::CombatReward,
         },
+        EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
 }
 

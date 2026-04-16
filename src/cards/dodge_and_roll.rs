@@ -9,7 +9,7 @@ pub static DODGE_AND_ROLL: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 4 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -20,7 +20,7 @@ pub static DODGE_AND_ROLL: Entity = card_entity(
                 kind: ModifierKind::NextTurnBlock,
                 stacks: 4,
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -37,7 +37,7 @@ pub static DODGE_AND_ROLL_PLUS: Entity = card_entity(
             kind: EffectKind::BlockGain {
                 amount: 6, // +2 block
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -48,7 +48,7 @@ pub static DODGE_AND_ROLL_PLUS: Entity = card_entity(
                 kind: ModifierKind::NextTurnBlock,
                 stacks: 6, // +2 next-turn-block
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,

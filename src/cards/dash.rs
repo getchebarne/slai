@@ -8,7 +8,7 @@ pub static DASH: Entity = card_entity(
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 10 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -16,7 +16,7 @@ pub static DASH: Entity = card_entity(
         },
         Effect {
             kind: EffectKind::DamagePhysical { base: 10 },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
@@ -33,7 +33,7 @@ pub static DASH_PLUS: Entity = card_entity(
             kind: EffectKind::BlockGain {
                 amount: 13, // +3 damage
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
@@ -43,7 +43,7 @@ pub static DASH_PLUS: Entity = card_entity(
             kind: EffectKind::DamagePhysical {
                 base: 13, // +3 block
             },
-            source: None,
+            id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,

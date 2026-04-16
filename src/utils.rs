@@ -12,23 +12,23 @@ pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
 
 // Fills `buf` with the ids of monsters that are alive, returns how many.
 // Callers use `&buf[..n]` as a slice. Zero heap allocation.
-pub fn fill_alive_monster_ids(state: &GameState, buf: &mut [usize; MAX_MONSTERS]) -> usize {
+pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MONSTERS]) -> usize {
     let mut n = 0;
     for i in 0..state.monster_count as usize {
-        let id = state.monsters[i];
-        if !state.entities[id].dead {
-            buf[n] = id;
+        let id_monster = state.id_monsters[i];
+        if !state.entities[id_monster].dead {
+            buf_alive[n] = id_monster;
             n += 1;
         }
     }
     n
 }
 
-pub fn remove_card_from_hand(id_card: usize, hand: &mut Vec<usize>) {
-    let hand_idx = hand
+pub fn remove_card_from_hand(id_card: usize, id_hand: &mut Vec<usize>) {
+    let hand_idx = id_hand
         .iter()
         .position(|&elem| elem == id_card)
         .expect("Can't discard a card that's not in the hand");
 
-    hand.remove(hand_idx);
+    id_hand.remove(hand_idx);
 }

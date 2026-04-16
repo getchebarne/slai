@@ -11,7 +11,7 @@ use crate::types::Vitals;
 pub fn process_effect_turn_end_monster(
     _vitals: &mut Vitals,
     modifiers: &Modifiers,
-    actor: usize,
+    id_actor: usize,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Ritual: skip if newly applied.
@@ -24,97 +24,98 @@ pub fn process_effect_turn_end_monster(
                 kind: ModifierKind::Strength,
                 stacks,
             },
-            source: None,
-            target: Target::Direct(Some(actor)),
+            id_source: None,
+            target: Target::Direct(Some(id_actor)),
         });
     }
     DispatchResult::Continue
 }
 
 pub fn process_effect_turn_end_character(
-    character: usize,
+    id_character: usize,
     entities: &[Entity],
-    hand: &[usize],
+    id_hand: &[usize],
     _card_target: Option<usize>,
-    alive_monsters: &[usize],
+    id_alive_monsters: &[usize],
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let character_modifiers = &entities[character].modifiers;
-    let mut top = EffectBuf::new();
+    let character_modifiers = &entities[id_character].modifiers;
+    // Stack locals
+    let mut buf_effects = EffectBuf::new();
 
     if modifier_has(character_modifiers, ModifierKind::Ritual)
         && !character_modifiers.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(character_modifiers, ModifierKind::Ritual);
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
                 stacks,
             },
-            source: None,
-            target: Target::Direct(Some(character)),
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
         });
     }
 
-    for &id_card in hand {
-        top.push(Effect {
+    for &id_card in id_hand {
+        buf_effects.push(Effect {
             kind: EffectKind::CardDiscard,
-            source: None,
+            id_source: None,
             target: Target::Direct(Some(id_card)),
         });
     }
-    top.push(Effect {
+    buf_effects.push(Effect {
         kind: EffectKind::ModifierSetNotNew,
-        source: None,
+        id_source: None,
         target: Target::Direct(None),
     });
 
-    for &mid in alive_monsters {
-        let monster = &entities[mid];
-        top.push(Effect {
+    for &id_monster in id_alive_monsters {
+        let monster = &entities[id_monster];
+        buf_effects.push(Effect {
             kind: EffectKind::TurnStart,
-            source: None,
-            target: Target::Direct(Some(mid)),
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
         });
 
         if let Some(move_idx) = monster.move_current {
             for e in monster.moves[move_idx].effects.iter() {
-                top.push(Effect {
-                    source: Some(mid),
+                buf_effects.push(Effect {
+                    id_source: Some(id_monster),
                     ..*e
                 });
             }
         }
 
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::MoveUpdate,
-            source: None,
-            target: Target::Direct(Some(mid)),
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
         });
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::TurnEnd,
-            source: None,
-            target: Target::Direct(Some(mid)),
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
         });
     }
 
-    top.push(Effect {
+    buf_effects.push(Effect {
         kind: EffectKind::TurnStart,
-        source: None,
-        target: Target::Direct(Some(character)),
+        id_source: None,
+        target: Target::Direct(Some(id_character)),
     });
 
     if modifier_has(character_modifiers, ModifierKind::Burst) {
-        top.push(Effect {
+        buf_effects.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Burst,
             },
-            source: None,
-            target: Target::Direct(Some(character)),
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
         });
     }
 
-    top.push_all_front(queue);
+    buf_effects.push_all_front(queue);
     DispatchResult::Continue
 }
