@@ -1,6 +1,6 @@
 use crate::cards::get_card;
 use crate::consts::MAX_SIZE_HAND;
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::types::CardName;
 
@@ -9,7 +9,7 @@ pub fn process_effect_add_shivs(
     entities: &mut Vec<Entity>,
     hand: &mut Vec<usize>,
     discard_pile: &mut Vec<usize>,
-) -> ProcessEffectResult {
+) -> DispatchResult {
     let shiv = get_card(CardName::Shiv, false);
 
     for _ in 0..count {
@@ -23,5 +23,5 @@ pub fn process_effect_add_shivs(
         }
     }
 
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }

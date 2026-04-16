@@ -31,30 +31,110 @@ pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 
+use std::collections::VecDeque;
+
 use rand::Rng;
 
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
+use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, EntityType};
 use crate::map::has_edge;
 use crate::state::{GameState, Map, Position};
 use crate::types::Phase;
-use crate::utils::{get_alive_monster_ids, shuffle};
+use crate::utils::{fill_alive_monster_ids, shuffle};
 
-pub enum ProcessEffectResult {
-    Continue {
-        top: Vec<Effect>,
-        bot: Vec<Effect>,
-    },
-    Replace(Vec<Effect>),
+pub enum DispatchResult {
+    Continue,
     /// The queue driver sets `state.phase = phase_new` and returns.
     Halt {
         phase_new: Phase,
     },
 }
 
+// Stack-allocated buffer for effects that a handler wants to push to the
+// front of the queue in order. Build up effects normally, then call
+// `push_all_front` once at the end of the handler.
+pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
+
+const ZERO_EFFECT: Effect = Effect {
+    kind: EffectKind::CardDiscard,
+    source: None,
+    target: Target::Direct(None),
+};
+
+pub struct EffectBuf {
+    pub effects: [Effect; MAX_EFFECTS_PER_HANDLER],
+    pub len: usize,
+}
+
+impl EffectBuf {
+    pub const fn new() -> Self {
+        Self {
+            effects: [ZERO_EFFECT; MAX_EFFECTS_PER_HANDLER],
+            len: 0,
+        }
+    }
+
+    pub fn push(&mut self, e: Effect) {
+        assert!(self.len < MAX_EFFECTS_PER_HANDLER, "EffectBuf overflow");
+        self.effects[self.len] = e;
+        self.len += 1;
+    }
+
+    pub fn push_all_front(&self, queue: &mut VecDeque<Effect>) {
+        for e in self.effects[..self.len].iter().rev() {
+            queue.push_front(*e);
+        }
+    }
+}
+
+// Stack-allocated buffer for candidate ids during resolution. All candidate
+// pools have compile-time-bounded sizes (≤ MAX_SIZE_HAND, MAX_MONSTERS, etc.),
+// so we can avoid the heap entirely.
+pub const MAX_CANDIDATES: usize = 16;
+
+pub struct CandidateBuf {
+    pub ids: [usize; MAX_CANDIDATES],
+    pub len: usize,
+}
+
+impl CandidateBuf {
+    pub fn new() -> Self {
+        Self {
+            ids: [0; MAX_CANDIDATES],
+            len: 0,
+        }
+    }
+
+    pub fn push(&mut self, id: usize) {
+        assert!(self.len < MAX_CANDIDATES, "CandidateBuf overflow");
+        self.ids[self.len] = id;
+        self.len += 1;
+    }
+
+    pub fn as_slice(&self) -> &[usize] {
+        &self.ids[..self.len]
+    }
+
+    pub fn as_mut_slice(&mut self) -> &mut [usize] {
+        &mut self.ids[..self.len]
+    }
+
+    pub fn truncate(&mut self, n: usize) {
+        if n < self.len {
+            self.len = n;
+        }
+    }
+
+    pub fn extend_from_slice(&mut self, src: &[usize]) {
+        for &id in src {
+            self.push(id);
+        }
+    }
+}
+
 pub enum TargetResolution {
-    Resolved(Vec<usize>),
+    Resolved,
     AwaitInput { num: u8 },
 }
 
@@ -68,44 +148,41 @@ pub(crate) fn resolve_candidates(
     map: &Map,
     entities: &[Entity],
     card_rewards: &[usize],
-) -> Vec<usize> {
+    out: &mut CandidateBuf,
+) {
     match candidates {
-        CandidatePool::Hand => hand.to_vec(),
-        CandidatePool::CardTarget => vec![card_target.unwrap()],
-        CandidatePool::Character => vec![character],
-        CandidatePool::Monsters => alive_monsters.to_vec(),
-        CandidatePool::Source => vec![source],
-        CandidatePool::CardRewardPool => card_rewards.to_vec(),
-        CandidatePool::NextRowRooms => {
-            let mut out = Vec::new();
-            match map.position {
-                Position::Start => {
-                    for col in 0..MAP_WIDTH {
-                        if let Some(id) = map.nodes[0][col] {
-                            out.push(id);
-                        }
+        CandidatePool::Hand => out.extend_from_slice(hand),
+        CandidatePool::CardTarget => out.push(card_target.unwrap()),
+        CandidatePool::Character => out.push(character),
+        CandidatePool::Monsters => out.extend_from_slice(alive_monsters),
+        CandidatePool::Source => out.push(source),
+        CandidatePool::CardRewardPool => out.extend_from_slice(card_rewards),
+        CandidatePool::NextRowRooms => match map.position {
+            Position::Start => {
+                for col in 0..MAP_WIDTH {
+                    if let Some(id) = map.nodes[0][col] {
+                        out.push(id);
                     }
                 }
-                Position::Overworld { y, x } => {
-                    let y_next = y + 1;
-                    if y_next >= MAP_HEIGHT {
-                        return Vec::new();
-                    }
-                    if let Some(current_id) = map.nodes[y][x] {
-                        let current_node = &entities[current_id];
-                        for col in 0..MAP_WIDTH {
-                            if has_edge(current_node.edges, col) {
-                                if let Some(id) = map.nodes[y_next][col] {
-                                    out.push(id);
-                                }
+            }
+            Position::Overworld { y, x } => {
+                let y_next = y + 1;
+                if y_next >= MAP_HEIGHT {
+                    return;
+                }
+                if let Some(current_id) = map.nodes[y][x] {
+                    let current_node = &entities[current_id];
+                    for col in 0..MAP_WIDTH {
+                        if has_edge(current_node.edges, col) {
+                            if let Some(id) = map.nodes[y_next][col] {
+                                out.push(id);
                             }
                         }
                     }
                 }
-                Position::BossRoom => {}
             }
-            out
-        }
+            Position::BossRoom => {}
+        },
     }
 }
 
@@ -121,8 +198,9 @@ fn resolve_targets(
     entities: &[Entity],
     card_rewards: &[usize],
     rng: &mut impl Rng,
+    out: &mut CandidateBuf,
 ) -> TargetResolution {
-    let mut ids = resolve_candidates(
+    resolve_candidates(
         candidates,
         source,
         character,
@@ -132,17 +210,18 @@ fn resolve_targets(
         map,
         entities,
         card_rewards,
+        out,
     );
     match selection {
-        SelectionKind::All => TargetResolution::Resolved(ids),
+        SelectionKind::All => TargetResolution::Resolved,
         SelectionKind::Random { count } => {
-            shuffle(&mut ids, rng);
-            ids.truncate(count as usize);
-            TargetResolution::Resolved(ids)
+            shuffle(out.as_mut_slice(), rng);
+            out.truncate(count as usize);
+            TargetResolution::Resolved
         }
         SelectionKind::Input { count } => {
-            if count as usize >= ids.len() {
-                TargetResolution::Resolved(ids)
+            if count as usize >= out.len {
+                TargetResolution::Resolved
             } else {
                 TargetResolution::AwaitInput { num: count }
             }
@@ -155,7 +234,7 @@ fn resolve_targets(
 //  - `Resolve { .. }` runs the resolver; on success, fans out to `Direct`
 //    effects; on input-needed, returns `Halt` (the effect stays at the front
 //    because the driver uses peek-before-pop and won't have popped it yet).
-pub fn process_effect(state: &mut GameState, effect: Effect) -> ProcessEffectResult {
+pub fn process_effect(state: &mut GameState, effect: Effect) -> DispatchResult {
     let target = match effect.target {
         Target::Direct(t) => t,
         Target::Resolve {
@@ -175,9 +254,11 @@ fn resolve_or_halt(
     source: Option<usize>,
     candidates: CandidatePool,
     selection: SelectionKind,
-) -> ProcessEffectResult {
-    let alive = get_alive_monster_ids(state);
+) -> DispatchResult {
+    let mut alive_buf = [0usize; MAX_MONSTERS];
+    let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
     let src_id = source.unwrap_or(state.character);
+    let mut cands = CandidateBuf::new();
     let resolution = resolve_targets(
         candidates,
         selection,
@@ -185,32 +266,31 @@ fn resolve_or_halt(
         state.character,
         &state.hand,
         state.card_target,
-        &alive,
+        &alive_buf[..alive_n],
         &state.map,
         &state.entities,
         &state.card_rewards,
         &mut state.rng,
+        &mut cands,
     );
     match resolution {
-        TargetResolution::Resolved(ids) => {
-            let fanout: Vec<Effect> = ids
-                .into_iter()
-                .map(|id| Effect {
+        TargetResolution::Resolved => {
+            // Push one Direct-target effect per resolved id. push_front reverses
+            // order, so iterate in reverse to preserve id order in the queue.
+            for &id in cands.as_slice().iter().rev() {
+                state.effect_queue.push_front(Effect {
                     kind,
                     source,
                     target: Target::Direct(Some(id)),
-                })
-                .collect();
-            ProcessEffectResult::Continue {
-                top: fanout,
-                bot: Vec::new(),
+                });
             }
+            DispatchResult::Continue
         }
         TargetResolution::AwaitInput { num } => match kind {
-            EffectKind::CardDiscard => ProcessEffectResult::Halt {
+            EffectKind::CardDiscard => DispatchResult::Halt {
                 phase_new: Phase::CombatAwaitDiscard { num },
             },
-            EffectKind::RoomSelect => ProcessEffectResult::Halt {
+            EffectKind::RoomSelect => DispatchResult::Halt {
                 phase_new: Phase::Map,
             },
             _ => panic!("Unsupported effect kind for halting: {:?}", kind),
@@ -223,7 +303,7 @@ fn dispatch_by_kind(
     kind: EffectKind,
     source: Option<usize>,
     target: Option<usize>,
-) -> ProcessEffectResult {
+) -> DispatchResult {
     match kind {
         EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
             count,
@@ -234,15 +314,17 @@ fn dispatch_by_kind(
         ),
         EffectKind::CardPlay => {
             let id_card = target.unwrap();
-            let alive = get_alive_monster_ids(state);
+            let mut alive_buf = [0usize; MAX_MONSTERS];
+            let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
             process_effect_card_play::process_effect_card_play(
                 id_card,
                 state.card_target,
                 state.character,
                 &state.entities,
                 &state.hand,
-                &alive,
+                &alive_buf[..alive_n],
                 &mut state.rng,
+                &mut state.effect_queue,
             )
         }
         EffectKind::CardDiscard => {
@@ -272,7 +354,10 @@ fn dispatch_by_kind(
             &mut state.discard_pile,
         ),
         EffectKind::CalculatedGamble => {
-            process_effect_calculated_gamble::process_effect_calculated_gamble(&state.hand)
+            process_effect_calculated_gamble::process_effect_calculated_gamble(
+                &state.hand,
+                &mut state.effect_queue,
+            )
         }
         EffectKind::CardUpgrade => {
             let id_card = target.unwrap();
@@ -284,11 +369,13 @@ fn dispatch_by_kind(
                 &mut state.card_rewards,
                 &mut state.entities,
                 &mut state.rng,
+                &mut state.effect_queue,
             )
         }
         EffectKind::CardRewardClear => {
             process_effect_card_reward_clear::process_effect_card_reward_clear(
                 &mut state.card_rewards,
+                &mut state.effect_queue,
             )
         }
         EffectKind::TargetSet => {
@@ -308,12 +395,18 @@ fn dispatch_by_kind(
                 target_mods,
                 target,
                 base,
+                &mut state.effect_queue,
             )
         }
         EffectKind::DamageDeal { amount } => {
             let target = target.unwrap();
             let vitals = &mut state.entities[target].vitals;
-            process_effect_damage_deal::process_effect_damage_deal(vitals, target, amount)
+            process_effect_damage_deal::process_effect_damage_deal(
+                vitals,
+                target,
+                amount,
+                &mut state.effect_queue,
+            )
         }
         EffectKind::HealthGain { amount } => {
             let target = target.unwrap();
@@ -329,6 +422,7 @@ fn dispatch_by_kind(
                 target,
                 state.character,
                 amount,
+                &mut state.effect_queue,
             )
         }
         EffectKind::BlockGain { amount } => {
@@ -381,11 +475,12 @@ fn dispatch_by_kind(
             process_effect_modifier_tick::process_effect_modifier_tick(modifiers)
         }
         EffectKind::ModifierSetNotNew => {
-            let alive = get_alive_monster_ids(state);
+            let mut alive_buf = [0usize; MAX_MONSTERS];
+            let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
             process_effect_modifier_set_not_new::process_effect_modifier_set_not_new(
                 state.character,
                 &mut state.entities,
-                &alive,
+                &alive_buf[..alive_n],
             )
         }
         EffectKind::Death => {
@@ -396,6 +491,7 @@ fn dispatch_by_kind(
                 &state.monsters,
                 state.monster_count,
                 &mut state.entities,
+                &mut state.effect_queue,
             )
         }
         EffectKind::CombatStart => process_effect_combat_start::process_effect_combat_start(
@@ -410,6 +506,7 @@ fn dispatch_by_kind(
             &state.monsters,
             state.monster_count,
             &mut state.rng,
+            &mut state.effect_queue,
         ),
         EffectKind::CombatEnd => process_effect_combat_end::process_effect_combat_end(
             state.character,
@@ -421,10 +518,12 @@ fn dispatch_by_kind(
             &mut state.entities,
             &mut state.monster_count,
             &state.map,
+            &mut state.effect_queue,
         ),
         EffectKind::TurnStart => {
             let actor = target.unwrap();
-            let monster_ids = get_alive_monster_ids(state);
+            let mut alive_buf = [0usize; MAX_MONSTERS];
+            let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
             let entity = &mut state.entities[actor];
             process_effect_turn_start::process_effect_turn_start(
                 &mut entity.vitals,
@@ -432,20 +531,23 @@ fn dispatch_by_kind(
                 actor,
                 state.character,
                 &state.energy,
-                &monster_ids,
+                &alive_buf[..alive_n],
+                &mut state.effect_queue,
             )
         }
         EffectKind::TurnEnd => {
             let actor = target.unwrap();
             if actor == state.character {
-                let alive = get_alive_monster_ids(state);
+                let mut alive_buf = [0usize; MAX_MONSTERS];
+                let alive_n = fill_alive_monster_ids(state, &mut alive_buf);
                 process_effect_turn_end::process_effect_turn_end_character(
                     state.character,
                     &state.entities,
                     &state.hand,
                     state.card_target,
-                    &alive,
+                    &alive_buf[..alive_n],
                     &mut state.rng,
+                    &mut state.effect_queue,
                 )
             } else {
                 let entity = &mut state.entities[actor];
@@ -453,6 +555,7 @@ fn dispatch_by_kind(
                     &mut entity.vitals,
                     &mut entity.modifiers,
                     actor,
+                    &mut state.effect_queue,
                 )
             }
         }
@@ -468,10 +571,12 @@ fn dispatch_by_kind(
             &mut state.monsters,
             &mut state.monster_count,
             &mut state.rng,
+            &mut state.effect_queue,
         ),
-        EffectKind::RestSiteExit => {
-            process_effect_rest_site_exit::process_effect_rest_site_exit(&mut state.map)
-        }
+        EffectKind::RestSiteExit => process_effect_rest_site_exit::process_effect_rest_site_exit(
+            &mut state.map,
+            &mut state.effect_queue,
+        ),
         // Halt-kind variants: represent pending player decisions.
         // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before
@@ -483,29 +588,29 @@ fn dispatch_by_kind(
                 y: node.node_y,
                 x: node.node_x,
             };
-            ProcessEffectResult::Continue {
-                top: vec![Effect::direct(EffectKind::RoomEnter, None, None)],
-                bot: Vec::new(),
-            }
+            state
+                .effect_queue
+                .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
+            DispatchResult::Continue
         }
         EffectKind::CardRewardSelect => {
             let card_id = target.expect("CardRewardSelect Direct form must have target");
             state.deck.push(card_id);
-            ProcessEffectResult::Continue {
-                top: vec![Effect::direct(EffectKind::CardRewardClear, None, None)],
-                bot: Vec::new(),
-            }
+            state
+                .effect_queue
+                .push_front(Effect::direct(EffectKind::CardRewardClear, None, None));
+            DispatchResult::Continue
         }
-        EffectKind::GameOver => ProcessEffectResult::Halt {
+        EffectKind::GameOver => DispatchResult::Halt {
             phase_new: Phase::GameOver,
         },
-        EffectKind::AwaitCombatAction => ProcessEffectResult::Halt {
+        EffectKind::AwaitCombatAction => DispatchResult::Halt {
             phase_new: Phase::CombatDefault,
         },
-        EffectKind::AwaitRestSiteAction => ProcessEffectResult::Halt {
+        EffectKind::AwaitRestSiteAction => DispatchResult::Halt {
             phase_new: Phase::RestSite,
         },
-        EffectKind::AwaitCardRewardRoll => ProcessEffectResult::Halt {
+        EffectKind::AwaitCardRewardRoll => DispatchResult::Halt {
             phase_new: Phase::CombatReward,
         },
     }
@@ -517,21 +622,8 @@ pub fn process_queue(state: &mut GameState) {
             panic!("process_queue: queue drained without halting");
         };
         match process_effect(state, effect) {
-            ProcessEffectResult::Continue { top, bot } => {
-                for e in top.into_iter().rev() {
-                    state.effect_queue.push_front(e);
-                }
-                for e in bot {
-                    state.effect_queue.push_back(e);
-                }
-            }
-            ProcessEffectResult::Replace(effects) => {
-                state.effect_queue.clear();
-                for e in effects {
-                    state.effect_queue.push_back(e);
-                }
-            }
-            ProcessEffectResult::Halt { phase_new } => {
+            DispatchResult::Continue => {}
+            DispatchResult::Halt { phase_new } => {
                 state.phase = phase_new;
                 return;
             }

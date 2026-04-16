@@ -1,6 +1,6 @@
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 
-pub fn process_effect_target_clear(card_target: &mut Option<usize>) -> ProcessEffectResult {
+pub fn process_effect_target_clear(card_target: &mut Option<usize>) -> DispatchResult {
     *card_target = None;
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }

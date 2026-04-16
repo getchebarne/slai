@@ -1,8 +1,10 @@
+use std::collections::VecDeque;
+
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::ProcessEffectResult;
+use crate::engine::{DispatchResult, EffectBuf};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
-use crate::state::{Energy};
+use crate::state::Energy;
 use crate::types::Vitals;
 
 pub fn process_effect_turn_start(
@@ -12,8 +14,9 @@ pub fn process_effect_turn_start(
     character: usize,
     energy: &Energy,
     monster_ids: &[usize],
-) -> ProcessEffectResult {
-    let mut effects = Vec::new();
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
+    let mut top = EffectBuf::new();
 
     // Resolve new block (Blur retains, NextTurnBlock adds)
     let mut new_block: u16 = 0;
@@ -24,7 +27,7 @@ pub fn process_effect_turn_start(
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
         modifier_remove(modifiers, ModifierKind::NextTurnBlock);
     }
-    effects.push(Effect {
+    top.push(Effect {
         kind: EffectKind::BlockSet { amount: new_block },
         source: None,
         target: Target::Direct(Some(actor)),
@@ -32,7 +35,7 @@ pub fn process_effect_turn_start(
 
     // Modifier / Phantasmal
     if modifier_has(modifiers, ModifierKind::Phantasmal) {
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::DoubleDamage,
                 stacks: 1,
@@ -45,7 +48,7 @@ pub fn process_effect_turn_start(
     // Character-only effects
     if actor == character {
         // Draw cards and restore energy
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::CardDraw {
                 count: CARDS_DRAWN_PER_TURN,
             },
@@ -54,7 +57,7 @@ pub fn process_effect_turn_start(
         });
         // TODO: may need a "reset energy" effect
         let energy_gain = energy.max.saturating_sub(energy.current);
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::EnergyGain {
                 amount: energy_gain,
             },
@@ -63,13 +66,13 @@ pub fn process_effect_turn_start(
         });
 
         // Tick all combatant modifiers
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::ModifierTick,
             source: None,
             target: Target::Direct(Some(character)),
         });
         for &mid in monster_ids {
-            effects.push(Effect {
+            top.push(Effect {
                 kind: EffectKind::ModifierTick,
                 source: None,
                 target: Target::Direct(Some(mid)),
@@ -79,7 +82,7 @@ pub fn process_effect_turn_start(
         // Modifier / NextTurnEnergy
         if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
-            effects.push(Effect {
+            top.push(Effect {
                 kind: EffectKind::EnergyGain {
                     amount: stacks as u8,
                 },
@@ -92,7 +95,7 @@ pub fn process_effect_turn_start(
         // Modifier / InfiniteBlades
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
-            effects.push(Effect {
+            top.push(Effect {
                 kind: EffectKind::AddShivs {
                     count: stacks as u8,
                 },
@@ -101,12 +104,9 @@ pub fn process_effect_turn_start(
             });
         }
 
-        effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
+        top.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
     }
 
-    // Add and continue
-    ProcessEffectResult::Continue {
-        top: effects,
-        bot: Vec::new(),
-    }
+    top.push_all_front(queue);
+    DispatchResult::Continue
 }

@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use rand::Rng;
 
 use crate::cards::{REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON, get_card};
@@ -6,7 +8,7 @@ use crate::consts::{
     MAX_COMBAT_CARD_REWARD,
 };
 use crate::effect::{Effect, EffectKind};
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::types::CardName;
 
@@ -15,7 +17,8 @@ pub fn process_effect_card_reward_roll(
     card_rewards: &mut Vec<usize>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-) -> ProcessEffectResult {
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
     let mut reward_roll_offset = entities[character].reward_roll_offset;
     let mut rolled_card_names: Vec<CardName> = Vec::new();
 
@@ -49,8 +52,6 @@ pub fn process_effect_card_reward_roll(
 
     entities[character].reward_roll_offset = reward_roll_offset;
 
-    ProcessEffectResult::Continue {
-        top: vec![Effect::direct(EffectKind::AwaitCardRewardRoll, None, None)],
-        bot: Vec::new(),
-    }
+    queue.push_front(Effect::direct(EffectKind::AwaitCardRewardRoll, None, None));
+    DispatchResult::Continue
 }

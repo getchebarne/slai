@@ -1,7 +1,7 @@
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::state::Energy;
 
-pub fn process_effect_energy_loss(energy: &mut Energy, amount: u8) -> ProcessEffectResult {
+pub fn process_effect_energy_loss(energy: &mut Energy, amount: u8) -> DispatchResult {
     energy.current = energy.current.saturating_sub(amount);
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }

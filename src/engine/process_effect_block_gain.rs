@@ -1,5 +1,5 @@
 use crate::consts::MAX_BLOCK;
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::types::Vitals;
 
@@ -9,7 +9,7 @@ pub fn process_effect_block_gain(
     modifiers: &Modifiers,
     amount: u16,
     from_card: bool,
-) -> ProcessEffectResult {
+) -> DispatchResult {
     let mut value = amount as i32;
 
     // Apply dextierity if the source is a card
@@ -23,5 +23,5 @@ pub fn process_effect_block_gain(
     }
 
     // Continue
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }

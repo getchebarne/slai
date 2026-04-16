@@ -1,9 +1,9 @@
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 
 pub fn process_effect_target_set(
     card_target: &mut Option<usize>,
     target: usize,
-) -> ProcessEffectResult {
+) -> DispatchResult {
     *card_target = Some(target);
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }

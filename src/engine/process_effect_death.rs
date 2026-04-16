@@ -1,5 +1,7 @@
+use std::collections::VecDeque;
+
 use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 
@@ -9,31 +11,31 @@ pub fn process_effect_death(
     id_monsters: &[usize],
     monster_count: u8,
     entities: &mut [Entity],
-) -> ProcessEffectResult {
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
+    // Character death: abandon anything pending, run only GameOver.
     if id_target == id_character {
-        return ProcessEffectResult::Replace(vec![Effect::direct(
-            EffectKind::GameOver,
-            None,
-            None,
-        )]);
+        queue.clear();
+        queue.push_back(Effect::direct(EffectKind::GameOver, None, None));
+        return DispatchResult::Continue;
     }
-
-    let mut effects = Vec::new();
 
     let monster = &mut entities[id_target];
 
-    // Modifier / SporeCloud (on-death effect)
-    if modifier_has(&monster.modifiers, ModifierKind::SporeCloud) {
+    // SporeCloud: dying enemy stacks Vulnerable on the character.
+    let spore_effect = if modifier_has(&monster.modifiers, ModifierKind::SporeCloud) {
         let stacks = modifier_stacks(&monster.modifiers, ModifierKind::SporeCloud);
-        effects.push(Effect {
+        Some(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Vulnerable,
                 stacks,
             },
             source: None,
             target: Target::Direct(Some(id_character)),
-        });
-    }
+        })
+    } else {
+        None
+    };
 
     monster.dead = true;
 
@@ -42,18 +44,19 @@ pub fn process_effect_death(
         .any(|&id| !entities[id].dead);
 
     if !any_alive {
-        effects.push(Effect {
+        // Combat ends. Replace pending effects with SporeCloud (if any) then CombatEnd.
+        queue.clear();
+        if let Some(e) = spore_effect {
+            queue.push_back(e);
+        }
+        queue.push_back(Effect {
             kind: EffectKind::CombatEnd,
             source: None,
             target: Target::Direct(None),
         });
-        ProcessEffectResult::Replace(effects)
-    } else if effects.is_empty() {
-        ProcessEffectResult::Continue { top: vec![], bot: vec![] }
-    } else {
-        ProcessEffectResult::Continue {
-            top: effects,
-            bot: Vec::new(),
-        }
+    } else if let Some(e) = spore_effect {
+        queue.push_front(e);
     }
+
+    DispatchResult::Continue
 }

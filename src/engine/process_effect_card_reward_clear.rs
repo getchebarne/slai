@@ -1,24 +1,20 @@
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
-use crate::engine::ProcessEffectResult;
+use std::collections::VecDeque;
 
-pub fn process_effect_card_reward_clear(card_rewards: &mut Vec<usize>) -> ProcessEffectResult {
-    // Clear card rewards
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::engine::DispatchResult;
+
+pub fn process_effect_card_reward_clear(
+    card_rewards: &mut Vec<usize>,
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
     card_rewards.clear();
-
-    // Card reward resolution always transitions back to map-node selection.
-    ProcessEffectResult::Continue {
-        top: vec![Effect {
-            kind: EffectKind::RoomSelect,
-            source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::NextRowRooms,
-                selection: SelectionKind::Input { count: 1 },
-            },
-        }],
-        bot: Vec::new(),
-    }
+    queue.push_front(Effect {
+        kind: EffectKind::RoomSelect,
+        source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::NextRowRooms,
+            selection: SelectionKind::Input { count: 1 },
+        },
+    });
+    DispatchResult::Continue
 }

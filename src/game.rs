@@ -7,7 +7,7 @@ use rand::rngs::SmallRng;
 
 use crate::action::{Action, handle_action};
 use crate::character::{silent_starter_deck, spawn_silent};
-use crate::consts::MAX_MONSTERS;
+use crate::consts::{MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
 use crate::map::generate_map;
@@ -21,7 +21,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let character = spawn_silent(ascension);
     let deck_templates = silent_starter_deck();
 
-    let mut entities = vec![character];
+    let mut entities = Vec::with_capacity(256);
+    entities.push(character);
     let mut deck = Vec::with_capacity(deck_templates.len());
     for card in deck_templates {
         let id = entities.len();
@@ -33,7 +34,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
     // Seed the queue with the initial RoomSelect prompt so the player
     // starts halted on the first map pick.
-    let mut effect_queue = VecDeque::new();
+    let mut effect_queue = VecDeque::with_capacity(64);
     effect_queue.push_back(Effect {
         kind: EffectKind::RoomSelect,
         source: None,
@@ -53,12 +54,12 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         monster_count: 0,
         energy: Energy { current: 3, max: 3 },
         deck,
-        draw_pile: Vec::new(),
-        hand: Vec::new(),
-        discard_pile: Vec::new(),
-        exhaust_pile: Vec::new(),
+        draw_pile: Vec::with_capacity(64),
+        hand: Vec::with_capacity(MAX_SIZE_HAND),
+        discard_pile: Vec::with_capacity(64),
+        exhaust_pile: Vec::with_capacity(32),
         card_target: None,
-        card_rewards: Vec::new(),
+        card_rewards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
         map,
         effect_queue,
     };

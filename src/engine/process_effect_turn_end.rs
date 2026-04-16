@@ -1,34 +1,34 @@
+use std::collections::VecDeque;
+
 use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::ProcessEffectResult;
-use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
+use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::Entity;
+use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::types::Vitals;
 
 pub fn process_effect_turn_end_monster(
     _vitals: &mut Vitals,
     modifiers: &Modifiers,
     actor: usize,
-) -> ProcessEffectResult {
-    // Modifier / Ritual (skip if newly applied)
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
+    // Ritual: skip if newly applied.
     if modifier_has(modifiers, ModifierKind::Ritual)
         && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(modifiers, ModifierKind::Ritual);
-        return ProcessEffectResult::Continue {
-            top: vec![Effect {
-                kind: EffectKind::ModifierGain {
-                    kind: ModifierKind::Strength,
-                    stacks,
-                },
-                source: None,
-                target: Target::Direct(Some(actor)),
-            }],
-            bot: Vec::new(),
-        };
+        queue.push_front(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks,
+            },
+            source: None,
+            target: Target::Direct(Some(actor)),
+        });
     }
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }
 
 pub fn process_effect_turn_end_character(
@@ -38,16 +38,16 @@ pub fn process_effect_turn_end_character(
     _card_target: Option<usize>,
     alive_monsters: &[usize],
     _rng: &mut impl Rng,
-) -> ProcessEffectResult {
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
     let character_modifiers = &entities[character].modifiers;
-    let mut effects = Vec::new();
+    let mut top = EffectBuf::new();
 
-    // Modifier / Ritual (skip if newly applied)
     if modifier_has(character_modifiers, ModifierKind::Ritual)
         && !character_modifiers.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(character_modifiers, ModifierKind::Ritual);
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
                 stacks,
@@ -57,58 +57,56 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    // Discard entire hand
     for &id_card in hand {
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::CardDiscard,
             source: None,
             target: Target::Direct(Some(id_card)),
         });
     }
-    effects.push(Effect {
+    top.push(Effect {
         kind: EffectKind::ModifierSetNotNew,
         source: None,
         target: Target::Direct(None),
     });
 
-    // Queue each monster's turn: start, execute move, update move, end
     for &mid in alive_monsters {
         let monster = &entities[mid];
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::TurnStart,
             source: None,
             target: Target::Direct(Some(mid)),
         });
 
         if let Some(move_idx) = monster.move_current {
-            effects.extend(monster.moves[move_idx].effects.iter().map(|e| Effect {
-                source: Some(mid),
-                ..*e
-            }));
+            for e in monster.moves[move_idx].effects.iter() {
+                top.push(Effect {
+                    source: Some(mid),
+                    ..*e
+                });
+            }
         }
 
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::MoveUpdate,
             source: None,
             target: Target::Direct(Some(mid)),
         });
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::TurnEnd,
             source: None,
             target: Target::Direct(Some(mid)),
         });
     }
 
-    // Start character's next turn
-    effects.push(Effect {
+    top.push(Effect {
         kind: EffectKind::TurnStart,
         source: None,
         target: Target::Direct(Some(character)),
     });
 
-    // Modifier / Burst (consume at end of turn)
     if modifier_has(character_modifiers, ModifierKind::Burst) {
-        effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Burst,
             },
@@ -117,9 +115,6 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    // Add and continue
-    ProcessEffectResult::Continue {
-        top: effects,
-        bot: Vec::new(),
-    }
+    top.push_all_front(queue);
+    DispatchResult::Continue
 }

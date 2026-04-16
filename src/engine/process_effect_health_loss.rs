@@ -1,5 +1,7 @@
+use std::collections::VecDeque;
+
 use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::modifier::{
     ModifierKind, Modifiers, modifier_def, modifier_has, modifier_remove, modifier_stacks,
 };
@@ -11,25 +13,23 @@ pub fn process_effect_health_loss(
     target: usize,
     character: usize,
     amount: u16,
-) -> ProcessEffectResult {
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
     vitals.health = vitals.health.saturating_sub(amount);
-    let mut effects = Vec::new();
 
-    // Death check
     if vitals.health == 0 {
-        effects.push(Effect {
+        queue.push_front(Effect {
             kind: EffectKind::Death,
             source: None,
             target: Target::Direct(Some(target)),
         });
-
-    // Modifier / ModeShift (damage reduces stacks, triggers move update on break)
     } else if modifier_has(modifiers, ModifierKind::ModeShift) {
+        // ModeShift: damage reduces stacks, triggers move update on break.
         let new_stacks = modifier_stacks(modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(modifiers, ModifierKind::ModeShift);
             if target != character {
-                effects.push(Effect {
+                queue.push_front(Effect {
                     kind: EffectKind::MoveUpdate,
                     source: None,
                     target: Target::Direct(Some(target)),
@@ -40,12 +40,5 @@ pub fn process_effect_health_loss(
         }
     }
 
-    if effects.is_empty() {
-        ProcessEffectResult::Continue { top: vec![], bot: vec![] }
-    } else {
-        ProcessEffectResult::Continue {
-            top: effects,
-            bot: Vec::new(),
-        }
-    }
+    DispatchResult::Continue
 }

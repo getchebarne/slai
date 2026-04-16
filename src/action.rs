@@ -1,11 +1,11 @@
 // Action handling: player input -> effects.
 
-use crate::consts::{MAP_WIDTH, REST_SITE_HEAL_FACTOR};
+use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::map::{has_edge, node_at};
 use crate::state::{GameState, Position};
 use crate::types::Phase;
-use crate::utils::get_alive_monster_ids;
+use crate::utils::fill_alive_monster_ids;
 
 #[derive(Debug, Clone)]
 pub enum Action {
@@ -101,8 +101,9 @@ fn handle_card_play(
     if card.card_requires_target {
         match idx_monster {
             Some(idx_monster) => {
-                let id_monsters_alive = get_alive_monster_ids(state);
-                let id_monster_target = *id_monsters_alive
+                let mut buf = [0usize; MAX_MONSTERS];
+                let n = fill_alive_monster_ids(state, &mut buf);
+                let id_monster_target = *buf[..n]
                     .get(idx_monster)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx_monster))?;
 

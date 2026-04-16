@@ -1,7 +1,9 @@
+use std::collections::VecDeque;
+
 use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::map::active_room_type;
 use crate::monsters::spawn_monster;
@@ -27,24 +29,20 @@ pub fn process_effect_room_enter(
     monsters: &mut [usize],
     monster_count: &mut u8,
     rng: &mut impl Rng,
-) -> ProcessEffectResult {
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
     *monster_count = 0;
 
-    // Spawn monsters based on room type
-    let room = active_room_type(&map, entities).unwrap();
+    let room = active_room_type(map, entities).unwrap();
     match room {
         RoomType::CombatBoss => {
-            // TODO: other bosses
             let m = spawn_monster(MonsterName::TheGuardian, ascension, rng);
             push_monster(m, entities, monsters, monster_count);
-            ProcessEffectResult::Continue {
-                top: vec![Effect {
-                    kind: EffectKind::CombatStart,
-                    source: None,
-                    target: Target::Direct(None),
-                }],
-                bot: Vec::new(),
-            }
+            queue.push_front(Effect {
+                kind: EffectKind::CombatStart,
+                source: None,
+                target: Target::Direct(None),
+            });
         }
         RoomType::CombatMonster => {
             let encounter: u8 = rng.random_range(0..3);
@@ -65,18 +63,15 @@ pub fn process_effect_room_enter(
                 }
                 _ => unreachable!(),
             };
-            ProcessEffectResult::Continue {
-                top: vec![Effect {
-                    kind: EffectKind::CombatStart,
-                    source: None,
-                    target: Target::Direct(None),
-                }],
-                bot: Vec::new(),
-            }
+            queue.push_front(Effect {
+                kind: EffectKind::CombatStart,
+                source: None,
+                target: Target::Direct(None),
+            });
         }
-        RoomType::RestSite => ProcessEffectResult::Continue {
-            top: vec![Effect::direct(EffectKind::AwaitRestSiteAction, None, None)],
-            bot: Vec::new(),
-        },
+        RoomType::RestSite => {
+            queue.push_front(Effect::direct(EffectKind::AwaitRestSiteAction, None, None));
+        }
     }
+    DispatchResult::Continue
 }

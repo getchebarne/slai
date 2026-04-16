@@ -1,10 +1,10 @@
 use rand::Rng;
 
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::entity::{Entity, push_move_history};
 use crate::monsters;
 
-pub fn process_effect_move_update(entity: &mut Entity, rng: &mut impl Rng) -> ProcessEffectResult {
+pub fn process_effect_move_update(entity: &mut Entity, rng: &mut impl Rng) -> DispatchResult {
     let move_next = monsters::get_next_move(entity, rng);
     entity.move_current = Some(move_next);
     let move_idx = move_next as u8;
@@ -12,5 +12,5 @@ pub fn process_effect_move_update(entity: &mut Entity, rng: &mut impl Rng) -> Pr
     if monsters::is_cycle_boundary(entity.monster_name, move_idx) {
         entity.cycle_count += 1;
     }
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }

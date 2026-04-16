@@ -7,14 +7,14 @@
 
 use pyo3::prelude::*;
 
-use crate::consts::FACTOR_VULN;
+use crate::consts::{FACTOR_VULN, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent};
 use crate::map::edge_indices;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::state::{GameState, Position};
 use crate::types::Phase;
-use crate::utils::get_alive_monster_ids;
+use crate::utils::fill_alive_monster_ids;
 
 // ───────── Selection variants ─────────
 
@@ -357,7 +357,9 @@ fn build_view_character(state: &GameState) -> ViewCharacter {
 fn build_view_monsters(state: &GameState) -> Vec<ViewMonster> {
     let character_modifiers = &state.entities[state.character].modifiers;
 
-    get_alive_monster_ids(state)
+    let mut buf = [0usize; MAX_MONSTERS];
+    let n = fill_alive_monster_ids(state, &mut buf);
+    buf[..n]
         .iter()
         .map(|&mid| {
             let m = &state.entities[mid];

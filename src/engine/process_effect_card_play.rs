@@ -1,12 +1,12 @@
+use std::collections::VecDeque;
+
 use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::ProcessEffectResult;
-use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
-use crate::modifier::modifier_stacks;
-use crate::types::CardKind;
+use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::Entity;
+use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
+use crate::types::CardKind;
 
 pub fn process_effect_card_play(
     id_card: usize,
@@ -16,12 +16,13 @@ pub fn process_effect_card_play(
     _hand: &[usize],
     alive_monsters: &[usize],
     _rng: &mut impl Rng,
-) -> ProcessEffectResult {
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
     let card = &entities[id_card];
 
-    let mut top_effects = Vec::new();
+    let mut top = EffectBuf::new();
 
-    top_effects.push(Effect {
+    top.push(Effect {
         kind: EffectKind::EnergyLoss {
             amount: card.card_cost,
         },
@@ -30,44 +31,44 @@ pub fn process_effect_card_play(
     });
 
     if card.card_exhaust {
-        top_effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::CardExhaust,
             source: None,
             target: Target::Direct(Some(id_card)),
-        })
+        });
     } else if card.card_kind == CardKind::Power {
-        top_effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::CardRemove,
             source: None,
             target: Target::Direct(Some(id_card)),
-        })
+        });
     } else {
-        top_effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::CardDiscard,
             source: None,
             target: Target::Direct(Some(id_card)),
-        })
-    };
+        });
+    }
 
     let char_modifiers = &entities[character].modifiers;
 
-    // Modifier / After Image
+    // AfterImage
     if modifier_has(char_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
-        top_effects.push(Effect {
+        top.push(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
             source: Some(character),
             target: Target::Direct(Some(character)),
-        })
+        });
     }
 
-    // Modifier / Thousand Cuts
+    // ThousandCuts
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &id_monster in alive_monsters {
-            top_effects.push(Effect {
+            top.push(Effect {
                 kind: EffectKind::DamagePhysical {
                     base: stacks as u16,
                 },
@@ -77,13 +78,13 @@ pub fn process_effect_card_play(
         }
     }
 
-    // Modifier / Sharp Hide
+    // SharpHide (reflects on attack cards)
     if card.card_kind == CardKind::Attack {
         for &id_monster in alive_monsters {
             let monster_modifiers = &entities[id_monster].modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
-                top_effects.push(Effect {
+                top.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks as u16,
                     },
@@ -94,19 +95,19 @@ pub fn process_effect_card_play(
         }
     }
 
-    let card_effects: Vec<Effect> = card
-        .card_effects
-        .iter()
-        .map(|e| Effect {
-            source: Some(character),
-            ..*e
-        })
-        .collect();
-
-    if modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill {
-        top_effects.extend(card_effects.iter().cloned());
-        top_effects.extend(card_effects);
-        top_effects.push(Effect {
+    // Card effects. Burst (skill-only) doubles them.
+    let burst = modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
+    let reps = if burst { 2 } else { 1 };
+    for _ in 0..reps {
+        for e in card.card_effects.iter() {
+            top.push(Effect {
+                source: Some(character),
+                ..*e
+            });
+        }
+    }
+    if burst {
+        top.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Burst,
                 stacks: -1,
@@ -114,12 +115,8 @@ pub fn process_effect_card_play(
             source: Some(character),
             target: Target::Direct(Some(character)),
         });
-    } else {
-        top_effects.extend(card_effects);
     }
 
-    ProcessEffectResult::Continue {
-        top: top_effects,
-        bot: Vec::new(),
-    }
+    top.push_all_front(queue);
+    DispatchResult::Continue
 }

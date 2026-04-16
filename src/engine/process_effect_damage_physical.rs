@@ -1,6 +1,8 @@
+use std::collections::VecDeque;
+
 use crate::consts::{FACTOR_VULN, FACTOR_WEAK};
 use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 
 pub fn process_effect_damage_physical(
@@ -8,7 +10,8 @@ pub fn process_effect_damage_physical(
     target_mods: &Modifiers,
     target: usize,
     base: u16,
-) -> ProcessEffectResult {
+    queue: &mut VecDeque<Effect>,
+) -> DispatchResult {
     let mut value = base as f32;
 
     // Source modifiers
@@ -27,20 +30,15 @@ pub fn process_effect_damage_physical(
         value *= FACTOR_VULN;
     }
 
-    // Emit DamageDeal if positive
     let final_damage = value.max(0.0) as u16;
     if final_damage > 0 {
-        ProcessEffectResult::Continue {
-            top: vec![Effect {
-                kind: EffectKind::DamageDeal {
-                    amount: final_damage,
-                },
-                source: None,
-                target: Target::Direct(Some(target)),
-            }],
-            bot: Vec::new(),
-        }
-    } else {
-        ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+        queue.push_front(Effect {
+            kind: EffectKind::DamageDeal {
+                amount: final_damage,
+            },
+            source: None,
+            target: Target::Direct(Some(target)),
+        });
     }
+    DispatchResult::Continue
 }

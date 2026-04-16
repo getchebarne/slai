@@ -1,10 +1,10 @@
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_remove};
 
 pub fn process_effect_modifier_remove(
     modifiers: &mut Modifiers,
     kind: ModifierKind,
-) -> ProcessEffectResult {
+) -> DispatchResult {
     modifier_remove(modifiers, kind);
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }

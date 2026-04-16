@@ -1,5 +1,5 @@
 use crate::consts::MAX_SIZE_HAND;
-use crate::engine::ProcessEffectResult;
+use crate::engine::DispatchResult;
 use crate::utils::shuffle;
 
 use rand::Rng;
@@ -10,7 +10,7 @@ pub fn process_effect_card_draw(
     hand: &mut Vec<usize>,
     discard_pile: &mut Vec<usize>,
     rng: &mut impl Rng,
-) -> ProcessEffectResult {
+) -> DispatchResult {
     for _ in 0..count {
         if draw_pile.is_empty() {
             // Move discard pile cards to draw pile & shuffle draw pile
@@ -35,5 +35,5 @@ pub fn process_effect_card_draw(
     }
 
     // Continue
-    ProcessEffectResult::Continue { top: vec![], bot: vec![] }
+    DispatchResult::Continue
 }
