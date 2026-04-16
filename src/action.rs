@@ -2,8 +2,8 @@
 
 use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
-use crate::map::{has_edge, node_at};
-use crate::state::{GameState, Position};
+use crate::map::{has_edge, room_at};
+use crate::state::{GameState, Location};
 use crate::types::Phase;
 use crate::utils::fill_alive_monster_ids;
 
@@ -170,21 +170,19 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
     }
 
     // Compute next y-coordinate from current position
-    let y_next = match state.map.position {
-        Position::Start => 0,
-        Position::Overworld { y, .. } => y + 1,
-        Position::BossRoom => return Err("Cannot pick a map node from the boss room".into()),
+    let y_next = match state.location {
+        Location::Start => 0,
+        Location::Overworld { y, .. } => y + 1,
+        Location::BossRoom => return Err("Cannot pick a map node from the boss room".into()),
     };
 
-    // Validate node exists at (y_next, idx_column)
-    let id_room = state.map.id_nodes[y_next][idx_column]
-        .ok_or_else(|| format!("No node at ({}, {})", y_next, idx_column))?;
+    let id_room = state.id_rooms[y_next][idx_column]
+        .ok_or_else(|| format!("No room at ({}, {})", y_next, idx_column))?;
 
-    // Validate edge from current node (skip for first move)
-    if let Position::Overworld { y, x } = state.map.position {
-        let current_node = node_at(&state.map, &state.entities, y, x)
-            .expect("current map node missing");
-        if !has_edge(current_node.edges, idx_column) {
+    if let Location::Overworld { y, x } = state.location {
+        let current_room = room_at(&state.id_rooms, &state.entities, y, x)
+            .expect("current room missing");
+        if !has_edge(current_room.edges, idx_column) {
             return Err(format!(
                 "No edge from ({}, {}) to ({}, {})",
                 y, x, y_next, idx_column
@@ -193,7 +191,7 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
     }
 
     // Return a Direct RoomSelect effect. Its dispatch arm will update
-    // state.map.position and push a RoomEnter effect.
+    // state.location and push a RoomEnter effect.
     Ok(vec![Effect::direct(
         EffectKind::RoomSelect,
         None,

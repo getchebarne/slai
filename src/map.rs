@@ -5,7 +5,7 @@ use rand::Rng;
 
 use crate::consts::*;
 use crate::entity::{Entity, room_entity};
-use crate::state::{Map, Position};
+use crate::state::Location;
 use crate::types::RoomType;
 
 // Intermediate grid-cell during map generation. Converted to `Entity` via
@@ -32,36 +32,36 @@ pub fn edge_indices(edges: u8) -> impl Iterator<Item = usize> {
     (0..MAP_WIDTH).filter(move |&x| edges & (1 << x) != 0)
 }
 
-/// Look up the node at `(y, x)` via the entity array.
-pub fn node_at<'a>(map: &Map, entities: &'a [Entity], y: usize, x: usize) -> Option<&'a Entity> {
-    let id_room = map.id_nodes[y][x]?;
+pub fn room_at<'a>(
+    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    entities: &'a [Entity],
+    y: usize,
+    x: usize,
+) -> Option<&'a Entity> {
+    let id_room = id_rooms[y][x]?;
     Some(&entities[id_room])
 }
 
-/// Look up the node at the player's current position, if any. Returns
-/// `None` at `Start` (no node picked yet) and at `BossRoom` (off the grid).
-pub fn active_node<'a>(map: &Map, entities: &'a [Entity]) -> Option<&'a Entity> {
-    match map.position {
-        Position::Overworld { y, x } => node_at(map, entities, y, x),
-        Position::Start | Position::BossRoom => None,
-    }
-}
-
-/// The room type of the player's current position. Returns `None` at
-/// `Start`, `Some(CombatBoss)` in the boss room.
-pub fn active_room_type(map: &Map, entities: &[Entity]) -> Option<RoomType> {
-    match map.position {
-        Position::Start => None,
-        Position::BossRoom => Some(RoomType::CombatBoss),
-        Position::Overworld { y, x } => node_at(map, entities, y, x).map(|n| n.room_type),
+pub fn active_room_type(
+    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    location: Location,
+    entities: &[Entity],
+) -> Option<RoomType> {
+    match location {
+        Location::Start => None,
+        Location::BossRoom => Some(RoomType::CombatBoss),
+        Location::Overworld { y, x } => room_at(id_rooms, entities, y, x).map(|n| n.room_type),
     }
 }
 
 // ───────── Generation ─────────
 
-/// Generates a map and pushes each room into `entities`. Returns a `Map`
-/// whose grid stores entity ids referencing the entities just pushed.
-pub fn generate_map(rng: &mut impl Rng, entities: &mut Vec<Entity>) -> Map {
+type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
+
+pub fn generate_map(
+    rng: &mut impl Rng,
+    entities: &mut Vec<Entity>,
+) -> (IdRooms, Location) {
     let grid = generate_grid(rng);
     entitize_grid(grid, entities)
 }
@@ -121,21 +121,18 @@ fn generate_grid(rng: &mut impl Rng) -> Grid {
     nodes
 }
 
-fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> Map {
-    let mut id_nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT] = [[None; MAP_WIDTH]; MAP_HEIGHT];
+fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> (IdRooms, Location) {
+    let mut id_rooms: IdRooms = [[None; MAP_WIDTH]; MAP_HEIGHT];
     for (y, row) in grid.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
-            if let Some(node) = cell {
-                let id = entities.len();
-                entities.push(room_entity(node.y, node.x, node.room_type, node.edges));
-                id_nodes[y][x] = Some(id);
+            if let Some(room) = cell {
+                let id_room = entities.len();
+                entities.push(room_entity(room.y, room.x, room.room_type, room.edges));
+                id_rooms[y][x] = Some(id_room);
             }
         }
     }
-    Map {
-        id_nodes,
-        position: Position::Start,
-    }
+    (id_rooms, Location::Start)
 }
 
 fn create_target(
@@ -156,7 +153,7 @@ fn create_target(
 
     let mut x_target = (x_source as i32 + offset_x).clamp(0, MAP_WIDTH as i32 - 1) as usize;
 
-    let target_parents = get_node_parents(y_target, x_target, nodes);
+    let target_parents = get_room_parents(y_target, x_target, nodes);
     for &(py, px) in &target_parents {
         if py == y_source && px == x_source {
             continue;
@@ -179,8 +176,8 @@ fn create_target(
     // Trim to prevent path overlap (left to right)
     if x_source > 0 {
         let x_left = x_source - 1;
-        if let Some(ref node_left) = nodes[y_source][x_left] {
-            for x_t in edge_indices(node_left.edges) {
+        if let Some(ref room_left) = nodes[y_source][x_left] {
+            for x_t in edge_indices(room_left.edges) {
                 if x_t > x_target {
                     x_target = x_t;
                 }
@@ -191,8 +188,8 @@ fn create_target(
     // Right to left
     if x_source < MAP_WIDTH - 1 {
         let x_right = x_source + 1;
-        if let Some(ref node_right) = nodes[y_source][x_right] {
-            for x_t in edge_indices(node_right.edges) {
+        if let Some(ref room_right) = nodes[y_source][x_right] {
+            for x_t in edge_indices(room_right.edges) {
                 if x_t < x_target {
                     x_target = x_t;
                 }
@@ -203,7 +200,7 @@ fn create_target(
     (y_target, x_target)
 }
 
-fn get_node_parents(y: usize, x: usize, nodes: &Grid) -> Vec<(usize, usize)> {
+fn get_room_parents(y: usize, x: usize, nodes: &Grid) -> Vec<(usize, usize)> {
     if y == 0 {
         return Vec::new();
     }
@@ -228,8 +225,8 @@ fn get_common_ancestor(
         return None;
     }
 
-    let parents_a = get_node_parents(node1.0, node1.1, nodes);
-    let parents_b = get_node_parents(node2.0, node2.1, nodes);
+    let parents_a = get_room_parents(node1.0, node1.1, nodes);
+    let parents_b = get_room_parents(node2.0, node2.1, nodes);
 
     for pa in &parents_a {
         if parents_b.contains(pa) {
@@ -270,10 +267,10 @@ fn assign_room_types(nodes: &mut Grid, rng: &mut impl Rng) {
         }
     }
 
-    let num_nodes = positions.len();
-    let num_rest = (FACTOR_NUM_REST_SITE * num_nodes as f32) as usize;
+    let num_rooms = positions.len();
+    let num_rest = (FACTOR_NUM_REST_SITE * num_rooms as f32) as usize;
 
-    let mut types = vec![RoomType::CombatMonster; num_nodes];
+    let mut types = vec![RoomType::CombatMonster; num_rooms];
     for t in types.iter_mut().take(num_rest) {
         *t = RoomType::RestSite;
     }

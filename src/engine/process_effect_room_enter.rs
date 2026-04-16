@@ -5,9 +5,10 @@ use rand::Rng;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
+use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::map::active_room_type;
 use crate::monsters::spawn_monster;
-use crate::state::Map;
+use crate::state::Location;
 use crate::types::{MonsterName, RoomType};
 
 fn push_monster(
@@ -23,7 +24,8 @@ fn push_monster(
 }
 
 pub fn process_effect_room_enter(
-    map: &Map,
+    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    location: Location,
     ascension: u8,
     entities: &mut Vec<Entity>,
     id_monsters: &mut [usize],
@@ -33,7 +35,7 @@ pub fn process_effect_room_enter(
 ) -> DispatchResult {
     *monster_count = 0;
 
-    let room = active_room_type(map, entities).unwrap();
+    let room = active_room_type(id_rooms, location, entities).unwrap();
     match room {
         RoomType::CombatBoss => {
             let m = spawn_monster(MonsterName::TheGuardian, ascension, rng);

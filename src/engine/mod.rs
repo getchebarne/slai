@@ -39,7 +39,7 @@ use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, EntityType};
 use crate::map::has_edge;
-use crate::state::{GameState, Map, Position};
+use crate::state::{GameState, Location};
 use crate::types::Phase;
 use crate::utils::{fill_alive_monster_ids, shuffle};
 
@@ -145,7 +145,8 @@ pub(crate) fn resolve_candidates(
     id_hand: &[usize],
     id_card_target: Option<usize>,
     id_alive_monsters: &[usize],
-    map: &Map,
+    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    location: Location,
     entities: &[Entity],
     id_card_rewards: &[usize],
     buf_cands: &mut CandidateBuf,
@@ -157,31 +158,31 @@ pub(crate) fn resolve_candidates(
         CandidatePool::Monsters => buf_cands.extend_from_slice(id_alive_monsters),
         CandidatePool::Source => buf_cands.push(id_source),
         CandidatePool::CardRewardPool => buf_cands.extend_from_slice(id_card_rewards),
-        CandidatePool::NextRowRooms => match map.position {
-            Position::Start => {
+        CandidatePool::NextRowRooms => match location {
+            Location::Start => {
                 for col in 0..MAP_WIDTH {
-                    if let Some(id_room) = map.id_nodes[0][col] {
+                    if let Some(id_room) = id_rooms[0][col] {
                         buf_cands.push(id_room);
                     }
                 }
             }
-            Position::Overworld { y, x } => {
+            Location::Overworld { y, x } => {
                 let y_next = y + 1;
                 if y_next >= MAP_HEIGHT {
                     return;
                 }
-                if let Some(id_current) = map.id_nodes[y][x] {
-                    let current_node = &entities[id_current];
+                if let Some(id_current) = id_rooms[y][x] {
+                    let current_room = &entities[id_current];
                     for col in 0..MAP_WIDTH {
-                        if has_edge(current_node.edges, col) {
-                            if let Some(id_room) = map.id_nodes[y_next][col] {
+                        if has_edge(current_room.edges, col) {
+                            if let Some(id_room) = id_rooms[y_next][col] {
                                 buf_cands.push(id_room);
                             }
                         }
                     }
                 }
             }
-            Position::BossRoom => {}
+            Location::BossRoom => {}
         },
     }
 }
@@ -194,7 +195,8 @@ fn resolve_targets(
     id_hand: &[usize],
     id_card_target: Option<usize>,
     id_alive_monsters: &[usize],
-    map: &Map,
+    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    location: Location,
     entities: &[Entity],
     id_card_rewards: &[usize],
     rng: &mut impl Rng,
@@ -207,7 +209,8 @@ fn resolve_targets(
         id_hand,
         id_card_target,
         id_alive_monsters,
-        map,
+        id_rooms,
+        location,
         entities,
         id_card_rewards,
         buf_cands,
@@ -269,7 +272,8 @@ fn resolve_or_halt(
         &state.id_hand,
         state.id_card_target,
         &buf_alive[..alive_n],
-        &state.map,
+        &state.id_rooms,
+        state.location,
         &state.entities,
         &state.id_card_rewards,
         &mut state.rng,
@@ -523,7 +527,8 @@ fn dispatch_by_kind(
             &mut state.id_card_target,
             &mut state.entities,
             &mut state.monster_count,
-            &state.map,
+            &state.id_rooms,
+            state.location,
             &mut state.effect_queue,
         ),
         EffectKind::TurnStart => {
@@ -576,7 +581,8 @@ fn dispatch_by_kind(
             process_effect_move_update::process_effect_move_update(entity, &mut state.rng)
         }
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(
-            &state.map,
+            &state.id_rooms,
+            state.location,
             state.ascension,
             &mut state.entities,
             &mut state.id_monsters,
@@ -585,7 +591,7 @@ fn dispatch_by_kind(
             &mut state.effect_queue,
         ),
         EffectKind::RestSiteExit => process_effect_rest_site_exit::process_effect_rest_site_exit(
-            &mut state.map,
+            &mut state.location,
             &mut state.effect_queue,
         ),
         // Halt-kind variants: represent pending player decisions.
@@ -594,10 +600,10 @@ fn dispatch_by_kind(
         // resolution they're handled by the `Resolve` branch in `process_effect`.
         EffectKind::RoomSelect => {
             let id_room = id_target.expect("RoomSelect Direct form must have target");
-            let node = &state.entities[id_room];
-            state.map.position = Position::Overworld {
-                y: node.node_y,
-                x: node.node_x,
+            let room = &state.entities[id_room];
+            state.location = Location::Overworld {
+                y: room.room_y,
+                x: room.room_x,
             };
             state
                 .effect_queue

@@ -30,7 +30,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_deck.push(id_card);
     }
 
-    let map = generate_map(&mut rng, &mut entities);
+    let (id_rooms, location) = generate_map(&mut rng, &mut entities);
 
     // Seed the queue with the initial RoomSelect prompt so the player
     // starts halted on the first map pick.
@@ -60,7 +60,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_exhaust_pile: Vec::with_capacity(32),
         id_card_target: None,
         id_card_rewards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
-        map,
+        id_rooms,
+        location,
         effect_queue,
     };
 

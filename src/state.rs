@@ -1,15 +1,11 @@
-// GameState and supporting structs.
-
-use std::collections::VecDeque;
-
 use rand::rngs::SmallRng;
+use std::collections::VecDeque;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::Effect;
 use crate::entity::Entity;
 use crate::types::*;
 
-// Energy
 #[derive(Debug, Clone, Copy)]
 pub struct Energy {
     pub current: u8,
@@ -17,19 +13,10 @@ pub struct Energy {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Position {
-    // Fresh run — haven't picked a starting node yet
+pub enum Location {
     Start,
-    // On a map node at `(y, x)` where `y < MAP_HEIGHT`
     Overworld { y: usize, x: usize },
-    // In the boss room. The boss room isn't part of the grid
     BossRoom,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Map {
-    pub id_nodes: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-    pub position: Position,
 }
 
 // GameState: the single source of truth
@@ -38,24 +25,19 @@ pub struct GameState {
     pub ascension: u8,
     pub rng: SmallRng,
 
-    // State-machine to track game phases, e.g.
-    //     map
-    //     combat (default or discard selection)
-    //     rest site
-    //     card reward selection
     pub phase: Phase,
 
-    // Effect queue (the program)
+    // Effect queue
     pub effect_queue: VecDeque<Effect>,
 
     // Map
-    pub map: Map,
+    pub id_rooms: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    pub location: Location,
 
     // Energy
     pub energy: Energy,
 
-    // Entities TODO: max entities?
-    // --------
+    // Entities
     pub entities: Vec<Entity>,
 
     // Entities / Character

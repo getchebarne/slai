@@ -89,8 +89,8 @@ pub struct Entity {
     pub card_effects: &'static [Effect],
 
     // Room-only
-    pub node_y: usize,
-    pub node_x: usize,
+    pub room_y: usize,
+    pub room_x: usize,
     pub room_type: RoomType,
     pub edges: u8,
 }
@@ -121,8 +121,8 @@ const ZERO_ENTITY: Entity = Entity {
     card_innate: false,
     card_requires_target: false,
     card_effects: &[],
-    node_y: 0,
-    node_x: 0,
+    room_y: 0,
+    room_x: 0,
     room_type: RoomType::CombatBoss,
     edges: 0,
 };
@@ -192,8 +192,8 @@ pub const fn card_entity(
 pub const fn room_entity(y: usize, x: usize, room_type: RoomType, edges: u8) -> Entity {
     Entity {
         kind: EntityType::Room,
-        node_y: y,
-        node_x: x,
+        room_y: y,
+        room_x: x,
         room_type,
         edges,
         ..ZERO_ENTITY

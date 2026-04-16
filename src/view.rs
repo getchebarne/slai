@@ -12,7 +12,7 @@ use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent};
 use crate::map::edge_indices;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
-use crate::state::{GameState, Position};
+use crate::state::{GameState, Location};
 use crate::types::Phase;
 use crate::utils::fill_alive_monster_ids;
 
@@ -228,7 +228,7 @@ pub struct ViewMapNode {
 #[pyclass(name = "Map", frozen, get_all)]
 #[derive(Debug, Clone)]
 pub struct ViewMap {
-    pub nodes: Vec<Vec<Option<ViewMapNode>>>,
+    pub rooms: Vec<Vec<Option<ViewMapNode>>>,
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
 }
@@ -602,18 +602,17 @@ fn candidate_pool_str(c: CandidatePool) -> String {
 }
 
 fn build_view_map(state: &GameState) -> ViewMap {
-    let nodes = state
-        .map
-        .id_nodes
+    let rooms = state
+        .id_rooms
         .iter()
         .map(|row| {
             row.iter()
                 .map(|cell| {
-                    cell.map(|id| {
-                        let node = &state.entities[id];
+                    cell.map(|id_room| {
+                        let room = &state.entities[id_room];
                         ViewMapNode {
-                            room_type: format!("{:?}", node.room_type),
-                            edges: edge_indices(node.edges).collect(),
+                            room_type: format!("{:?}", room.room_type),
+                            edges: edge_indices(room.edges).collect(),
                         }
                     })
                 })
@@ -621,16 +620,13 @@ fn build_view_map(state: &GameState) -> ViewMap {
         })
         .collect();
 
-    // Derive flat (y, x) for the Python view from the Position enum so the
-    // frontend keeps its simple shape. Start -> (None, None); Overworld -> both
-    // Some; BossRoom -> (Some(MAP_HEIGHT), Some(0)) — the out-of-grid sentinel.
-    let (y_current, x_current) = match state.map.position {
-        Position::Start => (None, None),
-        Position::Overworld { y, x } => (Some(y), Some(x)),
-        Position::BossRoom => (Some(crate::consts::MAP_HEIGHT), Some(0)),
+    let (y_current, x_current) = match state.location {
+        Location::Start => (None, None),
+        Location::Overworld { y, x } => (Some(y), Some(x)),
+        Location::BossRoom => (Some(crate::consts::MAP_HEIGHT), Some(0)),
     };
     ViewMap {
-        nodes,
+        rooms,
         y_current,
         x_current,
     }

@@ -2,10 +2,11 @@ use std::collections::VecDeque;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
+use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::entity::Entity;
 use crate::map::active_room_type;
 use crate::modifier::modifier_clear;
-use crate::state::Map;
+use crate::state::Location;
 use crate::types::RoomType;
 
 pub fn process_effect_combat_end(
@@ -17,7 +18,8 @@ pub fn process_effect_combat_end(
     id_card_target: &mut Option<usize>,
     entities: &mut Vec<Entity>,
     monster_count: &mut u8,
-    map: &Map,
+    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    location: Location,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     id_hand.clear();
@@ -26,7 +28,7 @@ pub fn process_effect_combat_end(
     id_exhaust_pile.clear();
     *id_card_target = None;
 
-    let room = active_room_type(map, entities).unwrap();
+    let room = active_room_type(id_rooms, location, entities).unwrap();
 
     modifier_clear(&mut entities[id_character].modifiers);
     *monster_count = 0;
