@@ -91,7 +91,7 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ffi::CardKind>()?;
     m.add_class::<ffi::CardColor>()?;
     m.add_class::<ffi::CardRarity>()?;
-    m.add_class::<ffi::RoomType>()?;
+    m.add_class::<ffi::RoomKind>()?;
     m.add_class::<ffi::ModifierKind>()?;
     m.add_class::<ffi::CandidatePool>()?;
     // Complex enum mirrors

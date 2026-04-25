@@ -6,7 +6,7 @@ use rand::Rng;
 use crate::consts::*;
 use crate::entity::{Entity, make_entity_room};
 use crate::state::Location;
-use crate::types::RoomType;
+use crate::types::RoomKind;
 
 // Intermediate grid-cell during map generation. Converted to `Entity` via
 // `entitize_map` once the grid is finalized.
@@ -14,7 +14,7 @@ use crate::types::RoomType;
 struct Room {
     pub y: usize,
     pub x: usize,
-    pub room_type: RoomType,
+    pub room_kind: RoomKind,
     pub edges: u8,
 }
 
@@ -42,15 +42,15 @@ pub fn room_at<'a>(
     Some(&entities[id_room])
 }
 
-pub fn active_room_type(
+pub fn active_room_kind(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
-) -> Option<RoomType> {
+) -> Option<RoomKind> {
     match location {
         Location::Start => None,
-        Location::BossRoom => Some(RoomType::CombatBoss),
-        Location::Overworld { y, x } => room_at(id_rooms, entities, y, x).map(|n| n.room_type),
+        Location::BossRoom => Some(RoomKind::CombatBoss),
+        Location::Overworld { y, x } => room_at(id_rooms, entities, y, x).map(|n| n.room_kind),
     }
 }
 
@@ -85,7 +85,7 @@ fn generate_grid(rng: &mut impl Rng) -> Grid {
             nodes[y_source][x_source] = Some(Room {
                 y: y_source,
                 x: x_source,
-                room_type: RoomType::CombatMonster,
+                room_kind: RoomKind::CombatMonster,
                 edges: 0,
             });
         }
@@ -101,7 +101,7 @@ fn generate_grid(rng: &mut impl Rng) -> Grid {
                 nodes[y_target][x_target] = Some(Room {
                     y: y_target,
                     x: x_target,
-                    room_type: RoomType::CombatMonster,
+                    room_kind: RoomKind::CombatMonster,
                     edges: 0,
                 });
             }
@@ -116,7 +116,7 @@ fn generate_grid(rng: &mut impl Rng) -> Grid {
     }
 
     trim_redundant_first_row_edges(&mut nodes);
-    assign_room_types(&mut nodes, rng);
+    assign_room_kinds(&mut nodes, rng);
 
     nodes
 }
@@ -127,7 +127,7 @@ fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> (IdRooms, Location) 
         for (x, cell) in row.iter().enumerate() {
             if let Some(room) = cell {
                 let id_room = entities.len();
-                entities.push(make_entity_room(room.y, room.x, room.room_type, room.edges));
+                entities.push(make_entity_room(room.y, room.x, room.room_kind, room.edges));
                 id_rooms[y][x] = Some(id_room);
             }
         }
@@ -257,7 +257,7 @@ fn trim_redundant_first_row_edges(nodes: &mut Grid) {
     }
 }
 
-fn assign_room_types(nodes: &mut Grid, rng: &mut impl Rng) {
+fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
     let mut positions: Vec<(usize, usize)> = Vec::new();
     for (y, row) in nodes.iter().enumerate() {
         for (x, node) in row.iter().enumerate() {
@@ -270,9 +270,9 @@ fn assign_room_types(nodes: &mut Grid, rng: &mut impl Rng) {
     let num_rooms = positions.len();
     let num_rest = (FACTOR_NUM_REST_SITE * num_rooms as f32) as usize;
 
-    let mut types = vec![RoomType::CombatMonster; num_rooms];
+    let mut types = vec![RoomKind::CombatMonster; num_rooms];
     for t in types.iter_mut().take(num_rest) {
-        *t = RoomType::RestSite;
+        *t = RoomKind::RestSite;
     }
 
     for i in (1..types.len()).rev() {
@@ -282,14 +282,14 @@ fn assign_room_types(nodes: &mut Grid, rng: &mut impl Rng) {
 
     for (i, &(y, x)) in positions.iter().enumerate() {
         if let Some(node) = &mut nodes[y][x] {
-            node.room_type = types[i];
+            node.room_kind = types[i];
         }
     }
 
     // Last floor is all rest sites
     for node in &mut nodes[MAP_HEIGHT - 1] {
         if let Some(n) = node {
-            n.room_type = RoomType::RestSite;
+            n.room_kind = RoomKind::RestSite;
         }
     }
 }

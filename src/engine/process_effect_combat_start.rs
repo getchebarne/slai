@@ -11,10 +11,10 @@ pub fn process_effect_combat_start(
     id_character: usize,
     id_deck: &[usize],
     entities: &mut Vec<Entity>,
-    id_draw_pile: &mut Vec<usize>,
+    id_pile_draw: &mut Vec<usize>,
     id_hand: &mut Vec<usize>,
-    id_discard_pile: &mut Vec<usize>,
-    id_exhaust_pile: &mut Vec<usize>,
+    id_pile_discard: &mut Vec<usize>,
+    id_pile_exhaust: &mut Vec<usize>,
     id_card_target: &mut Option<usize>,
     id_monsters: &[usize],
     monster_count: u8,
@@ -40,12 +40,12 @@ pub fn process_effect_combat_start(
     }
 
     shuffle(&mut other_ids, rng);
-    *id_draw_pile = other_ids;
-    id_draw_pile.extend(innate_ids);
+    *id_pile_draw = other_ids;
+    id_pile_draw.extend(innate_ids);
 
     id_hand.clear();
-    id_discard_pile.clear();
-    id_exhaust_pile.clear();
+    id_pile_discard.clear();
+    id_pile_exhaust.clear();
     *id_card_target = None;
 
     // Queue initial effects: MoveUpdate for each monster (original order), then TurnStart.

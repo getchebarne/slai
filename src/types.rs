@@ -139,7 +139,7 @@ pub enum MonsterKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum RoomType {
+pub enum RoomKind {
     CombatBoss,
     CombatMonster,
     RestSite,

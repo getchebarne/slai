@@ -4,17 +4,17 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::entity::Entity;
-use crate::map::active_room_type;
+use crate::map::active_room_kind;
 use crate::modifier::modifier_clear;
 use crate::state::Location;
-use crate::types::RoomType;
+use crate::types::RoomKind;
 
 pub fn process_effect_combat_end(
     id_character: usize,
     id_hand: &mut Vec<usize>,
-    id_draw_pile: &mut Vec<usize>,
-    id_discard_pile: &mut Vec<usize>,
-    id_exhaust_pile: &mut Vec<usize>,
+    id_pile_draw: &mut Vec<usize>,
+    id_pile_discard: &mut Vec<usize>,
+    id_pile_exhaust: &mut Vec<usize>,
     id_card_target: &mut Option<usize>,
     entities: &mut Vec<Entity>,
     monster_count: &mut u8,
@@ -23,28 +23,28 @@ pub fn process_effect_combat_end(
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     id_hand.clear();
-    id_draw_pile.clear();
-    id_discard_pile.clear();
-    id_exhaust_pile.clear();
+    id_pile_draw.clear();
+    id_pile_discard.clear();
+    id_pile_exhaust.clear();
     *id_card_target = None;
 
-    let room = active_room_type(id_rooms, location, entities).unwrap();
+    let room = active_room_kind(id_rooms, location, entities).unwrap();
 
     modifier_clear(&mut entities[id_character].modifiers);
     *monster_count = 0;
     match room {
-        RoomType::CombatBoss => {
+        RoomKind::CombatBoss => {
             queue.clear();
             queue.push_back(Effect::direct(EffectKind::GameOver, None, None));
         }
-        RoomType::CombatMonster => {
+        RoomKind::CombatMonster => {
             queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
                 id_source: None,
                 target: Target::Direct(None),
             });
         }
-        RoomType::RestSite => unreachable!("combat end in rest site"),
+        RoomKind::RestSite => unreachable!("combat end in rest site"),
     }
     DispatchResult::Continue
 }

@@ -1,4 +1,4 @@
-pub mod process_effect_add_shivs;
+pub mod process_effect_shiv_add;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
@@ -37,7 +37,7 @@ use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, EntityType};
+use crate::entity::{Entity, EntityKind};
 use crate::map::has_edge;
 use crate::state::{GameState, Location};
 use crate::types::Phase;
@@ -313,9 +313,9 @@ fn dispatch_by_kind(
     match kind {
         EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
             count,
-            &mut state.id_draw_pile,
+            &mut state.id_pile_draw,
             &mut state.id_hand,
-            &mut state.id_discard_pile,
+            &mut state.id_pile_discard,
             &mut state.rng,
         ),
         EffectKind::CardPlay => {
@@ -339,7 +339,7 @@ fn dispatch_by_kind(
             process_effect_card_discard::process_effect_card_discard(
                 id_card,
                 &mut state.id_hand,
-                &mut state.id_discard_pile,
+                &mut state.id_pile_discard,
             )
         }
         EffectKind::CardExhaust => {
@@ -347,18 +347,18 @@ fn dispatch_by_kind(
             process_effect_card_exhaust::process_effect_card_exhaust(
                 id_card,
                 &mut state.id_hand,
-                &mut state.id_exhaust_pile,
+                &mut state.id_pile_exhaust,
             )
         }
         EffectKind::CardRemove => {
             let id_card = id_target.unwrap();
             process_effect_card_remove::process_effect_card_remove(id_card, &mut state.id_hand)
         }
-        EffectKind::AddShivs { count } => process_effect_add_shivs::process_effect_add_shivs(
+        EffectKind::ShivAdd { count } => process_effect_shiv_add::process_effect_shiv_add(
             count,
             &mut state.entities,
             &mut state.id_hand,
-            &mut state.id_discard_pile,
+            &mut state.id_pile_discard,
         ),
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(
@@ -438,7 +438,7 @@ fn dispatch_by_kind(
         EffectKind::BlockGain { amount } => {
             let id_target = id_target.unwrap();
             let from_card = match id_source {
-                Some(id) => state.entities[id].kind == EntityType::Card,
+                Some(id) => state.entities[id].kind == EntityKind::Card,
                 None => false,
             };
             let entity = &mut state.entities[id_target];
@@ -464,7 +464,7 @@ fn dispatch_by_kind(
             let id_target = id_target.unwrap();
             let entity = &mut state.entities[id_target];
             let cycle_count = match entity.kind {
-                EntityType::Monster => Some(entity.cycle_count),
+                EntityKind::Monster => Some(entity.cycle_count),
                 _ => None
             };
             process_effect_modifier_gain::process_effect_modifier_gain(
@@ -509,10 +509,10 @@ fn dispatch_by_kind(
             state.id_character,
             &state.id_deck,
             &mut state.entities,
-            &mut state.id_draw_pile,
+            &mut state.id_pile_draw,
             &mut state.id_hand,
-            &mut state.id_discard_pile,
-            &mut state.id_exhaust_pile,
+            &mut state.id_pile_discard,
+            &mut state.id_pile_exhaust,
             &mut state.id_card_target,
             &state.id_monsters,
             state.monster_count,
@@ -522,9 +522,9 @@ fn dispatch_by_kind(
         EffectKind::CombatEnd => process_effect_combat_end::process_effect_combat_end(
             state.id_character,
             &mut state.id_hand,
-            &mut state.id_draw_pile,
-            &mut state.id_discard_pile,
-            &mut state.id_exhaust_pile,
+            &mut state.id_pile_draw,
+            &mut state.id_pile_discard,
+            &mut state.id_pile_exhaust,
             &mut state.id_card_target,
             &mut state.entities,
             &mut state.monster_count,

@@ -6,31 +6,31 @@ use rand::Rng;
 
 pub fn process_effect_card_draw(
     count: u8,
-    id_draw_pile: &mut Vec<usize>,
+    id_pile_draw: &mut Vec<usize>,
     id_hand: &mut Vec<usize>,
-    id_discard_pile: &mut Vec<usize>,
+    id_pile_discard: &mut Vec<usize>,
     rng: &mut impl Rng,
 ) -> DispatchResult {
     for _ in 0..count {
-        if id_draw_pile.is_empty() {
+        if id_pile_draw.is_empty() {
             // Move discard pile cards to draw pile & shuffle draw pile
             // TODO: this should create a shuffle effect
-            id_draw_pile.append(id_discard_pile);
-            shuffle(id_draw_pile, rng);
+            id_pile_draw.append(id_pile_discard);
+            shuffle(id_pile_draw, rng);
         }
 
         // If the draw pile is still empty, no cards can be drawn. Should only
         // happen for very thin decks
-        if id_draw_pile.is_empty() {
+        if id_pile_draw.is_empty() {
             break;
         }
 
         // Get the card's id and add it to the hand or discard pile according to hand length
-        let id_card = id_draw_pile.pop().unwrap();
+        let id_card = id_pile_draw.pop().unwrap();
         if id_hand.len() < MAX_SIZE_HAND {
             id_hand.push(id_card);
         } else {
-            id_discard_pile.push(id_card);
+            id_pile_discard.push(id_card);
         }
     }
 

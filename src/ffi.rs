@@ -20,7 +20,7 @@ use crate::modifier::{ModifierKind as InternalModifierKind, modifier_has, modifi
 use crate::state::{GameState as InternalGameState, Location};
 use crate::types::{
     CardColor as InternalCardColor, CardKind as InternalCardKind,
-    CardRarity as InternalCardRarity, Phase as InternalPhase, RoomType as InternalRoomType,
+    CardRarity as InternalCardRarity, Phase as InternalPhase, RoomKind as InternalRoomKind,
 };
 use crate::utils::fill_alive_monster_ids;
 
@@ -90,20 +90,20 @@ impl From<InternalCardRarity> for CardRarity {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "RoomType")]
+#[pyclass(eq, eq_int, hash, frozen, name = "RoomKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum RoomType {
+pub enum RoomKind {
     CombatMonster,
     CombatBoss,
     RestSite,
 }
 
-impl From<InternalRoomType> for RoomType {
-    fn from(r: InternalRoomType) -> Self {
+impl From<InternalRoomKind> for RoomKind {
+    fn from(r: InternalRoomKind) -> Self {
         match r {
-            InternalRoomType::CombatMonster => Self::CombatMonster,
-            InternalRoomType::CombatBoss => Self::CombatBoss,
-            InternalRoomType::RestSite => Self::RestSite,
+            InternalRoomKind::CombatMonster => Self::CombatMonster,
+            InternalRoomKind::CombatBoss => Self::CombatBoss,
+            InternalRoomKind::RestSite => Self::RestSite,
         }
     }
 }
@@ -271,9 +271,7 @@ impl From<Action> for InternalAction {
                 idx_monster,
             },
             Action::EndTurn {} => InternalAction::EndTurn,
-            Action::CardDiscard { indices_hand } => InternalAction::CardDiscard {
-                idx_hand: indices_hand,
-            },
+            Action::CardDiscard { indices_hand } => InternalAction::CardDiscard { indices_hand },
             Action::RoomSelect { idx_column } => InternalAction::RoomSelect { idx_column },
             Action::CardRewardSelect { idx_reward } => {
                 InternalAction::CardRewardSelect { idx_reward }
@@ -301,7 +299,7 @@ pub enum Effect {
     ModifierGain { kind: ModifierKind, stacks: i16, target: Option<Target> },
     ModifierRemove { kind: ModifierKind, target: Option<Target> },
     EnergyGain { amount: u8, target: Option<Target> },
-    AddShivs { count: u8, target: Option<Target> },
+    ShivAdd { count: u8, target: Option<Target> },
     CardDraw { count: u8, target: Option<Target> },
     CardDiscard { target: Option<Target> },
     CalculatedGamble { target: Option<Target> },
@@ -336,7 +334,7 @@ impl Effect {
                 target,
             },
             EffectKind::EnergyGain { amount } => Self::EnergyGain { amount, target },
-            EffectKind::AddShivs { count } => Self::AddShivs { count, target },
+            EffectKind::ShivAdd { count } => Self::ShivAdd { count, target },
             EffectKind::CardDraw { count } => Self::CardDraw { count, target },
             EffectKind::CardDiscard => Self::CardDiscard { target },
             EffectKind::CalculatedGamble => Self::CalculatedGamble { target },
@@ -380,7 +378,7 @@ pub struct Character {
     pub health_max: u16,
     pub block: u16,
     pub modifiers: Vec<Modifier>,
-    pub card_reward_roll_offset: i8,
+    pub reward_roll_offset: i8,
 }
 
 #[pyclass(frozen, get_all)]
@@ -414,7 +412,7 @@ pub struct Energy {
 #[pyclass(name = "Room", frozen, get_all)]
 #[derive(Debug, Clone)]
 pub struct MapNode {
-    pub room_type: RoomType,
+    pub room_kind: RoomKind,
     pub edges: Vec<usize>,
 }
 
@@ -436,7 +434,7 @@ pub struct GameState {
     pub pile_draw: Vec<Card>,
     pub pile_discard: Vec<Card>,
     pub pile_exhaust: Vec<Card>,
-    pub combat_reward: Vec<Card>,
+    pub card_rewards: Vec<Card>,
     pub energy: Energy,
     pub map: Map,
     pub phase: Phase,
@@ -451,10 +449,10 @@ pub fn build_view(state: &InternalGameState) -> GameState {
         monsters: build_view_monsters(state),
         deck: state.id_deck.iter().copied().map(card).collect(),
         hand: state.id_hand.iter().copied().map(card).collect(),
-        pile_draw: state.id_draw_pile.iter().copied().map(card).collect(),
-        pile_discard: state.id_discard_pile.iter().copied().map(card).collect(),
-        pile_exhaust: state.id_exhaust_pile.iter().copied().map(card).collect(),
-        combat_reward: state.id_card_rewards.iter().copied().map(card).collect(),
+        pile_draw: state.id_pile_draw.iter().copied().map(card).collect(),
+        pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
+        pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
+        card_rewards: state.id_card_rewards.iter().copied().map(card).collect(),
         energy: Energy {
             current: state.energy.current,
             max: state.energy.max,
@@ -472,7 +470,7 @@ fn build_view_character(state: &InternalGameState) -> Character {
         health_max: character.vitals.health_max,
         block: character.vitals.block,
         modifiers: build_view_modifiers(&character.modifiers),
-        card_reward_roll_offset: character.reward_roll_offset,
+        reward_roll_offset: character.reward_roll_offset,
     }
 }
 
@@ -595,7 +593,7 @@ fn build_view_map(state: &InternalGameState) -> Map {
                     cell.map(|id_room| {
                         let room = &state.entities[id_room];
                         MapNode {
-                            room_type: room.room_type.into(),
+                            room_kind: room.room_kind.into(),
                             edges: edge_indices(room.edges).collect(),
                         }
                     })

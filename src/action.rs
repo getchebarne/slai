@@ -8,7 +8,7 @@ use crate::utils::fill_alive_monster_ids;
 #[derive(Debug, Clone)]
 pub enum Action {
     CardDiscard {
-        idx_hand: Vec<usize>,
+        indices_hand: Vec<usize>,
     },
     CardPlay {
         idx_hand: usize,
@@ -30,8 +30,8 @@ pub enum Action {
 
 fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
     let valid = match (action, current_phase) {
-        (Action::CardDiscard { idx_hand }, Phase::CombatAwaitDiscard { num }) => {
-            idx_hand.len() == num as usize
+        (Action::CardDiscard { indices_hand }, Phase::CombatAwaitDiscard { num }) => {
+            indices_hand.len() == num as usize
         }
         (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
@@ -49,7 +49,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
     validate_phase(&action, state.phase)?;
 
     let effects = match action {
-        Action::CardDiscard { idx_hand } => handle_card_discard(state, idx_hand),
+        Action::CardDiscard { indices_hand } => handle_card_discard(state, indices_hand),
         Action::CardPlay {
             idx_hand,
             idx_monster,
@@ -65,7 +65,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
     Ok(effects)
 }
 
-fn validate_idx(slice: &[usize], idx: usize) -> Result<usize, String> {
+fn lookup_idx(slice: &[usize], idx: usize) -> Result<usize, String> {
     slice
         .get(idx)
         .copied()
@@ -86,7 +86,7 @@ fn handle_card_play(
     idx_hand: usize,
     idx_monster: Option<usize>,
 ) -> Result<Vec<Effect>, String> {
-    let id_card = validate_idx(&state.id_hand, idx_hand)?;
+    let id_card = lookup_idx(&state.id_hand, idx_hand)?;
     let card = &state.entities[id_card];
 
     if card.card_cost > state.energy.current {
@@ -145,9 +145,9 @@ fn handle_card_play(
     }
 }
 
-fn handle_card_discard(state: &GameState, idx_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
-    let mut effects = Vec::with_capacity(idx_hand.len() + 1);
-    for &idx in &idx_hand {
+fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
+    let mut effects = Vec::with_capacity(indices_hand.len() + 1);
+    for &idx in &indices_hand {
         let id_card = *state
             .id_hand
             .get(idx)
@@ -198,7 +198,7 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
 }
 
 fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    let id_card = validate_idx(&state.id_card_rewards, idx_reward)?;
+    let id_card = lookup_idx(&state.id_card_rewards, idx_reward)?;
 
     // Direct CardRewardSelect: handler adds the target card to the deck and
     // enqueues CardRewardClear, which in turn enqueues RoomSelect.
@@ -242,7 +242,7 @@ fn handle_rest_site_card_upgrade(
     state: &GameState,
     idx_deck: usize,
 ) -> Result<Vec<Effect>, String> {
-    let id_card = validate_idx(&state.id_deck, idx_deck)?;
+    let id_card = lookup_idx(&state.id_deck, idx_deck)?;
 
     // Upgrade by entity id, then let the RestSiteExit handler decide whether
     // to halt (non-final row) or enter the boss room (final row).

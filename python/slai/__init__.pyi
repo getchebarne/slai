@@ -36,10 +36,10 @@ class CardRarity:
     Special: "CardRarity"
     Curse: "CardRarity"
 
-class RoomType:
-    CombatMonster: "RoomType"
-    CombatBoss: "RoomType"
-    RestSite: "RoomType"
+class RoomKind:
+    CombatMonster: "RoomKind"
+    CombatBoss: "RoomKind"
+    RestSite: "RoomKind"
 
 class ModifierKind:
     Accuracy: "ModifierKind"
@@ -146,7 +146,7 @@ class Effect:
         amount: int
         target: Optional[Target]
 
-    class AddShivs:
+    class ShivAdd:
         count: int
         target: Optional[Target]
 
@@ -226,7 +226,7 @@ class Card:
             Effect.ModifierGain,
             Effect.ModifierRemove,
             Effect.EnergyGain,
-            Effect.AddShivs,
+            Effect.ShivAdd,
             Effect.CardDraw,
             Effect.CardDiscard,
             Effect.CalculatedGamble,
@@ -239,7 +239,7 @@ class Character:
     health_max: int
     block: int
     modifiers: list[Modifier]
-    card_reward_roll_offset: int
+    reward_roll_offset: int
     """Pity offset used when rolling card-reward rarities."""
 
 class Intent:
@@ -270,7 +270,7 @@ class Energy:
     max: int
 
 class Room:
-    room_type: RoomType
+    room_kind: RoomKind
     edges: list[int]
     """Valid next-row columns reachable from this node."""
 
@@ -296,7 +296,7 @@ class GameState:
     pile_draw: list[Card]
     pile_discard: list[Card]
     pile_exhaust: list[Card]
-    combat_reward: list[Card]
+    card_rewards: list[Card]
     """Cards offered as post-combat reward. Non-empty only during `Phase.CombatReward`."""
 
     energy: Energy

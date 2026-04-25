@@ -58,10 +58,10 @@ pub struct GameState {
     pub id_deck: Vec<usize>,
 
     // Entities / Card / Combat piles
-    pub id_draw_pile: Vec<usize>,
+    pub id_pile_draw: Vec<usize>,
     pub id_hand: Vec<usize>,
-    pub id_discard_pile: Vec<usize>,
-    pub id_exhaust_pile: Vec<usize>,
+    pub id_pile_discard: Vec<usize>,
+    pub id_pile_exhaust: Vec<usize>,
 
     // Entities / Card / Combat rewards
     pub id_card_rewards: Vec<usize>,

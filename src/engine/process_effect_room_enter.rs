@@ -6,10 +6,10 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
-use crate::map::active_room_type;
+use crate::map::active_room_kind;
 use crate::monsters::spawn_monster;
 use crate::state::Location;
-use crate::types::{MonsterName, RoomType};
+use crate::types::{MonsterName, RoomKind};
 
 fn push_monster(
     monster: Entity,
@@ -35,9 +35,9 @@ pub fn process_effect_room_enter(
 ) -> DispatchResult {
     *monster_count = 0;
 
-    let room = active_room_type(id_rooms, location, entities).unwrap();
+    let room = active_room_kind(id_rooms, location, entities).unwrap();
     match room {
-        RoomType::CombatBoss => {
+        RoomKind::CombatBoss => {
             let m = spawn_monster(MonsterName::TheGuardian, ascension, rng);
             push_monster(m, entities, id_monsters, monster_count);
             queue.push_front(Effect {
@@ -46,7 +46,7 @@ pub fn process_effect_room_enter(
                 target: Target::Direct(None),
             });
         }
-        RoomType::CombatMonster => {
+        RoomKind::CombatMonster => {
             let encounter: u8 = rng.random_range(0..3);
             match encounter {
                 0 => {
@@ -71,7 +71,7 @@ pub fn process_effect_room_enter(
                 target: Target::Direct(None),
             });
         }
-        RoomType::RestSite => {
+        RoomKind::RestSite => {
             queue.push_front(Effect::direct(EffectKind::AwaitRestSiteAction, None, None));
         }
     }

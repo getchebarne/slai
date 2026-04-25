@@ -9,7 +9,7 @@ pub enum EffectKind {
     ModifierGain { kind: ModifierKind, stacks: i16 },
     ModifierRemove { kind: ModifierKind },
     EnergyGain { amount: u8 },
-    AddShivs { count: u8 },
+    ShivAdd { count: u8 },
     CardDraw { count: u8 },
     CardDiscard,
     CalculatedGamble,
