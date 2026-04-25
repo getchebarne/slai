@@ -7,7 +7,7 @@ use rand::Rng;
 static MOVE_DARK_STRIKE: Move = Move {
     name: "Dark Strike",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { base: 6 },
+        kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,

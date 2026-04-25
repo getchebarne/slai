@@ -7,7 +7,7 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
     1, false, false, false, false,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { base: 10 },
+            kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Monsters,
@@ -31,7 +31,7 @@ pub static ALL_OUT_ATTACK_PLUS: Entity = make_entity_card(
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
-                base: 14, // +4 damage
+                amount: 14, // +4 damage
             },
             id_source: None,
             target: Target::Resolve {

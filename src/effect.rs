@@ -4,7 +4,7 @@ use crate::modifier::ModifierKind;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
     Noop,
-    DamagePhysical { base: u16 },
+    DamagePhysical { amount: u16 },
     BlockGain { amount: u16 },
     ModifierGain { kind: ModifierKind, stacks: i16 },
     ModifierRemove { kind: ModifierKind },

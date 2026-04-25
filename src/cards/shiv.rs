@@ -6,7 +6,7 @@ pub static SHIV: Entity = make_entity_card(
     CardName::Shiv, CardKind::Attack, CardColor::Colorless, CardRarity::Special,
     0, false, true, false, true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { base: 4 },
+        kind: EffectKind::DamagePhysical { amount: 4 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
@@ -19,7 +19,7 @@ pub static SHIV_PLUS: Entity = make_entity_card(
     CardName::Shiv, CardKind::Attack, CardColor::Colorless, CardRarity::Special,
     0, true, true, false, true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { base: 6 }, // +2 damage
+        kind: EffectKind::DamagePhysical { amount: 6 }, // +2 damage
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,

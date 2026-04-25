@@ -296,7 +296,7 @@ impl From<Action> for InternalAction {
 #[pyclass(eq, hash, frozen, name = "Effect")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Effect {
-    DamagePhysical { base: u16, target: Option<Target> },
+    DamagePhysical { amount: u16, target: Option<Target> },
     BlockGain { amount: u16, target: Option<Target> },
     ModifierGain { kind: ModifierKind, stacks: i16, target: Option<Target> },
     ModifierRemove { kind: ModifierKind, target: Option<Target> },
@@ -324,7 +324,7 @@ impl Effect {
             ),
         };
         match effect.kind {
-            EffectKind::DamagePhysical { base } => Self::DamagePhysical { base, target },
+            EffectKind::DamagePhysical { amount } => Self::DamagePhysical { amount, target },
             EffectKind::BlockGain { amount } => Self::BlockGain { amount, target },
             EffectKind::ModifierGain { kind, stacks } => Self::ModifierGain {
                 kind: kind.into(),

@@ -126,7 +126,7 @@ class Effect:
     needs no resolution (e.g. Adrenaline gives the player energy directly)."""
 
     class DamagePhysical:
-        base: int
+        amount: int
         target: Optional[Target]
 
     class BlockGain:

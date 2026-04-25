@@ -7,7 +7,7 @@ use rand::Rng;
 static MOVE_CHOMP_11: Move = Move {
     name: "Chomp",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { base: 11 },
+        kind: EffectKind::DamagePhysical { amount: 11 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -22,7 +22,7 @@ static MOVE_CHOMP_11: Move = Move {
 static MOVE_CHOMP_12: Move = Move {
     name: "Chomp",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { base: 12 },
+        kind: EffectKind::DamagePhysical { amount: 12 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -38,7 +38,7 @@ static MOVE_THRASH: Move = Move {
     name: "Thrash",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { base: 7 },
+            kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,

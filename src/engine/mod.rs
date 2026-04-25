@@ -395,7 +395,7 @@ fn dispatch_by_kind(
         EffectKind::TargetClear => {
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
-        EffectKind::DamagePhysical { base } => {
+        EffectKind::DamagePhysical { amount } => {
             let id_source = id_source.unwrap();
             let id_target = id_target.unwrap();
             let source_mods = &state.entities[id_source].modifiers;
@@ -404,7 +404,7 @@ fn dispatch_by_kind(
                 source_mods,
                 target_mods,
                 id_target,
-                base,
+                amount,
                 &mut state.effect_queue,
             )
         }

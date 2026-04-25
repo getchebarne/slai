@@ -7,7 +7,7 @@ pub static DAGGER_THROW: Entity = make_entity_card(
     1, false, false, false, true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { base: 9 },
+            kind: EffectKind::DamagePhysical { amount: 9 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -35,7 +35,7 @@ pub static DAGGER_THROW_PLUS: Entity = make_entity_card(
     1, true, false, false, true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { base: 12 }, // +3 damage
+            kind: EffectKind::DamagePhysical { amount: 12 }, // +3 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,

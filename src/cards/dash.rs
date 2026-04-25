@@ -15,7 +15,7 @@ pub static DASH: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { base: 10 },
+            kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -41,7 +41,7 @@ pub static DASH_PLUS: Entity = make_entity_card(
         },
         Effect {
             kind: EffectKind::DamagePhysical {
-                base: 13, // +3 block
+                amount: 13, // +3 block
             },
             id_source: None,
             target: Target::Resolve {

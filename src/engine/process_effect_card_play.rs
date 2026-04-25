@@ -71,7 +71,7 @@ pub fn process_effect_card_play(
         for &id_monster in alive_monsters {
             buf_effects.push(Effect {
                 kind: EffectKind::DamagePhysical {
-                    base: stacks as u16,
+                    amount: stacks as u16,
                 },
                 id_source: Some(id_character),
                 target: Target::Direct(Some(id_monster)),

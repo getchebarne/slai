@@ -7,7 +7,7 @@ use rand::Rng;
 static MOVE_BITE: Move = Move {
     name: "Bite",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { base: 6 },
+        kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,

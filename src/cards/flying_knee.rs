@@ -8,7 +8,7 @@ pub static FLYING_KNEE: Entity = make_entity_card(
     1, false, false, false, true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { base: 8 },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -35,7 +35,7 @@ pub static FLYING_KNEE_PLUS: Entity = make_entity_card(
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
-                base: 11, // +3 damage
+                amount: 11, // +3 damage
             },
             id_source: None,
             target: Target::Resolve {

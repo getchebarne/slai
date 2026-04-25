@@ -8,7 +8,7 @@ pub static NEUTRALIZE: Entity = make_entity_card(
     0, false, false, false, true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { base: 3 },
+            kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -34,7 +34,7 @@ pub static NEUTRALIZE_PLUS: Entity = make_entity_card(
     0, true, false, false, true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { base: 4 }, // +1 damage
+            kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,

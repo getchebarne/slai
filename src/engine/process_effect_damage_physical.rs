@@ -9,10 +9,10 @@ pub fn process_effect_damage_physical(
     source_mods: &Modifiers,
     target_mods: &Modifiers,
     id_target: usize,
-    base: u16,
+    amount: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let mut value = base as f32;
+    let mut value = amount as f32;
 
     // Source modifiers
     if modifier_has(source_mods, ModifierKind::Strength) {
