@@ -396,9 +396,9 @@ fn dispatch_by_kind(
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
         EffectKind::DamagePhysical { base } => {
-            let id_source_unwrapped = id_source.unwrap();
+            let id_source = id_source.unwrap();
             let id_target = id_target.unwrap();
-            let source_mods = &state.entities[id_source_unwrapped].modifiers;
+            let source_mods = &state.entities[id_source].modifiers;
             let target_mods = &state.entities[id_target].modifiers;
             process_effect_damage_physical::process_effect_damage_physical(
                 source_mods,
