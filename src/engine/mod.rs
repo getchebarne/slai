@@ -438,9 +438,10 @@ fn dispatch_by_kind(
         }
         EffectKind::BlockGain { amount } => {
             let id_target = id_target.unwrap();
-            let from_card = id_source
-                .map(|id| state.entities[id].kind == EntityType::Card)
-                .unwrap_or(false);
+            let from_card = match id_source {
+                Some(id) => state.entities[id].kind == EntityType::Card,
+                None => false,
+            };
             let entity = &mut state.entities[id_target];
             process_effect_block_gain::process_effect_block_gain(
                 &mut entity.vitals,
