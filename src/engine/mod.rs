@@ -463,10 +463,9 @@ fn dispatch_by_kind(
         EffectKind::ModifierGain { kind, stacks } => {
             let id_target = id_target.unwrap();
             let entity = &mut state.entities[id_target];
-            let cycle_count = if entity.kind == EntityType::Monster {
-                Some(entity.cycle_count)
-            } else {
-                None
+            let cycle_count = match entity.kind {
+                EntityType::Monster => Some(entity.cycle_count),
+                _ => None
             };
             process_effect_modifier_gain::process_effect_modifier_gain(
                 &mut entity.modifiers,
