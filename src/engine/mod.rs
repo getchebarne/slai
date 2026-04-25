@@ -322,7 +322,6 @@ fn dispatch_by_kind(
             let id_card = id_target.unwrap();
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
-
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             process_effect_card_play::process_effect_card_play(
                 id_card,
@@ -489,7 +488,6 @@ fn dispatch_by_kind(
         EffectKind::ModifierSetNotNew => {
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
-
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             process_effect_modifier_set_not_new::process_effect_modifier_set_not_new(
                 state.id_character,
@@ -540,7 +538,6 @@ fn dispatch_by_kind(
 
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
-
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             let entity = &mut state.entities[id_actor];
             process_effect_turn_start::process_effect_turn_start(
@@ -558,7 +555,6 @@ fn dispatch_by_kind(
             if id_actor == state.id_character {
                 // Stack locals
                 let mut buf_alive = [0usize; MAX_MONSTERS];
-
                 let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
                 process_effect_turn_end::process_effect_turn_end_character(
                     state.id_character,
