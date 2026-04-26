@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static OUTMANEUVER: Entity = make_entity_card(
-    CardName::Outmaneuver, CardKind::Skill, CardColor::Green, CardRarity::Common,
-    1, false, false, false, false,
+    CardName::Outmaneuver,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::NextTurnEnergy,
@@ -20,8 +27,15 @@ pub static OUTMANEUVER: Entity = make_entity_card(
 );
 // Upgraded
 pub static OUTMANEUVER_PLUS: Entity = make_entity_card(
-    CardName::Outmaneuver, CardKind::Skill, CardColor::Green, CardRarity::Common,
-    1, true, false, false, false,
+    CardName::Outmaneuver,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::NextTurnEnergy,

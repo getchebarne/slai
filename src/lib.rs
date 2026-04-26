@@ -45,11 +45,7 @@ impl GameEnv {
 
     /// Start a fresh run. Returns `(obs, info)`.
     #[pyo3(signature = (seed=42))]
-    fn reset<'py>(
-        &mut self,
-        py: Python<'py>,
-        seed: u64,
-    ) -> (GameState, Bound<'py, PyDict>) {
+    fn reset<'py>(&mut self, py: Python<'py>, seed: u64) -> (GameState, Bound<'py, PyDict>) {
         let asc = self.state.ascension;
         self.state = create_game_state(asc, seed);
         (build_view(&self.state), PyDict::new(py))

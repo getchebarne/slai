@@ -161,7 +161,11 @@ pub fn spawn_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     make_entity_monster(
         MonsterName::JawWorm,
         MonsterKind::Normal,
-        Vitals { health: health_max, health_max, block: 0 },
+        Vitals {
+            health: health_max,
+            health_max,
+            block: 0,
+        },
         ZERO_MODIFIERS,
         moves,
     )
@@ -178,21 +182,35 @@ pub fn get_next_move_jaw_worm(
     }
 
     let roll = rng.random_range(0..99);
-    let move_last = *move_history.last().expect("`move_history` cannot be empty here") as usize;
+    let move_last = *move_history
+        .last()
+        .expect("`move_history` cannot be empty here") as usize;
 
     if roll < 25 {
         if move_last == IDX_MOVE_CHOMP {
-            return if rng.random_bool(0.5625) { IDX_MOVE_BELLOW } else { IDX_MOVE_THRASH };
+            return if rng.random_bool(0.5625) {
+                IDX_MOVE_BELLOW
+            } else {
+                IDX_MOVE_THRASH
+            };
         }
         IDX_MOVE_CHOMP
     } else if roll < 55 {
         if move_history.ends_with(&[IDX_MOVE_THRASH as u8, IDX_MOVE_THRASH as u8]) {
-            return if rng.random_bool(0.357) { IDX_MOVE_CHOMP } else { IDX_MOVE_BELLOW };
+            return if rng.random_bool(0.357) {
+                IDX_MOVE_CHOMP
+            } else {
+                IDX_MOVE_BELLOW
+            };
         }
         IDX_MOVE_THRASH
     } else {
         if move_last == IDX_MOVE_BELLOW {
-            return if rng.random_bool(0.416) { IDX_MOVE_CHOMP } else { IDX_MOVE_THRASH };
+            return if rng.random_bool(0.416) {
+                IDX_MOVE_CHOMP
+            } else {
+                IDX_MOVE_THRASH
+            };
         }
         IDX_MOVE_BELLOW
     }

@@ -1,14 +1,13 @@
-pub mod process_effect_shiv_add;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discard_end_of_turn;
 pub mod process_effect_card_draw;
-pub mod process_effect_card_retain;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
+pub mod process_effect_card_retain;
 pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_reward_roll;
 pub mod process_effect_card_upgrade;
@@ -28,6 +27,7 @@ pub mod process_effect_modifier_tick;
 pub mod process_effect_move_update;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
+pub mod process_effect_shiv_add;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
@@ -483,7 +483,7 @@ fn dispatch_by_kind(
             let entity = &mut state.entities[id_target];
             let cycle_count = match entity.kind {
                 EntityKind::Monster => Some(entity.cycle_count),
-                _ => None
+                _ => None,
             };
             process_effect_modifier_gain::process_effect_modifier_gain(
                 &mut entity.modifiers,

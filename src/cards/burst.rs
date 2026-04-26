@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static BURST: Entity = make_entity_card(
-    CardName::Burst, CardKind::Skill, CardColor::Green, CardRarity::Rare,
-    1, false, false, false, false,
+    CardName::Burst,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Rare,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Burst,
@@ -20,8 +27,15 @@ pub static BURST: Entity = make_entity_card(
 );
 // Upgraded
 pub static BURST_PLUS: Entity = make_entity_card(
-    CardName::Burst, CardKind::Skill, CardColor::Green, CardRarity::Rare,
-    1, true, false, false, false,
+    CardName::Burst,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Rare,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Burst,

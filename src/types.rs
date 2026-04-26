@@ -157,4 +157,3 @@ pub enum Phase {
     Map,
     RestSite,
 }
-

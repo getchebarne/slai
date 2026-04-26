@@ -1,8 +1,8 @@
 use std::collections::VecDeque;
 
+use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::entity::{Entity, EntityKind};
 use crate::map::active_room_kind;
 use crate::modifier::modifier_clear;

@@ -93,7 +93,11 @@ pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     make_entity_monster(
         MonsterName::FungiBeast,
         MonsterKind::Normal,
-        Vitals { health: health_max, health_max, block: 0 },
+        Vitals {
+            health: health_max,
+            health_max,
+            block: 0,
+        },
         modifiers,
         moves,
     )

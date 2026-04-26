@@ -3,8 +3,15 @@ use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static BACKFLIP: Entity = make_entity_card(
-    CardName::Backflip, CardKind::Skill, CardColor::Green, CardRarity::Common,
-    1, false, false, false, false,
+    CardName::Backflip,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
@@ -23,8 +30,15 @@ pub static BACKFLIP: Entity = make_entity_card(
 );
 // Upgraded
 pub static BACKFLIP_PLUS: Entity = make_entity_card(
-    CardName::Backflip, CardKind::Skill, CardColor::Green, CardRarity::Common,
-    1, true, false, false, false,
+    CardName::Backflip,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain {

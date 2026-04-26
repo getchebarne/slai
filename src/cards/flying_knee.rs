@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static FLYING_KNEE: Entity = make_entity_card(
-    CardName::FlyingKnee, CardKind::Attack, CardColor::Green, CardRarity::Common,
-    1, false, false, false, true,
+    CardName::FlyingKnee,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    false,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
@@ -30,8 +37,15 @@ pub static FLYING_KNEE: Entity = make_entity_card(
 );
 // Upgraded
 pub static FLYING_KNEE_PLUS: Entity = make_entity_card(
-    CardName::FlyingKnee, CardKind::Attack, CardColor::Green, CardRarity::Common,
-    1, true, false, false, true,
+    CardName::FlyingKnee,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    true,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
