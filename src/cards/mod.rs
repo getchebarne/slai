@@ -12,6 +12,7 @@ pub mod blur;
 pub mod bouncing_flask;
 pub mod burst;
 pub mod calculated_gamble;
+pub mod caltrops;
 pub mod catalyst;
 pub mod cloak_and_dagger;
 pub mod concentrate;
@@ -36,6 +37,7 @@ pub mod outmaneuver;
 pub mod phantasmal_killer;
 pub mod piercing_wail;
 pub mod poisoned_stab;
+pub mod predator;
 pub mod prepared;
 pub mod quick_slash;
 pub mod riddle_with_holes;
@@ -45,6 +47,7 @@ pub mod strike;
 pub mod sucker_punch;
 pub mod survivor;
 pub mod terror;
+pub mod tools_of_the_trade;
 pub mod well_laid_plans;
 
 use crate::entity::Entity;
@@ -80,6 +83,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Burst, true) => burst::BURST_PLUS,
         (CardName::CalculatedGamble, false) => calculated_gamble::CALCULATED_GAMBLE,
         (CardName::CalculatedGamble, true) => calculated_gamble::CALCULATED_GAMBLE_PLUS,
+        (CardName::Caltrops, false) => caltrops::CALTROPS,
+        (CardName::Caltrops, true) => caltrops::CALTROPS_PLUS,
         (CardName::Catalyst, false) => catalyst::CATALYST,
         (CardName::Catalyst, true) => catalyst::CATALYST_PLUS,
         (CardName::CloakAndDagger, false) => cloak_and_dagger::CLOAK_AND_DAGGER,
@@ -128,6 +133,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::PiercingWail, true) => piercing_wail::PIERCING_WAIL_PLUS,
         (CardName::PoisonedStab, false) => poisoned_stab::POISONED_STAB,
         (CardName::PoisonedStab, true) => poisoned_stab::POISONED_STAB_PLUS,
+        (CardName::Predator, false) => predator::PREDATOR,
+        (CardName::Predator, true) => predator::PREDATOR_PLUS,
         (CardName::Prepared, false) => prepared::PREPARED,
         (CardName::Prepared, true) => prepared::PREPARED_PLUS,
         (CardName::QuickSlash, false) => quick_slash::QUICK_SLASH,
@@ -146,6 +153,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Survivor, true) => survivor::SURVIVOR_PLUS,
         (CardName::Terror, false) => terror::TERROR,
         (CardName::Terror, true) => terror::TERROR_PLUS,
+        (CardName::ToolsOfTheTrade, false) => tools_of_the_trade::TOOLS_OF_THE_TRADE,
+        (CardName::ToolsOfTheTrade, true) => tools_of_the_trade::TOOLS_OF_THE_TRADE_PLUS,
         (CardName::WellLaidPlans, false) => well_laid_plans::WELL_LAID_PLANS,
         (CardName::WellLaidPlans, true) => well_laid_plans::WELL_LAID_PLANS_PLUS,
     }
@@ -180,6 +189,7 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::Blur,
     CardName::BouncingFlask,
     CardName::CalculatedGamble,
+    CardName::Caltrops,
     CardName::Catalyst,
     CardName::Concentrate,
     CardName::CripplingPoison,
@@ -188,6 +198,7 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::InfiniteBlades,
     CardName::LegSweep,
     CardName::NoxiousFumes,
+    CardName::Predator,
     CardName::RiddleWithHoles,
     CardName::Terror,
     CardName::WellLaidPlans,
@@ -202,4 +213,5 @@ pub const REWARD_POOL_RARE: &[CardName] = &[
     CardName::DieDieDie,
     CardName::Envenom,
     CardName::PhantasmalKiller,
+    CardName::ToolsOfTheTrade,
 ];
