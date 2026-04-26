@@ -15,10 +15,19 @@ pub fn process_effect_card_play(
     entities: &[Entity],
     _hand: &[usize],
     alive_monsters: &[usize],
+    attacks_played_this_turn: &mut u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let card = &entities[id_card];
+
+    // Counter for SneakyStrike-style "attacks played this turn" lookups.
+    // Increment before the card's effects fire so cards like Finisher can
+    // see their own play in the counter (Finisher's handler then subtracts 1
+    // to exclude itself, matching StS).
+    if card.card_kind == CardKind::Attack {
+        *attacks_played_this_turn = attacks_played_this_turn.saturating_add(1);
+    }
 
     // Stack locals
     let mut buf_effects = EffectBuf::new();
@@ -44,8 +53,10 @@ pub fn process_effect_card_play(
             target: Target::Direct(Some(id_card)),
         });
     } else {
+        // Move-after-play (NOT an explicit discard — see CardMoveToDiscard
+        // doc; doesn't increment discards_this_turn or trigger Reflex).
         buf_effects.push(Effect {
-            kind: EffectKind::CardDiscard,
+            kind: EffectKind::CardMoveToDiscard,
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });

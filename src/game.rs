@@ -63,6 +63,9 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_rooms,
         location,
         effect_queue,
+        last_drawn_card: None,
+        discards_this_turn: 0,
+        attacks_played_this_turn: 0,
     };
 
     // Run the queue so the initial halt registers.

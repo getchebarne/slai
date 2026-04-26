@@ -2,56 +2,56 @@ use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
-    CardName::CloakAndDagger,
+pub static ESCAPE_PLAN: Entity = make_entity_card(
+    CardName::EscapePlan,
     CardKind::Skill,
     CardColor::Green,
-    CardRarity::Common,
-    1,
+    CardRarity::Uncommon,
+    0,
     false,
     false,
     false,
     false,
     &[
         Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
+            kind: EffectKind::CardDraw { count: 1 },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+        Effect {
+            kind: EffectKind::EscapePlanCheck { block: 3 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
         },
-        Effect {
-            kind: EffectKind::ShivAdd { count: 1, upgraded: false },
-            id_source: None,
-            target: Target::Direct(None),
-        },
     ],
 );
-// Upgraded
-pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
-    CardName::CloakAndDagger,
+// Upgraded: 5 block instead of 3
+pub static ESCAPE_PLAN_PLUS: Entity = make_entity_card(
+    CardName::EscapePlan,
     CardKind::Skill,
     CardColor::Green,
-    CardRarity::Common,
-    1,
+    CardRarity::Uncommon,
+    0,
     true,
     false,
     false,
     false,
     &[
         Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
+            kind: EffectKind::CardDraw { count: 1 },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+        Effect {
+            kind: EffectKind::EscapePlanCheck { block: 5 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
                 selection: SelectionKind::All,
             },
-        },
-        Effect {
-            kind: EffectKind::ShivAdd { count: 2, upgraded: false }, // +1 shiv
-            id_source: None,
-            target: Target::Direct(None),
         },
     ],
 );

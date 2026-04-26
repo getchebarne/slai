@@ -65,4 +65,15 @@ pub struct GameState {
 
     // Entities / Card / Combat rewards
     pub id_card_rewards: Vec<usize>,
+
+    // Per-draw bookkeeping: id of the most recently drawn card (set inside
+    // `process_effect_card_draw` on every successful draw, regardless of
+    // whether the card landed in hand or went to discard due to hand cap).
+    // Consumed by post-draw inspection effects like EscapePlanCheck.
+    pub last_drawn_card: Option<usize>,
+
+    // Per-turn counters, both reset at the start of `process_effect_turn_end_character`.
+    // Used by SneakyStrike, Finisher, and Tier-5 Eviscerate / MasterfulStab.
+    pub discards_this_turn: u8,
+    pub attacks_played_this_turn: u8,
 }

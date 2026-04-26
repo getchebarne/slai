@@ -4,6 +4,7 @@ pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discard_end_of_turn;
 pub mod process_effect_card_draw;
+pub mod process_effect_card_move_to_discard;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
@@ -20,8 +21,12 @@ pub mod process_effect_damage_power;
 pub mod process_effect_death;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
+pub mod process_effect_escape_plan_check;
+pub mod process_effect_finisher_damage;
+pub mod process_effect_flechettes_damage;
 pub mod process_effect_health_gain;
 pub mod process_effect_health_loss;
+pub mod process_effect_heel_hook_proc;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -32,10 +37,13 @@ pub mod process_effect_poison_tick;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
 pub mod process_effect_shiv_add;
+pub mod process_effect_sneaky_strike_proc;
+pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
+pub mod process_effect_unload_discard;
 
 use std::collections::VecDeque;
 
@@ -325,6 +333,7 @@ fn dispatch_by_kind(
             &mut state.id_pile_draw,
             &mut state.id_hand,
             &mut state.id_pile_discard,
+            &mut state.last_drawn_card,
             &mut state.rng,
         ),
         EffectKind::CardPlay => {
@@ -339,6 +348,7 @@ fn dispatch_by_kind(
                 &state.entities,
                 &state.id_hand,
                 &buf_alive[..alive_n],
+                &mut state.attacks_played_this_turn,
                 &mut state.rng,
                 &mut state.effect_queue,
             )
@@ -346,6 +356,15 @@ fn dispatch_by_kind(
         EffectKind::CardDiscard => {
             let id_card = id_target.unwrap();
             process_effect_card_discard::process_effect_card_discard(
+                id_card,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+                &mut state.discards_this_turn,
+            )
+        }
+        EffectKind::CardMoveToDiscard => {
+            let id_card = id_target.unwrap();
+            process_effect_card_move_to_discard::process_effect_card_move_to_discard(
                 id_card,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
@@ -376,8 +395,9 @@ fn dispatch_by_kind(
             let id_card = id_target.unwrap();
             process_effect_card_remove::process_effect_card_remove(id_card, &mut state.id_hand)
         }
-        EffectKind::ShivAdd { count } => process_effect_shiv_add::process_effect_shiv_add(
+        EffectKind::ShivAdd { count, upgraded } => process_effect_shiv_add::process_effect_shiv_add(
             count,
+            upgraded,
             &mut state.entities,
             &mut state.id_hand,
             &mut state.id_pile_discard,
@@ -447,6 +467,65 @@ fn dispatch_by_kind(
                 target_mods,
                 id_target,
                 amount,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::EscapePlanCheck { block } => {
+            process_effect_escape_plan_check::process_effect_escape_plan_check(
+                &state.entities,
+                state.id_character,
+                &mut state.last_drawn_card,
+                block,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::FinisherDamage { damage_per } => {
+            let id_target = id_target.unwrap();
+            process_effect_finisher_damage::process_effect_finisher_damage(
+                state.attacks_played_this_turn,
+                id_source,
+                id_target,
+                damage_per,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::FlechettesDamage { damage } => {
+            let id_target = id_target.unwrap();
+            process_effect_flechettes_damage::process_effect_flechettes_damage(
+                &state.entities,
+                &state.id_hand,
+                id_source,
+                id_target,
+                damage,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::HeelHookProc => {
+            let id_target = id_target.unwrap();
+            let target_mods = &state.entities[id_target].modifiers;
+            process_effect_heel_hook_proc::process_effect_heel_hook_proc(
+                target_mods,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::SneakyStrikeProc { energy } => {
+            process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc(
+                state.discards_this_turn,
+                energy,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::StormOfSteelProc { upgraded } => {
+            process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc(
+                upgraded,
+                &state.id_hand,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::UnloadDiscard => {
+            process_effect_unload_discard::process_effect_unload_discard(
+                &state.entities,
+                &state.id_hand,
                 &mut state.effect_queue,
             )
         }
@@ -626,6 +705,8 @@ fn dispatch_by_kind(
                     &state.id_hand,
                     state.id_card_target,
                     &buf_alive[..alive_n],
+                    &mut state.discards_this_turn,
+                    &mut state.attacks_played_this_turn,
                     &mut state.rng,
                     &mut state.effect_queue,
                 )

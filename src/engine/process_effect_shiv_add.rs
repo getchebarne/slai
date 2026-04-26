@@ -6,11 +6,12 @@ use crate::types::CardName;
 
 pub fn process_effect_shiv_add(
     count: u8,
+    upgraded: bool,
     entities: &mut Vec<Entity>,
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
 ) -> DispatchResult {
-    let shiv = get_card(CardName::Shiv, false);
+    let shiv = get_card(CardName::Shiv, upgraded);
 
     for _ in 0..count {
         let id_card = entities.len();

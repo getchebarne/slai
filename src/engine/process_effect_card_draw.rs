@@ -9,6 +9,7 @@ pub fn process_effect_card_draw(
     id_pile_draw: &mut Vec<usize>,
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
+    last_drawn_card: &mut Option<usize>,
     rng: &mut impl Rng,
 ) -> DispatchResult {
     for _ in 0..count {
@@ -27,6 +28,7 @@ pub fn process_effect_card_draw(
 
         // Get the card's id and add it to the hand or discard pile according to hand length
         let id_card = id_pile_draw.pop().unwrap();
+        *last_drawn_card = Some(id_card);
         if id_hand.len() < MAX_SIZE_HAND {
             id_hand.push(id_card);
         } else {

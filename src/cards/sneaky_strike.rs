@@ -2,54 +2,54 @@ use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
-    CardName::CloakAndDagger,
-    CardKind::Skill,
+pub static SNEAKY_STRIKE: Entity = make_entity_card(
+    CardName::SneakyStrike,
+    CardKind::Attack,
     CardColor::Green,
     CardRarity::Common,
-    1,
+    2,
     false,
     false,
     false,
-    false,
+    true,
     &[
         Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
+            kind: EffectKind::DamagePhysical { amount: 12 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd { count: 1, upgraded: false },
+            kind: EffectKind::SneakyStrikeProc { energy: 2 },
             id_source: None,
             target: Target::Direct(None),
         },
     ],
 );
-// Upgraded
-pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
-    CardName::CloakAndDagger,
-    CardKind::Skill,
+// Upgraded: +4 damage. Energy bonus unchanged.
+pub static SNEAKY_STRIKE_PLUS: Entity = make_entity_card(
+    CardName::SneakyStrike,
+    CardKind::Attack,
     CardColor::Green,
     CardRarity::Common,
-    1,
+    2,
     true,
     false,
     false,
-    false,
+    true,
     &[
         Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
+            kind: EffectKind::DamagePhysical { amount: 16 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd { count: 2, upgraded: false }, // +1 shiv
+            kind: EffectKind::SneakyStrikeProc { energy: 2 },
             id_source: None,
             target: Target::Direct(None),
         },

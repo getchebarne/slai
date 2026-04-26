@@ -2,35 +2,35 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static BLADE_DANCE: Entity = make_entity_card(
-    CardName::BladeDance,
+pub static STORM_OF_STEEL: Entity = make_entity_card(
+    CardName::StormOfSteel,
     CardKind::Skill,
     CardColor::Green,
-    CardRarity::Common,
+    CardRarity::Rare,
     1,
     false,
     false,
     false,
     false,
     &[Effect {
-        kind: EffectKind::ShivAdd { count: 3, upgraded: false },
+        kind: EffectKind::StormOfSteelProc { upgraded: false },
         id_source: None,
         target: Target::Direct(None),
     }],
 );
-// Upgraded
-pub static BLADE_DANCE_PLUS: Entity = make_entity_card(
-    CardName::BladeDance,
+// Upgraded: shivs added are upgraded
+pub static STORM_OF_STEEL_PLUS: Entity = make_entity_card(
+    CardName::StormOfSteel,
     CardKind::Skill,
     CardColor::Green,
-    CardRarity::Common,
+    CardRarity::Rare,
     1,
     true,
     false,
     false,
     false,
     &[Effect {
-        kind: EffectKind::ShivAdd { count: 4, upgraded: false }, // +1 shiv
+        kind: EffectKind::StormOfSteelProc { upgraded: true },
         id_source: None,
         target: Target::Direct(None),
     }],

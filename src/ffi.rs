@@ -326,6 +326,32 @@ pub enum Effect {
         amount: u16,
         target: Option<Target>,
     },
+    HeelHookProc {
+        target: Option<Target>,
+    },
+    EscapePlanCheck {
+        block: u16,
+        target: Option<Target>,
+    },
+    FinisherDamage {
+        damage_per: u16,
+        target: Option<Target>,
+    },
+    FlechettesDamage {
+        damage: u16,
+        target: Option<Target>,
+    },
+    UnloadDiscard {
+        target: Option<Target>,
+    },
+    StormOfSteelProc {
+        upgraded: bool,
+        target: Option<Target>,
+    },
+    SneakyStrikeProc {
+        energy: u8,
+        target: Option<Target>,
+    },
     BlockGain {
         amount: u16,
         target: Option<Target>,
@@ -350,6 +376,7 @@ pub enum Effect {
     },
     ShivAdd {
         count: u8,
+        upgraded: bool,
         target: Option<Target>,
     },
     CardDraw {
@@ -385,6 +412,21 @@ impl Effect {
             EffectKind::DamagePhysicalIfPoisoned { amount } => {
                 Self::DamagePhysicalIfPoisoned { amount, target }
             }
+            EffectKind::HeelHookProc => Self::HeelHookProc { target },
+            EffectKind::EscapePlanCheck { block } => Self::EscapePlanCheck { block, target },
+            EffectKind::FinisherDamage { damage_per } => {
+                Self::FinisherDamage { damage_per, target }
+            }
+            EffectKind::FlechettesDamage { damage } => {
+                Self::FlechettesDamage { damage, target }
+            }
+            EffectKind::UnloadDiscard => Self::UnloadDiscard { target },
+            EffectKind::StormOfSteelProc { upgraded } => {
+                Self::StormOfSteelProc { upgraded, target }
+            }
+            EffectKind::SneakyStrikeProc { energy } => {
+                Self::SneakyStrikeProc { energy, target }
+            }
             EffectKind::BlockGain { amount } => Self::BlockGain { amount, target },
             EffectKind::ModifierGain { kind, stacks } => Self::ModifierGain {
                 kind: kind.into(),
@@ -401,7 +443,7 @@ impl Effect {
                 target,
             },
             EffectKind::EnergyGain { amount } => Self::EnergyGain { amount, target },
-            EffectKind::ShivAdd { count } => Self::ShivAdd { count, target },
+            EffectKind::ShivAdd { count, upgraded } => Self::ShivAdd { count, upgraded, target },
             EffectKind::CardDraw { count } => Self::CardDraw { count, target },
             EffectKind::CardDiscard => Self::CardDiscard { target },
             EffectKind::CalculatedGamble => Self::CalculatedGamble { target },
@@ -428,6 +470,12 @@ pub struct Card {
     pub innate: bool,
     pub requires_target: bool,
     pub retain: bool,
+    /// Whether this card can be played given the current game state.
+    /// Combines its static `card_play_restriction` with the relevant state
+    /// (currently: `id_pile_draw` for the DrawPileEmpty restriction).
+    /// Energy cost is NOT factored in — clients should also check
+    /// `card.cost <= energy.current` before offering it as a legal action.
+    pub playable: bool,
     pub effects: Vec<Effect>,
 }
 
@@ -511,7 +559,8 @@ pub struct GameState {
 // ───────── Build functions ─────────
 
 pub fn build_view(state: &InternalGameState) -> GameState {
-    let card = |id_card: usize| build_view_card_template(&state.entities[id_card]);
+    let card =
+        |id_card: usize| build_view_card_template(&state.entities[id_card], &state.id_pile_draw);
     GameState {
         character: build_view_character(state),
         monsters: build_view_monsters(state),
@@ -628,7 +677,7 @@ fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<Modifier> {
     out
 }
 
-fn build_view_card_template(card: &Entity) -> Card {
+fn build_view_card_template(card: &Entity, id_pile_draw: &[usize]) -> Card {
     Card {
         name: if card.card_upgraded {
             format!("{}+", card.card_name.as_str())
@@ -644,6 +693,10 @@ fn build_view_card_template(card: &Entity) -> Card {
         innate: card.card_innate,
         requires_target: card.card_requires_target,
         retain: card.card_retain,
+        playable: crate::entity::play_restriction_satisfied(
+            card.card_play_restriction,
+            id_pile_draw,
+        ),
         effects: card
             .card_effects
             .iter()

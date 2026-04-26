@@ -59,9 +59,17 @@ pub fn process_effect_turn_end_character(
     id_hand: &[usize],
     _card_target: Option<usize>,
     id_alive_monsters: &[usize],
+    discards_this_turn: &mut u8,
+    attacks_played_this_turn: &mut u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
+    // Reset per-turn counters at the boundary. Doing it synchronously here
+    // (before the rest of the chain queues up) means SneakyStrike / Finisher
+    // see a fresh 0 at the start of each player turn.
+    *discards_this_turn = 0;
+    *attacks_played_this_turn = 0;
+
     let character_modifiers = &entities[id_character].modifiers;
     // Stack locals
     let mut buf_effects = EffectBuf::new();

@@ -2,54 +2,54 @@ use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
-    CardName::CloakAndDagger,
-    CardKind::Skill,
+pub static UNLOAD: Entity = make_entity_card(
+    CardName::Unload,
+    CardKind::Attack,
     CardColor::Green,
-    CardRarity::Common,
+    CardRarity::Rare,
     1,
     false,
     false,
     false,
-    false,
+    true,
     &[
         Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
+            kind: EffectKind::DamagePhysical { amount: 14 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd { count: 1, upgraded: false },
+            kind: EffectKind::UnloadDiscard,
             id_source: None,
             target: Target::Direct(None),
         },
     ],
 );
-// Upgraded
-pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
-    CardName::CloakAndDagger,
-    CardKind::Skill,
+// Upgraded: +4 damage
+pub static UNLOAD_PLUS: Entity = make_entity_card(
+    CardName::Unload,
+    CardKind::Attack,
     CardColor::Green,
-    CardRarity::Common,
+    CardRarity::Rare,
     1,
     true,
     false,
     false,
-    false,
+    true,
     &[
         Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
+            kind: EffectKind::DamagePhysical { amount: 18 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
+                candidates: CandidatePool::CardTarget,
                 selection: SelectionKind::All,
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd { count: 2, upgraded: false }, // +1 shiv
+            kind: EffectKind::UnloadDiscard,
             id_source: None,
             target: Target::Direct(None),
         },
