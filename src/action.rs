@@ -153,7 +153,13 @@ fn handle_card_play(
 }
 
 fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
-    let mut effects = Vec::with_capacity(indices_hand.len() + 1);
+    // No trailing AwaitCombatAction: the chain that triggered this halt
+    // (a card play, or a turn-start power hook like Tools of the Trade)
+    // already pushes its own AwaitCombatAction at the tail of the chain.
+    // Adding another here would halt prematurely in front of any
+    // post-discard effects (e.g. Concentrate's EnergyGain) and pile up
+    // stale halts across turns.
+    let mut effects = Vec::with_capacity(indices_hand.len());
     for &idx in &indices_hand {
         let id_card = *state
             .id_hand
@@ -161,7 +167,6 @@ fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Ve
             .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.id_hand.len()))?;
         effects.push(Effect::direct(EffectKind::CardDiscard, None, Some(id_card)));
     }
-    effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
     Ok(effects)
 }
 
