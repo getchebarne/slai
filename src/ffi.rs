@@ -122,6 +122,7 @@ pub enum ModifierKind {
     NextTurnBlock,
     NextTurnEnergy,
     Phantasmal,
+    Retain,
     Ritual,
     SharpHide,
     SporeCloud,
@@ -145,6 +146,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::NextTurnBlock => Self::NextTurnBlock,
             InternalModifierKind::NextTurnEnergy => Self::NextTurnEnergy,
             InternalModifierKind::Phantasmal => Self::Phantasmal,
+            InternalModifierKind::Retain => Self::Retain,
             InternalModifierKind::Ritual => Self::Ritual,
             InternalModifierKind::SharpHide => Self::SharpHide,
             InternalModifierKind::SporeCloud => Self::SporeCloud,
@@ -193,6 +195,7 @@ pub enum Phase {
     Map {},
     CombatDefault {},
     CombatAwaitDiscard { num: u8 },
+    CombatAwaitRetain { num: u8 },
     CombatReward {},
     RestSite {},
     GameOver {},
@@ -204,6 +207,7 @@ impl From<InternalPhase> for Phase {
             InternalPhase::Map => Self::Map {},
             InternalPhase::CombatDefault => Self::CombatDefault {},
             InternalPhase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
+            InternalPhase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
             InternalPhase::CombatReward => Self::CombatReward {},
             InternalPhase::RestSite => Self::RestSite {},
             InternalPhase::GameOver => Self::GameOver {},
@@ -247,6 +251,9 @@ pub enum Action {
     CardDiscard {
         indices_hand: Vec<usize>,
     },
+    CardRetain {
+        indices_hand: Vec<usize>,
+    },
     RoomSelect {
         idx_column: usize,
     },
@@ -272,6 +279,7 @@ impl From<Action> for InternalAction {
             },
             Action::EndTurn {} => InternalAction::EndTurn,
             Action::CardDiscard { indices_hand } => InternalAction::CardDiscard { indices_hand },
+            Action::CardRetain { indices_hand } => InternalAction::CardRetain { indices_hand },
             Action::RoomSelect { idx_column } => InternalAction::RoomSelect { idx_column },
             Action::CardRewardSelect { idx_reward } => {
                 InternalAction::CardRewardSelect { idx_reward }
@@ -360,6 +368,7 @@ pub struct Card {
     pub exhaust: bool,
     pub innate: bool,
     pub requires_target: bool,
+    pub retain: bool,
     pub effects: Vec<Effect>,
 }
 
@@ -575,6 +584,7 @@ fn build_view_card_template(card: &Entity) -> Card {
         exhaust: card.card_exhaust,
         innate: card.card_innate,
         requires_target: card.card_requires_target,
+        retain: card.card_retain,
         effects: card
             .card_effects
             .iter()

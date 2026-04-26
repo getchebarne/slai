@@ -12,6 +12,8 @@ pub enum EffectKind {
     ShivAdd { count: u8 },
     CardDraw { count: u8 },
     CardDiscard,
+    CardDiscardEndOfTurn,
+    CardRetain,
     CalculatedGamble,
 
     // Runtime only (for now)

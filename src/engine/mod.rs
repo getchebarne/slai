@@ -3,7 +3,9 @@ pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_discard;
+pub mod process_effect_card_discard_end_of_turn;
 pub mod process_effect_card_draw;
+pub mod process_effect_card_retain;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
@@ -296,6 +298,9 @@ fn resolve_or_halt(
             EffectKind::CardDiscard => DispatchResult::Halt {
                 phase_new: Phase::CombatAwaitDiscard { num },
             },
+            EffectKind::CardRetain => DispatchResult::Halt {
+                phase_new: Phase::CombatAwaitRetain { num },
+            },
             EffectKind::RoomSelect => DispatchResult::Halt {
                 phase_new: Phase::Map,
             },
@@ -341,6 +346,19 @@ fn dispatch_by_kind(
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
             )
+        }
+        EffectKind::CardDiscardEndOfTurn => {
+            let id_card = id_target.unwrap();
+            process_effect_card_discard_end_of_turn::process_effect_card_discard_end_of_turn(
+                id_card,
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+            )
+        }
+        EffectKind::CardRetain => {
+            let id_card = id_target.unwrap();
+            process_effect_card_retain::process_effect_card_retain(id_card, &mut state.entities)
         }
         EffectKind::CardExhaust => {
             let id_card = id_target.unwrap();

@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::Entity;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
@@ -44,6 +44,20 @@ pub fn process_effect_turn_end_character(
     // Stack locals
     let mut buf_effects = EffectBuf::new();
 
+    if modifier_has(character_modifiers, ModifierKind::Retain) && !id_hand.is_empty() {
+        let stacks = modifier_stacks(character_modifiers, ModifierKind::Retain);
+        buf_effects.push(Effect {
+            kind: EffectKind::CardRetain,
+            id_source: None,
+            target: Target::Resolve {
+                candidates: CandidatePool::Hand,
+                selection: SelectionKind::Input {
+                    count: stacks as u8,
+                },
+            },
+        });
+    }
+
     if modifier_has(character_modifiers, ModifierKind::Ritual)
         && !character_modifiers.is_new[ModifierKind::Ritual as usize]
     {
@@ -60,7 +74,7 @@ pub fn process_effect_turn_end_character(
 
     for &id_card in id_hand {
         buf_effects.push(Effect {
-            kind: EffectKind::CardDiscard,
+            kind: EffectKind::CardDiscardEndOfTurn,
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });

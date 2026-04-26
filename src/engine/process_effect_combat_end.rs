@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
-use crate::entity::Entity;
+use crate::entity::{Entity, EntityKind};
 use crate::map::active_room_kind;
 use crate::modifier::modifier_clear;
 use crate::state::Location;
@@ -31,6 +31,11 @@ pub fn process_effect_combat_end(
     let room = active_room_kind(id_rooms, location, entities).unwrap();
 
     modifier_clear(&mut entities[id_character].modifiers);
+    for entity in entities.iter_mut() {
+        if entity.kind == EntityKind::Card {
+            entity.card_retain = false;
+        }
+    }
     *monster_count = 0;
     match room {
         RoomKind::CombatBoss => {
