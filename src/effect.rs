@@ -51,15 +51,6 @@ pub enum EffectKind {
     RoomSelect,
     CardRewardSelect,
 
-    // Await: pure halts. No target, no payload, no post-pick dispatch logic.
-    // Exist only to stop the queue so the player can take their next action
-    // (which will be processed as a separate effect chain)
-    AwaitCombatAction,
-    AwaitRestSiteAction,
-    AwaitCardRewardRoll,
-
-    // Terminal: the game is over. No further effects will be processed
-    GameOver,
 }
 
 // CandidatePool: abstract source pool for a Resolve effect's target resolution.

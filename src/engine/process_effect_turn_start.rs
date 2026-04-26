@@ -126,8 +126,6 @@ pub fn process_effect_turn_start(
                 target: Target::Direct(None),
             });
         }
-
-        buf_effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
     }
 
     buf_effects.push_all_front(queue);

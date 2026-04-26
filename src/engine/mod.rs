@@ -44,9 +44,9 @@ use rand::Rng;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, EntityKind};
-use crate::map::has_edge;
+use crate::map::{active_room_kind, has_edge};
 use crate::state::{GameState, Location};
-use crate::types::Phase;
+use crate::types::{Phase, RoomKind};
 use crate::utils::{fill_alive_monster_ids, shuffle};
 
 pub enum DispatchResult {
@@ -398,7 +398,6 @@ fn dispatch_by_kind(
                 &mut state.id_card_rewards,
                 &mut state.entities,
                 &mut state.rng,
-                &mut state.effect_queue,
             )
         }
         EffectKind::CardRewardClear => {
@@ -683,26 +682,57 @@ fn dispatch_by_kind(
                 .push_front(Effect::direct(EffectKind::CardRewardClear, None, None));
             DispatchResult::Continue
         }
-        EffectKind::GameOver => DispatchResult::Halt {
-            phase_new: Phase::GameOver,
-        },
-        EffectKind::AwaitCombatAction => DispatchResult::Halt {
-            phase_new: Phase::CombatDefault,
-        },
-        EffectKind::AwaitRestSiteAction => DispatchResult::Halt {
-            phase_new: Phase::RestSite,
-        },
-        EffectKind::AwaitCardRewardRoll => DispatchResult::Halt {
-            phase_new: Phase::CombatReward,
-        },
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
+    }
+}
+
+// When the queue drains naturally (no handler halted), the engine derives
+// the resting phase from state. This is the single source of truth for "what
+// is the engine waiting on?" — every clause here corresponds to a piece of
+// state that signals a player-input situation.
+//
+// Mid-chain halts (CardDiscard/CardRetain/RoomSelect with Resolve, requiring
+// player input while work is still queued) bypass derive entirely; they set
+// the phase explicitly via DispatchResult::Halt.
+pub fn derive_resting_phase(state: &GameState) -> Phase {
+    // Character death: end of run.
+    if state.entities[state.id_character].dead {
+        return Phase::GameOver;
+    }
+    // Boss defeated: combat_end resets monster_count to 0 only after combat
+    // resolves; reaching BossRoom with no monsters means we won.
+    if matches!(state.location, Location::BossRoom) && state.monster_count == 0 {
+        return Phase::GameOver;
+    }
+    // Card rewards waiting to be picked or skipped.
+    if !state.id_card_rewards.is_empty() {
+        return Phase::CombatReward;
+    }
+    // Combat in progress.
+    if state.monster_count > 0 {
+        return Phase::CombatDefault;
+    }
+    // Standing in a room: rest site or map-pick depending on room kind.
+    match state.location {
+        Location::Overworld { .. } => match active_room_kind(
+            &state.id_rooms,
+            state.location,
+            &state.entities,
+        ) {
+            Some(RoomKind::RestSite) => Phase::RestSite,
+            _ => Phase::Map,
+        },
+        Location::Start | Location::BossRoom => Phase::Map,
     }
 }
 
 pub fn process_queue(state: &mut GameState) {
     loop {
         let Some(effect) = state.effect_queue.pop_front() else {
-            panic!("process_queue: queue drained without halting");
+            // Natural drain — no handler halted, no work pending. Derive the
+            // resting phase from state. See derive_resting_phase for the rules.
+            state.phase = derive_resting_phase(state);
+            return;
         };
         match process_effect(state, effect) {
             DispatchResult::Continue => {}
