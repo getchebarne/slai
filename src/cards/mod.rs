@@ -26,6 +26,7 @@ pub mod neutralize;
 pub mod outmaneuver;
 pub mod phantasmal_killer;
 pub mod piercing_wail;
+pub mod prepared;
 pub mod shiv;
 pub mod strike;
 pub mod survivor;
@@ -93,6 +94,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::PhantasmalKiller, true) => phantasmal_killer::PHANTASMAL_KILLER_PLUS,
         (CardName::PiercingWail, false) => piercing_wail::PIERCING_WAIL,
         (CardName::PiercingWail, true) => piercing_wail::PIERCING_WAIL_PLUS,
+        (CardName::Prepared, false) => prepared::PREPARED,
+        (CardName::Prepared, true) => prepared::PREPARED_PLUS,
         (CardName::Shiv, false) => shiv::SHIV,
         (CardName::Shiv, true) => shiv::SHIV_PLUS,
         (CardName::Strike, false) => strike::STRIKE,
@@ -119,6 +122,7 @@ pub const REWARD_POOL_COMMON: &[CardName] = &[
     CardName::FlyingKnee,
     CardName::Outmaneuver,
     CardName::PiercingWail,
+    CardName::Prepared,
 ];
 
 pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
