@@ -6,26 +6,35 @@ pub mod after_image;
 pub mod all_out_attack;
 pub mod backflip;
 pub mod backstab;
+pub mod bane;
 pub mod blade_dance;
 pub mod blur;
+pub mod bouncing_flask;
 pub mod burst;
 pub mod calculated_gamble;
+pub mod catalyst;
 pub mod cloak_and_dagger;
+pub mod corpse_explosion;
+pub mod crippling_poison;
 pub mod dagger_spray;
 pub mod dagger_throw;
 pub mod dash;
+pub mod deadly_poison;
 pub mod defend;
 pub mod deflect;
 pub mod die_die_die;
 pub mod dodge_and_roll;
+pub mod envenom;
 pub mod flying_knee;
 pub mod footwork;
 pub mod infinite_blades;
 pub mod leg_sweep;
 pub mod neutralize;
+pub mod noxious_fumes;
 pub mod outmaneuver;
 pub mod phantasmal_killer;
 pub mod piercing_wail;
+pub mod poisoned_stab;
 pub mod prepared;
 pub mod shiv;
 pub mod strike;
@@ -54,22 +63,34 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Backflip, true) => backflip::BACKFLIP_PLUS,
         (CardName::Backstab, false) => backstab::BACKSTAB,
         (CardName::Backstab, true) => backstab::BACKSTAB_PLUS,
+        (CardName::Bane, false) => bane::BANE,
+        (CardName::Bane, true) => bane::BANE_PLUS,
         (CardName::BladeDance, false) => blade_dance::BLADE_DANCE,
         (CardName::BladeDance, true) => blade_dance::BLADE_DANCE_PLUS,
         (CardName::Blur, false) => blur::BLUR,
         (CardName::Blur, true) => blur::BLUR_PLUS,
+        (CardName::BouncingFlask, false) => bouncing_flask::BOUNCING_FLASK,
+        (CardName::BouncingFlask, true) => bouncing_flask::BOUNCING_FLASK_PLUS,
         (CardName::Burst, false) => burst::BURST,
         (CardName::Burst, true) => burst::BURST_PLUS,
         (CardName::CalculatedGamble, false) => calculated_gamble::CALCULATED_GAMBLE,
         (CardName::CalculatedGamble, true) => calculated_gamble::CALCULATED_GAMBLE_PLUS,
+        (CardName::Catalyst, false) => catalyst::CATALYST,
+        (CardName::Catalyst, true) => catalyst::CATALYST_PLUS,
         (CardName::CloakAndDagger, false) => cloak_and_dagger::CLOAK_AND_DAGGER,
         (CardName::CloakAndDagger, true) => cloak_and_dagger::CLOAK_AND_DAGGER_PLUS,
+        (CardName::CorpseExplosion, false) => corpse_explosion::CORPSE_EXPLOSION,
+        (CardName::CorpseExplosion, true) => corpse_explosion::CORPSE_EXPLOSION_PLUS,
+        (CardName::CripplingPoison, false) => crippling_poison::CRIPPLING_POISON,
+        (CardName::CripplingPoison, true) => crippling_poison::CRIPPLING_POISON_PLUS,
         (CardName::DaggerSpray, false) => dagger_spray::DAGGER_SPRAY,
         (CardName::DaggerSpray, true) => dagger_spray::DAGGER_SPRAY_PLUS,
         (CardName::DaggerThrow, false) => dagger_throw::DAGGER_THROW,
         (CardName::DaggerThrow, true) => dagger_throw::DAGGER_THROW_PLUS,
         (CardName::Dash, false) => dash::DASH,
         (CardName::Dash, true) => dash::DASH_PLUS,
+        (CardName::DeadlyPoison, false) => deadly_poison::DEADLY_POISON,
+        (CardName::DeadlyPoison, true) => deadly_poison::DEADLY_POISON_PLUS,
         (CardName::Defend, false) => defend::DEFEND,
         (CardName::Defend, true) => defend::DEFEND_PLUS,
         (CardName::Deflect, false) => deflect::DEFLECT,
@@ -78,6 +99,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::DieDieDie, true) => die_die_die::DIE_DIE_DIE_PLUS,
         (CardName::DodgeAndRoll, false) => dodge_and_roll::DODGE_AND_ROLL,
         (CardName::DodgeAndRoll, true) => dodge_and_roll::DODGE_AND_ROLL_PLUS,
+        (CardName::Envenom, false) => envenom::ENVENOM,
+        (CardName::Envenom, true) => envenom::ENVENOM_PLUS,
         (CardName::FlyingKnee, false) => flying_knee::FLYING_KNEE,
         (CardName::FlyingKnee, true) => flying_knee::FLYING_KNEE_PLUS,
         (CardName::Footwork, false) => footwork::FOOTWORK,
@@ -88,12 +111,16 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::LegSweep, true) => leg_sweep::LEG_SWEEP_PLUS,
         (CardName::Neutralize, false) => neutralize::NEUTRALIZE,
         (CardName::Neutralize, true) => neutralize::NEUTRALIZE_PLUS,
+        (CardName::NoxiousFumes, false) => noxious_fumes::NOXIOUS_FUMES,
+        (CardName::NoxiousFumes, true) => noxious_fumes::NOXIOUS_FUMES_PLUS,
         (CardName::Outmaneuver, false) => outmaneuver::OUTMANEUVER,
         (CardName::Outmaneuver, true) => outmaneuver::OUTMANEUVER_PLUS,
         (CardName::PhantasmalKiller, false) => phantasmal_killer::PHANTASMAL_KILLER,
         (CardName::PhantasmalKiller, true) => phantasmal_killer::PHANTASMAL_KILLER_PLUS,
         (CardName::PiercingWail, false) => piercing_wail::PIERCING_WAIL,
         (CardName::PiercingWail, true) => piercing_wail::PIERCING_WAIL_PLUS,
+        (CardName::PoisonedStab, false) => poisoned_stab::POISONED_STAB,
+        (CardName::PoisonedStab, true) => poisoned_stab::POISONED_STAB_PLUS,
         (CardName::Prepared, false) => prepared::PREPARED,
         (CardName::Prepared, true) => prepared::PREPARED_PLUS,
         (CardName::Shiv, false) => shiv::SHIV,
@@ -113,15 +140,18 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
 pub const REWARD_POOL_COMMON: &[CardName] = &[
     CardName::Acrobatics,
     CardName::Backflip,
+    CardName::Bane,
     CardName::BladeDance,
     CardName::CloakAndDagger,
     CardName::DaggerSpray,
     CardName::DaggerThrow,
+    CardName::DeadlyPoison,
     CardName::Deflect,
     CardName::DodgeAndRoll,
     CardName::FlyingKnee,
     CardName::Outmaneuver,
     CardName::PiercingWail,
+    CardName::PoisonedStab,
     CardName::Prepared,
 ];
 
@@ -130,11 +160,15 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::AllOutAttack,
     CardName::Backstab,
     CardName::Blur,
+    CardName::BouncingFlask,
     CardName::CalculatedGamble,
+    CardName::Catalyst,
+    CardName::CripplingPoison,
     CardName::Dash,
     CardName::Footwork,
     CardName::InfiniteBlades,
     CardName::LegSweep,
+    CardName::NoxiousFumes,
     CardName::Terror,
     CardName::WellLaidPlans,
 ];
@@ -144,6 +178,8 @@ pub const REWARD_POOL_RARE: &[CardName] = &[
     CardName::Adrenaline,
     CardName::AfterImage,
     CardName::Burst,
+    CardName::CorpseExplosion,
     CardName::DieDieDie,
+    CardName::Envenom,
     CardName::PhantasmalKiller,
 ];

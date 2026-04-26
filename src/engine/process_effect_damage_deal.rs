@@ -2,11 +2,15 @@ use std::collections::VecDeque;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
+use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::types::Vitals;
 
 pub fn process_effect_damage_deal(
     vitals: &mut Vitals,
+    id_source: Option<usize>,
     id_target: usize,
+    id_character: usize,
+    character_mods: &Modifiers,
     amount: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
@@ -21,6 +25,23 @@ pub fn process_effect_damage_deal(
             id_source: None,
             target: Target::Direct(Some(id_target)),
         });
+
+        // Envenom: when player attack lands unblocked damage on a non-self
+        // target, apply Envenom stacks of Poison to the target.
+        if id_source == Some(id_character)
+            && id_target != id_character
+            && modifier_has(character_mods, ModifierKind::Envenom)
+        {
+            let stacks = modifier_stacks(character_mods, ModifierKind::Envenom);
+            queue.push_front(Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Poison,
+                    stacks,
+                },
+                id_source: Some(id_character),
+                target: Target::Direct(Some(id_target)),
+            });
+        }
     }
     DispatchResult::Continue
 }
