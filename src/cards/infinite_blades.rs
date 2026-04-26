@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static INFINITE_BLADES: Entity = make_entity_card(
-    CardName::InfiniteBlades, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
-    1, false, false, false, false,
+    CardName::InfiniteBlades,
+    CardKind::Power,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::InfiniteBlades,
@@ -20,8 +27,15 @@ pub static INFINITE_BLADES: Entity = make_entity_card(
 );
 // Upgraded
 pub static INFINITE_BLADES_PLUS: Entity = make_entity_card(
-    CardName::InfiniteBlades, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
-    1, true, false, true, false,
+    CardName::InfiniteBlades,
+    CardKind::Power,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    1,
+    true,
+    false,
+    true,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::InfiniteBlades,

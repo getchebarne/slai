@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static PHANTASMAL_KILLER: Entity = make_entity_card(
-    CardName::PhantasmalKiller, CardKind::Skill, CardColor::Green, CardRarity::Rare,
-    1, false, false, false, false,
+    CardName::PhantasmalKiller,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Rare,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Phantasmal,
@@ -20,8 +27,15 @@ pub static PHANTASMAL_KILLER: Entity = make_entity_card(
 );
 // Upgraded
 pub static PHANTASMAL_KILLER_PLUS: Entity = make_entity_card(
-    CardName::PhantasmalKiller, CardKind::Skill, CardColor::Green, CardRarity::Rare,
-    0, true, false, false, false,
+    CardName::PhantasmalKiller,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Rare,
+    0,
+    true,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Phantasmal,

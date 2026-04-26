@@ -3,8 +3,15 @@ use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static DAGGER_THROW: Entity = make_entity_card(
-    CardName::DaggerThrow, CardKind::Attack, CardColor::Green, CardRarity::Common,
-    1, false, false, false, true,
+    CardName::DaggerThrow,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    false,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 9 },
@@ -31,8 +38,15 @@ pub static DAGGER_THROW: Entity = make_entity_card(
 );
 // Upgraded
 pub static DAGGER_THROW_PLUS: Entity = make_entity_card(
-    CardName::DaggerThrow, CardKind::Attack, CardColor::Green, CardRarity::Common,
-    1, true, false, false, true,
+    CardName::DaggerThrow,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    true,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 12 }, // +3 damage

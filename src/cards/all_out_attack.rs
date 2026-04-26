@@ -3,8 +3,15 @@ use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static ALL_OUT_ATTACK: Entity = make_entity_card(
-    CardName::AllOutAttack, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
-    1, false, false, false, false,
+    CardName::AllOutAttack,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 10 },
@@ -26,8 +33,15 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
 );
 // Upgraded
 pub static ALL_OUT_ATTACK_PLUS: Entity = make_entity_card(
-    CardName::AllOutAttack, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
-    1, true, false, false, false,
+    CardName::AllOutAttack,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {

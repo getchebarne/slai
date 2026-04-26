@@ -8,8 +8,8 @@
 
 use pyo3::prelude::*;
 
-use crate::consts::{FACTOR_VULN, MAX_MONSTERS};
 use crate::action::Action as InternalAction;
+use crate::consts::{FACTOR_VULN, MAX_MONSTERS};
 use crate::effect::{
     CandidatePool as InternalCandidatePool, Effect as InternalEffect, EffectKind, SelectionKind,
     Target as InternalTarget,
@@ -19,8 +19,8 @@ use crate::map::edge_indices;
 use crate::modifier::{ModifierKind as InternalModifierKind, modifier_has, modifier_stacks};
 use crate::state::{GameState as InternalGameState, Location};
 use crate::types::{
-    CardColor as InternalCardColor, CardKind as InternalCardKind,
-    CardRarity as InternalCardRarity, Phase as InternalPhase, RoomKind as InternalRoomKind,
+    CardColor as InternalCardColor, CardKind as InternalCardKind, CardRarity as InternalCardRarity,
+    Phase as InternalPhase, RoomKind as InternalRoomKind,
 };
 use crate::utils::fill_alive_monster_ids;
 
@@ -302,15 +302,41 @@ impl From<Action> for InternalAction {
 #[pyclass(eq, hash, frozen, name = "Effect")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Effect {
-    DamagePhysical { amount: u16, target: Option<Target> },
-    BlockGain { amount: u16, target: Option<Target> },
-    ModifierGain { kind: ModifierKind, stacks: i16, target: Option<Target> },
-    ModifierRemove { kind: ModifierKind, target: Option<Target> },
-    EnergyGain { amount: u8, target: Option<Target> },
-    ShivAdd { count: u8, target: Option<Target> },
-    CardDraw { count: u8, target: Option<Target> },
-    CardDiscard { target: Option<Target> },
-    CalculatedGamble { target: Option<Target> },
+    DamagePhysical {
+        amount: u16,
+        target: Option<Target>,
+    },
+    BlockGain {
+        amount: u16,
+        target: Option<Target>,
+    },
+    ModifierGain {
+        kind: ModifierKind,
+        stacks: i16,
+        target: Option<Target>,
+    },
+    ModifierRemove {
+        kind: ModifierKind,
+        target: Option<Target>,
+    },
+    EnergyGain {
+        amount: u8,
+        target: Option<Target>,
+    },
+    ShivAdd {
+        count: u8,
+        target: Option<Target>,
+    },
+    CardDraw {
+        count: u8,
+        target: Option<Target>,
+    },
+    CardDiscard {
+        target: Option<Target>,
+    },
+    CalculatedGamble {
+        target: Option<Target>,
+    },
 }
 
 impl Effect {

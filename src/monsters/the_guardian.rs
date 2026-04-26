@@ -387,7 +387,11 @@ pub fn spawn_the_guardian(ascension_level: u8) -> Entity {
     make_entity_monster(
         MonsterName::TheGuardian,
         MonsterKind::Boss,
-        Vitals { health: health_max, health_max, block: 0 },
+        Vitals {
+            health: health_max,
+            health_max,
+            block: 0,
+        },
         modifiers,
         moves,
     )
@@ -401,7 +405,9 @@ pub fn get_next_move_the_guardian_full(
     if move_current.is_none() {
         return IDX_MOVE_CHARGING_UP;
     }
-    let move_last = *move_history.last().expect("`move_history` cannot be empty here") as usize;
+    let move_last = *move_history
+        .last()
+        .expect("`move_history` cannot be empty here") as usize;
 
     if modifier_has(modifiers, ModifierKind::ModeShift) {
         match move_last {

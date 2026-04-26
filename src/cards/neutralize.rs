@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static NEUTRALIZE: Entity = make_entity_card(
-    CardName::Neutralize, CardKind::Attack, CardColor::Green, CardRarity::Basic,
-    0, false, false, false, true,
+    CardName::Neutralize,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Basic,
+    0,
+    false,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
@@ -30,8 +37,15 @@ pub static NEUTRALIZE: Entity = make_entity_card(
 );
 // Upgraded
 pub static NEUTRALIZE_PLUS: Entity = make_entity_card(
-    CardName::Neutralize, CardKind::Attack, CardColor::Green, CardRarity::Basic,
-    0, true, false, false, true,
+    CardName::Neutralize,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Basic,
+    0,
+    true,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage

@@ -105,7 +105,11 @@ pub struct Effect {
 }
 
 impl Effect {
-    pub const fn direct(kind: EffectKind, id_source: Option<usize>, id_target: Option<usize>) -> Self {
+    pub const fn direct(
+        kind: EffectKind,
+        id_source: Option<usize>,
+        id_target: Option<usize>,
+    ) -> Self {
         Self {
             kind,
             id_source,

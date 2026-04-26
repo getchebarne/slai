@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static DODGE_AND_ROLL: Entity = make_entity_card(
-    CardName::DodgeAndRoll, CardKind::Skill, CardColor::Green, CardRarity::Common,
-    1, false, false, false, false,
+    CardName::DodgeAndRoll,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 4 },
@@ -30,8 +37,15 @@ pub static DODGE_AND_ROLL: Entity = make_entity_card(
 );
 // Upgraded
 pub static DODGE_AND_ROLL_PLUS: Entity = make_entity_card(
-    CardName::DodgeAndRoll, CardKind::Skill, CardColor::Green, CardRarity::Common,
-    1, true, false, false, false,
+    CardName::DodgeAndRoll,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Common,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain {

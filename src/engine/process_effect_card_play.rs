@@ -97,7 +97,8 @@ pub fn process_effect_card_play(
     }
 
     // Card effects. Burst (skill-only) doubles them.
-    let burst = modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
+    let burst =
+        modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
     let reps = if burst { 2 } else { 1 };
     for _ in 0..reps {
         for e in card.card_effects.iter() {

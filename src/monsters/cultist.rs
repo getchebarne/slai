@@ -90,12 +90,20 @@ pub fn spawn_cultist(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     make_entity_monster(
         MonsterName::Cultist,
         MonsterKind::Normal,
-        Vitals { health: health_max, health_max, block: 0 },
+        Vitals {
+            health: health_max,
+            health_max,
+            block: 0,
+        },
         ZERO_MODIFIERS,
         moves,
     )
 }
 
 pub fn get_next_move_cultist(move_current: Option<usize>, _move_history: &[u8]) -> usize {
-    if move_current.is_none() { IDX_MOVE_INCANTATION } else { IDX_MOVE_DARK_STRIKE }
+    if move_current.is_none() {
+        IDX_MOVE_INCANTATION
+    } else {
+        IDX_MOVE_DARK_STRIKE
+    }
 }

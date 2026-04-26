@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static A_THOUSAND_CUTS: Entity = make_entity_card(
-    CardName::AThousandCuts, CardKind::Power, CardColor::Green, CardRarity::Rare,
-    2, false, false, false, false,
+    CardName::AThousandCuts,
+    CardKind::Power,
+    CardColor::Green,
+    CardRarity::Rare,
+    2,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::ThousandCuts,
@@ -20,8 +27,15 @@ pub static A_THOUSAND_CUTS: Entity = make_entity_card(
 );
 // Upgraded
 pub static A_THOUSAND_CUTS_PLUS: Entity = make_entity_card(
-    CardName::AThousandCuts, CardKind::Power, CardColor::Green, CardRarity::Rare,
-    2, true, false, false, false,
+    CardName::AThousandCuts,
+    CardKind::Power,
+    CardColor::Green,
+    CardRarity::Rare,
+    2,
+    true,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::ThousandCuts,
