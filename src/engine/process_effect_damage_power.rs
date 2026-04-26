@@ -19,6 +19,9 @@ pub fn process_effect_damage_power(
     if modifier_has(target_mods, ModifierKind::Vulnerable) {
         value *= FACTOR_VULN;
     }
+    if modifier_has(target_mods, ModifierKind::Intangible) && value > 1.0 {
+        value = 1.0;
+    }
     let final_damage = value.max(0.0) as u16;
     if final_damage > 0 {
         queue.push_front(Effect {

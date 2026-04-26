@@ -18,6 +18,7 @@ pub fn process_effect_combat_end(
     id_card_target: &mut Option<usize>,
     entities: &mut Vec<Entity>,
     monster_count: &mut u8,
+    cards_nightmare: &mut Vec<Entity>,
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     queue: &mut VecDeque<Effect>,
@@ -26,6 +27,7 @@ pub fn process_effect_combat_end(
     id_pile_draw.clear();
     id_pile_discard.clear();
     id_pile_exhaust.clear();
+    cards_nightmare.clear();
     *id_card_target = None;
 
     let room = active_room_kind(id_rooms, location, entities).unwrap();

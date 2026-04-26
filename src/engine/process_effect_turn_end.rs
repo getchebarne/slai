@@ -102,6 +102,20 @@ pub fn process_effect_turn_end_character(
         });
     }
 
+    // WraithForm: each stack costs 1 Dexterity per player turn end.
+    // Persists across turns (no removal here).
+    if modifier_has(character_modifiers, ModifierKind::WraithForm) {
+        let stacks = modifier_stacks(character_modifiers, ModifierKind::WraithForm);
+        buf_effects.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Dexterity,
+                stacks: -stacks,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
     for &id_card in id_hand {
         buf_effects.push(Effect {
             kind: EffectKind::CardDiscardEndOfTurn,

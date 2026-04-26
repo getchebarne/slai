@@ -72,8 +72,20 @@ pub struct GameState {
     // Consumed by post-draw inspection effects like EscapePlanCheck.
     pub last_drawn_card: Option<usize>,
 
+    // Per-play bookkeeping: id of the card currently being played (set at the
+    // top of `process_effect_card_play`). Used by self-referential effects
+    // like GlassKnifeDecay that need to mutate the played card's own state.
+    pub last_played_card: Option<usize>,
+
     // Per-turn counters, both reset at the start of `process_effect_turn_end_character`.
     // Used by SneakyStrike, Finisher, and Tier-5 Eviscerate / MasterfulStab.
     pub discards_this_turn: u8,
     pub attacks_played_this_turn: u8,
+
+    // Nightmare-pending: snapshot copies of the picked card(s), spawned into
+    // hand at the next character TurnStart (post-draw). Cleared on combat
+    // end. Holds full Entity snapshots so per-instance state (GlassKnife
+    // damage decay, free-to-play flag, etc.) is preserved on the spawned
+    // copies — matches StS `makeStatEquivalentCopy` semantics.
+    pub cards_nightmare: Vec<Entity>,
 }

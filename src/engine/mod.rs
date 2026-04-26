@@ -5,10 +5,13 @@ pub mod process_effect_card_discard;
 pub mod process_effect_card_discard_end_of_turn;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_move_to_discard;
+pub mod process_effect_card_nightmare_pick;
+pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
 pub mod process_effect_card_retain;
+pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_reward_roll;
 pub mod process_effect_card_upgrade;
@@ -18,12 +21,14 @@ pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_damage_physical_if_poisoned;
 pub mod process_effect_damage_power;
+pub mod process_effect_distraction_add;
 pub mod process_effect_death;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_finisher_damage;
 pub mod process_effect_flechettes_damage;
+pub mod process_effect_glass_knife_decay;
 pub mod process_effect_health_gain;
 pub mod process_effect_health_loss;
 pub mod process_effect_heel_hook_proc;
@@ -50,7 +55,7 @@ use std::collections::VecDeque;
 use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target, ZERO_EFFECT};
 use crate::entity::{Entity, EntityKind};
 use crate::map::{active_room_kind, has_edge};
 use crate::state::{GameState, Location};
@@ -69,12 +74,6 @@ pub enum DispatchResult {
 // front of the queue in order. Build up effects normally, then call
 // `push_all_front` once at the end of the handler.
 pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
-
-const ZERO_EFFECT: Effect = Effect {
-    kind: EffectKind::Noop,
-    id_source: None,
-    target: Target::Direct(None),
-};
 
 pub struct EffectBuf {
     pub effects: [Effect; MAX_EFFECTS_PER_HANDLER],
@@ -313,6 +312,12 @@ fn resolve_or_halt(
             EffectKind::CardRetain => DispatchResult::Halt {
                 phase_new: Phase::CombatAwaitRetain { num },
             },
+            EffectKind::CardSetupPick => DispatchResult::Halt {
+                phase_new: Phase::CombatAwaitSetup,
+            },
+            EffectKind::CardNightmarePick { count } => DispatchResult::Halt {
+                phase_new: Phase::CombatAwaitNightmare { count },
+            },
             EffectKind::RoomSelect => DispatchResult::Halt {
                 phase_new: Phase::Map,
             },
@@ -345,10 +350,11 @@ fn dispatch_by_kind(
                 id_card,
                 state.id_card_target,
                 state.id_character,
-                &state.entities,
+                &mut state.entities,
                 &state.id_hand,
                 &buf_alive[..alive_n],
                 &mut state.attacks_played_this_turn,
+                &mut state.last_played_card,
                 &mut state.rng,
                 &mut state.effect_queue,
             )
@@ -357,9 +363,11 @@ fn dispatch_by_kind(
             let id_card = id_target.unwrap();
             process_effect_card_discard::process_effect_card_discard(
                 id_card,
+                &state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
                 &mut state.discards_this_turn,
+                &mut state.effect_queue,
             )
         }
         EffectKind::CardMoveToDiscard => {
@@ -382,6 +390,32 @@ fn dispatch_by_kind(
         EffectKind::CardRetain => {
             let id_card = id_target.unwrap();
             process_effect_card_retain::process_effect_card_retain(id_card, &mut state.entities)
+        }
+        EffectKind::CardSetupPick => {
+            let id_card = id_target.unwrap();
+            process_effect_card_setup_pick::process_effect_card_setup_pick(
+                id_card,
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_draw,
+            )
+        }
+        EffectKind::CardNightmarePick { count } => {
+            let id_card = id_target.unwrap();
+            process_effect_card_nightmare_pick::process_effect_card_nightmare_pick(
+                &state.entities,
+                id_card,
+                count,
+                &mut state.cards_nightmare,
+            )
+        }
+        EffectKind::CardNightmareSpawn => {
+            process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn(
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+                &mut state.cards_nightmare,
+            )
         }
         EffectKind::CardExhaust => {
             let id_card = id_target.unwrap();
@@ -468,6 +502,21 @@ fn dispatch_by_kind(
                 id_target,
                 amount,
                 &mut state.effect_queue,
+            )
+        }
+        EffectKind::GlassKnifeDecay { delta } => {
+            process_effect_glass_knife_decay::process_effect_glass_knife_decay(
+                &mut state.entities,
+                state.last_played_card,
+                delta,
+            )
+        }
+        EffectKind::DistractionAdd => {
+            process_effect_distraction_add::process_effect_distraction_add(
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+                &mut state.rng,
             )
         }
         EffectKind::EscapePlanCheck { block } => {
@@ -672,6 +721,7 @@ fn dispatch_by_kind(
             &mut state.id_card_target,
             &mut state.entities,
             &mut state.monster_count,
+            &mut state.cards_nightmare,
             &state.id_rooms,
             state.location,
             &mut state.effect_queue,

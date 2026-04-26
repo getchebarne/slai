@@ -13,6 +13,12 @@ pub enum Action {
     CardRetain {
         indices_hand: Vec<usize>,
     },
+    CardSetup {
+        idx_hand: usize,
+    },
+    CardNightmare {
+        idx_hand: usize,
+    },
     CardPlay {
         idx_hand: usize,
         idx_monster: Option<usize>,
@@ -39,6 +45,8 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
         (Action::CardRetain { indices_hand }, Phase::CombatAwaitRetain { num }) => {
             indices_hand.len() == num as usize
         }
+        (Action::CardSetup { .. }, Phase::CombatAwaitSetup) => true,
+        (Action::CardNightmare { .. }, Phase::CombatAwaitNightmare { .. }) => true,
         (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
         (Action::CardRewardSelect { .. } | Action::CardRewardSkip, Phase::CombatReward) => true,
@@ -57,6 +65,8 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
     let effects = match action {
         Action::CardDiscard { indices_hand } => handle_card_discard(state, indices_hand),
         Action::CardRetain { indices_hand } => handle_card_retain(state, indices_hand),
+        Action::CardSetup { idx_hand } => handle_card_setup(state, idx_hand),
+        Action::CardNightmare { idx_hand } => handle_card_nightmare(state, idx_hand),
         Action::CardPlay {
             idx_hand,
             idx_monster,
@@ -106,10 +116,11 @@ fn handle_card_play(
         ));
     }
 
-    if card.card_cost > state.energy.current {
+    let effective_cost = crate::entity::card_effective_cost(card);
+    if effective_cost > state.energy.current {
         return Err(format!(
             "Not enough energy to play {:?}: need {}, have {}",
-            card.card_name, card.card_cost, state.energy.current
+            card.card_name, effective_cost, state.energy.current
         ));
     }
 
@@ -169,6 +180,28 @@ fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Ve
         effects.push(Effect::direct(EffectKind::CardDiscard, None, Some(id_card)));
     }
     Ok(effects)
+}
+
+fn handle_card_setup(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
+    let id_card = lookup_idx(&state.id_hand, idx_hand)?;
+    Ok(vec![Effect::direct(
+        EffectKind::CardSetupPick,
+        None,
+        Some(id_card),
+    )])
+}
+
+fn handle_card_nightmare(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
+    let id_card = lookup_idx(&state.id_hand, idx_hand)?;
+    let count = match state.phase {
+        Phase::CombatAwaitNightmare { count } => count,
+        _ => unreachable!("handle_card_nightmare guarded by validate_phase"),
+    };
+    Ok(vec![Effect::direct(
+        EffectKind::CardNightmarePick { count },
+        None,
+        Some(id_card),
+    )])
 }
 
 fn handle_card_retain(state: &GameState, indices_hand: Vec<usize>) -> Result<Vec<Effect>, String> {

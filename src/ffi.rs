@@ -115,12 +115,14 @@ pub enum ModifierKind {
     AfterImage,
     Blur,
     Burst,
+    Choke,
     CorpseExplosion,
     Dexterity,
     DoubleDamage,
     DrawCardNextTurn,
     Envenom,
     InfiniteBlades,
+    Intangible,
     ModeShift,
     NextTurnBlock,
     NextTurnEnergy,
@@ -138,6 +140,7 @@ pub enum ModifierKind {
     ToolsOfTheTrade,
     Vulnerable,
     Weak,
+    WraithForm,
 }
 
 impl From<InternalModifierKind> for ModifierKind {
@@ -147,12 +150,14 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::AfterImage => Self::AfterImage,
             InternalModifierKind::Blur => Self::Blur,
             InternalModifierKind::Burst => Self::Burst,
+            InternalModifierKind::Choke => Self::Choke,
             InternalModifierKind::CorpseExplosion => Self::CorpseExplosion,
             InternalModifierKind::Dexterity => Self::Dexterity,
             InternalModifierKind::DoubleDamage => Self::DoubleDamage,
             InternalModifierKind::DrawCardNextTurn => Self::DrawCardNextTurn,
             InternalModifierKind::Envenom => Self::Envenom,
             InternalModifierKind::InfiniteBlades => Self::InfiniteBlades,
+            InternalModifierKind::Intangible => Self::Intangible,
             InternalModifierKind::ModeShift => Self::ModeShift,
             InternalModifierKind::NextTurnBlock => Self::NextTurnBlock,
             InternalModifierKind::NextTurnEnergy => Self::NextTurnEnergy,
@@ -170,6 +175,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::ToolsOfTheTrade => Self::ToolsOfTheTrade,
             InternalModifierKind::Vulnerable => Self::Vulnerable,
             InternalModifierKind::Weak => Self::Weak,
+            InternalModifierKind::WraithForm => Self::WraithForm,
             InternalModifierKind::Count => {
                 unreachable!("ModifierKind::Count is a sentinel, never a real modifier")
             }
@@ -211,7 +217,9 @@ pub enum Phase {
     Map {},
     CombatDefault {},
     CombatAwaitDiscard { num: u8 },
+    CombatAwaitNightmare { count: u8 },
     CombatAwaitRetain { num: u8 },
+    CombatAwaitSetup {},
     CombatReward {},
     RestSite {},
     GameOver {},
@@ -223,7 +231,11 @@ impl From<InternalPhase> for Phase {
             InternalPhase::Map => Self::Map {},
             InternalPhase::CombatDefault => Self::CombatDefault {},
             InternalPhase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
+            InternalPhase::CombatAwaitNightmare { count } => {
+                Self::CombatAwaitNightmare { count }
+            }
             InternalPhase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
+            InternalPhase::CombatAwaitSetup => Self::CombatAwaitSetup {},
             InternalPhase::CombatReward => Self::CombatReward {},
             InternalPhase::RestSite => Self::RestSite {},
             InternalPhase::GameOver => Self::GameOver {},
@@ -270,6 +282,12 @@ pub enum Action {
     CardRetain {
         indices_hand: Vec<usize>,
     },
+    CardSetup {
+        idx_hand: usize,
+    },
+    CardNightmare {
+        idx_hand: usize,
+    },
     RoomSelect {
         idx_column: usize,
     },
@@ -296,6 +314,8 @@ impl From<Action> for InternalAction {
             Action::EndTurn {} => InternalAction::EndTurn,
             Action::CardDiscard { indices_hand } => InternalAction::CardDiscard { indices_hand },
             Action::CardRetain { indices_hand } => InternalAction::CardRetain { indices_hand },
+            Action::CardSetup { idx_hand } => InternalAction::CardSetup { idx_hand },
+            Action::CardNightmare { idx_hand } => InternalAction::CardNightmare { idx_hand },
             Action::RoomSelect { idx_column } => InternalAction::RoomSelect { idx_column },
             Action::CardRewardSelect { idx_reward } => {
                 InternalAction::CardRewardSelect { idx_reward }
@@ -331,6 +351,20 @@ pub enum Effect {
     },
     EscapePlanCheck {
         block: u16,
+        target: Option<Target>,
+    },
+    GlassKnifeDecay {
+        delta: i16,
+        target: Option<Target>,
+    },
+    CardSetupPick {
+        target: Option<Target>,
+    },
+    CardNightmarePick {
+        count: u8,
+        target: Option<Target>,
+    },
+    DistractionAdd {
         target: Option<Target>,
     },
     FinisherDamage {
@@ -414,6 +448,10 @@ impl Effect {
             }
             EffectKind::HeelHookProc => Self::HeelHookProc { target },
             EffectKind::EscapePlanCheck { block } => Self::EscapePlanCheck { block, target },
+            EffectKind::GlassKnifeDecay { delta } => Self::GlassKnifeDecay { delta, target },
+            EffectKind::CardSetupPick => Self::CardSetupPick { target },
+            EffectKind::CardNightmarePick { count } => Self::CardNightmarePick { count, target },
+            EffectKind::DistractionAdd => Self::DistractionAdd { target },
             EffectKind::FinisherDamage { damage_per } => {
                 Self::FinisherDamage { damage_per, target }
             }
@@ -470,6 +508,9 @@ pub struct Card {
     pub innate: bool,
     pub requires_target: bool,
     pub retain: bool,
+    /// Per-instance "free to play once" flag (set by Setup, Distraction).
+    /// When true, the next play of this card instance ignores energy cost.
+    pub free_to_play_once: bool,
     /// Whether this card can be played given the current game state.
     /// Combines its static `card_play_restriction` with the relevant state
     /// (currently: `id_pile_draw` for the DrawPileEmpty restriction).
@@ -693,12 +734,12 @@ fn build_view_card_template(card: &Entity, id_pile_draw: &[usize]) -> Card {
         innate: card.card_innate,
         requires_target: card.card_requires_target,
         retain: card.card_retain,
+        free_to_play_once: card.card_free_to_play_once,
         playable: crate::entity::play_restriction_satisfied(
             card.card_play_restriction,
             id_pile_draw,
         ),
-        effects: card
-            .card_effects
+        effects: card.card_effects[..card.card_effects_len as usize]
             .iter()
             .map(Effect::from_internal)
             .collect(),

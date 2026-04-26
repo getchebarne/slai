@@ -31,6 +31,13 @@ pub fn process_effect_damage_physical(
         value *= FACTOR_VULN;
     }
 
+    // Intangible: cap any incoming damage at 1 per attack instance,
+    // pre-block (block then subtracts as normal). Matches StS
+    // IntangiblePlayerPower.atDamageFinalReceive.
+    if modifier_has(target_mods, ModifierKind::Intangible) && value > 1.0 {
+        value = 1.0;
+    }
+
     // Thorns: triggers per attack instance regardless of damage actually
     // dealt. Pushed before DamageDeal so the queue resolves DamageDeal first
     // (target takes the hit), then the Thorns reflect lands on the attacker.

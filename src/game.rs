@@ -64,8 +64,10 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         location,
         effect_queue,
         last_drawn_card: None,
+        last_played_card: None,
         discards_this_turn: 0,
         attacks_played_this_turn: 0,
+        cards_nightmare: Vec::new(),
     };
 
     // Run the queue so the initial halt registers.
