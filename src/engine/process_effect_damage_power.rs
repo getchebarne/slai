@@ -1,43 +1,31 @@
 use std::collections::VecDeque;
 
-use crate::consts::{FACTOR_VULN, FACTOR_WEAK};
+use crate::consts::FACTOR_VULN;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
-use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
+use crate::modifier::{ModifierKind, Modifiers, modifier_has};
 
-pub fn process_effect_damage_physical(
-    source_mods: &Modifiers,
+// Non-attack damage from a power, on-death trigger, or per-play tick.
+// Source-side modifiers (Strength/Weak) do NOT scale this; target Vulnerable
+// still multiplies; block still subtracts. Pushes DamageDeal with no source
+// so Envenom does not proc.
+pub fn process_effect_damage_power(
     target_mods: &Modifiers,
-    id_source: Option<usize>,
     id_target: usize,
     amount: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let mut value = amount as f32;
-
-    // Source modifiers
-    if modifier_has(source_mods, ModifierKind::Strength) {
-        value += modifier_stacks(source_mods, ModifierKind::Strength) as f32;
-    }
-    if modifier_has(source_mods, ModifierKind::Weak) {
-        value *= FACTOR_WEAK;
-    }
-    if modifier_has(source_mods, ModifierKind::DoubleDamage) {
-        value *= 2.0;
-    }
-
-    // Target modifiers
     if modifier_has(target_mods, ModifierKind::Vulnerable) {
         value *= FACTOR_VULN;
     }
-
     let final_damage = value.max(0.0) as u16;
     if final_damage > 0 {
         queue.push_front(Effect {
             kind: EffectKind::DamageDeal {
                 amount: final_damage,
             },
-            id_source,
+            id_source: None,
             target: Target::Direct(Some(id_target)),
         });
     }

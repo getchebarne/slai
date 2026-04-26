@@ -65,12 +65,12 @@ pub fn process_effect_card_play(
         });
     }
 
-    // ThousandCuts
+    // ThousandCuts: power-induced damage (no Strength scaling, doesn't proc Envenom)
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &id_monster in alive_monsters {
             buf_effects.push(Effect {
-                kind: EffectKind::DamagePhysical {
+                kind: EffectKind::DamagePower {
                     amount: stacks as u16,
                 },
                 id_source: Some(id_character),
