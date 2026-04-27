@@ -39,7 +39,7 @@ pub static NOXIOUS_FUMES_PLUS: Entity = make_entity_card(
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::NoxiousFumes,
-            stacks: 3, // +1
+            stacks: 3, // +1 poison
         },
         id_source: None,
         target: Target::Resolve {

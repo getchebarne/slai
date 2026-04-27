@@ -40,7 +40,7 @@ pub fn process_effect_combat_end(
             }
             EntityKind::Monster => {
                 // Prevent stale Poison/Shackled/etc. from leaking into views
-                // after the next combat reuses (or doesn't reuse) the slot.
+                // after the next combat reuses (or doesn't reuse) the slot
                 modifier_clear(&mut entity.modifiers);
             }
             _ => {}

@@ -16,7 +16,6 @@ pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_damage_physical_if_poisoned;
-pub mod process_effect_damage_power;
 pub mod process_effect_death;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
@@ -410,13 +409,12 @@ fn dispatch_by_kind(
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
         EffectKind::DamagePhysical { amount } => {
-            let id_source_un = id_source.unwrap();
             let id_target = id_target.unwrap();
-            let source_mods = &state.entities[id_source_un].modifiers;
-            let target_mods = &state.entities[id_target].modifiers;
+            let mods_source = &state.entities[id_source.unwrap()].modifiers;
+            let mods_target = &state.entities[id_target].modifiers;
             process_effect_damage_physical::process_effect_damage_physical(
-                source_mods,
-                target_mods,
+                mods_source,
+                mods_target,
                 id_source,
                 id_target,
                 amount,
@@ -433,29 +431,19 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::DamagePower { amount } => {
-            let id_target = id_target.unwrap();
-            let target_mods = &state.entities[id_target].modifiers;
-            process_effect_damage_power::process_effect_damage_power(
-                target_mods,
-                id_target,
-                amount,
-                &mut state.effect_queue,
-            )
-        }
         EffectKind::DamageDeal { amount } => {
             let id_target = id_target.unwrap();
             let id_character = state.id_character;
             // Snapshot character modifiers separately to avoid aliasing the
             // entities borrow taken below for vitals.
-            let character_mods = state.entities[id_character].modifiers;
+            let mods_char = state.entities[id_character].modifiers;
             let vitals = &mut state.entities[id_target].vitals;
             process_effect_damage_deal::process_effect_damage_deal(
                 vitals,
                 id_source,
                 id_target,
                 id_character,
-                &character_mods,
+                &mods_char,
                 amount,
                 &mut state.effect_queue,
             )

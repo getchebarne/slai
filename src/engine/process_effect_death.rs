@@ -38,22 +38,23 @@ pub fn process_effect_death(
     };
 
     // CorpseExplosion: dying enemy deals damage equal to its max HP to every
-    // OTHER alive enemy. Uses DamagePower so source-side scaling does not
-    // apply; target Vulnerable still multiplies; block still subtracts.
-    let corpse_effects: Vec<Effect> = if modifier_has(&monster.modifiers, ModifierKind::CorpseExplosion) {
-        let dmg = monster.vitals.health_max;
-        id_monsters[..monster_count as usize]
-            .iter()
-            .filter(|&&id| id != id_target && !entities[id].dead)
-            .map(|&id| Effect {
-                kind: EffectKind::DamagePower { amount: dmg },
-                id_source: None,
-                target: Target::Direct(Some(id)),
-            })
-            .collect()
-    } else {
-        Vec::new()
-    };
+    // other alive enemy. `id_source = None` so no source-side scaling and
+    // Envenom can't proc; block still subtracts
+    let effects_corpse: Vec<Effect> =
+        if modifier_has(&monster.modifiers, ModifierKind::CorpseExplosion) {
+            let dmg = monster.vitals.health_max;
+            id_monsters[..monster_count as usize]
+                .iter()
+                .filter(|&&id| id != id_target && !entities[id].dead)
+                .map(|&id| Effect {
+                    kind: EffectKind::DamageDeal { amount: dmg },
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
 
     entities[id_target].dead = true;
 
@@ -64,7 +65,7 @@ pub fn process_effect_death(
     if !any_alive {
         // Combat ends. Replace pending effects with on-death triggers then CombatEnd.
         queue.clear();
-        for e in &corpse_effects {
+        for e in &effects_corpse {
             queue.push_back(*e);
         }
         if let Some(e) = spore_effect {
@@ -81,7 +82,7 @@ pub fn process_effect_death(
         if let Some(e) = spore_effect {
             queue.push_front(e);
         }
-        for e in corpse_effects.iter().rev() {
+        for e in effects_corpse.iter().rev() {
             queue.push_front(*e);
         }
     }
