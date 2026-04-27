@@ -14,6 +14,26 @@ pub fn process_effect_turn_end_monster(
     id_actor: usize,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
+    // Refund negative Strength stacks from `Shackled`
+    if modifier_has(modifiers, ModifierKind::Shackled) {
+        let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
+        queue.push_front(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Shackled,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_actor)),
+        });
+        queue.push_front(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_actor)),
+        });
+    }
+
     // Ritual: skip if newly applied.
     if modifier_has(modifiers, ModifierKind::Ritual)
         && !modifiers.is_new[ModifierKind::Ritual as usize]

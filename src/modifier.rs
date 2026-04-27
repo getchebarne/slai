@@ -16,6 +16,7 @@ pub enum ModifierKind {
     Phantasmal,
     Retain,
     Ritual,
+    Shackled,
     SharpHide,
     SporeCloud,
     Strength,
@@ -132,6 +133,13 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     ModifierDef {
         kind: ModifierKind::Ritual,
         is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Shackled,
+        is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: 999,

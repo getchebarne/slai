@@ -11,6 +11,7 @@ pub mod blur;
 pub mod burst;
 pub mod calculated_gamble;
 pub mod cloak_and_dagger;
+pub mod dagger_spray;
 pub mod dagger_throw;
 pub mod dash;
 pub mod defend;
@@ -24,6 +25,8 @@ pub mod leg_sweep;
 pub mod neutralize;
 pub mod outmaneuver;
 pub mod phantasmal_killer;
+pub mod piercing_wail;
+pub mod prepared;
 pub mod shiv;
 pub mod strike;
 pub mod survivor;
@@ -61,6 +64,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::CalculatedGamble, true) => calculated_gamble::CALCULATED_GAMBLE_PLUS,
         (CardName::CloakAndDagger, false) => cloak_and_dagger::CLOAK_AND_DAGGER,
         (CardName::CloakAndDagger, true) => cloak_and_dagger::CLOAK_AND_DAGGER_PLUS,
+        (CardName::DaggerSpray, false) => dagger_spray::DAGGER_SPRAY,
+        (CardName::DaggerSpray, true) => dagger_spray::DAGGER_SPRAY_PLUS,
         (CardName::DaggerThrow, false) => dagger_throw::DAGGER_THROW,
         (CardName::DaggerThrow, true) => dagger_throw::DAGGER_THROW_PLUS,
         (CardName::Dash, false) => dash::DASH,
@@ -87,6 +92,10 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Outmaneuver, true) => outmaneuver::OUTMANEUVER_PLUS,
         (CardName::PhantasmalKiller, false) => phantasmal_killer::PHANTASMAL_KILLER,
         (CardName::PhantasmalKiller, true) => phantasmal_killer::PHANTASMAL_KILLER_PLUS,
+        (CardName::PiercingWail, false) => piercing_wail::PIERCING_WAIL,
+        (CardName::PiercingWail, true) => piercing_wail::PIERCING_WAIL_PLUS,
+        (CardName::Prepared, false) => prepared::PREPARED,
+        (CardName::Prepared, true) => prepared::PREPARED_PLUS,
         (CardName::Shiv, false) => shiv::SHIV,
         (CardName::Shiv, true) => shiv::SHIV_PLUS,
         (CardName::Strike, false) => strike::STRIKE,
@@ -106,11 +115,14 @@ pub const REWARD_POOL_COMMON: &[CardName] = &[
     CardName::Backflip,
     CardName::BladeDance,
     CardName::CloakAndDagger,
+    CardName::DaggerSpray,
     CardName::DaggerThrow,
     CardName::Deflect,
     CardName::DodgeAndRoll,
     CardName::FlyingKnee,
     CardName::Outmaneuver,
+    CardName::PiercingWail,
+    CardName::Prepared,
 ];
 
 pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
