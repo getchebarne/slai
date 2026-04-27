@@ -5,8 +5,10 @@ use crate::modifier::ModifierKind;
 pub enum EffectKind {
     Noop,
     DamagePhysical { amount: u16 },
+    DamagePhysicalIfPoisoned { amount: u16 },
     BlockGain { amount: u16 },
     ModifierGain { kind: ModifierKind, stacks: i16 },
+    ModifierMultiply { kind: ModifierKind, factor: u8 },
     ModifierRemove { kind: ModifierKind },
     EnergyGain { amount: u8 },
     ShivAdd { count: u8 },
@@ -31,6 +33,7 @@ pub enum EffectKind {
     BlockSet { amount: u16 },
     EnergyLoss { amount: u8 },
     ModifierTick,
+    PoisonTick,
     ModifierSetNotNew,
     Death,
     CombatStart,

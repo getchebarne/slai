@@ -19,6 +19,11 @@ pub fn process_effect_turn_start(
     // Stack locals
     let mut buf_effects = EffectBuf::new();
 
+    // Modifier / Poison
+    if modifier_has(modifiers, ModifierKind::Poison) {
+        buf_effects.push(Effect::direct(EffectKind::PoisonTick, None, Some(id_actor)));
+    }
+
     // Resolve new block (Blur retains, NextTurnBlock adds)
     let mut new_block: u16 = 0;
     if modifier_has(modifiers, ModifierKind::Blur) {
@@ -78,6 +83,21 @@ pub fn process_effect_turn_start(
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
             });
+        }
+
+        // Modifier / NoxiousFumes
+        if modifier_has(modifiers, ModifierKind::NoxiousFumes) {
+            let stacks = modifier_stacks(modifiers, ModifierKind::NoxiousFumes);
+            for &id_monster in id_monsters {
+                buf_effects.push(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::Poison,
+                        stacks,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
         }
 
         // Modifier / NextTurnEnergy

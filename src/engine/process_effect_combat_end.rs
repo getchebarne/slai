@@ -34,8 +34,16 @@ pub fn process_effect_combat_end(
 
     // Clear retained cards
     for entity in entities.iter_mut() {
-        if entity.kind == EntityKind::Card {
-            entity.card_retain = false;
+        match entity.kind {
+            EntityKind::Card => {
+                entity.card_retain = false;
+            }
+            EntityKind::Monster => {
+                // Prevent stale Poison/Shackled/etc. from leaking into views
+                // after the next combat reuses (or doesn't reuse) the slot
+                modifier_clear(&mut entity.modifiers);
+            }
+            _ => {}
         }
     }
 

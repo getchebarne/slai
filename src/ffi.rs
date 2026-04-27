@@ -115,13 +115,17 @@ pub enum ModifierKind {
     AfterImage,
     Blur,
     Burst,
+    CorpseExplosion,
     Dexterity,
     DoubleDamage,
+    Envenom,
     InfiniteBlades,
     ModeShift,
     NextTurnBlock,
     NextTurnEnergy,
+    NoxiousFumes,
     Phantasmal,
+    Poison,
     Retain,
     Ritual,
     Shackled,
@@ -140,13 +144,17 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::AfterImage => Self::AfterImage,
             InternalModifierKind::Blur => Self::Blur,
             InternalModifierKind::Burst => Self::Burst,
+            InternalModifierKind::CorpseExplosion => Self::CorpseExplosion,
             InternalModifierKind::Dexterity => Self::Dexterity,
             InternalModifierKind::DoubleDamage => Self::DoubleDamage,
+            InternalModifierKind::Envenom => Self::Envenom,
             InternalModifierKind::InfiniteBlades => Self::InfiniteBlades,
             InternalModifierKind::ModeShift => Self::ModeShift,
             InternalModifierKind::NextTurnBlock => Self::NextTurnBlock,
             InternalModifierKind::NextTurnEnergy => Self::NextTurnEnergy,
+            InternalModifierKind::NoxiousFumes => Self::NoxiousFumes,
             InternalModifierKind::Phantasmal => Self::Phantasmal,
+            InternalModifierKind::Poison => Self::Poison,
             InternalModifierKind::Retain => Self::Retain,
             InternalModifierKind::Ritual => Self::Ritual,
             InternalModifierKind::Shackled => Self::Shackled,
@@ -308,6 +316,10 @@ pub enum Effect {
         amount: u16,
         target: Option<Target>,
     },
+    DamagePhysicalIfPoisoned {
+        amount: u16,
+        target: Option<Target>,
+    },
     BlockGain {
         amount: u16,
         target: Option<Target>,
@@ -315,6 +327,11 @@ pub enum Effect {
     ModifierGain {
         kind: ModifierKind,
         stacks: i16,
+        target: Option<Target>,
+    },
+    ModifierMultiply {
+        kind: ModifierKind,
+        factor: u8,
         target: Option<Target>,
     },
     ModifierRemove {
@@ -359,10 +376,18 @@ impl Effect {
         };
         match effect.kind {
             EffectKind::DamagePhysical { amount } => Self::DamagePhysical { amount, target },
+            EffectKind::DamagePhysicalIfPoisoned { amount } => {
+                Self::DamagePhysicalIfPoisoned { amount, target }
+            }
             EffectKind::BlockGain { amount } => Self::BlockGain { amount, target },
             EffectKind::ModifierGain { kind, stacks } => Self::ModifierGain {
                 kind: kind.into(),
                 stacks,
+                target,
+            },
+            EffectKind::ModifierMultiply { kind, factor } => Self::ModifierMultiply {
+                kind: kind.into(),
+                factor,
                 target,
             },
             EffectKind::ModifierRemove { kind } => Self::ModifierRemove {
