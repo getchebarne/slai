@@ -73,6 +73,7 @@ pub struct Entity {
     pub card_exhaust: bool,
     pub card_innate: bool,
     pub card_requires_target: bool,
+    pub card_retain: bool,
     pub card_effects: &'static [Effect],
 
     // Room-only
@@ -107,6 +108,7 @@ const ZERO_ENTITY: Entity = Entity {
     card_exhaust: false,
     card_innate: false,
     card_requires_target: false,
+    card_retain: false,
     card_effects: &[],
     room_y: 0,
     room_x: 0,

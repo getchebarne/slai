@@ -10,6 +10,9 @@ pub enum Action {
     CardDiscard {
         indices_hand: Vec<usize>,
     },
+    CardRetain {
+        indices_hand: Vec<usize>,
+    },
     CardPlay {
         idx_hand: usize,
         idx_monster: Option<usize>,
@@ -33,6 +36,9 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
         (Action::CardDiscard { indices_hand }, Phase::CombatAwaitDiscard { num }) => {
             indices_hand.len() == num as usize
         }
+        (Action::CardRetain { indices_hand }, Phase::CombatAwaitRetain { num }) => {
+            indices_hand.len() == num as usize
+        }
         (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
         (Action::CardRewardSelect { .. } | Action::CardRewardSkip, Phase::CombatReward) => true,
@@ -50,6 +56,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
 
     let effects = match action {
         Action::CardDiscard { indices_hand } => handle_card_discard(state, indices_hand),
+        Action::CardRetain { indices_hand } => handle_card_retain(state, indices_hand),
         Action::CardPlay {
             idx_hand,
             idx_monster,
@@ -155,6 +162,20 @@ fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Ve
         effects.push(Effect::direct(EffectKind::CardDiscard, None, Some(id_card)));
     }
     effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
+    Ok(effects)
+}
+
+fn handle_card_retain(state: &GameState, indices_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
+    // No trailing AwaitCombatAction — the suspended turn-end chain (discards,
+    // monster turns, next turn start) takes over once the retain flags are set.
+    let mut effects = Vec::with_capacity(indices_hand.len());
+    for &idx in &indices_hand {
+        let id_card = *state
+            .id_hand
+            .get(idx)
+            .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.id_hand.len()))?;
+        effects.push(Effect::direct(EffectKind::CardRetain, None, Some(id_card)));
+    }
     Ok(effects)
 }
 

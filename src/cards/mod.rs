@@ -28,6 +28,7 @@ pub mod shiv;
 pub mod strike;
 pub mod survivor;
 pub mod terror;
+pub mod well_laid_plans;
 
 use crate::entity::Entity;
 use crate::types::CardName;
@@ -94,6 +95,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Survivor, true) => survivor::SURVIVOR_PLUS,
         (CardName::Terror, false) => terror::TERROR,
         (CardName::Terror, true) => terror::TERROR_PLUS,
+        (CardName::WellLaidPlans, false) => well_laid_plans::WELL_LAID_PLANS,
+        (CardName::WellLaidPlans, true) => well_laid_plans::WELL_LAID_PLANS_PLUS,
     }
 }
 
@@ -121,6 +124,7 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::InfiniteBlades,
     CardName::LegSweep,
     CardName::Terror,
+    CardName::WellLaidPlans,
 ];
 
 pub const REWARD_POOL_RARE: &[CardName] = &[

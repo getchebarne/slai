@@ -24,10 +24,10 @@ pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MON
     n
 }
 
-pub fn remove_card_from_hand(id_card: usize, id_hand: &mut Vec<usize>) {
+pub fn remove_card_from_hand(id_target: usize, id_hand: &mut Vec<usize>) {
     let hand_idx = id_hand
         .iter()
-        .position(|&elem| elem == id_card)
+        .position(|&elem| elem == id_target)
         .expect("Can't discard a card that's not in the hand");
 
     id_hand.remove(hand_idx);

@@ -1,12 +1,13 @@
-pub mod process_effect_shiv_add;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_discard;
+pub mod process_effect_card_discard_end_of_turn;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
+pub mod process_effect_card_retain;
 pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_reward_roll;
 pub mod process_effect_card_upgrade;
@@ -26,6 +27,7 @@ pub mod process_effect_modifier_tick;
 pub mod process_effect_move_update;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
+pub mod process_effect_shiv_add;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
@@ -296,6 +298,9 @@ fn resolve_or_halt(
             EffectKind::CardDiscard => DispatchResult::Halt {
                 phase_new: Phase::CombatAwaitDiscard { num },
             },
+            EffectKind::CardRetain => DispatchResult::Halt {
+                phase_new: Phase::CombatAwaitRetain { num },
+            },
             EffectKind::RoomSelect => DispatchResult::Halt {
                 phase_new: Phase::Map,
             },
@@ -319,12 +324,11 @@ fn dispatch_by_kind(
             &mut state.rng,
         ),
         EffectKind::CardPlay => {
-            let id_card = id_target.unwrap();
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             process_effect_card_play::process_effect_card_play(
-                id_card,
+                id_target.unwrap(),
                 state.id_card_target,
                 state.id_character,
                 &state.entities,
@@ -334,26 +338,32 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::CardDiscard => {
-            let id_card = id_target.unwrap();
-            process_effect_card_discard::process_effect_card_discard(
-                id_card,
+        EffectKind::CardDiscard => process_effect_card_discard::process_effect_card_discard(
+            id_target.unwrap(),
+            &mut state.id_hand,
+            &mut state.id_pile_discard,
+        ),
+        EffectKind::CardDiscardEndOfTurn => {
+            process_effect_card_discard_end_of_turn::process_effect_card_discard_end_of_turn(
+                id_target.unwrap(),
+                &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
             )
         }
-        EffectKind::CardExhaust => {
-            let id_card = id_target.unwrap();
-            process_effect_card_exhaust::process_effect_card_exhaust(
-                id_card,
-                &mut state.id_hand,
-                &mut state.id_pile_exhaust,
-            )
-        }
-        EffectKind::CardRemove => {
-            let id_card = id_target.unwrap();
-            process_effect_card_remove::process_effect_card_remove(id_card, &mut state.id_hand)
-        }
+        EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(
+            id_target.unwrap(),
+            &mut state.entities,
+        ),
+        EffectKind::CardExhaust => process_effect_card_exhaust::process_effect_card_exhaust(
+            id_target.unwrap(),
+            &mut state.id_hand,
+            &mut state.id_pile_exhaust,
+        ),
+        EffectKind::CardRemove => process_effect_card_remove::process_effect_card_remove(
+            id_target.unwrap(),
+            &mut state.id_hand,
+        ),
         EffectKind::ShivAdd { count } => process_effect_shiv_add::process_effect_shiv_add(
             count,
             &mut state.entities,
@@ -366,10 +376,10 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::CardUpgrade => {
-            let id_card = id_target.unwrap();
-            process_effect_card_upgrade::process_effect_card_upgrade(id_card, &mut state.entities)
-        }
+        EffectKind::CardUpgrade => process_effect_card_upgrade::process_effect_card_upgrade(
+            id_target.unwrap(),
+            &mut state.entities,
+        ),
         EffectKind::CardRewardRoll => {
             process_effect_card_reward_roll::process_effect_card_reward_roll(
                 state.id_character,
@@ -465,7 +475,7 @@ fn dispatch_by_kind(
             let entity = &mut state.entities[id_target];
             let cycle_count = match entity.kind {
                 EntityKind::Monster => Some(entity.cycle_count),
-                _ => None
+                _ => None,
             };
             process_effect_modifier_gain::process_effect_modifier_gain(
                 &mut entity.modifiers,

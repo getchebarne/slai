@@ -47,6 +47,7 @@ pub enum CardName {
     Strike,
     Survivor,
     Terror,
+    WellLaidPlans,
 }
 
 impl CardName {
@@ -82,6 +83,7 @@ impl CardName {
             Self::Strike => "Strike",
             Self::Survivor => "Survivor",
             Self::Terror => "Terror",
+            Self::WellLaidPlans => "Well Laid Plans",
         }
     }
 }
@@ -150,6 +152,7 @@ pub enum Phase {
     CombatReward,
     CombatDefault,
     CombatAwaitDiscard { num: u8 },
+    CombatAwaitRetain { num: u8 },
     GameOver,
     Map,
     RestSite,
