@@ -58,10 +58,7 @@ pub fn active_room_kind(
 
 type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
 
-pub fn generate_map(
-    rng: &mut impl Rng,
-    entities: &mut Vec<Entity>,
-) -> (IdRooms, Location) {
+pub fn generate_map(rng: &mut impl Rng, entities: &mut Vec<Entity>) -> (IdRooms, Location) {
     let grid = generate_grid(rng);
     entitize_grid(grid, entities)
 }

@@ -3,8 +3,15 @@ use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static SURVIVOR: Entity = make_entity_card(
-    CardName::Survivor, CardKind::Skill, CardColor::Green, CardRarity::Basic,
-    1, false, false, false, false,
+    CardName::Survivor,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Basic,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 8 },
@@ -26,8 +33,15 @@ pub static SURVIVOR: Entity = make_entity_card(
 );
 // Upgraded
 pub static SURVIVOR_PLUS: Entity = make_entity_card(
-    CardName::Survivor, CardKind::Skill, CardColor::Green, CardRarity::Basic,
-    1, true, false, false, false,
+    CardName::Survivor,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Basic,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain {

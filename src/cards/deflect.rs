@@ -3,8 +3,15 @@ use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static DEFLECT: Entity = make_entity_card(
-    CardName::Deflect, CardKind::Skill, CardColor::Green, CardRarity::Common,
-    0, false, false, false, false,
+    CardName::Deflect,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Common,
+    0,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::BlockGain { amount: 4 },
         id_source: None,
@@ -16,8 +23,15 @@ pub static DEFLECT: Entity = make_entity_card(
 );
 // Upgraded
 pub static DEFLECT_PLUS: Entity = make_entity_card(
-    CardName::Deflect, CardKind::Skill, CardColor::Green, CardRarity::Common,
-    0, true, false, false, false,
+    CardName::Deflect,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Common,
+    0,
+    true,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::BlockGain {
             amount: 7, // +3 block

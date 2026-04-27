@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static LEG_SWEEP: Entity = make_entity_card(
-    CardName::LegSweep, CardKind::Skill, CardColor::Green, CardRarity::Uncommon,
-    2, false, false, false, true,
+    CardName::LegSweep,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    2,
+    false,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 11 },
@@ -30,8 +37,15 @@ pub static LEG_SWEEP: Entity = make_entity_card(
 );
 // Upgraded
 pub static LEG_SWEEP_PLUS: Entity = make_entity_card(
-    CardName::LegSweep, CardKind::Skill, CardColor::Green, CardRarity::Uncommon,
-    2, true, false, false, true,
+    CardName::LegSweep,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    2,
+    true,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::BlockGain {

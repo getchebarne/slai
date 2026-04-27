@@ -3,8 +3,15 @@ use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static ADRENALINE: Entity = make_entity_card(
-    CardName::Adrenaline, CardKind::Skill, CardColor::Green, CardRarity::Rare,
-    0, false, true, false, false,
+    CardName::Adrenaline,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Rare,
+    0,
+    false,
+    true,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::EnergyGain { amount: 1 },
@@ -20,8 +27,15 @@ pub static ADRENALINE: Entity = make_entity_card(
 );
 // Upgraded
 pub static ADRENALINE_PLUS: Entity = make_entity_card(
-    CardName::Adrenaline, CardKind::Skill, CardColor::Green, CardRarity::Rare,
-    0, true, true, false, false,
+    CardName::Adrenaline,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Rare,
+    0,
+    true,
+    true,
+    false,
+    false,
     &[
         Effect {
             kind: EffectKind::EnergyGain { amount: 2 }, // +1 energy gain

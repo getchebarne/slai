@@ -3,8 +3,15 @@ use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static DEFEND: Entity = make_entity_card(
-    CardName::Defend, CardKind::Skill, CardColor::Green, CardRarity::Basic,
-    1, false, false, false, false,
+    CardName::Defend,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Basic,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::BlockGain { amount: 5 },
         id_source: None,
@@ -16,8 +23,15 @@ pub static DEFEND: Entity = make_entity_card(
 );
 // Upgraded
 pub static DEFEND_PLUS: Entity = make_entity_card(
-    CardName::Defend, CardKind::Skill, CardColor::Green, CardRarity::Basic,
-    1, true, false, false, false,
+    CardName::Defend,
+    CardKind::Skill,
+    CardColor::Green,
+    CardRarity::Basic,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::BlockGain {
             amount: 8, // +3 block

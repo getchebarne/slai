@@ -3,8 +3,15 @@ use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static DASH: Entity = make_entity_card(
-    CardName::Dash, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
-    2, false, false, false, true,
+    CardName::Dash,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    2,
+    false,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 10 },
@@ -26,8 +33,15 @@ pub static DASH: Entity = make_entity_card(
 );
 // Upgraded
 pub static DASH_PLUS: Entity = make_entity_card(
-    CardName::Dash, CardKind::Attack, CardColor::Green, CardRarity::Uncommon,
-    2, true, false, false, true,
+    CardName::Dash,
+    CardKind::Attack,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    2,
+    true,
+    false,
+    false,
+    true,
     &[
         Effect {
             kind: EffectKind::BlockGain {

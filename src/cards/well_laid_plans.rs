@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static WELL_LAID_PLANS: Entity = make_entity_card(
-    CardName::WellLaidPlans, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
-    1, false, false, false, false,
+    CardName::WellLaidPlans,
+    CardKind::Power,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Retain,
@@ -20,8 +27,15 @@ pub static WELL_LAID_PLANS: Entity = make_entity_card(
 );
 // Upgraded
 pub static WELL_LAID_PLANS_PLUS: Entity = make_entity_card(
-    CardName::WellLaidPlans, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
-    1, true, false, false, false,
+    CardName::WellLaidPlans,
+    CardKind::Power,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Retain,

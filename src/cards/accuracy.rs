@@ -4,8 +4,15 @@ use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static ACCURACY: Entity = make_entity_card(
-    CardName::Accuracy, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
-    1, false, false, false, false,
+    CardName::Accuracy,
+    CardKind::Power,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    1,
+    false,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Accuracy,
@@ -20,8 +27,15 @@ pub static ACCURACY: Entity = make_entity_card(
 );
 // Upgraded
 pub static ACCURACY_PLUS: Entity = make_entity_card(
-    CardName::Accuracy, CardKind::Power, CardColor::Green, CardRarity::Uncommon,
-    1, true, false, false, false,
+    CardName::Accuracy,
+    CardKind::Power,
+    CardColor::Green,
+    CardRarity::Uncommon,
+    1,
+    true,
+    false,
+    false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Accuracy,

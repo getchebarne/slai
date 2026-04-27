@@ -2,10 +2,10 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
+use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::map::active_room_kind;
 use crate::monsters::spawn_monster;
 use crate::state::Location;
