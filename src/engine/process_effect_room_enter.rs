@@ -47,7 +47,7 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatMonster => {
-            let encounter: u8 = rng.random_range(0..3);
+            let encounter: u8 = rng.random_range(0..5);
             match encounter {
                 0 => {
                     let m = spawn_monster(MonsterName::JawWorm, ascension, rng);
@@ -62,6 +62,16 @@ pub fn process_effect_room_enter(
                     let m2 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
                     push_monster(m1, entities, id_monsters, monster_count);
                     push_monster(m2, entities, id_monsters, monster_count);
+                }
+                3 => {
+                    let m1 = spawn_monster(MonsterName::SlimeSpikeSmall, ascension, rng);
+                    let m2 = spawn_monster(MonsterName::SlimeAcidSmall, ascension, rng);
+                    push_monster(m1, entities, id_monsters, monster_count);
+                    push_monster(m2, entities, id_monsters, monster_count);
+                }
+                4 => {
+                    let m = spawn_monster(MonsterName::SlaverBlue, ascension, rng);
+                    push_monster(m, entities, id_monsters, monster_count);
                 }
                 _ => unreachable!(),
             };

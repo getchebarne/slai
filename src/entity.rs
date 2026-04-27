@@ -60,6 +60,7 @@ pub enum Intent {
     Attack { damage: u16, instances: u8 },
     AttackBlock { damage: u16, instances: u8 },
     AttackBuff { damage: u16, instances: u8 },
+    AttackDebuff { damage: u16, instances: u8 },
     Block,
     BlockBuff,
     Buff,

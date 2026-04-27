@@ -207,6 +207,9 @@ pub enum MonsterName {
     Cultist,
     FungiBeast,
     JawWorm,
+    SlaverBlue,
+    SlimeAcidSmall,
+    SlimeSpikeSmall,
     TheGuardian,
 }
 
@@ -216,6 +219,9 @@ impl MonsterName {
             Self::Cultist => "Cultist",
             Self::FungiBeast => "Fungi Beast",
             Self::JawWorm => "Jaw Worm",
+            Self::SlaverBlue => "Blue Slaver",
+            Self::SlimeAcidSmall => "Acid Slime",
+            Self::SlimeSpikeSmall => "Spike Slime",
             Self::TheGuardian => "The Guardian",
         }
     }
