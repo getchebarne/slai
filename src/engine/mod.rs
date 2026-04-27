@@ -172,6 +172,13 @@ pub(crate) fn resolve_candidates(
         CandidatePool::CardTarget => buf_cands.push(id_card_target.unwrap()),
         CandidatePool::Character => buf_cands.push(id_character),
         CandidatePool::Monsters => buf_cands.extend_from_slice(id_alive_monsters),
+        CandidatePool::OtherMonsters => {
+            for &id in id_alive_monsters {
+                if id != id_source {
+                    buf_cands.push(id);
+                }
+            }
+        }
         CandidatePool::Source => buf_cands.push(id_source),
         CandidatePool::CardRewardPool => buf_cands.extend_from_slice(id_card_rewards),
         CandidatePool::NextRowRooms => match location {
@@ -817,9 +824,14 @@ fn dispatch_by_kind(
         EffectKind::MoveUpdate => {
             let id_monster = id_target.unwrap();
             let ascension_level = state.ascension;
+            let mut buf_alive = [0usize; MAX_MONSTERS];
+            let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+            let alive_monsters = &buf_alive[..alive_n];
             let entity = &mut state.entities[id_monster];
             process_effect_move_update::process_effect_move_update(
                 entity,
+                id_monster,
+                alive_monsters,
                 ascension_level,
                 &mut state.rng,
             )

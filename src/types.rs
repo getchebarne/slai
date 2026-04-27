@@ -206,6 +206,10 @@ pub enum CardRarity {
 pub enum MonsterName {
     Cultist,
     FungiBeast,
+    GremlinFat,
+    GremlinThief,
+    GremlinTsundere,
+    GremlinWizard,
     JawWorm,
     SlaverBlue,
     SlimeAcidSmall,
@@ -218,6 +222,10 @@ impl MonsterName {
         match self {
             Self::Cultist => "Cultist",
             Self::FungiBeast => "Fungi Beast",
+            Self::GremlinFat => "Fat Gremlin",
+            Self::GremlinThief => "Sneaky Gremlin",
+            Self::GremlinTsundere => "Shield Gremlin",
+            Self::GremlinWizard => "Gremlin Wizard",
             Self::JawWorm => "Jaw Worm",
             Self::SlaverBlue => "Blue Slaver",
             Self::SlimeAcidSmall => "Acid Slime",

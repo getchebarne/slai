@@ -76,6 +76,7 @@ pub enum CandidatePool {
     CardTarget,
     Character,
     Monsters,
+    OtherMonsters,
     Source,
     NextRowRooms,
     CardRewardPool,

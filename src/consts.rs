@@ -7,6 +7,7 @@ pub const CARDS_DRAWN_PER_TURN: u8 = 5;
 pub const MAX_COMBAT_CARD_REWARD: usize = 3;
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_VULN: f32 = 1.50;
+pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
 pub const MAX_MONSTERS: usize = 5;
 pub const MAX_BLOCK: u16 = 999;
