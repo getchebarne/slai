@@ -40,6 +40,21 @@ pub enum PlayRestriction {
     DrawPileEmpty,
 }
 
+// CardCostKind: how `card_effective_cost` derives this card's cost.
+// `Fixed` is the default; the others read named GameState counters or
+// `state.energy.current` (X-cost). The state-derived variants
+// (MinusDiscardsThisTurn, GrowsOnDamageInstanceTaken) are mirror images:
+// `card.card_cost ± state.<counter>`. XCost is special-cased — its `offset`
+// is added to `energy.current` to get the per-play multiplier (consumed in
+// `process_effect_card_play`), absorbing per-card upgrade deltas.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CardCostKind {
+    Fixed,
+    MinusDiscardsThisTurn,
+    GrowsOnDamageInstanceTaken,
+    XCost { offset: i8 },
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum Intent {
     Attack { damage: u16, instances: u8 },
@@ -100,6 +115,13 @@ pub struct Entity {
     /// same card name (unless those copies are themselves snapshotted, e.g.
     /// via Nightmare on a Setup-flagged card).
     pub card_free_to_play_once: bool,
+    /// Dynamic-cost variant tag. See `CardCostKind`. Defaults to `Fixed`,
+    /// in which case `card_effective_cost` just returns `card_cost`.
+    pub card_cost_kind: CardCostKind,
+    /// Per-instance temporary cost override (BulletTime). When `Some(c)`,
+    /// `card_effective_cost` returns `c` regardless of `card_cost_kind`.
+    /// Reset to `None` for all combat-instance cards at character TurnEnd.
+    pub card_cost_override: Option<u8>,
     /// Per-instance card effects, mutable. Stored inline so each Entity
     /// owns its own copy — needed for cards like GlassKnife that mutate
     /// their own damage values across plays. Slots past `card_effects_len`
@@ -112,6 +134,11 @@ pub struct Entity {
     /// Used by Reflex (draw 2/3) and Tactician (gain 1/2 energy). Static —
     /// not mutated per-instance, so no array-by-value overhead.
     pub card_on_discard_effects: &'static [Effect],
+    /// Effects to push when this card is drawn (per StS `triggerWhenDrawn`).
+    /// Fires for each drawn card AFTER the CardDraw loop completes, regardless
+    /// of whether the card landed in hand or in discard (hand-full case).
+    /// Used by EndlessAgony to spawn another copy.
+    pub card_on_draw_effects: &'static [Effect],
 
     // Room-only
     pub room_y: usize,
@@ -148,9 +175,12 @@ const ZERO_ENTITY: Entity = Entity {
     card_retain: false,
     card_play_restriction: PlayRestriction::Always,
     card_free_to_play_once: false,
+    card_cost_kind: CardCostKind::Fixed,
+    card_cost_override: None,
     card_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_CARD],
     card_effects_len: 0,
     card_on_discard_effects: &[],
+    card_on_draw_effects: &[],
     room_y: 0,
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
@@ -276,11 +306,62 @@ pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8
     }
 }
 
-// Effective energy cost for a card right now: 0 if its `card_free_to_play_once`
-// flag is set (Setup/Distraction), otherwise the card's normal cost. The flag
-// is consumed by `process_effect_card_play` when the card actually resolves.
-pub fn card_effective_cost(card: &Entity) -> u8 {
-    if card.card_free_to_play_once { 0 } else { card.card_cost }
+// Effective energy cost for a card right now.
+//
+// Order:
+//  1. `card_free_to_play_once` (Setup/Distraction one-shot) → 0.
+//  2. `card_cost_override` (BulletTime per-instance) → that value.
+//  3. Otherwise dispatch on `card_cost_kind`:
+//     - Fixed: `card_cost`
+//     - MinusDiscardsThisTurn: `card_cost - cards_discarded_this_turn`
+//     - GrowsOnDamageInstanceTaken: `card_cost + instances_of_damage_taken_this_combat`
+//     - XCost: `energy_current` (the `offset` is consumed by the per-play
+//       multiplier in `process_effect_card_play`, NOT here)
+//
+// Takes raw u8s rather than `&GameState` so callers that hold an &Entity
+// borrow into `state.entities` can still call this without borrow conflicts.
+pub fn card_effective_cost(
+    card: &Entity,
+    cards_discarded_this_turn: u8,
+    instances_of_damage_taken_this_combat: u8,
+    energy_current: u8,
+) -> u8 {
+    if card.card_free_to_play_once {
+        return 0;
+    }
+    if let Some(over) = card.card_cost_override {
+        return over;
+    }
+    match card.card_cost_kind {
+        CardCostKind::Fixed => card.card_cost,
+        CardCostKind::MinusDiscardsThisTurn => {
+            card.card_cost.saturating_sub(cards_discarded_this_turn)
+        }
+        CardCostKind::GrowsOnDamageInstanceTaken => {
+            card.card_cost.saturating_add(instances_of_damage_taken_this_combat)
+        }
+        CardCostKind::XCost { .. } => energy_current,
+    }
+}
+
+// Spawn a card entity and route it to hand (if room) or discard pile.
+// Mirrors StS `MakeTempCardInHandAction` overflow behavior. Returns the new
+// entity id. Free function (not a method on Entity) — used by Distraction,
+// EndlessAgony copy spawning, and the CardDraw cap branch.
+pub fn add_card_to_hand_or_discard(
+    entities: &mut Vec<Entity>,
+    id_hand: &mut Vec<usize>,
+    id_pile_discard: &mut Vec<usize>,
+    card: Entity,
+) -> usize {
+    let id_card = entities.len();
+    entities.push(card);
+    if id_hand.len() < crate::consts::MAX_SIZE_HAND {
+        id_hand.push(id_card);
+    } else {
+        id_pile_discard.push(id_card);
+    }
+    id_card
 }
 
 // Evaluate a PlayRestriction against the relevant slice of game state.

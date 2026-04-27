@@ -8,11 +8,11 @@ use crate::engine::DispatchResult;
 // `process_effect_card_discard` (NOT the move-after-play or end-of-turn
 // variants — see CardMoveToDiscard).
 pub fn process_effect_sneaky_strike_proc(
-    discards_this_turn: u8,
+    cards_discarded_this_turn: u8,
     energy: u8,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    if discards_this_turn == 0 {
+    if cards_discarded_this_turn == 0 {
         return DispatchResult::Continue;
     }
     queue.push_front(Effect {

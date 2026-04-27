@@ -55,20 +55,28 @@ pub fn process_effect_turn_end_monster(
 
 pub fn process_effect_turn_end_character(
     id_character: usize,
-    entities: &[Entity],
+    entities: &mut [Entity],
     id_hand: &[usize],
     _card_target: Option<usize>,
     id_alive_monsters: &[usize],
-    discards_this_turn: &mut u8,
+    cards_discarded_this_turn: &mut u8,
     attacks_played_this_turn: &mut u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Reset per-turn counters at the boundary. Doing it synchronously here
-    // (before the rest of the chain queues up) means SneakyStrike / Finisher
-    // see a fresh 0 at the start of each player turn.
-    *discards_this_turn = 0;
+    // (before the rest of the chain queues up) means SneakyStrike / Finisher /
+    // Eviscerate see a fresh 0 at the start of each player turn.
+    *cards_discarded_this_turn = 0;
     *attacks_played_this_turn = 0;
+
+    // Clear BulletTime's per-instance cost overrides (and any future per-turn
+    // cost override). One sweep, kind-agnostic.
+    for entity in entities.iter_mut() {
+        if matches!(entity.kind, crate::entity::EntityKind::Card) {
+            entity.card_cost_override = None;
+        }
+    }
 
     let character_modifiers = &entities[id_character].modifiers;
     // Stack locals
@@ -168,6 +176,16 @@ pub fn process_effect_turn_end_character(
         buf_effects.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Burst,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    if modifier_has(character_modifiers, ModifierKind::NoDraw) {
+        buf_effects.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::NoDraw,
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),

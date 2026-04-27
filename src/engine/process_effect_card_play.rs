@@ -17,6 +17,9 @@ pub fn process_effect_card_play(
     alive_monsters: &[usize],
     attacks_played_this_turn: &mut u8,
     last_played_card: &mut Option<usize>,
+    cards_discarded_this_turn: u8,
+    instances_of_damage_taken_this_combat: u8,
+    energy_current: u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
@@ -36,8 +39,25 @@ pub fn process_effect_card_play(
         *attacks_played_this_turn = attacks_played_this_turn.saturating_add(1);
     }
 
-    // Free-to-play flag (Setup, Distraction): zero the cost and consume.
-    let cost = card_effective_cost(&card);
+    // Effective cost (free-to-play, override, dynamic-cost variants).
+    let cost = card_effective_cost(
+        &card,
+        cards_discarded_this_turn,
+        instances_of_damage_taken_this_combat,
+        energy_current,
+    );
+
+    // X-cost cards multiply card_effects by `energy.current + offset`. Read
+    // raw energy_current (NOT card_effective_cost) so Setup-flagged X-cost
+    // cards still scale to X. Snapshot now, before the EnergyLoss zeros it.
+    let multiplier = match card.card_cost_kind {
+        crate::entity::CardCostKind::XCost { offset } => {
+            (energy_current as i16 + offset as i16).max(0) as usize
+        }
+        _ => 1,
+    };
+
+    // Consume the free-to-play flag if it was set.
     if card.card_free_to_play_once {
         entities[id_card].card_free_to_play_once = false;
     }
@@ -118,10 +138,13 @@ pub fn process_effect_card_play(
         }
     }
 
-    // Card effects. Burst (skill-only) doubles them.
+    // Card effects. Burst (skill-only) doubles them; X-cost multiplies by X.
+    // The two stack multiplicatively (Burst on an X-cost Skill at energy 3 →
+    // 6 fan-outs); harmless because no current X-cost Skill is also Burst-able
+    // in practice, but the math is correct either way.
     let burst =
         modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
-    let reps = if burst { 2 } else { 1 };
+    let reps = if burst { 2 * multiplier } else { multiplier };
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
             buf_effects.push(Effect {

@@ -18,12 +18,12 @@ pub fn process_effect_card_discard(
     entities: &[Entity],
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
-    discards_this_turn: &mut u8,
+    cards_discarded_this_turn: &mut u8,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     remove_card_from_hand(id_card, id_hand);
     id_pile_discard.push(id_card);
-    *discards_this_turn = discards_this_turn.saturating_add(1);
+    *cards_discarded_this_turn = cards_discarded_this_turn.saturating_add(1);
 
     // Fire on-discard trigger (Reflex, Tactician). Push in reverse so the
     // first effect in the array runs first when the queue resumes.

@@ -77,10 +77,16 @@ pub struct GameState {
     // like GlassKnifeDecay that need to mutate the played card's own state.
     pub last_played_card: Option<usize>,
 
-    // Per-turn counters, both reset at the start of `process_effect_turn_end_character`.
-    // Used by SneakyStrike, Finisher, and Tier-5 Eviscerate / MasterfulStab.
-    pub discards_this_turn: u8,
+    // Per-turn counters, reset at the start of `process_effect_turn_end_character`.
+    // Used by SneakyStrike, Finisher, and Tier-5 Eviscerate.
+    pub cards_discarded_this_turn: u8,
     pub attacks_played_this_turn: u8,
+
+    // Per-combat counter: number of damage events the character has taken
+    // (incremented by 1 per HealthLoss with amount > 0; NOT scaled by HP
+    // amount). Reset to 0 at combat_start. Read by MasterfulStab's
+    // GrowsOnDamageInstanceTaken cost variant.
+    pub instances_of_damage_taken_this_combat: u8,
 
     // Nightmare-pending: snapshot copies of the picked card(s), spawned into
     // hand at the next character TurnStart (post-draw). Cleared on combat

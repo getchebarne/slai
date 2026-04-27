@@ -1,4 +1,5 @@
 pub mod process_effect_block_gain;
+pub mod process_effect_bullet_time_proc;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_discard;
@@ -22,6 +23,8 @@ pub mod process_effect_damage_physical;
 pub mod process_effect_damage_physical_if_poisoned;
 pub mod process_effect_damage_power;
 pub mod process_effect_distraction_add;
+pub mod process_effect_draw_up_to;
+pub mod process_effect_endless_agony_add_copy;
 pub mod process_effect_death;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
@@ -335,17 +338,31 @@ fn dispatch_by_kind(
     match kind {
         EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
             count,
+            &state.entities,
+            state.id_character,
             &mut state.id_pile_draw,
             &mut state.id_hand,
             &mut state.id_pile_discard,
             &mut state.last_drawn_card,
             &mut state.rng,
+            &mut state.effect_queue,
+        ),
+        EffectKind::DrawUpTo { target } => process_effect_draw_up_to::process_effect_draw_up_to(
+            target,
+            &state.id_hand,
+            &mut state.effect_queue,
         ),
         EffectKind::CardPlay => {
             let id_card = id_target.unwrap();
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+            // Snapshot the cost-context counters by-value before the
+            // entities mut borrow (Copy types, no borrow conflict).
+            let cards_discarded_this_turn = state.cards_discarded_this_turn;
+            let instances_of_damage_taken_this_combat =
+                state.instances_of_damage_taken_this_combat;
+            let energy_current = state.energy.current;
             process_effect_card_play::process_effect_card_play(
                 id_card,
                 state.id_card_target,
@@ -355,6 +372,9 @@ fn dispatch_by_kind(
                 &buf_alive[..alive_n],
                 &mut state.attacks_played_this_turn,
                 &mut state.last_played_card,
+                cards_discarded_this_turn,
+                instances_of_damage_taken_this_combat,
+                energy_current,
                 &mut state.rng,
                 &mut state.effect_queue,
             )
@@ -366,7 +386,7 @@ fn dispatch_by_kind(
                 &state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
-                &mut state.discards_this_turn,
+                &mut state.cards_discarded_this_turn,
                 &mut state.effect_queue,
             )
         }
@@ -519,6 +539,20 @@ fn dispatch_by_kind(
                 &mut state.rng,
             )
         }
+        EffectKind::EndlessAgonyAddCopy { upgraded } => {
+            process_effect_endless_agony_add_copy::process_effect_endless_agony_add_copy(
+                upgraded,
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+            )
+        }
+        EffectKind::BulletTimeProc => {
+            process_effect_bullet_time_proc::process_effect_bullet_time_proc(
+                &mut state.entities,
+                &state.id_hand,
+            )
+        }
         EffectKind::EscapePlanCheck { block } => {
             process_effect_escape_plan_check::process_effect_escape_plan_check(
                 &state.entities,
@@ -559,7 +593,7 @@ fn dispatch_by_kind(
         }
         EffectKind::SneakyStrikeProc { energy } => {
             process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc(
-                state.discards_this_turn,
+                state.cards_discarded_this_turn,
                 energy,
                 &mut state.effect_queue,
             )
@@ -602,6 +636,15 @@ fn dispatch_by_kind(
         }
         EffectKind::HealthLoss { amount } => {
             let id_target = id_target.unwrap();
+            // Per-event counter for MasterfulStab's GrowsOnDamageInstanceTaken
+            // cost variant. One bump per damage event the character takes
+            // (not per HP lost). HealthLoss is post-block, so amount > 0
+            // already excludes block-fully-absorbed events.
+            if id_target == state.id_character && amount > 0 {
+                state.instances_of_damage_taken_this_combat = state
+                    .instances_of_damage_taken_this_combat
+                    .saturating_add(1);
+            }
             let entity = &mut state.entities[id_target];
             process_effect_health_loss::process_effect_health_loss(
                 &mut entity.vitals,
@@ -709,6 +752,7 @@ fn dispatch_by_kind(
             &mut state.id_card_target,
             &state.id_monsters,
             state.monster_count,
+            &mut state.instances_of_damage_taken_this_combat,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -751,11 +795,11 @@ fn dispatch_by_kind(
                 let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
                 process_effect_turn_end::process_effect_turn_end_character(
                     state.id_character,
-                    &state.entities,
+                    &mut state.entities,
                     &state.id_hand,
                     state.id_card_target,
                     &buf_alive[..alive_n],
-                    &mut state.discards_this_turn,
+                    &mut state.cards_discarded_this_turn,
                     &mut state.attacks_played_this_turn,
                     &mut state.rng,
                     &mut state.effect_queue,

@@ -116,7 +116,12 @@ fn handle_card_play(
         ));
     }
 
-    let effective_cost = crate::entity::card_effective_cost(card);
+    let effective_cost = crate::entity::card_effective_cost(
+        card,
+        state.cards_discarded_this_turn,
+        state.instances_of_damage_taken_this_combat,
+        state.energy.current,
+    );
     if effective_cost > state.energy.current {
         return Err(format!(
             "Not enough energy to play {:?}: need {}, have {}",

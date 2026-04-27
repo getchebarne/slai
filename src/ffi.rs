@@ -14,7 +14,7 @@ use crate::effect::{
     CandidatePool as InternalCandidatePool, Effect as InternalEffect, EffectKind, SelectionKind,
     Target as InternalTarget,
 };
-use crate::entity::{Entity, Intent as InternalIntent};
+use crate::entity::{CardCostKind as InternalCardCostKind, Entity, Intent as InternalIntent};
 use crate::map::edge_indices;
 use crate::modifier::{ModifierKind as InternalModifierKind, modifier_has, modifier_stacks};
 use crate::state::{GameState as InternalGameState, Location};
@@ -90,6 +90,28 @@ impl From<InternalCardRarity> for CardRarity {
     }
 }
 
+#[pyclass(eq, hash, frozen, name = "CardCostKind")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum CardCostKind {
+    Fixed {},
+    MinusDiscardsThisTurn {},
+    GrowsOnDamageInstanceTaken {},
+    XCost { offset: i8 },
+}
+
+impl From<InternalCardCostKind> for CardCostKind {
+    fn from(k: InternalCardCostKind) -> Self {
+        match k {
+            InternalCardCostKind::Fixed => Self::Fixed {},
+            InternalCardCostKind::MinusDiscardsThisTurn => Self::MinusDiscardsThisTurn {},
+            InternalCardCostKind::GrowsOnDamageInstanceTaken => {
+                Self::GrowsOnDamageInstanceTaken {}
+            }
+            InternalCardCostKind::XCost { offset } => Self::XCost { offset },
+        }
+    }
+}
+
 #[pyclass(eq, eq_int, hash, frozen, name = "RoomKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RoomKind {
@@ -126,6 +148,7 @@ pub enum ModifierKind {
     ModeShift,
     NextTurnBlock,
     NextTurnEnergy,
+    NoDraw,
     NoxiousFumes,
     Phantasmal,
     Poison,
@@ -161,6 +184,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::ModeShift => Self::ModeShift,
             InternalModifierKind::NextTurnBlock => Self::NextTurnBlock,
             InternalModifierKind::NextTurnEnergy => Self::NextTurnEnergy,
+            InternalModifierKind::NoDraw => Self::NoDraw,
             InternalModifierKind::NoxiousFumes => Self::NoxiousFumes,
             InternalModifierKind::Phantasmal => Self::Phantasmal,
             InternalModifierKind::Poison => Self::Poison,
@@ -231,9 +255,7 @@ impl From<InternalPhase> for Phase {
             InternalPhase::Map => Self::Map {},
             InternalPhase::CombatDefault => Self::CombatDefault {},
             InternalPhase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
-            InternalPhase::CombatAwaitNightmare { count } => {
-                Self::CombatAwaitNightmare { count }
-            }
+            InternalPhase::CombatAwaitNightmare { count } => Self::CombatAwaitNightmare { count },
             InternalPhase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
             InternalPhase::CombatAwaitSetup => Self::CombatAwaitSetup {},
             InternalPhase::CombatReward => Self::CombatReward {},
@@ -367,6 +389,13 @@ pub enum Effect {
     DistractionAdd {
         target: Option<Target>,
     },
+    EndlessAgonyAddCopy {
+        upgraded: bool,
+        target: Option<Target>,
+    },
+    BulletTimeProc {
+        target: Option<Target>,
+    },
     FinisherDamage {
         damage_per: u16,
         target: Option<Target>,
@@ -417,6 +446,10 @@ pub enum Effect {
         count: u8,
         target: Option<Target>,
     },
+    DrawUpTo {
+        target: u8,
+        target_field: Option<Target>,
+    },
     CardDiscard {
         target: Option<Target>,
     },
@@ -452,19 +485,19 @@ impl Effect {
             EffectKind::CardSetupPick => Self::CardSetupPick { target },
             EffectKind::CardNightmarePick { count } => Self::CardNightmarePick { count, target },
             EffectKind::DistractionAdd => Self::DistractionAdd { target },
+            EffectKind::EndlessAgonyAddCopy { upgraded } => {
+                Self::EndlessAgonyAddCopy { upgraded, target }
+            }
+            EffectKind::BulletTimeProc => Self::BulletTimeProc { target },
             EffectKind::FinisherDamage { damage_per } => {
                 Self::FinisherDamage { damage_per, target }
             }
-            EffectKind::FlechettesDamage { damage } => {
-                Self::FlechettesDamage { damage, target }
-            }
+            EffectKind::FlechettesDamage { damage } => Self::FlechettesDamage { damage, target },
             EffectKind::UnloadDiscard => Self::UnloadDiscard { target },
             EffectKind::StormOfSteelProc { upgraded } => {
                 Self::StormOfSteelProc { upgraded, target }
             }
-            EffectKind::SneakyStrikeProc { energy } => {
-                Self::SneakyStrikeProc { energy, target }
-            }
+            EffectKind::SneakyStrikeProc { energy } => Self::SneakyStrikeProc { energy, target },
             EffectKind::BlockGain { amount } => Self::BlockGain { amount, target },
             EffectKind::ModifierGain { kind, stacks } => Self::ModifierGain {
                 kind: kind.into(),
@@ -481,8 +514,16 @@ impl Effect {
                 target,
             },
             EffectKind::EnergyGain { amount } => Self::EnergyGain { amount, target },
-            EffectKind::ShivAdd { count, upgraded } => Self::ShivAdd { count, upgraded, target },
+            EffectKind::ShivAdd { count, upgraded } => Self::ShivAdd {
+                count,
+                upgraded,
+                target,
+            },
             EffectKind::CardDraw { count } => Self::CardDraw { count, target },
+            EffectKind::DrawUpTo { target: n } => Self::DrawUpTo {
+                target: n,
+                target_field: target,
+            },
             EffectKind::CardDiscard => Self::CardDiscard { target },
             EffectKind::CalculatedGamble => Self::CalculatedGamble { target },
             other => unreachable!(
@@ -502,7 +543,17 @@ pub struct Card {
     pub kind: CardKind,
     pub color: CardColor,
     pub rarity: CardRarity,
+    /// Effective cost right now (post free-to-play, post BulletTime override,
+    /// post dynamic-cost variant). For X-cost cards this is `energy.current`.
     pub cost: u8,
+    /// Static base cost (the deck-instance value, before any modifiers).
+    /// Distinct from `cost` for dynamic-cost cards (Eviscerate, MasterfulStab,
+    /// X-cost). Use this to recover the un-discounted card cost.
+    pub base_cost: u8,
+    /// Tag describing how `cost` is derived. Lets the agent reason about
+    /// X-cost / "discounted from base" / "growing this combat" without
+    /// inferring it from card identity.
+    pub cost_kind: CardCostKind,
     pub upgraded: bool,
     pub exhaust: bool,
     pub innate: bool,
@@ -600,8 +651,18 @@ pub struct GameState {
 // ───────── Build functions ─────────
 
 pub fn build_view(state: &InternalGameState) -> GameState {
-    let card =
-        |id_card: usize| build_view_card_template(&state.entities[id_card], &state.id_pile_draw);
+    let cards_discarded_this_turn = state.cards_discarded_this_turn;
+    let instances_of_damage_taken_this_combat = state.instances_of_damage_taken_this_combat;
+    let energy_current = state.energy.current;
+    let card = |id_card: usize| {
+        build_view_card_template(
+            &state.entities[id_card],
+            &state.id_pile_draw,
+            cards_discarded_this_turn,
+            instances_of_damage_taken_this_combat,
+            energy_current,
+        )
+    };
     GameState {
         character: build_view_character(state),
         monsters: build_view_monsters(state),
@@ -718,7 +779,13 @@ fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<Modifier> {
     out
 }
 
-fn build_view_card_template(card: &Entity, id_pile_draw: &[usize]) -> Card {
+fn build_view_card_template(
+    card: &Entity,
+    id_pile_draw: &[usize],
+    cards_discarded_this_turn: u8,
+    instances_of_damage_taken_this_combat: u8,
+    energy_current: u8,
+) -> Card {
     Card {
         name: if card.card_upgraded {
             format!("{}+", card.card_name.as_str())
@@ -728,7 +795,14 @@ fn build_view_card_template(card: &Entity, id_pile_draw: &[usize]) -> Card {
         kind: card.card_kind.into(),
         color: card.card_color.into(),
         rarity: card.card_rarity.into(),
-        cost: card.card_cost,
+        cost: crate::entity::card_effective_cost(
+            card,
+            cards_discarded_this_turn,
+            instances_of_damage_taken_this_combat,
+            energy_current,
+        ),
+        base_cost: card.card_cost,
+        cost_kind: card.card_cost_kind.into(),
         upgraded: card.card_upgraded,
         exhaust: card.card_exhaust,
         innate: card.card_innate,
