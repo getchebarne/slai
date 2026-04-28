@@ -100,7 +100,7 @@ pub fn process_effect_turn_start(
             }
         }
 
-        // DrawCardNextTurn (Predator): one-shot extra draw, then removes itself.
+        // Modifier / DrawCardNextTurn
         if modifier_has(modifiers, ModifierKind::DrawCardNextTurn) {
             let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
             buf_effects.push(Effect {
@@ -119,7 +119,7 @@ pub fn process_effect_turn_start(
             });
         }
 
-        // ToolsOfTheTrade: every char turn-start, draw N then discard N (player picks).
+        // Modifier / ToolsOfTheTrade
         if modifier_has(modifiers, ModifierKind::ToolsOfTheTrade) {
             let stacks = modifier_stacks(modifiers, ModifierKind::ToolsOfTheTrade);
             buf_effects.push(Effect {

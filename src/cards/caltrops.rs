@@ -39,7 +39,7 @@ pub static CALTROPS_PLUS: Entity = make_entity_card(
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Thorns,
-            stacks: 5, // +2
+            stacks: 5, // +2 stacks
         },
         id_source: None,
         target: Target::Resolve {

@@ -31,18 +31,16 @@ pub fn process_effect_damage_physical(
         value *= FACTOR_VULN;
     }
 
-    // Thorns: triggers per attack instance regardless of damage actually
-    // dealt. Pushed before DamageDeal so the queue resolves DamageDeal first
-    // (target takes the hit), then the Thorns reflect lands on the attacker.
-    if let Some(id_src) = id_source {
-        if id_src != id_target && modifier_has(target_mods, ModifierKind::Thorns) {
-            let thorns_stacks = modifier_stacks(target_mods, ModifierKind::Thorns);
+    // Thorns: triggers per attack instance regardless of damage actually dealt
+    if let Some(id_source) = id_source {
+        if id_source != id_target && modifier_has(mods_target, ModifierKind::Thorns) {
+            let stacks = modifier_stacks(mods_target, ModifierKind::Thorns);
             queue.push_front(Effect {
-                kind: EffectKind::DamagePower {
-                    amount: thorns_stacks as u16,
+                kind: EffectKind::DamageDeal {
+                    amount: stacks as u16,
                 },
                 id_source: None,
-                target: Target::Direct(Some(id_src)),
+                target: Target::Direct(Some(id_source)),
             });
         }
     }
