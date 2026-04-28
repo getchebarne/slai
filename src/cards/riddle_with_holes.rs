@@ -11,7 +11,7 @@ const HIT: Effect = Effect {
     },
 };
 const HIT_PLUS: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 4 }, // +1
+    kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage
     id_source: None,
     target: Target::Resolve {
         candidates: CandidatePool::CardTarget,

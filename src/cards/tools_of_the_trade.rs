@@ -25,13 +25,13 @@ pub static TOOLS_OF_THE_TRADE: Entity = make_entity_card(
         },
     }],
 );
-// Upgraded: cost reduced to 0
+// Upgraded
 pub static TOOLS_OF_THE_TRADE_PLUS: Entity = make_entity_card(
     CardName::ToolsOfTheTrade,
     CardKind::Power,
     CardColor::Green,
     CardRarity::Rare,
-    0,
+    0, // -1 cost
     true,
     false,
     false,

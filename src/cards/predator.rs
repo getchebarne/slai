@@ -35,7 +35,7 @@ pub static PREDATOR: Entity = make_entity_card(
         },
     ],
 );
-// Upgraded: +5 damage
+// Upgraded
 pub static PREDATOR_PLUS: Entity = make_entity_card(
     CardName::Predator,
     CardKind::Attack,
@@ -48,7 +48,7 @@ pub static PREDATOR_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 20 },
+            kind: EffectKind::DamagePhysical { amount: 20 }, // +5 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,

@@ -41,7 +41,7 @@ pub static PREPARED_PLUS: Entity = make_entity_card(
     false,
     &[
         Effect {
-            kind: EffectKind::CardDraw { count: 2 },
+            kind: EffectKind::CardDraw { count: 2 }, // +1 card
             id_source: None,
             target: Target::Direct(None),
         },
@@ -50,7 +50,7 @@ pub static PREPARED_PLUS: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 2 },
+                selection: SelectionKind::Input { count: 2 }, // +1 card
             },
         },
     ],

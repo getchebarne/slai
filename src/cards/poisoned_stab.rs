@@ -48,7 +48,7 @@ pub static POISONED_STAB_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
+            kind: EffectKind::DamagePhysical { amount: 8 }, // +2 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -58,7 +58,7 @@ pub static POISONED_STAB_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Poison,
-                stacks: 4,
+                stacks: 4, // +1 poison
             },
             id_source: None,
             target: Target::Resolve {

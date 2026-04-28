@@ -10,7 +10,7 @@ pub static CATALYST: Entity = make_entity_card(
     CardRarity::Uncommon,
     1,
     false,
-    true, // exhaust
+    true,
     false,
     true,
     &[Effect {
@@ -39,7 +39,7 @@ pub static CATALYST_PLUS: Entity = make_entity_card(
     &[Effect {
         kind: EffectKind::ModifierMultiply {
             kind: ModifierKind::Poison,
-            factor: 3,
+            factor: 3, // +1 factor
         },
         id_source: None,
         target: Target::Resolve {
