@@ -35,7 +35,7 @@ pub static SUCKER_PUNCH: Entity = make_entity_card(
         },
     ],
 );
-// Upgraded: +2 damage, +1 weak
+// Upgraded
 pub static SUCKER_PUNCH_PLUS: Entity = make_entity_card(
     CardName::SuckerPunch,
     CardKind::Attack,
@@ -48,7 +48,7 @@ pub static SUCKER_PUNCH_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 },
+            kind: EffectKind::DamagePhysical { amount: 9 }, // +2 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -58,7 +58,7 @@ pub static SUCKER_PUNCH_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Weak,
-                stacks: 2,
+                stacks: 2, // +1 weak
             },
             id_source: None,
             target: Target::Resolve {

@@ -33,7 +33,7 @@ pub static SLICE_PLUS: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 9 }, // +3
+        kind: EffectKind::DamagePhysical { amount: 9 }, // +3 damage
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
