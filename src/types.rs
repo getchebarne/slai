@@ -31,6 +31,7 @@ pub enum CardName {
     BouncingFlask,
     Burst,
     CalculatedGamble,
+    Caltrops,
     Catalyst,
     CloakAndDagger,
     Concentrate,
@@ -55,6 +56,7 @@ pub enum CardName {
     PhantasmalKiller,
     PiercingWail,
     PoisonedStab,
+    Predator,
     Prepared,
     QuickSlash,
     RiddleWithHoles,
@@ -64,6 +66,7 @@ pub enum CardName {
     SuckerPunch,
     Survivor,
     Terror,
+    ToolsOfTheTrade,
     WellLaidPlans,
 }
 
@@ -84,6 +87,7 @@ impl CardName {
             Self::BouncingFlask => "Bouncing Flask",
             Self::Burst => "Burst",
             Self::CalculatedGamble => "Calculated Gamble",
+            Self::Caltrops => "Caltrops",
             Self::Catalyst => "Catalyst",
             Self::CloakAndDagger => "Cloak And Dagger",
             Self::Concentrate => "Concentrate",
@@ -108,6 +112,7 @@ impl CardName {
             Self::PhantasmalKiller => "Phantasmal Killer",
             Self::PiercingWail => "Piercing Wail",
             Self::PoisonedStab => "Poisoned Stab",
+            Self::Predator => "Predator",
             Self::Prepared => "Prepared",
             Self::QuickSlash => "Quick Slash",
             Self::RiddleWithHoles => "Riddle With Holes",
@@ -117,6 +122,7 @@ impl CardName {
             Self::SuckerPunch => "Sucker Punch",
             Self::Survivor => "Survivor",
             Self::Terror => "Terror",
+            Self::ToolsOfTheTrade => "Tools Of The Trade",
             Self::WellLaidPlans => "Well Laid Plans",
         }
     }

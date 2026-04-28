@@ -31,6 +31,20 @@ pub fn process_effect_damage_physical(
         value *= FACTOR_VULN;
     }
 
+    // Thorns: triggers per attack instance regardless of damage actually dealt
+    if let Some(id_source) = id_source {
+        if id_source != id_target && modifier_has(mods_target, ModifierKind::Thorns) {
+            let stacks = modifier_stacks(mods_target, ModifierKind::Thorns);
+            queue.push_front(Effect {
+                kind: EffectKind::DamageDeal {
+                    amount: stacks as u16,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_source)),
+            });
+        }
+    }
+
     let final_damage = value.max(0.0) as u16;
     if final_damage > 0 {
         queue.push_front(Effect {

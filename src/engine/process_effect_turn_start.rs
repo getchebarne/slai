@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::consts::CARDS_DRAWN_PER_TURN;
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
 use crate::state::Energy;
@@ -98,6 +98,47 @@ pub fn process_effect_turn_start(
                     target: Target::Direct(Some(id_monster)),
                 });
             }
+        }
+
+        // Modifier / DrawCardNextTurn
+        if modifier_has(modifiers, ModifierKind::DrawCardNextTurn) {
+            let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
+            buf_effects.push(Effect {
+                kind: EffectKind::CardDraw {
+                    count: stacks as u8,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            buf_effects.push(Effect {
+                kind: EffectKind::ModifierRemove {
+                    kind: ModifierKind::DrawCardNextTurn,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_actor)),
+            });
+        }
+
+        // Modifier / ToolsOfTheTrade
+        if modifier_has(modifiers, ModifierKind::ToolsOfTheTrade) {
+            let stacks = modifier_stacks(modifiers, ModifierKind::ToolsOfTheTrade);
+            buf_effects.push(Effect {
+                kind: EffectKind::CardDraw {
+                    count: stacks as u8,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            buf_effects.push(Effect {
+                kind: EffectKind::CardDiscard,
+                id_source: None,
+                target: Target::Resolve {
+                    candidates: CandidatePool::Hand,
+                    selection: SelectionKind::Input {
+                        count: stacks as u8,
+                    },
+                },
+            });
         }
 
         // Modifier / NextTurnEnergy
