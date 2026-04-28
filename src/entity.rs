@@ -21,6 +21,13 @@ pub enum EntityKind {
     Room,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PlayRestriction {
+    Always,        // Standard cards. Playable iff the energy cost is met
+    Never,         // Permanently unplayable (curses, statuses, Reflex, Tactician, etc.)
+    DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum Intent {
     Attack { damage: u16, instances: u8 },
@@ -74,6 +81,7 @@ pub struct Entity {
     pub card_innate: bool,
     pub card_requires_target: bool,
     pub card_retain: bool,
+    pub card_play_restriction: PlayRestriction,
     pub card_effects: &'static [Effect],
 
     // Room-only
@@ -109,6 +117,7 @@ const ZERO_ENTITY: Entity = Entity {
     card_innate: false,
     card_requires_target: false,
     card_retain: false,
+    card_play_restriction: PlayRestriction::Always,
     card_effects: &[],
     room_y: 0,
     room_x: 0,
@@ -149,6 +158,7 @@ pub const fn make_entity_monster(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub const fn make_entity_card(
     name: CardName,
     kind: CardKind,
@@ -160,6 +170,7 @@ pub const fn make_entity_card(
     innate: bool,
     requires_target: bool,
     effects: &'static [Effect],
+    play_restriction: PlayRestriction,
 ) -> Entity {
     Entity {
         kind: EntityKind::Card,
@@ -172,6 +183,7 @@ pub const fn make_entity_card(
         card_exhaust: exhaust,
         card_innate: innate,
         card_requires_target: requires_target,
+        card_play_restriction: play_restriction,
         card_effects: effects,
         ..ZERO_ENTITY
     }
@@ -188,7 +200,14 @@ pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8
     }
 }
 
-// ───────── Monster-history helpers ─────────
+// Evaluate a PlayRestriction against the relevant slice of game state
+pub fn is_play_restriction_satisfied(restriction: PlayRestriction, id_pile_draw: &[usize]) -> bool {
+    match restriction {
+        PlayRestriction::Always => true,
+        PlayRestriction::Never => false,
+        PlayRestriction::DrawPileEmpty => id_pile_draw.is_empty(),
+    }
+}
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     assert!(

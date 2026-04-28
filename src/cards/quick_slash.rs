@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static QUICK_SLASH: Entity = make_entity_card(
@@ -27,6 +27,7 @@ pub static QUICK_SLASH: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static QUICK_SLASH_PLUS: Entity = make_entity_card(
@@ -54,4 +55,5 @@ pub static QUICK_SLASH_PLUS: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );

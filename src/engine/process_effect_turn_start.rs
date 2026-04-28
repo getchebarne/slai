@@ -160,6 +160,7 @@ pub fn process_effect_turn_start(
             buf_effects.push(Effect {
                 kind: EffectKind::ShivAdd {
                     count: stacks as u8,
+                    upgraded: false,
                 },
                 id_source: None,
                 target: Target::Direct(None),

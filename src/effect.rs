@@ -6,15 +6,23 @@ pub enum EffectKind {
     Noop,
     DamagePhysical { amount: u16 },
     DamagePhysicalIfPoisoned { amount: u16 },
+    EscapePlanCheck { block: u16 },
+    FinisherDamage { damage: u16 },
+    FlechettesDamage { damage: u16 },
+    HeelHookProc,
+    SneakyStrikeProc { energy: u8 },
+    StormOfSteelProc { upgraded: bool },
+    UnloadDiscard,
     BlockGain { amount: u16 },
     ModifierGain { kind: ModifierKind, stacks: i16 },
     ModifierMultiply { kind: ModifierKind, factor: u8 },
     ModifierRemove { kind: ModifierKind },
     EnergyGain { amount: u8 },
-    ShivAdd { count: u8 },
+    ShivAdd { count: u8, upgraded: bool },
     CardDraw { count: u8 },
     CardDiscard,
     CardDiscardEndOfTurn,
+    CardMoveToDiscard,
     CardRetain,
     CalculatedGamble,
 
@@ -49,7 +57,6 @@ pub enum EffectKind {
     // mutating state and pushing follow-up effects
     RoomSelect,
     CardRewardSelect,
-
 }
 
 // CandidatePool: abstract source pool for a Resolve effect's target resolution.

@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
@@ -22,11 +22,12 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd { count: 1 },
+            kind: EffectKind::ShivAdd { count: 1, upgraded: false },
             id_source: None,
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
@@ -49,9 +50,10 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd { count: 2 }, // +1 shiv
+            kind: EffectKind::ShivAdd { count: 2, upgraded: false }, // +1 shiv
             id_source: None,
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );

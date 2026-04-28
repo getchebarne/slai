@@ -38,10 +38,14 @@ pub struct GameState {
     // Energy
     pub energy: Energy,
 
+    // Per-turn counters, both reset at the start of the Character's turn
+    pub this_turn_discards: u8,
+    pub this_turn_attacks_played: u8,
+
     // Entities
     pub entities: Vec<Entity>,
 
-    // Rooms
+    // Entities / Rooms
     pub id_rooms: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
 
     // Entities / Character
@@ -65,4 +69,7 @@ pub struct GameState {
 
     // Entities / Card / Combat rewards
     pub id_card_rewards: Vec<usize>,
+
+    // Entities / Card / Last drawn
+    pub card_last_drawn: Option<usize>,
 }

@@ -1,5 +1,5 @@
 use crate::engine::DispatchResult;
-use crate::engine::process_effect_card_discard::process_effect_card_discard;
+use crate::engine::process_effect_card_move_to_discard::process_effect_card_move_to_discard;
 use crate::entity::Entity;
 
 pub fn process_effect_card_discard_end_of_turn(
@@ -12,6 +12,7 @@ pub fn process_effect_card_discard_end_of_turn(
         entities[id_target].card_retain = false;
         return DispatchResult::Continue;
     }
-    // TODO: this would trigger other discard effects like Tingsha, which is wrong
-    process_effect_card_discard(id_target, id_hand, id_pile_discard)
+    // End-of-turn discard does not count as an explicit discard (no
+    // `this_turn_discards`` increment, no Reflex/Tactician trigger, etc.)
+    process_effect_card_move_to_discard(id_target, id_hand, id_pile_discard)
 }

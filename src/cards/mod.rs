@@ -27,8 +27,13 @@ pub mod deflect;
 pub mod die_die_die;
 pub mod dodge_and_roll;
 pub mod envenom;
+pub mod escape_plan;
+pub mod finisher;
+pub mod flechettes;
 pub mod flying_knee;
 pub mod footwork;
+pub mod grand_finale;
+pub mod heel_hook;
 pub mod infinite_blades;
 pub mod leg_sweep;
 pub mod neutralize;
@@ -43,11 +48,14 @@ pub mod quick_slash;
 pub mod riddle_with_holes;
 pub mod shiv;
 pub mod slice;
+pub mod sneaky_strike;
+pub mod storm_of_steel;
 pub mod strike;
 pub mod sucker_punch;
 pub mod survivor;
 pub mod terror;
 pub mod tools_of_the_trade;
+pub mod unload;
 pub mod well_laid_plans;
 
 use crate::entity::Entity;
@@ -113,10 +121,20 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::DodgeAndRoll, true) => dodge_and_roll::DODGE_AND_ROLL_PLUS,
         (CardName::Envenom, false) => envenom::ENVENOM,
         (CardName::Envenom, true) => envenom::ENVENOM_PLUS,
+        (CardName::EscapePlan, false) => escape_plan::ESCAPE_PLAN,
+        (CardName::EscapePlan, true) => escape_plan::ESCAPE_PLAN_PLUS,
+        (CardName::Finisher, false) => finisher::FINISHER,
+        (CardName::Finisher, true) => finisher::FINISHER_PLUS,
+        (CardName::Flechettes, false) => flechettes::FLECHETTES,
+        (CardName::Flechettes, true) => flechettes::FLECHETTES_PLUS,
         (CardName::FlyingKnee, false) => flying_knee::FLYING_KNEE,
         (CardName::FlyingKnee, true) => flying_knee::FLYING_KNEE_PLUS,
         (CardName::Footwork, false) => footwork::FOOTWORK,
         (CardName::Footwork, true) => footwork::FOOTWORK_PLUS,
+        (CardName::GrandFinale, false) => grand_finale::GRAND_FINALE,
+        (CardName::GrandFinale, true) => grand_finale::GRAND_FINALE_PLUS,
+        (CardName::HeelHook, false) => heel_hook::HEEL_HOOK,
+        (CardName::HeelHook, true) => heel_hook::HEEL_HOOK_PLUS,
         (CardName::InfiniteBlades, false) => infinite_blades::INFINITE_BLADES,
         (CardName::InfiniteBlades, true) => infinite_blades::INFINITE_BLADES_PLUS,
         (CardName::LegSweep, false) => leg_sweep::LEG_SWEEP,
@@ -145,6 +163,10 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Shiv, true) => shiv::SHIV_PLUS,
         (CardName::Slice, false) => slice::SLICE,
         (CardName::Slice, true) => slice::SLICE_PLUS,
+        (CardName::SneakyStrike, false) => sneaky_strike::SNEAKY_STRIKE,
+        (CardName::SneakyStrike, true) => sneaky_strike::SNEAKY_STRIKE_PLUS,
+        (CardName::StormOfSteel, false) => storm_of_steel::STORM_OF_STEEL,
+        (CardName::StormOfSteel, true) => storm_of_steel::STORM_OF_STEEL_PLUS,
         (CardName::Strike, false) => strike::STRIKE,
         (CardName::Strike, true) => strike::STRIKE_PLUS,
         (CardName::SuckerPunch, false) => sucker_punch::SUCKER_PUNCH,
@@ -155,6 +177,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Terror, true) => terror::TERROR_PLUS,
         (CardName::ToolsOfTheTrade, false) => tools_of_the_trade::TOOLS_OF_THE_TRADE,
         (CardName::ToolsOfTheTrade, true) => tools_of_the_trade::TOOLS_OF_THE_TRADE_PLUS,
+        (CardName::Unload, false) => unload::UNLOAD,
+        (CardName::Unload, true) => unload::UNLOAD_PLUS,
         (CardName::WellLaidPlans, false) => well_laid_plans::WELL_LAID_PLANS,
         (CardName::WellLaidPlans, true) => well_laid_plans::WELL_LAID_PLANS_PLUS,
     }
@@ -179,6 +203,7 @@ pub const REWARD_POOL_COMMON: &[CardName] = &[
     CardName::Prepared,
     CardName::QuickSlash,
     CardName::Slice,
+    CardName::SneakyStrike,
     CardName::SuckerPunch,
 ];
 
@@ -194,7 +219,11 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::Concentrate,
     CardName::CripplingPoison,
     CardName::Dash,
+    CardName::EscapePlan,
+    CardName::Finisher,
+    CardName::Flechettes,
     CardName::Footwork,
+    CardName::HeelHook,
     CardName::InfiniteBlades,
     CardName::LegSweep,
     CardName::NoxiousFumes,
@@ -212,6 +241,9 @@ pub const REWARD_POOL_RARE: &[CardName] = &[
     CardName::CorpseExplosion,
     CardName::DieDieDie,
     CardName::Envenom,
+    CardName::GrandFinale,
     CardName::PhantasmalKiller,
+    CardName::StormOfSteel,
     CardName::ToolsOfTheTrade,
+    CardName::Unload,
 ];
