@@ -6,7 +6,6 @@ pub enum EffectKind {
     Noop,
     DamagePhysical { amount: u16 },
     DamagePhysicalIfPoisoned { amount: u16 },
-    DamagePower { amount: u16 },
     BlockGain { amount: u16 },
     ModifierGain { kind: ModifierKind, stacks: i16 },
     ModifierMultiply { kind: ModifierKind, factor: u8 },

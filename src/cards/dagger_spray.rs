@@ -2,9 +2,6 @@ use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-// Dagger Spray: deal damage to ALL enemies, twice. Two separate
-// effects so per-hit modifiers (Strength, Vulnerable, Weak) compound
-// per instance, matching StS semantics.
 const HIT: Effect = Effect {
     kind: EffectKind::DamagePhysical { amount: 4 },
     id_source: None,

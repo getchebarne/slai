@@ -39,7 +39,7 @@ pub static DEADLY_POISON_PLUS: Entity = make_entity_card(
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Poison,
-            stacks: 7, // +2
+            stacks: 7, // +2 poison
         },
         id_source: None,
         target: Target::Resolve {
