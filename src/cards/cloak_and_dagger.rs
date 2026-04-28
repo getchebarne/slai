@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
@@ -27,6 +27,7 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
@@ -54,4 +55,5 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );

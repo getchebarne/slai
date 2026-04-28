@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -24,6 +24,7 @@ pub static TOOLS_OF_THE_TRADE: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static TOOLS_OF_THE_TRADE_PLUS: Entity = make_entity_card(
@@ -47,4 +48,5 @@ pub static TOOLS_OF_THE_TRADE_PLUS: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    PlayRestriction::Always,
 );

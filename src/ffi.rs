@@ -334,7 +334,7 @@ pub enum Effect {
         target: Option<Target>,
     },
     FinisherDamage {
-        damage_per: u16,
+        damage: u16,
         target: Option<Target>,
     },
     FlechettesDamage {
@@ -414,19 +414,13 @@ impl Effect {
             }
             EffectKind::HeelHookProc => Self::HeelHookProc { target },
             EffectKind::EscapePlanCheck { block } => Self::EscapePlanCheck { block, target },
-            EffectKind::FinisherDamage { damage_per } => {
-                Self::FinisherDamage { damage_per, target }
-            }
-            EffectKind::FlechettesDamage { damage } => {
-                Self::FlechettesDamage { damage, target }
-            }
+            EffectKind::FinisherDamage { damage } => Self::FinisherDamage { damage, target },
+            EffectKind::FlechettesDamage { damage } => Self::FlechettesDamage { damage, target },
             EffectKind::UnloadDiscard => Self::UnloadDiscard { target },
             EffectKind::StormOfSteelProc { upgraded } => {
                 Self::StormOfSteelProc { upgraded, target }
             }
-            EffectKind::SneakyStrikeProc { energy } => {
-                Self::SneakyStrikeProc { energy, target }
-            }
+            EffectKind::SneakyStrikeProc { energy } => Self::SneakyStrikeProc { energy, target },
             EffectKind::BlockGain { amount } => Self::BlockGain { amount, target },
             EffectKind::ModifierGain { kind, stacks } => Self::ModifierGain {
                 kind: kind.into(),
@@ -443,7 +437,11 @@ impl Effect {
                 target,
             },
             EffectKind::EnergyGain { amount } => Self::EnergyGain { amount, target },
-            EffectKind::ShivAdd { count, upgraded } => Self::ShivAdd { count, upgraded, target },
+            EffectKind::ShivAdd { count, upgraded } => Self::ShivAdd {
+                count,
+                upgraded,
+                target,
+            },
             EffectKind::CardDraw { count } => Self::CardDraw { count, target },
             EffectKind::CardDiscard => Self::CardDiscard { target },
             EffectKind::CalculatedGamble => Self::CalculatedGamble { target },
@@ -592,7 +590,7 @@ fn build_view_character(state: &InternalGameState) -> Character {
 }
 
 fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
-    let character_modifiers = &state.entities[state.id_character].modifiers;
+    let mods_char = &state.entities[state.id_character].modifiers;
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let n = fill_alive_monster_ids(state, &mut buf_alive);
     buf_alive[..n]
@@ -627,7 +625,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                     if modifier_has(&m.modifiers, InternalModifierKind::Weak) {
                         dmg *= 0.75;
                     }
-                    if modifier_has(character_modifiers, InternalModifierKind::Vulnerable) {
+                    if modifier_has(mods_char, InternalModifierKind::Vulnerable) {
                         dmg *= FACTOR_VULN;
                     }
                     dmg as u16
@@ -693,7 +691,7 @@ fn build_view_card_template(card: &Entity, id_pile_draw: &[usize]) -> Card {
         innate: card.card_innate,
         requires_target: card.card_requires_target,
         retain: card.card_retain,
-        playable: crate::entity::play_restriction_satisfied(
+        playable: crate::entity::is_play_restriction_satisfied(
             card.card_play_restriction,
             id_pile_draw,
         ),

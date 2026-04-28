@@ -13,6 +13,6 @@ pub fn process_effect_card_discard_end_of_turn(
         return DispatchResult::Continue;
     }
     // End-of-turn discard does not count as an explicit discard (no
-    // `discards_this_turn`` increment, no Reflex/Tactician trigger, etc.)
+    // `this_turn_discards`` increment, no Reflex/Tactician trigger, etc.)
     process_effect_card_move_to_discard(id_target, id_hand, id_pile_discard)
 }

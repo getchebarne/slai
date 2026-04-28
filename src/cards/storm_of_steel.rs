@@ -1,5 +1,5 @@
 use crate::effect::{Effect, EffectKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static STORM_OF_STEEL: Entity = make_entity_card(
@@ -17,8 +17,9 @@ pub static STORM_OF_STEEL: Entity = make_entity_card(
         id_source: None,
         target: Target::Direct(None),
     }],
+    PlayRestriction::Always,
 );
-// Upgraded: shivs added are upgraded
+// Upgraded
 pub static STORM_OF_STEEL_PLUS: Entity = make_entity_card(
     CardName::StormOfSteel,
     CardKind::Skill,
@@ -30,8 +31,9 @@ pub static STORM_OF_STEEL_PLUS: Entity = make_entity_card(
     false,
     false,
     &[Effect {
-        kind: EffectKind::StormOfSteelProc { upgraded: true },
+        kind: EffectKind::StormOfSteelProc { upgraded: true }, // Shivs are upgraded
         id_source: None,
         target: Target::Direct(None),
     }],
+    PlayRestriction::Always,
 );

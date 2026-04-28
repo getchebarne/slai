@@ -1,5 +1,6 @@
 use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
+use crate::entity::is_play_restriction_satisfied;
 use crate::map::{has_edge, room_at};
 use crate::state::{GameState, Location};
 use crate::types::Phase;
@@ -96,10 +97,7 @@ fn handle_card_play(
     let id_card = lookup_idx(&state.id_hand, idx_hand)?;
     let card = &state.entities[id_card];
 
-    if !crate::entity::play_restriction_satisfied(
-        card.card_play_restriction,
-        &state.id_pile_draw,
-    ) {
+    if !is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw) {
         return Err(format!(
             "Card {:?} not playable right now (restriction: {:?})",
             card.card_name, card.card_play_restriction,

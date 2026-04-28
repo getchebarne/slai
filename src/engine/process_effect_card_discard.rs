@@ -12,14 +12,14 @@ pub fn process_effect_card_discard(
     id_target: usize,
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
-    discards_this_turn: &mut u8,
+    this_turn_discards: &mut u8,
 ) -> DispatchResult {
     // Move card from hand to the discard pile
-    remove_card_from_hand(id_card, id_hand);
-    id_pile_discard.push(id_card);
+    remove_card_from_hand(id_target, id_hand);
+    id_pile_discard.push(id_target);
 
     // Increment cards discarded this turn
-    *discards_this_turn = discards_this_turn.saturating_add(1);
+    *this_turn_discards = this_turn_discards.saturating_add(1);
 
     // Continue
     DispatchResult::Continue

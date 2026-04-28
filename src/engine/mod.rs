@@ -332,7 +332,7 @@ fn dispatch_by_kind(
             &mut state.id_pile_draw,
             &mut state.id_hand,
             &mut state.id_pile_discard,
-            &mut state.last_drawn_card,
+            &mut state.card_last_drawn,
             &mut state.rng,
         ),
         EffectKind::CardPlay => {
@@ -346,7 +346,7 @@ fn dispatch_by_kind(
                 &state.entities,
                 &state.id_hand,
                 &buf_alive[..alive_n],
-                &mut state.attacks_played_this_turn,
+                &mut state.this_turn_attacks_played,
                 &mut state.rng,
                 &mut state.effect_queue,
             )
@@ -355,7 +355,7 @@ fn dispatch_by_kind(
             id_target.unwrap(),
             &mut state.id_hand,
             &mut state.id_pile_discard,
-            &mut state.discards_this_turn,
+            &mut state.this_turn_discards,
         ),
         EffectKind::CardMoveToDiscard => {
             process_effect_card_move_to_discard::process_effect_card_move_to_discard(
@@ -455,18 +455,18 @@ fn dispatch_by_kind(
             process_effect_escape_plan_check::process_effect_escape_plan_check(
                 &state.entities,
                 state.id_character,
-                &mut state.last_drawn_card,
+                &mut state.card_last_drawn,
                 block,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::FinisherDamage { damage_per } => {
+        EffectKind::FinisherDamage { damage } => {
             let id_target = id_target.unwrap();
             process_effect_finisher_damage::process_effect_finisher_damage(
-                state.attacks_played_this_turn,
+                state.this_turn_attacks_played,
                 id_source,
                 id_target,
-                damage_per,
+                damage,
                 &mut state.effect_queue,
             )
         }
@@ -483,15 +483,15 @@ fn dispatch_by_kind(
         }
         EffectKind::HeelHookProc => {
             let id_target = id_target.unwrap();
-            let target_mods = &state.entities[id_target].modifiers;
+            let mods_target = &state.entities[id_target].modifiers;
             process_effect_heel_hook_proc::process_effect_heel_hook_proc(
-                target_mods,
+                mods_target,
                 &mut state.effect_queue,
             )
         }
         EffectKind::SneakyStrikeProc { energy } => {
             process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc(
-                state.discards_this_turn,
+                state.this_turn_discards,
                 energy,
                 &mut state.effect_queue,
             )
@@ -684,8 +684,8 @@ fn dispatch_by_kind(
                     &state.id_hand,
                     state.id_card_target,
                     &buf_alive[..alive_n],
-                    &mut state.discards_this_turn,
-                    &mut state.attacks_played_this_turn,
+                    &mut state.this_turn_discards,
+                    &mut state.this_turn_attacks_played,
                     &mut state.rng,
                     &mut state.effect_queue,
                 )

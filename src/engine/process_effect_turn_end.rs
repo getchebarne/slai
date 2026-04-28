@@ -57,23 +57,21 @@ pub fn process_effect_turn_end_character(
     id_hand: &[usize],
     _card_target: Option<usize>,
     id_alive_monsters: &[usize],
-    discards_this_turn: &mut u8,
-    attacks_played_this_turn: &mut u8,
+    this_turn_discards: &mut u8,
+    this_turn_attacks_played: &mut u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // Reset per-turn counters at the boundary. Doing it synchronously here
-    // (before the rest of the chain queues up) means SneakyStrike / Finisher
-    // see a fresh 0 at the start of each player turn.
-    *discards_this_turn = 0;
-    *attacks_played_this_turn = 0;
+    // Reset per-turn counters at the boundary synchronously
+    *this_turn_discards = 0;
+    *this_turn_attacks_played = 0;
 
-    let character_modifiers = &entities[id_character].modifiers;
     // Stack locals
     let mut buf_effects = EffectBuf::new();
 
-    if modifier_has(character_modifiers, ModifierKind::Retain) && !id_hand.is_empty() {
-        let stacks = modifier_stacks(character_modifiers, ModifierKind::Retain);
+    let mods_char = &entities[id_character].modifiers;
+    if modifier_has(mods_char, ModifierKind::Retain) && !id_hand.is_empty() {
+        let stacks = modifier_stacks(mods_char, ModifierKind::Retain);
         buf_effects.push(Effect {
             kind: EffectKind::CardRetain,
             id_source: None,
@@ -86,10 +84,10 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    if modifier_has(character_modifiers, ModifierKind::Ritual)
-        && !character_modifiers.is_new[ModifierKind::Ritual as usize]
+    if modifier_has(mods_char, ModifierKind::Ritual)
+        && !mods_char.is_new[ModifierKind::Ritual as usize]
     {
-        let stacks = modifier_stacks(character_modifiers, ModifierKind::Ritual);
+        let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
         buf_effects.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
@@ -148,7 +146,7 @@ pub fn process_effect_turn_end_character(
         target: Target::Direct(Some(id_character)),
     });
 
-    if modifier_has(character_modifiers, ModifierKind::Burst) {
+    if modifier_has(mods_char, ModifierKind::Burst) {
         buf_effects.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Burst,
