@@ -25,13 +25,13 @@ pub static ENVENOM: Entity = make_entity_card(
         },
     }],
 );
-// Upgraded: cost reduced to 1
+// Upgraded
 pub static ENVENOM_PLUS: Entity = make_entity_card(
     CardName::Envenom,
     CardKind::Power,
     CardColor::Green,
     CardRarity::Rare,
-    1,
+    1, // -1 cost
     true,
     false,
     false,

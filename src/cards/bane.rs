@@ -52,7 +52,7 @@ pub static BANE_PLUS: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysicalIfPoisoned { amount: 10 },
+            kind: EffectKind::DamagePhysicalIfPoisoned { amount: 10 }, // +3
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,

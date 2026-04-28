@@ -250,12 +250,13 @@ pub fn modifier_has(mods: &Modifiers, kind: ModifierKind) -> bool {
 }
 
 pub fn modifier_apply(mods: &mut Modifiers, kind: ModifierKind, stacks: i16) {
-    let cfg = modifier_def(kind);
+    let mod_def = modifier_def(kind);
     let idx = kind as usize;
     if modifier_has(mods, kind) {
-        mods.stacks[idx] = (mods.stacks[idx] + stacks).clamp(cfg.stacks_min, cfg.stacks_max);
+        mods.stacks[idx] =
+            (mods.stacks[idx] + stacks).clamp(mod_def.stacks_min, mod_def.stacks_max);
     } else {
-        mods.stacks[idx] = stacks.clamp(cfg.stacks_min, cfg.stacks_max);
+        mods.stacks[idx] = stacks.clamp(mod_def.stacks_min, mod_def.stacks_max);
         mods.is_new[idx] = true;
         mods.active |= 1 << kind as u32;
     }
@@ -274,10 +275,10 @@ pub fn modifier_tick(mods: &mut Modifiers) {
         let idx = bits.trailing_zeros() as usize;
         bits &= bits - 1;
         let kind = ModifierKind::from_u8(idx as u8);
-        let cfg = modifier_def(kind);
-        if cfg.stacks_duration && !mods.is_new[idx] {
+        let mod_def = modifier_def(kind);
+        if mod_def.stacks_duration && !mods.is_new[idx] {
             mods.stacks[idx] -= 1;
-            if mods.stacks[idx] < cfg.stacks_min {
+            if mods.stacks[idx] < mod_def.stacks_min {
                 modifier_remove(mods, kind);
             }
         }

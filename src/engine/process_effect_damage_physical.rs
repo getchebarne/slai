@@ -6,8 +6,8 @@ use crate::engine::DispatchResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 
 pub fn process_effect_damage_physical(
-    source_mods: &Modifiers,
-    target_mods: &Modifiers,
+    mods_source: &Modifiers,
+    mods_target: &Modifiers,
     id_source: Option<usize>,
     id_target: usize,
     amount: u16,
@@ -16,18 +16,18 @@ pub fn process_effect_damage_physical(
     let mut value = amount as f32;
 
     // Source modifiers
-    if modifier_has(source_mods, ModifierKind::Strength) {
-        value += modifier_stacks(source_mods, ModifierKind::Strength) as f32;
+    if modifier_has(mods_source, ModifierKind::Strength) {
+        value += modifier_stacks(mods_source, ModifierKind::Strength) as f32;
     }
-    if modifier_has(source_mods, ModifierKind::Weak) {
+    if modifier_has(mods_source, ModifierKind::Weak) {
         value *= FACTOR_WEAK;
     }
-    if modifier_has(source_mods, ModifierKind::DoubleDamage) {
+    if modifier_has(mods_source, ModifierKind::DoubleDamage) {
         value *= 2.0;
     }
 
     // Target modifiers
-    if modifier_has(target_mods, ModifierKind::Vulnerable) {
+    if modifier_has(mods_target, ModifierKind::Vulnerable) {
         value *= FACTOR_VULN;
     }
 

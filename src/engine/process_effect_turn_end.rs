@@ -14,9 +14,7 @@ pub fn process_effect_turn_end_monster(
     id_actor: usize,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // Shackled: refund the negative Strength stacks Piercing Wail (or similar)
-    // applied this turn, then remove ourselves. push_front reverses order, so
-    // push the remove first and the strength gain second so the gain runs first.
+    // Refund negative Strength stacks from `Shackled`
     if modifier_has(modifiers, ModifierKind::Shackled) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
         queue.push_front(Effect {

@@ -3,11 +3,6 @@ use crate::entity::{Entity, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-// Bouncing Flask: amount of poison per bounce is fixed at 3 in StS; the
-// magicNumber controls the number of bounces (3 base / 4 upgraded).
-// Each bounce picks a random alive enemy independently — encoded as N
-// separate Resolve { Monsters, Random{1} } effects so the resolver rolls
-// fresh per call.
 const BOUNCE: Effect = Effect {
     kind: EffectKind::ModifierGain {
         kind: ModifierKind::Poison,
@@ -43,5 +38,5 @@ pub static BOUNCING_FLASK_PLUS: Entity = make_entity_card(
     false,
     false,
     false,
-    &[BOUNCE, BOUNCE, BOUNCE, BOUNCE],
+    &[BOUNCE, BOUNCE, BOUNCE, BOUNCE], // +1 bounce
 );
