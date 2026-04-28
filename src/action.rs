@@ -114,7 +114,9 @@ fn handle_card_play(
                     .get(idx_monster)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx_monster))?;
 
-                // Return effects to set the card's target, play the card, and then clear it
+                // Set the card's target, play the card, then clear the target.
+                // No trailing terminator: process_queue derives the resting
+                // phase (CombatDefault) from state once the chain drains.
                 Ok(vec![
                     Effect {
                         kind: EffectKind::TargetSet,
@@ -131,7 +133,6 @@ fn handle_card_play(
                         id_source: None,
                         target: Target::Direct(None),
                     },
-                    Effect::direct(EffectKind::AwaitCombatAction, None, None),
                 ])
             }
             None => Err(format!(
@@ -140,20 +141,16 @@ fn handle_card_play(
             )),
         }
     } else {
-        // Return effect to play the card
-        Ok(vec![
-            Effect {
-                kind: EffectKind::CardPlay,
-                id_source: None,
-                target: Target::Direct(Some(id_card)),
-            },
-            Effect::direct(EffectKind::AwaitCombatAction, None, None),
-        ])
+        Ok(vec![Effect {
+            kind: EffectKind::CardPlay,
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        }])
     }
 }
 
 fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
-    let mut effects = Vec::with_capacity(indices_hand.len() + 1);
+    let mut effects = Vec::with_capacity(indices_hand.len());
     for &idx in &indices_hand {
         let id_card = *state
             .id_hand
@@ -161,13 +158,10 @@ fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Ve
             .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.id_hand.len()))?;
         effects.push(Effect::direct(EffectKind::CardDiscard, None, Some(id_card)));
     }
-    effects.push(Effect::direct(EffectKind::AwaitCombatAction, None, None));
     Ok(effects)
 }
 
 fn handle_card_retain(state: &GameState, indices_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
-    // No trailing AwaitCombatAction — the suspended turn-end chain (discards,
-    // monster turns, next turn start) takes over once the retain flags are set.
     let mut effects = Vec::with_capacity(indices_hand.len());
     for &idx in &indices_hand {
         let id_card = *state

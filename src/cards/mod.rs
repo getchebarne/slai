@@ -14,6 +14,7 @@ pub mod burst;
 pub mod calculated_gamble;
 pub mod catalyst;
 pub mod cloak_and_dagger;
+pub mod concentrate;
 pub mod corpse_explosion;
 pub mod crippling_poison;
 pub mod dagger_spray;
@@ -36,8 +37,12 @@ pub mod phantasmal_killer;
 pub mod piercing_wail;
 pub mod poisoned_stab;
 pub mod prepared;
+pub mod quick_slash;
+pub mod riddle_with_holes;
 pub mod shiv;
+pub mod slice;
 pub mod strike;
+pub mod sucker_punch;
 pub mod survivor;
 pub mod terror;
 pub mod well_laid_plans;
@@ -79,6 +84,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Catalyst, true) => catalyst::CATALYST_PLUS,
         (CardName::CloakAndDagger, false) => cloak_and_dagger::CLOAK_AND_DAGGER,
         (CardName::CloakAndDagger, true) => cloak_and_dagger::CLOAK_AND_DAGGER_PLUS,
+        (CardName::Concentrate, false) => concentrate::CONCENTRATE,
+        (CardName::Concentrate, true) => concentrate::CONCENTRATE_PLUS,
         (CardName::CorpseExplosion, false) => corpse_explosion::CORPSE_EXPLOSION,
         (CardName::CorpseExplosion, true) => corpse_explosion::CORPSE_EXPLOSION_PLUS,
         (CardName::CripplingPoison, false) => crippling_poison::CRIPPLING_POISON,
@@ -123,10 +130,18 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::PoisonedStab, true) => poisoned_stab::POISONED_STAB_PLUS,
         (CardName::Prepared, false) => prepared::PREPARED,
         (CardName::Prepared, true) => prepared::PREPARED_PLUS,
+        (CardName::QuickSlash, false) => quick_slash::QUICK_SLASH,
+        (CardName::QuickSlash, true) => quick_slash::QUICK_SLASH_PLUS,
+        (CardName::RiddleWithHoles, false) => riddle_with_holes::RIDDLE_WITH_HOLES,
+        (CardName::RiddleWithHoles, true) => riddle_with_holes::RIDDLE_WITH_HOLES_PLUS,
         (CardName::Shiv, false) => shiv::SHIV,
         (CardName::Shiv, true) => shiv::SHIV_PLUS,
+        (CardName::Slice, false) => slice::SLICE,
+        (CardName::Slice, true) => slice::SLICE_PLUS,
         (CardName::Strike, false) => strike::STRIKE,
         (CardName::Strike, true) => strike::STRIKE_PLUS,
+        (CardName::SuckerPunch, false) => sucker_punch::SUCKER_PUNCH,
+        (CardName::SuckerPunch, true) => sucker_punch::SUCKER_PUNCH_PLUS,
         (CardName::Survivor, false) => survivor::SURVIVOR,
         (CardName::Survivor, true) => survivor::SURVIVOR_PLUS,
         (CardName::Terror, false) => terror::TERROR,
@@ -153,6 +168,9 @@ pub const REWARD_POOL_COMMON: &[CardName] = &[
     CardName::PiercingWail,
     CardName::PoisonedStab,
     CardName::Prepared,
+    CardName::QuickSlash,
+    CardName::Slice,
+    CardName::SuckerPunch,
 ];
 
 pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
@@ -163,12 +181,14 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::BouncingFlask,
     CardName::CalculatedGamble,
     CardName::Catalyst,
+    CardName::Concentrate,
     CardName::CripplingPoison,
     CardName::Dash,
     CardName::Footwork,
     CardName::InfiniteBlades,
     CardName::LegSweep,
     CardName::NoxiousFumes,
+    CardName::RiddleWithHoles,
     CardName::Terror,
     CardName::WellLaidPlans,
 ];
