@@ -72,7 +72,8 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::RestSite => {
-            queue.push_front(Effect::direct(EffectKind::AwaitRestSiteAction, None, None));
+            // Nothing to enqueue; the queue drains and the engine derives
+            // Phase::RestSite from `location` + room kind.
         }
     }
     DispatchResult::Continue

@@ -54,8 +54,9 @@ pub fn process_effect_combat_end(
     let room = active_room_kind(id_rooms, location, entities).unwrap();
     match room {
         RoomKind::CombatBoss => {
+            // Boss defeated — drop any pending effects. derive_resting_phase
+            // returns GameOver from `location == BossRoom && monster_count == 0`.
             queue.clear();
-            queue.push_back(Effect::direct(EffectKind::GameOver, None, None));
         }
         RoomKind::CombatMonster => {
             queue.push_back(Effect {

@@ -13,10 +13,11 @@ pub fn process_effect_death(
     entities: &mut [Entity],
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // Character death: abandon anything pending, run only GameOver.
+    // Character death: abandon anything pending and mark dead so
+    // derive_resting_phase returns Phase::GameOver on the natural drain.
     if id_target == id_character {
+        entities[id_character].dead = true;
         queue.clear();
-        queue.push_back(Effect::direct(EffectKind::GameOver, None, None));
         return DispatchResult::Continue;
     }
 
