@@ -20,7 +20,6 @@ pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_damage_physical_if_poisoned;
-pub mod process_effect_damage_power;
 pub mod process_effect_distraction_add;
 pub mod process_effect_death;
 pub mod process_effect_energy_gain;
@@ -338,73 +337,65 @@ fn dispatch_by_kind(
             &mut state.id_pile_draw,
             &mut state.id_hand,
             &mut state.id_pile_discard,
-            &mut state.last_drawn_card,
+            &mut state.card_last_drawn,
             &mut state.rng,
         ),
         EffectKind::CardPlay => {
-            let id_card = id_target.unwrap();
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             process_effect_card_play::process_effect_card_play(
-                id_card,
+                id_target.unwrap(),
                 state.id_card_target,
                 state.id_character,
                 &mut state.entities,
                 &state.id_hand,
                 &buf_alive[..alive_n],
-                &mut state.attacks_played_this_turn,
+                &mut state.this_turn_attacks_played,
                 &mut state.last_played_card,
                 &mut state.rng,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::CardDiscard => {
-            let id_card = id_target.unwrap();
-            process_effect_card_discard::process_effect_card_discard(
-                id_card,
-                &state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
-                &mut state.discards_this_turn,
-                &mut state.effect_queue,
-            )
-        }
+        EffectKind::CardDiscard => process_effect_card_discard::process_effect_card_discard(
+            id_target.unwrap(),
+            &state.entities,
+            &mut state.id_hand,
+            &mut state.id_pile_discard,
+            &mut state.this_turn_discards,
+            &mut state.effect_queue,
+        ),
         EffectKind::CardMoveToDiscard => {
-            let id_card = id_target.unwrap();
             process_effect_card_move_to_discard::process_effect_card_move_to_discard(
-                id_card,
+                id_target.unwrap(),
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
             )
         }
         EffectKind::CardDiscardEndOfTurn => {
-            let id_card = id_target.unwrap();
             process_effect_card_discard_end_of_turn::process_effect_card_discard_end_of_turn(
-                id_card,
+                id_target.unwrap(),
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
             )
         }
-        EffectKind::CardRetain => {
-            let id_card = id_target.unwrap();
-            process_effect_card_retain::process_effect_card_retain(id_card, &mut state.entities)
-        }
+        EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(
+            id_target.unwrap(),
+            &mut state.entities,
+        ),
         EffectKind::CardSetupPick => {
-            let id_card = id_target.unwrap();
             process_effect_card_setup_pick::process_effect_card_setup_pick(
-                id_card,
+                id_target.unwrap(),
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_draw,
             )
         }
         EffectKind::CardNightmarePick { count } => {
-            let id_card = id_target.unwrap();
             process_effect_card_nightmare_pick::process_effect_card_nightmare_pick(
                 &state.entities,
-                id_card,
+                id_target.unwrap(),
                 count,
                 &mut state.cards_nightmare,
             )
@@ -417,35 +408,34 @@ fn dispatch_by_kind(
                 &mut state.cards_nightmare,
             )
         }
-        EffectKind::CardExhaust => {
-            let id_card = id_target.unwrap();
-            process_effect_card_exhaust::process_effect_card_exhaust(
-                id_card,
+        EffectKind::CardExhaust => process_effect_card_exhaust::process_effect_card_exhaust(
+            id_target.unwrap(),
+            &mut state.id_hand,
+            &mut state.id_pile_exhaust,
+        ),
+        EffectKind::CardRemove => process_effect_card_remove::process_effect_card_remove(
+            id_target.unwrap(),
+            &mut state.id_hand,
+        ),
+        EffectKind::ShivAdd { count, upgraded } => {
+            process_effect_shiv_add::process_effect_shiv_add(
+                count,
+                upgraded,
+                &mut state.entities,
                 &mut state.id_hand,
-                &mut state.id_pile_exhaust,
+                &mut state.id_pile_discard,
             )
         }
-        EffectKind::CardRemove => {
-            let id_card = id_target.unwrap();
-            process_effect_card_remove::process_effect_card_remove(id_card, &mut state.id_hand)
-        }
-        EffectKind::ShivAdd { count, upgraded } => process_effect_shiv_add::process_effect_shiv_add(
-            count,
-            upgraded,
-            &mut state.entities,
-            &mut state.id_hand,
-            &mut state.id_pile_discard,
-        ),
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(
                 &state.id_hand,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::CardUpgrade => {
-            let id_card = id_target.unwrap();
-            process_effect_card_upgrade::process_effect_card_upgrade(id_card, &mut state.entities)
-        }
+        EffectKind::CardUpgrade => process_effect_card_upgrade::process_effect_card_upgrade(
+            id_target.unwrap(),
+            &mut state.entities,
+        ),
         EffectKind::CardRewardRoll => {
             process_effect_card_reward_roll::process_effect_card_reward_roll(
                 state.id_character,
@@ -471,13 +461,12 @@ fn dispatch_by_kind(
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
         EffectKind::DamagePhysical { amount } => {
-            let id_source_un = id_source.unwrap();
             let id_target = id_target.unwrap();
-            let source_mods = &state.entities[id_source_un].modifiers;
-            let target_mods = &state.entities[id_target].modifiers;
+            let mods_source = &state.entities[id_source.unwrap()].modifiers;
+            let mods_target = &state.entities[id_target].modifiers;
             process_effect_damage_physical::process_effect_damage_physical(
-                source_mods,
-                target_mods,
+                mods_source,
+                mods_target,
                 id_source,
                 id_target,
                 amount,
@@ -489,16 +478,6 @@ fn dispatch_by_kind(
             process_effect_damage_physical_if_poisoned::process_effect_damage_physical_if_poisoned(
                 &state.entities,
                 id_source,
-                id_target,
-                amount,
-                &mut state.effect_queue,
-            )
-        }
-        EffectKind::DamagePower { amount } => {
-            let id_target = id_target.unwrap();
-            let target_mods = &state.entities[id_target].modifiers;
-            process_effect_damage_power::process_effect_damage_power(
-                target_mods,
                 id_target,
                 amount,
                 &mut state.effect_queue,
@@ -523,18 +502,18 @@ fn dispatch_by_kind(
             process_effect_escape_plan_check::process_effect_escape_plan_check(
                 &state.entities,
                 state.id_character,
-                &mut state.last_drawn_card,
+                &mut state.card_last_drawn,
                 block,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::FinisherDamage { damage_per } => {
+        EffectKind::FinisherDamage { damage } => {
             let id_target = id_target.unwrap();
             process_effect_finisher_damage::process_effect_finisher_damage(
-                state.attacks_played_this_turn,
+                state.this_turn_attacks_played,
                 id_source,
                 id_target,
-                damage_per,
+                damage,
                 &mut state.effect_queue,
             )
         }
@@ -551,15 +530,15 @@ fn dispatch_by_kind(
         }
         EffectKind::HeelHookProc => {
             let id_target = id_target.unwrap();
-            let target_mods = &state.entities[id_target].modifiers;
+            let mods_target = &state.entities[id_target].modifiers;
             process_effect_heel_hook_proc::process_effect_heel_hook_proc(
-                target_mods,
+                mods_target,
                 &mut state.effect_queue,
             )
         }
         EffectKind::SneakyStrikeProc { energy } => {
             process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc(
-                state.discards_this_turn,
+                state.this_turn_discards,
                 energy,
                 &mut state.effect_queue,
             )
@@ -571,26 +550,24 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::UnloadDiscard => {
-            process_effect_unload_discard::process_effect_unload_discard(
-                &state.entities,
-                &state.id_hand,
-                &mut state.effect_queue,
-            )
-        }
+        EffectKind::UnloadDiscard => process_effect_unload_discard::process_effect_unload_discard(
+            &state.entities,
+            &state.id_hand,
+            &mut state.effect_queue,
+        ),
         EffectKind::DamageDeal { amount } => {
             let id_target = id_target.unwrap();
             let id_character = state.id_character;
             // Snapshot character modifiers separately to avoid aliasing the
             // entities borrow taken below for vitals.
-            let character_mods = state.entities[id_character].modifiers;
+            let mods_char = state.entities[id_character].modifiers;
             let vitals = &mut state.entities[id_target].vitals;
             process_effect_damage_deal::process_effect_damage_deal(
                 vitals,
                 id_source,
                 id_target,
                 id_character,
-                &character_mods,
+                &mods_char,
                 amount,
                 &mut state.effect_queue,
             )
@@ -755,8 +732,8 @@ fn dispatch_by_kind(
                     &state.id_hand,
                     state.id_card_target,
                     &buf_alive[..alive_n],
-                    &mut state.discards_this_turn,
-                    &mut state.attacks_played_this_turn,
+                    &mut state.this_turn_discards,
+                    &mut state.this_turn_attacks_played,
                     &mut state.rng,
                     &mut state.effect_queue,
                 )
@@ -845,14 +822,12 @@ pub fn derive_resting_phase(state: &GameState) -> Phase {
     }
     // Standing in a room: rest site or map-pick depending on room kind.
     match state.location {
-        Location::Overworld { .. } => match active_room_kind(
-            &state.id_rooms,
-            state.location,
-            &state.entities,
-        ) {
-            Some(RoomKind::RestSite) => Phase::RestSite,
-            _ => Phase::Map,
-        },
+        Location::Overworld { .. } => {
+            match active_room_kind(&state.id_rooms, state.location, &state.entities) {
+                Some(RoomKind::RestSite) => Phase::RestSite,
+                _ => Phase::Map,
+            }
+        }
         Location::Start | Location::BossRoom => Phase::Map,
     }
 }

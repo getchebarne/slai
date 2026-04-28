@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -10,7 +10,7 @@ pub static CRIPPLING_POISON: Entity = make_entity_card(
     CardRarity::Uncommon,
     2,
     false,
-    true, // exhaust
+    true,
     false,
     false,
     &[
@@ -37,8 +37,9 @@ pub static CRIPPLING_POISON: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );
-// Upgraded: +3 poison (Weak unchanged)
+// Upgraded
 pub static CRIPPLING_POISON_PLUS: Entity = make_entity_card(
     CardName::CripplingPoison,
     CardKind::Skill,
@@ -53,7 +54,7 @@ pub static CRIPPLING_POISON_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Poison,
-                stacks: 7,
+                stacks: 7, // +3 poison
             },
             id_source: None,
             target: Target::Resolve {
@@ -73,4 +74,5 @@ pub static CRIPPLING_POISON_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );

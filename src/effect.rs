@@ -6,11 +6,10 @@ pub enum EffectKind {
     Noop,
     DamagePhysical { amount: u16 },
     DamagePhysicalIfPoisoned { amount: u16 },
-    DamagePower { amount: u16 },
     DistractionAdd,
     EscapePlanCheck { block: u16 },
     GlassKnifeDecay { delta: i16 },
-    FinisherDamage { damage_per: u16 },
+    FinisherDamage { damage: u16 },
     FlechettesDamage { damage: u16 },
     HeelHookProc,
     SneakyStrikeProc { energy: u8 },
@@ -63,7 +62,6 @@ pub enum EffectKind {
     // mutating state and pushing follow-up effects
     RoomSelect,
     CardRewardSelect,
-
 }
 
 // CandidatePool: abstract source pool for a Resolve effect's target resolution.

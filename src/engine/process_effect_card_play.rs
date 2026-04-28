@@ -15,7 +15,7 @@ pub fn process_effect_card_play(
     entities: &mut [Entity],
     _hand: &[usize],
     alive_monsters: &[usize],
-    attacks_played_this_turn: &mut u8,
+    this_turn_attacks_played: &mut u8,
     last_played_card: &mut Option<usize>,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
@@ -31,9 +31,9 @@ pub fn process_effect_card_play(
     // Counter for SneakyStrike-style "attacks played this turn" lookups.
     // Increment before the card's effects fire so cards like Finisher can
     // see their own play in the counter (Finisher's handler then subtracts 1
-    // to exclude itself, matching StS).
+    // to exclude itself
     if card.card_kind == CardKind::Attack {
-        *attacks_played_this_turn = attacks_played_this_turn.saturating_add(1);
+        *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
     }
 
     // Free-to-play flag (Setup, Distraction): zero the cost and consume.
@@ -65,7 +65,7 @@ pub fn process_effect_card_play(
         });
     } else {
         // Move-after-play (NOT an explicit discard — see CardMoveToDiscard
-        // doc; doesn't increment discards_this_turn or trigger Reflex).
+        // doc; doesn't increment this_turn_discards or trigger Reflex)
         buf_effects.push(Effect {
             kind: EffectKind::CardMoveToDiscard,
             id_source: None,
@@ -87,15 +87,16 @@ pub fn process_effect_card_play(
         });
     }
 
-    // ThousandCuts: power-induced damage (no Strength scaling, doesn't proc Envenom)
+    // ThousandCuts: power-induced damage. id_source = None so Envenom doesn't
+    // proc; DamageDeal bypasses source-side Strength/Weak scaling.
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &id_monster in alive_monsters {
             buf_effects.push(Effect {
-                kind: EffectKind::DamagePower {
+                kind: EffectKind::DamageDeal {
                     amount: stacks as u16,
                 },
-                id_source: Some(id_character),
+                id_source: None,
                 target: Target::Direct(Some(id_monster)),
             });
         }

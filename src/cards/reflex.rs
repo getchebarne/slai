@@ -1,5 +1,5 @@
 use crate::effect::{Effect, EffectKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card_with_restriction};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 // Reflex: unplayable. When discarded by an explicit CardDiscard (Acrobatics,
@@ -18,7 +18,7 @@ const ON_DISCARD_PLUS: &[Effect] = &[Effect {
 
 pub static REFLEX: Entity = Entity {
     card_on_discard_effects: ON_DISCARD,
-    ..make_entity_card_with_restriction(
+    ..make_entity_card(
         CardName::Reflex,
         CardKind::Skill,
         CardColor::Green,
@@ -35,7 +35,7 @@ pub static REFLEX: Entity = Entity {
 // Upgraded
 pub static REFLEX_PLUS: Entity = Entity {
     card_on_discard_effects: ON_DISCARD_PLUS,
-    ..make_entity_card_with_restriction(
+    ..make_entity_card(
         CardName::Reflex,
         CardKind::Skill,
         CardColor::Green,

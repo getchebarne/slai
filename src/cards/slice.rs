@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static SLICE: Entity = make_entity_card(
@@ -20,6 +20,7 @@ pub static SLICE: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static SLICE_PLUS: Entity = make_entity_card(
@@ -33,11 +34,12 @@ pub static SLICE_PLUS: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 9 }, // +3
+        kind: EffectKind::DamagePhysical { amount: 9 }, // +3 damage
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
         },
     }],
+    PlayRestriction::Always,
 );

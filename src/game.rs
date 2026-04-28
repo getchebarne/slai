@@ -63,10 +63,10 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_rooms,
         location,
         effect_queue,
-        last_drawn_card: None,
+        card_last_drawn: None,
         last_played_card: None,
-        discards_this_turn: 0,
-        attacks_played_this_turn: 0,
+        this_turn_discards: 0,
+        this_turn_attacks_played: 0,
         cards_nightmare: Vec::new(),
     };
 

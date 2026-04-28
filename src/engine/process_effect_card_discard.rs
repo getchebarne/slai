@@ -14,20 +14,23 @@ use crate::utils::remove_card_from_hand;
 // `process_effect_card_move_to_discard` — same internal mutation, no counter
 // increment, no on-discard trigger.
 pub fn process_effect_card_discard(
-    id_card: usize,
+    id_target: usize,
     entities: &[Entity],
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
-    discards_this_turn: &mut u8,
+    this_turn_discards: &mut u8,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    remove_card_from_hand(id_card, id_hand);
-    id_pile_discard.push(id_card);
-    *discards_this_turn = discards_this_turn.saturating_add(1);
+    // Move card from hand to the discard pile
+    remove_card_from_hand(id_target, id_hand);
+    id_pile_discard.push(id_target);
+
+    // Increment cards discarded this turn
+    *this_turn_discards = this_turn_discards.saturating_add(1);
 
     // Fire on-discard trigger (Reflex, Tactician). Push in reverse so the
     // first effect in the array runs first when the queue resumes.
-    let on_discard = entities[id_card].card_on_discard_effects;
+    let on_discard = entities[id_target].card_on_discard_effects;
     for effect in on_discard.iter().rev() {
         queue.push_front(*effect);
     }

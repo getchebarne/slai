@@ -26,18 +26,11 @@ pub enum EntityKind {
     Room,
 }
 
-// PlayRestriction: a card-level rule for "can the player play this card now?"
-// Stored as a static rule on Entity; the *answer* (a bool) is computed on
-// demand by the action validator and the view layer from `(rule, state)`.
-// This avoids keeping a flag in sync with state mutations across Entity rows.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlayRestriction {
-    /// Standard cards. Playable iff the energy cost is met.
-    Always,
-    /// Permanently unplayable (curses, statuses, Reflex, Tactician, etc.).
-    Never,
-    /// Playable iff the draw pile is empty (Grand Finale).
-    DrawPileEmpty,
+    Always,        // Standard cards. Playable iff the energy cost is met
+    Never,         // Permanently unplayable (curses, statuses, Reflex, Tactician, etc.)
+    DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -190,41 +183,8 @@ pub const fn make_entity_monster(
     }
 }
 
-pub const fn make_entity_card(
-    name: CardName,
-    kind: CardKind,
-    color: CardColor,
-    rarity: CardRarity,
-    cost: u8,
-    upgraded: bool,
-    exhaust: bool,
-    innate: bool,
-    requires_target: bool,
-    effects: &[Effect],
-) -> Entity {
-    make_entity_card_with_restriction(
-        name,
-        kind,
-        color,
-        rarity,
-        cost,
-        upgraded,
-        exhaust,
-        innate,
-        requires_target,
-        effects,
-        PlayRestriction::Always,
-    )
-}
-
-// Like `make_entity_card`, but with an explicit play restriction. Used by
-// cards whose playability depends on game state (Grand Finale) or that are
-// permanently unplayable (curses / statuses / Reflex / Tactician).
-//
-// Copies the input `effects` slice into the inline `card_effects` array at
-// compile time. Asserts the slice length fits in `MAX_EFFECTS_PER_CARD`.
 #[allow(clippy::too_many_arguments)]
-pub const fn make_entity_card_with_restriction(
+pub const fn make_entity_card(
     name: CardName,
     kind: CardKind,
     color: CardColor,
@@ -283,22 +243,14 @@ pub fn card_effective_cost(card: &Entity) -> u8 {
     if card.card_free_to_play_once { 0 } else { card.card_cost }
 }
 
-// Evaluate a PlayRestriction against the relevant slice of game state.
-// Single source of truth used by both the action validator (handle_card_play)
-// and the FFI view builder (Card.playable). Keeping this here makes it easy
-// to land new restrictions: add an enum variant + a match arm.
-pub fn play_restriction_satisfied(
-    restriction: PlayRestriction,
-    id_pile_draw: &[usize],
-) -> bool {
+// Evaluate a PlayRestriction against the relevant slice of game state
+pub fn is_play_restriction_satisfied(restriction: PlayRestriction, id_pile_draw: &[usize]) -> bool {
     match restriction {
         PlayRestriction::Always => true,
         PlayRestriction::Never => false,
         PlayRestriction::DrawPileEmpty => id_pile_draw.is_empty(),
     }
 }
-
-// ───────── Monster-history helpers ─────────
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     assert!(

@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static SETUP: Entity = make_entity_card(
@@ -20,6 +20,7 @@ pub static SETUP: Entity = make_entity_card(
             selection: SelectionKind::Input { count: 1 },
         },
     }],
+    PlayRestriction::Always,
 );
 // Upgraded: cost 1 -> 0
 pub static SETUP_PLUS: Entity = make_entity_card(
@@ -40,4 +41,5 @@ pub static SETUP_PLUS: Entity = make_entity_card(
             selection: SelectionKind::Input { count: 1 },
         },
     }],
+    PlayRestriction::Always,
 );

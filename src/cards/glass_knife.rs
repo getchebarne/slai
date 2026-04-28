@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 // Glass Knife: deal 8 dmg twice, then decrement this card instance's
@@ -39,6 +39,7 @@ pub static GLASS_KNIFE: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );
 // Upgraded: base 8 -> 12 (+4 per hit). Decay rate unchanged.
 pub static GLASS_KNIFE_PLUS: Entity = make_entity_card(
@@ -74,4 +75,5 @@ pub static GLASS_KNIFE_PLUS: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );

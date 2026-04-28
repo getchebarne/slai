@@ -17,11 +17,11 @@ pub fn process_effect_flechettes_damage(
     damage: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let n = id_hand
+    let num_skills_in_hand = id_hand
         .iter()
         .filter(|&&id| entities[id].card_kind == CardKind::Skill)
         .count();
-    for _ in 0..n {
+    for _ in 0..num_skills_in_hand {
         queue.push_front(Effect {
             kind: EffectKind::DamagePhysical { amount: damage },
             id_source,

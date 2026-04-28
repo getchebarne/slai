@@ -1,10 +1,7 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-// Concentrate: discard N cards, gain 2 energy. The discard happens first
-// (player picks via the standard CombatAwaitDiscard halt); EnergyGain queued
-// behind it runs once the suspended chain resumes.
 pub static CONCENTRATE: Entity = make_entity_card(
     CardName::Concentrate,
     CardKind::Skill,
@@ -30,8 +27,9 @@ pub static CONCENTRATE: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );
-// Upgraded: discard 2 instead of 3
+// Upgraded
 pub static CONCENTRATE_PLUS: Entity = make_entity_card(
     CardName::Concentrate,
     CardKind::Skill,
@@ -48,7 +46,7 @@ pub static CONCENTRATE_PLUS: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 2 },
+                selection: SelectionKind::Input { count: 2 }, // -1 discard
             },
         },
         Effect {
@@ -57,4 +55,5 @@ pub static CONCENTRATE_PLUS: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );

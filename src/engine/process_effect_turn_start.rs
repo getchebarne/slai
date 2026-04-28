@@ -19,9 +19,7 @@ pub fn process_effect_turn_start(
     // Stack locals
     let mut buf_effects = EffectBuf::new();
 
-    // Poison ticks at the START of each actor's turn (StS rule). Fires for
-    // both character and monsters. Pushed first so HealthLoss resolves
-    // before any other turn-start effects.
+    // Modifier / Poison
     if modifier_has(modifiers, ModifierKind::Poison) {
         buf_effects.push(Effect::direct(EffectKind::PoisonTick, None, Some(id_actor)));
     }
@@ -87,7 +85,7 @@ pub fn process_effect_turn_start(
             });
         }
 
-        // NoxiousFumes: apply Poison stacks to every alive monster at character's turn start.
+        // Modifier / NoxiousFumes
         if modifier_has(modifiers, ModifierKind::NoxiousFumes) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NoxiousFumes);
             for &id_monster in id_monsters {
@@ -123,7 +121,7 @@ pub fn process_effect_turn_start(
             target: Target::Direct(None),
         });
 
-        // DrawCardNextTurn (Predator): one-shot extra draw, then removes itself.
+        // Modifier / DrawCardNextTurn
         if modifier_has(modifiers, ModifierKind::DrawCardNextTurn) {
             let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
             buf_effects.push(Effect {
@@ -142,7 +140,7 @@ pub fn process_effect_turn_start(
             });
         }
 
-        // ToolsOfTheTrade: every char turn-start, draw N then discard N (player picks).
+        // Modifier / ToolsOfTheTrade
         if modifier_has(modifiers, ModifierKind::ToolsOfTheTrade) {
             let stacks = modifier_stacks(modifiers, ModifierKind::ToolsOfTheTrade);
             buf_effects.push(Effect {

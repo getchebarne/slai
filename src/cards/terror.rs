@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -26,6 +26,7 @@ pub static TERROR: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static TERROR_PLUS: Entity = make_entity_card(
@@ -49,4 +50,5 @@ pub static TERROR_PLUS: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    PlayRestriction::Always,
 );

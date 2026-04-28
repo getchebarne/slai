@@ -5,8 +5,7 @@ use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::types::CardKind;
 
-// Unload: discard every non-Attack card from hand. Forced (no player input).
-// Same emission shape as CalculatedGamble but filtered.
+// Unload: discard every non-Attack card from hand
 pub fn process_effect_unload_discard(
     entities: &[Entity],
     id_hand: &[usize],

@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static DASH: Entity = make_entity_card(
@@ -30,6 +30,7 @@ pub static DASH: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static DASH_PLUS: Entity = make_entity_card(
@@ -64,4 +65,5 @@ pub static DASH_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );
