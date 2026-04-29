@@ -73,15 +73,9 @@ pub struct GameState {
     // Entities / Card / Last drawn
     pub card_last_drawn: Option<usize>,
 
-    // Entities / Card / Last played: id of the card currently being played
-    // (set at the top of `process_effect_card_play`). Used by self-referential
-    // effects like GlassKnifeDecay that mutate the played card's own state.
-    pub last_played_card: Option<usize>,
+    // Entities / Card / Last played: read by self-referential effects
+    pub card_last_played: Option<usize>,
 
-    // Nightmare-pending: snapshot copies of the picked card(s), spawned into
-    // hand at the next character TurnStart (post-draw). Cleared on combat
-    // end. Holds full Entity snapshots so per-instance state (GlassKnife
-    // damage decay, free-to-play flag, etc.) is preserved on the spawned
-    // copies — matches StS `makeStatEquivalentCopy` semantics.
-    pub cards_nightmare: Vec<Entity>,
+    // Nightmare-pending template snapshot id; flushed at next TurnStart
+    pub id_card_nightmare: Option<usize>,
 }

@@ -31,9 +31,7 @@ pub fn process_effect_damage_physical(
         value *= FACTOR_VULN;
     }
 
-    // Intangible: cap any incoming damage at 1 per attack instance,
-    // pre-block (block then subtracts as normal). Matches StS
-    // IntangiblePlayerPower.atDamageFinalReceive.
+    // Intangible
     if modifier_has(mods_target, ModifierKind::Intangible) && value > 1.0 {
         value = 1.0;
     }

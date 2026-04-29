@@ -7,12 +7,11 @@ use crate::utils::remove_card_from_hand;
 
 // Explicit discard: an effect (Acrobatics, Concentrate, CalculatedGamble,
 // Unload, ToolsOfTheTrade, etc.) removes a card from the player's hand.
-// Counts as a "discard this turn" for SneakyStrike / Eviscerate / etc., and
-// fires Reflex/Tactician's `card_on_discard_effects`.
+// Counts as a "discard this turn" for SneakyStrike / Eviscerate / etc.
 //
 // For the "move just-played card to discard pile" case, see
 // `process_effect_card_move_to_discard` — same internal mutation, no counter
-// increment, no on-discard trigger.
+// increment, no on-discard trigger
 pub fn process_effect_card_discard(
     id_target: usize,
     entities: &[Entity],
@@ -28,10 +27,10 @@ pub fn process_effect_card_discard(
     // Increment cards discarded this turn
     *this_turn_discards = this_turn_discards.saturating_add(1);
 
-    // Fire on-discard trigger (Reflex, Tactician). Push in reverse so the
-    // first effect in the array runs first when the queue resumes.
-    let on_discard = entities[id_target].card_on_discard_effects;
-    for effect in on_discard.iter().rev() {
+    // On-discard effects. Push in reverse so the first effect in the array runs first when the
+    // queue resumes
+    let effects_on_discard = entities[id_target].card_on_discard_effects;
+    for effect in effects_on_discard.iter().rev() {
         queue.push_front(*effect);
     }
     DispatchResult::Continue

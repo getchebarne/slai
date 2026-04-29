@@ -1,6 +1,6 @@
 use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
-use crate::entity::is_play_restriction_satisfied;
+use crate::entity::{card_effective_cost, is_play_restriction_satisfied};
 use crate::map::{has_edge, room_at};
 use crate::state::{GameState, Location};
 use crate::types::Phase;
@@ -67,7 +67,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::CardDiscard { indices_hand } => handle_card_discard(state, indices_hand),
         Action::CardRetain { indices_hand } => handle_card_retain(state, indices_hand),
         Action::CardSetup { idx_hand } => handle_card_setup(state, idx_hand),
-        Action::CardNightmare { idx_hand } => handle_card_nightmare(state, idx_hand),
+        Action::CardNightmare { idx_hand } => handle_id_card_nightmare(state, idx_hand),
         Action::CardPlay {
             idx_hand,
             idx_monster,
@@ -114,7 +114,7 @@ fn handle_card_play(
         ));
     }
 
-    let effective_cost = crate::entity::card_effective_cost(card);
+    let effective_cost = card_effective_cost(card);
     if effective_cost > state.energy.current {
         return Err(format!(
             "Not enough energy to play {:?}: need {}, have {}",
@@ -189,14 +189,10 @@ fn handle_card_setup(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, 
     )])
 }
 
-fn handle_card_nightmare(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
+fn handle_id_card_nightmare(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
     let id_card = lookup_idx(&state.id_hand, idx_hand)?;
-    let count = match state.phase {
-        Phase::CombatAwaitNightmare { count } => count,
-        _ => unreachable!("handle_card_nightmare guarded by validate_phase"),
-    };
     Ok(vec![Effect::direct(
-        EffectKind::CardNightmarePick { count },
+        EffectKind::CardNightmarePick,
         None,
         Some(id_card),
     )])

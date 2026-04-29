@@ -22,13 +22,13 @@ pub static SETUP: Entity = make_entity_card(
     }],
     PlayRestriction::Always,
 );
-// Upgraded: cost 1 -> 0
+// Upgraded
 pub static SETUP_PLUS: Entity = make_entity_card(
     CardName::Setup,
     CardKind::Skill,
     CardColor::Green,
     CardRarity::Uncommon,
-    0,
+    0, // -1 cost
     true,
     false,
     false,

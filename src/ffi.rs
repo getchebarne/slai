@@ -217,7 +217,7 @@ pub enum Phase {
     Map {},
     CombatDefault {},
     CombatAwaitDiscard { num: u8 },
-    CombatAwaitNightmare { count: u8 },
+    CombatAwaitNightmare {},
     CombatAwaitRetain { num: u8 },
     CombatAwaitSetup {},
     CombatReward {},
@@ -231,9 +231,7 @@ impl From<InternalPhase> for Phase {
             InternalPhase::Map => Self::Map {},
             InternalPhase::CombatDefault => Self::CombatDefault {},
             InternalPhase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
-            InternalPhase::CombatAwaitNightmare { count } => {
-                Self::CombatAwaitNightmare { count }
-            }
+            InternalPhase::CombatAwaitNightmare => Self::CombatAwaitNightmare {},
             InternalPhase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
             InternalPhase::CombatAwaitSetup => Self::CombatAwaitSetup {},
             InternalPhase::CombatReward => Self::CombatReward {},
@@ -361,7 +359,6 @@ pub enum Effect {
         target: Option<Target>,
     },
     CardNightmarePick {
-        count: u8,
         target: Option<Target>,
     },
     DistractionAdd {
@@ -450,7 +447,7 @@ impl Effect {
             EffectKind::EscapePlanCheck { block } => Self::EscapePlanCheck { block, target },
             EffectKind::GlassKnifeDecay { delta } => Self::GlassKnifeDecay { delta, target },
             EffectKind::CardSetupPick => Self::CardSetupPick { target },
-            EffectKind::CardNightmarePick { count } => Self::CardNightmarePick { count, target },
+            EffectKind::CardNightmarePick => Self::CardNightmarePick { target },
             EffectKind::DistractionAdd => Self::DistractionAdd { target },
             EffectKind::FinisherDamage { damage } => Self::FinisherDamage { damage, target },
             EffectKind::FlechettesDamage { damage } => Self::FlechettesDamage { damage, target },

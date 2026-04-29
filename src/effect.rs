@@ -25,7 +25,7 @@ pub enum EffectKind {
     CardDiscard,
     CardDiscardEndOfTurn,
     CardMoveToDiscard,
-    CardNightmarePick { count: u8 },
+    CardNightmarePick,
     CardNightmareSpawn,
     CardRetain,
     CardSetupPick,

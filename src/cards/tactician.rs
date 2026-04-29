@@ -8,7 +8,7 @@ const ON_DISCARD: &[Effect] = &[Effect {
     target: Target::Direct(None),
 }];
 const ON_DISCARD_PLUS: &[Effect] = &[Effect {
-    kind: EffectKind::EnergyGain { amount: 2 },
+    kind: EffectKind::EnergyGain { amount: 2 }, // +1 energy
     id_source: None,
     target: Target::Direct(None),
 }];

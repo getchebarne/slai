@@ -16,28 +16,22 @@ pub fn process_effect_card_play(
     _hand: &[usize],
     alive_monsters: &[usize],
     this_turn_attacks_played: &mut u8,
-    last_played_card: &mut Option<usize>,
+    card_last_played: &mut Option<usize>,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // Snapshot the played card by-value (Entity is Copy) so we can release
-    // the entities borrow before mutating it for the free-to-play flag.
     let card = entities[id_card];
+    *card_last_played = Some(id_card);
 
-    // Snapshot the played card id so self-referential effects (GlassKnifeDecay)
-    // can find which entity to mutate.
-    *last_played_card = Some(id_card);
-
-    // Counter for SneakyStrike-style "attacks played this turn" lookups.
-    // Increment before the card's effects fire so cards like Finisher can
-    // see their own play in the counter (Finisher's handler then subtracts 1
-    // to exclude itself
+    // Increment before effects fire so self-counting cards see their own play
     if card.card_kind == CardKind::Attack {
         *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
     }
 
-    // Free-to-play flag (Setup, Distraction): zero the cost and consume.
+    // Get effective cost
     let cost = card_effective_cost(&card);
+
+    // Clear free-to-play-once flag
     if card.card_free_to_play_once {
         entities[id_card].card_free_to_play_once = false;
     }
@@ -64,8 +58,7 @@ pub fn process_effect_card_play(
             target: Target::Direct(Some(id_card)),
         });
     } else {
-        // Move-after-play (NOT an explicit discard — see CardMoveToDiscard
-        // doc; doesn't increment this_turn_discards or trigger Reflex)
+        // Not a real discard: skips this_turn_discards and Reflex
         buf_effects.push(Effect {
             kind: EffectKind::CardMoveToDiscard,
             id_source: None,
@@ -87,8 +80,7 @@ pub fn process_effect_card_play(
         });
     }
 
-    // ThousandCuts: power-induced damage. id_source = None so Envenom doesn't
-    // proc; DamageDeal bypasses source-side Strength/Weak scaling.
+    // ThousandCuts: id_source = None to skip Envenom proc and Strength/Weak scaling
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &id_monster in alive_monsters {
@@ -142,10 +134,7 @@ pub fn process_effect_card_play(
         });
     }
 
-    // Choke: each alive monster with Choke loses `choke_stacks` HP per card
-    // play. Pushed AFTER card_effects so the played card resolves first
-    // (matches StS — onUseCard's LoseHPAction is queued after the card's own
-    // actions via addToBot).
+    // Choke: pushed after card_effects so the played card resolves first
     for &id_monster in alive_monsters {
         let monster_mods = &entities[id_monster].modifiers;
         if modifier_has(monster_mods, ModifierKind::Choke) {

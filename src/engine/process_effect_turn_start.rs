@@ -14,6 +14,7 @@ pub fn process_effect_turn_start(
     id_character: usize,
     energy: &Energy,
     id_monsters: &[usize],
+    nightmare_pending: bool,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Stack locals
@@ -100,9 +101,7 @@ pub fn process_effect_turn_start(
             }
         }
 
-        // Choke: each ChokePower auto-removes itself at the next player turn
-        // start (StS atStartOfTurn). modifier_remove is idempotent so we
-        // push for every alive monster — no entity inspection needed here.
+        // Choke auto-removes at the next player turn start; modifier_remove is idempotent
         for &id_monster in id_monsters {
             buf_effects.push(Effect {
                 kind: EffectKind::ModifierRemove {
@@ -113,13 +112,14 @@ pub fn process_effect_turn_start(
             });
         }
 
-        // Nightmare-pending: spawn snapshotted copies into hand. Handler
-        // no-ops if the vec is empty so we can push unconditionally.
-        buf_effects.push(Effect {
-            kind: EffectKind::CardNightmareSpawn,
-            id_source: None,
-            target: Target::Direct(None),
-        });
+        // Nightmare
+        if nightmare_pending {
+            buf_effects.push(Effect {
+                kind: EffectKind::CardNightmareSpawn,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
 
         // Modifier / DrawCardNextTurn
         if modifier_has(modifiers, ModifierKind::DrawCardNextTurn) {

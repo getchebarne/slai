@@ -13,7 +13,7 @@ pub static NIGHTMARE: Entity = make_entity_card(
     false,
     false,
     &[Effect {
-        kind: EffectKind::CardNightmarePick { count: 3 },
+        kind: EffectKind::CardNightmarePick,
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Hand,
@@ -22,19 +22,19 @@ pub static NIGHTMARE: Entity = make_entity_card(
     }],
     PlayRestriction::Always,
 );
-// Upgraded: cost 3 -> 2 (count unchanged at 3)
+// Upgraded
 pub static NIGHTMARE_PLUS: Entity = make_entity_card(
     CardName::Nightmare,
     CardKind::Skill,
     CardColor::Green,
     CardRarity::Rare,
-    2,
+    2, // -1 cost
     true,
     true,
     false,
     false,
     &[Effect {
-        kind: EffectKind::CardNightmarePick { count: 3 },
+        kind: EffectKind::CardNightmarePick,
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Hand,

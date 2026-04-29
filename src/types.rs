@@ -224,7 +224,7 @@ pub enum Phase {
     CombatReward,
     CombatDefault,
     CombatAwaitDiscard { num: u8 },
-    CombatAwaitNightmare { count: u8 },
+    CombatAwaitNightmare,
     CombatAwaitRetain { num: u8 },
     CombatAwaitSetup,
     GameOver,

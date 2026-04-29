@@ -87,23 +87,13 @@ pub struct Entity {
     pub card_requires_target: bool,
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
-    /// One-shot free-play flag set by Setup (and Distraction). When true,
-    /// the next play of this card instance ignores energy cost and clears
-    /// the flag. Per-instance — does not propagate to other copies of the
-    /// same card name (unless those copies are themselves snapshotted, e.g.
-    /// via Nightmare on a Setup-flagged card).
     pub card_free_to_play_once: bool,
-    /// Per-instance card effects, mutable. Stored inline so each Entity
-    /// owns its own copy — needed for cards like GlassKnife that mutate
-    /// their own damage values across plays. Slots past `card_effects_len`
-    /// are ignored. Read via `&card.card_effects[..card.card_effects_len as usize]`.
+
+    // Per-instance, mutable; only `card_effects[..card_effects_len]` is live
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
-    /// Effects to push when this card is discarded by an explicit
-    /// `EffectKind::CardDiscard` (player or card-induced). NOT triggered by
-    /// `CardMoveToDiscard` (after-play move) or `CardDiscardEndOfTurn`.
-    /// Used by Reflex (draw 2/3) and Tactician (gain 1/2 energy). Static —
-    /// not mutated per-instance, so no array-by-value overhead.
+
+    // Fired only by `EffectKind::CardDiscard`, not by `CardMoveToDiscard` or `CardDiscardEndOfTurn`
     pub card_on_discard_effects: &'static [Effect],
 
     // Room-only
@@ -240,7 +230,11 @@ pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8
 // flag is set (Setup/Distraction), otherwise the card's normal cost. The flag
 // is consumed by `process_effect_card_play` when the card actually resolves.
 pub fn card_effective_cost(card: &Entity) -> u8 {
-    if card.card_free_to_play_once { 0 } else { card.card_cost }
+    if card.card_free_to_play_once {
+        0
+    } else {
+        card.card_cost
+    }
 }
 
 // Evaluate a PlayRestriction against the relevant slice of game state
