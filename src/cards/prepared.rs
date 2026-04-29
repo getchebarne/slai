@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static PREPARED: Entity = make_entity_card(
@@ -27,6 +27,7 @@ pub static PREPARED: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static PREPARED_PLUS: Entity = make_entity_card(
@@ -41,7 +42,7 @@ pub static PREPARED_PLUS: Entity = make_entity_card(
     false,
     &[
         Effect {
-            kind: EffectKind::CardDraw { count: 2 },
+            kind: EffectKind::CardDraw { count: 2 }, // +1 card
             id_source: None,
             target: Target::Direct(None),
         },
@@ -50,8 +51,9 @@ pub static PREPARED_PLUS: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 2 },
+                selection: SelectionKind::Input { count: 2 }, // +1 card
             },
         },
     ],
+    PlayRestriction::Always,
 );

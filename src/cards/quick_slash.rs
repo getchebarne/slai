@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static QUICK_SLASH: Entity = make_entity_card(
@@ -27,6 +27,7 @@ pub static QUICK_SLASH: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static QUICK_SLASH_PLUS: Entity = make_entity_card(
@@ -41,7 +42,7 @@ pub static QUICK_SLASH_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 12 }, // +4
+            kind: EffectKind::DamagePhysical { amount: 12 }, // +4 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -54,4 +55,5 @@ pub static QUICK_SLASH_PLUS: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );

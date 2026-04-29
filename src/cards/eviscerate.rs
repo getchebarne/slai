@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{CardCostKind, Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 // Eviscerate: 3-cost attack, 7 (9+) damage × 3, target enemy.
@@ -42,6 +42,7 @@ pub static EVISCERATE: Entity = {
                 },
             },
         ],
+        PlayRestriction::Always,
     );
     e.card_cost_kind = CardCostKind::MinusDiscardsThisTurn;
     e
@@ -84,6 +85,7 @@ pub static EVISCERATE_PLUS: Entity = {
                 },
             },
         ],
+        PlayRestriction::Always,
     );
     e.card_cost_kind = CardCostKind::MinusDiscardsThisTurn;
     e

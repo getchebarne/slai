@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static UNLOAD: Entity = make_entity_card(
@@ -27,8 +27,9 @@ pub static UNLOAD: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );
-// Upgraded: +4 damage
+// Upgraded
 pub static UNLOAD_PLUS: Entity = make_entity_card(
     CardName::Unload,
     CardKind::Attack,
@@ -41,7 +42,7 @@ pub static UNLOAD_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 18 },
+            kind: EffectKind::DamagePhysical { amount: 18 }, // +4 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -54,4 +55,5 @@ pub static UNLOAD_PLUS: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    PlayRestriction::Always,
 );

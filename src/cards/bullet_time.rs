@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -36,6 +36,7 @@ pub static BULLET_TIME: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );
 // Upgraded: cost 3 -> 2
 pub static BULLET_TIME_PLUS: Entity = make_entity_card(
@@ -66,4 +67,5 @@ pub static BULLET_TIME_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );

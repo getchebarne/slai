@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -34,8 +34,9 @@ pub static CHOKE: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );
-// Upgraded: Choke amount 3 -> 5
+// Upgraded
 pub static CHOKE_PLUS: Entity = make_entity_card(
     CardName::Choke,
     CardKind::Attack,
@@ -58,7 +59,7 @@ pub static CHOKE_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Choke,
-                stacks: 5,
+                stacks: 5, // +2 stacks
             },
             id_source: None,
             target: Target::Resolve {
@@ -67,4 +68,5 @@ pub static CHOKE_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );

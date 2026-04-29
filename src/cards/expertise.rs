@@ -1,5 +1,5 @@
 use crate::effect::{Effect, EffectKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 // Expertise: draw cards until your hand has up to N (6 base / 7 upgraded).
@@ -19,6 +19,7 @@ pub static EXPERTISE: Entity = make_entity_card(
         id_source: None,
         target: Target::Direct(None),
     }],
+    PlayRestriction::Always,
 );
 // Upgraded: draw up to 7 instead of 6
 pub static EXPERTISE_PLUS: Entity = make_entity_card(
@@ -36,4 +37,5 @@ pub static EXPERTISE_PLUS: Entity = make_entity_card(
         id_source: None,
         target: Target::Direct(None),
     }],
+    PlayRestriction::Always,
 );

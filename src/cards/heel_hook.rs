@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static HEEL_HOOK: Entity = make_entity_card(
@@ -30,8 +30,9 @@ pub static HEEL_HOOK: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );
-// Upgraded: +3 damage. Bonus (energy + draw) unchanged.
+// Upgraded
 pub static HEEL_HOOK_PLUS: Entity = make_entity_card(
     CardName::HeelHook,
     CardKind::Attack,
@@ -44,7 +45,7 @@ pub static HEEL_HOOK_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
+            kind: EffectKind::DamagePhysical { amount: 8 }, // +3 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -60,4 +61,5 @@ pub static HEEL_HOOK_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    PlayRestriction::Always,
 );

@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{CardCostKind, Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 // MasterfulStab: 0-cost attack, 12 (16+) damage, target enemy.
@@ -25,6 +25,7 @@ pub static MASTERFUL_STAB: Entity = {
                 selection: SelectionKind::All,
             },
         }],
+        PlayRestriction::Always,
     );
     e.card_cost_kind = CardCostKind::GrowsOnDamageInstanceTaken;
     e
@@ -49,6 +50,7 @@ pub static MASTERFUL_STAB_PLUS: Entity = {
                 selection: SelectionKind::All,
             },
         }],
+        PlayRestriction::Always,
     );
     e.card_cost_kind = CardCostKind::GrowsOnDamageInstanceTaken;
     e

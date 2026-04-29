@@ -1,5 +1,5 @@
 use crate::effect::{Effect, EffectKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static DISTRACTION: Entity = make_entity_card(
@@ -9,7 +9,7 @@ pub static DISTRACTION: Entity = make_entity_card(
     CardRarity::Uncommon,
     1,
     false,
-    true, // exhaust
+    true,
     false,
     false,
     &[Effect {
@@ -17,14 +17,15 @@ pub static DISTRACTION: Entity = make_entity_card(
         id_source: None,
         target: Target::Direct(None),
     }],
+    PlayRestriction::Always,
 );
-// Upgraded: cost 1 -> 0
+// Upgraded
 pub static DISTRACTION_PLUS: Entity = make_entity_card(
     CardName::Distraction,
     CardKind::Skill,
     CardColor::Green,
     CardRarity::Uncommon,
-    0,
+    0, // -1 cost
     true,
     true,
     false,
@@ -34,4 +35,5 @@ pub static DISTRACTION_PLUS: Entity = make_entity_card(
         id_source: None,
         target: Target::Direct(None),
     }],
+    PlayRestriction::Always,
 );

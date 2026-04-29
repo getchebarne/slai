@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 // EndlessAgony: 0-cost attack, 4 (6+) damage, exhaust. When drawn, add a
@@ -38,6 +38,7 @@ pub static ENDLESS_AGONY: Entity = {
                 selection: SelectionKind::All,
             },
         }],
+        PlayRestriction::Always,
     );
     e.card_on_draw_effects = ENDLESS_AGONY_ON_DRAW;
     e
@@ -62,6 +63,7 @@ pub static ENDLESS_AGONY_PLUS: Entity = {
                 selection: SelectionKind::All,
             },
         }],
+        PlayRestriction::Always,
     );
     e.card_on_draw_effects = ENDLESS_AGONY_PLUS_ON_DRAW;
     e

@@ -18,21 +18,23 @@ pub fn process_effect_combat_end(
     id_card_target: &mut Option<usize>,
     entities: &mut Vec<Entity>,
     monster_count: &mut u8,
-    cards_nightmare: &mut Vec<Entity>,
+    id_card_nightmare: &mut Option<usize>,
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
+    // Clear card piles and target
     id_hand.clear();
     id_pile_draw.clear();
     id_pile_discard.clear();
     id_pile_exhaust.clear();
-    cards_nightmare.clear();
+    *id_card_nightmare = None;
     *id_card_target = None;
 
-    let room = active_room_kind(id_rooms, location, entities).unwrap();
-
+    // Clear character's modifiers
     modifier_clear(&mut entities[id_character].modifiers);
+
+    // Clear retained cards
     for entity in entities.iter_mut() {
         match entity.kind {
             EntityKind::Card => {
@@ -40,13 +42,18 @@ pub fn process_effect_combat_end(
             }
             EntityKind::Monster => {
                 // Prevent stale Poison/Shackled/etc. from leaking into views
-                // after the next combat reuses (or doesn't reuse) the slot.
+                // after the next combat reuses (or doesn't reuse) the slot
                 modifier_clear(&mut entity.modifiers);
             }
             _ => {}
         }
     }
+
+    // Clear monsters
     *monster_count = 0;
+
+    // Dispatch according to current room type
+    let room = active_room_kind(id_rooms, location, entities).unwrap();
     match room {
         RoomKind::CombatBoss => {
             // Boss defeated — drop any pending effects. derive_resting_phase

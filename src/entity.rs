@@ -5,7 +5,7 @@
 // constructors below (`make_entity_card`, `make_entity_monster`, etc.) are the only
 // way to build an Entity — they set the relevant fields and zero the rest.
 
-use crate::consts::MAX_MOVE_HISTORY;
+use crate::consts::{MAX_MOVE_HISTORY, MAX_SIZE_HAND};
 use crate::effect::{Effect, ZERO_EFFECT};
 use crate::modifier::{Modifiers, ZERO_MODIFIERS};
 
@@ -26,27 +26,14 @@ pub enum EntityKind {
     Room,
 }
 
-// PlayRestriction: a card-level rule for "can the player play this card now?"
-// Stored as a static rule on Entity; the *answer* (a bool) is computed on
-// demand by the action validator and the view layer from `(rule, state)`.
-// This avoids keeping a flag in sync with state mutations across Entity rows.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlayRestriction {
-    /// Standard cards. Playable iff the energy cost is met.
-    Always,
-    /// Permanently unplayable (curses, statuses, Reflex, Tactician, etc.).
-    Never,
-    /// Playable iff the draw pile is empty (Grand Finale).
-    DrawPileEmpty,
+    Always,        // Standard cards. Playable iff the energy cost is met
+    Never,         // Permanently unplayable (curses, statuses, Reflex, Tactician, etc.)
+    DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
 }
 
-// CardCostKind: how `card_effective_cost` derives this card's cost.
-// `Fixed` is the default; the others read named GameState counters or
-// `state.energy.current` (X-cost). The state-derived variants
-// (MinusDiscardsThisTurn, GrowsOnDamageInstanceTaken) are mirror images:
-// `card.card_cost ± state.<counter>`. XCost is special-cased — its `offset`
-// is added to `energy.current` to get the per-play multiplier (consumed in
-// `process_effect_card_play`), absorbing per-card upgrade deltas.
+// XCost.offset is consumed by the per-play multiplier in process_effect_card_play, not here
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CardCostKind {
     Fixed,
@@ -109,35 +96,16 @@ pub struct Entity {
     pub card_requires_target: bool,
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
-    /// One-shot free-play flag set by Setup (and Distraction). When true,
-    /// the next play of this card instance ignores energy cost and clears
-    /// the flag. Per-instance — does not propagate to other copies of the
-    /// same card name (unless those copies are themselves snapshotted, e.g.
-    /// via Nightmare on a Setup-flagged card).
     pub card_free_to_play_once: bool,
-    /// Dynamic-cost variant tag. See `CardCostKind`. Defaults to `Fixed`,
-    /// in which case `card_effective_cost` just returns `card_cost`.
     pub card_cost_kind: CardCostKind,
-    /// Per-instance temporary cost override (BulletTime). When `Some(c)`,
-    /// `card_effective_cost` returns `c` regardless of `card_cost_kind`.
-    /// Reset to `None` for all combat-instance cards at character TurnEnd.
+    // Per-instance cost override (BulletTime); reset to None at TurnEnd
     pub card_cost_override: Option<u8>,
-    /// Per-instance card effects, mutable. Stored inline so each Entity
-    /// owns its own copy — needed for cards like GlassKnife that mutate
-    /// their own damage values across plays. Slots past `card_effects_len`
-    /// are ignored. Read via `&card.card_effects[..card.card_effects_len as usize]`.
+    // Per-instance, mutable; only `card_effects[..card_effects_len]` is live
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
-    /// Effects to push when this card is discarded by an explicit
-    /// `EffectKind::CardDiscard` (player or card-induced). NOT triggered by
-    /// `CardMoveToDiscard` (after-play move) or `CardDiscardEndOfTurn`.
-    /// Used by Reflex (draw 2/3) and Tactician (gain 1/2 energy). Static —
-    /// not mutated per-instance, so no array-by-value overhead.
+    // Fired only by `EffectKind::CardDiscard`, not by `CardMoveToDiscard` or `CardDiscardEndOfTurn`
     pub card_on_discard_effects: &'static [Effect],
-    /// Effects to push when this card is drawn (per StS `triggerWhenDrawn`).
-    /// Fires for each drawn card AFTER the CardDraw loop completes, regardless
-    /// of whether the card landed in hand or in discard (hand-full case).
-    /// Used by EndlessAgony to spawn another copy.
+    // Fires AFTER the CardDraw loop completes, whether the card landed in hand or discard
     pub card_on_draw_effects: &'static [Effect],
 
     // Room-only
@@ -220,41 +188,8 @@ pub const fn make_entity_monster(
     }
 }
 
-pub const fn make_entity_card(
-    name: CardName,
-    kind: CardKind,
-    color: CardColor,
-    rarity: CardRarity,
-    cost: u8,
-    upgraded: bool,
-    exhaust: bool,
-    innate: bool,
-    requires_target: bool,
-    effects: &[Effect],
-) -> Entity {
-    make_entity_card_with_restriction(
-        name,
-        kind,
-        color,
-        rarity,
-        cost,
-        upgraded,
-        exhaust,
-        innate,
-        requires_target,
-        effects,
-        PlayRestriction::Always,
-    )
-}
-
-// Like `make_entity_card`, but with an explicit play restriction. Used by
-// cards whose playability depends on game state (Grand Finale) or that are
-// permanently unplayable (curses / statuses / Reflex / Tactician).
-//
-// Copies the input `effects` slice into the inline `card_effects` array at
-// compile time. Asserts the slice length fits in `MAX_EFFECTS_PER_CARD`.
 #[allow(clippy::too_many_arguments)]
-pub const fn make_entity_card_with_restriction(
+pub const fn make_entity_card(
     name: CardName,
     kind: CardKind,
     color: CardColor,
@@ -306,20 +241,6 @@ pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8
     }
 }
 
-// Effective energy cost for a card right now.
-//
-// Order:
-//  1. `card_free_to_play_once` (Setup/Distraction one-shot) → 0.
-//  2. `card_cost_override` (BulletTime per-instance) → that value.
-//  3. Otherwise dispatch on `card_cost_kind`:
-//     - Fixed: `card_cost`
-//     - MinusDiscardsThisTurn: `card_cost - cards_discarded_this_turn`
-//     - GrowsOnDamageInstanceTaken: `card_cost + instances_of_damage_taken_this_combat`
-//     - XCost: `energy_current` (the `offset` is consumed by the per-play
-//       multiplier in `process_effect_card_play`, NOT here)
-//
-// Takes raw u8s rather than `&GameState` so callers that hold an &Entity
-// borrow into `state.entities` can still call this without borrow conflicts.
 pub fn card_effective_cost(
     card: &Entity,
     cards_discarded_this_turn: u8,
@@ -337,17 +258,14 @@ pub fn card_effective_cost(
         CardCostKind::MinusDiscardsThisTurn => {
             card.card_cost.saturating_sub(cards_discarded_this_turn)
         }
-        CardCostKind::GrowsOnDamageInstanceTaken => {
-            card.card_cost.saturating_add(instances_of_damage_taken_this_combat)
-        }
+        CardCostKind::GrowsOnDamageInstanceTaken => card
+            .card_cost
+            .saturating_add(instances_of_damage_taken_this_combat),
         CardCostKind::XCost { .. } => energy_current,
     }
 }
 
-// Spawn a card entity and route it to hand (if room) or discard pile.
-// Mirrors StS `MakeTempCardInHandAction` overflow behavior. Returns the new
-// entity id. Free function (not a method on Entity) — used by Distraction,
-// EndlessAgony copy spawning, and the CardDraw cap branch.
+// Used by Distraction, EndlessAgony copy spawning, and the CardDraw cap branch
 pub fn add_card_to_hand_or_discard(
     entities: &mut Vec<Entity>,
     id_hand: &mut Vec<usize>,
@@ -356,7 +274,7 @@ pub fn add_card_to_hand_or_discard(
 ) -> usize {
     let id_card = entities.len();
     entities.push(card);
-    if id_hand.len() < crate::consts::MAX_SIZE_HAND {
+    if id_hand.len() < MAX_SIZE_HAND {
         id_hand.push(id_card);
     } else {
         id_pile_discard.push(id_card);
@@ -364,22 +282,14 @@ pub fn add_card_to_hand_or_discard(
     id_card
 }
 
-// Evaluate a PlayRestriction against the relevant slice of game state.
-// Single source of truth used by both the action validator (handle_card_play)
-// and the FFI view builder (Card.playable). Keeping this here makes it easy
-// to land new restrictions: add an enum variant + a match arm.
-pub fn play_restriction_satisfied(
-    restriction: PlayRestriction,
-    id_pile_draw: &[usize],
-) -> bool {
+// Evaluate a PlayRestriction against the relevant slice of game state
+pub fn is_play_restriction_satisfied(restriction: PlayRestriction, id_pile_draw: &[usize]) -> bool {
     match restriction {
         PlayRestriction::Always => true,
         PlayRestriction::Never => false,
         PlayRestriction::DrawPileEmpty => id_pile_draw.is_empty(),
     }
 }
-
-// ───────── Monster-history helpers ─────────
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     assert!(

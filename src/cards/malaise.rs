@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{CardCostKind, Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -41,6 +41,7 @@ pub static MALAISE: Entity = {
                 },
             },
         ],
+        PlayRestriction::Always,
     );
     e.card_cost_kind = CardCostKind::XCost { offset: 0 };
     e
@@ -81,6 +82,7 @@ pub static MALAISE_PLUS: Entity = {
                 },
             },
         ],
+        PlayRestriction::Always,
     );
     e.card_cost_kind = CardCostKind::XCost { offset: 1 };
     e

@@ -6,16 +6,16 @@ use crate::entity::Entity;
 use crate::types::CardKind;
 
 // EscapePlan post-draw check: if the last card drawn (set by CardDraw) is a
-// Skill, gain `block`. Consumes `state.last_drawn_card` so it can't fire on
-// stale state if EscapePlan runs again later.
+// Skill, gain `block`. Consumes `state.card_last_drawn` so it can't fire on
+// stale state if it runs again later
 pub fn process_effect_escape_plan_check(
     entities: &[Entity],
     id_character: usize,
-    last_drawn_card: &mut Option<usize>,
+    card_last_drawn: &mut Option<usize>,
     block: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let id_card = match last_drawn_card.take() {
+    let id_card = match card_last_drawn.take() {
         Some(id) => id,
         None => return DispatchResult::Continue,
     };

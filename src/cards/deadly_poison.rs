@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -24,6 +24,7 @@ pub static DEADLY_POISON: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static DEADLY_POISON_PLUS: Entity = make_entity_card(
@@ -39,7 +40,7 @@ pub static DEADLY_POISON_PLUS: Entity = make_entity_card(
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Poison,
-            stacks: 7, // +2
+            stacks: 7, // +2 poison
         },
         id_source: None,
         target: Target::Resolve {
@@ -47,4 +48,5 @@ pub static DEADLY_POISON_PLUS: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    PlayRestriction::Always,
 );

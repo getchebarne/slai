@@ -6,18 +6,14 @@ use crate::entity::{Entity, add_card_to_hand_or_discard};
 use crate::types::{CardKind, CardName};
 
 // Distraction: spawn a random Silent Skill (excluding Distraction itself) as
-// a free-to-play-once temporary card in hand. Per StS, the pick is
-// uniformly random over `cards filtered by SKILL && name != Distraction`.
-// Walks the existing reward pools — which already enumerate Silent's
-// non-basic cards — to build the candidate list at runtime. Cheap (small
-// pools, called rarely).
+// a free-to-play-once card in hand
 pub fn process_effect_distraction_add(
     entities: &mut Vec<Entity>,
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
     rng: &mut impl Rng,
 ) -> DispatchResult {
-    // Build the candidate pool: every Silent Skill name except Distraction.
+    // Build the candidate pool
     // Stack buffer big enough for the current pool.
     let mut buf = [CardName::Strike; 64];
     let mut n = 0;
@@ -36,8 +32,12 @@ pub fn process_effect_distraction_add(
     if n == 0 {
         return DispatchResult::Continue;
     }
-    let pick = buf[rng.random_range(0..n)];
-    let mut card = get_card(pick, false);
+
+    // Pick a random card
+    let card_name = buf[rng.random_range(0..n)];
+    let mut card = get_card(card_name, false);
+
+    // Set free-to-play-once flag
     card.card_free_to_play_once = true;
 
     add_card_to_hand_or_discard(entities, id_hand, id_pile_discard, card);

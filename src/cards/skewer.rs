@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{CardCostKind, Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 // Skewer: X-cost attack, 7 (10+) damage per hit, target enemy. card_play
@@ -24,6 +24,7 @@ pub static SKEWER: Entity = {
                 selection: SelectionKind::All,
             },
         }],
+        PlayRestriction::Always,
     );
     e.card_cost_kind = CardCostKind::XCost { offset: 0 };
     e
@@ -48,6 +49,7 @@ pub static SKEWER_PLUS: Entity = {
                 selection: SelectionKind::All,
             },
         }],
+        PlayRestriction::Always,
     );
     e.card_cost_kind = CardCostKind::XCost { offset: 0 };
     e

@@ -241,7 +241,7 @@ pub enum Phase {
     Map {},
     CombatDefault {},
     CombatAwaitDiscard { num: u8 },
-    CombatAwaitNightmare { count: u8 },
+    CombatAwaitNightmare {},
     CombatAwaitRetain { num: u8 },
     CombatAwaitSetup {},
     CombatReward {},
@@ -255,7 +255,7 @@ impl From<InternalPhase> for Phase {
             InternalPhase::Map => Self::Map {},
             InternalPhase::CombatDefault => Self::CombatDefault {},
             InternalPhase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
-            InternalPhase::CombatAwaitNightmare { count } => Self::CombatAwaitNightmare { count },
+            InternalPhase::CombatAwaitNightmare => Self::CombatAwaitNightmare {},
             InternalPhase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
             InternalPhase::CombatAwaitSetup => Self::CombatAwaitSetup {},
             InternalPhase::CombatReward => Self::CombatReward {},
@@ -383,7 +383,6 @@ pub enum Effect {
         target: Option<Target>,
     },
     CardNightmarePick {
-        count: u8,
         target: Option<Target>,
     },
     DistractionAdd {
@@ -397,7 +396,7 @@ pub enum Effect {
         target: Option<Target>,
     },
     FinisherDamage {
-        damage_per: u16,
+        damage: u16,
         target: Option<Target>,
     },
     FlechettesDamage {
@@ -483,15 +482,13 @@ impl Effect {
             EffectKind::EscapePlanCheck { block } => Self::EscapePlanCheck { block, target },
             EffectKind::GlassKnifeDecay { delta } => Self::GlassKnifeDecay { delta, target },
             EffectKind::CardSetupPick => Self::CardSetupPick { target },
-            EffectKind::CardNightmarePick { count } => Self::CardNightmarePick { count, target },
+            EffectKind::CardNightmarePick => Self::CardNightmarePick { target },
             EffectKind::DistractionAdd => Self::DistractionAdd { target },
             EffectKind::EndlessAgonyAddCopy { upgraded } => {
                 Self::EndlessAgonyAddCopy { upgraded, target }
             }
             EffectKind::BulletTimeProc => Self::BulletTimeProc { target },
-            EffectKind::FinisherDamage { damage_per } => {
-                Self::FinisherDamage { damage_per, target }
-            }
+            EffectKind::FinisherDamage { damage } => Self::FinisherDamage { damage, target },
             EffectKind::FlechettesDamage { damage } => Self::FlechettesDamage { damage, target },
             EffectKind::UnloadDiscard => Self::UnloadDiscard { target },
             EffectKind::StormOfSteelProc { upgraded } => {
@@ -694,7 +691,7 @@ fn build_view_character(state: &InternalGameState) -> Character {
 }
 
 fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
-    let character_modifiers = &state.entities[state.id_character].modifiers;
+    let mods_char = &state.entities[state.id_character].modifiers;
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let n = fill_alive_monster_ids(state, &mut buf_alive);
     buf_alive[..n]
@@ -729,7 +726,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                     if modifier_has(&m.modifiers, InternalModifierKind::Weak) {
                         dmg *= 0.75;
                     }
-                    if modifier_has(character_modifiers, InternalModifierKind::Vulnerable) {
+                    if modifier_has(mods_char, InternalModifierKind::Vulnerable) {
                         dmg *= FACTOR_VULN;
                     }
                     dmg as u16
@@ -809,7 +806,7 @@ fn build_view_card_template(
         requires_target: card.card_requires_target,
         retain: card.card_retain,
         free_to_play_once: card.card_free_to_play_once,
-        playable: crate::entity::play_restriction_satisfied(
+        playable: crate::entity::is_play_restriction_satisfied(
             card.card_play_restriction,
             id_pile_draw,
         ),
