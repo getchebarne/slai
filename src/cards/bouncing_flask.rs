@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -21,11 +21,14 @@ pub static BOUNCING_FLASK: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     2,
+    CardCostKind::Fixed,
     false,
     false,
     false,
     false,
     &[BOUNCE, BOUNCE, BOUNCE],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded: one more bounce
@@ -35,10 +38,13 @@ pub static BOUNCING_FLASK_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     2,
+    CardCostKind::Fixed,
     true,
     false,
     false,
     false,
     &[BOUNCE, BOUNCE, BOUNCE, BOUNCE], // +1 bounce
+    &[],
+    &[],
     PlayRestriction::Always,
 );

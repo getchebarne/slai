@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,8 +9,9 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     false,
-    true, // exhaust
+    true, 
     false,
     false,
     &[
@@ -37,6 +38,8 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -46,6 +49,7 @@ pub static PIERCING_WAIL_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     true,
     true,
     false,
@@ -74,5 +78,7 @@ pub static PIERCING_WAIL_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

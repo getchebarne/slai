@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 const HIT: Effect = Effect {
@@ -25,11 +25,14 @@ pub static RIDDLE_WITH_HOLES: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     2,
+    CardCostKind::Fixed,
     false,
     false,
     false,
     true,
     &[HIT, HIT, HIT, HIT, HIT],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -39,10 +42,13 @@ pub static RIDDLE_WITH_HOLES_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     2,
+    CardCostKind::Fixed,
     true,
     false,
     false,
     true,
     &[HIT_PLUS, HIT_PLUS, HIT_PLUS, HIT_PLUS, HIT_PLUS],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
-use crate::entity::{Entity, card_effective_cost};
+use crate::entity::{CardCostKind, Entity, card_effective_cost};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::types::CardKind;
 
@@ -17,6 +17,9 @@ pub fn process_effect_card_play(
     alive_monsters: &[usize],
     this_turn_attacks_played: &mut u8,
     card_last_played: &mut Option<usize>,
+    this_turn_discards: u8,
+    this_combat_damage_instances_taken: u8,
+    energy_current: u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
@@ -28,10 +31,19 @@ pub fn process_effect_card_play(
         *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
     }
 
-    // Get effective cost
-    let cost = card_effective_cost(&card);
+    let cost = card_effective_cost(
+        &card,
+        this_turn_discards,
+        this_combat_damage_instances_taken,
+        energy_current,
+    );
 
-    // Clear free-to-play-once flag
+    // X-cost reads raw energy_current (not effective_cost) so Setup-flagged X-cost still scales
+    let multiplier = match card.card_cost_kind {
+        CardCostKind::XCost { offset } => (energy_current as i16 + offset as i16).max(0) as usize,
+        _ => 1,
+    };
+
     if card.card_free_to_play_once {
         entities[id_card].card_free_to_play_once = false;
     }
@@ -111,10 +123,10 @@ pub fn process_effect_card_play(
         }
     }
 
-    // Card effects. Burst (skill-only) doubles them.
+    // Burst (skill-only) doubles; X-cost multiplies by X; the two stack multiplicatively
     let burst =
         modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
-    let reps = if burst { 2 } else { 1 };
+    let reps = if burst { 2 * multiplier } else { multiplier };
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
             buf_effects.push(Effect {

@@ -57,7 +57,7 @@ pub fn process_effect_combat_end(
     match room {
         RoomKind::CombatBoss => {
             // Boss defeated — drop any pending effects. derive_resting_phase
-            // returns GameOver from `location == BossRoom && monster_count == 0`.
+            // returns GameOver from `location == BossRoom && monster_count == 0`
             queue.clear();
         }
         RoomKind::CombatMonster => {

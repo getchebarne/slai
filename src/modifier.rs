@@ -18,6 +18,7 @@ pub enum ModifierKind {
     ModeShift,
     NextTurnBlock,
     NextTurnEnergy,
+    NoDraw,
     NoxiousFumes,
     Phantasmal,
     Poison,
@@ -160,6 +161,13 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::NoDraw,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
     },
     ModifierDef {
         kind: ModifierKind::NoxiousFumes,

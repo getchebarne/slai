@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 const HIT: Effect = Effect {
@@ -25,11 +25,14 @@ pub static DAGGER_SPRAY: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     false,
     false,
     false,
     false,
     &[HIT, HIT],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -39,10 +42,13 @@ pub static DAGGER_SPRAY_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     true,
     false,
     false,
     false,
     &[HIT_PLUS, HIT_PLUS],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

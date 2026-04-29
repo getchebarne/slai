@@ -1,17 +1,17 @@
-// Entities: every kind of thing that lives in `GameState.entities`.
+// Entities: every kind of thing that lives in `GameState.entities`
 //
 // One flat "fat" Entity struct holds all fields from all kinds. A runtime
 // `EntityKind` tag distinguishes them. Variant-specific `const fn`
 // constructors below (`make_entity_card`, `make_entity_monster`, etc.) are the only
-// way to build an Entity — they set the relevant fields and zero the rest.
+// way to build an Entity — they set the relevant fields and zero the rest
 
-use crate::consts::MAX_MOVE_HISTORY;
+use crate::consts::{MAX_MOVE_HISTORY, MAX_SIZE_HAND};
 use crate::effect::{Effect, ZERO_EFFECT};
 use crate::modifier::{Modifiers, ZERO_MODIFIERS};
 
 // Per-card effect array capacity. Largest current card is RiddleWithHoles
 // (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
-// with practical caps, etc.). Bump when a card legitimately exceeds it.
+// with practical caps, etc.). Bump when a card legitimately exceeds it
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
 use crate::types::{
     CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RoomKind, Vitals,
@@ -31,6 +31,15 @@ pub enum PlayRestriction {
     Always,        // Standard cards. Playable iff the energy cost is met
     Never,         // Permanently unplayable (curses, statuses, Reflex, Tactician, etc.)
     DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
+}
+
+// XCost.offset is consumed by the per-play multiplier in `process_effect_card_play`
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CardCostKind {
+    Fixed,
+    MinusDiscardsThisTurn,
+    GrowsOnDamageInstanceTaken,
+    XCost { offset: i8 },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -88,13 +97,16 @@ pub struct Entity {
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
     pub card_free_to_play_once: bool,
-
+    pub card_cost_kind: CardCostKind,
+    // Per-instance cost override (BulletTime); reset to None at TurnEnd
+    pub card_cost_override: Option<u8>,
     // Per-instance, mutable; only `card_effects[..card_effects_len]` is live
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
-
     // Fired only by `EffectKind::CardDiscard`, not by `CardMoveToDiscard` or `CardDiscardEndOfTurn`
     pub card_on_discard_effects: &'static [Effect],
+    // Fires AFTER the CardDraw loop completes, whether the card landed in hand or discard
+    pub card_on_draw_effects: &'static [Effect],
 
     // Room-only
     pub room_y: usize,
@@ -103,8 +115,8 @@ pub struct Entity {
     pub edges: u8,
 }
 
-// Private zero-fill used by the public const fn constructors below.
-// Not exported — external code must go through one of the `*_entity` fns.
+// Private zero-fill used by the public const fn constructors below
+// Not exported — external code must go through one of the `*_entity` fns
 const ZERO_ENTITY: Entity = Entity {
     kind: EntityKind::Character,
     vitals: ZERO_VITALS,
@@ -131,9 +143,12 @@ const ZERO_ENTITY: Entity = Entity {
     card_retain: false,
     card_play_restriction: PlayRestriction::Always,
     card_free_to_play_once: false,
+    card_cost_kind: CardCostKind::Fixed,
+    card_cost_override: None,
     card_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_CARD],
     card_effects_len: 0,
     card_on_discard_effects: &[],
+    card_on_draw_effects: &[],
     room_y: 0,
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
@@ -180,11 +195,14 @@ pub const fn make_entity_card(
     color: CardColor,
     rarity: CardRarity,
     cost: u8,
+    cost_kind: CardCostKind,
     upgraded: bool,
     exhaust: bool,
     innate: bool,
     requires_target: bool,
     effects: &[Effect],
+    on_discard_effects: &'static [Effect],
+    on_draw_effects: &'static [Effect],
     play_restriction: PlayRestriction,
 ) -> Entity {
     assert!(
@@ -204,6 +222,7 @@ pub const fn make_entity_card(
         card_color: color,
         card_rarity: rarity,
         card_cost: cost,
+        card_cost_kind: cost_kind,
         card_upgraded: upgraded,
         card_exhaust: exhaust,
         card_innate: innate,
@@ -211,6 +230,8 @@ pub const fn make_entity_card(
         card_play_restriction: play_restriction,
         card_effects: arr,
         card_effects_len: effects.len() as u8,
+        card_on_discard_effects: on_discard_effects,
+        card_on_draw_effects: on_draw_effects,
         ..ZERO_ENTITY
     }
 }
@@ -226,15 +247,43 @@ pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8
     }
 }
 
-// Effective energy cost for a card right now: 0 if its `card_free_to_play_once`
-// flag is set (Setup/Distraction), otherwise the card's normal cost. The flag
-// is consumed by `process_effect_card_play` when the card actually resolves.
-pub fn card_effective_cost(card: &Entity) -> u8 {
+pub fn card_effective_cost(
+    card: &Entity,
+    this_turn_discards: u8,
+    this_combat_damage_instances_taken: u8,
+    energy_current: u8,
+) -> u8 {
     if card.card_free_to_play_once {
-        0
-    } else {
-        card.card_cost
+        return 0;
     }
+    if let Some(override_) = card.card_cost_override {
+        return override_;
+    }
+    match card.card_cost_kind {
+        CardCostKind::Fixed => card.card_cost,
+        CardCostKind::MinusDiscardsThisTurn => card.card_cost.saturating_sub(this_turn_discards),
+        CardCostKind::GrowsOnDamageInstanceTaken => card
+            .card_cost
+            .saturating_add(this_combat_damage_instances_taken),
+        CardCostKind::XCost { .. } => energy_current,
+    }
+}
+
+// Used by Distraction, EndlessAgony copy spawning, and the CardDraw cap branch
+pub fn add_card_to_hand_or_discard(
+    entities: &mut Vec<Entity>,
+    id_hand: &mut Vec<usize>,
+    id_pile_discard: &mut Vec<usize>,
+    card: Entity,
+) -> usize {
+    let id_card = entities.len();
+    entities.push(card);
+    if id_hand.len() < MAX_SIZE_HAND {
+        id_hand.push(id_card);
+    } else {
+        id_pile_discard.push(id_card);
+    }
+    id_card
 }
 
 // Evaluate a PlayRestriction against the relevant slice of game state

@@ -38,7 +38,7 @@ impl GameEnv {
     #[pyo3(signature = (ascension=0))]
     fn new(ascension: u8) -> Self {
         // State is created with a placeholder seed; consumers must call
-        // `reset(seed=...)` before stepping (gymnasium convention).
+        // `reset(seed=...)` before stepping (gymnasium convention)
         let state = create_game_state(ascension, 0);
         GameEnv { state }
     }
@@ -87,6 +87,7 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ffi::CardKind>()?;
     m.add_class::<ffi::CardColor>()?;
     m.add_class::<ffi::CardRarity>()?;
+    m.add_class::<ffi::CardCostKind>()?;
     m.add_class::<ffi::RoomKind>()?;
     m.add_class::<ffi::ModifierKind>()?;
     m.add_class::<ffi::CandidatePool>()?;

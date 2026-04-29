@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
-use crate::entity::Entity;
+use crate::entity::{Entity, EntityKind};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::types::Vitals;
 
@@ -34,7 +34,7 @@ pub fn process_effect_turn_end_monster(
         });
     }
 
-    // Ritual: skip if newly applied.
+    // Ritual: skip if newly applied
     if modifier_has(modifiers, ModifierKind::Ritual)
         && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
@@ -53,7 +53,7 @@ pub fn process_effect_turn_end_monster(
 
 pub fn process_effect_turn_end_character(
     id_character: usize,
-    entities: &[Entity],
+    entities: &mut [Entity],
     id_hand: &[usize],
     _card_target: Option<usize>,
     id_alive_monsters: &[usize],
@@ -62,11 +62,17 @@ pub fn process_effect_turn_end_character(
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // Reset per-turn counters at the boundary synchronously
+    // Reset per-turn counters synchronously, before the rest of the chain queues up
     *this_turn_discards = 0;
     *this_turn_attacks_played = 0;
 
-    // Stack locals
+    // Clear per-instance cost overrides (Bullet Time)
+    for entity in entities.iter_mut() {
+        if matches!(entity.kind, EntityKind::Card) {
+            entity.card_cost_override = None;
+        }
+    }
+
     let mut buf_effects = EffectBuf::new();
 
     let mods_char = &entities[id_character].modifiers;
@@ -98,8 +104,8 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    // WraithForm: each stack costs 1 Dexterity per player turn end.
-    // Persists across turns (no removal here).
+    // WraithForm: each stack costs 1 Dexterity per player turn end
+    // Persists across turns (no removal here)
     if modifier_has(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
         buf_effects.push(Effect {
@@ -164,6 +170,16 @@ pub fn process_effect_turn_end_character(
         buf_effects.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Burst,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    if modifier_has(mods_char, ModifierKind::NoDraw) {
+        buf_effects.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::NoDraw,
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),

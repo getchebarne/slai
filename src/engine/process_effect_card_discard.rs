@@ -5,13 +5,8 @@ use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::utils::remove_card_from_hand;
 
-// Explicit discard: an effect (Acrobatics, Concentrate, CalculatedGamble,
-// Unload, ToolsOfTheTrade, etc.) removes a card from the player's hand.
-// Counts as a "discard this turn" for SneakyStrike / Eviscerate / etc.
-//
-// For the "move just-played card to discard pile" case, see
-// `process_effect_card_move_to_discard` — same internal mutation, no counter
-// increment, no on-discard trigger
+// Explicit discard (Acrobatics, Concentrate, CalculatedGamble, Unload, ToolsOfTheTrade, etc.)
+// For the "move just-played card to discard pile" case, see process_effect_card_move_to_discard
 pub fn process_effect_card_discard(
     id_target: usize,
     entities: &[Entity],

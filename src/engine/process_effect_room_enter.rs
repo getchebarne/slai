@@ -73,7 +73,7 @@ pub fn process_effect_room_enter(
         }
         RoomKind::RestSite => {
             // Nothing to enqueue; the queue drains and the engine derives
-            // Phase::RestSite from `location` + room kind.
+            // Phase::RestSite from `location` + room kind
         }
     }
     DispatchResult::Continue

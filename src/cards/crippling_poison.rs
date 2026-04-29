@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,6 +9,7 @@ pub static CRIPPLING_POISON: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     2,
+    CardCostKind::Fixed,
     false,
     true,
     false,
@@ -37,6 +38,8 @@ pub static CRIPPLING_POISON: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -46,6 +49,7 @@ pub static CRIPPLING_POISON_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     2,
+    CardCostKind::Fixed,
     true,
     true,
     false,
@@ -74,5 +78,7 @@ pub static CRIPPLING_POISON_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

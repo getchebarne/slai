@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,6 +9,7 @@ pub static CORPSE_EXPLOSION: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Rare,
     2,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -37,6 +38,8 @@ pub static CORPSE_EXPLOSION: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -46,6 +49,7 @@ pub static CORPSE_EXPLOSION_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Rare,
     2,
+    CardCostKind::Fixed,
     true,
     false,
     false,
@@ -74,5 +78,7 @@ pub static CORPSE_EXPLOSION_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

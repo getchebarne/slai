@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static NIGHTMARE: Entity = make_entity_card(
@@ -8,8 +8,9 @@ pub static NIGHTMARE: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Rare,
     3,
+    CardCostKind::Fixed,
     false,
-    true, // exhaust
+    true,
     false,
     false,
     &[Effect {
@@ -20,6 +21,8 @@ pub static NIGHTMARE: Entity = make_entity_card(
             selection: SelectionKind::Input { count: 1 },
         },
     }],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -29,6 +32,7 @@ pub static NIGHTMARE_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Rare,
     2, // -1 cost
+    CardCostKind::Fixed,
     true,
     true,
     false,
@@ -41,5 +45,7 @@ pub static NIGHTMARE_PLUS: Entity = make_entity_card(
             selection: SelectionKind::Input { count: 1 },
         },
     }],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

@@ -25,56 +25,36 @@ pub struct GameState {
     pub ascension: u8,
     pub rng: SmallRng,
 
-    // Finite-state-machine-like to track in which "screen" the game is in
-    // e.g. combat, awaiting card discard selection, room selection, etc.
     pub phase: Phase,
-
-    // Effect queue
     pub effect_queue: VecDeque<Effect>,
-
-    // Location
     pub location: Location,
-
-    // Energy
     pub energy: Energy,
 
-    // Per-turn counters, both reset at the start of the Character's turn
-    pub this_turn_discards: u8,
-    pub this_turn_attacks_played: u8,
-
-    // Entities
     pub entities: Vec<Entity>,
-
-    // Entities / Rooms
     pub id_rooms: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-
-    // Entities / Character
     pub id_character: usize,
 
-    // Entities / Monsters
     pub id_monsters: [usize; MAX_MONSTERS],
     pub monster_count: u8,
-
-    // Entities / Monsters / Target
     pub id_card_target: Option<usize>,
 
-    // Entities / Card / Deck
     pub id_deck: Vec<usize>,
-
-    // Entities / Card / Combat piles
     pub id_pile_draw: Vec<usize>,
     pub id_hand: Vec<usize>,
     pub id_pile_discard: Vec<usize>,
     pub id_pile_exhaust: Vec<usize>,
-
-    // Entities / Card / Combat rewards
     pub id_card_rewards: Vec<usize>,
 
-    // Entities / Card / Last drawn
+    // Read by self-referential effects
     pub card_last_drawn: Option<usize>,
-
-    // Entities / Card / Last played: read by self-referential effects
     pub card_last_played: Option<usize>,
+
+    // Per-turn counters; reset in process_effect_turn_end_character
+    pub this_turn_discards: u8,
+    pub this_turn_attacks_played: u8,
+
+    // Per-combat counter; reset at combat_start
+    pub this_combat_damage_instances_taken: u8,
 
     // Nightmare-pending template snapshot id; flushed at next TurnStart
     pub id_card_nightmare: Option<usize>,

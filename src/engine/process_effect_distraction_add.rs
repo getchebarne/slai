@@ -1,9 +1,8 @@
 use rand::Rng;
 
 use crate::cards::{REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON, get_card};
-use crate::consts::MAX_SIZE_HAND;
 use crate::engine::DispatchResult;
-use crate::entity::Entity;
+use crate::entity::{Entity, add_card_to_hand_or_discard};
 use crate::types::{CardKind, CardName};
 
 // Distraction: spawn a random Silent Skill (excluding Distraction itself) as
@@ -15,7 +14,7 @@ pub fn process_effect_distraction_add(
     rng: &mut impl Rng,
 ) -> DispatchResult {
     // Build the candidate pool
-    // Stack buffer big enough for the current pool.
+    // Stack buffer big enough for the current pool
     let mut buf = [CardName::Strike; 64];
     let mut n = 0;
     for pool in [REWARD_POOL_COMMON, REWARD_POOL_UNCOMMON, REWARD_POOL_RARE] {
@@ -41,17 +40,6 @@ pub fn process_effect_distraction_add(
     // Set free-to-play-once flag
     card.card_free_to_play_once = true;
 
-    // Add card to entities buffer
-    let id_card = entities.len();
-    entities.push(card);
-
-    // Add card to either the hand or the discard pile if the hand is full
-    if id_hand.len() < MAX_SIZE_HAND {
-        id_hand.push(id_card);
-    } else {
-        id_pile_discard.push(id_card);
-    }
-
-    // Continue
+    add_card_to_hand_or_discard(entities, id_hand, id_pile_discard, card);
     DispatchResult::Continue
 }

@@ -49,6 +49,6 @@ pub fn process_effect_card_reward_roll(
     entities[id_character].reward_roll_offset = reward_roll_offset;
 
     // No halt push: the queue drains and the engine derives
-    // Phase::CombatReward from non-empty `id_card_rewards`.
+    // Phase::CombatReward from non-empty `id_card_rewards`
     DispatchResult::Continue
 }

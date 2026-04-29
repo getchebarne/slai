@@ -1,4 +1,4 @@
-// Game loop: step, initialize, Phase determination.
+// Game loop: step, initialize, Phase determination
 
 use std::collections::VecDeque;
 
@@ -33,7 +33,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let (id_rooms, location) = generate_map(&mut rng, &mut entities);
 
     // Seed the queue with the initial RoomSelect prompt so the player
-    // starts halted on the first map pick.
+    // starts halted on the first map pick
     let mut effect_queue = VecDeque::with_capacity(64);
     effect_queue.push_back(Effect {
         kind: EffectKind::RoomSelect,
@@ -67,10 +67,11 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         card_last_played: None,
         this_turn_discards: 0,
         this_turn_attacks_played: 0,
+        this_combat_damage_instances_taken: 0,
         id_card_nightmare: None,
     };
 
-    // Run the queue so the initial halt registers.
+    // Run the queue so the initial halt registers
     process_queue(&mut state);
     state
 }
@@ -82,7 +83,7 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     // engine halts mid-chain (e.g., a discard prompt during a card play),
     // the remaining effects from the interrupted chain are still in the
     // queue. The player's response must be inserted before them so the
-    // response processes first, then the chain resumes.
+    // response processes first, then the chain resumes
     for effect in effects.into_iter().rev() {
         state.effect_queue.push_front(effect);
     }

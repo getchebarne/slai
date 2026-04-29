@@ -14,7 +14,7 @@ pub fn process_effect_death(
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Character death: abandon anything pending and mark dead so
-    // derive_resting_phase returns Phase::GameOver on the natural drain.
+    // derive_resting_phase returns Phase::GameOver on the natural drain
     if id_target == id_character {
         entities[id_character].dead = true;
         queue.clear();
@@ -23,7 +23,7 @@ pub fn process_effect_death(
 
     let monster = &entities[id_target];
 
-    // SporeCloud: dying enemy stacks Vulnerable on the character.
+    // SporeCloud: dying enemy stacks Vulnerable on the character
     let spore_effect = if modifier_has(&monster.modifiers, ModifierKind::SporeCloud) {
         let stacks = modifier_stacks(&monster.modifiers, ModifierKind::SporeCloud);
         Some(Effect {
@@ -64,7 +64,7 @@ pub fn process_effect_death(
         .any(|&id| !entities[id].dead);
 
     if !any_alive {
-        // Combat ends. Replace pending effects with on-death triggers then CombatEnd.
+        // Combat ends. Replace pending effects with on-death triggers then CombatEnd
         queue.clear();
         for e in &effects_corpse {
             queue.push_back(*e);
@@ -79,7 +79,7 @@ pub fn process_effect_death(
         });
     } else {
         // Mid-combat: push to front so on-death triggers fire before any
-        // suspended chain resumes.
+        // suspended chain resumes
         if let Some(e) = spore_effect {
             queue.push_front(e);
         }

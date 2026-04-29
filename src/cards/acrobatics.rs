@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static ACROBATICS: Entity = make_entity_card(
@@ -8,6 +8,7 @@ pub static ACROBATICS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -27,6 +28,8 @@ pub static ACROBATICS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -36,6 +39,7 @@ pub static ACROBATICS_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     true,
     false,
     false,
@@ -55,5 +59,7 @@ pub static ACROBATICS_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

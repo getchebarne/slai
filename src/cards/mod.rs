@@ -10,6 +10,7 @@ pub mod bane;
 pub mod blade_dance;
 pub mod blur;
 pub mod bouncing_flask;
+pub mod bullet_time;
 pub mod burst;
 pub mod calculated_gamble;
 pub mod caltrops;
@@ -28,8 +29,12 @@ pub mod deflect;
 pub mod die_die_die;
 pub mod distraction;
 pub mod dodge_and_roll;
+pub mod doppelganger;
+pub mod endless_agony;
 pub mod envenom;
 pub mod escape_plan;
+pub mod eviscerate;
+pub mod expertise;
 pub mod finisher;
 pub mod flechettes;
 pub mod flying_knee;
@@ -39,6 +44,8 @@ pub mod grand_finale;
 pub mod heel_hook;
 pub mod infinite_blades;
 pub mod leg_sweep;
+pub mod malaise;
+pub mod masterful_stab;
 pub mod neutralize;
 pub mod nightmare;
 pub mod noxious_fumes;
@@ -53,6 +60,7 @@ pub mod reflex;
 pub mod riddle_with_holes;
 pub mod setup;
 pub mod shiv;
+pub mod skewer;
 pub mod slice;
 pub mod sneaky_strike;
 pub mod storm_of_steel;
@@ -95,6 +103,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Blur, true) => blur::BLUR_PLUS,
         (CardName::BouncingFlask, false) => bouncing_flask::BOUNCING_FLASK,
         (CardName::BouncingFlask, true) => bouncing_flask::BOUNCING_FLASK_PLUS,
+        (CardName::BulletTime, false) => bullet_time::BULLET_TIME,
+        (CardName::BulletTime, true) => bullet_time::BULLET_TIME_PLUS,
         (CardName::Burst, false) => burst::BURST,
         (CardName::Burst, true) => burst::BURST_PLUS,
         (CardName::CalculatedGamble, false) => calculated_gamble::CALCULATED_GAMBLE,
@@ -131,10 +141,18 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Distraction, true) => distraction::DISTRACTION_PLUS,
         (CardName::DodgeAndRoll, false) => dodge_and_roll::DODGE_AND_ROLL,
         (CardName::DodgeAndRoll, true) => dodge_and_roll::DODGE_AND_ROLL_PLUS,
+        (CardName::Doppelganger, false) => doppelganger::DOPPELGANGER,
+        (CardName::Doppelganger, true) => doppelganger::DOPPELGANGER_PLUS,
+        (CardName::EndlessAgony, false) => endless_agony::ENDLESS_AGONY,
+        (CardName::EndlessAgony, true) => endless_agony::ENDLESS_AGONY_PLUS,
         (CardName::Envenom, false) => envenom::ENVENOM,
         (CardName::Envenom, true) => envenom::ENVENOM_PLUS,
         (CardName::EscapePlan, false) => escape_plan::ESCAPE_PLAN,
         (CardName::EscapePlan, true) => escape_plan::ESCAPE_PLAN_PLUS,
+        (CardName::Eviscerate, false) => eviscerate::EVISCERATE,
+        (CardName::Eviscerate, true) => eviscerate::EVISCERATE_PLUS,
+        (CardName::Expertise, false) => expertise::EXPERTISE,
+        (CardName::Expertise, true) => expertise::EXPERTISE_PLUS,
         (CardName::Finisher, false) => finisher::FINISHER,
         (CardName::Finisher, true) => finisher::FINISHER_PLUS,
         (CardName::Flechettes, false) => flechettes::FLECHETTES,
@@ -153,6 +171,10 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::InfiniteBlades, true) => infinite_blades::INFINITE_BLADES_PLUS,
         (CardName::LegSweep, false) => leg_sweep::LEG_SWEEP,
         (CardName::LegSweep, true) => leg_sweep::LEG_SWEEP_PLUS,
+        (CardName::Malaise, false) => malaise::MALAISE,
+        (CardName::Malaise, true) => malaise::MALAISE_PLUS,
+        (CardName::MasterfulStab, false) => masterful_stab::MASTERFUL_STAB,
+        (CardName::MasterfulStab, true) => masterful_stab::MASTERFUL_STAB_PLUS,
         (CardName::Neutralize, false) => neutralize::NEUTRALIZE,
         (CardName::Neutralize, true) => neutralize::NEUTRALIZE_PLUS,
         (CardName::Nightmare, false) => nightmare::NIGHTMARE,
@@ -181,6 +203,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Setup, true) => setup::SETUP_PLUS,
         (CardName::Shiv, false) => shiv::SHIV,
         (CardName::Shiv, true) => shiv::SHIV_PLUS,
+        (CardName::Skewer, false) => skewer::SKEWER,
+        (CardName::Skewer, true) => skewer::SKEWER_PLUS,
         (CardName::Slice, false) => slice::SLICE,
         (CardName::Slice, true) => slice::SLICE_PLUS,
         (CardName::SneakyStrike, false) => sneaky_strike::SNEAKY_STRIKE,
@@ -245,18 +269,23 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::CripplingPoison,
     CardName::Dash,
     CardName::Distraction,
+    CardName::EndlessAgony,
     CardName::EscapePlan,
+    CardName::Eviscerate,
+    CardName::Expertise,
     CardName::Finisher,
     CardName::Flechettes,
     CardName::Footwork,
     CardName::HeelHook,
     CardName::InfiniteBlades,
     CardName::LegSweep,
+    CardName::MasterfulStab,
     CardName::NoxiousFumes,
     CardName::Predator,
     CardName::Reflex,
     CardName::RiddleWithHoles,
     CardName::Setup,
+    CardName::Skewer,
     CardName::Tactician,
     CardName::Terror,
     CardName::WellLaidPlans,
@@ -266,12 +295,15 @@ pub const REWARD_POOL_RARE: &[CardName] = &[
     CardName::AThousandCuts,
     CardName::Adrenaline,
     CardName::AfterImage,
+    CardName::BulletTime,
     CardName::Burst,
     CardName::CorpseExplosion,
     CardName::DieDieDie,
+    CardName::Doppelganger,
     CardName::Envenom,
     CardName::GlassKnife,
     CardName::GrandFinale,
+    CardName::Malaise,
     CardName::Nightmare,
     CardName::PhantasmalKiller,
     CardName::StormOfSteel,
