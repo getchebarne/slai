@@ -1,5 +1,9 @@
 pub mod cultist;
 pub mod fungi_beast;
+pub mod gremlin_fat;
+pub mod gremlin_thief;
+pub mod gremlin_tsundere;
+pub mod gremlin_wizard;
 pub mod jaw_worm;
 pub mod slaver_blue;
 pub mod slime_acid_small;
@@ -23,6 +27,12 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         MonsterName::SlimeSpikeSmall => {
             slime_spike_small::spawn_slime_spike_small(ascension_level, rng)
         }
+        MonsterName::GremlinFat => gremlin_fat::spawn_gremlin_fat(ascension_level, rng),
+        MonsterName::GremlinThief => gremlin_thief::spawn_gremlin_thief(ascension_level, rng),
+        MonsterName::GremlinTsundere => {
+            gremlin_tsundere::spawn_gremlin_tsundere(ascension_level, rng)
+        }
+        MonsterName::GremlinWizard => gremlin_wizard::spawn_gremlin_wizard(ascension_level, rng),
     }
 }
 
@@ -35,7 +45,13 @@ pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
     }
 }
 
-pub fn get_next_move(entity: &Entity, ascension_level: u8, rng: &mut impl Rng) -> usize {
+pub fn get_next_move(
+    entity: &Entity,
+    entity_id: usize,
+    id_alive_monsters: &[usize],
+    ascension_level: u8,
+    rng: &mut impl Rng,
+) -> usize {
     let history = get_move_history_slice(entity);
     match entity.monster_name {
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.move_current, history),
@@ -63,5 +79,19 @@ pub fn get_next_move(entity: &Entity, ascension_level: u8, rng: &mut impl Rng) -
             rng,
         ),
         MonsterName::SlimeSpikeSmall => slime_spike_small::get_next_move_slime_spike_small(),
+        MonsterName::GremlinFat => gremlin_fat::get_next_move_gremlin_fat(),
+        MonsterName::GremlinThief => gremlin_thief::get_next_move_gremlin_thief(),
+        MonsterName::GremlinWizard => gremlin_wizard::get_next_move_gremlin_wizard(
+            entity.move_current,
+            history,
+            ascension_level,
+        ),
+        MonsterName::GremlinTsundere => {
+            let other_alive_count = id_alive_monsters
+                .iter()
+                .filter(|&&id| id != entity_id)
+                .count() as u8;
+            gremlin_tsundere::get_next_move_gremlin_tsundere(entity.move_current, other_alive_count)
+        }
     }
 }

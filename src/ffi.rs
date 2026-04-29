@@ -148,6 +148,7 @@ pub enum ModifierKind {
     DoubleDamage,
     DrawCardNextTurn,
     Envenom,
+    Frail,
     InfiniteBlades,
     Intangible,
     ModeShift,
@@ -184,6 +185,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::DoubleDamage => Self::DoubleDamage,
             InternalModifierKind::DrawCardNextTurn => Self::DrawCardNextTurn,
             InternalModifierKind::Envenom => Self::Envenom,
+            InternalModifierKind::Frail => Self::Frail,
             InternalModifierKind::InfiniteBlades => Self::InfiniteBlades,
             InternalModifierKind::Intangible => Self::Intangible,
             InternalModifierKind::ModeShift => Self::ModeShift,
@@ -219,6 +221,7 @@ pub enum CandidatePool {
     CardTarget,
     Character,
     Monsters,
+    OtherMonsters,
     Source,
     NextRowRooms,
     CardRewardPool,
@@ -231,6 +234,7 @@ impl From<InternalCandidatePool> for CandidatePool {
             InternalCandidatePool::CardTarget => Self::CardTarget,
             InternalCandidatePool::Character => Self::Character,
             InternalCandidatePool::Monsters => Self::Monsters,
+            InternalCandidatePool::OtherMonsters => Self::OtherMonsters,
             InternalCandidatePool::Source => Self::Source,
             InternalCandidatePool::NextRowRooms => Self::NextRowRooms,
             InternalCandidatePool::CardRewardPool => Self::CardRewardPool,
@@ -724,6 +728,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                     InternalIntent::Buff => (None, None, false, true, false),
                     InternalIntent::Debuff => (None, None, false, false, true),
                     InternalIntent::DebuffPowerful => (None, None, false, false, true),
+                    InternalIntent::Unknown => (None, None, false, false, false),
                 };
 
                 let damage = base_damage.map(|d| {

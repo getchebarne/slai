@@ -53,6 +53,7 @@ pub enum Intent {
     Buff,
     Debuff,
     DebuffPowerful,
+    Unknown,
 }
 
 #[derive(Debug, Clone, Copy)]
