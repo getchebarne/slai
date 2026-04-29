@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,6 +9,7 @@ pub static CATALYST: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     1,
+    CardCostKind::Fixed,
     false,
     true,
     false,
@@ -24,6 +25,8 @@ pub static CATALYST: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded: triples instead of doubles
@@ -33,6 +36,7 @@ pub static CATALYST_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     1,
+    CardCostKind::Fixed,
     true,
     true,
     false,
@@ -48,5 +52,7 @@ pub static CATALYST_PLUS: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

@@ -1,9 +1,9 @@
-// Entities: every kind of thing that lives in `GameState.entities`.
+// Entities: every kind of thing that lives in `GameState.entities`
 //
 // One flat "fat" Entity struct holds all fields from all kinds. A runtime
 // `EntityKind` tag distinguishes them. Variant-specific `const fn`
 // constructors below (`make_entity_card`, `make_entity_monster`, etc.) are the only
-// way to build an Entity — they set the relevant fields and zero the rest.
+// way to build an Entity — they set the relevant fields and zero the rest
 
 use crate::consts::{MAX_MOVE_HISTORY, MAX_SIZE_HAND};
 use crate::effect::{Effect, ZERO_EFFECT};
@@ -11,7 +11,7 @@ use crate::modifier::{Modifiers, ZERO_MODIFIERS};
 
 // Per-card effect array capacity. Largest current card is RiddleWithHoles
 // (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
-// with practical caps, etc.). Bump when a card legitimately exceeds it.
+// with practical caps, etc.). Bump when a card legitimately exceeds it
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
 use crate::types::{
     CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RoomKind, Vitals,
@@ -33,7 +33,7 @@ pub enum PlayRestriction {
     DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
 }
 
-// XCost.offset is consumed by the per-play multiplier in process_effect_card_play, not here
+// XCost.offset is consumed by the per-play multiplier in `process_effect_card_play`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CardCostKind {
     Fixed,
@@ -115,8 +115,8 @@ pub struct Entity {
     pub edges: u8,
 }
 
-// Private zero-fill used by the public const fn constructors below.
-// Not exported — external code must go through one of the `*_entity` fns.
+// Private zero-fill used by the public const fn constructors below
+// Not exported — external code must go through one of the `*_entity` fns
 const ZERO_ENTITY: Entity = Entity {
     kind: EntityKind::Character,
     vitals: ZERO_VITALS,
@@ -195,11 +195,14 @@ pub const fn make_entity_card(
     color: CardColor,
     rarity: CardRarity,
     cost: u8,
+    cost_kind: CardCostKind,
     upgraded: bool,
     exhaust: bool,
     innate: bool,
     requires_target: bool,
     effects: &[Effect],
+    on_discard_effects: &'static [Effect],
+    on_draw_effects: &'static [Effect],
     play_restriction: PlayRestriction,
 ) -> Entity {
     assert!(
@@ -219,6 +222,7 @@ pub const fn make_entity_card(
         card_color: color,
         card_rarity: rarity,
         card_cost: cost,
+        card_cost_kind: cost_kind,
         card_upgraded: upgraded,
         card_exhaust: exhaust,
         card_innate: innate,
@@ -226,6 +230,8 @@ pub const fn make_entity_card(
         card_play_restriction: play_restriction,
         card_effects: arr,
         card_effects_len: effects.len() as u8,
+        card_on_discard_effects: on_discard_effects,
+        card_on_draw_effects: on_draw_effects,
         ..ZERO_ENTITY
     }
 }
@@ -243,24 +249,22 @@ pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8
 
 pub fn card_effective_cost(
     card: &Entity,
-    cards_discarded_this_turn: u8,
-    instances_of_damage_taken_this_combat: u8,
+    this_turn_discards: u8,
+    this_combat_damage_instances_taken: u8,
     energy_current: u8,
 ) -> u8 {
     if card.card_free_to_play_once {
         return 0;
     }
-    if let Some(over) = card.card_cost_override {
-        return over;
+    if let Some(override_) = card.card_cost_override {
+        return override_;
     }
     match card.card_cost_kind {
         CardCostKind::Fixed => card.card_cost,
-        CardCostKind::MinusDiscardsThisTurn => {
-            card.card_cost.saturating_sub(cards_discarded_this_turn)
-        }
+        CardCostKind::MinusDiscardsThisTurn => card.card_cost.saturating_sub(this_turn_discards),
         CardCostKind::GrowsOnDamageInstanceTaken => card
             .card_cost
-            .saturating_add(instances_of_damage_taken_this_combat),
+            .saturating_add(this_combat_damage_instances_taken),
         CardCostKind::XCost { .. } => energy_current,
     }
 }

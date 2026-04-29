@@ -10,8 +10,8 @@ pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
     }
 }
 
-// Fills `buf` with the ids of monsters that are alive, returns how many.
-// Callers use `&buf[..n]` as a slice. Zero heap allocation.
+// Fills `buf` with the ids of monsters that are alive, returns how many
+// Callers use `&buf[..n]` as a slice. Zero heap allocation
 pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MONSTERS]) -> usize {
     let mut n = 0;
     for i in 0..state.monster_count as usize {

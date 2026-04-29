@@ -163,10 +163,6 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_max: 999,
     },
     ModifierDef {
-        // BulletTime's NoDraw: applied for 1 stack on the turn BulletTime is
-        // played, removed at the character's TurnEnd (mirror of Burst removal
-        // block in process_effect_turn_end). stacks_duration: false because
-        // we manage the removal explicitly, not via TurnEnd ModifierTick.
         kind: ModifierKind::NoDraw,
         is_buff: false,
         stacks_duration: false,

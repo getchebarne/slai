@@ -8,7 +8,7 @@ use crate::types::CardKind;
 // Flechettes: deal `damage` per Skill currently in hand. Hand snapshot at
 // handler time; Flechettes itself was already moved to discard by card_play
 // so it can't be in hand. push_front in reverse so the resulting queue runs
-// the hits in any order (order doesn't matter — same target, same damage).
+// the hits in any order (order doesn't matter — same target, same damage)
 pub fn process_effect_flechettes_damage(
     entities: &[Entity],
     id_hand: &[usize],

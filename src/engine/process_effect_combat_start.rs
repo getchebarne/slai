@@ -18,15 +18,15 @@ pub fn process_effect_combat_start(
     id_card_target: &mut Option<usize>,
     id_monsters: &[usize],
     monster_count: u8,
-    instances_of_damage_taken_this_combat: &mut u8,
+    this_combat_damage_instances_taken: &mut u8,
     rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    *instances_of_damage_taken_this_combat = 0;
-    // Clone deck cards into combat copies, separating innate from non-innate.
+    *this_combat_damage_instances_taken = 0;
+    // Clone deck cards into combat copies, separating innate from non-innate
     // These small local Vecs could become stack buffers, but deck size is
     // unbounded at design level (decks grow across a run), so heap is the
-    // right call here.
+    // right call here
     let mut innate_ids: Vec<usize> = Vec::new();
     let mut other_ids: Vec<usize> = Vec::new();
 
@@ -50,8 +50,8 @@ pub fn process_effect_combat_start(
     id_pile_exhaust.clear();
     *id_card_target = None;
 
-    // Queue initial effects: MoveUpdate for each monster (original order), then TurnStart.
-    // Push TurnStart first (it runs last), then monsters in reverse.
+    // Queue initial effects: MoveUpdate for each monster (original order), then TurnStart
+    // Push TurnStart first (it runs last), then monsters in reverse
     queue.push_front(Effect {
         kind: EffectKind::TurnStart,
         id_source: None,

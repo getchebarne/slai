@@ -74,7 +74,7 @@ pub enum DispatchResult {
 
 // Stack-allocated buffer for effects that a handler wants to push to the
 // front of the queue in order. Build up effects normally, then call
-// `push_all_front` once at the end of the handler.
+// `push_all_front` once at the end of the handler
 pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
 
 pub struct EffectBuf {
@@ -105,7 +105,7 @@ impl EffectBuf {
 
 // Stack-allocated buffer for candidate ids during resolution. All candidate
 // pools have compile-time-bounded sizes (≤ MAX_SIZE_HAND, MAX_MONSTERS, etc.),
-// so we can avoid the heap entirely.
+// so we can avoid the heap entirely
 pub const MAX_CANDIDATES: usize = 16;
 
 pub struct CandidateBuf {
@@ -248,10 +248,10 @@ fn resolve_targets(
 }
 
 // Dispatcher entry point. Branches on `Target`:
-//  - `Direct(t)` runs the kind-specific handler with an already-known target.
+//  - `Direct(t)` runs the kind-specific handler with an already-known target
 //  - `Resolve { .. }` runs the resolver; on success, fans out to `Direct`
 //    effects; on input-needed, returns `Halt` (the effect stays at the front
-//    because the driver uses peek-before-pop and won't have popped it yet).
+//    because the driver uses peek-before-pop and won't have popped it yet)
 pub fn process_effect(state: &mut GameState, effect: Effect) -> DispatchResult {
     let id_target = match effect.target {
         Target::Direct(t) => t,
@@ -297,7 +297,7 @@ fn resolve_or_halt(
     match resolution {
         TargetResolution::Resolved => {
             // Push one Direct-target effect per resolved id. push_front reverses
-            // order, so iterate in reverse to preserve id order in the queue.
+            // order, so iterate in reverse to preserve id order in the queue
             for &id_target in buf_cands.as_slice().iter().rev() {
                 state.effect_queue.push_front(Effect {
                     kind,
@@ -356,10 +356,10 @@ fn dispatch_by_kind(
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             // Snapshot the cost-context counters by-value before the
-            // entities mut borrow (Copy types, no borrow conflict).
-            let cards_discarded_this_turn = state.cards_discarded_this_turn;
-            let instances_of_damage_taken_this_combat =
-                state.instances_of_damage_taken_this_combat;
+            // entities mut borrow (Copy types, no borrow conflict)
+            let this_turn_discards = state.this_turn_discards;
+            let this_combat_damage_instances_taken =
+                state.this_combat_damage_instances_taken;
             let energy_current = state.energy.current;
             process_effect_card_play::process_effect_card_play(
                 id_target.unwrap(),
@@ -368,10 +368,10 @@ fn dispatch_by_kind(
                 &mut state.entities,
                 &state.id_hand,
                 &buf_alive[..alive_n],
-                &mut state.attacks_played_this_turn,
+                &mut state.this_turn_attacks_played,
                 &mut state.card_last_played,
-                cards_discarded_this_turn,
-                instances_of_damage_taken_this_combat,
+                this_turn_discards,
+                this_combat_damage_instances_taken,
                 energy_current,
                 &mut state.rng,
                 &mut state.effect_queue,
@@ -382,7 +382,7 @@ fn dispatch_by_kind(
             &state.entities,
             &mut state.id_hand,
             &mut state.id_pile_discard,
-            &mut state.cards_discarded_this_turn,
+            &mut state.this_turn_discards,
             &mut state.effect_queue,
         ),
         EffectKind::CardMoveToDiscard => {
@@ -543,7 +543,7 @@ fn dispatch_by_kind(
         EffectKind::FinisherDamage { damage } => {
             let id_target = id_target.unwrap();
             process_effect_finisher_damage::process_effect_finisher_damage(
-                state.attacks_played_this_turn,
+                state.this_turn_attacks_played,
                 id_source,
                 id_target,
                 damage,
@@ -571,7 +571,7 @@ fn dispatch_by_kind(
         }
         EffectKind::SneakyStrikeProc { energy } => {
             process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc(
-                state.cards_discarded_this_turn,
+                state.this_turn_discards,
                 energy,
                 &mut state.effect_queue,
             )
@@ -592,7 +592,7 @@ fn dispatch_by_kind(
             let id_target = id_target.unwrap();
             let id_character = state.id_character;
             // Snapshot character modifiers separately to avoid aliasing the
-            // entities borrow taken below for vitals.
+            // entities borrow taken below for vitals
             let mods_char = state.entities[id_character].modifiers;
             let vitals = &mut state.entities[id_target].vitals;
             process_effect_damage_deal::process_effect_damage_deal(
@@ -615,10 +615,10 @@ fn dispatch_by_kind(
             // Per-event counter for MasterfulStab's GrowsOnDamageInstanceTaken
             // cost variant. One bump per damage event the character takes
             // (not per HP lost). HealthLoss is post-block, so amount > 0
-            // already excludes block-fully-absorbed events.
+            // already excludes block-fully-absorbed events
             if id_target == state.id_character && amount > 0 {
-                state.instances_of_damage_taken_this_combat = state
-                    .instances_of_damage_taken_this_combat
+                state.this_combat_damage_instances_taken = state
+                    .this_combat_damage_instances_taken
                     .saturating_add(1);
             }
             let entity = &mut state.entities[id_target];
@@ -728,7 +728,7 @@ fn dispatch_by_kind(
             &mut state.id_card_target,
             &state.id_monsters,
             state.monster_count,
-            &mut state.instances_of_damage_taken_this_combat,
+            &mut state.this_combat_damage_instances_taken,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -777,8 +777,8 @@ fn dispatch_by_kind(
                     &state.id_hand,
                     state.id_card_target,
                     &buf_alive[..alive_n],
-                    &mut state.cards_discarded_this_turn,
-                    &mut state.attacks_played_this_turn,
+                    &mut state.this_turn_discards,
+                    &mut state.this_turn_attacks_played,
                     &mut state.rng,
                     &mut state.effect_queue,
                 )
@@ -811,10 +811,10 @@ fn dispatch_by_kind(
             &mut state.location,
             &mut state.effect_queue,
         ),
-        // Halt-kind variants: represent pending player decisions.
+        // Halt-kind variants: represent pending player decisions
         // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before
-        // resolution they're handled by the `Resolve` branch in `process_effect`.
+        // resolution they're handled by the `Resolve` branch in `process_effect`
         EffectKind::RoomSelect => {
             let id_room = id_target.expect("RoomSelect Direct form must have target");
             let room = &state.entities[id_room];
@@ -842,30 +842,30 @@ fn dispatch_by_kind(
 // When the queue drains naturally (no handler halted), the engine derives
 // the resting phase from state. This is the single source of truth for "what
 // is the engine waiting on?" — every clause here corresponds to a piece of
-// state that signals a player-input situation.
+// state that signals a player-input situation
 //
 // Mid-chain halts (CardDiscard/CardRetain/RoomSelect with Resolve, requiring
 // player input while work is still queued) bypass derive entirely; they set
-// the phase explicitly via DispatchResult::Halt.
+// the phase explicitly via DispatchResult::Halt
 pub fn derive_resting_phase(state: &GameState) -> Phase {
-    // Character death: end of run.
+    // Character death: end of run
     if state.entities[state.id_character].dead {
         return Phase::GameOver;
     }
     // Boss defeated: combat_end resets monster_count to 0 only after combat
-    // resolves; reaching BossRoom with no monsters means we won.
+    // resolves; reaching BossRoom with no monsters means we won
     if matches!(state.location, Location::BossRoom) && state.monster_count == 0 {
         return Phase::GameOver;
     }
-    // Card rewards waiting to be picked or skipped.
+    // Card rewards waiting to be picked or skipped
     if !state.id_card_rewards.is_empty() {
         return Phase::CombatReward;
     }
-    // Combat in progress.
+    // Combat in progress
     if state.monster_count > 0 {
         return Phase::CombatDefault;
     }
-    // Standing in a room: rest site or map-pick depending on room kind.
+    // Standing in a room: rest site or map-pick depending on room kind
     match state.location {
         Location::Overworld { .. } => {
             match active_room_kind(&state.id_rooms, state.location, &state.entities) {
@@ -881,7 +881,7 @@ pub fn process_queue(state: &mut GameState) {
     loop {
         let Some(effect) = state.effect_queue.pop_front() else {
             // Natural drain — no handler halted, no work pending. Derive the
-            // resting phase from state. See derive_resting_phase for the rules.
+            // resting phase from state. See derive_resting_phase for the rules
             state.phase = derive_resting_phase(state);
             return;
         };

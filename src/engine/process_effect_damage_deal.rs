@@ -27,7 +27,7 @@ pub fn process_effect_damage_deal(
         });
 
         // Envenom: when player attack lands unblocked damage on a non-self
-        // target, apply Envenom stacks of Poison to the target.
+        // target, apply Envenom stacks of Poison to the target
         if id_source == Some(id_character)
             && id_target != id_character
             && modifier_has(mods_char, ModifierKind::Envenom)

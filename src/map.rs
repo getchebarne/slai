@@ -1,4 +1,4 @@
-// Map generation and queries.
+// Map generation and queries
 // TODO: check if this is the exact same logic from the de-compiled original Java code
 
 use rand::Rng;
@@ -9,7 +9,7 @@ use crate::state::Location;
 use crate::types::RoomKind;
 
 // Intermediate grid-cell during map generation. Converted to `Entity` via
-// `entitize_map` once the grid is finalized.
+// `entitize_map` once the grid is finalized
 #[derive(Debug, Clone, Copy)]
 struct Room {
     pub y: usize,

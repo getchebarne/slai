@@ -1,22 +1,27 @@
 // FFI boundary: every #[pyclass] type lives here. Internal engine modules
-// must not import pyo3.
+// must not import pyo3
 //
 // Naming: structs that snapshot internal engine state (GameState, Card, ...)
 // take the bare name. Where the bare name would collide with an internal type
 // at the Rust level (engine `state::GameState`, `entity::Intent`), we alias
-// the internal import below.
+// the internal import below
 
 use pyo3::prelude::*;
 
 use crate::action::Action as InternalAction;
-use crate::consts::{FACTOR_VULN, MAX_MONSTERS};
+use crate::consts::{FACTOR_VULN, MAP_HEIGHT, MAX_MONSTERS};
 use crate::effect::{
     CandidatePool as InternalCandidatePool, Effect as InternalEffect, EffectKind, SelectionKind,
     Target as InternalTarget,
 };
-use crate::entity::{CardCostKind as InternalCardCostKind, Entity, Intent as InternalIntent};
+use crate::entity::{
+    CardCostKind as InternalCardCostKind, Entity, Intent as InternalIntent, card_effective_cost,
+    is_play_restriction_satisfied,
+};
 use crate::map::edge_indices;
-use crate::modifier::{ModifierKind as InternalModifierKind, modifier_has, modifier_stacks};
+use crate::modifier::{
+    ModifierKind as InternalModifierKind, Modifiers, modifier_has, modifier_stacks,
+};
 use crate::state::{GameState as InternalGameState, Location};
 use crate::types::{
     CardColor as InternalCardColor, CardKind as InternalCardKind, CardRarity as InternalCardRarity,
@@ -353,9 +358,9 @@ impl From<Action> for InternalAction {
 
 // `Effect` mirrors only the EffectKind variants that appear in static
 // card/monster definitions (~9 of EffectKind's ~33). `target` is None for
-// effects with no resolution (e.g. CardDraw, EnergyGain on the player).
+// effects with no resolution (e.g. CardDraw, EnergyGain on the player)
 // `from_internal` panics on EffectKind variants that should never reach
-// the view layer.
+// the view layer
 
 #[pyclass(eq, hash, frozen, name = "Effect")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -648,15 +653,15 @@ pub struct GameState {
 // ───────── Build functions ─────────
 
 pub fn build_view(state: &InternalGameState) -> GameState {
-    let cards_discarded_this_turn = state.cards_discarded_this_turn;
-    let instances_of_damage_taken_this_combat = state.instances_of_damage_taken_this_combat;
+    let this_turn_discards = state.this_turn_discards;
+    let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
     let energy_current = state.energy.current;
     let card = |id_card: usize| {
         build_view_card_template(
             &state.entities[id_card],
             &state.id_pile_draw,
-            cards_discarded_this_turn,
-            instances_of_damage_taken_this_combat,
+            this_turn_discards,
+            this_combat_damage_instances_taken,
             energy_current,
         )
     };
@@ -761,7 +766,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
         .collect()
 }
 
-fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<Modifier> {
+fn build_view_modifiers(mods: &Modifiers) -> Vec<Modifier> {
     let mut out = Vec::new();
     let mut bits = mods.active;
     while bits != 0 {
@@ -779,8 +784,8 @@ fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<Modifier> {
 fn build_view_card_template(
     card: &Entity,
     id_pile_draw: &[usize],
-    cards_discarded_this_turn: u8,
-    instances_of_damage_taken_this_combat: u8,
+    this_turn_discards: u8,
+    this_combat_damage_instances_taken: u8,
     energy_current: u8,
 ) -> Card {
     Card {
@@ -792,10 +797,10 @@ fn build_view_card_template(
         kind: card.card_kind.into(),
         color: card.card_color.into(),
         rarity: card.card_rarity.into(),
-        cost: crate::entity::card_effective_cost(
+        cost: card_effective_cost(
             card,
-            cards_discarded_this_turn,
-            instances_of_damage_taken_this_combat,
+            this_turn_discards,
+            this_combat_damage_instances_taken,
             energy_current,
         ),
         base_cost: card.card_cost,
@@ -806,7 +811,7 @@ fn build_view_card_template(
         requires_target: card.card_requires_target,
         retain: card.card_retain,
         free_to_play_once: card.card_free_to_play_once,
-        playable: crate::entity::is_play_restriction_satisfied(
+        playable: is_play_restriction_satisfied(
             card.card_play_restriction,
             id_pile_draw,
         ),
@@ -839,7 +844,7 @@ fn build_view_map(state: &InternalGameState) -> Map {
     let (y_current, x_current) = match state.location {
         Location::Start => (None, None),
         Location::Overworld { y, x } => (Some(y), Some(x)),
-        Location::BossRoom => (Some(crate::consts::MAP_HEIGHT), Some(0)),
+        Location::BossRoom => (Some(MAP_HEIGHT), Some(0)),
     };
     Map {
         rooms,

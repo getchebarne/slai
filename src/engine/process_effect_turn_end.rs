@@ -34,7 +34,7 @@ pub fn process_effect_turn_end_monster(
         });
     }
 
-    // Ritual: skip if newly applied.
+    // Ritual: skip if newly applied
     if modifier_has(modifiers, ModifierKind::Ritual)
         && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
@@ -57,16 +57,16 @@ pub fn process_effect_turn_end_character(
     id_hand: &[usize],
     _card_target: Option<usize>,
     id_alive_monsters: &[usize],
-    cards_discarded_this_turn: &mut u8,
-    attacks_played_this_turn: &mut u8,
+    this_turn_discards: &mut u8,
+    this_turn_attacks_played: &mut u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Reset per-turn counters synchronously, before the rest of the chain queues up
-    *cards_discarded_this_turn = 0;
-    *attacks_played_this_turn = 0;
+    *this_turn_discards = 0;
+    *this_turn_attacks_played = 0;
 
-    // Clear per-instance cost overrides (BulletTime)
+    // Clear per-instance cost overrides (Bullet Time)
     for entity in entities.iter_mut() {
         if matches!(entity.kind, EntityKind::Card) {
             entity.card_cost_override = None;
@@ -104,8 +104,8 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    // WraithForm: each stack costs 1 Dexterity per player turn end.
-    // Persists across turns (no removal here).
+    // WraithForm: each stack costs 1 Dexterity per player turn end
+    // Persists across turns (no removal here)
     if modifier_has(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
         buf_effects.push(Effect {

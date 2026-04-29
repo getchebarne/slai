@@ -1,6 +1,6 @@
-// Core type enums shared across the engine.
+// Core type enums shared across the engine
 
-// Vitals: physical combat state. Shared by character and monsters.
+// Vitals: physical combat state. Shared by character and monsters
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
     pub health: u16,

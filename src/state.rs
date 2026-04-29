@@ -50,11 +50,11 @@ pub struct GameState {
     pub card_last_played: Option<usize>,
 
     // Per-turn counters; reset in process_effect_turn_end_character
-    pub cards_discarded_this_turn: u8,
-    pub attacks_played_this_turn: u8,
+    pub this_turn_discards: u8,
+    pub this_turn_attacks_played: u8,
 
     // Per-combat counter; reset at combat_start
-    pub instances_of_damage_taken_this_combat: u8,
+    pub this_combat_damage_instances_taken: u8,
 
     // Nightmare-pending template snapshot id; flushed at next TurnStart
     pub id_card_nightmare: Option<usize>,

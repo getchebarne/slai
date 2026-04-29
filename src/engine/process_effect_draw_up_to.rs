@@ -8,10 +8,12 @@ pub fn process_effect_draw_up_to(
     id_hand: &[usize],
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let n = target.saturating_sub(id_hand.len() as u8);
-    if n > 0 {
+    let num_cards_to_draw = target.saturating_sub(id_hand.len() as u8);
+    if num_cards_to_draw > 0 {
         queue.push_front(Effect {
-            kind: EffectKind::CardDraw { count: n },
+            kind: EffectKind::CardDraw {
+                count: num_cards_to_draw,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

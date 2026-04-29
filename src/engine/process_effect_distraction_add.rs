@@ -14,7 +14,7 @@ pub fn process_effect_distraction_add(
     rng: &mut impl Rng,
 ) -> DispatchResult {
     // Build the candidate pool
-    // Stack buffer big enough for the current pool.
+    // Stack buffer big enough for the current pool
     let mut buf = [CardName::Strike; 64];
     let mut n = 0;
     for pool in [REWARD_POOL_COMMON, REWARD_POOL_UNCOMMON, REWARD_POOL_RARE] {

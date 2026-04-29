@@ -15,10 +15,10 @@ pub fn process_effect_card_play(
     entities: &mut [Entity],
     _hand: &[usize],
     alive_monsters: &[usize],
-    attacks_played_this_turn: &mut u8,
+    this_turn_attacks_played: &mut u8,
     card_last_played: &mut Option<usize>,
-    cards_discarded_this_turn: u8,
-    instances_of_damage_taken_this_combat: u8,
+    this_turn_discards: u8,
+    this_combat_damage_instances_taken: u8,
     energy_current: u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
@@ -28,13 +28,13 @@ pub fn process_effect_card_play(
 
     // Increment before effects fire so self-counting cards see their own play
     if card.card_kind == CardKind::Attack {
-        *attacks_played_this_turn = attacks_played_this_turn.saturating_add(1);
+        *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
     }
 
     let cost = card_effective_cost(
         &card,
-        cards_discarded_this_turn,
-        instances_of_damage_taken_this_combat,
+        this_turn_discards,
+        this_combat_damage_instances_taken,
         energy_current,
     );
 

@@ -1,5 +1,5 @@
 use crate::effect::{Effect, EffectKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static ADRENALINE: Entity = make_entity_card(
@@ -8,6 +8,7 @@ pub static ADRENALINE: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Rare,
     0,
+    CardCostKind::Fixed,
     false,
     true,
     false,
@@ -24,6 +25,8 @@ pub static ADRENALINE: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -33,6 +36,7 @@ pub static ADRENALINE_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Rare,
     0,
+    CardCostKind::Fixed,
     true,
     true,
     false,
@@ -49,5 +53,7 @@ pub static ADRENALINE_PLUS: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    &[],
+    &[],
     PlayRestriction::Always,
 );

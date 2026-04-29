@@ -116,8 +116,8 @@ fn handle_card_play(
 
     let effective_cost = card_effective_cost(
         card,
-        state.cards_discarded_this_turn,
-        state.instances_of_damage_taken_this_combat,
+        state.this_turn_discards,
+        state.this_combat_damage_instances_taken,
         state.energy.current,
     );
     if effective_cost > state.energy.current {
@@ -138,9 +138,9 @@ fn handle_card_play(
                     .get(idx_monster)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx_monster))?;
 
-                // Set the card's target, play the card, then clear the target.
+                // Set the card's target, play the card, then clear the target
                 // No trailing terminator: process_queue derives the resting
-                // phase (CombatDefault) from state once the chain drains.
+                // phase (CombatDefault) from state once the chain drains
                 Ok(vec![
                     Effect {
                         kind: EffectKind::TargetSet,
@@ -246,7 +246,7 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
     }
 
     // Return a Direct RoomSelect effect. Its dispatch arm will update
-    // state.location and push a RoomEnter effect.
+    // state.location and push a RoomEnter effect
     Ok(vec![Effect::direct(
         EffectKind::RoomSelect,
         None,
@@ -258,7 +258,7 @@ fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec
     let id_card = lookup_idx(&state.id_card_rewards, idx_reward)?;
 
     // Direct CardRewardSelect: handler adds the target card to the deck and
-    // enqueues CardRewardClear, which in turn enqueues RoomSelect.
+    // enqueues CardRewardClear, which in turn enqueues RoomSelect
     Ok(vec![Effect::direct(
         EffectKind::CardRewardSelect,
         None,
@@ -267,7 +267,7 @@ fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec
 }
 
 fn handle_card_reward_skip() -> Vec<Effect> {
-    // CardRewardClear halts on AwaitMapNode once the rewards are cleared.
+    // CardRewardClear halts on AwaitMapNode once the rewards are cleared
     vec![Effect {
         kind: EffectKind::CardRewardClear,
         id_source: None,
@@ -302,7 +302,7 @@ fn handle_rest_site_card_upgrade(
     let id_card = lookup_idx(&state.id_deck, idx_deck)?;
 
     // Upgrade by entity id, then let the RestSiteExit handler decide whether
-    // to halt (non-final row) or enter the boss room (final row).
+    // to halt (non-final row) or enter the boss room (final row)
     Ok(vec![
         Effect::direct(EffectKind::CardUpgrade, None, Some(id_card)),
         Effect::direct(EffectKind::RestSiteExit, None, None),

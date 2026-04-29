@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static SHIV: Entity = make_entity_card(
@@ -8,6 +8,7 @@ pub static SHIV: Entity = make_entity_card(
     CardColor::Colorless,
     CardRarity::Special,
     0,
+    CardCostKind::Fixed,
     false,
     true,
     false,
@@ -20,6 +21,8 @@ pub static SHIV: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -29,6 +32,7 @@ pub static SHIV_PLUS: Entity = make_entity_card(
     CardColor::Colorless,
     CardRarity::Special,
     0,
+    CardCostKind::Fixed,
     true,
     true,
     false,
@@ -41,5 +45,7 @@ pub static SHIV_PLUS: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
     PlayRestriction::Always,
 );
