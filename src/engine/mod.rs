@@ -5,27 +5,24 @@ pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discard_end_of_turn;
 pub mod process_effect_card_draw;
-pub mod process_effect_card_move_to_discard;
-pub mod process_effect_card_nightmare_pick;
-pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_exhaust;
+pub mod process_effect_card_move_to_discard;
 pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
 pub mod process_effect_card_retain;
-pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_reward_roll;
+pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_upgrade;
 pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_damage_physical_if_poisoned;
-pub mod process_effect_damage_power;
+pub mod process_effect_death;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
 pub mod process_effect_endless_agony_add_copy;
-pub mod process_effect_death;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
 pub mod process_effect_escape_plan_check;
@@ -35,6 +32,8 @@ pub mod process_effect_glass_knife_decay;
 pub mod process_effect_health_gain;
 pub mod process_effect_health_loss;
 pub mod process_effect_heel_hook_proc;
+pub mod process_effect_id_card_nightmare_pick;
+pub mod process_effect_id_card_nightmare_spawn;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -75,7 +74,7 @@ pub enum DispatchResult {
 
 // Stack-allocated buffer for effects that a handler wants to push to the
 // front of the queue in order. Build up effects normally, then call
-// `push_all_front` once at the end of the handler.
+// `push_all_front` once at the end of the handler
 pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
 
 pub struct EffectBuf {
@@ -106,7 +105,7 @@ impl EffectBuf {
 
 // Stack-allocated buffer for candidate ids during resolution. All candidate
 // pools have compile-time-bounded sizes (≤ MAX_SIZE_HAND, MAX_MONSTERS, etc.),
-// so we can avoid the heap entirely.
+// so we can avoid the heap entirely
 pub const MAX_CANDIDATES: usize = 16;
 
 pub struct CandidateBuf {
@@ -256,10 +255,10 @@ fn resolve_targets(
 }
 
 // Dispatcher entry point. Branches on `Target`:
-//  - `Direct(t)` runs the kind-specific handler with an already-known target.
+//  - `Direct(t)` runs the kind-specific handler with an already-known target
 //  - `Resolve { .. }` runs the resolver; on success, fans out to `Direct`
 //    effects; on input-needed, returns `Halt` (the effect stays at the front
-//    because the driver uses peek-before-pop and won't have popped it yet).
+//    because the driver uses peek-before-pop and won't have popped it yet)
 pub fn process_effect(state: &mut GameState, effect: Effect) -> DispatchResult {
     let id_target = match effect.target {
         Target::Direct(t) => t,
@@ -305,7 +304,7 @@ fn resolve_or_halt(
     match resolution {
         TargetResolution::Resolved => {
             // Push one Direct-target effect per resolved id. push_front reverses
-            // order, so iterate in reverse to preserve id order in the queue.
+            // order, so iterate in reverse to preserve id order in the queue
             for &id_target in buf_cands.as_slice().iter().rev() {
                 state.effect_queue.push_front(Effect {
                     kind,
@@ -325,8 +324,8 @@ fn resolve_or_halt(
             EffectKind::CardSetupPick => DispatchResult::Halt {
                 phase_new: Phase::CombatAwaitSetup,
             },
-            EffectKind::CardNightmarePick { count } => DispatchResult::Halt {
-                phase_new: Phase::CombatAwaitNightmare { count },
+            EffectKind::CardNightmarePick => DispatchResult::Halt {
+                phase_new: Phase::CombatAwaitNightmare,
             },
             EffectKind::RoomSelect => DispatchResult::Halt {
                 phase_new: Phase::Map,
@@ -350,7 +349,7 @@ fn dispatch_by_kind(
             &mut state.id_pile_draw,
             &mut state.id_hand,
             &mut state.id_pile_discard,
-            &mut state.last_drawn_card,
+            &mut state.card_last_drawn,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -360,119 +359,109 @@ fn dispatch_by_kind(
             &mut state.effect_queue,
         ),
         EffectKind::CardPlay => {
-            let id_card = id_target.unwrap();
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             // Snapshot the cost-context counters by-value before the
-            // entities mut borrow (Copy types, no borrow conflict).
-            let cards_discarded_this_turn = state.cards_discarded_this_turn;
-            let instances_of_damage_taken_this_combat =
-                state.instances_of_damage_taken_this_combat;
+            // entities mut borrow (Copy types, no borrow conflict)
+            let this_turn_discards = state.this_turn_discards;
+            let this_combat_damage_instances_taken =
+                state.this_combat_damage_instances_taken;
             let energy_current = state.energy.current;
             process_effect_card_play::process_effect_card_play(
-                id_card,
+                id_target.unwrap(),
                 state.id_card_target,
                 state.id_character,
                 &mut state.entities,
                 &state.id_hand,
                 &buf_alive[..alive_n],
-                &mut state.attacks_played_this_turn,
-                &mut state.last_played_card,
-                cards_discarded_this_turn,
-                instances_of_damage_taken_this_combat,
+                &mut state.this_turn_attacks_played,
+                &mut state.card_last_played,
+                this_turn_discards,
+                this_combat_damage_instances_taken,
                 energy_current,
                 &mut state.rng,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::CardDiscard => {
-            let id_card = id_target.unwrap();
-            process_effect_card_discard::process_effect_card_discard(
-                id_card,
-                &state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
-                &mut state.cards_discarded_this_turn,
-                &mut state.effect_queue,
-            )
-        }
+        EffectKind::CardDiscard => process_effect_card_discard::process_effect_card_discard(
+            id_target.unwrap(),
+            &state.entities,
+            &mut state.id_hand,
+            &mut state.id_pile_discard,
+            &mut state.this_turn_discards,
+            &mut state.effect_queue,
+        ),
         EffectKind::CardMoveToDiscard => {
-            let id_card = id_target.unwrap();
             process_effect_card_move_to_discard::process_effect_card_move_to_discard(
-                id_card,
+                id_target.unwrap(),
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
             )
         }
         EffectKind::CardDiscardEndOfTurn => {
-            let id_card = id_target.unwrap();
             process_effect_card_discard_end_of_turn::process_effect_card_discard_end_of_turn(
-                id_card,
+                id_target.unwrap(),
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
             )
         }
-        EffectKind::CardRetain => {
-            let id_card = id_target.unwrap();
-            process_effect_card_retain::process_effect_card_retain(id_card, &mut state.entities)
-        }
+        EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(
+            id_target.unwrap(),
+            &mut state.entities,
+        ),
         EffectKind::CardSetupPick => {
-            let id_card = id_target.unwrap();
             process_effect_card_setup_pick::process_effect_card_setup_pick(
-                id_card,
+                id_target.unwrap(),
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_draw,
             )
         }
-        EffectKind::CardNightmarePick { count } => {
-            let id_card = id_target.unwrap();
-            process_effect_card_nightmare_pick::process_effect_card_nightmare_pick(
-                &state.entities,
-                id_card,
-                count,
-                &mut state.cards_nightmare,
+        EffectKind::CardNightmarePick => {
+            process_effect_id_card_nightmare_pick::process_effect_id_card_nightmare_pick(
+                &mut state.entities,
+                id_target.unwrap(),
+                &mut state.id_card_nightmare,
             )
         }
         EffectKind::CardNightmareSpawn => {
-            process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn(
+            process_effect_id_card_nightmare_spawn::process_effect_id_card_nightmare_spawn(
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
-                &mut state.cards_nightmare,
+                &mut state.id_card_nightmare,
             )
         }
-        EffectKind::CardExhaust => {
-            let id_card = id_target.unwrap();
-            process_effect_card_exhaust::process_effect_card_exhaust(
-                id_card,
-                &mut state.id_hand,
-                &mut state.id_pile_exhaust,
-            )
-        }
-        EffectKind::CardRemove => {
-            let id_card = id_target.unwrap();
-            process_effect_card_remove::process_effect_card_remove(id_card, &mut state.id_hand)
-        }
-        EffectKind::ShivAdd { count, upgraded } => process_effect_shiv_add::process_effect_shiv_add(
-            count,
-            upgraded,
-            &mut state.entities,
+        EffectKind::CardExhaust => process_effect_card_exhaust::process_effect_card_exhaust(
+            id_target.unwrap(),
             &mut state.id_hand,
-            &mut state.id_pile_discard,
+            &mut state.id_pile_exhaust,
         ),
+        EffectKind::CardRemove => process_effect_card_remove::process_effect_card_remove(
+            id_target.unwrap(),
+            &mut state.id_hand,
+        ),
+        EffectKind::ShivAdd { count, upgraded } => {
+            process_effect_shiv_add::process_effect_shiv_add(
+                count,
+                upgraded,
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+            )
+        }
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(
                 &state.id_hand,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::CardUpgrade => {
-            let id_card = id_target.unwrap();
-            process_effect_card_upgrade::process_effect_card_upgrade(id_card, &mut state.entities)
-        }
+        EffectKind::CardUpgrade => process_effect_card_upgrade::process_effect_card_upgrade(
+            id_target.unwrap(),
+            &mut state.entities,
+        ),
         EffectKind::CardRewardRoll => {
             process_effect_card_reward_roll::process_effect_card_reward_roll(
                 state.id_character,
@@ -498,13 +487,12 @@ fn dispatch_by_kind(
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
         EffectKind::DamagePhysical { amount } => {
-            let id_source_un = id_source.unwrap();
             let id_target = id_target.unwrap();
-            let source_mods = &state.entities[id_source_un].modifiers;
-            let target_mods = &state.entities[id_target].modifiers;
+            let mods_source = &state.entities[id_source.unwrap()].modifiers;
+            let mods_target = &state.entities[id_target].modifiers;
             process_effect_damage_physical::process_effect_damage_physical(
-                source_mods,
-                target_mods,
+                mods_source,
+                mods_target,
                 id_source,
                 id_target,
                 amount,
@@ -521,20 +509,10 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::DamagePower { amount } => {
-            let id_target = id_target.unwrap();
-            let target_mods = &state.entities[id_target].modifiers;
-            process_effect_damage_power::process_effect_damage_power(
-                target_mods,
-                id_target,
-                amount,
-                &mut state.effect_queue,
-            )
-        }
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay::process_effect_glass_knife_decay(
                 &mut state.entities,
-                state.last_played_card,
+                state.card_last_played,
                 delta,
             )
         }
@@ -564,18 +542,18 @@ fn dispatch_by_kind(
             process_effect_escape_plan_check::process_effect_escape_plan_check(
                 &state.entities,
                 state.id_character,
-                &mut state.last_drawn_card,
+                &mut state.card_last_drawn,
                 block,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::FinisherDamage { damage_per } => {
+        EffectKind::FinisherDamage { damage } => {
             let id_target = id_target.unwrap();
             process_effect_finisher_damage::process_effect_finisher_damage(
-                state.attacks_played_this_turn,
+                state.this_turn_attacks_played,
                 id_source,
                 id_target,
-                damage_per,
+                damage,
                 &mut state.effect_queue,
             )
         }
@@ -592,15 +570,15 @@ fn dispatch_by_kind(
         }
         EffectKind::HeelHookProc => {
             let id_target = id_target.unwrap();
-            let target_mods = &state.entities[id_target].modifiers;
+            let mods_target = &state.entities[id_target].modifiers;
             process_effect_heel_hook_proc::process_effect_heel_hook_proc(
-                target_mods,
+                mods_target,
                 &mut state.effect_queue,
             )
         }
         EffectKind::SneakyStrikeProc { energy } => {
             process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc(
-                state.cards_discarded_this_turn,
+                state.this_turn_discards,
                 energy,
                 &mut state.effect_queue,
             )
@@ -612,26 +590,24 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::UnloadDiscard => {
-            process_effect_unload_discard::process_effect_unload_discard(
-                &state.entities,
-                &state.id_hand,
-                &mut state.effect_queue,
-            )
-        }
+        EffectKind::UnloadDiscard => process_effect_unload_discard::process_effect_unload_discard(
+            &state.entities,
+            &state.id_hand,
+            &mut state.effect_queue,
+        ),
         EffectKind::DamageDeal { amount } => {
             let id_target = id_target.unwrap();
             let id_character = state.id_character;
             // Snapshot character modifiers separately to avoid aliasing the
-            // entities borrow taken below for vitals.
-            let character_mods = state.entities[id_character].modifiers;
+            // entities borrow taken below for vitals
+            let mods_char = state.entities[id_character].modifiers;
             let vitals = &mut state.entities[id_target].vitals;
             process_effect_damage_deal::process_effect_damage_deal(
                 vitals,
                 id_source,
                 id_target,
                 id_character,
-                &character_mods,
+                &mods_char,
                 amount,
                 &mut state.effect_queue,
             )
@@ -646,10 +622,10 @@ fn dispatch_by_kind(
             // Per-event counter for MasterfulStab's GrowsOnDamageInstanceTaken
             // cost variant. One bump per damage event the character takes
             // (not per HP lost). HealthLoss is post-block, so amount > 0
-            // already excludes block-fully-absorbed events.
+            // already excludes block-fully-absorbed events
             if id_target == state.id_character && amount > 0 {
-                state.instances_of_damage_taken_this_combat = state
-                    .instances_of_damage_taken_this_combat
+                state.this_combat_damage_instances_taken = state
+                    .this_combat_damage_instances_taken
                     .saturating_add(1);
             }
             let entity = &mut state.entities[id_target];
@@ -759,7 +735,7 @@ fn dispatch_by_kind(
             &mut state.id_card_target,
             &state.id_monsters,
             state.monster_count,
-            &mut state.instances_of_damage_taken_this_combat,
+            &mut state.this_combat_damage_instances_taken,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -772,7 +748,7 @@ fn dispatch_by_kind(
             &mut state.id_card_target,
             &mut state.entities,
             &mut state.monster_count,
-            &mut state.cards_nightmare,
+            &mut state.id_card_nightmare,
             &state.id_rooms,
             state.location,
             &mut state.effect_queue,
@@ -783,6 +759,7 @@ fn dispatch_by_kind(
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+            let nightmare_pending = state.id_card_nightmare.is_some();
             let entity = &mut state.entities[id_actor];
             process_effect_turn_start::process_effect_turn_start(
                 &mut entity.vitals,
@@ -791,6 +768,7 @@ fn dispatch_by_kind(
                 state.id_character,
                 &state.energy,
                 &buf_alive[..alive_n],
+                nightmare_pending,
                 &mut state.effect_queue,
             )
         }
@@ -806,8 +784,8 @@ fn dispatch_by_kind(
                     &state.id_hand,
                     state.id_card_target,
                     &buf_alive[..alive_n],
-                    &mut state.cards_discarded_this_turn,
-                    &mut state.attacks_played_this_turn,
+                    &mut state.this_turn_discards,
+                    &mut state.this_turn_attacks_played,
                     &mut state.rng,
                     &mut state.effect_queue,
                 )
@@ -850,10 +828,10 @@ fn dispatch_by_kind(
             &mut state.location,
             &mut state.effect_queue,
         ),
-        // Halt-kind variants: represent pending player decisions.
+        // Halt-kind variants: represent pending player decisions
         // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before
-        // resolution they're handled by the `Resolve` branch in `process_effect`.
+        // resolution they're handled by the `Resolve` branch in `process_effect`
         EffectKind::RoomSelect => {
             let id_room = id_target.expect("RoomSelect Direct form must have target");
             let room = &state.entities[id_room];
@@ -881,39 +859,37 @@ fn dispatch_by_kind(
 // When the queue drains naturally (no handler halted), the engine derives
 // the resting phase from state. This is the single source of truth for "what
 // is the engine waiting on?" — every clause here corresponds to a piece of
-// state that signals a player-input situation.
+// state that signals a player-input situation
 //
 // Mid-chain halts (CardDiscard/CardRetain/RoomSelect with Resolve, requiring
 // player input while work is still queued) bypass derive entirely; they set
-// the phase explicitly via DispatchResult::Halt.
+// the phase explicitly via DispatchResult::Halt
 pub fn derive_resting_phase(state: &GameState) -> Phase {
-    // Character death: end of run.
+    // Character death: end of run
     if state.entities[state.id_character].dead {
         return Phase::GameOver;
     }
     // Boss defeated: combat_end resets monster_count to 0 only after combat
-    // resolves; reaching BossRoom with no monsters means we won.
+    // resolves; reaching BossRoom with no monsters means we won
     if matches!(state.location, Location::BossRoom) && state.monster_count == 0 {
         return Phase::GameOver;
     }
-    // Card rewards waiting to be picked or skipped.
+    // Card rewards waiting to be picked or skipped
     if !state.id_card_rewards.is_empty() {
         return Phase::CombatReward;
     }
-    // Combat in progress.
+    // Combat in progress
     if state.monster_count > 0 {
         return Phase::CombatDefault;
     }
-    // Standing in a room: rest site or map-pick depending on room kind.
+    // Standing in a room: rest site or map-pick depending on room kind
     match state.location {
-        Location::Overworld { .. } => match active_room_kind(
-            &state.id_rooms,
-            state.location,
-            &state.entities,
-        ) {
-            Some(RoomKind::RestSite) => Phase::RestSite,
-            _ => Phase::Map,
-        },
+        Location::Overworld { .. } => {
+            match active_room_kind(&state.id_rooms, state.location, &state.entities) {
+                Some(RoomKind::RestSite) => Phase::RestSite,
+                _ => Phase::Map,
+            }
+        }
         Location::Start | Location::BossRoom => Phase::Map,
     }
 }
@@ -922,7 +898,7 @@ pub fn process_queue(state: &mut GameState) {
     loop {
         let Some(effect) = state.effect_queue.pop_front() else {
             // Natural drain — no handler halted, no work pending. Derive the
-            // resting phase from state. See derive_resting_phase for the rules.
+            // resting phase from state. See derive_resting_phase for the rules
             state.phase = derive_resting_phase(state);
             return;
         };

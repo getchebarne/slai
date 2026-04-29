@@ -4,11 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Java's AcidSlime_S constructor accepts a `poisonAmount` parameter and applies
-// PoisonPower if >= 1. Always 0 for the Small Slimes encounter; nonzero only
-// when summoned by AcidSlime_L's Split (Tier 4) or by certain card/relic
-// effects. Wire that parameter when Tier 4 lands.
-
 static MOVE_TACKLE_3: Move = Move {
     name: "Tackle",
     effects: &[Effect {

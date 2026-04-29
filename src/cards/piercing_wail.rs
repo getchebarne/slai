@@ -1,18 +1,17 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-// Piercing Wail: -X Strength to all enemies for one turn (refunded by
-// Shackled at the enemy's turn end).
 pub static PIERCING_WAIL: Entity = make_entity_card(
     CardName::PiercingWail,
     CardKind::Skill,
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     false,
-    true, // exhaust
+    true, 
     false,
     false,
     &[
@@ -39,6 +38,9 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static PIERCING_WAIL_PLUS: Entity = make_entity_card(
@@ -47,6 +49,7 @@ pub static PIERCING_WAIL_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     true,
     true,
     false,
@@ -55,7 +58,7 @@ pub static PIERCING_WAIL_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
-                stacks: -8, // +2 magic
+                stacks: -8, // -2 strength
             },
             id_source: None,
             target: Target::Resolve {
@@ -66,7 +69,7 @@ pub static PIERCING_WAIL_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Shackled,
-                stacks: 8,
+                stacks: 8, // +2 strength
             },
             id_source: None,
             target: Target::Resolve {
@@ -75,4 +78,7 @@ pub static PIERCING_WAIL_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

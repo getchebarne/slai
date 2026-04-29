@@ -22,8 +22,8 @@ pub fn process_effect_modifier_gain(
         if modifier_has(modifiers, kind) {
             let idx = kind as usize;
             modifiers.stacks[idx] += stacks;
-            let cfg = modifier_def(kind);
-            if modifiers.stacks[idx] < cfg.stacks_min {
+            let mod_def = modifier_def(kind);
+            if modifiers.stacks[idx] < mod_def.stacks_min {
                 modifier_remove(modifiers, kind);
             }
         }
@@ -39,7 +39,7 @@ fn process_mode_shift_gain(
     stacks: i16,
     cycle_count: u8,
 ) -> DispatchResult {
-    // ModeShift threshold increases each completed cycle.
+    // ModeShift threshold increases each completed cycle
     let increase = MODE_SHIFT_INCREASE_PER_CYCLE * cycle_count as i16;
 
     modifier_apply(modifiers, ModifierKind::ModeShift, stacks + increase);

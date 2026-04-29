@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,6 +9,7 @@ pub static POISONED_STAB: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -34,6 +35,9 @@ pub static POISONED_STAB: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
 // Upgraded: +2 damage, +1 poison
 pub static POISONED_STAB_PLUS: Entity = make_entity_card(
@@ -42,13 +46,14 @@ pub static POISONED_STAB_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     true,
     false,
     false,
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
+            kind: EffectKind::DamagePhysical { amount: 8 }, // +2 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -58,7 +63,7 @@ pub static POISONED_STAB_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Poison,
-                stacks: 4,
+                stacks: 4, // +1 poison
             },
             id_source: None,
             target: Target::Resolve {
@@ -67,4 +72,7 @@ pub static POISONED_STAB_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

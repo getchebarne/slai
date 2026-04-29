@@ -3,9 +3,6 @@ use crate::engine::DispatchResult;
 use crate::entity::{Entity, add_card_to_hand_or_discard};
 use crate::types::CardName;
 
-// EndlessAgony's `triggerWhenDrawn` hook spawn-handler. Creates a fresh
-// EndlessAgony (or EndlessAgony+ if `upgraded`) and routes it to hand or
-// discard via the shared spawn helper.
 pub fn process_effect_endless_agony_add_copy(
     upgraded: bool,
     entities: &mut Vec<Entity>,

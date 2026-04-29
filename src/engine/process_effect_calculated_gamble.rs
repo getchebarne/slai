@@ -9,7 +9,7 @@ pub fn process_effect_calculated_gamble(
 ) -> DispatchResult {
     let num_cards = id_hand.len();
     // Draw is the LAST effect (runs after discards), so push it first
-    // (push_front reverses order).
+    // (push_front reverses order)
     queue.push_front(Effect {
         kind: EffectKind::CardDraw {
             count: num_cards as u8,
@@ -17,7 +17,7 @@ pub fn process_effect_calculated_gamble(
         id_source: None,
         target: Target::Direct(None),
     });
-    // Discards in original order: iterate reverse, push_front.
+    // Discards in original order: iterate reverse, push_front
     for &id_card in id_hand.iter().rev() {
         queue.push_front(Effect {
             kind: EffectKind::CardDiscard,

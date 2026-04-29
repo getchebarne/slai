@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,6 +9,7 @@ pub static CALTROPS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     1,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -24,6 +25,9 @@ pub static CALTROPS: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static CALTROPS_PLUS: Entity = make_entity_card(
@@ -32,6 +36,7 @@ pub static CALTROPS_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     1,
+    CardCostKind::Fixed,
     true,
     false,
     false,
@@ -39,7 +44,7 @@ pub static CALTROPS_PLUS: Entity = make_entity_card(
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Thorns,
-            stacks: 5, // +2
+            stacks: 5, // +2 stacks
         },
         id_source: None,
         target: Target::Resolve {
@@ -47,4 +52,7 @@ pub static CALTROPS_PLUS: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

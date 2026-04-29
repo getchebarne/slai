@@ -8,7 +8,7 @@ use crate::types::CardKind;
 // Flechettes: deal `damage` per Skill currently in hand. Hand snapshot at
 // handler time; Flechettes itself was already moved to discard by card_play
 // so it can't be in hand. push_front in reverse so the resulting queue runs
-// the hits in any order (order doesn't matter — same target, same damage).
+// the hits in any order (order doesn't matter — same target, same damage)
 pub fn process_effect_flechettes_damage(
     entities: &[Entity],
     id_hand: &[usize],
@@ -17,11 +17,11 @@ pub fn process_effect_flechettes_damage(
     damage: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let n = id_hand
+    let num_skills_in_hand = id_hand
         .iter()
         .filter(|&&id| entities[id].card_kind == CardKind::Skill)
         .count();
-    for _ in 0..n {
+    for _ in 0..num_skills_in_hand {
         queue.push_front(Effect {
             kind: EffectKind::DamagePhysical { amount: damage },
             id_source,

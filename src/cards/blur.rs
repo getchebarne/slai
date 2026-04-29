@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,6 +9,7 @@ pub static BLUR: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     1,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -34,6 +35,9 @@ pub static BLUR: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static BLUR_PLUS: Entity = make_entity_card(
@@ -42,6 +46,7 @@ pub static BLUR_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     1,
+    CardCostKind::Fixed,
     true,
     false,
     false,
@@ -69,4 +74,7 @@ pub static BLUR_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

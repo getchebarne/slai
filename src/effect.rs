@@ -6,13 +6,12 @@ pub enum EffectKind {
     Noop,
     DamagePhysical { amount: u16 },
     DamagePhysicalIfPoisoned { amount: u16 },
-    DamagePower { amount: u16 },
     DistractionAdd,
     EndlessAgonyAddCopy { upgraded: bool },
     BulletTimeProc,
     EscapePlanCheck { block: u16 },
     GlassKnifeDecay { delta: i16 },
-    FinisherDamage { damage_per: u16 },
+    FinisherDamage { damage: u16 },
     FlechettesDamage { damage: u16 },
     HeelHookProc,
     SneakyStrikeProc { energy: u8 },
@@ -29,7 +28,7 @@ pub enum EffectKind {
     CardDiscard,
     CardDiscardEndOfTurn,
     CardMoveToDiscard,
-    CardNightmarePick { count: u8 },
+    CardNightmarePick,
     CardNightmareSpawn,
     CardRetain,
     CardSetupPick,
@@ -66,10 +65,9 @@ pub enum EffectKind {
     // mutating state and pushing follow-up effects
     RoomSelect,
     CardRewardSelect,
-
 }
 
-// CandidatePool: abstract source pool for a Resolve effect's target resolution.
+// CandidatePool: abstract source pool for a Resolve effect's target resolution
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
     Hand,
@@ -90,7 +88,7 @@ pub enum SelectionKind {
 }
 
 // Target: whether an Effect's target is already known (Direct) or must be
-// resolved against live state when the effect is dequeued (Resolve).
+// resolved against live state when the effect is dequeued (Resolve)
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Target {
     /// Target is known (or not needed). Dispatch runs the handler directly.
@@ -108,7 +106,7 @@ pub enum Target {
 
 // Effect: a unit of work in the queue. Unified type used for both static card
 // and monster-move definitions (which use `Resolve` target) and
-// runtime-synthesized effects (which use `Direct` target).
+// runtime-synthesized effects (which use `Direct` target)
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effect {
     pub kind: EffectKind,
@@ -117,7 +115,7 @@ pub struct Effect {
 }
 
 // Default-zero Effect, used to fill fixed-size arrays (Entity.card_effects,
-// EffectBuf, etc.). Slots past `*_len` are ignored.
+// EffectBuf, etc.). Slots past `*_len` are ignored
 pub const ZERO_EFFECT: Effect = Effect {
     kind: EffectKind::Noop,
     id_source: None,

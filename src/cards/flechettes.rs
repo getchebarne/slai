@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static FLECHETTES: Entity = make_entity_card(
@@ -8,6 +8,7 @@ pub static FLECHETTES: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Uncommon,
     1,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -20,24 +21,31 @@ pub static FLECHETTES: Entity = make_entity_card(
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
-// Upgraded: damage per Skill 4 -> 6
+// Upgraded
 pub static FLECHETTES_PLUS: Entity = make_entity_card(
     CardName::Flechettes,
     CardKind::Attack,
     CardColor::Green,
     CardRarity::Uncommon,
     1,
+    CardCostKind::Fixed,
     true,
     false,
     false,
     true,
     &[Effect {
-        kind: EffectKind::FlechettesDamage { damage: 6 },
+        kind: EffectKind::FlechettesDamage { damage: 6 }, // +2 damage
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

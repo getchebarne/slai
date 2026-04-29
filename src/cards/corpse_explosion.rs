@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,6 +9,7 @@ pub static CORPSE_EXPLOSION: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Rare,
     2,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -37,14 +38,18 @@ pub static CORPSE_EXPLOSION: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
-// Upgraded: +3 poison (CorpseExplosion stack stays at 1)
+// Upgraded
 pub static CORPSE_EXPLOSION_PLUS: Entity = make_entity_card(
     CardName::CorpseExplosion,
     CardKind::Skill,
     CardColor::Green,
     CardRarity::Rare,
     2,
+    CardCostKind::Fixed,
     true,
     false,
     false,
@@ -53,7 +58,7 @@ pub static CORPSE_EXPLOSION_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Poison,
-                stacks: 9,
+                stacks: 9, // +3 poison
             },
             id_source: None,
             target: Target::Resolve {
@@ -73,4 +78,7 @@ pub static CORPSE_EXPLOSION_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

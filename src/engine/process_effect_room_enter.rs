@@ -50,28 +50,28 @@ pub fn process_effect_room_enter(
             let encounter: u8 = rng.random_range(0..6);
             match encounter {
                 0 => {
-                    let m = spawn_monster(MonsterName::JawWorm, ascension, rng);
-                    push_monster(m, entities, id_monsters, monster_count);
+                    let monster = spawn_monster(MonsterName::JawWorm, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
                 }
                 1 => {
-                    let m = spawn_monster(MonsterName::Cultist, ascension, rng);
-                    push_monster(m, entities, id_monsters, monster_count);
+                    let monster = spawn_monster(MonsterName::Cultist, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
                 }
                 2 => {
-                    let m1 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
-                    let m2 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
-                    push_monster(m1, entities, id_monsters, monster_count);
-                    push_monster(m2, entities, id_monsters, monster_count);
+                    let monster_1 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
+                    let monster_2 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
+                    push_monster(monster_1, entities, id_monsters, monster_count);
+                    push_monster(monster_2, entities, id_monsters, monster_count);
                 }
                 3 => {
-                    let m1 = spawn_monster(MonsterName::SlimeSpikeSmall, ascension, rng);
-                    let m2 = spawn_monster(MonsterName::SlimeAcidSmall, ascension, rng);
-                    push_monster(m1, entities, id_monsters, monster_count);
-                    push_monster(m2, entities, id_monsters, monster_count);
+                    let monster_1 = spawn_monster(MonsterName::SlimeSpikeSmall, ascension, rng);
+                    let monster_2 = spawn_monster(MonsterName::SlimeAcidSmall, ascension, rng);
+                    push_monster(monster_1, entities, id_monsters, monster_count);
+                    push_monster(monster_2, entities, id_monsters, monster_count);
                 }
                 4 => {
-                    let m = spawn_monster(MonsterName::SlaverBlue, ascension, rng);
-                    push_monster(m, entities, id_monsters, monster_count);
+                    let monster = spawn_monster(MonsterName::SlaverBlue, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
                 }
                 5 => {
                     // Gremlin Gang: 4 randomly-picked gremlins. STS canonical pool weights
@@ -102,7 +102,7 @@ pub fn process_effect_room_enter(
         }
         RoomKind::RestSite => {
             // Nothing to enqueue; the queue drains and the engine derives
-            // Phase::RestSite from `location` + room kind.
+            // Phase::RestSite from `location` + room kind
         }
     }
     DispatchResult::Continue
