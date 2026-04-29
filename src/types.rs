@@ -1,6 +1,6 @@
-// Core type enums shared across the engine.
+// Core type enums shared across the engine
 
-// Vitals: physical combat state. Shared by character and monsters.
+// Vitals: physical combat state. Shared by character and monsters
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
     pub health: u16,
@@ -246,7 +246,7 @@ pub enum Phase {
     CombatReward,
     CombatDefault,
     CombatAwaitDiscard { num: u8 },
-    CombatAwaitNightmare { count: u8 },
+    CombatAwaitNightmare,
     CombatAwaitRetain { num: u8 },
     CombatAwaitSetup,
     GameOver,

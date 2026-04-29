@@ -27,7 +27,7 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
 }
 
 // True if completing `move_idx` marks the end of one of this monster's
-// attack/defense cycles. Callers increment `Entity::cycle_count` on true.
+// attack/defense cycles. Callers increment `Entity::cycle_count` on true
 pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
     match name {
         MonsterName::TheGuardian => move_idx == the_guardian::IDX_MOVE_TWIN_SLAM as u8,

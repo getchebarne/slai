@@ -1,13 +1,14 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, PlayRestriction, make_entity_card_with_restriction};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-pub static GRAND_FINALE: Entity = make_entity_card_with_restriction(
+pub static GRAND_FINALE: Entity = make_entity_card(
     CardName::GrandFinale,
     CardKind::Attack,
     CardColor::Green,
     CardRarity::Rare,
     0,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -20,26 +21,31 @@ pub static GRAND_FINALE: Entity = make_entity_card_with_restriction(
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
     PlayRestriction::DrawPileEmpty,
 );
-// Upgraded: +10 damage
-pub static GRAND_FINALE_PLUS: Entity = make_entity_card_with_restriction(
+// Upgraded
+pub static GRAND_FINALE_PLUS: Entity = make_entity_card(
     CardName::GrandFinale,
     CardKind::Attack,
     CardColor::Green,
     CardRarity::Rare,
     0,
+    CardCostKind::Fixed,
     true,
     false,
     false,
     false,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 60 },
+        kind: EffectKind::DamagePhysical { amount: 60 }, // +10 damage
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Monsters,
             selection: SelectionKind::All,
         },
     }],
+    &[],
+    &[],
     PlayRestriction::DrawPileEmpty,
 );

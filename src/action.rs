@@ -1,5 +1,6 @@
 use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
+use crate::entity::{card_effective_cost, is_play_restriction_satisfied};
 use crate::map::{has_edge, room_at};
 use crate::state::{GameState, Location};
 use crate::types::Phase;
@@ -46,7 +47,7 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
             indices_hand.len() == num as usize
         }
         (Action::CardSetup { .. }, Phase::CombatAwaitSetup) => true,
-        (Action::CardNightmare { .. }, Phase::CombatAwaitNightmare { .. }) => true,
+        (Action::CardNightmare { .. }, Phase::CombatAwaitNightmare) => true,
         (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
         (Action::CardRewardSelect { .. } | Action::CardRewardSkip, Phase::CombatReward) => true,
@@ -106,20 +107,17 @@ fn handle_card_play(
     let id_card = lookup_idx(&state.id_hand, idx_hand)?;
     let card = &state.entities[id_card];
 
-    if !crate::entity::play_restriction_satisfied(
-        card.card_play_restriction,
-        &state.id_pile_draw,
-    ) {
+    if !is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw) {
         return Err(format!(
             "Card {:?} not playable right now (restriction: {:?})",
             card.card_name, card.card_play_restriction,
         ));
     }
 
-    let effective_cost = crate::entity::card_effective_cost(
+    let effective_cost = card_effective_cost(
         card,
-        state.cards_discarded_this_turn,
-        state.instances_of_damage_taken_this_combat,
+        state.this_turn_discards,
+        state.this_combat_damage_instances_taken,
         state.energy.current,
     );
     if effective_cost > state.energy.current {
@@ -140,9 +138,9 @@ fn handle_card_play(
                     .get(idx_monster)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx_monster))?;
 
-                // Set the card's target, play the card, then clear the target.
+                // Set the card's target, play the card, then clear the target
                 // No trailing terminator: process_queue derives the resting
-                // phase (CombatDefault) from state once the chain drains.
+                // phase (CombatDefault) from state once the chain drains
                 Ok(vec![
                     Effect {
                         kind: EffectKind::TargetSet,
@@ -198,12 +196,8 @@ fn handle_card_setup(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, 
 
 fn handle_card_nightmare(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
     let id_card = lookup_idx(&state.id_hand, idx_hand)?;
-    let count = match state.phase {
-        Phase::CombatAwaitNightmare { count } => count,
-        _ => unreachable!("handle_card_nightmare guarded by validate_phase"),
-    };
     Ok(vec![Effect::direct(
-        EffectKind::CardNightmarePick { count },
+        EffectKind::CardNightmarePick,
         None,
         Some(id_card),
     )])
@@ -252,7 +246,7 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
     }
 
     // Return a Direct RoomSelect effect. Its dispatch arm will update
-    // state.location and push a RoomEnter effect.
+    // state.location and push a RoomEnter effect
     Ok(vec![Effect::direct(
         EffectKind::RoomSelect,
         None,
@@ -264,7 +258,7 @@ fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec
     let id_card = lookup_idx(&state.id_card_rewards, idx_reward)?;
 
     // Direct CardRewardSelect: handler adds the target card to the deck and
-    // enqueues CardRewardClear, which in turn enqueues RoomSelect.
+    // enqueues CardRewardClear, which in turn enqueues RoomSelect
     Ok(vec![Effect::direct(
         EffectKind::CardRewardSelect,
         None,
@@ -273,7 +267,7 @@ fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec
 }
 
 fn handle_card_reward_skip() -> Vec<Effect> {
-    // CardRewardClear halts on AwaitMapNode once the rewards are cleared.
+    // CardRewardClear halts on AwaitMapNode once the rewards are cleared
     vec![Effect {
         kind: EffectKind::CardRewardClear,
         id_source: None,
@@ -308,7 +302,7 @@ fn handle_rest_site_card_upgrade(
     let id_card = lookup_idx(&state.id_deck, idx_deck)?;
 
     // Upgrade by entity id, then let the RestSiteExit handler decide whether
-    // to halt (non-final row) or enter the boss room (final row).
+    // to halt (non-final row) or enter the boss room (final row)
     Ok(vec![
         Effect::direct(EffectKind::CardUpgrade, None, Some(id_card)),
         Effect::direct(EffectKind::RestSiteExit, None, None),

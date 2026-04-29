@@ -4,15 +4,14 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 
 // SneakyStrike bonus: gain `energy` energy if at least one card has been
-// explicitly discarded this turn. The counter is maintained in
-// `process_effect_card_discard` (NOT the move-after-play or end-of-turn
-// variants — see CardMoveToDiscard).
+// explicitly discarded this turn. The counter is increased in
+// `process_effect_card_discard`
 pub fn process_effect_sneaky_strike_proc(
-    cards_discarded_this_turn: u8,
+    this_turn_discards: u8,
     energy: u8,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    if cards_discarded_this_turn == 0 {
+    if this_turn_discards == 0 {
         return DispatchResult::Continue;
     }
     queue.push_front(Effect {

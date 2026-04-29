@@ -6,8 +6,8 @@ use crate::engine::DispatchResult;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 
 pub fn process_effect_damage_physical(
-    source_mods: &Modifiers,
-    target_mods: &Modifiers,
+    mods_source: &Modifiers,
+    mods_target: &Modifiers,
     id_source: Option<usize>,
     id_target: usize,
     amount: u16,
@@ -16,40 +16,36 @@ pub fn process_effect_damage_physical(
     let mut value = amount as f32;
 
     // Source modifiers
-    if modifier_has(source_mods, ModifierKind::Strength) {
-        value += modifier_stacks(source_mods, ModifierKind::Strength) as f32;
+    if modifier_has(mods_source, ModifierKind::Strength) {
+        value += modifier_stacks(mods_source, ModifierKind::Strength) as f32;
     }
-    if modifier_has(source_mods, ModifierKind::Weak) {
+    if modifier_has(mods_source, ModifierKind::Weak) {
         value *= FACTOR_WEAK;
     }
-    if modifier_has(source_mods, ModifierKind::DoubleDamage) {
+    if modifier_has(mods_source, ModifierKind::DoubleDamage) {
         value *= 2.0;
     }
 
     // Target modifiers
-    if modifier_has(target_mods, ModifierKind::Vulnerable) {
+    if modifier_has(mods_target, ModifierKind::Vulnerable) {
         value *= FACTOR_VULN;
     }
 
-    // Intangible: cap any incoming damage at 1 per attack instance,
-    // pre-block (block then subtracts as normal). Matches StS
-    // IntangiblePlayerPower.atDamageFinalReceive.
-    if modifier_has(target_mods, ModifierKind::Intangible) && value > 1.0 {
+    // Intangible
+    if modifier_has(mods_target, ModifierKind::Intangible) && value > 1.0 {
         value = 1.0;
     }
 
-    // Thorns: triggers per attack instance regardless of damage actually
-    // dealt. Pushed before DamageDeal so the queue resolves DamageDeal first
-    // (target takes the hit), then the Thorns reflect lands on the attacker.
-    if let Some(id_src) = id_source {
-        if id_src != id_target && modifier_has(target_mods, ModifierKind::Thorns) {
-            let thorns_stacks = modifier_stacks(target_mods, ModifierKind::Thorns);
+    // Thorns: triggers per attack instance regardless of damage actually dealt
+    if let Some(id_source) = id_source {
+        if id_source != id_target && modifier_has(mods_target, ModifierKind::Thorns) {
+            let stacks = modifier_stacks(mods_target, ModifierKind::Thorns);
             queue.push_front(Effect {
-                kind: EffectKind::DamagePower {
-                    amount: thorns_stacks as u16,
+                kind: EffectKind::DamageDeal {
+                    amount: stacks as u16,
                 },
                 id_source: None,
-                target: Target::Direct(Some(id_src)),
+                target: Target::Direct(Some(id_source)),
             });
         }
     }

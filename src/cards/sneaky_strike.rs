@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static SNEAKY_STRIKE: Entity = make_entity_card(
@@ -8,6 +8,7 @@ pub static SNEAKY_STRIKE: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     2,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -27,21 +28,25 @@ pub static SNEAKY_STRIKE: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
-// Upgraded: +4 damage. Energy bonus unchanged.
+// Upgraded
 pub static SNEAKY_STRIKE_PLUS: Entity = make_entity_card(
     CardName::SneakyStrike,
     CardKind::Attack,
     CardColor::Green,
     CardRarity::Common,
     2,
+    CardCostKind::Fixed,
     true,
     false,
     false,
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 16 },
+            kind: EffectKind::DamagePhysical { amount: 16 }, // +4 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -54,4 +59,7 @@ pub static SNEAKY_STRIKE_PLUS: Entity = make_entity_card(
             target: Target::Direct(None),
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

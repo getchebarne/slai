@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -9,6 +9,7 @@ pub static WRAITH_FORM: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Rare,
     3,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -37,14 +38,18 @@ pub static WRAITH_FORM: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
-// Upgraded: cost reduced 3 -> 2
+// Upgraded
 pub static WRAITH_FORM_PLUS: Entity = make_entity_card(
     CardName::WraithForm,
     CardKind::Power,
     CardColor::Green,
     CardRarity::Rare,
-    2,
+    3,
+    CardCostKind::Fixed,
     true,
     false,
     false,
@@ -53,7 +58,7 @@ pub static WRAITH_FORM_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Intangible,
-                stacks: 2,
+                stacks: 3, // +1 stack
             },
             id_source: None,
             target: Target::Resolve {
@@ -73,4 +78,7 @@ pub static WRAITH_FORM_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

@@ -24,7 +24,7 @@ pub fn process_effect_health_loss(
             target: Target::Direct(Some(id_target)),
         });
     } else if modifier_has(modifiers, ModifierKind::ModeShift) {
-        // ModeShift: damage reduces stacks, triggers move update on break.
+        // ModeShift: damage reduces stacks, triggers move update on break
         let new_stacks = modifier_stacks(modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(modifiers, ModifierKind::ModeShift);

@@ -1,5 +1,5 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_card};
+use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 pub static DAGGER_THROW: Entity = make_entity_card(
@@ -8,6 +8,7 @@ pub static DAGGER_THROW: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     false,
     false,
     false,
@@ -35,6 +36,9 @@ pub static DAGGER_THROW: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );
 // Upgraded
 pub static DAGGER_THROW_PLUS: Entity = make_entity_card(
@@ -43,6 +47,7 @@ pub static DAGGER_THROW_PLUS: Entity = make_entity_card(
     CardColor::Green,
     CardRarity::Common,
     1,
+    CardCostKind::Fixed,
     true,
     false,
     false,
@@ -70,4 +75,7 @@ pub static DAGGER_THROW_PLUS: Entity = make_entity_card(
             },
         },
     ],
+    &[],
+    &[],
+    PlayRestriction::Always,
 );

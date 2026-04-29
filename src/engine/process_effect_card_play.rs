@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
-use crate::entity::{Entity, card_effective_cost};
+use crate::entity::{CardCostKind, Entity, card_effective_cost};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::types::CardKind;
 
@@ -15,49 +15,35 @@ pub fn process_effect_card_play(
     entities: &mut [Entity],
     _hand: &[usize],
     alive_monsters: &[usize],
-    attacks_played_this_turn: &mut u8,
-    last_played_card: &mut Option<usize>,
-    cards_discarded_this_turn: u8,
-    instances_of_damage_taken_this_combat: u8,
+    this_turn_attacks_played: &mut u8,
+    card_last_played: &mut Option<usize>,
+    this_turn_discards: u8,
+    this_combat_damage_instances_taken: u8,
     energy_current: u8,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // Snapshot the played card by-value (Entity is Copy) so we can release
-    // the entities borrow before mutating it for the free-to-play flag.
     let card = entities[id_card];
+    *card_last_played = Some(id_card);
 
-    // Snapshot the played card id so self-referential effects (GlassKnifeDecay)
-    // can find which entity to mutate.
-    *last_played_card = Some(id_card);
-
-    // Counter for SneakyStrike-style "attacks played this turn" lookups.
-    // Increment before the card's effects fire so cards like Finisher can
-    // see their own play in the counter (Finisher's handler then subtracts 1
-    // to exclude itself, matching StS).
+    // Increment before effects fire so self-counting cards see their own play
     if card.card_kind == CardKind::Attack {
-        *attacks_played_this_turn = attacks_played_this_turn.saturating_add(1);
+        *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
     }
 
-    // Effective cost (free-to-play, override, dynamic-cost variants).
     let cost = card_effective_cost(
         &card,
-        cards_discarded_this_turn,
-        instances_of_damage_taken_this_combat,
+        this_turn_discards,
+        this_combat_damage_instances_taken,
         energy_current,
     );
 
-    // X-cost cards multiply card_effects by `energy.current + offset`. Read
-    // raw energy_current (NOT card_effective_cost) so Setup-flagged X-cost
-    // cards still scale to X. Snapshot now, before the EnergyLoss zeros it.
+    // X-cost reads raw energy_current (not effective_cost) so Setup-flagged X-cost still scales
     let multiplier = match card.card_cost_kind {
-        crate::entity::CardCostKind::XCost { offset } => {
-            (energy_current as i16 + offset as i16).max(0) as usize
-        }
+        CardCostKind::XCost { offset } => (energy_current as i16 + offset as i16).max(0) as usize,
         _ => 1,
     };
 
-    // Consume the free-to-play flag if it was set.
     if card.card_free_to_play_once {
         entities[id_card].card_free_to_play_once = false;
     }
@@ -84,8 +70,7 @@ pub fn process_effect_card_play(
             target: Target::Direct(Some(id_card)),
         });
     } else {
-        // Move-after-play (NOT an explicit discard — see CardMoveToDiscard
-        // doc; doesn't increment discards_this_turn or trigger Reflex).
+        // Not a real discard: skips this_turn_discards and Reflex
         buf_effects.push(Effect {
             kind: EffectKind::CardMoveToDiscard,
             id_source: None,
@@ -107,15 +92,15 @@ pub fn process_effect_card_play(
         });
     }
 
-    // ThousandCuts: power-induced damage (no Strength scaling, doesn't proc Envenom)
+    // ThousandCuts: id_source = None to skip Envenom proc and Strength/Weak scaling
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &id_monster in alive_monsters {
             buf_effects.push(Effect {
-                kind: EffectKind::DamagePower {
+                kind: EffectKind::DamageDeal {
                     amount: stacks as u16,
                 },
-                id_source: Some(id_character),
+                id_source: None,
                 target: Target::Direct(Some(id_monster)),
             });
         }
@@ -138,10 +123,7 @@ pub fn process_effect_card_play(
         }
     }
 
-    // Card effects. Burst (skill-only) doubles them; X-cost multiplies by X.
-    // The two stack multiplicatively (Burst on an X-cost Skill at energy 3 →
-    // 6 fan-outs); harmless because no current X-cost Skill is also Burst-able
-    // in practice, but the math is correct either way.
+    // Burst (skill-only) doubles; X-cost multiplies by X; the two stack multiplicatively
     let burst =
         modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
     let reps = if burst { 2 * multiplier } else { multiplier };
@@ -164,10 +146,7 @@ pub fn process_effect_card_play(
         });
     }
 
-    // Choke: each alive monster with Choke loses `choke_stacks` HP per card
-    // play. Pushed AFTER card_effects so the played card resolves first
-    // (matches StS — onUseCard's LoseHPAction is queued after the card's own
-    // actions via addToBot).
+    // Choke: pushed after card_effects so the played card resolves first
     for &id_monster in alive_monsters {
         let monster_mods = &entities[id_monster].modifiers;
         if modifier_has(monster_mods, ModifierKind::Choke) {

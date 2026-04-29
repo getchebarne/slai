@@ -14,7 +14,7 @@ pub fn process_effect_death(
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Character death: abandon anything pending and mark dead so
-    // derive_resting_phase returns Phase::GameOver on the natural drain.
+    // derive_resting_phase returns Phase::GameOver on the natural drain
     if id_target == id_character {
         entities[id_character].dead = true;
         queue.clear();
@@ -23,7 +23,7 @@ pub fn process_effect_death(
 
     let monster = &entities[id_target];
 
-    // SporeCloud: dying enemy stacks Vulnerable on the character.
+    // SporeCloud: dying enemy stacks Vulnerable on the character
     let spore_effect = if modifier_has(&monster.modifiers, ModifierKind::SporeCloud) {
         let stacks = modifier_stacks(&monster.modifiers, ModifierKind::SporeCloud);
         Some(Effect {
@@ -39,22 +39,23 @@ pub fn process_effect_death(
     };
 
     // CorpseExplosion: dying enemy deals damage equal to its max HP to every
-    // OTHER alive enemy. Uses DamagePower so source-side scaling does not
-    // apply; target Vulnerable still multiplies; block still subtracts.
-    let corpse_effects: Vec<Effect> = if modifier_has(&monster.modifiers, ModifierKind::CorpseExplosion) {
-        let dmg = monster.vitals.health_max;
-        id_monsters[..monster_count as usize]
-            .iter()
-            .filter(|&&id| id != id_target && !entities[id].dead)
-            .map(|&id| Effect {
-                kind: EffectKind::DamagePower { amount: dmg },
-                id_source: None,
-                target: Target::Direct(Some(id)),
-            })
-            .collect()
-    } else {
-        Vec::new()
-    };
+    // other alive enemy. `id_source = None` so no source-side scaling and
+    // Envenom can't proc; block still subtracts
+    let effects_corpse: Vec<Effect> =
+        if modifier_has(&monster.modifiers, ModifierKind::CorpseExplosion) {
+            let dmg = monster.vitals.health_max;
+            id_monsters[..monster_count as usize]
+                .iter()
+                .filter(|&&id| id != id_target && !entities[id].dead)
+                .map(|&id| Effect {
+                    kind: EffectKind::DamageDeal { amount: dmg },
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
 
     entities[id_target].dead = true;
 
@@ -63,9 +64,9 @@ pub fn process_effect_death(
         .any(|&id| !entities[id].dead);
 
     if !any_alive {
-        // Combat ends. Replace pending effects with on-death triggers then CombatEnd.
+        // Combat ends. Replace pending effects with on-death triggers then CombatEnd
         queue.clear();
-        for e in &corpse_effects {
+        for e in &effects_corpse {
             queue.push_back(*e);
         }
         if let Some(e) = spore_effect {
@@ -78,11 +79,11 @@ pub fn process_effect_death(
         });
     } else {
         // Mid-combat: push to front so on-death triggers fire before any
-        // suspended chain resumes.
+        // suspended chain resumes
         if let Some(e) = spore_effect {
             queue.push_front(e);
         }
-        for e in corpse_effects.iter().rev() {
+        for e in effects_corpse.iter().rev() {
             queue.push_front(*e);
         }
     }

@@ -1,22 +1,27 @@
 // FFI boundary: every #[pyclass] type lives here. Internal engine modules
-// must not import pyo3.
+// must not import pyo3
 //
 // Naming: structs that snapshot internal engine state (GameState, Card, ...)
 // take the bare name. Where the bare name would collide with an internal type
 // at the Rust level (engine `state::GameState`, `entity::Intent`), we alias
-// the internal import below.
+// the internal import below
 
 use pyo3::prelude::*;
 
 use crate::action::Action as InternalAction;
-use crate::consts::{FACTOR_VULN, MAX_MONSTERS};
+use crate::consts::{FACTOR_VULN, MAP_HEIGHT, MAX_MONSTERS};
 use crate::effect::{
     CandidatePool as InternalCandidatePool, Effect as InternalEffect, EffectKind, SelectionKind,
     Target as InternalTarget,
 };
-use crate::entity::{CardCostKind as InternalCardCostKind, Entity, Intent as InternalIntent};
+use crate::entity::{
+    CardCostKind as InternalCardCostKind, Entity, Intent as InternalIntent, card_effective_cost,
+    is_play_restriction_satisfied,
+};
 use crate::map::edge_indices;
-use crate::modifier::{ModifierKind as InternalModifierKind, modifier_has, modifier_stacks};
+use crate::modifier::{
+    ModifierKind as InternalModifierKind, Modifiers, modifier_has, modifier_stacks,
+};
 use crate::state::{GameState as InternalGameState, Location};
 use crate::types::{
     CardColor as InternalCardColor, CardKind as InternalCardKind, CardRarity as InternalCardRarity,
@@ -241,7 +246,7 @@ pub enum Phase {
     Map {},
     CombatDefault {},
     CombatAwaitDiscard { num: u8 },
-    CombatAwaitNightmare { count: u8 },
+    CombatAwaitNightmare {},
     CombatAwaitRetain { num: u8 },
     CombatAwaitSetup {},
     CombatReward {},
@@ -255,7 +260,7 @@ impl From<InternalPhase> for Phase {
             InternalPhase::Map => Self::Map {},
             InternalPhase::CombatDefault => Self::CombatDefault {},
             InternalPhase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
-            InternalPhase::CombatAwaitNightmare { count } => Self::CombatAwaitNightmare { count },
+            InternalPhase::CombatAwaitNightmare => Self::CombatAwaitNightmare {},
             InternalPhase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
             InternalPhase::CombatAwaitSetup => Self::CombatAwaitSetup {},
             InternalPhase::CombatReward => Self::CombatReward {},
@@ -353,9 +358,9 @@ impl From<Action> for InternalAction {
 
 // `Effect` mirrors only the EffectKind variants that appear in static
 // card/monster definitions (~9 of EffectKind's ~33). `target` is None for
-// effects with no resolution (e.g. CardDraw, EnergyGain on the player).
+// effects with no resolution (e.g. CardDraw, EnergyGain on the player)
 // `from_internal` panics on EffectKind variants that should never reach
-// the view layer.
+// the view layer
 
 #[pyclass(eq, hash, frozen, name = "Effect")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -383,7 +388,6 @@ pub enum Effect {
         target: Option<Target>,
     },
     CardNightmarePick {
-        count: u8,
         target: Option<Target>,
     },
     DistractionAdd {
@@ -397,7 +401,7 @@ pub enum Effect {
         target: Option<Target>,
     },
     FinisherDamage {
-        damage_per: u16,
+        damage: u16,
         target: Option<Target>,
     },
     FlechettesDamage {
@@ -483,15 +487,13 @@ impl Effect {
             EffectKind::EscapePlanCheck { block } => Self::EscapePlanCheck { block, target },
             EffectKind::GlassKnifeDecay { delta } => Self::GlassKnifeDecay { delta, target },
             EffectKind::CardSetupPick => Self::CardSetupPick { target },
-            EffectKind::CardNightmarePick { count } => Self::CardNightmarePick { count, target },
+            EffectKind::CardNightmarePick => Self::CardNightmarePick { target },
             EffectKind::DistractionAdd => Self::DistractionAdd { target },
             EffectKind::EndlessAgonyAddCopy { upgraded } => {
                 Self::EndlessAgonyAddCopy { upgraded, target }
             }
             EffectKind::BulletTimeProc => Self::BulletTimeProc { target },
-            EffectKind::FinisherDamage { damage_per } => {
-                Self::FinisherDamage { damage_per, target }
-            }
+            EffectKind::FinisherDamage { damage } => Self::FinisherDamage { damage, target },
             EffectKind::FlechettesDamage { damage } => Self::FlechettesDamage { damage, target },
             EffectKind::UnloadDiscard => Self::UnloadDiscard { target },
             EffectKind::StormOfSteelProc { upgraded } => {
@@ -651,15 +653,15 @@ pub struct GameState {
 // ───────── Build functions ─────────
 
 pub fn build_view(state: &InternalGameState) -> GameState {
-    let cards_discarded_this_turn = state.cards_discarded_this_turn;
-    let instances_of_damage_taken_this_combat = state.instances_of_damage_taken_this_combat;
+    let this_turn_discards = state.this_turn_discards;
+    let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
     let energy_current = state.energy.current;
     let card = |id_card: usize| {
         build_view_card_template(
             &state.entities[id_card],
             &state.id_pile_draw,
-            cards_discarded_this_turn,
-            instances_of_damage_taken_this_combat,
+            this_turn_discards,
+            this_combat_damage_instances_taken,
             energy_current,
         )
     };
@@ -694,7 +696,7 @@ fn build_view_character(state: &InternalGameState) -> Character {
 }
 
 fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
-    let character_modifiers = &state.entities[state.id_character].modifiers;
+    let mods_char = &state.entities[state.id_character].modifiers;
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let n = fill_alive_monster_ids(state, &mut buf_alive);
     buf_alive[..n]
@@ -732,7 +734,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                     if modifier_has(&m.modifiers, InternalModifierKind::Weak) {
                         dmg *= 0.75;
                     }
-                    if modifier_has(character_modifiers, InternalModifierKind::Vulnerable) {
+                    if modifier_has(mods_char, InternalModifierKind::Vulnerable) {
                         dmg *= FACTOR_VULN;
                     }
                     dmg as u16
@@ -767,7 +769,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
         .collect()
 }
 
-fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<Modifier> {
+fn build_view_modifiers(mods: &Modifiers) -> Vec<Modifier> {
     let mut out = Vec::new();
     let mut bits = mods.active;
     while bits != 0 {
@@ -785,8 +787,8 @@ fn build_view_modifiers(mods: &crate::modifier::Modifiers) -> Vec<Modifier> {
 fn build_view_card_template(
     card: &Entity,
     id_pile_draw: &[usize],
-    cards_discarded_this_turn: u8,
-    instances_of_damage_taken_this_combat: u8,
+    this_turn_discards: u8,
+    this_combat_damage_instances_taken: u8,
     energy_current: u8,
 ) -> Card {
     Card {
@@ -798,10 +800,10 @@ fn build_view_card_template(
         kind: card.card_kind.into(),
         color: card.card_color.into(),
         rarity: card.card_rarity.into(),
-        cost: crate::entity::card_effective_cost(
+        cost: card_effective_cost(
             card,
-            cards_discarded_this_turn,
-            instances_of_damage_taken_this_combat,
+            this_turn_discards,
+            this_combat_damage_instances_taken,
             energy_current,
         ),
         base_cost: card.card_cost,
@@ -812,7 +814,7 @@ fn build_view_card_template(
         requires_target: card.card_requires_target,
         retain: card.card_retain,
         free_to_play_once: card.card_free_to_play_once,
-        playable: crate::entity::play_restriction_satisfied(
+        playable: is_play_restriction_satisfied(
             card.card_play_restriction,
             id_pile_draw,
         ),
@@ -845,7 +847,7 @@ fn build_view_map(state: &InternalGameState) -> Map {
     let (y_current, x_current) = match state.location {
         Location::Start => (None, None),
         Location::Overworld { y, x } => (Some(y), Some(x)),
-        Location::BossRoom => (Some(crate::consts::MAP_HEIGHT), Some(0)),
+        Location::BossRoom => (Some(MAP_HEIGHT), Some(0)),
     };
     Map {
         rooms,
