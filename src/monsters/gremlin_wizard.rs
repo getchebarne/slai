@@ -93,8 +93,21 @@ pub fn get_next_move_gremlin_wizard(
             IDX_MOVE_CHARGE
         };
     }
-    // Fire Ultimate Blast only after two Charges in a row
-    if move_history.ends_with(&[IDX_MOVE_CHARGE as u8, IDX_MOVE_CHARGE as u8]) {
+    // Java's `currentCharge` field initializer is 1 but the post-Magic reset
+    // sets it to 0. Magic fires when currentCharge reaches 3 after the
+    // increment-during-takeTurn — so cycle 1 is 2 Charges, subsequent cycles
+    // are 3 Charges. We replicate this by checking whether any Ultimate
+    // Blast has fired yet.
+    let has_fired_blast = move_history
+        .iter()
+        .any(|&m| m == IDX_MOVE_ULTIMATE_BLAST as u8);
+    let trailing_charges = move_history
+        .iter()
+        .rev()
+        .take_while(|&&m| m == IDX_MOVE_CHARGE as u8)
+        .count();
+    let charges_needed = if has_fired_blast { 3 } else { 2 };
+    if trailing_charges >= charges_needed {
         IDX_MOVE_ULTIMATE_BLAST
     } else {
         IDX_MOVE_CHARGE

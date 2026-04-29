@@ -13,6 +13,7 @@ pub static ADRENALINE: Entity = make_entity_card(
     true,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::EnergyGain { amount: 1 },
@@ -39,6 +40,7 @@ pub static ADRENALINE_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     false,
     false,
     &[

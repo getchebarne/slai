@@ -47,7 +47,7 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatMonster => {
-            let encounter: u8 = rng.random_range(0..8);
+            let encounter: u8 = rng.random_range(0..10);
             match encounter {
                 0 => {
                     let monster = spawn_monster(MonsterName::JawWorm, ascension, rng);
@@ -112,8 +112,30 @@ pub fn process_effect_room_enter(
                         push_monster(monster, entities, id_monsters, monster_count);
                     }
                 }
+                8 => {
+                    let monster = spawn_monster(MonsterName::SlimeAcidMedium, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
+                9 => {
+                    let monster = spawn_monster(MonsterName::SlimeSpikeMedium, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
                 _ => unreachable!(),
             };
+            queue.push_front(Effect {
+                kind: EffectKind::CombatStart,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+        RoomKind::CombatElite => {
+            // Elite roster — extends in Tier 5 to include Gremlin Nob and Lagavulin.
+            let m1 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            let m2 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            let m3 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            push_monster(m1, entities, id_monsters, monster_count);
+            push_monster(m2, entities, id_monsters, monster_count);
+            push_monster(m3, entities, id_monsters, monster_count);
             queue.push_front(Effect {
                 kind: EffectKind::CombatStart,
                 id_source: None,

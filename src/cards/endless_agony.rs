@@ -23,6 +23,7 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
     false,
     true,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::DamagePhysical { amount: 4 },
@@ -46,6 +47,7 @@ pub static ENDLESS_AGONY_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     false,
     true,
     &[Effect {

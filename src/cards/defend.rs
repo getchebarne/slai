@@ -13,6 +13,7 @@ pub static DEFEND: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::BlockGain { amount: 5 },
         id_source: None,
@@ -34,6 +35,7 @@ pub static DEFEND_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

@@ -1,0 +1,135 @@
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::entity::{Entity, Intent, Move, make_entity_monster};
+use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
+use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
+use rand::Rng;
+
+// Sentry (Elite). Strict Bolt ↔ Beam alternation. First move depends on
+// position in the alive-monsters list: even index → Bolt, odd → Beam.
+// Innate Artifact 1 at spawn — first incoming debuff is intercepted by the
+// hook in process_effect_modifier_gain.
+
+static MOVE_BEAM_9: Move = Move {
+    name: "Beam",
+    effects: &[Effect {
+        kind: EffectKind::DamagePhysical { amount: 9 },
+        id_source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::Character,
+            selection: SelectionKind::All,
+        },
+    }],
+    intent: Intent::Attack {
+        damage: 9,
+        instances: 1,
+    },
+};
+static MOVE_BEAM_10: Move = Move {
+    name: "Beam",
+    effects: &[Effect {
+        kind: EffectKind::DamagePhysical { amount: 10 },
+        id_source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::Character,
+            selection: SelectionKind::All,
+        },
+    }],
+    intent: Intent::Attack {
+        damage: 10,
+        instances: 1,
+    },
+};
+static MOVE_BOLT_2: Move = Move {
+    name: "Bolt",
+    effects: &[Effect {
+        kind: EffectKind::CardAddToDiscard {
+            card_name: CardName::Dazed,
+            count: 2,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }],
+    intent: Intent::Debuff,
+};
+static MOVE_BOLT_3: Move = Move {
+    name: "Bolt",
+    effects: &[Effect {
+        kind: EffectKind::CardAddToDiscard {
+            card_name: CardName::Dazed,
+            count: 3,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }],
+    intent: Intent::Debuff,
+};
+
+static MOVES_ASC0: [Move; 2] = [MOVE_BEAM_9, MOVE_BOLT_2];
+static MOVES_ASC3: [Move; 2] = [MOVE_BEAM_10, MOVE_BOLT_2];
+static MOVES_ASC18: [Move; 2] = [MOVE_BEAM_10, MOVE_BOLT_3];
+
+const IDX_MOVE_BEAM: usize = 0;
+const IDX_MOVE_BOLT: usize = 1;
+
+pub fn spawn_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+    let (health_max_min, health_max_max) = if ascension_level < 8 {
+        (38, 42)
+    } else {
+        (39, 45)
+    };
+    let health_max = rng.random_range(health_max_min..=health_max_max);
+
+    let moves: &'static [Move] = if ascension_level < 3 {
+        &MOVES_ASC0
+    } else if ascension_level < 18 {
+        &MOVES_ASC3
+    } else {
+        &MOVES_ASC18
+    };
+
+    let mut modifiers = ZERO_MODIFIERS;
+    modifier_apply(&mut modifiers, ModifierKind::Artifact, 1);
+
+    make_entity_monster(
+        MonsterName::Sentry,
+        MonsterKind::Elite,
+        Vitals {
+            health: health_max,
+            health_max,
+            block: 0,
+        },
+        modifiers,
+        moves,
+    )
+}
+
+pub fn get_next_move_sentry(
+    move_current: Option<usize>,
+    move_history: &[u8],
+    entity_id: usize,
+    id_alive_monsters: &[usize],
+) -> usize {
+    if move_current.is_none() {
+        // First move: position-aware. Even index in the alive list → Bolt;
+        // odd index → Beam. Java uses `monsters.lastIndexOf(this)` which
+        // for a freshly-spawned trio matches the alive-list position.
+        let position = id_alive_monsters
+            .iter()
+            .position(|&id| id == entity_id)
+            .unwrap_or(0);
+        return if position % 2 == 0 {
+            IDX_MOVE_BOLT
+        } else {
+            IDX_MOVE_BEAM
+        };
+    }
+    // Subsequent moves: strict alternation.
+    let last = *move_history
+        .last()
+        .expect("`move_history` cannot be empty here") as usize;
+    if last == IDX_MOVE_BEAM {
+        IDX_MOVE_BOLT
+    } else {
+        IDX_MOVE_BEAM
+    }
+}

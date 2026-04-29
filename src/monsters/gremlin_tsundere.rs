@@ -70,8 +70,11 @@ static MOVE_BASH_8: Move = Move {
         instances: 1,
     },
 };
+// Java's Bash damage cuts at Asc 2, Protect block cuts at Asc 7 and again at
+// Asc 17 — so we need four move tables, not three.
 static MOVES_ASC0: [Move; 2] = [MOVE_PROTECT_7, MOVE_BASH_6];
-static MOVES_ASC2: [Move; 2] = [MOVE_PROTECT_8, MOVE_BASH_8];
+static MOVES_ASC2: [Move; 2] = [MOVE_PROTECT_7, MOVE_BASH_8];
+static MOVES_ASC7: [Move; 2] = [MOVE_PROTECT_8, MOVE_BASH_8];
 static MOVES_ASC17: [Move; 2] = [MOVE_PROTECT_11, MOVE_BASH_8];
 
 const IDX_MOVE_PROTECT: usize = 0;
@@ -87,8 +90,10 @@ pub fn spawn_gremlin_tsundere(ascension_level: u8, rng: &mut impl Rng) -> Entity
 
     let moves: &'static [Move] = if ascension_level < 2 {
         &MOVES_ASC0
-    } else if ascension_level < 17 {
+    } else if ascension_level < 7 {
         &MOVES_ASC2
+    } else if ascension_level < 17 {
+        &MOVES_ASC7
     } else {
         &MOVES_ASC17
     };

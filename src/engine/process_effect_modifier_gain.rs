@@ -2,6 +2,7 @@ use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
 use crate::engine::DispatchResult;
 use crate::modifier::{
     ModifierKind, Modifiers, modifier_apply, modifier_def, modifier_has, modifier_remove,
+    modifier_stacks,
 };
 
 pub fn process_effect_modifier_gain(
@@ -15,6 +16,23 @@ pub fn process_effect_modifier_gain(
         if let Some(cc) = cycle_count {
             return process_mode_shift_gain(modifiers, stacks, cc);
         }
+    }
+
+    // Artifact: incoming debuff (positive stacks of a non-buff modifier) is
+    // intercepted; one Artifact stack is consumed instead of the modifier
+    // being applied. Removing Artifact at 1 stack stops the intercept on
+    // future debuffs.
+    if stacks > 0
+        && !modifier_def(kind).is_buff
+        && modifier_has(modifiers, ModifierKind::Artifact)
+    {
+        let new_artifact = modifier_stacks(modifiers, ModifierKind::Artifact) - 1;
+        if new_artifact < modifier_def(ModifierKind::Artifact).stacks_min {
+            modifier_remove(modifiers, ModifierKind::Artifact);
+        } else {
+            modifiers.stacks[ModifierKind::Artifact as usize] = new_artifact;
+        }
+        return DispatchResult::Continue;
     }
 
     // Negative stacks reduce existing modifier, removing if below minimum

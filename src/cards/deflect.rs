@@ -13,6 +13,7 @@ pub static DEFLECT: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::BlockGain { amount: 4 },
         id_source: None,
@@ -34,6 +35,7 @@ pub static DEFLECT_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

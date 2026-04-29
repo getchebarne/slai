@@ -13,6 +13,7 @@ pub static CHOKE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -48,6 +49,7 @@ pub static CHOKE_PLUS: Entity = make_entity_card(
     2,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

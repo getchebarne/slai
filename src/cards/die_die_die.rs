@@ -13,6 +13,7 @@ pub static DIE_DIE_DIE: Entity = make_entity_card(
     true,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::DamagePhysical { amount: 13 },
         id_source: None,
@@ -35,6 +36,7 @@ pub static DIE_DIE_DIE_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     false,
     false,
     &[Effect {

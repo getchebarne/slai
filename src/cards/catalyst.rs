@@ -13,6 +13,7 @@ pub static CATALYST: Entity = make_entity_card(
     false,
     true,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierMultiply {
@@ -39,6 +40,7 @@ pub static CATALYST_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     false,
     true,
     &[Effect {

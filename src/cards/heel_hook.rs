@@ -12,6 +12,7 @@ pub static HEEL_HOOK: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -44,6 +45,7 @@ pub static HEEL_HOOK_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

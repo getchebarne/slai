@@ -12,6 +12,7 @@ pub static SNEAKY_STRIKE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -41,6 +42,7 @@ pub static SNEAKY_STRIKE_PLUS: Entity = make_entity_card(
     2,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

@@ -13,6 +13,7 @@ pub static BACKFLIP: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
@@ -41,6 +42,7 @@ pub static BACKFLIP_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

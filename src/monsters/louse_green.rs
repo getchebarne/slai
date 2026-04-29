@@ -181,7 +181,7 @@ pub fn get_next_move_louse_green(
             IDX_MOVE_BITE
         }
     } else {
-        // Asc 0–16: Web no-two-in-a-row; Bite no-three-in-a-row.
+        // Asc 0–16: Web no-three-in-a-row; Bite no-three-in-a-row.
         if roll < 25 {
             if move_history.ends_with(&[IDX_MOVE_WEB as u8, IDX_MOVE_WEB as u8]) {
                 IDX_MOVE_BITE

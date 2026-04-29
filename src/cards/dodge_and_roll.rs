@@ -14,6 +14,7 @@ pub static DODGE_AND_ROLL: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 4 },
@@ -48,6 +49,7 @@ pub static DODGE_AND_ROLL_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

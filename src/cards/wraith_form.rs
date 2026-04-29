@@ -14,6 +14,7 @@ pub static WRAITH_FORM: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::ModifierGain {
@@ -51,6 +52,7 @@ pub static WRAITH_FORM_PLUS: Entity = make_entity_card(
     3,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

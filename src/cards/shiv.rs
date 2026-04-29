@@ -12,6 +12,7 @@ pub static SHIV: Entity = make_entity_card(
     false,
     true,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::DamagePhysical { amount: 4 },
@@ -35,6 +36,7 @@ pub static SHIV_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     false,
     true,
     &[Effect {

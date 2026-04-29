@@ -13,6 +13,7 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 10 },
@@ -44,6 +45,7 @@ pub static ALL_OUT_ATTACK_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

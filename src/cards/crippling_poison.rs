@@ -14,6 +14,7 @@ pub static CRIPPLING_POISON: Entity = make_entity_card(
     true,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::ModifierGain {
@@ -52,6 +53,7 @@ pub static CRIPPLING_POISON_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     false,
     false,
     &[

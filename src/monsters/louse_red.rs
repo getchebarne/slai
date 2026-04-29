@@ -199,7 +199,7 @@ pub fn get_next_move_louse_red(
             IDX_MOVE_BITE
         }
     } else {
-        // Asc 0–16: Strengthen no-two-in-a-row; Bite no-three-in-a-row.
+        // Asc 0–16: Strengthen no-three-in-a-row; Bite no-three-in-a-row.
         if roll < 25 {
             if move_history.ends_with(&[IDX_MOVE_STRENGTHEN as u8, IDX_MOVE_STRENGTHEN as u8]) {
                 IDX_MOVE_BITE
