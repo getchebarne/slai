@@ -14,7 +14,10 @@ pub static BLADE_DANCE: Entity = make_entity_card(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ShivAdd { count: 3, upgraded: false },
+        kind: EffectKind::ShivAdd {
+            count: 3,
+            upgraded: false,
+        },
         id_source: None,
         target: Target::Direct(None),
     }],
@@ -35,7 +38,10 @@ pub static BLADE_DANCE_PLUS: Entity = make_entity_card(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ShivAdd { count: 4, upgraded: false }, // +1 shiv
+        kind: EffectKind::ShivAdd {
+            count: 4,
+            upgraded: false,
+        }, // +1 shiv
         id_source: None,
         target: Target::Direct(None),
     }],

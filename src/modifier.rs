@@ -5,10 +5,12 @@
 pub enum ModifierKind {
     Accuracy = 0,
     AfterImage,
+    Angry,
     Blur,
     Burst,
     Choke,
     CorpseExplosion,
+    CurlUp,
     Dexterity,
     DoubleDamage,
     DrawCardNextTurn,
@@ -73,6 +75,13 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_max: 999,
     },
     ModifierDef {
+        kind: ModifierKind::Angry,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
         kind: ModifierKind::Blur,
         is_buff: true,
         stacks_duration: true,
@@ -96,6 +105,13 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     ModifierDef {
         kind: ModifierKind::CorpseExplosion,
         is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::CurlUp,
+        is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: 999,

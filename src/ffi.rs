@@ -109,9 +109,7 @@ impl From<InternalCardCostKind> for CardCostKind {
         match k {
             InternalCardCostKind::Fixed => Self::Fixed {},
             InternalCardCostKind::MinusDiscardsThisTurn => Self::MinusDiscardsThisTurn {},
-            InternalCardCostKind::GrowsOnDamageInstanceTaken => {
-                Self::GrowsOnDamageInstanceTaken {}
-            }
+            InternalCardCostKind::GrowsOnDamageInstanceTaken => Self::GrowsOnDamageInstanceTaken {},
             InternalCardCostKind::XCost { offset } => Self::XCost { offset },
         }
     }
@@ -140,10 +138,12 @@ impl From<InternalRoomKind> for RoomKind {
 pub enum ModifierKind {
     Accuracy,
     AfterImage,
+    Angry,
     Blur,
     Burst,
     Choke,
     CorpseExplosion,
+    CurlUp,
     Dexterity,
     DoubleDamage,
     DrawCardNextTurn,
@@ -177,10 +177,12 @@ impl From<InternalModifierKind> for ModifierKind {
         match k {
             InternalModifierKind::Accuracy => Self::Accuracy,
             InternalModifierKind::AfterImage => Self::AfterImage,
+            InternalModifierKind::Angry => Self::Angry,
             InternalModifierKind::Blur => Self::Blur,
             InternalModifierKind::Burst => Self::Burst,
             InternalModifierKind::Choke => Self::Choke,
             InternalModifierKind::CorpseExplosion => Self::CorpseExplosion,
+            InternalModifierKind::CurlUp => Self::CurlUp,
             InternalModifierKind::Dexterity => Self::Dexterity,
             InternalModifierKind::DoubleDamage => Self::DoubleDamage,
             InternalModifierKind::DrawCardNextTurn => Self::DrawCardNextTurn,
@@ -819,10 +821,7 @@ fn build_view_card_template(
         requires_target: card.card_requires_target,
         retain: card.card_retain,
         free_to_play_once: card.card_free_to_play_once,
-        playable: is_play_restriction_satisfied(
-            card.card_play_restriction,
-            id_pile_draw,
-        ),
+        playable: is_play_restriction_satisfied(card.card_play_restriction, id_pile_draw),
         effects: card.card_effects[..card.card_effects_len as usize]
             .iter()
             .map(Effect::from_internal)

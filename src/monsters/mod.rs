@@ -3,8 +3,11 @@ pub mod fungi_beast;
 pub mod gremlin_fat;
 pub mod gremlin_thief;
 pub mod gremlin_tsundere;
+pub mod gremlin_warrior;
 pub mod gremlin_wizard;
 pub mod jaw_worm;
+pub mod louse_green;
+pub mod louse_red;
 pub mod slaver_blue;
 pub mod slime_acid_small;
 pub mod slime_spike_small;
@@ -32,7 +35,10 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         MonsterName::GremlinTsundere => {
             gremlin_tsundere::spawn_gremlin_tsundere(ascension_level, rng)
         }
+        MonsterName::GremlinWarrior => gremlin_warrior::spawn_gremlin_warrior(ascension_level, rng),
         MonsterName::GremlinWizard => gremlin_wizard::spawn_gremlin_wizard(ascension_level, rng),
+        MonsterName::LouseDefensive => louse_green::spawn_louse_green(ascension_level, rng),
+        MonsterName::LouseNormal => louse_red::spawn_louse_red(ascension_level, rng),
     }
 }
 
@@ -92,6 +98,16 @@ pub fn get_next_move(
                 .filter(|&&id| id != entity_id)
                 .count() as u8;
             gremlin_tsundere::get_next_move_gremlin_tsundere(entity.move_current, other_alive_count)
+        }
+        MonsterName::GremlinWarrior => gremlin_warrior::get_next_move_gremlin_warrior(),
+        MonsterName::LouseDefensive => louse_green::get_next_move_louse_green(
+            entity.move_current,
+            history,
+            ascension_level,
+            rng,
+        ),
+        MonsterName::LouseNormal => {
+            louse_red::get_next_move_louse_red(entity.move_current, history, ascension_level, rng)
         }
     }
 }

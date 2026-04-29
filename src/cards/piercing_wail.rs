@@ -11,7 +11,7 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     false,
-    true, 
+    true,
     false,
     false,
     &[
