@@ -794,8 +794,13 @@ fn dispatch_by_kind(
         }
         EffectKind::MoveUpdate => {
             let id_monster = id_target.unwrap();
+            let ascension_level = state.ascension;
             let entity = &mut state.entities[id_monster];
-            process_effect_move_update::process_effect_move_update(entity, &mut state.rng)
+            process_effect_move_update::process_effect_move_update(
+                entity,
+                ascension_level,
+                &mut state.rng,
+            )
         }
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(
             &state.id_rooms,

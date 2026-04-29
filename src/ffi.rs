@@ -716,6 +716,9 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                     InternalIntent::AttackBuff { damage, instances } => {
                         (Some(damage), Some(instances), false, true, false)
                     }
+                    InternalIntent::AttackDebuff { damage, instances } => {
+                        (Some(damage), Some(instances), false, false, true)
+                    }
                     InternalIntent::Block => (None, None, true, false, false),
                     InternalIntent::BlockBuff => (None, None, true, true, false),
                     InternalIntent::Buff => (None, None, false, true, false),
