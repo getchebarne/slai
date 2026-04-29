@@ -220,8 +220,8 @@ impl MonsterName {
             Self::FungiBeast => "Fungi Beast",
             Self::JawWorm => "Jaw Worm",
             Self::SlaverBlue => "Blue Slaver",
-            Self::SlimeAcidSmall => "Acid Slime",
-            Self::SlimeSpikeSmall => "Spike Slime",
+            Self::SlimeAcidSmall => "Acid Slime (S)",
+            Self::SlimeSpikeSmall => "Spike Slime (S)",
             Self::TheGuardian => "The Guardian",
         }
     }
