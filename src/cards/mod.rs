@@ -14,6 +14,7 @@ pub mod burst;
 pub mod calculated_gamble;
 pub mod caltrops;
 pub mod catalyst;
+pub mod choke;
 pub mod cloak_and_dagger;
 pub mod concentrate;
 pub mod corpse_explosion;
@@ -25,6 +26,7 @@ pub mod deadly_poison;
 pub mod defend;
 pub mod deflect;
 pub mod die_die_die;
+pub mod distraction;
 pub mod dodge_and_roll;
 pub mod envenom;
 pub mod escape_plan;
@@ -32,11 +34,13 @@ pub mod finisher;
 pub mod flechettes;
 pub mod flying_knee;
 pub mod footwork;
+pub mod glass_knife;
 pub mod grand_finale;
 pub mod heel_hook;
 pub mod infinite_blades;
 pub mod leg_sweep;
 pub mod neutralize;
+pub mod nightmare;
 pub mod noxious_fumes;
 pub mod outmaneuver;
 pub mod phantasmal_killer;
@@ -45,7 +49,9 @@ pub mod poisoned_stab;
 pub mod predator;
 pub mod prepared;
 pub mod quick_slash;
+pub mod reflex;
 pub mod riddle_with_holes;
+pub mod setup;
 pub mod shiv;
 pub mod slice;
 pub mod sneaky_strike;
@@ -53,10 +59,12 @@ pub mod storm_of_steel;
 pub mod strike;
 pub mod sucker_punch;
 pub mod survivor;
+pub mod tactician;
 pub mod terror;
 pub mod tools_of_the_trade;
 pub mod unload;
 pub mod well_laid_plans;
+pub mod wraith_form;
 
 use crate::entity::Entity;
 use crate::types::CardName;
@@ -95,6 +103,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Caltrops, true) => caltrops::CALTROPS_PLUS,
         (CardName::Catalyst, false) => catalyst::CATALYST,
         (CardName::Catalyst, true) => catalyst::CATALYST_PLUS,
+        (CardName::Choke, false) => choke::CHOKE,
+        (CardName::Choke, true) => choke::CHOKE_PLUS,
         (CardName::CloakAndDagger, false) => cloak_and_dagger::CLOAK_AND_DAGGER,
         (CardName::CloakAndDagger, true) => cloak_and_dagger::CLOAK_AND_DAGGER_PLUS,
         (CardName::Concentrate, false) => concentrate::CONCENTRATE,
@@ -117,6 +127,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Deflect, true) => deflect::DEFLECT_PLUS,
         (CardName::DieDieDie, false) => die_die_die::DIE_DIE_DIE,
         (CardName::DieDieDie, true) => die_die_die::DIE_DIE_DIE_PLUS,
+        (CardName::Distraction, false) => distraction::DISTRACTION,
+        (CardName::Distraction, true) => distraction::DISTRACTION_PLUS,
         (CardName::DodgeAndRoll, false) => dodge_and_roll::DODGE_AND_ROLL,
         (CardName::DodgeAndRoll, true) => dodge_and_roll::DODGE_AND_ROLL_PLUS,
         (CardName::Envenom, false) => envenom::ENVENOM,
@@ -131,6 +143,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::FlyingKnee, true) => flying_knee::FLYING_KNEE_PLUS,
         (CardName::Footwork, false) => footwork::FOOTWORK,
         (CardName::Footwork, true) => footwork::FOOTWORK_PLUS,
+        (CardName::GlassKnife, false) => glass_knife::GLASS_KNIFE,
+        (CardName::GlassKnife, true) => glass_knife::GLASS_KNIFE_PLUS,
         (CardName::GrandFinale, false) => grand_finale::GRAND_FINALE,
         (CardName::GrandFinale, true) => grand_finale::GRAND_FINALE_PLUS,
         (CardName::HeelHook, false) => heel_hook::HEEL_HOOK,
@@ -141,6 +155,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::LegSweep, true) => leg_sweep::LEG_SWEEP_PLUS,
         (CardName::Neutralize, false) => neutralize::NEUTRALIZE,
         (CardName::Neutralize, true) => neutralize::NEUTRALIZE_PLUS,
+        (CardName::Nightmare, false) => nightmare::NIGHTMARE,
+        (CardName::Nightmare, true) => nightmare::NIGHTMARE_PLUS,
         (CardName::NoxiousFumes, false) => noxious_fumes::NOXIOUS_FUMES,
         (CardName::NoxiousFumes, true) => noxious_fumes::NOXIOUS_FUMES_PLUS,
         (CardName::Outmaneuver, false) => outmaneuver::OUTMANEUVER,
@@ -157,8 +173,12 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Prepared, true) => prepared::PREPARED_PLUS,
         (CardName::QuickSlash, false) => quick_slash::QUICK_SLASH,
         (CardName::QuickSlash, true) => quick_slash::QUICK_SLASH_PLUS,
+        (CardName::Reflex, false) => reflex::REFLEX,
+        (CardName::Reflex, true) => reflex::REFLEX_PLUS,
         (CardName::RiddleWithHoles, false) => riddle_with_holes::RIDDLE_WITH_HOLES,
         (CardName::RiddleWithHoles, true) => riddle_with_holes::RIDDLE_WITH_HOLES_PLUS,
+        (CardName::Setup, false) => setup::SETUP,
+        (CardName::Setup, true) => setup::SETUP_PLUS,
         (CardName::Shiv, false) => shiv::SHIV,
         (CardName::Shiv, true) => shiv::SHIV_PLUS,
         (CardName::Slice, false) => slice::SLICE,
@@ -173,6 +193,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::SuckerPunch, true) => sucker_punch::SUCKER_PUNCH_PLUS,
         (CardName::Survivor, false) => survivor::SURVIVOR,
         (CardName::Survivor, true) => survivor::SURVIVOR_PLUS,
+        (CardName::Tactician, false) => tactician::TACTICIAN,
+        (CardName::Tactician, true) => tactician::TACTICIAN_PLUS,
         (CardName::Terror, false) => terror::TERROR,
         (CardName::Terror, true) => terror::TERROR_PLUS,
         (CardName::ToolsOfTheTrade, false) => tools_of_the_trade::TOOLS_OF_THE_TRADE,
@@ -181,6 +203,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Unload, true) => unload::UNLOAD_PLUS,
         (CardName::WellLaidPlans, false) => well_laid_plans::WELL_LAID_PLANS,
         (CardName::WellLaidPlans, true) => well_laid_plans::WELL_LAID_PLANS_PLUS,
+        (CardName::WraithForm, false) => wraith_form::WRAITH_FORM,
+        (CardName::WraithForm, true) => wraith_form::WRAITH_FORM_PLUS,
     }
 }
 
@@ -216,9 +240,11 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::CalculatedGamble,
     CardName::Caltrops,
     CardName::Catalyst,
+    CardName::Choke,
     CardName::Concentrate,
     CardName::CripplingPoison,
     CardName::Dash,
+    CardName::Distraction,
     CardName::EscapePlan,
     CardName::Finisher,
     CardName::Flechettes,
@@ -228,7 +254,10 @@ pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
     CardName::LegSweep,
     CardName::NoxiousFumes,
     CardName::Predator,
+    CardName::Reflex,
     CardName::RiddleWithHoles,
+    CardName::Setup,
+    CardName::Tactician,
     CardName::Terror,
     CardName::WellLaidPlans,
 ];
@@ -241,9 +270,12 @@ pub const REWARD_POOL_RARE: &[CardName] = &[
     CardName::CorpseExplosion,
     CardName::DieDieDie,
     CardName::Envenom,
+    CardName::GlassKnife,
     CardName::GrandFinale,
+    CardName::Nightmare,
     CardName::PhantasmalKiller,
     CardName::StormOfSteel,
     CardName::ToolsOfTheTrade,
     CardName::Unload,
+    CardName::WraithForm,
 ];

@@ -6,8 +6,13 @@
 // way to build an Entity — they set the relevant fields and zero the rest.
 
 use crate::consts::MAX_MOVE_HISTORY;
-use crate::effect::Effect;
+use crate::effect::{Effect, ZERO_EFFECT};
 use crate::modifier::{Modifiers, ZERO_MODIFIERS};
+
+// Per-card effect array capacity. Largest current card is RiddleWithHoles
+// (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
+// with practical caps, etc.). Bump when a card legitimately exceeds it.
+pub const MAX_EFFECTS_PER_CARD: usize = 8;
 use crate::types::{
     CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RoomKind, Vitals,
     ZERO_VITALS,
@@ -82,7 +87,14 @@ pub struct Entity {
     pub card_requires_target: bool,
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
-    pub card_effects: &'static [Effect],
+    pub card_free_to_play_once: bool,
+
+    // Per-instance, mutable; only `card_effects[..card_effects_len]` is live
+    pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
+    pub card_effects_len: u8,
+
+    // Fired only by `EffectKind::CardDiscard`, not by `CardMoveToDiscard` or `CardDiscardEndOfTurn`
+    pub card_on_discard_effects: &'static [Effect],
 
     // Room-only
     pub room_y: usize,
@@ -118,7 +130,10 @@ const ZERO_ENTITY: Entity = Entity {
     card_requires_target: false,
     card_retain: false,
     card_play_restriction: PlayRestriction::Always,
-    card_effects: &[],
+    card_free_to_play_once: false,
+    card_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_CARD],
+    card_effects_len: 0,
+    card_on_discard_effects: &[],
     room_y: 0,
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
@@ -169,9 +184,19 @@ pub const fn make_entity_card(
     exhaust: bool,
     innate: bool,
     requires_target: bool,
-    effects: &'static [Effect],
+    effects: &[Effect],
     play_restriction: PlayRestriction,
 ) -> Entity {
+    assert!(
+        effects.len() <= MAX_EFFECTS_PER_CARD,
+        "card_effects exceeds MAX_EFFECTS_PER_CARD",
+    );
+    let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_CARD];
+    let mut i = 0;
+    while i < effects.len() {
+        arr[i] = effects[i];
+        i += 1;
+    }
     Entity {
         kind: EntityKind::Card,
         card_name: name,
@@ -184,7 +209,8 @@ pub const fn make_entity_card(
         card_innate: innate,
         card_requires_target: requires_target,
         card_play_restriction: play_restriction,
-        card_effects: effects,
+        card_effects: arr,
+        card_effects_len: effects.len() as u8,
         ..ZERO_ENTITY
     }
 }
@@ -197,6 +223,17 @@ pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8
         room_kind,
         edges,
         ..ZERO_ENTITY
+    }
+}
+
+// Effective energy cost for a card right now: 0 if its `card_free_to_play_once`
+// flag is set (Setup/Distraction), otherwise the card's normal cost. The flag
+// is consumed by `process_effect_card_play` when the card actually resolves.
+pub fn card_effective_cost(card: &Entity) -> u8 {
+    if card.card_free_to_play_once {
+        0
+    } else {
+        card.card_cost
     }
 }
 

@@ -18,6 +18,7 @@ pub fn process_effect_combat_end(
     id_card_target: &mut Option<usize>,
     entities: &mut Vec<Entity>,
     monster_count: &mut u8,
+    id_card_nightmare: &mut Option<usize>,
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     queue: &mut VecDeque<Effect>,
@@ -27,6 +28,7 @@ pub fn process_effect_combat_end(
     id_pile_draw.clear();
     id_pile_discard.clear();
     id_pile_exhaust.clear();
+    *id_card_nightmare = None;
     *id_card_target = None;
 
     // Clear character's modifiers

@@ -72,4 +72,10 @@ pub struct GameState {
 
     // Entities / Card / Last drawn
     pub card_last_drawn: Option<usize>,
+
+    // Entities / Card / Last played: read by self-referential effects
+    pub card_last_played: Option<usize>,
+
+    // Nightmare-pending template snapshot id; flushed at next TurnStart
+    pub id_card_nightmare: Option<usize>,
 }

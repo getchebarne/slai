@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
-use crate::entity::Entity;
+use crate::entity::{Entity, card_effective_cost};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::types::CardKind;
 
@@ -12,30 +12,35 @@ pub fn process_effect_card_play(
     id_card: usize,
     _id_card_target: Option<usize>,
     id_character: usize,
-    entities: &[Entity],
+    entities: &mut [Entity],
     _hand: &[usize],
     alive_monsters: &[usize],
     this_turn_attacks_played: &mut u8,
+    card_last_played: &mut Option<usize>,
     _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let card = &entities[id_card];
+    let card = entities[id_card];
+    *card_last_played = Some(id_card);
 
-    // Counter for SneakyStrike-style "attacks played this turn" lookups.
-    // Increment before the card's effects fire so cards like Finisher can
-    // see their own play in the counter (Finisher's handler then subtracts 1
-    // to exclude itself
+    // Increment before effects fire so self-counting cards see their own play
     if card.card_kind == CardKind::Attack {
         *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
+    }
+
+    // Get effective cost
+    let cost = card_effective_cost(&card);
+
+    // Clear free-to-play-once flag
+    if card.card_free_to_play_once {
+        entities[id_card].card_free_to_play_once = false;
     }
 
     // Stack locals
     let mut buf_effects = EffectBuf::new();
 
     buf_effects.push(Effect {
-        kind: EffectKind::EnergyLoss {
-            amount: card.card_cost,
-        },
+        kind: EffectKind::EnergyLoss { amount: cost },
         id_source: None,
         target: Target::Direct(None),
     });
@@ -53,8 +58,7 @@ pub fn process_effect_card_play(
             target: Target::Direct(Some(id_card)),
         });
     } else {
-        // Move-after-play (NOT an explicit discard — see CardMoveToDiscard
-        // doc; doesn't increment this_turn_discards or trigger Reflex)
+        // Not a real discard: skips this_turn_discards and Reflex
         buf_effects.push(Effect {
             kind: EffectKind::CardMoveToDiscard,
             id_source: None,
@@ -76,8 +80,7 @@ pub fn process_effect_card_play(
         });
     }
 
-    // ThousandCuts: power-induced damage. id_source = None so Envenom doesn't
-    // proc; DamageDeal bypasses source-side Strength/Weak scaling.
+    // ThousandCuts: id_source = None to skip Envenom proc and Strength/Weak scaling
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &id_monster in alive_monsters {
@@ -113,7 +116,7 @@ pub fn process_effect_card_play(
         modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
     let reps = if burst { 2 } else { 1 };
     for _ in 0..reps {
-        for e in card.card_effects.iter() {
+        for e in card.card_effects[..card.card_effects_len as usize].iter() {
             buf_effects.push(Effect {
                 id_source: Some(id_character),
                 ..*e
@@ -129,6 +132,21 @@ pub fn process_effect_card_play(
             id_source: Some(id_character),
             target: Target::Direct(Some(id_character)),
         });
+    }
+
+    // Choke: pushed after card_effects so the played card resolves first
+    for &id_monster in alive_monsters {
+        let monster_mods = &entities[id_monster].modifiers;
+        if modifier_has(monster_mods, ModifierKind::Choke) {
+            let stacks = modifier_stacks(monster_mods, ModifierKind::Choke);
+            buf_effects.push(Effect {
+                kind: EffectKind::HealthLoss {
+                    amount: stacks as u16,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        }
     }
 
     buf_effects.push_all_front(queue);

@@ -6,7 +6,9 @@ pub enum EffectKind {
     Noop,
     DamagePhysical { amount: u16 },
     DamagePhysicalIfPoisoned { amount: u16 },
+    DistractionAdd,
     EscapePlanCheck { block: u16 },
+    GlassKnifeDecay { delta: i16 },
     FinisherDamage { damage: u16 },
     FlechettesDamage { damage: u16 },
     HeelHookProc,
@@ -23,7 +25,10 @@ pub enum EffectKind {
     CardDiscard,
     CardDiscardEndOfTurn,
     CardMoveToDiscard,
+    CardNightmarePick,
+    CardNightmareSpawn,
     CardRetain,
+    CardSetupPick,
     CalculatedGamble,
 
     // Runtime only (for now)
@@ -104,6 +109,14 @@ pub struct Effect {
     pub id_source: Option<usize>,
     pub target: Target,
 }
+
+// Default-zero Effect, used to fill fixed-size arrays (Entity.card_effects,
+// EffectBuf, etc.). Slots past `*_len` are ignored.
+pub const ZERO_EFFECT: Effect = Effect {
+    kind: EffectKind::Noop,
+    id_source: None,
+    target: Target::Direct(None),
+};
 
 impl Effect {
     pub const fn direct(

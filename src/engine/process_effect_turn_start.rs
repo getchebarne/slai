@@ -14,6 +14,7 @@ pub fn process_effect_turn_start(
     id_character: usize,
     energy: &Energy,
     id_monsters: &[usize],
+    nightmare_pending: bool,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Stack locals
@@ -98,6 +99,26 @@ pub fn process_effect_turn_start(
                     target: Target::Direct(Some(id_monster)),
                 });
             }
+        }
+
+        // Choke auto-removes at the next player turn start; modifier_remove is idempotent
+        for &id_monster in id_monsters {
+            buf_effects.push(Effect {
+                kind: EffectKind::ModifierRemove {
+                    kind: ModifierKind::Choke,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        }
+
+        // Nightmare
+        if nightmare_pending {
+            buf_effects.push(Effect {
+                kind: EffectKind::CardNightmareSpawn,
+                id_source: None,
+                target: Target::Direct(None),
+            });
         }
 
         // Modifier / DrawCardNextTurn

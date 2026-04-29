@@ -31,6 +31,11 @@ pub fn process_effect_damage_physical(
         value *= FACTOR_VULN;
     }
 
+    // Intangible
+    if modifier_has(mods_target, ModifierKind::Intangible) && value > 1.0 {
+        value = 1.0;
+    }
+
     // Thorns: triggers per attack instance regardless of damage actually dealt
     if let Some(id_source) = id_source {
         if id_source != id_target && modifier_has(mods_target, ModifierKind::Thorns) {

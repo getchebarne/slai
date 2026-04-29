@@ -11,6 +11,7 @@ pub mod process_effect_card_remove;
 pub mod process_effect_card_retain;
 pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_reward_roll;
+pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_upgrade;
 pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
@@ -18,14 +19,18 @@ pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_damage_physical_if_poisoned;
 pub mod process_effect_death;
+pub mod process_effect_distraction_add;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_finisher_damage;
 pub mod process_effect_flechettes_damage;
+pub mod process_effect_glass_knife_decay;
 pub mod process_effect_health_gain;
 pub mod process_effect_health_loss;
 pub mod process_effect_heel_hook_proc;
+pub mod process_effect_id_card_nightmare_pick;
+pub mod process_effect_id_card_nightmare_spawn;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -49,7 +54,7 @@ use std::collections::VecDeque;
 use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target, ZERO_EFFECT};
 use crate::entity::{Entity, EntityKind};
 use crate::map::{active_room_kind, has_edge};
 use crate::state::{GameState, Location};
@@ -68,12 +73,6 @@ pub enum DispatchResult {
 // front of the queue in order. Build up effects normally, then call
 // `push_all_front` once at the end of the handler.
 pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
-
-const ZERO_EFFECT: Effect = Effect {
-    kind: EffectKind::Noop,
-    id_source: None,
-    target: Target::Direct(None),
-};
 
 pub struct EffectBuf {
     pub effects: [Effect; MAX_EFFECTS_PER_HANDLER],
@@ -312,6 +311,12 @@ fn resolve_or_halt(
             EffectKind::CardRetain => DispatchResult::Halt {
                 phase_new: Phase::CombatAwaitRetain { num },
             },
+            EffectKind::CardSetupPick => DispatchResult::Halt {
+                phase_new: Phase::CombatAwaitSetup,
+            },
+            EffectKind::CardNightmarePick => DispatchResult::Halt {
+                phase_new: Phase::CombatAwaitNightmare,
+            },
             EffectKind::RoomSelect => DispatchResult::Halt {
                 phase_new: Phase::Map,
             },
@@ -343,19 +348,22 @@ fn dispatch_by_kind(
                 id_target.unwrap(),
                 state.id_card_target,
                 state.id_character,
-                &state.entities,
+                &mut state.entities,
                 &state.id_hand,
                 &buf_alive[..alive_n],
                 &mut state.this_turn_attacks_played,
+                &mut state.card_last_played,
                 &mut state.rng,
                 &mut state.effect_queue,
             )
         }
         EffectKind::CardDiscard => process_effect_card_discard::process_effect_card_discard(
             id_target.unwrap(),
+            &state.entities,
             &mut state.id_hand,
             &mut state.id_pile_discard,
             &mut state.this_turn_discards,
+            &mut state.effect_queue,
         ),
         EffectKind::CardMoveToDiscard => {
             process_effect_card_move_to_discard::process_effect_card_move_to_discard(
@@ -376,6 +384,29 @@ fn dispatch_by_kind(
             id_target.unwrap(),
             &mut state.entities,
         ),
+        EffectKind::CardSetupPick => {
+            process_effect_card_setup_pick::process_effect_card_setup_pick(
+                id_target.unwrap(),
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_draw,
+            )
+        }
+        EffectKind::CardNightmarePick => {
+            process_effect_id_card_nightmare_pick::process_effect_id_card_nightmare_pick(
+                &mut state.entities,
+                id_target.unwrap(),
+                &mut state.id_card_nightmare,
+            )
+        }
+        EffectKind::CardNightmareSpawn => {
+            process_effect_id_card_nightmare_spawn::process_effect_id_card_nightmare_spawn(
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+                &mut state.id_card_nightmare,
+            )
+        }
         EffectKind::CardExhaust => process_effect_card_exhaust::process_effect_card_exhaust(
             id_target.unwrap(),
             &mut state.id_hand,
@@ -449,6 +480,21 @@ fn dispatch_by_kind(
                 id_target,
                 amount,
                 &mut state.effect_queue,
+            )
+        }
+        EffectKind::GlassKnifeDecay { delta } => {
+            process_effect_glass_knife_decay::process_effect_glass_knife_decay(
+                &mut state.entities,
+                state.card_last_played,
+                delta,
+            )
+        }
+        EffectKind::DistractionAdd => {
+            process_effect_distraction_add::process_effect_distraction_add(
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+                &mut state.rng,
             )
         }
         EffectKind::EscapePlanCheck { block } => {
@@ -651,6 +697,7 @@ fn dispatch_by_kind(
             &mut state.id_card_target,
             &mut state.entities,
             &mut state.monster_count,
+            &mut state.id_card_nightmare,
             &state.id_rooms,
             state.location,
             &mut state.effect_queue,
@@ -661,6 +708,7 @@ fn dispatch_by_kind(
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+            let nightmare_pending = state.id_card_nightmare.is_some();
             let entity = &mut state.entities[id_actor];
             process_effect_turn_start::process_effect_turn_start(
                 &mut entity.vitals,
@@ -669,6 +717,7 @@ fn dispatch_by_kind(
                 state.id_character,
                 &state.energy,
                 &buf_alive[..alive_n],
+                nightmare_pending,
                 &mut state.effect_queue,
             )
         }
