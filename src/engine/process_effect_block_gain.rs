@@ -11,8 +11,7 @@ pub fn process_effect_block_gain(
 ) -> DispatchResult {
     let mut value = amount as f32;
 
-    // Card-sourced block runs Dexterity then Frail (StS order: dex adds, frail multiplies).
-    // Monster-sourced block (Lagavulin Metallicize, Shield Gremlin Protect) skips both.
+    // Card-sourced block runs Dexterity then Frail
     if from_card {
         if modifier_has(modifiers, ModifierKind::Dexterity) {
             value += modifier_stacks(modifiers, ModifierKind::Dexterity) as f32;

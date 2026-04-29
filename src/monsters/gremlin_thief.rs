@@ -4,12 +4,6 @@ use crate::modifier::ZERO_MODIFIERS;
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Sneaky Gremlin (Java class `GremlinThief`). Single-move monster: Puncture.
-//
-// Java's GremlinThief has an Escape mechanism (deathReact → switch intent to
-// ESCAPE when a sibling dies). Wired in Tier 4 alongside the rest of the
-// gremlin Escape network — for now, fights to death.
-
 static MOVE_PUNCTURE_9: Move = Move {
     name: "Puncture",
     effects: &[Effect {

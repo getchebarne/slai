@@ -4,13 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Fat Gremlin (`GremlinFat`). Single-move monster: Smash applies physical
-// damage + Weak, plus Frail at Asc 17+.
-//
-// Java's GremlinFat has an Escape mechanism (deathReact → switch intent to
-// ESCAPE when a sibling dies). Wired in Tier 4 alongside the rest of the
-// gremlin Escape network — for now, fights to death.
-
 static MOVE_SMASH_4_W1: Move = Move {
     name: "Smash",
     effects: &[

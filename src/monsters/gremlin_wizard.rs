@@ -4,23 +4,13 @@ use crate::modifier::ZERO_MODIFIERS;
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Gremlin Wizard. Two-charges-then-Magic state machine derived from
-// `move_history.ends_with([CHARGE, CHARGE])`. No per-entity counter.
-//
-// Asc 0–16:  Charge, Charge, Magic, Charge, Charge, Magic, …
-// Asc 17+:   Charge, Charge, Magic, Magic, Magic, … (no further charging)
-//
-// The Charge move has no effects — it's pure intent display (UNKNOWN). The
-// state machine alone produces the right cadence; the only side effect is
-// extending the move_history.
-
 static MOVE_CHARGE: Move = Move {
     name: "Charge",
     effects: &[],
     intent: Intent::Unknown,
 };
-static MOVE_MAGIC_25: Move = Move {
-    name: "Magic",
+static MOVE_ULTIMATE_BLAST_25: Move = Move {
+    name: "Ultimate Blast",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 25 },
         id_source: None,
@@ -34,8 +24,8 @@ static MOVE_MAGIC_25: Move = Move {
         instances: 1,
     },
 };
-static MOVE_MAGIC_30: Move = Move {
-    name: "Magic",
+static MOVE_ULTIMATE_BLAST_30: Move = Move {
+    name: "Ultimate Blast",
     effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 30 },
         id_source: None,
@@ -49,12 +39,12 @@ static MOVE_MAGIC_30: Move = Move {
         instances: 1,
     },
 };
-static MOVES_ASC0: [Move; 2] = [MOVE_CHARGE, MOVE_MAGIC_25];
-static MOVES_ASC2: [Move; 2] = [MOVE_CHARGE, MOVE_MAGIC_30];
-static MOVES_ASC17: [Move; 2] = [MOVE_CHARGE, MOVE_MAGIC_30];
+static MOVES_ASC0: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_25];
+static MOVES_ASC2: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];
+static MOVES_ASC17: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];
 
 const IDX_MOVE_CHARGE: usize = 0;
-const IDX_MOVE_MAGIC: usize = 1;
+const IDX_MOVE_ULTIMATE_BLAST: usize = 1;
 
 pub fn spawn_gremlin_wizard(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
@@ -96,16 +86,16 @@ pub fn get_next_move_gremlin_wizard(
     let last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;
-    if last == IDX_MOVE_MAGIC {
+    if last == IDX_MOVE_ULTIMATE_BLAST {
         return if ascension_level >= 17 {
-            IDX_MOVE_MAGIC
+            IDX_MOVE_ULTIMATE_BLAST
         } else {
             IDX_MOVE_CHARGE
         };
     }
-    // last was Charge — fire Magic only after two Charges in a row.
+    // Fire Ultimate Blast only after two Charges in a row
     if move_history.ends_with(&[IDX_MOVE_CHARGE as u8, IDX_MOVE_CHARGE as u8]) {
-        IDX_MOVE_MAGIC
+        IDX_MOVE_ULTIMATE_BLAST
     } else {
         IDX_MOVE_CHARGE
     }

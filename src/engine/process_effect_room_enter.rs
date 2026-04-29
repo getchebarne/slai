@@ -77,7 +77,7 @@ pub fn process_effect_room_enter(
                     // Gremlin Gang: 4 randomly-picked gremlins. STS canonical pool weights
                     // Warrior×2 / Thief×2 / Fat×2 / Tsundere×1 / Wizard×1 — but Mad Gremlin
                     // (GremlinWarrior) is Tier 2 (Angry power needs the on-damage hook),
-                    // so it's omitted until then.
+                    // so it's omitted until then
                     static POOL: &[MonsterName] = &[
                         MonsterName::GremlinThief,
                         MonsterName::GremlinThief,
@@ -87,9 +87,9 @@ pub fn process_effect_room_enter(
                         MonsterName::GremlinWizard,
                     ];
                     for _ in 0..4 {
-                        let pick = POOL[rng.random_range(0..POOL.len())];
-                        let m = spawn_monster(pick, ascension, rng);
-                        push_monster(m, entities, id_monsters, monster_count);
+                        let monster_name = POOL[rng.random_range(0..POOL.len())];
+                        let monster = spawn_monster(monster_name, ascension, rng);
+                        push_monster(monster, entities, id_monsters, monster_count);
                     }
                 }
                 _ => unreachable!(),

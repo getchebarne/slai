@@ -4,21 +4,6 @@ use crate::modifier::ZERO_MODIFIERS;
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Shield Gremlin (Java class `GremlinTsundere`). Two moves:
-//   - Protect: BlockGain to a random *other* alive monster.
-//   - Shield Bash: physical damage to character.
-//
-// Rotation: First move Protect. After Protect, repeat Protect while any
-// other monster is alive; otherwise switch to Shield Bash. After Shield
-// Bash, always Shield Bash forever.
-//
-// The Protect move targets `CandidatePool::OtherMonsters` with
-// `SelectionKind::Random { count: 1 }`. If no others are alive at the
-// moment Protect resolves, the BlockGain has no targets and silently
-// no-ops — but the move-selection logic will already have switched to
-// Shield Bash on the previous turn-end MoveUpdate, so this only matters
-// for the very first turn when the Gremlin is solo.
-
 static MOVE_PROTECT_7: Move = Move {
     name: "Protect",
     effects: &[Effect {
@@ -121,10 +106,7 @@ pub fn spawn_gremlin_tsundere(ascension_level: u8, rng: &mut impl Rng) -> Entity
     )
 }
 
-pub fn get_next_move_gremlin_tsundere(
-    move_current: Option<usize>,
-    other_alive_count: u8,
-) -> usize {
+pub fn get_next_move_gremlin_tsundere(move_current: Option<usize>, other_alive_count: u8) -> usize {
     if move_current.is_none() {
         return IDX_MOVE_PROTECT;
     }
@@ -132,7 +114,7 @@ pub fn get_next_move_gremlin_tsundere(
     if last == IDX_MOVE_BASH {
         return IDX_MOVE_BASH;
     }
-    // last was Protect
+    // Last was Protect
     if other_alive_count > 0 {
         IDX_MOVE_PROTECT
     } else {
