@@ -4,12 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// SpikeSlime_L (Java) / Spike Slime (L) (in-game).
-//
-// Three moves: Flame Tackle (damage + Slimed x2), Lick (Frail x2 / x3 at
-// Asc 17+), and Split (spawns 2x SlimeSpikeMedium then escapes).
-// See SpikeSlime_L.java:88-176.
-
 static MOVE_FLAME_TACKLE_16: Move = Move {
     name: "Flame Tackle",
     effects: &[

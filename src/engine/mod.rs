@@ -841,7 +841,7 @@ fn dispatch_by_kind(
         EffectKind::SpawnMonster { name } => {
             process_effect_spawn_monster::process_effect_spawn_monster(
                 name,
-                id_source.expect("SpawnMonster must have an id_source (the splitting monster)"),
+                id_source.unwrap(),
                 state.ascension,
                 &mut state.entities,
                 &mut state.id_monsters,
@@ -850,13 +850,10 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::EscapeMonster => {
-            let id_target = id_target.expect("EscapeMonster must have a target");
-            process_effect_escape_monster::process_effect_escape_monster(
-                id_target,
-                &mut state.entities,
-            )
-        }
+        EffectKind::EscapeMonster => process_effect_escape_monster::process_effect_escape_monster(
+            id_target.unwrap(),
+            &mut state.entities,
+        ),
         // Halt-kind variants: represent pending player decisions
         // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before

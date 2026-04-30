@@ -54,7 +54,7 @@ pub fn process_effect_damage_deal(
 }
 
 fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDeque<Effect>) {
-    // CurlUp: gain block = stacks once per combat, then remove the modifier.
+    // CurlUp: gain block = stacks once per combat, then remove the modifier
     if modifier_has(&target.modifiers, ModifierKind::CurlUp) {
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::CurlUp);
         modifier_remove(&mut target.modifiers, ModifierKind::CurlUp);
@@ -67,7 +67,7 @@ fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDe
         });
     }
 
-    // Angry: gain Strength = stacks every time we take damage.
+    // Angry: gain Strength = stacks every time it takes damage
     if modifier_has(&target.modifiers, ModifierKind::Angry) {
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::Angry);
         queue.push_front(Effect {
@@ -80,19 +80,21 @@ fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDe
         });
     }
 
-    // Splittable: when health drops to ≤ 50% (and the L is still alive),
-    // override move_current to the per-monster Split move and consume the
-    // Splittable marker so a multi-hit doesn't retrigger.
+    // Splittable: when 0% < health ≤ 50% override move_current to the per-monster Split
+    // move and consume the Splittable marker so a multi-hit doesn't retrigger
     if modifier_has(&target.modifiers, ModifierKind::Splittable)
         && target.vitals.health > 0
         && target.vitals.health <= target.vitals.health_max / 2
     {
-        let split_idx = match target.monster_name {
+        let idx_split = match target.monster_name {
             MonsterName::SlimeAcidLarge => slime_acid_large::IDX_MOVE_SPLIT,
             MonsterName::SlimeSpikeLarge => slime_spike_large::IDX_MOVE_SPLIT,
-            _ => return,
+            _ => panic!(
+                "Splittable on unexpected monster: {:?}",
+                target.monster_name
+            ),
         };
-        target.move_current = Some(split_idx);
+        target.move_current = Some(idx_split);
         modifier_remove(&mut target.modifiers, ModifierKind::Splittable);
     }
 }
