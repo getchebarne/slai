@@ -47,7 +47,7 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatMonster => {
-            let encounter: u8 = rng.random_range(0..6);
+            let encounter: u8 = rng.random_range(0..8);
             match encounter {
                 0 => {
                     let monster = spawn_monster(MonsterName::JawWorm, ascension, rng);
@@ -74,11 +74,10 @@ pub fn process_effect_room_enter(
                     push_monster(monster, entities, id_monsters, monster_count);
                 }
                 5 => {
-                    // Gremlin Gang: 4 randomly-picked gremlins. STS canonical pool weights
-                    // Warrior×2 / Thief×2 / Fat×2 / Tsundere×1 / Wizard×1 — but Mad Gremlin
-                    // (GremlinWarrior) is Tier 2 (Angry power needs the on-damage hook),
-                    // so it's omitted until then
+                    // Gremlin Gang: 4 randomly-picked gremlins
                     static POOL: &[MonsterName] = &[
+                        MonsterName::GremlinWarrior,
+                        MonsterName::GremlinWarrior,
                         MonsterName::GremlinThief,
                         MonsterName::GremlinThief,
                         MonsterName::GremlinFat,
@@ -87,6 +86,26 @@ pub fn process_effect_room_enter(
                         MonsterName::GremlinWizard,
                     ];
                     for _ in 0..4 {
+                        let monster_name = POOL[rng.random_range(0..POOL.len())];
+                        let monster = spawn_monster(monster_name, ascension, rng);
+                        push_monster(monster, entities, id_monsters, monster_count);
+                    }
+                }
+                6 => {
+                    // 2 Louse: independent draws from {Red, Green}
+                    static POOL: &[MonsterName] =
+                        &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
+                    for _ in 0..2 {
+                        let monster_name = POOL[rng.random_range(0..POOL.len())];
+                        let monster = spawn_monster(monster_name, ascension, rng);
+                        push_monster(monster, entities, id_monsters, monster_count);
+                    }
+                }
+                7 => {
+                    // 3 Louse: independent draws from {Red, Green}
+                    static POOL: &[MonsterName] =
+                        &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
+                    for _ in 0..3 {
                         let monster_name = POOL[rng.random_range(0..POOL.len())];
                         let monster = spawn_monster(monster_name, ascension, rng);
                         push_monster(monster, entities, id_monsters, monster_count);

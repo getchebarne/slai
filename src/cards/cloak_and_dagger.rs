@@ -23,7 +23,10 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd { count: 1, upgraded: false },
+            kind: EffectKind::ShivAdd {
+                count: 1,
+                upgraded: false,
+            },
             id_source: None,
             target: Target::Direct(None),
         },
@@ -54,7 +57,10 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd { count: 2, upgraded: false }, // +1 shiv
+            kind: EffectKind::ShivAdd {
+                count: 2, // +1 shiv
+                upgraded: false,
+            },
             id_source: None,
             target: Target::Direct(None),
         },

@@ -1,6 +1,6 @@
 pub mod process_effect_block_gain;
-pub mod process_effect_bullet_time_proc;
 pub mod process_effect_block_set;
+pub mod process_effect_bullet_time_proc;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discard_end_of_turn;
@@ -365,8 +365,7 @@ fn dispatch_by_kind(
             // Snapshot the cost-context counters by-value before the
             // entities mut borrow (Copy types, no borrow conflict)
             let this_turn_discards = state.this_turn_discards;
-            let this_combat_damage_instances_taken =
-                state.this_combat_damage_instances_taken;
+            let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
             let energy_current = state.energy.current;
             process_effect_card_play::process_effect_card_play(
                 id_target.unwrap(),
@@ -599,11 +598,12 @@ fn dispatch_by_kind(
             let id_target = id_target.unwrap();
             let id_character = state.id_character;
             // Snapshot character modifiers separately to avoid aliasing the
-            // entities borrow taken below for vitals
+            // entities borrow taken below for the target's vitals/modifiers
             let mods_char = state.entities[id_character].modifiers;
-            let vitals = &mut state.entities[id_target].vitals;
+            let target = &mut state.entities[id_target];
             process_effect_damage_deal::process_effect_damage_deal(
-                vitals,
+                &mut target.vitals,
+                &mut target.modifiers,
                 id_source,
                 id_target,
                 id_character,
@@ -624,9 +624,8 @@ fn dispatch_by_kind(
             // (not per HP lost). HealthLoss is post-block, so amount > 0
             // already excludes block-fully-absorbed events
             if id_target == state.id_character && amount > 0 {
-                state.this_combat_damage_instances_taken = state
-                    .this_combat_damage_instances_taken
-                    .saturating_add(1);
+                state.this_combat_damage_instances_taken =
+                    state.this_combat_damage_instances_taken.saturating_add(1);
             }
             let entity = &mut state.entities[id_target];
             process_effect_health_loss::process_effect_health_loss(
