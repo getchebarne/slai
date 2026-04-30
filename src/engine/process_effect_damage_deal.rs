@@ -29,9 +29,7 @@ pub fn process_effect_damage_deal(
         });
 
         // Envenom (source-side): when player attack lands unblocked damage on a
-        // non-self target, apply Envenom stacks of Poison to the target.
-        // Stays inline — distinct from fire_on_damage_taken below which is
-        // target-side (reading the target's own modifiers to react).
+        // non-self target, apply Envenom stacks of Poison to the target
         if id_source == Some(id_character)
             && id_target != id_character
             && modifier_has(mods_char, ModifierKind::Envenom)
@@ -47,10 +45,7 @@ pub fn process_effect_damage_deal(
             });
         }
 
-        // Target-side hook — fires only when actual HP loss > 0 and only when
-        // the source is a different entity (no self-damage). ModeShift's
-        // damage-accumulator logic lives in process_effect_health_loss for
-        // historical reasons; CurlUp, Angry, and Splittable slot in here.
+        // Target-side hook — fires only when actual HP loss > 0
         if id_source != Some(id_target) {
             fire_on_damage_taken(target, id_target, queue);
         }

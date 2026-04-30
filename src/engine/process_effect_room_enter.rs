@@ -82,8 +82,7 @@ pub fn process_effect_room_enter(
                     push_monster(monster, entities, id_monsters, monster_count);
                 }
                 5 => {
-                    // Gremlin Gang: 4 gremlins drawn WITHOUT replacement from
-                    // [Warrior×2, Thief×2, Fat×2, Tsundere×1, Wizard×1].
+                    // Gremlin Gang: 4 gremlins drawn without replacement
                     let mut pool: [MonsterName; 8] = [
                         MonsterName::GremlinWarrior,
                         MonsterName::GremlinWarrior,
@@ -101,7 +100,7 @@ pub fn process_effect_room_enter(
                     }
                 }
                 6 => {
-                    // 2 Louse: independent draws from {Red, Green}.
+                    // 2 Louse: independent draws from {Red, Green}
                     static POOL: &[MonsterName] =
                         &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
                     for _ in 0..2 {
@@ -111,7 +110,7 @@ pub fn process_effect_room_enter(
                     }
                 }
                 7 => {
-                    // 3 Louse: independent draws from {Red, Green}.
+                    // 3 Louse: independent draws from {Red, Green}
                     static POOL: &[MonsterName] =
                         &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
                     for _ in 0..3 {
@@ -164,13 +163,13 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatElite => {
-            // Elite roster — extends in Tier 5 to include Gremlin Nob and Lagavulin.
-            let m1 = spawn_monster(MonsterName::Sentry, ascension, rng);
-            let m2 = spawn_monster(MonsterName::Sentry, ascension, rng);
-            let m3 = spawn_monster(MonsterName::Sentry, ascension, rng);
-            push_monster(m1, entities, id_monsters, monster_count);
-            push_monster(m2, entities, id_monsters, monster_count);
-            push_monster(m3, entities, id_monsters, monster_count);
+            // Sentries
+            let monster_1 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            let monster_2 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            let monster_3 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            push_monster(monster_1, entities, id_monsters, monster_count);
+            push_monster(monster_2, entities, id_monsters, monster_count);
+            push_monster(monster_3, entities, id_monsters, monster_count);
             queue.push_front(Effect {
                 kind: EffectKind::CombatStart,
                 id_source: None,
