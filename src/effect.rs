@@ -26,7 +26,11 @@ pub enum EffectKind {
     ShivAdd { count: u8, upgraded: bool },
     CardDraw { count: u8 },
     DrawUpTo { target: u8 },
-    CardAddToDiscard { card_name: CardName, count: u8 },
+    CardAddToDiscard {
+        card_name: CardName,
+        count: u8,
+        upgraded: bool,
+    },
     CardDiscard,
     CardDiscardEndOfTurn,
     CardMoveToDiscard,
@@ -65,6 +69,8 @@ pub enum EffectKind {
     EscapeMonster,
     GoldSteal { amount: u8 },
     GoldGain { amount: u16 },
+    HexaghostBurnIncrease { count: u8 },
+    HexaghostDivider { hits: u8 },
 
     // Select: halts the queue asking the player to pick a target. After the
     // pick, the same EffectKind runs as `Direct` with the chosen entity,

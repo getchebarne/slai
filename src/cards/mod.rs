@@ -11,6 +11,7 @@ pub mod blade_dance;
 pub mod blur;
 pub mod bouncing_flask;
 pub mod bullet_time;
+pub mod burn;
 pub mod burst;
 pub mod calculated_gamble;
 pub mod caltrops;
@@ -107,6 +108,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::BouncingFlask, true) => bouncing_flask::BOUNCING_FLASK_PLUS,
         (CardName::BulletTime, false) => bullet_time::BULLET_TIME,
         (CardName::BulletTime, true) => bullet_time::BULLET_TIME_PLUS,
+        (CardName::Burn, false) => burn::BURN,
+        (CardName::Burn, true) => burn::BURN_UPGRADED,
         (CardName::Burst, false) => burst::BURST,
         (CardName::Burst, true) => burst::BURST_PLUS,
         (CardName::CalculatedGamble, false) => calculated_gamble::CALCULATED_GAMBLE,

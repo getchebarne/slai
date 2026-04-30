@@ -28,6 +28,7 @@ static MOVE_FLAME_TACKLE_8: Move = Move {
             kind: EffectKind::CardAddToDiscard {
                 card_name: CardName::Slimed,
                 count: 1,
+                upgraded: false,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -53,6 +54,7 @@ static MOVE_FLAME_TACKLE_10: Move = Move {
             kind: EffectKind::CardAddToDiscard {
                 card_name: CardName::Slimed,
                 count: 1,
+                upgraded: false,
             },
             id_source: None,
             target: Target::Direct(None),

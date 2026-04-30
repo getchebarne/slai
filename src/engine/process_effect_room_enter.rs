@@ -39,12 +39,13 @@ pub fn process_effect_room_enter(
     let room = active_room_kind(id_rooms, location, entities).unwrap();
     match room {
         RoomKind::CombatBoss => {
-            // Act 1 boss: 50/50 between TheGuardian and SlimeBoss. Hexaghost
-            // lands in Tier 6.
-            let name = if rng.random_bool(0.5) {
-                MonsterName::TheGuardian
-            } else {
-                MonsterName::SlimeBoss
+            // Act 1 boss: uniform 1/3 between TheGuardian, SlimeBoss, Hexaghost
+            let pick: u8 = rng.random_range(0..3);
+            let name = match pick {
+                0 => MonsterName::TheGuardian,
+                1 => MonsterName::SlimeBoss,
+                2 => MonsterName::Hexaghost,
+                _ => unreachable!(),
             };
             let m = spawn_monster(name, ascension, rng);
             push_monster(m, entities, id_monsters, monster_count);

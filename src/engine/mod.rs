@@ -34,6 +34,8 @@ pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_gain;
 pub mod process_effect_gold_steal;
 pub mod process_effect_health_gain;
+pub mod process_effect_hexaghost_burn_increase;
+pub mod process_effect_hexaghost_divider;
 pub mod process_effect_health_loss;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_id_card_nightmare_pick;
@@ -388,14 +390,17 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::CardAddToDiscard { card_name, count } => {
-            process_effect_card_add_to_discard::process_effect_card_add_to_discard(
-                card_name,
-                count,
-                &mut state.entities,
-                &mut state.id_pile_discard,
-            )
-        }
+        EffectKind::CardAddToDiscard {
+            card_name,
+            count,
+            upgraded,
+        } => process_effect_card_add_to_discard::process_effect_card_add_to_discard(
+            card_name,
+            count,
+            upgraded,
+            &mut state.entities,
+            &mut state.id_pile_discard,
+        ),
         EffectKind::CardDiscard => process_effect_card_discard::process_effect_card_discard(
             id_target.unwrap(),
             &state.entities,
@@ -876,6 +881,24 @@ fn dispatch_by_kind(
             amount,
             &mut state.entities,
         ),
+        EffectKind::HexaghostBurnIncrease { count } => {
+            process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase(
+                count,
+                &mut state.entities,
+                &state.id_pile_draw,
+                &state.id_pile_discard,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::HexaghostDivider { hits } => {
+            process_effect_hexaghost_divider::process_effect_hexaghost_divider(
+                hits,
+                id_source,
+                state.id_character,
+                &state.entities,
+                &mut state.effect_queue,
+            )
+        }
         // Halt-kind variants: represent pending player decisions
         // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before

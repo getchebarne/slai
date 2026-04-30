@@ -6,6 +6,7 @@ pub mod gremlin_thief;
 pub mod gremlin_tsundere;
 pub mod gremlin_warrior;
 pub mod gremlin_wizard;
+pub mod hexaghost;
 pub mod jaw_worm;
 pub mod lagavulin;
 pub mod looter;
@@ -48,6 +49,7 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         }
         MonsterName::GremlinWarrior => gremlin_warrior::spawn_gremlin_warrior(ascension_level, rng),
         MonsterName::GremlinWizard => gremlin_wizard::spawn_gremlin_wizard(ascension_level, rng),
+        MonsterName::Hexaghost => hexaghost::spawn_hexaghost(ascension_level),
         MonsterName::Lagavulin => lagavulin::spawn_lagavulin(ascension_level, rng),
         MonsterName::Looter => looter::spawn_looter(ascension_level, rng),
         MonsterName::LouseDefensive => louse_green::spawn_louse_green(ascension_level, rng),
@@ -123,6 +125,9 @@ pub fn get_next_move(
             history,
             ascension_level,
         ),
+        MonsterName::Hexaghost => {
+            hexaghost::get_next_move_hexaghost(entity.move_current, history)
+        }
         MonsterName::GremlinTsundere => {
             let other_alive_count = id_alive_monsters
                 .iter()
