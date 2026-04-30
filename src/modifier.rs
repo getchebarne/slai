@@ -30,6 +30,7 @@ pub enum ModifierKind {
     Ritual,
     Shackled,
     SharpHide,
+    Splittable,
     SporeCloud,
     Strength,
     Thorns,
@@ -249,6 +250,13 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Splittable,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
     },
     ModifierDef {
         kind: ModifierKind::SporeCloud,

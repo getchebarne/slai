@@ -2,12 +2,13 @@ use std::collections::VecDeque;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
+use crate::entity::Entity;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
-use crate::types::Vitals;
+use crate::monsters::{slime_acid_large, slime_spike_large};
+use crate::types::MonsterName;
 
 pub fn process_effect_damage_deal(
-    vitals: &mut Vitals,
-    mods_target: &mut Modifiers,
+    target: &mut Entity,
     id_source: Option<usize>,
     id_target: usize,
     id_character: usize,
@@ -15,8 +16,8 @@ pub fn process_effect_damage_deal(
     amount: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let damage_over_block = amount.saturating_sub(vitals.block);
-    vitals.block = vitals.block.saturating_sub(amount);
+    let damage_over_block = amount.saturating_sub(target.vitals.block);
+    target.vitals.block = target.vitals.block.saturating_sub(amount);
 
     if damage_over_block > 0 {
         queue.push_front(Effect {
@@ -46,21 +47,17 @@ pub fn process_effect_damage_deal(
 
         // Target-side hook — fires only when actual HP loss > 0
         if id_source != Some(id_target) {
-            fire_on_damage_taken(mods_target, id_target, queue);
+            fire_on_damage_taken(target, id_target, queue);
         }
     }
     DispatchResult::Continue
 }
 
-fn fire_on_damage_taken(
-    mods_target: &mut Modifiers,
-    id_target: usize,
-    queue: &mut VecDeque<Effect>,
-) {
+fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDeque<Effect>) {
     // CurlUp: gain block = stacks once per combat, then remove the modifier
-    if modifier_has(mods_target, ModifierKind::CurlUp) {
-        let stacks = modifier_stacks(mods_target, ModifierKind::CurlUp);
-        modifier_remove(mods_target, ModifierKind::CurlUp);
+    if modifier_has(&target.modifiers, ModifierKind::CurlUp) {
+        let stacks = modifier_stacks(&target.modifiers, ModifierKind::CurlUp);
+        modifier_remove(&mut target.modifiers, ModifierKind::CurlUp);
         queue.push_front(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
@@ -71,8 +68,8 @@ fn fire_on_damage_taken(
     }
 
     // Angry: gain Strength = stacks every time it takes damage
-    if modifier_has(mods_target, ModifierKind::Angry) {
-        let stacks = modifier_stacks(mods_target, ModifierKind::Angry);
+    if modifier_has(&target.modifiers, ModifierKind::Angry) {
+        let stacks = modifier_stacks(&target.modifiers, ModifierKind::Angry);
         queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
@@ -81,5 +78,23 @@ fn fire_on_damage_taken(
             id_source: None,
             target: Target::Direct(Some(id_target)),
         });
+    }
+
+    // Splittable: when 0% < health ≤ 50% override move_current to the per-monster Split
+    // move and consume the Splittable marker so a multi-hit doesn't retrigger
+    if modifier_has(&target.modifiers, ModifierKind::Splittable)
+        && target.vitals.health > 0
+        && target.vitals.health <= target.vitals.health_max / 2
+    {
+        let idx_split = match target.monster_name {
+            MonsterName::SlimeAcidLarge => slime_acid_large::IDX_MOVE_SPLIT,
+            MonsterName::SlimeSpikeLarge => slime_spike_large::IDX_MOVE_SPLIT,
+            _ => panic!(
+                "Splittable on unexpected monster: {:?}",
+                target.monster_name
+            ),
+        };
+        target.move_current = Some(idx_split);
+        modifier_remove(&mut target.modifiers, ModifierKind::Splittable);
     }
 }
