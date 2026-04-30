@@ -2,8 +2,9 @@ use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::entity::{card_effective_cost, is_play_restriction_satisfied};
 use crate::map::{has_edge, room_at};
+use crate::modifier::{ModifierKind, modifier_has};
 use crate::state::{GameState, Location};
-use crate::types::Phase;
+use crate::types::{CardKind, Phase};
 use crate::utils::fill_alive_monster_ids;
 
 #[derive(Debug, Clone)]
@@ -111,6 +112,19 @@ fn handle_card_play(
         return Err(format!(
             "Card {:?} not playable right now (restriction: {:?})",
             card.card_name, card.card_play_restriction,
+        ));
+    }
+
+    // Entangled: blocks playing Attack cards for one turn (SlaverRed Entangle).
+    if card.card_kind == CardKind::Attack
+        && modifier_has(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::Entangled,
+        )
+    {
+        return Err(format!(
+            "Card {:?} cannot be played while Entangled",
+            card.card_name,
         ));
     }
 

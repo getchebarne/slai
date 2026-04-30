@@ -1,12 +1,12 @@
 use crate::cards::get_card;
-use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
+use crate::consts::{CARD_REWARD_ROLL_OFFSET_BASE, STARTING_GOLD};
 use crate::entity::{Entity, make_entity_character};
 use crate::types::CardName;
 use crate::types::Vitals;
 
 pub fn spawn_silent(ascension: u8) -> Entity {
     let (health, health_max) = silent_health(ascension);
-    make_entity_character(
+    let mut e = make_entity_character(
         "Silent",
         Vitals {
             health,
@@ -14,7 +14,9 @@ pub fn spawn_silent(ascension: u8) -> Entity {
             block: 0,
         },
         CARD_REWARD_ROLL_OFFSET_BASE,
-    )
+    );
+    e.gold = STARTING_GOLD;
+    e
 }
 
 pub fn silent_starter_deck() -> Vec<Entity> {

@@ -31,6 +31,8 @@ pub mod process_effect_escape_plan_check;
 pub mod process_effect_finisher_damage;
 pub mod process_effect_flechettes_damage;
 pub mod process_effect_glass_knife_decay;
+pub mod process_effect_gold_gain;
+pub mod process_effect_gold_steal;
 pub mod process_effect_health_gain;
 pub mod process_effect_health_loss;
 pub mod process_effect_heel_hook_proc;
@@ -854,9 +856,26 @@ fn dispatch_by_kind(
             let id_target = id_target.expect("EscapeMonster must have a target");
             process_effect_escape_monster::process_effect_escape_monster(
                 id_target,
+                &state.id_monsters,
+                state.monster_count,
+                &mut state.entities,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::GoldSteal { amount } => {
+            let id_src = id_source.expect("GoldSteal must have an id_source (the stealing monster)");
+            process_effect_gold_steal::process_effect_gold_steal(
+                id_src,
+                state.id_character,
+                amount,
                 &mut state.entities,
             )
         }
+        EffectKind::GoldGain { amount } => process_effect_gold_gain::process_effect_gold_gain(
+            state.id_character,
+            amount,
+            &mut state.entities,
+        ),
         // Halt-kind variants: represent pending player decisions
         // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before

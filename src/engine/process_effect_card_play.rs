@@ -161,6 +161,25 @@ pub fn process_effect_card_play(
         }
     }
 
+    // Enrage (Gremlin Nob's "Bellow" buff): on player Skill played, gain
+    // Strength = stacks. Java AngerPower.onUseCard.
+    if card.card_kind == CardKind::Skill {
+        for &id_monster in alive_monsters {
+            let monster_mods = &entities[id_monster].modifiers;
+            if modifier_has(monster_mods, ModifierKind::Enrage) {
+                let stacks = modifier_stacks(monster_mods, ModifierKind::Enrage);
+                buf_effects.push(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::Strength,
+                        stacks,
+                    },
+                    id_source: Some(id_monster),
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+        }
+    }
+
     buf_effects.push_all_front(queue);
     DispatchResult::Continue
 }

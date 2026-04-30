@@ -48,6 +48,18 @@ pub fn process_effect_turn_end_monster(
             target: Target::Direct(Some(id_actor)),
         });
     }
+
+    // Metallicize: gain Block = stacks at monster turn end.
+    if modifier_has(modifiers, ModifierKind::Metallicize) {
+        let stacks = modifier_stacks(modifiers, ModifierKind::Metallicize);
+        queue.push_front(Effect {
+            kind: EffectKind::BlockGain {
+                amount: stacks as u16,
+            },
+            id_source: Some(id_actor),
+            target: Target::Direct(Some(id_actor)),
+        });
+    }
     DispatchResult::Continue
 }
 
@@ -180,6 +192,18 @@ pub fn process_effect_turn_end_character(
         buf_effects.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::NoDraw,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    // Entangled: applied by SlaverRed's Entangle move; removes wholesale at
+    // end of the player turn that started with it active. Java EntanglePower.atEndOfTurn.
+    if modifier_has(mods_char, ModifierKind::Entangled) {
+        buf_effects.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Entangled,
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),

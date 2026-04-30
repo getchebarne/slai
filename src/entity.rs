@@ -53,6 +53,8 @@ pub enum Intent {
     Buff,
     Debuff,
     DebuffPowerful,
+    Escape,
+    Sleep,
     Unknown,
 }
 
@@ -76,6 +78,12 @@ pub struct Entity {
     // Character-only
     pub character_name: &'static str,
     pub reward_roll_offset: i8,
+    pub gold: u16,
+
+    // Monster-only: amount of gold this monster has stolen from the character
+    // this combat. Returned to the character as `EffectKind::GoldGain` when
+    // the monster dies; lost when the monster escapes (Looter).
+    pub stolen_gold: u16,
 
     // Monster-only
     pub monster_name: MonsterName,
@@ -126,6 +134,8 @@ const ZERO_ENTITY: Entity = Entity {
     modifiers: ZERO_MODIFIERS,
     character_name: "",
     reward_roll_offset: 0,
+    gold: 0,
+    stolen_gold: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
     moves: &[],

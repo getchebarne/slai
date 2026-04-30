@@ -35,7 +35,9 @@ pub fn process_effect_modifier_gain(
         return DispatchResult::Continue;
     }
 
-    // Negative stacks reduce existing modifier, removing if below minimum
+    // Negative stacks reduce existing modifier, removing if below minimum.
+    // For modifiers whose stacks_min < 0 (Strength, Dexterity), absent →
+    // create with a negative value via modifier_apply (Lagavulin Siphon Soul).
     if stacks < 0 {
         if modifier_has(modifiers, kind) {
             let idx = kind as usize;
@@ -44,6 +46,8 @@ pub fn process_effect_modifier_gain(
             if modifiers.stacks[idx] < mod_def.stacks_min {
                 modifier_remove(modifiers, kind);
             }
+        } else if modifier_def(kind).stacks_min < 0 {
+            modifier_apply(modifiers, kind, stacks);
         }
         return DispatchResult::Continue;
     }

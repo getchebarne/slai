@@ -9,9 +9,12 @@ pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_VULN: f32 = 1.50;
 pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
-pub const MAX_MONSTERS: usize = 5;
+pub const MAX_MONSTERS: usize = 8;
 pub const MAX_BLOCK: u16 = 999;
 pub const NIGHTMARE_COPIES: u8 = 3;
+
+// Character starting state
+pub const STARTING_GOLD: u16 = 99;
 
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;
