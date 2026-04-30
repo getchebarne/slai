@@ -4,11 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Sentry (Elite). Strict Bolt ↔ Beam alternation. First move depends on
-// position in the alive-monsters list: even index → Bolt, odd → Beam.
-// Innate Artifact 1 at spawn — first incoming debuff is intercepted by the
-// hook in process_effect_modifier_gain.
-
 static MOVE_BEAM_9: Move = Move {
     name: "Beam",
     effects: &[Effect {
@@ -87,6 +82,7 @@ pub fn spawn_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
         &MOVES_ASC18
     };
 
+    // Spawn with 1 Artifact stack
     let mut modifiers = ZERO_MODIFIERS;
     modifier_apply(&mut modifiers, ModifierKind::Artifact, 1);
 
@@ -103,6 +99,10 @@ pub fn spawn_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     )
 }
 
+// Strict Bolt <-> Beam alternation. First move depends on
+// position in the monster roster
+//     - even index: Bolt
+//     - odd: Beam
 pub fn get_next_move_sentry(
     move_current: Option<usize>,
     move_history: &[u8],
@@ -110,9 +110,6 @@ pub fn get_next_move_sentry(
     id_alive_monsters: &[usize],
 ) -> usize {
     if move_current.is_none() {
-        // First move: position-aware. Even index in the alive list → Bolt;
-        // odd index → Beam. Java uses `monsters.lastIndexOf(this)` which
-        // for a freshly-spawned trio matches the alive-list position.
         let position = id_alive_monsters
             .iter()
             .position(|&id| id == entity_id)
@@ -123,7 +120,7 @@ pub fn get_next_move_sentry(
             IDX_MOVE_BEAM
         };
     }
-    // Subsequent moves: strict alternation.
+    // Subsequent moves: strict alternation
     let last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;

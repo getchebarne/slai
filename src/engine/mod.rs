@@ -413,7 +413,7 @@ fn dispatch_by_kind(
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
-                &mut state.id_pile_exhaust,
+                &mut state.effect_queue,
             )
         }
         EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(

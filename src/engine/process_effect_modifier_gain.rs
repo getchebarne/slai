@@ -18,20 +18,16 @@ pub fn process_effect_modifier_gain(
         }
     }
 
-    // Artifact: incoming debuff (positive stacks of a non-buff modifier) is
-    // intercepted; one Artifact stack is consumed instead of the modifier
-    // being applied. Removing Artifact at 1 stack stops the intercept on
-    // future debuffs.
-    if stacks > 0
-        && !modifier_def(kind).is_buff
-        && modifier_has(modifiers, ModifierKind::Artifact)
+    // Check artifact
+    if stacks > 0 && !modifier_def(kind).is_buff && modifier_has(modifiers, ModifierKind::Artifact)
     {
-        let new_artifact = modifier_stacks(modifiers, ModifierKind::Artifact) - 1;
-        if new_artifact < modifier_def(ModifierKind::Artifact).stacks_min {
+        let stacks_new = modifier_stacks(modifiers, ModifierKind::Artifact) - 1;
+        if stacks_new < modifier_def(ModifierKind::Artifact).stacks_min {
             modifier_remove(modifiers, ModifierKind::Artifact);
         } else {
-            modifiers.stacks[ModifierKind::Artifact as usize] = new_artifact;
+            modifiers.stacks[ModifierKind::Artifact as usize] = stacks_new;
         }
+        // Early return without applying debuff
         return DispatchResult::Continue;
     }
 
