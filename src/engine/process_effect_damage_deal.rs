@@ -28,9 +28,7 @@ pub fn process_effect_damage_deal(
         });
 
         // Envenom (source-side): when player attack lands unblocked damage on a
-        // non-self target, apply Envenom stacks of Poison to the target.
-        // Stays inline — distinct from fire_on_damage_taken below which is
-        // target-side (reading the target's own modifiers to react).
+        // non-self target, apply Envenom stacks of Poison to the target
         if id_source == Some(id_character)
             && id_target != id_character
             && modifier_has(mods_char, ModifierKind::Envenom)
@@ -46,10 +44,7 @@ pub fn process_effect_damage_deal(
             });
         }
 
-        // Target-side hook — fires only when actual HP loss > 0 and only when
-        // the source is a different entity (no self-damage). ModeShift's
-        // damage-accumulator logic lives in process_effect_health_loss for
-        // historical reasons; CurlUp and Angry slot in here.
+        // Target-side hook — fires only when actual HP loss > 0
         if id_source != Some(id_target) {
             fire_on_damage_taken(mods_target, id_target, queue);
         }
@@ -62,7 +57,7 @@ fn fire_on_damage_taken(
     id_target: usize,
     queue: &mut VecDeque<Effect>,
 ) {
-    // CurlUp: gain block = stacks once per combat, then remove the modifier.
+    // CurlUp: gain block = stacks once per combat, then remove the modifier
     if modifier_has(mods_target, ModifierKind::CurlUp) {
         let stacks = modifier_stacks(mods_target, ModifierKind::CurlUp);
         modifier_remove(mods_target, ModifierKind::CurlUp);
@@ -75,7 +70,7 @@ fn fire_on_damage_taken(
         });
     }
 
-    // Angry: gain Strength = stacks every time we take damage.
+    // Angry: gain Strength = stacks every time it takes damage
     if modifier_has(mods_target, ModifierKind::Angry) {
         let stacks = modifier_stacks(mods_target, ModifierKind::Angry);
         queue.push_front(Effect {

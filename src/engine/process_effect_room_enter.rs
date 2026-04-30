@@ -74,8 +74,7 @@ pub fn process_effect_room_enter(
                     push_monster(monster, entities, id_monsters, monster_count);
                 }
                 5 => {
-                    // Gremlin Gang: 4 randomly-picked gremlins. Canonical STS pool:
-                    // Warrior×2 / Thief×2 / Fat×2 / Tsundere×1 / Wizard×1.
+                    // Gremlin Gang: 4 randomly-picked gremlins
                     static POOL: &[MonsterName] = &[
                         MonsterName::GremlinWarrior,
                         MonsterName::GremlinWarrior,
@@ -93,7 +92,7 @@ pub fn process_effect_room_enter(
                     }
                 }
                 6 => {
-                    // 2 Louse: independent draws from {Red, Green}.
+                    // 2 Louse: independent draws from {Red, Green}
                     static POOL: &[MonsterName] =
                         &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
                     for _ in 0..2 {
@@ -103,7 +102,7 @@ pub fn process_effect_room_enter(
                     }
                 }
                 7 => {
-                    // 3 Louse: independent draws from {Red, Green}.
+                    // 3 Louse: independent draws from {Red, Green}
                     static POOL: &[MonsterName] =
                         &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
                     for _ in 0..3 {

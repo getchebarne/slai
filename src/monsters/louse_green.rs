@@ -4,13 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Green Louse (Java class `LouseDefensive`).
-//
-// Same shape as Red Louse: bite damage rolled at spawn, baked into the move
-// table via static-per-roll. CurlUp on the Modifiers struct, consumed by
-// the on-damage hook on first hit. Web (Weak x2) is constant across asc, so
-// the Asc 2 and Asc 17 tables for the same bite-roll are content-identical.
-
 static MOVE_BITE_5: Move = Move {
     name: "Bite",
     effects: &[Effect {
@@ -168,7 +161,7 @@ pub fn get_next_move_louse_green(
 ) -> usize {
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
-        // Asc 17+: Web never twice in a row; Bite no constraint.
+        // Asc 17+: Web never twice in a row; Bite no constraint
         if roll < 25 {
             if move_history.last().copied() == Some(IDX_MOVE_WEB as u8) {
                 IDX_MOVE_BITE
@@ -181,7 +174,7 @@ pub fn get_next_move_louse_green(
             IDX_MOVE_BITE
         }
     } else {
-        // Asc 0–16: Web no-two-in-a-row; Bite no-three-in-a-row.
+        // Asc 0–16: Web no-two-in-a-row; Bite no-three-in-a-row
         if roll < 25 {
             if move_history.ends_with(&[IDX_MOVE_WEB as u8, IDX_MOVE_WEB as u8]) {
                 IDX_MOVE_BITE

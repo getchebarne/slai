@@ -4,14 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Red Louse (Java class `LouseNormal`).
-//
-// Bite damage and CurlUp stacks are rolled at spawn. Bite damage is baked
-// into the move table via static-per-roll: one MOVE_BITE_* per possible
-// damage value, one [Move; 2] table per (asc-bracket, bite-roll) combo.
-// CurlUp stacks live on the Modifiers struct; the on-damage hook in
-// process_effect_damage_deal consumes CurlUp on the first hit.
-
 static MOVE_BITE_5: Move = Move {
     name: "Bite",
     effects: &[Effect {
@@ -103,8 +95,8 @@ static MOVE_STRENGTHEN_4: Move = Move {
     intent: Intent::Buff,
 };
 
-// 9 move tables: 3 asc brackets × 3 valid bite values per bracket.
-// Bite values 5/6/7 valid at Asc 0–1; 6/7/8 at Asc 2+.
+// 9 move tables: 3 asc brackets × 3 valid bite values per bracket
+// Bite values 5/6/7 valid at Asc 0–1; 6/7/8 at Asc 2+
 static MOVES_ASC0_BITE5: [Move; 2] = [MOVE_BITE_5, MOVE_STRENGTHEN_3];
 static MOVES_ASC0_BITE6: [Move; 2] = [MOVE_BITE_6, MOVE_STRENGTHEN_3];
 static MOVES_ASC0_BITE7: [Move; 2] = [MOVE_BITE_7, MOVE_STRENGTHEN_3];
@@ -186,7 +178,7 @@ pub fn get_next_move_louse_red(
 ) -> usize {
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
-        // Asc 17+: Strengthen never twice in a row; Bite no constraint.
+        // Asc 17+: Strengthen never twice in a row; Bite no constraint
         if roll < 25 {
             if move_history.last().copied() == Some(IDX_MOVE_STRENGTHEN as u8) {
                 IDX_MOVE_BITE
@@ -199,7 +191,7 @@ pub fn get_next_move_louse_red(
             IDX_MOVE_BITE
         }
     } else {
-        // Asc 0–16: Strengthen no-two-in-a-row; Bite no-three-in-a-row.
+        // Asc 0–16: Strengthen no-two-in-a-row; Bite no-three-in-a-row
         if roll < 25 {
             if move_history.ends_with(&[IDX_MOVE_STRENGTHEN as u8, IDX_MOVE_STRENGTHEN as u8]) {
                 IDX_MOVE_BITE
