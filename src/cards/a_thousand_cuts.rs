@@ -14,6 +14,7 @@ pub static A_THOUSAND_CUTS: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::ThousandCuts,
@@ -38,6 +39,7 @@ pub static A_THOUSAND_CUTS_PLUS: Entity = make_entity_card(
     2,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

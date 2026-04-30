@@ -12,6 +12,7 @@ pub static SKEWER: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::DamagePhysical { amount: 7 },
@@ -34,6 +35,7 @@ pub static SKEWER_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::XCost { offset: 0 },
     true,
+    false,
     false,
     false,
     true,

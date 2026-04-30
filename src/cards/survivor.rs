@@ -13,6 +13,7 @@ pub static SURVIVOR: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 8 },
@@ -44,6 +45,7 @@ pub static SURVIVOR_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

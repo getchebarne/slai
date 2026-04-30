@@ -13,6 +13,7 @@ pub static BLADE_DANCE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::ShivAdd {
             count: 3,
@@ -34,6 +35,7 @@ pub static BLADE_DANCE_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

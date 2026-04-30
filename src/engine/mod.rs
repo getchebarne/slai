@@ -2,6 +2,7 @@ pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_bullet_time_proc;
 pub mod process_effect_calculated_gamble;
+pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discard_end_of_turn;
 pub mod process_effect_card_draw;
@@ -383,6 +384,14 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
+        EffectKind::CardAddToDiscard { card_name, count } => {
+            process_effect_card_add_to_discard::process_effect_card_add_to_discard(
+                card_name,
+                count,
+                &mut state.entities,
+                &mut state.id_pile_discard,
+            )
+        }
         EffectKind::CardDiscard => process_effect_card_discard::process_effect_card_discard(
             id_target.unwrap(),
             &state.entities,
@@ -404,6 +413,7 @@ fn dispatch_by_kind(
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
+                &mut state.effect_queue,
             )
         }
         EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(

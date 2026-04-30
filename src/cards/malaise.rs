@@ -13,6 +13,7 @@ pub static MALAISE: Entity = make_entity_card(
     false,
     true,
     false,
+    false,
     true,
     &[
         Effect {
@@ -52,6 +53,7 @@ pub static MALAISE_PLUS: Entity = make_entity_card(
     CardCostKind::XCost { offset: 1 }, // +1 offset
     true,
     true,
+    false,
     false,
     true,
     &[

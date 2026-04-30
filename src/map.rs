@@ -3,7 +3,9 @@
 
 use rand::Rng;
 
-use crate::consts::*;
+use crate::consts::{
+    ANCESTOR_GAP_MIN, FACTOR_NUM_ELITE, FACTOR_NUM_REST_SITE, MAP_HEIGHT, MAP_WIDTH, PATH_DENSITY,
+};
 use crate::entity::{Entity, make_entity_room};
 use crate::state::Location;
 use crate::types::RoomKind;
@@ -266,10 +268,14 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
 
     let num_rooms = positions.len();
     let num_rest = (FACTOR_NUM_REST_SITE * num_rooms as f32) as usize;
+    let num_elite = (FACTOR_NUM_ELITE * num_rooms as f32) as usize;
 
     let mut types = vec![RoomKind::CombatMonster; num_rooms];
     for t in types.iter_mut().take(num_rest) {
         *t = RoomKind::RestSite;
+    }
+    for t in types.iter_mut().skip(num_rest).take(num_elite) {
+        *t = RoomKind::CombatElite;
     }
 
     for i in (1..types.len()).rev() {
@@ -280,6 +286,64 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
     for (i, &(y, x)) in positions.iter().enumerate() {
         if let Some(node) = &mut nodes[y][x] {
             node.room_kind = types[i];
+        }
+    }
+
+    // Room constraints
+    const ELITE_MIN_Y: usize = 5;
+    const REST_MIN_Y: usize = 5;
+    const REST_MAX_Y_EXCL: usize = 13;
+
+    for y in 0..MAP_HEIGHT - 1 {
+        for x in 0..MAP_WIDTH {
+            let kind = match &nodes[y][x] {
+                Some(n) => n.room_kind,
+                None => continue,
+            };
+            let needs_swap = match kind {
+                RoomKind::CombatElite => y < ELITE_MIN_Y,
+                RoomKind::RestSite => y < REST_MIN_Y || y >= REST_MAX_Y_EXCL,
+                _ => false,
+            };
+            if !needs_swap {
+                continue;
+            }
+            // Find a CombatMonster at a row that CAN host this kind
+            let mut swapped = false;
+            'swap: for y2 in 0..MAP_HEIGHT - 1 {
+                let row_ok = match kind {
+                    RoomKind::CombatElite => y2 >= ELITE_MIN_Y,
+                    RoomKind::RestSite => y2 >= REST_MIN_Y && y2 < REST_MAX_Y_EXCL,
+                    _ => true,
+                };
+                if !row_ok {
+                    continue;
+                }
+                for x2 in 0..MAP_WIDTH {
+                    if (y2, x2) == (y, x) {
+                        continue;
+                    }
+                    if let Some(other) = &nodes[y2][x2] {
+                        if matches!(other.room_kind, RoomKind::CombatMonster) {
+                            if let Some(n) = &mut nodes[y][x] {
+                                n.room_kind = RoomKind::CombatMonster;
+                            }
+                            if let Some(other) = &mut nodes[y2][x2] {
+                                other.room_kind = kind;
+                            }
+                            swapped = true;
+                            break 'swap;
+                        }
+                    }
+                }
+            }
+            if !swapped {
+                // No valid host row had a free CombatMonster — downgrade
+                // this node to CombatMonster rather than violate the rule
+                if let Some(n) = &mut nodes[y][x] {
+                    n.room_kind = RoomKind::CombatMonster;
+                }
+            }
         }
     }
 

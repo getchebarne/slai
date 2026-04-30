@@ -14,6 +14,7 @@ pub static BULLET_TIME: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::BulletTimeProc,
@@ -45,6 +46,7 @@ pub static BULLET_TIME_PLUS: Entity = make_entity_card(
     2, // -1 cost
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

@@ -25,6 +25,7 @@ pub const MAP_WIDTH: usize = 7;
 pub const PATH_DENSITY: usize = 6;
 pub const ANCESTOR_GAP_MIN: usize = 3;
 pub const FACTOR_NUM_REST_SITE: f32 = 0.25;
+pub const FACTOR_NUM_ELITE: f32 = 0.10;
 
 // Rest site
 pub const REST_SITE_HEAL_FACTOR: f32 = 0.30;

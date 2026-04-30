@@ -6,6 +6,7 @@ pub enum ModifierKind {
     Accuracy = 0,
     AfterImage,
     Angry,
+    Artifact,
     Blur,
     Burst,
     Choke,
@@ -76,6 +77,13 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Angry,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Artifact,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,

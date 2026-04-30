@@ -13,6 +13,7 @@ pub static PREPARED: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::CardDraw { count: 1 },
@@ -41,6 +42,7 @@ pub static PREPARED_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

@@ -93,8 +93,23 @@ pub fn get_next_move_gremlin_wizard(
             IDX_MOVE_CHARGE
         };
     }
-    // Fire Ultimate Blast only after two Charges in a row
-    if move_history.ends_with(&[IDX_MOVE_CHARGE as u8, IDX_MOVE_CHARGE as u8]) {
+
+    // Check if Ultimate Blast has already fired & calculate number of needed
+    // charges based on that
+    let has_fired_blast = move_history
+        .iter()
+        .any(|&m| m == IDX_MOVE_ULTIMATE_BLAST as u8);
+
+    let charges_needed = if has_fired_blast { 3 } else { 2 };
+
+    // Get number of trialing charges
+    let trailing_charges = move_history
+        .iter()
+        .rev()
+        .take_while(|&&m| m == IDX_MOVE_CHARGE as u8)
+        .count();
+
+    if trailing_charges >= charges_needed {
         IDX_MOVE_ULTIMATE_BLAST
     } else {
         IDX_MOVE_CHARGE

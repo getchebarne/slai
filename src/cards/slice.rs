@@ -12,6 +12,7 @@ pub static SLICE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::DamagePhysical { amount: 6 },
@@ -34,6 +35,7 @@ pub static SLICE_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

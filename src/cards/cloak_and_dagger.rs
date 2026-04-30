@@ -13,6 +13,7 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
@@ -44,6 +45,7 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

@@ -42,6 +42,7 @@ pub enum CardName {
     DaggerSpray,
     DaggerThrow,
     Dash,
+    Dazed,
     DeadlyPoison,
     Defend,
     Deflect,
@@ -81,6 +82,7 @@ pub enum CardName {
     Shiv,
     Skewer,
     Slice,
+    Slimed,
     SneakyStrike,
     StormOfSteel,
     Strike,
@@ -122,6 +124,7 @@ impl CardName {
             Self::DaggerSpray => "Dagger Spray",
             Self::DaggerThrow => "Dagger Throw",
             Self::Dash => "Dash",
+            Self::Dazed => "Dazed",
             Self::DeadlyPoison => "Deadly Poison",
             Self::Defend => "Defend",
             Self::Deflect => "Deflect",
@@ -161,6 +164,7 @@ impl CardName {
             Self::Shiv => "Shiv",
             Self::Skewer => "Skewer",
             Self::Slice => "Slice",
+            Self::Slimed => "Slimed",
             Self::SneakyStrike => "Sneaky Strike",
             Self::StormOfSteel => "Storm Of Steel",
             Self::Strike => "Strike",
@@ -214,8 +218,11 @@ pub enum MonsterName {
     JawWorm,
     LouseDefensive,
     LouseNormal,
+    Sentry,
     SlaverBlue,
+    SlimeAcidMedium,
     SlimeAcidSmall,
+    SlimeSpikeMedium,
     SlimeSpikeSmall,
     TheGuardian,
 }
@@ -233,8 +240,11 @@ impl MonsterName {
             Self::JawWorm => "Jaw Worm",
             Self::LouseDefensive => "Green Louse",
             Self::LouseNormal => "Red Louse",
+            Self::Sentry => "Sentry",
             Self::SlaverBlue => "Blue Slaver",
+            Self::SlimeAcidMedium => "Acid Slime (M)",
             Self::SlimeAcidSmall => "Acid Slime (S)",
+            Self::SlimeSpikeMedium => "Spike Slime (M)",
             Self::SlimeSpikeSmall => "Spike Slime (S)",
             Self::TheGuardian => "The Guardian",
         }
@@ -251,6 +261,7 @@ pub enum MonsterKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RoomKind {
     CombatBoss,
+    CombatElite,
     CombatMonster,
     RestSite,
 }

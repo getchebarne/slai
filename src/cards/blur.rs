@@ -14,6 +14,7 @@ pub static BLUR: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
@@ -48,6 +49,7 @@ pub static BLUR_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

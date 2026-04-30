@@ -13,6 +13,7 @@ pub static GRAND_FINALE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::DamagePhysical { amount: 50 },
         id_source: None,
@@ -34,6 +35,7 @@ pub static GRAND_FINALE_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

@@ -13,6 +13,7 @@ pub static PREDATOR: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -48,6 +49,7 @@ pub static PREDATOR_PLUS: Entity = make_entity_card(
     2,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

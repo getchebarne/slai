@@ -13,6 +13,7 @@ pub static DEADLY_POISON: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {
@@ -38,6 +39,7 @@ pub static DEADLY_POISON_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

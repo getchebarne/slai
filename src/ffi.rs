@@ -119,6 +119,7 @@ impl From<InternalCardCostKind> for CardCostKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RoomKind {
     CombatMonster,
+    CombatElite,
     CombatBoss,
     RestSite,
 }
@@ -127,6 +128,7 @@ impl From<InternalRoomKind> for RoomKind {
     fn from(r: InternalRoomKind) -> Self {
         match r {
             InternalRoomKind::CombatMonster => Self::CombatMonster,
+            InternalRoomKind::CombatElite => Self::CombatElite,
             InternalRoomKind::CombatBoss => Self::CombatBoss,
             InternalRoomKind::RestSite => Self::RestSite,
         }
@@ -139,6 +141,7 @@ pub enum ModifierKind {
     Accuracy,
     AfterImage,
     Angry,
+    Artifact,
     Blur,
     Burst,
     Choke,
@@ -178,6 +181,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::Accuracy => Self::Accuracy,
             InternalModifierKind::AfterImage => Self::AfterImage,
             InternalModifierKind::Angry => Self::Angry,
+            InternalModifierKind::Artifact => Self::Artifact,
             InternalModifierKind::Blur => Self::Blur,
             InternalModifierKind::Burst => Self::Burst,
             InternalModifierKind::Choke => Self::Choke,
@@ -564,6 +568,7 @@ pub struct Card {
     pub cost_kind: CardCostKind,
     pub upgraded: bool,
     pub exhaust: bool,
+    pub ethereal: bool,
     pub innate: bool,
     pub requires_target: bool,
     pub retain: bool,
@@ -817,6 +822,7 @@ fn build_view_card_template(
         cost_kind: card.card_cost_kind.into(),
         upgraded: card.card_upgraded,
         exhaust: card.card_exhaust,
+        ethereal: card.card_ethereal,
         innate: card.card_innate,
         requires_target: card.card_requires_target,
         retain: card.card_retain,

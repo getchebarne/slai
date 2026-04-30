@@ -14,6 +14,7 @@ pub static TOOLS_OF_THE_TRADE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::ToolsOfTheTrade,
@@ -38,6 +39,7 @@ pub static TOOLS_OF_THE_TRADE_PLUS: Entity = make_entity_card(
     0, // -1 cost
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

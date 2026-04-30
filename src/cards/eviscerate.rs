@@ -12,6 +12,7 @@ pub static EVISCERATE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -52,6 +53,7 @@ pub static EVISCERATE_PLUS: Entity = make_entity_card(
     3,
     CardCostKind::MinusDiscardsThisTurn,
     true,
+    false,
     false,
     false,
     true,

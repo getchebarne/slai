@@ -11,6 +11,7 @@ pub static BACKSTAB: Entity = make_entity_card(
     CardCostKind::Fixed,
     false,
     true,
+    false,
     true,
     true,
     &[Effect {
@@ -35,6 +36,7 @@ pub static BACKSTAB_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     true,
     true,
     &[Effect {

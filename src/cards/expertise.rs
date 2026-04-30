@@ -13,6 +13,7 @@ pub static EXPERTISE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::DrawUpTo { target: 6 },
         id_source: None,
@@ -31,6 +32,7 @@ pub static EXPERTISE_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

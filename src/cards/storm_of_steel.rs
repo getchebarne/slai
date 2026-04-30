@@ -13,6 +13,7 @@ pub static STORM_OF_STEEL: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::StormOfSteelProc { upgraded: false },
         id_source: None,
@@ -31,6 +32,7 @@ pub static STORM_OF_STEEL_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

@@ -12,6 +12,7 @@ pub static QUICK_SLASH: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -41,6 +42,7 @@ pub static QUICK_SLASH_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

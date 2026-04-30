@@ -12,6 +12,7 @@ pub static MASTERFUL_STAB: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::DamagePhysical { amount: 12 },
@@ -34,6 +35,7 @@ pub static MASTERFUL_STAB_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::GrowsOnDamageInstanceTaken,
     true,
+    false,
     false,
     false,
     true,

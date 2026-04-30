@@ -13,6 +13,7 @@ pub static SETUP: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::CardSetupPick,
         id_source: None,
@@ -34,6 +35,7 @@ pub static SETUP_PLUS: Entity = make_entity_card(
     0, // -1 cost
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

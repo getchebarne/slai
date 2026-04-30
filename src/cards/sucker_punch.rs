@@ -13,6 +13,7 @@ pub static SUCKER_PUNCH: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -48,6 +49,7 @@ pub static SUCKER_PUNCH_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

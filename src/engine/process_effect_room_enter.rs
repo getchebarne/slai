@@ -47,7 +47,7 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatMonster => {
-            let encounter: u8 = rng.random_range(0..8);
+            let encounter: u8 = rng.random_range(0..10);
             match encounter {
                 0 => {
                     let monster = spawn_monster(MonsterName::JawWorm, ascension, rng);
@@ -111,8 +111,30 @@ pub fn process_effect_room_enter(
                         push_monster(monster, entities, id_monsters, monster_count);
                     }
                 }
+                8 => {
+                    let monster = spawn_monster(MonsterName::SlimeAcidMedium, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
+                9 => {
+                    let monster = spawn_monster(MonsterName::SlimeSpikeMedium, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
                 _ => unreachable!(),
             };
+            queue.push_front(Effect {
+                kind: EffectKind::CombatStart,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+        RoomKind::CombatElite => {
+            // Sentries
+            let monster_1 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            let monster_2 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            let monster_3 = spawn_monster(MonsterName::Sentry, ascension, rng);
+            push_monster(monster_1, entities, id_monsters, monster_count);
+            push_monster(monster_2, entities, id_monsters, monster_count);
+            push_monster(monster_3, entities, id_monsters, monster_count);
             queue.push_front(Effect {
                 kind: EffectKind::CombatStart,
                 id_source: None,

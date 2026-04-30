@@ -14,6 +14,7 @@ pub static PHANTASMAL_KILLER: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Phantasmal,
@@ -38,6 +39,7 @@ pub static PHANTASMAL_KILLER_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

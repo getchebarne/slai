@@ -13,6 +13,7 @@ pub static POISONED_STAB: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -48,6 +49,7 @@ pub static POISONED_STAB_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

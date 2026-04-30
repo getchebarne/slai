@@ -23,6 +23,7 @@ pub mod crippling_poison;
 pub mod dagger_spray;
 pub mod dagger_throw;
 pub mod dash;
+pub mod dazed;
 pub mod deadly_poison;
 pub mod defend;
 pub mod deflect;
@@ -62,6 +63,7 @@ pub mod setup;
 pub mod shiv;
 pub mod skewer;
 pub mod slice;
+pub mod slimed;
 pub mod sneaky_strike;
 pub mod storm_of_steel;
 pub mod strike;
@@ -129,6 +131,7 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::DaggerThrow, true) => dagger_throw::DAGGER_THROW_PLUS,
         (CardName::Dash, false) => dash::DASH,
         (CardName::Dash, true) => dash::DASH_PLUS,
+        (CardName::Dazed, _) => dazed::DAZED, // No upgraded variant
         (CardName::DeadlyPoison, false) => deadly_poison::DEADLY_POISON,
         (CardName::DeadlyPoison, true) => deadly_poison::DEADLY_POISON_PLUS,
         (CardName::Defend, false) => defend::DEFEND,
@@ -207,6 +210,7 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Skewer, true) => skewer::SKEWER_PLUS,
         (CardName::Slice, false) => slice::SLICE,
         (CardName::Slice, true) => slice::SLICE_PLUS,
+        (CardName::Slimed, _) => slimed::SLIMED, // No upgraded variant
         (CardName::SneakyStrike, false) => sneaky_strike::SNEAKY_STRIKE,
         (CardName::SneakyStrike, true) => sneaky_strike::SNEAKY_STRIKE_PLUS,
         (CardName::StormOfSteel, false) => storm_of_steel::STORM_OF_STEEL,

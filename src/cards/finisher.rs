@@ -12,6 +12,7 @@ pub static FINISHER: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::FinisherDamage { damage: 6 },
@@ -34,6 +35,7 @@ pub static FINISHER_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

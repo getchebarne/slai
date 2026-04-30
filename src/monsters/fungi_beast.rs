@@ -108,7 +108,7 @@ pub fn get_next_move_fungi_beast(
     move_history: &[u8],
     rng: &mut impl Rng,
 ) -> usize {
-    let roll = rng.random_range(0..99);
+    let roll = rng.random_range(0..=99);
     if roll < 60 {
         if move_history.ends_with(&[IDX_MOVE_BITE as u8, IDX_MOVE_BITE as u8]) {
             IDX_MOVE_GROW

@@ -14,6 +14,7 @@ pub static FOOTWORK: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Dexterity,
@@ -38,6 +39,7 @@ pub static FOOTWORK_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

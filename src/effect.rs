@@ -1,4 +1,5 @@
 use crate::modifier::ModifierKind;
+use crate::types::CardName;
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -25,6 +26,7 @@ pub enum EffectKind {
     ShivAdd { count: u8, upgraded: bool },
     CardDraw { count: u8 },
     DrawUpTo { target: u8 },
+    CardAddToDiscard { card_name: CardName, count: u8 },
     CardDiscard,
     CardDiscardEndOfTurn,
     CardMoveToDiscard,

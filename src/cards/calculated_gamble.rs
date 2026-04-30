@@ -13,6 +13,7 @@ pub static CALCULATED_GAMBLE: Entity = make_entity_card(
     true,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::CalculatedGamble,
         id_source: None,
@@ -31,6 +32,7 @@ pub static CALCULATED_GAMBLE_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

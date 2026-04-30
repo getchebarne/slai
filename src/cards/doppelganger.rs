@@ -14,6 +14,7 @@ pub static DOPPELGANGER: Entity = make_entity_card(
     true,
     false,
     false,
+    false,
     &[
         Effect {
             kind: EffectKind::ModifierGain {
@@ -52,6 +53,7 @@ pub static DOPPELGANGER_PLUS: Entity = make_entity_card(
     CardCostKind::XCost { offset: 1 }, // +1 offset
     true,
     true,
+    false,
     false,
     false,
     &[

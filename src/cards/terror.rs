@@ -15,6 +15,7 @@ pub static TERROR: Entity = make_entity_card(
     false,
     true,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {
@@ -41,6 +42,7 @@ pub static TERROR_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     false,
     true,
     &[Effect {

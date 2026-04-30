@@ -14,6 +14,7 @@ pub static NOXIOUS_FUMES: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::NoxiousFumes,
@@ -38,6 +39,7 @@ pub static NOXIOUS_FUMES_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     false,

@@ -181,7 +181,7 @@ pub fn get_next_move_jaw_worm(
         return IDX_MOVE_CHOMP;
     }
 
-    let roll = rng.random_range(0..99);
+    let roll = rng.random_range(0..=99);
     let move_last = *move_history
         .last()
         .expect("`move_history` cannot be empty here") as usize;

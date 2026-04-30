@@ -12,6 +12,7 @@ pub static FLECHETTES: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[Effect {
         kind: EffectKind::FlechettesDamage { damage: 4 },
@@ -34,6 +35,7 @@ pub static FLECHETTES_PLUS: Entity = make_entity_card(
     1,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

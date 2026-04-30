@@ -13,6 +13,7 @@ pub static NEUTRALIZE: Entity = make_entity_card(
     false,
     false,
     false,
+    false,
     true,
     &[
         Effect {
@@ -48,6 +49,7 @@ pub static NEUTRALIZE_PLUS: Entity = make_entity_card(
     0,
     CardCostKind::Fixed,
     true,
+    false,
     false,
     false,
     true,

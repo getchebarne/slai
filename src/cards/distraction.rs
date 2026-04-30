@@ -13,6 +13,7 @@ pub static DISTRACTION: Entity = make_entity_card(
     true,
     false,
     false,
+    false,
     &[Effect {
         kind: EffectKind::DistractionAdd,
         id_source: None,
@@ -32,6 +33,7 @@ pub static DISTRACTION_PLUS: Entity = make_entity_card(
     CardCostKind::Fixed,
     true,
     true,
+    false,
     false,
     false,
     &[Effect {
