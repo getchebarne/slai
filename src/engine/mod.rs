@@ -26,6 +26,7 @@ pub mod process_effect_draw_up_to;
 pub mod process_effect_endless_agony_add_copy;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
+pub mod process_effect_escape_monster;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_finisher_damage;
 pub mod process_effect_flechettes_damage;
@@ -46,6 +47,7 @@ pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
 pub mod process_effect_shiv_add;
 pub mod process_effect_sneaky_strike_proc;
+pub mod process_effect_spawn_monster;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
@@ -608,12 +610,11 @@ fn dispatch_by_kind(
             let id_target = id_target.unwrap();
             let id_character = state.id_character;
             // Snapshot character modifiers separately to avoid aliasing the
-            // entities borrow taken below for the target's vitals/modifiers
+            // entities borrow taken below for the target entity
             let mods_char = state.entities[id_character].modifiers;
             let target = &mut state.entities[id_target];
             process_effect_damage_deal::process_effect_damage_deal(
-                &mut target.vitals,
-                &mut target.modifiers,
+                target,
                 id_source,
                 id_target,
                 id_character,
@@ -837,6 +838,25 @@ fn dispatch_by_kind(
             &mut state.location,
             &mut state.effect_queue,
         ),
+        EffectKind::SpawnMonster { name } => {
+            process_effect_spawn_monster::process_effect_spawn_monster(
+                name,
+                id_source.expect("SpawnMonster must have an id_source (the splitting monster)"),
+                state.ascension,
+                &mut state.entities,
+                &mut state.id_monsters,
+                &mut state.monster_count,
+                &mut state.rng,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::EscapeMonster => {
+            let id_target = id_target.expect("EscapeMonster must have a target");
+            process_effect_escape_monster::process_effect_escape_monster(
+                id_target,
+                &mut state.entities,
+            )
+        }
         // Halt-kind variants: represent pending player decisions
         // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before

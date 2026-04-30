@@ -10,8 +10,10 @@ pub mod louse_green;
 pub mod louse_red;
 pub mod sentry;
 pub mod slaver_blue;
+pub mod slime_acid_large;
 pub mod slime_acid_medium;
 pub mod slime_acid_small;
+pub mod slime_spike_large;
 pub mod slime_spike_medium;
 pub mod slime_spike_small;
 pub mod the_guardian;
@@ -43,8 +45,14 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         MonsterName::LouseDefensive => louse_green::spawn_louse_green(ascension_level, rng),
         MonsterName::LouseNormal => louse_red::spawn_louse_red(ascension_level, rng),
         MonsterName::Sentry => sentry::spawn_sentry(ascension_level, rng),
+        MonsterName::SlimeAcidLarge => {
+            slime_acid_large::spawn_slime_acid_large(ascension_level, rng)
+        }
         MonsterName::SlimeAcidMedium => {
             slime_acid_medium::spawn_slime_acid_medium(ascension_level, rng)
+        }
+        MonsterName::SlimeSpikeLarge => {
+            slime_spike_large::spawn_slime_spike_large(ascension_level, rng)
         }
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::spawn_slime_spike_medium(ascension_level, rng)
@@ -125,7 +133,19 @@ pub fn get_next_move(
             entity_id,
             id_alive_monsters,
         ),
+        MonsterName::SlimeAcidLarge => slime_acid_large::get_next_move_slime_acid_large(
+            entity.move_current,
+            history,
+            ascension_level,
+            rng,
+        ),
         MonsterName::SlimeAcidMedium => slime_acid_medium::get_next_move_slime_acid_medium(
+            entity.move_current,
+            history,
+            ascension_level,
+            rng,
+        ),
+        MonsterName::SlimeSpikeLarge => slime_spike_large::get_next_move_slime_spike_large(
             entity.move_current,
             history,
             ascension_level,

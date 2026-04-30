@@ -10,6 +10,7 @@ use crate::map::active_room_kind;
 use crate::monsters::spawn_monster;
 use crate::state::Location;
 use crate::types::{MonsterName, RoomKind};
+use crate::utils::shuffle;
 
 fn push_monster(
     monster: Entity,
@@ -47,7 +48,7 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatMonster => {
-            let encounter: u8 = rng.random_range(0..10);
+            let encounter: u8 = rng.random_range(0..12);
             match encounter {
                 0 => {
                     let monster = spawn_monster(MonsterName::JawWorm, ascension, rng);
@@ -64,19 +65,26 @@ pub fn process_effect_room_enter(
                     push_monster(monster_2, entities, id_monsters, monster_count);
                 }
                 3 => {
-                    let monster_1 = spawn_monster(MonsterName::SlimeSpikeSmall, ascension, rng);
-                    let monster_2 = spawn_monster(MonsterName::SlimeAcidSmall, ascension, rng);
-                    push_monster(monster_1, entities, id_monsters, monster_count);
-                    push_monster(monster_2, entities, id_monsters, monster_count);
+                    // Small Slimes: 50/50 between [Spike_S + Acid_M] and [Acid_S + Spike_M].
+                    // Java MonsterHelper.spawnSmallSlimes (one small + one medium of opposite color).
+                    let (small, medium) = if rng.random_bool(0.5) {
+                        (MonsterName::SlimeSpikeSmall, MonsterName::SlimeAcidMedium)
+                    } else {
+                        (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
+                    };
+                    let m1 = spawn_monster(small, ascension, rng);
+                    let m2 = spawn_monster(medium, ascension, rng);
+                    push_monster(m1, entities, id_monsters, monster_count);
+                    push_monster(m2, entities, id_monsters, monster_count);
                 }
                 4 => {
                     let monster = spawn_monster(MonsterName::SlaverBlue, ascension, rng);
                     push_monster(monster, entities, id_monsters, monster_count);
                 }
                 5 => {
-                    // Gremlin Gang: 4 randomly-picked gremlins. Canonical STS pool:
-                    // Warrior×2 / Thief×2 / Fat×2 / Tsundere×1 / Wizard×1.
-                    static POOL: &[MonsterName] = &[
+                    // Gremlin Gang: 4 gremlins drawn WITHOUT replacement from
+                    // [Warrior×2, Thief×2, Fat×2, Tsundere×1, Wizard×1].
+                    let mut pool: [MonsterName; 8] = [
                         MonsterName::GremlinWarrior,
                         MonsterName::GremlinWarrior,
                         MonsterName::GremlinThief,
@@ -86,9 +94,9 @@ pub fn process_effect_room_enter(
                         MonsterName::GremlinTsundere,
                         MonsterName::GremlinWizard,
                     ];
-                    for _ in 0..4 {
-                        let monster_name = POOL[rng.random_range(0..POOL.len())];
-                        let monster = spawn_monster(monster_name, ascension, rng);
+                    shuffle(&mut pool, rng);
+                    for &name in &pool[..4] {
+                        let monster = spawn_monster(name, ascension, rng);
                         push_monster(monster, entities, id_monsters, monster_count);
                     }
                 }
@@ -119,6 +127,33 @@ pub fn process_effect_room_enter(
                 9 => {
                     let monster = spawn_monster(MonsterName::SlimeSpikeMedium, ascension, rng);
                     push_monster(monster, entities, id_monsters, monster_count);
+                }
+                10 => {
+                    // Large Slime: 50/50 between Acid_L and Spike_L.
+                    let name = if rng.random_bool(0.5) {
+                        MonsterName::SlimeAcidLarge
+                    } else {
+                        MonsterName::SlimeSpikeLarge
+                    };
+                    let monster = spawn_monster(name, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
+                11 => {
+                    // Lots of Slimes: 5 small slimes drawn without replacement
+                    // from [Spike_S×3, Acid_S×2]. Composition is fixed
+                    // (3 Spike_S + 2 Acid_S); only spawn order varies.
+                    let mut pool: [MonsterName; 5] = [
+                        MonsterName::SlimeSpikeSmall,
+                        MonsterName::SlimeSpikeSmall,
+                        MonsterName::SlimeSpikeSmall,
+                        MonsterName::SlimeAcidSmall,
+                        MonsterName::SlimeAcidSmall,
+                    ];
+                    shuffle(&mut pool, rng);
+                    for &name in &pool {
+                        let monster = spawn_monster(name, ascension, rng);
+                        push_monster(monster, entities, id_monsters, monster_count);
+                    }
                 }
                 _ => unreachable!(),
             };

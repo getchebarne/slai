@@ -1,5 +1,5 @@
 use crate::modifier::ModifierKind;
-use crate::types::CardName;
+use crate::types::{CardName, MonsterName};
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -61,6 +61,8 @@ pub enum EffectKind {
     MoveUpdate,
     RoomEnter,
     RestSiteExit,
+    SpawnMonster { name: MonsterName },
+    EscapeMonster,
 
     // Select: halts the queue asking the player to pick a target. After the
     // pick, the same EffectKind runs as `Direct` with the chosen entity,
