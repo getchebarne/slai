@@ -4,12 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// AcidSlime_L (Java) / Acid Slime (L) (in-game).
-//
-// Four moves: Slime Tackle (Wound — damage + Slimed x2), Heavy Tackle (damage),
-// Lick (Weak x2), and Split (spawns 2x SlimeAcidMedium then escapes).
-// See AcidSlime_L.java:99-209.
-
 static MOVE_SLIME_TACKLE_11: Move = Move {
     name: "Corrosive Spit",
     effects: &[
@@ -152,12 +146,6 @@ static MOVES_ASC2: [Move; 4] = [
     MOVE_LICK,
     MOVE_SPLIT,
 ];
-static MOVES_ASC17: [Move; 4] = [
-    MOVE_SLIME_TACKLE_12,
-    MOVE_HEAVY_TACKLE_18,
-    MOVE_LICK,
-    MOVE_SPLIT,
-];
 
 const IDX_MOVE_SLIME_TACKLE: usize = 0;
 const IDX_MOVE_HEAVY_TACKLE: usize = 1;
@@ -174,10 +162,8 @@ pub fn spawn_slime_acid_large(ascension_level: u8, rng: &mut impl Rng) -> Entity
 
     let moves: &'static [Move] = if ascension_level < 2 {
         &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
     } else {
-        &MOVES_ASC17
+        &MOVES_ASC2
     };
 
     let mut modifiers = ZERO_MODIFIERS;
@@ -205,11 +191,9 @@ pub fn get_next_move_slime_acid_large(
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
         // Asc 17+: 40/30/30 split. Slime Tackle no-three-in-a-row,
-        // Heavy no-three-in-a-row, Lick no-two-in-a-row.
+        // Heavy no-three-in-a-row, Lick no-two-in-a-row
         if roll < 40 {
-            if move_history
-                .ends_with(&[IDX_MOVE_SLIME_TACKLE as u8, IDX_MOVE_SLIME_TACKLE as u8])
-            {
+            if move_history.ends_with(&[IDX_MOVE_SLIME_TACKLE as u8, IDX_MOVE_SLIME_TACKLE as u8]) {
                 if rng.random_bool(0.6) {
                     IDX_MOVE_HEAVY_TACKLE
                 } else {
@@ -219,9 +203,7 @@ pub fn get_next_move_slime_acid_large(
                 IDX_MOVE_SLIME_TACKLE
             }
         } else if roll < 70 {
-            if move_history
-                .ends_with(&[IDX_MOVE_HEAVY_TACKLE as u8, IDX_MOVE_HEAVY_TACKLE as u8])
-            {
+            if move_history.ends_with(&[IDX_MOVE_HEAVY_TACKLE as u8, IDX_MOVE_HEAVY_TACKLE as u8]) {
                 if rng.random_bool(0.6) {
                     IDX_MOVE_SLIME_TACKLE
                 } else {
@@ -241,7 +223,7 @@ pub fn get_next_move_slime_acid_large(
         }
     } else if roll < 30 {
         // Asc 0-16: 30/40/30 split. Slime Tackle no-three-in-a-row,
-        // Heavy no-two-in-a-row, Lick no-three-in-a-row.
+        // Heavy no-two-in-a-row, Lick no-three-in-a-row
         if move_history.ends_with(&[IDX_MOVE_SLIME_TACKLE as u8, IDX_MOVE_SLIME_TACKLE as u8]) {
             if rng.random_bool(0.5) {
                 IDX_MOVE_HEAVY_TACKLE

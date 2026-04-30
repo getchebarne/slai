@@ -417,7 +417,7 @@ fn dispatch_by_kind(
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
-                &mut state.id_pile_exhaust,
+                &mut state.effect_queue,
             )
         }
         EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(
@@ -843,7 +843,7 @@ fn dispatch_by_kind(
         EffectKind::SpawnMonster { name } => {
             process_effect_spawn_monster::process_effect_spawn_monster(
                 name,
-                id_source.expect("SpawnMonster must have an id_source (the splitting monster)"),
+                id_source.unwrap(),
                 state.ascension,
                 &mut state.entities,
                 &mut state.id_monsters,
