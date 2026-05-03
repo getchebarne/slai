@@ -4,7 +4,7 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
-use crate::monsters::{slime_acid_large, slime_spike_large};
+use crate::monsters::{lagavulin, slime_acid_large, slime_boss, slime_spike_large};
 use crate::types::MonsterName;
 
 pub fn process_effect_damage_deal(
@@ -89,6 +89,7 @@ fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDe
         let idx_split = match target.monster_name {
             MonsterName::SlimeAcidLarge => slime_acid_large::IDX_MOVE_SPLIT,
             MonsterName::SlimeSpikeLarge => slime_spike_large::IDX_MOVE_SPLIT,
+            MonsterName::SlimeBoss => slime_boss::IDX_MOVE_SPLIT,
             _ => panic!(
                 "Splittable on unexpected monster: {:?}",
                 target.monster_name
@@ -96,5 +97,21 @@ fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDe
         };
         target.move_current = Some(idx_split);
         modifier_remove(&mut target.modifiers, ModifierKind::Splittable);
+    }
+
+    // Asleep wake-via-damage (Lagavulin): on HP loss while Asleep, set
+    // move_current = Stunned (one no-damage monster turn) and remove Asleep +
+    // Metallicize
+    if modifier_has(&target.modifiers, ModifierKind::Asleep) && target.vitals.health > 0 {
+        let stunned_idx = match target.monster_name {
+            MonsterName::Lagavulin => lagavulin::IDX_MOVE_STUNNED,
+            _ => panic!(
+                "Unsupported monster name for Asleep modifier: {:?}",
+                target.monster_name
+            ),
+        };
+        target.move_current = Some(stunned_idx);
+        modifier_remove(&mut target.modifiers, ModifierKind::Asleep);
+        modifier_remove(&mut target.modifiers, ModifierKind::Metallicize);
     }
 }

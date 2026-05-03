@@ -239,7 +239,7 @@ class Character:
     health_max: int
     block: int
     modifiers: list[Modifier]
-    reward_roll_offset: int
+    character_reward_roll_offset: int
     """Pity offset used when rolling card-reward rarities."""
 
 class Intent:

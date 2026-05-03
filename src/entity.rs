@@ -53,6 +53,9 @@ pub enum Intent {
     Buff,
     Debuff,
     DebuffPowerful,
+    Escape,
+    Sleep,
+    Stunned,
     Unknown,
 }
 
@@ -75,7 +78,8 @@ pub struct Entity {
 
     // Character-only
     pub character_name: &'static str,
-    pub reward_roll_offset: i8,
+    pub character_reward_roll_offset: i8,
+    pub character_gold: u16,
 
     // Monster-only
     pub monster_name: MonsterName,
@@ -84,7 +88,8 @@ pub struct Entity {
     pub move_current: Option<usize>,
     pub move_history: [u8; MAX_MOVE_HISTORY],
     pub move_history_len: u8,
-    pub cycle_count: u8, // Only used by "The Guardian"
+    pub monster_cycle_count: u8,  // Only used by "The Guardian"
+    pub monster_stolen_gold: u16, // Only used by "Looter"
 
     // Card-only
     pub card_name: CardName,
@@ -125,14 +130,16 @@ const ZERO_ENTITY: Entity = Entity {
     vitals: ZERO_VITALS,
     modifiers: ZERO_MODIFIERS,
     character_name: "",
-    reward_roll_offset: 0,
+    character_reward_roll_offset: 0,
+    character_gold: 0,
+    monster_stolen_gold: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
     moves: &[],
     move_current: None,
     move_history: [0; MAX_MOVE_HISTORY],
     move_history_len: 0,
-    cycle_count: 0,
+    monster_cycle_count: 0,
     dead: false,
     card_name: CardName::Strike,
     card_kind: CardKind::Attack,
@@ -163,13 +170,15 @@ const ZERO_ENTITY: Entity = Entity {
 pub const fn make_entity_character(
     name: &'static str,
     vitals: Vitals,
-    reward_roll_offset: i8,
+    character_reward_roll_offset: i8,
+    character_gold: u16,
 ) -> Entity {
     Entity {
         kind: EntityKind::Character,
         vitals,
         character_name: name,
-        reward_roll_offset,
+        character_reward_roll_offset,
+        character_gold,
         ..ZERO_ENTITY
     }
 }

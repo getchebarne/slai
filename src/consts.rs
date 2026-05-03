@@ -1,5 +1,6 @@
 // Entity
 pub const MAX_MOVE_HISTORY: usize = 64;
+pub const STARTING_GOLD: u16 = 99;
 
 // Combat
 pub const MAX_SIZE_HAND: usize = 10;

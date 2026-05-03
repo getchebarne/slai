@@ -23,7 +23,7 @@ pub fn process_effect_move_update(
 
     // Update cycle count
     if is_cycle_boundary(entity.monster_name, move_idx) {
-        entity.cycle_count += 1;
+        entity.monster_cycle_count += 1;
     }
     DispatchResult::Continue
 }

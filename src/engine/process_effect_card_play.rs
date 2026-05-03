@@ -148,9 +148,9 @@ pub fn process_effect_card_play(
 
     // Choke: pushed after card_effects so the played card resolves first
     for &id_monster in alive_monsters {
-        let monster_mods = &entities[id_monster].modifiers;
-        if modifier_has(monster_mods, ModifierKind::Choke) {
-            let stacks = modifier_stacks(monster_mods, ModifierKind::Choke);
+        let mods_monster = &entities[id_monster].modifiers;
+        if modifier_has(mods_monster, ModifierKind::Choke) {
+            let stacks = modifier_stacks(mods_monster, ModifierKind::Choke);
             buf_effects.push(Effect {
                 kind: EffectKind::HealthLoss {
                     amount: stacks as u16,
@@ -158,6 +158,24 @@ pub fn process_effect_card_play(
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
             });
+        }
+    }
+
+    // Enrage: gain strength on played skill
+    if card.card_kind == CardKind::Skill {
+        for &id_monster in alive_monsters {
+            let mods_monster = &entities[id_monster].modifiers;
+            if modifier_has(mods_monster, ModifierKind::Enrage) {
+                let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);
+                buf_effects.push(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::Strength,
+                        stacks,
+                    },
+                    id_source: Some(id_monster),
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
         }
     }
 

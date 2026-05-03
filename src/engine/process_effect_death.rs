@@ -21,7 +21,21 @@ pub fn process_effect_death(
         return DispatchResult::Continue;
     }
 
+    // Monster-only path
     let monster = &entities[id_target];
+
+    // Stolen-gold return
+    let gold_return = if monster.monster_stolen_gold > 0 {
+        Some(Effect {
+            kind: EffectKind::GoldGain {
+                amount: monster.monster_stolen_gold,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        })
+    } else {
+        None
+    };
 
     // SporeCloud: dying enemy stacks Vulnerable on the character
     let spore_effect = if modifier_has(&monster.modifiers, ModifierKind::SporeCloud) {
@@ -66,6 +80,9 @@ pub fn process_effect_death(
     if !any_alive {
         // Combat ends. Replace pending effects with on-death triggers then CombatEnd
         queue.clear();
+        if let Some(e) = gold_return {
+            queue.push_back(e);
+        }
         for e in &effects_corpse {
             queue.push_back(*e);
         }
@@ -85,6 +102,9 @@ pub fn process_effect_death(
         }
         for e in effects_corpse.iter().rev() {
             queue.push_front(*e);
+        }
+        if let Some(e) = gold_return {
+            queue.push_front(e);
         }
     }
 

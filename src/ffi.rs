@@ -142,6 +142,7 @@ pub enum ModifierKind {
     AfterImage,
     Angry,
     Artifact,
+    Asleep,
     Blur,
     Burst,
     Choke,
@@ -150,10 +151,13 @@ pub enum ModifierKind {
     Dexterity,
     DoubleDamage,
     DrawCardNextTurn,
+    Enrage,
+    Entangled,
     Envenom,
     Frail,
     InfiniteBlades,
     Intangible,
+    Metallicize,
     ModeShift,
     NextTurnBlock,
     NextTurnEnergy,
@@ -168,6 +172,7 @@ pub enum ModifierKind {
     Splittable,
     SporeCloud,
     Strength,
+    Thievery,
     Thorns,
     ThousandCuts,
     ToolsOfTheTrade,
@@ -183,6 +188,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::AfterImage => Self::AfterImage,
             InternalModifierKind::Angry => Self::Angry,
             InternalModifierKind::Artifact => Self::Artifact,
+            InternalModifierKind::Asleep => Self::Asleep,
             InternalModifierKind::Blur => Self::Blur,
             InternalModifierKind::Burst => Self::Burst,
             InternalModifierKind::Choke => Self::Choke,
@@ -191,10 +197,13 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::Dexterity => Self::Dexterity,
             InternalModifierKind::DoubleDamage => Self::DoubleDamage,
             InternalModifierKind::DrawCardNextTurn => Self::DrawCardNextTurn,
+            InternalModifierKind::Enrage => Self::Enrage,
+            InternalModifierKind::Entangled => Self::Entangled,
             InternalModifierKind::Envenom => Self::Envenom,
             InternalModifierKind::Frail => Self::Frail,
             InternalModifierKind::InfiniteBlades => Self::InfiniteBlades,
             InternalModifierKind::Intangible => Self::Intangible,
+            InternalModifierKind::Metallicize => Self::Metallicize,
             InternalModifierKind::ModeShift => Self::ModeShift,
             InternalModifierKind::NextTurnBlock => Self::NextTurnBlock,
             InternalModifierKind::NextTurnEnergy => Self::NextTurnEnergy,
@@ -209,6 +218,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::Splittable => Self::Splittable,
             InternalModifierKind::SporeCloud => Self::SporeCloud,
             InternalModifierKind::Strength => Self::Strength,
+            InternalModifierKind::Thievery => Self::Thievery,
             InternalModifierKind::Thorns => Self::Thorns,
             InternalModifierKind::ThousandCuts => Self::ThousandCuts,
             InternalModifierKind::ToolsOfTheTrade => Self::ToolsOfTheTrade,
@@ -601,7 +611,8 @@ pub struct Character {
     pub health_max: u16,
     pub block: u16,
     pub modifiers: Vec<Modifier>,
-    pub reward_roll_offset: i8,
+    pub character_reward_roll_offset: i8,
+    pub gold: u16,
 }
 
 #[pyclass(frozen, get_all)]
@@ -669,6 +680,10 @@ pub fn build_view(state: &InternalGameState) -> GameState {
     let this_turn_discards = state.this_turn_discards;
     let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
     let energy_current = state.energy.current;
+    let entangled = modifier_has(
+        &state.entities[state.id_character].modifiers,
+        InternalModifierKind::Entangled,
+    );
     let card = |id_card: usize| {
         build_view_card_template(
             &state.entities[id_card],
@@ -676,6 +691,7 @@ pub fn build_view(state: &InternalGameState) -> GameState {
             this_turn_discards,
             this_combat_damage_instances_taken,
             energy_current,
+            entangled,
         )
     };
     GameState {
@@ -704,7 +720,8 @@ fn build_view_character(state: &InternalGameState) -> Character {
         health_max: character.vitals.health_max,
         block: character.vitals.block,
         modifiers: build_view_modifiers(&character.modifiers),
-        reward_roll_offset: character.reward_roll_offset,
+        character_reward_roll_offset: character.character_reward_roll_offset,
+        gold: character.character_gold,
     }
 }
 
@@ -737,6 +754,9 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                     InternalIntent::Buff => (None, None, false, true, false),
                     InternalIntent::Debuff => (None, None, false, false, true),
                     InternalIntent::DebuffPowerful => (None, None, false, false, true),
+                    InternalIntent::Escape => (None, None, false, false, false),
+                    InternalIntent::Sleep => (None, None, false, false, false),
+                    InternalIntent::Stunned => (None, None, false, false, false),
                     InternalIntent::Unknown => (None, None, false, false, false),
                 };
 
@@ -804,7 +824,10 @@ fn build_view_card_template(
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
+    entangled: bool,
 ) -> Card {
+    let restriction_ok = is_play_restriction_satisfied(card.card_play_restriction, id_pile_draw);
+    let entangled_blocks = entangled && card.card_kind == InternalCardKind::Attack;
     Card {
         name: if card.card_upgraded {
             format!("{}+", card.card_name.as_str())
@@ -829,7 +852,7 @@ fn build_view_card_template(
         requires_target: card.card_requires_target,
         retain: card.card_retain,
         free_to_play_once: card.card_free_to_play_once,
-        playable: is_play_restriction_satisfied(card.card_play_restriction, id_pile_draw),
+        playable: restriction_ok && !entangled_blocks,
         effects: card.card_effects[..card.card_effects_len as usize]
             .iter()
             .map(Effect::from_internal)

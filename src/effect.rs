@@ -63,6 +63,8 @@ pub enum EffectKind {
     RestSiteExit,
     SpawnMonster { name: MonsterName },
     EscapeMonster,
+    GoldSteal { amount: u8 },
+    GoldGain { amount: u16 },
 
     // Select: halts the queue asking the player to pick a target. After the
     // pick, the same EffectKind runs as `Direct` with the chosen entity,

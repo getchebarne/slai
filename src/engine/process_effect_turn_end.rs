@@ -48,6 +48,19 @@ pub fn process_effect_turn_end_monster(
             target: Target::Direct(Some(id_actor)),
         });
     }
+
+    // Metallicize
+    // TODO: Character can trigger this too
+    if modifier_has(modifiers, ModifierKind::Metallicize) {
+        let stacks = modifier_stacks(modifiers, ModifierKind::Metallicize);
+        queue.push_front(Effect {
+            kind: EffectKind::BlockGain {
+                amount: stacks as u16,
+            },
+            id_source: Some(id_actor),
+            target: Target::Direct(Some(id_actor)),
+        });
+    }
     DispatchResult::Continue
 }
 
@@ -140,11 +153,26 @@ pub fn process_effect_turn_end_character(
         });
 
         if let Some(move_idx) = monster.move_current {
+            // Thievery
+            let stacks_thievery = if modifier_has(&monster.modifiers, ModifierKind::Thievery) {
+                Some(modifier_stacks(&monster.modifiers, ModifierKind::Thievery) as u8)
+            } else {
+                None
+            };
             for e in monster.moves[move_idx].effects.iter() {
                 buf_effects.push(Effect {
                     id_source: Some(id_monster),
                     ..*e
                 });
+                if let Some(amount) = stacks_thievery
+                    && matches!(e.kind, EffectKind::DamagePhysical { .. })
+                {
+                    buf_effects.push(Effect {
+                        kind: EffectKind::GoldSteal { amount },
+                        id_source: Some(id_monster),
+                        target: Target::Direct(Some(id_character)),
+                    });
+                }
             }
         }
 
@@ -180,6 +208,17 @@ pub fn process_effect_turn_end_character(
         buf_effects.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::NoDraw,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    // Entangled removes at the end of turn
+    if modifier_has(mods_char, ModifierKind::Entangled) {
+        buf_effects.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Entangled,
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),

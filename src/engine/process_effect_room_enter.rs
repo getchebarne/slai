@@ -39,7 +39,14 @@ pub fn process_effect_room_enter(
     let room = active_room_kind(id_rooms, location, entities).unwrap();
     match room {
         RoomKind::CombatBoss => {
-            let m = spawn_monster(MonsterName::TheGuardian, ascension, rng);
+            // Act 1 boss: 50/50 between TheGuardian and SlimeBoss
+            // TODO: Hexaghost
+            let name = if rng.random_bool(0.5) {
+                MonsterName::TheGuardian
+            } else {
+                MonsterName::SlimeBoss
+            };
+            let m = spawn_monster(name, ascension, rng);
             push_monster(m, entities, id_monsters, monster_count);
             queue.push_front(Effect {
                 kind: EffectKind::CombatStart,
@@ -48,7 +55,7 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatMonster => {
-            let encounter: u8 = rng.random_range(0..12);
+            let encounter: u8 = rng.random_range(0..14);
             match encounter {
                 0 => {
                     let monster = spawn_monster(MonsterName::JawWorm, ascension, rng);
@@ -72,10 +79,10 @@ pub fn process_effect_room_enter(
                     } else {
                         (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
                     };
-                    let m1 = spawn_monster(small, ascension, rng);
-                    let m2 = spawn_monster(medium, ascension, rng);
-                    push_monster(m1, entities, id_monsters, monster_count);
-                    push_monster(m2, entities, id_monsters, monster_count);
+                    let monster_1 = spawn_monster(small, ascension, rng);
+                    let monster_2 = spawn_monster(medium, ascension, rng);
+                    push_monster(monster_1, entities, id_monsters, monster_count);
+                    push_monster(monster_2, entities, id_monsters, monster_count);
                 }
                 4 => {
                     let monster = spawn_monster(MonsterName::SlaverBlue, ascension, rng);
@@ -154,6 +161,14 @@ pub fn process_effect_room_enter(
                         push_monster(monster, entities, id_monsters, monster_count);
                     }
                 }
+                12 => {
+                    let monster = spawn_monster(MonsterName::Looter, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
+                13 => {
+                    let monster = spawn_monster(MonsterName::SlaverRed, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
                 _ => unreachable!(),
             };
             queue.push_front(Effect {
@@ -163,13 +178,27 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatElite => {
-            // Sentries
-            let monster_1 = spawn_monster(MonsterName::Sentry, ascension, rng);
-            let monster_2 = spawn_monster(MonsterName::Sentry, ascension, rng);
-            let monster_3 = spawn_monster(MonsterName::Sentry, ascension, rng);
-            push_monster(monster_1, entities, id_monsters, monster_count);
-            push_monster(monster_2, entities, id_monsters, monster_count);
-            push_monster(monster_3, entities, id_monsters, monster_count);
+            // Sentries, GremlinNob, or Lagavulin
+            let pick: u8 = rng.random_range(0..3);
+            match pick {
+                0 => {
+                    let monster_1 = spawn_monster(MonsterName::Sentry, ascension, rng);
+                    let monster_2 = spawn_monster(MonsterName::Sentry, ascension, rng);
+                    let monster_3 = spawn_monster(MonsterName::Sentry, ascension, rng);
+                    push_monster(monster_1, entities, id_monsters, monster_count);
+                    push_monster(monster_2, entities, id_monsters, monster_count);
+                    push_monster(monster_3, entities, id_monsters, monster_count);
+                }
+                1 => {
+                    let monster = spawn_monster(MonsterName::GremlinNob, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
+                2 => {
+                    let monster = spawn_monster(MonsterName::Lagavulin, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
+                }
+                _ => unreachable!(),
+            }
             queue.push_front(Effect {
                 kind: EffectKind::CombatStart,
                 id_source: None,
