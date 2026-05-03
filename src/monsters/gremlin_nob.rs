@@ -4,16 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Gremlin Nob (Elite). T1 always Bellow → gain Enrage 2 (Asc 18+: 3).
-// Then Bull Rush / Skull Bash rotation. Java's `usedBellow` flag is derived
-// from `move_history` — Bellow appears once, never again.
-//
-// Asc 0–17: 33% Skull Bash; otherwise Bull Rush (no-3-Bull-Rush-in-a-row →
-//           force Skull Bash).
-// Asc 18+:  if neither of the last 2 moves was Skull Bash → Skull Bash;
-//           otherwise Bull Rush. Effectively cycles Bellow, SB, BR, BR, SB,
-//           BR, BR, SB, ... (matches wiki).
-
 static MOVE_BELLOW_2: Move = Move {
     name: "Bellow",
     effects: &[Effect {
@@ -173,14 +163,14 @@ pub fn get_next_move_gremlin_nob(
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
-    // First turn: always Bellow. Derived from history (does Bellow appear?).
+    // First turn: always Bellow
     let bellow_used = move_history.iter().any(|&m| m == IDX_MOVE_BELLOW as u8);
     if !bellow_used {
         return IDX_MOVE_BELLOW;
     }
 
     if ascension_level >= 18 {
-        // Skull Bash if neither of the last two moves was Skull Bash.
+        // Skull Bash if neither of the last two moves was Skull Bash
         let last = move_history.last().copied();
         let last_before = if move_history.len() >= 2 {
             Some(move_history[move_history.len() - 2])
@@ -194,7 +184,7 @@ pub fn get_next_move_gremlin_nob(
         }
         IDX_MOVE_BULL_RUSH
     } else {
-        // Asc 0–17: 33% Skull Bash; else Bull Rush with no-3-in-a-row constraint.
+        // Asc 0–17: 33% Skull Bash; else Bull Rush with no-3-in-a-row constraint
         let roll = rng.random_range(0..=99);
         if roll < 33 {
             return IDX_MOVE_SKULL_BASH;

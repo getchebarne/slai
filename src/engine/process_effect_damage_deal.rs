@@ -101,11 +101,14 @@ fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDe
 
     // Asleep wake-via-damage (Lagavulin): on HP loss while Asleep, set
     // move_current = Stunned (one no-damage monster turn) and remove Asleep +
-    // Metallicize. Subsequent damage instances see no Asleep → fall through.
+    // Metallicize
     if modifier_has(&target.modifiers, ModifierKind::Asleep) && target.vitals.health > 0 {
         let stunned_idx = match target.monster_name {
             MonsterName::Lagavulin => lagavulin::IDX_MOVE_STUNNED,
-            _ => return,
+            _ => panic!(
+                "Unsupported monster name for Asleep modifier: {:?}",
+                target.monster_name
+            ),
         };
         target.move_current = Some(stunned_idx);
         modifier_remove(&mut target.modifiers, ModifierKind::Asleep);

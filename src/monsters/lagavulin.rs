@@ -4,30 +4,13 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply, modifier_has
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Lagavulin (Elite). Spawns asleep with Metallicize 8 + 8 starting block.
-//
-// Sleep flow (no `monster_param`, derived from `move_history`):
-//   - while Asleep: trailing-Sleep count < 2 → Sleep; == 2 → SleepFinal.
-//   - SleepFinal's effects = [RemoveAsleep, RemoveMetallicize], so the
-//     T3 Metallicize tick (which fires after move effects in
-//     `process_effect_turn_end_monster`) sees Metallicize already gone.
-//     Matches Java's mid-T3 ChangeStateAction OPEN timing.
-//   - On HP loss while Asleep: the on-damage hook in `process_effect_damage_deal`
-//     sets move_current = Stunned and queues the same removals.
-//
-// Awake rotation: Attack → Attack → Siphon Soul → Attack → Attack → Siphon
-// → ... Derived from move_history: count of trailing Attack+Stunned+SleepFinal
-// entries that are NOT Siphon — when 2 trailing Attacks (or any wake transition
-// followed by Attacks) since last Siphon → fire Siphon. Stunned and SleepFinal
-// transition into the rotation as "fresh wake → next is Attack".
-
 static MOVE_SLEEP: Move = Move {
     name: "Sleep",
     effects: &[],
     intent: Intent::Sleep,
 };
-static MOVE_SLEEP_FINAL: Move = Move {
-    name: "Sleep",
+static MOVE_WAKE_UP: Move = Move {
+    name: "Wake up",
     effects: &[
         Effect {
             kind: EffectKind::ModifierRemove {
@@ -55,7 +38,7 @@ static MOVE_SLEEP_FINAL: Move = Move {
 static MOVE_STUNNED: Move = Move {
     name: "Stunned",
     effects: &[],
-    intent: Intent::Sleep,
+    intent: Intent::Stunned,
 };
 static MOVE_ATTACK_18: Move = Move {
     name: "Attack",
@@ -146,28 +129,28 @@ static MOVE_SIPHON_SOUL_2: Move = Move {
 
 static MOVES_ASC0: [Move; 5] = [
     MOVE_SLEEP,
-    MOVE_SLEEP_FINAL,
+    MOVE_WAKE_UP,
     MOVE_STUNNED,
     MOVE_ATTACK_18,
     MOVE_SIPHON_SOUL_1,
 ];
 static MOVES_ASC3: [Move; 5] = [
     MOVE_SLEEP,
-    MOVE_SLEEP_FINAL,
+    MOVE_WAKE_UP,
     MOVE_STUNNED,
     MOVE_ATTACK_20,
     MOVE_SIPHON_SOUL_1,
 ];
 static MOVES_ASC18: [Move; 5] = [
     MOVE_SLEEP,
-    MOVE_SLEEP_FINAL,
+    MOVE_WAKE_UP,
     MOVE_STUNNED,
     MOVE_ATTACK_20,
     MOVE_SIPHON_SOUL_2,
 ];
 
 const IDX_MOVE_SLEEP: usize = 0;
-const IDX_MOVE_SLEEP_FINAL: usize = 1;
+const IDX_MOVE_WAKE_UP: usize = 1;
 pub const IDX_MOVE_STUNNED: usize = 2;
 const IDX_MOVE_ATTACK: usize = 3;
 const IDX_MOVE_SIPHON: usize = 4;
@@ -210,13 +193,13 @@ pub fn get_next_move_lagavulin(
     move_history: &[u8],
     modifiers: &crate::modifier::Modifiers,
 ) -> usize {
-    // Combat start: no move yet → Sleep (Asleep is innate).
+    // Combat start: Sleep
     if move_current.is_none() {
         return IDX_MOVE_SLEEP;
     }
 
     if modifier_has(modifiers, ModifierKind::Asleep) {
-        // Count trailing Sleep moves in history.
+        // Count trailing Sleep moves in history
         let trailing_sleeps = move_history
             .iter()
             .rev()
@@ -225,12 +208,10 @@ pub fn get_next_move_lagavulin(
         if trailing_sleeps < 2 {
             IDX_MOVE_SLEEP
         } else {
-            IDX_MOVE_SLEEP_FINAL
+            IDX_MOVE_WAKE_UP
         }
     } else {
-        // Awake rotation: 2 Attacks then Siphon Soul.
-        // Count trailing Attack moves in history (after the most recent
-        // wake/Siphon). If >= 2 → Siphon. Else → Attack.
+        // Awake rotation: 2 Attacks then Siphon Soul
         let trailing_attacks = move_history
             .iter()
             .rev()

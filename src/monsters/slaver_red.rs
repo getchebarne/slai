@@ -4,12 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Red Slaver (Normal). T1 always Stab. After T1: gates a once-per-combat
-// Entangle on a 25% roll, then biases between Stab (with Entangle used) and
-// Scrape (no-three-in-a-row at Asc 0-16, no-two at Asc 17+).
-//
-// `usedEntangle` derived from history (does Entangle appear?).
-
 static MOVE_STAB_13: Move = Move {
     name: "Stab",
     effects: &[Effect {
@@ -186,13 +180,10 @@ pub fn get_next_move_slaver_red(
     if move_current.is_none() {
         return IDX_MOVE_STAB;
     }
-    let used_entangle = move_history
-        .iter()
-        .any(|&m| m == IDX_MOVE_ENTANGLE as u8);
+    let used_entangle = move_history.iter().any(|&m| m == IDX_MOVE_ENTANGLE as u8);
 
     let roll = rng.random_range(0..=99);
-    let last_two_stab =
-        move_history.ends_with(&[IDX_MOVE_STAB as u8, IDX_MOVE_STAB as u8]);
+    let last_two_stab = move_history.ends_with(&[IDX_MOVE_STAB as u8, IDX_MOVE_STAB as u8]);
 
     if roll >= 75 && !used_entangle {
         return IDX_MOVE_ENTANGLE;

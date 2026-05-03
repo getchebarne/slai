@@ -4,162 +4,61 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Looter (Normal). Steals gold via Mug/Lunge; runs after 4–5 turns. The
-// stolen gold returns to the player on death (process_effect_death.rs hook),
-// is kept on Escape (process_effect_escape_monster.rs skips the gold path).
-//
-// Sequence (`slash_count` derived from history as count of Mug + Lunge):
-//   T1: Mug
-//   T2: Mug
-//   T3: 50/50 SmokeBomb (block 6) / Lunge
-//   T4: SmokeBomb if T3 was Lunge; Escape if T3 was SmokeBomb
-//   T5: Escape if T4 was SmokeBomb (i.e. T3 was Lunge branch)
-
-static MOVE_MUG_10_STEAL_15: Move = Move {
+static MOVE_MUG_10: Move = Move {
     name: "Mug",
-    effects: &[
-        Effect {
-            kind: EffectKind::GoldSteal { amount: 15 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
+    effects: &[Effect {
+        kind: EffectKind::DamagePhysical { amount: 10 },
+        id_source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::Character,
+            selection: SelectionKind::All,
         },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 10 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
-        },
-    ],
+    }],
     intent: Intent::Attack {
         damage: 10,
         instances: 1,
     },
 };
-static MOVE_MUG_11_STEAL_15: Move = Move {
+static MOVE_MUG_11: Move = Move {
     name: "Mug",
-    effects: &[
-        Effect {
-            kind: EffectKind::GoldSteal { amount: 15 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
+    effects: &[Effect {
+        kind: EffectKind::DamagePhysical { amount: 11 },
+        id_source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::Character,
+            selection: SelectionKind::All,
         },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 11 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
-        },
-    ],
+    }],
     intent: Intent::Attack {
         damage: 11,
         instances: 1,
     },
 };
-static MOVE_MUG_11_STEAL_20: Move = Move {
-    name: "Mug",
-    effects: &[
-        Effect {
-            kind: EffectKind::GoldSteal { amount: 20 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 11 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
-        },
-    ],
-    intent: Intent::Attack {
-        damage: 11,
-        instances: 1,
-    },
-};
-static MOVE_LUNGE_12_STEAL_15: Move = Move {
+static MOVE_LUNGE_12: Move = Move {
     name: "Lunge",
-    effects: &[
-        Effect {
-            kind: EffectKind::GoldSteal { amount: 15 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
+    effects: &[Effect {
+        kind: EffectKind::DamagePhysical { amount: 12 },
+        id_source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::Character,
+            selection: SelectionKind::All,
         },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 12 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
-        },
-    ],
+    }],
     intent: Intent::Attack {
         damage: 12,
         instances: 1,
     },
 };
-static MOVE_LUNGE_14_STEAL_15: Move = Move {
+static MOVE_LUNGE_14: Move = Move {
     name: "Lunge",
-    effects: &[
-        Effect {
-            kind: EffectKind::GoldSteal { amount: 15 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
+    effects: &[Effect {
+        kind: EffectKind::DamagePhysical { amount: 14 },
+        id_source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::Character,
+            selection: SelectionKind::All,
         },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 14 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
-        },
-    ],
-    intent: Intent::Attack {
-        damage: 14,
-        instances: 1,
-    },
-};
-static MOVE_LUNGE_14_STEAL_20: Move = Move {
-    name: "Lunge",
-    effects: &[
-        Effect {
-            kind: EffectKind::GoldSteal { amount: 20 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 14 },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
-            },
-        },
-    ],
+    }],
     intent: Intent::Attack {
         damage: 14,
         instances: 1,
@@ -190,24 +89,8 @@ static MOVE_ESCAPE: Move = Move {
     intent: Intent::Escape,
 };
 
-static MOVES_ASC0: [Move; 4] = [
-    MOVE_MUG_10_STEAL_15,
-    MOVE_LUNGE_12_STEAL_15,
-    MOVE_SMOKE_BOMB,
-    MOVE_ESCAPE,
-];
-static MOVES_ASC2: [Move; 4] = [
-    MOVE_MUG_11_STEAL_15,
-    MOVE_LUNGE_14_STEAL_15,
-    MOVE_SMOKE_BOMB,
-    MOVE_ESCAPE,
-];
-static MOVES_ASC17: [Move; 4] = [
-    MOVE_MUG_11_STEAL_20,
-    MOVE_LUNGE_14_STEAL_20,
-    MOVE_SMOKE_BOMB,
-    MOVE_ESCAPE,
-];
+static MOVES_ASC0: [Move; 4] = [MOVE_MUG_10, MOVE_LUNGE_12, MOVE_SMOKE_BOMB, MOVE_ESCAPE];
+static MOVES_ASC2: [Move; 4] = [MOVE_MUG_11, MOVE_LUNGE_14, MOVE_SMOKE_BOMB, MOVE_ESCAPE];
 
 const IDX_MOVE_MUG: usize = 0;
 const IDX_MOVE_LUNGE: usize = 1;
@@ -224,15 +107,13 @@ pub fn spawn_looter(ascension_level: u8, rng: &mut impl Rng) -> Entity {
 
     let moves: &'static [Move] = if ascension_level < 2 {
         &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
     } else {
-        &MOVES_ASC17
+        &MOVES_ASC2
     };
 
-    let gold_amt: i16 = if ascension_level < 17 { 15 } else { 20 };
+    let stacks_thievery: i16 = if ascension_level < 17 { 15 } else { 20 };
     let mut modifiers = ZERO_MODIFIERS;
-    modifier_apply(&mut modifiers, ModifierKind::Thievery, gold_amt);
+    modifier_apply(&mut modifiers, ModifierKind::Thievery, stacks_thievery);
 
     make_entity_monster(
         MonsterName::Looter,
@@ -261,7 +142,7 @@ pub fn get_next_move_looter(
 
     match last {
         IDX_MOVE_MUG => {
-            // Count of Mug + Lunge in history (the "slash_count").
+            // Count of Mug + Lunge in history (the "slash_count")
             let slash_count = move_history
                 .iter()
                 .filter(|&&m| m == IDX_MOVE_MUG as u8 || m == IDX_MOVE_LUNGE as u8)

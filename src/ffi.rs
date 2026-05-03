@@ -611,7 +611,7 @@ pub struct Character {
     pub health_max: u16,
     pub block: u16,
     pub modifiers: Vec<Modifier>,
-    pub reward_roll_offset: i8,
+    pub character_reward_roll_offset: i8,
     pub gold: u16,
 }
 
@@ -720,8 +720,8 @@ fn build_view_character(state: &InternalGameState) -> Character {
         health_max: character.vitals.health_max,
         block: character.vitals.block,
         modifiers: build_view_modifiers(&character.modifiers),
-        reward_roll_offset: character.reward_roll_offset,
-        gold: character.gold,
+        character_reward_roll_offset: character.character_reward_roll_offset,
+        gold: character.character_gold,
     }
 }
 
@@ -756,6 +756,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                     InternalIntent::DebuffPowerful => (None, None, false, false, true),
                     InternalIntent::Escape => (None, None, false, false, false),
                     InternalIntent::Sleep => (None, None, false, false, false),
+                    InternalIntent::Stunned => (None, None, false, false, false),
                     InternalIntent::Unknown => (None, None, false, false, false),
                 };
 

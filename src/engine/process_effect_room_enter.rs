@@ -39,8 +39,8 @@ pub fn process_effect_room_enter(
     let room = active_room_kind(id_rooms, location, entities).unwrap();
     match room {
         RoomKind::CombatBoss => {
-            // Act 1 boss: 50/50 between TheGuardian and SlimeBoss. Hexaghost
-            // lands in Tier 6.
+            // Act 1 boss: 50/50 between TheGuardian and SlimeBoss
+            // TODO: Hexaghost
             let name = if rng.random_bool(0.5) {
                 MonsterName::TheGuardian
             } else {
@@ -79,10 +79,10 @@ pub fn process_effect_room_enter(
                     } else {
                         (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
                     };
-                    let m1 = spawn_monster(small, ascension, rng);
-                    let m2 = spawn_monster(medium, ascension, rng);
-                    push_monster(m1, entities, id_monsters, monster_count);
-                    push_monster(m2, entities, id_monsters, monster_count);
+                    let monster_1 = spawn_monster(small, ascension, rng);
+                    let monster_2 = spawn_monster(medium, ascension, rng);
+                    push_monster(monster_1, entities, id_monsters, monster_count);
+                    push_monster(monster_2, entities, id_monsters, monster_count);
                 }
                 4 => {
                     let monster = spawn_monster(MonsterName::SlaverBlue, ascension, rng);
@@ -178,26 +178,24 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::CombatElite => {
-            // Act 1 elite roster: 3-Sentries, GremlinNob, Lagavulin.
-            // Uniform 1/3 picks (Java weights elite cycles to avoid back-to-back
-            // repeats; not modeled here).
+            // Sentries, GremlinNob, or Lagavulin
             let pick: u8 = rng.random_range(0..3);
             match pick {
                 0 => {
-                    let m1 = spawn_monster(MonsterName::Sentry, ascension, rng);
-                    let m2 = spawn_monster(MonsterName::Sentry, ascension, rng);
-                    let m3 = spawn_monster(MonsterName::Sentry, ascension, rng);
-                    push_monster(m1, entities, id_monsters, monster_count);
-                    push_monster(m2, entities, id_monsters, monster_count);
-                    push_monster(m3, entities, id_monsters, monster_count);
+                    let monster_1 = spawn_monster(MonsterName::Sentry, ascension, rng);
+                    let monster_2 = spawn_monster(MonsterName::Sentry, ascension, rng);
+                    let monster_3 = spawn_monster(MonsterName::Sentry, ascension, rng);
+                    push_monster(monster_1, entities, id_monsters, monster_count);
+                    push_monster(monster_2, entities, id_monsters, monster_count);
+                    push_monster(monster_3, entities, id_monsters, monster_count);
                 }
                 1 => {
-                    let m = spawn_monster(MonsterName::GremlinNob, ascension, rng);
-                    push_monster(m, entities, id_monsters, monster_count);
+                    let monster = spawn_monster(MonsterName::GremlinNob, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
                 }
                 2 => {
-                    let m = spawn_monster(MonsterName::Lagavulin, ascension, rng);
-                    push_monster(m, entities, id_monsters, monster_count);
+                    let monster = spawn_monster(MonsterName::Lagavulin, ascension, rng);
+                    push_monster(monster, entities, id_monsters, monster_count);
                 }
                 _ => unreachable!(),
             }

@@ -6,7 +6,7 @@ use crate::types::Vitals;
 
 pub fn spawn_silent(ascension: u8) -> Entity {
     let (health, health_max) = silent_health(ascension);
-    let mut e = make_entity_character(
+    make_entity_character(
         "Silent",
         Vitals {
             health,
@@ -14,9 +14,8 @@ pub fn spawn_silent(ascension: u8) -> Entity {
             block: 0,
         },
         CARD_REWARD_ROLL_OFFSET_BASE,
-    );
-    e.gold = STARTING_GOLD;
-    e
+        STARTING_GOLD,
+    )
 }
 
 pub fn silent_starter_deck() -> Vec<Entity> {

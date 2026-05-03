@@ -678,15 +678,15 @@ fn dispatch_by_kind(
         EffectKind::ModifierGain { kind, stacks } => {
             let id_target = id_target.unwrap();
             let entity = &mut state.entities[id_target];
-            let cycle_count = match entity.kind {
-                EntityKind::Monster => Some(entity.cycle_count),
+            let monster_cycle_count = match entity.kind {
+                EntityKind::Monster => Some(entity.monster_cycle_count),
                 _ => None,
             };
             process_effect_modifier_gain::process_effect_modifier_gain(
                 &mut entity.modifiers,
                 kind,
                 stacks,
-                cycle_count,
+                monster_cycle_count,
             )
         }
         EffectKind::ModifierMultiply { kind, factor } => {
@@ -852,30 +852,23 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::EscapeMonster => {
-            let id_target = id_target.expect("EscapeMonster must have a target");
-            process_effect_escape_monster::process_effect_escape_monster(
-                id_target,
-                &state.id_monsters,
-                state.monster_count,
-                &mut state.entities,
-                &mut state.effect_queue,
-            )
-        }
-        EffectKind::GoldSteal { amount } => {
-            let id_src = id_source.expect("GoldSteal must have an id_source (the stealing monster)");
-            process_effect_gold_steal::process_effect_gold_steal(
-                id_src,
-                state.id_character,
-                amount,
-                &mut state.entities,
-            )
-        }
-        EffectKind::GoldGain { amount } => process_effect_gold_gain::process_effect_gold_gain(
+        EffectKind::EscapeMonster => process_effect_escape_monster::process_effect_escape_monster(
+            id_target.unwrap(),
+            &state.id_monsters,
+            state.monster_count,
+            &mut state.entities,
+            &mut state.effect_queue,
+        ),
+        EffectKind::GoldSteal { amount } => process_effect_gold_steal::process_effect_gold_steal(
+            id_source.unwrap(),
             state.id_character,
             amount,
             &mut state.entities,
         ),
+        EffectKind::GoldGain { amount } => {
+            let character = &mut state.entities[state.id_character];
+            process_effect_gold_gain::process_effect_gold_gain(character, amount)
+        }
         // Halt-kind variants: represent pending player decisions
         // RoomSelect and CardRewardSelect in their `Direct` form (after
         // the resolver picked a target) complete the transition. Before
