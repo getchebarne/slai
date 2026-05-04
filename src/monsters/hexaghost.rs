@@ -1,14 +1,10 @@
+use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
 
-// Hexaghost (Boss). T1 Activate (Unknown), T2 Divider (HP/12+1 × 6), then a
-// fixed 7-move cycle [Sear, Tackle, Sear, Inflame, Tackle, Sear, Inferno]
-// repeating. Cycle position derived from move_history by walking back to the
-// most recent Divider/Inferno anchor. After the first Inferno, Sear spawns
-// upgraded Burns
-
+// First move: essentially a no-op
 static MOVE_ACTIVATE: Move = Move {
     name: "Activate",
     effects: &[],
@@ -21,7 +17,7 @@ static MOVE_ACTIVATE: Move = Move {
 static MOVE_DIVIDER: Move = Move {
     name: "Divider",
     effects: &[Effect {
-        kind: EffectKind::HexaghostDivider { hits: 6 },
+        kind: EffectKind::HexaghostDivider,
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
@@ -29,8 +25,8 @@ static MOVE_DIVIDER: Move = Move {
         },
     }],
     intent: Intent::Attack {
-        damage: 1,
-        instances: 6,
+        damage: 1, // Placehoder
+        instances: HEXAGHOST_DIVIDER_HITS,
     },
 };
 
@@ -241,7 +237,7 @@ static MOVE_INFLAME_3: Move = Move {
     intent: Intent::BlockBuff,
 };
 
-// Inferno: 6 hits + BurnIncreaseAction (upgrade existing Burns + add 3 upgraded)
+// Inferno: 6 hits + Burn increase (upgrade existing Burns + add 3 upgraded)
 static MOVE_INFERNO_2: Move = Move {
     name: "Inferno",
     effects: &[
@@ -458,19 +454,19 @@ pub fn get_next_move_hexaghost(move_current: Option<usize>, move_history: &[u8])
         return IDX_MOVE_DIVIDER;
     }
 
-    let has_inferno = move_history
-        .iter()
-        .any(|&m| m == IDX_MOVE_INFERNO as u8);
+    // Calculate if Inferno has already occured
+    let has_inferno = move_history.iter().any(|&m| m == IDX_MOVE_INFERNO as u8);
 
+    // Cycle start
     if last == IDX_MOVE_DIVIDER || last == IDX_MOVE_INFERNO {
         return cycle_slot(0, has_inferno);
     }
 
-    // Walk back from end to find the most recent Divider/Inferno anchor.
-    // `slot` = number of moves since that anchor.
+    // Mid-cycle. Walk back from end to find the most recent Divider/Inferno anchor
+    // `slot` = number of moves since that anchor
     let mut slot = 0usize;
-    for &m in move_history.iter().rev() {
-        if m == IDX_MOVE_DIVIDER as u8 || m == IDX_MOVE_INFERNO as u8 {
+    for &move_ in move_history.iter().rev() {
+        if move_ == IDX_MOVE_DIVIDER as u8 || move_ == IDX_MOVE_INFERNO as u8 {
             break;
         }
         slot += 1;

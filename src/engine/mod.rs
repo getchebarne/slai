@@ -879,9 +879,8 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::HexaghostDivider { hits } => {
+        EffectKind::HexaghostDivider => {
             process_effect_hexaghost_divider::process_effect_hexaghost_divider(
-                hits,
                 id_source,
                 state.id_character,
                 &state.entities,

@@ -118,7 +118,6 @@ pub fn process_effect_turn_end_character(
     }
 
     // WraithForm: each stack costs 1 Dexterity per player turn end
-    // Persists across turns (no removal here)
     if modifier_has(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
         buf_effects.push(Effect {
@@ -131,10 +130,7 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    // Burn end-of-turn damage: each Burn in hand deals 2 (4 upgraded) raw
-    // damage to character, fires BEFORE the discard loop so Burns tick then
-    // discard normally (Java's triggerOnEndOfTurnForPlayingCard). id_source =
-    // None bypasses Envenom + Strength scaling (THORNS damage type)
+    // Burn end-of-turn damage TODO: improve data representation
     for &id_card in id_hand {
         let card = &entities[id_card];
         if card.card_name == CardName::Burn {

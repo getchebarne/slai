@@ -70,7 +70,7 @@ pub enum EffectKind {
     GoldSteal { amount: u8 },
     GoldGain { amount: u16 },
     HexaghostBurnIncrease { count: u8 },
-    HexaghostDivider { hits: u8 },
+    HexaghostDivider,
 
     // Select: halts the queue asking the player to pick a target. After the
     // pick, the same EffectKind runs as `Direct` with the chosen entity,

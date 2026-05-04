@@ -125,9 +125,7 @@ pub fn get_next_move(
             history,
             ascension_level,
         ),
-        MonsterName::Hexaghost => {
-            hexaghost::get_next_move_hexaghost(entity.move_current, history)
-        }
+        MonsterName::Hexaghost => hexaghost::get_next_move_hexaghost(entity.move_current, history),
         MonsterName::GremlinTsundere => {
             let other_alive_count = id_alive_monsters
                 .iter()
@@ -149,18 +147,12 @@ pub fn get_next_move(
         MonsterName::LouseNormal => {
             louse_red::get_next_move_louse_red(entity.move_current, history, ascension_level, rng)
         }
-        MonsterName::Sentry => sentry::get_next_move_sentry(
-            entity.move_current,
-            history,
-            entity_id,
-            id_alive_monsters,
-        ),
-        MonsterName::SlaverRed => slaver_red::get_next_move_slaver_red(
-            entity.move_current,
-            history,
-            ascension_level,
-            rng,
-        ),
+        MonsterName::Sentry => {
+            sentry::get_next_move_sentry(entity.move_current, history, entity_id, id_alive_monsters)
+        }
+        MonsterName::SlaverRed => {
+            slaver_red::get_next_move_slaver_red(entity.move_current, history, ascension_level, rng)
+        }
         MonsterName::SlimeAcidLarge => slime_acid_large::get_next_move_slime_acid_large(
             entity.move_current,
             history,

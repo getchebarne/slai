@@ -3,9 +3,6 @@ use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::types::CardName;
 
-// Spawn `count` fresh copies of the named card and append them to the
-// player's discard pile. Used by monster moves that inject status cards
-// (Acid/Spike Slime Medium → Slimed; Sentry → Dazed; Hexaghost → Burn)
 pub fn process_effect_card_add_to_discard(
     card_name: CardName,
     count: u8,
