@@ -55,7 +55,6 @@ pub struct GameState {
 
     // Read by self-referential effects
     pub card_last_drawn: Option<usize>,
-    pub card_last_played: Option<usize>,
 
     // Per-turn counters; reset in process_effect_turn_end_character
     pub this_turn_discards: u8,
@@ -118,7 +117,6 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         location,
         effect_queue,
         card_last_drawn: None,
-        card_last_played: None,
         this_turn_discards: 0,
         this_turn_attacks_played: 0,
         this_combat_damage_instances_taken: 0,

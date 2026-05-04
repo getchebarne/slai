@@ -9,11 +9,12 @@ use crate::types::MonsterName;
 
 pub fn process_effect_damage_deal(
     target: &mut Entity,
-    id_source: Option<usize>,
+    id_actor: usize,
     id_target: usize,
     id_character: usize,
     mods_char: &Modifiers,
     amount: u16,
+    from_card: bool,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let damage_over_block = amount.saturating_sub(target.vitals.block);
@@ -28,9 +29,10 @@ pub fn process_effect_damage_deal(
             target: Target::Direct(Some(id_target)),
         });
 
-        // Envenom (source-side): when player attack lands unblocked damage on a
-        // non-self target, apply Envenom stacks of Poison to the target
-        if id_source == Some(id_character)
+        // Envenom: when a card-played attack lands unblocked damage on a
+        // non-self target, apply Envenom stacks of Poison to the target.
+        // `from_card` gates out modifier-driven damage (e.g. ThousandCuts)
+        if from_card
             && id_target != id_character
             && modifier_has(mods_char, ModifierKind::Envenom)
         {
@@ -46,7 +48,7 @@ pub fn process_effect_damage_deal(
         }
 
         // Target-side hook — fires only when actual HP loss > 0
-        if id_source != Some(id_target) {
+        if id_actor != id_target {
             fire_on_damage_taken(target, id_target, queue);
         }
     }

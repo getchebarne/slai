@@ -69,7 +69,10 @@ pub fn process_effect_card_draw(
     for &id_card in id_drawn[..id_drawn_n].iter().rev() {
         let effects_on_draw = entities[id_card].card_on_draw_effects;
         for effect in effects_on_draw.iter().rev() {
-            queue.push_front(*effect);
+            queue.push_front(Effect {
+                id_source: Some(id_card),
+                ..*effect
+            });
         }
     }
 
