@@ -279,6 +279,70 @@ pub enum MonsterKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum EncounterPool {
+    EasyAct1,
+    HardAct1,
+    EliteAct1,
+    BossAct1,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[repr(u8)]
+pub enum MonsterEncounter {
+    // Easy pool
+    Cultist,
+    JawWorm,
+    TwoLouse,
+    SmallSlimes,
+    // Hard pool
+    BlueSlaver,
+    RedSlaver,
+    Looter,
+    TwoFungiBeasts,
+    ThreeLouse,
+    LargeSlime,
+    LotsOfSlimes,
+    GremlinGang,
+    ExordiumThugs,
+    ExordiumWildlife,
+    // Elite pool
+    GremlinNob,
+    Lagavulin,
+    ThreeSentries,
+    // Boss pool
+    TheGuardian,
+    Hexaghost,
+    SlimeBoss,
+}
+
+impl MonsterEncounter {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Cultist => "Cultist",
+            Self::JawWorm => "Jaw Worm",
+            Self::TwoLouse => "2 Louse",
+            Self::SmallSlimes => "Small Slimes",
+            Self::BlueSlaver => "Blue Slaver",
+            Self::RedSlaver => "Red Slaver",
+            Self::Looter => "Looter",
+            Self::TwoFungiBeasts => "2 Fungi Beasts",
+            Self::ThreeLouse => "3 Louse",
+            Self::LargeSlime => "Large Slime",
+            Self::LotsOfSlimes => "Lots of Slimes",
+            Self::GremlinGang => "Gremlin Gang",
+            Self::ExordiumThugs => "Exordium Thugs",
+            Self::ExordiumWildlife => "Exordium Wildlife",
+            Self::GremlinNob => "Gremlin Nob",
+            Self::Lagavulin => "Lagavulin",
+            Self::ThreeSentries => "3 Sentries",
+            Self::TheGuardian => "The Guardian",
+            Self::Hexaghost => "Hexaghost",
+            Self::SlimeBoss => "Slime Boss",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RoomKind {
     CombatBoss,
     CombatElite,

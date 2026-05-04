@@ -46,6 +46,13 @@ pub struct GameState {
     pub monster_count: u8,
     pub id_card_target: Option<usize>,
 
+    // Pre-generated encounter sequences (Exordium.generateMonsters /
+    // initializeBoss). Each combat-room entry pops the front entry; if a
+    // list runs dry, regenerate (matches AbstractDungeon.java:1670-1687).
+    pub monster_list: Vec<MonsterEncounter>,
+    pub elite_monster_list: Vec<MonsterEncounter>,
+    pub boss_list: Vec<MonsterEncounter>,
+
     pub id_deck: Vec<usize>,
     pub id_pile_draw: Vec<usize>,
     pub id_hand: Vec<usize>,
@@ -85,6 +92,19 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
     let (id_rooms, location) = generate_map(&mut rng, &mut entities);
 
+    // Pre-generate the Act 1 encounter sequences (canonical
+    // Exordium.generateMonsters / initializeBoss). Done before the queue
+    // is seeded so RNG consumption order matches dungeon-init.
+    let mut monster_list = Vec::with_capacity(16);
+    let mut elite_monster_list = Vec::with_capacity(10);
+    let mut boss_list = Vec::with_capacity(3);
+    crate::monsters::encounter::generate_act1_monsters(
+        &mut monster_list,
+        &mut elite_monster_list,
+        &mut rng,
+    );
+    crate::monsters::encounter::initialize_act1_boss(&mut boss_list, &mut rng);
+
     // Seed the queue with the initial RoomSelect prompt so the player
     // starts halted on the first map pick
     let mut effect_queue = VecDeque::with_capacity(64);
@@ -115,6 +135,9 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_card_rewards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
         id_rooms,
         location,
+        monster_list,
+        elite_monster_list,
+        boss_list,
         effect_queue,
         card_last_drawn: None,
         this_turn_discards: 0,
