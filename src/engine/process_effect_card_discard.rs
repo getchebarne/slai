@@ -48,7 +48,7 @@ pub fn process_effect_card_discard(
             remove_card_from_hand(id_target, id_hand);
             id_pile_discard.push(id_target);
             *this_turn_discards = this_turn_discards.saturating_add(1);
-            
+
             // Push in reverse so the first effect in the array runs first
             // when the queue resumes
             let effects_on_discard = entities[id_target].card_on_discard_effects;
