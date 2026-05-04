@@ -115,7 +115,7 @@ fn handle_card_play(
         ));
     }
 
-    // Entangled: blocks playing Attack cards for one turn (SlaverRed Entangle).
+    // Entangled: blocks playing Attack cards
     if card.card_kind == CardKind::Attack
         && modifier_has(
             &state.entities[state.id_character].modifiers,

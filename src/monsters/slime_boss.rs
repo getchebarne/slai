@@ -3,13 +3,6 @@ use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
 
-// Slime Boss. Fixed cycle Goop Spray → Preparing → Slam → Goop Spray → ...
-// At HP ≤ 50%: Splittable (set in `process_effect_damage_deal`'s slime
-// split branch) overrides next move to Split, which spawns 1 SpikeSlime_L +
-// 1 AcidSlime_L (each at boss's current HP) and escapes.
-//
-// HP and Slam damage are fixed by ascension tier; no random roll on spawn.
-
 static MOVE_GOOP_SPRAY_3: Move = Move {
     name: "Goop Spray",
     effects: &[Effect {

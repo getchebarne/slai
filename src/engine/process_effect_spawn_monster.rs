@@ -9,6 +9,7 @@ use crate::entity::Entity;
 use crate::monsters::spawn_monster;
 use crate::types::MonsterName;
 
+// TODO: generalize besides Slimes
 pub fn process_effect_spawn_monster(
     name: MonsterName,
     id_source: usize,
@@ -26,20 +27,20 @@ pub fn process_effect_spawn_monster(
         MAX_MONSTERS,
     );
 
-    let parent_health = entities[id_source].vitals.health;
-    let mut child = spawn_monster(name, ascension_level, rng);
-    // Slime split: spawned medium inherits the L's current HP as both health and
-    // health_max (Java: `new AcidSlime_M(..., 0, this.currentHealth)`).
-    child.vitals.health = parent_health;
-    child.vitals.health_max = parent_health;
+    let health_parent = entities[id_source].vitals.health;
+    let mut monster_child = spawn_monster(name, ascension_level, rng);
+
+    // Slime split: spawned medium inherits the L's current HP as max health
+    monster_child.vitals.health = health_parent;
+    monster_child.vitals.health_max = health_parent;
 
     let id_child = entities.len();
-    entities.push(child);
+    entities.push(monster_child);
     id_monsters[*monster_count as usize] = id_child;
     *monster_count += 1;
 
     // Queue a MoveUpdate so the spawned monster has an intent visible on the
-    // next view rebuild and ready for its first turn.
+    // next view rebuild and ready for its first turn
     queue.push_front(Effect {
         kind: EffectKind::MoveUpdate,
         id_source: None,

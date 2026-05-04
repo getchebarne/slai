@@ -9,35 +9,30 @@ pub fn process_effect_modifier_gain(
     modifiers: &mut Modifiers,
     kind: ModifierKind,
     stacks: i16,
-    cycle_count: Option<u8>,
+    monster_cycle_count: Option<u8>,
 ) -> DispatchResult {
     // ModeShift has special scaling logic
     if kind == ModifierKind::ModeShift {
-        if let Some(cc) = cycle_count {
+        if let Some(cc) = monster_cycle_count {
             return process_mode_shift_gain(modifiers, stacks, cc);
         }
     }
 
-    // Artifact: incoming debuff (positive stacks of a non-buff modifier) is
-    // intercepted; one Artifact stack is consumed instead of the modifier
-    // being applied. Removing Artifact at 1 stack stops the intercept on
-    // future debuffs.
-    if stacks > 0
-        && !modifier_def(kind).is_buff
-        && modifier_has(modifiers, ModifierKind::Artifact)
+    // Check artifact
+    // TODO: should block Sihpon Soul
+    if stacks > 0 && !modifier_def(kind).is_buff && modifier_has(modifiers, ModifierKind::Artifact)
     {
-        let new_artifact = modifier_stacks(modifiers, ModifierKind::Artifact) - 1;
-        if new_artifact < modifier_def(ModifierKind::Artifact).stacks_min {
+        let stacks_new = modifier_stacks(modifiers, ModifierKind::Artifact) - 1;
+        if stacks_new < modifier_def(ModifierKind::Artifact).stacks_min {
             modifier_remove(modifiers, ModifierKind::Artifact);
         } else {
-            modifiers.stacks[ModifierKind::Artifact as usize] = new_artifact;
+            modifiers.stacks[ModifierKind::Artifact as usize] = stacks_new;
         }
+        // Early return without applying debuff
         return DispatchResult::Continue;
     }
 
-    // Negative stacks reduce existing modifier, removing if below minimum.
-    // For modifiers whose stacks_min < 0 (Strength, Dexterity), absent →
-    // create with a negative value via modifier_apply (Lagavulin Siphon Soul).
+    // Negative stacks reduce existing modifier, removing if below minimum
     if stacks < 0 {
         if modifier_has(modifiers, kind) {
             let idx = kind as usize;
@@ -59,10 +54,10 @@ pub fn process_effect_modifier_gain(
 fn process_mode_shift_gain(
     modifiers: &mut Modifiers,
     stacks: i16,
-    cycle_count: u8,
+    monster_cycle_count: u8,
 ) -> DispatchResult {
     // ModeShift threshold increases each completed cycle
-    let increase = MODE_SHIFT_INCREASE_PER_CYCLE * cycle_count as i16;
+    let increase = MODE_SHIFT_INCREASE_PER_CYCLE * monster_cycle_count as i16;
 
     modifier_apply(modifiers, ModifierKind::ModeShift, stacks + increase);
     modifiers.is_new[ModifierKind::ModeShift as usize] = false;

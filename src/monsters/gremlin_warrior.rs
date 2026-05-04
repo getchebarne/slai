@@ -4,15 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// Mad Gremlin (Java class `GremlinWarrior`).
-//
-// Single-move monster: Scratch every turn. Innate Angry power applied at
-// spawn — the on-damage hook in process_effect_damage_deal grants Strength
-// equal to Angry stacks each time the gremlin takes damage.
-//
-// Java's GremlinWarrior has an Escape mechanism (deathReact → switch intent
-// to ESCAPE when a sibling dies). Wired in Tier 4 — for now, fights to death.
-
 static MOVE_SCRATCH_4: Move = Move {
     name: "Scratch",
     effects: &[Effect {
@@ -83,5 +74,6 @@ pub fn spawn_gremlin_warrior(ascension_level: u8, rng: &mut impl Rng) -> Entity 
 }
 
 pub fn get_next_move_gremlin_warrior() -> usize {
+    // Single-move monster: Scratch every turn
     IDX_MOVE_SCRATCH
 }

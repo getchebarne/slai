@@ -134,8 +134,7 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::DaggerThrow, true) => dagger_throw::DAGGER_THROW_PLUS,
         (CardName::Dash, false) => dash::DASH,
         (CardName::Dash, true) => dash::DASH_PLUS,
-        // Dazed (Status): no upgrade variant — both branches return the same entity.
-        (CardName::Dazed, _) => dazed::DAZED,
+        (CardName::Dazed, _) => dazed::DAZED, // No upgraded variant
         (CardName::DeadlyPoison, false) => deadly_poison::DEADLY_POISON,
         (CardName::DeadlyPoison, true) => deadly_poison::DEADLY_POISON_PLUS,
         (CardName::Defend, false) => defend::DEFEND,
@@ -214,8 +213,7 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Skewer, true) => skewer::SKEWER_PLUS,
         (CardName::Slice, false) => slice::SLICE,
         (CardName::Slice, true) => slice::SLICE_PLUS,
-        // Slimed (Status): no upgrade variant.
-        (CardName::Slimed, _) => slimed::SLIMED,
+        (CardName::Slimed, _) => slimed::SLIMED, // No upgraded variant
         (CardName::SneakyStrike, false) => sneaky_strike::SNEAKY_STRIKE,
         (CardName::SneakyStrike, true) => sneaky_strike::SNEAKY_STRIKE_PLUS,
         (CardName::StormOfSteel, false) => storm_of_steel::STORM_OF_STEEL,

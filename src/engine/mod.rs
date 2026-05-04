@@ -34,10 +34,10 @@ pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_gain;
 pub mod process_effect_gold_steal;
 pub mod process_effect_health_gain;
-pub mod process_effect_hexaghost_burn_increase;
-pub mod process_effect_hexaghost_divider;
 pub mod process_effect_health_loss;
 pub mod process_effect_heel_hook_proc;
+pub mod process_effect_hexaghost_burn_increase;
+pub mod process_effect_hexaghost_divider;
 pub mod process_effect_id_card_nightmare_pick;
 pub mod process_effect_id_card_nightmare_spawn;
 pub mod process_effect_modifier_gain;
@@ -422,7 +422,7 @@ fn dispatch_by_kind(
                 &mut state.entities,
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
-                &mut state.id_pile_exhaust,
+                &mut state.effect_queue,
             )
         }
         EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(
@@ -683,15 +683,15 @@ fn dispatch_by_kind(
         EffectKind::ModifierGain { kind, stacks } => {
             let id_target = id_target.unwrap();
             let entity = &mut state.entities[id_target];
-            let cycle_count = match entity.kind {
-                EntityKind::Monster => Some(entity.cycle_count),
+            let monster_cycle_count = match entity.kind {
+                EntityKind::Monster => Some(entity.monster_cycle_count),
                 _ => None,
             };
             process_effect_modifier_gain::process_effect_modifier_gain(
                 &mut entity.modifiers,
                 kind,
                 stacks,
-                cycle_count,
+                monster_cycle_count,
             )
         }
         EffectKind::ModifierMultiply { kind, factor } => {
@@ -848,7 +848,7 @@ fn dispatch_by_kind(
         EffectKind::SpawnMonster { name } => {
             process_effect_spawn_monster::process_effect_spawn_monster(
                 name,
-                id_source.expect("SpawnMonster must have an id_source (the splitting monster)"),
+                id_source.unwrap(),
                 state.ascension,
                 &mut state.entities,
                 &mut state.id_monsters,
@@ -857,26 +857,15 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
-        EffectKind::EscapeMonster => {
-            let id_target = id_target.expect("EscapeMonster must have a target");
-            process_effect_escape_monster::process_effect_escape_monster(
-                id_target,
-                &state.id_monsters,
-                state.monster_count,
-                &mut state.entities,
-                &mut state.effect_queue,
-            )
-        }
-        EffectKind::GoldSteal { amount } => {
-            let id_src = id_source.expect("GoldSteal must have an id_source (the stealing monster)");
-            process_effect_gold_steal::process_effect_gold_steal(
-                id_src,
-                state.id_character,
-                amount,
-                &mut state.entities,
-            )
-        }
-        EffectKind::GoldGain { amount } => process_effect_gold_gain::process_effect_gold_gain(
+        EffectKind::EscapeMonster => process_effect_escape_monster::process_effect_escape_monster(
+            id_target.unwrap(),
+            &state.id_monsters,
+            state.monster_count,
+            &mut state.entities,
+            &mut state.effect_queue,
+        ),
+        EffectKind::GoldSteal { amount } => process_effect_gold_steal::process_effect_gold_steal(
+            id_source.unwrap(),
             state.id_character,
             amount,
             &mut state.entities,
@@ -898,6 +887,10 @@ fn dispatch_by_kind(
                 &state.entities,
                 &mut state.effect_queue,
             )
+        }
+        EffectKind::GoldGain { amount } => {
+            let character = &mut state.entities[state.id_character];
+            process_effect_gold_gain::process_effect_gold_gain(character, amount)
         }
         // Halt-kind variants: represent pending player decisions
         // RoomSelect and CardRewardSelect in their `Direct` form (after

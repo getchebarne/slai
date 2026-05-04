@@ -289,18 +289,10 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
         }
     }
 
-    // STS-faithful row constraints (RoomTypeAssigner.ruleAssignableToRow):
-    //   y <= 4: no RestSite, no CombatElite (monsters only).
-    //   y >= 13: no RestSite (elites still allowed).
-    // The last walkable floor (y == MAP_HEIGHT - 1) is overwritten below to
-    // be all RestSite, matching slai's existing pre-boss rest convention.
-    //
-    // Walk every offending node and swap with a CombatMonster from a row
-    // where the kind IS allowed. If no candidate exists, downgrade to
-    // CombatMonster rather than fail map gen.
+    // Room constraints
     const ELITE_MIN_Y: usize = 5;
     const REST_MIN_Y: usize = 5;
-    const REST_MAX_Y_EXCL: usize = 13; // strict less-than, matches STS y < 13
+    const REST_MAX_Y_EXCL: usize = 13;
 
     for y in 0..MAP_HEIGHT - 1 {
         for x in 0..MAP_WIDTH {
@@ -316,7 +308,7 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
             if !needs_swap {
                 continue;
             }
-            // Find a CombatMonster at a row that CAN host this kind.
+            // Find a CombatMonster at a row that CAN host this kind
             let mut swapped = false;
             'swap: for y2 in 0..MAP_HEIGHT - 1 {
                 let row_ok = match kind {
@@ -347,7 +339,7 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
             }
             if !swapped {
                 // No valid host row had a free CombatMonster — downgrade
-                // this node to CombatMonster rather than violate the rule.
+                // this node to CombatMonster rather than violate the rule
                 if let Some(n) = &mut nodes[y][x] {
                     n.room_kind = RoomKind::CombatMonster;
                 }

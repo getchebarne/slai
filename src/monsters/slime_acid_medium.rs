@@ -4,16 +4,6 @@ use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
-// AcidSlime_M (Java) / Acid Slime (M) (in-game).
-//
-// Three moves: Wound Tackle (damage + Slimed x1), Heavy Tackle (damage),
-// Lick (Weak x1). Java's getMove(num) uses three branches keyed off
-// aiRng.random(99):
-//   - num < 30 (or <40 at Asc 17+):  prefer Wound Tackle, no two-in-a-row
-//   - 30..70 (or 40..80 at Asc 17+): prefer Heavy Tackle, no <constraint>
-//   - else:                          prefer Lick (Weak), no two/three-in-a-row
-// See AcidSlime_M.java:102-163.
-
 static MOVE_WOUND_TACKLE_7: Move = Move {
     name: "Corrosive Spit",
     effects: &[
@@ -114,7 +104,6 @@ static MOVE_LICK: Move = Move {
 
 static MOVES_ASC0: [Move; 3] = [MOVE_WOUND_TACKLE_7, MOVE_HEAVY_TACKLE_10, MOVE_LICK];
 static MOVES_ASC2: [Move; 3] = [MOVE_WOUND_TACKLE_8, MOVE_HEAVY_TACKLE_12, MOVE_LICK];
-static MOVES_ASC17: [Move; 3] = [MOVE_WOUND_TACKLE_8, MOVE_HEAVY_TACKLE_12, MOVE_LICK];
 
 const IDX_MOVE_WOUND_TACKLE: usize = 0;
 const IDX_MOVE_HEAVY_TACKLE: usize = 1;
@@ -130,10 +119,8 @@ pub fn spawn_slime_acid_medium(ascension_level: u8, rng: &mut impl Rng) -> Entit
 
     let moves: &'static [Move] = if ascension_level < 2 {
         &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
     } else {
-        &MOVES_ASC17
+        &MOVES_ASC2
     };
 
     make_entity_monster(
@@ -157,12 +144,10 @@ pub fn get_next_move_slime_acid_medium(
 ) -> usize {
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
-        // Asc 17+: 40/40/20 split with stricter constraints.
+        // Asc 17+: 40/40/20 split with stricter constraints
         if roll < 40 {
-            // Prefer Wound Tackle, but not three in a row.
-            if move_history
-                .ends_with(&[IDX_MOVE_WOUND_TACKLE as u8, IDX_MOVE_WOUND_TACKLE as u8])
-            {
+            // Prefer Wound Tackle, but not three in a row
+            if move_history.ends_with(&[IDX_MOVE_WOUND_TACKLE as u8, IDX_MOVE_WOUND_TACKLE as u8]) {
                 if rng.random_bool(0.5) {
                     IDX_MOVE_HEAVY_TACKLE
                 } else {
@@ -172,10 +157,8 @@ pub fn get_next_move_slime_acid_medium(
                 IDX_MOVE_WOUND_TACKLE
             }
         } else if roll < 80 {
-            // Prefer Heavy Tackle, but not three in a row.
-            if move_history
-                .ends_with(&[IDX_MOVE_HEAVY_TACKLE as u8, IDX_MOVE_HEAVY_TACKLE as u8])
-            {
+            // Prefer Heavy Tackle, but not three in a row
+            if move_history.ends_with(&[IDX_MOVE_HEAVY_TACKLE as u8, IDX_MOVE_HEAVY_TACKLE as u8]) {
                 if rng.random_bool(0.5) {
                     IDX_MOVE_WOUND_TACKLE
                 } else {
@@ -185,7 +168,7 @@ pub fn get_next_move_slime_acid_medium(
                 IDX_MOVE_HEAVY_TACKLE
             }
         } else if move_history.last().copied() == Some(IDX_MOVE_LICK as u8) {
-            // Lick: Asc 17+ no-two-in-a-row.
+            // Lick: Asc 17+ no-two-in-a-row
             if rng.random_bool(0.4) {
                 IDX_MOVE_WOUND_TACKLE
             } else {
@@ -195,7 +178,7 @@ pub fn get_next_move_slime_acid_medium(
             IDX_MOVE_LICK
         }
     } else if roll < 30 {
-        // Wound Tackle: Asc 0-16 no-three-in-a-row.
+        // Wound Tackle: Asc 0-16 no-three-in-a-row
         if move_history.ends_with(&[IDX_MOVE_WOUND_TACKLE as u8, IDX_MOVE_WOUND_TACKLE as u8]) {
             if rng.random_bool(0.5) {
                 IDX_MOVE_HEAVY_TACKLE
@@ -206,7 +189,7 @@ pub fn get_next_move_slime_acid_medium(
             IDX_MOVE_WOUND_TACKLE
         }
     } else if roll < 70 {
-        // Heavy Tackle: Asc 0-16 no-two-in-a-row (looser than Asc 17+).
+        // Heavy Tackle: Asc 0-16 no-two-in-a-row (looser than Asc 17+)
         if move_history.last().copied() == Some(IDX_MOVE_HEAVY_TACKLE as u8) {
             if rng.random_bool(0.4) {
                 IDX_MOVE_WOUND_TACKLE

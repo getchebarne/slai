@@ -21,15 +21,14 @@ pub fn process_effect_death(
         return DispatchResult::Continue;
     }
 
+    // Monster-only path
     let monster = &entities[id_target];
 
-    // Stolen-gold return: any monster that has stolen gold returns it on
-    // death (Looter Mug/Lunge → die before Smoke Bomb → Escape sequence).
-    // Escape (EffectKind::EscapeMonster) deliberately skips this path.
-    let gold_return = if monster.stolen_gold > 0 {
+    // Stolen-gold return
+    let gold_return = if monster.monster_stolen_gold > 0 {
         Some(Effect {
             kind: EffectKind::GoldGain {
-                amount: monster.stolen_gold,
+                amount: monster.monster_stolen_gold,
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
