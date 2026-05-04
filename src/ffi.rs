@@ -548,7 +548,7 @@ impl Effect {
                 target: n,
                 target_field: target,
             },
-            EffectKind::CardDiscard => Self::CardDiscard { target },
+            EffectKind::CardDiscard { source: _ } => Self::CardDiscard { target },
             EffectKind::CalculatedGamble => Self::CalculatedGamble { target },
             other => unreachable!(
                 "Effect::from_internal: unexpected EffectKind on static card effect: {:?}",

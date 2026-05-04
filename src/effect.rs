@@ -31,8 +31,7 @@ pub enum EffectKind {
         count: u8,
         upgraded: bool,
     },
-    CardDiscard,
-    CardDiscardEndOfTurn,
+    CardDiscard { source: DiscardSource },
     CardMoveToDiscard,
     CardNightmarePick,
     CardNightmareSpawn,
@@ -77,6 +76,13 @@ pub enum EffectKind {
     // mutating state and pushing follow-up effects
     RoomSelect,
     CardRewardSelect,
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum DiscardSource {
+    Explicit,
+    EndOfTurn,
 }
 
 // CandidatePool: abstract source pool for a Resolve effect's target resolution

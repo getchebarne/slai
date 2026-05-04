@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::consts::CARDS_DRAWN_PER_TURN;
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
 use crate::state::Energy;
@@ -151,7 +151,9 @@ pub fn process_effect_turn_start(
                 target: Target::Direct(None),
             });
             buf_effects.push(Effect {
-                kind: EffectKind::CardDiscard,
+                kind: EffectKind::CardDiscard {
+                    source: DiscardSource::Explicit,
+                },
                 id_source: None,
                 target: Target::Resolve {
                     candidates: CandidatePool::Hand,

@@ -4,7 +4,6 @@ pub mod process_effect_bullet_time_proc;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_discard;
-pub mod process_effect_card_discard_end_of_turn;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move_to_discard;
@@ -322,7 +321,7 @@ fn resolve_or_halt(
             DispatchResult::Continue
         }
         TargetResolution::AwaitInput { num } => match kind {
-            EffectKind::CardDiscard => DispatchResult::Halt {
+            EffectKind::CardDiscard { .. } => DispatchResult::Halt {
                 phase_new: Phase::CombatAwaitDiscard { num },
             },
             EffectKind::CardRetain => DispatchResult::Halt {
@@ -401,28 +400,22 @@ fn dispatch_by_kind(
             &mut state.entities,
             &mut state.id_pile_discard,
         ),
-        EffectKind::CardDiscard => process_effect_card_discard::process_effect_card_discard(
-            id_target.unwrap(),
-            &state.entities,
-            &mut state.id_hand,
-            &mut state.id_pile_discard,
-            &mut state.this_turn_discards,
-            &mut state.effect_queue,
-        ),
+        EffectKind::CardDiscard { source } => {
+            process_effect_card_discard::process_effect_card_discard(
+                source,
+                id_target.unwrap(),
+                &mut state.entities,
+                &mut state.id_hand,
+                &mut state.id_pile_discard,
+                &mut state.this_turn_discards,
+                &mut state.effect_queue,
+            )
+        }
         EffectKind::CardMoveToDiscard => {
             process_effect_card_move_to_discard::process_effect_card_move_to_discard(
                 id_target.unwrap(),
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
-            )
-        }
-        EffectKind::CardDiscardEndOfTurn => {
-            process_effect_card_discard_end_of_turn::process_effect_card_discard_end_of_turn(
-                id_target.unwrap(),
-                &mut state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
-                &mut state.effect_queue,
             )
         }
         EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(
