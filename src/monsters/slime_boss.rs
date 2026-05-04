@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
@@ -37,7 +37,10 @@ static MOVE_PREPARING: Move = Move {
 static MOVE_SLAM_35: Move = Move {
     name: "Slam",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 35 },
+        kind: EffectKind::DamagePhysical {
+            amount: 35,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -52,7 +55,10 @@ static MOVE_SLAM_35: Move = Move {
 static MOVE_SLAM_38: Move = Move {
     name: "Slam",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 38 },
+        kind: EffectKind::DamagePhysical {
+            amount: 38,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,

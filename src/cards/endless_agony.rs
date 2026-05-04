@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -26,7 +26,10 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 4 },
+        kind: EffectKind::DamagePhysical {
+            amount: 4,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
@@ -51,7 +54,10 @@ pub static ENDLESS_AGONY_PLUS: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 6 }, // +2 damage
+        kind: EffectKind::DamagePhysical {
+            amount: 6,
+            condition: DamageCondition::Always,
+        }, // +2 damage
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,

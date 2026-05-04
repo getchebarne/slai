@@ -91,9 +91,7 @@ pub fn get_next_move(
     let history = get_move_history_slice(entity);
     match entity.monster_name {
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.move_current),
-        MonsterName::JawWorm => {
-            jaw_worm::get_next_move_jaw_worm(entity.move_current, history, rng)
-        }
+        MonsterName::JawWorm => jaw_worm::get_next_move_jaw_worm(entity.move_current, history, rng),
         MonsterName::TheGuardian => the_guardian::get_next_move_the_guardian_full(
             entity.move_current,
             history,

@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::{MonsterKind, MonsterName, Vitals};
@@ -12,7 +12,10 @@ static MOVE_CHARGE: Move = Move {
 static MOVE_ULTIMATE_BLAST_25: Move = Move {
     name: "Ultimate Blast",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 25 },
+        kind: EffectKind::DamagePhysical {
+            amount: 25,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -27,7 +30,10 @@ static MOVE_ULTIMATE_BLAST_25: Move = Move {
 static MOVE_ULTIMATE_BLAST_30: Move = Move {
     name: "Ultimate Blast",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 30 },
+        kind: EffectKind::DamagePhysical {
+            amount: 30,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,

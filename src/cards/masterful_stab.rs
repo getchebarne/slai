@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -15,7 +15,10 @@ pub static MASTERFUL_STAB: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 12 },
+        kind: EffectKind::DamagePhysical {
+            amount: 12,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
@@ -40,7 +43,10 @@ pub static MASTERFUL_STAB_PLUS: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 16 }, // +4 damage
+        kind: EffectKind::DamagePhysical {
+            amount: 16,
+            condition: DamageCondition::Always,
+        }, // +4 damage
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,

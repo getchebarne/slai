@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{DamageCondition, Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 
 // Subtract 1 because card_play increments the counter before this effect fires
@@ -14,7 +14,10 @@ pub fn process_effect_finisher_damage(
     let num_attacks = this_turn_attacks_played.saturating_sub(1);
     for _ in 0..num_attacks {
         queue.push_front(Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                condition: DamageCondition::Always,
+            },
             id_source,
             target: Target::Direct(Some(id_target)),
         });

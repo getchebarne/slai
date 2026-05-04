@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{DamageCondition, Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::types::CardKind;
@@ -23,7 +23,10 @@ pub fn process_effect_flechettes_damage(
         .count();
     for _ in 0..num_skills_in_hand {
         queue.push_front(Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                condition: DamageCondition::Always,
+            },
             id_source,
             target: Target::Direct(Some(id_target)),
         });

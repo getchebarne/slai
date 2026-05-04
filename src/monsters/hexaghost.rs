@@ -1,5 +1,5 @@
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
@@ -34,7 +34,10 @@ static MOVE_SEAR_BURN_1_NORMAL: Move = Move {
     name: "Sear",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -60,7 +63,10 @@ static MOVE_SEAR_BURN_1_UPGRADED: Move = Move {
     name: "Sear",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -86,7 +92,10 @@ static MOVE_SEAR_BURN_2_NORMAL: Move = Move {
     name: "Sear",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -112,7 +121,10 @@ static MOVE_SEAR_BURN_2_UPGRADED: Move = Move {
     name: "Sear",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -139,7 +151,10 @@ static MOVE_TACKLE_5: Move = Move {
     name: "Tackle",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -147,7 +162,10 @@ static MOVE_TACKLE_5: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -164,7 +182,10 @@ static MOVE_TACKLE_6: Move = Move {
     name: "Tackle",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -172,7 +193,10 @@ static MOVE_TACKLE_6: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -242,7 +266,10 @@ static MOVE_INFERNO_2: Move = Move {
     name: "Inferno",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 2 },
+            kind: EffectKind::DamagePhysical {
+                amount: 2,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -250,7 +277,10 @@ static MOVE_INFERNO_2: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 2 },
+            kind: EffectKind::DamagePhysical {
+                amount: 2,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -258,7 +288,10 @@ static MOVE_INFERNO_2: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 2 },
+            kind: EffectKind::DamagePhysical {
+                amount: 2,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -266,7 +299,10 @@ static MOVE_INFERNO_2: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 2 },
+            kind: EffectKind::DamagePhysical {
+                amount: 2,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -274,7 +310,10 @@ static MOVE_INFERNO_2: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 2 },
+            kind: EffectKind::DamagePhysical {
+                amount: 2,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -282,7 +321,10 @@ static MOVE_INFERNO_2: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 2 },
+            kind: EffectKind::DamagePhysical {
+                amount: 2,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -304,7 +346,10 @@ static MOVE_INFERNO_3: Move = Move {
     name: "Inferno",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 3 },
+            kind: EffectKind::DamagePhysical {
+                amount: 3,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -312,7 +357,10 @@ static MOVE_INFERNO_3: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 3 },
+            kind: EffectKind::DamagePhysical {
+                amount: 3,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -320,7 +368,10 @@ static MOVE_INFERNO_3: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 3 },
+            kind: EffectKind::DamagePhysical {
+                amount: 3,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -328,7 +379,10 @@ static MOVE_INFERNO_3: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 3 },
+            kind: EffectKind::DamagePhysical {
+                amount: 3,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -336,7 +390,10 @@ static MOVE_INFERNO_3: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 3 },
+            kind: EffectKind::DamagePhysical {
+                amount: 3,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -344,7 +401,10 @@ static MOVE_INFERNO_3: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 3 },
+            kind: EffectKind::DamagePhysical {
+                amount: 3,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,

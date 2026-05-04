@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
@@ -8,7 +8,10 @@ static MOVE_SLIME_TACKLE_11: Move = Move {
     name: "Corrosive Spit",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 11 },
+            kind: EffectKind::DamagePhysical {
+                amount: 11,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -34,7 +37,10 @@ static MOVE_SLIME_TACKLE_12: Move = Move {
     name: "Corrosive Spit",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 12 },
+            kind: EffectKind::DamagePhysical {
+                amount: 12,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -59,7 +65,10 @@ static MOVE_SLIME_TACKLE_12: Move = Move {
 static MOVE_HEAVY_TACKLE_16: Move = Move {
     name: "Tackle",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 16 },
+        kind: EffectKind::DamagePhysical {
+            amount: 16,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -74,7 +83,10 @@ static MOVE_HEAVY_TACKLE_16: Move = Move {
 static MOVE_HEAVY_TACKLE_18: Move = Move {
     name: "Tackle",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 18 },
+        kind: EffectKind::DamagePhysical {
+            amount: 18,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,

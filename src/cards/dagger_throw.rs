@@ -1,4 +1,6 @@
-use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{
+    CandidatePool, DamageCondition, DiscardSource, Effect, EffectKind, SelectionKind, Target,
+};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -16,7 +18,10 @@ pub static DAGGER_THROW: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 },
+            kind: EffectKind::DamagePhysical {
+                amount: 9,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -58,7 +63,10 @@ pub static DAGGER_THROW_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 12 }, // +3 damage
+            kind: EffectKind::DamagePhysical {
+                amount: 12,
+                condition: DamageCondition::Always,
+            }, // +3 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,

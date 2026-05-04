@@ -1,4 +1,6 @@
-use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{
+    CandidatePool, DamageCondition, DiscardSource, Effect, EffectKind, SelectionKind, Target,
+};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -16,7 +18,10 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
     false,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 10 },
+            kind: EffectKind::DamagePhysical {
+                amount: 10,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Monsters,
@@ -55,6 +60,7 @@ pub static ALL_OUT_ATTACK_PLUS: Entity = make_entity_card(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 14, // +4 damage
+                condition: DamageCondition::Always,
             },
             id_source: None,
             target: Target::Resolve {
