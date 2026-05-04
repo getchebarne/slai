@@ -11,7 +11,7 @@ static MOVE_BITE_5: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -26,7 +26,7 @@ static MOVE_BITE_6: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -41,7 +41,7 @@ static MOVE_BITE_7: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -56,7 +56,7 @@ static MOVE_BITE_8: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -74,7 +74,7 @@ static MOVE_STRENGTHEN_3: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -89,7 +89,7 @@ static MOVE_STRENGTHEN_4: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,

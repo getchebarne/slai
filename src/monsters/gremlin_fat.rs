@@ -12,7 +12,7 @@ static MOVE_SMASH_4_W1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -23,7 +23,7 @@ static MOVE_SMASH_4_W1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -40,7 +40,7 @@ static MOVE_SMASH_5_W1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -51,7 +51,7 @@ static MOVE_SMASH_5_W1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -68,7 +68,7 @@ static MOVE_SMASH_5_W1_F1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -79,7 +79,7 @@ static MOVE_SMASH_5_W1_F1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -90,7 +90,7 @@ static MOVE_SMASH_5_W1_F1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],

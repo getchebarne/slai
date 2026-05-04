@@ -19,7 +19,7 @@ pub static FINISHER: Entity = make_entity_card(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     &[],
@@ -44,7 +44,7 @@ pub static FINISHER_PLUS: Entity = make_entity_card(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     &[],

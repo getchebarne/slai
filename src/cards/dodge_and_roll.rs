@@ -21,7 +21,7 @@ pub static DODGE_AND_ROLL: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -32,7 +32,7 @@ pub static DODGE_AND_ROLL: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -61,7 +61,7 @@ pub static DODGE_AND_ROLL_PLUS: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -72,7 +72,7 @@ pub static DODGE_AND_ROLL_PLUS: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],

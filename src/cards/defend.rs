@@ -19,7 +19,7 @@ pub static DEFEND: Entity = make_entity_card(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     &[],
@@ -46,7 +46,7 @@ pub static DEFEND_PLUS: Entity = make_entity_card(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     &[],

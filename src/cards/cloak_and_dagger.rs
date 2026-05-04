@@ -20,7 +20,7 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -55,7 +55,7 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
