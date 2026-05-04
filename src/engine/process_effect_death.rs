@@ -14,7 +14,7 @@ pub fn process_effect_death(
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Character death: abandon anything pending and mark dead so
-    // derive_resting_phase returns Phase::GameOver on the natural drain
+    // derive_phase returns Phase::GameOver on the natural drain
     if id_target == id_character {
         entities[id_character].dead = true;
         queue.clear();
