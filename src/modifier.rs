@@ -360,7 +360,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
 pub struct Modifiers {
     pub stacks: [i16; MODIFIER_COUNT],
     pub is_new: [bool; MODIFIER_COUNT],
-    pub active: u32, // bitmask
+    pub active: u64, // bitmask
 }
 
 pub fn modifier_def(kind: ModifierKind) -> &'static ModifierDef {
