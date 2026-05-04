@@ -78,7 +78,8 @@ pub mod well_laid_plans;
 pub mod wraith_form;
 
 use crate::entity::Entity;
-use crate::types::CardName;
+use crate::types::{CardKind, CardName, CardRarity};
+use strum::EnumCount;
 
 pub fn get_card(name: CardName, upgraded: bool) -> Entity {
     match (name, upgraded) {
@@ -239,82 +240,322 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
     }
 }
 
-// All card names eligible for card rewards (excludes Basic and Special)
-pub const REWARD_POOL_COMMON: &[CardName] = &[
+// Single source of truth for "what cards exist". Compile-time checks below
+// guarantee this list contains every CardName variant exactly once.
+pub const ALL_CARDS: &[CardName] = &[
+    CardName::AThousandCuts,
+    CardName::Accuracy,
     CardName::Acrobatics,
+    CardName::Adrenaline,
+    CardName::AfterImage,
+    CardName::AllOutAttack,
     CardName::Backflip,
+    CardName::Backstab,
     CardName::Bane,
     CardName::BladeDance,
-    CardName::CloakAndDagger,
-    CardName::DaggerSpray,
-    CardName::DaggerThrow,
-    CardName::DeadlyPoison,
-    CardName::Deflect,
-    CardName::DodgeAndRoll,
-    CardName::FlyingKnee,
-    CardName::Outmaneuver,
-    CardName::PiercingWail,
-    CardName::PoisonedStab,
-    CardName::Prepared,
-    CardName::QuickSlash,
-    CardName::Slice,
-    CardName::SneakyStrike,
-    CardName::SuckerPunch,
-];
-
-pub const REWARD_POOL_UNCOMMON: &[CardName] = &[
-    CardName::Accuracy,
-    CardName::AllOutAttack,
-    CardName::Backstab,
     CardName::Blur,
     CardName::BouncingFlask,
+    CardName::BulletTime,
+    CardName::Burn,
+    CardName::Burst,
     CardName::CalculatedGamble,
     CardName::Caltrops,
     CardName::Catalyst,
     CardName::Choke,
+    CardName::CloakAndDagger,
     CardName::Concentrate,
+    CardName::CorpseExplosion,
     CardName::CripplingPoison,
+    CardName::DaggerSpray,
+    CardName::DaggerThrow,
     CardName::Dash,
+    CardName::Dazed,
+    CardName::DeadlyPoison,
+    CardName::Defend,
+    CardName::Deflect,
+    CardName::DieDieDie,
     CardName::Distraction,
+    CardName::DodgeAndRoll,
+    CardName::Doppelganger,
     CardName::EndlessAgony,
+    CardName::Envenom,
     CardName::EscapePlan,
     CardName::Eviscerate,
     CardName::Expertise,
     CardName::Finisher,
     CardName::Flechettes,
+    CardName::FlyingKnee,
     CardName::Footwork,
+    CardName::GlassKnife,
+    CardName::GrandFinale,
     CardName::HeelHook,
     CardName::InfiniteBlades,
     CardName::LegSweep,
+    CardName::Malaise,
     CardName::MasterfulStab,
+    CardName::Neutralize,
+    CardName::Nightmare,
     CardName::NoxiousFumes,
+    CardName::Outmaneuver,
+    CardName::PhantasmalKiller,
+    CardName::PiercingWail,
+    CardName::PoisonedStab,
     CardName::Predator,
+    CardName::Prepared,
+    CardName::QuickSlash,
     CardName::Reflex,
     CardName::RiddleWithHoles,
     CardName::Setup,
+    CardName::Shiv,
     CardName::Skewer,
+    CardName::Slice,
+    CardName::Slimed,
+    CardName::SneakyStrike,
+    CardName::StormOfSteel,
+    CardName::Strike,
+    CardName::SuckerPunch,
+    CardName::Survivor,
     CardName::Tactician,
     CardName::Terror,
-    CardName::WellLaidPlans,
-];
-
-pub const REWARD_POOL_RARE: &[CardName] = &[
-    CardName::AThousandCuts,
-    CardName::Adrenaline,
-    CardName::AfterImage,
-    CardName::BulletTime,
-    CardName::Burst,
-    CardName::CorpseExplosion,
-    CardName::DieDieDie,
-    CardName::Doppelganger,
-    CardName::Envenom,
-    CardName::GlassKnife,
-    CardName::GrandFinale,
-    CardName::Malaise,
-    CardName::Nightmare,
-    CardName::PhantasmalKiller,
-    CardName::StormOfSteel,
     CardName::ToolsOfTheTrade,
     CardName::Unload,
+    CardName::WellLaidPlans,
     CardName::WraithForm,
 ];
+
+const fn card_rarity(name: CardName) -> CardRarity {
+    match name {
+        CardName::AThousandCuts => CardRarity::Rare,
+        CardName::Accuracy => CardRarity::Uncommon,
+        CardName::Acrobatics => CardRarity::Common,
+        CardName::Adrenaline => CardRarity::Rare,
+        CardName::AfterImage => CardRarity::Rare,
+        CardName::AllOutAttack => CardRarity::Uncommon,
+        CardName::Backflip => CardRarity::Common,
+        CardName::Backstab => CardRarity::Uncommon,
+        CardName::Bane => CardRarity::Common,
+        CardName::BladeDance => CardRarity::Common,
+        CardName::Blur => CardRarity::Uncommon,
+        CardName::BouncingFlask => CardRarity::Uncommon,
+        CardName::BulletTime => CardRarity::Rare,
+        CardName::Burn => CardRarity::Common,
+        CardName::Burst => CardRarity::Rare,
+        CardName::CalculatedGamble => CardRarity::Uncommon,
+        CardName::Caltrops => CardRarity::Uncommon,
+        CardName::Catalyst => CardRarity::Uncommon,
+        CardName::Choke => CardRarity::Uncommon,
+        CardName::CloakAndDagger => CardRarity::Common,
+        CardName::Concentrate => CardRarity::Uncommon,
+        CardName::CorpseExplosion => CardRarity::Rare,
+        CardName::CripplingPoison => CardRarity::Uncommon,
+        CardName::DaggerSpray => CardRarity::Common,
+        CardName::DaggerThrow => CardRarity::Common,
+        CardName::Dash => CardRarity::Uncommon,
+        CardName::Dazed => CardRarity::Special,
+        CardName::DeadlyPoison => CardRarity::Common,
+        CardName::Defend => CardRarity::Basic,
+        CardName::Deflect => CardRarity::Common,
+        CardName::DieDieDie => CardRarity::Rare,
+        CardName::Distraction => CardRarity::Uncommon,
+        CardName::DodgeAndRoll => CardRarity::Common,
+        CardName::Doppelganger => CardRarity::Rare,
+        CardName::EndlessAgony => CardRarity::Uncommon,
+        CardName::Envenom => CardRarity::Rare,
+        CardName::EscapePlan => CardRarity::Uncommon,
+        CardName::Eviscerate => CardRarity::Uncommon,
+        CardName::Expertise => CardRarity::Uncommon,
+        CardName::Finisher => CardRarity::Uncommon,
+        CardName::Flechettes => CardRarity::Uncommon,
+        CardName::FlyingKnee => CardRarity::Common,
+        CardName::Footwork => CardRarity::Uncommon,
+        CardName::GlassKnife => CardRarity::Rare,
+        CardName::GrandFinale => CardRarity::Rare,
+        CardName::HeelHook => CardRarity::Uncommon,
+        CardName::InfiniteBlades => CardRarity::Uncommon,
+        CardName::LegSweep => CardRarity::Uncommon,
+        CardName::Malaise => CardRarity::Rare,
+        CardName::MasterfulStab => CardRarity::Uncommon,
+        CardName::Neutralize => CardRarity::Basic,
+        CardName::Nightmare => CardRarity::Rare,
+        CardName::NoxiousFumes => CardRarity::Uncommon,
+        CardName::Outmaneuver => CardRarity::Common,
+        CardName::PhantasmalKiller => CardRarity::Rare,
+        CardName::PiercingWail => CardRarity::Common,
+        CardName::PoisonedStab => CardRarity::Common,
+        CardName::Predator => CardRarity::Uncommon,
+        CardName::Prepared => CardRarity::Common,
+        CardName::QuickSlash => CardRarity::Common,
+        CardName::Reflex => CardRarity::Uncommon,
+        CardName::RiddleWithHoles => CardRarity::Uncommon,
+        CardName::Setup => CardRarity::Uncommon,
+        CardName::Shiv => CardRarity::Special,
+        CardName::Skewer => CardRarity::Uncommon,
+        CardName::Slice => CardRarity::Common,
+        CardName::Slimed => CardRarity::Special,
+        CardName::SneakyStrike => CardRarity::Common,
+        CardName::StormOfSteel => CardRarity::Rare,
+        CardName::Strike => CardRarity::Basic,
+        CardName::SuckerPunch => CardRarity::Common,
+        CardName::Survivor => CardRarity::Basic,
+        CardName::Tactician => CardRarity::Uncommon,
+        CardName::Terror => CardRarity::Uncommon,
+        CardName::ToolsOfTheTrade => CardRarity::Rare,
+        CardName::Unload => CardRarity::Rare,
+        CardName::WellLaidPlans => CardRarity::Uncommon,
+        CardName::WraithForm => CardRarity::Rare,
+    }
+}
+
+const fn card_kind(name: CardName) -> CardKind {
+    match name {
+        CardName::AThousandCuts => CardKind::Power,
+        CardName::Accuracy => CardKind::Power,
+        CardName::Acrobatics => CardKind::Skill,
+        CardName::Adrenaline => CardKind::Skill,
+        CardName::AfterImage => CardKind::Power,
+        CardName::AllOutAttack => CardKind::Attack,
+        CardName::Backflip => CardKind::Skill,
+        CardName::Backstab => CardKind::Attack,
+        CardName::Bane => CardKind::Attack,
+        CardName::BladeDance => CardKind::Skill,
+        CardName::Blur => CardKind::Skill,
+        CardName::BouncingFlask => CardKind::Skill,
+        CardName::BulletTime => CardKind::Skill,
+        CardName::Burn => CardKind::Status,
+        CardName::Burst => CardKind::Skill,
+        CardName::CalculatedGamble => CardKind::Skill,
+        CardName::Caltrops => CardKind::Power,
+        CardName::Catalyst => CardKind::Skill,
+        CardName::Choke => CardKind::Attack,
+        CardName::CloakAndDagger => CardKind::Skill,
+        CardName::Concentrate => CardKind::Skill,
+        CardName::CorpseExplosion => CardKind::Skill,
+        CardName::CripplingPoison => CardKind::Skill,
+        CardName::DaggerSpray => CardKind::Attack,
+        CardName::DaggerThrow => CardKind::Attack,
+        CardName::Dash => CardKind::Attack,
+        CardName::Dazed => CardKind::Status,
+        CardName::DeadlyPoison => CardKind::Skill,
+        CardName::Defend => CardKind::Skill,
+        CardName::Deflect => CardKind::Skill,
+        CardName::DieDieDie => CardKind::Attack,
+        CardName::Distraction => CardKind::Skill,
+        CardName::DodgeAndRoll => CardKind::Skill,
+        CardName::Doppelganger => CardKind::Skill,
+        CardName::EndlessAgony => CardKind::Attack,
+        CardName::Envenom => CardKind::Power,
+        CardName::EscapePlan => CardKind::Skill,
+        CardName::Eviscerate => CardKind::Attack,
+        CardName::Expertise => CardKind::Skill,
+        CardName::Finisher => CardKind::Attack,
+        CardName::Flechettes => CardKind::Attack,
+        CardName::FlyingKnee => CardKind::Attack,
+        CardName::Footwork => CardKind::Power,
+        CardName::GlassKnife => CardKind::Attack,
+        CardName::GrandFinale => CardKind::Attack,
+        CardName::HeelHook => CardKind::Attack,
+        CardName::InfiniteBlades => CardKind::Power,
+        CardName::LegSweep => CardKind::Skill,
+        CardName::Malaise => CardKind::Skill,
+        CardName::MasterfulStab => CardKind::Attack,
+        CardName::Neutralize => CardKind::Attack,
+        CardName::Nightmare => CardKind::Skill,
+        CardName::NoxiousFumes => CardKind::Power,
+        CardName::Outmaneuver => CardKind::Skill,
+        CardName::PhantasmalKiller => CardKind::Skill,
+        CardName::PiercingWail => CardKind::Skill,
+        CardName::PoisonedStab => CardKind::Attack,
+        CardName::Predator => CardKind::Attack,
+        CardName::Prepared => CardKind::Skill,
+        CardName::QuickSlash => CardKind::Attack,
+        CardName::Reflex => CardKind::Skill,
+        CardName::RiddleWithHoles => CardKind::Attack,
+        CardName::Setup => CardKind::Skill,
+        CardName::Shiv => CardKind::Attack,
+        CardName::Skewer => CardKind::Attack,
+        CardName::Slice => CardKind::Attack,
+        CardName::Slimed => CardKind::Status,
+        CardName::SneakyStrike => CardKind::Attack,
+        CardName::StormOfSteel => CardKind::Skill,
+        CardName::Strike => CardKind::Attack,
+        CardName::SuckerPunch => CardKind::Attack,
+        CardName::Survivor => CardKind::Skill,
+        CardName::Tactician => CardKind::Skill,
+        CardName::Terror => CardKind::Skill,
+        CardName::ToolsOfTheTrade => CardKind::Power,
+        CardName::Unload => CardKind::Attack,
+        CardName::WellLaidPlans => CardKind::Power,
+        CardName::WraithForm => CardKind::Power,
+    }
+}
+
+const fn rarity_eq(a: CardRarity, b: CardRarity) -> bool {
+    matches!(
+        (a, b),
+        (CardRarity::Basic, CardRarity::Basic)
+            | (CardRarity::Common, CardRarity::Common)
+            | (CardRarity::Uncommon, CardRarity::Uncommon)
+            | (CardRarity::Rare, CardRarity::Rare)
+            | (CardRarity::Special, CardRarity::Special)
+            | (CardRarity::Curse, CardRarity::Curse)
+    )
+}
+
+const fn is_rewardable_kind(kind: CardKind) -> bool {
+    matches!(kind, CardKind::Attack | CardKind::Skill | CardKind::Power)
+}
+
+const fn in_pool(name: CardName, rarity: CardRarity) -> bool {
+    rarity_eq(card_rarity(name), rarity) && is_rewardable_kind(card_kind(name))
+}
+
+const fn count_pool(rarity: CardRarity) -> usize {
+    let mut n = 0;
+    let mut i = 0;
+    while i < ALL_CARDS.len() {
+        if in_pool(ALL_CARDS[i], rarity) {
+            n += 1;
+        }
+        i += 1;
+    }
+    n
+}
+
+const fn build_pool<const N: usize>(rarity: CardRarity) -> [CardName; N] {
+    let mut buf = [CardName::Strike; N];
+    let mut idx = 0;
+    let mut i = 0;
+    while i < ALL_CARDS.len() {
+        if in_pool(ALL_CARDS[i], rarity) {
+            buf[idx] = ALL_CARDS[i];
+            idx += 1;
+        }
+        i += 1;
+    }
+    buf
+}
+
+// Compile-time guarantee: ALL_CARDS contains every CardName exactly once
+const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);
+const _: () = {
+    let mut seen = [false; CardName::COUNT];
+    let mut i = 0;
+    while i < ALL_CARDS.len() {
+        let idx = ALL_CARDS[i] as usize;
+        assert!(!seen[idx], "ALL_CARDS contains a duplicate CardName");
+        seen[idx] = true;
+        i += 1;
+    }
+};
+
+const COMMON_N: usize = count_pool(CardRarity::Common);
+const UNCOMMON_N: usize = count_pool(CardRarity::Uncommon);
+const RARE_N: usize = count_pool(CardRarity::Rare);
+
+const REWARD_POOL_COMMON_ARR: [CardName; COMMON_N] = build_pool(CardRarity::Common);
+const REWARD_POOL_UNCOMMON_ARR: [CardName; UNCOMMON_N] = build_pool(CardRarity::Uncommon);
+const REWARD_POOL_RARE_ARR: [CardName; RARE_N] = build_pool(CardRarity::Rare);
+
+pub const REWARD_POOL_COMMON: &[CardName] = &REWARD_POOL_COMMON_ARR;
+pub const REWARD_POOL_UNCOMMON: &[CardName] = &REWARD_POOL_UNCOMMON_ARR;
+pub const REWARD_POOL_RARE: &[CardName] = &REWARD_POOL_RARE_ARR;

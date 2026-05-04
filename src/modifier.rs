@@ -1,6 +1,8 @@
 // Modifier system
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+use strum::EnumCount;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
 pub enum ModifierKind {
     Accuracy = 0,
@@ -44,10 +46,9 @@ pub enum ModifierKind {
     Vulnerable,
     Weak,
     WraithForm,
-    Count, // sentinel for array sizing
 }
 
-pub const MODIFIER_COUNT: usize = ModifierKind::Count as usize;
+pub const MODIFIER_COUNT: usize = ModifierKind::COUNT;
 
 impl ModifierKind {
     pub fn from_u8(v: u8) -> Self {

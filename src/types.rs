@@ -1,5 +1,7 @@
 // Core type enums shared across the engine
 
+use strum::EnumCount;
+
 // Vitals: physical combat state. Shared by character and monsters
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
@@ -14,7 +16,7 @@ pub const ZERO_VITALS: Vitals = Vitals {
     block: 0,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
 pub enum CardName {
     AThousandCuts,

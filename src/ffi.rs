@@ -225,9 +225,6 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::Vulnerable => Self::Vulnerable,
             InternalModifierKind::Weak => Self::Weak,
             InternalModifierKind::WraithForm => Self::WraithForm,
-            InternalModifierKind::Count => {
-                unreachable!("ModifierKind::Count is a sentinel, never a real modifier")
-            }
         }
     }
 }
