@@ -155,7 +155,6 @@ pub fn spawn_slaver_blue(ascension_level: u8, rng: &mut impl Rng) -> Entity {
 }
 
 pub fn get_next_move_slaver_blue(
-    _move_current: Option<usize>,
     move_history: &[u8],
     ascension_level: u8,
     rng: &mut impl Rng,

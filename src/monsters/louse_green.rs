@@ -154,7 +154,6 @@ pub fn spawn_louse_green(ascension_level: u8, rng: &mut impl Rng) -> Entity {
 }
 
 pub fn get_next_move_louse_green(
-    _move_current: Option<usize>,
     move_history: &[u8],
     ascension_level: u8,
     rng: &mut impl Rng,
