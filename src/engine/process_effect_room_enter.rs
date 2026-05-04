@@ -3,33 +3,18 @@ use std::collections::VecDeque;
 use rand::Rng;
 
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{Effect, EffectKind};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
-use crate::map::active_room_kind;
-use crate::monsters::spawn_monster;
 use crate::game::Location;
+use crate::map::active_room_kind;
 use crate::types::{MonsterName, RoomKind};
 use crate::utils::shuffle;
-
-fn push_monster(
-    monster: Entity,
-    entities: &mut Vec<Entity>,
-    id_monsters: &mut [usize],
-    monster_count: &mut u8,
-) {
-    let id_monster = entities.len();
-    entities.push(monster);
-    id_monsters[*monster_count as usize] = id_monster;
-    *monster_count += 1;
-}
 
 pub fn process_effect_room_enter(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
-    ascension: u8,
-    entities: &mut Vec<Entity>,
-    id_monsters: &mut [usize],
+    entities: &[Entity],
     monster_count: &mut u8,
     rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
@@ -37,6 +22,7 @@ pub fn process_effect_room_enter(
     *monster_count = 0;
 
     let room = active_room_kind(id_rooms, location, entities).unwrap();
+    let mut effects: Vec<Effect> = Vec::new();
     match room {
         RoomKind::CombatBoss => {
             // Act 1 boss: uniform 1/3 between The Guardian, Slime Boss, Hexaghost
@@ -47,30 +33,48 @@ pub fn process_effect_room_enter(
                 2 => MonsterName::Hexaghost,
                 _ => unreachable!(),
             };
-            let m = spawn_monster(name, ascension, rng);
-            push_monster(m, entities, id_monsters, monster_count);
-            queue.push_front(Effect {
-                kind: EffectKind::CombatStart,
-                id_source: None,
-                target: Target::Direct(None),
-            });
+            effects.push(Effect::direct(
+                EffectKind::MonsterSpawn { name },
+                None,
+                None,
+            ));
         }
         RoomKind::CombatMonster => {
             let encounter: u8 = rng.random_range(0..14);
             match encounter {
                 0 => {
-                    let monster = spawn_monster(MonsterName::JawWorm, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::JawWorm,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 1 => {
-                    let monster = spawn_monster(MonsterName::Cultist, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::Cultist,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 2 => {
-                    let monster_1 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
-                    let monster_2 = spawn_monster(MonsterName::FungiBeast, ascension, rng);
-                    push_monster(monster_1, entities, id_monsters, monster_count);
-                    push_monster(monster_2, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::FungiBeast,
+                        },
+                        None,
+                        None,
+                    ));
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::FungiBeast,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 3 => {
                     // Small Slimes: 50/50 between [Spike_S + Acid_M] and [Acid_S + Spike_M]
@@ -79,14 +83,25 @@ pub fn process_effect_room_enter(
                     } else {
                         (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
                     };
-                    let monster_1 = spawn_monster(small, ascension, rng);
-                    let monster_2 = spawn_monster(medium, ascension, rng);
-                    push_monster(monster_1, entities, id_monsters, monster_count);
-                    push_monster(monster_2, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn { name: small },
+                        None,
+                        None,
+                    ));
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn { name: medium },
+                        None,
+                        None,
+                    ));
                 }
                 4 => {
-                    let monster = spawn_monster(MonsterName::SlaverBlue, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::SlaverBlue,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 5 => {
                     // Gremlin Gang: 4 gremlins drawn without replacement
@@ -102,8 +117,11 @@ pub fn process_effect_room_enter(
                     ];
                     shuffle(&mut pool, rng);
                     for &name in &pool[..4] {
-                        let monster = spawn_monster(name, ascension, rng);
-                        push_monster(monster, entities, id_monsters, monster_count);
+                        effects.push(Effect::direct(
+                            EffectKind::MonsterSpawn { name },
+                            None,
+                            None,
+                        ));
                     }
                 }
                 6 => {
@@ -111,9 +129,12 @@ pub fn process_effect_room_enter(
                     static POOL: &[MonsterName] =
                         &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
                     for _ in 0..2 {
-                        let monster_name = POOL[rng.random_range(0..POOL.len())];
-                        let monster = spawn_monster(monster_name, ascension, rng);
-                        push_monster(monster, entities, id_monsters, monster_count);
+                        let name = POOL[rng.random_range(0..POOL.len())];
+                        effects.push(Effect::direct(
+                            EffectKind::MonsterSpawn { name },
+                            None,
+                            None,
+                        ));
                     }
                 }
                 7 => {
@@ -121,18 +142,31 @@ pub fn process_effect_room_enter(
                     static POOL: &[MonsterName] =
                         &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
                     for _ in 0..3 {
-                        let monster_name = POOL[rng.random_range(0..POOL.len())];
-                        let monster = spawn_monster(monster_name, ascension, rng);
-                        push_monster(monster, entities, id_monsters, monster_count);
+                        let name = POOL[rng.random_range(0..POOL.len())];
+                        effects.push(Effect::direct(
+                            EffectKind::MonsterSpawn { name },
+                            None,
+                            None,
+                        ));
                     }
                 }
                 8 => {
-                    let monster = spawn_monster(MonsterName::SlimeAcidMedium, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::SlimeAcidMedium,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 9 => {
-                    let monster = spawn_monster(MonsterName::SlimeSpikeMedium, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::SlimeSpikeMedium,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 10 => {
                     // Large Slime: 50/50 between Acid_L and Spike_L.
@@ -141,8 +175,11 @@ pub fn process_effect_room_enter(
                     } else {
                         MonsterName::SlimeSpikeLarge
                     };
-                    let monster = spawn_monster(name, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn { name },
+                        None,
+                        None,
+                    ));
                 }
                 11 => {
                     // Lots of Slimes: 5 small slimes drawn without replacement
@@ -155,58 +192,82 @@ pub fn process_effect_room_enter(
                     ];
                     shuffle(&mut pool, rng);
                     for &name in &pool {
-                        let monster = spawn_monster(name, ascension, rng);
-                        push_monster(monster, entities, id_monsters, monster_count);
+                        effects.push(Effect::direct(
+                            EffectKind::MonsterSpawn { name },
+                            None,
+                            None,
+                        ));
                     }
                 }
                 12 => {
-                    let monster = spawn_monster(MonsterName::Looter, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::Looter,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 13 => {
-                    let monster = spawn_monster(MonsterName::SlaverRed, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::SlaverRed,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 _ => unreachable!(),
             };
-            queue.push_front(Effect {
-                kind: EffectKind::CombatStart,
-                id_source: None,
-                target: Target::Direct(None),
-            });
         }
         RoomKind::CombatElite => {
             // Sentries, GremlinNob, or Lagavulin
             let pick: u8 = rng.random_range(0..3);
             match pick {
                 0 => {
-                    let monster_1 = spawn_monster(MonsterName::Sentry, ascension, rng);
-                    let monster_2 = spawn_monster(MonsterName::Sentry, ascension, rng);
-                    let monster_3 = spawn_monster(MonsterName::Sentry, ascension, rng);
-                    push_monster(monster_1, entities, id_monsters, monster_count);
-                    push_monster(monster_2, entities, id_monsters, monster_count);
-                    push_monster(monster_3, entities, id_monsters, monster_count);
+                    for _ in 0..3 {
+                        effects.push(Effect::direct(
+                            EffectKind::MonsterSpawn {
+                                name: MonsterName::Sentry,
+                            },
+                            None,
+                            None,
+                        ));
+                    }
                 }
                 1 => {
-                    let monster = spawn_monster(MonsterName::GremlinNob, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::GremlinNob,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 2 => {
-                    let monster = spawn_monster(MonsterName::Lagavulin, ascension, rng);
-                    push_monster(monster, entities, id_monsters, monster_count);
+                    effects.push(Effect::direct(
+                        EffectKind::MonsterSpawn {
+                            name: MonsterName::Lagavulin,
+                        },
+                        None,
+                        None,
+                    ));
                 }
                 _ => unreachable!(),
             }
-            queue.push_front(Effect {
-                kind: EffectKind::CombatStart,
-                id_source: None,
-                target: Target::Direct(None),
-            });
         }
         RoomKind::RestSite => {
             // Nothing to enqueue; the queue drains and the engine derives
             // Phase::RestSite from `location` + room kind
         }
     }
+
+    if !effects.is_empty() {
+        effects.push(Effect::direct(EffectKind::CombatStart, None, None));
+        for effect in effects.into_iter().rev() {
+            queue.push_front(effect);
+        }
+    }
+
     DispatchResult::Continue
 }

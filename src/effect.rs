@@ -63,7 +63,7 @@ pub enum EffectKind {
     MoveUpdate,
     RoomEnter,
     RestSiteExit,
-    SpawnMonster { name: MonsterName },
+    MonsterSpawn { name: MonsterName },
     EscapeMonster,
     GoldSteal { amount: u8 },
     GoldGain { amount: u16 },
