@@ -162,7 +162,6 @@ pub fn spawn_slime_spike_large(ascension_level: u8, rng: &mut impl Rng) -> Entit
 }
 
 pub fn get_next_move_slime_spike_large(
-    _move_current: Option<usize>,
     move_history: &[u8],
     ascension_level: u8,
     rng: &mut impl Rng,
