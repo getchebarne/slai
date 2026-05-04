@@ -6,7 +6,7 @@ use crate::engine::DispatchResult;
 use crate::entity::{Entity, EntityKind};
 use crate::map::active_room_kind;
 use crate::modifier::modifier_clear;
-use crate::state::Location;
+use crate::game::Location;
 use crate::types::RoomKind;
 
 pub fn process_effect_combat_end(

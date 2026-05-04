@@ -3,7 +3,7 @@ use crate::effect::{DiscardSource, Effect, EffectKind, Target};
 use crate::entity::{card_effective_cost, is_play_restriction_satisfied};
 use crate::map::{has_edge, room_at};
 use crate::modifier::{ModifierKind, modifier_has};
-use crate::state::{GameState, Location};
+use crate::game::{GameState, Location};
 use crate::types::{CardKind, Phase};
 use crate::utils::fill_alive_monster_ids;
 
