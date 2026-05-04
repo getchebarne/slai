@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
@@ -145,7 +145,9 @@ pub fn process_effect_turn_end_character(
 
     for &id_card in id_hand {
         buf_effects.push(Effect {
-            kind: EffectKind::CardDiscardEndOfTurn,
+            kind: EffectKind::CardDiscard {
+                source: DiscardSource::EndOfTurn,
+            },
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });

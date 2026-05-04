@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{DiscardSource, Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 
 pub fn process_effect_calculated_gamble(
@@ -20,7 +20,9 @@ pub fn process_effect_calculated_gamble(
     // Discards in original order: iterate reverse, push_front
     for &id_card in id_hand.iter().rev() {
         queue.push_front(Effect {
-            kind: EffectKind::CardDiscard,
+            kind: EffectKind::CardDiscard {
+                source: DiscardSource::Explicit,
+            },
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });

@@ -111,7 +111,7 @@ pub struct Entity {
     // Per-instance, mutable; only `card_effects[..card_effects_len]` is live
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
-    // Fired only by `EffectKind::CardDiscard`, not by `CardMoveToDiscard` or `CardDiscardEndOfTurn`
+    // Fired only by `EffectKind::CardDiscard` with source `Explicit` — not by `CardMoveToDiscard` or end-of-turn discards
     pub card_on_discard_effects: &'static [Effect],
     // Fires AFTER the CardDraw loop completes, whether the card landed in hand or discard
     pub card_on_draw_effects: &'static [Effect],
