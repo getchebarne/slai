@@ -44,43 +44,15 @@ pub static CORPSE_EXPLOSION: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static CORPSE_EXPLOSION_PLUS: Entity = make_entity_card(
-    CardName::CorpseExplosion,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Rare,
-    2,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Poison,
-                stacks: 9, // +3 poison
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::CorpseExplosion,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static CORPSE_EXPLOSION_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = CORPSE_EXPLOSION.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
+            kind: ModifierKind::Poison,
+            stacks: 9, // +3 poison
+        };
+        a
+    },
+    ..CORPSE_EXPLOSION
+};

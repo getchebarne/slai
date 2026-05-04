@@ -27,27 +27,12 @@ pub static FINISHER: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static FINISHER_PLUS: Entity = make_entity_card(
-    CardName::Finisher,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[Effect {
-        kind: EffectKind::FinisherDamage { damage: 8 }, // +2 damage
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static FINISHER_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = FINISHER.card_effects;
+        a[0].kind = EffectKind::FinisherDamage { damage: 8 }; // +2 damage
+        a
+    },
+    ..FINISHER
+};

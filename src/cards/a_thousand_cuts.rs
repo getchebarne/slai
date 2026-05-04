@@ -31,30 +31,15 @@ pub static A_THOUSAND_CUTS: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static A_THOUSAND_CUTS_PLUS: Entity = make_entity_card(
-    CardName::AThousandCuts,
-    CardKind::Power,
-    CardColor::Green,
-    CardRarity::Rare,
-    2,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
+pub static A_THOUSAND_CUTS_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = A_THOUSAND_CUTS.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::ThousandCuts,
             stacks: 2, // +1 stack
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..A_THOUSAND_CUTS
+};

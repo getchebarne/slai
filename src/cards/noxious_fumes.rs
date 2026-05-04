@@ -31,30 +31,15 @@ pub static NOXIOUS_FUMES: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static NOXIOUS_FUMES_PLUS: Entity = make_entity_card(
-    CardName::NoxiousFumes,
-    CardKind::Power,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
+pub static NOXIOUS_FUMES_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = NOXIOUS_FUMES.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::NoxiousFumes,
             stacks: 3, // +1 poison
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..NOXIOUS_FUMES
+};

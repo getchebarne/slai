@@ -40,40 +40,15 @@ pub static HEEL_HOOK: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static HEEL_HOOK_PLUS: Entity = make_entity_card(
-    CardName::HeelHook,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            }, // +3 damage
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::HeelHookProc,
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static HEEL_HOOK_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = HEEL_HOOK.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 8, // +3 damage
+            condition: DamageCondition::Always,
+        };
+        a
+    },
+    ..HEEL_HOOK
+};

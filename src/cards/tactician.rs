@@ -30,20 +30,8 @@ pub static TACTICIAN: Entity = make_entity_card(
     &[],
     PlayRestriction::Never,
 );
-pub static TACTICIAN_PLUS: Entity = make_entity_card(
-    CardName::Tactician,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    0,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[],
-    ON_DISCARD_PLUS,
-    &[],
-    PlayRestriction::Never,
-);
+pub static TACTICIAN_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_on_discard_effects: ON_DISCARD_PLUS,
+    ..TACTICIAN
+};

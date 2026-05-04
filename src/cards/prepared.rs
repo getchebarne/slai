@@ -36,36 +36,16 @@ pub static PREPARED: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static PREPARED_PLUS: Entity = make_entity_card(
-    CardName::Prepared,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Common,
-    0,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[
-        Effect {
-            kind: EffectKind::CardDraw { count: 2 }, // +1 card
-            id_source: None,
-            target: Target::Direct(None),
-        },
-        Effect {
-            kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 2 }, // +1 card
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static PREPARED_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = PREPARED.card_effects;
+        a[0].kind = EffectKind::CardDraw { count: 2 }; // +1 card
+        a[1].target = Target::Resolve {
+            candidates: CandidatePool::Hand,
+            selection: SelectionKind::Input { count: 2 }, // +1 card
+        };
+        a
+    },
+    ..PREPARED
+};

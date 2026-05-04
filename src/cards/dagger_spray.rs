@@ -43,20 +43,13 @@ pub static DAGGER_SPRAY: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DAGGER_SPRAY_PLUS: Entity = make_entity_card(
-    CardName::DaggerSpray,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[HIT_PLUS, HIT_PLUS],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static DAGGER_SPRAY_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = DAGGER_SPRAY.card_effects;
+        a[0] = HIT_PLUS;
+        a[1] = HIT_PLUS;
+        a
+    },
+    ..DAGGER_SPRAY
+};

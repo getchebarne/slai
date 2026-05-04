@@ -31,31 +31,12 @@ pub static ADRENALINE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static ADRENALINE_PLUS: Entity = make_entity_card(
-    CardName::Adrenaline,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Rare,
-    0,
-    CardCostKind::Fixed,
-    true,
-    true,
-    false,
-    false,
-    false,
-    &[
-        Effect {
-            kind: EffectKind::EnergyGain { amount: 2 }, // +1 energy gain
-            id_source: None,
-            target: Target::Direct(None),
-        },
-        Effect {
-            kind: EffectKind::CardDraw { count: 2 },
-            id_source: None,
-            target: Target::Direct(None),
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static ADRENALINE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = ADRENALINE.card_effects;
+        a[0].kind = EffectKind::EnergyGain { amount: 2 }; // +1 energy gain
+        a
+    },
+    ..ADRENALINE
+};

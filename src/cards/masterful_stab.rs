@@ -30,30 +30,15 @@ pub static MASTERFUL_STAB: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static MASTERFUL_STAB_PLUS: Entity = make_entity_card(
-    CardName::MasterfulStab,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    0,
-    CardCostKind::GrowsOnDamageInstanceTaken,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 16,
+pub static MASTERFUL_STAB_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = MASTERFUL_STAB.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 16, // +4 damage
             condition: DamageCondition::Always,
-        }, // +4 damage
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..MASTERFUL_STAB
+};

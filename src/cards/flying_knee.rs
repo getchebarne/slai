@@ -44,43 +44,15 @@ pub static FLYING_KNEE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static FLYING_KNEE_PLUS: Entity = make_entity_card(
-    CardName::FlyingKnee,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 11, // +3 damage
-                condition: DamageCondition::Always,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::NextTurnEnergy,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static FLYING_KNEE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = FLYING_KNEE.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 11, // +3 damage
+            condition: DamageCondition::Always,
+        };
+        a
+    },
+    ..FLYING_KNEE
+};

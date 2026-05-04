@@ -41,30 +41,16 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static ENDLESS_AGONY_PLUS: Entity = make_entity_card(
-    CardName::EndlessAgony,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    0,
-    CardCostKind::Fixed,
-    true,
-    true,
-    false,
-    false,
-    true,
-    &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 6,
+pub static ENDLESS_AGONY_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = ENDLESS_AGONY.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 6, // +2 damage
             condition: DamageCondition::Always,
-        }, // +2 damage
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    ENDLESS_AGONY_PLUS_ON_DRAW,
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    card_on_draw_effects: ENDLESS_AGONY_PLUS_ON_DRAW,
+    ..ENDLESS_AGONY
+};

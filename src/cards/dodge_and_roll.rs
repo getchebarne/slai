@@ -41,42 +41,16 @@ pub static DODGE_AND_ROLL: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DODGE_AND_ROLL_PLUS: Entity = make_entity_card(
-    CardName::DodgeAndRoll,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[
-        Effect {
-            kind: EffectKind::BlockGain {
-                amount: 6, // +2 block
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::NextTurnBlock,
-                stacks: 6, // +2 next-turn-block
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static DODGE_AND_ROLL_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = DODGE_AND_ROLL.card_effects;
+        a[0].kind = EffectKind::BlockGain { amount: 6 }; // +2 block
+        a[1].kind = EffectKind::ModifierGain {
+            kind: ModifierKind::NextTurnBlock,
+            stacks: 6, // +2 next-turn-block
+        };
+        a
+    },
+    ..DODGE_AND_ROLL
+};

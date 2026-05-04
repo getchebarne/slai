@@ -31,30 +31,8 @@ pub static TOOLS_OF_THE_TRADE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static TOOLS_OF_THE_TRADE_PLUS: Entity = make_entity_card(
-    CardName::ToolsOfTheTrade,
-    CardKind::Power,
-    CardColor::Green,
-    CardRarity::Rare,
-    0, // -1 cost
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::ToolsOfTheTrade,
-            stacks: 1,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static TOOLS_OF_THE_TRADE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_cost: 0, // -1 cost
+    ..TOOLS_OF_THE_TRADE
+};

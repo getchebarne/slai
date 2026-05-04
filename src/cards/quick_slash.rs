@@ -37,37 +37,15 @@ pub static QUICK_SLASH: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static QUICK_SLASH_PLUS: Entity = make_entity_card(
-    CardName::QuickSlash,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 12,
-                condition: DamageCondition::Always,
-            }, // +4 damage
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::CardDraw { count: 1 },
-            id_source: None,
-            target: Target::Direct(None),
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static QUICK_SLASH_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = QUICK_SLASH.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 12, // +4 damage
+            condition: DamageCondition::Always,
+        };
+        a
+    },
+    ..QUICK_SLASH
+};
