@@ -39,12 +39,13 @@ pub fn process_effect_room_enter(
     let room = active_room_kind(id_rooms, location, entities).unwrap();
     match room {
         RoomKind::CombatBoss => {
-            // Act 1 boss: 50/50 between TheGuardian and SlimeBoss
-            // TODO: Hexaghost
-            let name = if rng.random_bool(0.5) {
-                MonsterName::TheGuardian
-            } else {
-                MonsterName::SlimeBoss
+            // Act 1 boss: uniform 1/3 between The Guardian, Slime Boss, Hexaghost
+            let pick: u8 = rng.random_range(0..3);
+            let name = match pick {
+                0 => MonsterName::TheGuardian,
+                1 => MonsterName::SlimeBoss,
+                2 => MonsterName::Hexaghost,
+                _ => unreachable!(),
             };
             let m = spawn_monster(name, ascension, rng);
             push_monster(m, entities, id_monsters, monster_count);
@@ -72,8 +73,7 @@ pub fn process_effect_room_enter(
                     push_monster(monster_2, entities, id_monsters, monster_count);
                 }
                 3 => {
-                    // Small Slimes: 50/50 between [Spike_S + Acid_M] and [Acid_S + Spike_M].
-                    // Java MonsterHelper.spawnSmallSlimes (one small + one medium of opposite color).
+                    // Small Slimes: 50/50 between [Spike_S + Acid_M] and [Acid_S + Spike_M]
                     let (small, medium) = if rng.random_bool(0.5) {
                         (MonsterName::SlimeSpikeSmall, MonsterName::SlimeAcidMedium)
                     } else {
@@ -146,8 +146,6 @@ pub fn process_effect_room_enter(
                 }
                 11 => {
                     // Lots of Slimes: 5 small slimes drawn without replacement
-                    // from [Spike_S×3, Acid_S×2]. Composition is fixed
-                    // (3 Spike_S + 2 Acid_S); only spawn order varies.
                     let mut pool: [MonsterName; 5] = [
                         MonsterName::SlimeSpikeSmall,
                         MonsterName::SlimeSpikeSmall,

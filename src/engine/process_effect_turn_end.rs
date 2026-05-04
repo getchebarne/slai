@@ -6,7 +6,7 @@ use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::types::Vitals;
+use crate::types::{CardName, Vitals};
 
 pub fn process_effect_turn_end_monster(
     _vitals: &mut Vitals,
@@ -118,7 +118,6 @@ pub fn process_effect_turn_end_character(
     }
 
     // WraithForm: each stack costs 1 Dexterity per player turn end
-    // Persists across turns (no removal here)
     if modifier_has(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
         buf_effects.push(Effect {
@@ -129,6 +128,19 @@ pub fn process_effect_turn_end_character(
             id_source: None,
             target: Target::Direct(Some(id_character)),
         });
+    }
+
+    // Burn end-of-turn damage TODO: improve data representation
+    for &id_card in id_hand {
+        let card = &entities[id_card];
+        if card.card_name == CardName::Burn {
+            let dmg: u16 = if card.card_upgraded { 4 } else { 2 };
+            buf_effects.push(Effect {
+                kind: EffectKind::DamageDeal { amount: dmg },
+                id_source: None,
+                target: Target::Direct(Some(id_character)),
+            });
+        }
     }
 
     for &id_card in id_hand {

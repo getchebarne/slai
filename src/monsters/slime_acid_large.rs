@@ -19,6 +19,7 @@ static MOVE_SLIME_TACKLE_11: Move = Move {
             kind: EffectKind::CardAddToDiscard {
                 card_name: CardName::Slimed,
                 count: 2,
+                upgraded: false,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -44,6 +45,7 @@ static MOVE_SLIME_TACKLE_12: Move = Move {
             kind: EffectKind::CardAddToDiscard {
                 card_name: CardName::Slimed,
                 count: 2,
+                upgraded: false,
             },
             id_source: None,
             target: Target::Direct(None),

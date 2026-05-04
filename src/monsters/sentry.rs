@@ -40,6 +40,7 @@ static MOVE_BOLT_2: Move = Move {
         kind: EffectKind::CardAddToDiscard {
             card_name: CardName::Dazed,
             count: 2,
+            upgraded: false,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -52,6 +53,7 @@ static MOVE_BOLT_3: Move = Move {
         kind: EffectKind::CardAddToDiscard {
             card_name: CardName::Dazed,
             count: 3,
+            upgraded: false,
         },
         id_source: None,
         target: Target::Direct(None),

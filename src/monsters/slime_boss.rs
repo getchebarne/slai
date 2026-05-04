@@ -9,6 +9,7 @@ static MOVE_GOOP_SPRAY_3: Move = Move {
         kind: EffectKind::CardAddToDiscard {
             card_name: CardName::Slimed,
             count: 3,
+            upgraded: false,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -21,6 +22,7 @@ static MOVE_GOOP_SPRAY_5: Move = Move {
         kind: EffectKind::CardAddToDiscard {
             card_name: CardName::Slimed,
             count: 5,
+            upgraded: false,
         },
         id_source: None,
         target: Target::Direct(None),
