@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::effect::{
-    CandidatePool, DamageCondition, DiscardSource, Effect, EffectKind, SelectionKind, Target,
+    CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target,
 };
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
@@ -176,13 +176,7 @@ pub fn process_effect_turn_end_character(
                     ..*e
                 });
                 if let Some(amount) = stacks_thievery
-                    && matches!(
-                        e.kind,
-                        EffectKind::DamagePhysical {
-                            condition: DamageCondition::Always,
-                            ..
-                        }
-                    )
+                    && matches!(e.kind, EffectKind::DamagePhysical { .. })
                 {
                     buf_effects.push(Effect {
                         kind: EffectKind::GoldSteal { amount },

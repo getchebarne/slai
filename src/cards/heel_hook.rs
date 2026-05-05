@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -16,10 +16,7 @@ pub static HEEL_HOOK: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -44,10 +41,7 @@ pub static HEEL_HOOK_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = HEEL_HOOK.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
-            amount: 8, // +3 damage
-            condition: DamageCondition::Always,
-        };
+        a[0].kind = EffectKind::DamagePhysical { amount: 8 }; // +3 damage
         a
     },
     ..HEEL_HOOK

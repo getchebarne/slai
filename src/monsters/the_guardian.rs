@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, Modifiers, ZERO_MODIFIERS, modifier_apply, modifier_has};
 use crate::types::{MonsterKind, MonsterName, Vitals};
@@ -22,10 +22,7 @@ static MOVE_CHARGING_UP: Move = Move {
 static MOVE_FIERCE_BASH_32: Move = Move {
     name: "Fierce Bash",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 32,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 32 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -40,10 +37,7 @@ static MOVE_FIERCE_BASH_32: Move = Move {
 static MOVE_FIERCE_BASH_36: Move = Move {
     name: "Fierce Bash",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 36,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 36 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -87,10 +81,7 @@ static MOVE_WHIRLWIND: Move = Move {
     name: "Whirlwind",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -98,10 +89,7 @@ static MOVE_WHIRLWIND: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -109,10 +97,7 @@ static MOVE_WHIRLWIND: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -120,10 +105,7 @@ static MOVE_WHIRLWIND: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -169,10 +151,7 @@ static MOVE_DEFENSIVE_MODE_4: Move = Move {
 static MOVE_ROLL_ATTACK_9: Move = Move {
     name: "Roll Attack",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 9,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 9 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -187,10 +166,7 @@ static MOVE_ROLL_ATTACK_9: Move = Move {
 static MOVE_ROLL_ATTACK_10: Move = Move {
     name: "Roll Attack",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 10,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -206,10 +182,7 @@ static MOVE_TWIN_SLAM_30: Move = Move {
     name: "Twin Slam",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -217,10 +190,7 @@ static MOVE_TWIN_SLAM_30: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -258,10 +228,7 @@ static MOVE_TWIN_SLAM_35: Move = Move {
     name: "Twin Slam",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -269,10 +236,7 @@ static MOVE_TWIN_SLAM_35: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -310,10 +274,7 @@ static MOVE_TWIN_SLAM_40: Move = Move {
     name: "Twin Slam",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -321,10 +282,7 @@ static MOVE_TWIN_SLAM_40: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,

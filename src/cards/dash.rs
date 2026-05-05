@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -24,10 +24,7 @@ pub static DASH: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 10,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -45,10 +42,7 @@ pub static DASH_PLUS: Entity = Entity {
     card_effects: {
         let mut a = DASH.card_effects;
         a[0].kind = EffectKind::BlockGain { amount: 13 }; // +3 block
-        a[1].kind = EffectKind::DamagePhysical {
-            amount: 13, // +3 damage
-            condition: DamageCondition::Always,
-        };
+        a[1].kind = EffectKind::DamagePhysical { amount: 13 }; // +3 damage
         a
     },
     ..DASH

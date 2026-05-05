@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
@@ -8,10 +8,7 @@ static MOVE_FLAME_TACKLE_8: Move = Move {
     name: "Flame Tackle",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -37,10 +34,7 @@ static MOVE_FLAME_TACKLE_10: Move = Move {
     name: "Flame Tackle",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 10,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,

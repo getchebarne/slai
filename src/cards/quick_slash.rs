@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -16,10 +16,7 @@ pub static QUICK_SLASH: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -41,10 +38,7 @@ pub static QUICK_SLASH_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = QUICK_SLASH.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
-            amount: 12, // +4 damage
-            condition: DamageCondition::Always,
-        };
+        a[0].kind = EffectKind::DamagePhysical { amount: 12 }; // +4 damage
         a
     },
     ..QUICK_SLASH

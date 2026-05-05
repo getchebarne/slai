@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -16,10 +16,7 @@ pub static EVISCERATE: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -27,10 +24,7 @@ pub static EVISCERATE: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -38,10 +32,7 @@ pub static EVISCERATE: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -58,10 +49,7 @@ pub static EVISCERATE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = EVISCERATE.card_effects;
-        let upgraded_kind = EffectKind::DamagePhysical {
-            amount: 9, // +2 damage
-            condition: DamageCondition::Always,
-        };
+        let upgraded_kind = EffectKind::DamagePhysical { amount: 9 }; // +2 damage
         a[0].kind = upgraded_kind;
         a[1].kind = upgraded_kind;
         a[2].kind = upgraded_kind;
