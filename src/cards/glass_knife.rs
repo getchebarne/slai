@@ -40,7 +40,10 @@ pub static GLASS_KNIFE: Entity = make_entity_card(
         Effect {
             kind: EffectKind::GlassKnifeDecay { delta: -2 },
             id_source: None,
-            target: Target::Direct(None),
+            target: Target::Resolve {
+                candidates: CandidatePool::Source,
+                selection: SelectionKind::Single,
+            },
         },
     ],
     &[],

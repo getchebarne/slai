@@ -320,7 +320,11 @@ fn resolve_or_halt(
     let mut buf_cands = CandidateBuf::new();
 
     let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
-    let id_source_resolved = get_id_actor(&state.entities, state.id_character, id_source);
+    // Pass `id_source` through as the literal originator: monster intents
+    // resolve to the monster itself, card-played effects to the card.
+    // `CandidatePool::Source` is the channel cards/monsters use to target
+    // themselves
+    let id_source_resolved = id_source.unwrap_or(state.id_character);
     let resolution = resolve_targets(
         candidates,
         selection,
@@ -527,7 +531,7 @@ fn dispatch_by_kind(
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay::process_effect_glass_knife_decay(
                 &mut state.entities,
-                id_source,
+                id_target.unwrap(),
                 delta,
             )
         }
