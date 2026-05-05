@@ -78,10 +78,6 @@ pub enum EffectKind {
     CardRewardSelect,
 }
 
-// DiscardSource: tags a CardDiscard effect with its origin so the handler can
-// branch on it. Explicit = card- or player-driven discard (counter bumps,
-// fires `card_on_discard_effects`); EndOfTurn = turn-end auto-discard
-// (honors `card_retain` and `card_ethereal`, no counter, no triggers)
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiscardSource {
     Explicit,
