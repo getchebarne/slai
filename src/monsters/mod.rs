@@ -90,24 +90,19 @@ pub fn get_next_move(
 ) -> usize {
     let history = get_move_history_slice(entity);
     match entity.monster_name {
-        MonsterName::Cultist => cultist::get_next_move_cultist(entity.move_current, history),
+        MonsterName::Cultist => cultist::get_next_move_cultist(entity.move_current),
         MonsterName::JawWorm => {
-            jaw_worm::get_next_move_jaw_worm(entity.move_current, history, entity.moves, rng)
+            jaw_worm::get_next_move_jaw_worm(entity.move_current, history, rng)
         }
         MonsterName::TheGuardian => the_guardian::get_next_move_the_guardian_full(
             entity.move_current,
             history,
             &entity.modifiers,
         ),
-        MonsterName::FungiBeast => {
-            fungi_beast::get_next_move_fungi_beast(entity.move_current, history, rng)
+        MonsterName::FungiBeast => fungi_beast::get_next_move_fungi_beast(history, rng),
+        MonsterName::SlaverBlue => {
+            slaver_blue::get_next_move_slaver_blue(history, ascension_level, rng)
         }
-        MonsterName::SlaverBlue => slaver_blue::get_next_move_slaver_blue(
-            entity.move_current,
-            history,
-            ascension_level,
-            rng,
-        ),
         MonsterName::SlimeAcidSmall => slime_acid_small::get_next_move_slime_acid_small(
             entity.move_current,
             history,
@@ -138,14 +133,11 @@ pub fn get_next_move(
             lagavulin::get_next_move_lagavulin(entity.move_current, history, &entity.modifiers)
         }
         MonsterName::Looter => looter::get_next_move_looter(entity.move_current, history, rng),
-        MonsterName::LouseDefensive => louse_green::get_next_move_louse_green(
-            entity.move_current,
-            history,
-            ascension_level,
-            rng,
-        ),
+        MonsterName::LouseDefensive => {
+            louse_green::get_next_move_louse_green(history, ascension_level, rng)
+        }
         MonsterName::LouseNormal => {
-            louse_red::get_next_move_louse_red(entity.move_current, history, ascension_level, rng)
+            louse_red::get_next_move_louse_red(history, ascension_level, rng)
         }
         MonsterName::Sentry => {
             sentry::get_next_move_sentry(entity.move_current, history, entity_id, id_alive_monsters)
@@ -153,32 +145,20 @@ pub fn get_next_move(
         MonsterName::SlaverRed => {
             slaver_red::get_next_move_slaver_red(entity.move_current, history, ascension_level, rng)
         }
-        MonsterName::SlimeAcidLarge => slime_acid_large::get_next_move_slime_acid_large(
-            entity.move_current,
-            history,
-            ascension_level,
-            rng,
-        ),
-        MonsterName::SlimeAcidMedium => slime_acid_medium::get_next_move_slime_acid_medium(
-            entity.move_current,
-            history,
-            ascension_level,
-            rng,
-        ),
+        MonsterName::SlimeAcidLarge => {
+            slime_acid_large::get_next_move_slime_acid_large(history, ascension_level, rng)
+        }
+        MonsterName::SlimeAcidMedium => {
+            slime_acid_medium::get_next_move_slime_acid_medium(history, ascension_level, rng)
+        }
         MonsterName::SlimeBoss => {
             slime_boss::get_next_move_slime_boss(entity.move_current, history)
         }
-        MonsterName::SlimeSpikeLarge => slime_spike_large::get_next_move_slime_spike_large(
-            entity.move_current,
-            history,
-            ascension_level,
-            rng,
-        ),
-        MonsterName::SlimeSpikeMedium => slime_spike_medium::get_next_move_slime_spike_medium(
-            entity.move_current,
-            history,
-            ascension_level,
-            rng,
-        ),
+        MonsterName::SlimeSpikeLarge => {
+            slime_spike_large::get_next_move_slime_spike_large(history, ascension_level, rng)
+        }
+        MonsterName::SlimeSpikeMedium => {
+            slime_spike_medium::get_next_move_slime_spike_medium(history, ascension_level, rng)
+        }
     }
 }

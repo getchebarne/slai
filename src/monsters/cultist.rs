@@ -100,7 +100,7 @@ pub fn spawn_cultist(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     )
 }
 
-pub fn get_next_move_cultist(move_current: Option<usize>, _move_history: &[u8]) -> usize {
+pub fn get_next_move_cultist(move_current: Option<usize>) -> usize {
     if move_current.is_none() {
         IDX_MOVE_INCANTATION
     } else {

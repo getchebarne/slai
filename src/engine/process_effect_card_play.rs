@@ -1,7 +1,5 @@
 use std::collections::VecDeque;
 
-use rand::Rng;
-
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{CardCostKind, Entity, card_effective_cost};
@@ -10,17 +8,14 @@ use crate::types::CardKind;
 
 pub fn process_effect_card_play(
     id_card: usize,
-    _id_card_target: Option<usize>,
     id_character: usize,
     entities: &mut [Entity],
-    _hand: &[usize],
     alive_monsters: &[usize],
     this_turn_attacks_played: &mut u8,
     card_last_played: &mut Option<usize>,
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
-    _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let card = entities[id_card];

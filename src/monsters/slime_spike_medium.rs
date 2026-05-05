@@ -106,7 +106,6 @@ pub fn spawn_slime_spike_medium(ascension_level: u8, rng: &mut impl Rng) -> Enti
 }
 
 pub fn get_next_move_slime_spike_medium(
-    _move_current: Option<usize>,
     move_history: &[u8],
     ascension_level: u8,
     rng: &mut impl Rng,

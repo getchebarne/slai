@@ -1,15 +1,12 @@
 use std::collections::VecDeque;
 
-use rand::Rng;
-
 use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::types::{CardName, Vitals};
+use crate::types::CardName;
 
 pub fn process_effect_turn_end_monster(
-    _vitals: &mut Vitals,
     modifiers: &Modifiers,
     id_actor: usize,
     queue: &mut VecDeque<Effect>,
@@ -68,11 +65,9 @@ pub fn process_effect_turn_end_character(
     id_character: usize,
     entities: &mut [Entity],
     id_hand: &[usize],
-    _card_target: Option<usize>,
     id_alive_monsters: &[usize],
     this_turn_discards: &mut u8,
     this_turn_attacks_played: &mut u8,
-    _rng: &mut impl Rng,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Reset per-turn counters synchronously, before the rest of the chain queues up
