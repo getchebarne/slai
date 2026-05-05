@@ -270,6 +270,18 @@ fn resolve_targets(
     }
 }
 
+// Translate `id_source` from "originating entity" to "actor entity": cards
+// delegate up to the character (cards don't carry Strength/Weak/Thorns
+// targeting), monsters and the character resolve to themselves. Used by
+// damage handlers for source-side scaling and Thorns reflect targeting
+pub(crate) fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
+    if entities[id_source].kind == EntityKind::Card {
+        id_character
+    } else {
+        id_source
+    }
+}
+
 // Dispatcher entry point. Branches on `Target`:
 //  - `Direct(t)` runs the kind-specific handler with an already-known target
 //  - `Resolve { .. }` runs the resolver; on success, fans out to `Direct`
@@ -302,6 +314,10 @@ fn resolve_or_halt(
     let mut buf_cands = CandidateBuf::new();
 
     let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+    // Pass `id_source` through as the literal originator: monster intents
+    // resolve to the monster itself, card-played effects to the card.
+    // `CandidatePool::Source` is the channel cards/monsters use to target
+    // themselves
     let id_source_resolved = id_source.unwrap_or(state.id_character);
     let resolution = resolve_targets(
         candidates,
@@ -380,7 +396,6 @@ fn dispatch_by_kind(
                 &mut state.entities,
                 &buf_alive[..alive_n],
                 &mut state.this_turn_attacks_played,
-                &mut state.card_last_played,
                 this_turn_discards,
                 this_combat_damage_instances_taken,
                 energy_current,
@@ -496,19 +511,22 @@ fn dispatch_by_kind(
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
         EffectKind::DamagePhysical { amount, condition } => {
+            let id_source = id_source.expect("DamagePhysical requires id_source");
             process_effect_damage_physical::process_effect_damage_physical(
                 &state.entities,
                 id_source,
+                state.id_character,
                 id_target.unwrap(),
                 amount,
                 condition,
                 &mut state.effect_queue,
             )
         }
+
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay::process_effect_glass_knife_decay(
                 &mut state.entities,
-                state.card_last_played,
+                id_target.unwrap(),
                 delta,
             )
         }
@@ -592,18 +610,11 @@ fn dispatch_by_kind(
             &mut state.effect_queue,
         ),
         EffectKind::DamageDeal { amount } => {
-            let id_target = id_target.unwrap();
-            let id_character = state.id_character;
-            // Snapshot character modifiers separately to avoid aliasing the
-            // entities borrow taken below for the target entity
-            let mods_char = state.entities[id_character].modifiers;
-            let target = &mut state.entities[id_target];
             process_effect_damage_deal::process_effect_damage_deal(
-                target,
+                &mut state.entities,
                 id_source,
-                id_target,
-                id_character,
-                &mods_char,
+                state.id_character,
+                id_target.unwrap(),
                 amount,
                 &mut state.effect_queue,
             )

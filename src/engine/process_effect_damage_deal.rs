@@ -2,20 +2,28 @@ use std::collections::VecDeque;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
-use crate::entity::Entity;
-use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
+use crate::entity::{Entity, EntityKind};
+use crate::modifier::{ModifierKind, modifier_has, modifier_remove, modifier_stacks};
 use crate::monsters::{lagavulin, slime_acid_large, slime_boss, slime_spike_large};
 use crate::types::MonsterName;
 
 pub fn process_effect_damage_deal(
-    target: &mut Entity,
+    entities: &mut [Entity],
     id_source: Option<usize>,
-    id_target: usize,
     id_character: usize,
-    mods_char: &Modifiers,
+    id_target: usize,
     amount: u16,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
+    let from_card = match id_source {
+        Some(id) => entities[id].kind == EntityKind::Card,
+        None => false,
+    };
+    // Snapshot character modifiers (Modifiers is Copy) so the read borrow
+    // doesn't alias the mut borrow on target taken below
+    let mods_char = entities[id_character].modifiers;
+    let target = &mut entities[id_target];
+
     let damage_over_block = amount.saturating_sub(target.vitals.block);
     target.vitals.block = target.vitals.block.saturating_sub(amount);
 
@@ -28,13 +36,11 @@ pub fn process_effect_damage_deal(
             target: Target::Direct(Some(id_target)),
         });
 
-        // Envenom (source-side): when player attack lands unblocked damage on a
-        // non-self target, apply Envenom stacks of Poison to the target
-        if id_source == Some(id_character)
-            && id_target != id_character
-            && modifier_has(mods_char, ModifierKind::Envenom)
-        {
-            let stacks = modifier_stacks(mods_char, ModifierKind::Envenom);
+        // Envenom: when a card-played attack lands unblocked damage,
+        // apply Envenom stacks of Poison to the target. `from_card` gates
+        // out modifier-driven damage (e.g. ThousandCuts)
+        if from_card && modifier_has(&mods_char, ModifierKind::Envenom) {
+            let stacks = modifier_stacks(&mods_char, ModifierKind::Envenom);
             queue.push_front(Effect {
                 kind: EffectKind::ModifierGain {
                     kind: ModifierKind::Poison,

@@ -53,7 +53,10 @@ pub fn process_effect_card_discard(
             // when the queue resumes
             let effects_on_discard = entities[id_target].card_on_discard_effects;
             for effect in effects_on_discard.iter().rev() {
-                queue.push_front(*effect);
+                queue.push_front(Effect {
+                    id_source: Some(id_target),
+                    ..*effect
+                });
             }
             DispatchResult::Continue
         }

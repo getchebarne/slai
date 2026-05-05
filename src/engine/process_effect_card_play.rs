@@ -12,14 +12,12 @@ pub fn process_effect_card_play(
     entities: &mut [Entity],
     alive_monsters: &[usize],
     this_turn_attacks_played: &mut u8,
-    card_last_played: &mut Option<usize>,
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
     queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let card = entities[id_card];
-    *card_last_played = Some(id_card);
 
     // Increment before effects fire so self-counting cards see their own play
     if card.card_kind == CardKind::Attack {
@@ -125,7 +123,7 @@ pub fn process_effect_card_play(
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
             buf_effects.push(Effect {
-                id_source: Some(id_character),
+                id_source: Some(id_card),
                 ..*e
             });
         }
