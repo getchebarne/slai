@@ -7,7 +7,7 @@ use crate::consts::{
     ANCESTOR_GAP_MIN, FACTOR_NUM_ELITE, FACTOR_NUM_REST_SITE, MAP_HEIGHT, MAP_WIDTH, PATH_DENSITY,
 };
 use crate::entity::{Entity, make_entity_room};
-use crate::state::Location;
+use crate::game::Location;
 use crate::types::RoomKind;
 
 // Intermediate grid-cell during map generation. Converted to `Entity` via
