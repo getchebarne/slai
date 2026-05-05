@@ -1,6 +1,6 @@
 use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
-use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply, modifier_has};
+use crate::modifier::{ModifierKind, Modifiers, ZERO_MODIFIERS, modifier_apply, modifier_has};
 use crate::types::{MonsterKind, MonsterName, Vitals};
 use rand::Rng;
 
@@ -197,7 +197,7 @@ pub fn spawn_lagavulin(ascension_level: u8, rng: &mut impl Rng) -> Entity {
 pub fn get_next_move_lagavulin(
     move_current: Option<usize>,
     move_history: &[u8],
-    modifiers: &crate::modifier::Modifiers,
+    modifiers: &Modifiers,
 ) -> usize {
     // Combat start: Sleep
     if move_current.is_none() {
