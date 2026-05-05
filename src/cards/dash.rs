@@ -40,42 +40,16 @@ pub static DASH: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DASH_PLUS: Entity = make_entity_card(
-    CardName::Dash,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    2,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::BlockGain {
-                amount: 13, // +3 damage
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 13, // +3 block
-                condition: DamageCondition::Always,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static DASH_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = DASH.card_effects;
+        a[0].kind = EffectKind::BlockGain { amount: 13 }; // +3 block
+        a[1].kind = EffectKind::DamagePhysical {
+            amount: 13, // +3 damage
+            condition: DamageCondition::Always,
+        };
+        a
+    },
+    ..DASH
+};

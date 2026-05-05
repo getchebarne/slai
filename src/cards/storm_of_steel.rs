@@ -24,24 +24,12 @@ pub static STORM_OF_STEEL: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static STORM_OF_STEEL_PLUS: Entity = make_entity_card(
-    CardName::StormOfSteel,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Rare,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::StormOfSteelProc { upgraded: true }, // Shivs are upgraded
-        id_source: None,
-        target: Target::Direct(None),
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static STORM_OF_STEEL_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = STORM_OF_STEEL.card_effects;
+        a[0].kind = EffectKind::StormOfSteelProc { upgraded: true }; // Shivs are upgraded
+        a
+    },
+    ..STORM_OF_STEEL
+};

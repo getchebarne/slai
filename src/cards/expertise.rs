@@ -24,24 +24,12 @@ pub static EXPERTISE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static EXPERTISE_PLUS: Entity = make_entity_card(
-    CardName::Expertise,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::DrawUpTo { target: 7 }, // +1 draw
-        id_source: None,
-        target: Target::Direct(None),
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static EXPERTISE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = EXPERTISE.card_effects;
+        a[0].kind = EffectKind::DrawUpTo { target: 7 }; // +1 draw
+        a
+    },
+    ..EXPERTISE
+};

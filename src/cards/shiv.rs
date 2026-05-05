@@ -30,30 +30,15 @@ pub static SHIV: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static SHIV_PLUS: Entity = make_entity_card(
-    CardName::Shiv,
-    CardKind::Attack,
-    CardColor::Colorless,
-    CardRarity::Special,
-    0,
-    CardCostKind::Fixed,
-    true,
-    true,
-    false,
-    false,
-    true,
-    &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 6,
+pub static SHIV_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = SHIV.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 6, // +2 damage
             condition: DamageCondition::Always,
-        }, // +2 damage
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..SHIV
+};

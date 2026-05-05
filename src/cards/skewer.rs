@@ -30,30 +30,15 @@ pub static SKEWER: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static SKEWER_PLUS: Entity = make_entity_card(
-    CardName::Skewer,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    0,
-    CardCostKind::XCost { offset: 0 },
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 10,
+pub static SKEWER_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = SKEWER.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 10, // +3 damage
             condition: DamageCondition::Always,
-        }, // +3 damage
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..SKEWER
+};

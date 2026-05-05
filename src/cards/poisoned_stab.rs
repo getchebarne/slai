@@ -44,43 +44,19 @@ pub static POISONED_STAB: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded: +2 damage, +1 poison
-pub static POISONED_STAB_PLUS: Entity = make_entity_card(
-    CardName::PoisonedStab,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            }, // +2 damage
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Poison,
-                stacks: 4, // +1 poison
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static POISONED_STAB_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = POISONED_STAB.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 8, // +2 damage
+            condition: DamageCondition::Always,
+        };
+        a[1].kind = EffectKind::ModifierGain {
+            kind: ModifierKind::Poison,
+            stacks: 4, // +1 poison
+        };
+        a
+    },
+    ..POISONED_STAB
+};

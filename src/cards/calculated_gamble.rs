@@ -24,24 +24,8 @@ pub static CALCULATED_GAMBLE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static CALCULATED_GAMBLE_PLUS: Entity = make_entity_card(
-    CardName::CalculatedGamble,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    0,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::CalculatedGamble,
-        id_source: None,
-        target: Target::Direct(None),
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static CALCULATED_GAMBLE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_exhaust: false, // doesn't exhaust
+    ..CALCULATED_GAMBLE
+};

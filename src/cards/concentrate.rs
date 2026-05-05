@@ -36,36 +36,15 @@ pub static CONCENTRATE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static CONCENTRATE_PLUS: Entity = make_entity_card(
-    CardName::Concentrate,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    0,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[
-        Effect {
-            kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 2 }, // -1 discard
-            },
-        },
-        Effect {
-            kind: EffectKind::EnergyGain { amount: 2 },
-            id_source: None,
-            target: Target::Direct(None),
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static CONCENTRATE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = CONCENTRATE.card_effects;
+        a[0].target = Target::Resolve {
+            candidates: CandidatePool::Hand,
+            selection: SelectionKind::Input { count: 2 }, // -1 discard
+        };
+        a
+    },
+    ..CONCENTRATE
+};

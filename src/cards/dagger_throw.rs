@@ -49,47 +49,15 @@ pub static DAGGER_THROW: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DAGGER_THROW_PLUS: Entity = make_entity_card(
-    CardName::DaggerThrow,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 12,
-                condition: DamageCondition::Always,
-            }, // +3 damage
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::CardDraw { count: 1 },
-            id_source: None,
-            target: Target::Direct(None),
-        },
-        Effect {
-            kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 1 },
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static DAGGER_THROW_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = DAGGER_THROW.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 12, // +3 damage
+            condition: DamageCondition::Always,
+        };
+        a
+    },
+    ..DAGGER_THROW
+};

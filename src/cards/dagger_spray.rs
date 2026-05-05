@@ -2,29 +2,6 @@ use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, Selectio
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-const HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical {
-        amount: 4,
-        condition: DamageCondition::Always,
-    },
-    id_source: None,
-    target: Target::Resolve {
-        candidates: CandidatePool::Monsters,
-        selection: SelectionKind::All,
-    },
-};
-const HIT_PLUS: Effect = Effect {
-    kind: EffectKind::DamagePhysical {
-        amount: 6,
-        condition: DamageCondition::Always,
-    }, // +2 damage
-    id_source: None,
-    target: Target::Resolve {
-        candidates: CandidatePool::Monsters,
-        selection: SelectionKind::All,
-    },
-};
-
 pub static DAGGER_SPRAY: Entity = make_entity_card(
     CardName::DaggerSpray,
     CardKind::Attack,
@@ -37,26 +14,46 @@ pub static DAGGER_SPRAY: Entity = make_entity_card(
     false,
     false,
     false,
-    &[HIT, HIT],
+    &[
+        Effect {
+            kind: EffectKind::DamagePhysical {
+                amount: 4,
+                condition: DamageCondition::Always,
+            },
+            id_source: None,
+            target: Target::Resolve {
+                candidates: CandidatePool::Monsters,
+                selection: SelectionKind::All,
+            },
+        },
+        Effect {
+            kind: EffectKind::DamagePhysical {
+                amount: 4,
+                condition: DamageCondition::Always,
+            },
+            id_source: None,
+            target: Target::Resolve {
+                candidates: CandidatePool::Monsters,
+                selection: SelectionKind::All,
+            },
+        },
+    ],
     &[],
     &[],
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DAGGER_SPRAY_PLUS: Entity = make_entity_card(
-    CardName::DaggerSpray,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[HIT_PLUS, HIT_PLUS],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static DAGGER_SPRAY_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = DAGGER_SPRAY.card_effects;
+        let upgraded_kind = EffectKind::DamagePhysical {
+            amount: 6, // +2 damage
+            condition: DamageCondition::Always,
+        };
+        a[0].kind = upgraded_kind;
+        a[1].kind = upgraded_kind;
+        a
+    },
+    ..DAGGER_SPRAY
+};

@@ -31,30 +31,15 @@ pub static WELL_LAID_PLANS: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static WELL_LAID_PLANS_PLUS: Entity = make_entity_card(
-    CardName::WellLaidPlans,
-    CardKind::Power,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
+pub static WELL_LAID_PLANS_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = WELL_LAID_PLANS.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Retain,
-            stacks: 2,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+            stacks: 2, // +1 stack
+        };
+        a
+    },
+    ..WELL_LAID_PLANS
+};

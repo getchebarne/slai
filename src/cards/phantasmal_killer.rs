@@ -31,30 +31,8 @@ pub static PHANTASMAL_KILLER: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static PHANTASMAL_KILLER_PLUS: Entity = make_entity_card(
-    CardName::PhantasmalKiller,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Rare,
-    0,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Phantasmal,
-            stacks: 1,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static PHANTASMAL_KILLER_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_cost: 0, // -1 cost
+    ..PHANTASMAL_KILLER
+};

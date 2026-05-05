@@ -31,30 +31,15 @@ pub static CALTROPS: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static CALTROPS_PLUS: Entity = make_entity_card(
-    CardName::Caltrops,
-    CardKind::Power,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
+pub static CALTROPS_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = CALTROPS.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Thorns,
             stacks: 5, // +2 stacks
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..CALTROPS
+};
