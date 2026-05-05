@@ -30,30 +30,15 @@ pub static BACKSTAB: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static BACKSTAB_PLUS: Entity = make_entity_card(
-    CardName::Backstab,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    0,
-    CardCostKind::Fixed,
-    true,
-    true,
-    false,
-    true,
-    true,
-    &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 15,
+pub static BACKSTAB_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = BACKSTAB.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 15, // +4 damage
             condition: DamageCondition::Always,
-        }, // +4 damage
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..BACKSTAB
+};

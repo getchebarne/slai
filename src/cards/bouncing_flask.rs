@@ -33,20 +33,13 @@ pub static BOUNCING_FLASK: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded: one more bounce
-pub static BOUNCING_FLASK_PLUS: Entity = make_entity_card(
-    CardName::BouncingFlask,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    2,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[BOUNCE, BOUNCE, BOUNCE, BOUNCE], // +1 bounce
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static BOUNCING_FLASK_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = BOUNCING_FLASK.card_effects;
+        a[3] = BOUNCE; // +1 bounce
+        a
+    },
+    card_effects_len: 4,
+    ..BOUNCING_FLASK
+};

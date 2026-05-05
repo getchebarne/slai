@@ -30,30 +30,15 @@ pub static GRAND_FINALE: Entity = make_entity_card(
     PlayRestriction::DrawPileEmpty,
 );
 // Upgraded
-pub static GRAND_FINALE_PLUS: Entity = make_entity_card(
-    CardName::GrandFinale,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Rare,
-    0,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 60,
+pub static GRAND_FINALE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = GRAND_FINALE.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 60, // +10 damage
             condition: DamageCondition::Always,
-        }, // +10 damage
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Monsters,
-            selection: SelectionKind::All,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::DrawPileEmpty,
-);
+        };
+        a
+    },
+    ..GRAND_FINALE
+};

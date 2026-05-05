@@ -31,30 +31,15 @@ pub static DEADLY_POISON: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DEADLY_POISON_PLUS: Entity = make_entity_card(
-    CardName::DeadlyPoison,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
+pub static DEADLY_POISON_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = DEADLY_POISON.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Poison,
             stacks: 7, // +2 poison
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..DEADLY_POISON
+};

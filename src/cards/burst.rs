@@ -31,30 +31,15 @@ pub static BURST: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static BURST_PLUS: Entity = make_entity_card(
-    CardName::Burst,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Rare,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
+pub static BURST_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = BURST.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Burst,
             stacks: 2, // +1 stack
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..BURST
+};

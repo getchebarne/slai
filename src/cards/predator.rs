@@ -44,43 +44,15 @@ pub static PREDATOR: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static PREDATOR_PLUS: Entity = make_entity_card(
-    CardName::Predator,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    2,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 20,
-                condition: DamageCondition::Always,
-            }, // +5 damage
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::DrawCardNextTurn,
-                stacks: 2,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static PREDATOR_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = PREDATOR.card_effects;
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 20, // +5 damage
+            condition: DamageCondition::Always,
+        };
+        a
+    },
+    ..PREDATOR
+};

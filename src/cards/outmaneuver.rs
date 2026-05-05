@@ -31,30 +31,15 @@ pub static OUTMANEUVER: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static OUTMANEUVER_PLUS: Entity = make_entity_card(
-    CardName::Outmaneuver,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
+pub static OUTMANEUVER_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = OUTMANEUVER.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::NextTurnEnergy,
             stacks: 3, // +1 next-turn-energy
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..OUTMANEUVER
+};

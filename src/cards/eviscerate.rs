@@ -54,54 +54,18 @@ pub static EVISCERATE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static EVISCERATE_PLUS: Entity = make_entity_card(
-    CardName::Eviscerate,
-    CardKind::Attack,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    3,
-    CardCostKind::MinusDiscardsThisTurn,
-    true,
-    false,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 9,
-                condition: DamageCondition::Always,
-            }, // +2 damage
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 9,
-                condition: DamageCondition::Always,
-            }, // +2 damage
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 9,
-                condition: DamageCondition::Always,
-            }, // +2 damage
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static EVISCERATE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = EVISCERATE.card_effects;
+        let upgraded_kind = EffectKind::DamagePhysical {
+            amount: 9, // +2 damage
+            condition: DamageCondition::Always,
+        };
+        a[0].kind = upgraded_kind;
+        a[1].kind = upgraded_kind;
+        a[2].kind = upgraded_kind;
+        a
+    },
+    ..EVISCERATE
+};

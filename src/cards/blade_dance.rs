@@ -27,27 +27,15 @@ pub static BLADE_DANCE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static BLADE_DANCE_PLUS: Entity = make_entity_card(
-    CardName::BladeDance,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Common,
-    1,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::ShivAdd {
-            count: 4,
+pub static BLADE_DANCE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = BLADE_DANCE.card_effects;
+        a[0].kind = EffectKind::ShivAdd {
+            count: 4, // +1 shiv
             upgraded: false,
-        }, // +1 shiv
-        id_source: None,
-        target: Target::Direct(None),
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+        };
+        a
+    },
+    ..BLADE_DANCE
+};

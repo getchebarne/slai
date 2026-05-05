@@ -33,30 +33,8 @@ pub static TERROR: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static TERROR_PLUS: Entity = make_entity_card(
-    CardName::Terror,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Uncommon,
-    0,
-    CardCostKind::Fixed,
-    true,
-    true,
-    false,
-    false,
-    true,
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Vulnerable,
-            stacks: STACKS_TERROR,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static TERROR_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_cost: 0, // -1 cost
+    ..TERROR
+};

@@ -27,29 +27,12 @@ pub static DEFLECT: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DEFLECT_PLUS: Entity = make_entity_card(
-    CardName::Deflect,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Common,
-    0,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[Effect {
-        kind: EffectKind::BlockGain {
-            amount: 7, // +3 block
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
-        },
-    }],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static DEFLECT_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = DEFLECT.card_effects;
+        a[0].kind = EffectKind::BlockGain { amount: 7 }; // +3 block
+        a
+    },
+    ..DEFLECT
+};

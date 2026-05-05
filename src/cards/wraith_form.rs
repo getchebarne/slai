@@ -44,43 +44,15 @@ pub static WRAITH_FORM: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static WRAITH_FORM_PLUS: Entity = make_entity_card(
-    CardName::WraithForm,
-    CardKind::Power,
-    CardColor::Green,
-    CardRarity::Rare,
-    3,
-    CardCostKind::Fixed,
-    true,
-    false,
-    false,
-    false,
-    false,
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Intangible,
-                stacks: 3, // +1 stack
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::WraithForm,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static WRAITH_FORM_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_effects: {
+        let mut a = WRAITH_FORM.card_effects;
+        a[0].kind = EffectKind::ModifierGain {
+            kind: ModifierKind::Intangible,
+            stacks: 3, // +1 stack
+        };
+        a
+    },
+    ..WRAITH_FORM
+};

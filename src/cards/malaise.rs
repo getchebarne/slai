@@ -44,43 +44,8 @@ pub static MALAISE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static MALAISE_PLUS: Entity = make_entity_card(
-    CardName::Malaise,
-    CardKind::Skill,
-    CardColor::Green,
-    CardRarity::Rare,
-    0,
-    CardCostKind::XCost { offset: 1 }, // +1 offset
-    true,
-    true,
-    false,
-    false,
-    true,
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Strength,
-                stacks: -1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Weak,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
-    &[],
-    &[],
-    PlayRestriction::Always,
-);
+pub static MALAISE_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_cost_kind: CardCostKind::XCost { offset: 1 }, // +1 offset
+    ..MALAISE
+};
