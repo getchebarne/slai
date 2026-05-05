@@ -270,21 +270,15 @@ fn resolve_targets(
     }
 }
 
-// Resolve the *actor* (i.e. the player or monster the effect is acting on
-// behalf of) from `id_source`. `id_source` carries the originating entity:
-// for card-played effects that's the card itself, for monster intents it's
-// the monster, and for engine-synthesized effects it's None or the relevant
-// modifier-bearer. Damage scaling, Thorns reflects, and target resolution
-// all want the actor — so cards delegate up to the character
-pub(crate) fn get_id_actor(
-    entities: &[Entity],
-    id_character: usize,
-    id_source: Option<usize>,
-) -> usize {
-    match id_source {
-        Some(id) if entities[id].kind == EntityKind::Card => id_character,
-        Some(id) => id,
-        None => id_character,
+// Translate `id_source` from "originating entity" to "actor entity": cards
+// delegate up to the character (cards don't carry Strength/Weak/Thorns
+// targeting), monsters and the character resolve to themselves. Used by
+// damage handlers for source-side scaling and Thorns reflect targeting
+pub(crate) fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
+    if entities[id_source].kind == EntityKind::Card {
+        id_character
+    } else {
+        id_source
     }
 }
 
@@ -320,7 +314,11 @@ fn resolve_or_halt(
     let mut buf_cands = CandidateBuf::new();
 
     let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
-    let id_source_resolved = get_id_actor(&state.entities, state.id_character, id_source);
+    // Pass `id_source` through as the literal originator: monster intents
+    // resolve to the monster itself, card-played effects to the card.
+    // `CandidatePool::Source` is the channel cards/monsters use to target
+    // themselves
+    let id_source_resolved = id_source.unwrap_or(state.id_character);
     let resolution = resolve_targets(
         candidates,
         selection,
@@ -513,21 +511,22 @@ fn dispatch_by_kind(
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
         EffectKind::DamagePhysical { amount, condition } => {
-            let id_actor = get_id_actor(&state.entities, state.id_character, id_source);
+            let id_source = id_source.expect("DamagePhysical requires id_source");
             process_effect_damage_physical::process_effect_damage_physical(
                 &state.entities,
                 id_source,
-                id_actor,
+                state.id_character,
                 id_target.unwrap(),
                 amount,
                 condition,
                 &mut state.effect_queue,
             )
         }
+
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay::process_effect_glass_knife_decay(
                 &mut state.entities,
-                id_source,
+                id_target.unwrap(),
                 delta,
             )
         }
@@ -611,25 +610,12 @@ fn dispatch_by_kind(
             &mut state.effect_queue,
         ),
         EffectKind::DamageDeal { amount } => {
-            let id_target = id_target.unwrap();
-            let id_character = state.id_character;
-            let id_actor = get_id_actor(&state.entities, id_character, id_source);
-            let from_card = match id_source {
-                Some(id) => state.entities[id].kind == EntityKind::Card,
-                None => false,
-            };
-            // Snapshot character modifiers separately to avoid aliasing the
-            // entities borrow taken below for the target entity
-            let mods_char = state.entities[id_character].modifiers;
-            let target = &mut state.entities[id_target];
             process_effect_damage_deal::process_effect_damage_deal(
-                target,
-                id_actor,
-                id_target,
-                id_character,
-                &mods_char,
+                &mut state.entities,
+                id_source,
+                state.id_character,
+                id_target.unwrap(),
                 amount,
-                from_card,
                 &mut state.effect_queue,
             )
         }

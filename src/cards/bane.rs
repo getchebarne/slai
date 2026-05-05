@@ -48,11 +48,11 @@ pub static BANE_PLUS: Entity = Entity {
     card_effects: {
         let mut a = BANE.card_effects;
         a[0].kind = EffectKind::DamagePhysical {
-            amount: 10, // +3
+            amount: 10, // +3 damage 
             condition: DamageCondition::Always,
         };
         a[1].kind = EffectKind::DamagePhysical {
-            amount: 10, // +3
+            amount: 10, // +3 damage
             condition: DamageCondition::IfPoisoned,
         };
         a

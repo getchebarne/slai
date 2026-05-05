@@ -33,6 +33,6 @@ pub static INFINITE_BLADES: Entity = make_entity_card(
 // Upgraded
 pub static INFINITE_BLADES_PLUS: Entity = Entity {
     card_upgraded: true,
-    card_innate: true,
+    card_innate: true, // is innate
     ..INFINITE_BLADES
 };
