@@ -2,17 +2,6 @@ use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, Selectio
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
-const ENDLESS_AGONY_ON_DRAW: &[Effect] = &[Effect {
-    kind: EffectKind::EndlessAgonyAddCopy { upgraded: false },
-    id_source: None,
-    target: Target::Direct(None),
-}];
-const ENDLESS_AGONY_PLUS_ON_DRAW: &[Effect] = &[Effect {
-    kind: EffectKind::EndlessAgonyAddCopy { upgraded: true },
-    id_source: None,
-    target: Target::Direct(None),
-}];
-
 pub static ENDLESS_AGONY: Entity = make_entity_card(
     CardName::EndlessAgony,
     CardKind::Attack,
@@ -37,7 +26,11 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
         },
     }],
     &[],
-    ENDLESS_AGONY_ON_DRAW,
+    &[Effect {
+        kind: EffectKind::EndlessAgonyAddCopy { upgraded: false },
+        id_source: None,
+        target: Target::Direct(None),
+    }],
     PlayRestriction::Always,
 );
 // Upgraded
@@ -51,6 +44,10 @@ pub static ENDLESS_AGONY_PLUS: Entity = Entity {
         };
         a
     },
-    card_on_draw_effects: ENDLESS_AGONY_PLUS_ON_DRAW,
+    card_on_draw_effects: &[Effect {
+        kind: EffectKind::EndlessAgonyAddCopy { upgraded: true },
+        id_source: None,
+        target: Target::Direct(None),
+    }],
     ..ENDLESS_AGONY
 };

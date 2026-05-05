@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::consts::{FACTOR_VULN, FACTOR_WEAK};
 use crate::effect::{DamageCondition, Effect, EffectKind, Target};
-use crate::engine::DispatchResult;
+use crate::engine::{DispatchResult, get_id_actor};
 use crate::entity::Entity;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 
@@ -15,8 +15,8 @@ use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 // target, Thorns reflect, then push DamageDeal
 pub fn process_effect_damage_physical(
     entities: &[Entity],
-    id_source: Option<usize>,
-    id_actor: usize,
+    id_source: usize,
+    id_character: usize,
     id_target: usize,
     amount: u16,
     condition: DamageCondition,
@@ -29,6 +29,7 @@ pub fn process_effect_damage_physical(
         }
     }
 
+    let id_actor = get_id_actor(entities, id_character, id_source);
     let mods_actor = &entities[id_actor].modifiers;
     let mods_target = &target.modifiers;
     let mut value = amount as f32;
@@ -72,7 +73,7 @@ pub fn process_effect_damage_physical(
             kind: EffectKind::DamageDeal {
                 amount: final_damage,
             },
-            id_source,
+            id_source: Some(id_source),
             target: Target::Direct(Some(id_target)),
         });
     }
