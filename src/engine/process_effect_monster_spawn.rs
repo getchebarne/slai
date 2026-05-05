@@ -28,9 +28,23 @@ pub fn process_effect_monster_spawn(
 
     let mut monster_child = spawn_monster(name, ascension_level, rng);
 
-    // Slime split: spawned medium inherits the L's current HP as max health
+    // Slime split: spawned child inherits the parent's current HP as max health.
+    // Only the three splitting slimes use this path; gate on the source's
+    // monster_name so a future non-slime caller passing a source doesn't
+    // silently inherit HP
     if let Some(id) = id_source {
-        let health_parent = entities[id].vitals.health;
+        let parent = &entities[id];
+        assert!(
+            matches!(
+                parent.monster_name,
+                MonsterName::SlimeAcidLarge
+                    | MonsterName::SlimeSpikeLarge
+                    | MonsterName::SlimeBoss
+            ),
+            "MonsterSpawn id_source must be a splitting slime, got {:?}",
+            parent.monster_name,
+        );
+        let health_parent = parent.vitals.health;
         monster_child.vitals.health = health_parent;
         monster_child.vitals.health_max = health_parent;
     }
