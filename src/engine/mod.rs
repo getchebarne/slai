@@ -65,7 +65,7 @@ use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target, ZERO_EFFECT};
 use crate::entity::{Entity, EntityKind};
 use crate::map::{active_room_kind, has_edge};
-use crate::state::{GameState, Location};
+use crate::game::{GameState, Location};
 use crate::types::{Phase, RoomKind};
 use crate::utils::{fill_alive_monster_ids, shuffle};
 

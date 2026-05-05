@@ -3,7 +3,7 @@
 //
 // Naming: structs that snapshot internal engine state (GameState, Card, ...)
 // take the bare name. Where the bare name would collide with an internal type
-// at the Rust level (engine `state::GameState`, `entity::Intent`), we alias
+// at the Rust level (engine `game::GameState`, `entity::Intent`), we alias
 // the internal import below
 
 use pyo3::prelude::*;
@@ -22,7 +22,7 @@ use crate::map::edge_indices;
 use crate::modifier::{
     ModifierKind as InternalModifierKind, Modifiers, modifier_has, modifier_stacks,
 };
-use crate::state::{GameState as InternalGameState, Location};
+use crate::game::{GameState as InternalGameState, Location};
 use crate::types::{
     CardColor as InternalCardColor, CardKind as InternalCardKind, CardRarity as InternalCardRarity,
     Phase as InternalPhase, RoomKind as InternalRoomKind,
