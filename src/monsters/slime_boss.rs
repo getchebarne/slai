@@ -41,7 +41,7 @@ static MOVE_SLAM_35: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -56,7 +56,7 @@ static MOVE_SLAM_38: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -74,7 +74,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -84,7 +84,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -92,7 +92,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],

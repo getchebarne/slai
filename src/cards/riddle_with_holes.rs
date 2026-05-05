@@ -7,7 +7,7 @@ const HIT: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidates: CandidatePool::CardTarget,
-        selection: SelectionKind::All,
+        selection: SelectionKind::Single,
     },
 };
 const HIT_PLUS: Effect = Effect {
@@ -15,7 +15,7 @@ const HIT_PLUS: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidates: CandidatePool::CardTarget,
-        selection: SelectionKind::All,
+        selection: SelectionKind::Single,
     },
 };
 

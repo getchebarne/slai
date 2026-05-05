@@ -100,6 +100,7 @@ pub enum CandidatePool {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SelectionKind {
     All,
+    Single,
     Random { count: u8 },
     Input { count: u8 },
 }

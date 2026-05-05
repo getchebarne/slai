@@ -11,7 +11,7 @@ static MOVE_CHOMP_11: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -26,7 +26,7 @@ static MOVE_CHOMP_12: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -42,7 +42,7 @@ static MOVE_THRASH: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -50,7 +50,7 @@ static MOVE_THRASH: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -70,7 +70,7 @@ static MOVE_BELLOW_3_6: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -78,7 +78,7 @@ static MOVE_BELLOW_3_6: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -95,7 +95,7 @@ static MOVE_BELLOW_4_6: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -103,7 +103,7 @@ static MOVE_BELLOW_4_6: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -120,7 +120,7 @@ static MOVE_BELLOW_5_9: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -128,7 +128,7 @@ static MOVE_BELLOW_5_9: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
