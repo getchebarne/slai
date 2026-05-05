@@ -43,13 +43,13 @@ pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_set_not_new;
 pub mod process_effect_modifier_tick;
+pub mod process_effect_monster_spawn;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
 pub mod process_effect_shiv_add;
 pub mod process_effect_sneaky_strike_proc;
-pub mod process_effect_spawn_monster;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
@@ -819,9 +819,7 @@ fn dispatch_by_kind(
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(
             &state.id_rooms,
             state.location,
-            state.ascension,
-            &mut state.entities,
-            &mut state.id_monsters,
+            &state.entities,
             &mut state.monster_count,
             &mut state.rng,
             &mut state.effect_queue,
@@ -830,10 +828,10 @@ fn dispatch_by_kind(
             &mut state.location,
             &mut state.effect_queue,
         ),
-        EffectKind::SpawnMonster { name } => {
-            process_effect_spawn_monster::process_effect_spawn_monster(
+        EffectKind::MonsterSpawn { name } => {
+            process_effect_monster_spawn::process_effect_monster_spawn(
                 name,
-                id_source.unwrap(),
+                id_source,
                 state.ascension,
                 &mut state.entities,
                 &mut state.id_monsters,

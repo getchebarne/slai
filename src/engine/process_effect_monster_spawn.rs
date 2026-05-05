@@ -9,10 +9,9 @@ use crate::entity::Entity;
 use crate::monsters::spawn_monster;
 use crate::types::MonsterName;
 
-// TODO: generalize besides Slimes
-pub fn process_effect_spawn_monster(
+pub fn process_effect_monster_spawn(
     name: MonsterName,
-    id_source: usize,
+    id_source: Option<usize>,
     ascension_level: u8,
     entities: &mut Vec<Entity>,
     id_monsters: &mut [usize; MAX_MONSTERS],
@@ -22,17 +21,33 @@ pub fn process_effect_spawn_monster(
 ) -> DispatchResult {
     assert!(
         (*monster_count as usize) < MAX_MONSTERS,
-        "SpawnMonster would overflow id_monsters: monster_count={} MAX={}",
+        "MonsterSpawn would overflow id_monsters: monster_count={} MAX={}",
         *monster_count,
         MAX_MONSTERS,
     );
 
-    let health_parent = entities[id_source].vitals.health;
     let mut monster_child = spawn_monster(name, ascension_level, rng);
 
-    // Slime split: spawned medium inherits the L's current HP as max health
-    monster_child.vitals.health = health_parent;
-    monster_child.vitals.health_max = health_parent;
+    // Slime split: spawned child inherits the parent's current HP as max health.
+    // Only the three splitting slimes use this path; gate on the source's
+    // monster_name so a future non-slime caller passing a source doesn't
+    // silently inherit HP
+    if let Some(id) = id_source {
+        let parent = &entities[id];
+        assert!(
+            matches!(
+                parent.monster_name,
+                MonsterName::SlimeAcidLarge
+                    | MonsterName::SlimeSpikeLarge
+                    | MonsterName::SlimeBoss
+            ),
+            "MonsterSpawn id_source must be a splitting slime, got {:?}",
+            parent.monster_name,
+        );
+        let health_parent = parent.vitals.health;
+        monster_child.vitals.health = health_parent;
+        monster_child.vitals.health_max = health_parent;
+    }
 
     let id_child = entities.len();
     entities.push(monster_child);
