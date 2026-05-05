@@ -1,22 +1,9 @@
-// MonsterEncounter pools, canonical Act-1 rolling, and spawn dispatch.
-//
-// Mirrors the algorithm in the decompiled source:
-//   sts-src/com/megacrit/cardcrawl/dungeons/Exordium.java:108-218
-//   sts-src/com/megacrit/cardcrawl/dungeons/AbstractDungeon.java:1037-1076
-//   sts-src/com/megacrit/cardcrawl/monsters/MonsterInfo.java
-//   sts-src/com/megacrit/cardcrawl/helpers/MonsterHelper.java:383-450,688-830
-//
-// Compile-time pool slices follow the pattern in src/cards/mod.rs:245-561
-// (see commit f79cdd1).
-
 use rand::Rng;
 use strum::EnumCount;
 
 use crate::effect::{Effect, EffectKind};
 use crate::types::{EncounterPool, MonsterEncounter, MonsterName};
 use crate::utils::shuffle;
-
-// ----- Single source of truth: every MonsterEncounter exactly once -----
 
 pub const ALL_ENCOUNTERS: &[MonsterEncounter] = &[
     MonsterEncounter::Cultist,
@@ -68,12 +55,13 @@ pub const fn encounter_pool(e: MonsterEncounter) -> EncounterPool {
 
 pub const fn encounter_weight(e: MonsterEncounter) -> f32 {
     match e {
-        // Easy pool weights (Exordium.java:117-120)
+        // Easy pool weights
         MonsterEncounter::Cultist => 2.0,
         MonsterEncounter::JawWorm => 2.0,
         MonsterEncounter::TwoLouse => 2.0,
         MonsterEncounter::SmallSlimes => 2.0,
-        // Hard pool weights (Exordium.java:128-137)
+        
+        // Hard pool weights
         MonsterEncounter::BlueSlaver => 2.0,
         MonsterEncounter::GremlinGang => 1.0,
         MonsterEncounter::Looter => 2.0,
@@ -84,18 +72,19 @@ pub const fn encounter_weight(e: MonsterEncounter) -> f32 {
         MonsterEncounter::RedSlaver => 1.0,
         MonsterEncounter::ThreeLouse => 2.0,
         MonsterEncounter::TwoFungiBeasts => 2.0,
-        // Elite pool weights (Exordium.java:146-148)
+        
+        // Elite pool weights
         MonsterEncounter::GremlinNob => 1.0,
         MonsterEncounter::Lagavulin => 1.0,
         MonsterEncounter::ThreeSentries => 1.0,
-        // Boss pool: not weighted (initializeBoss shuffles uniformly)
+        
+        // Boss pool: not weighted
         MonsterEncounter::TheGuardian => 1.0,
         MonsterEncounter::Hexaghost => 1.0,
         MonsterEncounter::SlimeBoss => 1.0,
     }
 }
 
-// ----- Compile-time pool slices (mirrors src/cards/mod.rs:512-561) -----
 
 const fn pool_eq(a: EncounterPool, b: EncounterPool) -> bool {
     matches!(
@@ -160,7 +149,6 @@ pub const POOL_HARD_ACT1: &[MonsterEncounter] = &HARD_ARR;
 pub const POOL_ELITE_ACT1: &[MonsterEncounter] = &ELITE_ARR;
 pub const POOL_BOSS_ACT1: &[MonsterEncounter] = &BOSS_ARR;
 
-// ----- Rolling kernel (MonsterInfo.java) -----
 
 // Sort ascending by weight (stable for ties), normalize to sum 1.0.
 // Sorting is observable via roll's cumulative-walk short-circuit, so it
@@ -184,11 +172,10 @@ fn roll(table: &[(MonsterEncounter, f32)], r: f32) -> MonsterEncounter {
             return e;
         }
     }
-    // Float rounding can leave the final cumulative just below 1.0; return last.
+    // Float rounding can leave the final cumulative just below 1.0; return last
     table.last().unwrap().0
 }
 
-// ----- Sequence builders (AbstractDungeon.java:1037-1076) -----
 
 fn populate_monster_list(
     list: &mut Vec<MonsterEncounter>,
@@ -231,9 +218,9 @@ fn populate_first_strong_enemy(
     }
 }
 
-// Exordium.java:154-183. Keyed on the last weak entry (the 3rd weak fight).
+// Keyed on the last weak entry (the 3rd weak fight).
 // In Exordium only the variants below can be a "last weak"; other Java
-// cases are dead in this dungeon.
+// cases are dead in this dungeon
 fn act1_exclusions(last_weak: MonsterEncounter) -> &'static [MonsterEncounter] {
     match last_weak {
         MonsterEncounter::TwoLouse => &[MonsterEncounter::ThreeLouse],
@@ -244,7 +231,6 @@ fn act1_exclusions(last_weak: MonsterEncounter) -> &'static [MonsterEncounter] {
     }
 }
 
-// ----- Public dungeon-init API (Exordium.generateMonsters / initializeBoss) -----
 
 pub fn generate_act1_monsters(
     monster_list: &mut Vec<MonsterEncounter>,
@@ -273,8 +259,7 @@ pub fn generate_act1_elites(list: &mut Vec<MonsterEncounter>, rng: &mut impl Rng
     populate_monster_list(list, &elite, 10, true, rng);
 }
 
-// "All bosses seen" branch of Exordium.initializeBoss (Exordium.java:200-203):
-// push the three Act-1 bosses and shuffle. boss_list[0] is the actual fight.
+
 pub fn initialize_act1_boss(list: &mut Vec<MonsterEncounter>, rng: &mut impl Rng) {
     list.clear();
     list.push(MonsterEncounter::TheGuardian);
@@ -283,7 +268,6 @@ pub fn initialize_act1_boss(list: &mut Vec<MonsterEncounter>, rng: &mut impl Rng
     shuffle(list.as_mut_slice(), rng);
 }
 
-// ----- Composition helpers (MonsterHelper.java:802-830) -----
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {
     if rng.random_bool(0.5) {
@@ -327,16 +311,12 @@ fn pick_strong_humanoid(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
-// ----- Spawn dispatch -----
 
 #[inline]
 fn push_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
     effects.push(Effect::direct(EffectKind::MonsterSpawn { name }, None, None));
 }
 
-// Translate a MonsterEncounter into the sequence of MonsterSpawn effects
-// needed to instantiate it. Spawn order matches the Java arrays
-// (left-to-right) — observable via AOE targeting.
 pub fn spawn_encounter(
     encounter: MonsterEncounter,
     rng: &mut impl Rng,
