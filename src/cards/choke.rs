@@ -39,6 +39,7 @@ pub static CHOKE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static CHOKE_PLUS: Entity = Entity {

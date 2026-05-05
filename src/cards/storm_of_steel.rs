@@ -1,6 +1,6 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static STORM_OF_STEEL: Entity = make_entity_card(
     CardName::StormOfSteel,
@@ -22,6 +22,7 @@ pub static STORM_OF_STEEL: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Shiv, Tag::Discard],
 );
 // Upgraded
 pub static STORM_OF_STEEL_PLUS: Entity = Entity {

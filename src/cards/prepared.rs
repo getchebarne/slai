@@ -34,6 +34,7 @@ pub static PREPARED: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static PREPARED_PLUS: Entity = Entity {

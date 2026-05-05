@@ -17,6 +17,7 @@ pub static BURN: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    &[],
 );
 
 pub static BURN_UPGRADED: Entity = make_entity_card(
@@ -35,4 +36,5 @@ pub static BURN_UPGRADED: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    &[],
 );

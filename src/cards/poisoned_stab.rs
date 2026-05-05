@@ -1,7 +1,7 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static POISONED_STAB: Entity = make_entity_card(
     CardName::PoisonedStab,
@@ -39,6 +39,7 @@ pub static POISONED_STAB: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Poison],
 );
 // Upgraded: +2 damage, +1 poison
 pub static POISONED_STAB_PLUS: Entity = Entity {

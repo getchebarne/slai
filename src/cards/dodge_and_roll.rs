@@ -39,6 +39,7 @@ pub static DODGE_AND_ROLL: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static DODGE_AND_ROLL_PLUS: Entity = Entity {

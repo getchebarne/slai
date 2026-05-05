@@ -36,6 +36,7 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
     &[],
     ENDLESS_AGONY_ON_DRAW,
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static ENDLESS_AGONY_PLUS: Entity = Entity {

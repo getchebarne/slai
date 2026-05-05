@@ -1,6 +1,6 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 const ON_DISCARD: &[Effect] = &[Effect {
     kind: EffectKind::CardDraw { count: 2 },
@@ -29,6 +29,7 @@ pub static REFLEX: Entity = make_entity_card(
     ON_DISCARD,
     &[],
     PlayRestriction::Never,
+    &[Tag::Discard],
 );
 // Upgraded
 pub static REFLEX_PLUS: Entity = Entity {

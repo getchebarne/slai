@@ -39,6 +39,7 @@ pub static NEUTRALIZE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static NEUTRALIZE_PLUS: Entity = Entity {

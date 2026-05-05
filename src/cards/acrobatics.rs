@@ -34,6 +34,7 @@ pub static ACROBATICS: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static ACROBATICS_PLUS: Entity = Entity {

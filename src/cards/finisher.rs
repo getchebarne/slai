@@ -25,6 +25,7 @@ pub static FINISHER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static FINISHER_PLUS: Entity = Entity {

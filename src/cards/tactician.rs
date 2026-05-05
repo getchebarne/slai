@@ -1,6 +1,6 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 const ON_DISCARD: &[Effect] = &[Effect {
     kind: EffectKind::EnergyGain { amount: 1 },
@@ -29,6 +29,7 @@ pub static TACTICIAN: Entity = make_entity_card(
     ON_DISCARD,
     &[],
     PlayRestriction::Never,
+    &[Tag::Discard],
 );
 pub static TACTICIAN_PLUS: Entity = Entity {
     card_upgraded: true,

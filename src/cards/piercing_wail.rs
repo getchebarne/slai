@@ -42,6 +42,7 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static PIERCING_WAIL_PLUS: Entity = Entity {

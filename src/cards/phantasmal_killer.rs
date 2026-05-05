@@ -29,6 +29,7 @@ pub static PHANTASMAL_KILLER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static PHANTASMAL_KILLER_PLUS: Entity = Entity {

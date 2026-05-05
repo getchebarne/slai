@@ -39,6 +39,7 @@ pub static BLUR: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static BLUR_PLUS: Entity = Entity {

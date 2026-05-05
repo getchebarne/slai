@@ -1,6 +1,6 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static BLADE_DANCE: Entity = make_entity_card(
     CardName::BladeDance,
@@ -25,6 +25,7 @@ pub static BLADE_DANCE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Shiv],
 );
 // Upgraded
 pub static BLADE_DANCE_PLUS: Entity = Entity {

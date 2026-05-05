@@ -14,7 +14,7 @@ use crate::modifier::{Modifiers, ZERO_MODIFIERS};
 // with practical caps, etc.). Bump when a card legitimately exceeds it
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
 use crate::types::{
-    CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RoomKind, Vitals,
+    CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RoomKind, Tag, Vitals,
     ZERO_VITALS,
 };
 
@@ -115,6 +115,8 @@ pub struct Entity {
     pub card_on_discard_effects: &'static [Effect],
     // Fires AFTER the CardDraw loop completes, whether the card landed in hand or discard
     pub card_on_draw_effects: &'static [Effect],
+    // ML-facing archetype tags (Poison, Shiv, Discard). Engine ignores them
+    pub card_tags: &'static [Tag],
 
     // Room-only
     pub room_y: usize,
@@ -160,6 +162,7 @@ const ZERO_ENTITY: Entity = Entity {
     card_effects_len: 0,
     card_on_discard_effects: &[],
     card_on_draw_effects: &[],
+    card_tags: &[],
     room_y: 0,
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
@@ -218,6 +221,7 @@ pub const fn make_entity_card(
     on_discard_effects: &'static [Effect],
     on_draw_effects: &'static [Effect],
     play_restriction: PlayRestriction,
+    tags: &'static [Tag],
 ) -> Entity {
     assert!(
         effects.len() <= MAX_EFFECTS_PER_CARD,
@@ -247,6 +251,7 @@ pub const fn make_entity_card(
         card_effects_len: effects.len() as u8,
         card_on_discard_effects: on_discard_effects,
         card_on_draw_effects: on_draw_effects,
+        card_tags: tags,
         ..ZERO_ENTITY
     }
 }

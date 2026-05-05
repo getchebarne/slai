@@ -29,6 +29,7 @@ pub static A_THOUSAND_CUTS: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static A_THOUSAND_CUTS_PLUS: Entity = Entity {

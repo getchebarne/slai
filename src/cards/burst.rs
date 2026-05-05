@@ -29,6 +29,7 @@ pub static BURST: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static BURST_PLUS: Entity = Entity {

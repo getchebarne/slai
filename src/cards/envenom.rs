@@ -1,7 +1,7 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static ENVENOM: Entity = make_entity_card(
     CardName::Envenom,
@@ -29,6 +29,7 @@ pub static ENVENOM: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Poison],
 );
 // Upgraded
 pub static ENVENOM_PLUS: Entity = Entity {

@@ -32,6 +32,7 @@ pub static QUICK_SLASH: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static QUICK_SLASH_PLUS: Entity = Entity {

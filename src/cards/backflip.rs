@@ -32,6 +32,7 @@ pub static BACKFLIP: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static BACKFLIP_PLUS: Entity = Entity {

@@ -25,6 +25,7 @@ pub static DEFEND: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static DEFEND_PLUS: Entity = Entity {

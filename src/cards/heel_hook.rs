@@ -35,6 +35,7 @@ pub static HEEL_HOOK: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static HEEL_HOOK_PLUS: Entity = Entity {

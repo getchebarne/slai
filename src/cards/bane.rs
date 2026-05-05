@@ -1,6 +1,6 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static BANE: Entity = make_entity_card(
     CardName::Bane,
@@ -35,6 +35,7 @@ pub static BANE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Poison],
 );
 // Upgraded
 pub static BANE_PLUS: Entity = Entity {

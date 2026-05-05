@@ -29,6 +29,7 @@ pub static ACCURACY: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static ACCURACY_PLUS: Entity = Entity {

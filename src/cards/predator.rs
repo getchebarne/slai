@@ -39,6 +39,7 @@ pub static PREDATOR: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static PREDATOR_PLUS: Entity = Entity {

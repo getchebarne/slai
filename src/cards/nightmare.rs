@@ -25,6 +25,7 @@ pub static NIGHTMARE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static NIGHTMARE_PLUS: Entity = Entity {
