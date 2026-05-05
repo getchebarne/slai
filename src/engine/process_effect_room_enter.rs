@@ -8,7 +8,7 @@ use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::map::active_room_kind;
 use crate::monsters::spawn_monster;
-use crate::game::Location;
+use crate::state::Location;
 use crate::types::{MonsterName, RoomKind};
 use crate::utils::shuffle;
 

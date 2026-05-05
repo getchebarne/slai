@@ -4,7 +4,7 @@ use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
-use crate::game::Energy;
+use crate::state::Energy;
 use crate::types::Vitals;
 
 pub fn process_effect_turn_start(

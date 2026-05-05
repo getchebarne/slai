@@ -1,7 +1,7 @@
 use rand::Rng;
 
 use crate::consts::MAX_MONSTERS;
-use crate::game::GameState;
+use crate::state::GameState;
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
     for i in (1..slice.len()).rev() {

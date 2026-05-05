@@ -15,6 +15,7 @@ mod game;
 mod map;
 mod modifier;
 mod monsters;
+mod state;
 mod types;
 mod utils;
 
@@ -28,7 +29,7 @@ use game::{create_game_state, step};
 
 #[pyclass]
 struct GameEnv {
-    state: game::GameState,
+    state: state::GameState,
 }
 
 #[pymethods]

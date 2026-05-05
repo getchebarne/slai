@@ -1,4 +1,4 @@
-// GameState definition, game loop: step, initialize, Phase determination
+// Game loop: step, initialize, Phase determination
 
 use std::collections::VecDeque;
 
@@ -7,66 +7,12 @@ use rand::rngs::SmallRng;
 
 use crate::action::{Action, handle_action};
 use crate::character::{silent_starter_deck, spawn_silent};
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND};
+use crate::consts::{MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
-use crate::entity::Entity;
 use crate::map::generate_map;
-use crate::types::*;
-
-#[derive(Debug, Clone, Copy)]
-pub struct Energy {
-    pub current: u8,
-    pub max: u8,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Location {
-    Start,
-    Overworld { y: usize, x: usize },
-    BossRoom,
-}
-
-// GameState: the single source of truth
-#[derive(Debug, Clone)]
-pub struct GameState {
-    pub ascension: u8,
-    pub rng: SmallRng,
-
-    pub phase: Phase,
-    pub effect_queue: VecDeque<Effect>,
-    pub location: Location,
-    pub energy: Energy,
-
-    pub entities: Vec<Entity>,
-    pub id_rooms: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-    pub id_character: usize,
-
-    pub id_monsters: [usize; MAX_MONSTERS],
-    pub monster_count: u8,
-    pub id_card_target: Option<usize>,
-
-    pub id_deck: Vec<usize>,
-    pub id_pile_draw: Vec<usize>,
-    pub id_hand: Vec<usize>,
-    pub id_pile_discard: Vec<usize>,
-    pub id_pile_exhaust: Vec<usize>,
-    pub id_card_rewards: Vec<usize>,
-
-    // Read by self-referential effects
-    pub card_last_drawn: Option<usize>,
-    pub card_last_played: Option<usize>,
-
-    // Per-turn counters; reset in process_effect_turn_end_character
-    pub this_turn_discards: u8,
-    pub this_turn_attacks_played: u8,
-
-    // Per-combat counter; reset at combat_start
-    pub this_combat_damage_instances_taken: u8,
-
-    // Nightmare-pending template snapshot id; flushed at next TurnStart
-    pub id_card_nightmare: Option<usize>,
-}
+use crate::state::*;
+use crate::types::Phase;
 
 // Create and initialize
 pub fn create_game_state(ascension: u8, seed: u64) -> GameState {

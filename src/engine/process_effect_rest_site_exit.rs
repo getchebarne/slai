@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::DispatchResult;
-use crate::game::Location;
+use crate::state::Location;
 
 pub fn process_effect_rest_site_exit(
     location: &mut Location,
