@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{MonsterKind, MonsterName, Vitals};
@@ -7,10 +7,7 @@ use rand::Rng;
 static MOVE_STAB_12: Move = Move {
     name: "Stab",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 12,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 12 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -25,10 +22,7 @@ static MOVE_STAB_12: Move = Move {
 static MOVE_STAB_13: Move = Move {
     name: "Stab",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 13,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 13 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -44,10 +38,7 @@ static MOVE_RAKE_7_W1: Move = Move {
     name: "Rake",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -75,10 +66,7 @@ static MOVE_RAKE_8_W1: Move = Move {
     name: "Rake",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -106,10 +94,7 @@ static MOVE_RAKE_8_W2: Move = Move {
     name: "Rake",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 8,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,

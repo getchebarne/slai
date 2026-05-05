@@ -512,7 +512,7 @@ fn dispatch_by_kind(
         EffectKind::TargetClear => {
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
-        EffectKind::DamagePhysical { amount, condition } => {
+        EffectKind::DamagePhysical { amount } => {
             let id_actor = get_id_actor(&state.entities, state.id_character, id_source);
             process_effect_damage_physical::process_effect_damage_physical(
                 &state.entities,
@@ -520,7 +520,19 @@ fn dispatch_by_kind(
                 id_actor,
                 id_target.unwrap(),
                 amount,
-                condition,
+                false,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::DamagePhysicalIfPoisoned { amount } => {
+            let id_actor = get_id_actor(&state.entities, state.id_character, id_source);
+            process_effect_damage_physical::process_effect_damage_physical(
+                &state.entities,
+                id_source,
+                id_actor,
+                id_target.unwrap(),
+                amount,
+                true,
                 &mut state.effect_queue,
             )
         }

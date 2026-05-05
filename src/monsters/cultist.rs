@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{MonsterKind, MonsterName, Vitals};
@@ -7,10 +7,7 @@ use rand::Rng;
 static MOVE_DARK_STRIKE: Move = Move {
     name: "Dark Strike",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 6,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,

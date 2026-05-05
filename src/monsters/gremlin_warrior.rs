@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{MonsterKind, MonsterName, Vitals};
@@ -7,10 +7,7 @@ use rand::Rng;
 static MOVE_SCRATCH_4: Move = Move {
     name: "Scratch",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 4,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 4 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -25,10 +22,7 @@ static MOVE_SCRATCH_4: Move = Move {
 static MOVE_SCRATCH_5: Move = Move {
     name: "Scratch",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 5,
-            condition: DamageCondition::Always,
-        },
+        kind: EffectKind::DamagePhysical { amount: 5 },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
