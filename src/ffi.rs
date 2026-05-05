@@ -296,6 +296,7 @@ impl From<InternalPhase> for Phase {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Selection {
     All {},
+    Single {},
     Random { count: u8 },
     Input { count: u8 },
 }
@@ -304,6 +305,7 @@ impl From<SelectionKind> for Selection {
     fn from(s: SelectionKind) -> Self {
         match s {
             SelectionKind::All => Self::All {},
+            SelectionKind::Single => Self::Single {},
             SelectionKind::Random { count } => Self::Random { count },
             SelectionKind::Input { count } => Self::Input { count },
         }

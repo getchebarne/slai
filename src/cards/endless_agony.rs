@@ -30,7 +30,7 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     &[],
@@ -55,7 +55,7 @@ pub static ENDLESS_AGONY_PLUS: Entity = make_entity_card(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     &[],

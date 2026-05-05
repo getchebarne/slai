@@ -12,7 +12,7 @@ static MOVE_SLIME_TACKLE_11: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -38,7 +38,7 @@ static MOVE_SLIME_TACKLE_12: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -63,7 +63,7 @@ static MOVE_HEAVY_TACKLE_16: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -78,7 +78,7 @@ static MOVE_HEAVY_TACKLE_18: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -96,7 +96,7 @@ static MOVE_LICK: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Debuff,
@@ -111,7 +111,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -121,7 +121,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -129,7 +129,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],

@@ -14,7 +14,7 @@ static MOVE_BELLOW_2: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -29,7 +29,7 @@ static MOVE_BELLOW_3: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -41,7 +41,7 @@ static MOVE_BULL_RUSH_14: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -56,7 +56,7 @@ static MOVE_BULL_RUSH_16: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -72,7 +72,7 @@ static MOVE_SKULL_BASH_6: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -83,7 +83,7 @@ static MOVE_SKULL_BASH_6: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -100,7 +100,7 @@ static MOVE_SKULL_BASH_8: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -111,7 +111,7 @@ static MOVE_SKULL_BASH_8: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],

@@ -12,7 +12,7 @@ static MOVE_FLAME_TACKLE_16: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -38,7 +38,7 @@ static MOVE_FLAME_TACKLE_18: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -66,7 +66,7 @@ static MOVE_LICK_FRAIL_2: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Debuff,
@@ -81,7 +81,7 @@ static MOVE_LICK_FRAIL_3: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Debuff,
@@ -96,7 +96,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -106,7 +106,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -114,7 +114,7 @@ static MOVE_SPLIT: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Source,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],

@@ -245,6 +245,14 @@ fn resolve_targets(
     );
     match selection {
         SelectionKind::All => TargetResolution::Resolved,
+        SelectionKind::Single => {
+            assert_eq!(
+                buf_cands.len, 1,
+                "SelectionKind::Single resolved to {} candidates",
+                buf_cands.len
+            );
+            TargetResolution::Resolved
+        }
         SelectionKind::Random { count } => {
             shuffle(buf_cands.as_mut_slice(), rng);
             buf_cands.truncate(count as usize);

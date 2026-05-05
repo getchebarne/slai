@@ -20,7 +20,7 @@ pub static SURVIVOR: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -59,7 +59,7 @@ pub static SURVIVOR_PLUS: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {

@@ -23,7 +23,7 @@ pub static TOOLS_OF_THE_TRADE: Entity = make_entity_card(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     &[],
@@ -51,7 +51,7 @@ pub static TOOLS_OF_THE_TRADE_PLUS: Entity = make_entity_card(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     &[],

@@ -11,7 +11,7 @@ static MOVE_DARK_STRIKE: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -29,7 +29,7 @@ static MOVE_INCANTATION_3: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -44,7 +44,7 @@ static MOVE_INCANTATION_4: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -59,7 +59,7 @@ static MOVE_INCANTATION_5: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Source,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,

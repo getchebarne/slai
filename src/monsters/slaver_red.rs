@@ -11,7 +11,7 @@ static MOVE_STAB_13: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -26,7 +26,7 @@ static MOVE_STAB_14: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -44,7 +44,7 @@ static MOVE_ENTANGLE: Move = Move {
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
     intent: Intent::DebuffPowerful,
@@ -57,7 +57,7 @@ static MOVE_SCRAPE_8_VULN_1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -68,7 +68,7 @@ static MOVE_SCRAPE_8_VULN_1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -85,7 +85,7 @@ static MOVE_SCRAPE_9_VULN_1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -96,7 +96,7 @@ static MOVE_SCRAPE_9_VULN_1: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
@@ -113,7 +113,7 @@ static MOVE_SCRAPE_9_VULN_2: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
         Effect {
@@ -124,7 +124,7 @@ static MOVE_SCRAPE_9_VULN_2: Move = Move {
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
-                selection: SelectionKind::All,
+                selection: SelectionKind::Single,
             },
         },
     ],
