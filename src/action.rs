@@ -1,5 +1,5 @@
 use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{DiscardSource, Effect, EffectKind, Target};
 use crate::entity::{card_effective_cost, is_play_restriction_satisfied};
 use crate::map::{has_edge, room_at};
 use crate::modifier::{ModifierKind, modifier_has};
@@ -194,7 +194,13 @@ fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Ve
             .id_hand
             .get(idx)
             .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.id_hand.len()))?;
-        effects.push(Effect::direct(EffectKind::CardDiscard, None, Some(id_card)));
+        effects.push(Effect::direct(
+            EffectKind::CardDiscard {
+                source: DiscardSource::Explicit,
+            },
+            None,
+            Some(id_card),
+        ));
     }
     Ok(effects)
 }

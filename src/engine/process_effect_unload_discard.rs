@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind};
+use crate::effect::{DiscardSource, Effect, EffectKind};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::types::CardKind;
@@ -13,7 +13,13 @@ pub fn process_effect_unload_discard(
 ) -> DispatchResult {
     for &id_card in id_hand {
         if entities[id_card].card_kind != CardKind::Attack {
-            queue.push_front(Effect::direct(EffectKind::CardDiscard, None, Some(id_card)));
+            queue.push_front(Effect::direct(
+                EffectKind::CardDiscard {
+                    source: DiscardSource::Explicit,
+                },
+                None,
+                Some(id_card),
+            ));
         }
     }
     DispatchResult::Continue

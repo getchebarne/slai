@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::{DiscardSource, Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 
 // Storm of Steel: discard the entire hand, then add 1 Shiv per discarded card
@@ -16,7 +16,13 @@ pub fn process_effect_storm_of_steel_proc(
         target: Target::Direct(None),
     });
     for &id_card in id_hand {
-        queue.push_front(Effect::direct(EffectKind::CardDiscard, None, Some(id_card)));
+        queue.push_front(Effect::direct(
+            EffectKind::CardDiscard {
+                source: DiscardSource::Explicit,
+            },
+            None,
+            Some(id_card),
+        ));
     }
     DispatchResult::Continue
 }
