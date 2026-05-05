@@ -78,7 +78,6 @@ pub enum EffectKind {
     CardRewardSelect,
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiscardSource {
     Explicit,

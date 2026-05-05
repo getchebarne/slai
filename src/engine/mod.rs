@@ -375,17 +375,14 @@ fn dispatch_by_kind(
             let energy_current = state.energy.current;
             process_effect_card_play::process_effect_card_play(
                 id_target.unwrap(),
-                state.id_card_target,
                 state.id_character,
                 &mut state.entities,
-                &state.id_hand,
                 &buf_alive[..alive_n],
                 &mut state.this_turn_attacks_played,
                 &mut state.card_last_played,
                 this_turn_discards,
                 this_combat_damage_instances_taken,
                 energy_current,
-                &mut state.rng,
                 &mut state.effect_queue,
             )
         }
@@ -792,18 +789,14 @@ fn dispatch_by_kind(
                     state.id_character,
                     &mut state.entities,
                     &state.id_hand,
-                    state.id_card_target,
                     &buf_alive[..alive_n],
                     &mut state.this_turn_discards,
                     &mut state.this_turn_attacks_played,
-                    &mut state.rng,
                     &mut state.effect_queue,
                 )
             } else {
-                let entity = &mut state.entities[id_actor];
                 process_effect_turn_end::process_effect_turn_end_monster(
-                    &mut entity.vitals,
-                    &mut entity.modifiers,
+                    &state.entities[id_actor].modifiers,
                     id_actor,
                     &mut state.effect_queue,
                 )
