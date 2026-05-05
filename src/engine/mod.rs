@@ -71,9 +71,12 @@ use crate::utils::{fill_alive_monster_ids, shuffle};
 
 pub enum DispatchResult {
     Continue,
-    /// The queue driver sets `state.phase = phase_new` and returns.
+    /// The dispatcher needs player input. The queue driver passes `(kind, num)`
+    /// to `derive_phase` to translate into a `Phase` and returns. `num` is
+    /// meaningful for `CardDiscard` and `CardRetain`; ignored for the others.
     Halt {
-        phase_new: Phase,
+        kind: EffectKind,
+        num: u8,
     },
 }
 
@@ -270,8 +273,9 @@ fn resolve_targets(
 // Dispatcher entry point. Branches on `Target`:
 //  - `Direct(t)` runs the kind-specific handler with an already-known target
 //  - `Resolve { .. }` runs the resolver; on success, fans out to `Direct`
-//    effects; on input-needed, returns `Halt` (the effect stays at the front
-//    because the driver uses peek-before-pop and won't have popped it yet)
+//    effects; on input-needed, returns `Halt { kind, num }`. The popped
+//    effect is dropped — the input handler in `action.rs` reconstructs work
+//    from the player's chosen targets
 pub fn process_effect(state: &mut GameState, effect: Effect) -> DispatchResult {
     let id_target = match effect.target {
         Target::Direct(t) => t,
@@ -328,21 +332,11 @@ fn resolve_or_halt(
             DispatchResult::Continue
         }
         TargetResolution::AwaitInput { num } => match kind {
-            EffectKind::CardDiscard { .. } => DispatchResult::Halt {
-                phase_new: Phase::CombatAwaitDiscard { num },
-            },
-            EffectKind::CardRetain => DispatchResult::Halt {
-                phase_new: Phase::CombatAwaitRetain { num },
-            },
-            EffectKind::CardSetupPick => DispatchResult::Halt {
-                phase_new: Phase::CombatAwaitSetup,
-            },
-            EffectKind::CardNightmarePick => DispatchResult::Halt {
-                phase_new: Phase::CombatAwaitNightmare,
-            },
-            EffectKind::RoomSelect => DispatchResult::Halt {
-                phase_new: Phase::Map,
-            },
+            EffectKind::CardDiscard { .. }
+            | EffectKind::CardRetain
+            | EffectKind::CardSetupPick
+            | EffectKind::CardNightmarePick
+            | EffectKind::RoomSelect => DispatchResult::Halt { kind, num },
             _ => panic!("Unsupported effect kind for halting: {:?}", kind),
         },
     }
@@ -899,15 +893,29 @@ fn dispatch_by_kind(
     }
 }
 
-// When the queue drains naturally (no handler halted), the engine derives
-// the resting phase from state. This is the single source of truth for "what
-// is the engine waiting on?" — every clause here corresponds to a piece of
-// state that signals a player-input situation
+// Single source of truth for `Phase`. Every `Phase::…` constructor lives
+// here (apart from the one-time init in `game.rs`).
 //
-// Mid-chain halts (CardDiscard/CardRetain/RoomSelect with Resolve, requiring
-// player input while work is still queued) bypass derive entirely; they set
-// the phase explicitly via DispatchResult::Halt
-pub fn derive_resting_phase(state: &GameState) -> Phase {
+// Two cases:
+//  - `halt = Some((kind, num))` — dispatcher needs player input mid-chain.
+//    Translate the halted `EffectKind` into the matching `CombatAwait*` /
+//    `Map` phase. Wins before any state-derived phase because work is
+//    still queued
+//  - `halt = None` — queue drained naturally. Derive the resting phase
+//    from state; every clause corresponds to a piece of state that signals
+//    a player-input situation
+pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase {
+    if let Some((kind, num)) = halt {
+        return match kind {
+            EffectKind::CardDiscard { .. } => Phase::CombatAwaitDiscard { num },
+            EffectKind::CardRetain => Phase::CombatAwaitRetain { num },
+            EffectKind::CardSetupPick => Phase::CombatAwaitSetup,
+            EffectKind::CardNightmarePick => Phase::CombatAwaitNightmare,
+            EffectKind::RoomSelect => Phase::Map,
+            _ => unreachable!("non-halt EffectKind reached derive_phase: {:?}", kind),
+        };
+    }
+
     // Character death: end of run
     if state.entities[state.id_character].dead {
         return Phase::GameOver;
@@ -940,15 +948,13 @@ pub fn derive_resting_phase(state: &GameState) -> Phase {
 pub fn process_queue(state: &mut GameState) {
     loop {
         let Some(effect) = state.effect_queue.pop_front() else {
-            // Natural drain — no handler halted, no work pending. Derive the
-            // resting phase from state. See derive_resting_phase for the rules
-            state.phase = derive_resting_phase(state);
+            state.phase = derive_phase(state, None);
             return;
         };
         match process_effect(state, effect) {
             DispatchResult::Continue => {}
-            DispatchResult::Halt { phase_new } => {
-                state.phase = phase_new;
+            DispatchResult::Halt { kind, num } => {
+                state.phase = derive_phase(state, Some((kind, num)));
                 return;
             }
         }
