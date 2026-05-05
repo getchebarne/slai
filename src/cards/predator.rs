@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
@@ -17,7 +17,10 @@ pub static PREDATOR: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 15 },
+            kind: EffectKind::DamagePhysical {
+                amount: 15,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -55,7 +58,10 @@ pub static PREDATOR_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 20 }, // +5 damage
+            kind: EffectKind::DamagePhysical {
+                amount: 20,
+                condition: DamageCondition::Always,
+            }, // +5 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,

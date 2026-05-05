@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -15,7 +15,10 @@ pub static BACKSTAB: Entity = make_entity_card(
     true,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 11 },
+        kind: EffectKind::DamagePhysical {
+            amount: 11,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,
@@ -40,7 +43,10 @@ pub static BACKSTAB_PLUS: Entity = make_entity_card(
     true,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 15 }, // +4 damage
+        kind: EffectKind::DamagePhysical {
+            amount: 15,
+            condition: DamageCondition::Always,
+        }, // +4 damage
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::CardTarget,

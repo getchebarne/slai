@@ -1,9 +1,12 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
 const HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 3 },
+    kind: EffectKind::DamagePhysical {
+        amount: 3,
+        condition: DamageCondition::Always,
+    },
     id_source: None,
     target: Target::Resolve {
         candidates: CandidatePool::CardTarget,
@@ -11,7 +14,10 @@ const HIT: Effect = Effect {
     },
 };
 const HIT_PLUS: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage
+    kind: EffectKind::DamagePhysical {
+        amount: 4,
+        condition: DamageCondition::Always,
+    }, // +1 damage
     id_source: None,
     target: Target::Resolve {
         candidates: CandidatePool::CardTarget,

@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS, modifier_apply};
 use crate::types::{MonsterKind, MonsterName, Vitals};
@@ -7,7 +7,10 @@ use rand::Rng;
 static MOVE_MUG_10: Move = Move {
     name: "Mug",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 10 },
+        kind: EffectKind::DamagePhysical {
+            amount: 10,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -22,7 +25,10 @@ static MOVE_MUG_10: Move = Move {
 static MOVE_MUG_11: Move = Move {
     name: "Mug",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 11 },
+        kind: EffectKind::DamagePhysical {
+            amount: 11,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -37,7 +43,10 @@ static MOVE_MUG_11: Move = Move {
 static MOVE_LUNGE_12: Move = Move {
     name: "Lunge",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 12 },
+        kind: EffectKind::DamagePhysical {
+            amount: 12,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -52,7 +61,10 @@ static MOVE_LUNGE_12: Move = Move {
 static MOVE_LUNGE_14: Move = Move {
     name: "Lunge",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 14 },
+        kind: EffectKind::DamagePhysical {
+            amount: 14,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,

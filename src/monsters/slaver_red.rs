@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{Entity, Intent, Move, make_entity_monster};
 use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
 use crate::types::{MonsterKind, MonsterName, Vitals};
@@ -7,7 +7,10 @@ use rand::Rng;
 static MOVE_STAB_13: Move = Move {
     name: "Stab",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 13 },
+        kind: EffectKind::DamagePhysical {
+            amount: 13,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -22,7 +25,10 @@ static MOVE_STAB_13: Move = Move {
 static MOVE_STAB_14: Move = Move {
     name: "Stab",
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 14 },
+        kind: EffectKind::DamagePhysical {
+            amount: 14,
+            condition: DamageCondition::Always,
+        },
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
@@ -53,7 +59,10 @@ static MOVE_SCRAPE_8_VULN_1: Move = Move {
     name: "Scrape",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
+            kind: EffectKind::DamagePhysical {
+                amount: 8,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -81,7 +90,10 @@ static MOVE_SCRAPE_9_VULN_1: Move = Move {
     name: "Scrape",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 },
+            kind: EffectKind::DamagePhysical {
+                amount: 9,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,
@@ -109,7 +121,10 @@ static MOVE_SCRAPE_9_VULN_2: Move = Move {
     name: "Scrape",
     effects: &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 },
+            kind: EffectKind::DamagePhysical {
+                amount: 9,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::Character,

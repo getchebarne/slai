@@ -18,7 +18,6 @@ pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
-pub mod process_effect_damage_physical_if_poisoned;
 pub mod process_effect_death;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
@@ -502,26 +501,13 @@ fn dispatch_by_kind(
         EffectKind::TargetClear => {
             process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
         }
-        EffectKind::DamagePhysical { amount } => {
-            let id_target = id_target.unwrap();
-            let mods_source = &state.entities[id_source.unwrap()].modifiers;
-            let mods_target = &state.entities[id_target].modifiers;
+        EffectKind::DamagePhysical { amount, condition } => {
             process_effect_damage_physical::process_effect_damage_physical(
-                mods_source,
-                mods_target,
-                id_source,
-                id_target,
-                amount,
-                &mut state.effect_queue,
-            )
-        }
-        EffectKind::DamagePhysicalIfPoisoned { amount } => {
-            let id_target = id_target.unwrap();
-            process_effect_damage_physical_if_poisoned::process_effect_damage_physical_if_poisoned(
                 &state.entities,
                 id_source,
-                id_target,
+                id_target.unwrap(),
                 amount,
+                condition,
                 &mut state.effect_queue,
             )
         }

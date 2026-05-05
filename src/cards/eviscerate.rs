@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -16,7 +16,10 @@ pub static EVISCERATE: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -24,7 +27,10 @@ pub static EVISCERATE: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -32,7 +38,10 @@ pub static EVISCERATE: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                condition: DamageCondition::Always,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -59,7 +68,10 @@ pub static EVISCERATE_PLUS: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 }, // +2 damage
+            kind: EffectKind::DamagePhysical {
+                amount: 9,
+                condition: DamageCondition::Always,
+            }, // +2 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -67,7 +79,10 @@ pub static EVISCERATE_PLUS: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 }, // +2 damage
+            kind: EffectKind::DamagePhysical {
+                amount: 9,
+                condition: DamageCondition::Always,
+            }, // +2 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -75,7 +90,10 @@ pub static EVISCERATE_PLUS: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 }, // +2 damage
+            kind: EffectKind::DamagePhysical {
+                amount: 9,
+                condition: DamageCondition::Always,
+            }, // +2 damage
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
