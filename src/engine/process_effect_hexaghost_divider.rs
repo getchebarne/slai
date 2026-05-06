@@ -1,7 +1,7 @@
 use std::collections::VecDeque;
 
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
-use crate::effect::{DamageCondition, Effect, EffectKind, Target};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 
@@ -17,10 +17,7 @@ pub fn process_effect_hexaghost_divider(
 
     for _ in 0..HEXAGHOST_DIVIDER_HITS {
         effect_queue.push_front(Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: dmg,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: dmg },
             id_source,
             target: Target::Direct(Some(id_character)),
         });

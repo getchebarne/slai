@@ -1,6 +1,23 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
+
+const HIT: Effect = Effect {
+    kind: EffectKind::DamagePhysical { amount: 3 },
+    id_source: None,
+    target: Target::Resolve {
+        candidates: CandidatePool::CardTarget,
+        selection: SelectionKind::Single,
+    },
+};
+const HIT_PLUS: Effect = Effect {
+    kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage
+    id_source: None,
+    target: Target::Resolve {
+        candidates: CandidatePool::CardTarget,
+        selection: SelectionKind::Single,
+    },
+};
 
 pub static RIDDLE_WITH_HOLES: Entity = make_entity_card(
     CardName::RiddleWithHoles,
@@ -14,63 +31,7 @@ pub static RIDDLE_WITH_HOLES: Entity = make_entity_card(
     false,
     false,
     true,
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 3,
-                condition: DamageCondition::Always,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 3,
-                condition: DamageCondition::Always,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 3,
-                condition: DamageCondition::Always,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 3,
-                condition: DamageCondition::Always,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 3,
-                condition: DamageCondition::Always,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
-                selection: SelectionKind::Single,
-            },
-        },
-    ],
+    &[HIT, HIT, HIT, HIT, HIT],
     &[],
     &[],
     PlayRestriction::Always,
@@ -80,15 +41,11 @@ pub static RIDDLE_WITH_HOLES_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = RIDDLE_WITH_HOLES.card_effects;
-        let upgraded_kind = EffectKind::DamagePhysical {
-            amount: 4, // +1 damage
-            condition: DamageCondition::Always,
-        };
-        a[0].kind = upgraded_kind;
-        a[1].kind = upgraded_kind;
-        a[2].kind = upgraded_kind;
-        a[3].kind = upgraded_kind;
-        a[4].kind = upgraded_kind;
+        a[0] = HIT_PLUS;
+        a[1] = HIT_PLUS;
+        a[2] = HIT_PLUS;
+        a[3] = HIT_PLUS;
+        a[4] = HIT_PLUS;
         a
     },
     ..RIDDLE_WITH_HOLES

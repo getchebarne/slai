@@ -5,7 +5,8 @@ use crate::types::{CardName, MonsterName};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
     Noop,
-    DamagePhysical { amount: u16, condition: DamageCondition },
+    DamagePhysical { amount: u16 },
+    DamagePhysicalIfPoisoned { amount: u16 },
     DistractionAdd,
     EndlessAgonyAddCopy { upgraded: bool },
     BulletTimeProc,
@@ -75,14 +76,6 @@ pub enum EffectKind {
     // mutating state and pushing follow-up effects
     RoomSelect,
     CardRewardSelect,
-}
-
-// DamageCondition: gate on a DamagePhysical effect. Always = unconditional;
-// IfPoisoned = handler bails unless the target has Poison (used by Bane)
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum DamageCondition {
-    Always,
-    IfPoisoned,
 }
 
 // DiscardSource: tags a CardDiscard effect with its origin so the handler can

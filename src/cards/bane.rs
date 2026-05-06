@@ -1,4 +1,4 @@
-use crate::effect::{CandidatePool, DamageCondition, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::types::{CardColor, CardKind, CardName, CardRarity};
 
@@ -16,10 +16,7 @@ pub static BANE: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                condition: DamageCondition::Always,
-            },
+            kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -27,10 +24,7 @@ pub static BANE: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 7,
-                condition: DamageCondition::IfPoisoned,
-            },
+            kind: EffectKind::DamagePhysicalIfPoisoned { amount: 7 },
             id_source: None,
             target: Target::Resolve {
                 candidates: CandidatePool::CardTarget,
@@ -47,14 +41,8 @@ pub static BANE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = BANE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
-            amount: 10, // +3 damage 
-            condition: DamageCondition::Always,
-        };
-        a[1].kind = EffectKind::DamagePhysical {
-            amount: 10, // +3 damage
-            condition: DamageCondition::IfPoisoned,
-        };
+        a[0].kind = EffectKind::DamagePhysical { amount: 10 }; // +3 damage
+        a[1].kind = EffectKind::DamagePhysicalIfPoisoned { amount: 10 }; // +3 damage
         a
     },
     ..BANE

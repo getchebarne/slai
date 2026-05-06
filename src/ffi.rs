@@ -11,7 +11,7 @@ use pyo3::prelude::*;
 use crate::action::Action as InternalAction;
 use crate::consts::{FACTOR_VULN, MAP_HEIGHT, MAX_MONSTERS};
 use crate::effect::{
-    CandidatePool as InternalCandidatePool, DamageCondition, Effect as InternalEffect, EffectKind,
+    CandidatePool as InternalCandidatePool, Effect as InternalEffect, EffectKind,
     SelectionKind, Target as InternalTarget,
 };
 use crate::entity::{
@@ -500,10 +500,10 @@ impl Effect {
             ),
         };
         match effect.kind {
-            EffectKind::DamagePhysical { amount, condition } => match condition {
-                DamageCondition::Always => Self::DamagePhysical { amount, target },
-                DamageCondition::IfPoisoned => Self::DamagePhysicalIfPoisoned { amount, target },
-            },
+            EffectKind::DamagePhysical { amount } => Self::DamagePhysical { amount, target },
+            EffectKind::DamagePhysicalIfPoisoned { amount } => {
+                Self::DamagePhysicalIfPoisoned { amount, target }
+            }
             EffectKind::HeelHookProc => Self::HeelHookProc { target },
             EffectKind::EscapePlanCheck { block } => Self::EscapePlanCheck { block, target },
             EffectKind::GlassKnifeDecay { delta } => Self::GlassKnifeDecay { delta, target },

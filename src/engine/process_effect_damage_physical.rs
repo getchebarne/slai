@@ -1,32 +1,28 @@
 use std::collections::VecDeque;
 
 use crate::consts::{FACTOR_VULN, FACTOR_WEAK};
-use crate::effect::{DamageCondition, Effect, EffectKind, Target};
+use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, get_id_actor};
 use crate::entity::Entity;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 
-// Unified physical-damage handler. `condition` selects whether the hit is
-// unconditional (Always) or gated on the target being Poisoned (Bane).
-//
-// IfPoisoned bails (no damage, no Thorns) when the target is dead or lacks
-// Poison; otherwise both branches run the same scaling pipeline:
-// Strength + Weak + DoubleDamage on the actor, Vulnerable + Intangible on
-// target, Thorns reflect, then push DamageDeal
+// Unified physical-damage handler. `if_poisoned` gates the hit: when true
+// (Bane), the handler bails (no damage, no Thorns) unless the target has
+// Poison; when false, the hit always lands. Both branches share the same
+// scaling pipeline: Strength + Weak + DoubleDamage on the actor, Vulnerable +
+// Intangible on target, Thorns reflect, then push DamageDeal
 pub fn process_effect_damage_physical(
     entities: &[Entity],
     id_source: usize,
     id_character: usize,
     id_target: usize,
     amount: u16,
-    condition: DamageCondition,
+    if_poisoned: bool,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let target = &entities[id_target];
-    if let DamageCondition::IfPoisoned = condition {
-        if target.dead || !modifier_has(&target.modifiers, ModifierKind::Poison) {
-            return DispatchResult::Continue;
-        }
+    if if_poisoned && (target.dead || !modifier_has(&target.modifiers, ModifierKind::Poison)) {
+        return DispatchResult::Continue;
     }
 
     let id_actor = get_id_actor(entities, id_character, id_source);
