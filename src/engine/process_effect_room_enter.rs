@@ -7,61 +7,189 @@ use crate::effect::{Effect, EffectKind};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::game::Location;
-use crate::map::active_room_kind;
-use crate::monsters::encounter::{
-    generate_act1_elites, generate_act1_strong_only, spawn_encounter,
-};
-use crate::types::{MonsterEncounter, RoomKind};
+use crate::map::get_active_room_kind;
+use crate::types::{MonsterEncounter, MonsterName, RoomKind};
+use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
-    monster_count: &mut u8,
-    monster_list: &mut Vec<MonsterEncounter>,
-    elite_monster_list: &mut Vec<MonsterEncounter>,
-    boss_list: &mut Vec<MonsterEncounter>,
+    encounter_list_normal: &mut Vec<MonsterEncounter>,
+    encounter_list_elite: &mut Vec<MonsterEncounter>,
+    encounter_boss: MonsterEncounter,
     rng: &mut impl Rng,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    *monster_count = 0;
+    let room_kind = get_active_room_kind(id_rooms, location, entities).unwrap();
 
-    let room = active_room_kind(id_rooms, location, entities).unwrap();
+    // Initialize empty effect buffer
     let mut effects: Vec<Effect> = Vec::new();
-    match room {
+
+    // Match on `RoomKind`
+    match room_kind {
         RoomKind::CombatBoss => {
-            // boss_list[0] is the actual fight; remove it on entry to match
-            // AbstractDungeon's pop-front-on-completion (the run ends right
-            // after, so timing is observationally equivalent).
-            let encounter = boss_list.remove(0);
-            spawn_encounter(encounter, rng, &mut effects);
+            spawn_encounter_monsters(encounter_boss, &mut effects, rng);
         }
         RoomKind::CombatMonster => {
-            if monster_list.is_empty() {
-                generate_act1_strong_only(monster_list, rng);
-            }
-            let encounter = monster_list.remove(0);
-            spawn_encounter(encounter, rng, &mut effects);
+            let encounter = encounter_list_normal.remove(0);
+            spawn_encounter_monsters(encounter, &mut effects, rng);
         }
         RoomKind::CombatElite => {
-            if elite_monster_list.is_empty() {
-                generate_act1_elites(elite_monster_list, rng);
-            }
-            let encounter = elite_monster_list.remove(0);
-            spawn_encounter(encounter, rng, &mut effects);
+            let encounter = encounter_list_elite.remove(0);
+            spawn_encounter_monsters(encounter, &mut effects, rng);
         }
         RoomKind::RestSite => {
-            // Nothing to enqueue; the queue drains and the engine derives
-            // Phase::RestSite from `location` + room kind
+            // Nothing to enqueue; the effect_queue drains and the engine derives
+            // Phase::RestSite from `Location` & `RoomKind`
         }
     }
 
     if !effects.is_empty() {
         effects.push(Effect::direct(EffectKind::CombatStart, None, None));
         for effect in effects.into_iter().rev() {
-            queue.push_front(effect);
+            effect_queue.push_front(effect);
         }
     }
 
     DispatchResult::Continue
+}
+
+fn pick_louse(rng: &mut impl Rng) -> MonsterName {
+    if rng.random_bool(0.5) {
+        MonsterName::LouseNormal
+    } else {
+        MonsterName::LouseDefensive
+    }
+}
+
+fn pick_slaver(rng: &mut impl Rng) -> MonsterName {
+    if rng.random_bool(0.5) {
+        MonsterName::SlaverRed
+    } else {
+        MonsterName::SlaverBlue
+    }
+}
+
+fn pick_wildlife_weak(rng: &mut impl Rng) -> MonsterName {
+    match rng.random_range(0..3) {
+        0 => pick_louse(rng),
+        1 => MonsterName::SlimeSpikeMedium,
+        2 => MonsterName::SlimeAcidMedium,
+        _ => unreachable!(),
+    }
+}
+
+fn pick_wildlife_strong(rng: &mut impl Rng) -> MonsterName {
+    if rng.random_bool(0.5) {
+        MonsterName::FungiBeast
+    } else {
+        MonsterName::JawWorm
+    }
+}
+
+fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
+    match rng.random_range(0..3) {
+        0 => MonsterName::Cultist,
+        1 => pick_slaver(rng),
+        2 => MonsterName::Looter,
+        _ => unreachable!(),
+    }
+}
+
+#[inline]
+fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
+    effects.push(Effect::direct(EffectKind::MonsterSpawn { name }, None, None));
+}
+
+fn spawn_encounter_monsters(
+    encounter: MonsterEncounter,
+    effects: &mut Vec<Effect>,
+    rng: &mut impl Rng,
+) {
+    match encounter {
+        MonsterEncounter::Cultist => push_monster_spawn(effects, MonsterName::Cultist),
+        MonsterEncounter::JawWorm => push_monster_spawn(effects, MonsterName::JawWorm),
+        MonsterEncounter::TwoLouse => {
+            for _ in 0..2 {
+                push_monster_spawn(effects, pick_louse(rng));
+            }
+        }
+        MonsterEncounter::SmallSlimes => {
+            let (small, medium) = if rng.random_bool(0.5) {
+                (MonsterName::SlimeSpikeSmall, MonsterName::SlimeAcidMedium)
+            } else {
+                (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
+            };
+            push_monster_spawn(effects, small);
+            push_monster_spawn(effects, medium);
+        }
+        MonsterEncounter::BlueSlaver => push_monster_spawn(effects, MonsterName::SlaverBlue),
+        MonsterEncounter::RedSlaver => push_monster_spawn(effects, MonsterName::SlaverRed),
+        MonsterEncounter::Looter => push_monster_spawn(effects, MonsterName::Looter),
+        MonsterEncounter::TwoFungiBeasts => {
+            push_monster_spawn(effects, MonsterName::FungiBeast);
+            push_monster_spawn(effects, MonsterName::FungiBeast);
+        }
+        MonsterEncounter::ThreeLouse => {
+            for _ in 0..3 {
+                push_monster_spawn(effects, pick_louse(rng));
+            }
+        }
+        MonsterEncounter::LargeSlime => {
+            let name = if rng.random_bool(0.5) {
+                MonsterName::SlimeAcidLarge
+            } else {
+                MonsterName::SlimeSpikeLarge
+            };
+            push_monster_spawn(effects, name);
+        }
+        MonsterEncounter::LotsOfSlimes => {
+            let mut pool = [
+                MonsterName::SlimeSpikeSmall,
+                MonsterName::SlimeSpikeSmall,
+                MonsterName::SlimeSpikeSmall,
+                MonsterName::SlimeAcidSmall,
+                MonsterName::SlimeAcidSmall,
+            ];
+            shuffle(&mut pool, rng);
+            for &name in &pool {
+                push_monster_spawn(effects, name);
+            }
+        }
+        MonsterEncounter::GremlinGang => {
+            let mut pool = [
+                MonsterName::GremlinWarrior,
+                MonsterName::GremlinWarrior,
+                MonsterName::GremlinThief,
+                MonsterName::GremlinThief,
+                MonsterName::GremlinFat,
+                MonsterName::GremlinFat,
+                MonsterName::GremlinTsundere,
+                MonsterName::GremlinWizard,
+            ];
+            shuffle(&mut pool, rng);
+            for &name in &pool[..4] {
+                push_monster_spawn(effects, name);
+            }
+        }
+        MonsterEncounter::ExordiumThugs => {
+            push_monster_spawn(effects, pick_wildlife_weak(rng));
+            push_monster_spawn(effects, pick_humanoid_strong(rng));
+        }
+        MonsterEncounter::ExordiumWildlife => {
+            push_monster_spawn(effects, pick_wildlife_strong(rng));
+            push_monster_spawn(effects, pick_wildlife_weak(rng));
+        }
+        MonsterEncounter::GremlinNob => push_monster_spawn(effects, MonsterName::GremlinNob),
+        MonsterEncounter::Lagavulin => push_monster_spawn(effects, MonsterName::Lagavulin),
+        MonsterEncounter::ThreeSentries => {
+            for _ in 0..3 {
+                push_monster_spawn(effects, MonsterName::Sentry);
+            }
+        }
+        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian),
+        MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost),
+        MonsterEncounter::SlimeBoss => push_monster_spawn(effects, MonsterName::SlimeBoss),
+    }
 }

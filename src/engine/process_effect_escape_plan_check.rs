@@ -16,7 +16,7 @@ pub fn process_effect_escape_plan_check(
     id_source: Option<usize>,
     card_last_drawn: &mut Option<usize>,
     block: u16,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let id_drawn = match card_last_drawn.take() {
         Some(id) => id,
@@ -25,7 +25,7 @@ pub fn process_effect_escape_plan_check(
     if entities[id_drawn].card_kind != CardKind::Skill {
         return DispatchResult::Continue;
     }
-    queue.push_front(Effect {
+    effect_queue.push_front(Effect {
         kind: EffectKind::BlockGain { amount: block },
         id_source,
         target: Target::Direct(Some(id_character)),

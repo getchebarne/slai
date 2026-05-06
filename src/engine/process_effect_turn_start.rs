@@ -15,7 +15,7 @@ pub fn process_effect_turn_start(
     energy: &Energy,
     id_monsters: &[usize],
     nightmare_pending: bool,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Stack locals
     let mut buf_effects = EffectBuf::new();
@@ -191,6 +191,6 @@ pub fn process_effect_turn_start(
         }
     }
 
-    buf_effects.push_all_front(queue);
+    buf_effects.push_all_front(effect_queue);
     DispatchResult::Continue
 }

@@ -27,6 +27,6 @@ pub static CALCULATED_GAMBLE: Entity = make_entity_card(
 // Upgraded
 pub static CALCULATED_GAMBLE_PLUS: Entity = Entity {
     card_upgraded: true,
-    card_exhaust: false, // upgrade removes exhaust
+    card_exhaust: false, // doesn't exhaust
     ..CALCULATED_GAMBLE
 };

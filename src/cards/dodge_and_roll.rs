@@ -49,7 +49,7 @@ pub static DODGE_AND_ROLL_PLUS: Entity = Entity {
         a[0].kind = EffectKind::BlockGain { amount: 6 }; // +2 block
         a[1].kind = EffectKind::ModifierGain {
             kind: ModifierKind::NextTurnBlock,
-            stacks: 6, // +2 next-turn-block
+            stacks: 6, // +2 next-turn block
         };
         a
     },

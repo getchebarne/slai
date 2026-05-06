@@ -15,7 +15,7 @@ pub fn process_effect_card_play(
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let card = entities[id_card];
 
@@ -171,6 +171,6 @@ pub fn process_effect_card_play(
         }
     }
 
-    buf_effects.push_all_front(queue);
+    buf_effects.push_all_front(effect_queue);
     DispatchResult::Continue
 }

@@ -4,7 +4,7 @@ use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::{Entity, EntityKind};
-use crate::map::active_room_kind;
+use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
 use crate::game::Location;
 use crate::types::RoomKind;
@@ -21,7 +21,7 @@ pub fn process_effect_combat_end(
     id_card_nightmare: &mut Option<usize>,
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Clear card piles and target
     id_hand.clear();
@@ -53,15 +53,15 @@ pub fn process_effect_combat_end(
     *monster_count = 0;
 
     // Dispatch according to current room type
-    let room = active_room_kind(id_rooms, location, entities).unwrap();
+    let room = get_active_room_kind(id_rooms, location, entities).unwrap();
     match room {
         RoomKind::CombatBoss => {
             // Boss defeated — drop any pending effects. derive_phase
             // returns GameOver from `location == BossRoom && monster_count == 0`
-            queue.clear();
+            effect_queue.clear();
         }
         RoomKind::CombatMonster | RoomKind::CombatElite => {
-            queue.push_back(Effect {
+            effect_queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
                 id_source: None,
                 target: Target::Direct(None),
