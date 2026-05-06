@@ -1,6 +1,7 @@
 use rand::Rng;
 use strum::EnumCount;
 
+use crate::consts::{NUM_ENCOUNTERS_ELITE, NUM_ENCOUNTERS_HARD, NUM_ENCOUNTERS_WEAK};
 use crate::types::{EncounterPool, MonsterEncounter};
 
 pub const ALL_ENCOUNTERS: &[MonsterEncounter] = &[
@@ -261,8 +262,8 @@ pub fn generate_act1_monsters(
     let encounter_table_hard = normalize_weights(&ENC_POOL_HARD);
     let encounter_table_elite = normalize_weights(&ENC_POOL_ELITE);
 
-    // Sample 3 easy encounters
-    populate_encounter_list(encounter_list, &encounter_table_easy, 3, false, rng);
+    // Sample easy encounters
+    populate_encounter_list(encounter_list, &encounter_table_easy, NUM_ENCOUNTERS_WEAK, false, rng);
 
     // Get exclusions based on last easy encounter
     let encounter_exclusions = get_act1_exclusions(*encounter_list.last().unwrap());
@@ -271,10 +272,10 @@ pub fn generate_act1_monsters(
     populate_first_hard_encounter(encounter_list, &encounter_table_hard, encounter_exclusions, rng);
 
     // Populate rest of hard encounters
-    populate_encounter_list(encounter_list, &encounter_table_hard, 12, false, rng);
+    populate_encounter_list(encounter_list, &encounter_table_hard, NUM_ENCOUNTERS_HARD, false, rng);
 
     // Populate elites
-    populate_encounter_list(elite_list, &encounter_table_elite, 10, true, rng);
+    populate_encounter_list(elite_list, &encounter_table_elite, NUM_ENCOUNTERS_ELITE, true, rng);
 }
 
 pub fn pick_act1_boss(rng: &mut impl Rng) -> MonsterEncounter {

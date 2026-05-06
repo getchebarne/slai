@@ -29,5 +29,12 @@ pub const ANCESTOR_GAP_MIN: usize = 3;
 pub const FACTOR_NUM_REST_SITE: f32 = 0.25;
 pub const FACTOR_NUM_ELITE: f32 = 0.10;
 
+// Encounter sequence sizes (canonical Exordium.generateMonsters)
+pub const NUM_ENCOUNTERS_WEAK: usize = 3;
+pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_WEAK;
+pub const NUM_ENCOUNTERS_ELITE: usize = 10;
+pub const ENCOUNTER_LIST_NORMAL_CAPACITY: usize = NUM_ENCOUNTERS_WEAK + 1 + NUM_ENCOUNTERS_HARD;
+pub const ENCOUNTER_LIST_ELITE_CAPACITY: usize = NUM_ENCOUNTERS_ELITE;
+
 // Rest site
 pub const REST_SITE_HEAL_FACTOR: f32 = 0.30;

@@ -7,7 +7,10 @@ use rand::rngs::SmallRng;
 
 use crate::action::{Action, handle_action};
 use crate::character::{get_silent_starter_deck, spawn_silent};
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND};
+use crate::consts::{
+    ENCOUNTER_LIST_ELITE_CAPACITY, ENCOUNTER_LIST_NORMAL_CAPACITY, MAP_HEIGHT, MAP_WIDTH,
+    MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND,
+};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
 use crate::entity::Entity;
@@ -102,8 +105,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let (id_rooms, location) = generate_map(&mut rng, &mut entities);
 
     // Pre-generate monster encounters
-    let mut encounter_list_normal = Vec::with_capacity(16);
-    let mut encounter_list_elite = Vec::with_capacity(10);
+    let mut encounter_list_normal = Vec::with_capacity(ENCOUNTER_LIST_NORMAL_CAPACITY);
+    let mut encounter_list_elite = Vec::with_capacity(ENCOUNTER_LIST_ELITE_CAPACITY);
     generate_act1_monsters(
         &mut encounter_list_normal,
         &mut encounter_list_elite,
