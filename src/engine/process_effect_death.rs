@@ -11,13 +11,13 @@ pub fn process_effect_death(
     id_monsters: &[usize],
     monster_count: u8,
     entities: &mut [Entity],
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Character death: abandon anything pending and mark dead so
     // derive_phase returns Phase::GameOver on the natural drain
     if id_target == id_character {
         entities[id_character].dead = true;
-        queue.clear();
+        effect_queue.clear();
         return DispatchResult::Continue;
     }
 
@@ -79,17 +79,17 @@ pub fn process_effect_death(
 
     if !any_alive {
         // Combat ends. Replace pending effects with on-death triggers then CombatEnd
-        queue.clear();
+        effect_queue.clear();
         if let Some(e) = gold_return {
-            queue.push_back(e);
+            effect_queue.push_back(e);
         }
         for e in &effects_corpse {
-            queue.push_back(*e);
+            effect_queue.push_back(*e);
         }
         if let Some(e) = spore_effect {
-            queue.push_back(e);
+            effect_queue.push_back(e);
         }
-        queue.push_back(Effect {
+        effect_queue.push_back(Effect {
             kind: EffectKind::CombatEnd,
             id_source: None,
             target: Target::Direct(None),
@@ -98,13 +98,13 @@ pub fn process_effect_death(
         // Mid-combat: push to front so on-death triggers fire before any
         // suspended chain resumes
         if let Some(e) = spore_effect {
-            queue.push_front(e);
+            effect_queue.push_front(e);
         }
         for e in effects_corpse.iter().rev() {
-            queue.push_front(*e);
+            effect_queue.push_front(*e);
         }
         if let Some(e) = gold_return {
-            queue.push_front(e);
+            effect_queue.push_front(e);
         }
     }
 

@@ -11,19 +11,19 @@ use crate::types::CardName;
 pub fn process_effect_turn_end_monster(
     modifiers: &Modifiers,
     id_actor: usize,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Refund negative Strength stacks from `Shackled`
     if modifier_has(modifiers, ModifierKind::Shackled) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Shackled,
             },
             id_source: None,
             target: Target::Direct(Some(id_actor)),
         });
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
                 stacks,
@@ -38,7 +38,7 @@ pub fn process_effect_turn_end_monster(
         && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(modifiers, ModifierKind::Ritual);
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
                 stacks,
@@ -52,7 +52,7 @@ pub fn process_effect_turn_end_monster(
     // TODO: Character can trigger this too
     if modifier_has(modifiers, ModifierKind::Metallicize) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Metallicize);
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
@@ -70,7 +70,7 @@ pub fn process_effect_turn_end_character(
     id_alive_monsters: &[usize],
     this_turn_discards: &mut u8,
     this_turn_attacks_played: &mut u8,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Reset per-turn counters synchronously, before the rest of the chain queues up
     *this_turn_discards = 0;
@@ -236,6 +236,6 @@ pub fn process_effect_turn_end_character(
         });
     }
 
-    buf_effects.push_all_front(queue);
+    buf_effects.push_all_front(effect_queue);
     DispatchResult::Continue
 }

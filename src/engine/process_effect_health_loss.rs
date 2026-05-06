@@ -13,12 +13,12 @@ pub fn process_effect_health_loss(
     id_target: usize,
     id_character: usize,
     amount: u16,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     vitals.health = vitals.health.saturating_sub(amount);
 
     if vitals.health == 0 {
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::Death,
             id_source: None,
             target: Target::Direct(Some(id_target)),
@@ -29,7 +29,7 @@ pub fn process_effect_health_loss(
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(modifiers, ModifierKind::ModeShift);
             if id_target != id_character {
-                queue.push_front(Effect {
+                effect_queue.push_front(Effect {
                     kind: EffectKind::MoveUpdate,
                     id_source: None,
                     target: Target::Direct(Some(id_target)),

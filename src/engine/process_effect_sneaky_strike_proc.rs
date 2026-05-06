@@ -9,12 +9,12 @@ use crate::engine::DispatchResult;
 pub fn process_effect_sneaky_strike_proc(
     this_turn_discards: u8,
     energy: u8,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     if this_turn_discards == 0 {
         return DispatchResult::Continue;
     }
-    queue.push_front(Effect {
+    effect_queue.push_front(Effect {
         kind: EffectKind::EnergyGain { amount: energy },
         id_source: None,
         target: Target::Direct(None),
