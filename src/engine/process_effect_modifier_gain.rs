@@ -19,9 +19,9 @@ pub fn process_effect_modifier_gain(
     }
 
     // Check artifact
-    // TODO: should block Sihpon Soul
-    if stacks > 0 && !modifier_def(kind).is_buff && modifier_has(modifiers, ModifierKind::Artifact)
-    {
+    let is_debuff_attempt = (stacks > 0 && !modifier_def(kind).is_buff)
+        || (stacks < 0 && (kind == ModifierKind::Dexterity || kind == ModifierKind::Strength));
+    if is_debuff_attempt && modifier_has(modifiers, ModifierKind::Artifact) {
         let stacks_new = modifier_stacks(modifiers, ModifierKind::Artifact) - 1;
         if stacks_new < modifier_def(ModifierKind::Artifact).stacks_min {
             modifier_remove(modifiers, ModifierKind::Artifact);
