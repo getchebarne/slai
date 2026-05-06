@@ -43,6 +43,7 @@ pub static GLASS_KNIFE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static GLASS_KNIFE_PLUS: Entity = Entity {

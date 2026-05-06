@@ -35,6 +35,7 @@ pub static RIDDLE_WITH_HOLES: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static RIDDLE_WITH_HOLES_PLUS: Entity = Entity {

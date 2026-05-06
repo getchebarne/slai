@@ -39,6 +39,7 @@ pub static LEG_SWEEP: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static LEG_SWEEP_PLUS: Entity = Entity {

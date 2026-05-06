@@ -42,6 +42,7 @@ pub static WRAITH_FORM: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static WRAITH_FORM_PLUS: Entity = Entity {

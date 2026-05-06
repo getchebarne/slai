@@ -25,6 +25,7 @@ pub static BACKSTAB: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static BACKSTAB_PLUS: Entity = Entity {

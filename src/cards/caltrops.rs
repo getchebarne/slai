@@ -29,6 +29,7 @@ pub static CALTROPS: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static CALTROPS_PLUS: Entity = Entity {

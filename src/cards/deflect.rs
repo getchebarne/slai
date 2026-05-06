@@ -25,6 +25,7 @@ pub static DEFLECT: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static DEFLECT_PLUS: Entity = Entity {

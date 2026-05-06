@@ -17,4 +17,5 @@ pub static DAZED: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never, // Unplayable
+    &[],
 );

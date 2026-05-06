@@ -25,6 +25,7 @@ pub static SLICE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static SLICE_PLUS: Entity = Entity {

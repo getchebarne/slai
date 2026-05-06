@@ -31,6 +31,7 @@ pub static TERROR: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static TERROR_PLUS: Entity = Entity {

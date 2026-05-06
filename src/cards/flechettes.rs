@@ -25,6 +25,7 @@ pub static FLECHETTES: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static FLECHETTES_PLUS: Entity = Entity {

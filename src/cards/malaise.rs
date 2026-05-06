@@ -42,6 +42,7 @@ pub static MALAISE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static MALAISE_PLUS: Entity = Entity {

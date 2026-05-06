@@ -2,7 +2,7 @@ use crate::effect::{
     CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target,
 };
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static ALL_OUT_ATTACK: Entity = make_entity_card(
     CardName::AllOutAttack,
@@ -39,6 +39,7 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Discard],
 );
 // Upgraded
 pub static ALL_OUT_ATTACK_PLUS: Entity = Entity {

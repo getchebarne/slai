@@ -1,6 +1,6 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static EVISCERATE: Entity = make_entity_card(
     CardName::Eviscerate,
@@ -43,6 +43,7 @@ pub static EVISCERATE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Discard],
 );
 // Upgraded
 pub static EVISCERATE_PLUS: Entity = Entity {

@@ -25,6 +25,7 @@ pub static MASTERFUL_STAB: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static MASTERFUL_STAB_PLUS: Entity = Entity {

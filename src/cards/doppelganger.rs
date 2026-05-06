@@ -42,6 +42,7 @@ pub static DOPPELGANGER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static DOPPELGANGER_PLUS: Entity = Entity {

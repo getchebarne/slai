@@ -32,6 +32,7 @@ pub static ESCAPE_PLAN: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static ESCAPE_PLAN_PLUS: Entity = Entity {

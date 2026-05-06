@@ -25,6 +25,7 @@ pub static GRAND_FINALE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::DrawPileEmpty,
+    &[],
 );
 // Upgraded
 pub static GRAND_FINALE_PLUS: Entity = Entity {

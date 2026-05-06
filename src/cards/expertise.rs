@@ -22,6 +22,7 @@ pub static EXPERTISE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static EXPERTISE_PLUS: Entity = Entity {

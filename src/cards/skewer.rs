@@ -25,6 +25,7 @@ pub static SKEWER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static SKEWER_PLUS: Entity = Entity {

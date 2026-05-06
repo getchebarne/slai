@@ -35,6 +35,7 @@ pub static DASH: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static DASH_PLUS: Entity = Entity {

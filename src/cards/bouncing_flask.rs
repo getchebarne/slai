@@ -1,7 +1,7 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
 use crate::modifier::ModifierKind;
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 const BOUNCE: Effect = Effect {
     kind: EffectKind::ModifierGain {
@@ -31,6 +31,7 @@ pub static BOUNCING_FLASK: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Poison],
 );
 // Upgraded: one more bounce
 pub static BOUNCING_FLASK_PLUS: Entity = Entity {

@@ -36,6 +36,7 @@ pub static BULLET_TIME: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static BULLET_TIME_PLUS: Entity = Entity {

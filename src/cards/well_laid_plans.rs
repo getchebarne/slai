@@ -29,6 +29,7 @@ pub static WELL_LAID_PLANS: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static WELL_LAID_PLANS_PLUS: Entity = Entity {

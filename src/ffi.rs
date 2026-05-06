@@ -25,7 +25,7 @@ use crate::modifier::{
 use crate::game::{GameState as InternalGameState, Location};
 use crate::types::{
     CardColor as InternalCardColor, CardKind as InternalCardKind, CardRarity as InternalCardRarity,
-    Phase as InternalPhase, RoomKind as InternalRoomKind,
+    Phase as InternalPhase, RoomKind as InternalRoomKind, Tag as InternalTag,
 };
 use crate::utils::fill_alive_monster_ids;
 
@@ -91,6 +91,24 @@ impl From<InternalCardRarity> for CardRarity {
             InternalCardRarity::Rare => Self::Rare,
             InternalCardRarity::Special => Self::Special,
             InternalCardRarity::Curse => Self::Curse,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "Tag")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Tag {
+    Poison,
+    Shiv,
+    Discard,
+}
+
+impl From<InternalTag> for Tag {
+    fn from(t: InternalTag) -> Self {
+        match t {
+            InternalTag::Poison => Self::Poison,
+            InternalTag::Shiv => Self::Shiv,
+            InternalTag::Discard => Self::Discard,
         }
     }
 }
@@ -593,6 +611,8 @@ pub struct Card {
     /// `card.cost <= energy.current` before offering it as a legal action.
     pub playable: bool,
     pub effects: Vec<Effect>,
+    /// ML-facing archetype tags (Poison, Shiv, Discard).
+    pub tags: Vec<Tag>,
 }
 
 #[pyclass(frozen, get_all)]
@@ -856,6 +876,7 @@ fn build_view_card_template(
             .iter()
             .map(Effect::from_internal)
             .collect(),
+        tags: card.card_tags.iter().copied().map(Into::into).collect(),
     }
 }
 

@@ -25,6 +25,7 @@ pub static STRIKE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static STRIKE_PLUS: Entity = Entity {

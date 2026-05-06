@@ -25,6 +25,7 @@ pub static SETUP: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static SETUP_PLUS: Entity = Entity {

@@ -568,6 +568,7 @@ fn dispatch_by_kind(
             process_effect_escape_plan_check::process_effect_escape_plan_check(
                 &state.entities,
                 state.id_character,
+                id_source,
                 &mut state.card_last_drawn,
                 block,
                 &mut state.effect_queue,

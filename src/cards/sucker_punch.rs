@@ -39,6 +39,7 @@ pub static SUCKER_PUNCH: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static SUCKER_PUNCH_PLUS: Entity = Entity {

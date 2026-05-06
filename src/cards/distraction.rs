@@ -22,6 +22,7 @@ pub static DISTRACTION: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static DISTRACTION_PLUS: Entity = Entity {

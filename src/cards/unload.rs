@@ -1,6 +1,6 @@
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static UNLOAD: Entity = make_entity_card(
     CardName::Unload,
@@ -32,6 +32,7 @@ pub static UNLOAD: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Discard],
 );
 // Upgraded
 pub static UNLOAD_PLUS: Entity = Entity {

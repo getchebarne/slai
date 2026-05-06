@@ -39,6 +39,7 @@ pub static FLYING_KNEE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static FLYING_KNEE_PLUS: Entity = Entity {

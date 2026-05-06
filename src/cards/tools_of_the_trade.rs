@@ -29,6 +29,7 @@ pub static TOOLS_OF_THE_TRADE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static TOOLS_OF_THE_TRADE_PLUS: Entity = Entity {

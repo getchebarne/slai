@@ -29,6 +29,7 @@ pub static OUTMANEUVER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static OUTMANEUVER_PLUS: Entity = Entity {

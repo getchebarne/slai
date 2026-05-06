@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{CardCostKind, Entity, card_effective_cost};
-use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
+use crate::modifier::{ModifierKind, modifier_def, modifier_has, modifier_remove, modifier_stacks};
 use crate::types::CardKind;
 
 pub fn process_effect_card_play(
@@ -129,14 +129,13 @@ pub fn process_effect_card_play(
         }
     }
     if burst {
-        buf_effects.push(Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Burst,
-                stacks: -1,
-            },
-            id_source: Some(id_character),
-            target: Target::Direct(Some(id_character)),
-        });
+        let mods = &mut entities[id_character].modifiers;
+        let stacks_new = modifier_stacks(mods, ModifierKind::Burst) - 1;
+        if stacks_new < modifier_def(ModifierKind::Burst).stacks_min {
+            modifier_remove(mods, ModifierKind::Burst);
+        } else {
+            mods.stacks[ModifierKind::Burst as usize] = stacks_new;
+        }
     }
 
     // Choke: pushed after card_effects so the played card resolves first

@@ -29,6 +29,7 @@ pub static FOOTWORK: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static FOOTWORK_PLUS: Entity = Entity {

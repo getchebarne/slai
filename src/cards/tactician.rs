@@ -1,6 +1,6 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static TACTICIAN: Entity = make_entity_card(
     CardName::Tactician,
@@ -22,6 +22,7 @@ pub static TACTICIAN: Entity = make_entity_card(
     }],
     &[],
     PlayRestriction::Never,
+    &[Tag::Discard],
 );
 pub static TACTICIAN_PLUS: Entity = Entity {
     card_upgraded: true,

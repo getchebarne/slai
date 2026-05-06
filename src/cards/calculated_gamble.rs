@@ -1,6 +1,6 @@
 use crate::effect::{Effect, EffectKind, Target};
 use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::types::{CardColor, CardKind, CardName, CardRarity, Tag};
 
 pub static CALCULATED_GAMBLE: Entity = make_entity_card(
     CardName::CalculatedGamble,
@@ -22,6 +22,7 @@ pub static CALCULATED_GAMBLE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[Tag::Discard],
 );
 // Upgraded
 pub static CALCULATED_GAMBLE_PLUS: Entity = Entity {

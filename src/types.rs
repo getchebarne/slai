@@ -211,6 +211,13 @@ pub enum CardRarity {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Tag {
+    Poison,
+    Shiv,
+    Discard,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MonsterName {
     Cultist,
     FungiBeast,

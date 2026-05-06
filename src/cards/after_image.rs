@@ -29,6 +29,7 @@ pub static AFTER_IMAGE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    &[],
 );
 // Upgraded
 pub static AFTER_IMAGE_PLUS: Entity = Entity {
