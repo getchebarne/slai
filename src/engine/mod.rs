@@ -530,7 +530,7 @@ fn dispatch_by_kind(
                 state.id_character,
                 id_target.unwrap(),
                 amount,
-                true,
+                true, // `if_poisoned`
                 &mut state.effect_queue,
             )
         }
