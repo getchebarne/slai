@@ -11,7 +11,7 @@ pub fn process_effect_escape_monster(
     id_monsters: &[usize],
     monster_count: u8,
     entities: &mut [Entity],
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Mark as dead
     entities[id_target].dead = true;
@@ -20,8 +20,8 @@ pub fn process_effect_escape_monster(
         .iter()
         .any(|&id| !entities[id].dead);
     if !any_alive {
-        queue.clear();
-        queue.push_back(Effect {
+        effect_queue.clear();
+        effect_queue.push_back(Effect {
             kind: EffectKind::CombatEnd,
             id_source: None,
             target: Target::Direct(None),

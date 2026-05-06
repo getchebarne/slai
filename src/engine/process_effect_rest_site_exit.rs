@@ -7,15 +7,15 @@ use crate::game::Location;
 
 pub fn process_effect_rest_site_exit(
     location: &mut Location,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let at_final_row = matches!(*location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1);
 
     if at_final_row {
         *location = Location::BossRoom;
-        queue.push_front(Effect::direct(EffectKind::RoomEnter, None, None));
+        effect_queue.push_front(Effect::direct(EffectKind::RoomEnter, None, None));
     } else {
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::RoomSelect,
             id_source: None,
             target: Target::Resolve {

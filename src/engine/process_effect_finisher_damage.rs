@@ -9,11 +9,11 @@ pub fn process_effect_finisher_damage(
     id_source: Option<usize>,
     id_target: usize,
     damage: u16,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let num_attacks = this_turn_attacks_played.saturating_sub(1);
     for _ in 0..num_attacks {
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::DamagePhysical {
                 amount: damage,
                 condition: DamageCondition::Always,

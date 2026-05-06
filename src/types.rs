@@ -280,10 +280,10 @@ pub enum MonsterKind {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EncounterPool {
-    EasyAct1,
-    HardAct1,
-    EliteAct1,
-    BossAct1,
+    Act1Easy,
+    Act1Hard,
+    Act1Elite,
+    Act1Boss,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]

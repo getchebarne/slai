@@ -64,14 +64,14 @@ use rand::Rng;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target, ZERO_EFFECT};
 use crate::entity::{Entity, EntityKind};
-use crate::map::{active_room_kind, has_edge};
+use crate::map::{get_active_room_kind, has_edge};
 use crate::game::{GameState, Location};
 use crate::types::{Phase, RoomKind};
 use crate::utils::{fill_alive_monster_ids, shuffle};
 
 pub enum DispatchResult {
     Continue,
-    /// The dispatcher needs player input. The queue driver passes `(kind, num)`
+    /// The dispatcher needs player input. The effect_queue driver passes `(kind, num)`
     /// to `derive_phase` to translate into a `Phase` and returns. `num` is
     /// meaningful for `CardDiscard` and `CardRetain`; ignored for the others.
     Halt {
@@ -81,7 +81,7 @@ pub enum DispatchResult {
 }
 
 // Stack-allocated buffer for effects that a handler wants to push to the
-// front of the queue in order. Build up effects normally, then call
+// front of the effect_queue in order. Build up effects normally, then call
 // `push_all_front` once at the end of the handler
 pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
 
@@ -104,9 +104,9 @@ impl EffectBuf {
         self.len += 1;
     }
 
-    pub fn push_all_front(&self, queue: &mut VecDeque<Effect>) {
+    pub fn push_all_front(&self, effect_queue: &mut VecDeque<Effect>) {
         for e in self.effects[..self.len].iter().rev() {
-            queue.push_front(*e);
+            effect_queue.push_front(*e);
         }
     }
 }
@@ -337,7 +337,7 @@ fn resolve_or_halt(
     match resolution {
         TargetResolution::Resolved => {
             // Push one Direct-target effect per resolved id. push_front reverses
-            // order, so iterate in reverse to preserve id order in the queue
+            // order, so iterate in reverse to preserve id order in the effect_queue
             for &id_target in buf_cands.as_slice().iter().rev() {
                 state.effect_queue.push_front(Effect {
                     kind,
@@ -820,10 +820,9 @@ fn dispatch_by_kind(
             &state.id_rooms,
             state.location,
             &state.entities,
-            &mut state.monster_count,
-            &mut state.monster_list,
-            &mut state.elite_monster_list,
-            &mut state.boss_list,
+            &mut state.encounter_list_normal,
+            &mut state.encounter_list_elite,
+            state.encounter_boss,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -913,7 +912,7 @@ fn dispatch_by_kind(
 //    Translate the halted `EffectKind` into the matching `CombatAwait*` /
 //    `Map` phase. Wins before any state-derived phase because work is
 //    still queued
-//  - `halt = None` — queue drained naturally. Derive the resting phase
+//  - `halt = None` — effect_queue drained naturally. Derive the resting phase
 //    from state; every clause corresponds to a piece of state that signals
 //    a player-input situation
 pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase {
@@ -948,7 +947,7 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
     // Standing in a room: rest site or map-pick depending on room kind
     match state.location {
         Location::Overworld { .. } => {
-            match active_room_kind(&state.id_rooms, state.location, &state.entities) {
+            match get_active_room_kind(&state.id_rooms, state.location, &state.entities) {
                 Some(RoomKind::RestSite) => Phase::RestSite,
                 _ => Phase::Map,
             }

@@ -13,7 +13,7 @@ pub fn process_effect_damage_deal(
     id_character: usize,
     id_target: usize,
     amount: u16,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let from_card = match id_source {
         Some(id) => entities[id].kind == EntityKind::Card,
@@ -28,7 +28,7 @@ pub fn process_effect_damage_deal(
     target.vitals.block = target.vitals.block.saturating_sub(amount);
 
     if damage_over_block > 0 {
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::HealthLoss {
                 amount: damage_over_block,
             },
@@ -41,7 +41,7 @@ pub fn process_effect_damage_deal(
         // out modifier-driven damage (e.g. ThousandCuts)
         if from_card && modifier_has(&mods_char, ModifierKind::Envenom) {
             let stacks = modifier_stacks(&mods_char, ModifierKind::Envenom);
-            queue.push_front(Effect {
+            effect_queue.push_front(Effect {
                 kind: EffectKind::ModifierGain {
                     kind: ModifierKind::Poison,
                     stacks,
@@ -53,18 +53,18 @@ pub fn process_effect_damage_deal(
 
         // Target-side hook — fires only when actual HP loss > 0
         if id_source != Some(id_target) {
-            fire_on_damage_taken(target, id_target, queue);
+            fire_on_damage_taken(target, id_target, effect_queue);
         }
     }
     DispatchResult::Continue
 }
 
-fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDeque<Effect>) {
+fn fire_on_damage_taken(target: &mut Entity, id_target: usize, effect_queue: &mut VecDeque<Effect>) {
     // CurlUp: gain block = stacks once per combat, then remove the modifier
     if modifier_has(&target.modifiers, ModifierKind::CurlUp) {
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::CurlUp);
         modifier_remove(&mut target.modifiers, ModifierKind::CurlUp);
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
@@ -76,7 +76,7 @@ fn fire_on_damage_taken(target: &mut Entity, id_target: usize, queue: &mut VecDe
     // Angry: gain Strength = stacks every time it takes damage
     if modifier_has(&target.modifiers, ModifierKind::Angry) {
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::Angry);
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
                 stacks,

@@ -19,7 +19,7 @@ pub fn process_effect_card_draw(
     id_pile_discard: &mut Vec<usize>,
     card_last_drawn: &mut Option<usize>,
     rng: &mut impl Rng,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     if modifier_has(&entities[id_character].modifiers, ModifierKind::NoDraw) {
         // Early return
@@ -63,13 +63,13 @@ pub fn process_effect_card_draw(
 
     // Fire on-draw hooks for each drawn card (e.g., EndlessAgony's copy spawn)
     // Push in reverse so the first-drawn card's on_draw runs first when the
-    // queue resumes
+    // effect_queue resumes
     // TODO: these should trigger immediately, may have to remove `count` from here
     // and push individual single-card draw effects
     for &id_card in id_drawn[..id_drawn_n].iter().rev() {
         let effects_on_draw = entities[id_card].card_on_draw_effects;
         for effect in effects_on_draw.iter().rev() {
-            queue.push_front(Effect {
+            effect_queue.push_front(Effect {
                 id_source: Some(id_card),
                 ..*effect
             });

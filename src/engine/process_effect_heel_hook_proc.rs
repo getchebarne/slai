@@ -10,20 +10,20 @@ use crate::modifier::{ModifierKind, Modifiers, modifier_has};
 // entities so the bonus fires
 //
 // Push order: CardDraw first, then EnergyGain, so EnergyGain ends up at the
-// front of the queue and runs before CardDraw
+// front of the effect_queue and runs before CardDraw
 pub fn process_effect_heel_hook_proc(
     mods_target: &Modifiers,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     if !modifier_has(mods_target, ModifierKind::Weak) {
         return DispatchResult::Continue;
     }
-    queue.push_front(Effect {
+    effect_queue.push_front(Effect {
         kind: EffectKind::CardDraw { count: 1 },
         id_source: None,
         target: Target::Direct(None),
     });
-    queue.push_front(Effect {
+    effect_queue.push_front(Effect {
         kind: EffectKind::EnergyGain { amount: 1 },
         id_source: None,
         target: Target::Direct(None),

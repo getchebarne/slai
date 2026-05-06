@@ -24,7 +24,7 @@ pub fn process_effect_card_discard(
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
     this_turn_discards: &mut u8,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     match source {
         DiscardSource::EndOfTurn => {
@@ -33,7 +33,7 @@ pub fn process_effect_card_discard(
                 return DispatchResult::Continue;
             }
             if entities[id_target].card_ethereal {
-                queue.push_front(Effect {
+                effect_queue.push_front(Effect {
                     kind: EffectKind::CardExhaust,
                     id_source: None,
                     target: Target::Direct(Some(id_target)),
@@ -50,10 +50,10 @@ pub fn process_effect_card_discard(
             *this_turn_discards = this_turn_discards.saturating_add(1);
 
             // Push in reverse so the first effect in the array runs first
-            // when the queue resumes
+            // when the effect_queue resumes
             let effects_on_discard = entities[id_target].card_on_discard_effects;
             for effect in effects_on_discard.iter().rev() {
-                queue.push_front(Effect {
+                effect_queue.push_front(Effect {
                     id_source: Some(id_target),
                     ..*effect
                 });

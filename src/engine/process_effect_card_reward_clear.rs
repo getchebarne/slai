@@ -5,10 +5,10 @@ use crate::engine::DispatchResult;
 
 pub fn process_effect_card_reward_clear(
     id_card_rewards: &mut Vec<usize>,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     id_card_rewards.clear();
-    queue.push_front(Effect {
+    effect_queue.push_front(Effect {
         kind: EffectKind::RoomSelect,
         id_source: None,
         target: Target::Resolve {
