@@ -7,267 +7,189 @@ use crate::effect::{Effect, EffectKind};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::game::Location;
-use crate::map::active_room_kind;
-use crate::types::{MonsterName, RoomKind};
+use crate::map::get_active_room_kind;
+use crate::types::{MonsterEncounter, MonsterName, RoomKind};
 use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
-    monster_count: &mut u8,
+    encounter_list_normal: &mut Vec<MonsterEncounter>,
+    encounter_list_elite: &mut Vec<MonsterEncounter>,
+    encounter_boss: MonsterEncounter,
     rng: &mut impl Rng,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    *monster_count = 0;
+    let room_kind = get_active_room_kind(id_rooms, location, entities).unwrap();
 
-    let room = active_room_kind(id_rooms, location, entities).unwrap();
+    // Initialize empty effect buffer
     let mut effects: Vec<Effect> = Vec::new();
-    match room {
+
+    // Match on `RoomKind`
+    match room_kind {
         RoomKind::CombatBoss => {
-            // Act 1 boss: uniform 1/3 between The Guardian, Slime Boss, Hexaghost
-            let pick: u8 = rng.random_range(0..3);
-            let name = match pick {
-                0 => MonsterName::TheGuardian,
-                1 => MonsterName::SlimeBoss,
-                2 => MonsterName::Hexaghost,
-                _ => unreachable!(),
-            };
-            effects.push(Effect::direct(
-                EffectKind::MonsterSpawn { name },
-                None,
-                None,
-            ));
+            spawn_encounter_monsters(encounter_boss, &mut effects, rng);
         }
         RoomKind::CombatMonster => {
-            let encounter: u8 = rng.random_range(0..14);
-            match encounter {
-                0 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::JawWorm,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                1 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::Cultist,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                2 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::FungiBeast,
-                        },
-                        None,
-                        None,
-                    ));
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::FungiBeast,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                3 => {
-                    // Small Slimes: 50/50 between [Spike_S + Acid_M] and [Acid_S + Spike_M]
-                    let (small, medium) = if rng.random_bool(0.5) {
-                        (MonsterName::SlimeSpikeSmall, MonsterName::SlimeAcidMedium)
-                    } else {
-                        (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
-                    };
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn { name: small },
-                        None,
-                        None,
-                    ));
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn { name: medium },
-                        None,
-                        None,
-                    ));
-                }
-                4 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::SlaverBlue,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                5 => {
-                    // Gremlin Gang: 4 gremlins drawn without replacement
-                    let mut pool: [MonsterName; 8] = [
-                        MonsterName::GremlinWarrior,
-                        MonsterName::GremlinWarrior,
-                        MonsterName::GremlinThief,
-                        MonsterName::GremlinThief,
-                        MonsterName::GremlinFat,
-                        MonsterName::GremlinFat,
-                        MonsterName::GremlinTsundere,
-                        MonsterName::GremlinWizard,
-                    ];
-                    shuffle(&mut pool, rng);
-                    for &name in &pool[..4] {
-                        effects.push(Effect::direct(
-                            EffectKind::MonsterSpawn { name },
-                            None,
-                            None,
-                        ));
-                    }
-                }
-                6 => {
-                    // 2 Louse: independent draws from {Red, Green}
-                    static POOL: &[MonsterName] =
-                        &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
-                    for _ in 0..2 {
-                        let name = POOL[rng.random_range(0..POOL.len())];
-                        effects.push(Effect::direct(
-                            EffectKind::MonsterSpawn { name },
-                            None,
-                            None,
-                        ));
-                    }
-                }
-                7 => {
-                    // 3 Louse: independent draws from {Red, Green}
-                    static POOL: &[MonsterName] =
-                        &[MonsterName::LouseNormal, MonsterName::LouseDefensive];
-                    for _ in 0..3 {
-                        let name = POOL[rng.random_range(0..POOL.len())];
-                        effects.push(Effect::direct(
-                            EffectKind::MonsterSpawn { name },
-                            None,
-                            None,
-                        ));
-                    }
-                }
-                8 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::SlimeAcidMedium,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                9 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::SlimeSpikeMedium,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                10 => {
-                    // Large Slime: 50/50 between Acid_L and Spike_L.
-                    let name = if rng.random_bool(0.5) {
-                        MonsterName::SlimeAcidLarge
-                    } else {
-                        MonsterName::SlimeSpikeLarge
-                    };
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn { name },
-                        None,
-                        None,
-                    ));
-                }
-                11 => {
-                    // Lots of Slimes: 5 small slimes drawn without replacement
-                    let mut pool: [MonsterName; 5] = [
-                        MonsterName::SlimeSpikeSmall,
-                        MonsterName::SlimeSpikeSmall,
-                        MonsterName::SlimeSpikeSmall,
-                        MonsterName::SlimeAcidSmall,
-                        MonsterName::SlimeAcidSmall,
-                    ];
-                    shuffle(&mut pool, rng);
-                    for &name in &pool {
-                        effects.push(Effect::direct(
-                            EffectKind::MonsterSpawn { name },
-                            None,
-                            None,
-                        ));
-                    }
-                }
-                12 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::Looter,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                13 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::SlaverRed,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                _ => unreachable!(),
-            };
+            let encounter = encounter_list_normal.remove(0);
+            spawn_encounter_monsters(encounter, &mut effects, rng);
         }
         RoomKind::CombatElite => {
-            // Sentries, GremlinNob, or Lagavulin
-            let pick: u8 = rng.random_range(0..3);
-            match pick {
-                0 => {
-                    for _ in 0..3 {
-                        effects.push(Effect::direct(
-                            EffectKind::MonsterSpawn {
-                                name: MonsterName::Sentry,
-                            },
-                            None,
-                            None,
-                        ));
-                    }
-                }
-                1 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::GremlinNob,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                2 => {
-                    effects.push(Effect::direct(
-                        EffectKind::MonsterSpawn {
-                            name: MonsterName::Lagavulin,
-                        },
-                        None,
-                        None,
-                    ));
-                }
-                _ => unreachable!(),
-            }
+            let encounter = encounter_list_elite.remove(0);
+            spawn_encounter_monsters(encounter, &mut effects, rng);
         }
         RoomKind::RestSite => {
-            // Nothing to enqueue; the queue drains and the engine derives
-            // Phase::RestSite from `location` + room kind
+            // Nothing to enqueue; the effect_queue drains and the engine derives
+            // Phase::RestSite from `Location` & `RoomKind`
         }
     }
 
     if !effects.is_empty() {
         effects.push(Effect::direct(EffectKind::CombatStart, None, None));
         for effect in effects.into_iter().rev() {
-            queue.push_front(effect);
+            effect_queue.push_front(effect);
         }
     }
 
     DispatchResult::Continue
+}
+
+fn pick_louse(rng: &mut impl Rng) -> MonsterName {
+    if rng.random_bool(0.5) {
+        MonsterName::LouseNormal
+    } else {
+        MonsterName::LouseDefensive
+    }
+}
+
+fn pick_slaver(rng: &mut impl Rng) -> MonsterName {
+    if rng.random_bool(0.5) {
+        MonsterName::SlaverRed
+    } else {
+        MonsterName::SlaverBlue
+    }
+}
+
+fn pick_wildlife_weak(rng: &mut impl Rng) -> MonsterName {
+    match rng.random_range(0..3) {
+        0 => pick_louse(rng),
+        1 => MonsterName::SlimeSpikeMedium,
+        2 => MonsterName::SlimeAcidMedium,
+        _ => unreachable!(),
+    }
+}
+
+fn pick_wildlife_strong(rng: &mut impl Rng) -> MonsterName {
+    if rng.random_bool(0.5) {
+        MonsterName::FungiBeast
+    } else {
+        MonsterName::JawWorm
+    }
+}
+
+fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
+    match rng.random_range(0..3) {
+        0 => MonsterName::Cultist,
+        1 => pick_slaver(rng),
+        2 => MonsterName::Looter,
+        _ => unreachable!(),
+    }
+}
+
+#[inline]
+fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
+    effects.push(Effect::direct(EffectKind::MonsterSpawn { name }, None, None));
+}
+
+fn spawn_encounter_monsters(
+    encounter: MonsterEncounter,
+    effects: &mut Vec<Effect>,
+    rng: &mut impl Rng,
+) {
+    match encounter {
+        MonsterEncounter::Cultist => push_monster_spawn(effects, MonsterName::Cultist),
+        MonsterEncounter::JawWorm => push_monster_spawn(effects, MonsterName::JawWorm),
+        MonsterEncounter::TwoLouse => {
+            for _ in 0..2 {
+                push_monster_spawn(effects, pick_louse(rng));
+            }
+        }
+        MonsterEncounter::SmallSlimes => {
+            let (small, medium) = if rng.random_bool(0.5) {
+                (MonsterName::SlimeSpikeSmall, MonsterName::SlimeAcidMedium)
+            } else {
+                (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
+            };
+            push_monster_spawn(effects, small);
+            push_monster_spawn(effects, medium);
+        }
+        MonsterEncounter::BlueSlaver => push_monster_spawn(effects, MonsterName::SlaverBlue),
+        MonsterEncounter::RedSlaver => push_monster_spawn(effects, MonsterName::SlaverRed),
+        MonsterEncounter::Looter => push_monster_spawn(effects, MonsterName::Looter),
+        MonsterEncounter::TwoFungiBeasts => {
+            push_monster_spawn(effects, MonsterName::FungiBeast);
+            push_monster_spawn(effects, MonsterName::FungiBeast);
+        }
+        MonsterEncounter::ThreeLouse => {
+            for _ in 0..3 {
+                push_monster_spawn(effects, pick_louse(rng));
+            }
+        }
+        MonsterEncounter::LargeSlime => {
+            let name = if rng.random_bool(0.5) {
+                MonsterName::SlimeAcidLarge
+            } else {
+                MonsterName::SlimeSpikeLarge
+            };
+            push_monster_spawn(effects, name);
+        }
+        MonsterEncounter::LotsOfSlimes => {
+            let mut pool = [
+                MonsterName::SlimeSpikeSmall,
+                MonsterName::SlimeSpikeSmall,
+                MonsterName::SlimeSpikeSmall,
+                MonsterName::SlimeAcidSmall,
+                MonsterName::SlimeAcidSmall,
+            ];
+            shuffle(&mut pool, rng);
+            for &name in &pool {
+                push_monster_spawn(effects, name);
+            }
+        }
+        MonsterEncounter::GremlinGang => {
+            let mut pool = [
+                MonsterName::GremlinWarrior,
+                MonsterName::GremlinWarrior,
+                MonsterName::GremlinThief,
+                MonsterName::GremlinThief,
+                MonsterName::GremlinFat,
+                MonsterName::GremlinFat,
+                MonsterName::GremlinTsundere,
+                MonsterName::GremlinWizard,
+            ];
+            shuffle(&mut pool, rng);
+            for &name in &pool[..4] {
+                push_monster_spawn(effects, name);
+            }
+        }
+        MonsterEncounter::ExordiumThugs => {
+            push_monster_spawn(effects, pick_wildlife_weak(rng));
+            push_monster_spawn(effects, pick_humanoid_strong(rng));
+        }
+        MonsterEncounter::ExordiumWildlife => {
+            push_monster_spawn(effects, pick_wildlife_strong(rng));
+            push_monster_spawn(effects, pick_wildlife_weak(rng));
+        }
+        MonsterEncounter::GremlinNob => push_monster_spawn(effects, MonsterName::GremlinNob),
+        MonsterEncounter::Lagavulin => push_monster_spawn(effects, MonsterName::Lagavulin),
+        MonsterEncounter::ThreeSentries => {
+            for _ in 0..3 {
+                push_monster_spawn(effects, MonsterName::Sentry);
+            }
+        }
+        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian),
+        MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost),
+        MonsterEncounter::SlimeBoss => push_monster_spawn(effects, MonsterName::SlimeBoss),
+    }
 }

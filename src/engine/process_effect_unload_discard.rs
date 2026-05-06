@@ -9,11 +9,11 @@ use crate::types::CardKind;
 pub fn process_effect_unload_discard(
     entities: &[Entity],
     id_hand: &[usize],
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     for &id_card in id_hand {
         if entities[id_card].card_kind != CardKind::Attack {
-            queue.push_front(Effect::direct(
+            effect_queue.push_front(Effect::direct(
                 EffectKind::CardDiscard {
                     source: DiscardSource::Explicit,
                 },

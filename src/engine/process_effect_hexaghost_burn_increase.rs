@@ -13,7 +13,7 @@ pub fn process_effect_hexaghost_burn_increase(
     entities: &mut Vec<Entity>,
     id_pile_draw: &[usize],
     id_pile_discard: &[usize],
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     for &id_card in id_pile_draw.iter().chain(id_pile_discard.iter()) {
         if entities[id_card].card_name == CardName::Burn && !entities[id_card].card_upgraded {
@@ -23,7 +23,7 @@ pub fn process_effect_hexaghost_burn_increase(
     }
 
     if count > 0 {
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::CardAddToDiscard {
                 card_name: CardName::Burn,
                 count,

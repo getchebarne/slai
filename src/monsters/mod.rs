@@ -1,3 +1,4 @@
+pub mod encounters;
 pub mod cultist;
 pub mod fungi_beast;
 pub mod gremlin_fat;

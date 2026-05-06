@@ -44,7 +44,7 @@ pub fn room_at<'a>(
     Some(&entities[id_room])
 }
 
-pub fn active_room_kind(
+pub fn get_active_room_kind(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],

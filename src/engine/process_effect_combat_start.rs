@@ -20,7 +20,7 @@ pub fn process_effect_combat_start(
     monster_count: u8,
     this_combat_damage_instances_taken: &mut u8,
     rng: &mut impl Rng,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     *this_combat_damage_instances_taken = 0;
     // Clone deck cards into combat copies, separating innate from non-innate
@@ -52,13 +52,13 @@ pub fn process_effect_combat_start(
 
     // Queue initial effects: MoveUpdate for each monster (original order), then TurnStart
     // Push TurnStart first (it runs last), then monsters in reverse
-    queue.push_front(Effect {
+    effect_queue.push_front(Effect {
         kind: EffectKind::TurnStart,
         id_source: None,
         target: Target::Direct(Some(id_character)),
     });
     for &id_monster in id_monsters[..monster_count as usize].iter().rev() {
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::MoveUpdate,
             id_source: None,
             target: Target::Direct(Some(id_monster)),

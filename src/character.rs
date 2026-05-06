@@ -18,7 +18,7 @@ pub fn spawn_silent(ascension: u8) -> Entity {
     )
 }
 
-pub fn silent_starter_deck() -> Vec<Entity> {
+pub fn get_silent_starter_deck() -> Vec<Entity> {
     vec![
         get_card(CardName::Strike, false),
         get_card(CardName::Strike, false),

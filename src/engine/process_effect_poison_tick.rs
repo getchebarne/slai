@@ -9,7 +9,7 @@ use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, mo
 pub fn process_effect_poison_tick(
     modifiers: &mut Modifiers,
     id_target: usize,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     if !modifier_has(modifiers, ModifierKind::Poison) {
         return DispatchResult::Continue;
@@ -25,7 +25,7 @@ pub fn process_effect_poison_tick(
     }
 
     // Push health loss effect
-    queue.push_front(Effect {
+    effect_queue.push_front(Effect {
         kind: EffectKind::HealthLoss {
             amount: stacks as u16,
         },

@@ -20,7 +20,7 @@ pub fn process_effect_damage_physical(
     id_target: usize,
     amount: u16,
     condition: DamageCondition,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let target = &entities[id_target];
     if let DamageCondition::IfPoisoned = condition {
@@ -58,7 +58,7 @@ pub fn process_effect_damage_physical(
     // Thorns: triggers per attack instance regardless of damage actually dealt
     if id_actor != id_target && modifier_has(mods_target, ModifierKind::Thorns) {
         let stacks = modifier_stacks(mods_target, ModifierKind::Thorns);
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::DamageDeal {
                 amount: stacks as u16,
             },
@@ -69,7 +69,7 @@ pub fn process_effect_damage_physical(
 
     let final_damage = value.max(0.0) as u16;
     if final_damage > 0 {
-        queue.push_front(Effect {
+        effect_queue.push_front(Effect {
             kind: EffectKind::DamageDeal {
                 amount: final_damage,
             },

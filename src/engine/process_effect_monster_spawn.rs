@@ -17,7 +17,7 @@ pub fn process_effect_monster_spawn(
     id_monsters: &mut [usize; MAX_MONSTERS],
     monster_count: &mut u8,
     rng: &mut impl Rng,
-    queue: &mut VecDeque<Effect>,
+    effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     assert!(
         (*monster_count as usize) < MAX_MONSTERS,
@@ -56,7 +56,7 @@ pub fn process_effect_monster_spawn(
 
     // Queue a MoveUpdate so the spawned monster has an intent visible on the
     // next view rebuild and ready for its first turn
-    queue.push_front(Effect {
+    effect_queue.push_front(Effect {
         kind: EffectKind::MoveUpdate,
         id_source: None,
         target: Target::Direct(Some(id_child)),
