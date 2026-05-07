@@ -751,8 +751,6 @@ fn dispatch_by_kind(
             &mut state.id_pile_discard,
             &mut state.id_pile_exhaust,
             &mut state.id_card_target,
-            &state.id_monsters,
-            state.monster_count,
             &mut state.this_combat_damage_instances_taken,
             &mut state.rng,
             &mut state.effect_queue,
