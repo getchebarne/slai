@@ -9,13 +9,14 @@ use crate::action::{Action, handle_action};
 use crate::character::{get_silent_starter_deck, spawn_silent};
 use crate::consts::{
     ENCOUNTER_LIST_ELITE_CAPACITY, ENCOUNTER_LIST_NORMAL_CAPACITY, MAP_HEIGHT, MAP_WIDTH,
-    MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND,
+    MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_RELICS, MAX_SIZE_HAND,
 };
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
 use crate::entity::Entity;
 use crate::map::generate_map;
 use crate::monsters::encounters::{generate_act1_monsters, pick_act1_boss};
+use crate::relics::get_relic;
 use crate::types::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -67,6 +68,11 @@ pub struct GameState {
     pub id_pile_exhaust: Vec<usize>,
     pub id_card_rewards: Vec<usize>,
 
+    // Relics
+    pub id_relics: [usize; MAX_RELICS],
+    pub relic_count: u8,
+    pub id_relic_rewards: Vec<usize>,
+
     // Needed for Escape Plan
     pub card_last_drawn: Option<usize>,
 
@@ -91,7 +97,14 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     // Initialize character
     let character = spawn_silent(ascension);
     entities.push(character);
-    
+
+    // Innate start relic
+    let id_snake_ring = entities.len();
+    entities.push(get_relic(RelicName::SnakeRing));
+    let mut id_relics = [0usize; MAX_RELICS];
+    id_relics[0] = id_snake_ring;
+    let relic_count: u8 = 1;
+
     // Initialize starter deck
     let deck_starter = get_silent_starter_deck();
     let mut id_deck = Vec::with_capacity(deck_starter.len());
@@ -142,6 +155,9 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_pile_exhaust: Vec::with_capacity(32),
         id_card_target: None,
         id_card_rewards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
+        id_relics,
+        relic_count,
+        id_relic_rewards: Vec::new(),
         id_rooms,
         location,
         encounter_list_normal,

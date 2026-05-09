@@ -10,6 +10,7 @@ use crate::utils::shuffle;
 pub fn process_effect_combat_start(
     id_character: usize,
     id_deck: &[usize],
+    id_relics: &[usize],
     entities: &mut Vec<Entity>,
     id_pile_draw: &mut Vec<usize>,
     id_hand: &mut Vec<usize>,
@@ -55,6 +56,12 @@ pub fn process_effect_combat_start(
         id_source: None,
         target: Target::Direct(Some(id_character)),
     });
+
+    for &id_relic in id_relics {
+        for &eff in entities[id_relic].relic_effects_on_combat_start {
+            effect_queue.push_back(eff);
+        }
+    }
 
     DispatchResult::Continue
 }

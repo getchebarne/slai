@@ -45,6 +45,9 @@ pub mod process_effect_modifier_tick;
 pub mod process_effect_monster_spawn;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
+pub mod process_effect_relic_reward_clear;
+pub mod process_effect_relic_reward_roll;
+pub mod process_effect_relic_reward_select;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
 pub mod process_effect_set_cost_override;
@@ -499,6 +502,7 @@ fn dispatch_by_kind(
         EffectKind::CardRewardClear => {
             process_effect_card_reward_clear::process_effect_card_reward_clear(
                 &mut state.id_card_rewards,
+                &state.id_relic_rewards,
                 &mut state.effect_queue,
             )
         }
@@ -741,6 +745,7 @@ fn dispatch_by_kind(
         EffectKind::CombatStart => process_effect_combat_start::process_effect_combat_start(
             state.id_character,
             &state.id_deck,
+            &state.id_relics[..state.relic_count as usize],
             &mut state.entities,
             &mut state.id_pile_draw,
             &mut state.id_hand,
@@ -906,6 +911,28 @@ fn dispatch_by_kind(
                 .push_front(Effect::direct(EffectKind::CardRewardClear, None, None));
             DispatchResult::Continue
         }
+        EffectKind::RelicRewardRoll => {
+            process_effect_relic_reward_roll::process_effect_relic_reward_roll(
+                &mut state.id_relic_rewards,
+                &mut state.entities,
+                &mut state.rng,
+            )
+        }
+        EffectKind::RelicRewardSelect => {
+            process_effect_relic_reward_select::process_effect_relic_reward_select(
+                id_target.unwrap(),
+                &mut state.id_relics,
+                &mut state.relic_count,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::RelicRewardClear => {
+            process_effect_relic_reward_clear::process_effect_relic_reward_clear(
+                &mut state.id_relic_rewards,
+                &state.id_card_rewards,
+                &mut state.effect_queue,
+            )
+        }
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
 }
@@ -942,8 +969,8 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
     if matches!(state.location, Location::BossRoom) && state.monster_count == 0 {
         return Phase::GameOver;
     }
-    // Card rewards waiting to be picked or skipped
-    if !state.id_card_rewards.is_empty() {
+    // Card or relic rewards waiting to be picked or skipped
+    if !state.id_card_rewards.is_empty() || !state.id_relic_rewards.is_empty() {
         return Phase::CombatReward;
     }
     // Combat in progress

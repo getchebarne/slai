@@ -3,13 +3,13 @@ use std::collections::VecDeque;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::DispatchResult;
 
-pub fn process_effect_card_reward_clear(
-    id_card_rewards: &mut Vec<usize>,
-    id_relic_rewards: &[usize],
+pub fn process_effect_relic_reward_clear(
+    id_relic_rewards: &mut Vec<usize>,
+    id_card_rewards: &[usize],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    id_card_rewards.clear();
-    if id_relic_rewards.is_empty() {
+    id_relic_rewards.clear();
+    if id_card_rewards.is_empty() {
         effect_queue.push_front(Effect {
             kind: EffectKind::RoomSelect,
             id_source: None,

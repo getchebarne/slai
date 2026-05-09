@@ -14,8 +14,8 @@ use crate::modifier::{Modifiers, ZERO_MODIFIERS};
 // with practical caps, etc.). Bump when a card legitimately exceeds it
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
 use crate::types::{
-    CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RoomKind, Vitals,
-    ZERO_VITALS,
+    CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RelicName, RelicTier,
+    RoomKind, Vitals, ZERO_VITALS,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -24,6 +24,7 @@ pub enum EntityKind {
     Monster,
     Card,
     Room,
+    Relic,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -117,6 +118,13 @@ pub struct Entity {
     pub room_x: usize,
     pub room_kind: RoomKind,
     pub edges: u8,
+
+    // Relic-only
+    pub relic_name: RelicName,
+    pub relic_tier: RelicTier,
+    pub relic_counter: i16,
+    pub relic_used_up: bool,
+    pub relic_effects_on_combat_start: &'static [Effect],
 }
 
 // Private zero-fill used by the public const fn constructors below
@@ -160,6 +168,11 @@ const ZERO_ENTITY: Entity = Entity {
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
     edges: 0,
+    relic_name: RelicName::SnakeRing,
+    relic_tier: RelicTier::Starter,
+    relic_counter: 0,
+    relic_used_up: false,
+    relic_effects_on_combat_start: &[],
 };
 
 // Constructors
@@ -254,6 +267,23 @@ pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8
         room_x: x,
         room_kind,
         edges,
+        ..ZERO_ENTITY
+    }
+}
+
+pub const fn make_entity_relic(
+    name: RelicName,
+    tier: RelicTier,
+    counter_init: i16,
+    effects_on_combat_start: &'static [Effect],
+) -> Entity {
+    Entity {
+        kind: EntityKind::Relic,
+        relic_name: name,
+        relic_tier: tier,
+        relic_counter: counter_init,
+        relic_used_up: false,
+        relic_effects_on_combat_start: effects_on_combat_start,
         ..ZERO_ENTITY
     }
 }

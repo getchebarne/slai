@@ -32,6 +32,10 @@ pub enum Action {
         idx_reward: usize,
     },
     CardRewardSkip,
+    RelicRewardSelect {
+        idx_reward: usize,
+    },
+    RelicRewardSkip,
     EndTurn,
     RoomSelect {
         idx_column: usize,
@@ -51,7 +55,13 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
         (Action::CardNightmare { .. }, Phase::CombatAwaitNightmare) => true,
         (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
-        (Action::CardRewardSelect { .. } | Action::CardRewardSkip, Phase::CombatReward) => true,
+        (
+            Action::CardRewardSelect { .. }
+            | Action::CardRewardSkip
+            | Action::RelicRewardSelect { .. }
+            | Action::RelicRewardSkip,
+            Phase::CombatReward,
+        ) => true,
         (Action::RoomSelect { .. }, Phase::Map) => true,
         _ => false,
     };
@@ -76,6 +86,8 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::RestSiteCardUpgrade { idx_deck } => handle_rest_site_card_upgrade(state, idx_deck),
         Action::CardRewardSelect { idx_reward } => handle_card_reward_select(state, idx_reward),
         Action::CardRewardSkip => Ok(handle_card_reward_skip()),
+        Action::RelicRewardSelect { idx_reward } => handle_relic_reward_select(state, idx_reward),
+        Action::RelicRewardSkip => Ok(handle_relic_reward_skip()),
         Action::EndTurn => Ok(handle_end_turn(state)),
         Action::RoomSelect { idx_column } => handle_room_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
@@ -290,6 +302,23 @@ fn handle_card_reward_skip() -> Vec<Effect> {
     // CardRewardClear halts on AwaitMapNode once the rewards are cleared
     vec![Effect {
         kind: EffectKind::CardRewardClear,
+        id_source: None,
+        target: Target::Direct(None),
+    }]
+}
+
+fn handle_relic_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
+    let id_relic = lookup_idx(&state.id_relic_rewards, idx_reward)?;
+    Ok(vec![Effect::direct(
+        EffectKind::RelicRewardSelect,
+        None,
+        Some(id_relic),
+    )])
+}
+
+fn handle_relic_reward_skip() -> Vec<Effect> {
+    vec![Effect {
+        kind: EffectKind::RelicRewardClear,
         id_source: None,
         target: Target::Direct(None),
     }]

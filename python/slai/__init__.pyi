@@ -70,6 +70,18 @@ class CandidatePool:
     NextRowRooms: "CandidatePool"
     CardRewardPool: "CandidatePool"
 
+class RelicName:
+    SnakeRing: "RelicName"
+
+class RelicTier:
+    Starter: "RelicTier"
+    Common: "RelicTier"
+    Uncommon: "RelicTier"
+    Rare: "RelicTier"
+    Boss: "RelicTier"
+    Shop: "RelicTier"
+    Special: "RelicTier"
+
 # ───────── Complex enums (parent class + variant subclasses) ─────────
 #
 # Each parent class is the type hint for the field; variants are reachable
@@ -190,6 +202,13 @@ class Action:
     class CardRewardSkip:
         def __init__(self) -> None: ...
 
+    class RelicRewardSelect:
+        idx_reward: int
+        def __init__(self, idx_reward: int) -> None: ...
+
+    class RelicRewardSkip:
+        def __init__(self) -> None: ...
+
     class RestSiteRest:
         def __init__(self) -> None: ...
 
@@ -204,6 +223,17 @@ class Modifier:
     stacks: int
     """Signed: debuffs and buffs both use this field. For some modifiers
     (Vulnerable, Weak), stacks counts duration in turns."""
+
+class Relic:
+    name: RelicName
+    tier: RelicTier
+    counter: int
+    """Per-relic counter slot (Java's `counter` field). Used by tiered
+    counter-driven relics (HappyFlower, Sundial, etc.)."""
+
+    used_up: bool
+    """True for one-shot relics that have already triggered (Omamori,
+    LizardTail, MawBank). Tier 0 relics never set this."""
 
 class Card:
     name: str
@@ -299,6 +329,14 @@ class GameState:
     card_rewards: list[Card]
     """Cards offered as post-combat reward. Non-empty only during `Phase.CombatReward`."""
 
+    relics: list[Relic]
+    """Run-persistent relics owned by the player. Always includes innate
+    SnakeRing for the Silent."""
+
+    relic_rewards: list[Relic]
+    """Relics offered as post-combat reward. Non-empty only after Elite
+    combats during `Phase.CombatReward`."""
+
     energy: Energy
     map: Map
 
@@ -340,6 +378,8 @@ class GameEnv:
             Action.RoomSelect,
             Action.CardRewardSelect,
             Action.CardRewardSkip,
+            Action.RelicRewardSelect,
+            Action.RelicRewardSkip,
             Action.RestSiteRest,
             Action.RestSiteCardUpgrade,
         ],
