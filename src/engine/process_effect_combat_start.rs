@@ -16,8 +16,6 @@ pub fn process_effect_combat_start(
     id_pile_discard: &mut Vec<usize>,
     id_pile_exhaust: &mut Vec<usize>,
     id_card_target: &mut Option<usize>,
-    id_monsters: &[usize],
-    monster_count: u8,
     this_combat_damage_instances_taken: &mut u8,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
@@ -50,20 +48,13 @@ pub fn process_effect_combat_start(
     id_pile_exhaust.clear();
     *id_card_target = None;
 
-    // Queue initial effects: MoveUpdate for each monster (original order), then TurnStart
-    // Push TurnStart first (it runs last), then monsters in reverse
+    // Monsters already had MoveUpdate queued at MonsterSpawn time, so we only
+    // need to queue TurnStart for the character here
     effect_queue.push_front(Effect {
         kind: EffectKind::TurnStart,
         id_source: None,
         target: Target::Direct(Some(id_character)),
     });
-    for &id_monster in id_monsters[..monster_count as usize].iter().rev() {
-        effect_queue.push_front(Effect {
-            kind: EffectKind::MoveUpdate,
-            id_source: None,
-            target: Target::Direct(Some(id_monster)),
-        });
-    }
 
     DispatchResult::Continue
 }
