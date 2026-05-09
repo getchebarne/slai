@@ -99,91 +99,6 @@ pub enum CardName {
     WraithForm,
 }
 
-impl CardName {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::AThousandCuts => "A Thousand Cuts",
-            Self::Accuracy => "Accuracy",
-            Self::Acrobatics => "Acrobatics",
-            Self::Adrenaline => "Adrenaline",
-            Self::AfterImage => "After Image",
-            Self::AllOutAttack => "All Out Attack",
-            Self::Backflip => "Backflip",
-            Self::Backstab => "Backstab",
-            Self::Bane => "Bane",
-            Self::BladeDance => "Blade Dance",
-            Self::Blur => "Blur",
-            Self::BouncingFlask => "Bouncing Flask",
-            Self::BulletTime => "Bullet Time",
-            Self::Burn => "Burn",
-            Self::Burst => "Burst",
-            Self::CalculatedGamble => "Calculated Gamble",
-            Self::Caltrops => "Caltrops",
-            Self::Catalyst => "Catalyst",
-            Self::Choke => "Choke",
-            Self::CloakAndDagger => "Cloak And Dagger",
-            Self::Concentrate => "Concentrate",
-            Self::CorpseExplosion => "Corpse Explosion",
-            Self::CripplingPoison => "Crippling Poison",
-            Self::DaggerSpray => "Dagger Spray",
-            Self::DaggerThrow => "Dagger Throw",
-            Self::Dash => "Dash",
-            Self::Dazed => "Dazed",
-            Self::DeadlyPoison => "Deadly Poison",
-            Self::Defend => "Defend",
-            Self::Deflect => "Deflect",
-            Self::DieDieDie => "Die Die Die",
-            Self::Distraction => "Distraction",
-            Self::DodgeAndRoll => "Dodge And Roll",
-            Self::Doppelganger => "Doppelganger",
-            Self::EndlessAgony => "Endless Agony",
-            Self::Envenom => "Envenom",
-            Self::EscapePlan => "Escape Plan",
-            Self::Eviscerate => "Eviscerate",
-            Self::Expertise => "Expertise",
-            Self::Finisher => "Finisher",
-            Self::Flechettes => "Flechettes",
-            Self::FlyingKnee => "Flying Knee",
-            Self::Footwork => "Footwork",
-            Self::GlassKnife => "Glass Knife",
-            Self::GrandFinale => "Grand Finale",
-            Self::HeelHook => "Heel Hook",
-            Self::InfiniteBlades => "Infinite Blades",
-            Self::LegSweep => "Leg Sweep",
-            Self::Malaise => "Malaise",
-            Self::MasterfulStab => "Masterful Stab",
-            Self::Neutralize => "Neutralize",
-            Self::Nightmare => "Nightmare",
-            Self::NoxiousFumes => "Noxious Fumes",
-            Self::Outmaneuver => "Outmaneuver",
-            Self::PhantasmalKiller => "Phantasmal Killer",
-            Self::PiercingWail => "Piercing Wail",
-            Self::PoisonedStab => "Poisoned Stab",
-            Self::Predator => "Predator",
-            Self::Prepared => "Prepared",
-            Self::QuickSlash => "Quick Slash",
-            Self::Reflex => "Reflex",
-            Self::RiddleWithHoles => "Riddle With Holes",
-            Self::Setup => "Setup",
-            Self::Shiv => "Shiv",
-            Self::Skewer => "Skewer",
-            Self::Slice => "Slice",
-            Self::Slimed => "Slimed",
-            Self::SneakyStrike => "Sneaky Strike",
-            Self::StormOfSteel => "Storm Of Steel",
-            Self::Strike => "Strike",
-            Self::SuckerPunch => "Sucker Punch",
-            Self::Survivor => "Survivor",
-            Self::Tactician => "Tactician",
-            Self::Terror => "Terror",
-            Self::ToolsOfTheTrade => "Tools Of The Trade",
-            Self::Unload => "Unload",
-            Self::WellLaidPlans => "Well Laid Plans",
-            Self::WraithForm => "Wraith Form",
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CardKind {
     Attack,
@@ -239,38 +154,6 @@ pub enum MonsterName {
     TheGuardian,
 }
 
-impl MonsterName {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Cultist => "Cultist",
-            Self::FungiBeast => "Fungi Beast",
-            Self::GremlinFat => "Fat Gremlin",
-            Self::GremlinNob => "Gremlin Nob",
-            Self::GremlinThief => "Sneaky Gremlin",
-            Self::GremlinTsundere => "Shield Gremlin",
-            Self::GremlinWarrior => "Mad Gremlin",
-            Self::GremlinWizard => "Gremlin Wizard",
-            Self::Hexaghost => "Hexaghost",
-            Self::JawWorm => "Jaw Worm",
-            Self::Lagavulin => "Lagavulin",
-            Self::Looter => "Looter",
-            Self::LouseDefensive => "Green Louse",
-            Self::LouseNormal => "Red Louse",
-            Self::Sentry => "Sentry",
-            Self::SlaverBlue => "Blue Slaver",
-            Self::SlaverRed => "Red Slaver",
-            Self::SlimeAcidLarge => "Acid Slime (L)",
-            Self::SlimeAcidMedium => "Acid Slime (M)",
-            Self::SlimeAcidSmall => "Acid Slime (S)",
-            Self::SlimeBoss => "Slime Boss",
-            Self::SlimeSpikeLarge => "Spike Slime (L)",
-            Self::SlimeSpikeMedium => "Spike Slime (M)",
-            Self::SlimeSpikeSmall => "Spike Slime (S)",
-            Self::TheGuardian => "The Guardian",
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MonsterKind {
     Normal,
@@ -289,12 +172,13 @@ pub enum EncounterPool {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
 pub enum MonsterEncounter {
-    // Easy pool
+    // Easy
     Cultist,
     JawWorm,
     TwoLouse,
     SmallSlimes,
-    // Hard pool
+
+    // Hard
     BlueSlaver,
     RedSlaver,
     Looter,
@@ -305,41 +189,16 @@ pub enum MonsterEncounter {
     GremlinGang,
     ExordiumThugs,
     ExordiumWildlife,
-    // Elite pool
+
+    // Elite
     GremlinNob,
     Lagavulin,
     ThreeSentries,
-    // Boss pool
+
+    // Boss
     TheGuardian,
     Hexaghost,
     SlimeBoss,
-}
-
-impl MonsterEncounter {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Cultist => "Cultist",
-            Self::JawWorm => "Jaw Worm",
-            Self::TwoLouse => "2 Louse",
-            Self::SmallSlimes => "Small Slimes",
-            Self::BlueSlaver => "Blue Slaver",
-            Self::RedSlaver => "Red Slaver",
-            Self::Looter => "Looter",
-            Self::TwoFungiBeasts => "2 Fungi Beasts",
-            Self::ThreeLouse => "3 Louse",
-            Self::LargeSlime => "Large Slime",
-            Self::LotsOfSlimes => "Lots of Slimes",
-            Self::GremlinGang => "Gremlin Gang",
-            Self::ExordiumThugs => "Exordium Thugs",
-            Self::ExordiumWildlife => "Exordium Wildlife",
-            Self::GremlinNob => "Gremlin Nob",
-            Self::Lagavulin => "Lagavulin",
-            Self::ThreeSentries => "3 Sentries",
-            Self::TheGuardian => "The Guardian",
-            Self::Hexaghost => "Hexaghost",
-            Self::SlimeBoss => "Slime Boss",
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

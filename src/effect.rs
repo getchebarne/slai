@@ -9,7 +9,6 @@ pub enum EffectKind {
     DamagePhysicalIfPoisoned { amount: u16 },
     DistractionAdd,
     EndlessAgonyAddCopy { upgraded: bool },
-    BulletTimeProc,
     EscapePlanCheck { block: u16 },
     GlassKnifeDecay { delta: i16 },
     FinisherDamage { damage: u16 },
@@ -37,6 +36,7 @@ pub enum EffectKind {
     CardNightmareSpawn,
     CardRetain,
     CardSetupPick,
+    SetCostOverride { amount: u8 },
     CalculatedGamble,
 
     // Runtime only (for now)

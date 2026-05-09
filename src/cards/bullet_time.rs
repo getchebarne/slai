@@ -17,9 +17,12 @@ pub static BULLET_TIME: Entity = make_entity_card(
     false,
     &[
         Effect {
-            kind: EffectKind::BulletTimeProc,
+            kind: EffectKind::SetCostOverride { amount: 0 },
             id_source: None,
-            target: Target::Direct(None),
+            target: Target::Resolve {
+                candidates: CandidatePool::Hand,
+                selection: SelectionKind::All,
+            },
         },
         Effect {
             kind: EffectKind::ModifierGain {
