@@ -1,6 +1,6 @@
-// Relic registry and accessors. Storage is a u128 bitmask paired with a
-// name-indexed `[usize; RelicName::COUNT]` table on GameState; per-relic state
-// lives on the Entity (counter, used_up, effects-on-combat-start)
+// Relic registry and accessors. Storage is a name-indexed
+// `[Option<usize>; RelicName::COUNT]` on GameState; per-relic state lives on
+// the Entity (counter, used_up, effects-on-combat-start)
 
 mod akabeko;
 mod anchor;
@@ -16,6 +16,8 @@ mod snake_ring;
 mod thread_and_needle;
 mod twisted_funnel;
 mod vajra;
+
+use strum::EnumCount;
 
 use crate::entity::Entity;
 use crate::types::RelicName;
@@ -39,18 +41,11 @@ pub fn get_relic(name: RelicName) -> Entity {
     }
 }
 
-pub fn has_relic(active: u128, name: RelicName) -> bool {
-    active & (1u128 << name as u32) != 0
-}
-
-pub fn iter_owned_relics(active: u128) -> impl Iterator<Item = RelicName> {
-    let mut bits = active;
-    std::iter::from_fn(move || {
-        if bits == 0 {
-            return None;
-        }
-        let idx = bits.trailing_zeros() as u8;
-        bits &= bits - 1;
-        Some(RelicName::from_u8(idx))
-    })
+pub fn iter_owned_relics(
+    id_relics: &[Option<usize>; RelicName::COUNT],
+) -> impl Iterator<Item = (RelicName, usize)> + '_ {
+    id_relics
+        .iter()
+        .enumerate()
+        .filter_map(|(i, &opt)| opt.map(|id| (RelicName::from_u8(i as u8), id)))
 }

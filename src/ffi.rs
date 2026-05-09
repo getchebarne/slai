@@ -990,8 +990,8 @@ pub fn build_view(state: &InternalGameState) -> GameState {
         pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
         card_rewards: state.id_card_rewards.iter().copied().map(card).collect(),
-        relics: crate::relics::iter_owned_relics(state.relics_active)
-            .map(|name| build_view_relic(&state.entities[state.id_relics[name as usize]]))
+        relics: crate::relics::iter_owned_relics(&state.id_relics)
+            .map(|(_name, id)| build_view_relic(&state.entities[id]))
             .collect(),
         relic_rewards: state.id_relic_rewards.iter().copied().map(relic).collect(),
         energy: Energy {

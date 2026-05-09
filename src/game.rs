@@ -69,10 +69,8 @@ pub struct GameState {
     pub id_pile_exhaust: Vec<usize>,
     pub id_card_rewards: Vec<usize>,
 
-    // Relics: bitmask + name-indexed entity id table.
-    // `id_relics[name as usize]` valid iff `relics_active & (1 << name)` is set
-    pub relics_active: u128,
-    pub id_relics: [usize; RelicName::COUNT],
+    // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
+    pub id_relics: [Option<usize>; RelicName::COUNT],
     pub id_relic_rewards: Vec<usize>,
 
     // Needed for Escape Plan
@@ -103,9 +101,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     // Innate start relic
     let id_snake_ring = entities.len();
     entities.push(get_relic(RelicName::SnakeRing));
-    let mut id_relics = [0usize; RelicName::COUNT];
-    id_relics[RelicName::SnakeRing as usize] = id_snake_ring;
-    let relics_active: u128 = 1u128 << RelicName::SnakeRing as u32;
+    let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
+    id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
 
     // Initialize starter deck
     let deck_starter = get_silent_starter_deck();
@@ -157,7 +154,6 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_pile_exhaust: Vec::with_capacity(32),
         id_card_target: None,
         id_card_rewards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
-        relics_active,
         id_relics,
         id_relic_rewards: Vec::new(),
         id_rooms,

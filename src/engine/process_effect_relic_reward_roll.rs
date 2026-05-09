@@ -3,7 +3,7 @@ use strum::EnumCount;
 
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
-use crate::relics::{get_relic, has_relic};
+use crate::relics::get_relic;
 use crate::types::RelicName;
 
 const RELIC_POOL_COMMON: &[RelicName] = &[
@@ -30,7 +30,7 @@ const RELIC_POOL_RARE: &[RelicName] = &[RelicName::ThreadAndNeedle];
 const RELIC_POOL_SHOP: &[RelicName] = &[RelicName::TwistedFunnel];
 
 pub fn process_effect_relic_reward_roll(
-    relics_active: u128,
+    id_relics: &[Option<usize>; RelicName::COUNT],
     id_relic_rewards: &mut Vec<usize>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
@@ -45,10 +45,10 @@ pub fn process_effect_relic_reward_roll(
         RELIC_POOL_RARE
     };
 
-    let pick = pick_from_pool(pool, relics_active, rng)
-        .or_else(|| pick_from_pool(RELIC_POOL_RARE, relics_active, rng))
-        .or_else(|| pick_from_pool(RELIC_POOL_UNCOMMON, relics_active, rng))
-        .or_else(|| pick_from_pool(RELIC_POOL_COMMON, relics_active, rng));
+    let pick = pick_from_pool(pool, id_relics, rng)
+        .or_else(|| pick_from_pool(RELIC_POOL_RARE, id_relics, rng))
+        .or_else(|| pick_from_pool(RELIC_POOL_UNCOMMON, id_relics, rng))
+        .or_else(|| pick_from_pool(RELIC_POOL_COMMON, id_relics, rng));
 
     if let Some(name) = pick {
         let id = entities.len();
@@ -60,13 +60,13 @@ pub fn process_effect_relic_reward_roll(
 
 fn pick_from_pool(
     pool: &[RelicName],
-    relics_active: u128,
+    id_relics: &[Option<usize>; RelicName::COUNT],
     rng: &mut impl Rng,
 ) -> Option<RelicName> {
     let mut candidates = [RelicName::SnakeRing; RelicName::COUNT];
     let mut n = 0;
     for &name in pool {
-        if !has_relic(relics_active, name) {
+        if id_relics[name as usize].is_none() {
             candidates[n] = name;
             n += 1;
         }

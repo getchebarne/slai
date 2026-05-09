@@ -228,9 +228,6 @@ pub enum RelicName {
     Vajra,
 }
 
-// Bitmask width = u128. Must hold one bit per RelicName variant
-const _: () = assert!(RelicName::COUNT <= 128, "RelicName count exceeds u128 bitmask width");
-
 impl RelicName {
     pub fn from_u8(v: u8) -> Self {
         assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");

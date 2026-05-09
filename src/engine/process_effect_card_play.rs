@@ -6,7 +6,6 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{CardCostKind, Entity, card_effective_cost};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
-use crate::relics::has_relic;
 use crate::types::{CardKind, RelicName};
 
 pub fn process_effect_card_play(
@@ -18,8 +17,7 @@ pub fn process_effect_card_play(
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
-    relics_active: u128,
-    id_relics: &[usize; RelicName::COUNT],
+    id_relics: &[Option<usize>; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let card = entities[id_card];
@@ -28,8 +26,8 @@ pub fn process_effect_card_play(
     if card.card_kind == CardKind::Attack {
         *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
 
-        if has_relic(relics_active, RelicName::Kunai) {
-            let counter = &mut entities[id_relics[RelicName::Kunai as usize]].relic_counter;
+        if let Some(id_kunai) = id_relics[RelicName::Kunai as usize] {
+            let counter = &mut entities[id_kunai].relic_counter;
             *counter += 1;
             if *counter >= 3 {
                 *counter = 0;
@@ -43,8 +41,8 @@ pub fn process_effect_card_play(
                 });
             }
         }
-        if has_relic(relics_active, RelicName::Shuriken) {
-            let counter = &mut entities[id_relics[RelicName::Shuriken as usize]].relic_counter;
+        if let Some(id_shuriken) = id_relics[RelicName::Shuriken as usize] {
+            let counter = &mut entities[id_shuriken].relic_counter;
             *counter += 1;
             if *counter >= 3 {
                 *counter = 0;

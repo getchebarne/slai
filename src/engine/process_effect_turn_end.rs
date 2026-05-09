@@ -8,7 +8,6 @@ use crate::entity::{Entity, EntityKind};
 use strum::EnumCount;
 
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::relics::has_relic;
 use crate::types::{CardName, RelicName};
 
 pub fn process_effect_turn_end_monster(
@@ -84,19 +83,18 @@ pub fn process_effect_turn_end_character(
     id_alive_monsters: &[usize],
     this_turn_discards: &mut u8,
     this_turn_attacks_played: &mut u8,
-    relics_active: u128,
-    id_relics: &[usize; RelicName::COUNT],
+    id_relics: &[Option<usize>; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Reset per-turn counters synchronously, before the rest of the chain queues up
     *this_turn_discards = 0;
     *this_turn_attacks_played = 0;
 
-    if has_relic(relics_active, RelicName::Kunai) {
-        entities[id_relics[RelicName::Kunai as usize]].relic_counter = 0;
+    if let Some(id) = id_relics[RelicName::Kunai as usize] {
+        entities[id].relic_counter = 0;
     }
-    if has_relic(relics_active, RelicName::Shuriken) {
-        entities[id_relics[RelicName::Shuriken as usize]].relic_counter = 0;
+    if let Some(id) = id_relics[RelicName::Shuriken as usize] {
+        entities[id].relic_counter = 0;
     }
 
     // Clear per-instance cost overrides (Bullet Time)

@@ -71,13 +71,12 @@ impl GameEnv {
     // Remove once shop / event distribution channels exist
     fn dev_grant_relic(&mut self, name: ffi::RelicName) -> PyResult<()> {
         let internal: types::RelicName = name.into();
-        if relics::has_relic(self.state.relics_active, internal) {
+        if self.state.id_relics[internal as usize].is_some() {
             return Ok(());
         }
         let id = self.state.entities.len();
         self.state.entities.push(relics::get_relic(internal));
-        self.state.id_relics[internal as usize] = id;
-        self.state.relics_active |= 1u128 << internal as u32;
+        self.state.id_relics[internal as usize] = Some(id);
         Ok(())
     }
 }
