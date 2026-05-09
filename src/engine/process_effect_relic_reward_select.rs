@@ -1,15 +1,17 @@
 use std::collections::VecDeque;
 
+use strum::EnumCount;
+
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
-use crate::types::N_RELICS;
+use crate::types::RelicName;
 
 pub fn process_effect_relic_reward_select(
     id_relic: usize,
     entities: &[Entity],
     relics_active: &mut u128,
-    id_relics: &mut [usize; N_RELICS],
+    id_relics: &mut [usize; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let name = entities[id_relic].relic_name;

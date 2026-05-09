@@ -5,9 +5,11 @@ use crate::effect::{
 };
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
+use strum::EnumCount;
+
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
 use crate::relics::has_relic;
-use crate::types::{CardName, N_RELICS, RelicName};
+use crate::types::{CardName, RelicName};
 
 pub fn process_effect_turn_end_monster(
     modifiers: &Modifiers,
@@ -61,6 +63,17 @@ pub fn process_effect_turn_end_monster(
             target: Target::Direct(Some(id_actor)),
         });
     }
+
+    if modifier_has(modifiers, ModifierKind::PlatedArmor) {
+        let stacks = modifier_stacks(modifiers, ModifierKind::PlatedArmor);
+        effect_queue.push_front(Effect {
+            kind: EffectKind::BlockGain {
+                amount: stacks as u16,
+            },
+            id_source: Some(id_actor),
+            target: Target::Direct(Some(id_actor)),
+        });
+    }
     DispatchResult::Continue
 }
 
@@ -72,7 +85,7 @@ pub fn process_effect_turn_end_character(
     this_turn_discards: &mut u8,
     this_turn_attacks_played: &mut u8,
     relics_active: u128,
-    id_relics: &[usize; N_RELICS],
+    id_relics: &[usize; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Reset per-turn counters synchronously, before the rest of the chain queues up
@@ -120,6 +133,17 @@ pub fn process_effect_turn_end_character(
                 stacks,
             },
             id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    if modifier_has(mods_char, ModifierKind::PlatedArmor) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::PlatedArmor);
+        buf_effects.push(Effect {
+            kind: EffectKind::BlockGain {
+                amount: stacks as u16,
+            },
+            id_source: Some(id_character),
             target: Target::Direct(Some(id_character)),
         });
     }

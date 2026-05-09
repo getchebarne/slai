@@ -4,6 +4,7 @@ use std::collections::VecDeque;
 
 use rand::SeedableRng;
 use rand::rngs::SmallRng;
+use strum::EnumCount;
 
 use crate::action::{Action, handle_action};
 use crate::character::{get_silent_starter_deck, spawn_silent};
@@ -71,7 +72,7 @@ pub struct GameState {
     // Relics: bitmask + name-indexed entity id table.
     // `id_relics[name as usize]` valid iff `relics_active & (1 << name)` is set
     pub relics_active: u128,
-    pub id_relics: [usize; N_RELICS],
+    pub id_relics: [usize; RelicName::COUNT],
     pub id_relic_rewards: Vec<usize>,
 
     // Needed for Escape Plan
@@ -102,7 +103,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     // Innate start relic
     let id_snake_ring = entities.len();
     entities.push(get_relic(RelicName::SnakeRing));
-    let mut id_relics = [0usize; N_RELICS];
+    let mut id_relics = [0usize; RelicName::COUNT];
     id_relics[RelicName::SnakeRing as usize] = id_snake_ring;
     let relics_active: u128 = 1u128 << RelicName::SnakeRing as u32;
 

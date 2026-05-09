@@ -1,6 +1,6 @@
 // Relic registry and accessors. Storage is a u128 bitmask paired with a
-// name-indexed `[usize; N_RELICS]` table on GameState; per-relic state lives
-// on the Entity (counter, used_up, effects-on-combat-start)
+// name-indexed `[usize; RelicName::COUNT]` table on GameState; per-relic state
+// lives on the Entity (counter, used_up, effects-on-combat-start)
 
 mod akabeko;
 mod anchor;

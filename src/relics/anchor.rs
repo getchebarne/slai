@@ -11,7 +11,7 @@ pub static ANCHOR: Entity = make_entity_relic(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
 );

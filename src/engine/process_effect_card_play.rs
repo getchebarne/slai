@@ -1,11 +1,13 @@
 use std::collections::VecDeque;
 
+use strum::EnumCount;
+
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{CardCostKind, Entity, card_effective_cost};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
 use crate::relics::has_relic;
-use crate::types::{CardKind, N_RELICS, RelicName};
+use crate::types::{CardKind, RelicName};
 
 pub fn process_effect_card_play(
     id_card: usize,
@@ -17,7 +19,7 @@ pub fn process_effect_card_play(
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
     relics_active: u128,
-    id_relics: &[usize; N_RELICS],
+    id_relics: &[usize; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let card = entities[id_card];

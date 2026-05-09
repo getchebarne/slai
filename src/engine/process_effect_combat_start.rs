@@ -1,19 +1,20 @@
 use std::collections::VecDeque;
 
 use rand::Rng;
+use strum::EnumCount;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::relics::iter_owned_relics;
-use crate::types::N_RELICS;
+use crate::types::RelicName;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
     id_character: usize,
     id_deck: &[usize],
     relics_active: u128,
-    id_relics: &[usize; N_RELICS],
+    id_relics: &[usize; RelicName::COUNT],
     entities: &mut Vec<Entity>,
     id_pile_draw: &mut Vec<usize>,
     id_hand: &mut Vec<usize>,

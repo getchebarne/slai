@@ -5,7 +5,7 @@ use crate::types::{RelicName, RelicTier};
 
 pub static THREAD_AND_NEEDLE: Entity = make_entity_relic(
     RelicName::ThreadAndNeedle,
-    RelicTier::Common,
+    RelicTier::Rare,
     0,
     &[Effect {
         kind: EffectKind::ModifierGain {
@@ -15,7 +15,7 @@ pub static THREAD_AND_NEEDLE: Entity = make_entity_relic(
         id_source: None,
         target: Target::Resolve {
             candidates: CandidatePool::Character,
-            selection: SelectionKind::All,
+            selection: SelectionKind::Single,
         },
     }],
 );

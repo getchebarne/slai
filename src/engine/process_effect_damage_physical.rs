@@ -48,10 +48,6 @@ pub fn process_effect_damage_physical(
     if modifier_has(mods_target, ModifierKind::Vulnerable) {
         value *= FACTOR_VULN;
     }
-    if modifier_has(mods_target, ModifierKind::PlatedArmor) {
-        let armor = modifier_stacks(mods_target, ModifierKind::PlatedArmor) as f32;
-        value = (value - armor).max(0.0);
-    }
 
     // Intangible
     if modifier_has(mods_target, ModifierKind::Intangible) && value > 1.0 {

@@ -15,11 +15,8 @@ pub fn process_effect_health_loss(
     amount: u16,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // Java only decrements on attack damage; tighten when Tier 5 adds is_attack to DamageDeal
-    if id_target == id_character
-        && amount > 0
-        && modifier_has(modifiers, ModifierKind::PlatedArmor)
-    {
+    // TODO: should only decrement for physical attacks
+    if amount > 0 && modifier_has(modifiers, ModifierKind::PlatedArmor) {
         effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::PlatedArmor,

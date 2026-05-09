@@ -228,14 +228,12 @@ pub enum RelicName {
     Vajra,
 }
 
-pub const N_RELICS: usize = RelicName::COUNT;
-
 // Bitmask width = u128. Must hold one bit per RelicName variant
-const _: () = assert!(N_RELICS <= 128, "RelicName count exceeds u128 bitmask width");
+const _: () = assert!(RelicName::COUNT <= 128, "RelicName count exceeds u128 bitmask width");
 
 impl RelicName {
     pub fn from_u8(v: u8) -> Self {
-        assert!((v as usize) < N_RELICS, "invalid RelicName: {v}");
+        assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
         // SAFETY: repr(u8) and we validated the range
         unsafe { std::mem::transmute(v) }
     }
