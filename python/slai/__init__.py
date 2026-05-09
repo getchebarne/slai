@@ -18,6 +18,7 @@ from .slai import (
     CardRarity,
     CardCostKind,
     ModifierKind,
+    IntentKind,
     CandidatePool,
     RoomKind,
     # Complex enum mirrors (parent classes; variants reachable as Phase.Map etc.):
@@ -47,6 +48,7 @@ __all__ = [
     "CardRarity",
     "CardCostKind",
     "ModifierKind",
+    "IntentKind",
     "CandidatePool",
     "RoomKind",
     # Complex enums:

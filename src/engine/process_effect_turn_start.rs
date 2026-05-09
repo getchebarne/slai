@@ -5,7 +5,7 @@ use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionK
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
 use crate::game::Energy;
-use crate::types::Vitals;
+use crate::types::{CardName, Vitals};
 
 pub fn process_effect_turn_start(
     vitals: &mut Vitals,
@@ -181,7 +181,8 @@ pub fn process_effect_turn_start(
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
             buf_effects.push(Effect {
-                kind: EffectKind::ShivAdd {
+                kind: EffectKind::CardAddToHand {
+                    card_name: CardName::Shiv,
                     count: stacks as u8,
                     upgraded: false,
                 },

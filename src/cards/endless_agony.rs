@@ -24,7 +24,11 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
     }],
     &[],
     &[Effect {
-        kind: EffectKind::EndlessAgonyAddCopy { upgraded: false },
+        kind: EffectKind::CardAddToHand {
+            card_name: CardName::EndlessAgony,
+            count: 1,
+            upgraded: false,
+        },
         id_source: None,
         target: Target::Direct(None),
     }],
@@ -39,7 +43,11 @@ pub static ENDLESS_AGONY_PLUS: Entity = Entity {
         a
     },
     card_on_draw_effects: &[Effect {
-        kind: EffectKind::EndlessAgonyAddCopy { upgraded: true },
+        kind: EffectKind::CardAddToHand {
+            card_name: CardName::EndlessAgony,
+            count: 1,
+            upgraded: true,
+        },
         id_source: None,
         target: Target::Direct(None),
     }],

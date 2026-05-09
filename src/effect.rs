@@ -8,7 +8,6 @@ pub enum EffectKind {
     DamagePhysical { amount: u16 },
     DamagePhysicalIfPoisoned { amount: u16 },
     DistractionAdd,
-    EndlessAgonyAddCopy { upgraded: bool },
     EscapePlanCheck { block: u16 },
     GlassKnifeDecay { delta: i16 },
     FinisherDamage { damage: u16 },
@@ -22,10 +21,14 @@ pub enum EffectKind {
     ModifierMultiply { kind: ModifierKind, factor: u8 },
     ModifierRemove { kind: ModifierKind },
     EnergyGain { amount: u8 },
-    ShivAdd { count: u8, upgraded: bool },
     CardDraw { count: u8 },
     DrawUpTo { target: u8 },
     CardAddToDiscard {
+        card_name: CardName,
+        count: u8,
+        upgraded: bool,
+    },
+    CardAddToHand {
         card_name: CardName,
         count: u8,
         upgraded: bool,

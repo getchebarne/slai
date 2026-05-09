@@ -411,10 +411,6 @@ pub enum Effect {
     DistractionAdd {
         target: Option<Target>,
     },
-    EndlessAgonyAddCopy {
-        upgraded: bool,
-        target: Option<Target>,
-    },
     SetCostOverride {
         amount: u8,
         target: Option<Target>,
@@ -460,7 +456,8 @@ pub enum Effect {
         amount: u8,
         target: Option<Target>,
     },
-    ShivAdd {
+    CardAddToHand {
+        card_name: String,
         count: u8,
         upgraded: bool,
         target: Option<Target>,
@@ -508,9 +505,6 @@ impl Effect {
             EffectKind::CardSetupPick => Self::CardSetupPick { target },
             EffectKind::CardNightmarePick => Self::CardNightmarePick { target },
             EffectKind::DistractionAdd => Self::DistractionAdd { target },
-            EffectKind::EndlessAgonyAddCopy { upgraded } => {
-                Self::EndlessAgonyAddCopy { upgraded, target }
-            }
             EffectKind::SetCostOverride { amount } => Self::SetCostOverride { amount, target },
             EffectKind::FinisherDamage { damage } => Self::FinisherDamage { damage, target },
             EffectKind::FlechettesDamage { damage } => Self::FlechettesDamage { damage, target },
@@ -535,7 +529,12 @@ impl Effect {
                 target,
             },
             EffectKind::EnergyGain { amount } => Self::EnergyGain { amount, target },
-            EffectKind::ShivAdd { count, upgraded } => Self::ShivAdd {
+            EffectKind::CardAddToHand {
+                card_name,
+                count,
+                upgraded,
+            } => Self::CardAddToHand {
+                card_name: card_name.as_str().to_string(),
                 count,
                 upgraded,
                 target,
