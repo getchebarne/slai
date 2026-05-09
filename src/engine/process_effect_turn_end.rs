@@ -6,7 +6,7 @@ use crate::effect::{
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::types::CardName;
+use crate::types::{CardName, N_RELICS, RelicName};
 
 pub fn process_effect_turn_end_monster(
     modifiers: &Modifiers,
@@ -70,11 +70,21 @@ pub fn process_effect_turn_end_character(
     id_alive_monsters: &[usize],
     this_turn_discards: &mut u8,
     this_turn_attacks_played: &mut u8,
+    relics_active: u128,
+    id_relics: &[usize; N_RELICS],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Reset per-turn counters synchronously, before the rest of the chain queues up
     *this_turn_discards = 0;
     *this_turn_attacks_played = 0;
+
+    // Reset Kunai/Shuriken per-turn counters (Java atTurnStart equivalent)
+    if relics_active & (1u128 << RelicName::Kunai as u32) != 0 {
+        entities[id_relics[RelicName::Kunai as usize]].relic_counter = 0;
+    }
+    if relics_active & (1u128 << RelicName::Shuriken as u32) != 0 {
+        entities[id_relics[RelicName::Shuriken as usize]].relic_counter = 0;
+    }
 
     // Clear per-instance cost overrides (Bullet Time)
     for entity in entities.iter_mut() {

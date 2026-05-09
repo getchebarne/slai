@@ -5,12 +5,15 @@ use rand::Rng;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
+use crate::relics::iter_owned_relics;
+use crate::types::N_RELICS;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
     id_character: usize,
     id_deck: &[usize],
-    id_relics: &[usize],
+    relics_active: u128,
+    id_relics: &[usize; N_RELICS],
     entities: &mut Vec<Entity>,
     id_pile_draw: &mut Vec<usize>,
     id_hand: &mut Vec<usize>,
@@ -57,7 +60,9 @@ pub fn process_effect_combat_start(
         target: Target::Direct(Some(id_character)),
     });
 
-    for &id_relic in id_relics {
+    // Each owned relic's combat-start effects run after TurnStart
+    for name in iter_owned_relics(relics_active) {
+        let id_relic = id_relics[name as usize];
         for &eff in entities[id_relic].relic_effects_on_combat_start {
             effect_queue.push_back(eff);
         }

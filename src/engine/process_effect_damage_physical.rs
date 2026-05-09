@@ -34,6 +34,9 @@ pub fn process_effect_damage_physical(
     if modifier_has(mods_actor, ModifierKind::Strength) {
         value += modifier_stacks(mods_actor, ModifierKind::Strength) as f32;
     }
+    if modifier_has(mods_actor, ModifierKind::Vigor) {
+        value += modifier_stacks(mods_actor, ModifierKind::Vigor) as f32;
+    }
     if modifier_has(mods_actor, ModifierKind::Weak) {
         value *= FACTOR_WEAK;
     }
@@ -44,6 +47,10 @@ pub fn process_effect_damage_physical(
     // Target modifiers
     if modifier_has(mods_target, ModifierKind::Vulnerable) {
         value *= FACTOR_VULN;
+    }
+    if modifier_has(mods_target, ModifierKind::PlatedArmor) {
+        let armor = modifier_stacks(mods_target, ModifierKind::PlatedArmor) as f32;
+        value = (value - armor).max(0.0);
     }
 
     // Intangible

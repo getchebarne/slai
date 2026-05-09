@@ -15,6 +15,23 @@ pub fn process_effect_health_loss(
     amount: u16,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
+    // PlatedArmor: -1 stack on any character HP loss
+    // Java fidelity: only attack damage decrements; tighten in Tier 5 once
+    // DamageDeal carries an is_attack tag
+    if id_target == id_character
+        && amount > 0
+        && modifier_has(modifiers, ModifierKind::PlatedArmor)
+    {
+        effect_queue.push_front(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::PlatedArmor,
+                stacks: -1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
+    }
+
     vitals.health = vitals.health.saturating_sub(amount);
 
     if vitals.health == 0 {

@@ -209,9 +209,36 @@ pub enum RoomKind {
     RestSite,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[repr(u8)]
 pub enum RelicName {
-    SnakeRing,
+    SnakeRing = 0,
+    Akabeko,
+    Anchor,
+    BagOfMarbles,
+    BagOfPreparation,
+    BloodVial,
+    BronzeScales,
+    Kunai,
+    NinjaScroll,
+    OddlySmoothStone,
+    Shuriken,
+    ThreadAndNeedle,
+    TwistedFunnel,
+    Vajra,
+}
+
+pub const N_RELICS: usize = RelicName::COUNT;
+
+// Bitmask width = u128. Must hold one bit per RelicName variant
+const _: () = assert!(N_RELICS <= 128, "RelicName count exceeds u128 bitmask width");
+
+impl RelicName {
+    pub fn from_u8(v: u8) -> Self {
+        assert!((v as usize) < N_RELICS, "invalid RelicName: {v}");
+        // SAFETY: repr(u8) and we validated the range
+        unsafe { std::mem::transmute(v) }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

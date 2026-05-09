@@ -392,6 +392,7 @@ fn dispatch_by_kind(
             let this_turn_discards = state.this_turn_discards;
             let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
             let energy_current = state.energy.current;
+            let relics_active = state.relics_active;
             process_effect_card_play::process_effect_card_play(
                 id_target.unwrap(),
                 state.id_character,
@@ -401,6 +402,8 @@ fn dispatch_by_kind(
                 this_turn_discards,
                 this_combat_damage_instances_taken,
                 energy_current,
+                relics_active,
+                &state.id_relics,
                 &mut state.effect_queue,
             )
         }
@@ -745,7 +748,8 @@ fn dispatch_by_kind(
         EffectKind::CombatStart => process_effect_combat_start::process_effect_combat_start(
             state.id_character,
             &state.id_deck,
-            &state.id_relics[..state.relic_count as usize],
+            state.relics_active,
+            &state.id_relics,
             &mut state.entities,
             &mut state.id_pile_draw,
             &mut state.id_hand,
@@ -795,6 +799,7 @@ fn dispatch_by_kind(
                 // Stack locals
                 let mut buf_alive = [0usize; MAX_MONSTERS];
                 let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+                let relics_active = state.relics_active;
                 process_effect_turn_end::process_effect_turn_end_character(
                     state.id_character,
                     &mut state.entities,
@@ -802,6 +807,8 @@ fn dispatch_by_kind(
                     &buf_alive[..alive_n],
                     &mut state.this_turn_discards,
                     &mut state.this_turn_attacks_played,
+                    relics_active,
+                    &state.id_relics,
                     &mut state.effect_queue,
                 )
             } else {
@@ -913,6 +920,7 @@ fn dispatch_by_kind(
         }
         EffectKind::RelicRewardRoll => {
             process_effect_relic_reward_roll::process_effect_relic_reward_roll(
+                state.relics_active,
                 &mut state.id_relic_rewards,
                 &mut state.entities,
                 &mut state.rng,
@@ -921,8 +929,9 @@ fn dispatch_by_kind(
         EffectKind::RelicRewardSelect => {
             process_effect_relic_reward_select::process_effect_relic_reward_select(
                 id_target.unwrap(),
+                &state.entities,
+                &mut state.relics_active,
                 &mut state.id_relics,
-                &mut state.relic_count,
                 &mut state.effect_queue,
             )
         }
