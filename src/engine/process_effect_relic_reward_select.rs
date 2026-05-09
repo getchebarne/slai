@@ -1,17 +1,20 @@
 use std::collections::VecDeque;
 
-use crate::consts::MAX_RELICS;
+use strum::EnumCount;
+
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
+use crate::entity::Entity;
+use crate::types::RelicName;
 
 pub fn process_effect_relic_reward_select(
     id_relic: usize,
-    id_relics: &mut [usize; MAX_RELICS],
-    relic_count: &mut u8,
+    entities: &[Entity],
+    id_relics: &mut [Option<usize>; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    id_relics[*relic_count as usize] = id_relic;
-    *relic_count += 1;
+    let name = entities[id_relic].relic_name;
+    id_relics[name as usize] = Some(id_relic);
     effect_queue.push_front(Effect {
         kind: EffectKind::RelicRewardClear,
         id_source: None,

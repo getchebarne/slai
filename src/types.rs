@@ -209,9 +209,31 @@ pub enum RoomKind {
     RestSite,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[repr(u8)]
 pub enum RelicName {
-    SnakeRing,
+    SnakeRing = 0,
+    Akabeko,
+    Anchor,
+    BagOfMarbles,
+    BagOfPreparation,
+    BloodVial,
+    BronzeScales,
+    Kunai,
+    NinjaScroll,
+    OddlySmoothStone,
+    Shuriken,
+    ThreadAndNeedle,
+    TwistedFunnel,
+    Vajra,
+}
+
+impl RelicName {
+    pub fn from_u8(v: u8) -> Self {
+        assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
+        // SAFETY: repr(u8) and we validated the range
+        unsafe { std::mem::transmute(v) }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

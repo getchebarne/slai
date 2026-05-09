@@ -34,6 +34,9 @@ pub fn process_effect_damage_physical(
     if modifier_has(mods_actor, ModifierKind::Strength) {
         value += modifier_stacks(mods_actor, ModifierKind::Strength) as f32;
     }
+    if modifier_has(mods_actor, ModifierKind::Vigor) {
+        value += modifier_stacks(mods_actor, ModifierKind::Vigor) as f32;
+    }
     if modifier_has(mods_actor, ModifierKind::Weak) {
         value *= FACTOR_WEAK;
     }

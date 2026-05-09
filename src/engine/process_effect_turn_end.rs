@@ -5,8 +5,10 @@ use crate::effect::{
 };
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
+use strum::EnumCount;
+
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::types::CardName;
+use crate::types::{CardName, RelicName};
 
 pub fn process_effect_turn_end_monster(
     modifiers: &Modifiers,
@@ -60,6 +62,17 @@ pub fn process_effect_turn_end_monster(
             target: Target::Direct(Some(id_actor)),
         });
     }
+
+    if modifier_has(modifiers, ModifierKind::PlatedArmor) {
+        let stacks = modifier_stacks(modifiers, ModifierKind::PlatedArmor);
+        effect_queue.push_front(Effect {
+            kind: EffectKind::BlockGain {
+                amount: stacks as u16,
+            },
+            id_source: Some(id_actor),
+            target: Target::Direct(Some(id_actor)),
+        });
+    }
     DispatchResult::Continue
 }
 
@@ -70,11 +83,19 @@ pub fn process_effect_turn_end_character(
     id_alive_monsters: &[usize],
     this_turn_discards: &mut u8,
     this_turn_attacks_played: &mut u8,
+    id_relics: &[Option<usize>; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Reset per-turn counters synchronously, before the rest of the chain queues up
     *this_turn_discards = 0;
     *this_turn_attacks_played = 0;
+
+    if let Some(id) = id_relics[RelicName::Kunai as usize] {
+        entities[id].relic_counter = 0;
+    }
+    if let Some(id) = id_relics[RelicName::Shuriken as usize] {
+        entities[id].relic_counter = 0;
+    }
 
     // Clear per-instance cost overrides (Bullet Time)
     for entity in entities.iter_mut() {
@@ -110,6 +131,17 @@ pub fn process_effect_turn_end_character(
                 stacks,
             },
             id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    if modifier_has(mods_char, ModifierKind::PlatedArmor) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::PlatedArmor);
+        buf_effects.push(Effect {
+            kind: EffectKind::BlockGain {
+                amount: stacks as u16,
+            },
+            id_source: Some(id_character),
             target: Target::Direct(Some(id_character)),
         });
     }

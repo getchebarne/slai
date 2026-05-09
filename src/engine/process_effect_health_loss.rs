@@ -15,6 +15,18 @@ pub fn process_effect_health_loss(
     amount: u16,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
+    // TODO: should only decrement for physical attacks
+    if amount > 0 && modifier_has(modifiers, ModifierKind::PlatedArmor) {
+        effect_queue.push_front(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::PlatedArmor,
+                stacks: -1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
+    }
+
     vitals.health = vitals.health.saturating_sub(amount);
 
     if vitals.health == 0 {

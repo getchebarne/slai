@@ -138,12 +138,59 @@ impl From<InternalRoomKind> for RoomKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RelicName {
     SnakeRing,
+    Akabeko,
+    Anchor,
+    BagOfMarbles,
+    BagOfPreparation,
+    BloodVial,
+    BronzeScales,
+    Kunai,
+    NinjaScroll,
+    OddlySmoothStone,
+    Shuriken,
+    ThreadAndNeedle,
+    TwistedFunnel,
+    Vajra,
 }
 
 impl From<InternalRelicName> for RelicName {
     fn from(n: InternalRelicName) -> Self {
         match n {
             InternalRelicName::SnakeRing => Self::SnakeRing,
+            InternalRelicName::Akabeko => Self::Akabeko,
+            InternalRelicName::Anchor => Self::Anchor,
+            InternalRelicName::BagOfMarbles => Self::BagOfMarbles,
+            InternalRelicName::BagOfPreparation => Self::BagOfPreparation,
+            InternalRelicName::BloodVial => Self::BloodVial,
+            InternalRelicName::BronzeScales => Self::BronzeScales,
+            InternalRelicName::Kunai => Self::Kunai,
+            InternalRelicName::NinjaScroll => Self::NinjaScroll,
+            InternalRelicName::OddlySmoothStone => Self::OddlySmoothStone,
+            InternalRelicName::Shuriken => Self::Shuriken,
+            InternalRelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
+            InternalRelicName::TwistedFunnel => Self::TwistedFunnel,
+            InternalRelicName::Vajra => Self::Vajra,
+        }
+    }
+}
+
+impl From<RelicName> for InternalRelicName {
+    fn from(n: RelicName) -> Self {
+        match n {
+            RelicName::SnakeRing => Self::SnakeRing,
+            RelicName::Akabeko => Self::Akabeko,
+            RelicName::Anchor => Self::Anchor,
+            RelicName::BagOfMarbles => Self::BagOfMarbles,
+            RelicName::BagOfPreparation => Self::BagOfPreparation,
+            RelicName::BloodVial => Self::BloodVial,
+            RelicName::BronzeScales => Self::BronzeScales,
+            RelicName::Kunai => Self::Kunai,
+            RelicName::NinjaScroll => Self::NinjaScroll,
+            RelicName::OddlySmoothStone => Self::OddlySmoothStone,
+            RelicName::Shuriken => Self::Shuriken,
+            RelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
+            RelicName::TwistedFunnel => Self::TwistedFunnel,
+            RelicName::Vajra => Self::Vajra,
         }
     }
 }
@@ -203,6 +250,7 @@ pub enum ModifierKind {
     NoDraw,
     NoxiousFumes,
     Phantasmal,
+    PlatedArmor,
     Poison,
     Retain,
     Ritual,
@@ -215,6 +263,7 @@ pub enum ModifierKind {
     Thorns,
     ThousandCuts,
     ToolsOfTheTrade,
+    Vigor,
     Vulnerable,
     Weak,
     WraithForm,
@@ -249,6 +298,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::NoDraw => Self::NoDraw,
             InternalModifierKind::NoxiousFumes => Self::NoxiousFumes,
             InternalModifierKind::Phantasmal => Self::Phantasmal,
+            InternalModifierKind::PlatedArmor => Self::PlatedArmor,
             InternalModifierKind::Poison => Self::Poison,
             InternalModifierKind::Retain => Self::Retain,
             InternalModifierKind::Ritual => Self::Ritual,
@@ -261,6 +311,7 @@ impl From<InternalModifierKind> for ModifierKind {
             InternalModifierKind::Thorns => Self::Thorns,
             InternalModifierKind::ThousandCuts => Self::ThousandCuts,
             InternalModifierKind::ToolsOfTheTrade => Self::ToolsOfTheTrade,
+            InternalModifierKind::Vigor => Self::Vigor,
             InternalModifierKind::Vulnerable => Self::Vulnerable,
             InternalModifierKind::Weak => Self::Weak,
             InternalModifierKind::WraithForm => Self::WraithForm,
@@ -939,10 +990,8 @@ pub fn build_view(state: &InternalGameState) -> GameState {
         pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
         card_rewards: state.id_card_rewards.iter().copied().map(card).collect(),
-        relics: state.id_relics[..state.relic_count as usize]
-            .iter()
-            .copied()
-            .map(relic)
+        relics: crate::relics::iter_owned_relics(&state.id_relics)
+            .map(|(_name, id)| build_view_relic(&state.entities[id]))
             .collect(),
         relic_rewards: state.id_relic_rewards.iter().copied().map(relic).collect(),
         energy: Energy {

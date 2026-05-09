@@ -1,16 +1,19 @@
 use std::collections::VecDeque;
 
 use rand::Rng;
+use strum::EnumCount;
 
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
+use crate::relics::iter_owned_relics;
+use crate::types::RelicName;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(
     id_character: usize,
     id_deck: &[usize],
-    id_relics: &[usize],
+    id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &mut Vec<Entity>,
     id_pile_draw: &mut Vec<usize>,
     id_hand: &mut Vec<usize>,
@@ -57,7 +60,8 @@ pub fn process_effect_combat_start(
         target: Target::Direct(Some(id_character)),
     });
 
-    for &id_relic in id_relics {
+    // Each owned relic's combat-start effects run after TurnStart
+    for (_name, id_relic) in iter_owned_relics(id_relics) {
         for &eff in entities[id_relic].relic_effects_on_combat_start {
             effect_queue.push_back(eff);
         }

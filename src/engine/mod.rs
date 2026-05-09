@@ -401,6 +401,7 @@ fn dispatch_by_kind(
                 this_turn_discards,
                 this_combat_damage_instances_taken,
                 energy_current,
+                &state.id_relics,
                 &mut state.effect_queue,
             )
         }
@@ -745,7 +746,7 @@ fn dispatch_by_kind(
         EffectKind::CombatStart => process_effect_combat_start::process_effect_combat_start(
             state.id_character,
             &state.id_deck,
-            &state.id_relics[..state.relic_count as usize],
+            &state.id_relics,
             &mut state.entities,
             &mut state.id_pile_draw,
             &mut state.id_hand,
@@ -802,6 +803,7 @@ fn dispatch_by_kind(
                     &buf_alive[..alive_n],
                     &mut state.this_turn_discards,
                     &mut state.this_turn_attacks_played,
+                    &state.id_relics,
                     &mut state.effect_queue,
                 )
             } else {
@@ -913,6 +915,7 @@ fn dispatch_by_kind(
         }
         EffectKind::RelicRewardRoll => {
             process_effect_relic_reward_roll::process_effect_relic_reward_roll(
+                &state.id_relics,
                 &mut state.id_relic_rewards,
                 &mut state.entities,
                 &mut state.rng,
@@ -921,8 +924,8 @@ fn dispatch_by_kind(
         EffectKind::RelicRewardSelect => {
             process_effect_relic_reward_select::process_effect_relic_reward_select(
                 id_target.unwrap(),
+                &state.entities,
                 &mut state.id_relics,
-                &mut state.relic_count,
                 &mut state.effect_queue,
             )
         }

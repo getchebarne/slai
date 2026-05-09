@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::cards::burn::BURN_UPGRADED;
+use crate::cards::get_card;
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
@@ -15,10 +15,10 @@ pub fn process_effect_hexaghost_burn_increase(
     id_pile_discard: &[usize],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
+    let burn_upgraded = get_card(CardName::Burn, true);
     for &id_card in id_pile_draw.iter().chain(id_pile_discard.iter()) {
         if entities[id_card].card_name == CardName::Burn && !entities[id_card].card_upgraded {
-            // Replace with upgraded version
-            entities[id_card] = BURN_UPGRADED;
+            entities[id_card] = burn_upgraded;
         }
     }
 

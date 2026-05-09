@@ -31,6 +31,7 @@ pub enum ModifierKind {
     NoDraw,
     NoxiousFumes,
     Phantasmal,
+    PlatedArmor,
     Poison,
     Retain,
     Ritual,
@@ -43,6 +44,7 @@ pub enum ModifierKind {
     Thorns,
     ThousandCuts,
     ToolsOfTheTrade,
+    Vigor,
     Vulnerable,
     Weak,
     WraithForm,
@@ -251,6 +253,13 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_max: 999,
     },
     ModifierDef {
+        kind: ModifierKind::PlatedArmor,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
         kind: ModifierKind::Poison,
         is_buff: false,
         stacks_duration: false,
@@ -329,6 +338,13 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::ToolsOfTheTrade,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Vigor,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,

@@ -67,6 +67,18 @@ impl GameEnv {
         let reward = 0.0_f32;
         Ok((obs, reward, terminated, truncated, PyDict::new(py)))
     }
+
+    // Remove once shop / event distribution channels exist
+    fn dev_grant_relic(&mut self, name: ffi::RelicName) -> PyResult<()> {
+        let internal: types::RelicName = name.into();
+        if self.state.id_relics[internal as usize].is_some() {
+            return Ok(());
+        }
+        let id = self.state.entities.len();
+        self.state.entities.push(relics::get_relic(internal));
+        self.state.id_relics[internal as usize] = Some(id);
+        Ok(())
+    }
 }
 
 // Module

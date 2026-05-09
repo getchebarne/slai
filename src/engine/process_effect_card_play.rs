@@ -1,10 +1,12 @@
 use std::collections::VecDeque;
 
+use strum::EnumCount;
+
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{CardCostKind, Entity, card_effective_cost};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
-use crate::types::CardKind;
+use crate::types::{CardKind, RelicName};
 
 pub fn process_effect_card_play(
     id_card: usize,
@@ -15,6 +17,7 @@ pub fn process_effect_card_play(
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
+    id_relics: &[Option<usize>; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     let card = entities[id_card];
@@ -22,6 +25,37 @@ pub fn process_effect_card_play(
     // Increment before effects fire so self-counting cards see their own play
     if card.card_kind == CardKind::Attack {
         *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
+
+        if let Some(id_kunai) = id_relics[RelicName::Kunai as usize] {
+            let counter = &mut entities[id_kunai].relic_counter;
+            *counter += 1;
+            if *counter >= 3 {
+                *counter = 0;
+                effect_queue.push_back(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::Dexterity,
+                        stacks: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_character)),
+                });
+            }
+        }
+        if let Some(id_shuriken) = id_relics[RelicName::Shuriken as usize] {
+            let counter = &mut entities[id_shuriken].relic_counter;
+            *counter += 1;
+            if *counter >= 3 {
+                *counter = 0;
+                effect_queue.push_back(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::Strength,
+                        stacks: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_character)),
+                });
+            }
+        }
     }
 
     let cost = card_effective_cost(
@@ -135,6 +169,16 @@ pub fn process_effect_card_play(
                 stacks: -1,
             },
             id_source: Some(id_character),
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    if card.card_kind == CardKind::Attack && modifier_has(char_modifiers, ModifierKind::Vigor) {
+        buf_effects.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Vigor,
+            },
+            id_source: None,
             target: Target::Direct(Some(id_character)),
         });
     }
