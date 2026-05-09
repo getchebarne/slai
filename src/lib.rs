@@ -15,12 +15,13 @@ mod game;
 mod map;
 mod modifier;
 mod monsters;
+mod relics;
 mod types;
 mod utils;
 
 use ffi::{
     Action, Card, Character, Energy, GameState, Intent, Map, MapNode, Modifier, Monster, Phase,
-    build_view,
+    Relic, build_view,
 };
 use game::{create_game_state, step};
 
@@ -82,6 +83,7 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Map>()?;
     m.add_class::<MapNode>()?;
     m.add_class::<Modifier>()?;
+    m.add_class::<Relic>()?;
     // Unit-enum mirrors
     m.add_class::<ffi::CardKind>()?;
     m.add_class::<ffi::CardColor>()?;
@@ -91,6 +93,8 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ffi::ModifierKind>()?;
     m.add_class::<ffi::IntentKind>()?;
     m.add_class::<ffi::CandidatePool>()?;
+    m.add_class::<ffi::RelicName>()?;
+    m.add_class::<ffi::RelicTier>()?;
     // Complex enum mirrors
     m.add_class::<Phase>()?;
     m.add_class::<ffi::Selection>()?;

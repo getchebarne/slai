@@ -210,6 +210,22 @@ pub enum RoomKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RelicName {
+    SnakeRing,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RelicTier {
+    Starter,
+    Common,
+    Uncommon,
+    Rare,
+    Boss,
+    Shop,
+    Special,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Phase {
     CombatReward,
     CombatDefault,

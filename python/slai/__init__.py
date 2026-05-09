@@ -12,6 +12,7 @@ from .slai import (
     Room,
     Modifier,
     Monster,
+    Relic,
     # Native unit enums (PyO3 mirrors of internal Rust enums):
     CardKind,
     CardColor,
@@ -21,6 +22,8 @@ from .slai import (
     IntentKind,
     CandidatePool,
     RoomKind,
+    RelicName,
+    RelicTier,
     # Complex enum mirrors (parent classes; variants reachable as Phase.Map etc.):
     Phase,
     Selection,
@@ -42,6 +45,7 @@ __all__ = [
     "Room",
     "Modifier",
     "Monster",
+    "Relic",
     # Unit enums:
     "CardKind",
     "CardColor",
@@ -51,6 +55,8 @@ __all__ = [
     "IntentKind",
     "CandidatePool",
     "RoomKind",
+    "RelicName",
+    "RelicTier",
     # Complex enums:
     "Phase",
     "Selection",

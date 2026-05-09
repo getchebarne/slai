@@ -60,9 +60,21 @@ pub fn process_effect_combat_end(
             // returns GameOver from `location == BossRoom && monster_count == 0`
             effect_queue.clear();
         }
-        RoomKind::CombatMonster | RoomKind::CombatElite => {
+        RoomKind::CombatMonster => {
             effect_queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+        RoomKind::CombatElite => {
+            effect_queue.push_back(Effect {
+                kind: EffectKind::CardRewardRoll,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            effect_queue.push_back(Effect {
+                kind: EffectKind::RelicRewardRoll,
                 id_source: None,
                 target: Target::Direct(None),
             });

@@ -79,6 +79,11 @@ pub enum EffectKind {
     // mutating state and pushing follow-up effects
     RoomSelect,
     CardRewardSelect,
+
+    // Relic flow
+    RelicRewardRoll,
+    RelicRewardSelect,
+    RelicRewardClear,
 }
 
 // DiscardSource: tags a CardDiscard effect with its origin so the handler can

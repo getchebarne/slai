@@ -26,7 +26,7 @@ use crate::game::{GameState as InternalGameState, Location};
 use crate::types::{
     CardColor as InternalCardColor, CardKind as InternalCardKind, CardName,
     CardRarity as InternalCardRarity, MonsterEncounter, MonsterName, Phase as InternalPhase,
-    RoomKind as InternalRoomKind,
+    RelicName as InternalRelicName, RelicTier as InternalRelicTier, RoomKind as InternalRoomKind,
 };
 use crate::utils::fill_alive_monster_ids;
 
@@ -130,6 +130,46 @@ impl From<InternalRoomKind> for RoomKind {
             InternalRoomKind::CombatElite => Self::CombatElite,
             InternalRoomKind::CombatBoss => Self::CombatBoss,
             InternalRoomKind::RestSite => Self::RestSite,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "RelicName")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RelicName {
+    SnakeRing,
+}
+
+impl From<InternalRelicName> for RelicName {
+    fn from(n: InternalRelicName) -> Self {
+        match n {
+            InternalRelicName::SnakeRing => Self::SnakeRing,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "RelicTier")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RelicTier {
+    Starter,
+    Common,
+    Uncommon,
+    Rare,
+    Boss,
+    Shop,
+    Special,
+}
+
+impl From<InternalRelicTier> for RelicTier {
+    fn from(t: InternalRelicTier) -> Self {
+        match t {
+            InternalRelicTier::Starter => Self::Starter,
+            InternalRelicTier::Common => Self::Common,
+            InternalRelicTier::Uncommon => Self::Uncommon,
+            InternalRelicTier::Rare => Self::Rare,
+            InternalRelicTier::Boss => Self::Boss,
+            InternalRelicTier::Shop => Self::Shop,
+            InternalRelicTier::Special => Self::Special,
         }
     }
 }
@@ -340,6 +380,10 @@ pub enum Action {
         idx_reward: usize,
     },
     CardRewardSkip {},
+    RelicRewardSelect {
+        idx_reward: usize,
+    },
+    RelicRewardSkip {},
     RestSiteRest {},
     RestSiteCardUpgrade {
         idx_deck: usize,
@@ -366,6 +410,10 @@ impl From<Action> for InternalAction {
                 InternalAction::CardRewardSelect { idx_reward }
             }
             Action::CardRewardSkip {} => InternalAction::CardRewardSkip,
+            Action::RelicRewardSelect { idx_reward } => {
+                InternalAction::RelicRewardSelect { idx_reward }
+            }
+            Action::RelicRewardSkip {} => InternalAction::RelicRewardSkip,
             Action::RestSiteRest {} => InternalAction::RestSiteRest,
             Action::RestSiteCardUpgrade { idx_deck } => {
                 InternalAction::RestSiteCardUpgrade { idx_deck }
@@ -599,6 +647,15 @@ pub struct Modifier {
 
 #[pyclass(frozen, get_all)]
 #[derive(Debug, Clone)]
+pub struct Relic {
+    pub name: RelicName,
+    pub tier: RelicTier,
+    pub counter: i16,
+    pub used_up: bool,
+}
+
+#[pyclass(frozen, get_all)]
+#[derive(Debug, Clone)]
 pub struct Character {
     pub name: String,
     pub health: u16,
@@ -703,6 +760,8 @@ pub struct GameState {
     pub pile_discard: Vec<Card>,
     pub pile_exhaust: Vec<Card>,
     pub card_rewards: Vec<Card>,
+    pub relics: Vec<Relic>,
+    pub relic_rewards: Vec<Relic>,
     pub energy: Energy,
     pub map: Map,
     pub phase: Phase,
@@ -870,6 +929,7 @@ pub fn build_view(state: &InternalGameState) -> GameState {
             entangled,
         )
     };
+    let relic = |id_relic: usize| build_view_relic(&state.entities[id_relic]);
     GameState {
         character: build_view_character(state),
         monsters: build_view_monsters(state),
@@ -879,12 +939,27 @@ pub fn build_view(state: &InternalGameState) -> GameState {
         pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
         card_rewards: state.id_card_rewards.iter().copied().map(card).collect(),
+        relics: state.id_relics[..state.relic_count as usize]
+            .iter()
+            .copied()
+            .map(relic)
+            .collect(),
+        relic_rewards: state.id_relic_rewards.iter().copied().map(relic).collect(),
         energy: Energy {
             current: state.energy.current,
             max: state.energy.max,
         },
         map: build_view_map(state),
         phase: state.phase.into(),
+    }
+}
+
+fn build_view_relic(e: &Entity) -> Relic {
+    Relic {
+        name: e.relic_name.into(),
+        tier: e.relic_tier.into(),
+        counter: e.relic_counter,
+        used_up: e.relic_used_up,
     }
 }
 
