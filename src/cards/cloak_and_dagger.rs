@@ -24,7 +24,8 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::ShivAdd {
+            kind: EffectKind::CardAddToHand {
+                card_name: CardName::Shiv,
                 count: 1,
                 upgraded: false,
             },
@@ -41,7 +42,8 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = CLOAK_AND_DAGGER.card_effects;
-        a[1].kind = EffectKind::ShivAdd {
+        a[1].kind = EffectKind::CardAddToHand {
+            card_name: CardName::Shiv,
             count: 2, // +1 shiv
             upgraded: false,
         };

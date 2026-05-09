@@ -2,6 +2,7 @@ pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add_to_discard;
+pub mod process_effect_card_add_to_hand;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_exhaust;
@@ -20,7 +21,6 @@ pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
-pub mod process_effect_endless_agony_add_copy;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
 pub mod process_effect_escape_monster;
@@ -48,7 +48,6 @@ pub mod process_effect_poison_tick;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
 pub mod process_effect_set_cost_override;
-pub mod process_effect_shiv_add;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_target_clear;
@@ -467,15 +466,18 @@ fn dispatch_by_kind(
             id_target.unwrap(),
             &mut state.id_hand,
         ),
-        EffectKind::ShivAdd { count, upgraded } => {
-            process_effect_shiv_add::process_effect_shiv_add(
-                count,
-                upgraded,
-                &mut state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
-            )
-        }
+        EffectKind::CardAddToHand {
+            card_name,
+            count,
+            upgraded,
+        } => process_effect_card_add_to_hand::process_effect_card_add_to_hand(
+            card_name,
+            count,
+            upgraded,
+            &mut state.entities,
+            &mut state.id_hand,
+            &mut state.id_pile_discard,
+        ),
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(
                 &state.id_hand,
@@ -548,14 +550,6 @@ fn dispatch_by_kind(
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
                 &mut state.rng,
-            )
-        }
-        EffectKind::EndlessAgonyAddCopy { upgraded } => {
-            process_effect_endless_agony_add_copy::process_effect_endless_agony_add_copy(
-                upgraded,
-                &mut state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
             )
         }
         EffectKind::SetCostOverride { amount } => {
