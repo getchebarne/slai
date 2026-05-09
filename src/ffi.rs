@@ -24,12 +24,11 @@ use crate::modifier::{
 };
 use crate::game::{GameState as InternalGameState, Location};
 use crate::types::{
-    CardColor as InternalCardColor, CardKind as InternalCardKind, CardRarity as InternalCardRarity,
-    Phase as InternalPhase, RoomKind as InternalRoomKind,
+    CardColor as InternalCardColor, CardKind as InternalCardKind, CardName,
+    CardRarity as InternalCardRarity, MonsterEncounter, MonsterName, Phase as InternalPhase,
+    RoomKind as InternalRoomKind,
 };
 use crate::utils::fill_alive_monster_ids;
-
-// ───────── Unit enum mirrors ─────────
 
 #[pyclass(eq, eq_int, hash, frozen, name = "CardKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -257,8 +256,6 @@ impl From<InternalCandidatePool> for CandidatePool {
     }
 }
 
-// ───────── Complex enum mirrors ─────────
-
 #[pyclass(eq, hash, frozen, name = "Phase")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Phase {
@@ -418,7 +415,8 @@ pub enum Effect {
         upgraded: bool,
         target: Option<Target>,
     },
-    BulletTimeProc {
+    SetCostOverride {
+        amount: u8,
         target: Option<Target>,
     },
     FinisherDamage {
@@ -513,7 +511,7 @@ impl Effect {
             EffectKind::EndlessAgonyAddCopy { upgraded } => {
                 Self::EndlessAgonyAddCopy { upgraded, target }
             }
-            EffectKind::BulletTimeProc => Self::BulletTimeProc { target },
+            EffectKind::SetCostOverride { amount } => Self::SetCostOverride { amount, target },
             EffectKind::FinisherDamage { damage } => Self::FinisherDamage { damage, target },
             EffectKind::FlechettesDamage { damage } => Self::FlechettesDamage { damage, target },
             EffectKind::UnloadDiscard => Self::UnloadDiscard { target },
@@ -556,8 +554,6 @@ impl Effect {
         }
     }
 }
-
-// ───────── View structs ─────────
 
 #[pyclass(frozen, get_all)]
 #[derive(Debug, Clone)]
@@ -614,9 +610,48 @@ pub struct Character {
     pub gold: u16,
 }
 
+#[pyclass(eq, eq_int, hash, frozen, name = "IntentKind")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum IntentKind {
+    Attack,
+    AttackBlock,
+    AttackBuff,
+    AttackDebuff,
+    Block,
+    BlockBuff,
+    Buff,
+    Debuff,
+    DebuffPowerful,
+    Escape,
+    Sleep,
+    Stunned,
+    Unknown,
+}
+
+impl From<InternalIntent> for IntentKind {
+    fn from(i: InternalIntent) -> Self {
+        match i {
+            InternalIntent::Attack { .. } => Self::Attack,
+            InternalIntent::AttackBlock { .. } => Self::AttackBlock,
+            InternalIntent::AttackBuff { .. } => Self::AttackBuff,
+            InternalIntent::AttackDebuff { .. } => Self::AttackDebuff,
+            InternalIntent::Block => Self::Block,
+            InternalIntent::BlockBuff => Self::BlockBuff,
+            InternalIntent::Buff => Self::Buff,
+            InternalIntent::Debuff => Self::Debuff,
+            InternalIntent::DebuffPowerful => Self::DebuffPowerful,
+            InternalIntent::Escape => Self::Escape,
+            InternalIntent::Sleep => Self::Sleep,
+            InternalIntent::Stunned => Self::Stunned,
+            InternalIntent::Unknown => Self::Unknown,
+        }
+    }
+}
+
 #[pyclass(frozen, get_all)]
 #[derive(Debug, Clone)]
 pub struct Intent {
+    pub kind: IntentKind,
     pub damage: Option<u16>,
     pub instances: Option<u8>,
     pub block: bool,
@@ -655,6 +690,7 @@ pub struct Map {
     pub rooms: Vec<Vec<Option<MapNode>>>,
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
+    pub boss_name: String,
 }
 
 #[pyclass(frozen, get_all)]
@@ -673,7 +709,149 @@ pub struct GameState {
     pub phase: Phase,
 }
 
-// ───────── Build functions ─────────
+impl CardName {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::AThousandCuts => "A Thousand Cuts",
+            Self::Accuracy => "Accuracy",
+            Self::Acrobatics => "Acrobatics",
+            Self::Adrenaline => "Adrenaline",
+            Self::AfterImage => "After Image",
+            Self::AllOutAttack => "All Out Attack",
+            Self::Backflip => "Backflip",
+            Self::Backstab => "Backstab",
+            Self::Bane => "Bane",
+            Self::BladeDance => "Blade Dance",
+            Self::Blur => "Blur",
+            Self::BouncingFlask => "Bouncing Flask",
+            Self::BulletTime => "Bullet Time",
+            Self::Burn => "Burn",
+            Self::Burst => "Burst",
+            Self::CalculatedGamble => "Calculated Gamble",
+            Self::Caltrops => "Caltrops",
+            Self::Catalyst => "Catalyst",
+            Self::Choke => "Choke",
+            Self::CloakAndDagger => "Cloak And Dagger",
+            Self::Concentrate => "Concentrate",
+            Self::CorpseExplosion => "Corpse Explosion",
+            Self::CripplingPoison => "Crippling Poison",
+            Self::DaggerSpray => "Dagger Spray",
+            Self::DaggerThrow => "Dagger Throw",
+            Self::Dash => "Dash",
+            Self::Dazed => "Dazed",
+            Self::DeadlyPoison => "Deadly Poison",
+            Self::Defend => "Defend",
+            Self::Deflect => "Deflect",
+            Self::DieDieDie => "Die Die Die",
+            Self::Distraction => "Distraction",
+            Self::DodgeAndRoll => "Dodge And Roll",
+            Self::Doppelganger => "Doppelganger",
+            Self::EndlessAgony => "Endless Agony",
+            Self::Envenom => "Envenom",
+            Self::EscapePlan => "Escape Plan",
+            Self::Eviscerate => "Eviscerate",
+            Self::Expertise => "Expertise",
+            Self::Finisher => "Finisher",
+            Self::Flechettes => "Flechettes",
+            Self::FlyingKnee => "Flying Knee",
+            Self::Footwork => "Footwork",
+            Self::GlassKnife => "Glass Knife",
+            Self::GrandFinale => "Grand Finale",
+            Self::HeelHook => "Heel Hook",
+            Self::InfiniteBlades => "Infinite Blades",
+            Self::LegSweep => "Leg Sweep",
+            Self::Malaise => "Malaise",
+            Self::MasterfulStab => "Masterful Stab",
+            Self::Neutralize => "Neutralize",
+            Self::Nightmare => "Nightmare",
+            Self::NoxiousFumes => "Noxious Fumes",
+            Self::Outmaneuver => "Outmaneuver",
+            Self::PhantasmalKiller => "Phantasmal Killer",
+            Self::PiercingWail => "Piercing Wail",
+            Self::PoisonedStab => "Poisoned Stab",
+            Self::Predator => "Predator",
+            Self::Prepared => "Prepared",
+            Self::QuickSlash => "Quick Slash",
+            Self::Reflex => "Reflex",
+            Self::RiddleWithHoles => "Riddle With Holes",
+            Self::Setup => "Setup",
+            Self::Shiv => "Shiv",
+            Self::Skewer => "Skewer",
+            Self::Slice => "Slice",
+            Self::Slimed => "Slimed",
+            Self::SneakyStrike => "Sneaky Strike",
+            Self::StormOfSteel => "Storm Of Steel",
+            Self::Strike => "Strike",
+            Self::SuckerPunch => "Sucker Punch",
+            Self::Survivor => "Survivor",
+            Self::Tactician => "Tactician",
+            Self::Terror => "Terror",
+            Self::ToolsOfTheTrade => "Tools Of The Trade",
+            Self::Unload => "Unload",
+            Self::WellLaidPlans => "Well Laid Plans",
+            Self::WraithForm => "Wraith Form",
+        }
+    }
+}
+
+impl MonsterName {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Cultist => "Cultist",
+            Self::FungiBeast => "Fungi Beast",
+            Self::GremlinFat => "Fat Gremlin",
+            Self::GremlinNob => "Gremlin Nob",
+            Self::GremlinThief => "Sneaky Gremlin",
+            Self::GremlinTsundere => "Shield Gremlin",
+            Self::GremlinWarrior => "Mad Gremlin",
+            Self::GremlinWizard => "Gremlin Wizard",
+            Self::Hexaghost => "Hexaghost",
+            Self::JawWorm => "Jaw Worm",
+            Self::Lagavulin => "Lagavulin",
+            Self::Looter => "Looter",
+            Self::LouseDefensive => "Green Louse",
+            Self::LouseNormal => "Red Louse",
+            Self::Sentry => "Sentry",
+            Self::SlaverBlue => "Blue Slaver",
+            Self::SlaverRed => "Red Slaver",
+            Self::SlimeAcidLarge => "Acid Slime (L)",
+            Self::SlimeAcidMedium => "Acid Slime (M)",
+            Self::SlimeAcidSmall => "Acid Slime (S)",
+            Self::SlimeBoss => "Slime Boss",
+            Self::SlimeSpikeLarge => "Spike Slime (L)",
+            Self::SlimeSpikeMedium => "Spike Slime (M)",
+            Self::SlimeSpikeSmall => "Spike Slime (S)",
+            Self::TheGuardian => "The Guardian",
+        }
+    }
+}
+
+impl MonsterEncounter {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Cultist => "Cultist",
+            Self::JawWorm => "Jaw Worm",
+            Self::TwoLouse => "2 Louse",
+            Self::SmallSlimes => "Small Slimes",
+            Self::BlueSlaver => "Blue Slaver",
+            Self::RedSlaver => "Red Slaver",
+            Self::Looter => "Looter",
+            Self::TwoFungiBeasts => "2 Fungi Beasts",
+            Self::ThreeLouse => "3 Louse",
+            Self::LargeSlime => "Large Slime",
+            Self::LotsOfSlimes => "Lots of Slimes",
+            Self::GremlinGang => "Gremlin Gang",
+            Self::ExordiumThugs => "Exordium Thugs",
+            Self::ExordiumWildlife => "Exordium Wildlife",
+            Self::GremlinNob => "Gremlin Nob",
+            Self::Lagavulin => "Lagavulin",
+            Self::ThreeSentries => "3 Sentries",
+            Self::TheGuardian => "The Guardian",
+            Self::Hexaghost => "Hexaghost",
+            Self::SlimeBoss => "Slime Boss",
+        }
+    }
+}
 
 pub fn build_view(state: &InternalGameState) -> GameState {
     let this_turn_discards = state.this_turn_discards;
@@ -774,6 +952,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                 });
 
                 Intent {
+                    kind: mv.intent.into(),
                     damage,
                     instances,
                     block,
@@ -782,6 +961,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                 }
             } else {
                 Intent {
+                    kind: IntentKind::Unknown,
                     damage: None,
                     instances: None,
                     block: false,
@@ -887,5 +1067,6 @@ fn build_view_map(state: &InternalGameState) -> Map {
         rooms,
         y_current,
         x_current,
+        boss_name: state.encounter_boss.as_str().to_string(),
     }
 }

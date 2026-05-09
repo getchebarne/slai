@@ -22,8 +22,6 @@ struct Room {
 
 type Grid = [[Option<Room>; MAP_WIDTH]; MAP_HEIGHT];
 
-// ───────── Queries ─────────
-
 /// True if the edge bitmap has an edge to column `x` in the next row.
 pub fn has_edge(edges: u8, x: usize) -> bool {
     edges & (1 << x) != 0
@@ -55,8 +53,6 @@ pub fn get_active_room_kind(
         Location::Overworld { y, x } => room_at(id_rooms, entities, y, x).map(|n| n.room_kind),
     }
 }
-
-// ───────── Generation ─────────
 
 type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
 

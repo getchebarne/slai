@@ -1,6 +1,5 @@
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
-pub mod process_effect_bullet_time_proc;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_discard;
@@ -48,6 +47,7 @@ pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_room_enter;
+pub mod process_effect_set_cost_override;
 pub mod process_effect_shiv_add;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
@@ -558,10 +558,12 @@ fn dispatch_by_kind(
                 &mut state.id_pile_discard,
             )
         }
-        EffectKind::BulletTimeProc => {
-            process_effect_bullet_time_proc::process_effect_bullet_time_proc(
-                &mut state.entities,
-                &state.id_hand,
+        EffectKind::SetCostOverride { amount } => {
+            let id_target = id_target.unwrap();
+            let card_cost_override = &mut state.entities[id_target].card_cost_override;
+            process_effect_set_cost_override::process_effect_set_cost_override(
+                card_cost_override,
+                amount,
             )
         }
         EffectKind::EscapePlanCheck { block } => {
