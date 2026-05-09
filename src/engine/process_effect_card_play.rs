@@ -4,6 +4,7 @@ use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{CardCostKind, Entity, card_effective_cost};
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
+use crate::relics::has_relic;
 use crate::types::{CardKind, N_RELICS, RelicName};
 
 pub fn process_effect_card_play(
@@ -25,8 +26,7 @@ pub fn process_effect_card_play(
     if card.card_kind == CardKind::Attack {
         *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
 
-        // Kunai: every 3rd attack -> +1 Dexterity
-        if relics_active & (1u128 << RelicName::Kunai as u32) != 0 {
+        if has_relic(relics_active, RelicName::Kunai) {
             let counter = &mut entities[id_relics[RelicName::Kunai as usize]].relic_counter;
             *counter += 1;
             if *counter >= 3 {
@@ -41,8 +41,7 @@ pub fn process_effect_card_play(
                 });
             }
         }
-        // Shuriken: every 3rd attack -> +1 Strength
-        if relics_active & (1u128 << RelicName::Shuriken as u32) != 0 {
+        if has_relic(relics_active, RelicName::Shuriken) {
             let counter = &mut entities[id_relics[RelicName::Shuriken as usize]].relic_counter;
             *counter += 1;
             if *counter >= 3 {
@@ -174,7 +173,6 @@ pub fn process_effect_card_play(
         });
     }
 
-    // Vigor: full clear on first Attack played
     if card.card_kind == CardKind::Attack && modifier_has(char_modifiers, ModifierKind::Vigor) {
         buf_effects.push(Effect {
             kind: EffectKind::ModifierRemove {

@@ -6,6 +6,7 @@ use crate::effect::{
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
+use crate::relics::has_relic;
 use crate::types::{CardName, N_RELICS, RelicName};
 
 pub fn process_effect_turn_end_monster(
@@ -78,11 +79,10 @@ pub fn process_effect_turn_end_character(
     *this_turn_discards = 0;
     *this_turn_attacks_played = 0;
 
-    // Reset Kunai/Shuriken per-turn counters (Java atTurnStart equivalent)
-    if relics_active & (1u128 << RelicName::Kunai as u32) != 0 {
+    if has_relic(relics_active, RelicName::Kunai) {
         entities[id_relics[RelicName::Kunai as usize]].relic_counter = 0;
     }
-    if relics_active & (1u128 << RelicName::Shuriken as u32) != 0 {
+    if has_relic(relics_active, RelicName::Shuriken) {
         entities[id_relics[RelicName::Shuriken as usize]].relic_counter = 0;
     }
 

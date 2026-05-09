@@ -174,6 +174,27 @@ impl From<InternalRelicName> for RelicName {
     }
 }
 
+impl From<RelicName> for InternalRelicName {
+    fn from(n: RelicName) -> Self {
+        match n {
+            RelicName::SnakeRing => Self::SnakeRing,
+            RelicName::Akabeko => Self::Akabeko,
+            RelicName::Anchor => Self::Anchor,
+            RelicName::BagOfMarbles => Self::BagOfMarbles,
+            RelicName::BagOfPreparation => Self::BagOfPreparation,
+            RelicName::BloodVial => Self::BloodVial,
+            RelicName::BronzeScales => Self::BronzeScales,
+            RelicName::Kunai => Self::Kunai,
+            RelicName::NinjaScroll => Self::NinjaScroll,
+            RelicName::OddlySmoothStone => Self::OddlySmoothStone,
+            RelicName::Shuriken => Self::Shuriken,
+            RelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
+            RelicName::TwistedFunnel => Self::TwistedFunnel,
+            RelicName::Vajra => Self::Vajra,
+        }
+    }
+}
+
 #[pyclass(eq, eq_int, hash, frozen, name = "RelicTier")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RelicTier {

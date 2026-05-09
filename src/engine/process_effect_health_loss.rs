@@ -15,9 +15,7 @@ pub fn process_effect_health_loss(
     amount: u16,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // PlatedArmor: -1 stack on any character HP loss
-    // Java fidelity: only attack damage decrements; tighten in Tier 5 once
-    // DamageDeal carries an is_attack tag
+    // Java only decrements on attack damage; tighten when Tier 5 adds is_attack to DamageDeal
     if id_target == id_character
         && amount > 0
         && modifier_has(modifiers, ModifierKind::PlatedArmor)

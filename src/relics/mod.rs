@@ -18,7 +18,6 @@ mod twisted_funnel;
 mod vajra;
 
 use crate::entity::Entity;
-use crate::game::GameState;
 use crate::types::RelicName;
 
 pub fn get_relic(name: RelicName) -> Entity {
@@ -40,27 +39,8 @@ pub fn get_relic(name: RelicName) -> Entity {
     }
 }
 
-pub fn has_relic(state: &GameState, name: RelicName) -> bool {
-    state.relics_active & (1u128 << name as u32) != 0
-}
-
-pub fn relic_counter(state: &GameState, name: RelicName) -> Option<i16> {
-    if !has_relic(state, name) {
-        return None;
-    }
-    let id = state.id_relics[name as usize];
-    Some(state.entities[id].relic_counter)
-}
-
-pub fn relic_counter_mut<'a>(
-    state: &'a mut GameState,
-    name: RelicName,
-) -> Option<&'a mut i16> {
-    if !has_relic(state, name) {
-        return None;
-    }
-    let id = state.id_relics[name as usize];
-    Some(&mut state.entities[id].relic_counter)
+pub fn has_relic(active: u128, name: RelicName) -> bool {
+    active & (1u128 << name as u32) != 0
 }
 
 pub fn iter_owned_relics(active: u128) -> impl Iterator<Item = RelicName> {

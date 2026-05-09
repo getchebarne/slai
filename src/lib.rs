@@ -68,33 +68,16 @@ impl GameEnv {
         Ok((obs, reward, terminated, truncated, PyDict::new(py)))
     }
 
-    /// Test helper: grant a relic by name. No-op if already owned. Remove
-    /// once shop / event distribution channels exist
+    // Remove once shop / event distribution channels exist
     fn dev_grant_relic(&mut self, name: ffi::RelicName) -> PyResult<()> {
-        let internal: types::RelicName = match name {
-            ffi::RelicName::SnakeRing => types::RelicName::SnakeRing,
-            ffi::RelicName::Akabeko => types::RelicName::Akabeko,
-            ffi::RelicName::Anchor => types::RelicName::Anchor,
-            ffi::RelicName::BagOfMarbles => types::RelicName::BagOfMarbles,
-            ffi::RelicName::BagOfPreparation => types::RelicName::BagOfPreparation,
-            ffi::RelicName::BloodVial => types::RelicName::BloodVial,
-            ffi::RelicName::BronzeScales => types::RelicName::BronzeScales,
-            ffi::RelicName::Kunai => types::RelicName::Kunai,
-            ffi::RelicName::NinjaScroll => types::RelicName::NinjaScroll,
-            ffi::RelicName::OddlySmoothStone => types::RelicName::OddlySmoothStone,
-            ffi::RelicName::Shuriken => types::RelicName::Shuriken,
-            ffi::RelicName::ThreadAndNeedle => types::RelicName::ThreadAndNeedle,
-            ffi::RelicName::TwistedFunnel => types::RelicName::TwistedFunnel,
-            ffi::RelicName::Vajra => types::RelicName::Vajra,
-        };
-        let bit = 1u128 << internal as u32;
-        if self.state.relics_active & bit != 0 {
+        let internal: types::RelicName = name.into();
+        if relics::has_relic(self.state.relics_active, internal) {
             return Ok(());
         }
         let id = self.state.entities.len();
         self.state.entities.push(relics::get_relic(internal));
         self.state.id_relics[internal as usize] = id;
-        self.state.relics_active |= bit;
+        self.state.relics_active |= 1u128 << internal as u32;
         Ok(())
     }
 }

@@ -53,11 +53,13 @@ class ModifierKind:
     NextTurnBlock: "ModifierKind"
     NextTurnEnergy: "ModifierKind"
     Phantasmal: "ModifierKind"
+    PlatedArmor: "ModifierKind"
     Ritual: "ModifierKind"
     SharpHide: "ModifierKind"
     SporeCloud: "ModifierKind"
     Strength: "ModifierKind"
     ThousandCuts: "ModifierKind"
+    Vigor: "ModifierKind"
     Vulnerable: "ModifierKind"
     Weak: "ModifierKind"
 
@@ -72,6 +74,19 @@ class CandidatePool:
 
 class RelicName:
     SnakeRing: "RelicName"
+    Akabeko: "RelicName"
+    Anchor: "RelicName"
+    BagOfMarbles: "RelicName"
+    BagOfPreparation: "RelicName"
+    BloodVial: "RelicName"
+    BronzeScales: "RelicName"
+    Kunai: "RelicName"
+    NinjaScroll: "RelicName"
+    OddlySmoothStone: "RelicName"
+    Shuriken: "RelicName"
+    ThreadAndNeedle: "RelicName"
+    TwistedFunnel: "RelicName"
+    Vajra: "RelicName"
 
 class RelicTier:
     Starter: "RelicTier"

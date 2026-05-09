@@ -2,8 +2,8 @@ use rand::Rng;
 
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
-use crate::relics::get_relic;
-use crate::types::RelicName;
+use crate::relics::{get_relic, has_relic};
+use crate::types::{N_RELICS, RelicName};
 
 const RELIC_POOL_COMMON: &[RelicName] = &[
     RelicName::Akabeko,
@@ -59,11 +59,10 @@ fn pick_from_pool(
     relics_active: u128,
     rng: &mut impl Rng,
 ) -> Option<RelicName> {
-    // Filter out owned relics, pick a random unowned one
-    let mut candidates = [RelicName::SnakeRing; 32];
+    let mut candidates = [RelicName::SnakeRing; N_RELICS];
     let mut n = 0;
     for &name in pool {
-        if relics_active & (1u128 << name as u32) == 0 {
+        if !has_relic(relics_active, name) {
             candidates[n] = name;
             n += 1;
         }
