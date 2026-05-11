@@ -19,13 +19,6 @@ pub fn process_effect_monster_spawn(
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    assert!(
-        (*monster_count as usize) < MAX_MONSTERS,
-        "MonsterSpawn would overflow id_monsters: monster_count={} MAX={}",
-        *monster_count,
-        MAX_MONSTERS,
-    );
-
     let mut monster_child = spawn_monster(name, ascension_level, rng);
 
     // Slime split: spawned child inherits the parent's current HP as max health.
@@ -51,8 +44,37 @@ pub fn process_effect_monster_spawn(
 
     let id_child = entities.len();
     entities.push(monster_child);
-    id_monsters[*monster_count as usize] = id_child;
-    *monster_count += 1;
+
+    // `monster_count` is the high-water mark of slots used this combat;
+    // it never decrements on death (Death just marks `dead = true`). When
+    // a splitting slime cascades (LargeSlime → 2 mediums → 4 smalls), the
+    // count would walk past MAX_MONSTERS even though never more than 4 are
+    // simultaneously alive. Reuse dead slots so the count tracks the
+    // actual occupancy ceiling.
+    let mut reused_slot: Option<usize> = None;
+    for i in 0..(*monster_count as usize) {
+        if entities[id_monsters[i]].dead {
+            reused_slot = Some(i);
+            break;
+        }
+    }
+
+    let slot = match reused_slot {
+        Some(s) => s,
+        None => {
+            assert!(
+                (*monster_count as usize) < MAX_MONSTERS,
+                "MonsterSpawn would overflow id_monsters with no dead slot to \
+                 reuse: monster_count={} MAX={}",
+                *monster_count,
+                MAX_MONSTERS,
+            );
+            let s = *monster_count as usize;
+            *monster_count += 1;
+            s
+        }
+    };
+    id_monsters[slot] = id_child;
 
     // Queue a MoveUpdate so the spawned monster has an intent visible on the
     // next view rebuild and ready for its first turn

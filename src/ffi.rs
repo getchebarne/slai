@@ -21,11 +21,13 @@ use crate::entity::{
 use crate::map::edge_indices;
 use crate::modifier::{
     ModifierKind as InternalModifierKind, Modifiers, modifier_has, modifier_stacks,
+    stacks_max_for as internal_stacks_max_for,
 };
 use crate::game::{GameState as InternalGameState, Location};
 use crate::types::{
-    CardColor as InternalCardColor, CardKind as InternalCardKind, CardName,
-    CardRarity as InternalCardRarity, MonsterEncounter, MonsterName, Phase as InternalPhase,
+    CardColor as InternalCardColor, CardKind as InternalCardKind,
+    CardName as InternalCardName, CardRarity as InternalCardRarity, MonsterEncounter,
+    MonsterName as InternalMonsterName, Phase as InternalPhase,
     RelicName as InternalRelicName, RelicTier as InternalRelicTier, RoomKind as InternalRoomKind,
 };
 use crate::utils::fill_alive_monster_ids;
@@ -191,6 +193,159 @@ impl From<RelicName> for InternalRelicName {
             RelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
             RelicName::TwistedFunnel => Self::TwistedFunnel,
             RelicName::Vajra => Self::Vajra,
+        }
+    }
+}
+
+// CardName mirror: typed enum so Python can index a one-hot directly
+// instead of parsing display strings (which include "+" suffix on
+// upgrades and have spaces). 78 variants — keep in lockstep with
+// `crate::types::CardName`.
+#[pyclass(eq, eq_int, hash, frozen, name = "CardName")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CardName {
+    AThousandCuts, Accuracy, Acrobatics, Adrenaline, AfterImage, AllOutAttack,
+    Backflip, Backstab, Bane, BladeDance, Blur, BouncingFlask, BulletTime,
+    Burn, Burst, CalculatedGamble, Caltrops, Catalyst, Choke, CloakAndDagger,
+    Concentrate, CorpseExplosion, CripplingPoison, DaggerSpray, DaggerThrow,
+    Dash, Dazed, DeadlyPoison, Defend, Deflect, DieDieDie, Distraction,
+    DodgeAndRoll, Doppelganger, EndlessAgony, Envenom, EscapePlan,
+    Eviscerate, Expertise, Finisher, Flechettes, FlyingKnee, Footwork,
+    GlassKnife, GrandFinale, HeelHook, InfiniteBlades, LegSweep, Malaise,
+    MasterfulStab, Neutralize, Nightmare, NoxiousFumes, Outmaneuver,
+    PhantasmalKiller, PiercingWail, PoisonedStab, Predator, Prepared,
+    QuickSlash, Reflex, RiddleWithHoles, Setup, Shiv, Skewer, Slice, Slimed,
+    SneakyStrike, StormOfSteel, Strike, SuckerPunch, Survivor, Tactician,
+    Terror, ToolsOfTheTrade, Unload, WellLaidPlans, WraithForm,
+}
+
+impl From<InternalCardName> for CardName {
+    fn from(n: InternalCardName) -> Self {
+        // Variants are 1:1 by name — uses repr(u8) on both sides for
+        // a single transmute would work, but the explicit match keeps
+        // the layout coupling honest if either enum drifts.
+        match n {
+            InternalCardName::AThousandCuts => Self::AThousandCuts,
+            InternalCardName::Accuracy => Self::Accuracy,
+            InternalCardName::Acrobatics => Self::Acrobatics,
+            InternalCardName::Adrenaline => Self::Adrenaline,
+            InternalCardName::AfterImage => Self::AfterImage,
+            InternalCardName::AllOutAttack => Self::AllOutAttack,
+            InternalCardName::Backflip => Self::Backflip,
+            InternalCardName::Backstab => Self::Backstab,
+            InternalCardName::Bane => Self::Bane,
+            InternalCardName::BladeDance => Self::BladeDance,
+            InternalCardName::Blur => Self::Blur,
+            InternalCardName::BouncingFlask => Self::BouncingFlask,
+            InternalCardName::BulletTime => Self::BulletTime,
+            InternalCardName::Burn => Self::Burn,
+            InternalCardName::Burst => Self::Burst,
+            InternalCardName::CalculatedGamble => Self::CalculatedGamble,
+            InternalCardName::Caltrops => Self::Caltrops,
+            InternalCardName::Catalyst => Self::Catalyst,
+            InternalCardName::Choke => Self::Choke,
+            InternalCardName::CloakAndDagger => Self::CloakAndDagger,
+            InternalCardName::Concentrate => Self::Concentrate,
+            InternalCardName::CorpseExplosion => Self::CorpseExplosion,
+            InternalCardName::CripplingPoison => Self::CripplingPoison,
+            InternalCardName::DaggerSpray => Self::DaggerSpray,
+            InternalCardName::DaggerThrow => Self::DaggerThrow,
+            InternalCardName::Dash => Self::Dash,
+            InternalCardName::Dazed => Self::Dazed,
+            InternalCardName::DeadlyPoison => Self::DeadlyPoison,
+            InternalCardName::Defend => Self::Defend,
+            InternalCardName::Deflect => Self::Deflect,
+            InternalCardName::DieDieDie => Self::DieDieDie,
+            InternalCardName::Distraction => Self::Distraction,
+            InternalCardName::DodgeAndRoll => Self::DodgeAndRoll,
+            InternalCardName::Doppelganger => Self::Doppelganger,
+            InternalCardName::EndlessAgony => Self::EndlessAgony,
+            InternalCardName::Envenom => Self::Envenom,
+            InternalCardName::EscapePlan => Self::EscapePlan,
+            InternalCardName::Eviscerate => Self::Eviscerate,
+            InternalCardName::Expertise => Self::Expertise,
+            InternalCardName::Finisher => Self::Finisher,
+            InternalCardName::Flechettes => Self::Flechettes,
+            InternalCardName::FlyingKnee => Self::FlyingKnee,
+            InternalCardName::Footwork => Self::Footwork,
+            InternalCardName::GlassKnife => Self::GlassKnife,
+            InternalCardName::GrandFinale => Self::GrandFinale,
+            InternalCardName::HeelHook => Self::HeelHook,
+            InternalCardName::InfiniteBlades => Self::InfiniteBlades,
+            InternalCardName::LegSweep => Self::LegSweep,
+            InternalCardName::Malaise => Self::Malaise,
+            InternalCardName::MasterfulStab => Self::MasterfulStab,
+            InternalCardName::Neutralize => Self::Neutralize,
+            InternalCardName::Nightmare => Self::Nightmare,
+            InternalCardName::NoxiousFumes => Self::NoxiousFumes,
+            InternalCardName::Outmaneuver => Self::Outmaneuver,
+            InternalCardName::PhantasmalKiller => Self::PhantasmalKiller,
+            InternalCardName::PiercingWail => Self::PiercingWail,
+            InternalCardName::PoisonedStab => Self::PoisonedStab,
+            InternalCardName::Predator => Self::Predator,
+            InternalCardName::Prepared => Self::Prepared,
+            InternalCardName::QuickSlash => Self::QuickSlash,
+            InternalCardName::Reflex => Self::Reflex,
+            InternalCardName::RiddleWithHoles => Self::RiddleWithHoles,
+            InternalCardName::Setup => Self::Setup,
+            InternalCardName::Shiv => Self::Shiv,
+            InternalCardName::Skewer => Self::Skewer,
+            InternalCardName::Slice => Self::Slice,
+            InternalCardName::Slimed => Self::Slimed,
+            InternalCardName::SneakyStrike => Self::SneakyStrike,
+            InternalCardName::StormOfSteel => Self::StormOfSteel,
+            InternalCardName::Strike => Self::Strike,
+            InternalCardName::SuckerPunch => Self::SuckerPunch,
+            InternalCardName::Survivor => Self::Survivor,
+            InternalCardName::Tactician => Self::Tactician,
+            InternalCardName::Terror => Self::Terror,
+            InternalCardName::ToolsOfTheTrade => Self::ToolsOfTheTrade,
+            InternalCardName::Unload => Self::Unload,
+            InternalCardName::WellLaidPlans => Self::WellLaidPlans,
+            InternalCardName::WraithForm => Self::WraithForm,
+        }
+    }
+}
+
+// MonsterName mirror — 25 variants, same shape as CardName.
+#[pyclass(eq, eq_int, hash, frozen, name = "MonsterName")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MonsterName {
+    Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief,
+    GremlinTsundere, GremlinWarrior, GremlinWizard, Hexaghost, JawWorm,
+    Lagavulin, Looter, LouseDefensive, LouseNormal, Sentry, SlaverBlue,
+    SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
+    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian,
+}
+
+impl From<InternalMonsterName> for MonsterName {
+    fn from(n: InternalMonsterName) -> Self {
+        match n {
+            InternalMonsterName::Cultist => Self::Cultist,
+            InternalMonsterName::FungiBeast => Self::FungiBeast,
+            InternalMonsterName::GremlinFat => Self::GremlinFat,
+            InternalMonsterName::GremlinNob => Self::GremlinNob,
+            InternalMonsterName::GremlinThief => Self::GremlinThief,
+            InternalMonsterName::GremlinTsundere => Self::GremlinTsundere,
+            InternalMonsterName::GremlinWarrior => Self::GremlinWarrior,
+            InternalMonsterName::GremlinWizard => Self::GremlinWizard,
+            InternalMonsterName::Hexaghost => Self::Hexaghost,
+            InternalMonsterName::JawWorm => Self::JawWorm,
+            InternalMonsterName::Lagavulin => Self::Lagavulin,
+            InternalMonsterName::Looter => Self::Looter,
+            InternalMonsterName::LouseDefensive => Self::LouseDefensive,
+            InternalMonsterName::LouseNormal => Self::LouseNormal,
+            InternalMonsterName::Sentry => Self::Sentry,
+            InternalMonsterName::SlaverBlue => Self::SlaverBlue,
+            InternalMonsterName::SlaverRed => Self::SlaverRed,
+            InternalMonsterName::SlimeAcidLarge => Self::SlimeAcidLarge,
+            InternalMonsterName::SlimeAcidMedium => Self::SlimeAcidMedium,
+            InternalMonsterName::SlimeAcidSmall => Self::SlimeAcidSmall,
+            InternalMonsterName::SlimeBoss => Self::SlimeBoss,
+            InternalMonsterName::SlimeSpikeLarge => Self::SlimeSpikeLarge,
+            InternalMonsterName::SlimeSpikeMedium => Self::SlimeSpikeMedium,
+            InternalMonsterName::SlimeSpikeSmall => Self::SlimeSpikeSmall,
+            InternalMonsterName::TheGuardian => Self::TheGuardian,
         }
     }
 }
@@ -404,71 +559,149 @@ pub struct Target {
     pub selection: Selection,
 }
 
-#[pyclass(eq, hash, frozen, name = "Action")]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Action {
-    CardPlay {
-        idx_hand: usize,
-        idx_monster: Option<usize>,
-    },
-    EndTurn {},
-    CardDiscard {
-        indices_hand: Vec<usize>,
-    },
-    CardRetain {
-        indices_hand: Vec<usize>,
-    },
-    CardSetup {
-        idx_hand: usize,
-    },
-    CardNightmare {
-        idx_hand: usize,
-    },
-    RoomSelect {
-        idx_column: usize,
-    },
-    CardRewardSelect {
-        idx_reward: usize,
-    },
-    CardRewardSkip {},
-    RelicRewardSelect {
-        idx_reward: usize,
-    },
-    RelicRewardSkip {},
-    RestSiteRest {},
-    RestSiteCardUpgrade {
-        idx_deck: usize,
-    },
+// `ActionType` is the discriminant for the flat `Action` struct below.
+// Per-action argument schemas (names + meanings) live next to ACTION_SPECS
+// in `python/slai/__init__.py`; the arity match in TryFrom below must
+// stay in sync with that table.
+#[pyclass(eq, eq_int, hash, frozen, name = "ActionType")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ActionType {
+    CardPlay,
+    EndTurn,
+    CardDiscard,
+    CardRetain,
+    CardSetup,
+    CardNightmare,
+    RoomSelect,
+    CardRewardSelect,
+    CardRewardSkip,
+    RelicRewardSelect,
+    RelicRewardSkip,
+    RestSiteRest,
+    RestSiteCardUpgrade,
 }
 
-impl From<Action> for InternalAction {
-    fn from(a: Action) -> Self {
-        match a {
-            Action::CardPlay {
-                idx_hand,
-                idx_monster,
-            } => InternalAction::CardPlay {
-                idx_hand,
-                idx_monster,
+impl ActionType {
+    fn from_discriminant(n: u8) -> Result<Self, String> {
+        match n {
+            0 => Ok(Self::CardPlay),
+            1 => Ok(Self::EndTurn),
+            2 => Ok(Self::CardDiscard),
+            3 => Ok(Self::CardRetain),
+            4 => Ok(Self::CardSetup),
+            5 => Ok(Self::CardNightmare),
+            6 => Ok(Self::RoomSelect),
+            7 => Ok(Self::CardRewardSelect),
+            8 => Ok(Self::CardRewardSkip),
+            9 => Ok(Self::RelicRewardSelect),
+            10 => Ok(Self::RelicRewardSkip),
+            11 => Ok(Self::RestSiteRest),
+            12 => Ok(Self::RestSiteCardUpgrade),
+            _ => Err(format!("ActionType: invalid discriminant {n}")),
+        }
+    }
+}
+
+// Flat heterogeneous action: a discriminant plus a positional `indices`
+// list. Mirrors PySC2's `FunctionCall(function_id, arguments)`. Each
+// position's meaning depends on `action_type` — see `ACTION_SPECS` in
+// `python/slai/__init__.py` for the per-type schema.
+#[pyclass(eq, hash, frozen, name = "Action")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Action {
+    #[pyo3(get)]
+    pub action_type: ActionType,
+    #[pyo3(get)]
+    pub indices: Vec<usize>,
+}
+
+#[pymethods]
+impl Action {
+    // Accept the discriminant as a u8 so users can pass either the PyO3
+    // `ActionType` (it has __int__) or the Python IntEnum shim (it is an
+    // int). Both go through the same numeric conversion path.
+    #[new]
+    fn new(action_type: u8, indices: Vec<usize>) -> PyResult<Self> {
+        let action_type = ActionType::from_discriminant(action_type)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { action_type, indices })
+    }
+
+    fn __repr__(&self) -> String {
+        format!("Action({:?}, {:?})", self.action_type, self.indices)
+    }
+}
+
+impl TryFrom<Action> for InternalAction {
+    type Error = String;
+    fn try_from(a: Action) -> Result<Self, Self::Error> {
+        let i = &a.indices;
+        match a.action_type {
+            ActionType::CardPlay => match i.len() {
+                1 => Ok(InternalAction::CardPlay {
+                    idx_hand: i[0],
+                    idx_monster: None,
+                }),
+                2 => Ok(InternalAction::CardPlay {
+                    idx_hand: i[0],
+                    idx_monster: Some(i[1]),
+                }),
+                n => Err(format!(
+                    "CardPlay expects [idx_hand] or [idx_hand, idx_monster], got {n} indices"
+                )),
             },
-            Action::EndTurn {} => InternalAction::EndTurn,
-            Action::CardDiscard { indices_hand } => InternalAction::CardDiscard { indices_hand },
-            Action::CardRetain { indices_hand } => InternalAction::CardRetain { indices_hand },
-            Action::CardSetup { idx_hand } => InternalAction::CardSetup { idx_hand },
-            Action::CardNightmare { idx_hand } => InternalAction::CardNightmare { idx_hand },
-            Action::RoomSelect { idx_column } => InternalAction::RoomSelect { idx_column },
-            Action::CardRewardSelect { idx_reward } => {
-                InternalAction::CardRewardSelect { idx_reward }
-            }
-            Action::CardRewardSkip {} => InternalAction::CardRewardSkip,
-            Action::RelicRewardSelect { idx_reward } => {
-                InternalAction::RelicRewardSelect { idx_reward }
-            }
-            Action::RelicRewardSkip {} => InternalAction::RelicRewardSkip,
-            Action::RestSiteRest {} => InternalAction::RestSiteRest,
-            Action::RestSiteCardUpgrade { idx_deck } => {
-                InternalAction::RestSiteCardUpgrade { idx_deck }
-            }
+            ActionType::EndTurn => match i.len() {
+                0 => Ok(InternalAction::EndTurn),
+                n => Err(format!("EndTurn expects [], got {n} indices")),
+            },
+            ActionType::CardDiscard => Ok(InternalAction::CardDiscard {
+                indices_hand: i.clone(),
+            }),
+            ActionType::CardRetain => Ok(InternalAction::CardRetain {
+                indices_hand: i.clone(),
+            }),
+            ActionType::CardSetup => match i.len() {
+                1 => Ok(InternalAction::CardSetup { idx_hand: i[0] }),
+                n => Err(format!("CardSetup expects [idx_hand], got {n} indices")),
+            },
+            ActionType::CardNightmare => match i.len() {
+                1 => Ok(InternalAction::CardNightmare { idx_hand: i[0] }),
+                n => Err(format!("CardNightmare expects [idx_hand], got {n} indices")),
+            },
+            ActionType::RoomSelect => match i.len() {
+                1 => Ok(InternalAction::RoomSelect { idx_column: i[0] }),
+                n => Err(format!("RoomSelect expects [idx_column], got {n} indices")),
+            },
+            ActionType::CardRewardSelect => match i.len() {
+                1 => Ok(InternalAction::CardRewardSelect { idx_reward: i[0] }),
+                n => Err(format!(
+                    "CardRewardSelect expects [idx_reward], got {n} indices"
+                )),
+            },
+            ActionType::CardRewardSkip => match i.len() {
+                0 => Ok(InternalAction::CardRewardSkip),
+                n => Err(format!("CardRewardSkip expects [], got {n} indices")),
+            },
+            ActionType::RelicRewardSelect => match i.len() {
+                1 => Ok(InternalAction::RelicRewardSelect { idx_reward: i[0] }),
+                n => Err(format!(
+                    "RelicRewardSelect expects [idx_reward], got {n} indices"
+                )),
+            },
+            ActionType::RelicRewardSkip => match i.len() {
+                0 => Ok(InternalAction::RelicRewardSkip),
+                n => Err(format!("RelicRewardSkip expects [], got {n} indices")),
+            },
+            ActionType::RestSiteRest => match i.len() {
+                0 => Ok(InternalAction::RestSiteRest),
+                n => Err(format!("RestSiteRest expects [], got {n} indices")),
+            },
+            ActionType::RestSiteCardUpgrade => match i.len() {
+                1 => Ok(InternalAction::RestSiteCardUpgrade { idx_deck: i[0] }),
+                n => Err(format!(
+                    "RestSiteCardUpgrade expects [idx_deck], got {n} indices"
+                )),
+            },
         }
     }
 }
@@ -656,7 +889,10 @@ impl Effect {
 #[pyclass(frozen, get_all)]
 #[derive(Debug, Clone)]
 pub struct Card {
+    /// Display name (includes "+" suffix for upgrades, has spaces).
     pub name: String,
+    /// Canonical enum slot — stable across upgrades, suitable for one-hot.
+    pub card_name: CardName,
     pub kind: CardKind,
     pub color: CardColor,
     pub rarity: CardRarity,
@@ -694,6 +930,79 @@ pub struct Card {
 pub struct Modifier {
     pub kind: ModifierKind,
     pub stacks: i16,
+}
+
+#[pymethods]
+impl Modifier {
+    /// Per-`ModifierKind` stack ceiling from the engine's `MODIFIER_DEFS`.
+    /// Useful for normalizing stacks before feeding to ML encoders.
+    /// Soft caps (e.g. 999) are common — clamp again on the consumer side
+    /// if a tighter normalization range is wanted.
+    ///
+    /// Accepts the discriminant as `u8` so users can pass either the
+    /// PyO3 `ModifierKind` (it has __int__) or the Python IntEnum shim
+    /// (it is an int).
+    #[staticmethod]
+    fn stacks_max_for(kind: u8) -> PyResult<i16> {
+        if (kind as usize) >= crate::modifier::MODIFIER_COUNT {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "ModifierKind: invalid discriminant {kind}"
+            )));
+        }
+        Ok(internal_stacks_max_for(InternalModifierKind::from_u8(kind)))
+    }
+}
+
+// Reverse conversion needed by Modifier::stacks_max_for. Variants are 1:1
+// by name with the internal enum.
+impl From<ModifierKind> for InternalModifierKind {
+    fn from(k: ModifierKind) -> Self {
+        match k {
+            ModifierKind::Accuracy => Self::Accuracy,
+            ModifierKind::AfterImage => Self::AfterImage,
+            ModifierKind::Angry => Self::Angry,
+            ModifierKind::Artifact => Self::Artifact,
+            ModifierKind::Asleep => Self::Asleep,
+            ModifierKind::Blur => Self::Blur,
+            ModifierKind::Burst => Self::Burst,
+            ModifierKind::Choke => Self::Choke,
+            ModifierKind::CorpseExplosion => Self::CorpseExplosion,
+            ModifierKind::CurlUp => Self::CurlUp,
+            ModifierKind::Dexterity => Self::Dexterity,
+            ModifierKind::DoubleDamage => Self::DoubleDamage,
+            ModifierKind::DrawCardNextTurn => Self::DrawCardNextTurn,
+            ModifierKind::Enrage => Self::Enrage,
+            ModifierKind::Entangled => Self::Entangled,
+            ModifierKind::Envenom => Self::Envenom,
+            ModifierKind::Frail => Self::Frail,
+            ModifierKind::InfiniteBlades => Self::InfiniteBlades,
+            ModifierKind::Intangible => Self::Intangible,
+            ModifierKind::Metallicize => Self::Metallicize,
+            ModifierKind::ModeShift => Self::ModeShift,
+            ModifierKind::NextTurnBlock => Self::NextTurnBlock,
+            ModifierKind::NextTurnEnergy => Self::NextTurnEnergy,
+            ModifierKind::NoDraw => Self::NoDraw,
+            ModifierKind::NoxiousFumes => Self::NoxiousFumes,
+            ModifierKind::Phantasmal => Self::Phantasmal,
+            ModifierKind::PlatedArmor => Self::PlatedArmor,
+            ModifierKind::Poison => Self::Poison,
+            ModifierKind::Retain => Self::Retain,
+            ModifierKind::Ritual => Self::Ritual,
+            ModifierKind::Shackled => Self::Shackled,
+            ModifierKind::SharpHide => Self::SharpHide,
+            ModifierKind::Splittable => Self::Splittable,
+            ModifierKind::SporeCloud => Self::SporeCloud,
+            ModifierKind::Strength => Self::Strength,
+            ModifierKind::Thievery => Self::Thievery,
+            ModifierKind::Thorns => Self::Thorns,
+            ModifierKind::ThousandCuts => Self::ThousandCuts,
+            ModifierKind::ToolsOfTheTrade => Self::ToolsOfTheTrade,
+            ModifierKind::Vigor => Self::Vigor,
+            ModifierKind::Vulnerable => Self::Vulnerable,
+            ModifierKind::Weak => Self::Weak,
+            ModifierKind::WraithForm => Self::WraithForm,
+        }
+    }
 }
 
 #[pyclass(frozen, get_all)]
@@ -769,7 +1078,10 @@ pub struct Intent {
 #[pyclass(frozen, get_all)]
 #[derive(Debug, Clone)]
 pub struct Monster {
+    /// Display name (e.g. "Acid Slime (L)", "Gremlin Nob").
     pub name: String,
+    /// Canonical enum slot — suitable for one-hot.
+    pub monster_name: MonsterName,
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
@@ -818,7 +1130,7 @@ pub struct GameState {
     pub phase: Phase,
 }
 
-impl CardName {
+impl InternalCardName {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::AThousandCuts => "A Thousand Cuts",
@@ -903,7 +1215,7 @@ impl CardName {
     }
 }
 
-impl MonsterName {
+impl InternalMonsterName {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Cultist => "Cultist",
@@ -1095,6 +1407,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
 
             Monster {
                 name: m.monster_name.as_str().to_string(),
+                monster_name: m.monster_name.into(),
                 health: m.vitals.health,
                 health_max: m.vitals.health_max,
                 block: m.vitals.block,
@@ -1136,6 +1449,7 @@ fn build_view_card_template(
         } else {
             card.card_name.as_str().to_string()
         },
+        card_name: card.card_name.into(),
         kind: card.card_kind.into(),
         color: card.card_color.into(),
         rarity: card.card_rarity.into(),
