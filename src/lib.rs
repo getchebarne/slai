@@ -20,8 +20,8 @@ mod types;
 mod utils;
 
 use ffi::{
-    Action, Card, Character, Energy, GameState, Intent, Map, MapNode, Modifier, Monster, Phase,
-    Relic, build_view,
+    Action, ActionType, Card, Character, Energy, GameState, Intent, Map, MapNode, Modifier,
+    Monster, Phase, Relic, build_view,
 };
 use game::{create_game_state, step};
 
@@ -34,6 +34,33 @@ struct GameEnv {
 
 #[pymethods]
 impl GameEnv {
+    // ---- Game-shape constants ----
+    //
+    // Mirror of `crate::consts` values that consumers (RL encoders,
+    // gym wrappers, dataset builders) need at module load. Exposed as
+    // class attributes so callers don't need to import a separate
+    // `slai.consts` namespace and so the values travel with the env.
+    //
+    // Deliberate omissions: deck / draw / discard pile sizes are
+    // *unbounded* in the engine — those caps are encoder concerns and
+    // belong on the consumer side, not here.
+    #[classattr]
+    const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
+    #[classattr]
+    const MAX_SIZE_HAND: usize = consts::MAX_SIZE_HAND;
+    #[classattr]
+    const MAX_COMBAT_CARD_REWARD: usize = consts::MAX_COMBAT_CARD_REWARD;
+    #[classattr]
+    const CARDS_DRAWN_PER_TURN: u8 = consts::CARDS_DRAWN_PER_TURN;
+    #[classattr]
+    const NIGHTMARE_COPIES: u8 = consts::NIGHTMARE_COPIES;
+    #[classattr]
+    const MAX_BLOCK: u16 = consts::MAX_BLOCK;
+    #[classattr]
+    const MAP_HEIGHT: usize = consts::MAP_HEIGHT;
+    #[classattr]
+    const MAP_WIDTH: usize = consts::MAP_WIDTH;
+
     #[new]
     #[pyo3(signature = (ascension=0))]
     fn new(ascension: u8) -> Self {
@@ -59,8 +86,10 @@ impl GameEnv {
         py: Python<'py>,
         action: Action,
     ) -> PyResult<(GameState, f32, bool, bool, Bound<'py, PyDict>)> {
-        step(&mut self.state, action.into())
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e))?;
+        let internal = action
+            .try_into()
+            .map_err(|e: String| pyo3::exceptions::PyValueError::new_err(e))?;
+        step(&mut self.state, internal).map_err(|e| pyo3::exceptions::PyValueError::new_err(e))?;
         let obs = build_view(&self.state);
         let terminated = matches!(self.state.phase, types::Phase::GameOver);
         let truncated = false;
@@ -68,9 +97,12 @@ impl GameEnv {
         Ok((obs, reward, terminated, truncated, PyDict::new(py)))
     }
 
-    // Remove once shop / event distribution channels exist
-    fn dev_grant_relic(&mut self, name: ffi::RelicName) -> PyResult<()> {
-        let internal: types::RelicName = name.into();
+    // Remove once shop / event distribution channels exist.
+    //
+    // Accepts the discriminant as `u8` so users can pass either the PyO3
+    // `RelicName` (it has __int__) or the Python IntEnum shim (it is an int).
+    fn dev_grant_relic(&mut self, name: u8) -> PyResult<()> {
+        let internal = types::RelicName::from_u8(name);
         if self.state.id_relics[internal as usize].is_some() {
             return Ok(());
         }
@@ -85,6 +117,7 @@ impl GameEnv {
 #[pymodule]
 fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<GameEnv>()?;
+    m.add_class::<ActionType>()?;
     m.add_class::<Action>()?;
     m.add_class::<GameState>()?;
     m.add_class::<Card>()?;
@@ -107,6 +140,8 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ffi::CandidatePool>()?;
     m.add_class::<ffi::RelicName>()?;
     m.add_class::<ffi::RelicTier>()?;
+    m.add_class::<ffi::CardName>()?;
+    m.add_class::<ffi::MonsterName>()?;
     // Complex enum mirrors
     m.add_class::<Phase>()?;
     m.add_class::<ffi::Selection>()?;
