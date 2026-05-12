@@ -38,6 +38,20 @@ pub fn process_effect_relic_reward_roll(
     rng: &mut impl Rng,
 ) -> DispatchResult {
     let roll = rng.random_range(0..100) as u8;
+    add_relic_reward_for_roll(roll, weights, id_relics, id_relic_rewards, entities, rng);
+    DispatchResult::Continue
+}
+
+// Shared tier-dispatch + pool-pick used by both `RelicRewardRoll` (elite) and
+// `ChestOpen` (which must reuse a single roll for gold-yes/no AND relic-tier)
+pub fn add_relic_reward_for_roll(
+    roll: u8,
+    weights: TierWeights,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    id_relic_rewards: &mut Vec<usize>,
+    entities: &mut Vec<Entity>,
+    rng: &mut impl Rng,
+) {
     let pool: &[RelicName] = if roll < weights.common_threshold {
         RELIC_POOL_COMMON
     } else if roll < weights.uncommon_threshold {
@@ -55,8 +69,6 @@ pub fn process_effect_relic_reward_roll(
     let id = entities.len();
     entities.push(get_relic(name));
     id_relic_rewards.push(id);
-
-    DispatchResult::Continue
 }
 
 fn pick_from_pool(

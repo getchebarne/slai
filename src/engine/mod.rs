@@ -975,6 +975,8 @@ fn dispatch_by_kind(
             &state.id_rooms,
             state.location,
             state.id_character,
+            &state.id_relics,
+            &mut state.id_relic_rewards,
             &mut state.entities,
             &mut state.rng,
             &mut state.effect_queue,
