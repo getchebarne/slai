@@ -1,16 +1,17 @@
 use std::collections::VecDeque;
 
-use crate::consts::{FACTOR_VULN, FACTOR_WEAK};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::{DispatchResult, get_id_actor};
 use crate::entity::Entity;
 use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
+use crate::utils::scale_attack_damage;
 
 // Unified physical-damage handler. `if_poisoned` gates the hit: when true
 // (Bane), the handler bails (no damage, no Thorns) unless the target has
-// Poison; when false, the hit always lands. Both branches share the same
-// scaling pipeline: Strength + Weak + DoubleDamage on the actor, Vulnerable +
-// Intangible on target, Thorns reflect, then push DamageDeal
+// Poison; when false, the hit always lands. Scaling: Strength + Vigor + Weak
+// on actor, Vulnerable on target via `scale_attack_damage` (shared with the
+// FFI intent view), then DoubleDamage ×2, Intangible clamp, Thorns reflect,
+// finally push DamageDeal
 pub fn process_effect_damage_physical(
     entities: &[Entity],
     id_source: usize,
@@ -28,30 +29,32 @@ pub fn process_effect_damage_physical(
     let id_actor = get_id_actor(entities, id_character, id_source);
     let mods_actor = &entities[id_actor].modifiers;
     let mods_target = &target.modifiers;
-    let mut value = amount as f32;
 
-    // Actor modifiers
-    if modifier_has(mods_actor, ModifierKind::Strength) {
-        value += modifier_stacks(mods_actor, ModifierKind::Strength) as f32;
-    }
-    if modifier_has(mods_actor, ModifierKind::Vigor) {
-        value += modifier_stacks(mods_actor, ModifierKind::Vigor) as f32;
-    }
-    if modifier_has(mods_actor, ModifierKind::Weak) {
-        value *= FACTOR_WEAK;
-    }
+    // Vigor folds into the base (it's additive on the actor, like Strength).
+    // The helper covers Strength + Weak + Vulnerable — the same pipeline the
+    // FFI intent view walks. DoubleDamage doubles the result; Intangible
+    // clamps last so it wins over every multiplier
+    let base_with_vigor = amount + if modifier_has(mods_actor, ModifierKind::Vigor) {
+        modifier_stacks(mods_actor, ModifierKind::Vigor).max(0) as u16
+    } else {
+        0
+    };
+    let str_stacks = if modifier_has(mods_actor, ModifierKind::Strength) {
+        modifier_stacks(mods_actor, ModifierKind::Strength)
+    } else {
+        0
+    };
+    let mut scaled = scale_attack_damage(
+        base_with_vigor,
+        str_stacks,
+        modifier_has(mods_actor, ModifierKind::Weak),
+        modifier_has(mods_target, ModifierKind::Vulnerable),
+    );
     if modifier_has(mods_actor, ModifierKind::DoubleDamage) {
-        value *= 2.0;
+        scaled = scaled.saturating_mul(2);
     }
-
-    // Target modifiers
-    if modifier_has(mods_target, ModifierKind::Vulnerable) {
-        value *= FACTOR_VULN;
-    }
-
-    // Intangible
-    if modifier_has(mods_target, ModifierKind::Intangible) && value > 1.0 {
-        value = 1.0;
+    if modifier_has(mods_target, ModifierKind::Intangible) && scaled > 1 {
+        scaled = 1;
     }
 
     // Thorns: triggers per attack instance regardless of damage actually dealt
@@ -66,7 +69,7 @@ pub fn process_effect_damage_physical(
         });
     }
 
-    let final_damage = value.max(0.0) as u16;
+    let final_damage = scaled;
     if final_damage > 0 {
         effect_queue.push_front(Effect {
             kind: EffectKind::DamageDeal {

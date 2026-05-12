@@ -9,7 +9,8 @@
 use pyo3::prelude::*;
 
 use crate::action::Action as InternalAction;
-use crate::consts::{FACTOR_VULN, MAP_HEIGHT, MAX_MONSTERS};
+use crate::consts::{HEXAGHOST_DIVIDER_HITS, MAP_HEIGHT, MAX_MONSTERS};
+use crate::monsters::hexaghost;
 use crate::effect::{
     CandidatePool as InternalCandidatePool, Effect as InternalEffect, EffectKind,
     SelectionKind, Target as InternalTarget,
@@ -30,7 +31,7 @@ use crate::types::{
     MonsterName as InternalMonsterName, Phase as InternalPhase,
     RelicName as InternalRelicName, RelicTier as InternalRelicTier, RoomKind as InternalRoomKind,
 };
-use crate::utils::fill_alive_monster_ids;
+use crate::utils::{fill_alive_monster_ids, scale_attack_damage};
 
 #[pyclass(eq, eq_int, hash, frozen, name = "CardKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -1338,7 +1339,8 @@ fn build_view_character(state: &InternalGameState) -> Character {
 }
 
 fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
-    let mods_char = &state.entities[state.id_character].modifiers;
+    let character = &state.entities[state.id_character];
+    let mods_char = &character.modifiers;
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let n = fill_alive_monster_ids(state, &mut buf_alive);
     buf_alive[..n]
@@ -1348,7 +1350,7 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
 
             let intent = if let Some(move_idx) = m.move_current {
                 let mv = &m.moves[move_idx];
-                let (base_damage, instances, block, buff, debuff) = match mv.intent {
+                let (mut base_damage, mut instances, block, buff, debuff) = match mv.intent {
                     InternalIntent::Attack { damage, instances } => {
                         (Some(damage), Some(instances), false, false, false)
                     }
@@ -1372,18 +1374,33 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
                     InternalIntent::Unknown => (None, None, false, false, false),
                 };
 
+                // Hexaghost Divider's per-hit damage is dynamic (HP/12 + 1).
+                // Override the static placeholder in MOVE_DIVIDER.intent so
+                // the telegraph reflects what the player will actually take
+                if m.monster_name == InternalMonsterName::Hexaghost
+                    && move_idx == hexaghost::IDX_MOVE_DIVIDER
+                {
+                    base_damage = Some(character.vitals.health / 12 + 1);
+                    instances = Some(HEXAGHOST_DIVIDER_HITS);
+                }
+
                 let damage = base_damage.map(|d| {
-                    let mut dmg = d as f32;
-                    if modifier_has(&m.modifiers, InternalModifierKind::Strength) {
-                        dmg += modifier_stacks(&m.modifiers, InternalModifierKind::Strength) as f32;
+                    let str_stacks =
+                        if modifier_has(&m.modifiers, InternalModifierKind::Strength) {
+                            modifier_stacks(&m.modifiers, InternalModifierKind::Strength)
+                        } else {
+                            0
+                        };
+                    let mut scaled = scale_attack_damage(
+                        d,
+                        str_stacks,
+                        modifier_has(&m.modifiers, InternalModifierKind::Weak),
+                        modifier_has(mods_char, InternalModifierKind::Vulnerable),
+                    );
+                    if modifier_has(mods_char, InternalModifierKind::Intangible) && scaled > 1 {
+                        scaled = 1;
                     }
-                    if modifier_has(&m.modifiers, InternalModifierKind::Weak) {
-                        dmg *= 0.75;
-                    }
-                    if modifier_has(mods_char, InternalModifierKind::Vulnerable) {
-                        dmg *= FACTOR_VULN;
-                    }
-                    dmg as u16
+                    scaled
                 });
 
                 Intent {

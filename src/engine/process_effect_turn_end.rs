@@ -188,37 +188,19 @@ pub fn process_effect_turn_end_character(
     });
 
     for &id_monster in id_alive_monsters {
-        let monster = &entities[id_monster];
         buf_effects.push(Effect {
             kind: EffectKind::TurnStart,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
-
-        if let Some(move_idx) = monster.move_current {
-            // Thievery
-            let stacks_thievery = if modifier_has(&monster.modifiers, ModifierKind::Thievery) {
-                Some(modifier_stacks(&monster.modifiers, ModifierKind::Thievery) as u8)
-            } else {
-                None
-            };
-            for e in monster.moves[move_idx].effects.iter() {
-                buf_effects.push(Effect {
-                    id_source: Some(id_monster),
-                    ..*e
-                });
-                if let Some(amount) = stacks_thievery
-                    && matches!(e.kind, EffectKind::DamagePhysical { .. })
-                {
-                    buf_effects.push(Effect {
-                        kind: EffectKind::GoldSteal { amount },
-                        id_source: Some(id_monster),
-                        target: Target::Direct(Some(id_character)),
-                    });
-                }
-            }
-        }
-
+        // Move effects resolve dynamically — see process_effect_move_execute.
+        // This lets mid-turn overrides (slime split / Lagavulin wake from
+        // poison) replace the queued attack with the new move
+        buf_effects.push(Effect {
+            kind: EffectKind::MoveExecute,
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
+        });
         buf_effects.push(Effect {
             kind: EffectKind::MoveUpdate,
             id_source: None,

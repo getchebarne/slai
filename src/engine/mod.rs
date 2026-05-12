@@ -43,6 +43,7 @@ pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_set_not_new;
 pub mod process_effect_modifier_tick;
 pub mod process_effect_monster_spawn;
+pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_relic_reward_clear;
@@ -649,8 +650,7 @@ fn dispatch_by_kind(
             }
             let entity = &mut state.entities[id_target];
             process_effect_health_loss::process_effect_health_loss(
-                &mut entity.vitals,
-                &mut entity.modifiers,
+                entity,
                 id_target,
                 state.id_character,
                 amount,
@@ -827,6 +827,16 @@ fn dispatch_by_kind(
                 alive_monsters,
                 ascension_level,
                 &mut state.rng,
+            )
+        }
+        EffectKind::MoveExecute => {
+            let id_monster = id_target.unwrap();
+            let entity = &state.entities[id_monster];
+            process_effect_move_execute::process_effect_move_execute(
+                entity,
+                id_monster,
+                state.id_character,
+                &mut state.effect_queue,
             )
         }
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(

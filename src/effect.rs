@@ -65,6 +65,7 @@ pub enum EffectKind {
     TurnStart,
     TurnEnd,
     MoveUpdate,
+    MoveExecute,
     RoomEnter,
     RestSiteExit,
     MonsterSpawn { name: MonsterName },
