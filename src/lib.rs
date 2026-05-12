@@ -135,6 +135,7 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ffi::CardRarity>()?;
     m.add_class::<ffi::CardCostKind>()?;
     m.add_class::<ffi::RoomKind>()?;
+    m.add_class::<ffi::ChestKind>()?;
     m.add_class::<ffi::ModifierKind>()?;
     m.add_class::<ffi::IntentKind>()?;
     m.add_class::<ffi::CandidatePool>()?;

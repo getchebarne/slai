@@ -223,6 +223,13 @@ pub enum RoomKind {
     Shop,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ChestKind {
+    Small,
+    Medium,
+    Large,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
 pub enum RelicName {

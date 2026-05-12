@@ -41,7 +41,9 @@ pub enum Action {
         idx_column: usize,
     },
     RestSiteRest,
+    // Stub: leaves EventRoom/Shop without interaction. Replaced when S5/S6 ship
     RoomSkip,
+    ChestOpen,
 }
 
 fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
@@ -64,7 +66,8 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
             Phase::CombatReward,
         ) => true,
         (Action::RoomSelect { .. }, Phase::Map) => true,
-        (Action::RoomSkip, Phase::Chest | Phase::EventRoom | Phase::Shop) => true,
+        (Action::RoomSkip, Phase::EventRoom | Phase::Shop) => true,
+        (Action::ChestOpen, Phase::Chest) => true,
         _ => false,
     };
     if !valid {
@@ -94,6 +97,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::RoomSelect { idx_column } => handle_room_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
         Action::RoomSkip => Ok(handle_room_skip()),
+        Action::ChestOpen => Ok(handle_chest_open()),
     }?;
 
     Ok(effects)
@@ -356,6 +360,10 @@ fn handle_room_skip() -> Vec<Effect> {
             selection: SelectionKind::Input { count: 1 },
         },
     }]
+}
+
+fn handle_chest_open() -> Vec<Effect> {
+    vec![Effect::direct(EffectKind::ChestOpen, None, None)]
 }
 
 fn handle_rest_site_card_upgrade(

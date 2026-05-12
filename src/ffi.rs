@@ -27,7 +27,8 @@ use crate::modifier::{
 use crate::game::{GameState as InternalGameState, Location};
 use crate::types::{
     CardColor as InternalCardColor, CardKind as InternalCardKind,
-    CardName as InternalCardName, CardRarity as InternalCardRarity, MonsterEncounter,
+    CardName as InternalCardName, CardRarity as InternalCardRarity,
+    ChestKind as InternalChestKind, MonsterEncounter,
     MonsterName as InternalMonsterName, Phase as InternalPhase,
     RelicName as InternalRelicName, RelicTier as InternalRelicTier, RoomKind as InternalRoomKind,
 };
@@ -139,6 +140,24 @@ impl From<InternalRoomKind> for RoomKind {
             InternalRoomKind::Treasure => Self::Treasure,
             InternalRoomKind::EventRoom => Self::EventRoom,
             InternalRoomKind::Shop => Self::Shop,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "ChestKind")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ChestKind {
+    Small,
+    Medium,
+    Large,
+}
+
+impl From<InternalChestKind> for ChestKind {
+    fn from(c: InternalChestKind) -> Self {
+        match c {
+            InternalChestKind::Small => Self::Small,
+            InternalChestKind::Medium => Self::Medium,
+            InternalChestKind::Large => Self::Large,
         }
     }
 }
@@ -608,6 +627,7 @@ pub enum ActionType {
     RestSiteRest,
     RestSiteCardUpgrade,
     RoomSkip,
+    ChestOpen,
 }
 
 impl ActionType {
@@ -627,6 +647,7 @@ impl ActionType {
             11 => Ok(Self::RestSiteRest),
             12 => Ok(Self::RestSiteCardUpgrade),
             13 => Ok(Self::RoomSkip),
+            14 => Ok(Self::ChestOpen),
             _ => Err(format!("ActionType: invalid discriminant {n}")),
         }
     }
@@ -735,6 +756,10 @@ impl TryFrom<Action> for InternalAction {
             ActionType::RoomSkip => match i.len() {
                 0 => Ok(InternalAction::RoomSkip),
                 n => Err(format!("RoomSkip expects [], got {n} indices")),
+            },
+            ActionType::ChestOpen => match i.len() {
+                0 => Ok(InternalAction::ChestOpen),
+                n => Err(format!("ChestOpen expects [], got {n} indices")),
             },
         }
     }
@@ -1135,6 +1160,7 @@ pub struct Energy {
 pub struct MapNode {
     pub room_kind: RoomKind,
     pub edges: Vec<usize>,
+    pub chest_kind: Option<ChestKind>,
 }
 
 #[pyclass(frozen, get_all)]
@@ -1548,6 +1574,7 @@ fn build_view_map(state: &InternalGameState) -> Map {
                         MapNode {
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.edges).collect(),
+                            chest_kind: room.room_chest_kind.map(Into::into),
                         }
                     })
                 })

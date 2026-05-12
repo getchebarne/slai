@@ -1,6 +1,7 @@
 use rand::Rng;
 use strum::EnumCount;
 
+use crate::consts::TierWeights;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::relics::get_relic;
@@ -30,16 +31,16 @@ const RELIC_POOL_RARE: &[RelicName] = &[RelicName::ThreadAndNeedle];
 const RELIC_POOL_SHOP: &[RelicName] = &[RelicName::TwistedFunnel];
 
 pub fn process_effect_relic_reward_roll(
+    weights: TierWeights,
     id_relics: &[Option<usize>; RelicName::COUNT],
     id_relic_rewards: &mut Vec<usize>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> DispatchResult {
-    // Elite tier roll: 50% COMMON, 33% UNCOMMON, 17% RARE
-    let roll = rng.random_range(0..100);
-    let pool: &[RelicName] = if roll < 50 {
+    let roll = rng.random_range(0..100) as u8;
+    let pool: &[RelicName] = if roll < weights.common_threshold {
         RELIC_POOL_COMMON
-    } else if roll < 83 {
+    } else if roll < weights.uncommon_threshold {
         RELIC_POOL_UNCOMMON
     } else {
         RELIC_POOL_RARE

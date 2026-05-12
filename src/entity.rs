@@ -14,8 +14,8 @@ use crate::modifier::{Modifiers, ZERO_MODIFIERS};
 // with practical caps, etc.). Bump when a card legitimately exceeds it
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
 use crate::types::{
-    CardColor, CardKind, CardName, CardRarity, MonsterKind, MonsterName, RelicName, RelicTier,
-    RoomKind, Vitals, ZERO_VITALS,
+    CardColor, CardKind, CardName, CardRarity, ChestKind, MonsterKind, MonsterName, RelicName,
+    RelicTier, RoomKind, Vitals, ZERO_VITALS,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -118,6 +118,7 @@ pub struct Entity {
     pub room_x: usize,
     pub room_kind: RoomKind,
     pub edges: u8,
+    pub room_chest_kind: Option<ChestKind>,
 
     // Relic-only
     pub relic_name: RelicName,
@@ -168,6 +169,7 @@ const ZERO_ENTITY: Entity = Entity {
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
     edges: 0,
+    room_chest_kind: None,
     relic_name: RelicName::SnakeRing,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,

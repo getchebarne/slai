@@ -1,3 +1,4 @@
+use crate::consts::TierWeights;
 use crate::modifier::ModifierKind;
 use crate::types::{CardName, MonsterName};
 
@@ -82,7 +83,7 @@ pub enum EffectKind {
     CardRewardSelect,
 
     // Relic flow
-    RelicRewardRoll,
+    RelicRewardRoll { weights: TierWeights },
     RelicRewardSelect,
     RelicRewardClear,
 
@@ -94,6 +95,8 @@ pub enum EffectKind {
     // Out-of-combat HP cap mutation
     MaxHpAdd { amount: u16 },
     MaxHpSub { amount: u16 },
+
+    ChestOpen,
 }
 
 // DiscardSource: tags a CardDiscard effect with its origin so the handler can
