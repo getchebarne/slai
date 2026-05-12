@@ -1,6 +1,11 @@
 use std::collections::VecDeque;
 
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
+use rand::Rng;
+
+use crate::consts::{
+    GOLD_BOSS_MAX, GOLD_BOSS_MIN, GOLD_ELITE_MAX, GOLD_ELITE_MIN, GOLD_MONSTER_MAX,
+    GOLD_MONSTER_MIN, MAP_HEIGHT, MAP_WIDTH,
+};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::{Entity, EntityKind};
@@ -21,6 +26,8 @@ pub fn process_effect_combat_end(
     id_card_nightmare: &mut Option<usize>,
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
+    escaped_this_combat: bool,
+    rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     // Clear card piles and target
@@ -59,8 +66,12 @@ pub fn process_effect_combat_end(
             // Boss defeated — drop any pending effects. derive_phase
             // returns GameOver from `location == BossRoom && monster_count == 0`
             effect_queue.clear();
+            push_gold_gain(rng, GOLD_BOSS_MIN, GOLD_BOSS_MAX, id_character, effect_queue);
         }
         RoomKind::CombatMonster => {
+            if !escaped_this_combat {
+                push_gold_gain(rng, GOLD_MONSTER_MIN, GOLD_MONSTER_MAX, id_character, effect_queue);
+            }
             effect_queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
                 id_source: None,
@@ -68,6 +79,7 @@ pub fn process_effect_combat_end(
             });
         }
         RoomKind::CombatElite => {
+            push_gold_gain(rng, GOLD_ELITE_MIN, GOLD_ELITE_MAX, id_character, effect_queue);
             effect_queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
                 id_source: None,
@@ -79,7 +91,24 @@ pub fn process_effect_combat_end(
                 target: Target::Direct(None),
             });
         }
-        RoomKind::RestSite => unreachable!("combat end in rest site"),
+        RoomKind::RestSite | RoomKind::Treasure | RoomKind::EventRoom | RoomKind::Shop => {
+            unreachable!("combat end in non-combat room: {:?}", room)
+        }
     }
     DispatchResult::Continue
+}
+
+fn push_gold_gain(
+    rng: &mut impl Rng,
+    min: u16,
+    max: u16,
+    id_character: usize,
+    effect_queue: &mut VecDeque<Effect>,
+) {
+    let amount = rng.random_range(min..=max);
+    effect_queue.push_back(Effect {
+        kind: EffectKind::GoldGain { amount },
+        id_source: None,
+        target: Target::Direct(Some(id_character)),
+    });
 }

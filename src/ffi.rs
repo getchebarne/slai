@@ -124,6 +124,9 @@ pub enum RoomKind {
     CombatElite,
     CombatBoss,
     RestSite,
+    Treasure,
+    EventRoom,
+    Shop,
 }
 
 impl From<InternalRoomKind> for RoomKind {
@@ -133,6 +136,9 @@ impl From<InternalRoomKind> for RoomKind {
             InternalRoomKind::CombatElite => Self::CombatElite,
             InternalRoomKind::CombatBoss => Self::CombatBoss,
             InternalRoomKind::RestSite => Self::RestSite,
+            InternalRoomKind::Treasure => Self::Treasure,
+            InternalRoomKind::EventRoom => Self::EventRoom,
+            InternalRoomKind::Shop => Self::Shop,
         }
     }
 }
@@ -154,6 +160,7 @@ pub enum RelicName {
     ThreadAndNeedle,
     TwistedFunnel,
     Vajra,
+    Circlet,
 }
 
 impl From<InternalRelicName> for RelicName {
@@ -173,6 +180,7 @@ impl From<InternalRelicName> for RelicName {
             InternalRelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
             InternalRelicName::TwistedFunnel => Self::TwistedFunnel,
             InternalRelicName::Vajra => Self::Vajra,
+            InternalRelicName::Circlet => Self::Circlet,
         }
     }
 }
@@ -194,6 +202,7 @@ impl From<RelicName> for InternalRelicName {
             RelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
             RelicName::TwistedFunnel => Self::TwistedFunnel,
             RelicName::Vajra => Self::Vajra,
+            RelicName::Circlet => Self::Circlet,
         }
     }
 }
@@ -218,6 +227,8 @@ pub enum CardName {
     QuickSlash, Reflex, RiddleWithHoles, Setup, Shiv, Skewer, Slice, Slimed,
     SneakyStrike, StormOfSteel, Strike, SuckerPunch, Survivor, Tactician,
     Terror, ToolsOfTheTrade, Unload, WellLaidPlans, WraithForm,
+    AscendersBane, Regret, Pain, Doubt, Decay, Injury, Shame, Writhe,
+    Parasite, Normality,
 }
 
 impl From<InternalCardName> for CardName {
@@ -304,6 +315,16 @@ impl From<InternalCardName> for CardName {
             InternalCardName::Unload => Self::Unload,
             InternalCardName::WellLaidPlans => Self::WellLaidPlans,
             InternalCardName::WraithForm => Self::WraithForm,
+            InternalCardName::AscendersBane => Self::AscendersBane,
+            InternalCardName::Regret => Self::Regret,
+            InternalCardName::Pain => Self::Pain,
+            InternalCardName::Doubt => Self::Doubt,
+            InternalCardName::Decay => Self::Decay,
+            InternalCardName::Injury => Self::Injury,
+            InternalCardName::Shame => Self::Shame,
+            InternalCardName::Writhe => Self::Writhe,
+            InternalCardName::Parasite => Self::Parasite,
+            InternalCardName::Normality => Self::Normality,
         }
     }
 }
@@ -515,6 +536,9 @@ pub enum Phase {
     CombatReward {},
     RestSite {},
     GameOver {},
+    Chest {},
+    EventRoom {},
+    Shop {},
 }
 
 impl From<InternalPhase> for Phase {
@@ -529,6 +553,9 @@ impl From<InternalPhase> for Phase {
             InternalPhase::CombatReward => Self::CombatReward {},
             InternalPhase::RestSite => Self::RestSite {},
             InternalPhase::GameOver => Self::GameOver {},
+            InternalPhase::Chest => Self::Chest {},
+            InternalPhase::EventRoom => Self::EventRoom {},
+            InternalPhase::Shop => Self::Shop {},
         }
     }
 }
@@ -580,6 +607,7 @@ pub enum ActionType {
     RelicRewardSkip,
     RestSiteRest,
     RestSiteCardUpgrade,
+    RoomSkip,
 }
 
 impl ActionType {
@@ -598,6 +626,7 @@ impl ActionType {
             10 => Ok(Self::RelicRewardSkip),
             11 => Ok(Self::RestSiteRest),
             12 => Ok(Self::RestSiteCardUpgrade),
+            13 => Ok(Self::RoomSkip),
             _ => Err(format!("ActionType: invalid discriminant {n}")),
         }
     }
@@ -702,6 +731,10 @@ impl TryFrom<Action> for InternalAction {
                 n => Err(format!(
                     "RestSiteCardUpgrade expects [idx_deck], got {n} indices"
                 )),
+            },
+            ActionType::RoomSkip => match i.len() {
+                0 => Ok(InternalAction::RoomSkip),
+                n => Err(format!("RoomSkip expects [], got {n} indices")),
             },
         }
     }
@@ -1212,6 +1245,16 @@ impl InternalCardName {
             Self::Unload => "Unload",
             Self::WellLaidPlans => "Well Laid Plans",
             Self::WraithForm => "Wraith Form",
+            Self::AscendersBane => "Ascender's Bane",
+            Self::Regret => "Regret",
+            Self::Pain => "Pain",
+            Self::Doubt => "Doubt",
+            Self::Decay => "Decay",
+            Self::Injury => "Injury",
+            Self::Shame => "Shame",
+            Self::Writhe => "Writhe",
+            Self::Parasite => "Parasite",
+            Self::Normality => "Normality",
         }
     }
 }

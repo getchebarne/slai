@@ -97,6 +97,17 @@ pub enum CardName {
     Unload,
     WellLaidPlans,
     WraithForm,
+    // Curses
+    AscendersBane,
+    Regret,
+    Pain,
+    Doubt,
+    Decay,
+    Injury,
+    Shame,
+    Writhe,
+    Parasite,
+    Normality,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -207,6 +218,9 @@ pub enum RoomKind {
     CombatElite,
     CombatMonster,
     RestSite,
+    Treasure,
+    EventRoom,
+    Shop,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
@@ -226,6 +240,7 @@ pub enum RelicName {
     ThreadAndNeedle,
     TwistedFunnel,
     Vajra,
+    Circlet,
 }
 
 impl RelicName {
@@ -258,4 +273,7 @@ pub enum Phase {
     GameOver,
     Map,
     RestSite,
+    Chest,
+    EventRoom,
+    Shop,
 }

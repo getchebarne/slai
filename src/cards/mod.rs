@@ -21,6 +21,7 @@ mod cloak_and_dagger;
 mod concentrate;
 mod corpse_explosion;
 mod crippling_poison;
+mod curses;
 mod dagger_spray;
 mod dagger_throw;
 mod dash;
@@ -237,6 +238,16 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::WellLaidPlans, true) => well_laid_plans::WELL_LAID_PLANS_PLUS,
         (CardName::WraithForm, false) => wraith_form::WRAITH_FORM,
         (CardName::WraithForm, true) => wraith_form::WRAITH_FORM_PLUS,
+        (CardName::AscendersBane, _) => curses::ASCENDERS_BANE,
+        (CardName::Regret, _) => curses::REGRET,
+        (CardName::Pain, _) => curses::PAIN,
+        (CardName::Doubt, _) => curses::DOUBT,
+        (CardName::Decay, _) => curses::DECAY,
+        (CardName::Injury, _) => curses::INJURY,
+        (CardName::Shame, _) => curses::SHAME,
+        (CardName::Writhe, _) => curses::WRITHE,
+        (CardName::Parasite, _) => curses::PARASITE,
+        (CardName::Normality, _) => curses::NORMALITY,
     }
 }
 
@@ -321,6 +332,16 @@ pub const ALL_CARDS: &[CardName] = &[
     CardName::Unload,
     CardName::WellLaidPlans,
     CardName::WraithForm,
+    CardName::AscendersBane,
+    CardName::Regret,
+    CardName::Pain,
+    CardName::Doubt,
+    CardName::Decay,
+    CardName::Injury,
+    CardName::Shame,
+    CardName::Writhe,
+    CardName::Parasite,
+    CardName::Normality,
 ];
 
 const fn card_rarity(name: CardName) -> CardRarity {
@@ -403,6 +424,16 @@ const fn card_rarity(name: CardName) -> CardRarity {
         CardName::Unload => CardRarity::Rare,
         CardName::WellLaidPlans => CardRarity::Uncommon,
         CardName::WraithForm => CardRarity::Rare,
+        CardName::AscendersBane
+        | CardName::Regret
+        | CardName::Pain
+        | CardName::Doubt
+        | CardName::Decay
+        | CardName::Injury
+        | CardName::Shame
+        | CardName::Writhe
+        | CardName::Parasite
+        | CardName::Normality => CardRarity::Curse,
     }
 }
 
@@ -486,6 +517,16 @@ const fn card_kind(name: CardName) -> CardKind {
         CardName::Unload => CardKind::Attack,
         CardName::WellLaidPlans => CardKind::Power,
         CardName::WraithForm => CardKind::Power,
+        CardName::AscendersBane
+        | CardName::Regret
+        | CardName::Pain
+        | CardName::Doubt
+        | CardName::Decay
+        | CardName::Injury
+        | CardName::Shame
+        | CardName::Writhe
+        | CardName::Parasite
+        | CardName::Normality => CardKind::Curse,
     }
 }
 
@@ -559,3 +600,28 @@ const REWARD_POOL_RARE_ARR: [CardName; RARE_N] = build_pool(CardRarity::Rare);
 pub const REWARD_POOL_COMMON: &[CardName] = &REWARD_POOL_COMMON_ARR;
 pub const REWARD_POOL_UNCOMMON: &[CardName] = &REWARD_POOL_UNCOMMON_ARR;
 pub const REWARD_POOL_RARE: &[CardName] = &REWARD_POOL_RARE_ARR;
+
+pub const ROLLABLE_CURSES: &[CardName] = &[
+    CardName::Regret,
+    CardName::Pain,
+    CardName::Doubt,
+    CardName::Decay,
+    CardName::Injury,
+    CardName::Shame,
+    CardName::Writhe,
+    CardName::Parasite,
+    CardName::Normality,
+];
+
+pub fn random_curse(rng: &mut impl rand::Rng) -> CardName {
+    ROLLABLE_CURSES[rng.random_range(0..ROLLABLE_CURSES.len())]
+}
+
+pub fn card_is_purgeable(name: CardName) -> bool {
+    !matches!(name, CardName::AscendersBane)
+}
+
+pub fn card_can_upgrade(card: &crate::entity::Entity) -> bool {
+    !card.card_upgraded
+        && !matches!(card.card_kind, CardKind::Status | CardKind::Curse)
+}

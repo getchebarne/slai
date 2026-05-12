@@ -21,10 +21,12 @@ pub fn process_effect_combat_start(
     id_pile_exhaust: &mut Vec<usize>,
     id_card_target: &mut Option<usize>,
     this_combat_damage_instances_taken: &mut u8,
+    escaped_this_combat: &mut bool,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
     *this_combat_damage_instances_taken = 0;
+    *escaped_this_combat = false;
     // Clone deck cards into combat copies, separating innate from non-innate
     // These small local Vecs could become stack buffers, but deck size is
     // unbounded at design level (decks grow across a run), so heap is the

@@ -35,26 +35,26 @@ pub fn process_effect_relic_reward_roll(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> DispatchResult {
-    // 60/30/10 common/uncommon/rare. Java is 50/33/17; tune later
+    // Elite tier roll: 50% COMMON, 33% UNCOMMON, 17% RARE
     let roll = rng.random_range(0..100);
-    let pool: &[RelicName] = if roll < 60 {
+    let pool: &[RelicName] = if roll < 50 {
         RELIC_POOL_COMMON
-    } else if roll < 90 {
+    } else if roll < 83 {
         RELIC_POOL_UNCOMMON
     } else {
         RELIC_POOL_RARE
     };
 
-    let pick = pick_from_pool(pool, id_relics, rng)
+    let name = pick_from_pool(pool, id_relics, rng)
         .or_else(|| pick_from_pool(RELIC_POOL_RARE, id_relics, rng))
         .or_else(|| pick_from_pool(RELIC_POOL_UNCOMMON, id_relics, rng))
-        .or_else(|| pick_from_pool(RELIC_POOL_COMMON, id_relics, rng));
+        .or_else(|| pick_from_pool(RELIC_POOL_COMMON, id_relics, rng))
+        .unwrap_or(RelicName::Circlet);
 
-    if let Some(name) = pick {
-        let id = entities.len();
-        entities.push(get_relic(name));
-        id_relic_rewards.push(id);
-    }
+    let id = entities.len();
+    entities.push(get_relic(name));
+    id_relic_rewards.push(id);
+
     DispatchResult::Continue
 }
 

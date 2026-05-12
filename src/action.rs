@@ -1,5 +1,5 @@
 use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
-use crate::effect::{DiscardSource, Effect, EffectKind, Target};
+use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{card_effective_cost, is_play_restriction_satisfied};
 use crate::map::{has_edge, room_at};
 use crate::modifier::{ModifierKind, modifier_has};
@@ -41,6 +41,7 @@ pub enum Action {
         idx_column: usize,
     },
     RestSiteRest,
+    RoomSkip,
 }
 
 fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
@@ -63,6 +64,7 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
             Phase::CombatReward,
         ) => true,
         (Action::RoomSelect { .. }, Phase::Map) => true,
+        (Action::RoomSkip, Phase::Chest | Phase::EventRoom | Phase::Shop) => true,
         _ => false,
     };
     if !valid {
@@ -91,6 +93,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::EndTurn => Ok(handle_end_turn(state)),
         Action::RoomSelect { idx_column } => handle_room_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
+        Action::RoomSkip => Ok(handle_room_skip()),
     }?;
 
     Ok(effects)
@@ -342,6 +345,17 @@ fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
             target: Target::Direct(None),
         },
     ]
+}
+
+fn handle_room_skip() -> Vec<Effect> {
+    vec![Effect {
+        kind: EffectKind::RoomSelect,
+        id_source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::NextRowRooms,
+            selection: SelectionKind::Input { count: 1 },
+        },
+    }]
 }
 
 fn handle_rest_site_card_upgrade(

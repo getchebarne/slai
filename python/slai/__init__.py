@@ -157,6 +157,7 @@ ACTION_SPECS = ActionSpecs(
         _spec(ActionType.RelicRewardSkip),
         _spec(ActionType.RestSiteRest),
         _spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
+        _spec(ActionType.RoomSkip),
     ]
 )
 

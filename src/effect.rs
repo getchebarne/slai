@@ -85,6 +85,15 @@ pub enum EffectKind {
     RelicRewardRoll,
     RelicRewardSelect,
     RelicRewardClear,
+
+    // Master-deck mutation (events, shop purge, Neow). Resolved against id_deck
+    DeckCardRemove,
+    CardAddSpecific { card_name: CardName, upgraded: bool },
+    CurseAdd,
+
+    // Out-of-combat HP cap mutation
+    MaxHpAdd { amount: u16 },
+    MaxHpSub { amount: u16 },
 }
 
 // DiscardSource: tags a CardDiscard effect with its origin so the handler can

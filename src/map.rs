@@ -4,7 +4,8 @@
 use rand::Rng;
 
 use crate::consts::{
-    ANCESTOR_GAP_MIN, FACTOR_NUM_ELITE, FACTOR_NUM_REST_SITE, MAP_HEIGHT, MAP_WIDTH, PATH_DENSITY,
+    ANCESTOR_GAP_MIN, FACTOR_NUM_ELITE, FACTOR_NUM_EVENT, FACTOR_NUM_REST_SITE, FACTOR_NUM_SHOP,
+    MAP_HEIGHT, MAP_ROW_TREASURE, MAP_WIDTH, PATH_DENSITY,
 };
 use crate::entity::{Entity, make_entity_room};
 use crate::game::Location;
@@ -265,13 +266,19 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
     let num_rooms = positions.len();
     let num_rest = (FACTOR_NUM_REST_SITE * num_rooms as f32) as usize;
     let num_elite = (FACTOR_NUM_ELITE * num_rooms as f32) as usize;
+    let num_event = (FACTOR_NUM_EVENT * num_rooms as f32) as usize;
+    let num_shop = (FACTOR_NUM_SHOP * num_rooms as f32) as usize;
 
     let mut types = vec![RoomKind::CombatMonster; num_rooms];
-    for t in types.iter_mut().take(num_rest) {
-        *t = RoomKind::RestSite;
-    }
-    for t in types.iter_mut().skip(num_rest).take(num_elite) {
-        *t = RoomKind::CombatElite;
+    let mut offset = 0;
+    for (count, kind) in [
+        (num_rest, RoomKind::RestSite),
+        (num_elite, RoomKind::CombatElite),
+        (num_event, RoomKind::EventRoom),
+        (num_shop, RoomKind::Shop),
+    ] {
+        types[offset..offset + count].fill(kind);
+        offset += count;
     }
 
     for i in (1..types.len()).rev() {
@@ -285,7 +292,7 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
         }
     }
 
-    // Room constraints
+    // Row gating
     const ELITE_MIN_Y: usize = 5;
     const REST_MIN_Y: usize = 5;
     const REST_MAX_Y_EXCL: usize = 13;
@@ -343,7 +350,16 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
         }
     }
 
-    // Last floor is all rest sites
+    for node in &mut nodes[MAP_ROW_TREASURE] {
+        if let Some(n) = node {
+            n.room_kind = RoomKind::Treasure;
+        }
+    }
+    for node in &mut nodes[0] {
+        if let Some(n) = node {
+            n.room_kind = RoomKind::CombatMonster;
+        }
+    }
     for node in &mut nodes[MAP_HEIGHT - 1] {
         if let Some(n) = node {
             n.room_kind = RoomKind::RestSite;

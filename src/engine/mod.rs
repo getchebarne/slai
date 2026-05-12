@@ -1,6 +1,7 @@
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
+pub mod process_effect_card_add_specific;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_add_to_hand;
 pub mod process_effect_card_discard;
@@ -16,9 +17,11 @@ pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_upgrade;
 pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
+pub mod process_effect_curse_add;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
+pub mod process_effect_deck_card_remove;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
 pub mod process_effect_energy_gain;
@@ -37,6 +40,8 @@ pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_hexaghost_divider;
 pub mod process_effect_id_card_nightmare_pick;
 pub mod process_effect_id_card_nightmare_spawn;
+pub mod process_effect_max_hp_add;
+pub mod process_effect_max_hp_sub;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -754,6 +759,7 @@ fn dispatch_by_kind(
             &mut state.id_pile_exhaust,
             &mut state.id_card_target,
             &mut state.this_combat_damage_instances_taken,
+            &mut state.escaped_this_combat,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -769,6 +775,8 @@ fn dispatch_by_kind(
             &mut state.id_card_nightmare,
             &state.id_rooms,
             state.location,
+            state.escaped_this_combat,
+            &mut state.rng,
             &mut state.effect_queue,
         ),
         EffectKind::TurnStart => {
@@ -870,6 +878,7 @@ fn dispatch_by_kind(
             &state.id_monsters,
             state.monster_count,
             &mut state.entities,
+            &mut state.escaped_this_combat,
             &mut state.effect_queue,
         ),
         EffectKind::GoldSteal { amount } => process_effect_gold_steal::process_effect_gold_steal(
@@ -946,6 +955,34 @@ fn dispatch_by_kind(
                 &mut state.effect_queue,
             )
         }
+        EffectKind::DeckCardRemove => {
+            process_effect_deck_card_remove::process_effect_deck_card_remove(
+                id_target.unwrap(),
+                &mut state.id_deck,
+            )
+        }
+        EffectKind::CardAddSpecific { card_name, upgraded } => {
+            process_effect_card_add_specific::process_effect_card_add_specific(
+                card_name,
+                upgraded,
+                &mut state.entities,
+                &mut state.id_deck,
+            )
+        }
+        EffectKind::CurseAdd => process_effect_curse_add::process_effect_curse_add(
+            &mut state.rng,
+            &mut state.effect_queue,
+        ),
+        EffectKind::MaxHpAdd { amount } => {
+            let id_target = id_target.unwrap();
+            let vitals = &mut state.entities[id_target].vitals;
+            process_effect_max_hp_add::process_effect_max_hp_add(vitals, amount)
+        }
+        EffectKind::MaxHpSub { amount } => {
+            let id_target = id_target.unwrap();
+            let vitals = &mut state.entities[id_target].vitals;
+            process_effect_max_hp_sub::process_effect_max_hp_sub(vitals, amount)
+        }
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
 }
@@ -995,6 +1032,9 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
         Location::Overworld { .. } => {
             match get_active_room_kind(&state.id_rooms, state.location, &state.entities) {
                 Some(RoomKind::RestSite) => Phase::RestSite,
+                Some(RoomKind::Treasure) => Phase::Chest,
+                Some(RoomKind::EventRoom) => Phase::EventRoom,
+                Some(RoomKind::Shop) => Phase::Shop,
                 _ => Phase::Map,
             }
         }
