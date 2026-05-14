@@ -1,12 +1,22 @@
 use rand::Rng;
 use strum::EnumCount;
 
+use crate::cards::POOL_COMMON;
+use crate::cards::POOL_RARE;
+use crate::cards::POOL_UNCOMMON;
+use crate::cards::get_card;
+use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
+use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
+use crate::consts::CHANCE_RARE;
+use crate::consts::CHANCE_UNCOMMON;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
+use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_MONSTERS;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::relics::get_relic;
+use crate::types::CardName;
 use crate::types::RelicName;
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
@@ -67,10 +77,9 @@ pub fn add_relic_reward_for_roll(
     th_common: u8,
     th_uncommon: u8,
     id_relics: &[Option<usize>; RelicName::COUNT],
-    id_relic_rewards: &mut Vec<usize>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-) {
+) -> usize {
     let pool: &[RelicName] = if roll < th_common {
         RELIC_POOL_COMMON
     } else if roll < th_uncommon {
@@ -87,7 +96,7 @@ pub fn add_relic_reward_for_roll(
 
     let id = entities.len();
     entities.push(get_relic(name));
-    id_relic_rewards.push(id);
+    id
 }
 
 fn pick_from_pool(
@@ -108,4 +117,45 @@ fn pick_from_pool(
     } else {
         Some(candidates[rng.random_range(0..n)])
     }
+}
+
+// Roll MAX_COMBAT_CARD_REWARD distinct cards. Mutates character_reward_roll_offset
+// (pity bias toward rares) and returns the spawned entity ids
+pub fn roll_card_rewards(
+    id_character: usize,
+    entities: &mut Vec<Entity>,
+    rng: &mut impl Rng,
+) -> Vec<usize> {
+    let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
+    let mut rolled_card_names: Vec<CardName> = Vec::new();
+    let mut rolled_ids: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
+
+    for _ in 0..MAX_COMBAT_CARD_REWARD {
+        let roll = rng.random_range(0i32..99) + character_reward_roll_offset as i32;
+
+        let pool = if roll < CHANCE_RARE {
+            character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE;
+            POOL_RARE
+        } else if roll < CHANCE_UNCOMMON {
+            POOL_UNCOMMON
+        } else {
+            character_reward_roll_offset =
+                (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
+            POOL_COMMON
+        };
+
+        let mut name = pool[rng.random_range(0..pool.len())];
+        while rolled_card_names.contains(&name) {
+            name = pool[rng.random_range(0..pool.len())];
+        }
+
+        rolled_card_names.push(name);
+        let card = get_card(name, false); // TODO: can generate upgraded cards on Act2+
+        let id_card = entities.len();
+        entities.push(card);
+        rolled_ids.push(id_card);
+    }
+
+    entities[id_character].character_reward_roll_offset = character_reward_roll_offset;
+    rolled_ids
 }

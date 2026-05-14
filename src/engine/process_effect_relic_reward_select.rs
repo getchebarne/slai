@@ -3,24 +3,24 @@ use std::collections::VecDeque;
 use strum::EnumCount;
 
 use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::Target;
 use crate::engine::DispatchResult;
+use crate::engine::try_complete_reward;
 use crate::entity::Entity;
+use crate::types::Phase;
 use crate::types::RelicName;
 
 pub fn process_effect_relic_reward_select(
-    id_relic: usize,
+    phase: &mut Phase,
     entities: &[Entity],
     id_relics: &mut [Option<usize>; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    let name = entities[id_relic].relic_name;
-    id_relics[name as usize] = Some(id_relic);
-    effect_queue.push_front(Effect {
-        kind: EffectKind::RelicRewardClear,
-        id_source: None,
-        target: Target::Direct(None),
-    });
+    if let Phase::Reward { id_relic, .. } = phase {
+        if let Some(id) = id_relic.take() {
+            let name = entities[id].relic_name;
+            id_relics[name as usize] = Some(id);
+        }
+    }
+    try_complete_reward(phase, effect_queue);
     DispatchResult::Continue
 }

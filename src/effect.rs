@@ -1,6 +1,7 @@
 use crate::modifier::ModifierKind;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::ChestKind;
 use crate::types::MonsterName;
 use crate::types::PotionName;
 
@@ -86,8 +87,15 @@ pub enum EffectKind {
     CardExhaust,
     CardRemove,
     CardUpgrade,
-    CardRewardRoll,
     CardRewardClear,
+    RewardRollCombat {
+        gold_range: Option<(u16, u16)>,
+        relic_thresholds: Option<(u8, u8)>,
+        potion_drop: bool,
+    },
+    RewardRollChest {
+        kind: ChestKind,
+    },
     TargetSet,
     TargetClear,
     DamageDeal {
@@ -138,10 +146,6 @@ pub enum EffectKind {
     RoomSelect,
 
     // Relic flow
-    RelicRewardRoll {
-        th_common: u8,
-        th_uncommon: u8,
-    },
     RelicRewardSelect,
     RelicRewardClear,
 
@@ -170,6 +174,14 @@ pub enum EffectKind {
     PotionAddRandom {
         limited: bool,
     },
+    PotionRewardSelect,
+    PotionRewardClear,
+
+    // Gold reward pickup (in-pool gold from combat-end or chest)
+    GoldRewardTake,
+
+    // Umbrella skip: bulk-clear all Phase::Reward pools
+    RewardSkip,
 
     // Discovery: roll N random cards of `kind` from the character pool and
     // halt on `Phase::CombatAwaitDiscover`; player picks one via `Action::CardDiscoverPick`

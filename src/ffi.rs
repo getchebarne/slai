@@ -700,8 +700,8 @@ impl From<CandidatePool> for PyCandidatePool {
 
 // Phase / Selection / Target
 
-#[pyclass(eq, hash, frozen, name = "Phase")]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[pyclass(frozen, name = "Phase")]
+#[derive(Debug, Clone)]
 pub enum PyPhase {
     Map {},
     CombatDefault {},
@@ -709,7 +709,12 @@ pub enum PyPhase {
     CombatAwaitNightmare {},
     CombatAwaitRetain { num: u8 },
     CombatAwaitSetup {},
-    CombatReward {},
+    Reward {
+        rewards_card: Vec<PyCard>,
+        rewards_relic: Option<PyRelic>,
+        rewards_potion: Option<PyPotion>,
+        rewards_gold: Option<u16>,
+    },
     RestSite {},
     GameOver {},
     Chest {},
@@ -718,22 +723,24 @@ pub enum PyPhase {
     CombatAwaitDiscover { count: u8 },
 }
 
-impl From<Phase> for PyPhase {
-    fn from(p: Phase) -> Self {
+// Data-free variants only. Phase::Reward carries entity ids that need the GameState
+// to snapshot — see `snapshot_phase`, which must own that path
+impl From<&Phase> for PyPhase {
+    fn from(p: &Phase) -> Self {
         match p {
             Phase::Map => Self::Map {},
             Phase::CombatDefault => Self::CombatDefault {},
-            Phase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
+            Phase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num: *num },
             Phase::CombatAwaitNightmare => Self::CombatAwaitNightmare {},
-            Phase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
+            Phase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num: *num },
             Phase::CombatAwaitSetup => Self::CombatAwaitSetup {},
-            Phase::CombatReward => Self::CombatReward {},
             Phase::RestSite => Self::RestSite {},
             Phase::GameOver => Self::GameOver {},
             Phase::Chest => Self::Chest {},
             Phase::EventRoom => Self::EventRoom {},
             Phase::Shop => Self::Shop {},
-            Phase::CombatAwaitDiscover { count } => Self::CombatAwaitDiscover { count },
+            Phase::CombatAwaitDiscover { count } => Self::CombatAwaitDiscover { count: *count },
+            Phase::Reward { .. } => unreachable!("Phase::Reward must go through snapshot_phase"),
         }
     }
 }
@@ -789,6 +796,10 @@ pub enum PyActionType {
     PotionUse,
     PotionDiscard,
     CardDiscoverPick,
+    PotionRewardSelect,
+    PotionRewardSkip,
+    GoldRewardTake,
+    RewardSkip,
 }
 
 impl PyActionType {
@@ -812,6 +823,10 @@ impl PyActionType {
             15 => Ok(Self::PotionUse),
             16 => Ok(Self::PotionDiscard),
             17 => Ok(Self::CardDiscoverPick),
+            18 => Ok(Self::PotionRewardSelect),
+            19 => Ok(Self::PotionRewardSkip),
+            20 => Ok(Self::GoldRewardTake),
+            21 => Ok(Self::RewardSkip),
             _ => Err(format!("PyActionType: invalid discriminant {n}")),
         }
     }
@@ -889,10 +904,8 @@ pub fn to_internal_action(a: PyAction) -> Result<Action, String> {
             n => Err(format!("CardRewardSkip expects [], got {n} idxs")),
         },
         PyActionType::RelicRewardSelect => match i.len() {
-            1 => Ok(Action::RelicRewardSelect { idx_reward: i[0] }),
-            n => Err(format!(
-                "RelicRewardSelect expects [idx_reward], got {n} idxs"
-            )),
+            0 => Ok(Action::RelicRewardSelect),
+            n => Err(format!("RelicRewardSelect expects [], got {n} idxs")),
         },
         PyActionType::RelicRewardSkip => match i.len() {
             0 => Ok(Action::RelicRewardSkip),
@@ -936,6 +949,22 @@ pub fn to_internal_action(a: PyAction) -> Result<Action, String> {
         PyActionType::CardDiscoverPick => match i.len() {
             1 => Ok(Action::CardDiscoverPick { idx_option: i[0] }),
             n => Err(format!("CardDiscoverPick expects [idx_option], got {n} idxs")),
+        },
+        PyActionType::PotionRewardSelect => match i.len() {
+            0 => Ok(Action::PotionRewardSelect),
+            n => Err(format!("PotionRewardSelect expects [], got {n} idxs")),
+        },
+        PyActionType::PotionRewardSkip => match i.len() {
+            0 => Ok(Action::PotionRewardSkip),
+            n => Err(format!("PotionRewardSkip expects [], got {n} idxs")),
+        },
+        PyActionType::GoldRewardTake => match i.len() {
+            0 => Ok(Action::GoldRewardTake),
+            n => Err(format!("GoldRewardTake expects [], got {n} idxs")),
+        },
+        PyActionType::RewardSkip => match i.len() {
+            0 => Ok(Action::RewardSkip),
+            n => Err(format!("RewardSkip expects [], got {n} idxs")),
         },
     }
 }
@@ -1299,10 +1328,8 @@ pub struct PyGameState {
     pub pile_draw: Vec<PyCard>,
     pub pile_discard: Vec<PyCard>,
     pub pile_exhaust: Vec<PyCard>,
-    pub rewards_card: Vec<PyCard>,
     pub picks_card: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
-    pub rewards_relic: Vec<PyRelic>,
     pub energy: PyEnergy,
     pub map: PyMap,
     pub phase: PyPhase,
@@ -1483,27 +1510,37 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             entangled,
         )
     };
-    let relic = |id_relic: usize| snapshot_relic(&state.entities[id_relic]);
+    let phase = snapshot_phase(state, &card);
     PyGameState {
         character: snapshot_character(state),
         monsters: snapshot_monsters(state),
-        deck: state.id_deck.iter().copied().map(card).collect(),
-        hand: state.id_hand.iter().copied().map(card).collect(),
-        pile_draw: state.id_pile_draw.iter().copied().map(card).collect(),
-        pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
-        pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
-        rewards_card: state.id_card_rewards.iter().copied().map(card).collect(),
-        picks_card: state.id_card_discover.iter().copied().map(card).collect(),
+        deck: state.id_deck.iter().copied().map(&card).collect(),
+        hand: state.id_hand.iter().copied().map(&card).collect(),
+        pile_draw: state.id_pile_draw.iter().copied().map(&card).collect(),
+        pile_discard: state.id_pile_discard.iter().copied().map(&card).collect(),
+        pile_exhaust: state.id_pile_exhaust.iter().copied().map(&card).collect(),
+        picks_card: state.id_card_discover.iter().copied().map(&card).collect(),
         relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
-        rewards_relic: state.id_relic_rewards.iter().copied().map(relic).collect(),
         energy: PyEnergy {
             current: state.energy.current,
             max: state.energy.max,
         },
         map: snapshot_map(state),
-        phase: state.phase.into(),
+        phase,
+    }
+}
+
+fn snapshot_phase(state: &GameState, card: &impl Fn(usize) -> PyCard) -> PyPhase {
+    match &state.phase {
+        Phase::Reward { id_cards, id_relic, id_potion, gold } => PyPhase::Reward {
+            rewards_card: id_cards.iter().copied().map(card).collect(),
+            rewards_relic: id_relic.map(|id| snapshot_relic(&state.entities[id])),
+            rewards_potion: id_potion.map(|id| snapshot_potion(&state.entities[id])),
+            rewards_gold: *gold,
+        },
+        other => other.into(),
     }
 }
 

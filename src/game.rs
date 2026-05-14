@@ -17,7 +17,6 @@ use crate::consts::EVENT_CHANCE_SHOP_BASE;
 use crate::consts::EVENT_CHANCE_TREASURE_BASE;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
-use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::CandidatePool;
@@ -80,11 +79,9 @@ pub struct GameState {
     pub id_hand: Vec<usize>,
     pub id_pile_discard: Vec<usize>,
     pub id_pile_exhaust: Vec<usize>,
-    pub id_card_rewards: Vec<usize>,
 
     // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
     pub id_relics: [Option<usize>; RelicName::COUNT],
-    pub id_relic_rewards: Vec<usize>,
 
     // Needed for Escape Plan
     pub card_last_drawn: Option<usize>,
@@ -179,9 +176,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_pile_discard: Vec::with_capacity(64),
         id_pile_exhaust: Vec::with_capacity(32),
         id_card_target: None,
-        id_card_rewards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
         id_relics,
-        id_relic_rewards: Vec::new(),
         id_rooms,
         location,
         encounter_list_normal,

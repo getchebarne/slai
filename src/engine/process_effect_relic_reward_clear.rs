@@ -1,27 +1,17 @@
 use std::collections::VecDeque;
 
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::engine::DispatchResult;
+use crate::engine::try_complete_reward;
+use crate::types::Phase;
 
 pub fn process_effect_relic_reward_clear(
-    id_relic_rewards: &mut Vec<usize>,
-    id_card_rewards: &[usize],
+    phase: &mut Phase,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    id_relic_rewards.clear();
-    if id_card_rewards.is_empty() {
-        effect_queue.push_front(Effect {
-            kind: EffectKind::RoomSelect,
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::NextRowRooms,
-                selection: SelectionKind::Input { count: 1 },
-            },
-        });
+    if let Phase::Reward { id_relic, .. } = phase {
+        *id_relic = None;
     }
+    try_complete_reward(phase, effect_queue);
     DispatchResult::Continue
 }

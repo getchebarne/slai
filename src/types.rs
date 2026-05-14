@@ -298,9 +298,14 @@ pub enum RelicTier {
     Special,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Phase {
-    CombatReward,
+    Reward {
+        id_cards: Vec<usize>,
+        id_relic: Option<usize>,
+        id_potion: Option<usize>,
+        gold: Option<u16>,
+    },
     CombatDefault,
     CombatAwaitDiscard { num: u8 },
     CombatAwaitDiscover { count: u8 },

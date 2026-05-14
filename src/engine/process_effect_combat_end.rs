@@ -91,40 +91,29 @@ pub fn process_effect_combat_end(
             );
         }
         RoomKind::CombatMonster => {
-            if !escaped_this_combat {
-                push_gold_gain(
-                    rng,
-                    GOLD_MONSTER_MIN,
-                    GOLD_MONSTER_MAX,
-                    id_character,
-                    effect_queue,
-                );
-            }
-            roll_potion_drop(rng, potion_drop_mod, effect_queue);
+            let gold_range = if escaped_this_combat {
+                None
+            } else {
+                Some((GOLD_MONSTER_MIN, GOLD_MONSTER_MAX))
+            };
+            let potion_drop = roll_potion_drop(rng, potion_drop_mod);
             effect_queue.push_back(Effect {
-                kind: EffectKind::CardRewardRoll,
+                kind: EffectKind::RewardRollCombat {
+                    gold_range,
+                    relic_thresholds: None,
+                    potion_drop,
+                },
                 id_source: None,
                 target: Target::Direct(None),
             });
         }
         RoomKind::CombatElite => {
-            push_gold_gain(
-                rng,
-                GOLD_ELITE_MIN,
-                GOLD_ELITE_MAX,
-                id_character,
-                effect_queue,
-            );
-            roll_potion_drop(rng, potion_drop_mod, effect_queue);
+            let potion_drop = roll_potion_drop(rng, potion_drop_mod);
             effect_queue.push_back(Effect {
-                kind: EffectKind::CardRewardRoll,
-                id_source: None,
-                target: Target::Direct(None),
-            });
-            effect_queue.push_back(Effect {
-                kind: EffectKind::RelicRewardRoll {
-                    th_common: ELITE_TH_COMMON,
-                    th_uncommon: ELITE_TH_UNCOMMON,
+                kind: EffectKind::RewardRollCombat {
+                    gold_range: Some((GOLD_ELITE_MIN, GOLD_ELITE_MAX)),
+                    relic_thresholds: Some((ELITE_TH_COMMON, ELITE_TH_UNCOMMON)),
+                    potion_drop,
                 },
                 id_source: None,
                 target: Target::Direct(None),
@@ -153,31 +142,17 @@ fn push_gold_gain(
 }
 
 // +10 on miss, -10 on hit; clamps to [-30, +60] ([10%, 100%])
-fn roll_potion_drop(
-    rng: &mut impl Rng,
-    potion_drop_mod: &mut i8,
-    effect_queue: &mut VecDeque<Effect>,
-) {
+fn roll_potion_drop(rng: &mut impl Rng, potion_drop_mod: &mut i8) -> bool {
     let roll = rng.random_range(0..100) as u8;
     let chance = (POTION_DROP_CHANCE_BASE as i16 + *potion_drop_mod as i16).clamp(0, 100) as u8;
 
-    // Hit
     if roll < chance {
-        // Decrease drop chance
         *potion_drop_mod = (*potion_drop_mod + POTION_DROP_CHANCE_MOD_HIT)
             .clamp(POTION_DROP_CHANCE_MOD_MIN, POTION_DROP_CHANCE_MOD_MAX);
-
-        // Push effect
-        effect_queue.push_back(Effect {
-            kind: EffectKind::PotionAddRandom { limited: false },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-
-    // Miss
+        true
     } else {
-        // Increase drop chance
         *potion_drop_mod = (*potion_drop_mod + POTION_DROP_CHANCE_MOD_MISS)
             .clamp(POTION_DROP_CHANCE_MOD_MIN, POTION_DROP_CHANCE_MOD_MAX);
+        false
     }
 }

@@ -15,6 +15,7 @@ use crate::map::has_edge;
 use crate::map::room_at;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
+use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::Phase;
 use crate::utils::fill_alive_monster_ids;
@@ -44,10 +45,12 @@ pub enum Action {
         idx_reward: usize,
     },
     CardRewardSkip,
-    RelicRewardSelect {
-        idx_reward: usize,
-    },
+    RelicRewardSelect,
     RelicRewardSkip,
+    PotionRewardSelect,
+    PotionRewardSkip,
+    GoldRewardTake,
+    RewardSkip,
     EndTurn,
     RoomSelect {
         idx_column: usize,
@@ -67,13 +70,13 @@ pub enum Action {
     },
 }
 
-fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
+fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> {
     let valid = match (action, current_phase) {
         (Action::CardDiscard { indices_hand }, Phase::CombatAwaitDiscard { num }) => {
-            indices_hand.len() == num as usize
+            indices_hand.len() == *num as usize
         }
         (Action::CardRetain { indices_hand }, Phase::CombatAwaitRetain { num }) => {
-            indices_hand.len() == num as usize
+            indices_hand.len() == *num as usize
         }
         (Action::CardSetup { .. }, Phase::CombatAwaitSetup) => true,
         (Action::CardNightmare { .. }, Phase::CombatAwaitNightmare) => true,
@@ -82,9 +85,13 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
         (
             Action::CardRewardSelect { .. }
             | Action::CardRewardSkip
-            | Action::RelicRewardSelect { .. }
-            | Action::RelicRewardSkip,
-            Phase::CombatReward,
+            | Action::RelicRewardSelect
+            | Action::RelicRewardSkip
+            | Action::PotionRewardSelect
+            | Action::PotionRewardSkip
+            | Action::GoldRewardTake
+            | Action::RewardSkip,
+            Phase::Reward { .. },
         ) => true,
         (Action::RoomSelect { .. }, Phase::Map) => true,
         (Action::RoomSkip, Phase::EventRoom | Phase::Shop) => true,
@@ -103,7 +110,7 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
 }
 
 pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
-    validate_phase(&action, state.phase)?;
+    validate_phase(&action, &state.phase)?;
 
     let effects = match action {
         Action::CardDiscard { indices_hand } => handle_card_discard(state, indices_hand),
@@ -117,8 +124,12 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::RestSiteCardUpgrade { idx_deck } => handle_rest_site_card_upgrade(state, idx_deck),
         Action::CardRewardSelect { idx_reward } => handle_card_reward_select(state, idx_reward),
         Action::CardRewardSkip => Ok(handle_card_reward_skip()),
-        Action::RelicRewardSelect { idx_reward } => handle_relic_reward_select(state, idx_reward),
+        Action::RelicRewardSelect => handle_relic_reward_select(state),
         Action::RelicRewardSkip => Ok(handle_relic_reward_skip()),
+        Action::PotionRewardSelect => handle_potion_reward_select(state),
+        Action::PotionRewardSkip => Ok(handle_potion_reward_skip()),
+        Action::GoldRewardTake => handle_gold_reward_take(state),
+        Action::RewardSkip => Ok(handle_reward_skip()),
         Action::EndTurn => Ok(handle_end_turn(state)),
         Action::RoomSelect { idx_column } => handle_room_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
@@ -325,7 +336,10 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
 }
 
 fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    let id_card = lookup_idx(&state.id_card_rewards, idx_reward)?;
+    let Phase::Reward { id_cards, .. } = &state.phase else {
+        return Err(format!("CardRewardSelect invalid in phase {:?}", state.phase));
+    };
+    let id_card = lookup_idx(id_cards, idx_reward)?;
     let card = &state.entities[id_card];
     let card_name = card.card_name;
     let upgraded = card.card_upgraded;
@@ -352,13 +366,14 @@ fn handle_card_reward_skip() -> Vec<Effect> {
     }]
 }
 
-fn handle_relic_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    let id_relic = lookup_idx(&state.id_relic_rewards, idx_reward)?;
-    Ok(vec![Effect::direct(
-        EffectKind::RelicRewardSelect,
-        None,
-        Some(id_relic),
-    )])
+fn handle_relic_reward_select(state: &GameState) -> Result<Vec<Effect>, String> {
+    let Phase::Reward { id_relic, .. } = &state.phase else {
+        return Err(format!("RelicRewardSelect invalid in phase {:?}", state.phase));
+    };
+    if id_relic.is_none() {
+        return Err("RelicRewardSelect: no relic in reward pool".to_string());
+    }
+    Ok(vec![Effect::direct(EffectKind::RelicRewardSelect, None, None)])
 }
 
 fn handle_relic_reward_skip() -> Vec<Effect> {
@@ -367,6 +382,38 @@ fn handle_relic_reward_skip() -> Vec<Effect> {
         id_source: None,
         target: Target::Direct(None),
     }]
+}
+
+fn handle_potion_reward_select(state: &GameState) -> Result<Vec<Effect>, String> {
+    let Phase::Reward { id_potion, .. } = &state.phase else {
+        return Err(format!("PotionRewardSelect invalid in phase {:?}", state.phase));
+    };
+    if id_potion.is_none() {
+        return Err("PotionRewardSelect: no potion in reward pool".to_string());
+    }
+    let character = &state.entities[state.id_character];
+    if find_free_slot(&character.potion_slots, character.potion_slots_max).is_none() {
+        return Err("belt is full; discard a potion first".to_string());
+    }
+    Ok(vec![Effect::direct(EffectKind::PotionRewardSelect, None, None)])
+}
+
+fn handle_potion_reward_skip() -> Vec<Effect> {
+    vec![Effect::direct(EffectKind::PotionRewardClear, None, None)]
+}
+
+fn handle_gold_reward_take(state: &GameState) -> Result<Vec<Effect>, String> {
+    let Phase::Reward { gold, .. } = &state.phase else {
+        return Err(format!("GoldRewardTake invalid in phase {:?}", state.phase));
+    };
+    if gold.is_none() {
+        return Err("GoldRewardTake: no gold in reward pool".to_string());
+    }
+    Ok(vec![Effect::direct(EffectKind::GoldRewardTake, None, None)])
+}
+
+fn handle_reward_skip() -> Vec<Effect> {
+    vec![Effect::direct(EffectKind::RewardSkip, None, None)]
 }
 
 fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {

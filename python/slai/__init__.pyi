@@ -249,6 +249,10 @@ class ActionType(IntEnum):
     PotionUse: int
     PotionDiscard: int
     CardDiscoverPick: int
+    PotionRewardSelect: int
+    PotionRewardSkip: int
+    GoldRewardTake: int
+    RewardSkip: int
 
 
 class CardCostKind:
@@ -290,8 +294,18 @@ class Phase:
         count: int
         def __init__(self, count: int) -> None: ...
 
-    class CombatReward:
-        def __init__(self) -> None: ...
+    class Reward:
+        rewards_card: list[Card]
+        rewards_relic: Relic | None
+        rewards_potion: Potion | None
+        rewards_gold: int | None
+        def __init__(
+            self,
+            rewards_card: list[Card],
+            rewards_relic: Relic | None,
+            rewards_potion: Potion | None,
+            rewards_gold: int | None,
+        ) -> None: ...
 
     class RestSite:
         def __init__(self) -> None: ...
@@ -458,6 +472,10 @@ class ActionSpecRegistry:
     PotionUse: ActionSpec
     PotionDiscard: ActionSpec
     CardDiscoverPick: ActionSpec
+    PotionRewardSelect: ActionSpec
+    PotionRewardSkip: ActionSpec
+    GoldRewardTake: ActionSpec
+    RewardSkip: ActionSpec
 
     def __getattr__(self, name: str) -> ActionSpec: ...
     def __getitem__(self, key: Union[int, str, ActionType]) -> ActionSpec: ...
@@ -588,10 +606,6 @@ class GameState:
     pile_discard: list[Card]
     pile_exhaust: list[Card]
 
-    # Rewards
-    rewards_card: list[Card]
-    rewards_relic: list[Relic]
-
     # Relics, Energy and Map
     relics: list[Relic]
     energy: Energy
@@ -605,7 +619,7 @@ class GameState:
         Phase.CombatAwaitRetain,
         Phase.CombatAwaitNightmare,
         Phase.CombatAwaitSetup,
-        Phase.CombatReward,
+        Phase.Reward,
         Phase.RestSite,
         Phase.GameOver,
     ]
