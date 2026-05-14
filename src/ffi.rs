@@ -2,7 +2,8 @@
 use pyo3::prelude::*;
 
 use crate::action::Action;
-use crate::consts::{FACTOR_VULN, MAP_HEIGHT, MAX_MONSTERS};
+use crate::consts::{HEXAGHOST_DIVIDER_HITS, MAP_HEIGHT, MAX_MONSTERS};
+use crate::monsters::hexaghost;
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{
     CardCostKind, Entity, Intent, card_effective_cost, is_play_restriction_satisfied,
@@ -14,7 +15,7 @@ use crate::types::{
     CardColor, CardKind, CardName, CardRarity, MonsterEncounter, MonsterName, Phase, RelicName,
     RelicTier, RoomKind,
 };
-use crate::utils::fill_alive_monster_ids;
+use crate::utils::{fill_alive_monster_ids, scale_attack_damage};
 
 // Enum mirrors
 
@@ -1298,7 +1299,8 @@ fn snapshot_character(state: &GameState) -> PyCharacter {
 }
 
 fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
-    let mods_char = &state.entities[state.id_character].modifiers;
+    let character = &state.entities[state.id_character];
+    let mods_char = &character.modifiers;
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let n = fill_alive_monster_ids(state, &mut buf_alive);
     buf_alive[..n]
@@ -1308,7 +1310,7 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
 
             let intent = if let Some(move_idx) = m.move_current {
                 let mv = &m.moves[move_idx];
-                let (base_damage, instances) = match mv.intent {
+                let (mut base_damage, mut instances) = match mv.intent {
                     Intent::Attack { damage, instances }
                     | Intent::AttackBlock { damage, instances }
                     | Intent::AttackBuff { damage, instances }
@@ -1326,18 +1328,30 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
+                // Hexaghost Divider's per-hit damage is dynamic (HP/12 + 1); override the static placeholder
+                if m.monster_name == MonsterName::Hexaghost
+                    && move_idx == hexaghost::IDX_MOVE_DIVIDER
+                {
+                    base_damage = Some(character.vitals.health / 12 + 1);
+                    instances = Some(HEXAGHOST_DIVIDER_HITS);
+                }
+
                 let damage = base_damage.map(|d| {
-                    let mut dmg = d as f32;
-                    if modifier_has(&m.modifiers, ModifierKind::Strength) {
-                        dmg += modifier_stacks(&m.modifiers, ModifierKind::Strength) as f32;
+                    let str_stacks = if modifier_has(&m.modifiers, ModifierKind::Strength) {
+                        modifier_stacks(&m.modifiers, ModifierKind::Strength)
+                    } else {
+                        0
+                    };
+                    let mut scaled = scale_attack_damage(
+                        d,
+                        str_stacks,
+                        modifier_has(&m.modifiers, ModifierKind::Weak),
+                        modifier_has(mods_char, ModifierKind::Vulnerable),
+                    );
+                    if modifier_has(mods_char, ModifierKind::Intangible) && scaled > 1 {
+                        scaled = 1;
                     }
-                    if modifier_has(&m.modifiers, ModifierKind::Weak) {
-                        dmg *= 0.75;
-                    }
-                    if modifier_has(mods_char, ModifierKind::Vulnerable) {
-                        dmg *= FACTOR_VULN;
-                    }
-                    dmg as u16
+                    scaled
                 });
 
                 PyIntent {

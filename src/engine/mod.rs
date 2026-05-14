@@ -43,6 +43,7 @@ pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_set_not_new;
 pub mod process_effect_modifier_tick;
 pub mod process_effect_monster_spawn;
+pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_relic_reward_clear;
@@ -66,8 +67,8 @@ use rand::Rng;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target, ZERO_EFFECT};
 use crate::entity::{Entity, EntityKind};
-use crate::map::{get_active_room_kind, has_edge};
 use crate::game::{GameState, Location};
+use crate::map::{get_active_room_kind, has_edge};
 use crate::types::{Phase, RoomKind};
 use crate::utils::{fill_alive_monster_ids, shuffle};
 
@@ -649,8 +650,7 @@ fn dispatch_by_kind(
             }
             let entity = &mut state.entities[id_target];
             process_effect_health_loss::process_effect_health_loss(
-                &mut entity.vitals,
-                &mut entity.modifiers,
+                entity,
                 id_target,
                 state.id_character,
                 amount,
@@ -815,18 +815,28 @@ fn dispatch_by_kind(
             }
         }
         EffectKind::MoveUpdate => {
-            let id_monster = id_target.unwrap();
+            let id_target = id_target.unwrap();
             let ascension_level = state.ascension;
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             let alive_monsters = &buf_alive[..alive_n];
-            let entity = &mut state.entities[id_monster];
+            let entity = &mut state.entities[id_target];
             process_effect_move_update::process_effect_move_update(
                 entity,
-                id_monster,
+                id_target,
                 alive_monsters,
                 ascension_level,
                 &mut state.rng,
+            )
+        }
+        EffectKind::MoveExecute => {
+            let id_target = id_target.unwrap();
+            let entity = &state.entities[id_target];
+            process_effect_move_execute::process_effect_move_execute(
+                entity,
+                id_target,
+                state.id_character,
+                &mut state.effect_queue,
             )
         }
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(

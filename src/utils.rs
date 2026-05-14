@@ -1,6 +1,6 @@
 use rand::Rng;
 
-use crate::consts::MAX_MONSTERS;
+use crate::consts::{FACTOR_VULN, FACTOR_WEAK, MAX_MONSTERS};
 use crate::game::GameState;
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
@@ -22,6 +22,24 @@ pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MON
         }
     }
     n
+}
+
+// Strength, Weak, and Vulnerable scaling shared between the live damage pipeline
+// and the FFI intent view
+pub fn scale_attack_damage(
+    base: u16,
+    source_str_stacks: i16,
+    source_is_weak: bool,
+    target_is_vulnerable: bool,
+) -> u16 {
+    let mut value = base as f32 + source_str_stacks as f32;
+    if source_is_weak {
+        value *= FACTOR_WEAK;
+    }
+    if target_is_vulnerable {
+        value *= FACTOR_VULN;
+    }
+    value.max(0.0) as u16
 }
 
 pub fn remove_card_from_hand(id_target: usize, id_hand: &mut Vec<usize>) {
