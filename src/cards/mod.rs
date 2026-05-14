@@ -3,6 +3,7 @@ mod accuracy;
 mod acrobatics;
 mod adrenaline;
 mod after_image;
+mod alchemize;
 mod all_out_attack;
 mod backflip;
 mod backstab;
@@ -96,6 +97,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Adrenaline, true) => adrenaline::ADRENALINE_PLUS,
         (CardName::AfterImage, false) => after_image::AFTER_IMAGE,
         (CardName::AfterImage, true) => after_image::AFTER_IMAGE_PLUS,
+        (CardName::Alchemize, false) => alchemize::ALCHEMIZE,
+        (CardName::Alchemize, true) => alchemize::ALCHEMIZE_PLUS,
         (CardName::AllOutAttack, false) => all_out_attack::ALL_OUT_ATTACK,
         (CardName::AllOutAttack, true) => all_out_attack::ALL_OUT_ATTACK_PLUS,
         (CardName::Backflip, false) => backflip::BACKFLIP,
@@ -261,6 +264,7 @@ pub const ALL_CARDS: &[CardName] = &[
     CardName::Acrobatics,
     CardName::Adrenaline,
     CardName::AfterImage,
+    CardName::Alchemize,
     CardName::AllOutAttack,
     CardName::Backflip,
     CardName::Backstab,
@@ -353,6 +357,7 @@ const fn card_rarity(name: CardName) -> CardRarity {
         CardName::Acrobatics => CardRarity::Common,
         CardName::Adrenaline => CardRarity::Rare,
         CardName::AfterImage => CardRarity::Rare,
+        CardName::Alchemize => CardRarity::Rare,
         CardName::AllOutAttack => CardRarity::Uncommon,
         CardName::Backflip => CardRarity::Common,
         CardName::Backstab => CardRarity::Uncommon,
@@ -445,6 +450,7 @@ const fn card_kind(name: CardName) -> CardKind {
         CardName::Accuracy => CardKind::Power,
         CardName::Acrobatics => CardKind::Skill,
         CardName::Adrenaline => CardKind::Skill,
+        CardName::Alchemize => CardKind::Skill,
         CardName::AfterImage => CardKind::Power,
         CardName::AllOutAttack => CardKind::Attack,
         CardName::Backflip => CardKind::Skill,
@@ -621,4 +627,20 @@ pub fn get_random_curse(rng: &mut impl rand::Rng) -> CardName {
 
 pub fn is_card_upgradeable(card: &Entity) -> bool {
     !card.card_upgraded && !matches!(card.card_kind, CardKind::Status | CardKind::Curse)
+}
+
+// Pick `count` distinct cards of the given `kind` from the rewardable pool
+pub fn get_random_cards_of_kind(
+    rng: &mut impl rand::Rng,
+    kind: CardKind,
+    count: usize,
+) -> Vec<CardName> {
+    let mut pool: Vec<CardName> = ALL_CARDS
+        .iter()
+        .copied()
+        .filter(|n| card_kind(*n) == kind)
+        .collect();
+    crate::utils::shuffle(&mut pool, rng);
+    pool.truncate(count);
+    pool
 }

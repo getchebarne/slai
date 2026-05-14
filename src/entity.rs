@@ -16,6 +16,7 @@ use crate::modifier::ZERO_MODIFIERS;
 // (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
 // with practical caps, etc.). Bump when a card legitimately exceeds it
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
+use crate::consts::POTION_SLOTS_MAX;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -23,6 +24,8 @@ use crate::types::CardRarity;
 use crate::types::ChestKind;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
+use crate::types::PotionName;
+use crate::types::PotionRarity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
@@ -36,6 +39,7 @@ pub enum EntityKind {
     Card,
     Room,
     Relic,
+    Potion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -92,6 +96,8 @@ pub struct Entity {
     pub character_name: &'static str,
     pub character_reward_roll_offset: i8,
     pub character_gold: u16,
+    pub potion_slots: [Option<usize>; POTION_SLOTS_MAX],
+    pub potion_slots_max: u8,
 
     // Monster-only
     pub monster_name: MonsterName,
@@ -138,6 +144,13 @@ pub struct Entity {
     pub relic_counter: i16,
     pub relic_used_up: bool,
     pub relic_effects_on_combat_start: &'static [Effect],
+
+    // Potion-only
+    pub potion_name: PotionName,
+    pub potion_rarity: PotionRarity,
+    pub potion_requires_target: bool,
+    pub potion_combat_only: bool,
+    pub potion_effects: &'static [Effect],
 }
 
 // Private zero-fill used by the public const fn constructors below
@@ -149,6 +162,8 @@ const ZERO_ENTITY: Entity = Entity {
     character_name: "",
     character_reward_roll_offset: 0,
     character_gold: 0,
+    potion_slots: [None; POTION_SLOTS_MAX],
+    potion_slots_max: 0,
     monster_stolen_gold: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
@@ -188,6 +203,11 @@ const ZERO_ENTITY: Entity = Entity {
     relic_counter: 0,
     relic_used_up: false,
     relic_effects_on_combat_start: &[],
+    potion_name: PotionName::EnergyPotion,
+    potion_rarity: PotionRarity::Common,
+    potion_requires_target: false,
+    potion_combat_only: true,
+    potion_effects: &[],
 };
 
 // Constructors
@@ -299,6 +319,24 @@ pub const fn make_entity_relic(
         relic_counter: counter_init,
         relic_used_up: false,
         relic_effects_on_combat_start: effects_on_combat_start,
+        ..ZERO_ENTITY
+    }
+}
+
+pub const fn make_entity_potion(
+    name: PotionName,
+    rarity: PotionRarity,
+    requires_target: bool,
+    combat_only: bool,
+    effects: &'static [Effect],
+) -> Entity {
+    Entity {
+        kind: EntityKind::Potion,
+        potion_name: name,
+        potion_rarity: rarity,
+        potion_requires_target: requires_target,
+        potion_combat_only: combat_only,
+        potion_effects: effects,
         ..ZERO_ENTITY
     }
 }

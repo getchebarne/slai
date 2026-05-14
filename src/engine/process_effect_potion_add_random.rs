@@ -1,0 +1,17 @@
+use rand::Rng;
+
+use crate::engine::DispatchResult;
+use crate::entity::Entity;
+use crate::potions::get_random_potion;
+use crate::potions::grant_potion;
+
+pub fn process_effect_potion_add_random(
+    limited: bool,
+    id_character: usize,
+    entities: &mut Vec<Entity>,
+    rng: &mut impl Rng,
+) -> DispatchResult {
+    let name = get_random_potion(rng, limited);
+    grant_potion(entities, id_character, name);
+    DispatchResult::Continue
+}

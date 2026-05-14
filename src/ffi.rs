@@ -169,6 +169,66 @@ impl From<ChestKind> for PyChestKind {
     }
 }
 
+#[pyclass(eq, eq_int, hash, frozen, name = "PotionName")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyPotionName {
+    EnergyPotion,
+    BlockPotion,
+    StrengthPotion,
+    DexterityPotion,
+    FirePotion,
+    ExplosivePotion,
+    WeakPotion,
+    FearPotion,
+    PoisonPotion,
+    SwiftPotion,
+    AttackPotion,
+    SkillPotion,
+    PowerPotion,
+    FruitJuice,
+}
+
+impl From<crate::types::PotionName> for PyPotionName {
+    fn from(n: crate::types::PotionName) -> Self {
+        use crate::types::PotionName as N;
+        match n {
+            N::EnergyPotion => Self::EnergyPotion,
+            N::BlockPotion => Self::BlockPotion,
+            N::StrengthPotion => Self::StrengthPotion,
+            N::DexterityPotion => Self::DexterityPotion,
+            N::FirePotion => Self::FirePotion,
+            N::ExplosivePotion => Self::ExplosivePotion,
+            N::WeakPotion => Self::WeakPotion,
+            N::FearPotion => Self::FearPotion,
+            N::PoisonPotion => Self::PoisonPotion,
+            N::SwiftPotion => Self::SwiftPotion,
+            N::AttackPotion => Self::AttackPotion,
+            N::SkillPotion => Self::SkillPotion,
+            N::PowerPotion => Self::PowerPotion,
+            N::FruitJuice => Self::FruitJuice,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "PotionRarity")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyPotionRarity {
+    Common,
+    Uncommon,
+    Rare,
+}
+
+impl From<crate::types::PotionRarity> for PyPotionRarity {
+    fn from(r: crate::types::PotionRarity) -> Self {
+        use crate::types::PotionRarity as R;
+        match r {
+            R::Common => Self::Common,
+            R::Uncommon => Self::Uncommon,
+            R::Rare => Self::Rare,
+        }
+    }
+}
+
 #[pyclass(eq, eq_int, hash, frozen, name = "RelicName")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRelicName {
@@ -241,6 +301,7 @@ pub enum PyCardName {
     Acrobatics,
     Adrenaline,
     AfterImage,
+    Alchemize,
     AllOutAttack,
     Backflip,
     Backstab,
@@ -335,6 +396,7 @@ impl From<CardName> for PyCardName {
             CardName::Acrobatics => Self::Acrobatics,
             CardName::Adrenaline => Self::Adrenaline,
             CardName::AfterImage => Self::AfterImage,
+            CardName::Alchemize => Self::Alchemize,
             CardName::AllOutAttack => Self::AllOutAttack,
             CardName::Backflip => Self::Backflip,
             CardName::Backstab => Self::Backstab,
@@ -653,6 +715,7 @@ pub enum PyPhase {
     Chest {},
     EventRoom {},
     Shop {},
+    AwaitCardPick { count: u8 },
 }
 
 impl From<Phase> for PyPhase {
@@ -670,6 +733,7 @@ impl From<Phase> for PyPhase {
             Phase::Chest => Self::Chest {},
             Phase::EventRoom => Self::EventRoom {},
             Phase::Shop => Self::Shop {},
+            Phase::AwaitCardPick { count } => Self::AwaitCardPick { count },
         }
     }
 }
@@ -722,6 +786,9 @@ pub enum PyActionType {
     RestSiteCardUpgrade,
     RoomSkip,
     ChestOpen,
+    PotionUse,
+    PotionDiscard,
+    CardPick,
 }
 
 impl PyActionType {
@@ -742,6 +809,9 @@ impl PyActionType {
             12 => Ok(Self::RestSiteCardUpgrade),
             13 => Ok(Self::RoomSkip),
             14 => Ok(Self::ChestOpen),
+            15 => Ok(Self::PotionUse),
+            16 => Ok(Self::PotionDiscard),
+            17 => Ok(Self::CardPick),
             _ => Err(format!("PyActionType: invalid discriminant {n}")),
         }
     }
@@ -846,6 +916,27 @@ pub fn to_internal_action(a: PyAction) -> Result<Action, String> {
             0 => Ok(Action::ChestOpen),
             n => Err(format!("ChestOpen expects [], got {n} idxs")),
         },
+        PyActionType::PotionUse => match i.len() {
+            1 => Ok(Action::PotionUse {
+                idx_slot: i[0],
+                idx_monster: None,
+            }),
+            2 => Ok(Action::PotionUse {
+                idx_slot: i[0],
+                idx_monster: Some(i[1]),
+            }),
+            n => Err(format!(
+                "PotionUse expects [idx_slot] or [idx_slot, idx_monster], got {n} idxs"
+            )),
+        },
+        PyActionType::PotionDiscard => match i.len() {
+            1 => Ok(Action::PotionDiscard { idx_slot: i[0] }),
+            n => Err(format!("PotionDiscard expects [idx_slot], got {n} idxs")),
+        },
+        PyActionType::CardPick => match i.len() {
+            1 => Ok(Action::CardPick { idx_option: i[0] }),
+            n => Err(format!("CardPick expects [idx_option], got {n} idxs")),
+        },
     }
 }
 
@@ -946,6 +1037,23 @@ pub enum PyEffect {
     CalculatedGamble {
         target: Option<PyTarget>,
     },
+    MaxHealthGain {
+        amount: u16,
+        target: Option<PyTarget>,
+    },
+    HealthGain {
+        amount: u16,
+        target: Option<PyTarget>,
+    },
+    PotionAddRandom {
+        limited: bool,
+        target: Option<PyTarget>,
+    },
+    DiscoverPick {
+        kind: PyCardKind,
+        count: u8,
+        target: Option<PyTarget>,
+    },
 }
 
 fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -1012,6 +1120,14 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::DrawUpTo { amount } => PyEffect::DrawUpTo { amount, target },
         EffectKind::CardDiscard { source: _ } => PyEffect::CardDiscard { target },
         EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
+        EffectKind::MaxHealthGain { amount } => PyEffect::MaxHealthGain { amount, target },
+        EffectKind::HealthGain { amount } => PyEffect::HealthGain { amount, target },
+        EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
+        EffectKind::DiscoverPick { kind, count } => PyEffect::DiscoverPick {
+            kind: kind.into(),
+            count,
+            target,
+        },
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
             other
@@ -1069,6 +1185,15 @@ pub struct PyRelic {
     pub used_up: bool,
 }
 
+#[pyclass(frozen, get_all, name = "Potion")]
+#[derive(Debug, Clone)]
+pub struct PyPotion {
+    pub name: PyPotionName,
+    pub rarity: PyPotionRarity,
+    pub requires_target: bool,
+    pub combat_only: bool,
+}
+
 #[pyclass(frozen, get_all, name = "Character")]
 #[derive(Debug, Clone)]
 pub struct PyCharacter {
@@ -1078,6 +1203,8 @@ pub struct PyCharacter {
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
     pub gold: u16,
+    pub potion_slots: Vec<Option<PyPotion>>,
+    pub potion_slots_max: u8,
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "IntentKind")]
@@ -1173,6 +1300,7 @@ pub struct PyGameState {
     pub pile_discard: Vec<PyCard>,
     pub pile_exhaust: Vec<PyCard>,
     pub rewards_card: Vec<PyCard>,
+    pub picks_card: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
     pub rewards_relic: Vec<PyRelic>,
     pub energy: PyEnergy,
@@ -1189,6 +1317,7 @@ impl CardName {
             Self::Acrobatics => "Acrobatics",
             Self::Adrenaline => "Adrenaline",
             Self::AfterImage => "After Image",
+            Self::Alchemize => "Alchemize",
             Self::AllOutAttack => "All Out Attack",
             Self::Backflip => "Backflip",
             Self::Backstab => "Backstab",
@@ -1364,6 +1493,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
         rewards_card: state.id_card_rewards.iter().copied().map(card).collect(),
+        picks_card: state.id_card_picks.iter().copied().map(card).collect(),
         relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
@@ -1386,8 +1516,21 @@ fn snapshot_relic(e: &Entity) -> PyRelic {
     }
 }
 
+fn snapshot_potion(e: &Entity) -> PyPotion {
+    PyPotion {
+        name: e.potion_name.into(),
+        rarity: e.potion_rarity.into(),
+        requires_target: e.potion_requires_target,
+        combat_only: e.potion_combat_only,
+    }
+}
+
 fn snapshot_character(state: &GameState) -> PyCharacter {
     let character = &state.entities[state.id_character];
+    let potion_slots = character.potion_slots[..character.potion_slots_max as usize]
+        .iter()
+        .map(|s| s.map(|id| snapshot_potion(&state.entities[id])))
+        .collect();
     PyCharacter {
         name: character.character_name.to_string(),
         health: character.vitals.health,
@@ -1395,6 +1538,8 @@ fn snapshot_character(state: &GameState) -> PyCharacter {
         block: character.vitals.block,
         modifiers: snapshot_modifiers(&character.modifiers),
         gold: character.character_gold,
+        potion_slots,
+        potion_slots_max: character.potion_slots_max,
     }
 }
 

@@ -24,6 +24,7 @@ pub enum CardName {
     Acrobatics,
     Adrenaline,
     AfterImage,
+    Alchemize,
     AllOutAttack,
     Backflip,
     Backstab,
@@ -234,6 +235,32 @@ pub enum ChestKind {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
+pub enum PotionName {
+    EnergyPotion,
+    BlockPotion,
+    StrengthPotion,
+    DexterityPotion,
+    FirePotion,
+    ExplosivePotion,
+    WeakPotion,
+    FearPotion,
+    PoisonPotion,
+    SwiftPotion,
+    AttackPotion,
+    SkillPotion,
+    PowerPotion,
+    FruitJuice,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PotionRarity {
+    Common,
+    Uncommon,
+    Rare,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[repr(u8)]
 pub enum RelicName {
     SnakeRing = 0,
     Akabeko,
@@ -285,4 +312,5 @@ pub enum Phase {
     Chest,
     EventRoom,
     Shop,
+    AwaitCardPick { count: u8 },
 }

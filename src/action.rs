@@ -55,6 +55,16 @@ pub enum Action {
     RestSiteRest,
     RoomSkip,
     ChestOpen,
+    PotionUse {
+        idx_slot: usize,
+        idx_monster: Option<usize>,
+    },
+    PotionDiscard {
+        idx_slot: usize,
+    },
+    CardPick {
+        idx_option: usize,
+    },
 }
 
 fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
@@ -79,6 +89,11 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
         (Action::RoomSelect { .. }, Phase::Map) => true,
         (Action::RoomSkip, Phase::EventRoom | Phase::Shop) => true,
         (Action::ChestOpen, Phase::Chest) => true,
+        // PotionUse: combat-only potions checked in handler (need entity lookup)
+        (Action::PotionUse { .. }, Phase::CombatDefault) => true,
+        (Action::PotionUse { .. }, Phase::Map | Phase::RestSite | Phase::Chest | Phase::EventRoom | Phase::Shop) => true,
+        (Action::PotionDiscard { .. }, p) if !matches!(p, Phase::GameOver) => true,
+        (Action::CardPick { .. }, Phase::AwaitCardPick { .. }) => true,
         _ => false,
     };
     if !valid {
@@ -109,6 +124,11 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
         Action::RoomSkip => Ok(handle_room_skip()),
         Action::ChestOpen => Ok(handle_chest_open()),
+        Action::PotionUse { idx_slot, idx_monster } => {
+            handle_potion_use(state, idx_slot, idx_monster)
+        }
+        Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
+        Action::CardPick { idx_option } => handle_card_pick(state, idx_option),
     }?;
 
     Ok(effects)
@@ -382,6 +402,100 @@ fn handle_room_skip() -> Vec<Effect> {
 
 fn handle_chest_open() -> Vec<Effect> {
     vec![Effect::direct(EffectKind::ChestOpen, None, None)]
+}
+
+fn handle_potion_use(
+    state: &mut GameState,
+    idx_slot: usize,
+    idx_monster: Option<usize>,
+) -> Result<Vec<Effect>, String> {
+    let character = &state.entities[state.id_character];
+    if idx_slot >= character.potion_slots_max as usize {
+        return Err(format!("PotionUse: idx_slot {} out of range", idx_slot));
+    }
+    let id_potion = character.potion_slots[idx_slot]
+        .ok_or_else(|| format!("PotionUse: slot {} is empty", idx_slot))?;
+    let potion = &state.entities[id_potion];
+
+    if potion.potion_combat_only && !matches!(state.phase, Phase::CombatDefault) {
+        return Err(format!(
+            "PotionUse: {:?} is combat-only, current phase {:?}",
+            potion.potion_name, state.phase
+        ));
+    }
+
+    let requires_target = potion.potion_requires_target;
+    let id_monster_target = if requires_target {
+        let mut buf_alive = [0usize; MAX_MONSTERS];
+        let n = fill_alive_monster_ids(state, &mut buf_alive);
+        let idx = idx_monster
+            .ok_or_else(|| "PotionUse: requires_target but idx_monster is None".to_string())?;
+        Some(
+            *buf_alive[..n]
+                .get(idx)
+                .ok_or_else(|| format!("PotionUse: invalid monster index {}", idx))?,
+        )
+    } else {
+        if idx_monster.is_some() {
+            return Err("PotionUse: idx_monster supplied but potion is untargeted".into());
+        }
+        None
+    };
+
+    // Clear the slot before the effect chain runs
+    state.entities[state.id_character].potion_slots[idx_slot] = None;
+
+    let mut chain = Vec::with_capacity(3);
+    if let Some(id) = id_monster_target {
+        chain.push(Effect {
+            kind: EffectKind::TargetSet,
+            id_source: None,
+            target: Target::Direct(Some(id)),
+        });
+    }
+    chain.push(Effect {
+        kind: EffectKind::PotionUse,
+        id_source: Some(id_potion),
+        target: Target::Direct(Some(id_potion)),
+    });
+    if requires_target {
+        chain.push(Effect {
+            kind: EffectKind::TargetClear,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
+    Ok(chain)
+}
+
+fn handle_potion_discard(
+    state: &mut GameState,
+    idx_slot: usize,
+) -> Result<Vec<Effect>, String> {
+    let character = &mut state.entities[state.id_character];
+    if idx_slot >= character.potion_slots_max as usize {
+        return Err(format!("PotionDiscard: idx_slot {} out of range", idx_slot));
+    }
+    if character.potion_slots[idx_slot].is_none() {
+        return Err(format!("PotionDiscard: slot {} is empty", idx_slot));
+    }
+    character.potion_slots[idx_slot] = None;
+    Ok(Vec::new())
+}
+
+fn handle_card_pick(
+    state: &mut GameState,
+    idx_option: usize,
+) -> Result<Vec<Effect>, String> {
+    let id_card = *state
+        .id_card_picks
+        .get(idx_option)
+        .ok_or_else(|| format!("CardPick: idx_option {} out of range", idx_option))?;
+    let card = &mut state.entities[id_card];
+    card.card_free_to_play_once = true;
+    state.id_hand.push(id_card);
+    state.id_card_picks.clear();
+    Ok(Vec::new())
 }
 
 fn handle_rest_site_card_upgrade(

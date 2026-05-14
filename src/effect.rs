@@ -1,6 +1,8 @@
 use crate::modifier::ModifierKind;
+use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::MonsterName;
+use crate::types::PotionName;
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -159,6 +161,22 @@ pub enum EffectKind {
     },
 
     ChestOpen,
+
+    // Potions
+    PotionUse,
+    PotionAdd {
+        potion_name: PotionName,
+    },
+    PotionAddRandom {
+        limited: bool,
+    },
+
+    // Discovery: roll N random cards of `kind` from the character pool and
+    // halt on `Phase::AwaitCardPick`; player picks one via `Action::CardPick`
+    DiscoverPick {
+        kind: CardKind,
+        count: u8,
+    },
 }
 
 // DiscardSource: tags a CardDiscard effect with its origin so the handler can

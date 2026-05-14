@@ -12,6 +12,11 @@ use crate::consts::GOLD_MONSTER_MAX;
 use crate::consts::GOLD_MONSTER_MIN;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
+use crate::consts::POTION_DROP_CHANCE_BASE;
+use crate::consts::POTION_DROP_MOD_HIT;
+use crate::consts::POTION_DROP_MOD_MAX;
+use crate::consts::POTION_DROP_MOD_MIN;
+use crate::consts::POTION_DROP_MOD_MISS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -23,6 +28,7 @@ use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
 use crate::types::RoomKind;
 
+#[allow(clippy::too_many_arguments)]
 pub fn process_effect_combat_end(
     id_character: usize,
     id_hand: &mut Vec<usize>,
@@ -36,6 +42,7 @@ pub fn process_effect_combat_end(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     escaped_this_combat: bool,
+    potion_drop_mod: &mut i8,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
@@ -93,6 +100,7 @@ pub fn process_effect_combat_end(
                     effect_queue,
                 );
             }
+            roll_potion_drop(rng, potion_drop_mod, effect_queue);
             effect_queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
                 id_source: None,
@@ -107,6 +115,7 @@ pub fn process_effect_combat_end(
                 id_character,
                 effect_queue,
             );
+            roll_potion_drop(rng, potion_drop_mod, effect_queue);
             effect_queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
                 id_source: None,
@@ -141,4 +150,26 @@ fn push_gold_gain(
         id_source: None,
         target: Target::Direct(Some(id_character)),
     });
+}
+
+// StS-faithful swing: +10 on miss, -10 on hit; slai clamps to [-30, +60]
+fn roll_potion_drop(
+    rng: &mut impl Rng,
+    potion_drop_mod: &mut i8,
+    effect_queue: &mut VecDeque<Effect>,
+) {
+    let chance = (POTION_DROP_CHANCE_BASE as i16 + *potion_drop_mod as i16).clamp(0, 100) as u8;
+    let roll = rng.random_range(0..100) as u8;
+    if roll < chance {
+        *potion_drop_mod = (*potion_drop_mod + POTION_DROP_MOD_HIT)
+            .clamp(POTION_DROP_MOD_MIN, POTION_DROP_MOD_MAX);
+        effect_queue.push_back(Effect {
+            kind: EffectKind::PotionAddRandom { limited: false },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    } else {
+        *potion_drop_mod = (*potion_drop_mod + POTION_DROP_MOD_MISS)
+            .clamp(POTION_DROP_MOD_MIN, POTION_DROP_MOD_MAX);
+    }
 }

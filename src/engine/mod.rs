@@ -22,6 +22,7 @@ pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
+pub mod process_effect_discover_pick;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
 pub mod process_effect_energy_gain;
@@ -51,6 +52,9 @@ pub mod process_effect_monster_spawn;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
+pub mod process_effect_potion_add;
+pub mod process_effect_potion_add_random;
+pub mod process_effect_potion_use;
 pub mod process_effect_relic_reward_clear;
 pub mod process_effect_relic_reward_roll;
 pub mod process_effect_relic_reward_select;
@@ -788,6 +792,7 @@ fn dispatch_by_kind(
             &state.id_rooms,
             state.location,
             state.escaped_this_combat,
+            &mut state.potion_drop_mod,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -996,6 +1001,35 @@ fn dispatch_by_kind(
             &mut state.rng,
             &mut state.effect_queue,
         ),
+        EffectKind::PotionUse => process_effect_potion_use::process_effect_potion_use(
+            id_target.unwrap(),
+            &state.entities,
+            &mut state.effect_queue,
+        ),
+        EffectKind::PotionAdd { potion_name } => {
+            process_effect_potion_add::process_effect_potion_add(
+                potion_name,
+                state.id_character,
+                &mut state.entities,
+            )
+        }
+        EffectKind::PotionAddRandom { limited } => {
+            process_effect_potion_add_random::process_effect_potion_add_random(
+                limited,
+                state.id_character,
+                &mut state.entities,
+                &mut state.rng,
+            )
+        }
+        EffectKind::DiscoverPick { kind, count } => {
+            process_effect_discover_pick::process_effect_discover_pick(
+                kind,
+                count,
+                &mut state.id_card_picks,
+                &mut state.entities,
+                &mut state.rng,
+            )
+        }
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
 }
@@ -1031,6 +1065,13 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
     // resolves; reaching BossRoom with no monsters means we won
     if matches!(state.location, Location::BossRoom) && state.monster_count == 0 {
         return Phase::GameOver;
+    }
+    // Discovery (Attack/Skill/Power Potion, etc.) halts before any other
+    // state-derived phase so an in-combat potion-use can present its pick UI
+    if !state.id_card_picks.is_empty() {
+        return Phase::AwaitCardPick {
+            count: state.id_card_picks.len() as u8,
+        };
     }
     // Card or relic rewards waiting to be picked or skipped
     if !state.id_card_rewards.is_empty() || !state.id_relic_rewards.is_empty() {

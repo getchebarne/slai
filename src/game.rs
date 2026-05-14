@@ -103,6 +103,12 @@ pub struct GameState {
     pub event_chance_shop: f32,
     pub event_chance_treasure: f32,
 
+    // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
+    pub potion_drop_mod: i8,
+
+    // Discovery picks: entity ids of the 3 cards offered; halts on AwaitCardPick
+    pub id_card_picks: Vec<usize>,
+
     // Nightmare-pending template snapshot id; flushed at next TurnStart
     pub id_card_nightmare: Option<usize>,
 }
@@ -190,6 +196,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
         event_chance_shop: EVENT_CHANCE_SHOP_BASE,
         event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,
+        potion_drop_mod: 0,
+        id_card_picks: Vec::with_capacity(3),
         id_card_nightmare: None,
     };
 

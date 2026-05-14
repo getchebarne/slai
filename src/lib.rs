@@ -14,6 +14,7 @@ mod game;
 mod map;
 mod modifier;
 mod monsters;
+mod potions;
 mod relics;
 mod types;
 mod utils;
@@ -105,6 +106,7 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyRoom>()?;
     m.add_class::<PyModifier>()?;
     m.add_class::<PyRelic>()?;
+    m.add_class::<ffi::PyPotion>()?;
 
     // Unit-enum mirrors
     m.add_class::<ffi::PyCardKind>()?;
@@ -113,6 +115,8 @@ fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ffi::PyCardCostKind>()?;
     m.add_class::<ffi::PyRoomKind>()?;
     m.add_class::<ffi::PyChestKind>()?;
+    m.add_class::<ffi::PyPotionName>()?;
+    m.add_class::<ffi::PyPotionRarity>()?;
     m.add_class::<ffi::PyModifierKind>()?;
     m.add_class::<ffi::PyIntentKind>()?;
     m.add_class::<ffi::PyCandidatePool>()?;
