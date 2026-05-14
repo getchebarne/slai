@@ -1,112 +1,266 @@
-"""Type stubs for the slai native extension.
+from enum import IntEnum
+from typing import Iterator, NamedTuple, Optional, Union
 
-Hand-maintained. Keep in sync with src/ffi.rs and src/lib.rs when adding
-or removing fields / methods / classes / enum variants.
 
-The architecture: `slai` is a Rust+PyO3 extension. Internal Rust enums and
-structs live in pure-Rust modules (no PyO3); the boundary at src/ffi.rs
-defines #[pyclass] mirrors for everything Python sees, with `From` impls
-translating one to the other.
-"""
+class CardKind(IntEnum):
+    Attack: int
+    Skill: int
+    Power: int
+    Curse: int
+    Status: int
 
-from typing import Optional, Union
+class CardColor(IntEnum):
+    Green: int
+    Colorless: int
+    Curse: int
 
-# ───────── Unit enums (PyO3 mirrors of internal Rust unit enums) ─────────
-#
-# Real Python classes (not StrEnum). Instances are hashable singletons that
-# support `==`, `hash()`, and integer comparison via `eq_int`.
+class CardRarity(IntEnum):
+    Basic: int
+    Common: int
+    Uncommon: int
+    Rare: int
+    Special: int
+    Curse: int
 
-class CardKind:
-    Attack: "CardKind"
-    Skill: "CardKind"
-    Power: "CardKind"
-    Curse: "CardKind"
-    Status: "CardKind"
+class RoomKind(IntEnum):
+    CombatMonster: int
+    CombatElite: int
+    CombatBoss: int
+    RestSite: int
 
-class CardColor:
-    Green: "CardColor"
-    Colorless: "CardColor"
-    Curse: "CardColor"
+class ModifierKind(IntEnum):
+    Accuracy: int
+    AfterImage: int
+    Angry: int
+    Artifact: int
+    Asleep: int
+    Blur: int
+    Burst: int
+    Choke: int
+    CorpseExplosion: int
+    CurlUp: int
+    Dexterity: int
+    DoubleDamage: int
+    DrawCardNextTurn: int
+    Enrage: int
+    Entangled: int
+    Envenom: int
+    Frail: int
+    InfiniteBlades: int
+    Intangible: int
+    Metallicize: int
+    ModeShift: int
+    NextTurnBlock: int
+    NextTurnEnergy: int
+    NoDraw: int
+    NoxiousFumes: int
+    Phantasmal: int
+    PlatedArmor: int
+    Poison: int
+    Retain: int
+    Ritual: int
+    Shackled: int
+    SharpHide: int
+    Splittable: int
+    SporeCloud: int
+    Strength: int
+    Thievery: int
+    Thorns: int
+    ThousandCuts: int
+    ToolsOfTheTrade: int
+    Vigor: int
+    Vulnerable: int
+    Weak: int
+    WraithForm: int
 
-class CardRarity:
-    Basic: "CardRarity"
-    Common: "CardRarity"
-    Uncommon: "CardRarity"
-    Rare: "CardRarity"
-    Special: "CardRarity"
-    Curse: "CardRarity"
+class IntentKind(IntEnum):
+    Attack: int
+    AttackBlock: int
+    AttackBuff: int
+    AttackDebuff: int
+    Block: int
+    BlockBuff: int
+    Buff: int
+    Debuff: int
+    DebuffPowerful: int
+    Escape: int
+    Sleep: int
+    Stunned: int
+    Unknown: int
 
-class RoomKind:
-    CombatMonster: "RoomKind"
-    CombatBoss: "RoomKind"
-    RestSite: "RoomKind"
+class CandidatePool(IntEnum):
+    Hand: int
+    CardTarget: int
+    Character: int
+    Monsters: int
+    OtherMonsters: int
+    Source: int
+    NextRowRooms: int
+    CardRewardPool: int
 
-class ModifierKind:
-    Accuracy: "ModifierKind"
-    AfterImage: "ModifierKind"
-    Blur: "ModifierKind"
-    Burst: "ModifierKind"
-    Dexterity: "ModifierKind"
-    DoubleDamage: "ModifierKind"
-    InfiniteBlades: "ModifierKind"
-    ModeShift: "ModifierKind"
-    NextTurnBlock: "ModifierKind"
-    NextTurnEnergy: "ModifierKind"
-    Phantasmal: "ModifierKind"
-    PlatedArmor: "ModifierKind"
-    Ritual: "ModifierKind"
-    SharpHide: "ModifierKind"
-    SporeCloud: "ModifierKind"
-    Strength: "ModifierKind"
-    ThousandCuts: "ModifierKind"
-    Vigor: "ModifierKind"
-    Vulnerable: "ModifierKind"
-    Weak: "ModifierKind"
+class RelicName(IntEnum):
+    SnakeRing: int
+    Akabeko: int
+    Anchor: int
+    BagOfMarbles: int
+    BagOfPreparation: int
+    BloodVial: int
+    BronzeScales: int
+    Kunai: int
+    NinjaScroll: int
+    OddlySmoothStone: int
+    Shuriken: int
+    ThreadAndNeedle: int
+    TwistedFunnel: int
+    Vajra: int
 
-class CandidatePool:
-    Hand: "CandidatePool"
-    CardTarget: "CandidatePool"
-    Character: "CandidatePool"
-    Monsters: "CandidatePool"
-    Source: "CandidatePool"
-    NextRowRooms: "CandidatePool"
-    CardRewardPool: "CandidatePool"
+class RelicTier(IntEnum):
+    Starter: int
+    Common: int
+    Uncommon: int
+    Rare: int
+    Boss: int
+    Shop: int
+    Special: int
 
-class RelicName:
-    SnakeRing: "RelicName"
-    Akabeko: "RelicName"
-    Anchor: "RelicName"
-    BagOfMarbles: "RelicName"
-    BagOfPreparation: "RelicName"
-    BloodVial: "RelicName"
-    BronzeScales: "RelicName"
-    Kunai: "RelicName"
-    NinjaScroll: "RelicName"
-    OddlySmoothStone: "RelicName"
-    Shuriken: "RelicName"
-    ThreadAndNeedle: "RelicName"
-    TwistedFunnel: "RelicName"
-    Vajra: "RelicName"
+class CardName(IntEnum):
+    AThousandCuts: int
+    Accuracy: int
+    Acrobatics: int
+    Adrenaline: int
+    AfterImage: int
+    AllOutAttack: int
+    Backflip: int
+    Backstab: int
+    Bane: int
+    BladeDance: int
+    Blur: int
+    BouncingFlask: int
+    BulletTime: int
+    Burn: int
+    Burst: int
+    CalculatedGamble: int
+    Caltrops: int
+    Catalyst: int
+    Choke: int
+    CloakAndDagger: int
+    Concentrate: int
+    CorpseExplosion: int
+    CripplingPoison: int
+    DaggerSpray: int
+    DaggerThrow: int
+    Dash: int
+    Dazed: int
+    DeadlyPoison: int
+    Defend: int
+    Deflect: int
+    DieDieDie: int
+    Distraction: int
+    DodgeAndRoll: int
+    Doppelganger: int
+    EndlessAgony: int
+    Envenom: int
+    EscapePlan: int
+    Eviscerate: int
+    Expertise: int
+    Finisher: int
+    Flechettes: int
+    FlyingKnee: int
+    Footwork: int
+    GlassKnife: int
+    GrandFinale: int
+    HeelHook: int
+    InfiniteBlades: int
+    LegSweep: int
+    Malaise: int
+    MasterfulStab: int
+    Neutralize: int
+    Nightmare: int
+    NoxiousFumes: int
+    Outmaneuver: int
+    PhantasmalKiller: int
+    PiercingWail: int
+    PoisonedStab: int
+    Predator: int
+    Prepared: int
+    QuickSlash: int
+    Reflex: int
+    RiddleWithHoles: int
+    Setup: int
+    Shiv: int
+    Skewer: int
+    Slice: int
+    Slimed: int
+    SneakyStrike: int
+    StormOfSteel: int
+    Strike: int
+    SuckerPunch: int
+    Survivor: int
+    Tactician: int
+    Terror: int
+    ToolsOfTheTrade: int
+    Unload: int
+    WellLaidPlans: int
+    WraithForm: int
 
-class RelicTier:
-    Starter: "RelicTier"
-    Common: "RelicTier"
-    Uncommon: "RelicTier"
-    Rare: "RelicTier"
-    Boss: "RelicTier"
-    Shop: "RelicTier"
-    Special: "RelicTier"
+class MonsterName(IntEnum):
+    Cultist: int
+    FungiBeast: int
+    GremlinFat: int
+    GremlinNob: int
+    GremlinThief: int
+    GremlinTsundere: int
+    GremlinWarrior: int
+    GremlinWizard: int
+    Hexaghost: int
+    JawWorm: int
+    Lagavulin: int
+    Looter: int
+    LouseDefensive: int
+    LouseNormal: int
+    Sentry: int
+    SlaverBlue: int
+    SlaverRed: int
+    SlimeAcidLarge: int
+    SlimeAcidMedium: int
+    SlimeAcidSmall: int
+    SlimeBoss: int
+    SlimeSpikeLarge: int
+    SlimeSpikeMedium: int
+    SlimeSpikeSmall: int
+    TheGuardian: int
 
-# ───────── Complex enums (parent class + variant subclasses) ─────────
-#
-# Each parent class is the type hint for the field; variants are reachable
-# as `Parent.Variant` and behave like proper subclasses for `isinstance`
-# and structural pattern matching.
+class ActionType(IntEnum):
+    CardPlay: int
+    EndTurn: int
+    CardDiscard: int
+    CardRetain: int
+    CardSetup: int
+    CardNightmare: int
+    RoomSelect: int
+    CardRewardSelect: int
+    CardRewardSkip: int
+    RelicRewardSelect: int
+    RelicRewardSkip: int
+    RestSiteRest: int
+    RestSiteCardUpgrade: int
+
+
+class CardCostKind:
+    class Fixed:
+        def __init__(self) -> None: ...
+
+    class MinusDiscardsThisTurn:
+        def __init__(self) -> None: ...
+
+    class GrowsOnDamageInstanceTaken:
+        def __init__(self) -> None: ...
+
+    class XCost:
+        offset: int
+        def __init__(self, offset: int) -> None: ...
 
 class Phase:
-    """Game phase. The `CombatAwaitDiscard` variant carries the number of
-    cards the player must discard."""
-
     class Map:
         def __init__(self) -> None: ...
 
@@ -117,6 +271,16 @@ class Phase:
         num: int
         def __init__(self, num: int) -> None: ...
 
+    class CombatAwaitRetain:
+        num: int
+        def __init__(self, num: int) -> None: ...
+
+    class CombatAwaitNightmare:
+        def __init__(self) -> None: ...
+
+    class CombatAwaitSetup:
+        def __init__(self) -> None: ...
+
     class CombatReward:
         def __init__(self) -> None: ...
 
@@ -126,10 +290,11 @@ class Phase:
     class GameOver:
         def __init__(self) -> None: ...
 
-class Selection:
-    """How the engine picks targets from a CandidatePool."""
-
+class SelectionKind:
     class All:
+        def __init__(self) -> None: ...
+
+    class Single:
         def __init__(self) -> None: ...
 
     class Random:
@@ -141,19 +306,59 @@ class Selection:
         def __init__(self, count: int) -> None: ...
 
 class Target:
-    """The pool an effect resolves against, plus how one or more targets
-    are picked from it. `Effect.target` is None when the effect needs no
-    resolution at all (e.g. CardDraw, EnergyGain on the player)."""
-
-    candidates: CandidatePool
-    selection: Selection
+    candidate_pool: CandidatePool
+    selection_kind: SelectionKind
 
 class Effect:
-    """A static card or monster effect. `target` is None when the effect
-    needs no resolution (e.g. Adrenaline gives the player energy directly)."""
-
     class DamagePhysical:
         amount: int
+        target: Optional[Target]
+
+    class DamagePhysicalIfPoisoned:
+        amount: int
+        target: Optional[Target]
+
+    class HeelHookProc:
+        target: Optional[Target]
+
+    class EscapePlanCheck:
+        block: int
+        target: Optional[Target]
+
+    class GlassKnifeDecay:
+        delta: int
+        target: Optional[Target]
+
+    class CardSetupPick:
+        target: Optional[Target]
+
+    class CardNightmarePick:
+        target: Optional[Target]
+
+    class DistractionAdd:
+        target: Optional[Target]
+
+    class SetCostOverride:
+        amount: int
+        target: Optional[Target]
+
+    class FinisherDamage:
+        damage: int
+        target: Optional[Target]
+
+    class FlechettesDamage:
+        damage: int
+        target: Optional[Target]
+
+    class UnloadDiscard:
+        target: Optional[Target]
+
+    class StormOfSteelProc:
+        upgraded: bool
+        target: Optional[Target]
+
+    class SneakyStrikeProc:
+        energy: int
         target: Optional[Target]
 
     class BlockGain:
@@ -165,6 +370,11 @@ class Effect:
         stacks: int
         target: Optional[Target]
 
+    class ModifierMultiply:
+        kind: ModifierKind
+        factor: int
+        target: Optional[Target]
+
     class ModifierRemove:
         kind: ModifierKind
         target: Optional[Target]
@@ -173,12 +383,18 @@ class Effect:
         amount: int
         target: Optional[Target]
 
-    class ShivAdd:
+    class CardAddToHand:
+        card_name: str
         count: int
+        upgraded: bool
         target: Optional[Target]
 
     class CardDraw:
         count: int
+        target: Optional[Target]
+
+    class DrawUpTo:
+        amount: int
         target: Optional[Target]
 
     class CardDiscard:
@@ -187,92 +403,118 @@ class Effect:
     class CalculatedGamble:
         target: Optional[Target]
 
+
 class Action:
-    """A player action passed to `GameEnv.step()`. Construct variants as
-    `Action.CardPlay(idx_hand=0, idx_monster=2)` etc."""
+    action_type: ActionType
+    idxs: list[int]
 
-    class CardPlay:
-        idx_hand: int
-        idx_monster: Optional[int]
-        def __init__(self, idx_hand: int, idx_monster: Optional[int] = None) -> None: ...
+    def __init__(self, action_type: ActionType, idxs: list[int]) -> None: ...
+    def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
 
-    class EndTurn:
-        def __init__(self) -> None: ...
+class ArgSpec(NamedTuple):
+    name: str
+    description: str
+    optional: bool = False
+    variable: bool = False
 
-    class CardDiscard:
-        """Resolve a pending input-selection prompt (e.g. discard-a-card).
-        `indices_hand` length must match the count the prompt requires.
-        Valid only in `Phase.CombatAwaitDiscard`."""
-        indices_hand: list[int]
-        def __init__(self, indices_hand: list[int]) -> None: ...
+class ActionSpec(NamedTuple):
+    id: ActionType
+    name: str
+    args: tuple[ArgSpec, ...]
+    arity: tuple[int, Optional[int]]
 
-    class RoomSelect:
-        idx_column: int
-        def __init__(self, idx_column: int) -> None: ...
+class ActionSpecRegistry:
+    CardPlay: ActionSpec
+    EndTurn: ActionSpec
+    CardDiscard: ActionSpec
+    CardRetain: ActionSpec
+    CardSetup: ActionSpec
+    CardNightmare: ActionSpec
+    RoomSelect: ActionSpec
+    CardRewardSelect: ActionSpec
+    CardRewardSkip: ActionSpec
+    RelicRewardSelect: ActionSpec
+    RelicRewardSkip: ActionSpec
+    RestSiteRest: ActionSpec
+    RestSiteCardUpgrade: ActionSpec
 
-    class CardRewardSelect:
-        idx_reward: int
-        def __init__(self, idx_reward: int) -> None: ...
+    def __getattr__(self, name: str) -> ActionSpec: ...
+    def __getitem__(self, key: Union[int, str, ActionType]) -> ActionSpec: ...
+    def __iter__(self) -> Iterator[ActionSpec]: ...
+    def __len__(self) -> int: ...
+    def __contains__(self, key: object) -> bool: ...
 
-    class CardRewardSkip:
-        def __init__(self) -> None: ...
+ACTION_SPEC_REGISTRY: ActionSpecRegistry
 
-    class RelicRewardSelect:
-        idx_reward: int
-        def __init__(self, idx_reward: int) -> None: ...
-
-    class RelicRewardSkip:
-        def __init__(self) -> None: ...
-
-    class RestSiteRest:
-        def __init__(self) -> None: ...
-
-    class RestSiteCardUpgrade:
-        idx_deck: int
-        def __init__(self, idx_deck: int) -> None: ...
-
-# ───────── View structs (read-only state snapshots) ─────────
 
 class Modifier:
     kind: ModifierKind
     stacks: int
-    """Signed: debuffs and buffs both use this field. For some modifiers
-    (Vulnerable, Weak), stacks counts duration in turns."""
+    stacks_max: int
 
 class Relic:
     name: RelicName
     tier: RelicTier
     counter: int
-    """Per-relic counter slot (Java's `counter` field). Used by tiered
-    counter-driven relics (HappyFlower, Sundial, etc.)."""
-
     used_up: bool
-    """True for one-shot relics that have already triggered (Omamori,
-    LizardTail, MawBank). Tier 0 relics never set this."""
 
 class Card:
-    name: str
-    """Display name. Upgraded cards have a trailing `+`."""
+    name: CardName
+    display_name: str
 
+    # Cost-related fields
+    cost: int
+    cost_base: int
+    cost_zero_once: bool
+    cost_override: Optional[int]
+    cost_kind: Union[
+        CardCostKind.Fixed,
+        CardCostKind.MinusDiscardsThisTurn,
+        CardCostKind.GrowsOnDamageInstanceTaken,
+        CardCostKind.XCost,
+    ]
+
+    # Categorical fields
     kind: CardKind
     color: CardColor
     rarity: CardRarity
-    cost: int
+    
+    # Other boolean fields
     upgraded: bool
-    innate: bool
     exhaust: bool
+    ethereal: bool
+    innate: bool
     requires_target: bool
-    """If True, playing this card requires `idx_monster` in `Action.CardPlay`."""
+    retain: bool
+    playable: bool
 
+    # Effects
     effects: list[
         Union[
             Effect.DamagePhysical,
+            Effect.DamagePhysicalIfPoisoned,
+            Effect.HeelHookProc,
+            Effect.EscapePlanCheck,
+            Effect.GlassKnifeDecay,
+            Effect.CardSetupPick,
+            Effect.CardNightmarePick,
+            Effect.DistractionAdd,
+            Effect.SetCostOverride,
+            Effect.FinisherDamage,
+            Effect.FlechettesDamage,
+            Effect.UnloadDiscard,
+            Effect.StormOfSteelProc,
+            Effect.SneakyStrikeProc,
             Effect.BlockGain,
             Effect.ModifierGain,
+            Effect.ModifierMultiply,
             Effect.ModifierRemove,
             Effect.EnergyGain,
-            Effect.ShivAdd,
+            Effect.CardAddToHand,
             Effect.CardDraw,
+            Effect.DrawUpTo,
             Effect.CardDiscard,
             Effect.CalculatedGamble,
         ]
@@ -284,26 +526,16 @@ class Character:
     health_max: int
     block: int
     modifiers: list[Modifier]
-    character_reward_roll_offset: int
-    """Pity offset used when rolling card-reward rarities."""
+    gold: int
 
 class Intent:
-    """Monster intent for the next turn. Multiple flags can co-occur
-    (e.g. AttackBuff: `damage` set AND `buff` True)."""
-
+    kind: IntentKind
     damage: Optional[int]
-    """Damage per instance, post-modifier (Strength/Weak/Vulnerable applied).
-    None for non-attack intents."""
-
     instances: Optional[int]
-    """Number of attack instances (e.g. 6×2)."""
-
-    block: bool
-    buff: bool
-    debuff: bool
 
 class Monster:
-    name: str
+    name: MonsterName
+    display_name: str
     health: int
     health_max: int
     block: int
@@ -317,88 +549,58 @@ class Energy:
 class Room:
     room_kind: RoomKind
     edges: list[int]
-    """Valid next-row columns reachable from this node."""
 
 class Map:
     rooms: list[list[Optional[Room]]]
-    """Grid indexed `rooms[y][x]`. `y=0` is the bottom row. `None` means
-    no node at that coordinate."""
-
     y_current: Optional[int]
-    """Current row. None at run start; equals `MAP_HEIGHT` while in the boss room."""
-
     x_current: Optional[int]
+    boss_name: str # TODO: maybe should be in `GameState`?
 
 class GameState:
-    """Full read-only snapshot of the game state."""
-
+    # Actors
     character: Character
     monsters: list[Monster]
-    """Alive monsters only. Indices align with `idx_monster` in `Action.CardPlay`."""
 
+    # Card piles
     deck: list[Card]
     hand: list[Card]
     pile_draw: list[Card]
     pile_discard: list[Card]
     pile_exhaust: list[Card]
-    card_rewards: list[Card]
-    """Cards offered as post-combat reward. Non-empty only during `Phase.CombatReward`."""
 
+    # Rewards
+    rewards_card: list[Card]
+    rewards_relic: list[Relic]
+
+    # Relics, Energy and Map
     relics: list[Relic]
-    """Run-persistent relics owned by the player. Always includes innate
-    SnakeRing for the Silent."""
-
-    relic_rewards: list[Relic]
-    """Relics offered as post-combat reward. Non-empty only after Elite
-    combats during `Phase.CombatReward`."""
-
     energy: Energy
     map: Map
 
+    # Phase
     phase: Union[
         Phase.Map,
         Phase.CombatDefault,
         Phase.CombatAwaitDiscard,
+        Phase.CombatAwaitRetain,
+        Phase.CombatAwaitNightmare,
+        Phase.CombatAwaitSetup,
         Phase.CombatReward,
         Phase.RestSite,
         Phase.GameOver,
     ]
 
-# ───────── Environment ─────────
 
 class GameEnv:
-    """Game state container with a gymnasium-aligned step interface,
-    suitable for interactive play and reinforcement-learning training loops.
-
-    Reward is currently always 0.0 — no reward function is defined yet.
-    Truncated is currently always False — no step-limit truncation."""
+    MAX_MONSTERS: int
+    MAX_SIZE_HAND: int
+    MAX_COMBAT_CARD_REWARD: int
+    CARDS_DRAWN_PER_TURN: int
+    NIGHTMARE_COPIES: int
+    MAX_BLOCK: int
+    MAP_HEIGHT: int
+    MAP_WIDTH: int
 
     def __init__(self, ascension: int = 0) -> None: ...
-
-    def reset(
-        self, seed: int = 42
-    ) -> tuple[
-        GameState,
-        dict,
-    ]:
-        """Start a fresh run. Returns `(obs, info)`."""
-        ...
-
-    def step(
-        self,
-        action: Union[
-            Action.CardPlay,
-            Action.EndTurn,
-            Action.CardDiscard,
-            Action.RoomSelect,
-            Action.CardRewardSelect,
-            Action.CardRewardSkip,
-            Action.RelicRewardSelect,
-            Action.RelicRewardSkip,
-            Action.RestSiteRest,
-            Action.RestSiteCardUpgrade,
-        ],
-    ) -> tuple[GameState, float, bool, bool, dict]:
-        """Apply an action. Returns `(obs, reward, terminated, truncated, info)`.
-        Raises `ValueError` if the action is invalid in the current phase."""
-        ...
+    def reset(self, seed: int = 42) -> GameState: ...
+    def step(self, action: Action) -> tuple[GameState, bool]: ...

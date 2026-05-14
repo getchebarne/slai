@@ -1,38 +1,26 @@
-// FFI boundary: every #[pyclass] type lives here. Internal engine modules
-// must not import pyo3
-//
-// Naming: structs that snapshot internal engine state (GameState, Card, ...)
-// take the bare name. Where the bare name would collide with an internal type
-// at the Rust level (engine `game::GameState`, `entity::Intent`), we alias
-// the internal import below
-
+// FFI boundary: all #[pyclass] types live here, named `Py<X>` to mirror the engine `X`
 use pyo3::prelude::*;
 
-use crate::action::Action as InternalAction;
+use crate::action::Action;
 use crate::consts::{FACTOR_VULN, MAP_HEIGHT, MAX_MONSTERS};
-use crate::effect::{
-    CandidatePool as InternalCandidatePool, Effect as InternalEffect, EffectKind,
-    SelectionKind, Target as InternalTarget,
-};
+use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{
-    CardCostKind as InternalCardCostKind, Entity, Intent as InternalIntent, card_effective_cost,
-    is_play_restriction_satisfied,
+    CardCostKind, Entity, Intent, card_effective_cost, is_play_restriction_satisfied,
 };
+use crate::game::{GameState, Location};
 use crate::map::edge_indices;
-use crate::modifier::{
-    ModifierKind as InternalModifierKind, Modifiers, modifier_has, modifier_stacks,
-};
-use crate::game::{GameState as InternalGameState, Location};
+use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks, stacks_max_for};
 use crate::types::{
-    CardColor as InternalCardColor, CardKind as InternalCardKind, CardName,
-    CardRarity as InternalCardRarity, MonsterEncounter, MonsterName, Phase as InternalPhase,
-    RelicName as InternalRelicName, RelicTier as InternalRelicTier, RoomKind as InternalRoomKind,
+    CardColor, CardKind, CardName, CardRarity, MonsterEncounter, MonsterName, Phase, RelicName,
+    RelicTier, RoomKind,
 };
 use crate::utils::fill_alive_monster_ids;
 
+// Enum mirrors
+
 #[pyclass(eq, eq_int, hash, frozen, name = "CardKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CardKind {
+pub enum PyCardKind {
     Attack,
     Skill,
     Power,
@@ -40,39 +28,39 @@ pub enum CardKind {
     Status,
 }
 
-impl From<InternalCardKind> for CardKind {
-    fn from(k: InternalCardKind) -> Self {
+impl From<CardKind> for PyCardKind {
+    fn from(k: CardKind) -> Self {
         match k {
-            InternalCardKind::Attack => Self::Attack,
-            InternalCardKind::Skill => Self::Skill,
-            InternalCardKind::Power => Self::Power,
-            InternalCardKind::Curse => Self::Curse,
-            InternalCardKind::Status => Self::Status,
+            CardKind::Attack => Self::Attack,
+            CardKind::Skill => Self::Skill,
+            CardKind::Power => Self::Power,
+            CardKind::Curse => Self::Curse,
+            CardKind::Status => Self::Status,
         }
     }
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "CardColor")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CardColor {
+pub enum PyCardColor {
     Green,
     Colorless,
     Curse,
 }
 
-impl From<InternalCardColor> for CardColor {
-    fn from(c: InternalCardColor) -> Self {
+impl From<CardColor> for PyCardColor {
+    fn from(c: CardColor) -> Self {
         match c {
-            InternalCardColor::Green => Self::Green,
-            InternalCardColor::Colorless => Self::Colorless,
-            InternalCardColor::Curse => Self::Curse,
+            CardColor::Green => Self::Green,
+            CardColor::Colorless => Self::Colorless,
+            CardColor::Curse => Self::Curse,
         }
     }
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "CardRarity")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CardRarity {
+pub enum PyCardRarity {
     Basic,
     Common,
     Uncommon,
@@ -81,62 +69,62 @@ pub enum CardRarity {
     Curse,
 }
 
-impl From<InternalCardRarity> for CardRarity {
-    fn from(r: InternalCardRarity) -> Self {
+impl From<CardRarity> for PyCardRarity {
+    fn from(r: CardRarity) -> Self {
         match r {
-            InternalCardRarity::Basic => Self::Basic,
-            InternalCardRarity::Common => Self::Common,
-            InternalCardRarity::Uncommon => Self::Uncommon,
-            InternalCardRarity::Rare => Self::Rare,
-            InternalCardRarity::Special => Self::Special,
-            InternalCardRarity::Curse => Self::Curse,
+            CardRarity::Basic => Self::Basic,
+            CardRarity::Common => Self::Common,
+            CardRarity::Uncommon => Self::Uncommon,
+            CardRarity::Rare => Self::Rare,
+            CardRarity::Special => Self::Special,
+            CardRarity::Curse => Self::Curse,
         }
     }
 }
 
 #[pyclass(eq, hash, frozen, name = "CardCostKind")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum CardCostKind {
+pub enum PyCardCostKind {
     Fixed {},
     MinusDiscardsThisTurn {},
     GrowsOnDamageInstanceTaken {},
     XCost { offset: i8 },
 }
 
-impl From<InternalCardCostKind> for CardCostKind {
-    fn from(k: InternalCardCostKind) -> Self {
+impl From<CardCostKind> for PyCardCostKind {
+    fn from(k: CardCostKind) -> Self {
         match k {
-            InternalCardCostKind::Fixed => Self::Fixed {},
-            InternalCardCostKind::MinusDiscardsThisTurn => Self::MinusDiscardsThisTurn {},
-            InternalCardCostKind::GrowsOnDamageInstanceTaken => Self::GrowsOnDamageInstanceTaken {},
-            InternalCardCostKind::XCost { offset } => Self::XCost { offset },
+            CardCostKind::Fixed => Self::Fixed {},
+            CardCostKind::MinusDiscardsThisTurn => Self::MinusDiscardsThisTurn {},
+            CardCostKind::GrowsOnDamageInstanceTaken => Self::GrowsOnDamageInstanceTaken {},
+            CardCostKind::XCost { offset } => Self::XCost { offset },
         }
     }
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "RoomKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum RoomKind {
+pub enum PyRoomKind {
     CombatMonster,
     CombatElite,
     CombatBoss,
     RestSite,
 }
 
-impl From<InternalRoomKind> for RoomKind {
-    fn from(r: InternalRoomKind) -> Self {
+impl From<RoomKind> for PyRoomKind {
+    fn from(r: RoomKind) -> Self {
         match r {
-            InternalRoomKind::CombatMonster => Self::CombatMonster,
-            InternalRoomKind::CombatElite => Self::CombatElite,
-            InternalRoomKind::CombatBoss => Self::CombatBoss,
-            InternalRoomKind::RestSite => Self::RestSite,
+            RoomKind::CombatMonster => Self::CombatMonster,
+            RoomKind::CombatElite => Self::CombatElite,
+            RoomKind::CombatBoss => Self::CombatBoss,
+            RoomKind::RestSite => Self::RestSite,
         }
     }
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "RelicName")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum RelicName {
+pub enum PyRelicName {
     SnakeRing,
     Akabeko,
     Anchor,
@@ -153,28 +141,7 @@ pub enum RelicName {
     Vajra,
 }
 
-impl From<InternalRelicName> for RelicName {
-    fn from(n: InternalRelicName) -> Self {
-        match n {
-            InternalRelicName::SnakeRing => Self::SnakeRing,
-            InternalRelicName::Akabeko => Self::Akabeko,
-            InternalRelicName::Anchor => Self::Anchor,
-            InternalRelicName::BagOfMarbles => Self::BagOfMarbles,
-            InternalRelicName::BagOfPreparation => Self::BagOfPreparation,
-            InternalRelicName::BloodVial => Self::BloodVial,
-            InternalRelicName::BronzeScales => Self::BronzeScales,
-            InternalRelicName::Kunai => Self::Kunai,
-            InternalRelicName::NinjaScroll => Self::NinjaScroll,
-            InternalRelicName::OddlySmoothStone => Self::OddlySmoothStone,
-            InternalRelicName::Shuriken => Self::Shuriken,
-            InternalRelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
-            InternalRelicName::TwistedFunnel => Self::TwistedFunnel,
-            InternalRelicName::Vajra => Self::Vajra,
-        }
-    }
-}
-
-impl From<RelicName> for InternalRelicName {
+impl From<RelicName> for PyRelicName {
     fn from(n: RelicName) -> Self {
         match n {
             RelicName::SnakeRing => Self::SnakeRing,
@@ -195,9 +162,261 @@ impl From<RelicName> for InternalRelicName {
     }
 }
 
+impl From<PyRelicName> for RelicName {
+    fn from(n: PyRelicName) -> Self {
+        match n {
+            PyRelicName::SnakeRing => Self::SnakeRing,
+            PyRelicName::Akabeko => Self::Akabeko,
+            PyRelicName::Anchor => Self::Anchor,
+            PyRelicName::BagOfMarbles => Self::BagOfMarbles,
+            PyRelicName::BagOfPreparation => Self::BagOfPreparation,
+            PyRelicName::BloodVial => Self::BloodVial,
+            PyRelicName::BronzeScales => Self::BronzeScales,
+            PyRelicName::Kunai => Self::Kunai,
+            PyRelicName::NinjaScroll => Self::NinjaScroll,
+            PyRelicName::OddlySmoothStone => Self::OddlySmoothStone,
+            PyRelicName::Shuriken => Self::Shuriken,
+            PyRelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
+            PyRelicName::TwistedFunnel => Self::TwistedFunnel,
+            PyRelicName::Vajra => Self::Vajra,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "CardName")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyCardName {
+    AThousandCuts,
+    Accuracy,
+    Acrobatics,
+    Adrenaline,
+    AfterImage,
+    AllOutAttack,
+    Backflip,
+    Backstab,
+    Bane,
+    BladeDance,
+    Blur,
+    BouncingFlask,
+    BulletTime,
+    Burn,
+    Burst,
+    CalculatedGamble,
+    Caltrops,
+    Catalyst,
+    Choke,
+    CloakAndDagger,
+    Concentrate,
+    CorpseExplosion,
+    CripplingPoison,
+    DaggerSpray,
+    DaggerThrow,
+    Dash,
+    Dazed,
+    DeadlyPoison,
+    Defend,
+    Deflect,
+    DieDieDie,
+    Distraction,
+    DodgeAndRoll,
+    Doppelganger,
+    EndlessAgony,
+    Envenom,
+    EscapePlan,
+    Eviscerate,
+    Expertise,
+    Finisher,
+    Flechettes,
+    FlyingKnee,
+    Footwork,
+    GlassKnife,
+    GrandFinale,
+    HeelHook,
+    InfiniteBlades,
+    LegSweep,
+    Malaise,
+    MasterfulStab,
+    Neutralize,
+    Nightmare,
+    NoxiousFumes,
+    Outmaneuver,
+    PhantasmalKiller,
+    PiercingWail,
+    PoisonedStab,
+    Predator,
+    Prepared,
+    QuickSlash,
+    Reflex,
+    RiddleWithHoles,
+    Setup,
+    Shiv,
+    Skewer,
+    Slice,
+    Slimed,
+    SneakyStrike,
+    StormOfSteel,
+    Strike,
+    SuckerPunch,
+    Survivor,
+    Tactician,
+    Terror,
+    ToolsOfTheTrade,
+    Unload,
+    WellLaidPlans,
+    WraithForm,
+}
+
+impl From<CardName> for PyCardName {
+    // 1:1 by name; explicit match (not transmute) catches drift if either enum changes
+    fn from(n: CardName) -> Self {
+        match n {
+            CardName::AThousandCuts => Self::AThousandCuts,
+            CardName::Accuracy => Self::Accuracy,
+            CardName::Acrobatics => Self::Acrobatics,
+            CardName::Adrenaline => Self::Adrenaline,
+            CardName::AfterImage => Self::AfterImage,
+            CardName::AllOutAttack => Self::AllOutAttack,
+            CardName::Backflip => Self::Backflip,
+            CardName::Backstab => Self::Backstab,
+            CardName::Bane => Self::Bane,
+            CardName::BladeDance => Self::BladeDance,
+            CardName::Blur => Self::Blur,
+            CardName::BouncingFlask => Self::BouncingFlask,
+            CardName::BulletTime => Self::BulletTime,
+            CardName::Burn => Self::Burn,
+            CardName::Burst => Self::Burst,
+            CardName::CalculatedGamble => Self::CalculatedGamble,
+            CardName::Caltrops => Self::Caltrops,
+            CardName::Catalyst => Self::Catalyst,
+            CardName::Choke => Self::Choke,
+            CardName::CloakAndDagger => Self::CloakAndDagger,
+            CardName::Concentrate => Self::Concentrate,
+            CardName::CorpseExplosion => Self::CorpseExplosion,
+            CardName::CripplingPoison => Self::CripplingPoison,
+            CardName::DaggerSpray => Self::DaggerSpray,
+            CardName::DaggerThrow => Self::DaggerThrow,
+            CardName::Dash => Self::Dash,
+            CardName::Dazed => Self::Dazed,
+            CardName::DeadlyPoison => Self::DeadlyPoison,
+            CardName::Defend => Self::Defend,
+            CardName::Deflect => Self::Deflect,
+            CardName::DieDieDie => Self::DieDieDie,
+            CardName::Distraction => Self::Distraction,
+            CardName::DodgeAndRoll => Self::DodgeAndRoll,
+            CardName::Doppelganger => Self::Doppelganger,
+            CardName::EndlessAgony => Self::EndlessAgony,
+            CardName::Envenom => Self::Envenom,
+            CardName::EscapePlan => Self::EscapePlan,
+            CardName::Eviscerate => Self::Eviscerate,
+            CardName::Expertise => Self::Expertise,
+            CardName::Finisher => Self::Finisher,
+            CardName::Flechettes => Self::Flechettes,
+            CardName::FlyingKnee => Self::FlyingKnee,
+            CardName::Footwork => Self::Footwork,
+            CardName::GlassKnife => Self::GlassKnife,
+            CardName::GrandFinale => Self::GrandFinale,
+            CardName::HeelHook => Self::HeelHook,
+            CardName::InfiniteBlades => Self::InfiniteBlades,
+            CardName::LegSweep => Self::LegSweep,
+            CardName::Malaise => Self::Malaise,
+            CardName::MasterfulStab => Self::MasterfulStab,
+            CardName::Neutralize => Self::Neutralize,
+            CardName::Nightmare => Self::Nightmare,
+            CardName::NoxiousFumes => Self::NoxiousFumes,
+            CardName::Outmaneuver => Self::Outmaneuver,
+            CardName::PhantasmalKiller => Self::PhantasmalKiller,
+            CardName::PiercingWail => Self::PiercingWail,
+            CardName::PoisonedStab => Self::PoisonedStab,
+            CardName::Predator => Self::Predator,
+            CardName::Prepared => Self::Prepared,
+            CardName::QuickSlash => Self::QuickSlash,
+            CardName::Reflex => Self::Reflex,
+            CardName::RiddleWithHoles => Self::RiddleWithHoles,
+            CardName::Setup => Self::Setup,
+            CardName::Shiv => Self::Shiv,
+            CardName::Skewer => Self::Skewer,
+            CardName::Slice => Self::Slice,
+            CardName::Slimed => Self::Slimed,
+            CardName::SneakyStrike => Self::SneakyStrike,
+            CardName::StormOfSteel => Self::StormOfSteel,
+            CardName::Strike => Self::Strike,
+            CardName::SuckerPunch => Self::SuckerPunch,
+            CardName::Survivor => Self::Survivor,
+            CardName::Tactician => Self::Tactician,
+            CardName::Terror => Self::Terror,
+            CardName::ToolsOfTheTrade => Self::ToolsOfTheTrade,
+            CardName::Unload => Self::Unload,
+            CardName::WellLaidPlans => Self::WellLaidPlans,
+            CardName::WraithForm => Self::WraithForm,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "MonsterName")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyMonsterName {
+    Cultist,
+    FungiBeast,
+    GremlinFat,
+    GremlinNob,
+    GremlinThief,
+    GremlinTsundere,
+    GremlinWarrior,
+    GremlinWizard,
+    Hexaghost,
+    JawWorm,
+    Lagavulin,
+    Looter,
+    LouseDefensive,
+    LouseNormal,
+    Sentry,
+    SlaverBlue,
+    SlaverRed,
+    SlimeAcidLarge,
+    SlimeAcidMedium,
+    SlimeAcidSmall,
+    SlimeBoss,
+    SlimeSpikeLarge,
+    SlimeSpikeMedium,
+    SlimeSpikeSmall,
+    TheGuardian,
+}
+
+impl From<MonsterName> for PyMonsterName {
+    fn from(n: MonsterName) -> Self {
+        match n {
+            MonsterName::Cultist => Self::Cultist,
+            MonsterName::FungiBeast => Self::FungiBeast,
+            MonsterName::GremlinFat => Self::GremlinFat,
+            MonsterName::GremlinNob => Self::GremlinNob,
+            MonsterName::GremlinThief => Self::GremlinThief,
+            MonsterName::GremlinTsundere => Self::GremlinTsundere,
+            MonsterName::GremlinWarrior => Self::GremlinWarrior,
+            MonsterName::GremlinWizard => Self::GremlinWizard,
+            MonsterName::Hexaghost => Self::Hexaghost,
+            MonsterName::JawWorm => Self::JawWorm,
+            MonsterName::Lagavulin => Self::Lagavulin,
+            MonsterName::Looter => Self::Looter,
+            MonsterName::LouseDefensive => Self::LouseDefensive,
+            MonsterName::LouseNormal => Self::LouseNormal,
+            MonsterName::Sentry => Self::Sentry,
+            MonsterName::SlaverBlue => Self::SlaverBlue,
+            MonsterName::SlaverRed => Self::SlaverRed,
+            MonsterName::SlimeAcidLarge => Self::SlimeAcidLarge,
+            MonsterName::SlimeAcidMedium => Self::SlimeAcidMedium,
+            MonsterName::SlimeAcidSmall => Self::SlimeAcidSmall,
+            MonsterName::SlimeBoss => Self::SlimeBoss,
+            MonsterName::SlimeSpikeLarge => Self::SlimeSpikeLarge,
+            MonsterName::SlimeSpikeMedium => Self::SlimeSpikeMedium,
+            MonsterName::SlimeSpikeSmall => Self::SlimeSpikeSmall,
+            MonsterName::TheGuardian => Self::TheGuardian,
+        }
+    }
+}
+
 #[pyclass(eq, eq_int, hash, frozen, name = "RelicTier")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum RelicTier {
+pub enum PyRelicTier {
     Starter,
     Common,
     Uncommon,
@@ -207,23 +426,23 @@ pub enum RelicTier {
     Special,
 }
 
-impl From<InternalRelicTier> for RelicTier {
-    fn from(t: InternalRelicTier) -> Self {
+impl From<RelicTier> for PyRelicTier {
+    fn from(t: RelicTier) -> Self {
         match t {
-            InternalRelicTier::Starter => Self::Starter,
-            InternalRelicTier::Common => Self::Common,
-            InternalRelicTier::Uncommon => Self::Uncommon,
-            InternalRelicTier::Rare => Self::Rare,
-            InternalRelicTier::Boss => Self::Boss,
-            InternalRelicTier::Shop => Self::Shop,
-            InternalRelicTier::Special => Self::Special,
+            RelicTier::Starter => Self::Starter,
+            RelicTier::Common => Self::Common,
+            RelicTier::Uncommon => Self::Uncommon,
+            RelicTier::Rare => Self::Rare,
+            RelicTier::Boss => Self::Boss,
+            RelicTier::Shop => Self::Shop,
+            RelicTier::Special => Self::Special,
         }
     }
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "ModifierKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ModifierKind {
+pub enum PyModifierKind {
     Accuracy,
     AfterImage,
     Angry,
@@ -269,59 +488,59 @@ pub enum ModifierKind {
     WraithForm,
 }
 
-impl From<InternalModifierKind> for ModifierKind {
-    fn from(k: InternalModifierKind) -> Self {
+impl From<ModifierKind> for PyModifierKind {
+    fn from(k: ModifierKind) -> Self {
         match k {
-            InternalModifierKind::Accuracy => Self::Accuracy,
-            InternalModifierKind::AfterImage => Self::AfterImage,
-            InternalModifierKind::Angry => Self::Angry,
-            InternalModifierKind::Artifact => Self::Artifact,
-            InternalModifierKind::Asleep => Self::Asleep,
-            InternalModifierKind::Blur => Self::Blur,
-            InternalModifierKind::Burst => Self::Burst,
-            InternalModifierKind::Choke => Self::Choke,
-            InternalModifierKind::CorpseExplosion => Self::CorpseExplosion,
-            InternalModifierKind::CurlUp => Self::CurlUp,
-            InternalModifierKind::Dexterity => Self::Dexterity,
-            InternalModifierKind::DoubleDamage => Self::DoubleDamage,
-            InternalModifierKind::DrawCardNextTurn => Self::DrawCardNextTurn,
-            InternalModifierKind::Enrage => Self::Enrage,
-            InternalModifierKind::Entangled => Self::Entangled,
-            InternalModifierKind::Envenom => Self::Envenom,
-            InternalModifierKind::Frail => Self::Frail,
-            InternalModifierKind::InfiniteBlades => Self::InfiniteBlades,
-            InternalModifierKind::Intangible => Self::Intangible,
-            InternalModifierKind::Metallicize => Self::Metallicize,
-            InternalModifierKind::ModeShift => Self::ModeShift,
-            InternalModifierKind::NextTurnBlock => Self::NextTurnBlock,
-            InternalModifierKind::NextTurnEnergy => Self::NextTurnEnergy,
-            InternalModifierKind::NoDraw => Self::NoDraw,
-            InternalModifierKind::NoxiousFumes => Self::NoxiousFumes,
-            InternalModifierKind::Phantasmal => Self::Phantasmal,
-            InternalModifierKind::PlatedArmor => Self::PlatedArmor,
-            InternalModifierKind::Poison => Self::Poison,
-            InternalModifierKind::Retain => Self::Retain,
-            InternalModifierKind::Ritual => Self::Ritual,
-            InternalModifierKind::Shackled => Self::Shackled,
-            InternalModifierKind::SharpHide => Self::SharpHide,
-            InternalModifierKind::Splittable => Self::Splittable,
-            InternalModifierKind::SporeCloud => Self::SporeCloud,
-            InternalModifierKind::Strength => Self::Strength,
-            InternalModifierKind::Thievery => Self::Thievery,
-            InternalModifierKind::Thorns => Self::Thorns,
-            InternalModifierKind::ThousandCuts => Self::ThousandCuts,
-            InternalModifierKind::ToolsOfTheTrade => Self::ToolsOfTheTrade,
-            InternalModifierKind::Vigor => Self::Vigor,
-            InternalModifierKind::Vulnerable => Self::Vulnerable,
-            InternalModifierKind::Weak => Self::Weak,
-            InternalModifierKind::WraithForm => Self::WraithForm,
+            ModifierKind::Accuracy => Self::Accuracy,
+            ModifierKind::AfterImage => Self::AfterImage,
+            ModifierKind::Angry => Self::Angry,
+            ModifierKind::Artifact => Self::Artifact,
+            ModifierKind::Asleep => Self::Asleep,
+            ModifierKind::Blur => Self::Blur,
+            ModifierKind::Burst => Self::Burst,
+            ModifierKind::Choke => Self::Choke,
+            ModifierKind::CorpseExplosion => Self::CorpseExplosion,
+            ModifierKind::CurlUp => Self::CurlUp,
+            ModifierKind::Dexterity => Self::Dexterity,
+            ModifierKind::DoubleDamage => Self::DoubleDamage,
+            ModifierKind::DrawCardNextTurn => Self::DrawCardNextTurn,
+            ModifierKind::Enrage => Self::Enrage,
+            ModifierKind::Entangled => Self::Entangled,
+            ModifierKind::Envenom => Self::Envenom,
+            ModifierKind::Frail => Self::Frail,
+            ModifierKind::InfiniteBlades => Self::InfiniteBlades,
+            ModifierKind::Intangible => Self::Intangible,
+            ModifierKind::Metallicize => Self::Metallicize,
+            ModifierKind::ModeShift => Self::ModeShift,
+            ModifierKind::NextTurnBlock => Self::NextTurnBlock,
+            ModifierKind::NextTurnEnergy => Self::NextTurnEnergy,
+            ModifierKind::NoDraw => Self::NoDraw,
+            ModifierKind::NoxiousFumes => Self::NoxiousFumes,
+            ModifierKind::Phantasmal => Self::Phantasmal,
+            ModifierKind::PlatedArmor => Self::PlatedArmor,
+            ModifierKind::Poison => Self::Poison,
+            ModifierKind::Retain => Self::Retain,
+            ModifierKind::Ritual => Self::Ritual,
+            ModifierKind::Shackled => Self::Shackled,
+            ModifierKind::SharpHide => Self::SharpHide,
+            ModifierKind::Splittable => Self::Splittable,
+            ModifierKind::SporeCloud => Self::SporeCloud,
+            ModifierKind::Strength => Self::Strength,
+            ModifierKind::Thievery => Self::Thievery,
+            ModifierKind::Thorns => Self::Thorns,
+            ModifierKind::ThousandCuts => Self::ThousandCuts,
+            ModifierKind::ToolsOfTheTrade => Self::ToolsOfTheTrade,
+            ModifierKind::Vigor => Self::Vigor,
+            ModifierKind::Vulnerable => Self::Vulnerable,
+            ModifierKind::Weak => Self::Weak,
+            ModifierKind::WraithForm => Self::WraithForm,
         }
     }
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "CandidatePool")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CandidatePool {
+pub enum PyCandidatePool {
     Hand,
     CardTarget,
     Character,
@@ -332,24 +551,26 @@ pub enum CandidatePool {
     CardRewardPool,
 }
 
-impl From<InternalCandidatePool> for CandidatePool {
-    fn from(c: InternalCandidatePool) -> Self {
+impl From<CandidatePool> for PyCandidatePool {
+    fn from(c: CandidatePool) -> Self {
         match c {
-            InternalCandidatePool::Hand => Self::Hand,
-            InternalCandidatePool::CardTarget => Self::CardTarget,
-            InternalCandidatePool::Character => Self::Character,
-            InternalCandidatePool::Monsters => Self::Monsters,
-            InternalCandidatePool::OtherMonsters => Self::OtherMonsters,
-            InternalCandidatePool::Source => Self::Source,
-            InternalCandidatePool::NextRowRooms => Self::NextRowRooms,
-            InternalCandidatePool::CardRewardPool => Self::CardRewardPool,
+            CandidatePool::Hand => Self::Hand,
+            CandidatePool::CardTarget => Self::CardTarget,
+            CandidatePool::Character => Self::Character,
+            CandidatePool::Monsters => Self::Monsters,
+            CandidatePool::OtherMonsters => Self::OtherMonsters,
+            CandidatePool::Source => Self::Source,
+            CandidatePool::NextRowRooms => Self::NextRowRooms,
+            CandidatePool::CardRewardPool => Self::CardRewardPool,
         }
     }
 }
 
+// Phase / Selection / Target
+
 #[pyclass(eq, hash, frozen, name = "Phase")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Phase {
+pub enum PyPhase {
     Map {},
     CombatDefault {},
     CombatAwaitDiscard { num: u8 },
@@ -361,32 +582,32 @@ pub enum Phase {
     GameOver {},
 }
 
-impl From<InternalPhase> for Phase {
-    fn from(p: InternalPhase) -> Self {
+impl From<Phase> for PyPhase {
+    fn from(p: Phase) -> Self {
         match p {
-            InternalPhase::Map => Self::Map {},
-            InternalPhase::CombatDefault => Self::CombatDefault {},
-            InternalPhase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
-            InternalPhase::CombatAwaitNightmare => Self::CombatAwaitNightmare {},
-            InternalPhase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
-            InternalPhase::CombatAwaitSetup => Self::CombatAwaitSetup {},
-            InternalPhase::CombatReward => Self::CombatReward {},
-            InternalPhase::RestSite => Self::RestSite {},
-            InternalPhase::GameOver => Self::GameOver {},
+            Phase::Map => Self::Map {},
+            Phase::CombatDefault => Self::CombatDefault {},
+            Phase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num },
+            Phase::CombatAwaitNightmare => Self::CombatAwaitNightmare {},
+            Phase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num },
+            Phase::CombatAwaitSetup => Self::CombatAwaitSetup {},
+            Phase::CombatReward => Self::CombatReward {},
+            Phase::RestSite => Self::RestSite {},
+            Phase::GameOver => Self::GameOver {},
         }
     }
 }
 
-#[pyclass(eq, hash, frozen, name = "Selection")]
+#[pyclass(eq, hash, frozen, name = "SelectionKind")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Selection {
+pub enum PySelectionKind {
     All {},
     Single {},
     Random { count: u8 },
     Input { count: u8 },
 }
 
-impl From<SelectionKind> for Selection {
+impl From<SelectionKind> for PySelectionKind {
     fn from(s: SelectionKind) -> Self {
         match s {
             SelectionKind::All => Self::All {},
@@ -399,327 +620,379 @@ impl From<SelectionKind> for Selection {
 
 #[pyclass(eq, hash, frozen, get_all, name = "Target")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Target {
-    pub candidates: CandidatePool,
-    pub selection: Selection,
+pub struct PyTarget {
+    pub candidate_pool: PyCandidatePool,
+    pub selection_kind: PySelectionKind,
 }
 
-#[pyclass(eq, hash, frozen, name = "Action")]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Action {
-    CardPlay {
-        idx_hand: usize,
-        idx_monster: Option<usize>,
-    },
-    EndTurn {},
-    CardDiscard {
-        indices_hand: Vec<usize>,
-    },
-    CardRetain {
-        indices_hand: Vec<usize>,
-    },
-    CardSetup {
-        idx_hand: usize,
-    },
-    CardNightmare {
-        idx_hand: usize,
-    },
-    RoomSelect {
-        idx_column: usize,
-    },
-    CardRewardSelect {
-        idx_reward: usize,
-    },
-    CardRewardSkip {},
-    RelicRewardSelect {
-        idx_reward: usize,
-    },
-    RelicRewardSkip {},
-    RestSiteRest {},
-    RestSiteCardUpgrade {
-        idx_deck: usize,
-    },
+// Action
+
+// `PyActionType` is the discriminant for the flat `PyAction` struct below
+#[pyclass(eq, eq_int, hash, frozen, name = "ActionType")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyActionType {
+    CardPlay,
+    EndTurn,
+    CardDiscard,
+    CardRetain,
+    CardSetup,
+    CardNightmare,
+    RoomSelect,
+    CardRewardSelect,
+    CardRewardSkip,
+    RelicRewardSelect,
+    RelicRewardSkip,
+    RestSiteRest,
+    RestSiteCardUpgrade,
 }
 
-impl From<Action> for InternalAction {
-    fn from(a: Action) -> Self {
-        match a {
-            Action::CardPlay {
-                idx_hand,
-                idx_monster,
-            } => InternalAction::CardPlay {
-                idx_hand,
-                idx_monster,
-            },
-            Action::EndTurn {} => InternalAction::EndTurn,
-            Action::CardDiscard { indices_hand } => InternalAction::CardDiscard { indices_hand },
-            Action::CardRetain { indices_hand } => InternalAction::CardRetain { indices_hand },
-            Action::CardSetup { idx_hand } => InternalAction::CardSetup { idx_hand },
-            Action::CardNightmare { idx_hand } => InternalAction::CardNightmare { idx_hand },
-            Action::RoomSelect { idx_column } => InternalAction::RoomSelect { idx_column },
-            Action::CardRewardSelect { idx_reward } => {
-                InternalAction::CardRewardSelect { idx_reward }
-            }
-            Action::CardRewardSkip {} => InternalAction::CardRewardSkip,
-            Action::RelicRewardSelect { idx_reward } => {
-                InternalAction::RelicRewardSelect { idx_reward }
-            }
-            Action::RelicRewardSkip {} => InternalAction::RelicRewardSkip,
-            Action::RestSiteRest {} => InternalAction::RestSiteRest,
-            Action::RestSiteCardUpgrade { idx_deck } => {
-                InternalAction::RestSiteCardUpgrade { idx_deck }
-            }
+impl PyActionType {
+    fn from_discriminant(n: u8) -> Result<Self, String> {
+        match n {
+            0 => Ok(Self::CardPlay),
+            1 => Ok(Self::EndTurn),
+            2 => Ok(Self::CardDiscard),
+            3 => Ok(Self::CardRetain),
+            4 => Ok(Self::CardSetup),
+            5 => Ok(Self::CardNightmare),
+            6 => Ok(Self::RoomSelect),
+            7 => Ok(Self::CardRewardSelect),
+            8 => Ok(Self::CardRewardSkip),
+            9 => Ok(Self::RelicRewardSelect),
+            10 => Ok(Self::RelicRewardSkip),
+            11 => Ok(Self::RestSiteRest),
+            12 => Ok(Self::RestSiteCardUpgrade),
+            _ => Err(format!("PyActionType: invalid discriminant {n}")),
         }
     }
 }
 
-// `Effect` mirrors only the EffectKind variants that appear in static
-// card/monster definitions (~9 of EffectKind's ~33). `target` is None for
-// effects with no resolution (e.g. CardDraw, EnergyGain on the player)
-// `from_internal` panics on EffectKind variants that should never reach
-// the view layer
+#[pyclass(eq, hash, frozen, name = "Action")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyAction {
+    #[pyo3(get)]
+    pub action_type: PyActionType,
+    #[pyo3(get)]
+    pub idxs: Vec<usize>,
+}
 
+#[pymethods]
+impl PyAction {
+    #[new]
+    fn new(action_type: u8, idxs: Vec<usize>) -> PyResult<Self> {
+        let action_type = PyActionType::from_discriminant(action_type)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self { action_type, idxs })
+    }
+
+    fn __repr__(&self) -> String {
+        format!("PyAction({:?}, {:?})", self.action_type, self.idxs)
+    }
+}
+
+pub fn to_internal_action(a: PyAction) -> Result<Action, String> {
+    let i = &a.idxs;
+    match a.action_type {
+        PyActionType::CardPlay => match i.len() {
+            1 => Ok(Action::CardPlay {
+                idx_hand: i[0],
+                idx_monster: None,
+            }),
+            2 => Ok(Action::CardPlay {
+                idx_hand: i[0],
+                idx_monster: Some(i[1]),
+            }),
+            n => Err(format!(
+                "CardPlay expects [idx_hand] or [idx_hand, idx_monster], got {n} idxs"
+            )),
+        },
+        PyActionType::EndTurn => match i.len() {
+            0 => Ok(Action::EndTurn),
+            n => Err(format!("EndTurn expects [], got {n} idxs")),
+        },
+        PyActionType::CardDiscard => Ok(Action::CardDiscard {
+            indices_hand: i.clone(),
+        }),
+        PyActionType::CardRetain => Ok(Action::CardRetain {
+            indices_hand: i.clone(),
+        }),
+        PyActionType::CardSetup => match i.len() {
+            1 => Ok(Action::CardSetup { idx_hand: i[0] }),
+            n => Err(format!("CardSetup expects [idx_hand], got {n} idxs")),
+        },
+        PyActionType::CardNightmare => match i.len() {
+            1 => Ok(Action::CardNightmare { idx_hand: i[0] }),
+            n => Err(format!("CardNightmare expects [idx_hand], got {n} idxs")),
+        },
+        PyActionType::RoomSelect => match i.len() {
+            1 => Ok(Action::RoomSelect { idx_column: i[0] }),
+            n => Err(format!("RoomSelect expects [idx_column], got {n} idxs")),
+        },
+        PyActionType::CardRewardSelect => match i.len() {
+            1 => Ok(Action::CardRewardSelect { idx_reward: i[0] }),
+            n => Err(format!(
+                "CardRewardSelect expects [idx_reward], got {n} idxs"
+            )),
+        },
+        PyActionType::CardRewardSkip => match i.len() {
+            0 => Ok(Action::CardRewardSkip),
+            n => Err(format!("CardRewardSkip expects [], got {n} idxs")),
+        },
+        PyActionType::RelicRewardSelect => match i.len() {
+            1 => Ok(Action::RelicRewardSelect { idx_reward: i[0] }),
+            n => Err(format!(
+                "RelicRewardSelect expects [idx_reward], got {n} idxs"
+            )),
+        },
+        PyActionType::RelicRewardSkip => match i.len() {
+            0 => Ok(Action::RelicRewardSkip),
+            n => Err(format!("RelicRewardSkip expects [], got {n} idxs")),
+        },
+        PyActionType::RestSiteRest => match i.len() {
+            0 => Ok(Action::RestSiteRest),
+            n => Err(format!("RestSiteRest expects [], got {n} idxs")),
+        },
+        PyActionType::RestSiteCardUpgrade => match i.len() {
+            1 => Ok(Action::RestSiteCardUpgrade { idx_deck: i[0] }),
+            n => Err(format!(
+                "RestSiteCardUpgrade expects [idx_deck], got {n} idxs"
+            )),
+        },
+    }
+}
+
+// Mirrors only EffectKind variants reachable from static card/monster defs; snapshot_effect panics on runtime-only variants
 #[pyclass(eq, hash, frozen, name = "Effect")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Effect {
+pub enum PyEffect {
     DamagePhysical {
         amount: u16,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     DamagePhysicalIfPoisoned {
         amount: u16,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     HeelHookProc {
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     EscapePlanCheck {
         block: u16,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     GlassKnifeDecay {
         delta: i16,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     CardSetupPick {
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     CardNightmarePick {
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     DistractionAdd {
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     SetCostOverride {
         amount: u8,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     FinisherDamage {
         damage: u16,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     FlechettesDamage {
         damage: u16,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     UnloadDiscard {
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     StormOfSteelProc {
         upgraded: bool,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     SneakyStrikeProc {
         energy: u8,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     BlockGain {
         amount: u16,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     ModifierGain {
-        kind: ModifierKind,
+        kind: PyModifierKind,
         stacks: i16,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     ModifierMultiply {
-        kind: ModifierKind,
+        kind: PyModifierKind,
         factor: u8,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     ModifierRemove {
-        kind: ModifierKind,
-        target: Option<Target>,
+        kind: PyModifierKind,
+        target: Option<PyTarget>,
     },
     EnergyGain {
         amount: u8,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     CardAddToHand {
         card_name: String,
         count: u8,
         upgraded: bool,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     CardDraw {
         count: u8,
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     DrawUpTo {
-        target: u8,
-        target_field: Option<Target>,
+        amount: u8,
+        target: Option<PyTarget>,
     },
     CardDiscard {
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
     CalculatedGamble {
-        target: Option<Target>,
+        target: Option<PyTarget>,
     },
 }
 
-impl Effect {
-    fn from_internal(effect: &InternalEffect) -> Self {
-        let target = match effect.target {
-            InternalTarget::Resolve {
-                candidates,
-                selection,
-            } => Some(Target {
-                candidates: candidates.into(),
-                selection: selection.into(),
-            }),
-            InternalTarget::Direct(None) => None,
-            InternalTarget::Direct(Some(_)) => panic!(
-                "Effect::from_internal: unexpected Direct(Some) on static card effect: {:?}",
-                effect,
-            ),
-        };
-        match effect.kind {
-            EffectKind::DamagePhysical { amount } => Self::DamagePhysical { amount, target },
-            EffectKind::DamagePhysicalIfPoisoned { amount } => {
-                Self::DamagePhysicalIfPoisoned { amount, target }
-            }
-            EffectKind::HeelHookProc => Self::HeelHookProc { target },
-            EffectKind::EscapePlanCheck { block } => Self::EscapePlanCheck { block, target },
-            EffectKind::GlassKnifeDecay { delta } => Self::GlassKnifeDecay { delta, target },
-            EffectKind::CardSetupPick => Self::CardSetupPick { target },
-            EffectKind::CardNightmarePick => Self::CardNightmarePick { target },
-            EffectKind::DistractionAdd => Self::DistractionAdd { target },
-            EffectKind::SetCostOverride { amount } => Self::SetCostOverride { amount, target },
-            EffectKind::FinisherDamage { damage } => Self::FinisherDamage { damage, target },
-            EffectKind::FlechettesDamage { damage } => Self::FlechettesDamage { damage, target },
-            EffectKind::UnloadDiscard => Self::UnloadDiscard { target },
-            EffectKind::StormOfSteelProc { upgraded } => {
-                Self::StormOfSteelProc { upgraded, target }
-            }
-            EffectKind::SneakyStrikeProc { energy } => Self::SneakyStrikeProc { energy, target },
-            EffectKind::BlockGain { amount } => Self::BlockGain { amount, target },
-            EffectKind::ModifierGain { kind, stacks } => Self::ModifierGain {
-                kind: kind.into(),
-                stacks,
-                target,
-            },
-            EffectKind::ModifierMultiply { kind, factor } => Self::ModifierMultiply {
-                kind: kind.into(),
-                factor,
-                target,
-            },
-            EffectKind::ModifierRemove { kind } => Self::ModifierRemove {
-                kind: kind.into(),
-                target,
-            },
-            EffectKind::EnergyGain { amount } => Self::EnergyGain { amount, target },
-            EffectKind::CardAddToHand {
-                card_name,
-                count,
-                upgraded,
-            } => Self::CardAddToHand {
-                card_name: card_name.as_str().to_string(),
-                count,
-                upgraded,
-                target,
-            },
-            EffectKind::CardDraw { count } => Self::CardDraw { count, target },
-            EffectKind::DrawUpTo { target: n } => Self::DrawUpTo {
-                target: n,
-                target_field: target,
-            },
-            EffectKind::CardDiscard { source: _ } => Self::CardDiscard { target },
-            EffectKind::CalculatedGamble => Self::CalculatedGamble { target },
-            other => unreachable!(
-                "Effect::from_internal: unexpected EffectKind on static card effect: {:?}",
-                other
-            ),
+fn snapshot_effect(effect: &Effect) -> PyEffect {
+    let target = match effect.target {
+        Target::Resolve {
+            candidates,
+            selection,
+        } => Some(PyTarget {
+            candidate_pool: candidates.into(),
+            selection_kind: selection.into(),
+        }),
+        Target::Direct(None) => None,
+        Target::Direct(Some(_)) => panic!(
+            "snapshot_effect: unexpected Direct(Some) on static card effect: {:?}",
+            effect,
+        ),
+    };
+    match effect.kind {
+        EffectKind::DamagePhysical { amount } => PyEffect::DamagePhysical { amount, target },
+        EffectKind::DamagePhysicalIfPoisoned { amount } => {
+            PyEffect::DamagePhysicalIfPoisoned { amount, target }
         }
+        EffectKind::HeelHookProc => PyEffect::HeelHookProc { target },
+        EffectKind::EscapePlanCheck { block } => PyEffect::EscapePlanCheck { block, target },
+        EffectKind::GlassKnifeDecay { delta } => PyEffect::GlassKnifeDecay { delta, target },
+        EffectKind::CardSetupPick => PyEffect::CardSetupPick { target },
+        EffectKind::CardNightmarePick => PyEffect::CardNightmarePick { target },
+        EffectKind::DistractionAdd => PyEffect::DistractionAdd { target },
+        EffectKind::SetCostOverride { amount } => PyEffect::SetCostOverride { amount, target },
+        EffectKind::FinisherDamage { damage } => PyEffect::FinisherDamage { damage, target },
+        EffectKind::FlechettesDamage { damage } => PyEffect::FlechettesDamage { damage, target },
+        EffectKind::UnloadDiscard => PyEffect::UnloadDiscard { target },
+        EffectKind::StormOfSteelProc { upgraded } => PyEffect::StormOfSteelProc { upgraded, target },
+        EffectKind::SneakyStrikeProc { energy } => PyEffect::SneakyStrikeProc { energy, target },
+        EffectKind::BlockGain { amount } => PyEffect::BlockGain { amount, target },
+        EffectKind::ModifierGain { kind, stacks } => PyEffect::ModifierGain {
+            kind: kind.into(),
+            stacks,
+            target,
+        },
+        EffectKind::ModifierMultiply { kind, factor } => PyEffect::ModifierMultiply {
+            kind: kind.into(),
+            factor,
+            target,
+        },
+        EffectKind::ModifierRemove { kind } => PyEffect::ModifierRemove {
+            kind: kind.into(),
+            target,
+        },
+        EffectKind::EnergyGain { amount } => PyEffect::EnergyGain { amount, target },
+        EffectKind::CardAddToHand {
+            card_name,
+            count,
+            upgraded,
+        } => PyEffect::CardAddToHand {
+            card_name: card_name.as_str().to_string(),
+            count,
+            upgraded,
+            target,
+        },
+        EffectKind::CardDraw { count } => PyEffect::CardDraw { count, target },
+        EffectKind::DrawUpTo { amount } => PyEffect::DrawUpTo { amount, target },
+        EffectKind::CardDiscard { source: _ } => PyEffect::CardDiscard { target },
+        EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
+        other => unreachable!(
+            "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
+            other
+        ),
     }
 }
 
-#[pyclass(frozen, get_all)]
+// Exposed structs
+#[pyclass(frozen, get_all, name = "Card")]
 #[derive(Debug, Clone)]
-pub struct Card {
-    pub name: String,
-    pub kind: CardKind,
-    pub color: CardColor,
-    pub rarity: CardRarity,
-    /// Effective cost right now (post free-to-play, post BulletTime override,
-    /// post dynamic-cost variant). For X-cost cards this is `energy.current`.
+pub struct PyCard {
+    pub name: PyCardName,
+    pub display_name: String,
+
+    // Cost-related fields
     pub cost: u8,
-    /// Static base cost (the deck-instance value, before any modifiers).
-    /// Distinct from `cost` for dynamic-cost cards (Eviscerate, MasterfulStab,
-    /// X-cost). Use this to recover the un-discounted card cost.
-    pub base_cost: u8,
-    /// Tag describing how `cost` is derived. Lets the agent reason about
-    /// X-cost / "discounted from base" / "growing this combat" without
-    /// inferring it from card identity.
-    pub cost_kind: CardCostKind,
+    pub cost_base: u8,
+    pub cost_zero_once: bool,
+    pub cost_override: Option<u8>,
+    pub cost_kind: PyCardCostKind,
+
+    // Categorical fields
+    pub kind: PyCardKind,
+    pub color: PyCardColor,
+    pub rarity: PyCardRarity,
+
+    // Other boolean fields
     pub upgraded: bool,
     pub exhaust: bool,
     pub ethereal: bool,
     pub innate: bool,
     pub requires_target: bool,
     pub retain: bool,
-    /// Per-instance "free to play once" flag (set by Setup, Distraction).
-    /// When true, the next play of this card instance ignores energy cost.
-    pub free_to_play_once: bool,
-    /// Whether this card can be played given the current game state.
-    /// Combines its static `card_play_restriction` with the relevant state
-    /// (currently: `id_pile_draw` for the DrawPileEmpty restriction).
-    /// Energy cost is NOT factored in — clients should also check
-    /// `card.cost <= energy.current` before offering it as a legal action.
+    // `playable` does NOT factor in energy cost; clients must also check `cost <= energy.current`
     pub playable: bool,
-    pub effects: Vec<Effect>,
+
+    // Effects
+    pub effects: Vec<PyEffect>,
 }
 
-#[pyclass(frozen, get_all)]
+#[pyclass(frozen, get_all, name = "Modifier")]
 #[derive(Debug, Clone)]
-pub struct Modifier {
-    pub kind: ModifierKind,
+pub struct PyModifier {
+    pub kind: PyModifierKind,
     pub stacks: i16,
+    pub stacks_max: i16,
 }
 
-#[pyclass(frozen, get_all)]
+#[pyclass(frozen, get_all, name = "Relic")]
 #[derive(Debug, Clone)]
-pub struct Relic {
-    pub name: RelicName,
-    pub tier: RelicTier,
+pub struct PyRelic {
+    pub name: PyRelicName,
+    pub tier: PyRelicTier,
     pub counter: i16,
     pub used_up: bool,
 }
 
-#[pyclass(frozen, get_all)]
+#[pyclass(frozen, get_all, name = "Character")]
 #[derive(Debug, Clone)]
-pub struct Character {
+pub struct PyCharacter {
     pub name: String,
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
-    pub modifiers: Vec<Modifier>,
-    pub character_reward_roll_offset: i8,
+    pub modifiers: Vec<PyModifier>,
     pub gold: u16,
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "IntentKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum IntentKind {
+pub enum PyIntentKind {
     Attack,
     AttackBlock,
     AttackBuff,
@@ -735,89 +1008,88 @@ pub enum IntentKind {
     Unknown,
 }
 
-impl From<InternalIntent> for IntentKind {
-    fn from(i: InternalIntent) -> Self {
+impl From<Intent> for PyIntentKind {
+    fn from(i: Intent) -> Self {
         match i {
-            InternalIntent::Attack { .. } => Self::Attack,
-            InternalIntent::AttackBlock { .. } => Self::AttackBlock,
-            InternalIntent::AttackBuff { .. } => Self::AttackBuff,
-            InternalIntent::AttackDebuff { .. } => Self::AttackDebuff,
-            InternalIntent::Block => Self::Block,
-            InternalIntent::BlockBuff => Self::BlockBuff,
-            InternalIntent::Buff => Self::Buff,
-            InternalIntent::Debuff => Self::Debuff,
-            InternalIntent::DebuffPowerful => Self::DebuffPowerful,
-            InternalIntent::Escape => Self::Escape,
-            InternalIntent::Sleep => Self::Sleep,
-            InternalIntent::Stunned => Self::Stunned,
-            InternalIntent::Unknown => Self::Unknown,
+            Intent::Attack { .. } => Self::Attack,
+            Intent::AttackBlock { .. } => Self::AttackBlock,
+            Intent::AttackBuff { .. } => Self::AttackBuff,
+            Intent::AttackDebuff { .. } => Self::AttackDebuff,
+            Intent::Block => Self::Block,
+            Intent::BlockBuff => Self::BlockBuff,
+            Intent::Buff => Self::Buff,
+            Intent::Debuff => Self::Debuff,
+            Intent::DebuffPowerful => Self::DebuffPowerful,
+            Intent::Escape => Self::Escape,
+            Intent::Sleep => Self::Sleep,
+            Intent::Stunned => Self::Stunned,
+            Intent::Unknown => Self::Unknown,
         }
     }
 }
 
-#[pyclass(frozen, get_all)]
+#[pyclass(frozen, get_all, name = "Intent")]
 #[derive(Debug, Clone)]
-pub struct Intent {
-    pub kind: IntentKind,
+pub struct PyIntent {
+    pub kind: PyIntentKind,
     pub damage: Option<u16>,
     pub instances: Option<u8>,
-    pub block: bool,
-    pub buff: bool,
-    pub debuff: bool,
 }
 
-#[pyclass(frozen, get_all)]
+#[pyclass(frozen, get_all, name = "Monster")]
 #[derive(Debug, Clone)]
-pub struct Monster {
-    pub name: String,
+pub struct PyMonster {
+    pub name: PyMonsterName,
+    pub display_name: String,
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
-    pub modifiers: Vec<Modifier>,
-    pub intent: Intent,
+    pub modifiers: Vec<PyModifier>,
+    pub intent: PyIntent,
 }
 
-#[pyclass(frozen, get_all)]
+#[pyclass(frozen, get_all, name = "Energy")]
 #[derive(Debug, Clone)]
-pub struct Energy {
+pub struct PyEnergy {
     pub current: u8,
     pub max: u8,
 }
 
-#[pyclass(name = "Room", frozen, get_all)]
+#[pyclass(frozen, get_all, name = "Room")]
 #[derive(Debug, Clone)]
-pub struct MapNode {
-    pub room_kind: RoomKind,
+pub struct PyRoom {
+    pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
 }
 
-#[pyclass(frozen, get_all)]
+#[pyclass(frozen, get_all, name = "Map")]
 #[derive(Debug, Clone)]
-pub struct Map {
-    pub rooms: Vec<Vec<Option<MapNode>>>,
+pub struct PyMap {
+    pub rooms: Vec<Vec<Option<PyRoom>>>,
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
     pub boss_name: String,
 }
 
-#[pyclass(frozen, get_all)]
+#[pyclass(frozen, get_all, name = "GameState")]
 #[derive(Debug, Clone)]
-pub struct GameState {
-    pub character: Character,
-    pub monsters: Vec<Monster>,
-    pub deck: Vec<Card>,
-    pub hand: Vec<Card>,
-    pub pile_draw: Vec<Card>,
-    pub pile_discard: Vec<Card>,
-    pub pile_exhaust: Vec<Card>,
-    pub card_rewards: Vec<Card>,
-    pub relics: Vec<Relic>,
-    pub relic_rewards: Vec<Relic>,
-    pub energy: Energy,
-    pub map: Map,
-    pub phase: Phase,
+pub struct PyGameState {
+    pub character: PyCharacter,
+    pub monsters: Vec<PyMonster>,
+    pub deck: Vec<PyCard>,
+    pub hand: Vec<PyCard>,
+    pub pile_draw: Vec<PyCard>,
+    pub pile_discard: Vec<PyCard>,
+    pub pile_exhaust: Vec<PyCard>,
+    pub rewards_card: Vec<PyCard>,
+    pub relics: Vec<PyRelic>,
+    pub rewards_relic: Vec<PyRelic>,
+    pub energy: PyEnergy,
+    pub map: PyMap,
+    pub phase: PyPhase,
 }
 
+// Display-name lookups
 impl CardName {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -962,16 +1234,17 @@ impl MonsterEncounter {
     }
 }
 
-pub fn build_view(state: &InternalGameState) -> GameState {
+// Snapshot builders
+pub fn snapshot_state(state: &GameState) -> PyGameState {
     let this_turn_discards = state.this_turn_discards;
     let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
     let energy_current = state.energy.current;
     let entangled = modifier_has(
         &state.entities[state.id_character].modifiers,
-        InternalModifierKind::Entangled,
+        ModifierKind::Entangled,
     );
     let card = |id_card: usize| {
-        build_view_card_template(
+        snapshot_card(
             &state.entities[id_card],
             &state.id_pile_draw,
             this_turn_discards,
@@ -980,31 +1253,31 @@ pub fn build_view(state: &InternalGameState) -> GameState {
             entangled,
         )
     };
-    let relic = |id_relic: usize| build_view_relic(&state.entities[id_relic]);
-    GameState {
-        character: build_view_character(state),
-        monsters: build_view_monsters(state),
+    let relic = |id_relic: usize| snapshot_relic(&state.entities[id_relic]);
+    PyGameState {
+        character: snapshot_character(state),
+        monsters: snapshot_monsters(state),
         deck: state.id_deck.iter().copied().map(card).collect(),
         hand: state.id_hand.iter().copied().map(card).collect(),
         pile_draw: state.id_pile_draw.iter().copied().map(card).collect(),
         pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
-        card_rewards: state.id_card_rewards.iter().copied().map(card).collect(),
+        rewards_card: state.id_card_rewards.iter().copied().map(card).collect(),
         relics: crate::relics::iter_owned_relics(&state.id_relics)
-            .map(|(_name, id)| build_view_relic(&state.entities[id]))
+            .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
-        relic_rewards: state.id_relic_rewards.iter().copied().map(relic).collect(),
-        energy: Energy {
+        rewards_relic: state.id_relic_rewards.iter().copied().map(relic).collect(),
+        energy: PyEnergy {
             current: state.energy.current,
             max: state.energy.max,
         },
-        map: build_view_map(state),
+        map: snapshot_map(state),
         phase: state.phase.into(),
     }
 }
 
-fn build_view_relic(e: &Entity) -> Relic {
-    Relic {
+fn snapshot_relic(e: &Entity) -> PyRelic {
+    PyRelic {
         name: e.relic_name.into(),
         tier: e.relic_tier.into(),
         counter: e.relic_counter,
@@ -1012,20 +1285,19 @@ fn build_view_relic(e: &Entity) -> Relic {
     }
 }
 
-fn build_view_character(state: &InternalGameState) -> Character {
+fn snapshot_character(state: &GameState) -> PyCharacter {
     let character = &state.entities[state.id_character];
-    Character {
+    PyCharacter {
         name: character.character_name.to_string(),
         health: character.vitals.health,
         health_max: character.vitals.health_max,
         block: character.vitals.block,
-        modifiers: build_view_modifiers(&character.modifiers),
-        character_reward_roll_offset: character.character_reward_roll_offset,
+        modifiers: snapshot_modifiers(&character.modifiers),
         gold: character.character_gold,
     }
 }
 
-fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
+fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
     let mods_char = &state.entities[state.id_character].modifiers;
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let n = fill_alive_monster_ids(state, &mut buf_alive);
@@ -1036,133 +1308,127 @@ fn build_view_monsters(state: &InternalGameState) -> Vec<Monster> {
 
             let intent = if let Some(move_idx) = m.move_current {
                 let mv = &m.moves[move_idx];
-                let (base_damage, instances, block, buff, debuff) = match mv.intent {
-                    InternalIntent::Attack { damage, instances } => {
-                        (Some(damage), Some(instances), false, false, false)
+                let (base_damage, instances) = match mv.intent {
+                    Intent::Attack { damage, instances }
+                    | Intent::AttackBlock { damage, instances }
+                    | Intent::AttackBuff { damage, instances }
+                    | Intent::AttackDebuff { damage, instances } => {
+                        (Some(damage), Some(instances))
                     }
-                    InternalIntent::AttackBlock { damage, instances } => {
-                        (Some(damage), Some(instances), true, false, false)
-                    }
-                    InternalIntent::AttackBuff { damage, instances } => {
-                        (Some(damage), Some(instances), false, true, false)
-                    }
-                    InternalIntent::AttackDebuff { damage, instances } => {
-                        (Some(damage), Some(instances), false, false, true)
-                    }
-                    InternalIntent::Block => (None, None, true, false, false),
-                    InternalIntent::BlockBuff => (None, None, true, true, false),
-                    InternalIntent::Buff => (None, None, false, true, false),
-                    InternalIntent::Debuff => (None, None, false, false, true),
-                    InternalIntent::DebuffPowerful => (None, None, false, false, true),
-                    InternalIntent::Escape => (None, None, false, false, false),
-                    InternalIntent::Sleep => (None, None, false, false, false),
-                    InternalIntent::Stunned => (None, None, false, false, false),
-                    InternalIntent::Unknown => (None, None, false, false, false),
+                    Intent::Block
+                    | Intent::BlockBuff
+                    | Intent::Buff
+                    | Intent::Debuff
+                    | Intent::DebuffPowerful
+                    | Intent::Escape
+                    | Intent::Sleep
+                    | Intent::Stunned
+                    | Intent::Unknown => (None, None),
                 };
 
                 let damage = base_damage.map(|d| {
                     let mut dmg = d as f32;
-                    if modifier_has(&m.modifiers, InternalModifierKind::Strength) {
-                        dmg += modifier_stacks(&m.modifiers, InternalModifierKind::Strength) as f32;
+                    if modifier_has(&m.modifiers, ModifierKind::Strength) {
+                        dmg += modifier_stacks(&m.modifiers, ModifierKind::Strength) as f32;
                     }
-                    if modifier_has(&m.modifiers, InternalModifierKind::Weak) {
+                    if modifier_has(&m.modifiers, ModifierKind::Weak) {
                         dmg *= 0.75;
                     }
-                    if modifier_has(mods_char, InternalModifierKind::Vulnerable) {
+                    if modifier_has(mods_char, ModifierKind::Vulnerable) {
                         dmg *= FACTOR_VULN;
                     }
                     dmg as u16
                 });
 
-                Intent {
+                PyIntent {
                     kind: mv.intent.into(),
                     damage,
                     instances,
-                    block,
-                    buff,
-                    debuff,
                 }
             } else {
-                Intent {
-                    kind: IntentKind::Unknown,
+                PyIntent {
+                    kind: PyIntentKind::Unknown,
                     damage: None,
                     instances: None,
-                    block: false,
-                    buff: false,
-                    debuff: false,
                 }
             };
 
-            Monster {
-                name: m.monster_name.as_str().to_string(),
+            PyMonster {
+                name: m.monster_name.into(),
+                display_name: m.monster_name.as_str().to_string(),
                 health: m.vitals.health,
                 health_max: m.vitals.health_max,
                 block: m.vitals.block,
-                modifiers: build_view_modifiers(&m.modifiers),
+                modifiers: snapshot_modifiers(&m.modifiers),
                 intent,
             }
         })
         .collect()
 }
 
-fn build_view_modifiers(mods: &Modifiers) -> Vec<Modifier> {
+fn snapshot_modifiers(mods: &Modifiers) -> Vec<PyModifier> {
     let mut out = Vec::new();
     let mut bits = mods.active;
     while bits != 0 {
         let idx = bits.trailing_zeros() as usize;
         bits &= bits - 1;
-        let kind = InternalModifierKind::from_u8(idx as u8);
-        out.push(Modifier {
+        let kind = ModifierKind::from_u8(idx as u8);
+        out.push(PyModifier {
             kind: kind.into(),
             stacks: mods.stacks[idx],
+            stacks_max: stacks_max_for(kind),
         });
     }
     out
 }
 
-fn build_view_card_template(
+fn snapshot_card(
     card: &Entity,
     id_pile_draw: &[usize],
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
     entangled: bool,
-) -> Card {
+) -> PyCard {
     let restriction_ok = is_play_restriction_satisfied(card.card_play_restriction, id_pile_draw);
-    let entangled_blocks = entangled && card.card_kind == InternalCardKind::Attack;
-    Card {
-        name: if card.card_upgraded {
-            format!("{}+", card.card_name.as_str())
-        } else {
-            card.card_name.as_str().to_string()
-        },
-        kind: card.card_kind.into(),
-        color: card.card_color.into(),
-        rarity: card.card_rarity.into(),
+    let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
+    let base = card.card_name.as_str();
+    let display_name = if card.card_upgraded {
+        format!("{base}+")
+    } else {
+        base.to_string()
+    };
+    PyCard {
+        name: card.card_name.into(),
+        display_name,
         cost: card_effective_cost(
             card,
             this_turn_discards,
             this_combat_damage_instances_taken,
             energy_current,
         ),
-        base_cost: card.card_cost,
+        cost_base: card.card_cost,
+        cost_zero_once: card.card_free_to_play_once,
+        cost_override: card.card_cost_override,
         cost_kind: card.card_cost_kind.into(),
+        kind: card.card_kind.into(),
+        color: card.card_color.into(),
+        rarity: card.card_rarity.into(),
         upgraded: card.card_upgraded,
         exhaust: card.card_exhaust,
         ethereal: card.card_ethereal,
         innate: card.card_innate,
         requires_target: card.card_requires_target,
         retain: card.card_retain,
-        free_to_play_once: card.card_free_to_play_once,
         playable: restriction_ok && !entangled_blocks,
         effects: card.card_effects[..card.card_effects_len as usize]
             .iter()
-            .map(Effect::from_internal)
+            .map(snapshot_effect)
             .collect(),
     }
 }
 
-fn build_view_map(state: &InternalGameState) -> Map {
+fn snapshot_map(state: &GameState) -> PyMap {
     let rooms = state
         .id_rooms
         .iter()
@@ -1171,7 +1437,7 @@ fn build_view_map(state: &InternalGameState) -> Map {
                 .map(|cell| {
                     cell.map(|id_room| {
                         let room = &state.entities[id_room];
-                        MapNode {
+                        PyRoom {
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.edges).collect(),
                         }
@@ -1186,7 +1452,7 @@ fn build_view_map(state: &InternalGameState) -> Map {
         Location::Overworld { y, x } => (Some(y), Some(x)),
         Location::BossRoom => (Some(MAP_HEIGHT), Some(0)),
     };
-    Map {
+    PyMap {
         rooms,
         y_current,
         x_current,

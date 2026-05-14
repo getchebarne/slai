@@ -19,13 +19,6 @@ pub fn process_effect_monster_spawn(
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    assert!(
-        (*monster_count as usize) < MAX_MONSTERS,
-        "MonsterSpawn would overflow id_monsters: monster_count={} MAX={}",
-        *monster_count,
-        MAX_MONSTERS,
-    );
-
     let mut monster_child = spawn_monster(name, ascension_level, rng);
 
     // Slime split: spawned child inherits the parent's current HP as max health.
@@ -37,9 +30,7 @@ pub fn process_effect_monster_spawn(
         assert!(
             matches!(
                 parent.monster_name,
-                MonsterName::SlimeAcidLarge
-                    | MonsterName::SlimeSpikeLarge
-                    | MonsterName::SlimeBoss
+                MonsterName::SlimeAcidLarge | MonsterName::SlimeSpikeLarge | MonsterName::SlimeBoss
             ),
             "MonsterSpawn id_source must be a splitting slime, got {:?}",
             parent.monster_name,
@@ -51,8 +42,32 @@ pub fn process_effect_monster_spawn(
 
     let id_child = entities.len();
     entities.push(monster_child);
-    id_monsters[*monster_count as usize] = id_child;
-    *monster_count += 1;
+
+    // Reuse dead slots so splitting cascades don't exceed MAX_MONSTERS
+    let mut slot_reused: Option<usize> = None;
+    for idx in 0..(*monster_count as usize) {
+        if entities[id_monsters[idx]].dead {
+            slot_reused = Some(idx);
+            break;
+        }
+    }
+
+    let slot = match slot_reused {
+        Some(s) => s,
+        None => {
+            assert!(
+                (*monster_count as usize) < MAX_MONSTERS,
+                "MonsterSpawn would overflow id_monsters with no dead slot to \
+                 reuse: monster_count={} MAX={}",
+                *monster_count,
+                MAX_MONSTERS,
+            );
+            let s = *monster_count as usize;
+            *monster_count += 1;
+            s
+        }
+    };
+    id_monsters[slot] = id_child;
 
     // Queue a MoveUpdate so the spawned monster has an intent visible on the
     // next view rebuild and ready for its first turn

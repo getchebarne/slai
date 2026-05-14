@@ -60,6 +60,10 @@ impl ModifierKind {
     }
 }
 
+pub fn stacks_max_for(kind: ModifierKind) -> i16 {
+    MODIFIER_DEFS[kind as usize].stacks_max
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ModifierDef {
     pub kind: ModifierKind,

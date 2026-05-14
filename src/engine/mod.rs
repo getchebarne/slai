@@ -378,8 +378,8 @@ fn dispatch_by_kind(
             &mut state.rng,
             &mut state.effect_queue,
         ),
-        EffectKind::DrawUpTo { target } => process_effect_draw_up_to::process_effect_draw_up_to(
-            target,
+        EffectKind::DrawUpTo { amount } => process_effect_draw_up_to::process_effect_draw_up_to(
+            amount,
             &state.id_hand,
             &mut state.effect_queue,
         ),

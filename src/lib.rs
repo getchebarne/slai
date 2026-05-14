@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
 
 mod action;
 mod cards;
@@ -20,12 +19,12 @@ mod types;
 mod utils;
 
 use ffi::{
-    Action, Card, Character, Energy, GameState, Intent, Map, MapNode, Modifier, Monster, Phase,
-    Relic, build_view,
+    PyAction, PyActionType, PyCard, PyCharacter, PyEnergy, PyGameState, PyIntent, PyMap, PyModifier, PyMonster, PyPhase,
+    PyRelic, PyRoom, snapshot_state, to_internal_action,
 };
 use game::{create_game_state, step};
 
-// ---- GameEnv ----
+// GameEnv
 
 #[pyclass]
 struct GameEnv {
@@ -34,83 +33,84 @@ struct GameEnv {
 
 #[pymethods]
 impl GameEnv {
+    // Game-shape constants — mirror of `crate::consts` for encoders/wrappers
+    #[classattr]
+    const MAX_MONSTERS: usize = consts::MAX_MONSTERS;
+    #[classattr]
+    const MAX_SIZE_HAND: usize = consts::MAX_SIZE_HAND;
+    #[classattr]
+    const MAX_COMBAT_CARD_REWARD: usize = consts::MAX_COMBAT_CARD_REWARD;
+    #[classattr]
+    const CARDS_DRAWN_PER_TURN: u8 = consts::CARDS_DRAWN_PER_TURN;
+    #[classattr]
+    const NIGHTMARE_COPIES: u8 = consts::NIGHTMARE_COPIES;
+    #[classattr]
+    const MAX_BLOCK: u16 = consts::MAX_BLOCK;
+    #[classattr]
+    const MAP_HEIGHT: usize = consts::MAP_HEIGHT;
+    #[classattr]
+    const MAP_WIDTH: usize = consts::MAP_WIDTH;
+
     #[new]
     #[pyo3(signature = (ascension=0))]
     fn new(ascension: u8) -> Self {
-        // State is created with a placeholder seed; consumers must call
-        // `reset(seed=...)` before stepping (gymnasium convention)
+        // Placeholder seed; consumers must call `reset(seed=...)` before stepping (gymnasium convention)
         let state = create_game_state(ascension, 0);
         GameEnv { state }
     }
 
-    /// Start a fresh run. Returns `(obs, info)`.
+    // Start a fresh run. Returns the initial obs
     #[pyo3(signature = (seed=42))]
-    fn reset<'py>(&mut self, py: Python<'py>, seed: u64) -> (GameState, Bound<'py, PyDict>) {
+    fn reset(&mut self, seed: u64) -> PyGameState {
         let asc = self.state.ascension;
         self.state = create_game_state(asc, seed);
-        (build_view(&self.state), PyDict::new(py))
+        snapshot_state(&self.state)
     }
 
-    /// Apply an action. Returns `(obs, reward, terminated, truncated, info)`.
-    /// `reward` is currently always 0.0 — no reward function is defined yet.
-    /// `truncated` is currently always false — there's no step-limit truncation.
-    fn step<'py>(
-        &mut self,
-        py: Python<'py>,
-        action: Action,
-    ) -> PyResult<(GameState, f32, bool, bool, Bound<'py, PyDict>)> {
-        step(&mut self.state, action.into())
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e))?;
-        let obs = build_view(&self.state);
+    // Apply an action. Returns `(obs, terminated)`
+    fn step(&mut self, action: PyAction) -> PyResult<(PyGameState, bool)> {
+        let internal = to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        step(&mut self.state, internal).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let obs = snapshot_state(&self.state);
         let terminated = matches!(self.state.phase, types::Phase::GameOver);
-        let truncated = false;
-        let reward = 0.0_f32;
-        Ok((obs, reward, terminated, truncated, PyDict::new(py)))
-    }
-
-    // Remove once shop / event distribution channels exist
-    fn dev_grant_relic(&mut self, name: ffi::RelicName) -> PyResult<()> {
-        let internal: types::RelicName = name.into();
-        if self.state.id_relics[internal as usize].is_some() {
-            return Ok(());
-        }
-        let id = self.state.entities.len();
-        self.state.entities.push(relics::get_relic(internal));
-        self.state.id_relics[internal as usize] = Some(id);
-        Ok(())
+        Ok((obs, terminated))
     }
 }
 
-// Module
 #[pymodule]
 fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<GameEnv>()?;
-    m.add_class::<Action>()?;
-    m.add_class::<GameState>()?;
-    m.add_class::<Card>()?;
-    m.add_class::<Character>()?;
-    m.add_class::<Monster>()?;
-    m.add_class::<Intent>()?;
-    m.add_class::<Energy>()?;
-    m.add_class::<Map>()?;
-    m.add_class::<MapNode>()?;
-    m.add_class::<Modifier>()?;
-    m.add_class::<Relic>()?;
+    m.add_class::<PyActionType>()?;
+    m.add_class::<PyAction>()?;
+    m.add_class::<PyGameState>()?;
+    m.add_class::<PyCard>()?;
+    m.add_class::<PyCharacter>()?;
+    m.add_class::<PyMonster>()?;
+    m.add_class::<PyIntent>()?;
+    m.add_class::<PyEnergy>()?;
+    m.add_class::<PyMap>()?;
+    m.add_class::<PyRoom>()?;
+    m.add_class::<PyModifier>()?;
+    m.add_class::<PyRelic>()?;
+
     // Unit-enum mirrors
-    m.add_class::<ffi::CardKind>()?;
-    m.add_class::<ffi::CardColor>()?;
-    m.add_class::<ffi::CardRarity>()?;
-    m.add_class::<ffi::CardCostKind>()?;
-    m.add_class::<ffi::RoomKind>()?;
-    m.add_class::<ffi::ModifierKind>()?;
-    m.add_class::<ffi::IntentKind>()?;
-    m.add_class::<ffi::CandidatePool>()?;
-    m.add_class::<ffi::RelicName>()?;
-    m.add_class::<ffi::RelicTier>()?;
+    m.add_class::<ffi::PyCardKind>()?;
+    m.add_class::<ffi::PyCardColor>()?;
+    m.add_class::<ffi::PyCardRarity>()?;
+    m.add_class::<ffi::PyCardCostKind>()?;
+    m.add_class::<ffi::PyRoomKind>()?;
+    m.add_class::<ffi::PyModifierKind>()?;
+    m.add_class::<ffi::PyIntentKind>()?;
+    m.add_class::<ffi::PyCandidatePool>()?;
+    m.add_class::<ffi::PyRelicName>()?;
+    m.add_class::<ffi::PyRelicTier>()?;
+    m.add_class::<ffi::PyCardName>()?;
+    m.add_class::<ffi::PyMonsterName>()?;
+
     // Complex enum mirrors
-    m.add_class::<Phase>()?;
-    m.add_class::<ffi::Selection>()?;
-    m.add_class::<ffi::Target>()?;
-    m.add_class::<ffi::Effect>()?;
+    m.add_class::<PyPhase>()?;
+    m.add_class::<ffi::PySelectionKind>()?;
+    m.add_class::<ffi::PyTarget>()?;
+    m.add_class::<ffi::PyEffect>()?;
     Ok(())
 }
