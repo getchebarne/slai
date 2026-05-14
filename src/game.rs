@@ -9,8 +9,9 @@ use strum::EnumCount;
 use crate::action::{Action, handle_action};
 use crate::character::{get_silent_starter_deck, spawn_silent};
 use crate::consts::{
-    ENCOUNTER_LIST_ELITE_CAPACITY, ENCOUNTER_LIST_NORMAL_CAPACITY, MAP_HEIGHT, MAP_WIDTH,
-    MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND,
+    ENCOUNTER_LIST_ELITE_CAPACITY, ENCOUNTER_LIST_NORMAL_CAPACITY,
+    EVENT_CHANCE_MONSTER_BASE, EVENT_CHANCE_SHOP_BASE, EVENT_CHANCE_TREASURE_BASE,
+    MAP_HEIGHT, MAP_WIDTH, MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND,
 };
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::process_queue;
@@ -82,6 +83,13 @@ pub struct GameState {
 
     // Per-combat counter; reset at combat_start
     pub this_combat_damage_instances_taken: u8,
+    // Suppresses normal-room gold reward when any monster escaped
+    pub escaped_this_combat: bool,
+
+    // `?`-room drift state; event chance = 1 - sum(others)
+    pub event_chance_monster: f32,
+    pub event_chance_shop: f32,
+    pub event_chance_treasure: f32,
 
     // Nightmare-pending template snapshot id; flushed at next TurnStart
     pub id_card_nightmare: Option<usize>,
@@ -166,6 +174,10 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         this_turn_discards: 0,
         this_turn_attacks_played: 0,
         this_combat_damage_instances_taken: 0,
+        escaped_this_combat: false,
+        event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
+        event_chance_shop: EVENT_CHANCE_SHOP_BASE,
+        event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,
         id_card_nightmare: None,
     };
 

@@ -8,6 +8,7 @@ mod bag_of_marbles;
 mod bag_of_preparation;
 mod blood_vial;
 mod bronze_scales;
+mod circlet;
 mod kunai;
 mod ninja_scroll;
 mod oddly_smooth_stone;
@@ -38,6 +39,7 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::ThreadAndNeedle => thread_and_needle::THREAD_AND_NEEDLE,
         RelicName::TwistedFunnel => twisted_funnel::TWISTED_FUNNEL,
         RelicName::Vajra => vajra::VAJRA,
+        RelicName::Circlet => circlet::CIRCLET,
     }
 }
 

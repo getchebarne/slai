@@ -10,6 +10,7 @@ use crate::entity::{
 };
 use crate::game::{GameState, Location};
 use crate::map::edge_indices;
+use crate::relics::iter_owned_relics;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks, stacks_max_for};
 use crate::types::{
     CardColor, CardKind, CardName, CardRarity, MonsterEncounter, MonsterName, Phase, RelicName,
@@ -110,6 +111,9 @@ pub enum PyRoomKind {
     CombatElite,
     CombatBoss,
     RestSite,
+    Treasure,
+    EventRoom,
+    Shop,
 }
 
 impl From<RoomKind> for PyRoomKind {
@@ -119,6 +123,9 @@ impl From<RoomKind> for PyRoomKind {
             RoomKind::CombatElite => Self::CombatElite,
             RoomKind::CombatBoss => Self::CombatBoss,
             RoomKind::RestSite => Self::RestSite,
+            RoomKind::Treasure => Self::Treasure,
+            RoomKind::EventRoom => Self::EventRoom,
+            RoomKind::Shop => Self::Shop,
         }
     }
 }
@@ -140,6 +147,7 @@ pub enum PyRelicName {
     ThreadAndNeedle,
     TwistedFunnel,
     Vajra,
+    Circlet,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -159,6 +167,7 @@ impl From<RelicName> for PyRelicName {
             RelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
             RelicName::TwistedFunnel => Self::TwistedFunnel,
             RelicName::Vajra => Self::Vajra,
+            RelicName::Circlet => Self::Circlet,
         }
     }
 }
@@ -180,6 +189,7 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::ThreadAndNeedle => Self::ThreadAndNeedle,
             PyRelicName::TwistedFunnel => Self::TwistedFunnel,
             PyRelicName::Vajra => Self::Vajra,
+            PyRelicName::Circlet => Self::Circlet,
         }
     }
 }
@@ -265,6 +275,16 @@ pub enum PyCardName {
     Unload,
     WellLaidPlans,
     WraithForm,
+    AscendersBane,
+    Regret,
+    Pain,
+    Doubt,
+    Decay,
+    Injury,
+    Shame,
+    Writhe,
+    Parasite,
+    Normality,
 }
 
 impl From<CardName> for PyCardName {
@@ -349,6 +369,16 @@ impl From<CardName> for PyCardName {
             CardName::Unload => Self::Unload,
             CardName::WellLaidPlans => Self::WellLaidPlans,
             CardName::WraithForm => Self::WraithForm,
+            CardName::AscendersBane => Self::AscendersBane,
+            CardName::Regret => Self::Regret,
+            CardName::Pain => Self::Pain,
+            CardName::Doubt => Self::Doubt,
+            CardName::Decay => Self::Decay,
+            CardName::Injury => Self::Injury,
+            CardName::Shame => Self::Shame,
+            CardName::Writhe => Self::Writhe,
+            CardName::Parasite => Self::Parasite,
+            CardName::Normality => Self::Normality,
         }
     }
 }
@@ -581,6 +611,9 @@ pub enum PyPhase {
     CombatReward {},
     RestSite {},
     GameOver {},
+    Chest {},
+    EventRoom {},
+    Shop {},
 }
 
 impl From<Phase> for PyPhase {
@@ -595,6 +628,9 @@ impl From<Phase> for PyPhase {
             Phase::CombatReward => Self::CombatReward {},
             Phase::RestSite => Self::RestSite {},
             Phase::GameOver => Self::GameOver {},
+            Phase::Chest => Self::Chest {},
+            Phase::EventRoom => Self::EventRoom {},
+            Phase::Shop => Self::Shop {},
         }
     }
 }
@@ -645,6 +681,7 @@ pub enum PyActionType {
     RelicRewardSkip,
     RestSiteRest,
     RestSiteCardUpgrade,
+    RoomSkip,
 }
 
 impl PyActionType {
@@ -663,6 +700,7 @@ impl PyActionType {
             10 => Ok(Self::RelicRewardSkip),
             11 => Ok(Self::RestSiteRest),
             12 => Ok(Self::RestSiteCardUpgrade),
+            13 => Ok(Self::RoomSkip),
             _ => Err(format!("PyActionType: invalid discriminant {n}")),
         }
     }
@@ -758,6 +796,10 @@ pub fn to_internal_action(a: PyAction) -> Result<Action, String> {
             n => Err(format!(
                 "RestSiteCardUpgrade expects [idx_deck], got {n} idxs"
             )),
+        },
+        PyActionType::RoomSkip => match i.len() {
+            0 => Ok(Action::RoomSkip),
+            n => Err(format!("RoomSkip expects [], got {n} idxs")),
         },
     }
 }
@@ -1172,6 +1214,16 @@ impl CardName {
             Self::Unload => "Unload",
             Self::WellLaidPlans => "Well Laid Plans",
             Self::WraithForm => "Wraith Form",
+            Self::AscendersBane => "Ascender's Bane",
+            Self::Regret => "Regret",
+            Self::Pain => "Pain",
+            Self::Doubt => "Doubt",
+            Self::Decay => "Decay",
+            Self::Injury => "Injury",
+            Self::Shame => "Shame",
+            Self::Writhe => "Writhe",
+            Self::Parasite => "Parasite",
+            Self::Normality => "Normality",
         }
     }
 }
@@ -1264,7 +1316,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
         rewards_card: state.id_card_rewards.iter().copied().map(card).collect(),
-        relics: crate::relics::iter_owned_relics(&state.id_relics)
+        relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
         rewards_relic: state.id_relic_rewards.iter().copied().map(relic).collect(),

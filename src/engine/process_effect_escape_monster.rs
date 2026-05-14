@@ -11,10 +11,11 @@ pub fn process_effect_escape_monster(
     id_monsters: &[usize],
     monster_count: u8,
     entities: &mut [Entity],
+    escaped_this_combat: &mut bool,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
-    // Mark as dead
     entities[id_target].dead = true;
+    *escaped_this_combat = true;
 
     let any_alive = id_monsters[..monster_count as usize]
         .iter()

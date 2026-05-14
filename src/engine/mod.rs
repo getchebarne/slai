@@ -1,6 +1,7 @@
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_calculated_gamble;
+pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_add_to_hand;
 pub mod process_effect_card_discard;
@@ -9,6 +10,7 @@ pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move_to_discard;
 pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
+pub mod process_effect_card_remove_from_deck;
 pub mod process_effect_card_retain;
 pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_reward_roll;
@@ -37,6 +39,8 @@ pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_hexaghost_divider;
 pub mod process_effect_id_card_nightmare_pick;
 pub mod process_effect_id_card_nightmare_spawn;
+pub mod process_effect_max_health_gain;
+pub mod process_effect_max_health_loss;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -754,6 +758,7 @@ fn dispatch_by_kind(
             &mut state.id_pile_exhaust,
             &mut state.id_card_target,
             &mut state.this_combat_damage_instances_taken,
+            &mut state.escaped_this_combat,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -769,6 +774,8 @@ fn dispatch_by_kind(
             &mut state.id_card_nightmare,
             &state.id_rooms,
             state.location,
+            state.escaped_this_combat,
+            &mut state.rng,
             &mut state.effect_queue,
         ),
         EffectKind::TurnStart => {
@@ -870,6 +877,7 @@ fn dispatch_by_kind(
             &state.id_monsters,
             state.monster_count,
             &mut state.entities,
+            &mut state.escaped_this_combat,
             &mut state.effect_queue,
         ),
         EffectKind::GoldSteal { amount } => process_effect_gold_steal::process_effect_gold_steal(
@@ -899,10 +907,9 @@ fn dispatch_by_kind(
             let character = &mut state.entities[state.id_character];
             process_effect_gold_gain::process_effect_gold_gain(character, amount)
         }
-        // Halt-kind variants: represent pending player decisions
-        // RoomSelect and CardRewardSelect in their `Direct` form (after
-        // the resolver picked a target) complete the transition. Before
-        // resolution they're handled by the `Resolve` branch in `process_effect`
+        // RoomSelect Direct form (after the resolver picked a target)
+        // completes the transition. Before resolution it's handled by the
+        // `Resolve` branch in `process_effect`
         EffectKind::RoomSelect => {
             let id_room = id_target.expect("RoomSelect Direct form must have target");
             let room = &state.entities[id_room];
@@ -913,14 +920,6 @@ fn dispatch_by_kind(
             state
                 .effect_queue
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
-            DispatchResult::Continue
-        }
-        EffectKind::CardRewardSelect => {
-            let id_card = id_target.expect("CardRewardSelect Direct form must have target");
-            state.id_deck.push(id_card);
-            state
-                .effect_queue
-                .push_front(Effect::direct(EffectKind::CardRewardClear, None, None));
             DispatchResult::Continue
         }
         EffectKind::RelicRewardRoll => {
@@ -945,6 +944,30 @@ fn dispatch_by_kind(
                 &state.id_card_rewards,
                 &mut state.effect_queue,
             )
+        }
+        EffectKind::CardRemoveFromDeck => {
+            process_effect_card_remove_from_deck::process_effect_card_remove_from_deck(
+                id_target.unwrap(),
+                &mut state.id_deck,
+            )
+        }
+        EffectKind::CardAddToDeck { card_name, upgraded } => {
+            process_effect_card_add_to_deck::process_effect_card_add_to_deck(
+                card_name,
+                upgraded,
+                &mut state.entities,
+                &mut state.id_deck,
+            )
+        }
+        EffectKind::MaxHealthGain { amount } => {
+            let id_target = id_target.unwrap();
+            let vitals = &mut state.entities[id_target].vitals;
+            process_effect_max_health_gain::process_effect_max_health_gain(vitals, amount)
+        }
+        EffectKind::MaxHealthLoss { amount } => {
+            let id_target = id_target.unwrap();
+            let vitals = &mut state.entities[id_target].vitals;
+            process_effect_max_health_loss::process_effect_max_health_loss(vitals, amount)
         }
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
@@ -995,6 +1018,9 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
         Location::Overworld { .. } => {
             match get_active_room_kind(&state.id_rooms, state.location, &state.entities) {
                 Some(RoomKind::RestSite) => Phase::RestSite,
+                Some(RoomKind::Treasure) => Phase::Chest,
+                Some(RoomKind::EventRoom) => Phase::EventRoom,
+                Some(RoomKind::Shop) => Phase::Shop,
                 _ => Phase::Map,
             }
         }

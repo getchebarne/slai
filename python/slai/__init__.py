@@ -116,6 +116,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.RelicRewardSkip),
         create_action_spec(ActionType.RestSiteRest),
         create_action_spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
+        create_action_spec(ActionType.RoomSkip),
     ]
 )
 

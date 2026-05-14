@@ -1,6 +1,14 @@
 // Entity
 pub const MAX_MOVE_HISTORY: usize = 64;
 pub const STARTING_GOLD: u16 = 99;
+pub const MAX_GOLD: u16 = 9999;
+
+pub const GOLD_MONSTER_MIN: u16 = 10;
+pub const GOLD_MONSTER_MAX: u16 = 20;
+pub const GOLD_ELITE_MIN: u16 = 25;
+pub const GOLD_ELITE_MAX: u16 = 35;
+pub const GOLD_BOSS_MIN: u16 = 95;
+pub const GOLD_BOSS_MAX: u16 = 105;
 
 // Combat
 pub const MAX_SIZE_HAND: usize = 10;
@@ -26,8 +34,17 @@ pub const MAP_HEIGHT: usize = 15;
 pub const MAP_WIDTH: usize = 7;
 pub const PATH_DENSITY: usize = 6;
 pub const ANCESTOR_GAP_MIN: usize = 3;
-pub const FACTOR_NUM_REST_SITE: f32 = 0.25;
-pub const FACTOR_NUM_ELITE: f32 = 0.10;
+
+pub const FACTOR_NUM_REST_SITE: f32 = 0.12;
+pub const FACTOR_NUM_ELITE: f32 = 0.08;
+pub const FACTOR_NUM_EVENT: f32 = 0.22;
+pub const FACTOR_NUM_SHOP: f32 = 0.05;
+
+pub const MAP_ROW_TREASURE: usize = 8;
+
+pub const EVENT_CHANCE_MONSTER_BASE: f32 = 0.10;
+pub const EVENT_CHANCE_SHOP_BASE: f32 = 0.03;
+pub const EVENT_CHANCE_TREASURE_BASE: f32 = 0.02;
 
 // Encounter sequence sizes (canonical Exordium.generateMonsters)
 pub const NUM_ENCOUNTERS_WEAK: usize = 3;

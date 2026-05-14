@@ -43,6 +43,7 @@ pub fn process_effect_room_enter(
             // Nothing to enqueue; the effect_queue drains and the engine derives
             // Phase::RestSite from `Location` & `RoomKind`
         }
+        RoomKind::Treasure | RoomKind::EventRoom | RoomKind::Shop => {}
     }
 
     if !effects.is_empty() {
