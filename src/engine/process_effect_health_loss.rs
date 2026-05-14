@@ -75,7 +75,8 @@ pub fn process_effect_health_loss(
 
     if modifier_has(&entity.modifiers, ModifierKind::ModeShift) {
         // ModeShift: damage reduces stacks, triggers move update on break
-        let new_stacks = modifier_stacks(&entity.modifiers, ModifierKind::ModeShift) - amount as i16;
+        let new_stacks =
+            modifier_stacks(&entity.modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(&mut entity.modifiers, ModifierKind::ModeShift);
             if id_target != id_character {
