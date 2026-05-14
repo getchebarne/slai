@@ -1,4 +1,3 @@
-use crate::consts::TierThresholds;
 use crate::modifier::ModifierKind;
 use crate::types::{CardName, MonsterName};
 
@@ -82,7 +81,7 @@ pub enum EffectKind {
     RoomSelect,
 
     // Relic flow
-    RelicRewardRoll { thresholds: TierThresholds },
+    RelicRewardRoll { th_common: u8, th_uncommon: u8 },
     RelicRewardSelect,
     RelicRewardClear,
 

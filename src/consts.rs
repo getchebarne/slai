@@ -77,18 +77,10 @@ pub const CHEST_LARGE: ChestParams = ChestParams {
     th_uncommon: 75,
 };
 
-// Cumulative `<` thresholds. roll < th_common → COMMON;
-// th_common..th_uncommon → UNCOMMON; else → RARE
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TierThresholds {
-    pub th_common: u8,
-    pub th_uncommon: u8,
-}
-
-pub const TIER_THRESHOLDS_ELITE: TierThresholds = TierThresholds {
-    th_common: 50,
-    th_uncommon: 83,
-};
+// Cumulative `<` thresholds for relic-tier roll.
+// roll < th_common → COMMON; th_common..th_uncommon → UNCOMMON; else → RARE
+pub const ELITE_TH_COMMON: u8 = 50;
+pub const ELITE_TH_UNCOMMON: u8 = 83;
 
 // Encounter sequence sizes
 pub const NUM_ENCOUNTERS_WEAK: usize = 3;

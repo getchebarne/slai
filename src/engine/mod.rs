@@ -923,9 +923,10 @@ fn dispatch_by_kind(
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
             DispatchResult::Continue
         }
-        EffectKind::RelicRewardRoll { thresholds } => {
+        EffectKind::RelicRewardRoll { th_common, th_uncommon } => {
             process_effect_relic_reward_roll::process_effect_relic_reward_roll(
-                thresholds,
+                th_common,
+                th_uncommon,
                 &state.id_relics,
                 &mut state.id_relic_rewards,
                 &mut state.entities,

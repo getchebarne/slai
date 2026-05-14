@@ -3,16 +3,14 @@ use std::collections::VecDeque;
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::consts::{
-    CHEST_LARGE, CHEST_MEDIUM, CHEST_SMALL, ChestParams, MAP_HEIGHT, MAP_WIDTH, TierThresholds,
-};
+use crate::consts::{CHEST_LARGE, CHEST_MEDIUM, CHEST_SMALL, ChestParams, MAP_HEIGHT, MAP_WIDTH};
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
-use crate::engine::process_effect_relic_reward_roll::add_relic_reward_for_roll;
 use crate::entity::Entity;
 use crate::game::Location;
 use crate::map::room_at_mut;
 use crate::types::{ChestKind, RelicName};
+use crate::utils::add_relic_reward_for_roll;
 
 pub fn process_effect_chest_open(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
@@ -24,26 +22,33 @@ pub fn process_effect_chest_open(
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
 ) -> DispatchResult {
+    // Validate we're in the Overworld
     let Location::Overworld { y, x } = location else {
         panic!("ChestOpen outside Overworld");
     };
+
+    // Get room mut & chest kind
     let room = room_at_mut(id_rooms, entities, y, x).expect("ChestOpen room missing");
-    let kind = room
+    let chest_kind = room
         .room_chest_kind
         .expect("ChestOpen with no chest_kind on room");
+
+    // Mark chest as opened
     room.room_chest_opened = true;
 
-    let params = match kind {
+    // Get roll parameters according to chest kind
+    let chest_params = match chest_kind {
         ChestKind::Small => CHEST_SMALL,
         ChestKind::Medium => CHEST_MEDIUM,
         ChestKind::Large => CHEST_LARGE,
     };
 
-    // One shared roll for both gold-yes/no and relic-tier
+    // Roll. Shared roll for both gold-yes/no and relic-tier
     let roll = rng.random_range(0..100) as u8;
 
-    if roll < params.gold_chance {
-        let amount = roll_gold_amount(rng, params);
+    // Gold check
+    if roll < chest_params.gold_chance {
+        let amount = roll_gold_amount(rng, chest_params);
         effect_queue.push_back(Effect {
             kind: EffectKind::GoldGain { amount },
             id_source: None,
@@ -51,11 +56,16 @@ pub fn process_effect_chest_open(
         });
     }
 
-    let thresholds = TierThresholds {
-        th_common: params.th_common,
-        th_uncommon: params.th_uncommon,
-    };
-    add_relic_reward_for_roll(roll, thresholds, id_relics, id_relic_rewards, entities, rng);
+    // Relic roll
+    add_relic_reward_for_roll(
+        roll,
+        chest_params.th_common,
+        chest_params.th_uncommon,
+        id_relics,
+        id_relic_rewards,
+        entities,
+        rng,
+    );
 
     DispatchResult::Continue
 }

@@ -3,8 +3,8 @@ use std::collections::VecDeque;
 use rand::Rng;
 
 use crate::consts::{
-    GOLD_BOSS_MAX, GOLD_BOSS_MIN, GOLD_ELITE_MAX, GOLD_ELITE_MIN, GOLD_MONSTER_MAX,
-    GOLD_MONSTER_MIN, MAP_HEIGHT, MAP_WIDTH, TIER_THRESHOLDS_ELITE,
+    ELITE_TH_COMMON, ELITE_TH_UNCOMMON, GOLD_BOSS_MAX, GOLD_BOSS_MIN, GOLD_ELITE_MAX,
+    GOLD_ELITE_MIN, GOLD_MONSTER_MAX, GOLD_MONSTER_MIN, MAP_HEIGHT, MAP_WIDTH,
 };
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
@@ -87,7 +87,8 @@ pub fn process_effect_combat_end(
             });
             effect_queue.push_back(Effect {
                 kind: EffectKind::RelicRewardRoll {
-                    thresholds: TIER_THRESHOLDS_ELITE,
+                    th_common: ELITE_TH_COMMON,
+                    th_uncommon: ELITE_TH_UNCOMMON,
                 },
                 id_source: None,
                 target: Target::Direct(None),
