@@ -13,8 +13,8 @@ use crate::map::edge_indices;
 use crate::relics::iter_owned_relics;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks, stacks_max_for};
 use crate::types::{
-    CardColor, CardKind, CardName, CardRarity, MonsterEncounter, MonsterName, Phase, RelicName,
-    RelicTier, RoomKind,
+    CardColor, CardKind, CardName, CardRarity, ChestKind, MonsterEncounter, MonsterName, Phase,
+    RelicName, RelicTier, RoomKind,
 };
 use crate::utils::{fill_alive_monster_ids, scale_attack_damage};
 
@@ -126,6 +126,24 @@ impl From<RoomKind> for PyRoomKind {
             RoomKind::Treasure => Self::Treasure,
             RoomKind::EventRoom => Self::EventRoom,
             RoomKind::Shop => Self::Shop,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "ChestKind")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyChestKind {
+    Small,
+    Medium,
+    Large,
+}
+
+impl From<ChestKind> for PyChestKind {
+    fn from(c: ChestKind) -> Self {
+        match c {
+            ChestKind::Small => Self::Small,
+            ChestKind::Medium => Self::Medium,
+            ChestKind::Large => Self::Large,
         }
     }
 }
@@ -682,6 +700,7 @@ pub enum PyActionType {
     RestSiteRest,
     RestSiteCardUpgrade,
     RoomSkip,
+    ChestOpen,
 }
 
 impl PyActionType {
@@ -701,6 +720,7 @@ impl PyActionType {
             11 => Ok(Self::RestSiteRest),
             12 => Ok(Self::RestSiteCardUpgrade),
             13 => Ok(Self::RoomSkip),
+            14 => Ok(Self::ChestOpen),
             _ => Err(format!("PyActionType: invalid discriminant {n}")),
         }
     }
@@ -800,6 +820,10 @@ pub fn to_internal_action(a: PyAction) -> Result<Action, String> {
         PyActionType::RoomSkip => match i.len() {
             0 => Ok(Action::RoomSkip),
             n => Err(format!("RoomSkip expects [], got {n} idxs")),
+        },
+        PyActionType::ChestOpen => match i.len() {
+            0 => Ok(Action::ChestOpen),
+            n => Err(format!("ChestOpen expects [], got {n} idxs")),
         },
     }
 }
@@ -1103,6 +1127,7 @@ pub struct PyEnergy {
 pub struct PyRoom {
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
+    pub chest_kind: Option<PyChestKind>,
 }
 
 #[pyclass(frozen, get_all, name = "Map")]
@@ -1506,6 +1531,7 @@ fn snapshot_map(state: &GameState) -> PyMap {
                         PyRoom {
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.edges).collect(),
+                            chest_kind: room.room_chest_kind.map(Into::into),
                         }
                     })
                 })

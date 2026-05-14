@@ -46,7 +46,43 @@ pub const EVENT_CHANCE_MONSTER_BASE: f32 = 0.10;
 pub const EVENT_CHANCE_SHOP_BASE: f32 = 0.03;
 pub const EVENT_CHANCE_TREASURE_BASE: f32 = 0.02;
 
-// Encounter sequence sizes (canonical Exordium.generateMonsters)
+// Chest size roll thresholds
+pub const CHEST_SMALL_PCT: u8 = 50;
+pub const CHEST_SMALL_PLUS_MEDIUM_PCT: u8 = 83;
+
+#[derive(Debug, Clone, Copy)]
+pub struct ChestParams {
+    pub gold_chance: u8,
+    pub gold_base: u16,
+    pub th_common: u8,
+    pub th_uncommon: u8,
+}
+
+pub const CHEST_SMALL: ChestParams = ChestParams {
+    gold_chance: 50,
+    gold_base: 25,
+    th_common: 75,
+    th_uncommon: 100,
+};
+pub const CHEST_MEDIUM: ChestParams = ChestParams {
+    gold_chance: 35,
+    gold_base: 50,
+    th_common: 35,
+    th_uncommon: 85,
+};
+pub const CHEST_LARGE: ChestParams = ChestParams {
+    gold_chance: 50,
+    gold_base: 75,
+    th_common: 0,
+    th_uncommon: 75,
+};
+
+// Cumulative `<` thresholds for relic-tier roll.
+// roll < th_common → COMMON; th_common..th_uncommon → UNCOMMON; else → RARE
+pub const ELITE_TH_COMMON: u8 = 50;
+pub const ELITE_TH_UNCOMMON: u8 = 83;
+
+// Encounter sequence sizes
 pub const NUM_ENCOUNTERS_WEAK: usize = 3;
 pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_WEAK;
 pub const NUM_ENCOUNTERS_ELITE: usize = 10;

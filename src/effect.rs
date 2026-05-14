@@ -81,7 +81,7 @@ pub enum EffectKind {
     RoomSelect,
 
     // Relic flow
-    RelicRewardRoll,
+    RelicRewardRoll { th_common: u8, th_uncommon: u8 },
     RelicRewardSelect,
     RelicRewardClear,
 
@@ -92,6 +92,8 @@ pub enum EffectKind {
     // Out-of-combat HP cap mutation
     MaxHealthGain { amount: u16 },
     MaxHealthLoss { amount: u16 },
+
+    ChestOpen,
 }
 
 // DiscardSource: tags a CardDiscard effect with its origin so the handler can

@@ -2,19 +2,21 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH};
+use crate::consts::{
+    CHEST_SMALL_PCT, CHEST_SMALL_PLUS_MEDIUM_PCT, MAP_HEIGHT, MAP_WIDTH,
+};
 use crate::effect::{Effect, EffectKind};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::game::Location;
-use crate::map::get_active_room_kind;
-use crate::types::{MonsterEncounter, MonsterName, RoomKind};
+use crate::map::{get_active_room_kind, room_at_mut};
+use crate::types::{ChestKind, MonsterEncounter, MonsterName, RoomKind};
 use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
-    entities: &[Entity],
+    entities: &mut [Entity],
     encounter_list_normal: &mut Vec<MonsterEncounter>,
     encounter_list_elite: &mut Vec<MonsterEncounter>,
     encounter_boss: MonsterEncounter,
@@ -43,7 +45,21 @@ pub fn process_effect_room_enter(
             // Nothing to enqueue; the effect_queue drains and the engine derives
             // Phase::RestSite from `Location` & `RoomKind`
         }
-        RoomKind::Treasure | RoomKind::EventRoom | RoomKind::Shop => {}
+        RoomKind::Treasure => {
+            let Location::Overworld { y, x } = location else {
+                unreachable!("RoomEnter on Treasure outside Overworld");
+            };
+            let room = room_at_mut(id_rooms, entities, y, x).expect("Treasure room missing");
+            let roll = rng.random_range(0..100) as u8;
+            room.room_chest_kind = Some(if roll < CHEST_SMALL_PCT {
+                ChestKind::Small
+            } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
+                ChestKind::Medium
+            } else {
+                ChestKind::Large
+            });
+        }
+        RoomKind::EventRoom | RoomKind::Shop => {}
     }
 
     if !effects.is_empty() {

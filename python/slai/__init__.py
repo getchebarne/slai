@@ -19,6 +19,7 @@ CardKind = _to_intenum("CardKind", _rs.CardKind)
 CardColor = _to_intenum("CardColor", _rs.CardColor)
 CardRarity = _to_intenum("CardRarity", _rs.CardRarity)
 RoomKind = _to_intenum("RoomKind", _rs.RoomKind)
+ChestKind = _to_intenum("ChestKind", _rs.ChestKind)
 RelicTier = _to_intenum("RelicTier", _rs.RelicTier)
 CardName = _to_intenum("CardName", _rs.CardName)
 MonsterName = _to_intenum("MonsterName", _rs.MonsterName)
@@ -117,6 +118,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.RestSiteRest),
         create_action_spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
         create_action_spec(ActionType.RoomSkip),
+        create_action_spec(ActionType.ChestOpen),
     ]
 )
 
@@ -173,6 +175,7 @@ __all__ = [
     "IntentKind",
     "CandidatePool",
     "RoomKind",
+    "ChestKind",
     "RelicName",
     "RelicTier",
     "CardName",

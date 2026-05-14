@@ -43,6 +43,16 @@ pub fn room_at<'a>(
     Some(&entities[id_room])
 }
 
+pub fn room_at_mut<'a>(
+    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
+    entities: &'a mut [Entity],
+    y: usize,
+    x: usize,
+) -> Option<&'a mut Entity> {
+    let id_room = id_rooms[y][x]?;
+    Some(&mut entities[id_room])
+}
+
 pub fn get_active_room_kind(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,

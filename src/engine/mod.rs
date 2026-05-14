@@ -16,6 +16,7 @@ pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_reward_roll;
 pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_upgrade;
+pub mod process_effect_chest_open;
 pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
@@ -72,7 +73,7 @@ use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target, ZERO_EFFECT};
 use crate::entity::{Entity, EntityKind};
 use crate::game::{GameState, Location};
-use crate::map::{get_active_room_kind, has_edge};
+use crate::map::{has_edge, room_at};
 use crate::types::{Phase, RoomKind};
 use crate::utils::{fill_alive_monster_ids, shuffle};
 
@@ -849,7 +850,7 @@ fn dispatch_by_kind(
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(
             &state.id_rooms,
             state.location,
-            &state.entities,
+            &mut state.entities,
             &mut state.encounter_list_normal,
             &mut state.encounter_list_elite,
             state.encounter_boss,
@@ -922,8 +923,10 @@ fn dispatch_by_kind(
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
             DispatchResult::Continue
         }
-        EffectKind::RelicRewardRoll => {
+        EffectKind::RelicRewardRoll { th_common, th_uncommon } => {
             process_effect_relic_reward_roll::process_effect_relic_reward_roll(
+                th_common,
+                th_uncommon,
                 &state.id_relics,
                 &mut state.id_relic_rewards,
                 &mut state.entities,
@@ -969,6 +972,16 @@ fn dispatch_by_kind(
             let vitals = &mut state.entities[id_target].vitals;
             process_effect_max_health_loss::process_effect_max_health_loss(vitals, amount)
         }
+        EffectKind::ChestOpen => process_effect_chest_open::process_effect_chest_open(
+            &state.id_rooms,
+            state.location,
+            state.id_character,
+            &state.id_relics,
+            &mut state.id_relic_rewards,
+            &mut state.entities,
+            &mut state.rng,
+            &mut state.effect_queue,
+        ),
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
 }
@@ -1015,12 +1028,14 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
     }
     // Standing in a room: rest site or map-pick depending on room kind
     match state.location {
-        Location::Overworld { .. } => {
-            match get_active_room_kind(&state.id_rooms, state.location, &state.entities) {
-                Some(RoomKind::RestSite) => Phase::RestSite,
-                Some(RoomKind::Treasure) => Phase::Chest,
-                Some(RoomKind::EventRoom) => Phase::EventRoom,
-                Some(RoomKind::Shop) => Phase::Shop,
+        Location::Overworld { y, x } => {
+            let room = room_at(&state.id_rooms, &state.entities, y, x)
+                .expect("room missing at location");
+            match room.room_kind {
+                RoomKind::RestSite => Phase::RestSite,
+                RoomKind::Treasure if !room.room_chest_opened => Phase::Chest,
+                RoomKind::EventRoom => Phase::EventRoom,
+                RoomKind::Shop => Phase::Shop,
                 _ => Phase::Map,
             }
         }
