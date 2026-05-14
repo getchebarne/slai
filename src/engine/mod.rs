@@ -72,8 +72,8 @@ use rand::Rng;
 use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
 use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target, ZERO_EFFECT};
 use crate::entity::{Entity, EntityKind};
-use crate::map::{get_active_room_kind, has_edge};
 use crate::game::{GameState, Location};
+use crate::map::{get_active_room_kind, has_edge};
 use crate::types::{Phase, RoomKind};
 use crate::utils::{fill_alive_monster_ids, shuffle};
 
@@ -384,8 +384,8 @@ fn dispatch_by_kind(
             &mut state.rng,
             &mut state.effect_queue,
         ),
-        EffectKind::DrawUpTo { target } => process_effect_draw_up_to::process_effect_draw_up_to(
-            target,
+        EffectKind::DrawUpTo { amount } => process_effect_draw_up_to::process_effect_draw_up_to(
+            amount,
             &state.id_hand,
             &mut state.effect_queue,
         ),
@@ -823,26 +823,26 @@ fn dispatch_by_kind(
             }
         }
         EffectKind::MoveUpdate => {
-            let id_monster = id_target.unwrap();
+            let id_target = id_target.unwrap();
             let ascension_level = state.ascension;
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
             let alive_monsters = &buf_alive[..alive_n];
-            let entity = &mut state.entities[id_monster];
+            let entity = &mut state.entities[id_target];
             process_effect_move_update::process_effect_move_update(
                 entity,
-                id_monster,
+                id_target,
                 alive_monsters,
                 ascension_level,
                 &mut state.rng,
             )
         }
         EffectKind::MoveExecute => {
-            let id_monster = id_target.unwrap();
-            let entity = &state.entities[id_monster];
+            let id_target = id_target.unwrap();
+            let entity = &state.entities[id_target];
             process_effect_move_execute::process_effect_move_execute(
                 entity,
-                id_monster,
+                id_target,
                 state.id_character,
                 &mut state.effect_queue,
             )

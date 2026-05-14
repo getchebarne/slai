@@ -57,11 +57,11 @@ pub fn process_effect_damage_deal(
     DispatchResult::Continue
 }
 
-// Attack-only target-side hooks. Splittable + Asleep wake moved to
-// `process_effect_health_loss` so poison ticks also trigger them; CurlUp and
-// Angry stay here because per Slay-the-Spire they trigger only on attack
-// damage, not on poison
-fn fire_on_damage_taken(target: &mut Entity, id_target: usize, effect_queue: &mut VecDeque<Effect>) {
+fn fire_on_damage_taken(
+    target: &mut Entity,
+    id_target: usize,
+    effect_queue: &mut VecDeque<Effect>,
+) {
     // CurlUp: gain block = stacks once per combat, then remove the modifier
     if modifier_has(&target.modifiers, ModifierKind::CurlUp) {
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::CurlUp);

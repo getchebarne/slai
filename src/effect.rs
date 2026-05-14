@@ -22,7 +22,7 @@ pub enum EffectKind {
     ModifierRemove { kind: ModifierKind },
     EnergyGain { amount: u8 },
     CardDraw { count: u8 },
-    DrawUpTo { target: u8 },
+    DrawUpTo { amount: u8 },
     CardAddToDiscard {
         card_name: CardName,
         count: u8,

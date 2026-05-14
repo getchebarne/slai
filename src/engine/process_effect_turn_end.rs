@@ -1,8 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::effect::{
-    CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target,
-};
+use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
 use crate::engine::{DispatchResult, EffectBuf};
 use crate::entity::{Entity, EntityKind};
 use strum::EnumCount;
@@ -193,9 +191,6 @@ pub fn process_effect_turn_end_character(
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
-        // Move effects resolve dynamically — see process_effect_move_execute.
-        // This lets mid-turn overrides (slime split / Lagavulin wake from
-        // poison) replace the queued attack with the new move
         buf_effects.push(Effect {
             kind: EffectKind::MoveExecute,
             id_source: None,

@@ -24,11 +24,8 @@ pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MON
     n
 }
 
-// Strength + Weak + Vulnerable scaling shared between the live damage pipeline
-// and the FFI intent view. Vigor / DoubleDamage / Intangible are intentionally
-// out of this helper: Vigor/DoubleDamage don't appear on monster intents, and
-// Intangible's clamp must follow DoubleDamage in the live path, so callers
-// apply it inline
+// Strength, Weak, and Vulnerable scaling shared between the live damage pipeline
+// and the FFI intent view
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
