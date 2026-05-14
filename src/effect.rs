@@ -79,21 +79,19 @@ pub enum EffectKind {
     // pick, the same EffectKind runs as `Direct` with the chosen entity,
     // mutating state and pushing follow-up effects
     RoomSelect,
-    CardRewardSelect,
 
     // Relic flow
     RelicRewardRoll,
     RelicRewardSelect,
     RelicRewardClear,
 
-    // Master-deck mutation (events, shop purge, Neow). Resolved against id_deck
-    DeckCardRemove,
-    CardAddSpecific { card_name: CardName, upgraded: bool },
-    CurseAdd,
+    // Master-deck mutation (combat rewards, events, shop, Neow)
+    CardRemoveFromDeck,
+    CardAddToDeck { card_name: CardName, upgraded: bool },
 
     // Out-of-combat HP cap mutation
-    MaxHpAdd { amount: u16 },
-    MaxHpSub { amount: u16 },
+    MaxHealthGain { amount: u16 },
+    MaxHealthLoss { amount: u16 },
 }
 
 // DiscardSource: tags a CardDiscard effect with its origin so the handler can

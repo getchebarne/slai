@@ -25,7 +25,7 @@ const RELIC_POOL_UNCOMMON: &[RelicName] = &[
 
 const RELIC_POOL_RARE: &[RelicName] = &[RelicName::ThreadAndNeedle];
 
-// TwistedFunnel is shop-only in Java; not offered by elites
+// TwistedFunnel is shop-only — not offered by elites
 #[allow(dead_code)]
 const RELIC_POOL_SHOP: &[RelicName] = &[RelicName::TwistedFunnel];
 
@@ -35,7 +35,7 @@ pub fn process_effect_relic_reward_roll(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> DispatchResult {
-    // Elite tier roll: 50% COMMON, 33% UNCOMMON, 17% RARE
+    // Elite tier roll: 50% Common, 33% Uncommon, 17% Rare
     let roll = rng.random_range(0..100);
     let pool: &[RelicName] = if roll < 50 {
         RELIC_POOL_COMMON

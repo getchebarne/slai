@@ -42,11 +42,11 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
-pub fn remove_card_from_hand(id_target: usize, id_hand: &mut Vec<usize>) {
-    let hand_idx = id_hand
+pub fn remove_card_from_collection(id_target: usize, id_collection: &mut Vec<usize>) {
+    let pos = id_collection
         .iter()
         .position(|&elem| elem == id_target)
-        .expect("Can't discard a card that's not in the hand");
+        .expect("Can't remove a card that's not in the collection");
 
-    id_hand.remove(hand_idx);
+    id_collection.remove(pos);
 }

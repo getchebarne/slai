@@ -3,7 +3,7 @@ use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::types::CardName;
 
-pub fn process_effect_card_add_specific(
+pub fn process_effect_card_add_to_deck(
     card_name: CardName,
     upgraded: bool,
     entities: &mut Vec<Entity>,

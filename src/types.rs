@@ -97,6 +97,7 @@ pub enum CardName {
     Unload,
     WellLaidPlans,
     WraithForm,
+
     // Curses
     AscendersBane,
     Regret,

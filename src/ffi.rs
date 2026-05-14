@@ -10,6 +10,7 @@ use crate::entity::{
 };
 use crate::game::{GameState, Location};
 use crate::map::edge_indices;
+use crate::relics::iter_owned_relics;
 use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks, stacks_max_for};
 use crate::types::{
     CardColor, CardKind, CardName, CardRarity, MonsterEncounter, MonsterName, Phase, RelicName,
@@ -1315,7 +1316,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
         rewards_card: state.id_card_rewards.iter().copied().map(card).collect(),
-        relics: crate::relics::iter_owned_relics(&state.id_relics)
+        relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
         rewards_relic: state.id_relic_rewards.iter().copied().map(relic).collect(),

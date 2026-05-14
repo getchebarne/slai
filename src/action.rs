@@ -291,14 +291,18 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
 
 fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
     let id_card = lookup_idx(&state.id_card_rewards, idx_reward)?;
+    let card = &state.entities[id_card];
+    let card_name = card.card_name;
+    let upgraded = card.card_upgraded;
 
-    // Direct CardRewardSelect: handler adds the target card to the deck and
-    // enqueues CardRewardClear, which in turn enqueues RoomSelect
-    Ok(vec![Effect::direct(
-        EffectKind::CardRewardSelect,
-        None,
-        Some(id_card),
-    )])
+    Ok(vec![
+        Effect::direct(
+            EffectKind::CardAddToDeck { card_name, upgraded },
+            None,
+            None,
+        ),
+        Effect::direct(EffectKind::CardRewardClear, None, None),
+    ])
 }
 
 fn handle_card_reward_skip() -> Vec<Effect> {

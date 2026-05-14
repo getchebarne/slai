@@ -613,15 +613,10 @@ pub const ROLLABLE_CURSES: &[CardName] = &[
     CardName::Normality,
 ];
 
-pub fn random_curse(rng: &mut impl rand::Rng) -> CardName {
+pub fn get_random_curse(rng: &mut impl rand::Rng) -> CardName {
     ROLLABLE_CURSES[rng.random_range(0..ROLLABLE_CURSES.len())]
 }
 
-pub fn card_is_purgeable(name: CardName) -> bool {
-    !matches!(name, CardName::AscendersBane)
-}
-
-pub fn card_can_upgrade(card: &crate::entity::Entity) -> bool {
-    !card.card_upgraded
-        && !matches!(card.card_kind, CardKind::Status | CardKind::Curse)
+pub fn is_card_upgradeable(card: &Entity) -> bool {
+    !card.card_upgraded && !matches!(card.card_kind, CardKind::Status | CardKind::Curse)
 }

@@ -20,7 +20,7 @@ const fn make_curse(name: CardName) -> Entity {
         PlayRestriction::Never,
     )
 }
-
+// TODO: implement
 pub static ASCENDERS_BANE: Entity = make_curse(CardName::AscendersBane);
 pub static REGRET: Entity = make_curse(CardName::Regret);
 pub static PAIN: Entity = make_curse(CardName::Pain);
