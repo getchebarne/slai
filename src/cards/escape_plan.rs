@@ -1,6 +1,16 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{CardCostKind, Entity, PlayRestriction, make_entity_card};
-use crate::types::{CardColor, CardKind, CardName, CardRarity};
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
+use crate::entity::CardCostKind;
+use crate::entity::Entity;
+use crate::entity::PlayRestriction;
+use crate::entity::make_entity_card;
+use crate::types::CardColor;
+use crate::types::CardKind;
+use crate::types::CardName;
+use crate::types::CardRarity;
 
 pub static ESCAPE_PLAN: Entity = make_entity_card(
     CardName::EscapePlan,

@@ -1,4 +1,5 @@
-use crate::consts::{MAX_SIZE_HAND, NIGHTMARE_COPIES};
+use crate::consts::MAX_SIZE_HAND;
+use crate::consts::NIGHTMARE_COPIES;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 

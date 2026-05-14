@@ -1,8 +1,12 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
-use crate::modifier::{ModifierKind, Modifiers, modifier_has};
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::modifier::modifier_has;
 
 // HeelHook bonus: if the targeted enemy has Weak, gain 1 energy and draw 1
 // card. Modifier-check happens at handler time; the target may have died

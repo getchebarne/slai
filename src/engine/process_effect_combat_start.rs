@@ -3,7 +3,9 @@ use std::collections::VecDeque;
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::relics::iter_owned_relics;

@@ -1,7 +1,18 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, Intent, Move, make_entity_monster};
-use crate::modifier::{ModifierKind, ZERO_MODIFIERS};
-use crate::types::{CardName, MonsterKind, MonsterName, Vitals};
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::Intent;
+use crate::entity::Move;
+use crate::entity::make_entity_monster;
+use crate::modifier::ModifierKind;
+use crate::modifier::ZERO_MODIFIERS;
+use crate::types::CardName;
+use crate::types::MonsterKind;
+use crate::types::MonsterName;
+use crate::types::Vitals;
 use rand::Rng;
 
 static MOVE_FLAME_TACKLE_8: Move = Move {

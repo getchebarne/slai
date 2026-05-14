@@ -1,28 +1,61 @@
 use crate::modifier::ModifierKind;
-use crate::types::{CardName, MonsterName};
+use crate::types::CardName;
+use crate::types::MonsterName;
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
     Noop,
-    DamagePhysical { amount: u16 },
-    DamagePhysicalIfPoisoned { amount: u16 },
+    DamagePhysical {
+        amount: u16,
+    },
+    DamagePhysicalIfPoisoned {
+        amount: u16,
+    },
     DistractionAdd,
-    EscapePlanCheck { block: u16 },
-    GlassKnifeDecay { delta: i16 },
-    FinisherDamage { damage: u16 },
-    FlechettesDamage { damage: u16 },
+    EscapePlanCheck {
+        block: u16,
+    },
+    GlassKnifeDecay {
+        delta: i16,
+    },
+    FinisherDamage {
+        damage: u16,
+    },
+    FlechettesDamage {
+        damage: u16,
+    },
     HeelHookProc,
-    SneakyStrikeProc { energy: u8 },
-    StormOfSteelProc { upgraded: bool },
+    SneakyStrikeProc {
+        energy: u8,
+    },
+    StormOfSteelProc {
+        upgraded: bool,
+    },
     UnloadDiscard,
-    BlockGain { amount: u16 },
-    ModifierGain { kind: ModifierKind, stacks: i16 },
-    ModifierMultiply { kind: ModifierKind, factor: u8 },
-    ModifierRemove { kind: ModifierKind },
-    EnergyGain { amount: u8 },
-    CardDraw { count: u8 },
-    DrawUpTo { amount: u8 },
+    BlockGain {
+        amount: u16,
+    },
+    ModifierGain {
+        kind: ModifierKind,
+        stacks: i16,
+    },
+    ModifierMultiply {
+        kind: ModifierKind,
+        factor: u8,
+    },
+    ModifierRemove {
+        kind: ModifierKind,
+    },
+    EnergyGain {
+        amount: u8,
+    },
+    CardDraw {
+        count: u8,
+    },
+    DrawUpTo {
+        amount: u8,
+    },
     CardAddToDiscard {
         card_name: CardName,
         count: u8,
@@ -33,13 +66,17 @@ pub enum EffectKind {
         count: u8,
         upgraded: bool,
     },
-    CardDiscard { source: DiscardSource },
+    CardDiscard {
+        source: DiscardSource,
+    },
     CardMoveToDiscard,
     CardNightmarePick,
     CardNightmareSpawn,
     CardRetain,
     CardSetupPick,
-    SetCostOverride { amount: u8 },
+    SetCostOverride {
+        amount: u8,
+    },
     CalculatedGamble,
 
     // Runtime only (for now)
@@ -51,11 +88,21 @@ pub enum EffectKind {
     CardRewardClear,
     TargetSet,
     TargetClear,
-    DamageDeal { amount: u16 },
-    HealthGain { amount: u16 },
-    HealthLoss { amount: u16 },
-    BlockSet { amount: u16 },
-    EnergyLoss { amount: u8 },
+    DamageDeal {
+        amount: u16,
+    },
+    HealthGain {
+        amount: u16,
+    },
+    HealthLoss {
+        amount: u16,
+    },
+    BlockSet {
+        amount: u16,
+    },
+    EnergyLoss {
+        amount: u8,
+    },
     ModifierTick,
     PoisonTick,
     ModifierSetNotNew,
@@ -68,11 +115,19 @@ pub enum EffectKind {
     MoveExecute,
     RoomEnter,
     RestSiteExit,
-    MonsterSpawn { name: MonsterName },
+    MonsterSpawn {
+        name: MonsterName,
+    },
     EscapeMonster,
-    GoldSteal { amount: u8 },
-    GoldGain { amount: u16 },
-    HexaghostBurnIncrease { count: u8 },
+    GoldSteal {
+        amount: u8,
+    },
+    GoldGain {
+        amount: u16,
+    },
+    HexaghostBurnIncrease {
+        count: u8,
+    },
     HexaghostDivider,
 
     // Select: halts the queue asking the player to pick a target. After the
@@ -81,17 +136,27 @@ pub enum EffectKind {
     RoomSelect,
 
     // Relic flow
-    RelicRewardRoll { th_common: u8, th_uncommon: u8 },
+    RelicRewardRoll {
+        th_common: u8,
+        th_uncommon: u8,
+    },
     RelicRewardSelect,
     RelicRewardClear,
 
     // Master-deck mutation (combat rewards, events, shop, Neow)
     CardRemoveFromDeck,
-    CardAddToDeck { card_name: CardName, upgraded: bool },
+    CardAddToDeck {
+        card_name: CardName,
+        upgraded: bool,
+    },
 
     // Out-of-combat HP cap mutation
-    MaxHealthGain { amount: u16 },
-    MaxHealthLoss { amount: u16 },
+    MaxHealthGain {
+        amount: u16,
+    },
+    MaxHealthLoss {
+        amount: u16,
+    },
 
     ChestOpen,
 }

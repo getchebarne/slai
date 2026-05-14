@@ -2,16 +2,25 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-use crate::consts::{
-    ELITE_TH_COMMON, ELITE_TH_UNCOMMON, GOLD_BOSS_MAX, GOLD_BOSS_MIN, GOLD_ELITE_MAX,
-    GOLD_ELITE_MIN, GOLD_MONSTER_MAX, GOLD_MONSTER_MIN, MAP_HEIGHT, MAP_WIDTH,
-};
-use crate::effect::{Effect, EffectKind, Target};
+use crate::consts::ELITE_TH_COMMON;
+use crate::consts::ELITE_TH_UNCOMMON;
+use crate::consts::GOLD_BOSS_MAX;
+use crate::consts::GOLD_BOSS_MIN;
+use crate::consts::GOLD_ELITE_MAX;
+use crate::consts::GOLD_ELITE_MIN;
+use crate::consts::GOLD_MONSTER_MAX;
+use crate::consts::GOLD_MONSTER_MIN;
+use crate::consts::MAP_HEIGHT;
+use crate::consts::MAP_WIDTH;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
-use crate::entity::{Entity, EntityKind};
+use crate::entity::Entity;
+use crate::entity::EntityKind;
+use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
-use crate::game::Location;
 use crate::types::RoomKind;
 
 pub fn process_effect_combat_end(
@@ -66,11 +75,23 @@ pub fn process_effect_combat_end(
             // Boss defeated — drop any pending effects. derive_phase
             // returns GameOver from `location == BossRoom && monster_count == 0`
             effect_queue.clear();
-            push_gold_gain(rng, GOLD_BOSS_MIN, GOLD_BOSS_MAX, id_character, effect_queue);
+            push_gold_gain(
+                rng,
+                GOLD_BOSS_MIN,
+                GOLD_BOSS_MAX,
+                id_character,
+                effect_queue,
+            );
         }
         RoomKind::CombatMonster => {
             if !escaped_this_combat {
-                push_gold_gain(rng, GOLD_MONSTER_MIN, GOLD_MONSTER_MAX, id_character, effect_queue);
+                push_gold_gain(
+                    rng,
+                    GOLD_MONSTER_MIN,
+                    GOLD_MONSTER_MAX,
+                    id_character,
+                    effect_queue,
+                );
             }
             effect_queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
@@ -79,7 +100,13 @@ pub fn process_effect_combat_end(
             });
         }
         RoomKind::CombatElite => {
-            push_gold_gain(rng, GOLD_ELITE_MIN, GOLD_ELITE_MAX, id_character, effect_queue);
+            push_gold_gain(
+                rng,
+                GOLD_ELITE_MIN,
+                GOLD_ELITE_MAX,
+                id_character,
+                effect_queue,
+            );
             effect_queue.push_back(Effect {
                 kind: EffectKind::CardRewardRoll,
                 id_source: None,

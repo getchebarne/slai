@@ -1,6 +1,10 @@
-use crate::consts::{FACTOR_FRAIL, MAX_BLOCK};
+use crate::consts::FACTOR_FRAIL;
+use crate::consts::MAX_BLOCK;
 use crate::engine::DispatchResult;
-use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_stacks;
 use crate::types::Vitals;
 
 pub fn process_effect_block_gain(

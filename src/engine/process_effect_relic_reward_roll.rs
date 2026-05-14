@@ -15,6 +15,14 @@ pub fn process_effect_relic_reward_roll(
     rng: &mut impl Rng,
 ) -> DispatchResult {
     let roll = rng.random_range(0..100) as u8;
-    add_relic_reward_for_roll(roll, th_common, th_uncommon, id_relics, id_relic_rewards, entities, rng);
+    add_relic_reward_for_roll(
+        roll,
+        th_common,
+        th_uncommon,
+        id_relics,
+        id_relic_rewards,
+        entities,
+        rng,
+    );
     DispatchResult::Continue
 }

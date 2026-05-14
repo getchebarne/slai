@@ -1,6 +1,8 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
 
 // SneakyStrike bonus: gain `energy` energy if at least one card has been

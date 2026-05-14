@@ -1,9 +1,14 @@
 use rand::Rng;
 
-use crate::cards::{REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON, get_card};
+use crate::cards::REWARD_POOL_COMMON;
+use crate::cards::REWARD_POOL_RARE;
+use crate::cards::REWARD_POOL_UNCOMMON;
+use crate::cards::get_card;
 use crate::engine::DispatchResult;
-use crate::entity::{Entity, add_card_to_hand_or_discard};
-use crate::types::{CardKind, CardName};
+use crate::entity::Entity;
+use crate::entity::add_card_to_hand_or_discard;
+use crate::types::CardKind;
+use crate::types::CardName;
 
 // Distraction: spawn a random Silent Skill (excluding Distraction itself) as
 // a free-to-play-once card in hand

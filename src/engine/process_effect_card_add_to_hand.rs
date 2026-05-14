@@ -1,6 +1,7 @@
 use crate::cards::get_card;
 use crate::engine::DispatchResult;
-use crate::entity::{Entity, add_card_to_hand_or_discard};
+use crate::entity::Entity;
+use crate::entity::add_card_to_hand_or_discard;
 use crate::types::CardName;
 
 pub fn process_effect_card_add_to_hand(

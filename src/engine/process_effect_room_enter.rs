@@ -2,15 +2,21 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-use crate::consts::{
-    CHEST_SMALL_PCT, CHEST_SMALL_PLUS_MEDIUM_PCT, MAP_HEIGHT, MAP_WIDTH,
-};
-use crate::effect::{Effect, EffectKind};
+use crate::consts::CHEST_SMALL_PCT;
+use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
+use crate::consts::MAP_HEIGHT;
+use crate::consts::MAP_WIDTH;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::game::Location;
-use crate::map::{get_active_room_kind, room_at_mut};
-use crate::types::{ChestKind, MonsterEncounter, MonsterName, RoomKind};
+use crate::map::get_active_room_kind;
+use crate::map::room_at_mut;
+use crate::types::ChestKind;
+use crate::types::MonsterEncounter;
+use crate::types::MonsterName;
+use crate::types::RoomKind;
 use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(
@@ -116,7 +122,11 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
 
 #[inline]
 fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
-    effects.push(Effect::direct(EffectKind::MonsterSpawn { name }, None, None));
+    effects.push(Effect::direct(
+        EffectKind::MonsterSpawn { name },
+        None,
+        None,
+    ));
 }
 
 fn spawn_encounter_monsters(

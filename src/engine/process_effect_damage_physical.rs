@@ -1,9 +1,14 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::{DispatchResult, get_id_actor};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
+use crate::engine::DispatchResult;
+use crate::engine::get_id_actor;
 use crate::entity::Entity;
-use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
+use crate::modifier::ModifierKind;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_stacks;
 use crate::utils::scale_attack_damage;
 
 // Unified physical-damage handler. `if_poisoned` gates the hit: when true

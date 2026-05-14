@@ -1,5 +1,5 @@
-pub mod encounters;
 pub mod cultist;
+pub mod encounters;
 pub mod fungi_beast;
 pub mod gremlin_fat;
 pub mod gremlin_nob;
@@ -25,7 +25,8 @@ pub mod slime_spike_medium;
 pub mod slime_spike_small;
 pub mod the_guardian;
 
-use crate::entity::{Entity, get_move_history_slice};
+use crate::entity::Entity;
+use crate::entity::get_move_history_slice;
 use crate::types::MonsterName;
 use rand::Rng;
 

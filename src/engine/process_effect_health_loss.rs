@@ -1,10 +1,19 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
-use crate::modifier::{ModifierKind, modifier_def, modifier_has, modifier_remove, modifier_stacks};
-use crate::monsters::{lagavulin, slime_acid_large, slime_boss, slime_spike_large};
+use crate::modifier::ModifierKind;
+use crate::modifier::modifier_def;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_remove;
+use crate::modifier::modifier_stacks;
+use crate::monsters::lagavulin;
+use crate::monsters::slime_acid_large;
+use crate::monsters::slime_boss;
+use crate::monsters::slime_spike_large;
 use crate::types::MonsterName;
 
 pub fn process_effect_health_loss(

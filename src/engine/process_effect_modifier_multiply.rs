@@ -1,5 +1,8 @@
 use crate::engine::DispatchResult;
-use crate::modifier::{ModifierKind, Modifiers, modifier_def, modifier_has};
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::modifier::modifier_def;
+use crate::modifier::modifier_has;
 
 // Multiply target's stacks of `kind` by `factor`. No-op if target doesn't
 // have the modifier

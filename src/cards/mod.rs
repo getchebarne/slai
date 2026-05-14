@@ -79,7 +79,9 @@ mod well_laid_plans;
 mod wraith_form;
 
 use crate::entity::Entity;
-use crate::types::{CardKind, CardName, CardRarity};
+use crate::types::CardKind;
+use crate::types::CardName;
+use crate::types::CardRarity;
 use strum::EnumCount;
 
 pub fn get_card(name: CardName, upgraded: bool) -> Entity {

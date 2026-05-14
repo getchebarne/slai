@@ -1,9 +1,12 @@
 use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
 use crate::engine::DispatchResult;
-use crate::modifier::{
-    ModifierKind, Modifiers, modifier_apply, modifier_def, modifier_has, modifier_remove,
-    modifier_stacks,
-};
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::modifier::modifier_apply;
+use crate::modifier::modifier_def;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_remove;
+use crate::modifier::modifier_stacks;
 
 pub fn process_effect_modifier_gain(
     modifiers: &mut Modifiers,

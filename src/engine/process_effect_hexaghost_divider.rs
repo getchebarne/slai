@@ -1,7 +1,9 @@
 use std::collections::VecDeque;
 
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 

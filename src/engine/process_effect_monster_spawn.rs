@@ -3,7 +3,9 @@ use std::collections::VecDeque;
 use rand::Rng;
 
 use crate::consts::MAX_MONSTERS;
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::monsters::spawn_monster;

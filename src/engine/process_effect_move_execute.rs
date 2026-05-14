@@ -1,9 +1,14 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
-use crate::engine::{DispatchResult, EffectBuf};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
+use crate::engine::DispatchResult;
+use crate::engine::EffectBuf;
 use crate::entity::Entity;
-use crate::modifier::{ModifierKind, modifier_has, modifier_stacks};
+use crate::modifier::ModifierKind;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_stacks;
 
 // Dynamic move resolution: read `move_current` at dispatch time and push the
 // move's effects onto the queue. Used so that mid-turn move overrides (slime

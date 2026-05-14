@@ -1,7 +1,13 @@
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{Entity, make_entity_relic};
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_relic;
 use crate::modifier::ModifierKind;
-use crate::types::{RelicName, RelicTier};
+use crate::types::RelicName;
+use crate::types::RelicTier;
 
 pub static TWISTED_FUNNEL: Entity = make_entity_relic(
     RelicName::TwistedFunnel,

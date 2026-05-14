@@ -69,13 +69,25 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-use crate::consts::{MAP_HEIGHT, MAP_WIDTH, MAX_MONSTERS};
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target, ZERO_EFFECT};
-use crate::entity::{Entity, EntityKind};
-use crate::game::{GameState, Location};
-use crate::map::{has_edge, room_at};
-use crate::types::{Phase, RoomKind};
-use crate::utils::{fill_alive_monster_ids, shuffle};
+use crate::consts::MAP_HEIGHT;
+use crate::consts::MAP_WIDTH;
+use crate::consts::MAX_MONSTERS;
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
+use crate::effect::ZERO_EFFECT;
+use crate::entity::Entity;
+use crate::entity::EntityKind;
+use crate::game::GameState;
+use crate::game::Location;
+use crate::map::has_edge;
+use crate::map::room_at;
+use crate::types::Phase;
+use crate::types::RoomKind;
+use crate::utils::fill_alive_monster_ids;
+use crate::utils::shuffle;
 
 pub enum DispatchResult {
     Continue,
@@ -923,16 +935,17 @@ fn dispatch_by_kind(
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
             DispatchResult::Continue
         }
-        EffectKind::RelicRewardRoll { th_common, th_uncommon } => {
-            process_effect_relic_reward_roll::process_effect_relic_reward_roll(
-                th_common,
-                th_uncommon,
-                &state.id_relics,
-                &mut state.id_relic_rewards,
-                &mut state.entities,
-                &mut state.rng,
-            )
-        }
+        EffectKind::RelicRewardRoll {
+            th_common,
+            th_uncommon,
+        } => process_effect_relic_reward_roll::process_effect_relic_reward_roll(
+            th_common,
+            th_uncommon,
+            &state.id_relics,
+            &mut state.id_relic_rewards,
+            &mut state.entities,
+            &mut state.rng,
+        ),
         EffectKind::RelicRewardSelect => {
             process_effect_relic_reward_select::process_effect_relic_reward_select(
                 id_target.unwrap(),
@@ -954,14 +967,15 @@ fn dispatch_by_kind(
                 &mut state.id_deck,
             )
         }
-        EffectKind::CardAddToDeck { card_name, upgraded } => {
-            process_effect_card_add_to_deck::process_effect_card_add_to_deck(
-                card_name,
-                upgraded,
-                &mut state.entities,
-                &mut state.id_deck,
-            )
-        }
+        EffectKind::CardAddToDeck {
+            card_name,
+            upgraded,
+        } => process_effect_card_add_to_deck::process_effect_card_add_to_deck(
+            card_name,
+            upgraded,
+            &mut state.entities,
+            &mut state.id_deck,
+        ),
         EffectKind::MaxHealthGain { amount } => {
             let id_target = id_target.unwrap();
             let vitals = &mut state.entities[id_target].vitals;
@@ -1029,8 +1043,8 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
     // Standing in a room: rest site or map-pick depending on room kind
     match state.location {
         Location::Overworld { y, x } => {
-            let room = room_at(&state.id_rooms, &state.entities, y, x)
-                .expect("room missing at location");
+            let room =
+                room_at(&state.id_rooms, &state.entities, y, x).expect("room missing at location");
             match room.room_kind {
                 RoomKind::RestSite => Phase::RestSite,
                 RoomKind::Treasure if !room.room_chest_opened => Phase::Chest,

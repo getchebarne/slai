@@ -1,12 +1,23 @@
 use std::collections::VecDeque;
 
-use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
-use crate::engine::{DispatchResult, EffectBuf};
-use crate::entity::{Entity, EntityKind};
+use crate::effect::CandidatePool;
+use crate::effect::DiscardSource;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
+use crate::engine::DispatchResult;
+use crate::engine::EffectBuf;
+use crate::entity::Entity;
+use crate::entity::EntityKind;
 use strum::EnumCount;
 
-use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks};
-use crate::types::{CardName, RelicName};
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_stacks;
+use crate::types::CardName;
+use crate::types::RelicName;
 
 pub fn process_effect_turn_end_monster(
     modifiers: &Modifiers,

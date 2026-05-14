@@ -1,8 +1,10 @@
 use rand::Rng;
 
 use crate::engine::DispatchResult;
-use crate::entity::{Entity, push_move_history};
-use crate::monsters::{get_next_move, is_cycle_boundary};
+use crate::entity::Entity;
+use crate::entity::push_move_history;
+use crate::monsters::get_next_move;
+use crate::monsters::is_cycle_boundary;
 
 pub fn process_effect_move_update(
     entity: &mut Entity,

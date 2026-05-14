@@ -1,8 +1,14 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
-use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_remove, modifier_stacks};
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_remove;
+use crate::modifier::modifier_stacks;
 
 // Poison tick: deal HP loss equal to current Poison stacks, then decrement
 // Poison by 1 (remove if it would hit 0). Fires at the start of the target's turn start

@@ -2,21 +2,42 @@
 use pyo3::prelude::*;
 
 use crate::action::Action;
-use crate::consts::{HEXAGHOST_DIVIDER_HITS, MAP_HEIGHT, MAX_MONSTERS};
-use crate::monsters::hexaghost;
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
-use crate::entity::{
-    CardCostKind, Entity, Intent, card_effective_cost, is_play_restriction_satisfied,
-};
-use crate::game::{GameState, Location};
+use crate::consts::HEXAGHOST_DIVIDER_HITS;
+use crate::consts::MAP_HEIGHT;
+use crate::consts::MAX_MONSTERS;
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
+use crate::entity::CardCostKind;
+use crate::entity::Entity;
+use crate::entity::Intent;
+use crate::entity::card_effective_cost;
+use crate::entity::is_play_restriction_satisfied;
+use crate::game::GameState;
+use crate::game::Location;
 use crate::map::edge_indices;
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_stacks;
+use crate::modifier::stacks_max_for;
+use crate::monsters::hexaghost;
 use crate::relics::iter_owned_relics;
-use crate::modifier::{ModifierKind, Modifiers, modifier_has, modifier_stacks, stacks_max_for};
-use crate::types::{
-    CardColor, CardKind, CardName, CardRarity, ChestKind, MonsterEncounter, MonsterName, Phase,
-    RelicName, RelicTier, RoomKind,
-};
-use crate::utils::{fill_alive_monster_ids, scale_attack_damage};
+use crate::types::CardColor;
+use crate::types::CardKind;
+use crate::types::CardName;
+use crate::types::CardRarity;
+use crate::types::ChestKind;
+use crate::types::MonsterEncounter;
+use crate::types::MonsterName;
+use crate::types::Phase;
+use crate::types::RelicName;
+use crate::types::RelicTier;
+use crate::types::RoomKind;
+use crate::utils::fill_alive_monster_ids;
+use crate::utils::scale_attack_damage;
 
 // Enum mirrors
 
@@ -957,7 +978,9 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::FinisherDamage { damage } => PyEffect::FinisherDamage { damage, target },
         EffectKind::FlechettesDamage { damage } => PyEffect::FlechettesDamage { damage, target },
         EffectKind::UnloadDiscard => PyEffect::UnloadDiscard { target },
-        EffectKind::StormOfSteelProc { upgraded } => PyEffect::StormOfSteelProc { upgraded, target },
+        EffectKind::StormOfSteelProc { upgraded } => {
+            PyEffect::StormOfSteelProc { upgraded, target }
+        }
         EffectKind::SneakyStrikeProc { energy } => PyEffect::SneakyStrikeProc { energy, target },
         EffectKind::BlockGain { amount } => PyEffect::BlockGain { amount, target },
         EffectKind::ModifierGain { kind, stacks } => PyEffect::ModifierGain {
@@ -1391,9 +1414,7 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     Intent::Attack { damage, instances }
                     | Intent::AttackBlock { damage, instances }
                     | Intent::AttackBuff { damage, instances }
-                    | Intent::AttackDebuff { damage, instances } => {
-                        (Some(damage), Some(instances))
-                    }
+                    | Intent::AttackDebuff { damage, instances } => (Some(damage), Some(instances)),
                     Intent::Block
                     | Intent::BlockBuff
                     | Intent::Buff

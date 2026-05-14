@@ -1,8 +1,11 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::consts::{NUM_ENCOUNTERS_ELITE, NUM_ENCOUNTERS_HARD, NUM_ENCOUNTERS_WEAK};
-use crate::types::{EncounterPool, MonsterEncounter};
+use crate::consts::NUM_ENCOUNTERS_ELITE;
+use crate::consts::NUM_ENCOUNTERS_HARD;
+use crate::consts::NUM_ENCOUNTERS_WEAK;
+use crate::types::EncounterPool;
+use crate::types::MonsterEncounter;
 
 pub const ALL_ENCOUNTERS: &[MonsterEncounter] = &[
     MonsterEncounter::BlueSlaver,
@@ -35,12 +38,14 @@ const _: () = {
     let mut idx = 0;
     while idx < ALL_ENCOUNTERS.len() {
         let jdx = ALL_ENCOUNTERS[idx] as usize;
-        assert!(!seen[jdx], "ALL_ENCOUNTERS contains a duplicate MonsterEncounter");
+        assert!(
+            !seen[jdx],
+            "ALL_ENCOUNTERS contains a duplicate MonsterEncounter"
+        );
         seen[jdx] = true;
         idx += 1;
     }
 };
-
 
 pub const fn get_encounter_pool(e: MonsterEncounter) -> EncounterPool {
     match e {
@@ -81,7 +86,7 @@ pub const fn get_encounter_weight(e: MonsterEncounter) -> f32 {
         MonsterEncounter::JawWorm => 2.0,
         MonsterEncounter::TwoLouse => 2.0,
         MonsterEncounter::SmallSlimes => 2.0,
-        
+
         // Hard
         MonsterEncounter::BlueSlaver => 2.0,
         MonsterEncounter::GremlinGang => 1.0,
@@ -93,19 +98,18 @@ pub const fn get_encounter_weight(e: MonsterEncounter) -> f32 {
         MonsterEncounter::RedSlaver => 1.0,
         MonsterEncounter::ThreeLouse => 2.0,
         MonsterEncounter::TwoFungiBeasts => 2.0,
-        
+
         // Elite
         MonsterEncounter::GremlinNob => 1.0,
         MonsterEncounter::Lagavulin => 1.0,
         MonsterEncounter::ThreeSentries => 1.0,
-        
+
         // Boss
         MonsterEncounter::TheGuardian => 1.0,
         MonsterEncounter::Hexaghost => 1.0,
         MonsterEncounter::SlimeBoss => 1.0,
     }
 }
-
 
 const fn pool_eq(a: EncounterPool, b: EncounterPool) -> bool {
     matches!(
@@ -146,7 +150,6 @@ const fn build_pool<const N: usize>(pool: EncounterPool) -> [MonsterEncounter; N
     buf
 }
 
-
 // Number of encounters per pool
 const NUM_EASY: usize = count_pool(EncounterPool::Act1Easy);
 const NUM_HARD: usize = count_pool(EncounterPool::Act1Hard);
@@ -159,16 +162,15 @@ const ENC_POOL_HARD: [MonsterEncounter; NUM_HARD] = build_pool(EncounterPool::Ac
 const ENC_POOL_ELITE: [MonsterEncounter; NUM_ELITE] = build_pool(EncounterPool::Act1Elite);
 const ENC_POOL_BOSS: [MonsterEncounter; NUM_BOSS] = build_pool(EncounterPool::Act1Boss);
 
-
 // Sort ascending by weight (stable for ties), normalize to sum 1.0
 fn normalize_weights(pool: &[MonsterEncounter]) -> Vec<(MonsterEncounter, f32)> {
     // Pair each encounter with its raw weight
     let mut encounter_table: Vec<(MonsterEncounter, f32)> =
         pool.iter().map(|&e| (e, get_encounter_weight(e))).collect();
-    
+
     // Stable ascending sort
     encounter_table.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-    
+
     // Divide by total so cumulative sum across the table reaches 1.0
     let total: f32 = encounter_table.iter().map(|(_, w)| *w).sum();
     for (_, w) in &mut encounter_table {
@@ -188,7 +190,6 @@ fn roll_encounter(encounter_table: &[(MonsterEncounter, f32)], value: f32) -> Mo
     // Float rounding can leave the final cumulative just below 1.0; return last
     encounter_table.last().unwrap().0
 }
-
 
 fn populate_encounter_list(
     encounter_list: &mut Vec<MonsterEncounter>,
@@ -215,7 +216,10 @@ fn populate_encounter_list(
         }
 
         // If candidate is equal to second-to-last roll, skip
-        if !elites && encounter_list.len() >= 2 && encounter_candidate == encounter_list[encounter_list.len() - 2] {
+        if !elites
+            && encounter_list.len() >= 2
+            && encounter_candidate == encounter_list[encounter_list.len() - 2]
+        {
             continue;
         }
 
@@ -251,7 +255,6 @@ fn get_act1_exclusions(encounter_last_weak: MonsterEncounter) -> &'static [Monst
     }
 }
 
-
 pub fn generate_act1_monsters(
     encounter_list: &mut Vec<MonsterEncounter>,
     elite_list: &mut Vec<MonsterEncounter>,
@@ -263,19 +266,42 @@ pub fn generate_act1_monsters(
     let encounter_table_elite = normalize_weights(&ENC_POOL_ELITE);
 
     // Sample easy encounters
-    populate_encounter_list(encounter_list, &encounter_table_easy, NUM_ENCOUNTERS_WEAK, false, rng);
+    populate_encounter_list(
+        encounter_list,
+        &encounter_table_easy,
+        NUM_ENCOUNTERS_WEAK,
+        false,
+        rng,
+    );
 
     // Get exclusions based on last easy encounter
     let encounter_exclusions = get_act1_exclusions(*encounter_list.last().unwrap());
 
     // Populate the first hard encounter
-    populate_first_hard_encounter(encounter_list, &encounter_table_hard, encounter_exclusions, rng);
+    populate_first_hard_encounter(
+        encounter_list,
+        &encounter_table_hard,
+        encounter_exclusions,
+        rng,
+    );
 
     // Populate rest of hard encounters
-    populate_encounter_list(encounter_list, &encounter_table_hard, NUM_ENCOUNTERS_HARD, false, rng);
+    populate_encounter_list(
+        encounter_list,
+        &encounter_table_hard,
+        NUM_ENCOUNTERS_HARD,
+        false,
+        rng,
+    );
 
     // Populate elites
-    populate_encounter_list(elite_list, &encounter_table_elite, NUM_ENCOUNTERS_ELITE, true, rng);
+    populate_encounter_list(
+        elite_list,
+        &encounter_table_elite,
+        NUM_ENCOUNTERS_ELITE,
+        true,
+        rng,
+    );
 }
 
 pub fn pick_act1_boss(rng: &mut impl Rng) -> MonsterEncounter {

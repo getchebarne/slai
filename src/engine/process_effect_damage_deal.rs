@@ -1,9 +1,15 @@
 use std::collections::VecDeque;
 
-use crate::effect::{Effect, EffectKind, Target};
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
-use crate::entity::{Entity, EntityKind};
-use crate::modifier::{ModifierKind, modifier_has, modifier_remove, modifier_stacks};
+use crate::entity::Entity;
+use crate::entity::EntityKind;
+use crate::modifier::ModifierKind;
+use crate::modifier::modifier_has;
+use crate::modifier::modifier_remove;
+use crate::modifier::modifier_stacks;
 
 pub fn process_effect_damage_deal(
     entities: &mut [Entity],

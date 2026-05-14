@@ -18,11 +18,23 @@ mod relics;
 mod types;
 mod utils;
 
-use ffi::{
-    PyAction, PyActionType, PyCard, PyCharacter, PyEnergy, PyGameState, PyIntent, PyMap, PyModifier, PyMonster, PyPhase,
-    PyRelic, PyRoom, snapshot_state, to_internal_action,
-};
-use game::{create_game_state, step};
+use ffi::PyAction;
+use ffi::PyActionType;
+use ffi::PyCard;
+use ffi::PyCharacter;
+use ffi::PyEnergy;
+use ffi::PyGameState;
+use ffi::PyIntent;
+use ffi::PyMap;
+use ffi::PyModifier;
+use ffi::PyMonster;
+use ffi::PyPhase;
+use ffi::PyRelic;
+use ffi::PyRoom;
+use ffi::snapshot_state;
+use ffi::to_internal_action;
+use game::create_game_state;
+use game::step;
 
 // GameEnv
 
@@ -69,7 +81,8 @@ impl GameEnv {
 
     // Apply an action. Returns `(obs, terminated)`
     fn step(&mut self, action: PyAction) -> PyResult<(PyGameState, bool)> {
-        let internal = to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let internal =
+            to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
         step(&mut self.state, internal).map_err(pyo3::exceptions::PyValueError::new_err)?;
         let obs = snapshot_state(&self.state);
         let terminated = matches!(self.state.phase, types::Phase::GameOver);

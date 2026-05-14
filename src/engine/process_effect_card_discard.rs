@@ -1,6 +1,9 @@
 use std::collections::VecDeque;
 
-use crate::effect::{DiscardSource, Effect, EffectKind, Target};
+use crate::effect::DiscardSource;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::utils::remove_card_from_collection;

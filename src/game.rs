@@ -6,18 +6,30 @@ use rand::SeedableRng;
 use rand::rngs::SmallRng;
 use strum::EnumCount;
 
-use crate::action::{Action, handle_action};
-use crate::character::{get_silent_starter_deck, spawn_silent};
-use crate::consts::{
-    ENCOUNTER_LIST_ELITE_CAPACITY, ENCOUNTER_LIST_NORMAL_CAPACITY,
-    EVENT_CHANCE_MONSTER_BASE, EVENT_CHANCE_SHOP_BASE, EVENT_CHANCE_TREASURE_BASE,
-    MAP_HEIGHT, MAP_WIDTH, MAX_COMBAT_CARD_REWARD, MAX_MONSTERS, MAX_SIZE_HAND,
-};
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::action::Action;
+use crate::action::handle_action;
+use crate::character::get_silent_starter_deck;
+use crate::character::spawn_silent;
+use crate::consts::ENCOUNTER_LIST_ELITE_CAPACITY;
+use crate::consts::ENCOUNTER_LIST_NORMAL_CAPACITY;
+use crate::consts::EVENT_CHANCE_MONSTER_BASE;
+use crate::consts::EVENT_CHANCE_SHOP_BASE;
+use crate::consts::EVENT_CHANCE_TREASURE_BASE;
+use crate::consts::MAP_HEIGHT;
+use crate::consts::MAP_WIDTH;
+use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::consts::MAX_MONSTERS;
+use crate::consts::MAX_SIZE_HAND;
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
 use crate::engine::process_queue;
 use crate::entity::Entity;
 use crate::map::generate_map;
-use crate::monsters::encounters::{generate_act1_monsters, pick_act1_boss};
+use crate::monsters::encounters::generate_act1_monsters;
+use crate::monsters::encounters::pick_act1_boss;
 use crate::relics::get_relic;
 use crate::types::*;
 
@@ -98,10 +110,10 @@ pub struct GameState {
 // Create and initialize
 pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
-    
+
     // Initialize empty entities vector
     let mut entities = Vec::with_capacity(256);
-    
+
     // Initialize character
     let character = spawn_silent(ascension);
     entities.push(character);

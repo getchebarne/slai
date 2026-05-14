@@ -1,7 +1,9 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::consts::{FACTOR_VULN, FACTOR_WEAK, MAX_MONSTERS};
+use crate::consts::FACTOR_VULN;
+use crate::consts::FACTOR_WEAK;
+use crate::consts::MAX_MONSTERS;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::relics::get_relic;

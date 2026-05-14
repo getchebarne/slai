@@ -4,7 +4,8 @@ use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
-use crate::modifier::{ModifierKind, modifier_has};
+use crate::modifier::ModifierKind;
+use crate::modifier::modifier_has;
 use crate::utils::shuffle;
 
 use rand::Rng;

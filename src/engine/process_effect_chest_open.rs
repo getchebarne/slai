@@ -3,13 +3,21 @@ use std::collections::VecDeque;
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::consts::{CHEST_LARGE, CHEST_MEDIUM, CHEST_SMALL, ChestParams, MAP_HEIGHT, MAP_WIDTH};
-use crate::effect::{Effect, EffectKind, Target};
+use crate::consts::CHEST_LARGE;
+use crate::consts::CHEST_MEDIUM;
+use crate::consts::CHEST_SMALL;
+use crate::consts::ChestParams;
+use crate::consts::MAP_HEIGHT;
+use crate::consts::MAP_WIDTH;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::game::Location;
 use crate::map::room_at_mut;
-use crate::types::{ChestKind, RelicName};
+use crate::types::ChestKind;
+use crate::types::RelicName;
 use crate::utils::add_relic_reward_for_roll;
 
 pub fn process_effect_chest_open(

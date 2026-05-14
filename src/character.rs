@@ -1,6 +1,8 @@
 use crate::cards::get_card;
-use crate::consts::{CARD_REWARD_ROLL_OFFSET_BASE, STARTING_GOLD};
-use crate::entity::{Entity, make_entity_character};
+use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
+use crate::consts::STARTING_GOLD;
+use crate::entity::Entity;
+use crate::entity::make_entity_character;
 use crate::types::CardName;
 use crate::types::Vitals;
 

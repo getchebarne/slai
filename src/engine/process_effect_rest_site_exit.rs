@@ -1,7 +1,11 @@
 use std::collections::VecDeque;
 
 use crate::consts::MAP_HEIGHT;
-use crate::effect::{CandidatePool, Effect, EffectKind, SelectionKind, Target};
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
 use crate::engine::DispatchResult;
 use crate::game::Location;
 

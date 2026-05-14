@@ -3,11 +3,17 @@
 
 use rand::Rng;
 
-use crate::consts::{
-    ANCESTOR_GAP_MIN, FACTOR_NUM_ELITE, FACTOR_NUM_EVENT, FACTOR_NUM_REST_SITE, FACTOR_NUM_SHOP,
-    MAP_HEIGHT, MAP_ROW_TREASURE, MAP_WIDTH, PATH_DENSITY,
-};
-use crate::entity::{Entity, make_entity_room};
+use crate::consts::ANCESTOR_GAP_MIN;
+use crate::consts::FACTOR_NUM_ELITE;
+use crate::consts::FACTOR_NUM_EVENT;
+use crate::consts::FACTOR_NUM_REST_SITE;
+use crate::consts::FACTOR_NUM_SHOP;
+use crate::consts::MAP_HEIGHT;
+use crate::consts::MAP_ROW_TREASURE;
+use crate::consts::MAP_WIDTH;
+use crate::consts::PATH_DENSITY;
+use crate::entity::Entity;
+use crate::entity::make_entity_room;
 use crate::game::Location;
 use crate::types::RoomKind;
 

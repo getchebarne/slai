@@ -1,10 +1,14 @@
 use rand::Rng;
 
-use crate::cards::{REWARD_POOL_COMMON, REWARD_POOL_RARE, REWARD_POOL_UNCOMMON, get_card};
-use crate::consts::{
-    CARD_REWARD_ROLL_OFFSET_BASE, CARD_REWARD_ROLL_OFFSET_MIN, CHANCE_RARE, CHANCE_UNCOMMON,
-    MAX_COMBAT_CARD_REWARD,
-};
+use crate::cards::REWARD_POOL_COMMON;
+use crate::cards::REWARD_POOL_RARE;
+use crate::cards::REWARD_POOL_UNCOMMON;
+use crate::cards::get_card;
+use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
+use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
+use crate::consts::CHANCE_RARE;
+use crate::consts::CHANCE_UNCOMMON;
+use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::types::CardName;
