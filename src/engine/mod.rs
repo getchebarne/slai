@@ -923,9 +923,9 @@ fn dispatch_by_kind(
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
             DispatchResult::Continue
         }
-        EffectKind::RelicRewardRoll { weights } => {
+        EffectKind::RelicRewardRoll { thresholds } => {
             process_effect_relic_reward_roll::process_effect_relic_reward_roll(
-                weights,
+                thresholds,
                 &state.id_relics,
                 &mut state.id_relic_rewards,
                 &mut state.entities,
@@ -1032,7 +1032,7 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
                 .expect("room missing at location");
             match room.room_kind {
                 RoomKind::RestSite => Phase::RestSite,
-                RoomKind::Treasure if room.room_chest_kind.is_some() => Phase::Chest,
+                RoomKind::Treasure if !room.room_chest_opened => Phase::Chest,
                 RoomKind::EventRoom => Phase::EventRoom,
                 RoomKind::Shop => Phase::Shop,
                 _ => Phase::Map,

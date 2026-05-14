@@ -119,6 +119,7 @@ pub struct Entity {
     pub room_kind: RoomKind,
     pub edges: u8,
     pub room_chest_kind: Option<ChestKind>,
+    pub room_chest_opened: bool,
 
     // Relic-only
     pub relic_name: RelicName,
@@ -170,6 +171,7 @@ const ZERO_ENTITY: Entity = Entity {
     room_kind: RoomKind::CombatBoss,
     edges: 0,
     room_chest_kind: None,
+    room_chest_opened: false,
     relic_name: RelicName::SnakeRing,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,

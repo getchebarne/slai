@@ -4,7 +4,7 @@ use rand::Rng;
 use strum::EnumCount;
 
 use crate::consts::{
-    CHEST_LARGE, CHEST_MEDIUM, CHEST_SMALL, ChestParams, MAP_HEIGHT, MAP_WIDTH, TierWeights,
+    CHEST_LARGE, CHEST_MEDIUM, CHEST_SMALL, ChestParams, MAP_HEIGHT, MAP_WIDTH, TierThresholds,
 };
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
@@ -28,8 +28,10 @@ pub fn process_effect_chest_open(
         panic!("ChestOpen outside Overworld");
     };
     let room = room_at_mut(id_rooms, entities, y, x).expect("ChestOpen room missing");
-    let kind = room.room_chest_kind.expect("ChestOpen with no chest_kind on room");
-    room.room_chest_kind = None;
+    let kind = room
+        .room_chest_kind
+        .expect("ChestOpen with no chest_kind on room");
+    room.room_chest_opened = true;
 
     let params = match kind {
         ChestKind::Small => CHEST_SMALL,
@@ -37,9 +39,7 @@ pub fn process_effect_chest_open(
         ChestKind::Large => CHEST_LARGE,
     };
 
-    // StS uses ONE shared roll for both gold-yes/no and relic-tier
-    // (AbstractChest.randomizeReward). Gold and relic are correlated, not
-    // independent: e.g. on a Small chest, gold and Uncommon never co-occur.
+    // One shared roll for both gold-yes/no and relic-tier
     let roll = rng.random_range(0..100) as u8;
 
     if roll < params.gold_chance {
@@ -51,11 +51,11 @@ pub fn process_effect_chest_open(
         });
     }
 
-    let weights = TierWeights {
-        common_threshold: params.common_threshold,
-        uncommon_threshold: params.uncommon_threshold,
+    let thresholds = TierThresholds {
+        th_common: params.th_common,
+        th_uncommon: params.th_uncommon,
     };
-    add_relic_reward_for_roll(roll, weights, id_relics, id_relic_rewards, entities, rng);
+    add_relic_reward_for_roll(roll, thresholds, id_relics, id_relic_rewards, entities, rng);
 
     DispatchResult::Continue
 }

@@ -1,4 +1,4 @@
-use crate::consts::TierWeights;
+use crate::consts::TierThresholds;
 use crate::modifier::ModifierKind;
 use crate::types::{CardName, MonsterName};
 
@@ -82,7 +82,7 @@ pub enum EffectKind {
     RoomSelect,
 
     // Relic flow
-    RelicRewardRoll { weights: TierWeights },
+    RelicRewardRoll { thresholds: TierThresholds },
     RelicRewardSelect,
     RelicRewardClear,
 

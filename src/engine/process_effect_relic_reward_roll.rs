@@ -1,7 +1,7 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::consts::TierWeights;
+use crate::consts::TierThresholds;
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::relics::get_relic;
@@ -31,14 +31,14 @@ const RELIC_POOL_RARE: &[RelicName] = &[RelicName::ThreadAndNeedle];
 const RELIC_POOL_SHOP: &[RelicName] = &[RelicName::TwistedFunnel];
 
 pub fn process_effect_relic_reward_roll(
-    weights: TierWeights,
+    thresholds: TierThresholds,
     id_relics: &[Option<usize>; RelicName::COUNT],
     id_relic_rewards: &mut Vec<usize>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> DispatchResult {
     let roll = rng.random_range(0..100) as u8;
-    add_relic_reward_for_roll(roll, weights, id_relics, id_relic_rewards, entities, rng);
+    add_relic_reward_for_roll(roll, thresholds, id_relics, id_relic_rewards, entities, rng);
     DispatchResult::Continue
 }
 
@@ -46,15 +46,15 @@ pub fn process_effect_relic_reward_roll(
 // `ChestOpen` (which must reuse a single roll for gold-yes/no AND relic-tier)
 pub fn add_relic_reward_for_roll(
     roll: u8,
-    weights: TierWeights,
+    thresholds: TierThresholds,
     id_relics: &[Option<usize>; RelicName::COUNT],
     id_relic_rewards: &mut Vec<usize>,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) {
-    let pool: &[RelicName] = if roll < weights.common_threshold {
+    let pool: &[RelicName] = if roll < thresholds.th_common {
         RELIC_POOL_COMMON
-    } else if roll < weights.uncommon_threshold {
+    } else if roll < thresholds.th_uncommon {
         RELIC_POOL_UNCOMMON
     } else {
         RELIC_POOL_RARE

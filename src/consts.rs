@@ -46,8 +46,7 @@ pub const EVENT_CHANCE_MONSTER_BASE: f32 = 0.10;
 pub const EVENT_CHANCE_SHOP_BASE: f32 = 0.03;
 pub const EVENT_CHANCE_TREASURE_BASE: f32 = 0.02;
 
-// Chest size roll thresholds: roll < CHEST_SMALL_PCT → Small,
-// CHEST_SMALL_PCT..CHEST_SMALL_PLUS_MEDIUM_PCT → Medium, else Large
+// Chest size roll thresholds
 pub const CHEST_SMALL_PCT: u8 = 50;
 pub const CHEST_SMALL_PLUS_MEDIUM_PCT: u8 = 83;
 
@@ -55,43 +54,43 @@ pub const CHEST_SMALL_PLUS_MEDIUM_PCT: u8 = 83;
 pub struct ChestParams {
     pub gold_chance: u8,
     pub gold_base: u16,
-    pub common_threshold: u8,
-    pub uncommon_threshold: u8,
+    pub th_common: u8,
+    pub th_uncommon: u8,
 }
 
 pub const CHEST_SMALL: ChestParams = ChestParams {
     gold_chance: 50,
     gold_base: 25,
-    common_threshold: 75,
-    uncommon_threshold: 100,
+    th_common: 75,
+    th_uncommon: 100,
 };
 pub const CHEST_MEDIUM: ChestParams = ChestParams {
     gold_chance: 35,
     gold_base: 50,
-    common_threshold: 35,
-    uncommon_threshold: 85,
+    th_common: 35,
+    th_uncommon: 85,
 };
 pub const CHEST_LARGE: ChestParams = ChestParams {
     gold_chance: 50,
     gold_base: 75,
-    common_threshold: 0,
-    uncommon_threshold: 75,
+    th_common: 0,
+    th_uncommon: 75,
 };
 
-// Cumulative `<` thresholds. roll < common_threshold → COMMON;
-// common_threshold..uncommon_threshold → UNCOMMON; else → RARE
+// Cumulative `<` thresholds. roll < th_common → COMMON;
+// th_common..th_uncommon → UNCOMMON; else → RARE
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TierWeights {
-    pub common_threshold: u8,
-    pub uncommon_threshold: u8,
+pub struct TierThresholds {
+    pub th_common: u8,
+    pub th_uncommon: u8,
 }
 
-pub const TIER_WEIGHTS_ELITE: TierWeights = TierWeights {
-    common_threshold: 50,
-    uncommon_threshold: 83,
+pub const TIER_THRESHOLDS_ELITE: TierThresholds = TierThresholds {
+    th_common: 50,
+    th_uncommon: 83,
 };
 
-// Encounter sequence sizes (canonical Exordium.generateMonsters)
+// Encounter sequence sizes
 pub const NUM_ENCOUNTERS_WEAK: usize = 3;
 pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_WEAK;
 pub const NUM_ENCOUNTERS_ELITE: usize = 10;

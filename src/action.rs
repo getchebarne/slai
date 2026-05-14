@@ -1,9 +1,9 @@
 use crate::consts::{MAP_WIDTH, MAX_MONSTERS, REST_SITE_HEAL_FACTOR};
 use crate::effect::{CandidatePool, DiscardSource, Effect, EffectKind, SelectionKind, Target};
 use crate::entity::{card_effective_cost, is_play_restriction_satisfied};
+use crate::game::{GameState, Location};
 use crate::map::{has_edge, room_at};
 use crate::modifier::{ModifierKind, modifier_has};
-use crate::game::{GameState, Location};
 use crate::types::{CardKind, Phase};
 use crate::utils::fill_alive_monster_ids;
 
@@ -41,7 +41,6 @@ pub enum Action {
         idx_column: usize,
     },
     RestSiteRest,
-    // Stub: leaves EventRoom/Shop without interaction. Replaced when S5/S6 ship
     RoomSkip,
     ChestOpen,
 }
@@ -301,7 +300,10 @@ fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec
 
     Ok(vec![
         Effect::direct(
-            EffectKind::CardAddToDeck { card_name, upgraded },
+            EffectKind::CardAddToDeck {
+                card_name,
+                upgraded,
+            },
             None,
             None,
         ),

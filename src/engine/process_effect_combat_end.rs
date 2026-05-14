@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::consts::{
     GOLD_BOSS_MAX, GOLD_BOSS_MIN, GOLD_ELITE_MAX, GOLD_ELITE_MIN, GOLD_MONSTER_MAX,
-    GOLD_MONSTER_MIN, MAP_HEIGHT, MAP_WIDTH, TIER_WEIGHTS_ELITE,
+    GOLD_MONSTER_MIN, MAP_HEIGHT, MAP_WIDTH, TIER_THRESHOLDS_ELITE,
 };
 use crate::effect::{Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
@@ -87,7 +87,7 @@ pub fn process_effect_combat_end(
             });
             effect_queue.push_back(Effect {
                 kind: EffectKind::RelicRewardRoll {
-                    weights: TIER_WEIGHTS_ELITE,
+                    thresholds: TIER_THRESHOLDS_ELITE,
                 },
                 id_source: None,
                 target: Target::Direct(None),
