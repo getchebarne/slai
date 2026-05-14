@@ -24,11 +24,8 @@ pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MON
     n
 }
 
-// Strength + Weak + Vulnerable scaling shared between the live damage pipeline
-// and the FFI intent view. Vigor / DoubleDamage / Intangible are intentionally
-// out of this helper: Vigor/DoubleDamage don't appear on monster intents, and
-// Intangible's clamp must follow DoubleDamage in the live path, so callers
-// apply it inline
+// Strength, Weak, and Vulnerable scaling shared between the live damage pipeline
+// and the FFI intent view
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
@@ -45,11 +42,11 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
-pub fn remove_card_from_hand(id_target: usize, id_hand: &mut Vec<usize>) {
-    let hand_idx = id_hand
+pub fn remove_card_from_collection(id_target: usize, id_collection: &mut Vec<usize>) {
+    let pos = id_collection
         .iter()
         .position(|&elem| elem == id_target)
-        .expect("Can't discard a card that's not in the hand");
+        .expect("Can't remove a card that's not in the collection");
 
-    id_hand.remove(hand_idx);
+    id_collection.remove(pos);
 }

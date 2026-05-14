@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::effect::{DiscardSource, Effect, EffectKind, Target};
 use crate::engine::DispatchResult;
 use crate::entity::Entity;
-use crate::utils::remove_card_from_hand;
+use crate::utils::remove_card_from_collection;
 
 // Unified discard handler. `source` selects the branch:
 //
@@ -40,12 +40,12 @@ pub fn process_effect_card_discard(
                 });
                 return DispatchResult::Continue;
             }
-            remove_card_from_hand(id_target, id_hand);
+            remove_card_from_collection(id_target, id_hand);
             id_pile_discard.push(id_target);
             DispatchResult::Continue
         }
         DiscardSource::Explicit => {
-            remove_card_from_hand(id_target, id_hand);
+            remove_card_from_collection(id_target, id_hand);
             id_pile_discard.push(id_target);
             *this_turn_discards = this_turn_discards.saturating_add(1);
 

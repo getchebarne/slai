@@ -97,6 +97,7 @@ pub enum CardName {
     Unload,
     WellLaidPlans,
     WraithForm,
+
     // Curses
     AscendersBane,
     Regret,
@@ -136,7 +137,8 @@ pub enum CardRarity {
     Curse,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[repr(u8)]
 pub enum MonsterName {
     Cultist,
     FungiBeast,

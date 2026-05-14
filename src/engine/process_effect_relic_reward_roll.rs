@@ -26,7 +26,7 @@ const RELIC_POOL_UNCOMMON: &[RelicName] = &[
 
 const RELIC_POOL_RARE: &[RelicName] = &[RelicName::ThreadAndNeedle];
 
-// TwistedFunnel is shop-only in Java; not offered by elites
+// TwistedFunnel is shop-only — not offered by elites
 #[allow(dead_code)]
 const RELIC_POOL_SHOP: &[RelicName] = &[RelicName::TwistedFunnel];
 

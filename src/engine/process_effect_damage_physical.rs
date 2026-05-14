@@ -30,31 +30,29 @@ pub fn process_effect_damage_physical(
     let mods_actor = &entities[id_actor].modifiers;
     let mods_target = &target.modifiers;
 
-    // Vigor folds into the base (it's additive on the actor, like Strength).
-    // The helper covers Strength + Weak + Vulnerable — the same pipeline the
-    // FFI intent view walks. DoubleDamage doubles the result; Intangible
-    // clamps last so it wins over every multiplier
-    let base_with_vigor = amount + if modifier_has(mods_actor, ModifierKind::Vigor) {
-        modifier_stacks(mods_actor, ModifierKind::Vigor).max(0) as u16
-    } else {
-        0
-    };
+    // Vigor folds into the base
+    let base_with_vigor = amount
+        + if modifier_has(mods_actor, ModifierKind::Vigor) {
+            modifier_stacks(mods_actor, ModifierKind::Vigor).max(0) as u16
+        } else {
+            0
+        };
     let str_stacks = if modifier_has(mods_actor, ModifierKind::Strength) {
         modifier_stacks(mods_actor, ModifierKind::Strength)
     } else {
         0
     };
-    let mut scaled = scale_attack_damage(
+    let mut final_damage = scale_attack_damage(
         base_with_vigor,
         str_stacks,
         modifier_has(mods_actor, ModifierKind::Weak),
         modifier_has(mods_target, ModifierKind::Vulnerable),
     );
     if modifier_has(mods_actor, ModifierKind::DoubleDamage) {
-        scaled = scaled.saturating_mul(2);
+        final_damage = final_damage.saturating_mul(2);
     }
-    if modifier_has(mods_target, ModifierKind::Intangible) && scaled > 1 {
-        scaled = 1;
+    if modifier_has(mods_target, ModifierKind::Intangible) && final_damage > 1 {
+        final_damage = 1;
     }
 
     // Thorns: triggers per attack instance regardless of damage actually dealt
@@ -69,7 +67,6 @@ pub fn process_effect_damage_physical(
         });
     }
 
-    let final_damage = scaled;
     if final_damage > 0 {
         effect_queue.push_front(Effect {
             kind: EffectKind::DamageDeal {

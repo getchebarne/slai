@@ -1,24 +1,6 @@
-"""Type stubs for the slai package.
-
-Hand-maintained. Keep in sync with `src/ffi.rs`, `src/lib.rs`, and the
-IntEnum shim + `ACTION_SPECS` registry in `python/slai/__init__.py`.
-
-Architecture:
-- The PyO3 compiled extension at `slai.slai` exposes raw `#[pyclass]`
-  types: views, `GameEnv`, `Action`, complex enums (`Phase`, `Effect`,
-  `Target`, `Selection`, `CardCostKind`), and the raw unit enums.
-- `python/slai/__init__.py` wraps every unit-only PyO3 enum as a real
-  `enum.IntEnum` and builds the `ACTION_SPECS` registry (PySC2's
-  `Functions`/`Function`/`ArgumentType` separation). Those IntEnums are
-  what users see as `slai.CardKind`, `slai.ActionType`, etc.
-- These stubs describe what users see at the `slai` namespace, not what
-  the raw `slai.slai` extension exposes.
-"""
-
 from enum import IntEnum
 from typing import Iterator, NamedTuple, Optional, Union
 
-# ───────── Unit enums (IntEnum shims over PyO3 unit-only enums) ─────────
 
 class CardKind(IntEnum):
     Attack: int
@@ -92,9 +74,6 @@ class ModifierKind(IntEnum):
     WraithForm: int
 
 class IntentKind(IntEnum):
-    """Categorical tag on a monster's telegraphed intent. Multiple flags
-    on `Intent` (block / buff / debuff) can co-occur with these."""
-
     Attack: int
     AttackBlock: int
     AttackBuff: int
@@ -145,10 +124,6 @@ class RelicTier(IntEnum):
     Special: int
 
 class CardName(IntEnum):
-    """Canonical card identity (78 variants). Stable across upgrades —
-    use `Card.upgraded` to distinguish base from upgraded form. Preferred
-    over the display string `Card.name` for one-hot encoding."""
-
     AThousandCuts: int
     Accuracy: int
     Acrobatics: int
@@ -229,9 +204,6 @@ class CardName(IntEnum):
     WraithForm: int
 
 class MonsterName(IntEnum):
-    """Canonical monster identity (25 variants). Preferred over the
-    display string `Monster.name` for one-hot encoding."""
-
     Cultist: int
     FungiBeast: int
     GremlinFat: int
@@ -259,9 +231,6 @@ class MonsterName(IntEnum):
     TheGuardian: int
 
 class ActionType(IntEnum):
-    """Discriminant for `Action`. Pure identity — per-action argument
-    schema lives in `ACTION_SPECS`."""
-
     CardPlay: int
     EndTurn: int
     CardDiscard: int
@@ -276,31 +245,22 @@ class ActionType(IntEnum):
     RestSiteRest: int
     RestSiteCardUpgrade: int
 
-# ───────── Complex enums (PyO3 #[pyclass] enums, kept as-is) ─────────
 
 class CardCostKind:
-    """How `Card.cost` is derived from `Card.base_cost`."""
-
     class Fixed:
-        """`cost == base_cost` always. Most cards."""
         def __init__(self) -> None: ...
 
     class MinusDiscardsThisTurn:
-        """Cost decreases by the number of discards this turn (Eviscerate)."""
         def __init__(self) -> None: ...
 
     class GrowsOnDamageInstanceTaken:
-        """Cost grows with damage instances taken this combat (Glass Knife)."""
         def __init__(self) -> None: ...
 
     class XCost:
-        """Cost is current energy at play time (X-cost cards)."""
         offset: int
         def __init__(self, offset: int) -> None: ...
 
 class Phase:
-    """Game phase. Variants carry data for halts that need a count."""
-
     class Map:
         def __init__(self) -> None: ...
 
@@ -330,9 +290,7 @@ class Phase:
     class GameOver:
         def __init__(self) -> None: ...
 
-class Selection:
-    """How the engine picks targets from a CandidatePool."""
-
+class SelectionKind:
     class All:
         def __init__(self) -> None: ...
 
@@ -348,17 +306,10 @@ class Selection:
         def __init__(self, count: int) -> None: ...
 
 class Target:
-    """The pool an effect resolves against, plus how one or more targets
-    are picked from it. `Effect.target` is None when the effect needs no
-    resolution at all (e.g. CardDraw, EnergyGain on the player)."""
-
-    candidates: CandidatePool
-    selection: Selection
+    candidate_pool: CandidatePool
+    selection_kind: SelectionKind
 
 class Effect:
-    """A static card or monster effect. `target` is None when the effect
-    needs no resolution (e.g. Adrenaline gives the player energy directly)."""
-
     class DamagePhysical:
         amount: int
         target: Optional[Target]
@@ -443,8 +394,8 @@ class Effect:
         target: Optional[Target]
 
     class DrawUpTo:
-        target: int
-        target_field: Optional[Target]
+        amount: int
+        target: Optional[Target]
 
     class CardDiscard:
         target: Optional[Target]
@@ -452,66 +403,29 @@ class Effect:
     class CalculatedGamble:
         target: Optional[Target]
 
-# ───────── Flat Action + schema registry ─────────
 
 class Action:
-    """A player action passed to `GameEnv.step()`.
-
-    Construct as `Action(action_type, indices)` where `indices` is a list
-    of positional indices whose meaning depends on `action_type`. See
-    `ACTION_SPECS` for the per-`ActionType` schema, or:
-
-      CardPlay            : [idx_hand] or [idx_hand, idx_monster]
-      EndTurn             : []
-      CardDiscard         : [idx_hand, idx_hand, ...]  (count set by Phase)
-      CardRetain          : [idx_hand, idx_hand, ...]  (count set by Phase)
-      CardSetup           : [idx_hand]
-      CardNightmare       : [idx_hand]
-      RoomSelect          : [idx_column]
-      CardRewardSelect    : [idx_reward]
-      CardRewardSkip      : []
-      RelicRewardSelect   : [idx_reward]
-      RelicRewardSkip     : []
-      RestSiteRest        : []
-      RestSiteCardUpgrade : [idx_deck]
-
-    All indices are positions into per-action collections (hand, alive
-    monsters, map row, reward slots, deck), not entity ids.
-    """
-
     action_type: ActionType
-    indices: list[int]
+    idxs: list[int]
 
-    def __init__(self, action_type: ActionType, indices: list[int]) -> None: ...
+    def __init__(self, action_type: ActionType, idxs: list[int]) -> None: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self) -> int: ...
 
 class ArgSpec(NamedTuple):
-    """Schema for one positional slot in `Action.indices`.
-
-    Mirrors `pysc2.lib.actions.ArgumentType`.
-    """
-
     name: str
     description: str
     optional: bool = False
     variable: bool = False
 
 class ActionSpec(NamedTuple):
-    """Full schema for one action type. Mirrors `pysc2.lib.actions.Function`.
-
-    `ActionType` carries identity; this carries the data.
-    """
-
     id: ActionType
     name: str
     args: tuple[ArgSpec, ...]
     arity: tuple[int, Optional[int]]
 
-class ActionSpecs:
-    """Registry of action type specs. Mirrors `pysc2.lib.actions.Functions`."""
-
+class ActionSpecRegistry:
     CardPlay: ActionSpec
     EndTurn: ActionSpec
     CardDiscard: ActionSpec
@@ -532,85 +446,51 @@ class ActionSpecs:
     def __len__(self) -> int: ...
     def __contains__(self, key: object) -> bool: ...
 
-ACTION_SPECS: ActionSpecs
+ACTION_SPEC_REGISTRY: ActionSpecRegistry
 
-# ───────── View structs (read-only state snapshots) ─────────
 
 class Modifier:
     kind: ModifierKind
     stacks: int
-    """Signed: debuffs and buffs both use this field. For some modifiers
-    (Vulnerable, Weak), stacks counts duration in turns."""
-
-    @staticmethod
-    def stacks_max_for(kind: ModifierKind) -> int:
-        """Per-`ModifierKind` stack ceiling from the engine's
-        `MODIFIER_DEFS`. Useful for normalizing stacks before feeding to
-        ML encoders. Soft caps (e.g. 999) are common — clamp again on the
-        consumer side if a tighter normalization range is wanted."""
-        ...
+    stacks_max: int
 
 class Relic:
     name: RelicName
     tier: RelicTier
     counter: int
-    """Per-relic counter slot. Used by tiered counter-driven relics
-    (HappyFlower, Sundial, etc.)."""
-
     used_up: bool
-    """True for one-shot relics that have already triggered (Omamori,
-    LizardTail, MawBank). Tier 0 relics never set this."""
 
 class Card:
-    name: str
-    """Display name. Upgraded cards have a trailing `+`."""
+    name: CardName
+    display_name: str
 
-    card_name: CardName
-    """Canonical enum slot — stable across upgrades, suitable for one-hot.
-    Use this instead of parsing `name` for ML inputs."""
-
-    kind: CardKind
-    color: CardColor
-    rarity: CardRarity
-
+    # Cost-related fields
     cost: int
-    """Effective cost right now (post free-to-play, post BulletTime
-    override, post dynamic-cost variant). For X-cost cards this is
-    `energy.current`."""
-
-    base_cost: int
-    """Static base cost (the deck-instance value, before any modifiers).
-    Distinct from `cost` for dynamic-cost cards (Eviscerate, Glass Knife,
-    X-cost). Use this to recover the un-discounted card cost."""
-
+    cost_base: int
+    cost_zero_once: bool
+    cost_override: Optional[int]
     cost_kind: Union[
         CardCostKind.Fixed,
         CardCostKind.MinusDiscardsThisTurn,
         CardCostKind.GrowsOnDamageInstanceTaken,
         CardCostKind.XCost,
     ]
-    """How `cost` is derived. Lets the agent reason about X-cost vs
-    discounted vs growing without inferring it from card identity."""
 
+    # Categorical fields
+    kind: CardKind
+    color: CardColor
+    rarity: CardRarity
+    
+    # Other boolean fields
     upgraded: bool
     exhaust: bool
     ethereal: bool
     innate: bool
     requires_target: bool
-    """If True, playing this card requires an `idx_monster` second index
-    in `Action(ActionType.CardPlay, [idx_hand, idx_monster])`."""
-
     retain: bool
-    free_to_play_once: bool
-    """Per-instance flag set by Setup / Distraction. When True, the next
-    play of this card instance ignores energy cost."""
-
     playable: bool
-    """Whether this card can be played given the current game state.
-    Combines static play restrictions (e.g. DrawPileEmpty) with relevant
-    state. **Energy cost is NOT factored in** — clients should also check
-    `card.cost <= energy.current` before offering it as a legal action."""
 
+    # Effects
     effects: list[
         Union[
             Effect.DamagePhysical,
@@ -646,35 +526,16 @@ class Character:
     health_max: int
     block: int
     modifiers: list[Modifier]
-    character_reward_roll_offset: int
-    """Pity offset used when rolling card-reward rarities."""
-
     gold: int
 
 class Intent:
-    """Monster intent for the next turn. `kind` is the categorical tag;
-    `block`/`buff`/`debuff` are independent flags that can co-occur."""
-
     kind: IntentKind
-
     damage: Optional[int]
-    """Damage per instance, post-modifier (Strength/Weak/Vulnerable
-    applied). None for non-attack intents."""
-
     instances: Optional[int]
-    """Number of attack instances (e.g. 6×2)."""
-
-    block: bool
-    buff: bool
-    debuff: bool
 
 class Monster:
-    name: str
-    """Display name (e.g. "Acid Slime (L)", "Gremlin Nob")."""
-
-    monster_name: MonsterName
-    """Canonical enum slot — suitable for one-hot."""
-
+    name: MonsterName
+    display_name: str
     health: int
     health_max: int
     block: int
@@ -688,49 +549,35 @@ class Energy:
 class Room:
     room_kind: RoomKind
     edges: list[int]
-    """Valid next-row columns reachable from this node."""
 
 class Map:
     rooms: list[list[Optional[Room]]]
-    """Grid indexed `rooms[y][x]`. `y=0` is the bottom row. `None` means
-    no node at that coordinate."""
-
     y_current: Optional[int]
-    """Current row. None at run start; equals `MAP_HEIGHT` while in the boss room."""
-
     x_current: Optional[int]
-
-    boss_name: str
-    """Display name of the act-boss this run was seeded with."""
+    boss_name: str # TODO: maybe should be in `GameState`?
 
 class GameState:
-    """Full read-only snapshot of the game state."""
-
+    # Actors
     character: Character
     monsters: list[Monster]
-    """Alive monsters only. Indices align with `idx_monster` in
-    `Action(ActionType.CardPlay, [idx_hand, idx_monster])`."""
 
+    # Card piles
     deck: list[Card]
     hand: list[Card]
     pile_draw: list[Card]
     pile_discard: list[Card]
     pile_exhaust: list[Card]
 
-    card_rewards: list[Card]
-    """Cards offered as post-combat reward. Non-empty only during `Phase.CombatReward`."""
+    # Rewards
+    rewards_card: list[Card]
+    rewards_relic: list[Relic]
 
+    # Relics, Energy and Map
     relics: list[Relic]
-    """Run-persistent relics owned by the player. Always includes the
-    innate SnakeRing for the Silent."""
-
-    relic_rewards: list[Relic]
-    """Relics offered as post-combat reward. Non-empty only after Elite
-    combats during `Phase.CombatReward`."""
-
     energy: Energy
     map: Map
 
+    # Phase
     phase: Union[
         Phase.Map,
         Phase.CombatDefault,
@@ -743,19 +590,8 @@ class GameState:
         Phase.GameOver,
     ]
 
-# ───────── Environment ─────────
 
 class GameEnv:
-    """Game state container with a gymnasium-aligned step interface,
-    suitable for interactive play and reinforcement-learning training loops.
-
-    Reward is currently always 0.0 — no reward function is defined yet.
-    Truncated is currently always False — no step-limit truncation."""
-
-    # Game-shape constants — class attributes, not instance state.
-    # Mirror of `crate::consts` values consumers need at module load.
-    # Deliberate omissions: deck / draw / discard pile sizes are
-    # *unbounded* in the engine — those caps are encoder concerns.
     MAX_MONSTERS: int
     MAX_SIZE_HAND: int
     MAX_COMBAT_CARD_REWARD: int
@@ -766,17 +602,5 @@ class GameEnv:
     MAP_WIDTH: int
 
     def __init__(self, ascension: int = 0) -> None: ...
-    def reset(self, seed: int = 42) -> tuple[GameState, dict]:
-        """Start a fresh run. Returns `(obs, info)`."""
-        ...
-
-    def step(self, action: Action) -> tuple[GameState, float, bool, bool, dict]:
-        """Apply an action. Returns `(obs, reward, terminated, truncated, info)`.
-        Raises `ValueError` if the action is malformed (wrong arity) or
-        invalid in the current phase."""
-        ...
-
-    def dev_grant_relic(self, name: RelicName) -> None:
-        """Grant a relic immediately, bypassing the normal reward path.
-        For dev/testing only."""
-        ...
+    def reset(self, seed: int = 42) -> GameState: ...
+    def step(self, action: Action) -> tuple[GameState, bool]: ...
