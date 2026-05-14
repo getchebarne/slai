@@ -4,12 +4,8 @@ from typing import Iterator, NamedTuple, Optional, Union
 from . import slai as _rs
 
 
+# IntEnum shims for unit-only PyO3 enums
 def _to_intenum(name: str, rust_cls: type) -> type:
-    """Synthesize a real enum.IntEnum from a PyO3 unit-only enum class.
-
-    Reads each public class attribute that is an instance of `rust_cls` and
-    builds an IntEnum with the same name->int mapping.
-    """
     members = {
         k: int(getattr(rust_cls, k))
         for k in dir(rust_cls)
@@ -32,12 +28,8 @@ IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
 CandidatePool = _to_intenum("CandidatePool", _rs.CandidatePool)
 
 
+# Action schema types
 class ArgSpec(NamedTuple):
-    """Schema for one positional slot in `Action.indices`.
-
-    Mirrors `pysc2.lib.actions.ArgumentType`.
-    """
-
     name: str
     description: str
     optional: bool = False
@@ -45,28 +37,17 @@ class ArgSpec(NamedTuple):
 
 
 class ActionSpec(NamedTuple):
-    """Full schema for one action type. Mirrors `pysc2.lib.actions.Function`.
-
-    `ActionType` carries identity; this namedtuple carries the data.
-    """
-
     id: ActionType  # type: ignore[valid-type]
     name: str
     args: tuple[ArgSpec, ...]
     arity: tuple[int, Optional[int]]
 
 
-class ActionSpecs:
-    """Registry of action type specs. Mirrors `pysc2.lib.actions.Functions`.
-
-    Supports lookup by attribute (name), by int discriminant, by
-    `ActionType` member (IntEnum is int), and iteration.
-    """
-
+class ActionSpecRegistry:
     def __init__(self, specs: list[ActionSpec]) -> None:
+        self._list: list[ActionSpec] = specs
         self._by_name: dict[str, ActionSpec] = {s.name: s for s in specs}
         self._by_id: dict[int, ActionSpec] = {int(s.id): s for s in specs}
-        self._list: list[ActionSpec] = list(specs)
 
     def __getattr__(self, name: str) -> ActionSpec:
         try:
@@ -75,7 +56,7 @@ class ActionSpecs:
             raise AttributeError(name) from None
 
     def __getitem__(self, key: Union[int, str]) -> ActionSpec:
-        if isinstance(key, int):  # also catches IntEnum members (IntEnum is int)
+        if isinstance(key, int):
             return self._by_id[int(key)]
         return self._by_name[key]
 
@@ -103,41 +84,43 @@ def _arity_from_args(args: tuple[ArgSpec, ...]) -> tuple[int, Optional[int]]:
     return (min_len, len(args))
 
 
-def _spec(at: ActionType, *args: ArgSpec) -> ActionSpec:  # type: ignore[valid-type]
-    return ActionSpec(id=at, name=at.name, args=args, arity=_arity_from_args(args))
+def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:  # type: ignore[valid-type]
+    return ActionSpec(id=action_type, name=action_type.name, args=args, arity=_arity_from_args(args))
 
 
+# Per-slot description strings
 _HAND_POS = "position in state.hand (the current hand)"
 _MONSTER_POS = "position in the alive-monster list at dispatch time"
-_REWARD_POS = "slot in state.card_rewards / state.relic_rewards"
+_REWARD_POS = "slot in state.rewards_card / state.rewards_relic"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
 
 
-ACTION_SPECS = ActionSpecs(
+# Action spec registry
+ACTION_SPEC_REGISTRY = ActionSpecRegistry(
     [
-        _spec(
+        create_action_spec(
             ActionType.CardPlay,
             ArgSpec("idx_hand", _HAND_POS),
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
-        _spec(ActionType.EndTurn),
-        _spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS, variable=True)),
-        _spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS, variable=True)),
-        _spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
-        _spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
-        _spec(ActionType.RoomSelect, ArgSpec("idx_column", _MAP_COL)),
-        _spec(ActionType.CardRewardSelect, ArgSpec("idx_reward", _REWARD_POS)),
-        _spec(ActionType.CardRewardSkip),
-        _spec(ActionType.RelicRewardSelect, ArgSpec("idx_reward", _REWARD_POS)),
-        _spec(ActionType.RelicRewardSkip),
-        _spec(ActionType.RestSiteRest),
-        _spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
+        create_action_spec(ActionType.EndTurn),
+        create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS, variable=True)),
+        create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS, variable=True)),
+        create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
+        create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
+        create_action_spec(ActionType.RoomSelect, ArgSpec("idx_column", _MAP_COL)),
+        create_action_spec(ActionType.CardRewardSelect, ArgSpec("idx_reward", _REWARD_POS)),
+        create_action_spec(ActionType.CardRewardSkip),
+        create_action_spec(ActionType.RelicRewardSelect, ArgSpec("idx_reward", _REWARD_POS)),
+        create_action_spec(ActionType.RelicRewardSkip),
+        create_action_spec(ActionType.RestSiteRest),
+        create_action_spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
     ]
 )
 
 
-# Re-exports from the compiled extension
+# Environment + action
 GameEnv = _rs.GameEnv
 Action = _rs.Action
 
@@ -153,24 +136,22 @@ Modifier = _rs.Modifier
 Monster = _rs.Monster
 Relic = _rs.Relic
 
-# Complex (data-bearing) enums — kept as PyO3 #[pyclass] complex enums
+# Complex enums
 Phase = _rs.Phase
-Selection = _rs.Selection
+SelectionKind = _rs.SelectionKind
 Target = _rs.Target
 Effect = _rs.Effect
 CardCostKind = _rs.CardCostKind
 
-
 __all__ = [
-    # Environment & action
+    # Environment + action
     "GameEnv",
     "Action",
     "ActionType",
     "ArgSpec",
     "ActionSpec",
-    "ActionSpecs",
-    "ACTION_SPECS",
-    
+    "ActionSpecRegistry",
+    "ACTION_SPEC_REGISTRY",
     # Views
     "Card",
     "Character",
@@ -182,8 +163,7 @@ __all__ = [
     "Modifier",
     "Monster",
     "Relic",
-
-    # Unit-enum IntEnum shims
+    # Unit-enum shims
     "CardKind",
     "CardColor",
     "CardRarity",
@@ -196,10 +176,9 @@ __all__ = [
     "RelicTier",
     "CardName",
     "MonsterName",
-
     # Complex enums
     "Phase",
-    "Selection",
+    "SelectionKind",
     "Target",
     "Effect",
 ]

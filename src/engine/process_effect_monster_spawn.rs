@@ -30,9 +30,7 @@ pub fn process_effect_monster_spawn(
         assert!(
             matches!(
                 parent.monster_name,
-                MonsterName::SlimeAcidLarge
-                    | MonsterName::SlimeSpikeLarge
-                    | MonsterName::SlimeBoss
+                MonsterName::SlimeAcidLarge | MonsterName::SlimeSpikeLarge | MonsterName::SlimeBoss
             ),
             "MonsterSpawn id_source must be a splitting slime, got {:?}",
             parent.monster_name,
@@ -45,21 +43,16 @@ pub fn process_effect_monster_spawn(
     let id_child = entities.len();
     entities.push(monster_child);
 
-    // `monster_count` is the high-water mark of slots used this combat;
-    // it never decrements on death (Death just marks `dead = true`). When
-    // a splitting slime cascades (LargeSlime → 2 mediums → 4 smalls), the
-    // count would walk past MAX_MONSTERS even though never more than 4 are
-    // simultaneously alive. Reuse dead slots so the count tracks the
-    // actual occupancy ceiling.
-    let mut reused_slot: Option<usize> = None;
-    for i in 0..(*monster_count as usize) {
-        if entities[id_monsters[i]].dead {
-            reused_slot = Some(i);
+    // Reuse dead slots so splitting cascades don't exceed MAX_MONSTERS
+    let mut slot_reused: Option<usize> = None;
+    for idx in 0..(*monster_count as usize) {
+        if entities[id_monsters[idx]].dead {
+            slot_reused = Some(idx);
             break;
         }
     }
 
-    let slot = match reused_slot {
+    let slot = match slot_reused {
         Some(s) => s,
         None => {
             assert!(
