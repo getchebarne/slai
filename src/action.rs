@@ -62,7 +62,7 @@ pub enum Action {
     PotionDiscard {
         idx_slot: usize,
     },
-    CardPick {
+    CardDiscoverPick {
         idx_option: usize,
     },
 }
@@ -93,7 +93,7 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
         (Action::PotionUse { .. }, Phase::CombatDefault) => true,
         (Action::PotionUse { .. }, Phase::Map | Phase::RestSite | Phase::Chest | Phase::EventRoom | Phase::Shop) => true,
         (Action::PotionDiscard { .. }, p) if !matches!(p, Phase::GameOver) => true,
-        (Action::CardPick { .. }, Phase::AwaitCardPick { .. }) => true,
+        (Action::CardDiscoverPick { .. }, Phase::CombatAwaitDiscover { .. }) => true,
         _ => false,
     };
     if !valid {
@@ -128,7 +128,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
             handle_potion_use(state, idx_slot, idx_monster)
         }
         Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
-        Action::CardPick { idx_option } => handle_card_pick(state, idx_option),
+        Action::CardDiscoverPick { idx_option } => handle_card_discover_pick(state, idx_option),
     }?;
 
     Ok(effects)
@@ -483,18 +483,18 @@ fn handle_potion_discard(
     Ok(Vec::new())
 }
 
-fn handle_card_pick(
+fn handle_card_discover_pick(
     state: &mut GameState,
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
     let id_card = *state
-        .id_card_picks
+        .id_card_discover
         .get(idx_option)
-        .ok_or_else(|| format!("CardPick: idx_option {} out of range", idx_option))?;
+        .ok_or_else(|| format!("CardDiscoverPick: idx_option {} out of range", idx_option))?;
     let card = &mut state.entities[id_card];
     card.card_free_to_play_once = true;
     state.id_hand.push(id_card);
-    state.id_card_picks.clear();
+    state.id_card_discover.clear();
     Ok(Vec::new())
 }
 

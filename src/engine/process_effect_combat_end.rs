@@ -13,10 +13,10 @@ use crate::consts::GOLD_MONSTER_MIN;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::consts::POTION_DROP_CHANCE_BASE;
-use crate::consts::POTION_DROP_MOD_HIT;
-use crate::consts::POTION_DROP_MOD_MAX;
-use crate::consts::POTION_DROP_MOD_MIN;
-use crate::consts::POTION_DROP_MOD_MISS;
+use crate::consts::POTION_DROP_CHANCE_MOD_HIT;
+use crate::consts::POTION_DROP_CHANCE_MOD_MAX;
+use crate::consts::POTION_DROP_CHANCE_MOD_MIN;
+use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -152,24 +152,32 @@ fn push_gold_gain(
     });
 }
 
-// StS-faithful swing: +10 on miss, -10 on hit; slai clamps to [-30, +60]
+// +10 on miss, -10 on hit; clamps to [-30, +60] ([10%, 100%])
 fn roll_potion_drop(
     rng: &mut impl Rng,
     potion_drop_mod: &mut i8,
     effect_queue: &mut VecDeque<Effect>,
 ) {
-    let chance = (POTION_DROP_CHANCE_BASE as i16 + *potion_drop_mod as i16).clamp(0, 100) as u8;
     let roll = rng.random_range(0..100) as u8;
+    let chance = (POTION_DROP_CHANCE_BASE as i16 + *potion_drop_mod as i16).clamp(0, 100) as u8;
+
+    // Hit
     if roll < chance {
-        *potion_drop_mod = (*potion_drop_mod + POTION_DROP_MOD_HIT)
-            .clamp(POTION_DROP_MOD_MIN, POTION_DROP_MOD_MAX);
+        // Decrease drop chance
+        *potion_drop_mod = (*potion_drop_mod + POTION_DROP_CHANCE_MOD_HIT)
+            .clamp(POTION_DROP_CHANCE_MOD_MIN, POTION_DROP_CHANCE_MOD_MAX);
+
+        // Push effect
         effect_queue.push_back(Effect {
             kind: EffectKind::PotionAddRandom { limited: false },
             id_source: None,
             target: Target::Direct(None),
         });
+
+    // Miss
     } else {
-        *potion_drop_mod = (*potion_drop_mod + POTION_DROP_MOD_MISS)
-            .clamp(POTION_DROP_MOD_MIN, POTION_DROP_MOD_MAX);
+        // Increase drop chance
+        *potion_drop_mod = (*potion_drop_mod + POTION_DROP_CHANCE_MOD_MISS)
+            .clamp(POTION_DROP_CHANCE_MOD_MIN, POTION_DROP_CHANCE_MOD_MAX);
     }
 }

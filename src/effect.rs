@@ -172,8 +172,8 @@ pub enum EffectKind {
     },
 
     // Discovery: roll N random cards of `kind` from the character pool and
-    // halt on `Phase::AwaitCardPick`; player picks one via `Action::CardPick`
-    DiscoverPick {
+    // halt on `Phase::CombatAwaitDiscover`; player picks one via `Action::CardDiscoverPick`
+    CardDiscoverPick {
         kind: CardKind,
         count: u8,
     },

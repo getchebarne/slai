@@ -1,8 +1,8 @@
 use rand::Rng;
 
-use crate::cards::REWARD_POOL_COMMON;
-use crate::cards::REWARD_POOL_RARE;
-use crate::cards::REWARD_POOL_UNCOMMON;
+use crate::cards::POOL_COMMON;
+use crate::cards::POOL_RARE;
+use crate::cards::POOL_UNCOMMON;
 use crate::cards::get_card;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
@@ -29,13 +29,13 @@ pub fn process_effect_card_reward_roll(
         // Select pool and update offset
         let pool = if roll < CHANCE_RARE {
             character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE;
-            REWARD_POOL_RARE
+            POOL_RARE
         } else if roll < CHANCE_UNCOMMON {
-            REWARD_POOL_UNCOMMON
+            POOL_UNCOMMON
         } else {
             character_reward_roll_offset =
                 (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
-            REWARD_POOL_COMMON
+            POOL_COMMON
         };
 
         // Pick a card name, re-roll on duplicates

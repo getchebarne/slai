@@ -14,7 +14,7 @@ pub static SKILL_POTION: Entity = make_entity_potion(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DiscoverPick {
+        kind: EffectKind::CardDiscoverPick {
             kind: CardKind::Skill,
             count: DISCOVER_PICK_COUNT,
         },

@@ -57,28 +57,9 @@ pub fn remove_card_from_collection(id_target: usize, id_collection: &mut Vec<usi
     id_collection.remove(pos);
 }
 
-const RELIC_POOL_COMMON: &[RelicName] = &[
-    RelicName::Akabeko,
-    RelicName::Anchor,
-    RelicName::BagOfMarbles,
-    RelicName::BagOfPreparation,
-    RelicName::BloodVial,
-    RelicName::BronzeScales,
-    RelicName::OddlySmoothStone,
-    RelicName::Vajra,
-];
-
-const RELIC_POOL_UNCOMMON: &[RelicName] = &[
-    RelicName::Kunai,
-    RelicName::NinjaScroll,
-    RelicName::Shuriken,
-];
-
-const RELIC_POOL_RARE: &[RelicName] = &[RelicName::ThreadAndNeedle];
-
-// TwistedFunnel is shop-only — not offered by elites
-#[allow(dead_code)]
-const RELIC_POOL_SHOP: &[RelicName] = &[RelicName::TwistedFunnel];
+use crate::relics::RELIC_POOL_COMMON;
+use crate::relics::RELIC_POOL_RARE;
+use crate::relics::RELIC_POOL_UNCOMMON;
 
 // Used by both `EffectKind::RelicRewardRoll` (elite) and `EffectKind::ChestOpen`
 pub fn add_relic_reward_for_roll(

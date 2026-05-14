@@ -303,6 +303,7 @@ pub enum Phase {
     CombatReward,
     CombatDefault,
     CombatAwaitDiscard { num: u8 },
+    CombatAwaitDiscover { count: u8 },
     CombatAwaitNightmare,
     CombatAwaitRetain { num: u8 },
     CombatAwaitSetup,
@@ -312,5 +313,4 @@ pub enum Phase {
     Chest,
     EventRoom,
     Shop,
-    AwaitCardPick { count: u8 },
 }

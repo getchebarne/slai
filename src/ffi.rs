@@ -715,7 +715,7 @@ pub enum PyPhase {
     Chest {},
     EventRoom {},
     Shop {},
-    AwaitCardPick { count: u8 },
+    CombatAwaitDiscover { count: u8 },
 }
 
 impl From<Phase> for PyPhase {
@@ -733,7 +733,7 @@ impl From<Phase> for PyPhase {
             Phase::Chest => Self::Chest {},
             Phase::EventRoom => Self::EventRoom {},
             Phase::Shop => Self::Shop {},
-            Phase::AwaitCardPick { count } => Self::AwaitCardPick { count },
+            Phase::CombatAwaitDiscover { count } => Self::CombatAwaitDiscover { count },
         }
     }
 }
@@ -788,7 +788,7 @@ pub enum PyActionType {
     ChestOpen,
     PotionUse,
     PotionDiscard,
-    CardPick,
+    CardDiscoverPick,
 }
 
 impl PyActionType {
@@ -811,7 +811,7 @@ impl PyActionType {
             14 => Ok(Self::ChestOpen),
             15 => Ok(Self::PotionUse),
             16 => Ok(Self::PotionDiscard),
-            17 => Ok(Self::CardPick),
+            17 => Ok(Self::CardDiscoverPick),
             _ => Err(format!("PyActionType: invalid discriminant {n}")),
         }
     }
@@ -933,9 +933,9 @@ pub fn to_internal_action(a: PyAction) -> Result<Action, String> {
             1 => Ok(Action::PotionDiscard { idx_slot: i[0] }),
             n => Err(format!("PotionDiscard expects [idx_slot], got {n} idxs")),
         },
-        PyActionType::CardPick => match i.len() {
-            1 => Ok(Action::CardPick { idx_option: i[0] }),
-            n => Err(format!("CardPick expects [idx_option], got {n} idxs")),
+        PyActionType::CardDiscoverPick => match i.len() {
+            1 => Ok(Action::CardDiscoverPick { idx_option: i[0] }),
+            n => Err(format!("CardDiscoverPick expects [idx_option], got {n} idxs")),
         },
     }
 }
@@ -1049,7 +1049,7 @@ pub enum PyEffect {
         limited: bool,
         target: Option<PyTarget>,
     },
-    DiscoverPick {
+    CardDiscoverPick {
         kind: PyCardKind,
         count: u8,
         target: Option<PyTarget>,
@@ -1123,7 +1123,7 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::MaxHealthGain { amount } => PyEffect::MaxHealthGain { amount, target },
         EffectKind::HealthGain { amount } => PyEffect::HealthGain { amount, target },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
-        EffectKind::DiscoverPick { kind, count } => PyEffect::DiscoverPick {
+        EffectKind::CardDiscoverPick { kind, count } => PyEffect::CardDiscoverPick {
             kind: kind.into(),
             count,
             target,
@@ -1493,7 +1493,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         pile_discard: state.id_pile_discard.iter().copied().map(card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(card).collect(),
         rewards_card: state.id_card_rewards.iter().copied().map(card).collect(),
-        picks_card: state.id_card_picks.iter().copied().map(card).collect(),
+        picks_card: state.id_card_discover.iter().copied().map(card).collect(),
         relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),

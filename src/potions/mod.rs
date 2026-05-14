@@ -14,12 +14,14 @@ mod swift_potion;
 mod weak_potion;
 
 use rand::Rng;
+use strum::EnumCount;
 
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
 use crate::entity::Entity;
 use crate::types::PotionName;
+use crate::types::PotionRarity;
 
 pub fn get_potion(name: PotionName) -> Entity {
     match name {
@@ -40,25 +42,81 @@ pub fn get_potion(name: PotionName) -> Entity {
     }
 }
 
-pub const POTION_POOL_COMMON: &[PotionName] = &[
-    PotionName::EnergyPotion,
-    PotionName::BlockPotion,
-    PotionName::StrengthPotion,
-    PotionName::DexterityPotion,
-    PotionName::FirePotion,
-    PotionName::ExplosivePotion,
-    PotionName::WeakPotion,
-    PotionName::FearPotion,
-    PotionName::PoisonPotion,
-    PotionName::SwiftPotion,
-    PotionName::AttackPotion,
-    PotionName::SkillPotion,
-    PotionName::PowerPotion,
+pub const ALL_POTIONS: &[&'static Entity] = &[
+    &energy_potion::ENERGY_POTION,
+    &block_potion::BLOCK_POTION,
+    &strength_potion::STRENGTH_POTION,
+    &dexterity_potion::DEXTERITY_POTION,
+    &fire_potion::FIRE_POTION,
+    &explosive_potion::EXPLOSIVE_POTION,
+    &weak_potion::WEAK_POTION,
+    &fear_potion::FEAR_POTION,
+    &poison_potion::POISON_POTION,
+    &swift_potion::SWIFT_POTION,
+    &attack_potion::ATTACK_POTION,
+    &skill_potion::SKILL_POTION,
+    &power_potion::POWER_POTION,
+    &fruit_juice::FRUIT_JUICE,
 ];
 
-pub const POTION_POOL_UNCOMMON: &[PotionName] = &[];
+const fn potion_rarity_eq(a: PotionRarity, b: PotionRarity) -> bool {
+    matches!(
+        (a, b),
+        (PotionRarity::Common, PotionRarity::Common)
+            | (PotionRarity::Uncommon, PotionRarity::Uncommon)
+            | (PotionRarity::Rare, PotionRarity::Rare)
+    )
+}
 
-pub const POTION_POOL_RARE: &[PotionName] = &[PotionName::FruitJuice];
+const fn count_potion_pool(rarity: PotionRarity) -> usize {
+    let mut n = 0;
+    let mut i = 0;
+    while i < ALL_POTIONS.len() {
+        if potion_rarity_eq(ALL_POTIONS[i].potion_rarity, rarity) {
+            n += 1;
+        }
+        i += 1;
+    }
+    n
+}
+
+const fn build_potion_pool<const N: usize>(rarity: PotionRarity) -> [PotionName; N] {
+    let mut buf = [PotionName::EnergyPotion; N];
+    let mut idx = 0;
+    let mut i = 0;
+    while i < ALL_POTIONS.len() {
+        let p = ALL_POTIONS[i];
+        if potion_rarity_eq(p.potion_rarity, rarity) {
+            buf[idx] = p.potion_name;
+            idx += 1;
+        }
+        i += 1;
+    }
+    buf
+}
+
+const _: () = assert!(ALL_POTIONS.len() == PotionName::COUNT);
+const _: () = {
+    let mut seen = [false; PotionName::COUNT];
+    let mut i = 0;
+    while i < ALL_POTIONS.len() {
+        let idx = ALL_POTIONS[i].potion_name as usize;
+        assert!(!seen[idx], "ALL_POTIONS contains a duplicate PotionName");
+        seen[idx] = true;
+        i += 1;
+    }
+};
+
+const COMMON_POTION_N: usize = count_potion_pool(PotionRarity::Common);
+const UNCOMMON_POTION_N: usize = count_potion_pool(PotionRarity::Uncommon);
+const RARE_POTION_N: usize = count_potion_pool(PotionRarity::Rare);
+
+pub const POTION_POOL_COMMON: &[PotionName] =
+    &build_potion_pool::<COMMON_POTION_N>(PotionRarity::Common);
+pub const POTION_POOL_UNCOMMON: &[PotionName] =
+    &build_potion_pool::<UNCOMMON_POTION_N>(PotionRarity::Uncommon);
+pub const POTION_POOL_RARE: &[PotionName] =
+    &build_potion_pool::<RARE_POTION_N>(PotionRarity::Rare);
 
 // 65/25/10 tier roll; fall back to Common when the rolled tier is empty
 // (slai-only fallback for sparse S3 pools, snaps back once Uncommon ships)
@@ -89,22 +147,21 @@ pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) 
     slots[..cap].iter().position(|s| s.is_none())
 }
 
-// Append a fresh potion entity and write its id to the first free slot.
-// On full slots, the entity still exists (orphaned) but is unreachable
+// Returns the slot index on success, None when slots are full
 pub fn grant_potion(
     entities: &mut Vec<Entity>,
     id_character: usize,
     name: PotionName,
 ) -> Option<usize> {
+    let character = &entities[id_character];
+    let slot = match find_free_slot(&character.potion_slots, character.potion_slots_max) {
+        Some(s) => s,
+        None => return None,
+    };
     let id_potion = entities.len();
     entities.push(get_potion(name));
-    let character = &mut entities[id_character];
-    if let Some(slot) = find_free_slot(&character.potion_slots, character.potion_slots_max) {
-        character.potion_slots[slot] = Some(id_potion);
-        Some(slot)
-    } else {
-        None
-    }
+    entities[id_character].potion_slots[slot] = Some(id_potion);
+    Some(slot)
 }
 
 pub fn take_potion(character: &mut Entity, idx_slot: usize) -> Option<usize> {

@@ -22,7 +22,7 @@ pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
-pub mod process_effect_discover_pick;
+pub mod process_effect_card_discover_pick;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
 pub mod process_effect_energy_gain;
@@ -1021,11 +1021,11 @@ fn dispatch_by_kind(
                 &mut state.rng,
             )
         }
-        EffectKind::DiscoverPick { kind, count } => {
-            process_effect_discover_pick::process_effect_discover_pick(
+        EffectKind::CardDiscoverPick { kind, count } => {
+            process_effect_card_discover_pick::process_effect_card_discover_pick(
                 kind,
                 count,
-                &mut state.id_card_picks,
+                &mut state.id_card_discover,
                 &mut state.entities,
                 &mut state.rng,
             )
@@ -1068,9 +1068,9 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
     }
     // Discovery (Attack/Skill/Power Potion, etc.) halts before any other
     // state-derived phase so an in-combat potion-use can present its pick UI
-    if !state.id_card_picks.is_empty() {
-        return Phase::AwaitCardPick {
-            count: state.id_card_picks.len() as u8,
+    if !state.id_card_discover.is_empty() {
+        return Phase::CombatAwaitDiscover {
+            count: state.id_card_discover.len() as u8,
         };
     }
     // Card or relic rewards waiting to be picked or skipped

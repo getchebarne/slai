@@ -101,10 +101,10 @@ pub const ASCENSION_POTION_SLOT_PENALTY: u8 = 11;
 // Potion drop swing: chance = base + mod; +10 on miss, -10 on hit;
 // slai-only clamp prevents pathological drift in long RL runs
 pub const POTION_DROP_CHANCE_BASE: i8 = 40;
-pub const POTION_DROP_MOD_HIT: i8 = -10;
-pub const POTION_DROP_MOD_MISS: i8 = 10;
-pub const POTION_DROP_MOD_MIN: i8 = -30;
-pub const POTION_DROP_MOD_MAX: i8 = 60;
+pub const POTION_DROP_CHANCE_MOD_HIT: i8 = -10;
+pub const POTION_DROP_CHANCE_MOD_MISS: i8 = 10;
+pub const POTION_DROP_CHANCE_MOD_MIN: i8 = -30;
+pub const POTION_DROP_CHANCE_MOD_MAX: i8 = 60;
 
 // Potion rarity roll thresholds (rejection sampling against this in StS;
 // slai uses per-tier pools with fallback to Common when Uncommon is empty)

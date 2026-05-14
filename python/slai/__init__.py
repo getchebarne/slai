@@ -95,6 +95,8 @@ _MONSTER_POS = "position in the alive-monster list at dispatch time"
 _REWARD_POS = "slot in state.rewards_card / state.rewards_relic"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
+_SLOT_POS = "slot in state.character.potion_slots"
+_DISCOVER_POS = "position in state.picks_card (the discovery offer)"
 
 
 # Action spec registry
@@ -119,6 +121,15 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
         create_action_spec(ActionType.RoomSkip),
         create_action_spec(ActionType.ChestOpen),
+        create_action_spec(
+            ActionType.PotionUse,
+            ArgSpec("idx_slot", _SLOT_POS),
+            ArgSpec("idx_monster", _MONSTER_POS, optional=True),
+        ),
+        create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
+        create_action_spec(
+            ActionType.CardDiscoverPick, ArgSpec("idx_option", _DISCOVER_POS)
+        ),
     ]
 )
 

@@ -244,6 +244,11 @@ class ActionType(IntEnum):
     RelicRewardSkip: int
     RestSiteRest: int
     RestSiteCardUpgrade: int
+    RoomSkip: int
+    ChestOpen: int
+    PotionUse: int
+    PotionDiscard: int
+    CardDiscoverPick: int
 
 
 class CardCostKind:
@@ -280,6 +285,10 @@ class Phase:
 
     class CombatAwaitSetup:
         def __init__(self) -> None: ...
+
+    class CombatAwaitDiscover:
+        count: int
+        def __init__(self, count: int) -> None: ...
 
     class CombatReward:
         def __init__(self) -> None: ...
@@ -333,6 +342,11 @@ class Effect:
         target: Optional[Target]
 
     class CardNightmarePick:
+        target: Optional[Target]
+
+    class CardDiscoverPick:
+        kind: CardKind
+        count: int
         target: Optional[Target]
 
     class DistractionAdd:
@@ -439,6 +453,11 @@ class ActionSpecRegistry:
     RelicRewardSkip: ActionSpec
     RestSiteRest: ActionSpec
     RestSiteCardUpgrade: ActionSpec
+    RoomSkip: ActionSpec
+    ChestOpen: ActionSpec
+    PotionUse: ActionSpec
+    PotionDiscard: ActionSpec
+    CardDiscoverPick: ActionSpec
 
     def __getattr__(self, name: str) -> ActionSpec: ...
     def __getitem__(self, key: Union[int, str, ActionType]) -> ActionSpec: ...
@@ -500,6 +519,7 @@ class Card:
             Effect.GlassKnifeDecay,
             Effect.CardSetupPick,
             Effect.CardNightmarePick,
+            Effect.CardDiscoverPick,
             Effect.DistractionAdd,
             Effect.SetCostOverride,
             Effect.FinisherDamage,
