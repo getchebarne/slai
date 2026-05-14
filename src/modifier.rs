@@ -60,8 +60,6 @@ impl ModifierKind {
     }
 }
 
-/// Per-kind stack ceiling. Exposed for the FFI so the Python side can
-/// normalize modifier stacks for ML encoders without hardcoding a table.
 pub fn stacks_max_for(kind: ModifierKind) -> i16 {
     MODIFIER_DEFS[kind as usize].stacks_max
 }
