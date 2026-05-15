@@ -2,17 +2,17 @@ use std::collections::VecDeque;
 
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::utils::shuffle;
 
 use rand::Rng;
+use crate::types::Phase;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(
-    count: u8,
+    count: u16,
     entities: &[Entity],
     id_character: usize,
     id_pile_draw: &mut Vec<usize>,
@@ -21,10 +21,10 @@ pub fn process_effect_card_draw(
     card_last_drawn: &mut Option<usize>,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     if modifier_has(&entities[id_character].modifiers, ModifierKind::NoDraw) {
         // Early return
-        return DispatchResult::Continue;
+        return None;
     }
 
     // Buffer to track drawn card IDs
@@ -77,5 +77,5 @@ pub fn process_effect_card_draw(
         }
     }
 
-    DispatchResult::Continue
+    None
 }

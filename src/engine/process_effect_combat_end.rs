@@ -20,13 +20,13 @@ use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
 use crate::types::RoomKind;
+use crate::types::Phase;
 
 #[allow(clippy::too_many_arguments)]
 pub fn process_effect_combat_end(
@@ -45,7 +45,7 @@ pub fn process_effect_combat_end(
     potion_drop_mod: &mut i8,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Clear card piles and target
     id_hand.clear();
     id_pile_draw.clear();
@@ -123,7 +123,7 @@ pub fn process_effect_combat_end(
             unreachable!("combat end in non-combat room: {:?}", room)
         }
     }
-    DispatchResult::Continue
+    None
 }
 
 fn push_gold_gain(

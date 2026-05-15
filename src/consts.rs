@@ -12,7 +12,7 @@ pub const GOLD_BOSS_MAX: u16 = 105;
 
 // Combat
 pub const MAX_SIZE_HAND: usize = 10;
-pub const CARDS_DRAWN_PER_TURN: u8 = 5;
+pub const CARDS_DRAWN_PER_TURN: u16 = 5;
 pub const MAX_COMBAT_CARD_REWARD: usize = 3;
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_VULN: f32 = 1.50;

@@ -1,18 +1,18 @@
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::MAX_BLOCK;
-use crate::engine::DispatchResult;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::Vitals;
+use crate::types::Phase;
 
 pub fn process_effect_block_gain(
     vitals: &mut Vitals,
     modifiers: &Modifiers,
     amount: u16,
     from_card: bool,
-) -> DispatchResult {
+) -> Option<Phase> {
     let mut value = amount as f32;
 
     // Card-sourced block runs Dexterity then Frail
@@ -30,5 +30,5 @@ pub fn process_effect_block_gain(
         vitals.block = (vitals.block + final_block).min(MAX_BLOCK);
     }
 
-    DispatchResult::Continue
+    None
 }

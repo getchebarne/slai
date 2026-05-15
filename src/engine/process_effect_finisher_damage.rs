@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
+use crate::types::Phase;
 
 // Subtract 1 because card_play increments the counter before this effect fires
 pub fn process_effect_finisher_damage(
@@ -12,7 +12,7 @@ pub fn process_effect_finisher_damage(
     id_target: usize,
     damage: u16,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let num_attacks = this_turn_attacks_played.saturating_sub(1);
     for _ in 0..num_attacks {
         effect_queue.push_front(Effect {
@@ -21,5 +21,5 @@ pub fn process_effect_finisher_damage(
             target: Target::Direct(Some(id_target)),
         });
     }
-    DispatchResult::Continue
+    None
 }

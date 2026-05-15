@@ -3,11 +3,11 @@ use std::collections::VecDeque;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
+use crate::types::Phase;
 
 pub fn process_effect_death(
     id_target: usize,
@@ -16,13 +16,13 @@ pub fn process_effect_death(
     monster_count: u8,
     entities: &mut [Entity],
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Character death: abandon anything pending and mark dead so
     // derive_phase returns Phase::GameOver on the natural drain
     if id_target == id_character {
         entities[id_character].dead = true;
         effect_queue.clear();
-        return DispatchResult::Continue;
+        return None;
     }
 
     // Monster-only path
@@ -112,5 +112,5 @@ pub fn process_effect_death(
         }
     }
 
-    DispatchResult::Continue
+    None
 }

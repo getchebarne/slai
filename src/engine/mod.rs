@@ -97,17 +97,6 @@ use crate::types::RoomKind;
 use crate::utils::fill_alive_monster_ids;
 use crate::utils::shuffle;
 
-pub enum DispatchResult {
-    Continue,
-    /// The dispatcher needs player input. The effect_queue driver passes `(kind, num)`
-    /// to `derive_phase` to translate into a `Phase` and returns. `num` is
-    /// meaningful for `CardDiscard` and `CardRetain`; ignored for the others.
-    Halt {
-        kind: EffectKind,
-        num: u8,
-    },
-}
-
 // Stack-allocated buffer for effects that a handler wants to push to the
 // front of the effect_queue in order. Build up effects normally, then call
 // `push_all_front` once at the end of the handler
@@ -186,7 +175,7 @@ impl CandidateBuf {
 
 pub enum TargetResolution {
     Resolved,
-    AwaitInput { num: u8 },
+    AwaitInput { num: u16 },
 }
 
 pub(crate) fn resolve_candidates(
@@ -203,7 +192,9 @@ pub(crate) fn resolve_candidates(
 ) {
     match candidate_pool {
         CandidatePool::Hand => buf_cands.extend_from_slice(id_hand),
-        CandidatePool::CardTarget => buf_cands.push(id_card_target.unwrap()),
+        CandidatePool::CardTarget => buf_cands.push(
+            id_card_target.expect("CardTarget pool requires id_card_target to be Some"),
+        ),
         CandidatePool::Character => buf_cands.push(id_character),
         CandidatePool::Monsters => buf_cands.extend_from_slice(id_alive_monsters),
         CandidatePool::OtherMonsters => {
@@ -312,7 +303,7 @@ pub(crate) fn get_id_actor(entities: &[Entity], id_character: usize, id_source: 
 //    effects; on input-needed, returns `Halt { kind, num }`. The popped
 //    effect is dropped — the input handler in `action.rs` reconstructs work
 //    from the player's chosen targets
-pub fn process_effect(state: &mut GameState, effect: Effect) -> DispatchResult {
+pub fn process_effect(state: &mut GameState, effect: Effect) -> Option<Phase> {
     let id_target = match effect.target {
         Target::Direct(t) => t,
         Target::Resolve {
@@ -332,7 +323,7 @@ fn resolve_or_halt(
     id_source: Option<usize>,
     candidates: CandidatePool,
     selection: SelectionKind,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Stack locals
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let mut buf_cands = CandidateBuf::new();
@@ -368,16 +359,16 @@ fn resolve_or_halt(
                     target: Target::Direct(Some(id_target)),
                 });
             }
-            DispatchResult::Continue
+            None
         }
-        TargetResolution::AwaitInput { num } => match kind {
-            EffectKind::CardDiscard { .. }
-            | EffectKind::CardRetain
-            | EffectKind::CardSetupPick
-            | EffectKind::CardNightmarePick
-            | EffectKind::RoomSelect => DispatchResult::Halt { kind, num },
+        TargetResolution::AwaitInput { num } => Some(match kind {
+            EffectKind::CardDiscard { .. } => Phase::CombatAwaitDiscard { num },
+            EffectKind::CardRetain => Phase::CombatAwaitRetain { num },
+            EffectKind::CardSetupPick => Phase::CombatAwaitSetup,
+            EffectKind::CardNightmarePick => Phase::CombatAwaitNightmare,
+            EffectKind::RoomSelect => Phase::Map,
             _ => panic!("Unsupported effect kind for halting: {:?}", kind),
-        },
+        }),
     }
 }
 
@@ -386,7 +377,7 @@ fn dispatch_by_kind(
     kind: EffectKind,
     id_source: Option<usize>,
     id_target: Option<usize>,
-) -> DispatchResult {
+) -> Option<Phase> {
     match kind {
         EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
             count,
@@ -514,10 +505,7 @@ fn dispatch_by_kind(
             &mut state.entities,
         ),
         EffectKind::CardRewardClear => {
-            process_effect_card_reward_clear::process_effect_card_reward_clear(
-                &mut state.phase,
-                &mut state.effect_queue,
-            )
+            process_effect_card_reward_clear::process_effect_card_reward_clear(&mut state.phase)
         }
         EffectKind::RewardRollCombat {
             gold_range,
@@ -529,7 +517,6 @@ fn dispatch_by_kind(
             relic_thresholds,
             potion_drop,
             &state.id_relics,
-            &mut state.phase,
             &mut state.entities,
             &mut state.rng,
         ),
@@ -537,7 +524,6 @@ fn dispatch_by_kind(
             process_effect_reward_roll_chest::process_effect_reward_roll_chest(
                 kind,
                 &state.id_relics,
-                &mut state.phase,
                 &mut state.entities,
                 &mut state.rng,
             )
@@ -547,27 +533,21 @@ fn dispatch_by_kind(
                 &mut state.phase,
                 &mut state.entities,
                 state.id_character,
-                &mut state.effect_queue,
             )
         }
         EffectKind::PotionRewardClear => {
-            process_effect_potion_reward_clear::process_effect_potion_reward_clear(
-                &mut state.phase,
-                &mut state.effect_queue,
-            )
+            process_effect_potion_reward_clear::process_effect_potion_reward_clear(&mut state.phase)
         }
         EffectKind::GoldRewardTake => {
             process_effect_gold_reward_take::process_effect_gold_reward_take(
                 &mut state.phase,
                 &mut state.entities,
                 state.id_character,
-                &mut state.effect_queue,
             )
         }
-        EffectKind::RewardSkip => process_effect_reward_skip::process_effect_reward_skip(
-            &mut state.phase,
-            &mut state.effect_queue,
-        ),
+        EffectKind::RewardSkip => {
+            process_effect_reward_skip::process_effect_reward_skip(&mut state.phase)
+        }
         EffectKind::TargetSet => {
             let id_target = id_target.unwrap();
             process_effect_target_set::process_effect_target_set(
@@ -977,21 +957,17 @@ fn dispatch_by_kind(
             state
                 .effect_queue
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
-            DispatchResult::Continue
+            None
         }
         EffectKind::RelicRewardSelect => {
             process_effect_relic_reward_select::process_effect_relic_reward_select(
                 &mut state.phase,
                 &state.entities,
                 &mut state.id_relics,
-                &mut state.effect_queue,
             )
         }
         EffectKind::RelicRewardClear => {
-            process_effect_relic_reward_clear::process_effect_relic_reward_clear(
-                &mut state.phase,
-                &mut state.effect_queue,
-            )
+            process_effect_relic_reward_clear::process_effect_relic_reward_clear(&mut state.phase)
         }
         EffectKind::CardRemoveFromDeck => {
             process_effect_card_remove_from_deck::process_effect_card_remove_from_deck(
@@ -1048,7 +1024,6 @@ fn dispatch_by_kind(
             process_effect_card_discover_pick::process_effect_card_discover_pick(
                 kind,
                 count,
-                &mut state.phase,
                 &mut state.entities,
                 &mut state.rng,
             )
@@ -1058,29 +1033,10 @@ fn dispatch_by_kind(
 }
 
 // Single source of truth for `Phase`. Every `Phase::…` constructor lives
-// here (apart from the one-time init in `game.rs`).
-//
-// Two cases:
-//  - `halt = Some((kind, num))` — dispatcher needs player input mid-chain.
-//    Translate the halted `EffectKind` into the matching `CombatAwait*` /
-//    `Map` phase. Wins before any state-derived phase because work is
-//    still queued
-//  - `halt = None` — effect_queue drained naturally. Derive the resting phase
-//    from state; every clause corresponds to a piece of state that signals
-//    a player-input situation
-pub fn derive_phase(state: &mut GameState, halt: Option<(EffectKind, u8)>) {
-    if let Some((kind, num)) = halt {
-        state.phase = match kind {
-            EffectKind::CardDiscard { .. } => Phase::CombatAwaitDiscard { num },
-            EffectKind::CardRetain => Phase::CombatAwaitRetain { num },
-            EffectKind::CardSetupPick => Phase::CombatAwaitSetup,
-            EffectKind::CardNightmarePick => Phase::CombatAwaitNightmare,
-            EffectKind::RoomSelect => Phase::Map,
-            _ => unreachable!("non-halt EffectKind reached derive_phase: {:?}", kind),
-        };
-        return;
-    }
-
+// here (apart from the one-time init in `game.rs`). Called only after the
+// effect_queue drains naturally — handler-driven halts produce their own
+// Phase via `Option<Phase>` and bypass this function entirely
+pub fn derive_phase(state: &mut GameState) {
     // Character death: end of run
     if state.entities[state.id_character].dead {
         state.phase = Phase::GameOver;
@@ -1132,65 +1088,15 @@ pub fn derive_phase(state: &mut GameState, halt: Option<(EffectKind, u8)>) {
     };
 }
 
-// Ensure state.phase is Phase::Reward; if not, swap it in with empty pools.
-// Returns a `&mut Phase` aliasing state.phase so callers can pattern-match.
-pub fn enter_reward(phase: &mut Phase) -> &mut Phase {
-    if !matches!(phase, Phase::Reward { .. }) {
-        *phase = Phase::Reward {
-            id_cards: Vec::new(),
-            id_relic: None,
-            id_potion: None,
-            gold: None,
-        };
-    }
-    phase
-}
-
-pub fn enter_discover(phase: &mut Phase) -> &mut Phase {
-    if !matches!(phase, Phase::CombatAwaitDiscover { .. }) {
-        *phase = Phase::CombatAwaitDiscover {
-            id_cards: Vec::new(),
-        };
-    }
-    phase
-}
-
-// Push RoomSelect if all four reward pools are empty. No-op if any pool still has content
-// (e.g., player just took the relic but cards/potion/gold remain) or if phase isn't Reward
-pub fn try_complete_reward(phase: &Phase, effect_queue: &mut VecDeque<Effect>) {
-    let Phase::Reward {
-        id_cards,
-        id_relic,
-        id_potion,
-        gold,
-    } = phase
-    else {
-        return;
-    };
-    if id_cards.is_empty() && id_relic.is_none() && id_potion.is_none() && gold.is_none() {
-        effect_queue.push_front(Effect {
-            kind: EffectKind::RoomSelect,
-            id_source: None,
-            target: Target::Resolve {
-                candidates: CandidatePool::NextRowRooms,
-                selection: SelectionKind::Input { count: 1 },
-            },
-        });
-    }
-}
-
 pub fn process_queue(state: &mut GameState) {
     loop {
         let Some(effect) = state.effect_queue.pop_front() else {
-            derive_phase(state, None);
+            derive_phase(state);
             return;
         };
-        match process_effect(state, effect) {
-            DispatchResult::Continue => {}
-            DispatchResult::Halt { kind, num } => {
-                derive_phase(state, Some((kind, num)));
-                return;
-            }
+        if let Some(phase) = process_effect(state, effect) {
+            state.phase = phase;
+            return;
         }
     }
 }

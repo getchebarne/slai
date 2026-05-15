@@ -54,7 +54,7 @@ impl GameEnv {
     #[classattr]
     const MAX_COMBAT_CARD_REWARD: usize = consts::MAX_COMBAT_CARD_REWARD;
     #[classattr]
-    const CARDS_DRAWN_PER_TURN: u8 = consts::CARDS_DRAWN_PER_TURN;
+    const CARDS_DRAWN_PER_TURN: u16 = consts::CARDS_DRAWN_PER_TURN;
     #[classattr]
     const NIGHTMARE_COPIES: u8 = consts::NIGHTMARE_COPIES;
     #[classattr]

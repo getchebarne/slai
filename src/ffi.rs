@@ -703,9 +703,9 @@ impl From<CandidatePool> for PyCandidatePool {
 pub enum PyPhase {
     Map {},
     CombatDefault {},
-    CombatAwaitDiscard { num: u8 },
+    CombatAwaitDiscard { num: u16 },
     CombatAwaitNightmare {},
-    CombatAwaitRetain { num: u8 },
+    CombatAwaitRetain { num: u16 },
     CombatAwaitSetup {},
     Reward {
         rewards_card: Vec<PyCard>,
@@ -751,7 +751,7 @@ pub enum PySelectionKind {
     All {},
     Single {},
     Random { count: u8 },
-    Input { count: u8 },
+    Input { count: u16 },
 }
 
 impl From<SelectionKind> for PySelectionKind {
@@ -1043,17 +1043,17 @@ pub enum PyEffect {
         target: Option<PyTarget>,
     },
     EnergyGain {
-        amount: u8,
+        amount: u16,
         target: Option<PyTarget>,
     },
     CardAddToHand {
         card_name: String,
-        count: u8,
+        count: u16,
         upgraded: bool,
         target: Option<PyTarget>,
     },
     CardDraw {
-        count: u8,
+        count: u16,
         target: Option<PyTarget>,
     },
     DrawUpTo {

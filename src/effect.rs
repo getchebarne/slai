@@ -51,10 +51,10 @@ pub enum EffectKind {
         kind: ModifierKind,
     },
     EnergyGain {
-        amount: u8,
+        amount: u16,
     },
     CardDraw {
-        count: u8,
+        count: u16,
     },
     DrawUpTo {
         amount: u8,
@@ -66,7 +66,7 @@ pub enum EffectKind {
     },
     CardAddToHand {
         card_name: CardName,
-        count: u8,
+        count: u16,
         upgraded: bool,
     },
     CardDiscard {
@@ -218,7 +218,7 @@ pub enum SelectionKind {
     All,
     Single,
     Random { count: u8 },
-    Input { count: u8 },
+    Input { count: u16 },
 }
 
 // Target: whether an Effect's target is already known (Direct) or must be

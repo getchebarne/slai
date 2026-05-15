@@ -6,13 +6,13 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::game::Location;
+use crate::types::Phase;
 
 pub fn process_effect_rest_site_exit(
     location: &mut Location,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let at_final_row = matches!(*location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1);
 
     if at_final_row {
@@ -28,5 +28,5 @@ pub fn process_effect_rest_site_exit(
             },
         });
     }
-    DispatchResult::Continue
+    None
 }

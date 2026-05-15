@@ -1,6 +1,6 @@
 use crate::effect::EffectKind;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
+use crate::types::Phase;
 
 // Glass Knife mutates its own DamagePhysical amounts in-place by `delta`.
 // `id_target` is the card itself (resolved via CandidatePool::Source from
@@ -9,7 +9,7 @@ pub fn process_effect_glass_knife_decay(
     entities: &mut [Entity],
     id_target: usize,
     delta: i16,
-) -> DispatchResult {
+) -> Option<Phase> {
     let card = &mut entities[id_target];
     let num_effects = card.card_effects_len as usize;
     for effect in card.card_effects[..num_effects].iter_mut() {
@@ -18,5 +18,5 @@ pub fn process_effect_glass_knife_decay(
             *amount = new as u16;
         }
     }
-    DispatchResult::Continue
+    None
 }

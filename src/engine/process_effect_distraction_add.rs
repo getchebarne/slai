@@ -4,11 +4,11 @@ use crate::cards::POOL_COMMON;
 use crate::cards::POOL_RARE;
 use crate::cards::POOL_UNCOMMON;
 use crate::cards::get_card;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::entity::add_card_to_hand_or_discard;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::Phase;
 
 // Distraction: spawn a random Silent Skill (excluding Distraction itself) as
 // a free-to-play-once card in hand
@@ -17,7 +17,7 @@ pub fn process_effect_distraction_add(
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
     rng: &mut impl Rng,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Build the candidate pool
     // Stack buffer big enough for the current pool
     let mut buf = [CardName::Strike; 64];
@@ -35,7 +35,7 @@ pub fn process_effect_distraction_add(
         }
     }
     if n == 0 {
-        return DispatchResult::Continue;
+        return None;
     }
 
     // Pick a random card
@@ -46,5 +46,5 @@ pub fn process_effect_distraction_add(
     card.card_free_to_play_once = true;
 
     add_card_to_hand_or_discard(entities, id_hand, id_pile_discard, card);
-    DispatchResult::Continue
+    None
 }
