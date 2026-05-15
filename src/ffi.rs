@@ -680,7 +680,6 @@ pub enum PyCandidatePool {
     OtherMonsters,
     Source,
     NextRowRooms,
-    CardRewardPool,
 }
 
 impl From<CandidatePool> for PyCandidatePool {
@@ -693,7 +692,6 @@ impl From<CandidatePool> for PyCandidatePool {
             CandidatePool::OtherMonsters => Self::OtherMonsters,
             CandidatePool::Source => Self::Source,
             CandidatePool::NextRowRooms => Self::NextRowRooms,
-            CandidatePool::CardRewardPool => Self::CardRewardPool,
         }
     }
 }
@@ -720,11 +718,11 @@ pub enum PyPhase {
     Chest {},
     EventRoom {},
     Shop {},
-    CombatAwaitDiscover { count: u8 },
+    CombatAwaitDiscover { picks_card: Vec<PyCard> },
 }
 
-// Data-free variants only. Phase::Reward carries entity ids that need the GameState
-// to snapshot — see `snapshot_phase`, which must own that path
+// Data-free variants only. Phase::Reward and Phase::CombatAwaitDiscover carry entity
+// ids that need the GameState to snapshot — see `snapshot_phase`, which owns that path
 impl From<&Phase> for PyPhase {
     fn from(p: &Phase) -> Self {
         match p {
@@ -739,8 +737,10 @@ impl From<&Phase> for PyPhase {
             Phase::Chest => Self::Chest {},
             Phase::EventRoom => Self::EventRoom {},
             Phase::Shop => Self::Shop {},
-            Phase::CombatAwaitDiscover { count } => Self::CombatAwaitDiscover { count: *count },
             Phase::Reward { .. } => unreachable!("Phase::Reward must go through snapshot_phase"),
+            Phase::CombatAwaitDiscover { .. } => {
+                unreachable!("Phase::CombatAwaitDiscover must go through snapshot_phase")
+            }
         }
     }
 }
@@ -1328,7 +1328,6 @@ pub struct PyGameState {
     pub pile_draw: Vec<PyCard>,
     pub pile_discard: Vec<PyCard>,
     pub pile_exhaust: Vec<PyCard>,
-    pub picks_card: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
     pub energy: PyEnergy,
     pub map: PyMap,
@@ -1519,7 +1518,6 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         pile_draw: state.id_pile_draw.iter().copied().map(&card).collect(),
         pile_discard: state.id_pile_discard.iter().copied().map(&card).collect(),
         pile_exhaust: state.id_pile_exhaust.iter().copied().map(&card).collect(),
-        picks_card: state.id_card_discover.iter().copied().map(&card).collect(),
         relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
@@ -1539,6 +1537,9 @@ fn snapshot_phase(state: &GameState, card: &impl Fn(usize) -> PyCard) -> PyPhase
             rewards_relic: id_relic.map(|id| snapshot_relic(&state.entities[id])),
             rewards_potion: id_potion.map(|id| snapshot_potion(&state.entities[id])),
             rewards_gold: *gold,
+        },
+        Phase::CombatAwaitDiscover { id_cards } => PyPhase::CombatAwaitDiscover {
+            picks_card: id_cards.iter().copied().map(card).collect(),
         },
         other => other.into(),
     }

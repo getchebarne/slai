@@ -308,7 +308,7 @@ pub enum Phase {
     },
     CombatDefault,
     CombatAwaitDiscard { num: u8 },
-    CombatAwaitDiscover { count: u8 },
+    CombatAwaitDiscover { id_cards: Vec<usize> },
     CombatAwaitNightmare,
     CombatAwaitRetain { num: u8 },
     CombatAwaitSetup,

@@ -349,6 +349,18 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &curses::PARASITE,
     &curses::NORMALITY,
 ];
+// Assert all cards are included without duplicates
+const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);
+const _: () = {
+    let mut seen = [false; CardName::COUNT];
+    let mut idx_all = 0;
+    while idx_all < ALL_CARDS.len() {
+        let idx_card = ALL_CARDS[idx_all].card_name as usize;
+        assert!(!seen[idx_card], "ALL_CARDS contains a duplicate CardName");
+        seen[idx_card] = true;
+        idx_all += 1;
+    }
+};
 
 const fn rarity_eq(a: CardRarity, b: CardRarity) -> bool {
     matches!(
@@ -419,18 +431,6 @@ const fn build_pool<const N: usize>(rarity: CardRarity) -> [CardName; N] {
     }
     buf
 }
-
-const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);
-const _: () = {
-    let mut seen = [false; CardName::COUNT];
-    let mut idx_all = 0;
-    while idx_all < ALL_CARDS.len() {
-        let idx_card = ALL_CARDS[idx_all].card_name as usize;
-        assert!(!seen[idx_card], "ALL_CARDS contains a duplicate CardName");
-        seen[idx_card] = true;
-        idx_all += 1;
-    }
-};
 
 // Get number of cards per rarity-pool
 const NUM_COMMON: usize = count_pool(CardRarity::Common);

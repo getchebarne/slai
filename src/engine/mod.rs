@@ -5,6 +5,7 @@ pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_add_to_hand;
 pub mod process_effect_card_discard;
+pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move_to_discard;
@@ -21,7 +22,6 @@ pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
-pub mod process_effect_card_discover_pick;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
 pub mod process_effect_energy_gain;
@@ -32,6 +32,7 @@ pub mod process_effect_finisher_damage;
 pub mod process_effect_flechettes_damage;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_gain;
+pub mod process_effect_gold_reward_take;
 pub mod process_effect_gold_steal;
 pub mod process_effect_health_gain;
 pub mod process_effect_health_loss;
@@ -51,18 +52,17 @@ pub mod process_effect_monster_spawn;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
-pub mod process_effect_gold_reward_take;
 pub mod process_effect_potion_add;
 pub mod process_effect_potion_add_random;
 pub mod process_effect_potion_reward_clear;
 pub mod process_effect_potion_reward_select;
 pub mod process_effect_potion_use;
-pub mod process_effect_reward_skip;
 pub mod process_effect_relic_reward_clear;
 pub mod process_effect_relic_reward_select;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
+pub mod process_effect_reward_skip;
 pub mod process_effect_room_enter;
 pub mod process_effect_set_cost_override;
 pub mod process_effect_sneaky_strike_proc;
@@ -190,7 +190,7 @@ pub enum TargetResolution {
 }
 
 pub(crate) fn resolve_candidates(
-    candidates: CandidatePool,
+    candidate_pool: CandidatePool,
     id_source: usize,
     id_character: usize,
     id_hand: &[usize],
@@ -199,10 +199,9 @@ pub(crate) fn resolve_candidates(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
-    phase: &Phase,
     buf_cands: &mut CandidateBuf,
 ) {
-    match candidates {
+    match candidate_pool {
         CandidatePool::Hand => buf_cands.extend_from_slice(id_hand),
         CandidatePool::CardTarget => buf_cands.push(id_card_target.unwrap()),
         CandidatePool::Character => buf_cands.push(id_character),
@@ -215,11 +214,6 @@ pub(crate) fn resolve_candidates(
             }
         }
         CandidatePool::Source => buf_cands.push(id_source),
-        CandidatePool::CardRewardPool => {
-            if let Phase::Reward { id_cards, .. } = phase {
-                buf_cands.extend_from_slice(id_cards);
-            }
-        }
         CandidatePool::NextRowRooms => match location {
             Location::Start => {
                 for col in 0..MAP_WIDTH {
@@ -250,7 +244,7 @@ pub(crate) fn resolve_candidates(
 }
 
 fn resolve_targets(
-    candidates: CandidatePool,
+    candidate_pool: CandidatePool,
     selection: SelectionKind,
     id_source: usize,
     id_character: usize,
@@ -260,12 +254,11 @@ fn resolve_targets(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
-    phase: &Phase,
     rng: &mut impl Rng,
     buf_cands: &mut CandidateBuf,
 ) -> TargetResolution {
     resolve_candidates(
-        candidates,
+        candidate_pool,
         id_source,
         id_character,
         id_hand,
@@ -274,7 +267,6 @@ fn resolve_targets(
         id_rooms,
         location,
         entities,
-        phase,
         buf_cands,
     );
     match selection {
@@ -362,7 +354,6 @@ fn resolve_or_halt(
         &state.id_rooms,
         state.location,
         &state.entities,
-        &state.phase,
         &mut state.rng,
         &mut buf_cands,
     );
@@ -1057,7 +1048,7 @@ fn dispatch_by_kind(
             process_effect_card_discover_pick::process_effect_card_discover_pick(
                 kind,
                 count,
-                &mut state.id_card_discover,
+                &mut state.phase,
                 &mut state.entities,
                 &mut state.rng,
             )
@@ -1101,16 +1092,20 @@ pub fn derive_phase(state: &mut GameState, halt: Option<(EffectKind, u8)>) {
         state.phase = Phase::GameOver;
         return;
     }
-    // Discovery (Attack/Skill/Power Potion, etc.) halts before any other
-    // state-derived phase so an in-combat potion-use can present its pick UI
-    if !state.id_card_discover.is_empty() {
-        state.phase = Phase::CombatAwaitDiscover {
-            count: state.id_card_discover.len() as u8,
-        };
-        return;
+    // Sticky discover phase: stay put while picks remain (Attack/Skill/Power Potion etc.)
+    if let Phase::CombatAwaitDiscover { id_cards } = &state.phase {
+        if !id_cards.is_empty() {
+            return;
+        }
     }
     // Sticky reward phase: stay put while any pool has something to surface
-    if let Phase::Reward { id_cards, id_relic, id_potion, gold } = &state.phase {
+    if let Phase::Reward {
+        id_cards,
+        id_relic,
+        id_potion,
+        gold,
+    } = &state.phase
+    {
         if !id_cards.is_empty() || id_relic.is_some() || id_potion.is_some() || gold.is_some() {
             return;
         }
@@ -1151,10 +1146,25 @@ pub fn enter_reward(phase: &mut Phase) -> &mut Phase {
     phase
 }
 
+pub fn enter_discover(phase: &mut Phase) -> &mut Phase {
+    if !matches!(phase, Phase::CombatAwaitDiscover { .. }) {
+        *phase = Phase::CombatAwaitDiscover {
+            id_cards: Vec::new(),
+        };
+    }
+    phase
+}
+
 // Push RoomSelect if all four reward pools are empty. No-op if any pool still has content
 // (e.g., player just took the relic but cards/potion/gold remain) or if phase isn't Reward
 pub fn try_complete_reward(phase: &Phase, effect_queue: &mut VecDeque<Effect>) {
-    let Phase::Reward { id_cards, id_relic, id_potion, gold } = phase else {
+    let Phase::Reward {
+        id_cards,
+        id_relic,
+        id_potion,
+        gold,
+    } = phase
+    else {
         return;
     };
     if id_cards.is_empty() && id_relic.is_none() && id_potion.is_none() && gold.is_none() {

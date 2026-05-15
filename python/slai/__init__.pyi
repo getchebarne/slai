@@ -291,8 +291,8 @@ class Phase:
         def __init__(self) -> None: ...
 
     class CombatAwaitDiscover:
-        count: int
-        def __init__(self, count: int) -> None: ...
+        picks_card: list[Card]
+        def __init__(self, picks_card: list[Card]) -> None: ...
 
     class Reward:
         rewards_card: list[Card]

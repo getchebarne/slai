@@ -211,7 +211,6 @@ pub enum CandidatePool {
     OtherMonsters,
     Source,
     NextRowRooms,
-    CardRewardPool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -534,14 +534,15 @@ fn handle_card_discover_pick(
     state: &mut GameState,
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
-    let id_card = *state
-        .id_card_discover
+    let Phase::CombatAwaitDiscover { id_cards } = &mut state.phase else {
+        return Err(format!("CardDiscoverPick invalid in phase {:?}", state.phase));
+    };
+    let id_card = *id_cards
         .get(idx_option)
         .ok_or_else(|| format!("CardDiscoverPick: idx_option {} out of range", idx_option))?;
-    let card = &mut state.entities[id_card];
-    card.card_free_to_play_once = true;
+    id_cards.clear();
+    state.entities[id_card].card_free_to_play_once = true;
     state.id_hand.push(id_card);
-    state.id_card_discover.clear();
     Ok(Vec::new())
 }
 
