@@ -12,12 +12,12 @@ use crate::types::RelicName;
 use crate::utils::add_relic_reward_for_roll;
 
 pub fn process_effect_reward_roll_chest(
-    kind: ChestKind,
+    chest_kind: ChestKind,
     id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> Option<Phase> {
-    let params = match kind {
+    let chest_params = match chest_kind {
         ChestKind::Small => CHEST_SMALL,
         ChestKind::Medium => CHEST_MEDIUM,
         ChestKind::Large => CHEST_LARGE,
@@ -25,25 +25,30 @@ pub fn process_effect_reward_roll_chest(
 
     // Shared roll: gold-yes/no and relic-tier share the same draw
     let roll = rng.random_range(0..100) as u8;
-    let gold = if roll < params.gold_chance {
-        Some(roll_gold_amount(rng, params))
+    let gold = if roll < chest_params.gold_chance {
+        Some(roll_gold_amount(rng, chest_params))
     } else {
         None
     };
     let id_relic = Some(add_relic_reward_for_roll(
         roll,
-        params.th_common,
-        params.th_uncommon,
+        chest_params.th_common,
+        chest_params.th_uncommon,
         id_relics,
         entities,
         rng,
     ));
 
-    Some(Phase::Reward { id_cards: Vec::new(), id_relic, id_potion: None, gold })
+    Some(Phase::Reward {
+        id_cards: Vec::new(),
+        id_relic,
+        id_potion: None,
+        gold,
+    })
 }
 
-fn roll_gold_amount(rng: &mut impl Rng, params: ChestParams) -> u16 {
-    let base = params.gold_base as f32;
+fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {
+    let base = chest_params.gold_base as f32;
     let factor = rng.random_range(0.9..=1.1);
     (base * factor).round() as u16
 }

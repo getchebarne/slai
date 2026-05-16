@@ -52,7 +52,6 @@ pub mod process_effect_monster_spawn;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
-pub mod process_effect_potion_add;
 pub mod process_effect_potion_add_random;
 pub mod process_effect_potion_reward_clear;
 pub mod process_effect_potion_reward_select;
@@ -507,19 +506,17 @@ fn dispatch_by_kind(
         EffectKind::CardRewardClear => {
             process_effect_card_reward_clear::process_effect_card_reward_clear(&mut state.phase)
         }
-        EffectKind::RewardRollCombat {
-            gold_range,
-            relic_thresholds,
-            potion_drop,
-        } => process_effect_reward_roll_combat::process_effect_reward_roll_combat(
-            state.id_character,
-            gold_range,
-            relic_thresholds,
-            potion_drop,
-            &state.id_relics,
-            &mut state.entities,
-            &mut state.rng,
-        ),
+        EffectKind::RewardRollCombat { room_kind } => {
+            process_effect_reward_roll_combat::process_effect_reward_roll_combat(
+                room_kind,
+                state.id_character,
+                &state.id_relics,
+                state.escaped_this_combat,
+                &mut state.potion_drop_mod,
+                &mut state.entities,
+                &mut state.rng,
+            )
+        }
         EffectKind::RewardRollChest { kind } => {
             process_effect_reward_roll_chest::process_effect_reward_roll_chest(
                 kind,
@@ -810,8 +807,6 @@ fn dispatch_by_kind(
             &mut state.id_card_nightmare,
             &state.id_rooms,
             state.location,
-            state.escaped_this_combat,
-            &mut state.potion_drop_mod,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -1005,13 +1000,6 @@ fn dispatch_by_kind(
             &state.entities,
             &mut state.effect_queue,
         ),
-        EffectKind::PotionAdd { potion_name } => {
-            process_effect_potion_add::process_effect_potion_add(
-                potion_name,
-                state.id_character,
-                &mut state.entities,
-            )
-        }
         EffectKind::PotionAddRandom { limited } => {
             process_effect_potion_add_random::process_effect_potion_add_random(
                 limited,

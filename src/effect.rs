@@ -3,7 +3,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::ChestKind;
 use crate::types::MonsterName;
-use crate::types::PotionName;
+use crate::types::RoomKind;
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -89,9 +89,7 @@ pub enum EffectKind {
     CardUpgrade,
     CardRewardClear,
     RewardRollCombat {
-        gold_range: Option<(u16, u16)>,
-        relic_thresholds: Option<(u8, u8)>,
-        potion_drop: bool,
+        room_kind: RoomKind,
     },
     RewardRollChest {
         kind: ChestKind,
@@ -168,9 +166,6 @@ pub enum EffectKind {
 
     // Potions
     PotionUse,
-    PotionAdd {
-        potion_name: PotionName,
-    },
     PotionAddRandom {
         limited: bool,
     },

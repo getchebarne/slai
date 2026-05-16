@@ -10,10 +10,10 @@ pub fn process_effect_potion_use(
     effect_queue: &mut VecDeque<Effect>,
 ) -> Option<Phase> {
     let potion = &entities[id_potion];
-    for eff in potion.potion_effects.iter().rev() {
+    for effect in potion.potion_effects.iter().rev() {
         effect_queue.push_front(Effect {
             id_source: Some(id_potion),
-            ..*eff
+            ..*effect
         });
     }
     None
