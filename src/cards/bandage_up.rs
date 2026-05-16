@@ -41,7 +41,7 @@ pub static BANDAGE_UP_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = BANDAGE_UP.card_effects;
-        a[0].kind = EffectKind::HealthGain { amount: 6 };
+        a[0].kind = EffectKind::HealthGain { amount: 6 }; // +2 heal
         a
     },
     ..BANDAGE_UP

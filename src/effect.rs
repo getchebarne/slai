@@ -2,7 +2,10 @@ use crate::modifier::ModifierKind;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::ChestKind;
+use crate::types::DeckSelectKind;
 use crate::types::MonsterName;
+use crate::types::RelicName;
+use crate::types::RelicTier;
 use crate::types::RoomKind;
 
 // EffectKind: the shared "what happens" enum
@@ -183,6 +186,46 @@ pub enum EffectKind {
     CardDiscoverSelect {
         kind: CardKind,
         count: u8,
+    },
+
+    // Event substrate
+    GoldLoss {
+        amount: u16,
+    },
+    HealthGainPct {
+        numer: u8,
+        denom: u8,
+    },
+    HealthLossPct {
+        numer: u8,
+        denom: u8,
+    },
+    MaxHealthLossPct {
+        numer: u8,
+        denom: u8,
+    },
+    CardUpgradeRandomInDeck {
+        count: u8,
+    },
+    CardTransformRoll,
+    RelicGrantRandom {
+        tier: Option<RelicTier>,
+    },
+    RelicGrantSpecific {
+        name: RelicName,
+        fallback_circlet: bool,
+    },
+    EventAdvanceState {
+        delta: i8,
+    },
+    RollD100Branch {
+        chance: u8,
+        on_lt: &'static [Effect],
+        on_ge: &'static [Effect],
+    },
+    EventEnd,
+    DeckSelectStart {
+        kind: DeckSelectKind,
     },
 }
 

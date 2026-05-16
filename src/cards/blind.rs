@@ -40,7 +40,7 @@ pub static BLIND: Entity = make_entity_card(
     &[],
     PlayRestriction::Always,
 );
-// Upgraded: target ALL enemies, no longer requires_target
+// Upgraded
 pub static BLIND_PLUS: Entity = Entity {
     card_upgraded: true,
     requires_target: false,
@@ -49,7 +49,7 @@ pub static BLIND_PLUS: Entity = Entity {
         a[0].target = Target::Resolve {
             candidates: CandidatePool::Monsters,
             selection: SelectionKind::All,
-        };
+        }; // Targets all monsters
         a
     },
     ..BLIND

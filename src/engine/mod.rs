@@ -15,26 +15,35 @@ pub mod process_effect_card_remove_from_deck;
 pub mod process_effect_card_retain;
 pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_setup_pick;
+pub mod process_effect_card_transform_roll;
 pub mod process_effect_card_upgrade;
+pub mod process_effect_card_upgrade_random_in_deck;
 pub mod process_effect_chest_open;
 pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
+pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
+pub mod process_effect_deck_select_start;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
 pub mod process_effect_escape_monster;
 pub mod process_effect_escape_plan_check;
+pub mod process_effect_event_advance_state;
+pub mod process_effect_event_end;
 pub mod process_effect_finisher_damage;
 pub mod process_effect_flechettes_damage;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_gain;
+pub mod process_effect_gold_loss;
 pub mod process_effect_gold_steal;
 pub mod process_effect_health_gain;
+pub mod process_effect_health_gain_pct;
 pub mod process_effect_health_loss;
+pub mod process_effect_health_loss_pct;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_hexaghost_divider;
@@ -42,7 +51,7 @@ pub mod process_effect_id_card_nightmare_pick;
 pub mod process_effect_id_card_nightmare_spawn;
 pub mod process_effect_max_health_gain;
 pub mod process_effect_max_health_loss;
-pub mod process_effect_mind_blast_damage;
+pub mod process_effect_max_health_loss_pct;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -54,6 +63,8 @@ pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_potion_add_random;
 pub mod process_effect_potion_use;
+pub mod process_effect_relic_grant_random;
+pub mod process_effect_relic_grant_specific;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
@@ -61,6 +72,7 @@ pub mod process_effect_reward_skip;
 pub mod process_effect_reward_take_gold;
 pub mod process_effect_reward_take_potion;
 pub mod process_effect_reward_take_relic;
+pub mod process_effect_roll_d100_branch;
 pub mod process_effect_room_enter;
 pub mod process_effect_set_cost_override;
 pub mod process_effect_shuffle_discard_pile_into_draw_pile;
@@ -91,6 +103,7 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
 use crate::map::room_at;
+use crate::types::CardColor;
 use crate::types::Phase;
 use crate::types::RoomKind;
 use crate::utils::fill_alive_monster_ids;
@@ -445,7 +458,7 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::DamageMindBlast => {
-            process_effect_mind_blast_damage::process_effect_mind_blast_damage(
+            process_effect_damage_mind_blast::process_effect_damage_mind_blast(
                 id_source,
                 id_target.unwrap(),
                 state.id_pile_draw.len(),
@@ -896,6 +909,7 @@ fn dispatch_by_kind(
             &mut state.encounter_list_normal,
             &mut state.encounter_list_elite,
             state.encounter_boss,
+            &mut state.events_seen_this_run,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -1019,10 +1033,104 @@ fn dispatch_by_kind(
         EffectKind::CardDiscoverSelect { kind, count } => {
             process_effect_card_discover_select::process_effect_card_discover_select(
                 kind,
+                CardColor::Green, // TODO: other characters
                 count,
                 &mut state.entities,
                 &mut state.rng,
             )
+        }
+        EffectKind::GoldLoss { amount } => {
+            let character = &mut state.entities[state.id_character];
+            process_effect_gold_loss::process_effect_gold_loss(character, amount)
+        }
+        EffectKind::HealthGainPct { numer, denom } => {
+            let character = &state.entities[state.id_character];
+            process_effect_health_gain_pct::process_effect_health_gain_pct(
+                character,
+                state.id_character,
+                numer,
+                denom,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::HealthLossPct { numer, denom } => {
+            let character = &state.entities[state.id_character];
+            process_effect_health_loss_pct::process_effect_health_loss_pct(
+                character,
+                state.id_character,
+                numer,
+                denom,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::MaxHealthLossPct { numer, denom } => {
+            let character = &state.entities[state.id_character];
+            process_effect_max_health_loss_pct::process_effect_max_health_loss_pct(
+                character,
+                state.id_character,
+                numer,
+                denom,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::CardUpgradeRandomInDeck { count } => {
+            process_effect_card_upgrade_random_in_deck::process_effect_card_upgrade_random_in_deck(
+                count,
+                &state.entities,
+                &state.id_deck,
+                &mut state.rng,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::CardTransformRoll => {
+            process_effect_card_transform_roll::process_effect_card_transform_roll(
+                &mut state.rng,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::RelicGrantRandom { tier } => {
+            process_effect_relic_grant_random::process_effect_relic_grant_random(
+                tier,
+                &mut state.id_relics,
+                &mut state.entities,
+                &mut state.rng,
+            )
+        }
+        EffectKind::RelicGrantSpecific {
+            name,
+            fallback_circlet,
+        } => process_effect_relic_grant_specific::process_effect_relic_grant_specific(
+            name,
+            fallback_circlet,
+            &mut state.id_relics,
+            &mut state.entities,
+        ),
+        EffectKind::EventAdvanceState { delta } => {
+            let id_event = id_source.expect("EventAdvanceState requires id_source");
+            process_effect_event_advance_state::process_effect_event_advance_state(
+                &mut state.entities,
+                id_event,
+                delta,
+            )
+        }
+        EffectKind::RollD100Branch {
+            chance,
+            on_lt,
+            on_ge,
+        } => process_effect_roll_d100_branch::process_effect_roll_d100_branch(
+            chance,
+            on_lt,
+            on_ge,
+            id_source,
+            &mut state.rng,
+            &mut state.effect_queue,
+        ),
+        EffectKind::EventEnd => {
+            let id_event = id_source.expect("EventEnd requires id_source");
+            process_effect_event_end::process_effect_event_end(&mut state.entities, id_event)
+        }
+        EffectKind::DeckSelectStart { kind } => {
+            process_effect_deck_select_start::process_effect_deck_select_start(kind, state)
         }
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
@@ -1059,6 +1167,18 @@ pub fn derive_phase(state: &mut GameState) {
     } = &state.phase
     {
         if !id_cards.is_empty() || id_relic.is_some() || id_potion.is_some() || gold.is_some() {
+            return;
+        }
+    }
+    // Sticky event-choice phase: stay put until the event is consumed
+    if let Phase::EventChoice { id_event } = &state.phase {
+        if !state.entities[*id_event].event_consumed {
+            return;
+        }
+    }
+    // Sticky deck-select phase: stay put while there's an option to pick
+    if let Phase::AwaitDeckSelect { id_options, .. } = &state.phase {
+        if !id_options.is_empty() {
             return;
         }
     }

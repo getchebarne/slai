@@ -100,6 +100,9 @@ pub struct GameState {
     pub event_chance_shop: f32,
     pub event_chance_treasure: f32,
 
+    // Events already surfaced this run (no-repeat filter)
+    pub events_seen_this_run: Vec<EventName>,
+
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
@@ -188,6 +191,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
         event_chance_shop: EVENT_CHANCE_SHOP_BASE,
         event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,
+        events_seen_this_run: Vec::with_capacity(16),
         potion_drop_mod: 0,
         id_card_nightmare: None,
     };

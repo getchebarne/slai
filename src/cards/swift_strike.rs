@@ -41,7 +41,7 @@ pub static SWIFT_STRIKE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = SWIFT_STRIKE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 10 };
+        a[0].kind = EffectKind::DamagePhysical { amount: 10 }; // +3 damage
         a
     },
     ..SWIFT_STRIKE

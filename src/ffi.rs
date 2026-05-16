@@ -15,6 +15,7 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
+use crate::events::event_option_gate_satisfied;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::edge_indices;
@@ -30,6 +31,8 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::ChestKind;
+use crate::types::DeckSelectKind;
+use crate::types::EventName;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::Phase;
@@ -564,6 +567,50 @@ impl From<MonsterName> for PyMonsterName {
     }
 }
 
+#[pyclass(eq, eq_int, hash, frozen, name = "EventName")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyEventName {
+    BigFish,
+    Cleric,
+    Designer,
+    Duplicator,
+    GoldShrine,
+    GoldenIdolEvent,
+    GoldenWing,
+    GoopPuddle,
+    LivingWall,
+    PurificationShrine,
+    ScrapOoze,
+    ShiningLight,
+    Sssserpent,
+    Transmogrifier,
+    UpgradeShrine,
+    WeMeetAgain,
+}
+
+impl From<EventName> for PyEventName {
+    fn from(name: EventName) -> Self {
+        match name {
+            EventName::BigFish => Self::BigFish,
+            EventName::Cleric => Self::Cleric,
+            EventName::Designer => Self::Designer,
+            EventName::Duplicator => Self::Duplicator,
+            EventName::GoldShrine => Self::GoldShrine,
+            EventName::GoldenIdolEvent => Self::GoldenIdolEvent,
+            EventName::GoldenWing => Self::GoldenWing,
+            EventName::GoopPuddle => Self::GoopPuddle,
+            EventName::LivingWall => Self::LivingWall,
+            EventName::PurificationShrine => Self::PurificationShrine,
+            EventName::ScrapOoze => Self::ScrapOoze,
+            EventName::ShiningLight => Self::ShiningLight,
+            EventName::Sssserpent => Self::Sssserpent,
+            EventName::Transmogrifier => Self::Transmogrifier,
+            EventName::UpgradeShrine => Self::UpgradeShrine,
+            EventName::WeMeetAgain => Self::WeMeetAgain,
+        }
+    }
+}
+
 #[pyclass(eq, eq_int, hash, frozen, name = "RelicTier")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRelicTier {
@@ -743,10 +790,18 @@ pub enum PyPhase {
     CombatAwaitDiscover {
         cards: Vec<PyCard>,
     },
+    EventChoice {
+        event: PyEvent,
+    },
+    AwaitDeckSelect {
+        kind: PyDeckSelectKind,
+        cards: Vec<PyCard>,
+    },
 }
 
-// Data-free variants only. Phase::Reward and Phase::CombatAwaitDiscover carry entity
-// ids that need the GameState to snapshot — see `snapshot_phase`, which owns that path
+// Data-free variants only. Phase::Reward, ::CombatAwaitDiscover, ::EventChoice,
+// and ::AwaitDeckSelect carry entity ids that need the GameState to snapshot —
+// see `snapshot_phase`, which owns that path
 impl From<&Phase> for PyPhase {
     fn from(phase: &Phase) -> Self {
         match phase {
@@ -765,6 +820,32 @@ impl From<&Phase> for PyPhase {
             Phase::CombatAwaitDiscover { .. } => {
                 unreachable!("Phase::CombatAwaitDiscover must go through snapshot_phase")
             }
+            Phase::EventChoice { .. } => {
+                unreachable!("Phase::EventChoice must go through snapshot_phase")
+            }
+            Phase::AwaitDeckSelect { .. } => {
+                unreachable!("Phase::AwaitDeckSelect must go through snapshot_phase")
+            }
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "DeckSelectKind")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyDeckSelectKind {
+    Remove,
+    UpgradeAny,
+    TransformOne,
+    DuplicateAny,
+}
+
+impl From<DeckSelectKind> for PyDeckSelectKind {
+    fn from(k: DeckSelectKind) -> Self {
+        match k {
+            DeckSelectKind::Remove => Self::Remove,
+            DeckSelectKind::UpgradeAny => Self::UpgradeAny,
+            DeckSelectKind::TransformOne => Self::TransformOne,
+            DeckSelectKind::DuplicateAny => Self::DuplicateAny,
         }
     }
 }
@@ -821,6 +902,8 @@ pub enum PyActionType {
     RewardTakePotion,
     RewardTakeGold,
     RewardSkip,
+    EventChoice,
+    DeckSelect,
 }
 
 impl PyActionType {
@@ -845,6 +928,8 @@ impl PyActionType {
             16 => Ok(Self::RewardTakePotion),
             17 => Ok(Self::RewardTakeGold),
             18 => Ok(Self::RewardSkip),
+            19 => Ok(Self::EventChoice),
+            20 => Ok(Self::DeckSelect),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -978,6 +1063,18 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::RewardSkip),
             n => Err(format!("RewardSkip expects [], got {n} idxs")),
         },
+        PyActionType::EventChoice => match idxs.len() {
+            1 => Ok(Action::EventChoice {
+                idx_option: idxs[0],
+            }),
+            n => Err(format!("EventChoice expects [idx_option], got {n} idxs")),
+        },
+        PyActionType::DeckSelect => match idxs.len() {
+            1 => Ok(Action::DeckSelect {
+                idx_option: idxs[0],
+            }),
+            n => Err(format!("DeckSelect expects [idx_option], got {n} idxs")),
+        },
     }
 }
 
@@ -1101,6 +1198,75 @@ pub enum PyEffect {
         count: u8,
         target: Option<PyTarget>,
     },
+    GoldLoss {
+        amount: u16,
+        target: Option<PyTarget>,
+    },
+    HealthGainPct {
+        numer: u8,
+        denom: u8,
+        target: Option<PyTarget>,
+    },
+    HealthLossPct {
+        numer: u8,
+        denom: u8,
+        target: Option<PyTarget>,
+    },
+    MaxHealthLossPct {
+        numer: u8,
+        denom: u8,
+        target: Option<PyTarget>,
+    },
+    CardUpgradeRandomInDeck {
+        count: u8,
+        target: Option<PyTarget>,
+    },
+    CardTransformRoll {
+        target: Option<PyTarget>,
+    },
+    RelicGrantRandom {
+        tier: Option<PyRelicTier>,
+        target: Option<PyTarget>,
+    },
+    RelicGrantSpecific {
+        name: PyRelicName,
+        fallback_circlet: bool,
+        target: Option<PyTarget>,
+    },
+    EventAdvanceState {
+        delta: i8,
+        target: Option<PyTarget>,
+    },
+    RollD100Branch {
+        chance: u8,
+        on_lt: Vec<PyEffect>,
+        on_ge: Vec<PyEffect>,
+        target: Option<PyTarget>,
+    },
+    EventEnd {
+        target: Option<PyTarget>,
+    },
+    DeckSelectStart {
+        kind: PyDeckSelectKind,
+        target: Option<PyTarget>,
+    },
+    CardAddToDeck {
+        card_name: String,
+        upgraded: bool,
+        target: Option<PyTarget>,
+    },
+    HealthLoss {
+        amount: u16,
+        target: Option<PyTarget>,
+    },
+    MaxHealthLoss {
+        amount: u16,
+        target: Option<PyTarget>,
+    },
+    GoldGain {
+        amount: u16,
+        target: Option<PyTarget>,
+    },
 }
 
 fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -1171,6 +1337,65 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::ShuffleDiscardPileIntoDrawPile { target }
         }
         EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
+        EffectKind::GoldLoss { amount } => PyEffect::GoldLoss { amount, target },
+        EffectKind::HealthGainPct { numer, denom } => PyEffect::HealthGainPct {
+            numer,
+            denom,
+            target,
+        },
+        EffectKind::HealthLossPct { numer, denom } => PyEffect::HealthLossPct {
+            numer,
+            denom,
+            target,
+        },
+        EffectKind::MaxHealthLossPct { numer, denom } => PyEffect::MaxHealthLossPct {
+            numer,
+            denom,
+            target,
+        },
+        EffectKind::CardUpgradeRandomInDeck { count } => {
+            PyEffect::CardUpgradeRandomInDeck { count, target }
+        }
+        EffectKind::CardTransformRoll => PyEffect::CardTransformRoll { target },
+        EffectKind::RelicGrantRandom { tier } => PyEffect::RelicGrantRandom {
+            tier: tier.map(Into::into),
+            target,
+        },
+        EffectKind::RelicGrantSpecific {
+            name,
+            fallback_circlet,
+        } => PyEffect::RelicGrantSpecific {
+            name: name.into(),
+            fallback_circlet,
+            target,
+        },
+        EffectKind::EventAdvanceState { delta } => PyEffect::EventAdvanceState { delta, target },
+        EffectKind::RollD100Branch {
+            chance,
+            on_lt,
+            on_ge,
+        } => PyEffect::RollD100Branch {
+            chance,
+            on_lt: on_lt.iter().map(snapshot_effect).collect(),
+            on_ge: on_ge.iter().map(snapshot_effect).collect(),
+            target,
+        },
+        EffectKind::EventEnd => PyEffect::EventEnd { target },
+        EffectKind::DeckSelectStart { kind } => PyEffect::DeckSelectStart {
+            kind: kind.into(),
+            target,
+        },
+        EffectKind::CardAddToDeck {
+            card_name,
+            upgraded,
+        } => PyEffect::CardAddToDeck {
+            card_name: card_name.as_str().to_string(),
+            upgraded,
+            target,
+        },
+        EffectKind::HealthLoss { amount } => PyEffect::HealthLoss { amount, target },
+        EffectKind::MaxHealthLoss { amount } => PyEffect::MaxHealthLoss { amount, target },
+        EffectKind::GoldGain { amount } => PyEffect::GoldGain { amount, target },
         EffectKind::MaxHealthGain { amount } => PyEffect::MaxHealthGain { amount, target },
         EffectKind::HealthGain { amount } => PyEffect::HealthGain { amount, target },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
@@ -1244,6 +1469,23 @@ pub struct PyPotion {
     pub requires_target: bool,
     pub combat_only: bool,
     pub effects: Vec<PyEffect>,
+}
+
+#[pyclass(frozen, get_all, name = "EventOption")]
+#[derive(Debug, Clone)]
+pub struct PyEventOption {
+    pub label: String,
+    pub gated_out: bool,
+    pub effects: Vec<PyEffect>,
+}
+
+#[pyclass(frozen, get_all, name = "Event")]
+#[derive(Debug, Clone)]
+pub struct PyEvent {
+    pub name: PyEventName,
+    pub display_name: String,
+    pub options: Vec<PyEventOption>,
+    pub state: u8,
 }
 
 #[pyclass(frozen, get_all, name = "Character")]
@@ -1495,6 +1737,29 @@ impl MonsterName {
     }
 }
 
+impl EventName {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::BigFish => "Big Fish",
+            Self::Cleric => "Cleric",
+            Self::Designer => "Designer In-Spire",
+            Self::Duplicator => "Duplicator",
+            Self::GoldShrine => "Golden Shrine",
+            Self::GoldenIdolEvent => "Golden Idol",
+            Self::GoldenWing => "Golden Wing",
+            Self::GoopPuddle => "Goop Puddle",
+            Self::LivingWall => "Living Wall",
+            Self::PurificationShrine => "Purifier",
+            Self::ScrapOoze => "Scrap Ooze",
+            Self::ShiningLight => "Shining Light",
+            Self::Sssserpent => "Sssserpent",
+            Self::Transmogrifier => "Transmogrifier",
+            Self::UpgradeShrine => "Upgrade Shrine",
+            Self::WeMeetAgain => "We Meet Again",
+        }
+    }
+}
+
 impl MonsterEncounter {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -1586,7 +1851,36 @@ fn snapshot_phase(state: &GameState) -> PyPhase {
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
         },
+        Phase::EventChoice { id_event } => PyPhase::EventChoice {
+            event: snapshot_event(state, *id_event),
+        },
+        Phase::AwaitDeckSelect { kind, id_options } => PyPhase::AwaitDeckSelect {
+            kind: (*kind).into(),
+            cards: id_options
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+        },
         other => other.into(),
+    }
+}
+
+fn snapshot_event(state: &GameState, id_event: usize) -> PyEvent {
+    let event = &state.entities[id_event];
+    let options: Vec<PyEventOption> = event
+        .event_options
+        .iter()
+        .map(|opt| PyEventOption {
+            label: opt.label.to_string(),
+            gated_out: !event_option_gate_satisfied(opt.gate, state, id_event),
+            effects: opt.effects.iter().map(snapshot_effect).collect(),
+        })
+        .collect();
+    PyEvent {
+        name: event.event_name.into(),
+        display_name: event.event_name.as_str().to_string(),
+        options,
+        state: event.event_state,
     }
 }
 

@@ -235,6 +235,35 @@ pub enum RoomKind {
     Shop,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[repr(u8)]
+pub enum EventName {
+    BigFish,
+    Cleric,
+    Designer,
+    Duplicator,
+    GoldShrine,
+    GoldenIdolEvent,
+    GoldenWing,
+    GoopPuddle,
+    LivingWall,
+    PurificationShrine,
+    ScrapOoze,
+    ShiningLight,
+    Sssserpent,
+    Transmogrifier,
+    UpgradeShrine,
+    WeMeetAgain,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DeckSelectKind {
+    Remove,
+    UpgradeAny,
+    TransformOne,
+    DuplicateAny,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ChestKind {
     Small,
@@ -332,5 +361,12 @@ pub enum Phase {
     RestSite,
     Chest,
     EventRoom,
+    EventChoice {
+        id_event: usize,
+    },
+    AwaitDeckSelect {
+        kind: DeckSelectKind,
+        id_options: Vec<usize>,
+    },
     Shop,
 }

@@ -5,8 +5,8 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::types::Phase;
 
-// MindBlast: damage equals draw-pile size at play time
-pub fn process_effect_mind_blast_damage(
+// Damage equals draw-pile size at play time
+pub fn process_effect_damage_mind_blast(
     id_source: Option<usize>,
     id_target: usize,
     pile_draw_size: usize,

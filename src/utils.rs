@@ -106,7 +106,7 @@ pub fn add_relic_reward_for_roll(
     id
 }
 
-fn pick_from_pool(
+pub fn pick_from_pool(
     pool: &[RelicName],
     id_relics: &[Option<usize>; RelicName::COUNT],
     rng: &mut impl Rng,

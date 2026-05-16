@@ -10,10 +10,13 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::engine::EffectBuf;
 use crate::entity::Entity;
+use crate::events::POOL_ACT1_EVENT;
+use crate::events::spawn_event;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
 use crate::types::ChestKind;
+use crate::types::EventName;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::Phase;
@@ -23,10 +26,11 @@ use crate::utils::shuffle;
 pub fn process_effect_room_enter(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
-    entities: &mut [Entity],
+    entities: &mut Vec<Entity>,
     encounter_list_normal: &mut Vec<MonsterEncounter>,
     encounter_list_elite: &mut Vec<MonsterEncounter>,
     encounter_boss: MonsterEncounter,
+    events_seen_this_run: &mut Vec<EventName>,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
 ) -> Option<Phase> {
@@ -63,7 +67,12 @@ pub fn process_effect_room_enter(
                 ChestKind::Large
             });
         }
-        RoomKind::EventRoom | RoomKind::Shop => {}
+        RoomKind::EventRoom => {
+            if let Some(phase) = spawn_random_event(entities, events_seen_this_run, rng) {
+                return Some(phase);
+            }
+        }
+        RoomKind::Shop => {}
     }
 
     if buf_effects.len > 0 {
@@ -72,6 +81,30 @@ pub fn process_effect_room_enter(
     }
 
     None
+}
+
+// Drift-state ? resolution is deferred until shop/surprise-treasure paths exist
+fn spawn_random_event(
+    entities: &mut Vec<Entity>,
+    events_seen_this_run: &mut Vec<EventName>,
+    rng: &mut impl Rng,
+) -> Option<Phase> {
+    if POOL_ACT1_EVENT.is_empty() {
+        return None;
+    }
+    if events_seen_this_run.len() >= POOL_ACT1_EVENT.len() {
+        events_seen_this_run.clear();
+    }
+    let name = loop {
+        let cand = POOL_ACT1_EVENT[rng.random_range(0..POOL_ACT1_EVENT.len())];
+        if !events_seen_this_run.contains(&cand) {
+            break cand;
+        }
+    };
+    events_seen_this_run.push(name);
+    let id_event = entities.len();
+    entities.push(spawn_event(name, rng));
+    Some(Phase::EventChoice { id_event })
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {

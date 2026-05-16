@@ -9,6 +9,7 @@ mod consts;
 mod effect;
 mod engine;
 mod entity;
+mod events;
 mod ffi;
 mod game;
 mod map;
@@ -124,6 +125,10 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyRelicTier>()?;
     module.add_class::<ffi::PyCardName>()?;
     module.add_class::<ffi::PyMonsterName>()?;
+    module.add_class::<ffi::PyEventName>()?;
+    module.add_class::<ffi::PyDeckSelectKind>()?;
+    module.add_class::<ffi::PyEvent>()?;
+    module.add_class::<ffi::PyEventOption>()?;
 
     // Complex enum mirrors
     module.add_class::<PyPhase>()?;

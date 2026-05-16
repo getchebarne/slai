@@ -9,6 +9,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
+use crate::events::event_option_gate_satisfied;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
@@ -17,6 +18,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::potions::find_free_slot;
 use crate::types::CardKind;
+use crate::types::DeckSelectKind;
 use crate::types::Phase;
 use crate::utils::fill_alive_monster_ids;
 
@@ -65,6 +67,12 @@ pub enum Action {
     CardDiscoverSelect {
         idx_option: usize,
     },
+    EventChoice {
+        idx_option: usize,
+    },
+    DeckSelect {
+        idx_option: usize,
+    },
 }
 
 fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> {
@@ -98,6 +106,8 @@ fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> 
         ) => true,
         (Action::PotionDiscard { .. }, p) if !matches!(p, Phase::GameOver) => true,
         (Action::CardDiscoverSelect { .. }, Phase::CombatAwaitDiscover { .. }) => true,
+        (Action::EventChoice { .. }, Phase::EventChoice { .. }) => true,
+        (Action::DeckSelect { .. }, Phase::AwaitDeckSelect { .. }) => true,
         _ => false,
     };
     if !valid {
@@ -135,6 +145,8 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         } => handle_potion_use(state, idx_slot, idx_monster),
         Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
         Action::CardDiscoverSelect { idx_option } => handle_card_discover_select(state, idx_option),
+        Action::EventChoice { idx_option } => handle_event_choice(state, idx_option),
+        Action::DeckSelect { idx_option } => handle_deck_select(state, idx_option),
     }?;
 
     Ok(effects)
@@ -546,4 +558,77 @@ fn handle_rest_site_card_upgrade(
         Effect::direct(EffectKind::CardUpgrade, None, Some(id_card)),
         Effect::direct(EffectKind::RestSiteExit, None, None),
     ])
+}
+
+fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
+    let Phase::EventChoice { id_event } = &state.phase else {
+        return Err(format!("EventChoice invalid in phase {:?}", state.phase));
+    };
+    let id_event = *id_event;
+    let event = &state.entities[id_event];
+    if idx_option >= event.event_options.len() {
+        return Err(format!(
+            "EventChoice: idx_option {} out of range (options {})",
+            idx_option,
+            event.event_options.len()
+        ));
+    }
+    let option = event.event_options[idx_option];
+    if !event_option_gate_satisfied(option.gate, state, id_event) {
+        return Err(format!(
+            "EventChoice: option {} gated out ({:?})",
+            idx_option, option.gate
+        ));
+    }
+    let effects: Vec<Effect> = option
+        .effects
+        .iter()
+        .map(|e| Effect {
+            id_source: Some(id_event),
+            ..*e
+        })
+        .collect();
+    Ok(effects)
+}
+
+fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
+    let Phase::AwaitDeckSelect { kind, id_options } = &mut state.phase else {
+        return Err(format!("DeckSelect invalid in phase {:?}", state.phase));
+    };
+    let kind = *kind;
+    let id_card = *id_options
+        .get(idx_option)
+        .ok_or_else(|| format!("DeckSelect: idx_option {} out of range", idx_option))?;
+    id_options.clear();
+    Ok(deck_select_follow_up(state, kind, id_card))
+}
+
+fn deck_select_follow_up(state: &GameState, kind: DeckSelectKind, id_card: usize) -> Vec<Effect> {
+    match kind {
+        DeckSelectKind::Remove => vec![Effect::direct(
+            EffectKind::CardRemoveFromDeck,
+            None,
+            Some(id_card),
+        )],
+        DeckSelectKind::UpgradeAny => {
+            vec![Effect::direct(EffectKind::CardUpgrade, None, Some(id_card))]
+        }
+        DeckSelectKind::DuplicateAny => {
+            let card = &state.entities[id_card];
+            vec![Effect::direct(
+                EffectKind::CardAddToDeck {
+                    card_name: card.card_name,
+                    upgraded: card.card_upgraded,
+                },
+                None,
+                None,
+            )]
+        }
+        DeckSelectKind::TransformOne => {
+            vec![
+                Effect::direct(EffectKind::CardRemoveFromDeck, None, Some(id_card)),
+                Effect::direct(EffectKind::CardTransformRoll, None, None),
+            ]
+        }
+    }
 }

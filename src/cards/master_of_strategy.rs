@@ -36,7 +36,7 @@ pub static MASTER_OF_STRATEGY_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = MASTER_OF_STRATEGY.card_effects;
-        a[0].kind = EffectKind::CardDraw { count: 4 };
+        a[0].kind = EffectKind::CardDraw { count: 4 }; // +1 draw
         a
     },
     ..MASTER_OF_STRATEGY

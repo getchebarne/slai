@@ -9,6 +9,7 @@ use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
+use crate::events::EventOption;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
 
@@ -22,6 +23,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::ChestKind;
+use crate::types::EventName;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::PotionName;
@@ -40,6 +42,7 @@ pub enum EntityKind {
     Room,
     Relic,
     Potion,
+    Event,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -152,6 +155,15 @@ pub struct Entity {
     pub potion_rarity: PotionRarity,
     pub potion_combat_only: bool,
     pub potion_effects: &'static [Effect],
+
+    // Event-only
+    pub event_name: EventName,
+    pub event_options: &'static [EventOption],
+    pub event_consumed: bool,
+    pub event_state: u8,
+    pub event_param_a: u16,
+    pub event_param_b: u16,
+    pub event_param_c: u16,
 }
 
 // Private zero-fill used by the public const fn constructors below
@@ -208,6 +220,13 @@ const ZERO_ENTITY: Entity = Entity {
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,
     potion_effects: &[],
+    event_name: EventName::BigFish,
+    event_options: &[],
+    event_consumed: false,
+    event_state: 0,
+    event_param_a: 0,
+    event_param_b: 0,
+    event_param_c: 0,
 };
 
 // Constructors
@@ -337,6 +356,15 @@ pub const fn make_entity_potion(
         requires_target: requires_target,
         potion_combat_only: combat_only,
         potion_effects: effects,
+        ..ZERO_ENTITY
+    }
+}
+
+pub const fn make_entity_event(name: EventName, options: &'static [EventOption]) -> Entity {
+    Entity {
+        kind: EntityKind::Event,
+        event_name: name,
+        event_options: options,
         ..ZERO_ENTITY
     }
 }

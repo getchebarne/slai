@@ -279,6 +279,43 @@ class ActionType(IntEnum):
     RewardTakePotion: int
     RewardTakeGold: int
     RewardSkip: int
+    EventChoice: int
+    DeckSelect: int
+
+class DeckSelectKind(IntEnum):
+    Remove: int
+    UpgradeAny: int
+    TransformOne: int
+    DuplicateAny: int
+
+class EventName(IntEnum):
+    BigFish: int
+    Cleric: int
+    Designer: int
+    Duplicator: int
+    GoldShrine: int
+    GoldenIdolEvent: int
+    GoldenWing: int
+    GoopPuddle: int
+    LivingWall: int
+    PurificationShrine: int
+    ScrapOoze: int
+    ShiningLight: int
+    Sssserpent: int
+    Transmogrifier: int
+    UpgradeShrine: int
+    WeMeetAgain: int
+
+class EventOption:
+    label: str
+    gated_out: bool
+    effects: list
+
+class Event:
+    name: EventName
+    display_name: str
+    options: list[EventOption]
+    state: int
 
 class CardCostKind:
     class Fixed:
@@ -337,6 +374,24 @@ class Phase:
 
     class GameOver:
         def __init__(self) -> None: ...
+
+    class Chest:
+        def __init__(self) -> None: ...
+
+    class EventRoom:
+        def __init__(self) -> None: ...
+
+    class Shop:
+        def __init__(self) -> None: ...
+
+    class EventChoice:
+        event: Event
+        def __init__(self, event: Event) -> None: ...
+
+    class AwaitDeckSelect:
+        kind: DeckSelectKind
+        cards: list[Card]
+        def __init__(self, kind: DeckSelectKind, cards: list[Card]) -> None: ...
 
 class SelectionKind:
     class All:

@@ -48,7 +48,7 @@ pub static FLASH_OF_STEEL_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = FLASH_OF_STEEL.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 6 };
+        a[0].kind = EffectKind::DamagePhysical { amount: 6 }; // +3 damage
         a
     },
     ..FLASH_OF_STEEL

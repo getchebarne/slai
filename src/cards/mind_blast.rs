@@ -39,6 +39,6 @@ pub static MIND_BLAST: Entity = make_entity_card(
 // Upgraded
 pub static MIND_BLAST_PLUS: Entity = Entity {
     card_upgraded: true,
-    card_cost: 1,
+    card_cost: 1, // -1 cost
     ..MIND_BLAST
 };

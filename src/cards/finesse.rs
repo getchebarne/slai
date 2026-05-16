@@ -48,7 +48,7 @@ pub static FINESSE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = FINESSE.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 4 };
+        a[0].kind = EffectKind::BlockGain { amount: 4 }; // +2 block
         a
     },
     ..FINESSE

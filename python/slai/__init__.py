@@ -29,6 +29,8 @@ PotionRarity = _to_intenum("PotionRarity", _rs.PotionRarity)
 ModifierKind = _to_intenum("ModifierKind", _rs.ModifierKind)
 IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
 CandidatePool = _to_intenum("CandidatePool", _rs.CandidatePool)
+EventName = _to_intenum("EventName", _rs.EventName)
+DeckSelectKind = _to_intenum("DeckSelectKind", _rs.DeckSelectKind)
 
 
 # Action schema types
@@ -153,6 +155,8 @@ Room = _rs.Room
 Modifier = _rs.Modifier
 Monster = _rs.Monster
 Relic = _rs.Relic
+Event = _rs.Event
+EventOption = _rs.EventOption
 
 # Complex enums
 Phase = _rs.Phase
@@ -181,6 +185,8 @@ __all__ = [
     "Modifier",
     "Monster",
     "Relic",
+    "Event",
+    "EventOption",
     # Unit-enum shims
     "CardKind",
     "CardColor",
@@ -197,6 +203,8 @@ __all__ = [
     "PotionRarity",
     "CardName",
     "MonsterName",
+    "EventName",
+    "DeckSelectKind",
     # Complex enums
     "Phase",
     "SelectionKind",
