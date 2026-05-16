@@ -7,8 +7,10 @@ mod alchemize;
 mod all_out_attack;
 mod backflip;
 mod backstab;
+mod bandage_up;
 mod bane;
 mod blade_dance;
+mod blind;
 mod blur;
 mod bouncing_flask;
 mod bullet_time;
@@ -28,6 +30,7 @@ mod dagger_throw;
 mod dash;
 mod dazed;
 mod deadly_poison;
+mod deep_breath;
 mod defend;
 mod deflect;
 mod die_die_die;
@@ -39,17 +42,22 @@ mod envenom;
 mod escape_plan;
 mod eviscerate;
 mod expertise;
+mod finesse;
 mod finisher;
+mod flash_of_steel;
 mod flechettes;
 mod flying_knee;
 mod footwork;
 mod glass_knife;
+mod good_instincts;
 mod grand_finale;
 mod heel_hook;
 mod infinite_blades;
 mod leg_sweep;
 mod malaise;
+mod master_of_strategy;
 mod masterful_stab;
+mod mind_blast;
 mod neutralize;
 mod nightmare;
 mod noxious_fumes;
@@ -72,6 +80,7 @@ mod storm_of_steel;
 mod strike;
 mod sucker_punch;
 mod survivor;
+mod swift_strike;
 mod tactician;
 mod terror;
 mod tools_of_the_trade;
@@ -107,10 +116,14 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Backflip, true) => backflip::BACKFLIP_PLUS,
         (CardName::Backstab, false) => backstab::BACKSTAB,
         (CardName::Backstab, true) => backstab::BACKSTAB_PLUS,
+        (CardName::BandageUp, false) => bandage_up::BANDAGE_UP,
+        (CardName::BandageUp, true) => bandage_up::BANDAGE_UP_PLUS,
         (CardName::Bane, false) => bane::BANE,
         (CardName::Bane, true) => bane::BANE_PLUS,
         (CardName::BladeDance, false) => blade_dance::BLADE_DANCE,
         (CardName::BladeDance, true) => blade_dance::BLADE_DANCE_PLUS,
+        (CardName::Blind, false) => blind::BLIND,
+        (CardName::Blind, true) => blind::BLIND_PLUS,
         (CardName::Blur, false) => blur::BLUR,
         (CardName::Blur, true) => blur::BLUR_PLUS,
         (CardName::BouncingFlask, false) => bouncing_flask::BOUNCING_FLASK,
@@ -146,6 +159,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Dazed, _) => dazed::DAZED, // No upgraded variant
         (CardName::DeadlyPoison, false) => deadly_poison::DEADLY_POISON,
         (CardName::DeadlyPoison, true) => deadly_poison::DEADLY_POISON_PLUS,
+        (CardName::DeepBreath, false) => deep_breath::DEEP_BREATH,
+        (CardName::DeepBreath, true) => deep_breath::DEEP_BREATH_PLUS,
         (CardName::Defend, false) => defend::DEFEND,
         (CardName::Defend, true) => defend::DEFEND_PLUS,
         (CardName::Deflect, false) => deflect::DEFLECT,
@@ -168,8 +183,12 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Eviscerate, true) => eviscerate::EVISCERATE_PLUS,
         (CardName::Expertise, false) => expertise::EXPERTISE,
         (CardName::Expertise, true) => expertise::EXPERTISE_PLUS,
+        (CardName::Finesse, false) => finesse::FINESSE,
+        (CardName::Finesse, true) => finesse::FINESSE_PLUS,
         (CardName::Finisher, false) => finisher::FINISHER,
         (CardName::Finisher, true) => finisher::FINISHER_PLUS,
+        (CardName::FlashOfSteel, false) => flash_of_steel::FLASH_OF_STEEL,
+        (CardName::FlashOfSteel, true) => flash_of_steel::FLASH_OF_STEEL_PLUS,
         (CardName::Flechettes, false) => flechettes::FLECHETTES,
         (CardName::Flechettes, true) => flechettes::FLECHETTES_PLUS,
         (CardName::FlyingKnee, false) => flying_knee::FLYING_KNEE,
@@ -178,6 +197,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Footwork, true) => footwork::FOOTWORK_PLUS,
         (CardName::GlassKnife, false) => glass_knife::GLASS_KNIFE,
         (CardName::GlassKnife, true) => glass_knife::GLASS_KNIFE_PLUS,
+        (CardName::GoodInstincts, false) => good_instincts::GOOD_INSTINCTS,
+        (CardName::GoodInstincts, true) => good_instincts::GOOD_INSTINCTS_PLUS,
         (CardName::GrandFinale, false) => grand_finale::GRAND_FINALE,
         (CardName::GrandFinale, true) => grand_finale::GRAND_FINALE_PLUS,
         (CardName::HeelHook, false) => heel_hook::HEEL_HOOK,
@@ -188,8 +209,12 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::LegSweep, true) => leg_sweep::LEG_SWEEP_PLUS,
         (CardName::Malaise, false) => malaise::MALAISE,
         (CardName::Malaise, true) => malaise::MALAISE_PLUS,
+        (CardName::MasterOfStrategy, false) => master_of_strategy::MASTER_OF_STRATEGY,
+        (CardName::MasterOfStrategy, true) => master_of_strategy::MASTER_OF_STRATEGY_PLUS,
         (CardName::MasterfulStab, false) => masterful_stab::MASTERFUL_STAB,
         (CardName::MasterfulStab, true) => masterful_stab::MASTERFUL_STAB_PLUS,
+        (CardName::MindBlast, false) => mind_blast::MIND_BLAST,
+        (CardName::MindBlast, true) => mind_blast::MIND_BLAST_PLUS,
         (CardName::Neutralize, false) => neutralize::NEUTRALIZE,
         (CardName::Neutralize, true) => neutralize::NEUTRALIZE_PLUS,
         (CardName::Nightmare, false) => nightmare::NIGHTMARE,
@@ -233,6 +258,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::SuckerPunch, true) => sucker_punch::SUCKER_PUNCH_PLUS,
         (CardName::Survivor, false) => survivor::SURVIVOR,
         (CardName::Survivor, true) => survivor::SURVIVOR_PLUS,
+        (CardName::SwiftStrike, false) => swift_strike::SWIFT_STRIKE,
+        (CardName::SwiftStrike, true) => swift_strike::SWIFT_STRIKE_PLUS,
         (CardName::Tactician, false) => tactician::TACTICIAN,
         (CardName::Tactician, true) => tactician::TACTICIAN_PLUS,
         (CardName::Terror, false) => terror::TERROR,
@@ -268,8 +295,10 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &all_out_attack::ALL_OUT_ATTACK,
     &backflip::BACKFLIP,
     &backstab::BACKSTAB,
+    &bandage_up::BANDAGE_UP,
     &bane::BANE,
     &blade_dance::BLADE_DANCE,
+    &blind::BLIND,
     &blur::BLUR,
     &bouncing_flask::BOUNCING_FLASK,
     &bullet_time::BULLET_TIME,
@@ -288,6 +317,7 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &dash::DASH,
     &dazed::DAZED,
     &deadly_poison::DEADLY_POISON,
+    &deep_breath::DEEP_BREATH,
     &defend::DEFEND,
     &deflect::DEFLECT,
     &die_die_die::DIE_DIE_DIE,
@@ -299,17 +329,22 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &escape_plan::ESCAPE_PLAN,
     &eviscerate::EVISCERATE,
     &expertise::EXPERTISE,
+    &finesse::FINESSE,
     &finisher::FINISHER,
+    &flash_of_steel::FLASH_OF_STEEL,
     &flechettes::FLECHETTES,
     &flying_knee::FLYING_KNEE,
     &footwork::FOOTWORK,
     &glass_knife::GLASS_KNIFE,
+    &good_instincts::GOOD_INSTINCTS,
     &grand_finale::GRAND_FINALE,
     &heel_hook::HEEL_HOOK,
     &infinite_blades::INFINITE_BLADES,
     &leg_sweep::LEG_SWEEP,
     &malaise::MALAISE,
+    &master_of_strategy::MASTER_OF_STRATEGY,
     &masterful_stab::MASTERFUL_STAB,
+    &mind_blast::MIND_BLAST,
     &neutralize::NEUTRALIZE,
     &nightmare::NIGHTMARE,
     &noxious_fumes::NOXIOUS_FUMES,
@@ -332,6 +367,7 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &strike::STRIKE,
     &sucker_punch::SUCKER_PUNCH,
     &survivor::SURVIVOR,
+    &swift_strike::SWIFT_STRIKE,
     &tactician::TACTICIAN,
     &terror::TERROR,
     &tools_of_the_trade::TOOLS_OF_THE_TRADE,
@@ -390,12 +426,15 @@ const fn is_rewardable_kind(kind: CardKind) -> bool {
     )
 }
 
-const fn count_pool(rarity: CardRarity) -> usize {
+const fn count_pool(rarity: CardRarity, color: CardColor) -> usize {
     let mut count = 0;
     let mut idx = 0;
     while idx < ALL_CARDS.len() {
         let card = ALL_CARDS[idx];
-        if card_rarity_eq(card.card_rarity, rarity) && is_rewardable_kind(card.card_kind) {
+        if card_rarity_eq(card.card_rarity, rarity)
+            && color_eq(card.card_color, color)
+            && is_rewardable_kind(card.card_kind)
+        {
             // AscendersBane is Curse-rarity but Neow-only; skip
             if matches!(rarity, CardRarity::Curse)
                 && matches!(card.card_name, CardName::AscendersBane)
@@ -410,13 +449,14 @@ const fn count_pool(rarity: CardRarity) -> usize {
     count
 }
 
-const fn build_pool<const N: usize>(rarity: CardRarity) -> [CardName; N] {
+const fn build_pool<const N: usize>(rarity: CardRarity, color: CardColor) -> [CardName; N] {
     let mut buf = [CardName::Strike; N];
     let mut idx_pool = 0;
     let mut idx_all = 0;
     while idx_all < ALL_CARDS.len() {
         let card = ALL_CARDS[idx_all];
         if card_rarity_eq(card.card_rarity, rarity)
+            && color_eq(card.card_color, color)
             && (matches!(rarity, CardRarity::Curse) || is_rewardable_kind(card.card_kind))
         {
             // AscendersBane is Curse-rarity but Neow-only; skip
@@ -432,17 +472,31 @@ const fn build_pool<const N: usize>(rarity: CardRarity) -> [CardName; N] {
     buf
 }
 
-// Get number of cards per rarity-pool
-const NUM_COMMON: usize = count_pool(CardRarity::Common);
-const NUM_UNCOMMON: usize = count_pool(CardRarity::Uncommon);
-const NUM_RARE: usize = count_pool(CardRarity::Rare);
-const NUM_CURSE: usize = count_pool(CardRarity::Curse);
+// Character-color rewardable pools (Silent / Green)
+const NUM_COMMON_GREEN: usize = count_pool(CardRarity::Common, CardColor::Green);
+const NUM_UNCOMMON_GREEN: usize = count_pool(CardRarity::Uncommon, CardColor::Green);
+const NUM_RARE_GREEN: usize = count_pool(CardRarity::Rare, CardColor::Green);
 
-// Compute rarity-pools
-pub const POOL_COMMON_CARD: &[CardName] = &build_pool::<NUM_COMMON>(CardRarity::Common);
-pub const POOL_UNCOMMON_CARD: &[CardName] = &build_pool::<NUM_UNCOMMON>(CardRarity::Uncommon);
-pub const POOL_RARE_CARD: &[CardName] = &build_pool::<NUM_RARE>(CardRarity::Rare);
-pub const POOL_CURSE_CARD: &[CardName] = &build_pool::<NUM_CURSE>(CardRarity::Curse);
+pub const POOL_COMMON_GREEN_CARD: &[CardName] =
+    &build_pool::<NUM_COMMON_GREEN>(CardRarity::Common, CardColor::Green);
+pub const POOL_UNCOMMON_GREEN_CARD: &[CardName] =
+    &build_pool::<NUM_UNCOMMON_GREEN>(CardRarity::Uncommon, CardColor::Green);
+pub const POOL_RARE_GREEN_CARD: &[CardName] =
+    &build_pool::<NUM_RARE_GREEN>(CardRarity::Rare, CardColor::Green);
+
+// Colorless pools — fed to shop, events, Neow (not combat rewards)
+const NUM_UNCOMMON_COLORLESS: usize = count_pool(CardRarity::Uncommon, CardColor::Colorless);
+const NUM_RARE_COLORLESS: usize = count_pool(CardRarity::Rare, CardColor::Colorless);
+
+pub const POOL_UNCOMMON_COLORLESS_CARD: &[CardName] =
+    &build_pool::<NUM_UNCOMMON_COLORLESS>(CardRarity::Uncommon, CardColor::Colorless);
+pub const POOL_RARE_COLORLESS_CARD: &[CardName] =
+    &build_pool::<NUM_RARE_COLORLESS>(CardRarity::Rare, CardColor::Colorless);
+
+// Curses are kind=Curse + color=Curse; color filter unifies pool gen
+const NUM_CURSE: usize = count_pool(CardRarity::Curse, CardColor::Curse);
+pub const POOL_CURSE_CARD: &[CardName] =
+    &build_pool::<NUM_CURSE>(CardRarity::Curse, CardColor::Curse);
 
 pub fn get_random_curse(rng: &mut impl rand::Rng) -> CardName {
     POOL_CURSE_CARD[rng.random_range(0..POOL_CURSE_CARD.len())]

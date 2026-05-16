@@ -152,8 +152,10 @@ class CardName(IntEnum):
     AllOutAttack: int
     Backflip: int
     Backstab: int
+    BandageUp: int
     Bane: int
     BladeDance: int
+    Blind: int
     Blur: int
     BouncingFlask: int
     BulletTime: int
@@ -172,6 +174,7 @@ class CardName(IntEnum):
     Dash: int
     Dazed: int
     DeadlyPoison: int
+    DeepBreath: int
     Defend: int
     Deflect: int
     DieDieDie: int
@@ -183,17 +186,22 @@ class CardName(IntEnum):
     EscapePlan: int
     Eviscerate: int
     Expertise: int
+    Finesse: int
     Finisher: int
+    FlashOfSteel: int
     Flechettes: int
     FlyingKnee: int
     Footwork: int
     GlassKnife: int
+    GoodInstincts: int
     GrandFinale: int
     HeelHook: int
     InfiniteBlades: int
     LegSweep: int
     Malaise: int
+    MasterOfStrategy: int
     MasterfulStab: int
+    MindBlast: int
     Neutralize: int
     Nightmare: int
     NoxiousFumes: int
@@ -216,6 +224,7 @@ class CardName(IntEnum):
     Strike: int
     SuckerPunch: int
     Survivor: int
+    SwiftStrike: int
     Tactician: int
     Terror: int
     ToolsOfTheTrade: int
@@ -444,6 +453,12 @@ class Effect:
     class CardDiscard:
         target: Optional[Target]
 
+    class DamageMindBlast:
+        target: Optional[Target]
+
+    class ShuffleDiscardPileIntoDrawPile:
+        target: Optional[Target]
+
     class CalculatedGamble:
         target: Optional[Target]
 
@@ -572,6 +587,8 @@ class Card:
             Effect.CardDraw,
             Effect.DrawUpTo,
             Effect.CardDiscard,
+            Effect.DamageMindBlast,
+            Effect.ShuffleDiscardPileIntoDrawPile,
             Effect.CalculatedGamble,
         ]
     ]

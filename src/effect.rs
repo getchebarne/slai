@@ -73,6 +73,8 @@ pub enum EffectKind {
         source: DiscardSource,
     },
     CardMoveToDiscard,
+    DamageMindBlast,
+    ShuffleDiscardPileIntoDrawPile,
     CardNightmarePick,
     CardNightmareSpawn,
     CardRetain,
