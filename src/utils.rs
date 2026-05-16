@@ -5,16 +5,19 @@ use crate::cards::POOL_COMMON_CARD;
 use crate::cards::POOL_RARE_CARD;
 use crate::cards::POOL_UNCOMMON_CARD;
 use crate::cards::get_card;
+use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
+use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
-use crate::consts::CHANCE_RARE;
-use crate::consts::CHANCE_UNCOMMON;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_MONSTERS;
 use crate::entity::Entity;
 use crate::game::GameState;
+use crate::relics::POOL_COMMON_RELIC;
+use crate::relics::POOL_RARE_RELIC;
+use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
 use crate::types::CardName;
 use crate::types::RelicName;
@@ -66,10 +69,6 @@ pub fn remove_card_from_collection(id_target: usize, id_collection: &mut Vec<usi
 
     id_collection.remove(pos);
 }
-
-use crate::relics::POOL_COMMON_RELIC;
-use crate::relics::POOL_RARE_RELIC;
-use crate::relics::POOL_UNCOMMON_RELIC;
 
 // Used by both elite combat-end and chest opening
 pub fn add_relic_reward_for_roll(
@@ -132,10 +131,10 @@ pub fn roll_card_rewards(
     for _ in 0..MAX_COMBAT_CARD_REWARD {
         let roll = rng.random_range(0i32..99) + character_reward_roll_offset as i32;
 
-        let pool = if roll < CHANCE_RARE {
+        let pool = if roll < CARD_REWARD_ROLL_CHANCE_RARE {
             character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE;
             POOL_RARE_CARD
-        } else if roll < CHANCE_UNCOMMON {
+        } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
             POOL_UNCOMMON_CARD
         } else {
             character_reward_roll_offset =

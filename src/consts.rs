@@ -26,8 +26,8 @@ pub const NIGHTMARE_COPIES: u8 = 3;
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;
 pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
-pub const CHANCE_RARE: i32 = 3;
-pub const CHANCE_UNCOMMON: i32 = 40;
+pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
+pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON: i32 = 40;
 
 // Map
 pub const MAP_HEIGHT: usize = 15;
