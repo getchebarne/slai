@@ -42,6 +42,7 @@ pub mod process_effect_id_card_nightmare_pick;
 pub mod process_effect_id_card_nightmare_spawn;
 pub mod process_effect_max_health_gain;
 pub mod process_effect_max_health_loss;
+pub mod process_effect_mind_blast_damage;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -62,6 +63,7 @@ pub mod process_effect_reward_take_potion;
 pub mod process_effect_reward_take_relic;
 pub mod process_effect_room_enter;
 pub mod process_effect_set_cost_override;
+pub mod process_effect_shuffle_discard_pile_into_draw_pile;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_target_clear;
@@ -384,7 +386,6 @@ fn dispatch_by_kind(
             &mut state.id_hand,
             &mut state.id_pile_discard,
             &mut state.card_last_drawn,
-            &mut state.rng,
             &mut state.effect_queue,
         ),
         EffectKind::DrawUpTo { amount } => process_effect_draw_up_to::process_effect_draw_up_to(
@@ -441,6 +442,21 @@ fn dispatch_by_kind(
                 id_target.unwrap(),
                 &mut state.id_hand,
                 &mut state.id_pile_discard,
+            )
+        }
+        EffectKind::DamageMindBlast => {
+            process_effect_mind_blast_damage::process_effect_mind_blast_damage(
+                id_source,
+                id_target.unwrap(),
+                state.id_pile_draw.len(),
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::ShuffleDiscardPileIntoDrawPile => {
+            process_effect_shuffle_discard_pile_into_draw_pile::process_effect_shuffle_discard_pile_into_draw_pile(
+                &mut state.id_pile_draw,
+                &mut state.id_pile_discard,
+                &mut state.rng,
             )
         }
         EffectKind::CardRetain => process_effect_card_retain::process_effect_card_retain(

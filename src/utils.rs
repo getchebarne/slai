@@ -1,9 +1,9 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::cards::POOL_COMMON_CARD;
-use crate::cards::POOL_RARE_CARD;
-use crate::cards::POOL_UNCOMMON_CARD;
+use crate::cards::POOL_COMMON_GREEN_CARD;
+use crate::cards::POOL_RARE_GREEN_CARD;
+use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
@@ -27,6 +27,15 @@ pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
         let j = rng.random_range(0..=i);
         slice.swap(i, j);
     }
+}
+
+pub fn reshuffle_discard_into_draw(
+    id_pile_draw: &mut Vec<usize>,
+    id_pile_discard: &mut Vec<usize>,
+    rng: &mut impl Rng,
+) {
+    id_pile_draw.append(id_pile_discard);
+    shuffle(id_pile_draw, rng);
 }
 
 // Fills `buf` with the ids of monsters that are alive, returns how many
@@ -133,13 +142,13 @@ pub fn roll_card_rewards(
 
         let pool = if roll < CARD_REWARD_ROLL_CHANCE_RARE {
             character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE;
-            POOL_RARE_CARD
+            POOL_RARE_GREEN_CARD
         } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
-            POOL_UNCOMMON_CARD
+            POOL_UNCOMMON_GREEN_CARD
         } else {
             character_reward_roll_offset =
                 (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
-            POOL_COMMON_CARD
+            POOL_COMMON_GREEN_CARD
         };
 
         let mut name = pool[rng.random_range(0..pool.len())];
