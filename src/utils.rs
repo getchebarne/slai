@@ -1,9 +1,9 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::cards::POOL_COMMON;
-use crate::cards::POOL_RARE;
-use crate::cards::POOL_UNCOMMON;
+use crate::cards::POOL_COMMON_CARD;
+use crate::cards::POOL_RARE_CARD;
+use crate::cards::POOL_UNCOMMON_CARD;
 use crate::cards::get_card;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
@@ -67,9 +67,9 @@ pub fn remove_card_from_collection(id_target: usize, id_collection: &mut Vec<usi
     id_collection.remove(pos);
 }
 
-use crate::relics::RELIC_POOL_COMMON;
-use crate::relics::RELIC_POOL_RARE;
-use crate::relics::RELIC_POOL_UNCOMMON;
+use crate::relics::POOL_COMMON_RELIC;
+use crate::relics::POOL_RARE_RELIC;
+use crate::relics::POOL_UNCOMMON_RELIC;
 
 // Used by both `EffectKind::RelicRewardRoll` (elite) and `EffectKind::ChestOpen`
 pub fn add_relic_reward_for_roll(
@@ -81,17 +81,17 @@ pub fn add_relic_reward_for_roll(
     rng: &mut impl Rng,
 ) -> usize {
     let pool: &[RelicName] = if roll < th_common {
-        RELIC_POOL_COMMON
+        POOL_COMMON_RELIC
     } else if roll < th_uncommon {
-        RELIC_POOL_UNCOMMON
+        POOL_UNCOMMON_RELIC
     } else {
-        RELIC_POOL_RARE
+        POOL_RARE_RELIC
     };
 
     let name = pick_from_pool(pool, id_relics, rng)
-        .or_else(|| pick_from_pool(RELIC_POOL_RARE, id_relics, rng))
-        .or_else(|| pick_from_pool(RELIC_POOL_UNCOMMON, id_relics, rng))
-        .or_else(|| pick_from_pool(RELIC_POOL_COMMON, id_relics, rng))
+        .or_else(|| pick_from_pool(POOL_RARE_RELIC, id_relics, rng))
+        .or_else(|| pick_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
+        .or_else(|| pick_from_pool(POOL_COMMON_RELIC, id_relics, rng))
         .unwrap_or(RelicName::Circlet);
 
     let id = entities.len();
@@ -135,13 +135,13 @@ pub fn roll_card_rewards(
 
         let pool = if roll < CHANCE_RARE {
             character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE;
-            POOL_RARE
+            POOL_RARE_CARD
         } else if roll < CHANCE_UNCOMMON {
-            POOL_UNCOMMON
+            POOL_UNCOMMON_CARD
         } else {
             character_reward_roll_offset =
                 (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
-            POOL_COMMON
+            POOL_COMMON_CARD
         };
 
         let mut name = pool[rng.random_range(0..pool.len())];

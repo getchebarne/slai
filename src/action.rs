@@ -44,11 +44,8 @@ pub enum Action {
     CardRewardSelect {
         idx_reward: usize,
     },
-    CardRewardSkip,
     RelicRewardSelect,
-    RelicRewardSkip,
     PotionRewardSelect,
-    PotionRewardSkip,
     GoldRewardTake,
     RewardSkip,
     EndTurn,
@@ -84,11 +81,8 @@ fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> 
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
         (
             Action::CardRewardSelect { .. }
-            | Action::CardRewardSkip
             | Action::RelicRewardSelect
-            | Action::RelicRewardSkip
             | Action::PotionRewardSelect
-            | Action::PotionRewardSkip
             | Action::GoldRewardTake
             | Action::RewardSkip,
             Phase::Reward { .. },
@@ -123,11 +117,8 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         } => handle_card_play(state, idx_hand, idx_monster),
         Action::RestSiteCardUpgrade { idx_deck } => handle_rest_site_card_upgrade(state, idx_deck),
         Action::CardRewardSelect { idx_reward } => handle_card_reward_select(state, idx_reward),
-        Action::CardRewardSkip => Ok(handle_card_reward_skip()),
         Action::RelicRewardSelect => handle_relic_reward_select(state),
-        Action::RelicRewardSkip => Ok(handle_relic_reward_skip()),
         Action::PotionRewardSelect => handle_potion_reward_select(state),
-        Action::PotionRewardSkip => Ok(handle_potion_reward_skip()),
         Action::GoldRewardTake => handle_gold_reward_take(state),
         Action::RewardSkip => Ok(handle_reward_skip()),
         Action::EndTurn => Ok(handle_end_turn(state)),
@@ -357,15 +348,6 @@ fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec
     ])
 }
 
-fn handle_card_reward_skip() -> Vec<Effect> {
-    // CardRewardClear halts on AwaitMapNode once the rewards are cleared
-    vec![Effect {
-        kind: EffectKind::CardRewardClear,
-        id_source: None,
-        target: Target::Direct(None),
-    }]
-}
-
 fn handle_relic_reward_select(state: &GameState) -> Result<Vec<Effect>, String> {
     let Phase::Reward { id_relic, .. } = &state.phase else {
         return Err(format!("RelicRewardSelect invalid in phase {:?}", state.phase));
@@ -374,14 +356,6 @@ fn handle_relic_reward_select(state: &GameState) -> Result<Vec<Effect>, String> 
         return Err("RelicRewardSelect: no relic in reward pool".to_string());
     }
     Ok(vec![Effect::direct(EffectKind::RelicRewardSelect, None, None)])
-}
-
-fn handle_relic_reward_skip() -> Vec<Effect> {
-    vec![Effect {
-        kind: EffectKind::RelicRewardClear,
-        id_source: None,
-        target: Target::Direct(None),
-    }]
 }
 
 fn handle_potion_reward_select(state: &GameState) -> Result<Vec<Effect>, String> {
@@ -396,10 +370,6 @@ fn handle_potion_reward_select(state: &GameState) -> Result<Vec<Effect>, String>
         return Err("belt is full; discard a potion first".to_string());
     }
     Ok(vec![Effect::direct(EffectKind::PotionRewardSelect, None, None)])
-}
-
-fn handle_potion_reward_skip() -> Vec<Effect> {
-    vec![Effect::direct(EffectKind::PotionRewardClear, None, None)]
 }
 
 fn handle_gold_reward_take(state: &GameState) -> Result<Vec<Effect>, String> {

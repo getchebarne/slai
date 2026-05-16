@@ -145,7 +145,6 @@ pub enum EffectKind {
 
     // Relic flow
     RelicRewardSelect,
-    RelicRewardClear,
 
     // Master-deck mutation (combat rewards, events, shop, Neow)
     CardRemoveFromDeck,
@@ -170,7 +169,6 @@ pub enum EffectKind {
         limited: bool,
     },
     PotionRewardSelect,
-    PotionRewardClear,
 
     // Gold reward pickup (in-pool gold from combat-end or chest)
     GoldRewardTake,

@@ -1,8 +1,8 @@
 use rand::Rng;
 
-use crate::cards::POOL_COMMON;
-use crate::cards::POOL_RARE;
-use crate::cards::POOL_UNCOMMON;
+use crate::cards::POOL_COMMON_CARD;
+use crate::cards::POOL_RARE_CARD;
+use crate::cards::POOL_UNCOMMON_CARD;
 use crate::cards::get_card;
 use crate::entity::Entity;
 use crate::entity::add_card_to_hand_or_discard;
@@ -22,7 +22,7 @@ pub fn process_effect_distraction_add(
     // Stack buffer big enough for the current pool
     let mut buf = [CardName::Strike; 64];
     let mut n = 0;
-    for pool in [POOL_COMMON, POOL_UNCOMMON, POOL_RARE] {
+    for pool in [POOL_COMMON_CARD, POOL_UNCOMMON_CARD, POOL_RARE_CARD] {
         for &name in pool {
             if name == CardName::Distraction {
                 continue;

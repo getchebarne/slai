@@ -239,9 +239,7 @@ class ActionType(IntEnum):
     CardNightmare: int
     RoomSelect: int
     CardRewardSelect: int
-    CardRewardSkip: int
     RelicRewardSelect: int
-    RelicRewardSkip: int
     RestSiteRest: int
     RestSiteCardUpgrade: int
     RoomSkip: int
@@ -250,7 +248,6 @@ class ActionType(IntEnum):
     PotionDiscard: int
     CardDiscoverPick: int
     PotionRewardSelect: int
-    PotionRewardSkip: int
     GoldRewardTake: int
     RewardSkip: int
 
@@ -291,20 +288,20 @@ class Phase:
         def __init__(self) -> None: ...
 
     class CombatAwaitDiscover:
-        picks_card: list[Card]
-        def __init__(self, picks_card: list[Card]) -> None: ...
+        cards: list[Card]
+        def __init__(self, cards: list[Card]) -> None: ...
 
     class Reward:
-        rewards_card: list[Card]
-        rewards_relic: Relic | None
-        rewards_potion: Potion | None
-        rewards_gold: int | None
+        cards: list[Card]
+        relic: Relic | None
+        potion: Potion | None
+        gold: int | None
         def __init__(
             self,
-            rewards_card: list[Card],
-            rewards_relic: Relic | None,
-            rewards_potion: Potion | None,
-            rewards_gold: int | None,
+            cards: list[Card],
+            relic: Relic | None,
+            potion: Potion | None,
+            gold: int | None,
         ) -> None: ...
 
     class RestSite:
@@ -462,9 +459,7 @@ class ActionSpecRegistry:
     CardNightmare: ActionSpec
     RoomSelect: ActionSpec
     CardRewardSelect: ActionSpec
-    CardRewardSkip: ActionSpec
     RelicRewardSelect: ActionSpec
-    RelicRewardSkip: ActionSpec
     RestSiteRest: ActionSpec
     RestSiteCardUpgrade: ActionSpec
     RoomSkip: ActionSpec
@@ -473,7 +468,6 @@ class ActionSpecRegistry:
     PotionDiscard: ActionSpec
     CardDiscoverPick: ActionSpec
     PotionRewardSelect: ActionSpec
-    PotionRewardSkip: ActionSpec
     GoldRewardTake: ActionSpec
     RewardSkip: ActionSpec
 

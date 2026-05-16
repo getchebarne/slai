@@ -362,7 +362,7 @@ const _: () = {
     }
 };
 
-const fn rarity_eq(a: CardRarity, b: CardRarity) -> bool {
+const fn card_rarity_eq(a: CardRarity, b: CardRarity) -> bool {
     matches!(
         (a, b),
         (CardRarity::Basic, CardRarity::Basic)
@@ -395,7 +395,7 @@ const fn count_pool(rarity: CardRarity) -> usize {
     let mut idx = 0;
     while idx < ALL_CARDS.len() {
         let card = ALL_CARDS[idx];
-        if rarity_eq(card.card_rarity, rarity) && is_rewardable_kind(card.card_kind) {
+        if card_rarity_eq(card.card_rarity, rarity) && is_rewardable_kind(card.card_kind) {
             // AscendersBane is Curse-rarity but Neow-only; skip
             if matches!(rarity, CardRarity::Curse)
                 && matches!(card.card_name, CardName::AscendersBane)
@@ -416,7 +416,7 @@ const fn build_pool<const N: usize>(rarity: CardRarity) -> [CardName; N] {
     let mut idx_all = 0;
     while idx_all < ALL_CARDS.len() {
         let card = ALL_CARDS[idx_all];
-        if rarity_eq(card.card_rarity, rarity)
+        if card_rarity_eq(card.card_rarity, rarity)
             && (matches!(rarity, CardRarity::Curse) || is_rewardable_kind(card.card_kind))
         {
             // AscendersBane is Curse-rarity but Neow-only; skip
@@ -439,13 +439,13 @@ const NUM_RARE: usize = count_pool(CardRarity::Rare);
 const NUM_CURSE: usize = count_pool(CardRarity::Curse);
 
 // Compute rarity-pools
-pub const POOL_COMMON: &[CardName] = &build_pool::<NUM_COMMON>(CardRarity::Common);
-pub const POOL_UNCOMMON: &[CardName] = &build_pool::<NUM_UNCOMMON>(CardRarity::Uncommon);
-pub const POOL_RARE: &[CardName] = &build_pool::<NUM_RARE>(CardRarity::Rare);
-pub const POOL_CURSE: &[CardName] = &build_pool::<NUM_CURSE>(CardRarity::Curse);
+pub const POOL_COMMON_CARD: &[CardName] = &build_pool::<NUM_COMMON>(CardRarity::Common);
+pub const POOL_UNCOMMON_CARD: &[CardName] = &build_pool::<NUM_UNCOMMON>(CardRarity::Uncommon);
+pub const POOL_RARE_CARD: &[CardName] = &build_pool::<NUM_RARE>(CardRarity::Rare);
+pub const POOL_CURSE_CARD: &[CardName] = &build_pool::<NUM_CURSE>(CardRarity::Curse);
 
 pub fn get_random_curse(rng: &mut impl rand::Rng) -> CardName {
-    POOL_CURSE[rng.random_range(0..POOL_CURSE.len())]
+    POOL_CURSE_CARD[rng.random_range(0..POOL_CURSE_CARD.len())]
 }
 
 // Pick `count` distinct cards of the given `kind` from the rewardable pool

@@ -43,11 +43,13 @@ pub fn process_effect_reward_roll_combat(
             Some((GOLD_ELITE_MIN, GOLD_ELITE_MAX)),
             Some((ELITE_TH_COMMON, ELITE_TH_UNCOMMON)),
         ),
-        _ => unreachable!("RewardRollCombat with non-combat room_kind: {:?}", room_kind),
+        _ => unreachable!(
+            "RewardRollCombat with non-combat room_kind: {:?}",
+            room_kind
+        ),
     };
 
     let id_cards = roll_card_rewards(id_character, entities, rng);
-    let gold = gold_range.map(|(min, max)| rng.random_range(min..=max));
     let id_relic = relic_thresholds.map(|(th_c, th_u)| {
         let roll = rng.random_range(0..100) as u8;
         add_relic_reward_for_roll(roll, th_c, th_u, id_relics, entities, rng)
@@ -58,7 +60,14 @@ pub fn process_effect_reward_roll_combat(
         entities.push(get_potion(name));
         id
     });
-    Some(Phase::Reward { id_cards, id_relic, id_potion, gold })
+    let gold = gold_range.map(|(min, max)| rng.random_range(min..=max));
+
+    Some(Phase::Reward {
+        id_cards,
+        id_relic,
+        id_potion,
+        gold,
+    })
 }
 
 // +10 on miss, -10 on hit; clamps to [-30, +60] ([10%, 100%])

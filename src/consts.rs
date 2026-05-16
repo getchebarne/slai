@@ -95,7 +95,7 @@ pub const REST_SITE_HEAL_FACTOR: f32 = 0.30;
 // Potions
 pub const POTION_SLOTS_DEFAULT: u8 = 3;
 pub const POTION_SLOTS_DEFAULT_A11: u8 = 2;
-pub const POTION_SLOTS_MAX: usize = 5;
+pub const MAX_POTIONS: usize = 5;
 pub const ASCENSION_POTION_SLOT_PENALTY: u8 = 11;
 
 // Potion drop swing: chance = base + mod; +10 on miss, -10 on hit;

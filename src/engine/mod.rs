@@ -53,10 +53,8 @@ pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_potion_add_random;
-pub mod process_effect_potion_reward_clear;
 pub mod process_effect_potion_reward_select;
 pub mod process_effect_potion_use;
-pub mod process_effect_relic_reward_clear;
 pub mod process_effect_relic_reward_select;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_reward_roll_chest;
@@ -532,9 +530,6 @@ fn dispatch_by_kind(
                 state.id_character,
             )
         }
-        EffectKind::PotionRewardClear => {
-            process_effect_potion_reward_clear::process_effect_potion_reward_clear(&mut state.phase)
-        }
         EffectKind::GoldRewardTake => {
             process_effect_gold_reward_take::process_effect_gold_reward_take(
                 &mut state.phase,
@@ -960,9 +955,6 @@ fn dispatch_by_kind(
                 &state.entities,
                 &mut state.id_relics,
             )
-        }
-        EffectKind::RelicRewardClear => {
-            process_effect_relic_reward_clear::process_effect_relic_reward_clear(&mut state.phase)
         }
         EffectKind::CardRemoveFromDeck => {
             process_effect_card_remove_from_deck::process_effect_card_remove_from_deck(

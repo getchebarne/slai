@@ -16,7 +16,7 @@ use crate::modifier::ZERO_MODIFIERS;
 // (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
 // with practical caps, etc.). Bump when a card legitimately exceeds it
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
-use crate::consts::POTION_SLOTS_MAX;
+use crate::consts::MAX_POTIONS;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -96,7 +96,7 @@ pub struct Entity {
     pub character_name: &'static str,
     pub character_reward_roll_offset: i8,
     pub character_gold: u16,
-    pub potion_slots: [Option<usize>; POTION_SLOTS_MAX],
+    pub potion_slots: [Option<usize>; MAX_POTIONS],
     pub potion_slots_max: u8,
 
     // Monster-only
@@ -162,7 +162,7 @@ const ZERO_ENTITY: Entity = Entity {
     character_name: "",
     character_reward_roll_offset: 0,
     character_gold: 0,
-    potion_slots: [None; POTION_SLOTS_MAX],
+    potion_slots: [None; MAX_POTIONS],
     potion_slots_max: 0,
     monster_stolen_gold: 0,
     monster_name: MonsterName::Cultist,
