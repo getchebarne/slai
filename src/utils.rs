@@ -71,7 +71,7 @@ use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 
-// Used by both `EffectKind::RelicRewardRoll` (elite) and `EffectKind::ChestOpen`
+// Used by both elite combat-end and chest opening
 pub fn add_relic_reward_for_roll(
     roll: u8,
     th_common: u8,
@@ -80,19 +80,18 @@ pub fn add_relic_reward_for_roll(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
 ) -> usize {
-    let pool: &[RelicName] = if roll < th_common {
-        POOL_COMMON_RELIC
+    let name = if roll < th_common {
+        pick_from_pool(POOL_COMMON_RELIC, id_relics, rng)
+            .or_else(|| pick_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
+            .or_else(|| pick_from_pool(POOL_RARE_RELIC, id_relics, rng))
+            .unwrap_or(RelicName::Circlet)
     } else if roll < th_uncommon {
-        POOL_UNCOMMON_RELIC
+        pick_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng)
+            .or_else(|| pick_from_pool(POOL_RARE_RELIC, id_relics, rng))
+            .unwrap_or(RelicName::Circlet)
     } else {
-        POOL_RARE_RELIC
+        pick_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
     };
-
-    let name = pick_from_pool(pool, id_relics, rng)
-        .or_else(|| pick_from_pool(POOL_RARE_RELIC, id_relics, rng))
-        .or_else(|| pick_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
-        .or_else(|| pick_from_pool(POOL_COMMON_RELIC, id_relics, rng))
-        .unwrap_or(RelicName::Circlet);
 
     let id = entities.len();
     entities.push(get_relic(name));
