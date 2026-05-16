@@ -8,8 +8,8 @@ use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
-use crate::utils::scale_attack_damage;
 use crate::types::Phase;
+use crate::utils::scale_attack_damage;
 
 // Unified physical-damage handler. `if_poisoned` gates the hit: when true
 // (Bane), the handler bails (no damage, no Thorns) unless the target has

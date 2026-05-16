@@ -890,7 +890,9 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("CardNightmare expects [idx_hand], got {n} idxs")),
         },
         PyActionType::RoomSelect => match idxs.len() {
-            1 => Ok(Action::RoomSelect { idx_column: idxs[0] }),
+            1 => Ok(Action::RoomSelect {
+                idx_column: idxs[0],
+            }),
             n => Err(format!("RoomSelect expects [idx_column], got {n} idxs")),
         },
         PyActionType::RestSiteRest => match idxs.len() {
@@ -929,16 +931,18 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("PotionDiscard expects [idx_slot], got {n} idxs")),
         },
         PyActionType::CardDiscoverSelect => match idxs.len() {
-            1 => Ok(Action::CardDiscoverSelect { idx_option: idxs[0] }),
+            1 => Ok(Action::CardDiscoverSelect {
+                idx_option: idxs[0],
+            }),
             n => Err(format!(
                 "CardDiscoverSelect expects [idx_option], got {n} idxs"
             )),
         },
         PyActionType::RewardTakeCard => match idxs.len() {
-            1 => Ok(Action::RewardTakeCard { idx_reward: idxs[0] }),
-            n => Err(format!(
-                "RewardTakeCard expects [idx_reward], got {n} idxs"
-            )),
+            1 => Ok(Action::RewardTakeCard {
+                idx_reward: idxs[0],
+            }),
+            n => Err(format!("RewardTakeCard expects [idx_reward], got {n} idxs")),
         },
         PyActionType::RewardTakeRelic => match idxs.len() {
             0 => Ok(Action::RewardTakeRelic),
@@ -1486,11 +1490,31 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
     PyGameState {
         character: snapshot_character(state),
         monsters: snapshot_monsters(state),
-        deck: state.id_deck.iter().map(|&id| snapshot_card(state, id)).collect(),
-        hand: state.id_hand.iter().map(|&id| snapshot_card(state, id)).collect(),
-        pile_draw: state.id_pile_draw.iter().map(|&id| snapshot_card(state, id)).collect(),
-        pile_discard: state.id_pile_discard.iter().map(|&id| snapshot_card(state, id)).collect(),
-        pile_exhaust: state.id_pile_exhaust.iter().map(|&id| snapshot_card(state, id)).collect(),
+        deck: state
+            .id_deck
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
+        hand: state
+            .id_hand
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
+        pile_draw: state
+            .id_pile_draw
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
+        pile_discard: state
+            .id_pile_discard
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
+        pile_exhaust: state
+            .id_pile_exhaust
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
         relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
@@ -1511,13 +1535,19 @@ fn snapshot_phase(state: &GameState) -> PyPhase {
             id_potion,
             gold,
         } => PyPhase::Reward {
-            cards: id_cards.iter().map(|&id| snapshot_card(state, id)).collect(),
+            cards: id_cards
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
             relic: id_relic.map(|id| snapshot_relic(&state.entities[id])),
             potion: id_potion.map(|id| snapshot_potion(&state.entities[id])),
             gold: *gold,
         },
         Phase::CombatAwaitDiscover { id_cards } => PyPhase::CombatAwaitDiscover {
-            cards: id_cards.iter().map(|&id| snapshot_card(state, id)).collect(),
+            cards: id_cards
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
         },
         other => other.into(),
     }

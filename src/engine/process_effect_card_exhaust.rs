@@ -1,5 +1,5 @@
-use crate::utils::remove_card_from_collection;
 use crate::types::Phase;
+use crate::utils::remove_card_from_collection;
 
 pub fn process_effect_card_exhaust(
     id_card: usize,

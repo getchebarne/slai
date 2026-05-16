@@ -17,7 +17,9 @@ pub fn process_effect_sneaky_strike_proc(
         return None;
     }
     effect_queue.push_front(Effect {
-        kind: EffectKind::EnergyGain { amount: energy as u16 },
+        kind: EffectKind::EnergyGain {
+            amount: energy as u16,
+        },
         id_source: None,
         target: Target::Direct(None),
     });

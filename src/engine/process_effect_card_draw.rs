@@ -7,8 +7,8 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::utils::shuffle;
 
-use rand::Rng;
 use crate::types::Phase;
+use rand::Rng;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(

@@ -8,9 +8,9 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::relics::iter_owned_relics;
+use crate::types::Phase;
 use crate::types::RelicName;
 use crate::utils::shuffle;
-use crate::types::Phase;
 
 pub fn process_effect_combat_start(
     id_character: usize,

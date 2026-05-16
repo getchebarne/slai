@@ -5,8 +5,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::utils::remove_card_from_collection;
 use crate::types::Phase;
+use crate::utils::remove_card_from_collection;
 
 // Unified discard handler. `source` selects the branch:
 //

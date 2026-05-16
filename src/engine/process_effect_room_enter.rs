@@ -16,9 +16,9 @@ use crate::map::room_at_mut;
 use crate::types::ChestKind;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
+use crate::types::Phase;
 use crate::types::RoomKind;
 use crate::utils::shuffle;
-use crate::types::Phase;
 
 pub fn process_effect_room_enter(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],

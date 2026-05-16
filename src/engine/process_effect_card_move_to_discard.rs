@@ -1,5 +1,5 @@
-use crate::utils::remove_card_from_collection;
 use crate::types::Phase;
+use crate::utils::remove_card_from_collection;
 
 // Move-after-play: pushed by `process_effect_card_play` to send the
 // just-played card to the discard pile. Same hand/discard mutation as

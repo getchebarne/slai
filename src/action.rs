@@ -92,7 +92,10 @@ fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> 
         (Action::ChestOpen, Phase::Chest) => true,
         // PotionUse: combat-only potions checked in handler (need entity lookup)
         (Action::PotionUse { .. }, Phase::CombatDefault) => true,
-        (Action::PotionUse { .. }, Phase::Map | Phase::RestSite | Phase::Chest | Phase::EventRoom | Phase::Shop) => true,
+        (
+            Action::PotionUse { .. },
+            Phase::Map | Phase::RestSite | Phase::Chest | Phase::EventRoom | Phase::Shop,
+        ) => true,
         (Action::PotionDiscard { .. }, p) if !matches!(p, Phase::GameOver) => true,
         (Action::CardDiscoverSelect { .. }, Phase::CombatAwaitDiscover { .. }) => true,
         _ => false,
@@ -126,9 +129,10 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
         Action::RoomSkip => Ok(handle_room_skip()),
         Action::ChestOpen => Ok(handle_chest_open()),
-        Action::PotionUse { idx_slot, idx_monster } => {
-            handle_potion_use(state, idx_slot, idx_monster)
-        }
+        Action::PotionUse {
+            idx_slot,
+            idx_monster,
+        } => handle_potion_use(state, idx_slot, idx_monster),
         Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
         Action::CardDiscoverSelect { idx_option } => handle_card_discover_select(state, idx_option),
     }?;
@@ -350,17 +354,27 @@ fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<E
 
 fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
     let Phase::Reward { id_relic, .. } = &state.phase else {
-        return Err(format!("RewardTakeRelic invalid in phase {:?}", state.phase));
+        return Err(format!(
+            "RewardTakeRelic invalid in phase {:?}",
+            state.phase
+        ));
     };
     if id_relic.is_none() {
         return Err("RewardTakeRelic: no relic in reward pool".to_string());
     }
-    Ok(vec![Effect::direct(EffectKind::RewardTakeRelic, None, None)])
+    Ok(vec![Effect::direct(
+        EffectKind::RewardTakeRelic,
+        None,
+        None,
+    )])
 }
 
 fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
     let Phase::Reward { id_potion, .. } = &state.phase else {
-        return Err(format!("RewardTakePotion invalid in phase {:?}", state.phase));
+        return Err(format!(
+            "RewardTakePotion invalid in phase {:?}",
+            state.phase
+        ));
     };
     if id_potion.is_none() {
         return Err("RewardTakePotion: no potion in reward pool".to_string());
@@ -369,7 +383,11 @@ fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
     if find_free_slot(&character.potion_slots, character.potion_slots_max).is_none() {
         return Err("belt is full; discard a potion first".to_string());
     }
-    Ok(vec![Effect::direct(EffectKind::RewardTakePotion, None, None)])
+    Ok(vec![Effect::direct(
+        EffectKind::RewardTakePotion,
+        None,
+        None,
+    )])
 }
 
 fn handle_reward_take_gold(state: &GameState) -> Result<Vec<Effect>, String> {
@@ -485,10 +503,7 @@ fn handle_potion_use(
     Ok(chain)
 }
 
-fn handle_potion_discard(
-    state: &mut GameState,
-    idx_slot: usize,
-) -> Result<Vec<Effect>, String> {
+fn handle_potion_discard(state: &mut GameState, idx_slot: usize) -> Result<Vec<Effect>, String> {
     let character = &mut state.entities[state.id_character];
     if idx_slot >= character.potion_slots_max as usize {
         return Err(format!("PotionDiscard: idx_slot {} out of range", idx_slot));
@@ -505,7 +520,10 @@ fn handle_card_discover_select(
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
     let Phase::CombatAwaitDiscover { id_cards } = &mut state.phase else {
-        return Err(format!("CardDiscoverSelect invalid in phase {:?}", state.phase));
+        return Err(format!(
+            "CardDiscoverSelect invalid in phase {:?}",
+            state.phase
+        ));
     };
     let id_card = *id_cards
         .get(idx_option)

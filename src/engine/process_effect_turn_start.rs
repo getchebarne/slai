@@ -15,8 +15,8 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
-use crate::types::Vitals;
 use crate::types::Phase;
+use crate::types::Vitals;
 
 pub fn process_effect_turn_start(
     vitals: &mut Vitals,

@@ -307,10 +307,16 @@ pub enum Phase {
         gold: Option<u16>,
     },
     CombatDefault,
-    CombatAwaitDiscard { num: u16 },
-    CombatAwaitDiscover { id_cards: Vec<usize> },
+    CombatAwaitDiscard {
+        num: u16,
+    },
+    CombatAwaitDiscover {
+        id_cards: Vec<usize>,
+    },
     CombatAwaitNightmare,
-    CombatAwaitRetain { num: u16 },
+    CombatAwaitRetain {
+        num: u16,
+    },
     CombatAwaitSetup,
     GameOver,
     Map,
