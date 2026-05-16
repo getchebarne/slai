@@ -5,7 +5,7 @@ use crate::entity::Entity;
 use crate::types::CardKind;
 use crate::types::Phase;
 
-pub fn process_effect_card_discover_pick(
+pub fn process_effect_card_discover_select(
     kind: CardKind,
     count: u8,
     entities: &mut Vec<Entity>,

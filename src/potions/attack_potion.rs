@@ -14,7 +14,7 @@ pub static ATTACK_POTION: Entity = make_entity_potion(
     false,
     true,
     &[Effect {
-        kind: EffectKind::CardDiscoverPick {
+        kind: EffectKind::CardDiscoverSelect {
             kind: CardKind::Attack,
             count: DISCOVER_PICK_COUNT,
         },

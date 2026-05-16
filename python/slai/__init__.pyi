@@ -1,7 +1,6 @@
 from enum import IntEnum
 from typing import Iterator, NamedTuple, Optional, Union
 
-
 class CardKind(IntEnum):
     Attack: int
     Skill: int
@@ -252,26 +251,25 @@ class MonsterName(IntEnum):
     TheGuardian: int
 
 class ActionType(IntEnum):
-    CardPlay: int
     EndTurn: int
+    CardPlay: int
     CardDiscard: int
     CardRetain: int
     CardSetup: int
     CardNightmare: int
     RoomSelect: int
-    CardRewardSelect: int
-    RelicRewardSelect: int
     RestSiteRest: int
     RestSiteCardUpgrade: int
     RoomSkip: int
     ChestOpen: int
     PotionUse: int
     PotionDiscard: int
-    CardDiscoverPick: int
-    PotionRewardSelect: int
-    GoldRewardTake: int
+    CardDiscoverSelect: int
+    RewardTakeCard: int
+    RewardTakeRelic: int
+    RewardTakePotion: int
+    RewardTakeGold: int
     RewardSkip: int
-
 
 class CardCostKind:
     class Fixed:
@@ -376,7 +374,7 @@ class Effect:
     class CardNightmarePick:
         target: Optional[Target]
 
-    class CardDiscoverPick:
+    class CardDiscoverSelect:
         kind: CardKind
         count: int
         target: Optional[Target]
@@ -449,7 +447,6 @@ class Effect:
     class CalculatedGamble:
         target: Optional[Target]
 
-
 class Action:
     action_type: ActionType
     idxs: list[int]
@@ -479,17 +476,17 @@ class ActionSpecRegistry:
     CardSetup: ActionSpec
     CardNightmare: ActionSpec
     RoomSelect: ActionSpec
-    CardRewardSelect: ActionSpec
-    RelicRewardSelect: ActionSpec
     RestSiteRest: ActionSpec
     RestSiteCardUpgrade: ActionSpec
     RoomSkip: ActionSpec
     ChestOpen: ActionSpec
     PotionUse: ActionSpec
     PotionDiscard: ActionSpec
-    CardDiscoverPick: ActionSpec
-    PotionRewardSelect: ActionSpec
-    GoldRewardTake: ActionSpec
+    CardDiscoverSelect: ActionSpec
+    RewardTakeCard: ActionSpec
+    RewardTakeRelic: ActionSpec
+    RewardTakePotion: ActionSpec
+    RewardTakeGold: ActionSpec
     RewardSkip: ActionSpec
 
     def __getattr__(self, name: str) -> ActionSpec: ...
@@ -499,7 +496,6 @@ class ActionSpecRegistry:
     def __contains__(self, key: object) -> bool: ...
 
 ACTION_SPEC_REGISTRY: ActionSpecRegistry
-
 
 class Modifier:
     kind: ModifierKind
@@ -539,7 +535,7 @@ class Card:
     kind: CardKind
     color: CardColor
     rarity: CardRarity
-    
+
     # Other boolean fields
     upgraded: bool
     exhaust: bool
@@ -559,7 +555,7 @@ class Card:
             Effect.GlassKnifeDecay,
             Effect.CardSetupPick,
             Effect.CardNightmarePick,
-            Effect.CardDiscoverPick,
+            Effect.CardDiscoverSelect,
             Effect.DistractionAdd,
             Effect.SetCostOverride,
             Effect.FinisherDamage,
@@ -614,7 +610,7 @@ class Map:
     rooms: list[list[Optional[Room]]]
     y_current: Optional[int]
     x_current: Optional[int]
-    boss_name: str # TODO: maybe should be in `GameState`?
+    boss_name: str  # TODO: maybe should be in `GameState`?
 
 class GameState:
     # Actors
@@ -645,7 +641,6 @@ class GameState:
         Phase.RestSite,
         Phase.GameOver,
     ]
-
 
 class GameEnv:
     MAX_MONSTERS: int

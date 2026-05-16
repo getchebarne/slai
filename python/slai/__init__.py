@@ -115,8 +115,6 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.RoomSelect, ArgSpec("idx_column", _MAP_COL)),
-        create_action_spec(ActionType.CardRewardSelect, ArgSpec("idx_reward", _REWARD_POS)),
-        create_action_spec(ActionType.RelicRewardSelect),
         create_action_spec(ActionType.RestSiteRest),
         create_action_spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
         create_action_spec(ActionType.RoomSkip),
@@ -128,10 +126,13 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         ),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
         create_action_spec(
-            ActionType.CardDiscoverPick, ArgSpec("idx_option", _DISCOVER_POS)
+            ActionType.CardDiscoverSelect, ArgSpec("idx_option", _DISCOVER_POS)
         ),
-        create_action_spec(ActionType.PotionRewardSelect),
-        create_action_spec(ActionType.GoldRewardTake),
+        # Reward pickup family
+        create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx_reward", _REWARD_POS)),
+        create_action_spec(ActionType.RewardTakeRelic),
+        create_action_spec(ActionType.RewardTakePotion),
+        create_action_spec(ActionType.RewardTakeGold),
         create_action_spec(ActionType.RewardSkip),
     ]
 )

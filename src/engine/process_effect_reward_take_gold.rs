@@ -1,7 +1,7 @@
 use crate::entity::Entity;
 use crate::types::Phase;
 
-pub fn process_effect_gold_reward_take(
+pub fn process_effect_reward_take_gold(
     phase: &mut Phase,
     entities: &mut [Entity],
     id_character: usize,

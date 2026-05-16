@@ -791,17 +791,17 @@ pub enum PyActionType {
     CardSetup,
     CardNightmare,
     RoomSelect,
-    CardRewardSelect,
-    RelicRewardSelect,
     RestSiteRest,
     RestSiteCardUpgrade,
     RoomSkip,
     ChestOpen,
     PotionUse,
     PotionDiscard,
-    CardDiscoverPick,
-    PotionRewardSelect,
-    GoldRewardTake,
+    CardDiscoverSelect,
+    RewardTakeCard,
+    RewardTakeRelic,
+    RewardTakePotion,
+    RewardTakeGold,
     RewardSkip,
 }
 
@@ -815,17 +815,17 @@ impl PyActionType {
             4 => Ok(Self::CardSetup),
             5 => Ok(Self::CardNightmare),
             6 => Ok(Self::RoomSelect),
-            7 => Ok(Self::CardRewardSelect),
-            8 => Ok(Self::RelicRewardSelect),
-            9 => Ok(Self::RestSiteRest),
-            10 => Ok(Self::RestSiteCardUpgrade),
-            11 => Ok(Self::RoomSkip),
-            12 => Ok(Self::ChestOpen),
-            13 => Ok(Self::PotionUse),
-            14 => Ok(Self::PotionDiscard),
-            15 => Ok(Self::CardDiscoverPick),
-            16 => Ok(Self::PotionRewardSelect),
-            17 => Ok(Self::GoldRewardTake),
+            7 => Ok(Self::RestSiteRest),
+            8 => Ok(Self::RestSiteCardUpgrade),
+            9 => Ok(Self::RoomSkip),
+            10 => Ok(Self::ChestOpen),
+            11 => Ok(Self::PotionUse),
+            12 => Ok(Self::PotionDiscard),
+            13 => Ok(Self::CardDiscoverSelect),
+            14 => Ok(Self::RewardTakeCard),
+            15 => Ok(Self::RewardTakeRelic),
+            16 => Ok(Self::RewardTakePotion),
+            17 => Ok(Self::RewardTakeGold),
             18 => Ok(Self::RewardSkip),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
@@ -893,16 +893,6 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             1 => Ok(Action::RoomSelect { idx_column: idxs[0] }),
             n => Err(format!("RoomSelect expects [idx_column], got {n} idxs")),
         },
-        PyActionType::CardRewardSelect => match idxs.len() {
-            1 => Ok(Action::CardRewardSelect { idx_reward: idxs[0] }),
-            n => Err(format!(
-                "CardRewardSelect expects [idx_reward], got {n} idxs"
-            )),
-        },
-        PyActionType::RelicRewardSelect => match idxs.len() {
-            0 => Ok(Action::RelicRewardSelect),
-            n => Err(format!("RelicRewardSelect expects [], got {n} idxs")),
-        },
         PyActionType::RestSiteRest => match idxs.len() {
             0 => Ok(Action::RestSiteRest),
             n => Err(format!("RestSiteRest expects [], got {n} idxs")),
@@ -938,19 +928,29 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             1 => Ok(Action::PotionDiscard { idx_slot: idxs[0] }),
             n => Err(format!("PotionDiscard expects [idx_slot], got {n} idxs")),
         },
-        PyActionType::CardDiscoverPick => match idxs.len() {
-            1 => Ok(Action::CardDiscoverPick { idx_option: idxs[0] }),
+        PyActionType::CardDiscoverSelect => match idxs.len() {
+            1 => Ok(Action::CardDiscoverSelect { idx_option: idxs[0] }),
             n => Err(format!(
-                "CardDiscoverPick expects [idx_option], got {n} idxs"
+                "CardDiscoverSelect expects [idx_option], got {n} idxs"
             )),
         },
-        PyActionType::PotionRewardSelect => match idxs.len() {
-            0 => Ok(Action::PotionRewardSelect),
-            n => Err(format!("PotionRewardSelect expects [], got {n} idxs")),
+        PyActionType::RewardTakeCard => match idxs.len() {
+            1 => Ok(Action::RewardTakeCard { idx_reward: idxs[0] }),
+            n => Err(format!(
+                "RewardTakeCard expects [idx_reward], got {n} idxs"
+            )),
         },
-        PyActionType::GoldRewardTake => match idxs.len() {
-            0 => Ok(Action::GoldRewardTake),
-            n => Err(format!("GoldRewardTake expects [], got {n} idxs")),
+        PyActionType::RewardTakeRelic => match idxs.len() {
+            0 => Ok(Action::RewardTakeRelic),
+            n => Err(format!("RewardTakeRelic expects [], got {n} idxs")),
+        },
+        PyActionType::RewardTakePotion => match idxs.len() {
+            0 => Ok(Action::RewardTakePotion),
+            n => Err(format!("RewardTakePotion expects [], got {n} idxs")),
+        },
+        PyActionType::RewardTakeGold => match idxs.len() {
+            0 => Ok(Action::RewardTakeGold),
+            n => Err(format!("RewardTakeGold expects [], got {n} idxs")),
         },
         PyActionType::RewardSkip => match idxs.len() {
             0 => Ok(Action::RewardSkip),
@@ -1068,7 +1068,7 @@ pub enum PyEffect {
         limited: bool,
         target: Option<PyTarget>,
     },
-    CardDiscoverPick {
+    CardDiscoverSelect {
         kind: PyCardKind,
         count: u8,
         target: Option<PyTarget>,
@@ -1142,7 +1142,7 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::MaxHealthGain { amount } => PyEffect::MaxHealthGain { amount, target },
         EffectKind::HealthGain { amount } => PyEffect::HealthGain { amount, target },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
-        EffectKind::CardDiscoverPick { kind, count } => PyEffect::CardDiscoverPick {
+        EffectKind::CardDiscoverSelect { kind, count } => PyEffect::CardDiscoverSelect {
             kind: kind.into(),
             count,
             target,

@@ -4,7 +4,7 @@ use crate::entity::Entity;
 use crate::types::Phase;
 use crate::types::RelicName;
 
-pub fn process_effect_relic_reward_select(
+pub fn process_effect_reward_take_relic(
     phase: &mut Phase,
     entities: &[Entity],
     id_relics: &mut [Option<usize>; RelicName::COUNT],

@@ -5,7 +5,7 @@ pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_add_to_hand;
 pub mod process_effect_card_discard;
-pub mod process_effect_card_discover_pick;
+pub mod process_effect_card_discover_select;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move_to_discard;
@@ -32,7 +32,7 @@ pub mod process_effect_finisher_damage;
 pub mod process_effect_flechettes_damage;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_gain;
-pub mod process_effect_gold_reward_take;
+pub mod process_effect_reward_take_gold;
 pub mod process_effect_gold_steal;
 pub mod process_effect_health_gain;
 pub mod process_effect_health_loss;
@@ -53,9 +53,9 @@ pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_potion_add_random;
-pub mod process_effect_potion_reward_select;
+pub mod process_effect_reward_take_potion;
 pub mod process_effect_potion_use;
-pub mod process_effect_relic_reward_select;
+pub mod process_effect_reward_take_relic;
 pub mod process_effect_rest_site_exit;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
@@ -523,15 +523,15 @@ fn dispatch_by_kind(
                 &mut state.rng,
             )
         }
-        EffectKind::PotionRewardSelect => {
-            process_effect_potion_reward_select::process_effect_potion_reward_select(
+        EffectKind::RewardTakePotion => {
+            process_effect_reward_take_potion::process_effect_reward_take_potion(
                 &mut state.phase,
                 &mut state.entities,
                 state.id_character,
             )
         }
-        EffectKind::GoldRewardTake => {
-            process_effect_gold_reward_take::process_effect_gold_reward_take(
+        EffectKind::RewardTakeGold => {
+            process_effect_reward_take_gold::process_effect_reward_take_gold(
                 &mut state.phase,
                 &mut state.entities,
                 state.id_character,
@@ -949,8 +949,8 @@ fn dispatch_by_kind(
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
             None
         }
-        EffectKind::RelicRewardSelect => {
-            process_effect_relic_reward_select::process_effect_relic_reward_select(
+        EffectKind::RewardTakeRelic => {
+            process_effect_reward_take_relic::process_effect_reward_take_relic(
                 &mut state.phase,
                 &state.entities,
                 &mut state.id_relics,
@@ -1000,8 +1000,8 @@ fn dispatch_by_kind(
                 &mut state.rng,
             )
         }
-        EffectKind::CardDiscoverPick { kind, count } => {
-            process_effect_card_discover_pick::process_effect_card_discover_pick(
+        EffectKind::CardDiscoverSelect { kind, count } => {
+            process_effect_card_discover_select::process_effect_card_discover_select(
                 kind,
                 count,
                 &mut state.entities,

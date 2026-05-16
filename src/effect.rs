@@ -144,7 +144,7 @@ pub enum EffectKind {
     RoomSelect,
 
     // Relic flow
-    RelicRewardSelect,
+    RewardTakeRelic,
 
     // Master-deck mutation (combat rewards, events, shop, Neow)
     CardRemoveFromDeck,
@@ -168,17 +168,17 @@ pub enum EffectKind {
     PotionAddRandom {
         limited: bool,
     },
-    PotionRewardSelect,
+    RewardTakePotion,
 
     // Gold reward pickup (in-pool gold from combat-end or chest)
-    GoldRewardTake,
+    RewardTakeGold,
 
     // Umbrella skip: bulk-clear all Phase::Reward pools
     RewardSkip,
 
     // Discovery: roll N random cards of `kind` and halt on `Phase::CombatAwaitDiscover`;
-    // Player picks one via `Action::CardDiscoverPick`
-    CardDiscoverPick {
+    // Player picks one via `Action::CardDiscoverSelect`
+    CardDiscoverSelect {
         kind: CardKind,
         count: u8,
     },
