@@ -5,7 +5,6 @@ use strum::EnumCount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::engine::EffectBuf;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
@@ -14,6 +13,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
+use crate::types::Phase;
 use crate::types::RelicName;
 
 pub fn process_effect_card_play(
@@ -27,7 +27,7 @@ pub fn process_effect_card_play(
     energy_current: u8,
     id_relics: &[Option<usize>; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let card = entities[id_card];
 
     // Increment before effects fire so self-counting cards see their own play
@@ -225,5 +225,5 @@ pub fn process_effect_card_play(
     }
 
     buf_effects.push_all_front(effect_queue);
-    DispatchResult::Continue
+    None
 }

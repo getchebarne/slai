@@ -34,7 +34,7 @@ pub static TERROR: Entity = make_entity_card(
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
+            candidates: CandidatePool::MonsterPicked,
             selection: SelectionKind::Single,
         },
     }],

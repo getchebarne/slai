@@ -1,6 +1,9 @@
 use crate::modifier::ModifierKind;
+use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::ChestKind;
 use crate::types::MonsterName;
+use crate::types::RoomKind;
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -48,10 +51,10 @@ pub enum EffectKind {
         kind: ModifierKind,
     },
     EnergyGain {
-        amount: u8,
+        amount: u16,
     },
     CardDraw {
-        count: u8,
+        count: u16,
     },
     DrawUpTo {
         amount: u8,
@@ -63,7 +66,7 @@ pub enum EffectKind {
     },
     CardAddToHand {
         card_name: CardName,
-        count: u8,
+        count: u16,
         upgraded: bool,
     },
     CardDiscard {
@@ -84,8 +87,13 @@ pub enum EffectKind {
     CardExhaust,
     CardRemove,
     CardUpgrade,
-    CardRewardRoll,
     CardRewardClear,
+    RewardRollCombat {
+        room_kind: RoomKind,
+    },
+    RewardRollChest {
+        kind: ChestKind,
+    },
     TargetSet,
     TargetClear,
     DamageDeal {
@@ -136,12 +144,7 @@ pub enum EffectKind {
     RoomSelect,
 
     // Relic flow
-    RelicRewardRoll {
-        th_common: u8,
-        th_uncommon: u8,
-    },
-    RelicRewardSelect,
-    RelicRewardClear,
+    RewardTakeRelic,
 
     // Master-deck mutation (combat rewards, events, shop, Neow)
     CardRemoveFromDeck,
@@ -159,12 +162,29 @@ pub enum EffectKind {
     },
 
     ChestOpen,
+
+    // Potions
+    PotionUse,
+    PotionAddRandom {
+        limited: bool,
+    },
+    RewardTakePotion,
+
+    // Gold reward pickup (in-pool gold from combat-end or chest)
+    RewardTakeGold,
+
+    // Umbrella skip: bulk-clear all Phase::Reward pools
+    RewardSkip,
+
+    // Discovery: roll N random cards of `kind` and halt on `Phase::CombatAwaitDiscover`;
+    // Player picks one via `Action::CardDiscoverSelect`
+    CardDiscoverSelect {
+        kind: CardKind,
+        count: u8,
+    },
 }
 
-// DiscardSource: tags a CardDiscard effect with its origin so the handler can
-// branch on it. Explicit = card- or player-driven discard (counter bumps,
-// fires `card_on_discard_effects`); EndOfTurn = turn-end auto-discard
-// (honors `card_retain` and `card_ethereal`, no counter, no triggers)
+// DiscardSource: tags a CardDiscard effect with its origin so the handler can branch on it
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiscardSource {
     Explicit,
@@ -175,13 +195,12 @@ pub enum DiscardSource {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
     Hand,
-    CardTarget,
+    MonsterPicked,
     Character,
     Monsters,
     OtherMonsters,
     Source,
     NextRowRooms,
-    CardRewardPool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -189,7 +208,7 @@ pub enum SelectionKind {
     All,
     Single,
     Random { count: u8 },
-    Input { count: u8 },
+    Input { count: u16 },
 }
 
 // Target: whether an Effect's target is already known (Direct) or must be

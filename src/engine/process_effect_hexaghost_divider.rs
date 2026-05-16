@@ -4,8 +4,8 @@ use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
+use crate::types::Phase;
 
 // Initial Hexaghost hit
 pub fn process_effect_hexaghost_divider(
@@ -13,7 +13,7 @@ pub fn process_effect_hexaghost_divider(
     id_character: usize,
     entities: &[Entity],
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let health = entities[id_character].vitals.health;
     let dmg: u16 = health / 12 + 1;
 
@@ -24,5 +24,5 @@ pub fn process_effect_hexaghost_divider(
             target: Target::Direct(Some(id_character)),
         });
     }
-    DispatchResult::Continue
+    None
 }

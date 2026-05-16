@@ -1,5 +1,5 @@
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
+use crate::types::Phase;
 use crate::utils::remove_card_from_collection;
 
 pub fn process_effect_card_setup_pick(
@@ -7,7 +7,7 @@ pub fn process_effect_card_setup_pick(
     entities: &mut [Entity],
     id_hand: &mut Vec<usize>,
     id_pile_draw: &mut Vec<usize>,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Set free-to-play-once flag
     entities[id_target].card_free_to_play_once = true;
 
@@ -16,5 +16,5 @@ pub fn process_effect_card_setup_pick(
     id_pile_draw.push(id_target);
 
     // Continue
-    DispatchResult::Continue
+    None
 }

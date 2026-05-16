@@ -3,13 +3,13 @@ use std::collections::VecDeque;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::types::Phase;
 
 pub fn process_effect_damage_deal(
     entities: &mut [Entity],
@@ -18,7 +18,7 @@ pub fn process_effect_damage_deal(
     id_target: usize,
     amount: u16,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let from_card = match id_source {
         Some(id) => entities[id].kind == EntityKind::Card,
         None => false,
@@ -60,7 +60,7 @@ pub fn process_effect_damage_deal(
             fire_on_damage_taken(target, id_target, effect_queue);
         }
     }
-    DispatchResult::Continue
+    None
 }
 
 fn fire_on_damage_taken(

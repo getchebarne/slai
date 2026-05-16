@@ -3,14 +3,14 @@ use std::collections::VecDeque;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
+use crate::types::Phase;
 
 pub fn process_effect_draw_up_to(
     amount: u8,
     id_hand: &[usize],
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
-    let num_cards_to_draw = amount.saturating_sub(id_hand.len() as u8);
+) -> Option<Phase> {
+    let num_cards_to_draw = (amount as u16).saturating_sub(id_hand.len() as u16);
     if num_cards_to_draw > 0 {
         effect_queue.push_front(Effect {
             kind: EffectKind::CardDraw {
@@ -20,5 +20,5 @@ pub fn process_effect_draw_up_to(
             target: Target::Direct(None),
         });
     }
-    DispatchResult::Continue
+    None
 }

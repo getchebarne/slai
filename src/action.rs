@@ -15,6 +15,7 @@ use crate::map::has_edge;
 use crate::map::room_at;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
+use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::Phase;
 use crate::utils::fill_alive_monster_ids;
@@ -40,14 +41,13 @@ pub enum Action {
     RestSiteCardUpgrade {
         idx_deck: usize,
     },
-    CardRewardSelect {
+    RewardTakeCard {
         idx_reward: usize,
     },
-    CardRewardSkip,
-    RelicRewardSelect {
-        idx_reward: usize,
-    },
-    RelicRewardSkip,
+    RewardTakeRelic,
+    RewardTakePotion,
+    RewardTakeGold,
+    RewardSkip,
     EndTurn,
     RoomSelect {
         idx_column: usize,
@@ -55,30 +55,49 @@ pub enum Action {
     RestSiteRest,
     RoomSkip,
     ChestOpen,
+    PotionUse {
+        idx_slot: usize,
+        idx_monster: Option<usize>,
+    },
+    PotionDiscard {
+        idx_slot: usize,
+    },
+    CardDiscoverSelect {
+        idx_option: usize,
+    },
 }
 
-fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
+fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> {
     let valid = match (action, current_phase) {
         (Action::CardDiscard { indices_hand }, Phase::CombatAwaitDiscard { num }) => {
-            indices_hand.len() == num as usize
+            indices_hand.len() == *num as usize
         }
         (Action::CardRetain { indices_hand }, Phase::CombatAwaitRetain { num }) => {
-            indices_hand.len() == num as usize
+            indices_hand.len() == *num as usize
         }
         (Action::CardSetup { .. }, Phase::CombatAwaitSetup) => true,
         (Action::CardNightmare { .. }, Phase::CombatAwaitNightmare) => true,
         (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
         (
-            Action::CardRewardSelect { .. }
-            | Action::CardRewardSkip
-            | Action::RelicRewardSelect { .. }
-            | Action::RelicRewardSkip,
-            Phase::CombatReward,
+            Action::RewardTakeCard { .. }
+            | Action::RewardTakeRelic
+            | Action::RewardTakePotion
+            | Action::RewardTakeGold
+            | Action::RewardSkip,
+            Phase::Reward { .. },
         ) => true,
         (Action::RoomSelect { .. }, Phase::Map) => true,
         (Action::RoomSkip, Phase::EventRoom | Phase::Shop) => true,
         (Action::ChestOpen, Phase::Chest) => true,
+        // PotionUse: combat-only potions checked in handler (need entity lookup)
+        (Action::PotionUse { .. }, Phase::CombatDefault) => true,
+        (
+            Action::PotionUse { .. },
+            Phase::Map | Phase::RestSite | Phase::Chest | Phase::EventRoom | Phase::Shop,
+        ) => true,
+        (Action::PotionDiscard { .. }, p) if !matches!(p, Phase::GameOver) => true,
+        (Action::CardDiscoverSelect { .. }, Phase::CombatAwaitDiscover { .. }) => true,
         _ => false,
     };
     if !valid {
@@ -88,7 +107,7 @@ fn validate_phase(action: &Action, current_phase: Phase) -> Result<(), String> {
 }
 
 pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
-    validate_phase(&action, state.phase)?;
+    validate_phase(&action, &state.phase)?;
 
     let effects = match action {
         Action::CardDiscard { indices_hand } => handle_card_discard(state, indices_hand),
@@ -100,15 +119,22 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
             idx_monster,
         } => handle_card_play(state, idx_hand, idx_monster),
         Action::RestSiteCardUpgrade { idx_deck } => handle_rest_site_card_upgrade(state, idx_deck),
-        Action::CardRewardSelect { idx_reward } => handle_card_reward_select(state, idx_reward),
-        Action::CardRewardSkip => Ok(handle_card_reward_skip()),
-        Action::RelicRewardSelect { idx_reward } => handle_relic_reward_select(state, idx_reward),
-        Action::RelicRewardSkip => Ok(handle_relic_reward_skip()),
+        Action::RewardTakeCard { idx_reward } => handle_reward_take_card(state, idx_reward),
+        Action::RewardTakeRelic => handle_reward_take_relic(state),
+        Action::RewardTakePotion => handle_reward_take_potion(state),
+        Action::RewardTakeGold => handle_reward_take_gold(state),
+        Action::RewardSkip => Ok(handle_reward_skip()),
         Action::EndTurn => Ok(handle_end_turn(state)),
         Action::RoomSelect { idx_column } => handle_room_select(state, idx_column),
         Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
         Action::RoomSkip => Ok(handle_room_skip()),
         Action::ChestOpen => Ok(handle_chest_open()),
+        Action::PotionUse {
+            idx_slot,
+            idx_monster,
+        } => handle_potion_use(state, idx_slot, idx_monster),
+        Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
+        Action::CardDiscoverSelect { idx_option } => handle_card_discover_select(state, idx_option),
     }?;
 
     Ok(effects)
@@ -171,7 +197,7 @@ fn handle_card_play(
         ));
     }
 
-    if card.card_requires_target {
+    if card.requires_target {
         match idx_monster {
             Some(idx_monster) => {
                 // Stack locals
@@ -304,8 +330,11 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
     )])
 }
 
-fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    let id_card = lookup_idx(&state.id_card_rewards, idx_reward)?;
+fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
+    let Phase::Reward { id_cards, .. } = &state.phase else {
+        return Err(format!("RewardTakeCard invalid in phase {:?}", state.phase));
+    };
+    let id_card = lookup_idx(id_cards, idx_reward)?;
     let card = &state.entities[id_card];
     let card_name = card.card_name;
     let upgraded = card.card_upgraded;
@@ -323,30 +352,56 @@ fn handle_card_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec
     ])
 }
 
-fn handle_card_reward_skip() -> Vec<Effect> {
-    // CardRewardClear halts on AwaitMapNode once the rewards are cleared
-    vec![Effect {
-        kind: EffectKind::CardRewardClear,
-        id_source: None,
-        target: Target::Direct(None),
-    }]
-}
-
-fn handle_relic_reward_select(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    let id_relic = lookup_idx(&state.id_relic_rewards, idx_reward)?;
+fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
+    let Phase::Reward { id_relic, .. } = &state.phase else {
+        return Err(format!(
+            "RewardTakeRelic invalid in phase {:?}",
+            state.phase
+        ));
+    };
+    if id_relic.is_none() {
+        return Err("RewardTakeRelic: no relic in reward pool".to_string());
+    }
     Ok(vec![Effect::direct(
-        EffectKind::RelicRewardSelect,
+        EffectKind::RewardTakeRelic,
         None,
-        Some(id_relic),
+        None,
     )])
 }
 
-fn handle_relic_reward_skip() -> Vec<Effect> {
-    vec![Effect {
-        kind: EffectKind::RelicRewardClear,
-        id_source: None,
-        target: Target::Direct(None),
-    }]
+fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
+    let Phase::Reward { id_potion, .. } = &state.phase else {
+        return Err(format!(
+            "RewardTakePotion invalid in phase {:?}",
+            state.phase
+        ));
+    };
+    if id_potion.is_none() {
+        return Err("RewardTakePotion: no potion in reward pool".to_string());
+    }
+    let character = &state.entities[state.id_character];
+    if find_free_slot(&character.potion_slots, character.potion_slots_max).is_none() {
+        return Err("belt is full; discard a potion first".to_string());
+    }
+    Ok(vec![Effect::direct(
+        EffectKind::RewardTakePotion,
+        None,
+        None,
+    )])
+}
+
+fn handle_reward_take_gold(state: &GameState) -> Result<Vec<Effect>, String> {
+    let Phase::Reward { gold, .. } = &state.phase else {
+        return Err(format!("RewardTakeGold invalid in phase {:?}", state.phase));
+    };
+    if gold.is_none() {
+        return Err("RewardTakeGold: no gold in reward pool".to_string());
+    }
+    Ok(vec![Effect::direct(EffectKind::RewardTakeGold, None, None)])
+}
+
+fn handle_reward_skip() -> Vec<Effect> {
+    vec![Effect::direct(EffectKind::RewardSkip, None, None)]
 }
 
 fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
@@ -382,6 +437,101 @@ fn handle_room_skip() -> Vec<Effect> {
 
 fn handle_chest_open() -> Vec<Effect> {
     vec![Effect::direct(EffectKind::ChestOpen, None, None)]
+}
+
+fn handle_potion_use(
+    state: &mut GameState,
+    idx_slot: usize,
+    idx_monster: Option<usize>,
+) -> Result<Vec<Effect>, String> {
+    let character = &state.entities[state.id_character];
+    if idx_slot >= character.potion_slots_max as usize {
+        return Err(format!("PotionUse: idx_slot {} out of range", idx_slot));
+    }
+    let id_potion = character.potion_slots[idx_slot]
+        .ok_or_else(|| format!("PotionUse: slot {} is empty", idx_slot))?;
+    let potion = &state.entities[id_potion];
+
+    if potion.potion_combat_only && !matches!(state.phase, Phase::CombatDefault) {
+        return Err(format!(
+            "PotionUse: {:?} is combat-only, current phase {:?}",
+            potion.potion_name, state.phase
+        ));
+    }
+
+    let requires_target = potion.requires_target;
+    let id_monster_target = if requires_target {
+        let mut buf_alive = [0usize; MAX_MONSTERS];
+        let n = fill_alive_monster_ids(state, &mut buf_alive);
+        let idx = idx_monster
+            .ok_or_else(|| "PotionUse: requires_target but idx_monster is None".to_string())?;
+        Some(
+            *buf_alive[..n]
+                .get(idx)
+                .ok_or_else(|| format!("PotionUse: invalid monster index {}", idx))?,
+        )
+    } else {
+        if idx_monster.is_some() {
+            return Err("PotionUse: idx_monster supplied but potion is untargeted".into());
+        }
+        None
+    };
+
+    // Clear the slot before the effect chain runs
+    state.entities[state.id_character].potion_slots[idx_slot] = None;
+
+    let mut chain = Vec::with_capacity(3);
+    if let Some(id) = id_monster_target {
+        chain.push(Effect {
+            kind: EffectKind::TargetSet,
+            id_source: None,
+            target: Target::Direct(Some(id)),
+        });
+    }
+    chain.push(Effect {
+        kind: EffectKind::PotionUse,
+        id_source: Some(id_potion),
+        target: Target::Direct(Some(id_potion)),
+    });
+    if requires_target {
+        chain.push(Effect {
+            kind: EffectKind::TargetClear,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
+    Ok(chain)
+}
+
+fn handle_potion_discard(state: &mut GameState, idx_slot: usize) -> Result<Vec<Effect>, String> {
+    let character = &mut state.entities[state.id_character];
+    if idx_slot >= character.potion_slots_max as usize {
+        return Err(format!("PotionDiscard: idx_slot {} out of range", idx_slot));
+    }
+    if character.potion_slots[idx_slot].is_none() {
+        return Err(format!("PotionDiscard: slot {} is empty", idx_slot));
+    }
+    character.potion_slots[idx_slot] = None;
+    Ok(Vec::new())
+}
+
+fn handle_card_discover_select(
+    state: &mut GameState,
+    idx_option: usize,
+) -> Result<Vec<Effect>, String> {
+    let Phase::CombatAwaitDiscover { id_cards } = &mut state.phase else {
+        return Err(format!(
+            "CardDiscoverSelect invalid in phase {:?}",
+            state.phase
+        ));
+    };
+    let id_card = *id_cards
+        .get(idx_option)
+        .ok_or_else(|| format!("CardDiscoverSelect: idx_option {} out of range", idx_option))?;
+    id_cards.clear();
+    state.entities[id_card].card_free_to_play_once = true;
+    state.id_hand.push(id_card);
+    Ok(Vec::new())
 }
 
 fn handle_rest_site_card_upgrade(

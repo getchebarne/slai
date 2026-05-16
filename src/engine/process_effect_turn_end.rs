@@ -6,7 +6,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::engine::EffectBuf;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
@@ -17,13 +16,14 @@ use crate::modifier::Modifiers;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
+use crate::types::Phase;
 use crate::types::RelicName;
 
 pub fn process_effect_turn_end_monster(
     modifiers: &Modifiers,
     id_actor: usize,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Refund negative Strength stacks from `Shackled`
     if modifier_has(modifiers, ModifierKind::Shackled) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
@@ -82,7 +82,7 @@ pub fn process_effect_turn_end_monster(
             target: Target::Direct(Some(id_actor)),
         });
     }
-    DispatchResult::Continue
+    None
 }
 
 pub fn process_effect_turn_end_character(
@@ -94,7 +94,7 @@ pub fn process_effect_turn_end_character(
     this_turn_attacks_played: &mut u8,
     id_relics: &[Option<usize>; RelicName::COUNT],
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Reset per-turn counters synchronously, before the rest of the chain queues up
     *this_turn_discards = 0;
     *this_turn_attacks_played = 0;
@@ -124,7 +124,7 @@ pub fn process_effect_turn_end_character(
             target: Target::Resolve {
                 candidates: CandidatePool::Hand,
                 selection: SelectionKind::Input {
-                    count: stacks as u8,
+                    count: stacks.max(0) as u16,
                 },
             },
         });
@@ -257,5 +257,5 @@ pub fn process_effect_turn_end_character(
     }
 
     buf_effects.push_all_front(effect_queue);
-    DispatchResult::Continue
+    None
 }

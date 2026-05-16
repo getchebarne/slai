@@ -8,7 +8,7 @@ use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::engine::DispatchResult;
+use crate::engine::EffectBuf;
 use crate::entity::Entity;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
@@ -16,6 +16,7 @@ use crate::map::room_at_mut;
 use crate::types::ChestKind;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
+use crate::types::Phase;
 use crate::types::RoomKind;
 use crate::utils::shuffle;
 
@@ -28,28 +29,25 @@ pub fn process_effect_room_enter(
     encounter_boss: MonsterEncounter,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let room_kind = get_active_room_kind(id_rooms, location, entities).unwrap();
 
-    // Initialize empty effect buffer
-    let mut effects: Vec<Effect> = Vec::new();
+    let mut buf_effects = EffectBuf::new();
 
-    // Match on `RoomKind`
     match room_kind {
         RoomKind::CombatBoss => {
-            spawn_encounter_monsters(encounter_boss, &mut effects, rng);
+            spawn_encounter_monsters(encounter_boss, &mut buf_effects, rng);
         }
         RoomKind::CombatMonster => {
             let encounter = encounter_list_normal.remove(0);
-            spawn_encounter_monsters(encounter, &mut effects, rng);
+            spawn_encounter_monsters(encounter, &mut buf_effects, rng);
         }
         RoomKind::CombatElite => {
             let encounter = encounter_list_elite.remove(0);
-            spawn_encounter_monsters(encounter, &mut effects, rng);
+            spawn_encounter_monsters(encounter, &mut buf_effects, rng);
         }
         RoomKind::RestSite => {
-            // Nothing to enqueue; the effect_queue drains and the engine derives
-            // Phase::RestSite from `Location` & `RoomKind`
+            // Nothing to enqueue; derive_phase reads Location & RoomKind for RestSite
         }
         RoomKind::Treasure => {
             let Location::Overworld { y, x } = location else {
@@ -68,14 +66,12 @@ pub fn process_effect_room_enter(
         RoomKind::EventRoom | RoomKind::Shop => {}
     }
 
-    if !effects.is_empty() {
-        effects.push(Effect::direct(EffectKind::CombatStart, None, None));
-        for effect in effects.into_iter().rev() {
-            effect_queue.push_front(effect);
-        }
+    if buf_effects.len > 0 {
+        buf_effects.push(Effect::direct(EffectKind::CombatStart, None, None));
+        buf_effects.push_all_front(effect_queue);
     }
 
-    DispatchResult::Continue
+    None
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {
@@ -121,7 +117,7 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
 }
 
 #[inline]
-fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
+fn push_monster_spawn(effects: &mut EffectBuf, name: MonsterName) {
     effects.push(Effect::direct(
         EffectKind::MonsterSpawn { name },
         None,
@@ -131,7 +127,7 @@ fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
 
 fn spawn_encounter_monsters(
     encounter: MonsterEncounter,
-    effects: &mut Vec<Effect>,
+    effects: &mut EffectBuf,
     rng: &mut impl Rng,
 ) {
     match encounter {

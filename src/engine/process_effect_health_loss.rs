@@ -3,7 +3,6 @@ use std::collections::VecDeque;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_def;
@@ -15,6 +14,7 @@ use crate::monsters::slime_acid_large;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
 use crate::types::MonsterName;
+use crate::types::Phase;
 
 pub fn process_effect_health_loss(
     entity: &mut Entity,
@@ -22,7 +22,7 @@ pub fn process_effect_health_loss(
     id_character: usize,
     amount: u16,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     // TODO: should only decrement for physical attacks
     if amount > 0 && modifier_has(&entity.modifiers, ModifierKind::PlatedArmor) {
         effect_queue.push_front(Effect {
@@ -43,7 +43,7 @@ pub fn process_effect_health_loss(
             id_source: None,
             target: Target::Direct(Some(id_target)),
         });
-        return DispatchResult::Continue;
+        return None;
     }
 
     // Splittable: post-HP-loss check fires on *any* damage source (attack or
@@ -100,5 +100,5 @@ pub fn process_effect_health_loss(
         }
     }
 
-    DispatchResult::Continue
+    None
 }

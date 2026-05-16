@@ -24,6 +24,8 @@ RelicTier = _to_intenum("RelicTier", _rs.RelicTier)
 CardName = _to_intenum("CardName", _rs.CardName)
 MonsterName = _to_intenum("MonsterName", _rs.MonsterName)
 RelicName = _to_intenum("RelicName", _rs.RelicName)
+PotionName = _to_intenum("PotionName", _rs.PotionName)
+PotionRarity = _to_intenum("PotionRarity", _rs.PotionRarity)
 ModifierKind = _to_intenum("ModifierKind", _rs.ModifierKind)
 IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
 CandidatePool = _to_intenum("CandidatePool", _rs.CandidatePool)
@@ -95,6 +97,8 @@ _MONSTER_POS = "position in the alive-monster list at dispatch time"
 _REWARD_POS = "slot in state.rewards_card / state.rewards_relic"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
+_SLOT_POS = "slot in state.character.potion_slots"
+_DISCOVER_POS = "position in state.picks_card (the discovery offer)"
 
 
 # Action spec registry
@@ -111,14 +115,25 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.RoomSelect, ArgSpec("idx_column", _MAP_COL)),
-        create_action_spec(ActionType.CardRewardSelect, ArgSpec("idx_reward", _REWARD_POS)),
-        create_action_spec(ActionType.CardRewardSkip),
-        create_action_spec(ActionType.RelicRewardSelect, ArgSpec("idx_reward", _REWARD_POS)),
-        create_action_spec(ActionType.RelicRewardSkip),
         create_action_spec(ActionType.RestSiteRest),
         create_action_spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
         create_action_spec(ActionType.RoomSkip),
         create_action_spec(ActionType.ChestOpen),
+        create_action_spec(
+            ActionType.PotionUse,
+            ArgSpec("idx_slot", _SLOT_POS),
+            ArgSpec("idx_monster", _MONSTER_POS, optional=True),
+        ),
+        create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
+        create_action_spec(
+            ActionType.CardDiscoverSelect, ArgSpec("idx_option", _DISCOVER_POS)
+        ),
+        # Reward pickup family
+        create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx_reward", _REWARD_POS)),
+        create_action_spec(ActionType.RewardTakeRelic),
+        create_action_spec(ActionType.RewardTakePotion),
+        create_action_spec(ActionType.RewardTakeGold),
+        create_action_spec(ActionType.RewardSkip),
     ]
 )
 
@@ -178,6 +193,8 @@ __all__ = [
     "ChestKind",
     "RelicName",
     "RelicTier",
+    "PotionName",
+    "PotionRarity",
     "CardName",
     "MonsterName",
     # Complex enums

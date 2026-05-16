@@ -5,6 +5,7 @@ pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_add_to_hand;
 pub mod process_effect_card_discard;
+pub mod process_effect_card_discover_select;
 pub mod process_effect_card_draw;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move_to_discard;
@@ -13,7 +14,6 @@ pub mod process_effect_card_remove;
 pub mod process_effect_card_remove_from_deck;
 pub mod process_effect_card_retain;
 pub mod process_effect_card_reward_clear;
-pub mod process_effect_card_reward_roll;
 pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_upgrade;
 pub mod process_effect_chest_open;
@@ -51,10 +51,15 @@ pub mod process_effect_monster_spawn;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
-pub mod process_effect_relic_reward_clear;
-pub mod process_effect_relic_reward_roll;
-pub mod process_effect_relic_reward_select;
+pub mod process_effect_potion_add_random;
+pub mod process_effect_potion_use;
 pub mod process_effect_rest_site_exit;
+pub mod process_effect_reward_roll_chest;
+pub mod process_effect_reward_roll_combat;
+pub mod process_effect_reward_skip;
+pub mod process_effect_reward_take_gold;
+pub mod process_effect_reward_take_potion;
+pub mod process_effect_reward_take_relic;
 pub mod process_effect_room_enter;
 pub mod process_effect_set_cost_override;
 pub mod process_effect_sneaky_strike_proc;
@@ -88,17 +93,6 @@ use crate::types::Phase;
 use crate::types::RoomKind;
 use crate::utils::fill_alive_monster_ids;
 use crate::utils::shuffle;
-
-pub enum DispatchResult {
-    Continue,
-    /// The dispatcher needs player input. The effect_queue driver passes `(kind, num)`
-    /// to `derive_phase` to translate into a `Phase` and returns. `num` is
-    /// meaningful for `CardDiscard` and `CardRetain`; ignored for the others.
-    Halt {
-        kind: EffectKind,
-        num: u8,
-    },
-}
 
 // Stack-allocated buffer for effects that a handler wants to push to the
 // front of the effect_queue in order. Build up effects normally, then call
@@ -178,25 +172,26 @@ impl CandidateBuf {
 
 pub enum TargetResolution {
     Resolved,
-    AwaitInput { num: u8 },
+    AwaitInput { num: u16 },
 }
 
 pub(crate) fn resolve_candidates(
-    candidates: CandidatePool,
+    candidate_pool: CandidatePool,
     id_source: usize,
     id_character: usize,
     id_hand: &[usize],
-    id_card_target: Option<usize>,
+    id_monster_picked: Option<usize>,
     id_alive_monsters: &[usize],
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
-    id_card_rewards: &[usize],
     buf_cands: &mut CandidateBuf,
 ) {
-    match candidates {
+    match candidate_pool {
         CandidatePool::Hand => buf_cands.extend_from_slice(id_hand),
-        CandidatePool::CardTarget => buf_cands.push(id_card_target.unwrap()),
+        CandidatePool::MonsterPicked => buf_cands.push(
+            id_monster_picked.expect("MonsterPicked pool requires id_monster_picked to be Some"),
+        ),
         CandidatePool::Character => buf_cands.push(id_character),
         CandidatePool::Monsters => buf_cands.extend_from_slice(id_alive_monsters),
         CandidatePool::OtherMonsters => {
@@ -207,7 +202,6 @@ pub(crate) fn resolve_candidates(
             }
         }
         CandidatePool::Source => buf_cands.push(id_source),
-        CandidatePool::CardRewardPool => buf_cands.extend_from_slice(id_card_rewards),
         CandidatePool::NextRowRooms => match location {
             Location::Start => {
                 for col in 0..MAP_WIDTH {
@@ -238,31 +232,29 @@ pub(crate) fn resolve_candidates(
 }
 
 fn resolve_targets(
-    candidates: CandidatePool,
+    candidate_pool: CandidatePool,
     selection: SelectionKind,
     id_source: usize,
     id_character: usize,
     id_hand: &[usize],
-    id_card_target: Option<usize>,
+    id_monster_picked: Option<usize>,
     id_alive_monsters: &[usize],
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
-    id_card_rewards: &[usize],
     rng: &mut impl Rng,
     buf_cands: &mut CandidateBuf,
 ) -> TargetResolution {
     resolve_candidates(
-        candidates,
+        candidate_pool,
         id_source,
         id_character,
         id_hand,
-        id_card_target,
+        id_monster_picked,
         id_alive_monsters,
         id_rooms,
         location,
         entities,
-        id_card_rewards,
         buf_cands,
     );
     match selection {
@@ -308,7 +300,7 @@ pub(crate) fn get_id_actor(entities: &[Entity], id_character: usize, id_source: 
 //    effects; on input-needed, returns `Halt { kind, num }`. The popped
 //    effect is dropped — the input handler in `action.rs` reconstructs work
 //    from the player's chosen targets
-pub fn process_effect(state: &mut GameState, effect: Effect) -> DispatchResult {
+pub fn process_effect(state: &mut GameState, effect: Effect) -> Option<Phase> {
     let id_target = match effect.target {
         Target::Direct(t) => t,
         Target::Resolve {
@@ -328,7 +320,7 @@ fn resolve_or_halt(
     id_source: Option<usize>,
     candidates: CandidatePool,
     selection: SelectionKind,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Stack locals
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let mut buf_cands = CandidateBuf::new();
@@ -345,12 +337,11 @@ fn resolve_or_halt(
         id_source_resolved,
         state.id_character,
         &state.id_hand,
-        state.id_card_target,
+        state.id_monster_picked,
         &buf_alive[..alive_n],
         &state.id_rooms,
         state.location,
         &state.entities,
-        &state.id_card_rewards,
         &mut state.rng,
         &mut buf_cands,
     );
@@ -365,16 +356,16 @@ fn resolve_or_halt(
                     target: Target::Direct(Some(id_target)),
                 });
             }
-            DispatchResult::Continue
+            None
         }
-        TargetResolution::AwaitInput { num } => match kind {
-            EffectKind::CardDiscard { .. }
-            | EffectKind::CardRetain
-            | EffectKind::CardSetupPick
-            | EffectKind::CardNightmarePick
-            | EffectKind::RoomSelect => DispatchResult::Halt { kind, num },
+        TargetResolution::AwaitInput { num } => Some(match kind {
+            EffectKind::CardDiscard { .. } => Phase::CombatAwaitDiscard { num },
+            EffectKind::CardRetain => Phase::CombatAwaitRetain { num },
+            EffectKind::CardSetupPick => Phase::CombatAwaitSetup,
+            EffectKind::CardNightmarePick => Phase::CombatAwaitNightmare,
+            EffectKind::RoomSelect => Phase::Map,
             _ => panic!("Unsupported effect kind for halting: {:?}", kind),
-        },
+        }),
     }
 }
 
@@ -383,7 +374,7 @@ fn dispatch_by_kind(
     kind: EffectKind,
     id_source: Option<usize>,
     id_target: Option<usize>,
-) -> DispatchResult {
+) -> Option<Phase> {
     match kind {
         EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
             count,
@@ -510,30 +501,54 @@ fn dispatch_by_kind(
             id_target.unwrap(),
             &mut state.entities,
         ),
-        EffectKind::CardRewardRoll => {
-            process_effect_card_reward_roll::process_effect_card_reward_roll(
+        EffectKind::CardRewardClear => {
+            process_effect_card_reward_clear::process_effect_card_reward_clear(&mut state.phase)
+        }
+        EffectKind::RewardRollCombat { room_kind } => {
+            process_effect_reward_roll_combat::process_effect_reward_roll_combat(
+                room_kind,
                 state.id_character,
-                &mut state.id_card_rewards,
+                &state.id_relics,
+                state.escaped_this_combat,
+                &mut state.potion_drop_mod,
                 &mut state.entities,
                 &mut state.rng,
             )
         }
-        EffectKind::CardRewardClear => {
-            process_effect_card_reward_clear::process_effect_card_reward_clear(
-                &mut state.id_card_rewards,
-                &state.id_relic_rewards,
-                &mut state.effect_queue,
+        EffectKind::RewardRollChest { kind } => {
+            process_effect_reward_roll_chest::process_effect_reward_roll_chest(
+                kind,
+                &state.id_relics,
+                &mut state.entities,
+                &mut state.rng,
             )
+        }
+        EffectKind::RewardTakePotion => {
+            process_effect_reward_take_potion::process_effect_reward_take_potion(
+                &mut state.phase,
+                &mut state.entities,
+                state.id_character,
+            )
+        }
+        EffectKind::RewardTakeGold => {
+            process_effect_reward_take_gold::process_effect_reward_take_gold(
+                &mut state.phase,
+                &mut state.entities,
+                state.id_character,
+            )
+        }
+        EffectKind::RewardSkip => {
+            process_effect_reward_skip::process_effect_reward_skip(&mut state.phase)
         }
         EffectKind::TargetSet => {
             let id_target = id_target.unwrap();
             process_effect_target_set::process_effect_target_set(
-                &mut state.id_card_target,
+                &mut state.id_monster_picked,
                 id_target,
             )
         }
         EffectKind::TargetClear => {
-            process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
+            process_effect_target_clear::process_effect_target_clear(&mut state.id_monster_picked)
         }
         EffectKind::DamagePhysical { amount } => {
             let id_source = id_source.expect("DamagePhysical requires id_source");
@@ -769,7 +784,7 @@ fn dispatch_by_kind(
             &mut state.id_hand,
             &mut state.id_pile_discard,
             &mut state.id_pile_exhaust,
-            &mut state.id_card_target,
+            &mut state.id_monster_picked,
             &mut state.this_combat_damage_instances_taken,
             &mut state.escaped_this_combat,
             &mut state.rng,
@@ -781,13 +796,12 @@ fn dispatch_by_kind(
             &mut state.id_pile_draw,
             &mut state.id_pile_discard,
             &mut state.id_pile_exhaust,
-            &mut state.id_card_target,
+            &mut state.id_monster_picked,
             &mut state.entities,
             &mut state.monster_count,
             &mut state.id_card_nightmare,
             &state.id_rooms,
             state.location,
-            state.escaped_this_combat,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -933,32 +947,13 @@ fn dispatch_by_kind(
             state
                 .effect_queue
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
-            DispatchResult::Continue
+            None
         }
-        EffectKind::RelicRewardRoll {
-            th_common,
-            th_uncommon,
-        } => process_effect_relic_reward_roll::process_effect_relic_reward_roll(
-            th_common,
-            th_uncommon,
-            &state.id_relics,
-            &mut state.id_relic_rewards,
-            &mut state.entities,
-            &mut state.rng,
-        ),
-        EffectKind::RelicRewardSelect => {
-            process_effect_relic_reward_select::process_effect_relic_reward_select(
-                id_target.unwrap(),
+        EffectKind::RewardTakeRelic => {
+            process_effect_reward_take_relic::process_effect_reward_take_relic(
+                &mut state.phase,
                 &state.entities,
                 &mut state.id_relics,
-                &mut state.effect_queue,
-            )
-        }
-        EffectKind::RelicRewardClear => {
-            process_effect_relic_reward_clear::process_effect_relic_reward_clear(
-                &mut state.id_relic_rewards,
-                &state.id_card_rewards,
-                &mut state.effect_queue,
             )
         }
         EffectKind::CardRemoveFromDeck => {
@@ -989,59 +984,75 @@ fn dispatch_by_kind(
         EffectKind::ChestOpen => process_effect_chest_open::process_effect_chest_open(
             &state.id_rooms,
             state.location,
-            state.id_character,
-            &state.id_relics,
-            &mut state.id_relic_rewards,
             &mut state.entities,
-            &mut state.rng,
             &mut state.effect_queue,
         ),
+        EffectKind::PotionUse => process_effect_potion_use::process_effect_potion_use(
+            id_target.unwrap(),
+            &state.entities,
+            &mut state.effect_queue,
+        ),
+        EffectKind::PotionAddRandom { limited } => {
+            process_effect_potion_add_random::process_effect_potion_add_random(
+                limited,
+                state.id_character,
+                &mut state.entities,
+                &mut state.rng,
+            )
+        }
+        EffectKind::CardDiscoverSelect { kind, count } => {
+            process_effect_card_discover_select::process_effect_card_discover_select(
+                kind,
+                count,
+                &mut state.entities,
+                &mut state.rng,
+            )
+        }
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
 }
 
 // Single source of truth for `Phase`. Every `Phase::…` constructor lives
-// here (apart from the one-time init in `game.rs`).
-//
-// Two cases:
-//  - `halt = Some((kind, num))` — dispatcher needs player input mid-chain.
-//    Translate the halted `EffectKind` into the matching `CombatAwait*` /
-//    `Map` phase. Wins before any state-derived phase because work is
-//    still queued
-//  - `halt = None` — effect_queue drained naturally. Derive the resting phase
-//    from state; every clause corresponds to a piece of state that signals
-//    a player-input situation
-pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase {
-    if let Some((kind, num)) = halt {
-        return match kind {
-            EffectKind::CardDiscard { .. } => Phase::CombatAwaitDiscard { num },
-            EffectKind::CardRetain => Phase::CombatAwaitRetain { num },
-            EffectKind::CardSetupPick => Phase::CombatAwaitSetup,
-            EffectKind::CardNightmarePick => Phase::CombatAwaitNightmare,
-            EffectKind::RoomSelect => Phase::Map,
-            _ => unreachable!("non-halt EffectKind reached derive_phase: {:?}", kind),
-        };
-    }
-
+// here (apart from the one-time init in `game.rs`). Called only after the
+// effect_queue drains naturally — handler-driven halts produce their own
+// Phase via `Option<Phase>` and bypass this function entirely
+pub fn derive_phase(state: &mut GameState) {
     // Character death: end of run
     if state.entities[state.id_character].dead {
-        return Phase::GameOver;
+        state.phase = Phase::GameOver;
+        return;
     }
     // Boss defeated: combat_end resets monster_count to 0 only after combat
     // resolves; reaching BossRoom with no monsters means we won
     if matches!(state.location, Location::BossRoom) && state.monster_count == 0 {
-        return Phase::GameOver;
+        state.phase = Phase::GameOver;
+        return;
     }
-    // Card or relic rewards waiting to be picked or skipped
-    if !state.id_card_rewards.is_empty() || !state.id_relic_rewards.is_empty() {
-        return Phase::CombatReward;
+    // Sticky discover phase: stay put while picks remain (Attack/Skill/Power Potion etc.)
+    if let Phase::CombatAwaitDiscover { id_cards } = &state.phase {
+        if !id_cards.is_empty() {
+            return;
+        }
+    }
+    // Sticky reward phase: stay put while any pool has something to surface
+    if let Phase::Reward {
+        id_cards,
+        id_relic,
+        id_potion,
+        gold,
+    } = &state.phase
+    {
+        if !id_cards.is_empty() || id_relic.is_some() || id_potion.is_some() || gold.is_some() {
+            return;
+        }
     }
     // Combat in progress
     if state.monster_count > 0 {
-        return Phase::CombatDefault;
+        state.phase = Phase::CombatDefault;
+        return;
     }
     // Standing in a room: rest site or map-pick depending on room kind
-    match state.location {
+    state.phase = match state.location {
         Location::Overworld { y, x } => {
             let room =
                 room_at(&state.id_rooms, &state.entities, y, x).expect("room missing at location");
@@ -1054,21 +1065,18 @@ pub fn derive_phase(state: &GameState, halt: Option<(EffectKind, u8)>) -> Phase 
             }
         }
         Location::Start | Location::BossRoom => Phase::Map,
-    }
+    };
 }
 
 pub fn process_queue(state: &mut GameState) {
     loop {
         let Some(effect) = state.effect_queue.pop_front() else {
-            state.phase = derive_phase(state, None);
+            derive_phase(state);
             return;
         };
-        match process_effect(state, effect) {
-            DispatchResult::Continue => {}
-            DispatchResult::Halt { kind, num } => {
-                state.phase = derive_phase(state, Some((kind, num)));
-                return;
-            }
+        if let Some(phase) = process_effect(state, effect) {
+            state.phase = phase;
+            return;
         }
     }
 }

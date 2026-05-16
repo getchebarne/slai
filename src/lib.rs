@@ -14,6 +14,7 @@ mod game;
 mod map;
 mod modifier;
 mod monsters;
+mod potions;
 mod relics;
 mod types;
 mod utils;
@@ -53,7 +54,7 @@ impl GameEnv {
     #[classattr]
     const MAX_COMBAT_CARD_REWARD: usize = consts::MAX_COMBAT_CARD_REWARD;
     #[classattr]
-    const CARDS_DRAWN_PER_TURN: u8 = consts::CARDS_DRAWN_PER_TURN;
+    const CARDS_DRAWN_PER_TURN: u16 = consts::CARDS_DRAWN_PER_TURN;
     #[classattr]
     const NIGHTMARE_COPIES: u8 = consts::NIGHTMARE_COPIES;
     #[classattr]
@@ -91,40 +92,43 @@ impl GameEnv {
 }
 
 #[pymodule]
-fn slai(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<GameEnv>()?;
-    m.add_class::<PyActionType>()?;
-    m.add_class::<PyAction>()?;
-    m.add_class::<PyGameState>()?;
-    m.add_class::<PyCard>()?;
-    m.add_class::<PyCharacter>()?;
-    m.add_class::<PyMonster>()?;
-    m.add_class::<PyIntent>()?;
-    m.add_class::<PyEnergy>()?;
-    m.add_class::<PyMap>()?;
-    m.add_class::<PyRoom>()?;
-    m.add_class::<PyModifier>()?;
-    m.add_class::<PyRelic>()?;
+fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add_class::<GameEnv>()?;
+    module.add_class::<PyActionType>()?;
+    module.add_class::<PyAction>()?;
+    module.add_class::<PyGameState>()?;
+    module.add_class::<PyCard>()?;
+    module.add_class::<PyCharacter>()?;
+    module.add_class::<PyMonster>()?;
+    module.add_class::<PyIntent>()?;
+    module.add_class::<PyEnergy>()?;
+    module.add_class::<PyMap>()?;
+    module.add_class::<PyRoom>()?;
+    module.add_class::<PyModifier>()?;
+    module.add_class::<PyRelic>()?;
+    module.add_class::<ffi::PyPotion>()?;
 
     // Unit-enum mirrors
-    m.add_class::<ffi::PyCardKind>()?;
-    m.add_class::<ffi::PyCardColor>()?;
-    m.add_class::<ffi::PyCardRarity>()?;
-    m.add_class::<ffi::PyCardCostKind>()?;
-    m.add_class::<ffi::PyRoomKind>()?;
-    m.add_class::<ffi::PyChestKind>()?;
-    m.add_class::<ffi::PyModifierKind>()?;
-    m.add_class::<ffi::PyIntentKind>()?;
-    m.add_class::<ffi::PyCandidatePool>()?;
-    m.add_class::<ffi::PyRelicName>()?;
-    m.add_class::<ffi::PyRelicTier>()?;
-    m.add_class::<ffi::PyCardName>()?;
-    m.add_class::<ffi::PyMonsterName>()?;
+    module.add_class::<ffi::PyCardKind>()?;
+    module.add_class::<ffi::PyCardColor>()?;
+    module.add_class::<ffi::PyCardRarity>()?;
+    module.add_class::<ffi::PyCardCostKind>()?;
+    module.add_class::<ffi::PyRoomKind>()?;
+    module.add_class::<ffi::PyChestKind>()?;
+    module.add_class::<ffi::PyPotionName>()?;
+    module.add_class::<ffi::PyPotionRarity>()?;
+    module.add_class::<ffi::PyModifierKind>()?;
+    module.add_class::<ffi::PyIntentKind>()?;
+    module.add_class::<ffi::PyCandidatePool>()?;
+    module.add_class::<ffi::PyRelicName>()?;
+    module.add_class::<ffi::PyRelicTier>()?;
+    module.add_class::<ffi::PyCardName>()?;
+    module.add_class::<ffi::PyMonsterName>()?;
 
     // Complex enum mirrors
-    m.add_class::<PyPhase>()?;
-    m.add_class::<ffi::PySelectionKind>()?;
-    m.add_class::<ffi::PyTarget>()?;
-    m.add_class::<ffi::PyEffect>()?;
+    module.add_class::<PyPhase>()?;
+    module.add_class::<ffi::PySelectionKind>()?;
+    module.add_class::<ffi::PyTarget>()?;
+    module.add_class::<ffi::PyEffect>()?;
     Ok(())
 }

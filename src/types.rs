@@ -24,6 +24,7 @@ pub enum CardName {
     Acrobatics,
     Adrenaline,
     AfterImage,
+    Alchemize,
     AllOutAttack,
     Backflip,
     Backstab,
@@ -234,6 +235,32 @@ pub enum ChestKind {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
+pub enum PotionName {
+    EnergyPotion,
+    BlockPotion,
+    StrengthPotion,
+    DexterityPotion,
+    FirePotion,
+    ExplosivePotion,
+    WeakPotion,
+    FearPotion,
+    PoisonPotion,
+    SwiftPotion,
+    AttackPotion,
+    SkillPotion,
+    PowerPotion,
+    FruitJuice,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PotionRarity {
+    Common,
+    Uncommon,
+    Rare,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[repr(u8)]
 pub enum RelicName {
     SnakeRing = 0,
     Akabeko,
@@ -271,13 +298,25 @@ pub enum RelicTier {
     Special,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Phase {
-    CombatReward,
+    Reward {
+        id_cards: Vec<usize>,
+        id_relic: Option<usize>,
+        id_potion: Option<usize>,
+        gold: Option<u16>,
+    },
     CombatDefault,
-    CombatAwaitDiscard { num: u8 },
+    CombatAwaitDiscard {
+        num: u16,
+    },
+    CombatAwaitDiscover {
+        id_cards: Vec<usize>,
+    },
     CombatAwaitNightmare,
-    CombatAwaitRetain { num: u8 },
+    CombatAwaitRetain {
+        num: u16,
+    },
     CombatAwaitSetup,
     GameOver,
     Map,

@@ -4,18 +4,18 @@ use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
+use crate::types::Phase;
 
 pub fn process_effect_calculated_gamble(
     id_hand: &[usize],
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let num_cards = id_hand.len();
     // Draw is the LAST effect (runs after discards), so push it first
     // (push_front reverses order)
     effect_queue.push_front(Effect {
         kind: EffectKind::CardDraw {
-            count: num_cards as u8,
+            count: num_cards as u16,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -30,5 +30,5 @@ pub fn process_effect_calculated_gamble(
             target: Target::Direct(Some(id_card)),
         });
     }
-    DispatchResult::Continue
+    None
 }

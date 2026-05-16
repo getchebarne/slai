@@ -1,7 +1,6 @@
 from enum import IntEnum
 from typing import Iterator, NamedTuple, Optional, Union
 
-
 class CardKind(IntEnum):
     Attack: int
     Skill: int
@@ -123,6 +122,27 @@ class RelicTier(IntEnum):
     Shop: int
     Special: int
 
+class PotionName(IntEnum):
+    EnergyPotion: int
+    BlockPotion: int
+    StrengthPotion: int
+    DexterityPotion: int
+    FirePotion: int
+    ExplosivePotion: int
+    WeakPotion: int
+    FearPotion: int
+    PoisonPotion: int
+    SwiftPotion: int
+    AttackPotion: int
+    SkillPotion: int
+    PowerPotion: int
+    FruitJuice: int
+
+class PotionRarity(IntEnum):
+    Common: int
+    Uncommon: int
+    Rare: int
+
 class CardName(IntEnum):
     AThousandCuts: int
     Accuracy: int
@@ -231,20 +251,25 @@ class MonsterName(IntEnum):
     TheGuardian: int
 
 class ActionType(IntEnum):
-    CardPlay: int
     EndTurn: int
+    CardPlay: int
     CardDiscard: int
     CardRetain: int
     CardSetup: int
     CardNightmare: int
     RoomSelect: int
-    CardRewardSelect: int
-    CardRewardSkip: int
-    RelicRewardSelect: int
-    RelicRewardSkip: int
     RestSiteRest: int
     RestSiteCardUpgrade: int
-
+    RoomSkip: int
+    ChestOpen: int
+    PotionUse: int
+    PotionDiscard: int
+    CardDiscoverSelect: int
+    RewardTakeCard: int
+    RewardTakeRelic: int
+    RewardTakePotion: int
+    RewardTakeGold: int
+    RewardSkip: int
 
 class CardCostKind:
     class Fixed:
@@ -281,8 +306,22 @@ class Phase:
     class CombatAwaitSetup:
         def __init__(self) -> None: ...
 
-    class CombatReward:
-        def __init__(self) -> None: ...
+    class CombatAwaitDiscover:
+        cards: list[Card]
+        def __init__(self, cards: list[Card]) -> None: ...
+
+    class Reward:
+        cards: list[Card]
+        relic: Relic | None
+        potion: Potion | None
+        gold: int | None
+        def __init__(
+            self,
+            cards: list[Card],
+            relic: Relic | None,
+            potion: Potion | None,
+            gold: int | None,
+        ) -> None: ...
 
     class RestSite:
         def __init__(self) -> None: ...
@@ -333,6 +372,11 @@ class Effect:
         target: Optional[Target]
 
     class CardNightmarePick:
+        target: Optional[Target]
+
+    class CardDiscoverSelect:
+        kind: CardKind
+        count: int
         target: Optional[Target]
 
     class DistractionAdd:
@@ -403,7 +447,6 @@ class Effect:
     class CalculatedGamble:
         target: Optional[Target]
 
-
 class Action:
     action_type: ActionType
     idxs: list[int]
@@ -433,12 +476,18 @@ class ActionSpecRegistry:
     CardSetup: ActionSpec
     CardNightmare: ActionSpec
     RoomSelect: ActionSpec
-    CardRewardSelect: ActionSpec
-    CardRewardSkip: ActionSpec
-    RelicRewardSelect: ActionSpec
-    RelicRewardSkip: ActionSpec
     RestSiteRest: ActionSpec
     RestSiteCardUpgrade: ActionSpec
+    RoomSkip: ActionSpec
+    ChestOpen: ActionSpec
+    PotionUse: ActionSpec
+    PotionDiscard: ActionSpec
+    CardDiscoverSelect: ActionSpec
+    RewardTakeCard: ActionSpec
+    RewardTakeRelic: ActionSpec
+    RewardTakePotion: ActionSpec
+    RewardTakeGold: ActionSpec
+    RewardSkip: ActionSpec
 
     def __getattr__(self, name: str) -> ActionSpec: ...
     def __getitem__(self, key: Union[int, str, ActionType]) -> ActionSpec: ...
@@ -447,7 +496,6 @@ class ActionSpecRegistry:
     def __contains__(self, key: object) -> bool: ...
 
 ACTION_SPEC_REGISTRY: ActionSpecRegistry
-
 
 class Modifier:
     kind: ModifierKind
@@ -459,6 +507,13 @@ class Relic:
     tier: RelicTier
     counter: int
     used_up: bool
+
+class Potion:
+    name: PotionName
+    rarity: PotionRarity
+    requires_target: bool
+    combat_only: bool
+    effects: list[Effect]
 
 class Card:
     name: CardName
@@ -480,7 +535,7 @@ class Card:
     kind: CardKind
     color: CardColor
     rarity: CardRarity
-    
+
     # Other boolean fields
     upgraded: bool
     exhaust: bool
@@ -500,6 +555,7 @@ class Card:
             Effect.GlassKnifeDecay,
             Effect.CardSetupPick,
             Effect.CardNightmarePick,
+            Effect.CardDiscoverSelect,
             Effect.DistractionAdd,
             Effect.SetCostOverride,
             Effect.FinisherDamage,
@@ -554,7 +610,7 @@ class Map:
     rooms: list[list[Optional[Room]]]
     y_current: Optional[int]
     x_current: Optional[int]
-    boss_name: str # TODO: maybe should be in `GameState`?
+    boss_name: str  # TODO: maybe should be in `GameState`?
 
 class GameState:
     # Actors
@@ -567,10 +623,6 @@ class GameState:
     pile_draw: list[Card]
     pile_discard: list[Card]
     pile_exhaust: list[Card]
-
-    # Rewards
-    rewards_card: list[Card]
-    rewards_relic: list[Relic]
 
     # Relics, Energy and Map
     relics: list[Relic]
@@ -585,11 +637,10 @@ class GameState:
         Phase.CombatAwaitRetain,
         Phase.CombatAwaitNightmare,
         Phase.CombatAwaitSetup,
-        Phase.CombatReward,
+        Phase.Reward,
         Phase.RestSite,
         Phase.GameOver,
     ]
-
 
 class GameEnv:
     MAX_MONSTERS: int

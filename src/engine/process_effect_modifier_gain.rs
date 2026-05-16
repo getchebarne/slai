@@ -1,5 +1,4 @@
 use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
-use crate::engine::DispatchResult;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::modifier_apply;
@@ -7,13 +6,14 @@ use crate::modifier::modifier_def;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::types::Phase;
 
 pub fn process_effect_modifier_gain(
     modifiers: &mut Modifiers,
     kind: ModifierKind,
     stacks: i16,
     monster_cycle_count: Option<u8>,
-) -> DispatchResult {
+) -> Option<Phase> {
     // ModeShift has special scaling logic
     if kind == ModifierKind::ModeShift {
         if let Some(cc) = monster_cycle_count {
@@ -32,7 +32,7 @@ pub fn process_effect_modifier_gain(
             modifiers.stacks[ModifierKind::Artifact as usize] = stacks_new;
         }
         // Early return without applying debuff
-        return DispatchResult::Continue;
+        return None;
     }
 
     // Negative stacks reduce existing modifier, removing if below minimum
@@ -47,23 +47,23 @@ pub fn process_effect_modifier_gain(
         } else if modifier_def(kind).stacks_min < 0 {
             modifier_apply(modifiers, kind, stacks);
         }
-        return DispatchResult::Continue;
+        return None;
     }
 
     modifier_apply(modifiers, kind, stacks);
-    DispatchResult::Continue
+    None
 }
 
 fn process_mode_shift_gain(
     modifiers: &mut Modifiers,
     stacks: i16,
     monster_cycle_count: u8,
-) -> DispatchResult {
+) -> Option<Phase> {
     // ModeShift threshold increases each completed cycle
     let increase = MODE_SHIFT_INCREASE_PER_CYCLE * monster_cycle_count as i16;
 
     modifier_apply(modifiers, ModifierKind::ModeShift, stacks + increase);
     modifiers.is_new[ModifierKind::ModeShift as usize] = false;
 
-    DispatchResult::Continue
+    None
 }

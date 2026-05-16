@@ -12,7 +12,7 @@ pub const GOLD_BOSS_MAX: u16 = 105;
 
 // Combat
 pub const MAX_SIZE_HAND: usize = 10;
-pub const CARDS_DRAWN_PER_TURN: u8 = 5;
+pub const CARDS_DRAWN_PER_TURN: u16 = 5;
 pub const MAX_COMBAT_CARD_REWARD: usize = 3;
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_VULN: f32 = 1.50;
@@ -26,8 +26,8 @@ pub const NIGHTMARE_COPIES: u8 = 3;
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;
 pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
-pub const CHANCE_RARE: i32 = 3;
-pub const CHANCE_UNCOMMON: i32 = 40;
+pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
+pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON: i32 = 40;
 
 // Map
 pub const MAP_HEIGHT: usize = 15;
@@ -91,3 +91,22 @@ pub const ENCOUNTER_LIST_ELITE_CAPACITY: usize = NUM_ENCOUNTERS_ELITE;
 
 // Rest site
 pub const REST_SITE_HEAL_FACTOR: f32 = 0.30;
+
+// Potions
+pub const POTION_SLOTS_DEFAULT: u8 = 3;
+pub const POTION_SLOTS_DEFAULT_A11: u8 = 2;
+pub const POTION_SLOTS_MAX: usize = 5;
+
+// Potion drop swing: chance = base + mod; +10 on miss, -10 on hit
+pub const POTION_DROP_CHANCE_BASE: i8 = 40;
+pub const POTION_DROP_CHANCE_MOD_HIT: i8 = -10;
+pub const POTION_DROP_CHANCE_MOD_MISS: i8 = 10;
+pub const POTION_DROP_CHANCE_MOD_MIN: i8 = -30;
+pub const POTION_DROP_CHANCE_MOD_MAX: i8 = 60;
+
+// Potion rarity roll thresholds
+pub const POTION_TH_COMMON: u8 = 65;
+pub const POTION_TH_UNCOMMON: u8 = 90;
+
+// Discovery: number of card options offered
+pub const DISCOVER_PICK_COUNT: u8 = 3;

@@ -6,10 +6,10 @@ use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
 use crate::monsters::spawn_monster;
 use crate::types::MonsterName;
+use crate::types::Phase;
 
 pub fn process_effect_monster_spawn(
     name: MonsterName,
@@ -20,7 +20,7 @@ pub fn process_effect_monster_spawn(
     monster_count: &mut u8,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let mut monster_child = spawn_monster(name, ascension_level, rng);
 
     // Slime split: spawned child inherits the parent's current HP as max health.
@@ -79,5 +79,5 @@ pub fn process_effect_monster_spawn(
         target: Target::Direct(Some(id_child)),
     });
 
-    DispatchResult::Continue
+    None
 }

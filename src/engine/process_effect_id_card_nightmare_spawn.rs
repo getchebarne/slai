@@ -1,14 +1,14 @@
 use crate::consts::MAX_SIZE_HAND;
 use crate::consts::NIGHTMARE_COPIES;
-use crate::engine::DispatchResult;
 use crate::entity::Entity;
+use crate::types::Phase;
 
 pub fn process_effect_id_card_nightmare_spawn(
     entities: &mut Vec<Entity>,
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
     id_card_nightmare: &mut Option<usize>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let id_template = id_card_nightmare
         .take()
         .expect("CardNightmareSpawn with no pending snapshot");
@@ -23,5 +23,5 @@ pub fn process_effect_id_card_nightmare_spawn(
             id_pile_discard.push(id_card);
         }
     }
-    DispatchResult::Continue
+    None
 }

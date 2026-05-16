@@ -30,7 +30,7 @@ pub static NEUTRALIZE: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
+                candidates: CandidatePool::MonsterPicked,
                 selection: SelectionKind::Single,
             },
         },
@@ -41,7 +41,7 @@ pub static NEUTRALIZE: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
+                candidates: CandidatePool::MonsterPicked,
                 selection: SelectionKind::Single,
             },
         },

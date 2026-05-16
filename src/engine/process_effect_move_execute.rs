@@ -3,12 +3,12 @@ use std::collections::VecDeque;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::engine::EffectBuf;
 use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
+use crate::types::Phase;
 
 // Dynamic move resolution: read `move_current` at dispatch time and push the
 // move's effects onto the queue. Used so that mid-turn move overrides (slime
@@ -20,9 +20,9 @@ pub fn process_effect_move_execute(
     id_monster: usize,
     id_character: usize,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     let Some(move_idx) = entity.move_current else {
-        return DispatchResult::Continue;
+        return None;
     };
 
     let stacks_thievery = if modifier_has(&entity.modifiers, ModifierKind::Thievery) {
@@ -48,5 +48,5 @@ pub fn process_effect_move_execute(
         }
     }
     buf.push_all_front(effect_queue);
-    DispatchResult::Continue
+    None
 }

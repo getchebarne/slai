@@ -7,7 +7,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::engine::EffectBuf;
 use crate::game::Energy;
 use crate::modifier::ModifierKind;
@@ -16,6 +15,7 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
+use crate::types::Phase;
 use crate::types::Vitals;
 
 pub fn process_effect_turn_start(
@@ -27,7 +27,7 @@ pub fn process_effect_turn_start(
     id_monsters: &[usize],
     nightmare_pending: bool,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     // Stack locals
     let mut buf_effects = EffectBuf::new();
 
@@ -77,7 +77,7 @@ pub fn process_effect_turn_start(
         let energy_gain = energy.max.saturating_sub(energy.current);
         buf_effects.push(Effect {
             kind: EffectKind::EnergyGain {
-                amount: energy_gain,
+                amount: energy_gain as u16,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -137,7 +137,7 @@ pub fn process_effect_turn_start(
             let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
             buf_effects.push(Effect {
                 kind: EffectKind::CardDraw {
-                    count: stacks as u8,
+                    count: stacks.max(0) as u16,
                 },
                 id_source: None,
                 target: Target::Direct(None),
@@ -156,7 +156,7 @@ pub fn process_effect_turn_start(
             let stacks = modifier_stacks(modifiers, ModifierKind::ToolsOfTheTrade);
             buf_effects.push(Effect {
                 kind: EffectKind::CardDraw {
-                    count: stacks as u8,
+                    count: stacks.max(0) as u16,
                 },
                 id_source: None,
                 target: Target::Direct(None),
@@ -169,7 +169,7 @@ pub fn process_effect_turn_start(
                 target: Target::Resolve {
                     candidates: CandidatePool::Hand,
                     selection: SelectionKind::Input {
-                        count: stacks as u8,
+                        count: stacks.max(0) as u16,
                     },
                 },
             });
@@ -180,7 +180,7 @@ pub fn process_effect_turn_start(
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
             buf_effects.push(Effect {
                 kind: EffectKind::EnergyGain {
-                    amount: stacks as u8,
+                    amount: stacks.max(0) as u16,
                 },
                 id_source: None,
                 target: Target::Direct(None),
@@ -194,7 +194,7 @@ pub fn process_effect_turn_start(
             buf_effects.push(Effect {
                 kind: EffectKind::CardAddToHand {
                     card_name: CardName::Shiv,
-                    count: stacks as u8,
+                    count: stacks.max(0) as u16,
                     upgraded: false,
                 },
                 id_source: None,
@@ -204,5 +204,5 @@ pub fn process_effect_turn_start(
     }
 
     buf_effects.push_all_front(effect_queue);
-    DispatchResult::Continue
+    None
 }

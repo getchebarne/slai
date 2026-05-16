@@ -28,7 +28,7 @@ pub static FLECHETTES: Entity = make_entity_card(
         kind: EffectKind::FlechettesDamage { damage: 4 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
+            candidates: CandidatePool::MonsterPicked,
             selection: SelectionKind::Single,
         },
     }],

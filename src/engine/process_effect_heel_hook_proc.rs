@@ -3,10 +3,10 @@ use std::collections::VecDeque;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::DispatchResult;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::modifier_has;
+use crate::types::Phase;
 
 // HeelHook bonus: if the targeted enemy has Weak, gain 1 energy and draw 1
 // card. Modifier-check happens at handler time; the target may have died
@@ -18,9 +18,9 @@ use crate::modifier::modifier_has;
 pub fn process_effect_heel_hook_proc(
     mods_target: &Modifiers,
     effect_queue: &mut VecDeque<Effect>,
-) -> DispatchResult {
+) -> Option<Phase> {
     if !modifier_has(mods_target, ModifierKind::Weak) {
-        return DispatchResult::Continue;
+        return None;
     }
     effect_queue.push_front(Effect {
         kind: EffectKind::CardDraw { count: 1 },
@@ -32,5 +32,5 @@ pub fn process_effect_heel_hook_proc(
         id_source: None,
         target: Target::Direct(None),
     });
-    DispatchResult::Continue
+    None
 }
