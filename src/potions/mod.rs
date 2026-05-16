@@ -16,7 +16,7 @@ mod weak_potion;
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::consts::MAX_POTIONS;
+use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
 use crate::entity::Entity;
@@ -71,9 +71,9 @@ const _: () = {
     }
 };
 
-const fn potion_rarity_eq(a: PotionRarity, b: PotionRarity) -> bool {
+const fn potion_rarity_eq(lhs: PotionRarity, rhs: PotionRarity) -> bool {
     matches!(
-        (a, b),
+        (lhs, rhs),
         (PotionRarity::Common, PotionRarity::Common)
             | (PotionRarity::Uncommon, PotionRarity::Uncommon)
             | (PotionRarity::Rare, PotionRarity::Rare)
@@ -140,8 +140,8 @@ pub fn get_random_potion(rng: &mut impl Rng, limited: bool) -> PotionName {
     name
 }
 
-pub fn find_free_slot(slots: &[Option<usize>; MAX_POTIONS], slots_max: u8) -> Option<usize> {
-    let cap = (slots_max as usize).min(MAX_POTIONS);
+pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) -> Option<usize> {
+    let cap = (slots_max as usize).min(POTION_SLOTS_MAX);
     slots[..cap].iter().position(|s| s.is_none())
 }
 

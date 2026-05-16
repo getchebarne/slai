@@ -17,7 +17,7 @@ pub static FIRE_POTION: Entity = make_entity_potion(
         kind: EffectKind::DamagePhysical { amount: 20 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
+            candidates: CandidatePool::MonsterPicked,
             selection: SelectionKind::Single,
         },
     }],

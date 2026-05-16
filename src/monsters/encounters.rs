@@ -47,8 +47,8 @@ const _: () = {
     }
 };
 
-pub const fn get_encounter_pool(e: MonsterEncounter) -> EncounterPool {
-    match e {
+pub const fn get_encounter_pool(encounter: MonsterEncounter) -> EncounterPool {
+    match encounter {
         // Easy
         MonsterEncounter::Cultist
         | MonsterEncounter::JawWorm
@@ -79,8 +79,8 @@ pub const fn get_encounter_pool(e: MonsterEncounter) -> EncounterPool {
     }
 }
 
-pub const fn get_encounter_weight(e: MonsterEncounter) -> f32 {
-    match e {
+pub const fn get_encounter_weight(encounter: MonsterEncounter) -> f32 {
+    match encounter {
         // Easy
         MonsterEncounter::Cultist => 2.0,
         MonsterEncounter::JawWorm => 2.0,
@@ -111,9 +111,9 @@ pub const fn get_encounter_weight(e: MonsterEncounter) -> f32 {
     }
 }
 
-const fn pool_eq(a: EncounterPool, b: EncounterPool) -> bool {
+const fn pool_eq(lhs: EncounterPool, rhs: EncounterPool) -> bool {
     matches!(
-        (a, b),
+        (lhs, rhs),
         (EncounterPool::Act1Easy, EncounterPool::Act1Easy)
             | (EncounterPool::Act1Hard, EncounterPool::Act1Hard)
             | (EncounterPool::Act1Elite, EncounterPool::Act1Elite)

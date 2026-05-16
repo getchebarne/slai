@@ -21,7 +21,7 @@ pub static WEAK_POTION: Entity = make_entity_potion(
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
+            candidates: CandidatePool::MonsterPicked,
             selection: SelectionKind::Single,
         },
     }],

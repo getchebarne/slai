@@ -193,7 +193,7 @@ fn handle_card_play(
         ));
     }
 
-    if card.card_requires_target {
+    if card.requires_target {
         match idx_monster {
             Some(idx_monster) => {
                 // Stack locals
@@ -441,7 +441,7 @@ fn handle_potion_use(
         ));
     }
 
-    let requires_target = potion.potion_requires_target;
+    let requires_target = potion.requires_target;
     let id_monster_target = if requires_target {
         let mut buf_alive = [0usize; MAX_MONSTERS];
         let n = fill_alive_monster_ids(state, &mut buf_alive);

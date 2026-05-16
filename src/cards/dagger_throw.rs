@@ -30,7 +30,7 @@ pub static DAGGER_THROW: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 9 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::CardTarget,
+                candidates: CandidatePool::MonsterPicked,
                 selection: SelectionKind::Single,
             },
         },

@@ -79,9 +79,9 @@ const _: () = {
     }
 };
 
-const fn relic_tier_eq(a: RelicTier, b: RelicTier) -> bool {
+const fn relic_tier_eq(lhs: RelicTier, rhs: RelicTier) -> bool {
     matches!(
-        (a, b),
+        (lhs, rhs),
         (RelicTier::Starter, RelicTier::Starter)
             | (RelicTier::Common, RelicTier::Common)
             | (RelicTier::Uncommon, RelicTier::Uncommon)

@@ -66,7 +66,7 @@ pub struct GameState {
     // Combat state
     pub id_monsters: [usize; MAX_MONSTERS],
     pub monster_count: u8,
-    pub id_card_target: Option<usize>,
+    pub id_monster_picked: Option<usize>,
 
     // Monster encounters
     pub encounter_list_normal: Vec<MonsterEncounter>,
@@ -172,7 +172,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_hand: Vec::with_capacity(MAX_SIZE_HAND),
         id_pile_discard: Vec::with_capacity(64),
         id_pile_exhaust: Vec::with_capacity(32),
-        id_card_target: None,
+        id_monster_picked: None,
         id_relics,
         id_rooms,
         location,

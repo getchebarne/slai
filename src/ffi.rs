@@ -33,6 +33,8 @@ use crate::types::ChestKind;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::Phase;
+use crate::types::PotionName;
+use crate::types::PotionRarity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
@@ -52,8 +54,8 @@ pub enum PyCardKind {
 }
 
 impl From<CardKind> for PyCardKind {
-    fn from(k: CardKind) -> Self {
-        match k {
+    fn from(kind: CardKind) -> Self {
+        match kind {
             CardKind::Attack => Self::Attack,
             CardKind::Skill => Self::Skill,
             CardKind::Power => Self::Power,
@@ -72,8 +74,8 @@ pub enum PyCardColor {
 }
 
 impl From<CardColor> for PyCardColor {
-    fn from(c: CardColor) -> Self {
-        match c {
+    fn from(color: CardColor) -> Self {
+        match color {
             CardColor::Green => Self::Green,
             CardColor::Colorless => Self::Colorless,
             CardColor::Curse => Self::Curse,
@@ -93,8 +95,8 @@ pub enum PyCardRarity {
 }
 
 impl From<CardRarity> for PyCardRarity {
-    fn from(r: CardRarity) -> Self {
-        match r {
+    fn from(rarity: CardRarity) -> Self {
+        match rarity {
             CardRarity::Basic => Self::Basic,
             CardRarity::Common => Self::Common,
             CardRarity::Uncommon => Self::Uncommon,
@@ -115,8 +117,8 @@ pub enum PyCardCostKind {
 }
 
 impl From<CardCostKind> for PyCardCostKind {
-    fn from(k: CardCostKind) -> Self {
-        match k {
+    fn from(kind: CardCostKind) -> Self {
+        match kind {
             CardCostKind::Fixed => Self::Fixed {},
             CardCostKind::MinusDiscardsThisTurn => Self::MinusDiscardsThisTurn {},
             CardCostKind::GrowsOnDamageInstanceTaken => Self::GrowsOnDamageInstanceTaken {},
@@ -138,8 +140,8 @@ pub enum PyRoomKind {
 }
 
 impl From<RoomKind> for PyRoomKind {
-    fn from(r: RoomKind) -> Self {
-        match r {
+    fn from(kind: RoomKind) -> Self {
+        match kind {
             RoomKind::CombatMonster => Self::CombatMonster,
             RoomKind::CombatElite => Self::CombatElite,
             RoomKind::CombatBoss => Self::CombatBoss,
@@ -160,8 +162,8 @@ pub enum PyChestKind {
 }
 
 impl From<ChestKind> for PyChestKind {
-    fn from(c: ChestKind) -> Self {
-        match c {
+    fn from(kind: ChestKind) -> Self {
+        match kind {
             ChestKind::Small => Self::Small,
             ChestKind::Medium => Self::Medium,
             ChestKind::Large => Self::Large,
@@ -188,24 +190,23 @@ pub enum PyPotionName {
     FruitJuice,
 }
 
-impl From<crate::types::PotionName> for PyPotionName {
-    fn from(n: crate::types::PotionName) -> Self {
-        use crate::types::PotionName as N;
-        match n {
-            N::EnergyPotion => Self::EnergyPotion,
-            N::BlockPotion => Self::BlockPotion,
-            N::StrengthPotion => Self::StrengthPotion,
-            N::DexterityPotion => Self::DexterityPotion,
-            N::FirePotion => Self::FirePotion,
-            N::ExplosivePotion => Self::ExplosivePotion,
-            N::WeakPotion => Self::WeakPotion,
-            N::FearPotion => Self::FearPotion,
-            N::PoisonPotion => Self::PoisonPotion,
-            N::SwiftPotion => Self::SwiftPotion,
-            N::AttackPotion => Self::AttackPotion,
-            N::SkillPotion => Self::SkillPotion,
-            N::PowerPotion => Self::PowerPotion,
-            N::FruitJuice => Self::FruitJuice,
+impl From<PotionName> for PyPotionName {
+    fn from(name: PotionName) -> Self {
+        match name {
+            PotionName::EnergyPotion => Self::EnergyPotion,
+            PotionName::BlockPotion => Self::BlockPotion,
+            PotionName::StrengthPotion => Self::StrengthPotion,
+            PotionName::DexterityPotion => Self::DexterityPotion,
+            PotionName::FirePotion => Self::FirePotion,
+            PotionName::ExplosivePotion => Self::ExplosivePotion,
+            PotionName::WeakPotion => Self::WeakPotion,
+            PotionName::FearPotion => Self::FearPotion,
+            PotionName::PoisonPotion => Self::PoisonPotion,
+            PotionName::SwiftPotion => Self::SwiftPotion,
+            PotionName::AttackPotion => Self::AttackPotion,
+            PotionName::SkillPotion => Self::SkillPotion,
+            PotionName::PowerPotion => Self::PowerPotion,
+            PotionName::FruitJuice => Self::FruitJuice,
         }
     }
 }
@@ -218,13 +219,12 @@ pub enum PyPotionRarity {
     Rare,
 }
 
-impl From<crate::types::PotionRarity> for PyPotionRarity {
-    fn from(r: crate::types::PotionRarity) -> Self {
-        use crate::types::PotionRarity as R;
-        match r {
-            R::Common => Self::Common,
-            R::Uncommon => Self::Uncommon,
-            R::Rare => Self::Rare,
+impl From<PotionRarity> for PyPotionRarity {
+    fn from(rarity: PotionRarity) -> Self {
+        match rarity {
+            PotionRarity::Common => Self::Common,
+            PotionRarity::Uncommon => Self::Uncommon,
+            PotionRarity::Rare => Self::Rare,
         }
     }
 }
@@ -250,8 +250,8 @@ pub enum PyRelicName {
 }
 
 impl From<RelicName> for PyRelicName {
-    fn from(n: RelicName) -> Self {
-        match n {
+    fn from(name: RelicName) -> Self {
+        match name {
             RelicName::SnakeRing => Self::SnakeRing,
             RelicName::Akabeko => Self::Akabeko,
             RelicName::Anchor => Self::Anchor,
@@ -272,8 +272,8 @@ impl From<RelicName> for PyRelicName {
 }
 
 impl From<PyRelicName> for RelicName {
-    fn from(n: PyRelicName) -> Self {
-        match n {
+    fn from(name: PyRelicName) -> Self {
+        match name {
             PyRelicName::SnakeRing => Self::SnakeRing,
             PyRelicName::Akabeko => Self::Akabeko,
             PyRelicName::Anchor => Self::Anchor,
@@ -389,8 +389,8 @@ pub enum PyCardName {
 
 impl From<CardName> for PyCardName {
     // 1:1 by name; explicit match (not transmute) catches drift if either enum changes
-    fn from(n: CardName) -> Self {
-        match n {
+    fn from(name: CardName) -> Self {
+        match name {
             CardName::AThousandCuts => Self::AThousandCuts,
             CardName::Accuracy => Self::Accuracy,
             CardName::Acrobatics => Self::Acrobatics,
@@ -515,8 +515,8 @@ pub enum PyMonsterName {
 }
 
 impl From<MonsterName> for PyMonsterName {
-    fn from(n: MonsterName) -> Self {
-        match n {
+    fn from(name: MonsterName) -> Self {
+        match name {
             MonsterName::Cultist => Self::Cultist,
             MonsterName::FungiBeast => Self::FungiBeast,
             MonsterName::GremlinFat => Self::GremlinFat,
@@ -559,8 +559,8 @@ pub enum PyRelicTier {
 }
 
 impl From<RelicTier> for PyRelicTier {
-    fn from(t: RelicTier) -> Self {
-        match t {
+    fn from(tier: RelicTier) -> Self {
+        match tier {
             RelicTier::Starter => Self::Starter,
             RelicTier::Common => Self::Common,
             RelicTier::Uncommon => Self::Uncommon,
@@ -621,8 +621,8 @@ pub enum PyModifierKind {
 }
 
 impl From<ModifierKind> for PyModifierKind {
-    fn from(k: ModifierKind) -> Self {
-        match k {
+    fn from(kind: ModifierKind) -> Self {
+        match kind {
             ModifierKind::Accuracy => Self::Accuracy,
             ModifierKind::AfterImage => Self::AfterImage,
             ModifierKind::Angry => Self::Angry,
@@ -674,7 +674,7 @@ impl From<ModifierKind> for PyModifierKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
     Hand,
-    CardTarget,
+    MonsterPicked,
     Character,
     Monsters,
     OtherMonsters,
@@ -683,10 +683,10 @@ pub enum PyCandidatePool {
 }
 
 impl From<CandidatePool> for PyCandidatePool {
-    fn from(c: CandidatePool) -> Self {
-        match c {
+    fn from(pool: CandidatePool) -> Self {
+        match pool {
             CandidatePool::Hand => Self::Hand,
-            CandidatePool::CardTarget => Self::CardTarget,
+            CandidatePool::MonsterPicked => Self::MonsterPicked,
             CandidatePool::Character => Self::Character,
             CandidatePool::Monsters => Self::Monsters,
             CandidatePool::OtherMonsters => Self::OtherMonsters,
@@ -703,9 +703,13 @@ impl From<CandidatePool> for PyCandidatePool {
 pub enum PyPhase {
     Map {},
     CombatDefault {},
-    CombatAwaitDiscard { num: u16 },
+    CombatAwaitDiscard {
+        num: u16,
+    },
     CombatAwaitNightmare {},
-    CombatAwaitRetain { num: u16 },
+    CombatAwaitRetain {
+        num: u16,
+    },
     CombatAwaitSetup {},
     Reward {
         cards: Vec<PyCard>,
@@ -718,14 +722,16 @@ pub enum PyPhase {
     Chest {},
     EventRoom {},
     Shop {},
-    CombatAwaitDiscover { cards: Vec<PyCard> },
+    CombatAwaitDiscover {
+        cards: Vec<PyCard>,
+    },
 }
 
 // Data-free variants only. Phase::Reward and Phase::CombatAwaitDiscover carry entity
 // ids that need the GameState to snapshot — see `snapshot_phase`, which owns that path
 impl From<&Phase> for PyPhase {
-    fn from(p: &Phase) -> Self {
-        match p {
+    fn from(phase: &Phase) -> Self {
+        match phase {
             Phase::Map => Self::Map {},
             Phase::CombatDefault => Self::CombatDefault {},
             Phase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num: *num },
@@ -755,8 +761,8 @@ pub enum PySelectionKind {
 }
 
 impl From<SelectionKind> for PySelectionKind {
-    fn from(s: SelectionKind) -> Self {
-        match s {
+    fn from(selection: SelectionKind) -> Self {
+        match selection {
             SelectionKind::All => Self::All {},
             SelectionKind::Single => Self::Single {},
             SelectionKind::Random { count } => Self::Random { count },
@@ -800,8 +806,8 @@ pub enum PyActionType {
 }
 
 impl PyActionType {
-    fn from_discriminant(n: u8) -> Result<Self, String> {
-        match n {
+    fn from_discriminant(discriminant: u8) -> Result<Self, String> {
+        match discriminant {
             0 => Ok(Self::CardPlay),
             1 => Ok(Self::EndTurn),
             2 => Ok(Self::CardDiscard),
@@ -821,7 +827,7 @@ impl PyActionType {
             16 => Ok(Self::PotionRewardSelect),
             17 => Ok(Self::GoldRewardTake),
             18 => Ok(Self::RewardSkip),
-            _ => Err(format!("PyActionType: invalid discriminant {n}")),
+            _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
 }
@@ -849,102 +855,104 @@ impl PyAction {
     }
 }
 
-pub fn to_internal_action(a: PyAction) -> Result<Action, String> {
-    let i = &a.idxs;
-    match a.action_type {
-        PyActionType::CardPlay => match i.len() {
+pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
+    let idxs = &action.idxs;
+    match action.action_type {
+        PyActionType::CardPlay => match idxs.len() {
             1 => Ok(Action::CardPlay {
-                idx_hand: i[0],
+                idx_hand: idxs[0],
                 idx_monster: None,
             }),
             2 => Ok(Action::CardPlay {
-                idx_hand: i[0],
-                idx_monster: Some(i[1]),
+                idx_hand: idxs[0],
+                idx_monster: Some(idxs[1]),
             }),
             n => Err(format!(
                 "CardPlay expects [idx_hand] or [idx_hand, idx_monster], got {n} idxs"
             )),
         },
-        PyActionType::EndTurn => match i.len() {
+        PyActionType::EndTurn => match idxs.len() {
             0 => Ok(Action::EndTurn),
             n => Err(format!("EndTurn expects [], got {n} idxs")),
         },
         PyActionType::CardDiscard => Ok(Action::CardDiscard {
-            indices_hand: i.clone(),
+            indices_hand: idxs.clone(),
         }),
         PyActionType::CardRetain => Ok(Action::CardRetain {
-            indices_hand: i.clone(),
+            indices_hand: idxs.clone(),
         }),
-        PyActionType::CardSetup => match i.len() {
-            1 => Ok(Action::CardSetup { idx_hand: i[0] }),
+        PyActionType::CardSetup => match idxs.len() {
+            1 => Ok(Action::CardSetup { idx_hand: idxs[0] }),
             n => Err(format!("CardSetup expects [idx_hand], got {n} idxs")),
         },
-        PyActionType::CardNightmare => match i.len() {
-            1 => Ok(Action::CardNightmare { idx_hand: i[0] }),
+        PyActionType::CardNightmare => match idxs.len() {
+            1 => Ok(Action::CardNightmare { idx_hand: idxs[0] }),
             n => Err(format!("CardNightmare expects [idx_hand], got {n} idxs")),
         },
-        PyActionType::RoomSelect => match i.len() {
-            1 => Ok(Action::RoomSelect { idx_column: i[0] }),
+        PyActionType::RoomSelect => match idxs.len() {
+            1 => Ok(Action::RoomSelect { idx_column: idxs[0] }),
             n => Err(format!("RoomSelect expects [idx_column], got {n} idxs")),
         },
-        PyActionType::CardRewardSelect => match i.len() {
-            1 => Ok(Action::CardRewardSelect { idx_reward: i[0] }),
+        PyActionType::CardRewardSelect => match idxs.len() {
+            1 => Ok(Action::CardRewardSelect { idx_reward: idxs[0] }),
             n => Err(format!(
                 "CardRewardSelect expects [idx_reward], got {n} idxs"
             )),
         },
-        PyActionType::RelicRewardSelect => match i.len() {
+        PyActionType::RelicRewardSelect => match idxs.len() {
             0 => Ok(Action::RelicRewardSelect),
             n => Err(format!("RelicRewardSelect expects [], got {n} idxs")),
         },
-        PyActionType::RestSiteRest => match i.len() {
+        PyActionType::RestSiteRest => match idxs.len() {
             0 => Ok(Action::RestSiteRest),
             n => Err(format!("RestSiteRest expects [], got {n} idxs")),
         },
-        PyActionType::RestSiteCardUpgrade => match i.len() {
-            1 => Ok(Action::RestSiteCardUpgrade { idx_deck: i[0] }),
+        PyActionType::RestSiteCardUpgrade => match idxs.len() {
+            1 => Ok(Action::RestSiteCardUpgrade { idx_deck: idxs[0] }),
             n => Err(format!(
                 "RestSiteCardUpgrade expects [idx_deck], got {n} idxs"
             )),
         },
-        PyActionType::RoomSkip => match i.len() {
+        PyActionType::RoomSkip => match idxs.len() {
             0 => Ok(Action::RoomSkip),
             n => Err(format!("RoomSkip expects [], got {n} idxs")),
         },
-        PyActionType::ChestOpen => match i.len() {
+        PyActionType::ChestOpen => match idxs.len() {
             0 => Ok(Action::ChestOpen),
             n => Err(format!("ChestOpen expects [], got {n} idxs")),
         },
-        PyActionType::PotionUse => match i.len() {
+        PyActionType::PotionUse => match idxs.len() {
             1 => Ok(Action::PotionUse {
-                idx_slot: i[0],
+                idx_slot: idxs[0],
                 idx_monster: None,
             }),
             2 => Ok(Action::PotionUse {
-                idx_slot: i[0],
-                idx_monster: Some(i[1]),
+                idx_slot: idxs[0],
+                idx_monster: Some(idxs[1]),
             }),
             n => Err(format!(
                 "PotionUse expects [idx_slot] or [idx_slot, idx_monster], got {n} idxs"
             )),
         },
-        PyActionType::PotionDiscard => match i.len() {
-            1 => Ok(Action::PotionDiscard { idx_slot: i[0] }),
+        PyActionType::PotionDiscard => match idxs.len() {
+            1 => Ok(Action::PotionDiscard { idx_slot: idxs[0] }),
             n => Err(format!("PotionDiscard expects [idx_slot], got {n} idxs")),
         },
-        PyActionType::CardDiscoverPick => match i.len() {
-            1 => Ok(Action::CardDiscoverPick { idx_option: i[0] }),
-            n => Err(format!("CardDiscoverPick expects [idx_option], got {n} idxs")),
+        PyActionType::CardDiscoverPick => match idxs.len() {
+            1 => Ok(Action::CardDiscoverPick { idx_option: idxs[0] }),
+            n => Err(format!(
+                "CardDiscoverPick expects [idx_option], got {n} idxs"
+            )),
         },
-        PyActionType::PotionRewardSelect => match i.len() {
+        PyActionType::PotionRewardSelect => match idxs.len() {
             0 => Ok(Action::PotionRewardSelect),
             n => Err(format!("PotionRewardSelect expects [], got {n} idxs")),
         },
-        PyActionType::GoldRewardTake => match i.len() {
+        PyActionType::GoldRewardTake => match idxs.len() {
             0 => Ok(Action::GoldRewardTake),
             n => Err(format!("GoldRewardTake expects [], got {n} idxs")),
         },
-        PyActionType::RewardSkip => match i.len() {
+        PyActionType::RewardSkip => match idxs.len() {
             0 => Ok(Action::RewardSkip),
             n => Err(format!("RewardSkip expects [], got {n} idxs")),
         },
@@ -1203,6 +1211,7 @@ pub struct PyPotion {
     pub rarity: PyPotionRarity,
     pub requires_target: bool,
     pub combat_only: bool,
+    pub effects: Vec<PyEffect>,
 }
 
 #[pyclass(frozen, get_all, name = "Character")]
@@ -1237,8 +1246,8 @@ pub enum PyIntentKind {
 }
 
 impl From<Intent> for PyIntentKind {
-    fn from(i: Intent) -> Self {
-        match i {
+    fn from(intent: Intent) -> Self {
+        match intent {
             Intent::Attack { .. } => Self::Attack,
             Intent::AttackBlock { .. } => Self::AttackBlock,
             Intent::AttackBuff { .. } => Self::AttackBuff,
@@ -1474,32 +1483,14 @@ impl MonsterEncounter {
 
 // Snapshot builders
 pub fn snapshot_state(state: &GameState) -> PyGameState {
-    let this_turn_discards = state.this_turn_discards;
-    let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
-    let energy_current = state.energy.current;
-    let entangled = modifier_has(
-        &state.entities[state.id_character].modifiers,
-        ModifierKind::Entangled,
-    );
-    let card = |id_card: usize| {
-        snapshot_card(
-            &state.entities[id_card],
-            &state.id_pile_draw,
-            this_turn_discards,
-            this_combat_damage_instances_taken,
-            energy_current,
-            entangled,
-        )
-    };
-    let phase = snapshot_phase(state, &card);
     PyGameState {
         character: snapshot_character(state),
         monsters: snapshot_monsters(state),
-        deck: state.id_deck.iter().copied().map(&card).collect(),
-        hand: state.id_hand.iter().copied().map(&card).collect(),
-        pile_draw: state.id_pile_draw.iter().copied().map(&card).collect(),
-        pile_discard: state.id_pile_discard.iter().copied().map(&card).collect(),
-        pile_exhaust: state.id_pile_exhaust.iter().copied().map(&card).collect(),
+        deck: state.id_deck.iter().map(|&id| snapshot_card(state, id)).collect(),
+        hand: state.id_hand.iter().map(|&id| snapshot_card(state, id)).collect(),
+        pile_draw: state.id_pile_draw.iter().map(|&id| snapshot_card(state, id)).collect(),
+        pile_discard: state.id_pile_discard.iter().map(|&id| snapshot_card(state, id)).collect(),
+        pile_exhaust: state.id_pile_exhaust.iter().map(|&id| snapshot_card(state, id)).collect(),
         relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
@@ -1508,40 +1499,46 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             max: state.energy.max,
         },
         map: snapshot_map(state),
-        phase,
+        phase: snapshot_phase(state),
     }
 }
 
-fn snapshot_phase(state: &GameState, card: &impl Fn(usize) -> PyCard) -> PyPhase {
+fn snapshot_phase(state: &GameState) -> PyPhase {
     match &state.phase {
-        Phase::Reward { id_cards, id_relic, id_potion, gold } => PyPhase::Reward {
-            cards: id_cards.iter().copied().map(card).collect(),
+        Phase::Reward {
+            id_cards,
+            id_relic,
+            id_potion,
+            gold,
+        } => PyPhase::Reward {
+            cards: id_cards.iter().map(|&id| snapshot_card(state, id)).collect(),
             relic: id_relic.map(|id| snapshot_relic(&state.entities[id])),
             potion: id_potion.map(|id| snapshot_potion(&state.entities[id])),
             gold: *gold,
         },
         Phase::CombatAwaitDiscover { id_cards } => PyPhase::CombatAwaitDiscover {
-            cards: id_cards.iter().copied().map(card).collect(),
+            cards: id_cards.iter().map(|&id| snapshot_card(state, id)).collect(),
         },
         other => other.into(),
     }
 }
 
-fn snapshot_relic(e: &Entity) -> PyRelic {
+fn snapshot_relic(entity: &Entity) -> PyRelic {
     PyRelic {
-        name: e.relic_name.into(),
-        tier: e.relic_tier.into(),
-        counter: e.relic_counter,
-        used_up: e.relic_used_up,
+        name: entity.relic_name.into(),
+        tier: entity.relic_tier.into(),
+        counter: entity.relic_counter,
+        used_up: entity.relic_used_up,
     }
 }
 
-fn snapshot_potion(e: &Entity) -> PyPotion {
+fn snapshot_potion(entity: &Entity) -> PyPotion {
     PyPotion {
-        name: e.potion_name.into(),
-        rarity: e.potion_rarity.into(),
-        requires_target: e.potion_requires_target,
-        combat_only: e.potion_combat_only,
+        name: entity.potion_name.into(),
+        rarity: entity.potion_rarity.into(),
+        requires_target: entity.requires_target,
+        combat_only: entity.potion_combat_only,
+        effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
     }
 }
 
@@ -1659,15 +1656,14 @@ fn snapshot_modifiers(mods: &Modifiers) -> Vec<PyModifier> {
     out
 }
 
-fn snapshot_card(
-    card: &Entity,
-    id_pile_draw: &[usize],
-    this_turn_discards: u8,
-    this_combat_damage_instances_taken: u8,
-    energy_current: u8,
-    entangled: bool,
-) -> PyCard {
-    let restriction_ok = is_play_restriction_satisfied(card.card_play_restriction, id_pile_draw);
+fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
+    let card = &state.entities[id_card];
+    let entangled = modifier_has(
+        &state.entities[state.id_character].modifiers,
+        ModifierKind::Entangled,
+    );
+    let restriction_ok =
+        is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw);
     let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
     let base = card.card_name.as_str();
     let display_name = if card.card_upgraded {
@@ -1680,9 +1676,9 @@ fn snapshot_card(
         display_name,
         cost: card_effective_cost(
             card,
-            this_turn_discards,
-            this_combat_damage_instances_taken,
-            energy_current,
+            state.this_turn_discards,
+            state.this_combat_damage_instances_taken,
+            state.energy.current,
         ),
         cost_base: card.card_cost,
         cost_zero_once: card.card_free_to_play_once,
@@ -1695,7 +1691,7 @@ fn snapshot_card(
         exhaust: card.card_exhaust,
         ethereal: card.card_ethereal,
         innate: card.card_innate,
-        requires_target: card.card_requires_target,
+        requires_target: card.requires_target,
         retain: card.card_retain,
         playable: restriction_ok && !entangled_blocks,
         effects: card.card_effects[..card.card_effects_len as usize]

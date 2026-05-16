@@ -1,5 +1,4 @@
 use crate::cards::get_card;
-use crate::consts::ASCENSION_POTION_SLOT_PENALTY;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::POTION_SLOTS_DEFAULT;
 use crate::consts::POTION_SLOTS_DEFAULT_A11;
@@ -21,7 +20,7 @@ pub fn spawn_silent(ascension: u8) -> Entity {
         CARD_REWARD_ROLL_OFFSET_BASE,
         STARTING_GOLD,
     );
-    entity.potion_slots_max = if ascension >= ASCENSION_POTION_SLOT_PENALTY {
+    entity.potion_slots_max = if ascension >= 11 {
         POTION_SLOTS_DEFAULT_A11
     } else {
         POTION_SLOTS_DEFAULT

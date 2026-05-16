@@ -180,7 +180,7 @@ pub(crate) fn resolve_candidates(
     id_source: usize,
     id_character: usize,
     id_hand: &[usize],
-    id_card_target: Option<usize>,
+    id_monster_picked: Option<usize>,
     id_alive_monsters: &[usize],
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
@@ -189,8 +189,8 @@ pub(crate) fn resolve_candidates(
 ) {
     match candidate_pool {
         CandidatePool::Hand => buf_cands.extend_from_slice(id_hand),
-        CandidatePool::CardTarget => buf_cands.push(
-            id_card_target.expect("CardTarget pool requires id_card_target to be Some"),
+        CandidatePool::MonsterPicked => buf_cands.push(
+            id_monster_picked.expect("MonsterPicked pool requires id_monster_picked to be Some"),
         ),
         CandidatePool::Character => buf_cands.push(id_character),
         CandidatePool::Monsters => buf_cands.extend_from_slice(id_alive_monsters),
@@ -237,7 +237,7 @@ fn resolve_targets(
     id_source: usize,
     id_character: usize,
     id_hand: &[usize],
-    id_card_target: Option<usize>,
+    id_monster_picked: Option<usize>,
     id_alive_monsters: &[usize],
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
@@ -250,7 +250,7 @@ fn resolve_targets(
         id_source,
         id_character,
         id_hand,
-        id_card_target,
+        id_monster_picked,
         id_alive_monsters,
         id_rooms,
         location,
@@ -337,7 +337,7 @@ fn resolve_or_halt(
         id_source_resolved,
         state.id_character,
         &state.id_hand,
-        state.id_card_target,
+        state.id_monster_picked,
         &buf_alive[..alive_n],
         &state.id_rooms,
         state.location,
@@ -543,12 +543,12 @@ fn dispatch_by_kind(
         EffectKind::TargetSet => {
             let id_target = id_target.unwrap();
             process_effect_target_set::process_effect_target_set(
-                &mut state.id_card_target,
+                &mut state.id_monster_picked,
                 id_target,
             )
         }
         EffectKind::TargetClear => {
-            process_effect_target_clear::process_effect_target_clear(&mut state.id_card_target)
+            process_effect_target_clear::process_effect_target_clear(&mut state.id_monster_picked)
         }
         EffectKind::DamagePhysical { amount } => {
             let id_source = id_source.expect("DamagePhysical requires id_source");
@@ -784,7 +784,7 @@ fn dispatch_by_kind(
             &mut state.id_hand,
             &mut state.id_pile_discard,
             &mut state.id_pile_exhaust,
-            &mut state.id_card_target,
+            &mut state.id_monster_picked,
             &mut state.this_combat_damage_instances_taken,
             &mut state.escaped_this_combat,
             &mut state.rng,
@@ -796,7 +796,7 @@ fn dispatch_by_kind(
             &mut state.id_pile_draw,
             &mut state.id_pile_discard,
             &mut state.id_pile_exhaust,
-            &mut state.id_card_target,
+            &mut state.id_monster_picked,
             &mut state.entities,
             &mut state.monster_count,
             &mut state.id_card_nightmare,

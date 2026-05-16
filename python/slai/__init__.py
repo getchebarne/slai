@@ -24,6 +24,8 @@ RelicTier = _to_intenum("RelicTier", _rs.RelicTier)
 CardName = _to_intenum("CardName", _rs.CardName)
 MonsterName = _to_intenum("MonsterName", _rs.MonsterName)
 RelicName = _to_intenum("RelicName", _rs.RelicName)
+PotionName = _to_intenum("PotionName", _rs.PotionName)
+PotionRarity = _to_intenum("PotionRarity", _rs.PotionRarity)
 ModifierKind = _to_intenum("ModifierKind", _rs.ModifierKind)
 IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
 CandidatePool = _to_intenum("CandidatePool", _rs.CandidatePool)
@@ -190,6 +192,8 @@ __all__ = [
     "ChestKind",
     "RelicName",
     "RelicTier",
+    "PotionName",
+    "PotionRarity",
     "CardName",
     "MonsterName",
     # Complex enums

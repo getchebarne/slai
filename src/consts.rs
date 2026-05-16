@@ -95,19 +95,16 @@ pub const REST_SITE_HEAL_FACTOR: f32 = 0.30;
 // Potions
 pub const POTION_SLOTS_DEFAULT: u8 = 3;
 pub const POTION_SLOTS_DEFAULT_A11: u8 = 2;
-pub const MAX_POTIONS: usize = 5;
-pub const ASCENSION_POTION_SLOT_PENALTY: u8 = 11;
+pub const POTION_SLOTS_MAX: usize = 5;
 
-// Potion drop swing: chance = base + mod; +10 on miss, -10 on hit;
-// slai-only clamp prevents pathological drift in long RL runs
+// Potion drop swing: chance = base + mod; +10 on miss, -10 on hit
 pub const POTION_DROP_CHANCE_BASE: i8 = 40;
 pub const POTION_DROP_CHANCE_MOD_HIT: i8 = -10;
 pub const POTION_DROP_CHANCE_MOD_MISS: i8 = 10;
 pub const POTION_DROP_CHANCE_MOD_MIN: i8 = -30;
 pub const POTION_DROP_CHANCE_MOD_MAX: i8 = 60;
 
-// Potion rarity roll thresholds (rejection sampling against this in StS;
-// slai uses per-tier pools with fallback to Common when Uncommon is empty)
+// Potion rarity roll thresholds
 pub const POTION_TH_COMMON: u8 = 65;
 pub const POTION_TH_UNCOMMON: u8 = 90;
 

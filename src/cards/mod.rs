@@ -362,9 +362,9 @@ const _: () = {
     }
 };
 
-const fn card_rarity_eq(a: CardRarity, b: CardRarity) -> bool {
+const fn card_rarity_eq(lhs: CardRarity, rhs: CardRarity) -> bool {
     matches!(
-        (a, b),
+        (lhs, rhs),
         (CardRarity::Basic, CardRarity::Basic)
             | (CardRarity::Common, CardRarity::Common)
             | (CardRarity::Uncommon, CardRarity::Uncommon)
@@ -374,9 +374,9 @@ const fn card_rarity_eq(a: CardRarity, b: CardRarity) -> bool {
     )
 }
 
-const fn color_eq(a: CardColor, b: CardColor) -> bool {
+const fn color_eq(lhs: CardColor, rhs: CardColor) -> bool {
     matches!(
-        (a, b),
+        (lhs, rhs),
         (CardColor::Green, CardColor::Green)
             | (CardColor::Colorless, CardColor::Colorless)
             | (CardColor::Curse, CardColor::Curse)

@@ -28,7 +28,7 @@ pub static STRIKE: Entity = make_entity_card(
         kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::CardTarget,
+            candidates: CandidatePool::MonsterPicked,
             selection: SelectionKind::Single,
         },
     }],

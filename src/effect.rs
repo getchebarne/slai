@@ -176,18 +176,15 @@ pub enum EffectKind {
     // Umbrella skip: bulk-clear all Phase::Reward pools
     RewardSkip,
 
-    // Discovery: roll N random cards of `kind` from the character pool and
-    // halt on `Phase::CombatAwaitDiscover`; player picks one via `Action::CardDiscoverPick`
+    // Discovery: roll N random cards of `kind` and halt on `Phase::CombatAwaitDiscover`;
+    // Player picks one via `Action::CardDiscoverPick`
     CardDiscoverPick {
         kind: CardKind,
         count: u8,
     },
 }
 
-// DiscardSource: tags a CardDiscard effect with its origin so the handler can
-// branch on it. Explicit = card- or player-driven discard (counter bumps,
-// fires `card_on_discard_effects`); EndOfTurn = turn-end auto-discard
-// (honors `card_retain` and `card_ethereal`, no counter, no triggers)
+// DiscardSource: tags a CardDiscard effect with its origin so the handler can branch on it
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiscardSource {
     Explicit,
@@ -198,7 +195,7 @@ pub enum DiscardSource {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
     Hand,
-    CardTarget,
+    MonsterPicked,
     Character,
     Monsters,
     OtherMonsters,

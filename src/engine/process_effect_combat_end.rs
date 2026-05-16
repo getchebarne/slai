@@ -24,7 +24,7 @@ pub fn process_effect_combat_end(
     id_pile_draw: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
     id_pile_exhaust: &mut Vec<usize>,
-    id_card_target: &mut Option<usize>,
+    id_monster_picked: &mut Option<usize>,
     entities: &mut Vec<Entity>,
     monster_count: &mut u8,
     id_card_nightmare: &mut Option<usize>,
@@ -38,7 +38,7 @@ pub fn process_effect_combat_end(
     id_pile_discard.clear();
     id_pile_exhaust.clear();
     *id_card_nightmare = None;
-    *id_card_target = None;
+    *id_monster_picked = None;
 
     modifier_clear(&mut entities[id_character].modifiers);
 

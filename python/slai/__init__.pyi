@@ -123,6 +123,27 @@ class RelicTier(IntEnum):
     Shop: int
     Special: int
 
+class PotionName(IntEnum):
+    EnergyPotion: int
+    BlockPotion: int
+    StrengthPotion: int
+    DexterityPotion: int
+    FirePotion: int
+    ExplosivePotion: int
+    WeakPotion: int
+    FearPotion: int
+    PoisonPotion: int
+    SwiftPotion: int
+    AttackPotion: int
+    SkillPotion: int
+    PowerPotion: int
+    FruitJuice: int
+
+class PotionRarity(IntEnum):
+    Common: int
+    Uncommon: int
+    Rare: int
+
 class CardName(IntEnum):
     AThousandCuts: int
     Accuracy: int
@@ -490,6 +511,13 @@ class Relic:
     tier: RelicTier
     counter: int
     used_up: bool
+
+class Potion:
+    name: PotionName
+    rarity: PotionRarity
+    requires_target: bool
+    combat_only: bool
+    effects: list[Effect]
 
 class Card:
     name: CardName
