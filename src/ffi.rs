@@ -33,6 +33,7 @@ use crate::types::CardRarity;
 use crate::types::ChestKind;
 use crate::types::DeckSelectKind;
 use crate::types::EventName;
+use crate::types::HandSelectKind;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::Phase;
@@ -768,14 +769,10 @@ impl From<CandidatePool> for PyCandidatePool {
 pub enum PyPhase {
     Map {},
     CombatDefault {},
-    CombatAwaitDiscard {
-        num: u16,
+    AwaitHandSelect {
+        kind: PyHandSelectKind,
+        num: u8,
     },
-    CombatAwaitNightmare {},
-    CombatAwaitRetain {
-        num: u16,
-    },
-    CombatAwaitSetup {},
     Reward {
         cards: Vec<PyCard>,
         relic: Option<PyRelic>,
@@ -807,10 +804,10 @@ impl From<&Phase> for PyPhase {
         match phase {
             Phase::Map => Self::Map {},
             Phase::CombatDefault => Self::CombatDefault {},
-            Phase::CombatAwaitDiscard { num } => Self::CombatAwaitDiscard { num: *num },
-            Phase::CombatAwaitNightmare => Self::CombatAwaitNightmare {},
-            Phase::CombatAwaitRetain { num } => Self::CombatAwaitRetain { num: *num },
-            Phase::CombatAwaitSetup => Self::CombatAwaitSetup {},
+            Phase::AwaitHandSelect { kind, num } => Self::AwaitHandSelect {
+                kind: (*kind).into(),
+                num: *num,
+            },
             Phase::RestSite => Self::RestSite {},
             Phase::GameOver => Self::GameOver {},
             Phase::Chest => Self::Chest {},
@@ -850,6 +847,68 @@ impl From<DeckSelectKind> for PyDeckSelectKind {
     }
 }
 
+impl PyDeckSelectKind {
+    fn from_u8(v: u8) -> Result<Self, String> {
+        match v {
+            0 => Ok(Self::Remove),
+            1 => Ok(Self::UpgradeAny),
+            2 => Ok(Self::TransformOne),
+            3 => Ok(Self::DuplicateAny),
+            _ => Err(format!("PyDeckSelectKind: invalid discriminant {v}")),
+        }
+    }
+
+    fn to_internal(self) -> DeckSelectKind {
+        match self {
+            Self::Remove => DeckSelectKind::Remove,
+            Self::UpgradeAny => DeckSelectKind::UpgradeAny,
+            Self::TransformOne => DeckSelectKind::TransformOne,
+            Self::DuplicateAny => DeckSelectKind::DuplicateAny,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "HandSelectKind")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyHandSelectKind {
+    Discard,
+    Retain,
+    Setup,
+    Nightmare,
+}
+
+impl From<HandSelectKind> for PyHandSelectKind {
+    fn from(k: HandSelectKind) -> Self {
+        match k {
+            HandSelectKind::Discard => Self::Discard,
+            HandSelectKind::Retain => Self::Retain,
+            HandSelectKind::Setup => Self::Setup,
+            HandSelectKind::Nightmare => Self::Nightmare,
+        }
+    }
+}
+
+impl PyHandSelectKind {
+    fn from_u8(v: u8) -> Result<Self, String> {
+        match v {
+            0 => Ok(Self::Discard),
+            1 => Ok(Self::Retain),
+            2 => Ok(Self::Setup),
+            3 => Ok(Self::Nightmare),
+            _ => Err(format!("PyHandSelectKind: invalid discriminant {v}")),
+        }
+    }
+
+    fn to_internal(self) -> HandSelectKind {
+        match self {
+            Self::Discard => HandSelectKind::Discard,
+            Self::Retain => HandSelectKind::Retain,
+            Self::Setup => HandSelectKind::Setup,
+            Self::Nightmare => HandSelectKind::Nightmare,
+        }
+    }
+}
+
 #[pyclass(eq, hash, frozen, name = "SelectionKind")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PySelectionKind {
@@ -885,10 +944,7 @@ pub struct PyTarget {
 pub enum PyActionType {
     CardPlay,
     EndTurn,
-    CardDiscard,
-    CardRetain,
-    CardSetup,
-    CardNightmare,
+    HandSelect,
     RoomSelect,
     RestSiteRest,
     RestSiteCardUpgrade,
@@ -911,25 +967,22 @@ impl PyActionType {
         match discriminant {
             0 => Ok(Self::CardPlay),
             1 => Ok(Self::EndTurn),
-            2 => Ok(Self::CardDiscard),
-            3 => Ok(Self::CardRetain),
-            4 => Ok(Self::CardSetup),
-            5 => Ok(Self::CardNightmare),
-            6 => Ok(Self::RoomSelect),
-            7 => Ok(Self::RestSiteRest),
-            8 => Ok(Self::RestSiteCardUpgrade),
-            9 => Ok(Self::RoomSkip),
-            10 => Ok(Self::ChestOpen),
-            11 => Ok(Self::PotionUse),
-            12 => Ok(Self::PotionDiscard),
-            13 => Ok(Self::CardDiscoverSelect),
-            14 => Ok(Self::RewardTakeCard),
-            15 => Ok(Self::RewardTakeRelic),
-            16 => Ok(Self::RewardTakePotion),
-            17 => Ok(Self::RewardTakeGold),
-            18 => Ok(Self::RewardSkip),
-            19 => Ok(Self::EventChoice),
-            20 => Ok(Self::DeckSelect),
+            2 => Ok(Self::HandSelect),
+            3 => Ok(Self::RoomSelect),
+            4 => Ok(Self::RestSiteRest),
+            5 => Ok(Self::RestSiteCardUpgrade),
+            6 => Ok(Self::RoomSkip),
+            7 => Ok(Self::ChestOpen),
+            8 => Ok(Self::PotionUse),
+            9 => Ok(Self::PotionDiscard),
+            10 => Ok(Self::CardDiscoverSelect),
+            11 => Ok(Self::RewardTakeCard),
+            12 => Ok(Self::RewardTakeRelic),
+            13 => Ok(Self::RewardTakePotion),
+            14 => Ok(Self::RewardTakeGold),
+            15 => Ok(Self::RewardSkip),
+            16 => Ok(Self::EventChoice),
+            17 => Ok(Self::DeckSelect),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -942,19 +995,29 @@ pub struct PyAction {
     pub action_type: PyActionType,
     #[pyo3(get)]
     pub idxs: Vec<usize>,
+    #[pyo3(get)]
+    pub kind: Option<u8>,
 }
 
 #[pymethods]
 impl PyAction {
     #[new]
-    fn new(action_type: u8, idxs: Vec<usize>) -> PyResult<Self> {
+    #[pyo3(signature = (action_type, idxs, kind=None))]
+    fn new(action_type: u8, idxs: Vec<usize>, kind: Option<u8>) -> PyResult<Self> {
         let action_type = PyActionType::from_discriminant(action_type)
             .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self { action_type, idxs })
+        Ok(Self {
+            action_type,
+            idxs,
+            kind,
+        })
     }
 
     fn __repr__(&self) -> String {
-        format!("PyAction({:?}, {:?})", self.action_type, self.idxs)
+        match self.kind {
+            Some(k) => format!("PyAction({:?}, {:?}, kind={})", self.action_type, self.idxs, k),
+            None => format!("PyAction({:?}, {:?})", self.action_type, self.idxs),
+        }
     }
 }
 
@@ -978,20 +1041,14 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::EndTurn),
             n => Err(format!("EndTurn expects [], got {n} idxs")),
         },
-        PyActionType::CardDiscard => Ok(Action::CardDiscard {
-            indices_hand: idxs.clone(),
-        }),
-        PyActionType::CardRetain => Ok(Action::CardRetain {
-            indices_hand: idxs.clone(),
-        }),
-        PyActionType::CardSetup => match idxs.len() {
-            1 => Ok(Action::CardSetup { idx_hand: idxs[0] }),
-            n => Err(format!("CardSetup expects [idx_hand], got {n} idxs")),
-        },
-        PyActionType::CardNightmare => match idxs.len() {
-            1 => Ok(Action::CardNightmare { idx_hand: idxs[0] }),
-            n => Err(format!("CardNightmare expects [idx_hand], got {n} idxs")),
-        },
+        PyActionType::HandSelect => {
+            let kind_u8 = action.kind.ok_or("HandSelect requires kind")?;
+            let kind = PyHandSelectKind::from_u8(kind_u8)?.to_internal();
+            Ok(Action::HandSelect {
+                kind,
+                idxs: idxs.clone(),
+            })
+        }
         PyActionType::RoomSelect => match idxs.len() {
             1 => Ok(Action::RoomSelect {
                 idx_column: idxs[0],
@@ -1069,12 +1126,17 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             }),
             n => Err(format!("EventChoice expects [idx_option], got {n} idxs")),
         },
-        PyActionType::DeckSelect => match idxs.len() {
-            1 => Ok(Action::DeckSelect {
-                idx_option: idxs[0],
-            }),
-            n => Err(format!("DeckSelect expects [idx_option], got {n} idxs")),
-        },
+        PyActionType::DeckSelect => {
+            let kind_u8 = action.kind.ok_or("DeckSelect requires kind")?;
+            let kind = PyDeckSelectKind::from_u8(kind_u8)?.to_internal();
+            match idxs.len() {
+                1 => Ok(Action::DeckSelect {
+                    kind,
+                    idx_option: idxs[0],
+                }),
+                n => Err(format!("DeckSelect expects [idx_option], got {n} idxs")),
+            }
+        }
     }
 }
 

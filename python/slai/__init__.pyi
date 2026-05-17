@@ -262,10 +262,7 @@ class MonsterName(IntEnum):
 class ActionType(IntEnum):
     EndTurn: int
     CardPlay: int
-    CardDiscard: int
-    CardRetain: int
-    CardSetup: int
-    CardNightmare: int
+    HandSelect: int
     RoomSelect: int
     RestSiteRest: int
     RestSiteCardUpgrade: int
@@ -287,6 +284,12 @@ class DeckSelectKind(IntEnum):
     UpgradeAny: int
     TransformOne: int
     DuplicateAny: int
+
+class HandSelectKind(IntEnum):
+    Discard: int
+    Retain: int
+    Setup: int
+    Nightmare: int
 
 class EventName(IntEnum):
     BigFish: int
@@ -338,19 +341,10 @@ class Phase:
     class CombatDefault:
         def __init__(self) -> None: ...
 
-    class CombatAwaitDiscard:
+    class AwaitHandSelect:
+        kind: HandSelectKind
         num: int
-        def __init__(self, num: int) -> None: ...
-
-    class CombatAwaitRetain:
-        num: int
-        def __init__(self, num: int) -> None: ...
-
-    class CombatAwaitNightmare:
-        def __init__(self) -> None: ...
-
-    class CombatAwaitSetup:
-        def __init__(self) -> None: ...
+        def __init__(self, kind: HandSelectKind, num: int) -> None: ...
 
     class CombatAwaitDiscover:
         cards: list[Card]
@@ -520,8 +514,14 @@ class Effect:
 class Action:
     action_type: ActionType
     idxs: list[int]
+    kind: int | None
 
-    def __init__(self, action_type: ActionType, idxs: list[int]) -> None: ...
+    def __init__(
+        self,
+        action_type: ActionType,
+        idxs: list[int],
+        kind: int | None = None,
+    ) -> None: ...
     def __repr__(self) -> str: ...
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self) -> int: ...
@@ -541,10 +541,7 @@ class ActionSpec(NamedTuple):
 class ActionSpecRegistry:
     CardPlay: ActionSpec
     EndTurn: ActionSpec
-    CardDiscard: ActionSpec
-    CardRetain: ActionSpec
-    CardSetup: ActionSpec
-    CardNightmare: ActionSpec
+    HandSelect: ActionSpec
     RoomSelect: ActionSpec
     RestSiteRest: ActionSpec
     RestSiteCardUpgrade: ActionSpec
@@ -705,10 +702,7 @@ class GameState:
     phase: Union[
         Phase.Map,
         Phase.CombatDefault,
-        Phase.CombatAwaitDiscard,
-        Phase.CombatAwaitRetain,
-        Phase.CombatAwaitNightmare,
-        Phase.CombatAwaitSetup,
+        Phase.AwaitHandSelect,
         Phase.Reward,
         Phase.RestSite,
         Phase.GameOver,

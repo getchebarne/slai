@@ -104,6 +104,7 @@ use crate::game::Location;
 use crate::map::has_edge;
 use crate::map::room_at;
 use crate::types::CardColor;
+use crate::types::HandSelectKind;
 use crate::types::Phase;
 use crate::types::RoomKind;
 use crate::utils::fill_alive_monster_ids;
@@ -374,10 +375,22 @@ fn resolve_or_halt(
             None
         }
         TargetResolution::AwaitInput { num } => Some(match kind {
-            EffectKind::CardDiscard { .. } => Phase::CombatAwaitDiscard { num },
-            EffectKind::CardRetain => Phase::CombatAwaitRetain { num },
-            EffectKind::CardSetupPick => Phase::CombatAwaitSetup,
-            EffectKind::CardNightmarePick => Phase::CombatAwaitNightmare,
+            EffectKind::CardDiscard { .. } => Phase::AwaitHandSelect {
+                kind: HandSelectKind::Discard,
+                num: num as u8,
+            },
+            EffectKind::CardRetain => Phase::AwaitHandSelect {
+                kind: HandSelectKind::Retain,
+                num: num as u8,
+            },
+            EffectKind::CardSetupPick => Phase::AwaitHandSelect {
+                kind: HandSelectKind::Setup,
+                num: 1,
+            },
+            EffectKind::CardNightmarePick => Phase::AwaitHandSelect {
+                kind: HandSelectKind::Nightmare,
+                num: 1,
+            },
             EffectKind::RoomSelect => Phase::Map,
             _ => panic!("Unsupported effect kind for halting: {:?}", kind),
         }),

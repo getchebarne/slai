@@ -265,6 +265,14 @@ pub enum DeckSelectKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum HandSelectKind {
+    Discard,
+    Retain,
+    Setup,
+    Nightmare,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ChestKind {
     Small,
     Medium,
@@ -345,17 +353,13 @@ pub enum Phase {
         gold: Option<u16>,
     },
     CombatDefault,
-    CombatAwaitDiscard {
-        num: u16,
-    },
     CombatAwaitDiscover {
         id_cards: Vec<usize>,
     },
-    CombatAwaitNightmare,
-    CombatAwaitRetain {
-        num: u16,
+    AwaitHandSelect {
+        kind: HandSelectKind,
+        num: u8,
     },
-    CombatAwaitSetup,
     GameOver,
     Map,
     RestSite,

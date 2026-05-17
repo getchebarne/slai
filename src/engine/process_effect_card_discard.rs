@@ -11,7 +11,7 @@ use crate::utils::remove_card_from_collection;
 // Unified discard handler. `source` selects the branch:
 //
 // - Explicit (Acrobatics, Concentrate, CalculatedGamble, Unload,
-//   ToolsOfTheTrade, Storm of Steel, player-picked CombatAwaitDiscard, ...):
+//   ToolsOfTheTrade, Storm of Steel, player-picked AwaitHandSelect, ...):
 //   move hand -> discard, bump `this_turn_discards`, fire on-discard effects
 //
 // - End of turn: turn-end auto-discard. Honors `card_retain` (clear flag, stay

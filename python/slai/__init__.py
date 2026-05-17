@@ -31,6 +31,7 @@ IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
 CandidatePool = _to_intenum("CandidatePool", _rs.CandidatePool)
 EventName = _to_intenum("EventName", _rs.EventName)
 DeckSelectKind = _to_intenum("DeckSelectKind", _rs.DeckSelectKind)
+HandSelectKind = _to_intenum("HandSelectKind", _rs.HandSelectKind)
 
 
 # Action schema types
@@ -112,10 +113,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.EndTurn),
-        create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS, variable=True)),
-        create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS, variable=True)),
-        create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
+        create_action_spec(ActionType.HandSelect, ArgSpec("idx_hand", _HAND_POS, variable=True)),
         create_action_spec(ActionType.RoomSelect, ArgSpec("idx_column", _MAP_COL)),
         create_action_spec(ActionType.RestSiteRest),
         create_action_spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
@@ -205,6 +203,7 @@ __all__ = [
     "MonsterName",
     "EventName",
     "DeckSelectKind",
+    "HandSelectKind",
     # Complex enums
     "Phase",
     "SelectionKind",

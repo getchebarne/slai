@@ -127,6 +127,7 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyMonsterName>()?;
     module.add_class::<ffi::PyEventName>()?;
     module.add_class::<ffi::PyDeckSelectKind>()?;
+    module.add_class::<ffi::PyHandSelectKind>()?;
     module.add_class::<ffi::PyEvent>()?;
     module.add_class::<ffi::PyEventOption>()?;
 

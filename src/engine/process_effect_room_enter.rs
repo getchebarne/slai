@@ -35,7 +35,6 @@ pub fn process_effect_room_enter(
     effect_queue: &mut VecDeque<Effect>,
 ) -> Option<Phase> {
     let room_kind = get_active_room_kind(id_rooms, location, entities).unwrap();
-
     let mut buf_effects = EffectBuf::new();
 
     match room_kind {

@@ -19,22 +19,15 @@ use crate::modifier::modifier_has;
 use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::DeckSelectKind;
+use crate::types::HandSelectKind;
 use crate::types::Phase;
 use crate::utils::fill_alive_monster_ids;
 
 #[derive(Debug, Clone)]
 pub enum Action {
-    CardDiscard {
-        indices_hand: Vec<usize>,
-    },
-    CardRetain {
-        indices_hand: Vec<usize>,
-    },
-    CardSetup {
-        idx_hand: usize,
-    },
-    CardNightmare {
-        idx_hand: usize,
+    HandSelect {
+        kind: HandSelectKind,
+        idxs: Vec<usize>,
     },
     CardPlay {
         idx_hand: usize,
@@ -71,20 +64,20 @@ pub enum Action {
         idx_option: usize,
     },
     DeckSelect {
+        kind: DeckSelectKind,
         idx_option: usize,
     },
 }
 
 fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> {
     let valid = match (action, current_phase) {
-        (Action::CardDiscard { indices_hand }, Phase::CombatAwaitDiscard { num }) => {
-            indices_hand.len() == *num as usize
-        }
-        (Action::CardRetain { indices_hand }, Phase::CombatAwaitRetain { num }) => {
-            indices_hand.len() == *num as usize
-        }
-        (Action::CardSetup { .. }, Phase::CombatAwaitSetup) => true,
-        (Action::CardNightmare { .. }, Phase::CombatAwaitNightmare) => true,
+        (
+            Action::HandSelect { kind, idxs },
+            Phase::AwaitHandSelect {
+                kind: phase_kind,
+                num,
+            },
+        ) => kind == phase_kind && idxs.len() == *num as usize,
         (Action::CardPlay { .. } | Action::EndTurn, Phase::CombatDefault) => true,
         (Action::RestSiteCardUpgrade { .. } | Action::RestSiteRest, Phase::RestSite) => true,
         (
@@ -107,7 +100,12 @@ fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> 
         (Action::PotionDiscard { .. }, p) if !matches!(p, Phase::GameOver) => true,
         (Action::CardDiscoverSelect { .. }, Phase::CombatAwaitDiscover { .. }) => true,
         (Action::EventChoice { .. }, Phase::EventChoice { .. }) => true,
-        (Action::DeckSelect { .. }, Phase::AwaitDeckSelect { .. }) => true,
+        (
+            Action::DeckSelect { kind, .. },
+            Phase::AwaitDeckSelect {
+                kind: phase_kind, ..
+            },
+        ) => kind == phase_kind,
         _ => false,
     };
     if !valid {
@@ -120,10 +118,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
     validate_phase(&action, &state.phase)?;
 
     let effects = match action {
-        Action::CardDiscard { indices_hand } => handle_card_discard(state, indices_hand),
-        Action::CardRetain { indices_hand } => handle_card_retain(state, indices_hand),
-        Action::CardSetup { idx_hand } => handle_card_setup(state, idx_hand),
-        Action::CardNightmare { idx_hand } => handle_card_nightmare(state, idx_hand),
+        Action::HandSelect { kind, idxs } => handle_hand_select(state, kind, idxs),
         Action::CardPlay {
             idx_hand,
             idx_monster,
@@ -146,7 +141,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
         Action::CardDiscoverSelect { idx_option } => handle_card_discover_select(state, idx_option),
         Action::EventChoice { idx_option } => handle_event_choice(state, idx_option),
-        Action::DeckSelect { idx_option } => handle_deck_select(state, idx_option),
+        Action::DeckSelect { kind, idx_option } => handle_deck_select(state, kind, idx_option),
     }?;
 
     Ok(effects)
@@ -255,50 +250,26 @@ fn handle_card_play(
     }
 }
 
-fn handle_card_discard(state: &GameState, indices_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
-    let mut effects = Vec::with_capacity(indices_hand.len());
-    for &idx in &indices_hand {
+fn handle_hand_select(
+    state: &GameState,
+    kind: HandSelectKind,
+    idxs: Vec<usize>,
+) -> Result<Vec<Effect>, String> {
+    let mut effects = Vec::with_capacity(idxs.len());
+    for &idx in &idxs {
         let id_card = *state
             .id_hand
             .get(idx)
             .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.id_hand.len()))?;
-        effects.push(Effect::direct(
-            EffectKind::CardDiscard {
+        let effect_kind = match kind {
+            HandSelectKind::Discard => EffectKind::CardDiscard {
                 source: DiscardSource::Explicit,
             },
-            None,
-            Some(id_card),
-        ));
-    }
-    Ok(effects)
-}
-
-fn handle_card_setup(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
-    let id_card = lookup_idx(&state.id_hand, idx_hand)?;
-    Ok(vec![Effect::direct(
-        EffectKind::CardSetupPick,
-        None,
-        Some(id_card),
-    )])
-}
-
-fn handle_card_nightmare(state: &GameState, idx_hand: usize) -> Result<Vec<Effect>, String> {
-    let id_card = lookup_idx(&state.id_hand, idx_hand)?;
-    Ok(vec![Effect::direct(
-        EffectKind::CardNightmarePick,
-        None,
-        Some(id_card),
-    )])
-}
-
-fn handle_card_retain(state: &GameState, indices_hand: Vec<usize>) -> Result<Vec<Effect>, String> {
-    let mut effects = Vec::with_capacity(indices_hand.len());
-    for &idx in &indices_hand {
-        let id_card = *state
-            .id_hand
-            .get(idx)
-            .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, state.id_hand.len()))?;
-        effects.push(Effect::direct(EffectKind::CardRetain, None, Some(id_card)));
+            HandSelectKind::Retain => EffectKind::CardRetain,
+            HandSelectKind::Setup => EffectKind::CardSetupPick,
+            HandSelectKind::Nightmare => EffectKind::CardNightmarePick,
+        };
+        effects.push(Effect::direct(effect_kind, None, Some(id_card)));
     }
     Ok(effects)
 }
@@ -591,11 +562,14 @@ fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<E
     Ok(effects)
 }
 
-fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
-    let Phase::AwaitDeckSelect { kind, id_options } = &mut state.phase else {
+fn handle_deck_select(
+    state: &mut GameState,
+    kind: DeckSelectKind,
+    idx_option: usize,
+) -> Result<Vec<Effect>, String> {
+    let Phase::AwaitDeckSelect { id_options, .. } = &mut state.phase else {
         return Err(format!("DeckSelect invalid in phase {:?}", state.phase));
     };
-    let kind = *kind;
     let id_card = *id_options
         .get(idx_option)
         .ok_or_else(|| format!("DeckSelect: idx_option {} out of range", idx_option))?;
