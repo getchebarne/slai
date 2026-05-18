@@ -89,17 +89,28 @@ fn validate_phase(action: &Action, current_phase: &Phase) -> Result<(), String> 
             Phase::Reward { .. },
         ) => true,
         (Action::RoomSelect { .. }, Phase::Map) => true,
-        (Action::RoomSkip, Phase::EventRoom | Phase::Shop) => true,
+        (Action::RoomSkip, Phase::Shop) => true,
         (Action::ChestOpen, Phase::Chest) => true,
         // PotionUse: combat-only potions checked in handler (need entity lookup)
-        (Action::PotionUse { .. }, Phase::CombatDefault) => true,
         (
             Action::PotionUse { .. },
-            Phase::Map | Phase::RestSite | Phase::Chest | Phase::EventRoom | Phase::Shop,
+            Phase::CombatDefault
+            | Phase::Map
+            | Phase::RestSite
+            | Phase::Chest
+            | Phase::Shop,
         ) => true,
-        (Action::PotionDiscard { .. }, p) if !matches!(p, Phase::GameOver) => true,
+        (
+            Action::PotionDiscard { .. },
+            Phase::CombatDefault
+            | Phase::Chest
+            | Phase::Map
+            | Phase::Reward { .. }
+            | Phase::RestSite
+            | Phase::Shop,
+        ) => true,
         (Action::CardDiscoverSelect { .. }, Phase::CombatAwaitDiscover { .. }) => true,
-        (Action::EventChoice { .. }, Phase::EventChoice { .. }) => true,
+        (Action::EventChoice { .. }, Phase::AwaitEventChoice { .. }) => true,
         (
             Action::DeckSelect { kind, .. },
             Phase::AwaitDeckSelect {
@@ -315,7 +326,7 @@ fn handle_room_select(state: &GameState, idx_column: usize) -> Result<Vec<Effect
 
 fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
     let Phase::Reward { id_cards, .. } = &state.phase else {
-        return Err(format!("RewardTakeCard invalid in phase {:?}", state.phase));
+        unreachable!("validate_phase guarantees Phase::Reward");
     };
     let id_card = lookup_idx(id_cards, idx_reward)?;
     let card = &state.entities[id_card];
@@ -337,10 +348,7 @@ fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<E
 
 fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
     let Phase::Reward { id_relic, .. } = &state.phase else {
-        return Err(format!(
-            "RewardTakeRelic invalid in phase {:?}",
-            state.phase
-        ));
+        unreachable!("validate_phase guarantees Phase::Reward");
     };
     if id_relic.is_none() {
         return Err("RewardTakeRelic: no relic in reward pool".to_string());
@@ -354,10 +362,7 @@ fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
 
 fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
     let Phase::Reward { id_potion, .. } = &state.phase else {
-        return Err(format!(
-            "RewardTakePotion invalid in phase {:?}",
-            state.phase
-        ));
+        unreachable!("validate_phase guarantees Phase::Reward");
     };
     if id_potion.is_none() {
         return Err("RewardTakePotion: no potion in reward pool".to_string());
@@ -375,7 +380,7 @@ fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
 
 fn handle_reward_take_gold(state: &GameState) -> Result<Vec<Effect>, String> {
     let Phase::Reward { gold, .. } = &state.phase else {
-        return Err(format!("RewardTakeGold invalid in phase {:?}", state.phase));
+        unreachable!("validate_phase guarantees Phase::Reward");
     };
     if gold.is_none() {
         return Err("RewardTakeGold: no gold in reward pool".to_string());
@@ -503,10 +508,7 @@ fn handle_card_discover_select(
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
     let Phase::CombatAwaitDiscover { id_cards } = &mut state.phase else {
-        return Err(format!(
-            "CardDiscoverSelect invalid in phase {:?}",
-            state.phase
-        ));
+        unreachable!("validate_phase guarantees Phase::CombatAwaitDiscover");
     };
     let id_card = *id_cards
         .get(idx_option)
@@ -532,8 +534,8 @@ fn handle_rest_site_card_upgrade(
 }
 
 fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
-    let Phase::EventChoice { id_event } = &state.phase else {
-        return Err(format!("EventChoice invalid in phase {:?}", state.phase));
+    let Phase::AwaitEventChoice { id_event } = &state.phase else {
+        unreachable!("validate_phase guarantees Phase::AwaitEventChoice");
     };
     let id_event = *id_event;
     let event = &state.entities[id_event];
@@ -568,7 +570,7 @@ fn handle_deck_select(
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
     let Phase::AwaitDeckSelect { id_options, .. } = &mut state.phase else {
-        return Err(format!("DeckSelect invalid in phase {:?}", state.phase));
+        unreachable!("validate_phase guarantees Phase::AwaitDeckSelect");
     };
     let id_card = *id_options
         .get(idx_option)

@@ -364,8 +364,7 @@ pub enum Phase {
     Map,
     RestSite,
     Chest,
-    EventRoom,
-    EventChoice {
+    AwaitEventChoice {
         id_event: usize,
     },
     AwaitDeckSelect {

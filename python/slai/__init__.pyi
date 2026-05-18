@@ -372,13 +372,10 @@ class Phase:
     class Chest:
         def __init__(self) -> None: ...
 
-    class EventRoom:
-        def __init__(self) -> None: ...
-
     class Shop:
         def __init__(self) -> None: ...
 
-    class EventChoice:
+    class AwaitEventChoice:
         event: Event
         def __init__(self, event: Event) -> None: ...
 

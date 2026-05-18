@@ -782,12 +782,11 @@ pub enum PyPhase {
     RestSite {},
     GameOver {},
     Chest {},
-    EventRoom {},
     Shop {},
     CombatAwaitDiscover {
         cards: Vec<PyCard>,
     },
-    EventChoice {
+    AwaitEventChoice {
         event: PyEvent,
     },
     AwaitDeckSelect {
@@ -796,7 +795,7 @@ pub enum PyPhase {
     },
 }
 
-// Data-free variants only. Phase::Reward, ::CombatAwaitDiscover, ::EventChoice,
+// Data-free variants only. Phase::Reward, ::CombatAwaitDiscover, ::AwaitEventChoice,
 // and ::AwaitDeckSelect carry entity ids that need the GameState to snapshot —
 // see `snapshot_phase`, which owns that path
 impl From<&Phase> for PyPhase {
@@ -811,14 +810,13 @@ impl From<&Phase> for PyPhase {
             Phase::RestSite => Self::RestSite {},
             Phase::GameOver => Self::GameOver {},
             Phase::Chest => Self::Chest {},
-            Phase::EventRoom => Self::EventRoom {},
             Phase::Shop => Self::Shop {},
             Phase::Reward { .. } => unreachable!("Phase::Reward must go through snapshot_phase"),
             Phase::CombatAwaitDiscover { .. } => {
                 unreachable!("Phase::CombatAwaitDiscover must go through snapshot_phase")
             }
-            Phase::EventChoice { .. } => {
-                unreachable!("Phase::EventChoice must go through snapshot_phase")
+            Phase::AwaitEventChoice { .. } => {
+                unreachable!("Phase::AwaitEventChoice must go through snapshot_phase")
             }
             Phase::AwaitDeckSelect { .. } => {
                 unreachable!("Phase::AwaitDeckSelect must go through snapshot_phase")
@@ -1913,7 +1911,7 @@ fn snapshot_phase(state: &GameState) -> PyPhase {
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
         },
-        Phase::EventChoice { id_event } => PyPhase::EventChoice {
+        Phase::AwaitEventChoice { id_event } => PyPhase::AwaitEventChoice {
             event: snapshot_event(state, *id_event),
         },
         Phase::AwaitDeckSelect { kind, id_options } => PyPhase::AwaitDeckSelect {

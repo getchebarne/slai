@@ -103,7 +103,7 @@ fn spawn_random_event(
     events_seen_this_run.push(name);
     let id_event = entities.len();
     entities.push(spawn_event(name, rng));
-    Some(Phase::EventChoice { id_event })
+    Some(Phase::AwaitEventChoice { id_event })
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {

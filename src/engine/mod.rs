@@ -1184,7 +1184,7 @@ pub fn derive_phase(state: &mut GameState) {
         }
     }
     // Sticky event-choice phase: stay put until the event is consumed
-    if let Phase::EventChoice { id_event } = &state.phase {
+    if let Phase::AwaitEventChoice { id_event } = &state.phase {
         if !state.entities[*id_event].event_consumed {
             return;
         }
@@ -1208,7 +1208,6 @@ pub fn derive_phase(state: &mut GameState) {
             match room.room_kind {
                 RoomKind::RestSite => Phase::RestSite,
                 RoomKind::Treasure if !room.room_chest_opened => Phase::Chest,
-                RoomKind::EventRoom => Phase::EventRoom,
                 RoomKind::Shop => Phase::Shop,
                 _ => Phase::Map,
             }
