@@ -14,7 +14,6 @@ use crate::entity::EntityKind;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
-use crate::types::Phase;
 use crate::types::RoomKind;
 
 #[allow(clippy::too_many_arguments)]
@@ -32,7 +31,7 @@ pub fn process_effect_combat_end(
     location: Location,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     id_hand.clear();
     id_pile_draw.clear();
     id_pile_discard.clear();
@@ -61,8 +60,8 @@ pub fn process_effect_combat_end(
     let room_kind = get_active_room_kind(id_rooms, location, entities).unwrap();
     match room_kind {
         RoomKind::CombatBoss => {
-            // Boss defeated — drop any pending effects. derive_phase
-            // returns GameOver from `location == BossRoom && monster_count == 0`
+            // Boss defeated -- drop any pending effects. GameOver is derived
+            // from `BossRoom + context.is_none()` after dispatcher clears Combat
             effect_queue.clear();
             let amount = rng.random_range(GOLD_BOSS_MIN..=GOLD_BOSS_MAX);
             effect_queue.push_back(Effect {
@@ -82,5 +81,4 @@ pub fn process_effect_combat_end(
             unreachable!("combat end in non-combat room: {:?}", room_kind)
         }
     }
-    None
 }

@@ -15,8 +15,8 @@ use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
 use crate::entity::Entity;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion;
-use crate::types::Phase;
 use crate::types::RelicName;
+use crate::types::RewardState;
 use crate::types::RoomKind;
 use crate::utils::add_relic_reward_for_roll;
 use crate::utils::roll_card_rewards;
@@ -29,7 +29,7 @@ pub fn process_effect_reward_roll_combat(
     potion_drop_mod: &mut i8,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-) -> Option<Phase> {
+) -> RewardState {
     let (gold_range, relic_thresholds) = match room_kind {
         RoomKind::CombatMonster => (
             if escaped_this_combat {
@@ -62,12 +62,12 @@ pub fn process_effect_reward_roll_combat(
     });
     let gold = gold_range.map(|(min, max)| rng.random_range(min..=max));
 
-    Some(Phase::Reward {
+    RewardState {
         id_cards,
         id_relic,
         id_potion,
         gold,
-    })
+    }
 }
 
 // +10 on miss, -10 on hit; clamps to [-30, +60] ([10%, 100%])

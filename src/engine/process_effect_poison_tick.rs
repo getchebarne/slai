@@ -8,7 +8,6 @@ use crate::modifier::Modifiers;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
-use crate::types::Phase;
 
 // Poison tick: deal HP loss equal to current Poison stacks, then decrement
 // Poison by 1 (remove if it would hit 0). Fires at the start of the target's turn start
@@ -16,9 +15,9 @@ pub fn process_effect_poison_tick(
     modifiers: &mut Modifiers,
     id_target: usize,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     if !modifier_has(modifiers, ModifierKind::Poison) {
-        return None;
+        return;
     }
     // Get current stacks
     let stacks = modifier_stacks(modifiers, ModifierKind::Poison);
@@ -38,5 +37,4 @@ pub fn process_effect_poison_tick(
         id_source: None,
         target: Target::Direct(Some(id_target)),
     });
-    None
 }

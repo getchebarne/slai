@@ -5,7 +5,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::types::Phase;
 use crate::utils::remove_card_from_collection;
 
 // Unified discard handler. `source` selects the branch:
@@ -28,12 +27,12 @@ pub fn process_effect_card_discard(
     id_pile_discard: &mut Vec<usize>,
     this_turn_discards: &mut u8,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     match source {
         DiscardSource::EndOfTurn => {
             if entities[id_target].card_retain {
                 entities[id_target].card_retain = false;
-                return None;
+                return;
             }
             if entities[id_target].card_ethereal {
                 effect_queue.push_front(Effect {
@@ -41,11 +40,10 @@ pub fn process_effect_card_discard(
                     id_source: None,
                     target: Target::Direct(Some(id_target)),
                 });
-                return None;
+                return;
             }
             remove_card_from_collection(id_target, id_hand);
             id_pile_discard.push(id_target);
-            None
         }
         DiscardSource::Explicit => {
             remove_card_from_collection(id_target, id_hand);
@@ -61,7 +59,6 @@ pub fn process_effect_card_discard(
                     ..*effect
                 });
             }
-            None
         }
     }
 }

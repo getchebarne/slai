@@ -105,6 +105,20 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
     !matches!(entity.card_name, CardName::AscendersBane)
 }
 
+pub fn card_in_deck_filter(entity: &Entity, kind: crate::types::DeckSelectKind) -> bool {
+    use crate::types::DeckSelectKind;
+    match kind {
+        DeckSelectKind::Remove => card_is_purgeable(entity),
+        DeckSelectKind::DuplicateAny => entity.kind == EntityKind::Card,
+        DeckSelectKind::UpgradeAny => card_is_upgradable(entity),
+        DeckSelectKind::TransformOne => {
+            entity.kind == EntityKind::Card
+                && entity.card_rarity != crate::types::CardRarity::Basic
+                && entity.card_kind != CardKind::Curse
+        }
+    }
+}
+
 fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     if entity.kind != EntityKind::Card {
         return false;
@@ -120,40 +134,6 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
         }
     }
     false
-}
-
-pub fn deck_filter_purgeable(state: &GameState) -> Vec<usize> {
-    state
-        .id_deck
-        .iter()
-        .copied()
-        .filter(|&id| card_is_purgeable(&state.entities[id]))
-        .collect()
-}
-
-pub fn deck_filter_upgradable(state: &GameState) -> Vec<usize> {
-    state
-        .id_deck
-        .iter()
-        .copied()
-        .filter(|&id| card_is_upgradable(&state.entities[id]))
-        .collect()
-}
-
-pub fn deck_filter_any(state: &GameState) -> Vec<usize> {
-    state.id_deck.clone()
-}
-
-pub fn deck_filter_non_basic_non_curse(state: &GameState) -> Vec<usize> {
-    state
-        .id_deck
-        .iter()
-        .copied()
-        .filter(|&id| {
-            let entity = &state.entities[id];
-            entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
-        })
-        .collect()
 }
 
 pub const ALL_EVENTS: &[&'static Entity] = &[

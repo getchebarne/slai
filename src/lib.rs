@@ -87,7 +87,10 @@ impl GameEnv {
             to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
         step(&mut self.state, internal).map_err(pyo3::exceptions::PyValueError::new_err)?;
         let obs = snapshot_state(&self.state);
-        let terminated = matches!(self.state.phase, types::Phase::GameOver);
+        let dead = self.state.entities[self.state.id_character].dead;
+        let boss_cleared = matches!(self.state.location, game::Location::BossRoom)
+            && self.state.context.is_none();
+        let terminated = dead || boss_cleared;
         Ok((obs, terminated))
     }
 }
@@ -136,5 +139,12 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PySelectionKind>()?;
     module.add_class::<ffi::PyTarget>()?;
     module.add_class::<ffi::PyEffect>()?;
+
+    // Context / PendingInput surface
+    module.add_class::<ffi::PyContext>()?;
+    module.add_class::<ffi::PyCombat>()?;
+    module.add_class::<ffi::PyReward>()?;
+    module.add_class::<ffi::PyShop>()?;
+    module.add_class::<ffi::PyPendingInput>()?;
     Ok(())
 }

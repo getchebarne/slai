@@ -7,7 +7,6 @@ use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 
-use crate::types::Phase;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(
@@ -19,9 +18,9 @@ pub fn process_effect_card_draw(
     id_pile_discard: &mut Vec<usize>,
     card_last_drawn: &mut Option<usize>,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     if modifier_has(&entities[id_character].modifiers, ModifierKind::NoDraw) {
-        return None;
+        return;
     }
 
     let mut id_drawn = [0usize; 32];
@@ -84,6 +83,4 @@ pub fn process_effect_card_draw(
             });
         }
     }
-
-    None
 }

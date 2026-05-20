@@ -39,11 +39,15 @@ pub fn reshuffle_discard_into_draw(
 }
 
 // Fills `buf` with the ids of monsters that are alive, returns how many
-// Callers use `&buf[..n]` as a slice. Zero heap allocation
+// Callers use `&buf[..n]` as a slice. Zero heap allocation. Returns 0 when
+// not in Combat context
 pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MONSTERS]) -> usize {
+    let Some(crate::types::Context::Combat(combat)) = &state.context else {
+        return 0;
+    };
     let mut n = 0;
-    for i in 0..state.monster_count as usize {
-        let id_monster = state.id_monsters[i];
+    for i in 0..combat.monster_count as usize {
+        let id_monster = combat.id_monsters[i];
         if !state.entities[id_monster].dead {
             buf_alive[n] = id_monster;
             n += 1;

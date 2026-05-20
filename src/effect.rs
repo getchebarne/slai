@@ -178,10 +178,10 @@ pub enum EffectKind {
     // Gold reward pickup (in-pool gold from combat-end or chest)
     RewardTakeGold,
 
-    // Umbrella skip: bulk-clear all Phase::Reward pools
+    // Umbrella skip: bulk-clear all reward pool fields
     RewardSkip,
 
-    // Discovery: roll N random cards of `kind` and halt on `Phase::CombatAwaitDiscover`;
+    // Roll N random cards of `kind`; halt on a CardDiscoverPick at queue head.
     // Player picks one via `Action::CardDiscoverSelect`
     CardDiscoverSelect {
         kind: CardKind,
@@ -227,6 +227,13 @@ pub enum EffectKind {
     DeckSelectStart {
         kind: DeckSelectKind,
     },
+
+    // Queue-head halt markers. Resolved via Target::Resolve { _, Input{count} };
+    // the Direct form applies the pick once the player has chosen
+    CardDiscoverPick,
+    DeckSelectPick {
+        kind: DeckSelectKind,
+    },
 }
 
 // DiscardSource: tags a CardDiscard effect with its origin so the handler can branch on it
@@ -246,6 +253,11 @@ pub enum CandidatePool {
     OtherMonsters,
     Source,
     NextRowRooms,
+    // Halt-only pools (used with SelectionKind::Input):
+    // IdPick: resolves to `state.combat().id_pick` (Discover halts)
+    IdPick,
+    // DeckFiltered: resolves to `state.id_deck` filtered by kind (DeckSelect halts)
+    DeckFiltered(DeckSelectKind),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -303,4 +315,17 @@ impl Effect {
             target: Target::Direct(id_target),
         }
     }
+}
+
+// True iff the Effect's target requires player input. Sound between
+// process_queue calls only -- inside the loop, resolve_targets is authoritative
+// since Input{count} auto-resolves when count >= candidate count
+pub fn effect_awaits_input(effect: &Effect) -> bool {
+    matches!(
+        effect.target,
+        Target::Resolve {
+            selection: SelectionKind::Input { .. },
+            ..
+        }
+    )
 }

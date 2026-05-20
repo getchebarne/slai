@@ -17,8 +17,6 @@ use crate::consts::EVENT_CHANCE_SHOP_BASE;
 use crate::consts::EVENT_CHANCE_TREASURE_BASE;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
-use crate::consts::MAX_MONSTERS;
-use crate::consts::MAX_SIZE_HAND;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -53,47 +51,24 @@ pub struct GameState {
     pub rng: SmallRng,
 
     // Engine state
-    pub phase: Phase,
     pub effect_queue: VecDeque<Effect>,
     pub location: Location,
-    pub energy: Energy,
 
     // Entities and indices
     pub entities: Vec<Entity>,
     pub id_rooms: [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     pub id_character: usize,
 
-    // Combat state
-    pub id_monsters: [usize; MAX_MONSTERS],
-    pub monster_count: u8,
-    pub id_monster_picked: Option<usize>,
-
     // Monster encounters
     pub encounter_list_normal: Vec<MonsterEncounter>,
     pub encounter_list_elite: Vec<MonsterEncounter>,
     pub encounter_boss: MonsterEncounter,
 
-    // Card piles
+    // Master deck (persists across combats)
     pub id_deck: Vec<usize>,
-    pub id_pile_draw: Vec<usize>,
-    pub id_hand: Vec<usize>,
-    pub id_pile_discard: Vec<usize>,
-    pub id_pile_exhaust: Vec<usize>,
 
     // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
     pub id_relics: [Option<usize>; RelicName::COUNT],
-
-    // Needed for Escape Plan
-    pub card_last_drawn: Option<usize>,
-
-    // Per-turn counters; reset in process_effect_turn_end_character
-    pub this_turn_discards: u8,
-    pub this_turn_attacks_played: u8,
-
-    // Per-combat counter; reset at combat_start
-    pub this_combat_damage_instances_taken: u8,
-    // Suppresses normal-room gold reward when any monster escaped
-    pub escaped_this_combat: bool,
 
     // `?`-room drift state; event chance = 1 - sum(others)
     pub event_chance_monster: f32,
@@ -106,8 +81,9 @@ pub struct GameState {
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
-    // Nightmare-pending template snapshot id; flushed at next TurnStart
-    pub id_card_nightmare: Option<usize>,
+    // Mutually-exclusive game context. Combat data (hand, piles, monsters,
+    // energy, turn counters) lives inside Context::Combat(CombatState)
+    pub context: Option<Context>,
 }
 
 // Create and initialize
@@ -163,19 +139,10 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
     let mut state = GameState {
         ascension,
-        phase: Phase::Map,
         rng,
         entities,
         id_character: 0,
-        id_monsters: [0; MAX_MONSTERS],
-        monster_count: 0,
-        energy: Energy { current: 3, max: 3 },
         id_deck,
-        id_pile_draw: Vec::with_capacity(64),
-        id_hand: Vec::with_capacity(MAX_SIZE_HAND),
-        id_pile_discard: Vec::with_capacity(64),
-        id_pile_exhaust: Vec::with_capacity(32),
-        id_monster_picked: None,
         id_relics,
         id_rooms,
         location,
@@ -183,17 +150,12 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         encounter_list_elite,
         encounter_boss,
         effect_queue,
-        card_last_drawn: None,
-        this_turn_discards: 0,
-        this_turn_attacks_played: 0,
-        this_combat_damage_instances_taken: 0,
-        escaped_this_combat: false,
         event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
         event_chance_shop: EVENT_CHANCE_SHOP_BASE,
         event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,
         events_seen_this_run: Vec::with_capacity(16),
         potion_drop_mod: 0,
-        id_card_nightmare: None,
+        context: None,
     };
 
     // Run the queue so the initial halt registers

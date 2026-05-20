@@ -163,6 +163,13 @@ Target = _rs.Target
 Effect = _rs.Effect
 CardCostKind = _rs.CardCostKind
 
+# Context / PendingInput surface
+Context = _rs.Context
+Combat = _rs.Combat
+Reward = _rs.Reward
+Shop = _rs.Shop
+PendingInput = _rs.PendingInput
+
 __all__ = [
     # Environment + action
     "GameEnv",
@@ -209,4 +216,10 @@ __all__ = [
     "SelectionKind",
     "Target",
     "Effect",
+    # Context / PendingInput
+    "Context",
+    "Combat",
+    "Reward",
+    "Shop",
+    "PendingInput",
 ]

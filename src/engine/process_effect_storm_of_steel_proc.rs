@@ -5,14 +5,13 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::types::CardName;
-use crate::types::Phase;
 
 // Storm of Steel: discard the entire hand, then add 1 Shiv per discarded card
 pub fn process_effect_storm_of_steel_proc(
     upgraded: bool,
     id_hand: &[usize],
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     let n = id_hand.len() as u16;
     effect_queue.push_front(Effect {
         kind: EffectKind::CardAddToHand {
@@ -32,5 +31,4 @@ pub fn process_effect_storm_of_steel_proc(
             Some(id_card),
         ));
     }
-    None
 }

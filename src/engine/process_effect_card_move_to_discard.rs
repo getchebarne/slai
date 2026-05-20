@@ -1,4 +1,3 @@
-use crate::types::Phase;
 use crate::utils::remove_card_from_collection;
 
 // Move-after-play: pushed by `process_effect_card_play` to send the
@@ -10,8 +9,7 @@ pub fn process_effect_card_move_to_discard(
     id_target: usize,
     id_hand: &mut Vec<usize>,
     id_pile_discard: &mut Vec<usize>,
-) -> Option<Phase> {
+) {
     remove_card_from_collection(id_target, id_hand);
     id_pile_discard.push(id_target);
-    None
 }

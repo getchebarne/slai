@@ -2,6 +2,10 @@
 
 use strum::EnumCount;
 
+use crate::consts::MAX_MONSTERS;
+use crate::consts::MAX_SIZE_HAND;
+use crate::game::Energy;
+
 // Vitals: physical combat state. Shared by character and monsters
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
@@ -9,6 +13,77 @@ pub struct Vitals {
     pub health_max: u16,
     pub block: u16,
 }
+
+// Context: mutually-exclusive game context. Tagged-union enforces that the
+// player can't be in two contexts at once. Map / RestSite / Chest / GameOver
+// are derived from location + room_kind + character.dead -- they have no
+// transient state and thus don't need a Context variant
+#[derive(Debug, Clone)]
+pub enum Context {
+    Combat(CombatState),
+    Reward(RewardState),
+    Event(EventState),
+    Shop(ShopState),
+}
+
+#[derive(Debug, Clone)]
+pub struct CombatState {
+    pub id_hand: Vec<usize>,
+    pub id_pile_draw: Vec<usize>,
+    pub id_pile_discard: Vec<usize>,
+    pub id_pile_exhaust: Vec<usize>,
+    pub id_monsters: [usize; MAX_MONSTERS],
+    pub monster_count: u8,
+    pub id_monster_picked: Option<usize>,
+    pub energy: Energy,
+    pub this_turn_discards: u8,
+    pub this_turn_attacks_played: u8,
+    pub this_combat_damage_instances_taken: u8,
+    pub escaped_this_combat: bool,
+    pub card_last_drawn: Option<usize>,
+    pub id_card_nightmare: Option<usize>,
+    // Candidates for the active Discover pick. Empty when no pick is pending
+    pub id_pick: Vec<usize>,
+}
+
+impl CombatState {
+    pub fn new() -> Self {
+        Self {
+            id_hand: Vec::with_capacity(MAX_SIZE_HAND),
+            id_pile_draw: Vec::with_capacity(64),
+            id_pile_discard: Vec::with_capacity(64),
+            id_pile_exhaust: Vec::with_capacity(32),
+            id_monsters: [0; MAX_MONSTERS],
+            monster_count: 0,
+            id_monster_picked: None,
+            energy: Energy { current: 3, max: 3 },
+            this_turn_discards: 0,
+            this_turn_attacks_played: 0,
+            this_combat_damage_instances_taken: 0,
+            escaped_this_combat: false,
+            card_last_drawn: None,
+            id_card_nightmare: None,
+            id_pick: Vec::new(),
+        }
+    }
+}
+
+
+#[derive(Debug, Clone)]
+pub struct RewardState {
+    pub id_cards: Vec<usize>,
+    pub id_relic: Option<usize>,
+    pub id_potion: Option<usize>,
+    pub gold: Option<u16>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct EventState {
+    pub id_event: usize,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct ShopState {}
 
 pub const ZERO_VITALS: Vitals = Vitals {
     health: 0,
@@ -344,32 +419,3 @@ pub enum RelicTier {
     Special,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Phase {
-    Reward {
-        id_cards: Vec<usize>,
-        id_relic: Option<usize>,
-        id_potion: Option<usize>,
-        gold: Option<u16>,
-    },
-    CombatDefault,
-    CombatAwaitDiscover {
-        id_cards: Vec<usize>,
-    },
-    AwaitHandSelect {
-        kind: HandSelectKind,
-        num: u8,
-    },
-    GameOver,
-    Map,
-    RestSite,
-    Chest,
-    AwaitEventChoice {
-        id_event: usize,
-    },
-    AwaitDeckSelect {
-        kind: DeckSelectKind,
-        id_options: Vec<usize>,
-    },
-    Shop,
-}

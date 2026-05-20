@@ -14,7 +14,6 @@ use crate::monsters::slime_acid_large;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
 use crate::types::MonsterName;
-use crate::types::Phase;
 
 pub fn process_effect_health_loss(
     entity: &mut Entity,
@@ -22,7 +21,7 @@ pub fn process_effect_health_loss(
     id_character: usize,
     amount: u16,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     // TODO: should only decrement for physical attacks
     if amount > 0 && modifier_has(&entity.modifiers, ModifierKind::PlatedArmor) {
         effect_queue.push_front(Effect {
@@ -43,7 +42,7 @@ pub fn process_effect_health_loss(
             id_source: None,
             target: Target::Direct(Some(id_target)),
         });
-        return None;
+        return;
     }
 
     // Splittable: post-HP-loss check fires on *any* damage source (attack or
@@ -99,6 +98,4 @@ pub fn process_effect_health_loss(
             entity.modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;
         }
     }
-
-    None
 }

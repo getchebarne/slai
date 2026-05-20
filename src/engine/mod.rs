@@ -25,7 +25,6 @@ pub mod process_effect_damage_deal;
 pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
-pub mod process_effect_deck_select_start;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
 pub mod process_effect_energy_gain;
@@ -102,11 +101,9 @@ use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
-use crate::map::room_at;
 use crate::types::CardColor;
-use crate::types::HandSelectKind;
-use crate::types::Phase;
-use crate::types::RoomKind;
+use crate::types::CombatState;
+use crate::types::Context;
 use crate::utils::fill_alive_monster_ids;
 use crate::utils::shuffle;
 
@@ -141,10 +138,9 @@ impl EffectBuf {
     }
 }
 
-// Stack-allocated buffer for candidate ids during resolution. All candidate
-// pools have compile-time-bounded sizes (≤ MAX_SIZE_HAND, MAX_MONSTERS, etc.),
-// so we can avoid the heap entirely
-pub const MAX_CANDIDATES: usize = 16;
+// Stack-allocated buffer for candidate ids during resolution. Sized for
+// CandidatePool::DeckFiltered worst case (full deck), with headroom
+pub const MAX_CANDIDATES: usize = 128;
 
 pub struct CandidateBuf {
     pub ids: [usize; MAX_CANDIDATES],
@@ -191,7 +187,23 @@ pub enum TargetResolution {
     AwaitInput { num: u16 },
 }
 
-pub(crate) fn resolve_candidates(
+// Iterate in reverse so push_front yields `ids` in original queue order
+pub(crate) fn enqueue_direct_targets(
+    queue: &mut std::collections::VecDeque<Effect>,
+    kind: EffectKind,
+    id_source: Option<usize>,
+    ids: &[usize],
+) {
+    for &id in ids.iter().rev() {
+        queue.push_front(Effect {
+            kind,
+            id_source,
+            target: Target::Direct(Some(id)),
+        });
+    }
+}
+
+fn resolve_candidates(
     candidate_pool: CandidatePool,
     id_source: usize,
     id_character: usize,
@@ -201,6 +213,8 @@ pub(crate) fn resolve_candidates(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
+    id_pick: &[usize],
+    id_deck: &[usize],
     buf_cands: &mut CandidateBuf,
 ) {
     match candidate_pool {
@@ -244,6 +258,14 @@ pub(crate) fn resolve_candidates(
             }
             Location::BossRoom => {}
         },
+        CandidatePool::IdPick => buf_cands.extend_from_slice(id_pick),
+        CandidatePool::DeckFiltered(kind) => {
+            for &id in id_deck {
+                if crate::events::card_in_deck_filter(&entities[id], kind) {
+                    buf_cands.push(id);
+                }
+            }
+        }
     }
 }
 
@@ -258,6 +280,8 @@ fn resolve_targets(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
+    id_pick: &[usize],
+    id_deck: &[usize],
     rng: &mut impl Rng,
     buf_cands: &mut CandidateBuf,
 ) -> TargetResolution {
@@ -271,6 +295,8 @@ fn resolve_targets(
         id_rooms,
         location,
         entities,
+        id_pick,
+        id_deck,
         buf_cands,
     );
     match selection {
@@ -310,24 +336,27 @@ pub(crate) fn get_id_actor(entities: &[Entity], id_character: usize, id_source: 
     }
 }
 
-// Dispatcher entry point. Branches on `Target`:
-//  - `Direct(t)` runs the kind-specific handler with an already-known target
-//  - `Resolve { .. }` runs the resolver; on success, fans out to `Direct`
-//    effects; on input-needed, returns `Halt { kind, num }`. The popped
-//    effect is dropped — the input handler in `action.rs` reconstructs work
-//    from the player's chosen targets
-pub fn process_effect(state: &mut GameState, effect: Effect) -> Option<Phase> {
+// Returns true on halt. On AwaitInput, the unresolved Effect is pushed back
+// to the queue head; action::handle_action pops it when the player's pick
+// consumes it
+pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
     let id_target = match effect.target {
         Target::Direct(t) => t,
         Target::Resolve {
             candidates,
             selection,
         } => {
-            return resolve_or_halt(state, effect.kind, effect.id_source, candidates, selection);
+            let halted =
+                resolve_or_halt(state, effect.kind, effect.id_source, candidates, selection);
+            if halted {
+                state.effect_queue.push_front(effect);
+            }
+            return halted;
         }
     };
 
-    dispatch_by_kind(state, effect.kind, effect.id_source, id_target)
+    dispatch_by_kind(state, effect.kind, effect.id_source, id_target);
+    false
 }
 
 fn resolve_or_halt(
@@ -336,64 +365,40 @@ fn resolve_or_halt(
     id_source: Option<usize>,
     candidates: CandidatePool,
     selection: SelectionKind,
-) -> Option<Phase> {
+) -> bool {
     // Stack locals
     let mut buf_alive = [0usize; MAX_MONSTERS];
     let mut buf_cands = CandidateBuf::new();
 
     let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
-    // Pass `id_source` through as the literal originator: monster intents
-    // resolve to the monster itself, card-played effects to the card.
-    // `CandidatePool::Source` is the channel cards/monsters use to target
-    // themselves
     let id_source_resolved = id_source.unwrap_or(state.id_character);
+    let (id_hand, id_monster_picked, id_pick): (&[usize], Option<usize>, &[usize]) =
+        match &state.context {
+            Some(Context::Combat(c)) => (&c.id_hand, c.id_monster_picked, &c.id_pick),
+            _ => (&[], None, &[]),
+        };
     let resolution = resolve_targets(
         candidates,
         selection,
         id_source_resolved,
         state.id_character,
-        &state.id_hand,
-        state.id_monster_picked,
+        id_hand,
+        id_monster_picked,
         &buf_alive[..alive_n],
         &state.id_rooms,
         state.location,
         &state.entities,
+        id_pick,
+        &state.id_deck,
         &mut state.rng,
         &mut buf_cands,
     );
     match resolution {
         TargetResolution::Resolved => {
-            // Push one Direct-target effect per resolved id. push_front reverses
-            // order, so iterate in reverse to preserve id order in the effect_queue
-            for &id_target in buf_cands.as_slice().iter().rev() {
-                state.effect_queue.push_front(Effect {
-                    kind,
-                    id_source,
-                    target: Target::Direct(Some(id_target)),
-                });
-            }
-            None
+            enqueue_direct_targets(&mut state.effect_queue, kind, id_source, buf_cands.as_slice());
+            false
         }
-        TargetResolution::AwaitInput { num } => Some(match kind {
-            EffectKind::CardDiscard { .. } => Phase::AwaitHandSelect {
-                kind: HandSelectKind::Discard,
-                num: num as u8,
-            },
-            EffectKind::CardRetain => Phase::AwaitHandSelect {
-                kind: HandSelectKind::Retain,
-                num: num as u8,
-            },
-            EffectKind::CardSetupPick => Phase::AwaitHandSelect {
-                kind: HandSelectKind::Setup,
-                num: 1,
-            },
-            EffectKind::CardNightmarePick => Phase::AwaitHandSelect {
-                kind: HandSelectKind::Nightmare,
-                num: 1,
-            },
-            EffectKind::RoomSelect => Phase::Map,
-            _ => panic!("Unsupported effect kind for halting: {:?}", kind),
-        }),
+        TargetResolution::AwaitInput { .. } => true,
     }
 }
 
@@ -402,38 +407,51 @@ fn dispatch_by_kind(
     kind: EffectKind,
     id_source: Option<usize>,
     id_target: Option<usize>,
-) -> Option<Phase> {
+) {
     match kind {
-        EffectKind::CardDraw { count } => process_effect_card_draw::process_effect_card_draw(
-            count,
-            &state.entities,
-            state.id_character,
-            &mut state.id_pile_draw,
-            &mut state.id_hand,
-            &mut state.id_pile_discard,
-            &mut state.card_last_drawn,
-            &mut state.effect_queue,
-        ),
-        EffectKind::DrawUpTo { amount } => process_effect_draw_up_to::process_effect_draw_up_to(
-            amount,
-            &state.id_hand,
-            &mut state.effect_queue,
-        ),
+        EffectKind::CardDraw { count } => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_card_draw::process_effect_card_draw(
+                count,
+                &state.entities,
+                state.id_character,
+                &mut combat.id_pile_draw,
+                &mut combat.id_hand,
+                &mut combat.id_pile_discard,
+                &mut combat.card_last_drawn,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::DrawUpTo { amount } => {
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
+            process_effect_draw_up_to::process_effect_draw_up_to(
+                amount,
+                &combat.id_hand,
+                &mut state.effect_queue,
+            )
+        }
         EffectKind::CardPlay => {
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             // Snapshot the cost-context counters by-value before the
             // entities mut borrow (Copy types, no borrow conflict)
-            let this_turn_discards = state.this_turn_discards;
-            let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
-            let energy_current = state.energy.current;
+            let this_turn_discards = combat.this_turn_discards;
+            let this_combat_damage_instances_taken = combat.this_combat_damage_instances_taken;
+            let energy_current = combat.energy.current;
             process_effect_card_play::process_effect_card_play(
                 id_target.unwrap(),
                 state.id_character,
                 &mut state.entities,
                 &buf_alive[..alive_n],
-                &mut state.this_turn_attacks_played,
+                &mut combat.this_turn_attacks_played,
                 this_turn_discards,
                 this_combat_damage_instances_taken,
                 energy_current,
@@ -445,43 +463,60 @@ fn dispatch_by_kind(
             card_name,
             count,
             upgraded,
-        } => process_effect_card_add_to_discard::process_effect_card_add_to_discard(
-            card_name,
-            count,
-            upgraded,
-            &mut state.entities,
-            &mut state.id_pile_discard,
-        ),
+        } => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_card_add_to_discard::process_effect_card_add_to_discard(
+                card_name,
+                count,
+                upgraded,
+                &mut state.entities,
+                &mut combat.id_pile_discard,
+            )
+        }
         EffectKind::CardDiscard { source } => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_card_discard::process_effect_card_discard(
                 source,
                 id_target.unwrap(),
                 &mut state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
-                &mut state.this_turn_discards,
+                &mut combat.id_hand,
+                &mut combat.id_pile_discard,
+                &mut combat.this_turn_discards,
                 &mut state.effect_queue,
             )
         }
         EffectKind::CardMoveToDiscard => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_card_move_to_discard::process_effect_card_move_to_discard(
                 id_target.unwrap(),
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
+                &mut combat.id_hand,
+                &mut combat.id_pile_discard,
             )
         }
         EffectKind::DamageMindBlast => {
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
             process_effect_damage_mind_blast::process_effect_damage_mind_blast(
                 id_source,
                 id_target.unwrap(),
-                state.id_pile_draw.len(),
+                combat.id_pile_draw.len(),
                 &mut state.effect_queue,
             )
         }
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_shuffle_discard_pile_into_draw_pile::process_effect_shuffle_discard_pile_into_draw_pile(
-                &mut state.id_pile_draw,
-                &mut state.id_pile_discard,
+                &mut combat.id_pile_draw,
+                &mut combat.id_pile_discard,
                 &mut state.rng,
             )
         }
@@ -490,52 +525,79 @@ fn dispatch_by_kind(
             &mut state.entities,
         ),
         EffectKind::CardSetupPick => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_card_setup_pick::process_effect_card_setup_pick(
                 id_target.unwrap(),
                 &mut state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_draw,
+                &mut combat.id_hand,
+                &mut combat.id_pile_draw,
             )
         }
         EffectKind::CardNightmarePick => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_id_card_nightmare_pick::process_effect_id_card_nightmare_pick(
                 &mut state.entities,
                 id_target.unwrap(),
-                &mut state.id_card_nightmare,
+                &mut combat.id_card_nightmare,
             )
         }
         EffectKind::CardNightmareSpawn => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_id_card_nightmare_spawn::process_effect_id_card_nightmare_spawn(
                 &mut state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
-                &mut state.id_card_nightmare,
+                &mut combat.id_hand,
+                &mut combat.id_pile_discard,
+                &mut combat.id_card_nightmare,
             )
         }
-        EffectKind::CardExhaust => process_effect_card_exhaust::process_effect_card_exhaust(
-            id_target.unwrap(),
-            &mut state.id_hand,
-            &mut state.id_pile_exhaust,
-        ),
-        EffectKind::CardRemove => process_effect_card_remove::process_effect_card_remove(
-            id_target.unwrap(),
-            &mut state.id_hand,
-        ),
+        EffectKind::CardExhaust => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_card_exhaust::process_effect_card_exhaust(
+                id_target.unwrap(),
+                &mut combat.id_hand,
+                &mut combat.id_pile_exhaust,
+            )
+        }
+        EffectKind::CardRemove => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_card_remove::process_effect_card_remove(
+                id_target.unwrap(),
+                &mut combat.id_hand,
+            )
+        }
         EffectKind::CardAddToHand {
             card_name,
             count,
             upgraded,
-        } => process_effect_card_add_to_hand::process_effect_card_add_to_hand(
-            card_name,
-            count,
-            upgraded,
-            &mut state.entities,
-            &mut state.id_hand,
-            &mut state.id_pile_discard,
-        ),
+        } => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_card_add_to_hand::process_effect_card_add_to_hand(
+                card_name,
+                count,
+                upgraded,
+                &mut state.entities,
+                &mut combat.id_hand,
+                &mut combat.id_pile_discard,
+            )
+        }
         EffectKind::CalculatedGamble => {
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
             process_effect_calculated_gamble::process_effect_calculated_gamble(
-                &state.id_hand,
+                &combat.id_hand,
                 &mut state.effect_queue,
             )
         }
@@ -544,53 +606,79 @@ fn dispatch_by_kind(
             &mut state.entities,
         ),
         EffectKind::CardRewardClear => {
-            process_effect_card_reward_clear::process_effect_card_reward_clear(&mut state.phase)
+            let Some(Context::Reward(reward)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_card_reward_clear::process_effect_card_reward_clear(reward);
         }
         EffectKind::RewardRollCombat { room_kind } => {
-            process_effect_reward_roll_combat::process_effect_reward_roll_combat(
+            // escaped_this_combat is preserved on the Combat context that
+            // combat_end leaves behind, until this handler converts it to Reward
+            let escaped = match &state.context {
+                Some(Context::Combat(c)) => c.escaped_this_combat,
+                _ => false,
+            };
+            let reward = process_effect_reward_roll_combat::process_effect_reward_roll_combat(
                 room_kind,
                 state.id_character,
                 &state.id_relics,
-                state.escaped_this_combat,
+                escaped,
                 &mut state.potion_drop_mod,
                 &mut state.entities,
                 &mut state.rng,
-            )
+            );
+            state.context = Some(Context::Reward(reward));
         }
         EffectKind::RewardRollChest { kind } => {
-            process_effect_reward_roll_chest::process_effect_reward_roll_chest(
+            let reward = process_effect_reward_roll_chest::process_effect_reward_roll_chest(
                 kind,
                 &state.id_relics,
                 &mut state.entities,
                 &mut state.rng,
-            )
+            );
+            state.context = Some(Context::Reward(reward));
         }
         EffectKind::RewardTakePotion => {
+            let Some(Context::Reward(reward)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_reward_take_potion::process_effect_reward_take_potion(
-                &mut state.phase,
+                reward,
                 &mut state.entities,
                 state.id_character,
-            )
+            );
         }
         EffectKind::RewardTakeGold => {
+            let Some(Context::Reward(reward)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_reward_take_gold::process_effect_reward_take_gold(
-                &mut state.phase,
+                reward,
                 &mut state.entities,
                 state.id_character,
-            )
+            );
         }
         EffectKind::RewardSkip => {
-            process_effect_reward_skip::process_effect_reward_skip(&mut state.phase)
+            let Some(Context::Reward(reward)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_reward_skip::process_effect_reward_skip(reward);
         }
         EffectKind::TargetSet => {
             let id_target = id_target.unwrap();
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_target_set::process_effect_target_set(
-                &mut state.id_monster_picked,
+                &mut combat.id_monster_picked,
                 id_target,
             )
         }
         EffectKind::TargetClear => {
-            process_effect_target_clear::process_effect_target_clear(&mut state.id_monster_picked)
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_target_clear::process_effect_target_clear(&mut combat.id_monster_picked)
         }
         EffectKind::DamagePhysical { amount } => {
             let id_source = id_source.expect("DamagePhysical requires id_source");
@@ -625,10 +713,13 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::DistractionAdd => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_distraction_add::process_effect_distraction_add(
                 &mut state.entities,
-                &mut state.id_hand,
-                &mut state.id_pile_discard,
+                &mut combat.id_hand,
+                &mut combat.id_pile_discard,
                 &mut state.rng,
             )
         }
@@ -641,18 +732,24 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::EscapePlanCheck { block } => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_escape_plan_check::process_effect_escape_plan_check(
                 &state.entities,
                 state.id_character,
-                &mut state.card_last_drawn,
+                &mut combat.card_last_drawn,
                 block,
                 &mut state.effect_queue,
             )
         }
         EffectKind::FinisherDamage { damage } => {
             let id_target = id_target.unwrap();
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
             process_effect_finisher_damage::process_effect_finisher_damage(
-                state.this_turn_attacks_played,
+                combat.this_turn_attacks_played,
                 id_source,
                 id_target,
                 damage,
@@ -661,9 +758,12 @@ fn dispatch_by_kind(
         }
         EffectKind::FlechettesDamage { damage } => {
             let id_target = id_target.unwrap();
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
             process_effect_flechettes_damage::process_effect_flechettes_damage(
                 &state.entities,
-                &state.id_hand,
+                &combat.id_hand,
                 id_source,
                 id_target,
                 damage,
@@ -679,24 +779,35 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::SneakyStrikeProc { energy } => {
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
             process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc(
-                state.this_turn_discards,
+                combat.this_turn_discards,
                 energy,
                 &mut state.effect_queue,
             )
         }
         EffectKind::StormOfSteelProc { upgraded } => {
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
             process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc(
                 upgraded,
-                &state.id_hand,
+                &combat.id_hand,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::UnloadDiscard => process_effect_unload_discard::process_effect_unload_discard(
-            &state.entities,
-            &state.id_hand,
-            &mut state.effect_queue,
-        ),
+        EffectKind::UnloadDiscard => {
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
+            process_effect_unload_discard::process_effect_unload_discard(
+                &state.entities,
+                &combat.id_hand,
+                &mut state.effect_queue,
+            )
+        }
         EffectKind::DamageDeal { amount } => {
             process_effect_damage_deal::process_effect_damage_deal(
                 &mut state.entities,
@@ -714,13 +825,13 @@ fn dispatch_by_kind(
         }
         EffectKind::HealthLoss { amount } => {
             let id_target = id_target.unwrap();
-            // Per-event counter for MasterfulStab's GrowsOnDamageInstanceTaken
-            // cost variant. One bump per damage event the character takes
-            // (not per HP lost). HealthLoss is post-block, so amount > 0
-            // already excludes block-fully-absorbed events
+            // MasterfulStab GrowsOnDamageInstanceTaken: bump per character damage
+            // event (post-block, so amount > 0 excludes fully-absorbed hits)
             if id_target == state.id_character && amount > 0 {
-                state.this_combat_damage_instances_taken =
-                    state.this_combat_damage_instances_taken.saturating_add(1);
+                if let Some(Context::Combat(combat)) = &mut state.context {
+                    combat.this_combat_damage_instances_taken =
+                        combat.this_combat_damage_instances_taken.saturating_add(1);
+                }
             }
             let entity = &mut state.entities[id_target];
             process_effect_health_loss::process_effect_health_loss(
@@ -751,10 +862,16 @@ fn dispatch_by_kind(
             process_effect_block_set::process_effect_block_set(vitals, amount)
         }
         EffectKind::EnergyGain { amount } => {
-            process_effect_energy_gain::process_effect_energy_gain(&mut state.energy, amount)
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_energy_gain::process_effect_energy_gain(&mut combat.energy, amount)
         }
         EffectKind::EnergyLoss { amount } => {
-            process_effect_energy_loss::process_effect_energy_loss(&mut state.energy, amount)
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_energy_loss::process_effect_energy_loss(&mut combat.energy, amount)
         }
         EffectKind::ModifierGain { kind, stacks } => {
             let id_target = id_target.unwrap();
@@ -808,59 +925,81 @@ fn dispatch_by_kind(
         }
         EffectKind::Death => {
             let id_actor = id_target.unwrap();
+            // Character can die outside Combat (event damage, rest-site
+            // mishaps); the monster list is combat-only
+            let empty_monsters: [usize; MAX_MONSTERS] = [0; MAX_MONSTERS];
+            let (id_monsters, monster_count): (&[usize; MAX_MONSTERS], u8) = match &state.context {
+                Some(Context::Combat(c)) => (&c.id_monsters, c.monster_count),
+                _ => (&empty_monsters, 0),
+            };
             process_effect_death::process_effect_death(
                 id_actor,
                 state.id_character,
-                &state.id_monsters,
-                state.monster_count,
+                id_monsters,
+                monster_count,
                 &mut state.entities,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::CombatStart => process_effect_combat_start::process_effect_combat_start(
-            state.id_character,
-            &state.id_deck,
-            &state.id_relics,
-            &mut state.entities,
-            &mut state.id_pile_draw,
-            &mut state.id_hand,
-            &mut state.id_pile_discard,
-            &mut state.id_pile_exhaust,
-            &mut state.id_monster_picked,
-            &mut state.this_combat_damage_instances_taken,
-            &mut state.escaped_this_combat,
-            &mut state.rng,
-            &mut state.effect_queue,
-        ),
-        EffectKind::CombatEnd => process_effect_combat_end::process_effect_combat_end(
-            state.id_character,
-            &mut state.id_hand,
-            &mut state.id_pile_draw,
-            &mut state.id_pile_discard,
-            &mut state.id_pile_exhaust,
-            &mut state.id_monster_picked,
-            &mut state.entities,
-            &mut state.monster_count,
-            &mut state.id_card_nightmare,
-            &state.id_rooms,
-            state.location,
-            &mut state.rng,
-            &mut state.effect_queue,
-        ),
+        EffectKind::CombatStart => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_combat_start::process_effect_combat_start(
+                state.id_character,
+                &state.id_deck,
+                &state.id_relics,
+                &mut state.entities,
+                &mut combat.id_pile_draw,
+                &mut combat.id_hand,
+                &mut combat.id_pile_discard,
+                &mut combat.id_pile_exhaust,
+                &mut combat.id_monster_picked,
+                &mut combat.this_combat_damage_instances_taken,
+                &mut combat.escaped_this_combat,
+                &mut state.rng,
+                &mut state.effect_queue,
+            )
+        }
+        EffectKind::CombatEnd => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_combat_end::process_effect_combat_end(
+                state.id_character,
+                &mut combat.id_hand,
+                &mut combat.id_pile_draw,
+                &mut combat.id_pile_discard,
+                &mut combat.id_pile_exhaust,
+                &mut combat.id_monster_picked,
+                &mut state.entities,
+                &mut combat.monster_count,
+                &mut combat.id_card_nightmare,
+                &state.id_rooms,
+                state.location,
+                &mut state.rng,
+                &mut state.effect_queue,
+            )
+        }
         EffectKind::TurnStart => {
             let id_actor = id_target.unwrap();
 
             // Stack locals
             let mut buf_alive = [0usize; MAX_MONSTERS];
             let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
-            let nightmare_pending = state.id_card_nightmare.is_some();
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            let nightmare_pending = combat.id_card_nightmare.is_some();
+            // Energy ref must outlive the entities borrow below; capture by value
+            let energy_snapshot = combat.energy;
             let entity = &mut state.entities[id_actor];
             process_effect_turn_start::process_effect_turn_start(
                 &mut entity.vitals,
                 &mut entity.modifiers,
                 id_actor,
                 state.id_character,
-                &state.energy,
+                &energy_snapshot,
                 &buf_alive[..alive_n],
                 nightmare_pending,
                 &mut state.effect_queue,
@@ -872,13 +1011,16 @@ fn dispatch_by_kind(
                 // Stack locals
                 let mut buf_alive = [0usize; MAX_MONSTERS];
                 let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+                let Some(Context::Combat(combat)) = &mut state.context else {
+                    unreachable!("TurnEnd (character) outside Combat context");
+                };
                 process_effect_turn_end::process_effect_turn_end_character(
                     state.id_character,
                     &mut state.entities,
-                    &state.id_hand,
+                    &combat.id_hand,
                     &buf_alive[..alive_n],
-                    &mut state.this_turn_discards,
-                    &mut state.this_turn_attacks_played,
+                    &mut combat.this_turn_discards,
+                    &mut combat.this_turn_attacks_played,
                     &state.id_relics,
                     &mut state.effect_queue,
                 )
@@ -923,6 +1065,7 @@ fn dispatch_by_kind(
             &mut state.encounter_list_elite,
             state.encounter_boss,
             &mut state.events_seen_this_run,
+            &mut state.context,
             &mut state.rng,
             &mut state.effect_queue,
         ),
@@ -931,25 +1074,37 @@ fn dispatch_by_kind(
             &mut state.effect_queue,
         ),
         EffectKind::MonsterSpawn { name } => {
+            // First MonsterSpawn of a combat installs the Combat context
+            if !matches!(&state.context, Some(Context::Combat(_))) {
+                state.context = Some(Context::Combat(CombatState::new()));
+            }
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!()
+            };
             process_effect_monster_spawn::process_effect_monster_spawn(
                 name,
                 id_source,
                 state.ascension,
                 &mut state.entities,
-                &mut state.id_monsters,
-                &mut state.monster_count,
+                &mut combat.id_monsters,
+                &mut combat.monster_count,
                 &mut state.rng,
                 &mut state.effect_queue,
             )
         }
-        EffectKind::EscapeMonster => process_effect_escape_monster::process_effect_escape_monster(
-            id_target.unwrap(),
-            &state.id_monsters,
-            state.monster_count,
-            &mut state.entities,
-            &mut state.escaped_this_combat,
-            &mut state.effect_queue,
-        ),
+        EffectKind::EscapeMonster => {
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_escape_monster::process_effect_escape_monster(
+                id_target.unwrap(),
+                &combat.id_monsters,
+                combat.monster_count,
+                &mut state.entities,
+                &mut combat.escaped_this_combat,
+                &mut state.effect_queue,
+            )
+        }
         EffectKind::GoldSteal { amount } => process_effect_gold_steal::process_effect_gold_steal(
             id_source.unwrap(),
             state.id_character,
@@ -957,11 +1112,14 @@ fn dispatch_by_kind(
             &mut state.entities,
         ),
         EffectKind::HexaghostBurnIncrease { count } => {
+            let Some(Context::Combat(combat)) = &state.context else {
+                unreachable!();
+            };
             process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase(
                 count,
                 &mut state.entities,
-                &state.id_pile_draw,
-                &state.id_pile_discard,
+                &combat.id_pile_draw,
+                &combat.id_pile_discard,
                 &mut state.effect_queue,
             )
         }
@@ -990,14 +1148,16 @@ fn dispatch_by_kind(
             state
                 .effect_queue
                 .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
-            None
         }
         EffectKind::RewardTakeRelic => {
+            let Some(Context::Reward(reward)) = &mut state.context else {
+                unreachable!();
+            };
             process_effect_reward_take_relic::process_effect_reward_take_relic(
-                &mut state.phase,
+                reward,
                 &state.entities,
                 &mut state.id_relics,
-            )
+            );
         }
         EffectKind::CardRemoveFromDeck => {
             process_effect_card_remove_from_deck::process_effect_card_remove_from_deck(
@@ -1044,13 +1204,27 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::CardDiscoverSelect { kind, count } => {
-            process_effect_card_discover_select::process_effect_card_discover_select(
+            let id_cards = process_effect_card_discover_select::process_effect_card_discover_select(
                 kind,
                 CardColor::Green, // TODO: other characters
                 count,
                 &mut state.entities,
                 &mut state.rng,
-            )
+            );
+            // Stash rolled candidates on combat.id_pick and queue a
+            // CardDiscoverPick halt for the player's pick
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            combat.id_pick = id_cards;
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardDiscoverPick,
+                id_source: None,
+                target: Target::Resolve {
+                    candidates: CandidatePool::IdPick,
+                    selection: SelectionKind::Input { count: 1 },
+                },
+            });
         }
         EffectKind::GoldLoss { amount } => {
             let character = &mut state.entities[state.id_character];
@@ -1143,88 +1317,130 @@ fn dispatch_by_kind(
             process_effect_event_end::process_effect_event_end(&mut state.entities, id_event)
         }
         EffectKind::DeckSelectStart { kind } => {
-            process_effect_deck_select_start::process_effect_deck_select_start(kind, state)
+            // Push a DeckSelectPick halt at the queue front. The resolver
+            // computes candidates via CandidatePool::DeckFiltered(kind); if
+            // the filter yields an empty set, resolve_targets short-circuits
+            // and the pick is skipped
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::DeckSelectPick { kind },
+                id_source: None,
+                target: Target::Resolve {
+                    candidates: CandidatePool::DeckFiltered(kind),
+                    selection: SelectionKind::Input { count: 1 },
+                },
+            });
+        }
+        EffectKind::CardDiscoverPick => {
+            let id_card = id_target.expect("CardDiscoverPick Direct form must have target");
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            state.entities[id_card].card_free_to_play_once = true;
+            combat.id_hand.push(id_card);
+            combat.id_pick.clear();
+        }
+        EffectKind::DeckSelectPick { kind: ds_kind } => {
+            let id_card = id_target.expect("DeckSelectPick Direct form must have target");
+            // Apply the deck-pick action by kind (same as today's
+            // deck_select_follow_up in action.rs). Push effects to queue front
+            match ds_kind {
+                crate::types::DeckSelectKind::Remove => {
+                    state.effect_queue.push_front(Effect::direct(
+                        EffectKind::CardRemoveFromDeck,
+                        None,
+                        Some(id_card),
+                    ));
+                }
+                crate::types::DeckSelectKind::UpgradeAny => {
+                    state.effect_queue.push_front(Effect::direct(
+                        EffectKind::CardUpgrade,
+                        None,
+                        Some(id_card),
+                    ));
+                }
+                crate::types::DeckSelectKind::DuplicateAny => {
+                    let card = &state.entities[id_card];
+                    let card_name = card.card_name;
+                    let upgraded = card.card_upgraded;
+                    state.effect_queue.push_front(Effect::direct(
+                        EffectKind::CardAddToDeck {
+                            card_name,
+                            upgraded,
+                        },
+                        None,
+                        None,
+                    ));
+                }
+                crate::types::DeckSelectKind::TransformOne => {
+                    state.effect_queue.push_front(Effect::direct(
+                        EffectKind::CardTransformRoll,
+                        None,
+                        None,
+                    ));
+                    state.effect_queue.push_front(Effect::direct(
+                        EffectKind::CardRemoveFromDeck,
+                        None,
+                        Some(id_card),
+                    ));
+                }
+            }
         }
         EffectKind::Noop => panic!("Noop effect should never be dispatched"),
     }
 }
 
-// Single source of truth for `Phase`. Every `Phase::…` constructor lives
-// here (apart from the one-time init in `game.rs`). Called only after the
-// effect_queue drains naturally — handler-driven halts produce their own
-// Phase via `Option<Phase>` and bypass this function entirely
-pub fn derive_phase(state: &mut GameState) {
-    // Character death: end of run
-    if state.entities[state.id_character].dead {
-        state.phase = Phase::GameOver;
-        return;
-    }
-    // Boss defeated: combat_end resets monster_count to 0 only after combat
-    // resolves; reaching BossRoom with no monsters means we won
-    if matches!(state.location, Location::BossRoom) && state.monster_count == 0 {
-        state.phase = Phase::GameOver;
-        return;
-    }
-    // Sticky discover phase: stay put while picks remain (Attack/Skill/Power Potion etc.)
-    if let Phase::CombatAwaitDiscover { id_cards } = &state.phase {
-        if !id_cards.is_empty() {
-            return;
-        }
-    }
-    // Sticky reward phase: stay put while any pool has something to surface
-    if let Phase::Reward {
-        id_cards,
-        id_relic,
-        id_potion,
-        gold,
-    } = &state.phase
-    {
-        if !id_cards.is_empty() || id_relic.is_some() || id_potion.is_some() || gold.is_some() {
-            return;
-        }
-    }
-    // Sticky event-choice phase: stay put until the event is consumed
-    if let Phase::AwaitEventChoice { id_event } = &state.phase {
-        if !state.entities[*id_event].event_consumed {
-            return;
-        }
-    }
-    // Sticky deck-select phase: stay put while there's an option to pick
-    if let Phase::AwaitDeckSelect { id_options, .. } = &state.phase {
-        if !id_options.is_empty() {
-            return;
-        }
-    }
-    // Combat in progress
-    if state.monster_count > 0 {
-        state.phase = Phase::CombatDefault;
-        return;
-    }
-    // Standing in a room: rest site or map-pick depending on room kind
-    state.phase = match state.location {
-        Location::Overworld { y, x } => {
-            let room =
-                room_at(&state.id_rooms, &state.entities, y, x).expect("room missing at location");
-            match room.room_kind {
-                RoomKind::RestSite => Phase::RestSite,
-                RoomKind::Treasure if !room.room_chest_opened => Phase::Chest,
-                RoomKind::Shop => Phase::Shop,
-                _ => Phase::Map,
-            }
-        }
-        Location::Start | Location::BossRoom => Phase::Map,
-    };
-}
-
 pub fn process_queue(state: &mut GameState) {
-    loop {
+    while !state.entities[state.id_character].dead {
         let Some(effect) = state.effect_queue.pop_front() else {
-            derive_phase(state);
             return;
         };
-        if let Some(phase) = process_effect(state, effect) {
-            state.phase = phase;
+        if process_effect(state, effect) {
             return;
         }
+        clear_drained_reward_context(state);
+        clear_consumed_event_context(state);
     }
+}
+
+// Clear Reward context once the pool is drained (handlers drain in-place via
+// reward.id_cards/id_relic/.../gold) and queue a RoomSelect halt to return
+// the player to the Map screen
+fn clear_drained_reward_context(state: &mut GameState) {
+    let drained = match &state.context {
+        Some(Context::Reward(r)) => {
+            r.id_cards.is_empty()
+                && r.id_relic.is_none()
+                && r.id_potion.is_none()
+                && r.gold.is_none()
+        }
+        _ => false,
+    };
+    if drained {
+        state.context = None;
+        queue_room_select(state);
+    }
+}
+
+// Clear Event context once the event is consumed (set by EventEnd handler on
+// the event entity) and queue a RoomSelect halt
+fn clear_consumed_event_context(state: &mut GameState) {
+    let consumed = match &state.context {
+        Some(Context::Event(e)) => state.entities[e.id_event].event_consumed,
+        _ => false,
+    };
+    if consumed {
+        state.context = None;
+        queue_room_select(state);
+    }
+}
+
+fn queue_room_select(state: &mut GameState) {
+    state.effect_queue.push_back(Effect {
+        kind: EffectKind::RoomSelect,
+        id_source: None,
+        target: Target::Resolve {
+            candidates: CandidatePool::NextRowRooms,
+            selection: SelectionKind::Input { count: 1 },
+        },
+    });
 }

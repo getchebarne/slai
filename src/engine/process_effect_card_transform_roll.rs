@@ -9,12 +9,11 @@ use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::types::Phase;
 
 pub fn process_effect_card_transform_roll(
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     let roll = rng.random_range(0..99);
     let pool = if roll < CARD_REWARD_ROLL_CHANCE_RARE {
         POOL_RARE_GREEN_CARD
@@ -32,5 +31,4 @@ pub fn process_effect_card_transform_roll(
         None,
         None,
     ));
-    None
 }

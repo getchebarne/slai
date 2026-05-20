@@ -1,17 +1,8 @@
-use crate::types::Phase;
+use crate::types::RewardState;
 
-pub fn process_effect_reward_skip(phase: &mut Phase) -> Option<Phase> {
-    if let Phase::Reward {
-        id_cards,
-        id_relic,
-        id_potion,
-        gold,
-    } = phase
-    {
-        id_cards.clear();
-        *id_relic = None;
-        *id_potion = None;
-        *gold = None;
-    }
-    None
+pub fn process_effect_reward_skip(reward: &mut RewardState) {
+    reward.id_cards.clear();
+    reward.id_relic = None;
+    reward.id_potion = None;
+    reward.gold = None;
 }

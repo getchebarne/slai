@@ -16,11 +16,13 @@ use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
 use crate::types::ChestKind;
+use crate::types::Context;
 use crate::types::EventName;
+use crate::types::EventState;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
-use crate::types::Phase;
 use crate::types::RoomKind;
+use crate::types::ShopState;
 use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(
@@ -31,9 +33,10 @@ pub fn process_effect_room_enter(
     encounter_list_elite: &mut Vec<MonsterEncounter>,
     encounter_boss: MonsterEncounter,
     events_seen_this_run: &mut Vec<EventName>,
+    context: &mut Option<Context>,
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     let room_kind = get_active_room_kind(id_rooms, location, entities).unwrap();
     let mut buf_effects = EffectBuf::new();
 
@@ -50,7 +53,7 @@ pub fn process_effect_room_enter(
             spawn_encounter_monsters(encounter, &mut buf_effects, rng);
         }
         RoomKind::RestSite => {
-            // Nothing to enqueue; derive_phase reads Location & RoomKind for RestSite
+            // Nothing to enqueue; RestSite screen is location-derived
         }
         RoomKind::Treasure => {
             let Location::Overworld { y, x } = location else {
@@ -67,19 +70,20 @@ pub fn process_effect_room_enter(
             });
         }
         RoomKind::EventRoom => {
-            if let Some(phase) = spawn_random_event(entities, events_seen_this_run, rng) {
-                return Some(phase);
+            if let Some(id_event) = spawn_random_event(entities, events_seen_this_run, rng) {
+                *context = Some(Context::Event(EventState { id_event }));
+                return;
             }
         }
-        RoomKind::Shop => {}
+        RoomKind::Shop => {
+            *context = Some(Context::Shop(ShopState::default()));
+        }
     }
 
     if buf_effects.len > 0 {
         buf_effects.push(Effect::direct(EffectKind::CombatStart, None, None));
         buf_effects.push_all_front(effect_queue);
     }
-
-    None
 }
 
 // Drift-state ? resolution is deferred until shop/surprise-treasure paths exist
@@ -87,7 +91,7 @@ fn spawn_random_event(
     entities: &mut Vec<Entity>,
     events_seen_this_run: &mut Vec<EventName>,
     rng: &mut impl Rng,
-) -> Option<Phase> {
+) -> Option<usize> {
     if POOL_ACT1_EVENT.is_empty() {
         return None;
     }
@@ -103,7 +107,7 @@ fn spawn_random_event(
     events_seen_this_run.push(name);
     let id_event = entities.len();
     entities.push(spawn_event(name, rng));
-    Some(Phase::AwaitEventChoice { id_event })
+    Some(id_event)
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {
@@ -148,7 +152,6 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
-#[inline]
 fn push_monster_spawn(effects: &mut EffectBuf, name: MonsterName) {
     effects.push(Effect::direct(
         EffectKind::MonsterSpawn { name },

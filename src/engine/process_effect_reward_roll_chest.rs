@@ -7,8 +7,8 @@ use crate::consts::CHEST_SMALL;
 use crate::consts::ChestParams;
 use crate::entity::Entity;
 use crate::types::ChestKind;
-use crate::types::Phase;
 use crate::types::RelicName;
+use crate::types::RewardState;
 use crate::utils::add_relic_reward_for_roll;
 
 pub fn process_effect_reward_roll_chest(
@@ -16,7 +16,7 @@ pub fn process_effect_reward_roll_chest(
     id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-) -> Option<Phase> {
+) -> RewardState {
     let chest_params = match chest_kind {
         ChestKind::Small => CHEST_SMALL,
         ChestKind::Medium => CHEST_MEDIUM,
@@ -39,12 +39,12 @@ pub fn process_effect_reward_roll_chest(
         rng,
     ));
 
-    Some(Phase::Reward {
+    RewardState {
         id_cards: Vec::new(),
         id_relic,
         id_potion: None,
         gold,
-    })
+    }
 }
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {

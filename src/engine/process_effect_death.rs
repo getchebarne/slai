@@ -7,7 +7,6 @@ use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
-use crate::types::Phase;
 
 pub fn process_effect_death(
     id_target: usize,
@@ -16,13 +15,13 @@ pub fn process_effect_death(
     monster_count: u8,
     entities: &mut [Entity],
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
-    // Character death: abandon anything pending and mark dead so
-    // derive_phase returns Phase::GameOver on the natural drain
+) {
+    // Character death: clear pending work and mark dead (process_queue exits
+    // on the dead flag; FFI derives GameOver from it)
     if id_target == id_character {
         entities[id_character].dead = true;
         effect_queue.clear();
-        return None;
+        return;
     }
 
     // Monster-only path
@@ -111,6 +110,4 @@ pub fn process_effect_death(
             effect_queue.push_front(e);
         }
     }
-
-    None
 }

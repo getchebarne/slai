@@ -15,7 +15,6 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
-use crate::types::Phase;
 use crate::types::Vitals;
 
 pub fn process_effect_turn_start(
@@ -27,7 +26,7 @@ pub fn process_effect_turn_start(
     id_monsters: &[usize],
     nightmare_pending: bool,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     // Stack locals
     let mut buf_effects = EffectBuf::new();
 
@@ -204,5 +203,4 @@ pub fn process_effect_turn_start(
     }
 
     buf_effects.push_all_front(effect_queue);
-    None
 }

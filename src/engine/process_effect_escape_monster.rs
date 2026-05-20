@@ -4,7 +4,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::types::Phase;
 
 // Silently remove a monster from combat: flag it dead WITHOUT firing the
 // on-death hook chain
@@ -15,7 +14,7 @@ pub fn process_effect_escape_monster(
     entities: &mut [Entity],
     escaped_this_combat: &mut bool,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     entities[id_target].dead = true;
     *escaped_this_combat = true;
 
@@ -30,5 +29,4 @@ pub fn process_effect_escape_monster(
             target: Target::Direct(None),
         });
     }
-    None
 }

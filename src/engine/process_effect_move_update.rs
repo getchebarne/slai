@@ -4,7 +4,6 @@ use crate::entity::Entity;
 use crate::entity::push_move_history;
 use crate::monsters::get_next_move;
 use crate::monsters::is_cycle_boundary;
-use crate::types::Phase;
 
 pub fn process_effect_move_update(
     entity: &mut Entity,
@@ -12,7 +11,7 @@ pub fn process_effect_move_update(
     id_alive_monsters: &[usize],
     ascension_level: u8,
     rng: &mut impl Rng,
-) -> Option<Phase> {
+) {
     // Get next move
     let move_next = get_next_move(entity, entity_id, id_alive_monsters, ascension_level, rng);
 
@@ -27,5 +26,4 @@ pub fn process_effect_move_update(
     if is_cycle_boundary(entity.monster_name, move_idx) {
         entity.monster_cycle_count += 1;
     }
-    None
 }

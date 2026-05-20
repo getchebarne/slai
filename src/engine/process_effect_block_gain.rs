@@ -4,7 +4,6 @@ use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
-use crate::types::Phase;
 use crate::types::Vitals;
 
 pub fn process_effect_block_gain(
@@ -12,7 +11,7 @@ pub fn process_effect_block_gain(
     modifiers: &Modifiers,
     amount: u16,
     from_card: bool,
-) -> Option<Phase> {
+) {
     let mut value = amount as f32;
 
     // Card-sourced block runs Dexterity then Frail
@@ -29,6 +28,4 @@ pub fn process_effect_block_gain(
     if final_block > 0 {
         vitals.block = (vitals.block + final_block).min(MAX_BLOCK);
     }
-
-    None
 }

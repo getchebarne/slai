@@ -5,7 +5,6 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::types::CardKind;
-use crate::types::Phase;
 
 // Flechettes: deal `damage` per Skill currently in hand. Hand snapshot at
 // handler time; Flechettes itself was already moved to discard by card_play
@@ -18,7 +17,7 @@ pub fn process_effect_flechettes_damage(
     id_target: usize,
     damage: u16,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     let num_skills_in_hand = id_hand
         .iter()
         .filter(|&&id| entities[id].card_kind == CardKind::Skill)
@@ -30,5 +29,4 @@ pub fn process_effect_flechettes_damage(
             target: Target::Direct(Some(id_target)),
         });
     }
-    None
 }

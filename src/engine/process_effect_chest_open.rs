@@ -8,14 +8,13 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::Location;
 use crate::map::room_at_mut;
-use crate::types::Phase;
 
 pub fn process_effect_chest_open(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &mut Vec<Entity>,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     let Location::Overworld { y, x } = location else {
         panic!("ChestOpen outside Overworld");
     };
@@ -32,6 +31,4 @@ pub fn process_effect_chest_open(
         id_source: None,
         target: Target::Direct(None),
     });
-
-    None
 }

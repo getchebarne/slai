@@ -6,7 +6,6 @@ use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
-use crate::types::Phase;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::utils::pick_from_pool;
@@ -20,7 +19,7 @@ pub fn process_effect_relic_grant_random(
     id_relics: &mut [Option<usize>; RelicName::COUNT],
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-) -> Option<Phase> {
+) {
     let rolled_tier = tier.unwrap_or_else(|| roll_tier(rng));
     let name = match rolled_tier {
         RelicTier::Common => pick_from_pool(POOL_COMMON_RELIC, id_relics, rng)
@@ -36,7 +35,6 @@ pub fn process_effect_relic_grant_random(
         _ => RelicName::Circlet,
     };
     grant_relic(name, id_relics, entities);
-    None
 }
 
 fn roll_tier(rng: &mut impl Rng) -> RelicTier {

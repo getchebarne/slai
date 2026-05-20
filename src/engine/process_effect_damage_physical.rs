@@ -8,7 +8,6 @@ use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
-use crate::types::Phase;
 use crate::utils::scale_attack_damage;
 
 // Unified physical-damage handler. `if_poisoned` gates the hit: when true
@@ -25,10 +24,10 @@ pub fn process_effect_damage_physical(
     amount: u16,
     if_poisoned: bool,
     effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
+) {
     let target = &entities[id_target];
     if if_poisoned && (target.dead || !modifier_has(&target.modifiers, ModifierKind::Poison)) {
-        return None;
+        return;
     }
 
     let id_actor = get_id_actor(entities, id_character, id_source);
@@ -81,5 +80,4 @@ pub fn process_effect_damage_physical(
             target: Target::Direct(Some(id_target)),
         });
     }
-    None
 }
