@@ -189,16 +189,16 @@ pub enum TargetResolution {
 
 // Iterate in reverse so push_front yields `ids` in original queue order
 pub(crate) fn enqueue_direct_targets(
-    queue: &mut std::collections::VecDeque<Effect>,
-    kind: EffectKind,
     id_source: Option<usize>,
-    ids: &[usize],
+    id_targets: &[usize],
+    kind: EffectKind,
+    queue: &mut VecDeque<Effect>,
 ) {
-    for &id in ids.iter().rev() {
+    for &id_target in id_targets.iter().rev() {
         queue.push_front(Effect {
             kind,
             id_source,
-            target: Target::Direct(Some(id)),
+            target: Target::Direct(Some(id_target)),
         });
     }
 }
@@ -395,7 +395,12 @@ fn resolve_or_halt(
     );
     match resolution {
         TargetResolution::Resolved => {
-            enqueue_direct_targets(&mut state.effect_queue, kind, id_source, buf_cands.as_slice());
+            enqueue_direct_targets(
+                id_source,
+                buf_cands.as_slice(),
+                kind,
+                &mut state.effect_queue,
+            );
             false
         }
         TargetResolution::AwaitInput { .. } => true,
@@ -1204,27 +1209,18 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::CardDiscoverSelect { kind, count } => {
-            let id_cards = process_effect_card_discover_select::process_effect_card_discover_select(
+            let Some(Context::Combat(combat)) = &mut state.context else {
+                unreachable!();
+            };
+            process_effect_card_discover_select::process_effect_card_discover_select(
                 kind,
                 CardColor::Green, // TODO: other characters
                 count,
                 &mut state.entities,
+                combat,
+                &mut state.effect_queue,
                 &mut state.rng,
             );
-            // Stash rolled candidates on combat.id_pick and queue a
-            // CardDiscoverPick halt for the player's pick
-            let Some(Context::Combat(combat)) = &mut state.context else {
-                unreachable!();
-            };
-            combat.id_pick = id_cards;
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardDiscoverPick,
-                id_source: None,
-                target: Target::Resolve {
-                    candidates: CandidatePool::IdPick,
-                    selection: SelectionKind::Input { count: 1 },
-                },
-            });
         }
         EffectKind::GoldLoss { amount } => {
             let character = &mut state.entities[state.id_character];

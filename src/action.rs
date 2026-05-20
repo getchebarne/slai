@@ -69,7 +69,6 @@ pub enum Action {
 }
 
 fn validate(action: &Action, state: &GameState) -> Result<(), String> {
-
     // 1. GameOver: character dead
     if state.entities[state.id_character].dead {
         return Err("GameOver: character dead".into());
@@ -335,16 +334,23 @@ fn handle_hand_select(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Eff
     let id_cards: Vec<usize> = idxs
         .iter()
         .map(|&idx| {
-            combat
-                .id_hand
-                .get(idx)
-                .copied()
-                .ok_or_else(|| format!("Invalid hand index {}: {} cards", idx, combat.id_hand.len()))
+            combat.id_hand.get(idx).copied().ok_or_else(|| {
+                format!("Invalid hand index {}: {} cards", idx, combat.id_hand.len())
+            })
         })
         .collect::<Result<_, _>>()?;
     // Template carries kind+id_source; DiscardSource etc. survive intact
-    let template = state.effect_queue.pop_front().expect("HandSelect: head missing");
-    enqueue_direct_targets(&mut state.effect_queue, template.kind, template.id_source, &id_cards);
+    let template = state
+        .effect_queue
+        .pop_front()
+        .expect("HandSelect: head missing");
+
+    enqueue_direct_targets(
+        template.id_source,
+        &id_cards,
+        template.kind,
+        &mut state.effect_queue,
+    );
     Ok(Vec::new())
 }
 
@@ -379,8 +385,11 @@ fn handle_room_select(state: &mut GameState, idx_column: usize) -> Result<Vec<Ef
 
     // Resolve the queue-head RoomSelect: Resolve -> Direct(picked room).
     // The Direct RoomSelect arm updates state.location and queues RoomEnter
-    state.effect_queue.front_mut().expect("RoomSelect: head missing").target =
-        Target::Direct(Some(id_room));
+    state
+        .effect_queue
+        .front_mut()
+        .expect("RoomSelect: head missing")
+        .target = Target::Direct(Some(id_room));
     Ok(Vec::new())
 }
 
@@ -500,9 +509,7 @@ fn handle_potion_use(
         .ok_or_else(|| format!("PotionUse: slot {} is empty", idx_slot))?;
     let potion = &state.entities[id_potion];
 
-    if potion.potion_combat_only
-        && !matches!(&state.context, Some(Context::Combat(_)))
-    {
+    if potion.potion_combat_only && !matches!(&state.context, Some(Context::Combat(_))) {
         return Err(format!(
             "PotionUse: {:?} is combat-only",
             potion.potion_name
@@ -577,8 +584,11 @@ fn handle_card_discover_select(
         .get(idx_option)
         .ok_or_else(|| format!("CardDiscoverSelect: idx_option {} out of range", idx_option))?;
     // Resolve the queue-head CardDiscoverPick: Resolve -> Direct(picked)
-    state.effect_queue.front_mut().expect("Discover: head missing").target =
-        Target::Direct(Some(id_card));
+    state
+        .effect_queue
+        .front_mut()
+        .expect("Discover: head missing")
+        .target = Target::Direct(Some(id_card));
     Ok(Vec::new())
 }
 
@@ -627,10 +637,7 @@ fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<E
     Ok(effects)
 }
 
-fn handle_deck_select(
-    state: &mut GameState,
-    idx_option: usize,
-) -> Result<Vec<Effect>, String> {
+fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
     let EffectKind::DeckSelectPick { kind } = state
         .effect_queue
         .front()
