@@ -987,7 +987,10 @@ impl PyAction {
 
     fn __repr__(&self) -> String {
         match self.kind {
-            Some(k) => format!("PyAction({:?}, {:?}, kind={})", self.action_type, self.idxs, k),
+            Some(k) => format!(
+                "PyAction({:?}, {:?}, kind={})",
+                self.action_type, self.idxs, k
+            ),
             None => format!("PyAction({:?}, {:?})", self.action_type, self.idxs),
         }
     }
@@ -1092,7 +1095,9 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("EventChoice expects [idx_option], got {n} idxs")),
         },
         PyActionType::DeckSelect => match idxs.len() {
-            1 => Ok(Action::DeckSelect { idx_option: idxs[0] }),
+            1 => Ok(Action::DeckSelect {
+                idx_option: idxs[0],
+            }),
             n => Err(format!("DeckSelect expects [idx_option], got {n} idxs")),
         },
     }
@@ -1669,9 +1674,17 @@ pub struct PyShop {}
 #[pyclass(frozen, name = "PendingInput")]
 #[derive(Debug, Clone)]
 pub enum PyPendingInput {
-    HandSelect { kind: PyHandSelectKind, num: u8 },
-    Discover { cards: Vec<PyCard> },
-    DeckSelect { kind: PyDeckSelectKind, cards: Vec<PyCard> },
+    HandSelect {
+        kind: PyHandSelectKind,
+        num: u8,
+    },
+    Discover {
+        cards: Vec<PyCard>,
+    },
+    DeckSelect {
+        kind: PyDeckSelectKind,
+        cards: Vec<PyCard>,
+    },
     RoomSelect {},
 }
 
@@ -1869,19 +1882,23 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
     let (hand, pile_draw, pile_discard, pile_exhaust, energy) =
         if matches!(state.active, ActiveContext::Combat) {
             (
-                state.id_hand
+                state
+                    .id_hand
                     .iter()
                     .map(|&id| snapshot_card(state, id))
                     .collect(),
-                state.id_pile_draw
+                state
+                    .id_pile_draw
                     .iter()
                     .map(|&id| snapshot_card(state, id))
                     .collect(),
-                state.id_pile_discard
+                state
+                    .id_pile_discard
                     .iter()
                     .map(|&id| snapshot_card(state, id))
                     .collect(),
-                state.id_pile_exhaust
+                state
+                    .id_pile_exhaust
                     .iter()
                     .map(|&id| snapshot_card(state, id))
                     .collect(),
@@ -1904,7 +1921,8 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
     PyGameState {
         character: snapshot_character(state),
         monsters: snapshot_monsters(state),
-        deck: state.id_deck
+        deck: state
+            .id_deck
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
@@ -1926,19 +1944,23 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
 fn snapshot_context(state: &GameState) -> Option<PyContext> {
     match state.active {
         ActiveContext::Combat => Some(PyContext::Combat(PyCombat {
-            hand: state.id_hand
+            hand: state
+                .id_hand
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            pile_draw: state.id_pile_draw
+            pile_draw: state
+                .id_pile_draw
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            pile_discard: state.id_pile_discard
+            pile_discard: state
+                .id_pile_discard
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            pile_exhaust: state.id_pile_exhaust
+            pile_exhaust: state
+                .id_pile_exhaust
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
@@ -1949,17 +1971,24 @@ fn snapshot_context(state: &GameState) -> Option<PyContext> {
             },
         })),
         ActiveContext::Reward => Some(PyContext::Reward(PyReward {
-            cards: state.reward_id_cards
+            cards: state
+                .reward_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            relic: state.reward_id_relic.map(|id| snapshot_relic(&state.entities[id])),
-            potion: state.reward_id_potion.map(|id| snapshot_potion(&state.entities[id])),
+            relic: state
+                .reward_id_relic
+                .map(|id| snapshot_relic(&state.entities[id])),
+            potion: state
+                .reward_id_potion
+                .map(|id| snapshot_potion(&state.entities[id])),
             gold: state.reward_gold,
         })),
         ActiveContext::Event => Some(PyContext::Event(snapshot_event(
             state,
-            state.id_event.expect("Event context requires state.id_event"),
+            state
+                .id_event
+                .expect("Event context requires state.id_event"),
         ))),
         ActiveContext::Shop => Some(PyContext::Shop(PyShop {})),
         ActiveContext::Map | ActiveContext::RestSite | ActiveContext::Chest => None,
@@ -1997,7 +2026,8 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
         }),
         EffectKind::CardDiscoverPick => {
             let cards = if matches!(state.active, ActiveContext::Combat) {
-                state.id_pick
+                state
+                    .id_pick
                     .iter()
                     .map(|&id| snapshot_card(state, id))
                     .collect()
@@ -2019,7 +2049,8 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
 }
 
 fn filtered_deck_cards(state: &GameState, kind: DeckSelectKind) -> Vec<PyCard> {
-    state.id_deck
+    state
+        .id_deck
         .iter()
         .copied()
         .filter(|&id| crate::events::card_in_deck_filter(&state.entities[id], kind))
@@ -2062,7 +2093,8 @@ fn snapshot_phase(state: &GameState) -> PyPhase {
                 EffectKind::RoomSelect => PyPhase::Map {},
                 EffectKind::CardDiscoverPick => {
                     let cards = if matches!(state.active, ActiveContext::Combat) {
-                        state.id_pick
+                        state
+                            .id_pick
                             .iter()
                             .map(|&id| snapshot_card(state, id))
                             .collect()
@@ -2083,22 +2115,30 @@ fn snapshot_phase(state: &GameState) -> PyPhase {
     match state.active {
         ActiveContext::Combat => PyPhase::CombatDefault {},
         ActiveContext::Reward => PyPhase::Reward {
-            cards: state.reward_id_cards
+            cards: state
+                .reward_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            relic: state.reward_id_relic.map(|id| snapshot_relic(&state.entities[id])),
-            potion: state.reward_id_potion.map(|id| snapshot_potion(&state.entities[id])),
+            relic: state
+                .reward_id_relic
+                .map(|id| snapshot_relic(&state.entities[id])),
+            potion: state
+                .reward_id_potion
+                .map(|id| snapshot_potion(&state.entities[id])),
             gold: state.reward_gold,
         },
         ActiveContext::Event => PyPhase::AwaitEventChoice {
             event: snapshot_event(
                 state,
-                state.id_event.expect("Event context requires state.id_event"),
+                state
+                    .id_event
+                    .expect("Event context requires state.id_event"),
             ),
         },
         ActiveContext::Shop => PyPhase::Shop {},
-        ActiveContext::Map | ActiveContext::RestSite | ActiveContext::Chest => match state.location {
+        ActiveContext::Map | ActiveContext::RestSite | ActiveContext::Chest => match state.location
+        {
             Location::Overworld { y, x } => {
                 if let Some(room) = crate::map::room_at(&state.id_rooms, &state.entities, y, x) {
                     match room.room_kind {
@@ -2278,10 +2318,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
         if matches!(state.active, ActiveContext::Combat) {
             (
-                is_play_restriction_satisfied(
-                    card.card_play_restriction,
-                    &state.id_pile_draw,
-                ),
+                is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw),
                 state.this_turn_discards,
                 state.this_combat_damage_instances_taken,
                 state.energy.current,
@@ -2299,12 +2336,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     PyCard {
         name: card.card_name.into(),
         display_name,
-        cost: card_effective_cost(
-            card,
-            this_turn_discards,
-            this_combat_damage,
-            energy_current,
-        ),
+        cost: card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
         cost_base: card.card_cost,
         cost_zero_once: card.card_free_to_play_once,
         cost_override: card.card_cost_override,

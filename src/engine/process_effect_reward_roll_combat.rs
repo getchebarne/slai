@@ -63,10 +63,11 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
             &mut state.rng,
         )
     });
-    state.reward_id_potion = roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod).then(|| {
-        let name = get_random_potion(&mut state.rng, false);
-        entities_push(&mut state.entities, get_potion(name))
-    });
+    state.reward_id_potion =
+        roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod).then(|| {
+            let name = get_random_potion(&mut state.rng, false);
+            entities_push(&mut state.entities, get_potion(name))
+        });
     state.reward_gold = gold_range.map(|(min, max)| state.rng.random_range(min..=max));
 
     state.active = ActiveContext::Reward;

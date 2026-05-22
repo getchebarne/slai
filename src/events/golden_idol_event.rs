@@ -52,7 +52,10 @@ const SMASH: &[Effect] = &[
 
 const HIDE: &[Effect] = &[
     Effect {
-        kind: EffectKind::MaxHealthLossPct { numer: 8, denom: 100 },
+        kind: EffectKind::MaxHealthLossPct {
+            numer: 8,
+            denom: 100,
+        },
         id_source: None,
         target: Target::Direct(None),
     },

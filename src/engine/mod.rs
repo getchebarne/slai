@@ -385,11 +385,7 @@ fn resolve_or_halt(
     let id_source_resolved = id_source.unwrap_or(state.id_character);
     let (id_hand, id_monster_picked, id_pick): (&[usize], Option<usize>, &[usize]) =
         if matches!(state.active, ActiveContext::Combat) {
-            (
-                &state.id_hand,
-                state.id_monster_picked,
-                &state.id_pick,
-            )
+            (&state.id_hand, state.id_monster_picked, &state.id_pick)
         } else {
             (&[], None, &[])
         };
@@ -610,11 +606,9 @@ fn dispatch_by_kind(
         EffectKind::HealthLoss { amount } => {
             process_effect_health_loss::process_effect_health_loss(id_target, state, amount)
         }
-        EffectKind::BlockGain { amount } => {
-            process_effect_block_gain::process_effect_block_gain(
-                id_source, id_target, state, amount,
-            )
-        }
+        EffectKind::BlockGain { amount } => process_effect_block_gain::process_effect_block_gain(
+            id_source, id_target, state, amount,
+        ),
         EffectKind::BlockSet { amount } => {
             process_effect_block_set::process_effect_block_set(id_target, state, amount)
         }
@@ -637,9 +631,7 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::ModifierRemove { kind } => {
-            process_effect_modifier_remove::process_effect_modifier_remove(
-                id_target, state, kind,
-            )
+            process_effect_modifier_remove::process_effect_modifier_remove(id_target, state, kind)
         }
         EffectKind::ModifierTick => {
             process_effect_modifier_tick::process_effect_modifier_tick(id_target, state)
@@ -726,14 +718,10 @@ fn dispatch_by_kind(
             state, card_name, upgraded,
         ),
         EffectKind::MaxHealthGain { amount } => {
-            process_effect_max_health_gain::process_effect_max_health_gain(
-                id_target, state, amount,
-            )
+            process_effect_max_health_gain::process_effect_max_health_gain(id_target, state, amount)
         }
         EffectKind::MaxHealthLoss { amount } => {
-            process_effect_max_health_loss::process_effect_max_health_loss(
-                id_target, state, amount,
-            )
+            process_effect_max_health_loss::process_effect_max_health_loss(id_target, state, amount)
         }
         EffectKind::ChestOpen => process_effect_chest_open::process_effect_chest_open(state),
         EffectKind::PotionUse => {

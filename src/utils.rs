@@ -75,7 +75,6 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
-
 // Used by both elite combat-end and chest opening
 pub fn add_relic_reward_for_roll(
     roll: u8,

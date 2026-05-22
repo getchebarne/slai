@@ -22,8 +22,7 @@ use crate::types::RoomKind;
 use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
-    let room_kind =
-        get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
+    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     let mut buf_effects = EffectBuf::new();
 
     match room_kind {

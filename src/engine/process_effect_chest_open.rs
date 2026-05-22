@@ -10,8 +10,8 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         panic!("ChestOpen outside Overworld");
     };
 
-    let room = room_at_mut(&state.id_rooms, &mut state.entities, y, x)
-        .expect("ChestOpen room missing");
+    let room =
+        room_at_mut(&state.id_rooms, &mut state.entities, y, x).expect("ChestOpen room missing");
     let chest_kind = room
         .room_chest_kind
         .expect("ChestOpen with no chest_kind on room");

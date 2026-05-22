@@ -35,5 +35,4 @@ const OPTIONS: &[EventOption] = &[
     },
 ];
 
-pub static PURIFICATION_SHRINE: Entity =
-    make_entity_event(EventName::PurificationShrine, OPTIONS);
+pub static PURIFICATION_SHRINE: Entity = make_entity_event(EventName::PurificationShrine, OPTIONS);

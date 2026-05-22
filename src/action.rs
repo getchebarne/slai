@@ -96,7 +96,10 @@ fn validate_hand_select(action: &Action, state: &GameState) -> Result<(), String
     let Action::HandSelect { idxs } = action else {
         return Err(format!("Expected HandSelect, got {:?}", action));
     };
-    let front = state.effect_queue.front().expect("Modal::HandSelect requires queue head");
+    let front = state
+        .effect_queue
+        .front()
+        .expect("Modal::HandSelect requires queue head");
     if let Target::Resolve {
         selection: SelectionKind::Input { count },
         ..
@@ -167,9 +170,9 @@ fn validate_shop(action: &Action) -> Result<(), String> {
 
 fn validate_map(action: &Action) -> Result<(), String> {
     match action {
-        Action::RoomSelect { .. }
-        | Action::PotionUse { .. }
-        | Action::PotionDiscard { .. } => Ok(()),
+        Action::RoomSelect { .. } | Action::PotionUse { .. } | Action::PotionDiscard { .. } => {
+            Ok(())
+        }
         _ => Err(format!("Action {:?} invalid on Map", action)),
     }
 }
@@ -258,10 +261,7 @@ fn handle_card_play(
     let id_card = lookup_idx(&state.id_hand, idx_hand)?;
     let card = &state.entities[id_card];
 
-    if !is_play_restriction_satisfied(
-        card.card_play_restriction,
-        &state.id_pile_draw,
-    ) {
+    if !is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw) {
         return Err(format!(
             "Card {:?} not playable right now (restriction: {:?})",
             card.card_name, card.card_play_restriction,
@@ -344,14 +344,14 @@ fn handle_hand_select(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Eff
     if !matches!(state.active, ActiveContext::Combat) {
         return Err("HandSelect outside Combat context".into());
     }
-    let id_cards: Vec<usize> = idxs
-        .iter()
-        .map(|&idx| {
-            state.id_hand.get(idx).copied().ok_or_else(|| {
-                format!("Invalid hand index {}: {} cards", idx, state.id_hand.len())
+    let id_cards: Vec<usize> =
+        idxs.iter()
+            .map(|&idx| {
+                state.id_hand.get(idx).copied().ok_or_else(|| {
+                    format!("Invalid hand index {}: {} cards", idx, state.id_hand.len())
+                })
             })
-        })
-        .collect::<Result<_, _>>()?;
+            .collect::<Result<_, _>>()?;
     // Template carries kind+id_source; DiscardSource etc. survive intact
     let template = state
         .effect_queue
@@ -408,10 +408,7 @@ fn handle_room_select(state: &mut GameState, idx_column: usize) -> Result<Vec<Ef
 
 fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
     debug_assert!(matches!(state.active, ActiveContext::Reward));
-    let id_card = lookup_idx(
-        &state.reward_id_cards,
-        idx_reward,
-    )?;
+    let id_card = lookup_idx(&state.reward_id_cards, idx_reward)?;
     let card = &state.entities[id_card];
     let card_name = card.card_name;
     let upgraded = card.card_upgraded;
@@ -585,7 +582,8 @@ fn handle_card_discover_select(
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
     debug_assert!(matches!(state.active, ActiveContext::Combat));
-    let id_card = *state.id_pick
+    let id_card = *state
+        .id_pick
         .get(idx_option)
         .ok_or_else(|| format!("CardDiscoverSelect: idx_option {} out of range", idx_option))?;
     // Resolve the queue-head CardDiscoverPick: Resolve -> Direct(picked)
@@ -649,7 +647,8 @@ fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Ef
     else {
         unreachable!();
     };
-    let id_card = state.id_deck
+    let id_card = state
+        .id_deck
         .iter()
         .copied()
         .filter(|&id| card_in_deck_filter(&state.entities[id], kind))

@@ -363,4 +363,3 @@ pub enum RelicTier {
     Shop,
     Special,
 }
-
