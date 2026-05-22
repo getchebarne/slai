@@ -110,16 +110,9 @@ use crate::types::Modal;
 use crate::utils::fill_alive_monster_ids;
 use crate::utils::shuffle;
 
-// Initial capacity for the per-handler effect builder on GameState
-pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
-
-// Initial capacity for the per-resolve candidate buffer on GameState. Sized
-// for CandidatePool::DeckFiltered worst case (full deck), with headroom
-pub const MAX_CANDIDATES: usize = 128;
-
 // Drain state.buf_effects back-to-front into the effect_queue front, so the
 // effects pop in the order they were pushed into buf_effects
-pub fn flush_buf_effects_front(state: &mut GameState) {
+pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
     while let Some(e) = state.buf_effects.pop() {
         state.effect_queue.push_front(e);
     }
@@ -131,7 +124,7 @@ pub enum TargetResolution {
 }
 
 // Append an Entity to the arena; returns the assigned id
-pub fn entities_push(entities: &mut Vec<Entity>, e: Entity) -> usize {
+pub fn push_entity(entities: &mut Vec<Entity>, e: Entity) -> usize {
     let id = entities.len();
     entities.push(e);
     id

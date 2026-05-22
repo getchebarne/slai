@@ -4,8 +4,8 @@ use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::engine::entities_push;
-use crate::engine::flush_buf_effects_front;
+use crate::engine::push_entity;
+use crate::engine::flush_effects_from_buf_to_queue_front;
 use crate::entity::Entity;
 use crate::events::POOL_ACT1_EVENT;
 use crate::events::spawn_event;
@@ -77,7 +77,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         state
             .buf_effects
             .push(Effect::direct(EffectKind::CombatStart, None, None));
-        flush_buf_effects_front(state);
+        flush_effects_from_buf_to_queue_front(state);
     }
 }
 
@@ -99,7 +99,7 @@ fn spawn_random_event(
         }
     };
     events_seen_this_run.push(name);
-    let id_event = entities_push(entities, spawn_event(name, rng));
+    let id_event = push_entity(entities, spawn_event(name, rng));
     Some(id_event)
 }
 

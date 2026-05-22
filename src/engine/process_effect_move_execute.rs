@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::flush_buf_effects_front;
+use crate::engine::flush_effects_from_buf_to_queue_front;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
@@ -42,5 +42,5 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
             });
         }
     }
-    flush_buf_effects_front(state);
+    flush_effects_from_buf_to_queue_front(state);
 }

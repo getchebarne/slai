@@ -2,7 +2,7 @@ use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::game::GameState;
 use crate::relics::iter_owned_relics;
 use crate::utils::shuffle;
@@ -20,7 +20,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     for i in 0..state.id_deck.len() {
         let id_card_src = state.id_deck[i];
         let card = state.entities[id_card_src];
-        let id_card = entities_push(&mut state.entities, card);
+        let id_card = push_entity(&mut state.entities, card);
         if card.card_innate {
             innate_ids[innate_n] = id_card;
             innate_n += 1;

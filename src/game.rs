@@ -18,7 +18,9 @@ use crate::consts::EVENT_CHANCE_SHOP_BASE;
 use crate::consts::EVENT_CHANCE_TREASURE_BASE;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
+use crate::consts::MAX_CANDIDATES;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::consts::MAX_EFFECTS_PER_HANDLER;
 use crate::consts::MAX_ENTITIES;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_DECK;
@@ -28,10 +30,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::MAX_CANDIDATES;
-use crate::engine::MAX_EFFECTS_PER_HANDLER;
-use crate::engine::entities_push;
 use crate::engine::process_queue;
+use crate::engine::push_entity;
 use crate::entity::Entity;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act1_monsters;
@@ -133,10 +133,10 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
     // Initialize character
     let character = spawn_silent(ascension);
-    entities_push(&mut entities, character);
+    push_entity(&mut entities, character);
 
     // Innate start relic
-    let id_snake_ring = entities_push(&mut entities, get_relic(RelicName::SnakeRing));
+    let id_snake_ring = push_entity(&mut entities, get_relic(RelicName::SnakeRing));
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
     id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
 
@@ -144,7 +144,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let deck_starter = get_silent_starter_deck();
     let mut id_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
     for card in deck_starter {
-        let id_card = entities_push(&mut entities, card);
+        let id_card = push_entity(&mut entities, card);
         id_deck.push(id_card);
     }
 

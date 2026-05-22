@@ -1,6 +1,6 @@
 use crate::consts::MAX_SIZE_HAND;
 use crate::consts::NIGHTMARE_COPIES;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::game::GameState;
 
 pub fn process_effect_id_card_nightmare_spawn(state: &mut GameState) {
@@ -11,7 +11,7 @@ pub fn process_effect_id_card_nightmare_spawn(state: &mut GameState) {
 
     let template = state.entities[id_template];
     for _ in 0..NIGHTMARE_COPIES {
-        let id_card = entities_push(&mut state.entities, template);
+        let id_card = push_entity(&mut state.entities, template);
         if state.id_hand.len() < MAX_SIZE_HAND {
             state.id_hand.push(id_card);
         } else {

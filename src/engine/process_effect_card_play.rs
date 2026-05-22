@@ -2,7 +2,7 @@ use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::flush_buf_effects_front;
+use crate::engine::flush_effects_from_buf_to_queue_front;
 use crate::entity::CardCostKind;
 use crate::entity::card_effective_cost;
 use crate::game::GameState;
@@ -218,5 +218,5 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    flush_buf_effects_front(state);
+    flush_effects_from_buf_to_queue_front(state);
 }

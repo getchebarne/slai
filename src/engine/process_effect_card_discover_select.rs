@@ -4,7 +4,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -19,7 +19,7 @@ pub fn process_effect_card_discover_select(
         get_random_cards_of_kind_and_color(kind, color, count as usize, &mut state.rng);
     state.id_pick.clear();
     for card_pick in card_picks {
-        let id = entities_push(&mut state.entities, card_pick);
+        let id = push_entity(&mut state.entities, card_pick);
         state.id_pick.push(id);
     }
     state.effect_queue.push_front(Effect {

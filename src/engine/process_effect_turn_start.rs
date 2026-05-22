@@ -6,7 +6,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::flush_buf_effects_front;
+use crate::engine::flush_effects_from_buf_to_queue_front;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
@@ -33,7 +33,9 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     let vitals = &mut entity.vitals;
 
     if modifier_has(modifiers, ModifierKind::Poison) {
-        state.buf_effects.push(Effect::direct(EffectKind::PoisonTick, None, Some(id_actor)));
+        state
+            .buf_effects
+            .push(Effect::direct(EffectKind::PoisonTick, None, Some(id_actor)));
     }
 
     let mut new_block: u16 = 0;
@@ -191,5 +193,5 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
     }
 
-    flush_buf_effects_front(state);
+    flush_effects_from_buf_to_queue_front(state);
 }

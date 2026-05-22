@@ -12,7 +12,7 @@ use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_ROW_TREASURE;
 use crate::consts::MAP_WIDTH;
 use crate::consts::PATH_DENSITY;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::entity::Entity;
 use crate::entity::make_entity_room;
 use crate::game::Location;
@@ -139,7 +139,7 @@ fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> (IdRooms, Location) 
     for (y, row) in grid.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
             if let Some(room) = cell {
-                let id_room = entities_push(
+                let id_room = push_entity(
                     entities,
                     make_entity_room(room.y, room.x, room.room_kind, room.edges),
                 );

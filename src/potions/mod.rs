@@ -19,7 +19,7 @@ use strum::EnumCount;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::entity::Entity;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
@@ -157,7 +157,7 @@ pub fn grant_potion(
         Some(s) => s,
         None => return None,
     };
-    let id_potion = entities_push(entities, get_potion(name));
+    let id_potion = push_entity(entities, get_potion(name));
     entities[id_character].potion_slots[slot] = Some(id_potion);
     Some(slot)
 }

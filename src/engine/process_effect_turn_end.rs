@@ -5,7 +5,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::flush_buf_effects_front;
+use crate::engine::flush_effects_from_buf_to_queue_front;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -240,5 +240,5 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    flush_buf_effects_front(state);
+    flush_effects_from_buf_to_queue_front(state);
 }

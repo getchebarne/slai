@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::game::Energy;
 use crate::game::GameState;
 use crate::monsters::spawn_monster;
@@ -40,7 +40,7 @@ pub fn process_effect_monster_spawn(
         monster_child.vitals.health_max = health_parent;
     }
 
-    let id_child = entities_push(&mut state.entities, monster_child);
+    let id_child = push_entity(&mut state.entities, monster_child);
 
     let slot = state
         .id_monsters

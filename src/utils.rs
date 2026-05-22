@@ -13,7 +13,7 @@ use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_MONSTERS;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
@@ -97,7 +97,7 @@ pub fn add_relic_reward_for_roll(
         pick_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
     };
 
-    let id = entities_push(entities, get_relic(name));
+    let id = push_entity(entities, get_relic(name));
     id
 }
 
@@ -154,7 +154,7 @@ pub fn roll_card_rewards(
 
         rolled_card_names[out.len()] = name;
         let card = get_card(name, false);
-        let id_card = entities_push(entities, card);
+        let id_card = push_entity(entities, card);
         out.push(id_card);
     }
 

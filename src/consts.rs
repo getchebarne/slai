@@ -112,3 +112,10 @@ pub const POTION_TH_UNCOMMON: u8 = 90;
 
 // Discovery: number of card options offered
 pub const DISCOVER_PICK_COUNT: u8 = 3;
+
+// Initial capacity for the per-handler effect builder on GameState
+pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
+
+// Initial capacity for the per-resolve candidate buffer on GameState. Sized
+// for CandidatePool::DeckFiltered worst case (full deck), with headroom
+pub const MAX_CANDIDATES: usize = 128;

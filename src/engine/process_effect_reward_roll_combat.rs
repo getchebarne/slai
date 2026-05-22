@@ -11,7 +11,7 @@ use crate::consts::POTION_DROP_CHANCE_MOD_HIT;
 use crate::consts::POTION_DROP_CHANCE_MOD_MAX;
 use crate::consts::POTION_DROP_CHANCE_MOD_MIN;
 use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion;
@@ -66,7 +66,7 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
     state.reward_id_potion =
         roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod).then(|| {
             let name = get_random_potion(&mut state.rng, false);
-            entities_push(&mut state.entities, get_potion(name))
+            push_entity(&mut state.entities, get_potion(name))
         });
     state.reward_gold = gold_range.map(|(min, max)| state.rng.random_range(min..=max));
 

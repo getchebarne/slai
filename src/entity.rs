@@ -10,7 +10,7 @@ use crate::consts::MAX_SIZE_HAND;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::events::EventOption;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
@@ -398,7 +398,7 @@ pub fn add_card_to_hand_or_discard(
     id_pile_discard: &mut Vec<usize>,
     card: Entity,
 ) -> usize {
-    let id_card = entities_push(entities, card);
+    let id_card = push_entity(entities, card);
     if id_hand.len() < MAX_SIZE_HAND {
         id_hand.push(id_card);
     } else {

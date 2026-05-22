@@ -1,7 +1,7 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::engine::entities_push;
+use crate::engine::push_entity;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
@@ -51,6 +51,6 @@ pub fn grant_relic(
     id_relics: &mut [Option<usize>; RelicName::COUNT],
     entities: &mut Vec<Entity>,
 ) {
-    let id = entities_push(entities, get_relic(name));
+    let id = push_entity(entities, get_relic(name));
     id_relics[name as usize] = Some(id);
 }
