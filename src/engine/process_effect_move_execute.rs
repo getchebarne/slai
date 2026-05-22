@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::EffectBuf;
+use crate::engine::flush_buf_effects_front;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
@@ -25,21 +25,22 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
     };
 
     let id_character = state.id_character;
-    let mut buf = EffectBuf::new();
-    for e in entity.moves[move_idx].effects.iter() {
-        buf.push(Effect {
+    let effects: &'static [Effect] = state.entities[id_monster].moves[move_idx].effects;
+    state.buf_effects.clear();
+    for e in effects.iter() {
+        state.buf_effects.push(Effect {
             id_source: Some(id_monster),
             ..*e
         });
         if let Some(amount) = stacks_thievery
             && matches!(e.kind, EffectKind::DamagePhysical { .. })
         {
-            buf.push(Effect {
+            state.buf_effects.push(Effect {
                 kind: EffectKind::GoldSteal { amount },
                 id_source: Some(id_monster),
                 target: Target::Direct(Some(id_character)),
             });
         }
     }
-    buf.push_all_front(&mut state.effect_queue);
+    flush_buf_effects_front(state);
 }

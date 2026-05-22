@@ -2,7 +2,7 @@ use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::EffectBuf;
+use crate::engine::flush_buf_effects_front;
 use crate::entity::CardCostKind;
 use crate::entity::card_effective_cost;
 use crate::game::GameState;
@@ -79,29 +79,29 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         state.entities[id_card].card_free_to_play_once = false;
     }
 
-    let mut buf_effects = EffectBuf::new();
+    state.buf_effects.clear();
 
-    buf_effects.push(Effect {
+    state.buf_effects.push(Effect {
         kind: EffectKind::EnergyLoss { amount: cost },
         id_source: None,
         target: Target::Direct(None),
     });
 
     if card.card_exhaust {
-        buf_effects.push(Effect {
+        state.buf_effects.push(Effect {
             kind: EffectKind::CardExhaust,
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });
     } else if card.card_kind == CardKind::Power {
-        buf_effects.push(Effect {
+        state.buf_effects.push(Effect {
             kind: EffectKind::CardRemove,
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });
     } else {
         // Not a real discard: skips this_turn_discards and Reflex
-        buf_effects.push(Effect {
+        state.buf_effects.push(Effect {
             kind: EffectKind::CardMoveToDiscard,
             id_source: None,
             target: Target::Direct(Some(id_card)),
@@ -112,7 +112,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     if modifier_has(char_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
-        buf_effects.push(Effect {
+        state.buf_effects.push(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
@@ -125,7 +125,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for &id_monster in alive_monsters {
-            buf_effects.push(Effect {
+            state.buf_effects.push(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: stacks as u16,
                 },
@@ -140,7 +140,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             let monster_modifiers = &state.entities[id_monster].modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
-                buf_effects.push(Effect {
+                state.buf_effects.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks as u16,
                     },
@@ -158,14 +158,14 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let reps = if burst { 2 * multiplier } else { multiplier };
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
-            buf_effects.push(Effect {
+            state.buf_effects.push(Effect {
                 id_source: Some(id_card),
                 ..*e
             });
         }
     }
     if burst {
-        buf_effects.push(Effect {
+        state.buf_effects.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Burst,
                 stacks: -1,
@@ -176,7 +176,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     if card.card_kind == CardKind::Attack && modifier_has(char_modifiers, ModifierKind::Vigor) {
-        buf_effects.push(Effect {
+        state.buf_effects.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Vigor,
             },
@@ -190,7 +190,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         let mods_monster = &state.entities[id_monster].modifiers;
         if modifier_has(mods_monster, ModifierKind::Choke) {
             let stacks = modifier_stacks(mods_monster, ModifierKind::Choke);
-            buf_effects.push(Effect {
+            state.buf_effects.push(Effect {
                 kind: EffectKind::HealthLoss {
                     amount: stacks as u16,
                 },
@@ -206,7 +206,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             let mods_monster = &state.entities[id_monster].modifiers;
             if modifier_has(mods_monster, ModifierKind::Enrage) {
                 let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);
-                buf_effects.push(Effect {
+                state.buf_effects.push(Effect {
                     kind: EffectKind::ModifierGain {
                         kind: ModifierKind::Strength,
                         stacks,
@@ -218,5 +218,5 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    buf_effects.push_all_front(&mut state.effect_queue);
+    flush_buf_effects_front(state);
 }

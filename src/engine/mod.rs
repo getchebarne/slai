@@ -99,7 +99,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::effect::ZERO_EFFECT;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -111,78 +110,18 @@ use crate::types::Modal;
 use crate::utils::fill_alive_monster_ids;
 use crate::utils::shuffle;
 
-// Stack-allocated buffer for effects that a handler wants to push to the
-// front of the effect_queue in order. Build up effects normally, then call
-// `push_all_front` once at the end of the handler
+// Initial capacity for the per-handler effect builder on GameState
 pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
 
-pub struct EffectBuf {
-    pub effects: [Effect; MAX_EFFECTS_PER_HANDLER],
-    pub len: usize,
-}
-
-impl EffectBuf {
-    pub const fn new() -> Self {
-        Self {
-            effects: [ZERO_EFFECT; MAX_EFFECTS_PER_HANDLER],
-            len: 0,
-        }
-    }
-
-    pub fn push(&mut self, e: Effect) {
-        assert!(self.len < MAX_EFFECTS_PER_HANDLER, "EffectBuf overflow");
-        self.effects[self.len] = e;
-        self.len += 1;
-    }
-
-    pub fn push_all_front(&self, effect_queue: &mut VecDeque<Effect>) {
-        for e in self.effects[..self.len].iter().rev() {
-            effect_queue.push_front(*e);
-        }
-    }
-}
-
-// Stack-allocated buffer for candidate ids during resolution. Sized for
-// CandidatePool::DeckFiltered worst case (full deck), with headroom
+// Initial capacity for the per-resolve candidate buffer on GameState. Sized
+// for CandidatePool::DeckFiltered worst case (full deck), with headroom
 pub const MAX_CANDIDATES: usize = 128;
 
-pub struct CandidateBuf {
-    pub ids: [usize; MAX_CANDIDATES],
-    pub len: usize,
-}
-
-impl CandidateBuf {
-    pub fn new() -> Self {
-        Self {
-            ids: [0; MAX_CANDIDATES],
-            len: 0,
-        }
-    }
-
-    pub fn push(&mut self, id: usize) {
-        assert!(self.len < MAX_CANDIDATES, "CandidateBuf overflow");
-        self.ids[self.len] = id;
-        self.len += 1;
-    }
-
-    pub fn as_slice(&self) -> &[usize] {
-        &self.ids[..self.len]
-    }
-
-    pub fn as_mut_slice(&mut self) -> &mut [usize] {
-        &mut self.ids[..self.len]
-    }
-
-    pub fn truncate(&mut self, n: usize) {
-        if n < self.len {
-            self.len = n;
-        }
-    }
-
-    pub fn extend_from_slice(&mut self, src: &[usize]) {
-        for &id in src {
-            self.push(id);
-        }
+// Drain state.buf_effects back-to-front into the effect_queue front, so the
+// effects pop in the order they were pushed into buf_effects
+pub fn flush_buf_effects_front(state: &mut GameState) {
+    while let Some(e) = state.buf_effects.pop() {
+        state.effect_queue.push_front(e);
     }
 }
 
@@ -226,7 +165,7 @@ fn resolve_candidates(
     entities: &[Entity],
     id_pick: &[usize],
     id_deck: &[usize],
-    buf_cands: &mut CandidateBuf,
+    buf_cands: &mut Vec<usize>,
 ) {
     match candidate_pool {
         CandidatePool::Hand => buf_cands.extend_from_slice(id_hand),
@@ -294,7 +233,7 @@ fn resolve_targets(
     id_pick: &[usize],
     id_deck: &[usize],
     rng: &mut impl Rng,
-    buf_cands: &mut CandidateBuf,
+    buf_cands: &mut Vec<usize>,
 ) -> TargetResolution {
     resolve_candidates(
         candidate_pool,
@@ -314,9 +253,10 @@ fn resolve_targets(
         SelectionKind::All => TargetResolution::Resolved,
         SelectionKind::Single => {
             assert_eq!(
-                buf_cands.len, 1,
+                buf_cands.len(),
+                1,
                 "SelectionKind::Single resolved to {} candidates",
-                buf_cands.len
+                buf_cands.len()
             );
             TargetResolution::Resolved
         }
@@ -326,7 +266,7 @@ fn resolve_targets(
             TargetResolution::Resolved
         }
         SelectionKind::Input { count } => {
-            if count as usize >= buf_cands.len {
+            if count as usize >= buf_cands.len() {
                 TargetResolution::Resolved
             } else {
                 TargetResolution::AwaitInput { num: count }
@@ -377,10 +317,7 @@ fn resolve_or_halt(
     candidates: CandidatePool,
     selection: SelectionKind,
 ) -> bool {
-    // Stack locals
     let mut buf_alive = [0usize; MAX_MONSTERS];
-    let mut buf_cands = CandidateBuf::new();
-
     let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
     let id_source_resolved = id_source.unwrap_or(state.id_character);
     let (id_hand, id_monster_picked, id_pick): (&[usize], Option<usize>, &[usize]) =
@@ -389,6 +326,7 @@ fn resolve_or_halt(
         } else {
             (&[], None, &[])
         };
+    state.buf_candidates.clear();
     let resolution = resolve_targets(
         candidates,
         selection,
@@ -403,13 +341,13 @@ fn resolve_or_halt(
         id_pick,
         &state.id_deck,
         &mut state.rng,
-        &mut buf_cands,
+        &mut state.buf_candidates,
     );
     match resolution {
         TargetResolution::Resolved => {
             enqueue_direct_targets(
                 id_source,
-                buf_cands.as_slice(),
+                &state.buf_candidates,
                 kind,
                 &mut state.effect_queue,
             );

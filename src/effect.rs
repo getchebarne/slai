@@ -292,8 +292,8 @@ pub struct Effect {
     pub target: Target,
 }
 
-// Default-zero Effect, used to fill fixed-size arrays (Entity.card_effects,
-// EffectBuf, etc.). Slots past `*_len` are ignored
+// Default-zero Effect, used to fill the fixed-size Entity.card_effects array.
+// Slots past `card_effects_len` are ignored
 pub const ZERO_EFFECT: Effect = Effect {
     kind: EffectKind::Noop,
     id_source: None,

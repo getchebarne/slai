@@ -28,6 +28,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::engine::MAX_CANDIDATES;
+use crate::engine::MAX_EFFECTS_PER_HANDLER;
 use crate::engine::entities_push;
 use crate::engine::process_queue;
 use crate::entity::Entity;
@@ -59,6 +61,11 @@ pub struct GameState {
 
     // Engine state
     pub effect_queue: VecDeque<Effect>,
+    // Per-handler effect builder; cleared before each use. Built in execution
+    // order then drained back-to-front into effect_queue's front
+    pub buf_effects: Vec<Effect>,
+    // Per-resolve candidate buffer; cleared before each use
+    pub buf_candidates: Vec<usize>,
     pub location: Location,
 
     // Entities and indices
@@ -181,6 +188,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         encounter_list_elite,
         encounter_boss,
         effect_queue,
+        buf_effects: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
+        buf_candidates: Vec::with_capacity(MAX_CANDIDATES),
         event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
         event_chance_shop: EVENT_CHANCE_SHOP_BASE,
         event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,

@@ -4,8 +4,8 @@ use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::engine::EffectBuf;
 use crate::engine::entities_push;
+use crate::engine::flush_buf_effects_front;
 use crate::entity::Entity;
 use crate::events::POOL_ACT1_EVENT;
 use crate::events::spawn_event;
@@ -23,19 +23,20 @@ use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
-    let mut buf_effects = EffectBuf::new();
+    state.buf_effects.clear();
 
     match room_kind {
         RoomKind::CombatBoss => {
-            spawn_encounter_monsters(state.encounter_boss, &mut buf_effects, &mut state.rng);
+            let encounter = state.encounter_boss;
+            spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
         }
         RoomKind::CombatMonster => {
             let encounter = state.encounter_list_normal.remove(0);
-            spawn_encounter_monsters(encounter, &mut buf_effects, &mut state.rng);
+            spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
         }
         RoomKind::CombatElite => {
             let encounter = state.encounter_list_elite.remove(0);
-            spawn_encounter_monsters(encounter, &mut buf_effects, &mut state.rng);
+            spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
         }
         RoomKind::RestSite => {
             state.active = ActiveContext::RestSite;
@@ -72,9 +73,11 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
     }
 
-    if buf_effects.len > 0 {
-        buf_effects.push(Effect::direct(EffectKind::CombatStart, None, None));
-        buf_effects.push_all_front(&mut state.effect_queue);
+    if !state.buf_effects.is_empty() {
+        state
+            .buf_effects
+            .push(Effect::direct(EffectKind::CombatStart, None, None));
+        flush_buf_effects_front(state);
     }
 }
 
@@ -142,7 +145,7 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
-fn push_monster_spawn(effects: &mut EffectBuf, name: MonsterName) {
+fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
     effects.push(Effect::direct(
         EffectKind::MonsterSpawn { name },
         None,
@@ -152,7 +155,7 @@ fn push_monster_spawn(effects: &mut EffectBuf, name: MonsterName) {
 
 fn spawn_encounter_monsters(
     encounter: MonsterEncounter,
-    effects: &mut EffectBuf,
+    effects: &mut Vec<Effect>,
     rng: &mut impl Rng,
 ) {
     match encounter {
