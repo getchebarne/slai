@@ -5,33 +5,32 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
+use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 
 pub fn process_effect_damage_deal(
-    entities: &mut [Entity],
     id_source: Option<usize>,
-    id_character: usize,
-    id_target: usize,
+    id_target: Option<usize>,
+    state: &mut GameState,
     amount: u16,
-    effect_queue: &mut VecDeque<Effect>,
 ) {
+    let id_target = id_target.expect("DamageDeal requires id_target");
     let from_card = match id_source {
-        Some(id) => entities[id].kind == EntityKind::Card,
+        Some(id) => state.entities[id].kind == EntityKind::Card,
         None => false,
     };
-    // Snapshot character modifiers (Modifiers is Copy) so the read borrow
-    // doesn't alias the mut borrow on target taken below
-    let mods_char = entities[id_character].modifiers;
-    let target = &mut entities[id_target];
+    let mods_char = state.entities[state.id_character].modifiers;
+    let id_character = state.id_character;
 
+    let target = &mut state.entities[id_target];
     let damage_over_block = amount.saturating_sub(target.vitals.block);
     target.vitals.block = target.vitals.block.saturating_sub(amount);
 
     if damage_over_block > 0 {
-        effect_queue.push_front(Effect {
+        state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthLoss {
                 amount: damage_over_block,
             },
@@ -39,12 +38,12 @@ pub fn process_effect_damage_deal(
             target: Target::Direct(Some(id_target)),
         });
 
-        // Envenom: when a card-played attack lands unblocked damage,
-        // apply Envenom stacks of Poison to the target. `from_card` gates
-        // out modifier-driven damage (e.g. ThousandCuts)
+        // Envenom: card-played attacks that land unblocked damage apply
+        // Envenom stacks of Poison to the target. `from_card` gates out
+        // modifier-driven damage (e.g. ThousandCuts)
         if from_card && modifier_has(&mods_char, ModifierKind::Envenom) {
             let stacks = modifier_stacks(&mods_char, ModifierKind::Envenom);
-            effect_queue.push_front(Effect {
+            state.effect_queue.push_front(Effect {
                 kind: EffectKind::ModifierGain {
                     kind: ModifierKind::Poison,
                     stacks,
@@ -54,9 +53,9 @@ pub fn process_effect_damage_deal(
             });
         }
 
-        // Target-side hook — fires only when actual HP loss > 0
         if id_source != Some(id_target) {
-            fire_on_damage_taken(target, id_target, effect_queue);
+            let target = &mut state.entities[id_target];
+            fire_on_damage_taken(target, id_target, &mut state.effect_queue);
         }
     }
 }

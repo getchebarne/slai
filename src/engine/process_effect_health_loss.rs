@@ -1,9 +1,7 @@
-use std::collections::VecDeque;
-
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_def;
 use crate::modifier::modifier_has;
@@ -13,18 +11,26 @@ use crate::monsters::lagavulin;
 use crate::monsters::slime_acid_large;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
+use crate::types::ActiveContext;
 use crate::types::MonsterName;
 
-pub fn process_effect_health_loss(
-    entity: &mut Entity,
-    id_target: usize,
-    id_character: usize,
-    amount: u16,
-    effect_queue: &mut VecDeque<Effect>,
-) {
+pub fn process_effect_health_loss(id_target: Option<usize>, state: &mut GameState, amount: u16) {
+    let id_target = id_target.expect("HealthLoss requires id_target");
+    // MasterfulStab GrowsOnDamageInstanceTaken: bump per character damage
+    // event (post-block, so amount > 0 excludes fully-absorbed hits)
+    if id_target == state.id_character
+        && amount > 0
+        && matches!(state.active, ActiveContext::Combat)
+    {
+        state.this_combat_damage_instances_taken =
+            state.this_combat_damage_instances_taken.saturating_add(1);
+    }
+
+    let entity = &mut state.entities[id_target];
+
     // TODO: should only decrement for physical attacks
     if amount > 0 && modifier_has(&entity.modifiers, ModifierKind::PlatedArmor) {
-        effect_queue.push_front(Effect {
+        state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::PlatedArmor,
                 stacks: -1,
@@ -34,10 +40,11 @@ pub fn process_effect_health_loss(
         });
     }
 
+    let entity = &mut state.entities[id_target];
     entity.vitals.health = entity.vitals.health.saturating_sub(amount);
 
     if entity.vitals.health == 0 {
-        effect_queue.push_front(Effect {
+        state.effect_queue.push_front(Effect {
             kind: EffectKind::Death,
             id_source: None,
             target: Target::Direct(Some(id_target)),
@@ -87,8 +94,8 @@ pub fn process_effect_health_loss(
             modifier_stacks(&entity.modifiers, ModifierKind::ModeShift) - amount as i16;
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(&mut entity.modifiers, ModifierKind::ModeShift);
-            if id_target != id_character {
-                effect_queue.push_front(Effect {
+            if id_target != state.id_character {
+                state.effect_queue.push_front(Effect {
                     kind: EffectKind::MoveUpdate,
                     id_source: None,
                     target: Target::Direct(Some(id_target)),

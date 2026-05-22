@@ -6,7 +6,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::effect::effect_awaits_input;
+use crate::engine::derive_modal;
 use crate::engine::enqueue_direct_targets;
 use crate::entity::card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
@@ -19,9 +19,9 @@ use crate::map::room_at;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::potions::find_free_slot;
+use crate::types::ActiveContext;
 use crate::types::CardKind;
-use crate::types::Context;
-use crate::types::RoomKind;
+use crate::types::Modal;
 use crate::utils::fill_alive_monster_ids;
 
 #[derive(Debug, Clone)]
@@ -69,67 +69,61 @@ pub enum Action {
 }
 
 fn validate(action: &Action, state: &GameState) -> Result<(), String> {
-    // 1. GameOver: character dead
-    if state.entities[state.id_character].dead {
-        return Err("GameOver: character dead".into());
-    }
-    // 2. GameOver: boss room with no Combat context = victory
-    if matches!(state.location, Location::BossRoom) && state.context.is_none() {
-        return Err("GameOver: boss defeated".into());
+    if state.game_over {
+        return Err("GameOver".into());
     }
 
-    // 3. Pending input: queue head holds an input-awaiting Effect
-    if let Some(front) = state.effect_queue.front() {
-        if effect_awaits_input(front) {
-            return validate_pending_input(action, front, state);
-        }
+    if let Some(modal) = derive_modal(state) {
+        return match modal {
+            Modal::HandSelect => validate_hand_select(action, state),
+            Modal::Discover => validate_discover(action),
+            Modal::DeckSelect => validate_deck_select(action),
+        };
     }
 
-    // 4. Context-based dispatch (multi-action screens)
-    match &state.context {
-        Some(Context::Combat(_)) => validate_combat(action),
-        Some(Context::Reward(_)) => validate_reward(action),
-        Some(Context::Event(_)) => validate_event(action),
-        Some(Context::Shop(_)) => validate_shop(action),
-        None => validate_by_room(action, state),
+    match state.active {
+        ActiveContext::Combat => validate_combat(action),
+        ActiveContext::Reward => validate_reward(action),
+        ActiveContext::Event => validate_event(action),
+        ActiveContext::Shop => validate_shop(action),
+        ActiveContext::Map => validate_map(action),
+        ActiveContext::RestSite => validate_rest_site(action, state),
+        ActiveContext::Chest => validate_chest(action),
     }
 }
 
-fn validate_pending_input(
-    action: &Action,
-    effect: &Effect,
-    _state: &GameState,
-) -> Result<(), String> {
-    match (&effect.kind, action) {
-        (
-            EffectKind::CardDiscard { .. }
-            | EffectKind::CardRetain
-            | EffectKind::CardSetupPick
-            | EffectKind::CardNightmarePick,
-            Action::HandSelect { idxs },
-        ) => {
-            if let Target::Resolve {
-                selection: SelectionKind::Input { count },
-                ..
-            } = effect.target
-            {
-                if idxs.len() != count as usize {
-                    return Err(format!(
-                        "HandSelect expects {} idxs, got {}",
-                        count,
-                        idxs.len()
-                    ));
-                }
-            }
-            Ok(())
+fn validate_hand_select(action: &Action, state: &GameState) -> Result<(), String> {
+    let Action::HandSelect { idxs } = action else {
+        return Err(format!("Expected HandSelect, got {:?}", action));
+    };
+    let front = state.effect_queue.front().expect("Modal::HandSelect requires queue head");
+    if let Target::Resolve {
+        selection: SelectionKind::Input { count },
+        ..
+    } = front.target
+    {
+        if idxs.len() != count as usize {
+            return Err(format!(
+                "HandSelect expects {} idxs, got {}",
+                count,
+                idxs.len()
+            ));
         }
-        (EffectKind::CardDiscoverPick, Action::CardDiscoverSelect { .. }) => Ok(()),
-        (EffectKind::DeckSelectPick { .. }, Action::DeckSelect { .. }) => Ok(()),
-        (EffectKind::RoomSelect, Action::RoomSelect { .. }) => Ok(()),
-        _ => Err(format!(
-            "Action {:?} not legal while waiting on {:?}",
-            action, effect.kind
-        )),
+    }
+    Ok(())
+}
+
+fn validate_discover(action: &Action) -> Result<(), String> {
+    match action {
+        Action::CardDiscoverSelect { .. } => Ok(()),
+        _ => Err(format!("Expected CardDiscoverSelect, got {:?}", action)),
+    }
+}
+
+fn validate_deck_select(action: &Action) -> Result<(), String> {
+    match action {
+        Action::DeckSelect { .. } => Ok(()),
+        _ => Err(format!("Expected DeckSelect, got {:?}", action)),
     }
 }
 
@@ -171,20 +165,36 @@ fn validate_shop(action: &Action) -> Result<(), String> {
     }
 }
 
-fn validate_by_room(action: &Action, state: &GameState) -> Result<(), String> {
-    let room = match state.location {
-        Location::Overworld { y, x } => room_at(&state.id_rooms, &state.entities, y, x),
-        _ => None,
-    };
-    let on_restsite = matches!(room.map(|r| r.room_kind), Some(RoomKind::RestSite));
-    let on_chest = matches!(room.map(|r| r.room_kind), Some(RoomKind::Treasure))
-        && room.map(|r| !r.room_chest_opened).unwrap_or(false);
+fn validate_map(action: &Action) -> Result<(), String> {
+    match action {
+        Action::RoomSelect { .. }
+        | Action::PotionUse { .. }
+        | Action::PotionDiscard { .. } => Ok(()),
+        _ => Err(format!("Action {:?} invalid on Map", action)),
+    }
+}
+
+fn validate_rest_site(action: &Action, state: &GameState) -> Result<(), String> {
     match action {
         Action::PotionUse { .. } | Action::PotionDiscard { .. } => Ok(()),
-        Action::RestSiteRest | Action::RestSiteCardUpgrade { .. } if on_restsite => Ok(()),
-        Action::ChestOpen if on_chest => Ok(()),
-        Action::RoomSelect { .. } if !on_restsite && !on_chest => Ok(()),
-        _ => Err(format!("Action {:?} invalid in current location", action)),
+        Action::RestSiteRest => Ok(()),
+        Action::RestSiteCardUpgrade { idx_deck } => {
+            if *idx_deck >= state.id_deck.len() {
+                return Err(format!(
+                    "RestSiteCardUpgrade: idx_deck {} out of range",
+                    idx_deck
+                ));
+            }
+            Ok(())
+        }
+        _ => Err(format!("Action {:?} invalid at RestSite", action)),
+    }
+}
+
+fn validate_chest(action: &Action) -> Result<(), String> {
+    match action {
+        Action::ChestOpen | Action::PotionUse { .. } | Action::PotionDiscard { .. } => Ok(()),
+        _ => Err(format!("Action {:?} invalid at Chest", action)),
     }
 }
 
@@ -242,13 +252,16 @@ fn handle_card_play(
     idx_hand: usize,
     idx_monster: Option<usize>,
 ) -> Result<Vec<Effect>, String> {
-    let Some(Context::Combat(combat)) = &state.context else {
+    if !matches!(state.active, ActiveContext::Combat) {
         return Err("CardPlay outside Combat context".into());
-    };
-    let id_card = lookup_idx(&combat.id_hand, idx_hand)?;
+    }
+    let id_card = lookup_idx(&state.id_hand, idx_hand)?;
     let card = &state.entities[id_card];
 
-    if !is_play_restriction_satisfied(card.card_play_restriction, &combat.id_pile_draw) {
+    if !is_play_restriction_satisfied(
+        card.card_play_restriction,
+        &state.id_pile_draw,
+    ) {
         return Err(format!(
             "Card {:?} not playable right now (restriction: {:?})",
             card.card_name, card.card_play_restriction,
@@ -270,14 +283,14 @@ fn handle_card_play(
 
     let effective_cost = card_effective_cost(
         card,
-        combat.this_turn_discards,
-        combat.this_combat_damage_instances_taken,
-        combat.energy.current,
+        state.this_turn_discards,
+        state.this_combat_damage_instances_taken,
+        state.energy.current,
     );
-    if effective_cost > combat.energy.current {
+    if effective_cost > state.energy.current {
         return Err(format!(
             "Not enough energy to play {:?}: need {}, have {}",
-            card.card_name, effective_cost, combat.energy.current
+            card.card_name, effective_cost, state.energy.current
         ));
     }
 
@@ -328,14 +341,14 @@ fn handle_card_play(
 }
 
 fn handle_hand_select(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
-    let Some(Context::Combat(combat)) = &state.context else {
+    if !matches!(state.active, ActiveContext::Combat) {
         return Err("HandSelect outside Combat context".into());
-    };
+    }
     let id_cards: Vec<usize> = idxs
         .iter()
         .map(|&idx| {
-            combat.id_hand.get(idx).copied().ok_or_else(|| {
-                format!("Invalid hand index {}: {} cards", idx, combat.id_hand.len())
+            state.id_hand.get(idx).copied().ok_or_else(|| {
+                format!("Invalid hand index {}: {} cards", idx, state.id_hand.len())
             })
         })
         .collect::<Result<_, _>>()?;
@@ -394,10 +407,11 @@ fn handle_room_select(state: &mut GameState, idx_column: usize) -> Result<Vec<Ef
 }
 
 fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    let Some(Context::Reward(reward)) = &state.context else {
-        unreachable!("validate guarantees Context::Reward");
-    };
-    let id_card = lookup_idx(&reward.id_cards, idx_reward)?;
+    debug_assert!(matches!(state.active, ActiveContext::Reward));
+    let id_card = lookup_idx(
+        &state.reward_id_cards,
+        idx_reward,
+    )?;
     let card = &state.entities[id_card];
     let card_name = card.card_name;
     let upgraded = card.card_upgraded;
@@ -416,10 +430,8 @@ fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<E
 }
 
 fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
-    let Some(Context::Reward(reward)) = &state.context else {
-        unreachable!("validate guarantees Context::Reward");
-    };
-    if reward.id_relic.is_none() {
+    debug_assert!(matches!(state.active, ActiveContext::Reward));
+    if state.reward_id_relic.is_none() {
         return Err("RewardTakeRelic: no relic in reward pool".to_string());
     }
     Ok(vec![Effect::direct(
@@ -430,10 +442,8 @@ fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
 }
 
 fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
-    let Some(Context::Reward(reward)) = &state.context else {
-        unreachable!("validate guarantees Context::Reward");
-    };
-    if reward.id_potion.is_none() {
+    debug_assert!(matches!(state.active, ActiveContext::Reward));
+    if state.reward_id_potion.is_none() {
         return Err("RewardTakePotion: no potion in reward pool".to_string());
     }
     let character = &state.entities[state.id_character];
@@ -448,10 +458,8 @@ fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
 }
 
 fn handle_reward_take_gold(state: &GameState) -> Result<Vec<Effect>, String> {
-    let Some(Context::Reward(reward)) = &state.context else {
-        unreachable!("validate guarantees Context::Reward");
-    };
-    if reward.gold.is_none() {
+    debug_assert!(matches!(state.active, ActiveContext::Reward));
+    if state.reward_gold.is_none() {
         return Err("RewardTakeGold: no gold in reward pool".to_string());
     }
     Ok(vec![Effect::direct(EffectKind::RewardTakeGold, None, None)])
@@ -509,7 +517,7 @@ fn handle_potion_use(
         .ok_or_else(|| format!("PotionUse: slot {} is empty", idx_slot))?;
     let potion = &state.entities[id_potion];
 
-    if potion.potion_combat_only && !matches!(&state.context, Some(Context::Combat(_))) {
+    if potion.potion_combat_only && !matches!(state.active, ActiveContext::Combat) {
         return Err(format!(
             "PotionUse: {:?} is combat-only",
             potion.potion_name
@@ -576,11 +584,8 @@ fn handle_card_discover_select(
     state: &mut GameState,
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
-    let Some(Context::Combat(combat)) = &state.context else {
-        unreachable!();
-    };
-    let id_card = *combat
-        .id_pick
+    debug_assert!(matches!(state.active, ActiveContext::Combat));
+    let id_card = *state.id_pick
         .get(idx_option)
         .ok_or_else(|| format!("CardDiscoverSelect: idx_option {} out of range", idx_option))?;
     // Resolve the queue-head CardDiscoverPick: Resolve -> Direct(picked)
@@ -607,10 +612,8 @@ fn handle_rest_site_card_upgrade(
 }
 
 fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
-    let Some(Context::Event(event_state)) = &state.context else {
-        unreachable!("validate guarantees Context::Event");
-    };
-    let id_event = event_state.id_event;
+    debug_assert!(matches!(state.active, ActiveContext::Event));
+    let id_event = state.id_event.expect("validate guarantees Event context");
     let event = &state.entities[id_event];
     if idx_option >= event.event_options.len() {
         return Err(format!(
@@ -646,8 +649,7 @@ fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Ef
     else {
         unreachable!();
     };
-    let id_card = state
-        .id_deck
+    let id_card = state.id_deck
         .iter()
         .copied()
         .filter(|&id| card_in_deck_filter(&state.entities[id], kind))

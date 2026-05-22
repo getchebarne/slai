@@ -1,12 +1,9 @@
-use crate::entity::Entity;
+use crate::engine::entities_push;
+use crate::game::GameState;
 
-pub fn process_effect_id_card_nightmare_pick(
-    entities: &mut Vec<Entity>,
-    id_target: usize,
-    id_card_nightmare: &mut Option<usize>,
-) {
-    let card = entities[id_target];
-    let id = entities.len();
-    entities.push(card);
-    *id_card_nightmare = Some(id);
+pub fn process_effect_id_card_nightmare_pick(id_target: Option<usize>, state: &mut GameState) {
+    let id_target = id_target.expect("CardNightmarePick requires id_target");
+    let card = state.entities[id_target];
+    let id = entities_push(&mut state.entities, card);
+    state.id_card_nightmare = Some(id);
 }

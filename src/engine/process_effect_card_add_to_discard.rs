@@ -1,21 +1,20 @@
 use crate::cards::get_card;
-use crate::entity::Entity;
+use crate::engine::entities_push;
+use crate::game::GameState;
 use crate::types::CardName;
 
 pub fn process_effect_card_add_to_discard(
+    state: &mut GameState,
     card_name: CardName,
     count: u8,
     upgraded: bool,
-    entities: &mut Vec<Entity>,
-    id_pile_discard: &mut Vec<usize>,
 ) {
     if count == 0 {
         return;
     }
     for _ in 0..count {
         let template = get_card(card_name, upgraded);
-        let id_card = entities.len();
-        entities.push(template);
-        id_pile_discard.push(id_card);
+        let id_card = entities_push(&mut state.entities, template);
+        state.id_pile_discard.push(id_card);
     }
 }

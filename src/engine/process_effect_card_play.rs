@@ -1,44 +1,40 @@
-use std::collections::VecDeque;
-
-use strum::EnumCount;
-
+use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::engine::EffectBuf;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::card_effective_cost;
+use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
 use crate::types::RelicName;
+use crate::utils::fill_alive_monster_ids;
 
-pub fn process_effect_card_play(
-    id_card: usize,
-    id_character: usize,
-    entities: &mut [Entity],
-    alive_monsters: &[usize],
-    this_turn_attacks_played: &mut u8,
-    this_turn_discards: u8,
-    this_combat_damage_instances_taken: u8,
-    energy_current: u8,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    effect_queue: &mut VecDeque<Effect>,
-) {
-    let card = entities[id_card];
+pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
+    let id_card = id_target.expect("CardPlay requires id_target");
+    let id_character = state.id_character;
+    let this_turn_discards = state.this_turn_discards;
+    let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
+    let energy_current = state.energy.current;
 
-    // Increment before effects fire so self-counting cards see their own play
+    let mut buf_alive = [0usize; MAX_MONSTERS];
+    let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+    let alive_monsters = &buf_alive[..alive_n];
+
+    let card = state.entities[id_card];
+
     if card.card_kind == CardKind::Attack {
-        *this_turn_attacks_played = this_turn_attacks_played.saturating_add(1);
+        state.this_turn_attacks_played = state.this_turn_attacks_played.saturating_add(1);
 
-        if let Some(id_kunai) = id_relics[RelicName::Kunai as usize] {
-            let counter = &mut entities[id_kunai].relic_counter;
+        if let Some(id_kunai) = state.id_relics[RelicName::Kunai as usize] {
+            let counter = &mut state.entities[id_kunai].relic_counter;
             *counter += 1;
             if *counter >= 3 {
                 *counter = 0;
-                effect_queue.push_back(Effect {
+                state.effect_queue.push_back(Effect {
                     kind: EffectKind::ModifierGain {
                         kind: ModifierKind::Dexterity,
                         stacks: 1,
@@ -48,12 +44,12 @@ pub fn process_effect_card_play(
                 });
             }
         }
-        if let Some(id_shuriken) = id_relics[RelicName::Shuriken as usize] {
-            let counter = &mut entities[id_shuriken].relic_counter;
+        if let Some(id_shuriken) = state.id_relics[RelicName::Shuriken as usize] {
+            let counter = &mut state.entities[id_shuriken].relic_counter;
             *counter += 1;
             if *counter >= 3 {
                 *counter = 0;
-                effect_queue.push_back(Effect {
+                state.effect_queue.push_back(Effect {
                     kind: EffectKind::ModifierGain {
                         kind: ModifierKind::Strength,
                         stacks: 1,
@@ -72,17 +68,17 @@ pub fn process_effect_card_play(
         energy_current,
     );
 
-    // X-cost reads raw energy_current (not effective_cost) so Setup-flagged X-cost still scales
+    // X-cost reads raw energy_current (not effective_cost) so Setup-flagged
+    // X-cost still scales
     let multiplier = match card.card_cost_kind {
         CardCostKind::XCost { offset } => (energy_current as i16 + offset as i16).max(0) as usize,
         _ => 1,
     };
 
     if card.card_free_to_play_once {
-        entities[id_card].card_free_to_play_once = false;
+        state.entities[id_card].card_free_to_play_once = false;
     }
 
-    // Stack locals
     let mut buf_effects = EffectBuf::new();
 
     buf_effects.push(Effect {
@@ -112,9 +108,8 @@ pub fn process_effect_card_play(
         });
     }
 
-    let char_modifiers = &entities[id_character].modifiers;
+    let char_modifiers = &state.entities[id_character].modifiers;
 
-    // AfterImage
     if modifier_has(char_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
         buf_effects.push(Effect {
@@ -140,10 +135,9 @@ pub fn process_effect_card_play(
         }
     }
 
-    // SharpHide (reflects on attack cards)
     if card.card_kind == CardKind::Attack {
         for &id_monster in alive_monsters {
-            let monster_modifiers = &entities[id_monster].modifiers;
+            let monster_modifiers = &state.entities[id_monster].modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
                 buf_effects.push(Effect {
@@ -157,6 +151,7 @@ pub fn process_effect_card_play(
         }
     }
 
+    let char_modifiers = &state.entities[id_character].modifiers;
     // Burst (skill-only) doubles; X-cost multiplies by X; the two stack multiplicatively
     let burst =
         modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
@@ -192,7 +187,7 @@ pub fn process_effect_card_play(
 
     // Choke: pushed after card_effects so the played card resolves first
     for &id_monster in alive_monsters {
-        let mods_monster = &entities[id_monster].modifiers;
+        let mods_monster = &state.entities[id_monster].modifiers;
         if modifier_has(mods_monster, ModifierKind::Choke) {
             let stacks = modifier_stacks(mods_monster, ModifierKind::Choke);
             buf_effects.push(Effect {
@@ -208,7 +203,7 @@ pub fn process_effect_card_play(
     // Enrage: gain strength on played skill
     if card.card_kind == CardKind::Skill {
         for &id_monster in alive_monsters {
-            let mods_monster = &entities[id_monster].modifiers;
+            let mods_monster = &state.entities[id_monster].modifiers;
             if modifier_has(mods_monster, ModifierKind::Enrage) {
                 let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);
                 buf_effects.push(Effect {
@@ -223,5 +218,5 @@ pub fn process_effect_card_play(
         }
     }
 
-    buf_effects.push_all_front(effect_queue);
+    buf_effects.push_all_front(&mut state.effect_queue);
 }

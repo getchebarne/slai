@@ -1,5 +1,5 @@
-use crate::game::Energy;
+use crate::game::GameState;
 
-pub fn process_effect_energy_loss(energy: &mut Energy, amount: u8) {
-    energy.current = energy.current.saturating_sub(amount);
+pub fn process_effect_energy_loss(state: &mut GameState, amount: u8) {
+    state.energy.current = state.energy.current.saturating_sub(amount);
 }

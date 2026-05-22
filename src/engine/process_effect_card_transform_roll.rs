@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use rand::Rng;
 
 use crate::cards::POOL_COMMON_GREEN_CARD;
@@ -9,12 +7,10 @@ use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::game::GameState;
 
-pub fn process_effect_card_transform_roll(
-    rng: &mut impl Rng,
-    effect_queue: &mut VecDeque<Effect>,
-) {
-    let roll = rng.random_range(0..99);
+pub fn process_effect_card_transform_roll(state: &mut GameState) {
+    let roll = state.rng.random_range(0..99);
     let pool = if roll < CARD_REWARD_ROLL_CHANCE_RARE {
         POOL_RARE_GREEN_CARD
     } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
@@ -22,8 +18,8 @@ pub fn process_effect_card_transform_roll(
     } else {
         POOL_COMMON_GREEN_CARD
     };
-    let card_name = pool[rng.random_range(0..pool.len())];
-    effect_queue.push_front(Effect::direct(
+    let card_name = pool[state.rng.random_range(0..pool.len())];
+    state.effect_queue.push_front(Effect::direct(
         EffectKind::CardAddToDeck {
             card_name,
             upgraded: false,

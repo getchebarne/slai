@@ -1,28 +1,24 @@
-use std::collections::VecDeque;
-
-use rand::Rng;
-
+use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::entity::Entity;
 use crate::events::card_is_upgradable;
+use crate::game::GameState;
 use crate::utils::shuffle;
 
-pub fn process_effect_card_upgrade_random_in_deck(
-    count: u8,
-    entities: &[Entity],
-    id_deck: &[usize],
-    rng: &mut impl Rng,
-    effect_queue: &mut VecDeque<Effect>,
-) {
-    let mut candidates: Vec<usize> = id_deck
-        .iter()
-        .copied()
-        .filter(|&id| card_is_upgradable(&entities[id]))
-        .collect();
-    shuffle(&mut candidates, rng);
-    let n = (count as usize).min(candidates.len());
+pub fn process_effect_card_upgrade_random_in_deck(state: &mut GameState, count: u8) {
+    let mut candidates: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
+    let mut cand_n = 0;
+    for &id in &state.id_deck {
+        if card_is_upgradable(&state.entities[id]) {
+            candidates[cand_n] = id;
+            cand_n += 1;
+        }
+    }
+    shuffle(&mut candidates[..cand_n], &mut state.rng);
+    let n = (count as usize).min(cand_n);
     for &id_card in candidates[..n].iter().rev() {
-        effect_queue.push_front(Effect::direct(EffectKind::CardUpgrade, None, Some(id_card)));
+        state
+            .effect_queue
+            .push_front(Effect::direct(EffectKind::CardUpgrade, None, Some(id_card)));
     }
 }

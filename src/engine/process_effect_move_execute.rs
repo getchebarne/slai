@@ -1,25 +1,19 @@
-use std::collections::VecDeque;
-
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::engine::EffectBuf;
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 
 // Dynamic move resolution: read `move_current` at dispatch time and push the
-// move's effects onto the queue. Used so that mid-turn move overrides (slime
-// split / Lagavulin wake on poison) actually take effect — at turn_end the
-// monster's slot is queued as a single `MoveExecute`, not as the inline
-// effects of whatever move was selected last turn
-pub fn process_effect_move_execute(
-    entity: &Entity,
-    id_monster: usize,
-    id_character: usize,
-    effect_queue: &mut VecDeque<Effect>,
-) {
+// move's effects. Mid-turn move overrides (slime split / Lagavulin wake on
+// poison) take effect because turn_end queues a single `MoveExecute`, not the
+// inline effects of whatever move was selected last turn
+pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameState) {
+    let id_monster = id_target.expect("MoveExecute requires id_target");
+    let entity = &state.entities[id_monster];
     let Some(move_idx) = entity.move_current else {
         return;
     };
@@ -30,6 +24,7 @@ pub fn process_effect_move_execute(
         None
     };
 
+    let id_character = state.id_character;
     let mut buf = EffectBuf::new();
     for e in entity.moves[move_idx].effects.iter() {
         buf.push(Effect {
@@ -46,5 +41,5 @@ pub fn process_effect_move_execute(
             });
         }
     }
-    buf.push_all_front(effect_queue);
+    buf.push_all_front(&mut state.effect_queue);
 }

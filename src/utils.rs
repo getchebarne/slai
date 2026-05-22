@@ -13,12 +13,14 @@ use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_MONSTERS;
+use crate::engine::entities_push;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
+use crate::types::ActiveContext;
 use crate::types::CardName;
 use crate::types::RelicName;
 
@@ -35,21 +37,20 @@ pub fn reshuffle_discard_into_draw(
     rng: &mut impl Rng,
 ) {
     id_pile_draw.append(id_pile_discard);
-    shuffle(id_pile_draw, rng);
+    shuffle(&mut id_pile_draw[..], rng);
 }
 
 // Fills `buf` with the ids of monsters that are alive, returns how many
 // Callers use `&buf[..n]` as a slice. Zero heap allocation. Returns 0 when
 // not in Combat context
 pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MONSTERS]) -> usize {
-    let Some(crate::types::Context::Combat(combat)) = &state.context else {
+    if !matches!(state.active, ActiveContext::Combat) {
         return 0;
-    };
+    }
     let mut n = 0;
-    for i in 0..combat.monster_count as usize {
-        let id_monster = combat.id_monsters[i];
-        if !state.entities[id_monster].dead {
-            buf_alive[n] = id_monster;
+    for slot in state.id_monsters.iter() {
+        if let Some(id) = *slot {
+            buf_alive[n] = id;
             n += 1;
         }
     }
@@ -74,14 +75,6 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
-pub fn remove_card_from_collection(id_target: usize, id_collection: &mut Vec<usize>) {
-    let pos = id_collection
-        .iter()
-        .position(|&elem| elem == id_target)
-        .expect("Can't remove a card that's not in the collection");
-
-    id_collection.remove(pos);
-}
 
 // Used by both elite combat-end and chest opening
 pub fn add_relic_reward_for_roll(
@@ -105,8 +98,7 @@ pub fn add_relic_reward_for_roll(
         pick_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
     };
 
-    let id = entities.len();
-    entities.push(get_relic(name));
+    let id = entities_push(entities, get_relic(name));
     id
 }
 
@@ -130,17 +122,18 @@ pub fn pick_from_pool(
     }
 }
 
-// Roll MAX_COMBAT_CARD_REWARD distinct cards. Mutates character_reward_roll_offset
-// (pity bias toward rares) and returns the spawned entity ids
+// Roll MAX_COMBAT_CARD_REWARD distinct cards; pity-bumps reward_roll_offset toward rares
 pub fn roll_card_rewards(
     id_character: usize,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-) -> Vec<usize> {
+    out: &mut Vec<usize>,
+) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
-    let mut rolled_card_names: Vec<CardName> = Vec::new();
-    let mut rolled_ids: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
+    let mut rolled_card_names: [CardName; MAX_COMBAT_CARD_REWARD] =
+        [CardName::Strike; MAX_COMBAT_CARD_REWARD];
 
+    out.clear();
     for _ in 0..MAX_COMBAT_CARD_REWARD {
         let roll = rng.random_range(0i32..99) + character_reward_roll_offset as i32;
 
@@ -156,17 +149,15 @@ pub fn roll_card_rewards(
         };
 
         let mut name = pool[rng.random_range(0..pool.len())];
-        while rolled_card_names.contains(&name) {
+        while rolled_card_names[..out.len()].contains(&name) {
             name = pool[rng.random_range(0..pool.len())];
         }
 
-        rolled_card_names.push(name);
-        let card = get_card(name, false); // TODO: can generate upgraded cards on Act2+
-        let id_card = entities.len();
-        entities.push(card);
-        rolled_ids.push(id_card);
+        rolled_card_names[out.len()] = name;
+        let card = get_card(name, false);
+        let id_card = entities_push(entities, card);
+        out.push(id_card);
     }
 
     entities[id_character].character_reward_roll_offset = character_reward_roll_offset;
-    rolled_ids
 }

@@ -12,6 +12,7 @@ use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_ROW_TREASURE;
 use crate::consts::MAP_WIDTH;
 use crate::consts::PATH_DENSITY;
+use crate::engine::entities_push;
 use crate::entity::Entity;
 use crate::entity::make_entity_room;
 use crate::game::Location;
@@ -73,7 +74,10 @@ pub fn get_active_room_kind(
 
 type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
 
-pub fn generate_map(rng: &mut impl Rng, entities: &mut Vec<Entity>) -> (IdRooms, Location) {
+pub fn generate_map(
+    rng: &mut impl Rng,
+    entities: &mut Vec<Entity>,
+) -> (IdRooms, Location) {
     let grid = generate_grid(rng);
     entitize_grid(grid, entities)
 }
@@ -133,13 +137,15 @@ fn generate_grid(rng: &mut impl Rng) -> Grid {
     nodes
 }
 
-fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> (IdRooms, Location) {
+fn entitize_grid(
+    grid: Grid,
+    entities: &mut Vec<Entity>,
+) -> (IdRooms, Location) {
     let mut id_rooms: IdRooms = [[None; MAP_WIDTH]; MAP_HEIGHT];
     for (y, row) in grid.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
             if let Some(room) = cell {
-                let id_room = entities.len();
-                entities.push(make_entity_room(room.y, room.x, room.room_kind, room.edges));
+                let id_room = entities_push(entities, make_entity_room(room.y, room.x, room.room_kind, room.edges));
                 id_rooms[y][x] = Some(id_room);
             }
         }

@@ -1,4 +1,6 @@
 use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
+use crate::entity::EntityKind;
+use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::modifier_apply;
@@ -8,11 +10,19 @@ use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 
 pub fn process_effect_modifier_gain(
-    modifiers: &mut Modifiers,
+    id_target: Option<usize>,
+    state: &mut GameState,
     kind: ModifierKind,
     stacks: i16,
-    monster_cycle_count: Option<u8>,
 ) {
+    let id_target = id_target.expect("ModifierGain requires id_target");
+    let entity = &mut state.entities[id_target];
+    let monster_cycle_count = match entity.kind {
+        EntityKind::Monster => Some(entity.monster_cycle_count),
+        _ => None,
+    };
+    let modifiers = &mut entity.modifiers;
+
     // ModeShift has special scaling logic
     if kind == ModifierKind::ModeShift {
         if let Some(cc) = monster_cycle_count {
@@ -30,7 +40,6 @@ pub fn process_effect_modifier_gain(
         } else {
             modifiers.stacks[ModifierKind::Artifact as usize] = stacks_new;
         }
-        // Early return without applying debuff
         return;
     }
 
@@ -52,14 +61,8 @@ pub fn process_effect_modifier_gain(
     modifier_apply(modifiers, kind, stacks);
 }
 
-fn process_mode_shift_gain(
-    modifiers: &mut Modifiers,
-    stacks: i16,
-    monster_cycle_count: u8,
-) {
-    // ModeShift threshold increases each completed cycle
+fn process_mode_shift_gain(modifiers: &mut Modifiers, stacks: i16, monster_cycle_count: u8) {
     let increase = MODE_SHIFT_INCREASE_PER_CYCLE * monster_cycle_count as i16;
-
     modifier_apply(modifiers, ModifierKind::ModeShift, stacks + increase);
     modifiers.is_new[ModifierKind::ModeShift as usize] = false;
 }

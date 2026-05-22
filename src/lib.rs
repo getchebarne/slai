@@ -87,11 +87,7 @@ impl GameEnv {
             to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
         step(&mut self.state, internal).map_err(pyo3::exceptions::PyValueError::new_err)?;
         let obs = snapshot_state(&self.state);
-        let dead = self.state.entities[self.state.id_character].dead;
-        let boss_cleared = matches!(self.state.location, game::Location::BossRoom)
-            && self.state.context.is_none();
-        let terminated = dead || boss_cleared;
-        Ok((obs, terminated))
+        Ok((obs, self.state.game_over))
     }
 }
 

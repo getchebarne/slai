@@ -1,66 +1,53 @@
-use std::collections::VecDeque;
-
 use rand::Rng;
 
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
-use crate::consts::MAP_HEIGHT;
-use crate::consts::MAP_WIDTH;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::engine::EffectBuf;
+use crate::engine::entities_push;
 use crate::entity::Entity;
 use crate::events::POOL_ACT1_EVENT;
 use crate::events::spawn_event;
+use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
+use crate::types::ActiveContext;
 use crate::types::ChestKind;
-use crate::types::Context;
 use crate::types::EventName;
-use crate::types::EventState;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::RoomKind;
-use crate::types::ShopState;
 use crate::utils::shuffle;
 
-pub fn process_effect_room_enter(
-    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-    location: Location,
-    entities: &mut Vec<Entity>,
-    encounter_list_normal: &mut Vec<MonsterEncounter>,
-    encounter_list_elite: &mut Vec<MonsterEncounter>,
-    encounter_boss: MonsterEncounter,
-    events_seen_this_run: &mut Vec<EventName>,
-    context: &mut Option<Context>,
-    rng: &mut impl Rng,
-    effect_queue: &mut VecDeque<Effect>,
-) {
-    let room_kind = get_active_room_kind(id_rooms, location, entities).unwrap();
+pub fn process_effect_room_enter(state: &mut GameState) {
+    let room_kind =
+        get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     let mut buf_effects = EffectBuf::new();
 
     match room_kind {
         RoomKind::CombatBoss => {
-            spawn_encounter_monsters(encounter_boss, &mut buf_effects, rng);
+            spawn_encounter_monsters(state.encounter_boss, &mut buf_effects, &mut state.rng);
         }
         RoomKind::CombatMonster => {
-            let encounter = encounter_list_normal.remove(0);
-            spawn_encounter_monsters(encounter, &mut buf_effects, rng);
+            let encounter = state.encounter_list_normal.remove(0);
+            spawn_encounter_monsters(encounter, &mut buf_effects, &mut state.rng);
         }
         RoomKind::CombatElite => {
-            let encounter = encounter_list_elite.remove(0);
-            spawn_encounter_monsters(encounter, &mut buf_effects, rng);
+            let encounter = state.encounter_list_elite.remove(0);
+            spawn_encounter_monsters(encounter, &mut buf_effects, &mut state.rng);
         }
         RoomKind::RestSite => {
-            // Nothing to enqueue; RestSite screen is location-derived
+            state.active = ActiveContext::RestSite;
         }
         RoomKind::Treasure => {
-            let Location::Overworld { y, x } = location else {
+            let Location::Overworld { y, x } = state.location else {
                 unreachable!("RoomEnter on Treasure outside Overworld");
             };
-            let room = room_at_mut(id_rooms, entities, y, x).expect("Treasure room missing");
-            let roll = rng.random_range(0..100) as u8;
+            let room = room_at_mut(&state.id_rooms, &mut state.entities, y, x)
+                .expect("Treasure room missing");
+            let roll = state.rng.random_range(0..100) as u8;
             room.room_chest_kind = Some(if roll < CHEST_SMALL_PCT {
                 ChestKind::Small
             } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
@@ -68,25 +55,30 @@ pub fn process_effect_room_enter(
             } else {
                 ChestKind::Large
             });
+            state.active = ActiveContext::Chest;
         }
         RoomKind::EventRoom => {
-            if let Some(id_event) = spawn_random_event(entities, events_seen_this_run, rng) {
-                *context = Some(Context::Event(EventState { id_event }));
+            if let Some(id_event) = spawn_random_event(
+                &mut state.entities,
+                &mut state.events_seen_this_run,
+                &mut state.rng,
+            ) {
+                state.active = ActiveContext::Event;
+                state.id_event = Some(id_event);
                 return;
             }
         }
         RoomKind::Shop => {
-            *context = Some(Context::Shop(ShopState::default()));
+            state.active = ActiveContext::Shop;
         }
     }
 
     if buf_effects.len > 0 {
         buf_effects.push(Effect::direct(EffectKind::CombatStart, None, None));
-        buf_effects.push_all_front(effect_queue);
+        buf_effects.push_all_front(&mut state.effect_queue);
     }
 }
 
-// Drift-state ? resolution is deferred until shop/surprise-treasure paths exist
 fn spawn_random_event(
     entities: &mut Vec<Entity>,
     events_seen_this_run: &mut Vec<EventName>,
@@ -105,8 +97,7 @@ fn spawn_random_event(
         }
     };
     events_seen_this_run.push(name);
-    let id_event = entities.len();
-    entities.push(spawn_event(name, rng));
+    let id_event = entities_push(entities, spawn_event(name, rng));
     Some(id_event)
 }
 

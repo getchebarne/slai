@@ -1,24 +1,25 @@
-use std::collections::VecDeque;
-
 use crate::consts::MAP_HEIGHT;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::game::GameState;
 use crate::game::Location;
+use crate::types::ActiveContext;
 
-pub fn process_effect_rest_site_exit(
-    location: &mut Location,
-    effect_queue: &mut VecDeque<Effect>,
-) {
-    let at_final_row = matches!(*location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1);
+pub fn process_effect_rest_site_exit(state: &mut GameState) {
+    let at_final_row =
+        matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1);
 
     if at_final_row {
-        *location = Location::BossRoom;
-        effect_queue.push_front(Effect::direct(EffectKind::RoomEnter, None, None));
+        state.location = Location::BossRoom;
+        state
+            .effect_queue
+            .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
     } else {
-        effect_queue.push_front(Effect {
+        state.active = ActiveContext::Map;
+        state.effect_queue.push_front(Effect {
             kind: EffectKind::RoomSelect,
             id_source: None,
             target: Target::Resolve {

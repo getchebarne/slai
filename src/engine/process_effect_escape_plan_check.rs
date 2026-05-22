@@ -1,31 +1,23 @@
-use std::collections::VecDeque;
-
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::types::CardKind;
 
 // EscapePlan post-draw check: if the last card drawn (set by CardDraw) is a
 // Skill, gain `block`. Consumes `card_last_drawn` so it can't fire on stale
 // state if it runs again later
-pub fn process_effect_escape_plan_check(
-    entities: &[Entity],
-    id_character: usize,
-    card_last_drawn: &mut Option<usize>,
-    block: u16,
-    effect_queue: &mut VecDeque<Effect>,
-) {
-    let id_card = match card_last_drawn.take() {
+pub fn process_effect_escape_plan_check(state: &mut GameState, block: u16) {
+    let id_card = match state.card_last_drawn.take() {
         Some(id) => id,
         None => return,
     };
-    if entities[id_card].card_kind != CardKind::Skill {
+    if state.entities[id_card].card_kind != CardKind::Skill {
         return;
     }
-    effect_queue.push_front(Effect {
+    state.effect_queue.push_front(Effect {
         kind: EffectKind::BlockGain { amount: block },
-        id_source: Some(id_character),
-        target: Target::Direct(Some(id_character)),
+        id_source: Some(state.id_character),
+        target: Target::Direct(Some(state.id_character)),
     });
 }

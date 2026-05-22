@@ -26,6 +26,7 @@ use crate::modifier::modifier_stacks;
 use crate::modifier::stacks_max_for;
 use crate::monsters::hexaghost;
 use crate::relics::iter_owned_relics;
+use crate::types::ActiveContext;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -1865,44 +1866,45 @@ impl MonsterEncounter {
 // Snapshot builders
 pub fn snapshot_state(state: &GameState) -> PyGameState {
     // Combat-only fields default to empty / 0 when not in Combat context
-    let (hand, pile_draw, pile_discard, pile_exhaust, energy) = match &state.context {
-        Some(crate::types::Context::Combat(c)) => (
-            c.id_hand
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            c.id_pile_draw
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            c.id_pile_discard
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            c.id_pile_exhaust
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            PyEnergy {
-                current: c.energy.current,
-                max: c.energy.max,
-            },
-        ),
-        _ => (
-            Vec::new(),
-            Vec::new(),
-            Vec::new(),
-            Vec::new(),
-            PyEnergy { current: 0, max: 0 },
-        ),
-    };
+    let (hand, pile_draw, pile_discard, pile_exhaust, energy) =
+        if matches!(state.active, ActiveContext::Combat) {
+            (
+                state.id_hand
+                    .iter()
+                    .map(|&id| snapshot_card(state, id))
+                    .collect(),
+                state.id_pile_draw
+                    .iter()
+                    .map(|&id| snapshot_card(state, id))
+                    .collect(),
+                state.id_pile_discard
+                    .iter()
+                    .map(|&id| snapshot_card(state, id))
+                    .collect(),
+                state.id_pile_exhaust
+                    .iter()
+                    .map(|&id| snapshot_card(state, id))
+                    .collect(),
+                PyEnergy {
+                    current: state.energy.current,
+                    max: state.energy.max,
+                },
+            )
+        } else {
+            (
+                Vec::new(),
+                Vec::new(),
+                Vec::new(),
+                Vec::new(),
+                PyEnergy { current: 0, max: 0 },
+            )
+        };
     let context = snapshot_context(state);
     let pending_input = snapshot_pending_input(state);
     PyGameState {
         character: snapshot_character(state),
         monsters: snapshot_monsters(state),
-        deck: state
-            .id_deck
+        deck: state.id_deck
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
@@ -1922,48 +1924,45 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
 }
 
 fn snapshot_context(state: &GameState) -> Option<PyContext> {
-    use crate::types::Context;
-    match &state.context {
-        Some(Context::Combat(c)) => Some(PyContext::Combat(PyCombat {
-            hand: c
-                .id_hand
+    match state.active {
+        ActiveContext::Combat => Some(PyContext::Combat(PyCombat {
+            hand: state.id_hand
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            pile_draw: c
-                .id_pile_draw
+            pile_draw: state.id_pile_draw
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            pile_discard: c
-                .id_pile_discard
+            pile_discard: state.id_pile_discard
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            pile_exhaust: c
-                .id_pile_exhaust
+            pile_exhaust: state.id_pile_exhaust
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
             monsters: snapshot_monsters(state),
             energy: PyEnergy {
-                current: c.energy.current,
-                max: c.energy.max,
+                current: state.energy.current,
+                max: state.energy.max,
             },
         })),
-        Some(Context::Reward(r)) => Some(PyContext::Reward(PyReward {
-            cards: r
-                .id_cards
+        ActiveContext::Reward => Some(PyContext::Reward(PyReward {
+            cards: state.reward_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            relic: r.id_relic.map(|id| snapshot_relic(&state.entities[id])),
-            potion: r.id_potion.map(|id| snapshot_potion(&state.entities[id])),
-            gold: r.gold,
+            relic: state.reward_id_relic.map(|id| snapshot_relic(&state.entities[id])),
+            potion: state.reward_id_potion.map(|id| snapshot_potion(&state.entities[id])),
+            gold: state.reward_gold,
         })),
-        Some(Context::Event(e)) => Some(PyContext::Event(snapshot_event(state, e.id_event))),
-        Some(Context::Shop(_)) => Some(PyContext::Shop(PyShop {})),
-        None => None,
+        ActiveContext::Event => Some(PyContext::Event(snapshot_event(
+            state,
+            state.id_event.expect("Event context requires state.id_event"),
+        ))),
+        ActiveContext::Shop => Some(PyContext::Shop(PyShop {})),
+        ActiveContext::Map | ActiveContext::RestSite | ActiveContext::Chest => None,
     }
 }
 
@@ -1997,13 +1996,13 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
             num: 1,
         }),
         EffectKind::CardDiscoverPick => {
-            let cards = match &state.context {
-                Some(crate::types::Context::Combat(c)) => c
-                    .id_pick
+            let cards = if matches!(state.active, ActiveContext::Combat) {
+                state.id_pick
                     .iter()
                     .map(|&id| snapshot_card(state, id))
-                    .collect(),
-                _ => Vec::new(),
+                    .collect()
+            } else {
+                Vec::new()
             };
             Some(PyPendingInput::Discover { cards })
         }
@@ -2020,8 +2019,7 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
 }
 
 fn filtered_deck_cards(state: &GameState, kind: DeckSelectKind) -> Vec<PyCard> {
-    state
-        .id_deck
+    state.id_deck
         .iter()
         .copied()
         .filter(|&id| crate::events::card_in_deck_filter(&state.entities[id], kind))
@@ -2029,14 +2027,9 @@ fn filtered_deck_cards(state: &GameState, kind: DeckSelectKind) -> Vec<PyCard> {
         .collect()
 }
 
-// Legacy view derived from new state. Internal engine uses Context as the SoT
 fn snapshot_phase(state: &GameState) -> PyPhase {
-    use crate::types::Context;
     use crate::types::RoomKind;
-    if state.entities[state.id_character].dead {
-        return PyPhase::GameOver {};
-    }
-    if matches!(state.location, Location::BossRoom) && state.context.is_none() {
+    if state.game_over {
         return PyPhase::GameOver {};
     }
     // Queue-head input halts
@@ -2068,13 +2061,13 @@ fn snapshot_phase(state: &GameState) -> PyPhase {
                 },
                 EffectKind::RoomSelect => PyPhase::Map {},
                 EffectKind::CardDiscoverPick => {
-                    let cards = match &state.context {
-                        Some(Context::Combat(c)) => c
-                            .id_pick
+                    let cards = if matches!(state.active, ActiveContext::Combat) {
+                        state.id_pick
                             .iter()
                             .map(|&id| snapshot_card(state, id))
-                            .collect(),
-                        _ => Vec::new(),
+                            .collect()
+                    } else {
+                        Vec::new()
                     };
                     PyPhase::CombatAwaitDiscover { cards }
                 }
@@ -2087,23 +2080,25 @@ fn snapshot_phase(state: &GameState) -> PyPhase {
         }
     }
     // Multi-action context screens
-    match &state.context {
-        Some(Context::Combat(_)) => PyPhase::CombatDefault {},
-        Some(Context::Reward(r)) => PyPhase::Reward {
-            cards: r
-                .id_cards
+    match state.active {
+        ActiveContext::Combat => PyPhase::CombatDefault {},
+        ActiveContext::Reward => PyPhase::Reward {
+            cards: state.reward_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            relic: r.id_relic.map(|id| snapshot_relic(&state.entities[id])),
-            potion: r.id_potion.map(|id| snapshot_potion(&state.entities[id])),
-            gold: r.gold,
+            relic: state.reward_id_relic.map(|id| snapshot_relic(&state.entities[id])),
+            potion: state.reward_id_potion.map(|id| snapshot_potion(&state.entities[id])),
+            gold: state.reward_gold,
         },
-        Some(Context::Event(e)) => PyPhase::AwaitEventChoice {
-            event: snapshot_event(state, e.id_event),
+        ActiveContext::Event => PyPhase::AwaitEventChoice {
+            event: snapshot_event(
+                state,
+                state.id_event.expect("Event context requires state.id_event"),
+            ),
         },
-        Some(Context::Shop(_)) => PyPhase::Shop {},
-        None => match state.location {
+        ActiveContext::Shop => PyPhase::Shop {},
+        ActiveContext::Map | ActiveContext::RestSite | ActiveContext::Chest => match state.location {
             Location::Overworld { y, x } => {
                 if let Some(room) = crate::map::room_at(&state.id_rooms, &state.entities, y, x) {
                     match room.room_kind {
@@ -2281,14 +2276,18 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     // Combat-only context lookups for play-restriction and cost: outside
     // combat these default to permissive values (cards not played anyway)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        match &state.context {
-            Some(crate::types::Context::Combat(c)) => (
-                is_play_restriction_satisfied(card.card_play_restriction, &c.id_pile_draw),
-                c.this_turn_discards,
-                c.this_combat_damage_instances_taken,
-                c.energy.current,
-            ),
-            _ => (true, 0, 0, 0),
+        if matches!(state.active, ActiveContext::Combat) {
+            (
+                is_play_restriction_satisfied(
+                    card.card_play_restriction,
+                    &state.id_pile_draw,
+                ),
+                state.this_turn_discards,
+                state.this_combat_damage_instances_taken,
+                state.energy.current,
+            )
+        } else {
+            (true, 0, 0, 0)
         };
     let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
     let base = card.card_name.as_str();

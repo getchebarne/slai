@@ -10,6 +10,7 @@ use crate::action::Action;
 use crate::action::handle_action;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
+use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::ENCOUNTER_LIST_ELITE_CAPACITY;
 use crate::consts::ENCOUNTER_LIST_NORMAL_CAPACITY;
 use crate::consts::EVENT_CHANCE_MONSTER_BASE;
@@ -17,11 +18,17 @@ use crate::consts::EVENT_CHANCE_SHOP_BASE;
 use crate::consts::EVENT_CHANCE_TREASURE_BASE;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
+use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::consts::MAX_ENTITIES;
+use crate::consts::MAX_MONSTERS;
+use crate::consts::MAX_SIZE_DECK;
+use crate::consts::MAX_SIZE_HAND;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::engine::entities_push;
 use crate::engine::process_queue;
 use crate::entity::Entity;
 use crate::map::generate_map;
@@ -81,34 +88,56 @@ pub struct GameState {
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
-    // Mutually-exclusive game context. Combat data (hand, piles, monsters,
-    // energy, turn counters) lives inside Context::Combat(CombatState)
-    pub context: Option<Context>,
+    pub active: ActiveContext,
+    pub game_over: bool,
+
+    // Combat working memory; meaningful when active = Combat
+    pub id_hand: Vec<usize>,
+    pub id_pile_draw: Vec<usize>,
+    pub id_pile_discard: Vec<usize>,
+    pub id_pile_exhaust: Vec<usize>,
+    pub id_monsters: [Option<usize>; MAX_MONSTERS],
+    pub id_monster_picked: Option<usize>,
+    pub energy: Energy,
+    pub this_turn_discards: u8,
+    pub this_turn_attacks_played: u8,
+    pub this_combat_damage_instances_taken: u8,
+    pub escaped_this_combat: bool,
+    pub card_last_drawn: Option<usize>,
+    pub id_card_nightmare: Option<usize>,
+    pub id_pick: Vec<usize>,
+
+    // Reward working memory; meaningful when active = Reward
+    pub reward_id_cards: Vec<usize>,
+    pub reward_id_relic: Option<usize>,
+    pub reward_id_potion: Option<usize>,
+    pub reward_gold: Option<u16>,
+
+    // Event working memory; meaningful when active = Event
+    pub id_event: Option<usize>,
 }
 
 // Create and initialize
 pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
 
-    // Initialize empty entities vector
-    let mut entities = Vec::with_capacity(256);
+    // Initialize empty entities arena
+    let mut entities: Vec<Entity> = Vec::with_capacity(MAX_ENTITIES);
 
     // Initialize character
     let character = spawn_silent(ascension);
-    entities.push(character);
+    entities_push(&mut entities, character);
 
     // Innate start relic
-    let id_snake_ring = entities.len();
-    entities.push(get_relic(RelicName::SnakeRing));
+    let id_snake_ring = entities_push(&mut entities, get_relic(RelicName::SnakeRing));
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
     id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
 
     // Initialize starter deck
     let deck_starter = get_silent_starter_deck();
-    let mut id_deck = Vec::with_capacity(deck_starter.len());
+    let mut id_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
     for card in deck_starter {
-        let id_card = entities.len();
-        entities.push(card);
+        let id_card = entities_push(&mut entities, card);
         id_deck.push(id_card);
     }
 
@@ -116,8 +145,10 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let (id_rooms, location) = generate_map(&mut rng, &mut entities);
 
     // Pre-generate monster encounters
-    let mut encounter_list_normal = Vec::with_capacity(ENCOUNTER_LIST_NORMAL_CAPACITY);
-    let mut encounter_list_elite = Vec::with_capacity(ENCOUNTER_LIST_ELITE_CAPACITY);
+    let mut encounter_list_normal: Vec<MonsterEncounter> =
+        Vec::with_capacity(ENCOUNTER_LIST_NORMAL_CAPACITY);
+    let mut encounter_list_elite: Vec<MonsterEncounter> =
+        Vec::with_capacity(ENCOUNTER_LIST_ELITE_CAPACITY);
     generate_act1_monsters(
         &mut encounter_list_normal,
         &mut encounter_list_elite,
@@ -153,9 +184,30 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
         event_chance_shop: EVENT_CHANCE_SHOP_BASE,
         event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,
-        events_seen_this_run: Vec::with_capacity(16),
+        events_seen_this_run: Vec::with_capacity(EventName::COUNT),
         potion_drop_mod: 0,
-        context: None,
+
+        active: ActiveContext::Map,
+        game_over: false,
+        id_hand: Vec::with_capacity(MAX_SIZE_HAND),
+        id_pile_draw: Vec::with_capacity(MAX_SIZE_DECK),
+        id_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
+        id_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
+        id_monsters: [None; MAX_MONSTERS],
+        id_monster_picked: None,
+        energy: Energy { current: 3, max: 3 },
+        this_turn_discards: 0,
+        this_turn_attacks_played: 0,
+        this_combat_damage_instances_taken: 0,
+        escaped_this_combat: false,
+        card_last_drawn: None,
+        id_card_nightmare: None,
+        id_pick: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
+        reward_id_cards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
+        reward_id_relic: None,
+        reward_id_potion: None,
+        reward_gold: None,
+        id_event: None,
     };
 
     // Run the queue so the initial halt registers

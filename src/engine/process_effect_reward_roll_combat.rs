@@ -1,5 +1,4 @@
 use rand::Rng;
-use strum::EnumCount;
 
 use crate::consts::ELITE_TH_COMMON;
 use crate::consts::ELITE_TH_UNCOMMON;
@@ -12,27 +11,25 @@ use crate::consts::POTION_DROP_CHANCE_MOD_HIT;
 use crate::consts::POTION_DROP_CHANCE_MOD_MAX;
 use crate::consts::POTION_DROP_CHANCE_MOD_MIN;
 use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
-use crate::entity::Entity;
+use crate::engine::entities_push;
+use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion;
-use crate::types::RelicName;
-use crate::types::RewardState;
+use crate::types::ActiveContext;
 use crate::types::RoomKind;
 use crate::utils::add_relic_reward_for_roll;
 use crate::utils::roll_card_rewards;
 
-pub fn process_effect_reward_roll_combat(
-    room_kind: RoomKind,
-    id_character: usize,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    escaped_this_combat: bool,
-    potion_drop_mod: &mut i8,
-    entities: &mut Vec<Entity>,
-    rng: &mut impl Rng,
-) -> RewardState {
+pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomKind) {
+    let escaped = if matches!(state.active, ActiveContext::Combat) {
+        state.escaped_this_combat
+    } else {
+        false
+    };
+
     let (gold_range, relic_thresholds) = match room_kind {
         RoomKind::CombatMonster => (
-            if escaped_this_combat {
+            if escaped {
                 None
             } else {
                 Some((GOLD_MONSTER_MIN, GOLD_MONSTER_MAX))
@@ -49,25 +46,30 @@ pub fn process_effect_reward_roll_combat(
         ),
     };
 
-    let id_cards = roll_card_rewards(id_character, entities, rng);
-    let id_relic = relic_thresholds.map(|(th_c, th_u)| {
-        let roll = rng.random_range(0..100) as u8;
-        add_relic_reward_for_roll(roll, th_c, th_u, id_relics, entities, rng)
+    roll_card_rewards(
+        state.id_character,
+        &mut state.entities,
+        &mut state.rng,
+        &mut state.reward_id_cards,
+    );
+    state.reward_id_relic = relic_thresholds.map(|(th_c, th_u)| {
+        let roll = state.rng.random_range(0..100) as u8;
+        add_relic_reward_for_roll(
+            roll,
+            th_c,
+            th_u,
+            &state.id_relics,
+            &mut state.entities,
+            &mut state.rng,
+        )
     });
-    let id_potion = roll_potion_drop(rng, potion_drop_mod).then(|| {
-        let name = get_random_potion(rng, false);
-        let id = entities.len();
-        entities.push(get_potion(name));
-        id
+    state.reward_id_potion = roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod).then(|| {
+        let name = get_random_potion(&mut state.rng, false);
+        entities_push(&mut state.entities, get_potion(name))
     });
-    let gold = gold_range.map(|(min, max)| rng.random_range(min..=max));
+    state.reward_gold = gold_range.map(|(min, max)| state.rng.random_range(min..=max));
 
-    RewardState {
-        id_cards,
-        id_relic,
-        id_potion,
-        gold,
-    }
+    state.active = ActiveContext::Reward;
 }
 
 // +10 on miss, -10 on hit; clamps to [-30, +60] ([10%, 100%])

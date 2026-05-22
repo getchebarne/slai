@@ -7,17 +7,13 @@
 
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_SIZE_HAND;
+use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
+use crate::engine::entities_push;
 use crate::events::EventOption;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
-
-// Per-card effect array capacity. Largest current card is RiddleWithHoles
-// (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
-// with practical caps, etc.). Bump when a card legitimately exceeds it
-pub const MAX_EFFECTS_PER_CARD: usize = 8;
-use crate::consts::POTION_SLOTS_MAX;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -33,6 +29,11 @@ use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Vitals;
 use crate::types::ZERO_VITALS;
+
+// Per-card effect array capacity. Largest current card is RiddleWithHoles
+// (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
+// with practical caps, etc.). Bump when a card legitimately exceeds it
+pub const MAX_EFFECTS_PER_CARD: usize = 8;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EntityKind {
@@ -166,9 +167,8 @@ pub struct Entity {
     pub event_param_c: u16,
 }
 
-// Private zero-fill used by the public const fn constructors below
-// Not exported — external code must go through one of the `*_entity` fns
-const ZERO_ENTITY: Entity = Entity {
+// Zero-fill sentinel; used by const constructors and unused arena slots
+pub const ZERO_ENTITY: Entity = Entity {
     kind: EntityKind::Character,
     vitals: ZERO_VITALS,
     modifiers: ZERO_MODIFIERS,
@@ -304,7 +304,7 @@ pub const fn make_entity_card(
         card_exhaust: exhaust,
         card_ethereal: ethereal,
         card_innate: innate,
-        requires_target: requires_target,
+        requires_target,
         card_play_restriction: play_restriction,
         card_effects: arr,
         card_effects_len: effects.len() as u8,
@@ -398,8 +398,7 @@ pub fn add_card_to_hand_or_discard(
     id_pile_discard: &mut Vec<usize>,
     card: Entity,
 ) -> usize {
-    let id_card = entities.len();
-    entities.push(card);
+    let id_card = entities_push(entities, card);
     if id_hand.len() < MAX_SIZE_HAND {
         id_hand.push(id_card);
     } else {

@@ -1,18 +1,12 @@
-use std::collections::VecDeque;
-
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::entity::Entity;
+use crate::game::GameState;
 
-pub fn process_effect_health_gain_pct(
-    character: &Entity,
-    id_character: usize,
-    numer: u8,
-    denom: u8,
-    effect_queue: &mut VecDeque<Effect>,
-) {
+pub fn process_effect_health_gain_pct(state: &mut GameState, numer: u8, denom: u8) {
+    let id_character = state.id_character;
+    let character = &state.entities[id_character];
     let amount = ((character.vitals.health_max as u32 * numer as u32) / denom as u32) as u16;
-    effect_queue.push_front(Effect::direct(
+    state.effect_queue.push_front(Effect::direct(
         EffectKind::HealthGain { amount },
         None,
         Some(id_character),

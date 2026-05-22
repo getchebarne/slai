@@ -253,10 +253,7 @@ pub enum CandidatePool {
     OtherMonsters,
     Source,
     NextRowRooms,
-    // Halt-only pools (used with SelectionKind::Input):
-    // IdPick: resolves to `state.combat().id_pick` (Discover halts)
     IdPick,
-    // DeckFiltered: resolves to `state.id_deck` filtered by kind (DeckSelect halts)
     DeckFiltered(DeckSelectKind),
 }
 

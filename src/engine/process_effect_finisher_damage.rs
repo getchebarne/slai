@@ -1,20 +1,19 @@
-use std::collections::VecDeque;
-
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::game::GameState;
 
 // Subtract 1 because card_play increments the counter before this effect fires
 pub fn process_effect_finisher_damage(
-    this_turn_attacks_played: u8,
     id_source: Option<usize>,
-    id_target: usize,
+    id_target: Option<usize>,
+    state: &mut GameState,
     damage: u16,
-    effect_queue: &mut VecDeque<Effect>,
 ) {
-    let num_attacks = this_turn_attacks_played.saturating_sub(1);
+    let id_target = id_target.expect("FinisherDamage requires id_target");
+    let num_attacks = state.this_turn_attacks_played.saturating_sub(1);
     for _ in 0..num_attacks {
-        effect_queue.push_front(Effect {
+        state.effect_queue.push_front(Effect {
             kind: EffectKind::DamagePhysical { amount: damage },
             id_source,
             target: Target::Direct(Some(id_target)),
