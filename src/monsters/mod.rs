@@ -25,6 +25,7 @@ pub mod slime_spike_medium;
 pub mod slime_spike_small;
 pub mod the_guardian;
 
+use crate::consts::MAX_MONSTERS;
 use crate::entity::Entity;
 use crate::entity::get_move_history_slice;
 use crate::types::MonsterName;
@@ -86,7 +87,7 @@ pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
 pub fn get_next_move(
     entity: &Entity,
     entity_id: usize,
-    id_alive_monsters: &[usize],
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
@@ -122,8 +123,9 @@ pub fn get_next_move(
         ),
         MonsterName::Hexaghost => hexaghost::get_next_move_hexaghost(entity.move_current, history),
         MonsterName::GremlinTsundere => {
-            let other_alive_count = id_alive_monsters
+            let other_alive_count = id_monsters
                 .iter()
+                .flatten()
                 .filter(|&&id| id != entity_id)
                 .count() as u8;
             gremlin_tsundere::get_next_move_gremlin_tsundere(entity.move_current, other_alive_count)
@@ -140,7 +142,7 @@ pub fn get_next_move(
             louse_red::get_next_move_louse_red(history, ascension_level, rng)
         }
         MonsterName::Sentry => {
-            sentry::get_next_move_sentry(entity.move_current, history, entity_id, id_alive_monsters)
+            sentry::get_next_move_sentry(entity.move_current, history, entity_id, id_monsters)
         }
         MonsterName::SlaverRed => {
             slaver_red::get_next_move_slaver_red(entity.move_current, history, ascension_level, rng)

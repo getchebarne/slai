@@ -26,8 +26,8 @@ pub fn process_effect_card_discover_select(
         kind: EffectKind::CardDiscoverPick,
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::IdPick,
-            selection: SelectionKind::Input { count: 1 },
+            candidate_pool: CandidatePool::IdPick,
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     });
 }

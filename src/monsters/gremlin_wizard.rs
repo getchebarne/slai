@@ -24,8 +24,8 @@ static MOVE_ULTIMATE_BLAST_25: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 25 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -39,8 +39,8 @@ static MOVE_ULTIMATE_BLAST_30: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 30 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {

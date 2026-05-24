@@ -21,8 +21,8 @@ static MOVE_SMASH_4_W1: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 4 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -32,8 +32,8 @@ static MOVE_SMASH_4_W1: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -49,8 +49,8 @@ static MOVE_SMASH_5_W1: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -60,8 +60,8 @@ static MOVE_SMASH_5_W1: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -77,8 +77,8 @@ static MOVE_SMASH_5_W1_F1: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -88,8 +88,8 @@ static MOVE_SMASH_5_W1_F1: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -99,8 +99,8 @@ static MOVE_SMASH_5_W1_F1: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],

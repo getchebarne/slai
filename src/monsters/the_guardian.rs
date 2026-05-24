@@ -26,8 +26,8 @@ static MOVE_CHARGING_UP: Move = Move {
         kind: EffectKind::BlockGain { amount: 9 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Block,
@@ -38,8 +38,8 @@ static MOVE_FIERCE_BASH_32: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 32 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -53,8 +53,8 @@ static MOVE_FIERCE_BASH_36: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 36 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -72,8 +72,8 @@ static MOVE_VENT_STEAM: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -83,8 +83,8 @@ static MOVE_VENT_STEAM: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -97,32 +97,32 @@ static MOVE_WHIRLWIND: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -140,8 +140,8 @@ static MOVE_DEFENSIVE_MODE_3: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -155,8 +155,8 @@ static MOVE_DEFENSIVE_MODE_4: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -167,8 +167,8 @@ static MOVE_ROLL_ATTACK_9: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 9 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -182,8 +182,8 @@ static MOVE_ROLL_ATTACK_10: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -198,16 +198,16 @@ static MOVE_TWIN_SLAM_30: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -217,8 +217,8 @@ static MOVE_TWIN_SLAM_30: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -227,8 +227,8 @@ static MOVE_TWIN_SLAM_30: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -244,16 +244,16 @@ static MOVE_TWIN_SLAM_35: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -263,8 +263,8 @@ static MOVE_TWIN_SLAM_35: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -273,8 +273,8 @@ static MOVE_TWIN_SLAM_35: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -290,16 +290,16 @@ static MOVE_TWIN_SLAM_40: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -309,8 +309,8 @@ static MOVE_TWIN_SLAM_40: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -319,8 +319,8 @@ static MOVE_TWIN_SLAM_40: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],

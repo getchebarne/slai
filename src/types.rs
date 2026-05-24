@@ -22,13 +22,6 @@ pub enum ActiveContext {
     Chest,
 }
 
-// Halt overlay derived from the queue head; orthogonal to ActiveContext
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Modal {
-    HandSelect,
-    Discover,
-    DeckSelect,
-}
 
 pub const ZERO_VITALS: Vitals = Vitals {
     health: 0,
@@ -297,6 +290,14 @@ pub enum ChestKind {
     Small,
     Medium,
     Large,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RewardKind {
+    Card,
+    Relic,
+    Potion,
+    Gold,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]

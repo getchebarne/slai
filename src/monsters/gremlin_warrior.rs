@@ -21,8 +21,8 @@ static MOVE_SCRATCH_4: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 4 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -36,8 +36,8 @@ static MOVE_SCRATCH_5: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 5 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {

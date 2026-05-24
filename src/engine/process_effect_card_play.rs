@@ -1,4 +1,3 @@
-use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -11,7 +10,6 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
 use crate::types::RelicName;
-use crate::utils::fill_alive_monster_ids;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardPlay requires id_target");
@@ -19,10 +17,6 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let this_turn_discards = state.this_turn_discards;
     let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
     let energy_current = state.energy.current;
-
-    let mut buf_alive = [0usize; MAX_MONSTERS];
-    let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
-    let alive_monsters = &buf_alive[..alive_n];
 
     let card = state.entities[id_card];
 
@@ -124,7 +118,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     // ThousandCuts: id_source = None to skip Envenom proc and Strength/Weak scaling
     if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
-        for &id_monster in alive_monsters {
+        for id_monster in state.id_monsters.iter().flatten().copied() {
             state.buf_effects.push(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: stacks as u16,
@@ -136,7 +130,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     if card.card_kind == CardKind::Attack {
-        for &id_monster in alive_monsters {
+        for id_monster in state.id_monsters.iter().flatten().copied() {
             let monster_modifiers = &state.entities[id_monster].modifiers;
             if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
@@ -186,7 +180,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // Choke: pushed after card_effects so the played card resolves first
-    for &id_monster in alive_monsters {
+    for id_monster in state.id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;
         if modifier_has(mods_monster, ModifierKind::Choke) {
             let stacks = modifier_stacks(mods_monster, ModifierKind::Choke);
@@ -202,7 +196,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     // Enrage: gain strength on played skill
     if card.card_kind == CardKind::Skill {
-        for &id_monster in alive_monsters {
+        for id_monster in state.id_monsters.iter().flatten().copied() {
             let mods_monster = &state.entities[id_monster].modifiers;
             if modifier_has(mods_monster, ModifierKind::Enrage) {
                 let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);

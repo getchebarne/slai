@@ -28,8 +28,8 @@ pub static DIE_DIE_DIE: Entity = make_entity_card(
         kind: EffectKind::DamagePhysical { amount: 13 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Monsters,
-            selection: SelectionKind::All,
+            candidate_pool: CandidatePool::Monsters,
+            selection_kind: SelectionKind::All,
         },
     }],
     &[],

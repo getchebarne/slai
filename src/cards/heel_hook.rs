@@ -29,16 +29,16 @@ pub static HEEL_HOOK: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::MonsterPicked,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::MonsterPicked,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::HeelHookProc,
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::MonsterPicked,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::MonsterPicked,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],

@@ -30,8 +30,8 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Monsters,
-                selection: SelectionKind::All,
+                candidate_pool: CandidatePool::Monsters,
+                selection_kind: SelectionKind::All,
             },
         },
         Effect {
@@ -40,8 +40,8 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::Random { count: 1 },
+                candidate_pool: CandidatePool::Hand,
+                selection_kind: SelectionKind::Random { count: 1 },
             },
         },
     ],

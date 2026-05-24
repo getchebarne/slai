@@ -32,8 +32,8 @@ pub static BLIND: Entity = make_entity_card(
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::MonsterPicked,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::MonsterPicked,
+            selection_kind: SelectionKind::Single,
         },
     }],
     &[],
@@ -47,8 +47,8 @@ pub static BLIND_PLUS: Entity = Entity {
     card_effects: {
         let mut a = BLIND.card_effects;
         a[0].target = Target::Resolve {
-            candidates: CandidatePool::Monsters,
-            selection: SelectionKind::All,
+            candidate_pool: CandidatePool::Monsters,
+            selection_kind: SelectionKind::All,
         }; // Targets all monsters
         a
     },

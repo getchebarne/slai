@@ -21,8 +21,8 @@ static MOVE_MUG_10: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -36,8 +36,8 @@ static MOVE_MUG_11: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 11 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -51,8 +51,8 @@ static MOVE_LUNGE_12: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 12 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -66,8 +66,8 @@ static MOVE_LUNGE_14: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 14 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -81,8 +81,8 @@ static MOVE_SMOKE_BOMB: Move = Move {
         kind: EffectKind::BlockGain { amount: 6 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Block,
@@ -93,8 +93,8 @@ static MOVE_ESCAPE: Move = Move {
         kind: EffectKind::EscapeMonster,
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Escape,

@@ -28,8 +28,8 @@ pub static MIND_BLAST: Entity = make_entity_card(
         kind: EffectKind::DamageMindBlast,
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::MonsterPicked,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::MonsterPicked,
+            selection_kind: SelectionKind::Single,
         },
     }],
     &[],

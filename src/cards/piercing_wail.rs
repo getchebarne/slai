@@ -33,8 +33,8 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Monsters,
-                selection: SelectionKind::All,
+                candidate_pool: CandidatePool::Monsters,
+                selection_kind: SelectionKind::All,
             },
         },
         Effect {
@@ -44,8 +44,8 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Monsters,
-                selection: SelectionKind::All,
+                candidate_pool: CandidatePool::Monsters,
+                selection_kind: SelectionKind::All,
             },
         },
     ],

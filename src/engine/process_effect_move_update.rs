@@ -1,21 +1,18 @@
-use crate::consts::MAX_MONSTERS;
 use crate::entity::push_move_history;
 use crate::game::GameState;
 use crate::monsters::get_next_move;
 use crate::monsters::is_cycle_boundary;
-use crate::utils::fill_alive_monster_ids;
 
 pub fn process_effect_move_update(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("MoveUpdate requires id_target");
     let ascension_level = state.ascension;
-    let mut buf_alive = [0usize; MAX_MONSTERS];
-    let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+    let id_monsters = state.id_monsters;
 
     let entity = &mut state.entities[id_target];
     let move_next = get_next_move(
         entity,
         id_target,
-        &buf_alive[..alive_n],
+        &id_monsters,
         ascension_level,
         &mut state.rng,
     );

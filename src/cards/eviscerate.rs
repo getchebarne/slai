@@ -29,24 +29,24 @@ pub static EVISCERATE: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::MonsterPicked,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::MonsterPicked,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::MonsterPicked,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::MonsterPicked,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::MonsterPicked,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::MonsterPicked,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],

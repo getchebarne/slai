@@ -28,6 +28,7 @@ use crate::consts::MAX_SIZE_HAND;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::Modal;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::engine::process_queue;
@@ -66,6 +67,8 @@ pub struct GameState {
     pub buf_effects: Vec<Effect>,
     // Per-resolve candidate buffer; cleared before each use
     pub buf_candidates: Vec<usize>,
+    // Halt overlay: Some when the queue is blocked waiting for player input
+    pub modal: Option<Modal>,
     pub location: Location,
 
     // Entities and indices
@@ -170,8 +173,8 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         kind: EffectKind::RoomSelect,
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::NextRowRooms,
-            selection: SelectionKind::Input { count: 1 },
+            candidate_pool: CandidatePool::NextRowRooms,
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     });
 
@@ -190,6 +193,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         effect_queue,
         buf_effects: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         buf_candidates: Vec::with_capacity(MAX_CANDIDATES),
+        modal: None,
         event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
         event_chance_shop: EVENT_CHANCE_SHOP_BASE,
         event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,

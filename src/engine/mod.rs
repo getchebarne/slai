@@ -14,7 +14,6 @@ pub mod process_effect_card_play;
 pub mod process_effect_card_remove;
 pub mod process_effect_card_remove_from_deck;
 pub mod process_effect_card_retain;
-pub mod process_effect_card_reward_clear;
 pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_transform_roll;
 pub mod process_effect_card_upgrade;
@@ -71,9 +70,7 @@ pub mod process_effect_rest_site_exit;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
 pub mod process_effect_reward_skip;
-pub mod process_effect_reward_take_gold;
-pub mod process_effect_reward_take_potion;
-pub mod process_effect_reward_take_relic;
+pub mod process_effect_reward_take;
 pub mod process_effect_roll_d100_branch;
 pub mod process_effect_room_enter;
 pub mod process_effect_room_select;
@@ -97,6 +94,7 @@ use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::Modal;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -106,8 +104,6 @@ use crate::game::Location;
 use crate::map::has_edge;
 use crate::types::ActiveContext;
 use crate::types::CardColor;
-use crate::types::Modal;
-use crate::utils::fill_alive_monster_ids;
 use crate::utils::shuffle;
 
 // Drain state.buf_effects back-to-front into the effect_queue front, so the
@@ -152,7 +148,7 @@ fn resolve_candidates(
     id_character: usize,
     id_hand: &[usize],
     id_monster_picked: Option<usize>,
-    id_alive_monsters: &[usize],
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
@@ -166,9 +162,9 @@ fn resolve_candidates(
             id_monster_picked.expect("MonsterPicked pool requires id_monster_picked to be Some"),
         ),
         CandidatePool::Character => buf_cands.push(id_character),
-        CandidatePool::Monsters => buf_cands.extend_from_slice(id_alive_monsters),
+        CandidatePool::Monsters => buf_cands.extend(id_monsters.iter().flatten().copied()),
         CandidatePool::OtherMonsters => {
-            for &id in id_alive_monsters {
+            for id in id_monsters.iter().flatten().copied() {
                 if id != id_source {
                     buf_cands.push(id);
                 }
@@ -214,12 +210,12 @@ fn resolve_candidates(
 
 fn resolve_targets(
     candidate_pool: CandidatePool,
-    selection: SelectionKind,
+    selection_kind: SelectionKind,
     id_source: usize,
     id_character: usize,
     id_hand: &[usize],
     id_monster_picked: Option<usize>,
-    id_alive_monsters: &[usize],
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
@@ -234,7 +230,7 @@ fn resolve_targets(
         id_character,
         id_hand,
         id_monster_picked,
-        id_alive_monsters,
+        id_monsters,
         id_rooms,
         location,
         entities,
@@ -242,7 +238,7 @@ fn resolve_targets(
         id_deck,
         buf_cands,
     );
-    match selection {
+    match selection_kind {
         SelectionKind::All => TargetResolution::Resolved,
         SelectionKind::Single => {
             assert_eq!(
@@ -280,20 +276,26 @@ pub(crate) fn get_id_actor(entities: &[Entity], id_character: usize, id_source: 
     }
 }
 
-// Returns true on halt. On AwaitInput, the unresolved Effect is pushed back
-// to the queue head; action::handle_action pops it when the player's pick
-// consumes it
+// Returns true on halt. On AwaitInput, sets state.modal so the action handler
+// for the player's pick can build the resolved effect(s) without re-reading
+// the queue. Modal is cleared by that handler
 pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
     let id_target = match effect.target {
-        Target::Direct(t) => t,
+        Target::Direct(id_target) => id_target,
         Target::Resolve {
-            candidates,
-            selection,
+            candidate_pool,
+            selection_kind,
         } => {
-            let halted =
-                resolve_or_halt(state, effect.kind, effect.id_source, candidates, selection);
+            let halted = resolve_or_halt(
+                state,
+                effect.kind,
+                effect.id_source,
+                candidate_pool,
+                selection_kind,
+            );
             if halted {
-                state.effect_queue.push_front(effect);
+                state.modal = Modal::from_effect(&effect);
+                debug_assert!(state.modal.is_some(), "halted but no Modal derivable");
             }
             return halted;
         }
@@ -307,11 +309,9 @@ fn resolve_or_halt(
     state: &mut GameState,
     kind: EffectKind,
     id_source: Option<usize>,
-    candidates: CandidatePool,
-    selection: SelectionKind,
+    candidate_pool: CandidatePool,
+    selection_kind: SelectionKind,
 ) -> bool {
-    let mut buf_alive = [0usize; MAX_MONSTERS];
-    let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
     let id_source_resolved = id_source.unwrap_or(state.id_character);
     let (id_hand, id_monster_picked, id_pick): (&[usize], Option<usize>, &[usize]) =
         if matches!(state.active, ActiveContext::Combat) {
@@ -321,13 +321,13 @@ fn resolve_or_halt(
         };
     state.buf_candidates.clear();
     let resolution = resolve_targets(
-        candidates,
-        selection,
+        candidate_pool,
+        selection_kind,
         id_source_resolved,
         state.id_character,
         id_hand,
         id_monster_picked,
-        &buf_alive[..alive_n],
+        &state.id_monsters,
         &state.id_rooms,
         state.location,
         &state.entities,
@@ -441,23 +441,15 @@ fn dispatch_by_kind(
         EffectKind::CardUpgrade => {
             process_effect_card_upgrade::process_effect_card_upgrade(id_target, state)
         }
-        EffectKind::CardRewardClear => {
-            debug_assert!(matches!(state.active, ActiveContext::Reward));
-            process_effect_card_reward_clear::process_effect_card_reward_clear(state);
-        }
         EffectKind::RewardRollCombat { room_kind } => {
             process_effect_reward_roll_combat::process_effect_reward_roll_combat(state, room_kind);
         }
         EffectKind::RewardRollChest { kind } => {
             process_effect_reward_roll_chest::process_effect_reward_roll_chest(state, kind);
         }
-        EffectKind::RewardTakePotion => {
+        EffectKind::RewardTake { kind } => {
             debug_assert!(matches!(state.active, ActiveContext::Reward));
-            process_effect_reward_take_potion::process_effect_reward_take_potion(state);
-        }
-        EffectKind::RewardTakeGold => {
-            debug_assert!(matches!(state.active, ActiveContext::Reward));
-            process_effect_reward_take_gold::process_effect_reward_take_gold(state);
+            process_effect_reward_take::process_effect_reward_take(id_target, state, kind)
         }
         EffectKind::RewardSkip => {
             debug_assert!(matches!(state.active, ActiveContext::Reward));
@@ -633,10 +625,6 @@ fn dispatch_by_kind(
         EffectKind::RoomSelect => {
             process_effect_room_select::process_effect_room_select(id_target, state)
         }
-        EffectKind::RewardTakeRelic => {
-            debug_assert!(matches!(state.active, ActiveContext::Reward));
-            process_effect_reward_take_relic::process_effect_reward_take_relic(state);
-        }
         EffectKind::CardRemoveFromDeck => {
             process_effect_card_remove_from_deck::process_effect_card_remove_from_deck(
                 id_target, state,
@@ -737,63 +725,10 @@ fn dispatch_by_kind(
 pub fn process_queue(state: &mut GameState) {
     while !state.game_over {
         let Some(effect) = state.effect_queue.pop_front() else {
-            return;
+            return; // Queue drained
         };
         if process_effect(state, effect) {
-            return;
+            return; // Queue halted
         }
-        check_post_effect_transitions(state);
     }
-}
-
-// Exit Reward on pool drain or Event on consume; both transition to Map
-fn check_post_effect_transitions(state: &mut GameState) {
-    if matches!(state.active, ActiveContext::Reward)
-        && state.reward_id_cards.is_empty()
-        && state.reward_id_relic.is_none()
-        && state.reward_id_potion.is_none()
-        && state.reward_gold.is_none()
-    {
-        state.active = ActiveContext::Map;
-        queue_room_select(state);
-        return;
-    }
-    if matches!(state.active, ActiveContext::Event)
-        && state
-            .id_event
-            .map(|id| state.entities[id].event_consumed)
-            .unwrap_or(false)
-    {
-        state.active = ActiveContext::Map;
-        state.id_event = None;
-        queue_room_select(state);
-    }
-}
-
-// None if the queue head isn't a Hand/Discover/DeckSelect input halt
-pub fn derive_modal(state: &GameState) -> Option<Modal> {
-    let front = state.effect_queue.front()?;
-    if !crate::effect::effect_awaits_input(front) {
-        return None;
-    }
-    Some(match front.kind {
-        EffectKind::CardDiscard { .. }
-        | EffectKind::CardRetain
-        | EffectKind::CardSetupPick
-        | EffectKind::CardNightmarePick => Modal::HandSelect,
-        EffectKind::CardDiscoverPick => Modal::Discover,
-        EffectKind::DeckSelectPick { .. } => Modal::DeckSelect,
-        _ => return None,
-    })
-}
-
-fn queue_room_select(state: &mut GameState) {
-    state.effect_queue.push_back(Effect {
-        kind: EffectKind::RoomSelect,
-        id_source: None,
-        target: Target::Resolve {
-            candidates: CandidatePool::NextRowRooms,
-            selection: SelectionKind::Input { count: 1 },
-        },
-    });
 }

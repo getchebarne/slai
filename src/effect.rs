@@ -3,9 +3,11 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::ChestKind;
 use crate::types::DeckSelectKind;
+use crate::types::HandSelectKind;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
+use crate::types::RewardKind;
 use crate::types::RoomKind;
 
 // EffectKind: the shared "what happens" enum
@@ -92,12 +94,14 @@ pub enum EffectKind {
     CardExhaust,
     CardRemove,
     CardUpgrade,
-    CardRewardClear,
     RewardRollCombat {
         room_kind: RoomKind,
     },
     RewardRollChest {
         kind: ChestKind,
+    },
+    RewardTake {
+        kind: RewardKind,
     },
     TargetSet,
     TargetClear,
@@ -148,9 +152,6 @@ pub enum EffectKind {
     // mutating state and pushing follow-up effects
     RoomSelect,
 
-    // Relic flow
-    RewardTakeRelic,
-
     // Master-deck mutation (combat rewards, events, shop, Neow)
     CardRemoveFromDeck,
     CardAddToDeck {
@@ -173,10 +174,6 @@ pub enum EffectKind {
     PotionAddRandom {
         limited: bool,
     },
-    RewardTakePotion,
-
-    // Gold reward pickup (in-pool gold from combat-end or chest)
-    RewardTakeGold,
 
     // Umbrella skip: bulk-clear all reward pool fields
     RewardSkip,
@@ -277,8 +274,8 @@ pub enum Target {
     /// dispatcher runs `resolve_targets` and either fans out to `Direct`
     /// effects or halts on input.
     Resolve {
-        candidates: CandidatePool,
-        selection: SelectionKind,
+        candidate_pool: CandidatePool,
+        selection_kind: SelectionKind,
     },
 }
 
@@ -314,15 +311,72 @@ impl Effect {
     }
 }
 
-// True iff the Effect's target requires player input. Sound between
-// process_queue calls only -- inside the loop, resolve_targets is authoritative
-// since Input{count} auto-resolves when count >= candidate count
-pub fn effect_awaits_input(effect: &Effect) -> bool {
-    matches!(
-        effect.target,
-        Target::Resolve {
-            selection: SelectionKind::Input { .. },
+// Modal: the halt state. Set by process_effect when an Input-based Resolve
+// fails to auto-resolve; cleared by the action handler that supplies the
+// player's pick. Each variant carries everything the handler needs to push the
+// resolved effect(s) without re-reading the queue
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Modal {
+    HandSelect {
+        kind: HandSelectKind,
+        // Per-pick effect kind (CardDiscard{source}/CardRetain/CardSetupPick/CardNightmarePick)
+        effect_kind: EffectKind,
+        id_source: Option<usize>,
+        num: u16,
+    },
+    Discover {
+        id_source: Option<usize>,
+    },
+    DeckSelect {
+        kind: DeckSelectKind,
+        id_source: Option<usize>,
+    },
+    RoomSelect {
+        id_source: Option<usize>,
+    },
+}
+
+impl Modal {
+    // Derive a Modal from the unresolved Effect at halt time. Returns None for
+    // effect kinds that don't await input (shouldn't be reached in practice)
+    pub fn from_effect(effect: &Effect) -> Option<Self> {
+        let Target::Resolve {
+            selection_kind: SelectionKind::Input { count },
             ..
-        }
-    )
+        } = effect.target
+        else {
+            return None;
+        };
+        let id_source = effect.id_source;
+        Some(match effect.kind {
+            EffectKind::CardDiscard { .. } => Self::HandSelect {
+                kind: HandSelectKind::Discard,
+                effect_kind: effect.kind,
+                id_source,
+                num: count,
+            },
+            EffectKind::CardRetain => Self::HandSelect {
+                kind: HandSelectKind::Retain,
+                effect_kind: effect.kind,
+                id_source,
+                num: count,
+            },
+            EffectKind::CardSetupPick => Self::HandSelect {
+                kind: HandSelectKind::Setup,
+                effect_kind: effect.kind,
+                id_source,
+                num: count,
+            },
+            EffectKind::CardNightmarePick => Self::HandSelect {
+                kind: HandSelectKind::Nightmare,
+                effect_kind: effect.kind,
+                id_source,
+                num: count,
+            },
+            EffectKind::CardDiscoverPick => Self::Discover { id_source },
+            EffectKind::DeckSelectPick { kind } => Self::DeckSelect { kind, id_source },
+            EffectKind::RoomSelect => Self::RoomSelect { id_source },
+            _ => return None,
+        })
+    }
 }

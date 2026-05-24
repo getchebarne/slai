@@ -16,8 +16,8 @@ pub static BLOOD_VIAL: Entity = make_entity_relic(
         kind: EffectKind::HealthGain { amount: 2 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
 );

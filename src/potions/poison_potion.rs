@@ -21,8 +21,8 @@ pub static POISON_POTION: Entity = make_entity_potion(
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::MonsterPicked,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::MonsterPicked,
+            selection_kind: SelectionKind::Single,
         },
     }],
 );

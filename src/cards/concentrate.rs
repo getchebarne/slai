@@ -32,8 +32,8 @@ pub static CONCENTRATE: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 3 },
+                candidate_pool: CandidatePool::Hand,
+                selection_kind: SelectionKind::Input { count: 3 },
             },
         },
         Effect {
@@ -52,8 +52,8 @@ pub static CONCENTRATE_PLUS: Entity = Entity {
     card_effects: {
         let mut a = CONCENTRATE.card_effects;
         a[0].target = Target::Resolve {
-            candidates: CandidatePool::Hand,
-            selection: SelectionKind::Input { count: 2 }, // -1 discard
+            candidate_pool: CandidatePool::Hand,
+            selection_kind: SelectionKind::Input { count: 2 }, // -1 discard
         };
         a
     },

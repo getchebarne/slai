@@ -12,7 +12,11 @@ use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
-use crate::consts::MAX_MONSTERS;
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
 use crate::engine::push_entity;
 use crate::entity::Entity;
 use crate::game::GameState;
@@ -20,9 +24,19 @@ use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
-use crate::types::ActiveContext;
 use crate::types::CardName;
 use crate::types::RelicName;
+
+pub fn queue_room_select(state: &mut GameState) {
+    state.effect_queue.push_back(Effect {
+        kind: EffectKind::RoomSelect,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::NextRowRooms,
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
+    });
+}
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
     for i in (1..slice.len()).rev() {
@@ -38,23 +52,6 @@ pub fn reshuffle_discard_into_draw(
 ) {
     id_pile_draw.append(id_pile_discard);
     shuffle(&mut id_pile_draw[..], rng);
-}
-
-// Fills `buf` with the ids of monsters that are alive, returns how many
-// Callers use `&buf[..n]` as a slice. Zero heap allocation. Returns 0 when
-// not in Combat context
-pub fn fill_alive_monster_ids(state: &GameState, buf_alive: &mut [usize; MAX_MONSTERS]) -> usize {
-    if !matches!(state.active, ActiveContext::Combat) {
-        return 0;
-    }
-    let mut n = 0;
-    for slot in state.id_monsters.iter() {
-        if let Some(id) = *slot {
-            buf_alive[n] = id;
-            n += 1;
-        }
-    }
-    n
 }
 
 // Strength, Weak, and Vulnerable scaling shared between the live damage pipeline

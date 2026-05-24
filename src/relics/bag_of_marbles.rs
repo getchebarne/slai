@@ -20,8 +20,8 @@ pub static BAG_OF_MARBLES: Entity = make_entity_relic(
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Monsters,
-            selection: SelectionKind::All,
+            candidate_pool: CandidatePool::Monsters,
+            selection_kind: SelectionKind::All,
         },
     }],
 );

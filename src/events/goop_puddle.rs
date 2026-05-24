@@ -15,8 +15,8 @@ const GATHER: &[Effect] = &[
         kind: EffectKind::HealthLoss { amount: 11 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     },
     Effect {

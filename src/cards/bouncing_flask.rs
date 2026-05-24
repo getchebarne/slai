@@ -20,8 +20,8 @@ const BOUNCE: Effect = Effect {
     },
     id_source: None,
     target: Target::Resolve {
-        candidates: CandidatePool::Monsters,
-        selection: SelectionKind::Random { count: 1 },
+        candidate_pool: CandidatePool::Monsters,
+        selection_kind: SelectionKind::Random { count: 1 },
     },
 };
 

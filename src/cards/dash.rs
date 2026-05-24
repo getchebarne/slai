@@ -29,16 +29,16 @@ pub static DASH: Entity = make_entity_card(
             kind: EffectKind::BlockGain { amount: 10 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::MonsterPicked,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::MonsterPicked,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],

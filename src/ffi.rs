@@ -4,10 +4,10 @@ use pyo3::prelude::*;
 use crate::action::Action;
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
-use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::Modal;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -42,7 +42,6 @@ use crate::types::PotionRarity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
-use crate::utils::fill_alive_monster_ids;
 use crate::utils::scale_attack_damage;
 
 // Enum mirrors
@@ -891,8 +890,8 @@ pub enum PySelectionKind {
 }
 
 impl From<SelectionKind> for PySelectionKind {
-    fn from(selection: SelectionKind) -> Self {
-        match selection {
+    fn from(selection_kind: SelectionKind) -> Self {
+        match selection_kind {
             SelectionKind::All => Self::All {},
             SelectionKind::Single => Self::Single {},
             SelectionKind::Random { count } => Self::Random { count },
@@ -1304,11 +1303,11 @@ pub enum PyEffect {
 fn snapshot_effect(effect: &Effect) -> PyEffect {
     let target = match effect.target {
         Target::Resolve {
-            candidates,
-            selection,
+            candidate_pool,
+            selection_kind,
         } => Some(PyTarget {
-            candidate_pool: candidates.into(),
-            selection_kind: selection.into(),
+            candidate_pool: candidate_pool.into(),
+            selection_kind: selection_kind.into(),
         }),
         Target::Direct(None) => None,
         Target::Direct(Some(_)) => panic!(
@@ -1996,35 +1995,12 @@ fn snapshot_context(state: &GameState) -> Option<PyContext> {
 }
 
 fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
-    let front = state.effect_queue.front()?;
-    if !crate::effect::effect_awaits_input(front) {
-        return None;
-    }
-    let input_count = match front.target {
-        Target::Resolve {
-            selection: SelectionKind::Input { count },
-            ..
-        } => count as u8,
-        _ => return None,
-    };
-    match &front.kind {
-        EffectKind::CardDiscard { .. } => Some(PyPendingInput::HandSelect {
-            kind: PyHandSelectKind::Discard,
-            num: input_count,
+    match state.modal? {
+        Modal::HandSelect { kind, num, .. } => Some(PyPendingInput::HandSelect {
+            kind: kind.into(),
+            num: num as u8,
         }),
-        EffectKind::CardRetain => Some(PyPendingInput::HandSelect {
-            kind: PyHandSelectKind::Retain,
-            num: input_count,
-        }),
-        EffectKind::CardSetupPick => Some(PyPendingInput::HandSelect {
-            kind: PyHandSelectKind::Setup,
-            num: 1,
-        }),
-        EffectKind::CardNightmarePick => Some(PyPendingInput::HandSelect {
-            kind: PyHandSelectKind::Nightmare,
-            num: 1,
-        }),
-        EffectKind::CardDiscoverPick => {
+        Modal::Discover { .. } => {
             let cards = if matches!(state.active, ActiveContext::Combat) {
                 state
                     .id_pick
@@ -2036,15 +2012,11 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
             };
             Some(PyPendingInput::Discover { cards })
         }
-        EffectKind::DeckSelectPick { kind } => {
-            let cards = filtered_deck_cards(state, *kind);
-            Some(PyPendingInput::DeckSelect {
-                kind: (*kind).into(),
-                cards,
-            })
-        }
-        EffectKind::RoomSelect => Some(PyPendingInput::RoomSelect {}),
-        _ => None,
+        Modal::DeckSelect { kind, .. } => Some(PyPendingInput::DeckSelect {
+            kind: kind.into(),
+            cards: filtered_deck_cards(state, kind),
+        }),
+        Modal::RoomSelect { .. } => Some(PyPendingInput::RoomSelect {}),
     }
 }
 
@@ -2063,53 +2035,30 @@ fn snapshot_phase(state: &GameState) -> PyPhase {
     if state.game_over {
         return PyPhase::GameOver {};
     }
-    // Queue-head input halts
-    if let Some(front) = state.effect_queue.front() {
-        if crate::effect::effect_awaits_input(front) {
-            let num = match front.target {
-                Target::Resolve {
-                    selection: SelectionKind::Input { count },
-                    ..
-                } => count as u8,
-                _ => 1,
-            };
-            return match &front.kind {
-                EffectKind::CardDiscard { .. } => PyPhase::AwaitHandSelect {
-                    kind: PyHandSelectKind::Discard,
-                    num,
-                },
-                EffectKind::CardRetain => PyPhase::AwaitHandSelect {
-                    kind: PyHandSelectKind::Retain,
-                    num,
-                },
-                EffectKind::CardSetupPick => PyPhase::AwaitHandSelect {
-                    kind: PyHandSelectKind::Setup,
-                    num: 1,
-                },
-                EffectKind::CardNightmarePick => PyPhase::AwaitHandSelect {
-                    kind: PyHandSelectKind::Nightmare,
-                    num: 1,
-                },
-                EffectKind::RoomSelect => PyPhase::Map {},
-                EffectKind::CardDiscoverPick => {
-                    let cards = if matches!(state.active, ActiveContext::Combat) {
-                        state
-                            .id_pick
-                            .iter()
-                            .map(|&id| snapshot_card(state, id))
-                            .collect()
-                    } else {
-                        Vec::new()
-                    };
-                    PyPhase::CombatAwaitDiscover { cards }
-                }
-                EffectKind::DeckSelectPick { kind } => PyPhase::AwaitDeckSelect {
-                    kind: (*kind).into(),
-                    cards: filtered_deck_cards(state, *kind),
-                },
-                _ => PyPhase::Map {},
-            };
-        }
+    if let Some(modal) = state.modal {
+        return match modal {
+            Modal::HandSelect { kind, num, .. } => PyPhase::AwaitHandSelect {
+                kind: kind.into(),
+                num: num as u8,
+            },
+            Modal::Discover { .. } => {
+                let cards = if matches!(state.active, ActiveContext::Combat) {
+                    state
+                        .id_pick
+                        .iter()
+                        .map(|&id| snapshot_card(state, id))
+                        .collect()
+                } else {
+                    Vec::new()
+                };
+                PyPhase::CombatAwaitDiscover { cards }
+            }
+            Modal::DeckSelect { kind, .. } => PyPhase::AwaitDeckSelect {
+                kind: kind.into(),
+                cards: filtered_deck_cards(state, kind),
+            },
+            Modal::RoomSelect { .. } => PyPhase::Map {},
+        };
     }
     // Multi-action context screens
     match state.active {
@@ -2214,11 +2163,12 @@ fn snapshot_character(state: &GameState) -> PyCharacter {
 fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
     let character = &state.entities[state.id_character];
     let mods_char = &character.modifiers;
-    let mut buf_alive = [0usize; MAX_MONSTERS];
-    let n = fill_alive_monster_ids(state, &mut buf_alive);
-    buf_alive[..n]
+    state
+        .id_monsters
         .iter()
-        .map(|&id_monster| {
+        .flatten()
+        .copied()
+        .map(|id_monster| {
             let m = &state.entities[id_monster];
 
             let intent = if let Some(move_idx) = m.move_current {

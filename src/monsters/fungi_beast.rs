@@ -21,8 +21,8 @@ static MOVE_BITE: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -39,8 +39,8 @@ static MOVE_GROW_3: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -54,8 +54,8 @@ static MOVE_GROW_4: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -69,8 +69,8 @@ static MOVE_GROW_5: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,

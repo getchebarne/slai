@@ -23,8 +23,8 @@ pub fn process_effect_rest_site_exit(state: &mut GameState) {
             kind: EffectKind::RoomSelect,
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::NextRowRooms,
-                selection: SelectionKind::Input { count: 1 },
+                candidate_pool: CandidatePool::NextRowRooms,
+                selection_kind: SelectionKind::Input { count: 1 },
             },
         });
     }

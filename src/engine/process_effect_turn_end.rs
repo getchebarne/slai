@@ -1,4 +1,3 @@
-use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
@@ -13,7 +12,6 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
 use crate::types::RelicName;
-use crate::utils::fill_alive_monster_ids;
 
 pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut GameState) {
     let id_actor = id_target.expect("TurnEnd (monster) requires id_target");
@@ -96,8 +94,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     let id_character = state.id_character;
-    let mut buf_alive = [0usize; MAX_MONSTERS];
-    let alive_n = fill_alive_monster_ids(state, &mut buf_alive);
+    let id_monsters = state.id_monsters;
 
     state.buf_effects.clear();
 
@@ -108,8 +105,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
             kind: EffectKind::CardRetain,
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input {
+                candidate_pool: CandidatePool::Hand,
+                selection_kind: SelectionKind::Input {
                     count: stacks.max(0) as u16,
                 },
             },
@@ -180,7 +177,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         target: Target::Direct(None),
     });
 
-    for &id_monster in &buf_alive[..alive_n] {
+    for id_monster in id_monsters.iter().flatten().copied() {
         state.buf_effects.push(Effect {
             kind: EffectKind::TurnStart,
             id_source: None,

@@ -1,12 +1,11 @@
 use crate::consts::MAP_WIDTH;
-use crate::consts::MAX_MONSTERS;
 use crate::consts::REST_SITE_HEAL_FACTOR;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::Modal;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::derive_modal;
 use crate::engine::enqueue_direct_targets;
 use crate::entity::card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
@@ -21,8 +20,7 @@ use crate::modifier::modifier_has;
 use crate::potions::find_free_slot;
 use crate::types::ActiveContext;
 use crate::types::CardKind;
-use crate::types::Modal;
-use crate::utils::fill_alive_monster_ids;
+use crate::types::RewardKind;
 
 #[derive(Debug, Clone)]
 pub enum Action {
@@ -73,11 +71,12 @@ fn validate(action: &Action, state: &GameState) -> Result<(), String> {
         return Err("GameOver".into());
     }
 
-    if let Some(modal) = derive_modal(state) {
+    if let Some(modal) = state.modal {
         return match modal {
-            Modal::HandSelect => validate_hand_select(action, state),
-            Modal::Discover => validate_discover(action),
-            Modal::DeckSelect => validate_deck_select(action),
+            Modal::HandSelect { num, .. } => validate_hand_select(action, num),
+            Modal::Discover { .. } => validate_discover(action),
+            Modal::DeckSelect { .. } => validate_deck_select(action),
+            Modal::RoomSelect { .. } => validate_room_select(action),
         };
     }
 
@@ -92,28 +91,30 @@ fn validate(action: &Action, state: &GameState) -> Result<(), String> {
     }
 }
 
-fn validate_hand_select(action: &Action, state: &GameState) -> Result<(), String> {
+fn validate_hand_select(action: &Action, num: u16) -> Result<(), String> {
     let Action::HandSelect { idxs } = action else {
         return Err(format!("Expected HandSelect, got {:?}", action));
     };
-    let front = state
-        .effect_queue
-        .front()
-        .expect("Modal::HandSelect requires queue head");
-    if let Target::Resolve {
-        selection: SelectionKind::Input { count },
-        ..
-    } = front.target
-    {
-        if idxs.len() != count as usize {
-            return Err(format!(
-                "HandSelect expects {} idxs, got {}",
-                count,
-                idxs.len()
-            ));
-        }
+    if idxs.len() != num as usize {
+        return Err(format!(
+            "HandSelect expects {} idxs, got {}",
+            num,
+            idxs.len()
+        ));
     }
     Ok(())
+}
+
+fn validate_room_select(action: &Action) -> Result<(), String> {
+    match action {
+        Action::RoomSelect { .. }
+        | Action::PotionUse { .. }
+        | Action::PotionDiscard { .. } => Ok(()),
+        _ => Err(format!(
+            "Expected RoomSelect/PotionUse/PotionDiscard, got {:?}",
+            action
+        )),
+    }
 }
 
 fn validate_discover(action: &Action) -> Result<(), String> {
@@ -297,12 +298,12 @@ fn handle_card_play(
     if card.requires_target {
         match idx_monster {
             Some(idx_monster) => {
-                // Stack locals
-                let mut buf_alive = [0usize; MAX_MONSTERS];
-
-                let n = fill_alive_monster_ids(state, &mut buf_alive);
-                let id_monster_target = *buf_alive[..n]
-                    .get(idx_monster)
+                let id_monster_target = state
+                    .id_monsters
+                    .iter()
+                    .flatten()
+                    .copied()
+                    .nth(idx_monster)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx_monster))?;
 
                 // Set the card's target, play the card, then clear the target
@@ -344,6 +345,14 @@ fn handle_hand_select(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Eff
     if !matches!(state.active, ActiveContext::Combat) {
         return Err("HandSelect outside Combat context".into());
     }
+    let Some(Modal::HandSelect {
+        effect_kind,
+        id_source,
+        ..
+    }) = state.modal.take()
+    else {
+        return Err("HandSelect: state.modal not HandSelect".into());
+    };
     let id_cards: Vec<usize> =
         idxs.iter()
             .map(|&idx| {
@@ -352,18 +361,7 @@ fn handle_hand_select(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Eff
                 })
             })
             .collect::<Result<_, _>>()?;
-    // Template carries kind+id_source; DiscardSource etc. survive intact
-    let template = state
-        .effect_queue
-        .pop_front()
-        .expect("HandSelect: head missing");
-
-    enqueue_direct_targets(
-        template.id_source,
-        &id_cards,
-        template.kind,
-        &mut state.effect_queue,
-    );
+    enqueue_direct_targets(id_source, &id_cards, effect_kind, &mut state.effect_queue);
     Ok(Vec::new())
 }
 
@@ -396,34 +394,25 @@ fn handle_room_select(state: &mut GameState, idx_column: usize) -> Result<Vec<Ef
         }
     }
 
-    // Resolve the queue-head RoomSelect: Resolve -> Direct(picked room).
-    // The Direct RoomSelect arm updates state.location and queues RoomEnter
+    let Some(Modal::RoomSelect { id_source }) = state.modal.take() else {
+        return Err("RoomSelect: state.modal not RoomSelect".into());
+    };
     state
         .effect_queue
-        .front_mut()
-        .expect("RoomSelect: head missing")
-        .target = Target::Direct(Some(id_room));
+        .push_front(Effect::direct(EffectKind::RoomSelect, id_source, Some(id_room)));
     Ok(Vec::new())
 }
 
 fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
     debug_assert!(matches!(state.active, ActiveContext::Reward));
     let id_card = lookup_idx(&state.reward_id_cards, idx_reward)?;
-    let card = &state.entities[id_card];
-    let card_name = card.card_name;
-    let upgraded = card.card_upgraded;
-
-    Ok(vec![
-        Effect::direct(
-            EffectKind::CardAddToDeck {
-                card_name,
-                upgraded,
-            },
-            None,
-            None,
-        ),
-        Effect::direct(EffectKind::CardRewardClear, None, None),
-    ])
+    Ok(vec![Effect::direct(
+        EffectKind::RewardTake {
+            kind: RewardKind::Card,
+        },
+        None,
+        Some(id_card),
+    )])
 }
 
 fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
@@ -432,7 +421,9 @@ fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
         return Err("RewardTakeRelic: no relic in reward pool".to_string());
     }
     Ok(vec![Effect::direct(
-        EffectKind::RewardTakeRelic,
+        EffectKind::RewardTake {
+            kind: RewardKind::Relic,
+        },
         None,
         None,
     )])
@@ -448,7 +439,9 @@ fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
         return Err("belt is full; discard a potion first".to_string());
     }
     Ok(vec![Effect::direct(
-        EffectKind::RewardTakePotion,
+        EffectKind::RewardTake {
+            kind: RewardKind::Potion,
+        },
         None,
         None,
     )])
@@ -459,7 +452,13 @@ fn handle_reward_take_gold(state: &GameState) -> Result<Vec<Effect>, String> {
     if state.reward_gold.is_none() {
         return Err("RewardTakeGold: no gold in reward pool".to_string());
     }
-    Ok(vec![Effect::direct(EffectKind::RewardTakeGold, None, None)])
+    Ok(vec![Effect::direct(
+        EffectKind::RewardTake {
+            kind: RewardKind::Gold,
+        },
+        None,
+        None,
+    )])
 }
 
 fn handle_reward_skip() -> Vec<Effect> {
@@ -491,8 +490,8 @@ fn handle_room_skip() -> Vec<Effect> {
         kind: EffectKind::RoomSelect,
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::NextRowRooms,
-            selection: SelectionKind::Input { count: 1 },
+            candidate_pool: CandidatePool::NextRowRooms,
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     }]
 }
@@ -523,13 +522,15 @@ fn handle_potion_use(
 
     let requires_target = potion.requires_target;
     let id_monster_target = if requires_target {
-        let mut buf_alive = [0usize; MAX_MONSTERS];
-        let n = fill_alive_monster_ids(state, &mut buf_alive);
         let idx = idx_monster
             .ok_or_else(|| "PotionUse: requires_target but idx_monster is None".to_string())?;
         Some(
-            *buf_alive[..n]
-                .get(idx)
+            state
+                .id_monsters
+                .iter()
+                .flatten()
+                .copied()
+                .nth(idx)
                 .ok_or_else(|| format!("PotionUse: invalid monster index {}", idx))?,
         )
     } else {
@@ -586,12 +587,14 @@ fn handle_card_discover_select(
         .id_pick
         .get(idx_option)
         .ok_or_else(|| format!("CardDiscoverSelect: idx_option {} out of range", idx_option))?;
-    // Resolve the queue-head CardDiscoverPick: Resolve -> Direct(picked)
-    state
-        .effect_queue
-        .front_mut()
-        .expect("Discover: head missing")
-        .target = Target::Direct(Some(id_card));
+    let Some(Modal::Discover { id_source }) = state.modal.take() else {
+        return Err("CardDiscoverSelect: state.modal not Discover".into());
+    };
+    state.effect_queue.push_front(Effect::direct(
+        EffectKind::CardDiscoverPick,
+        id_source,
+        Some(id_card),
+    ));
     Ok(Vec::new())
 }
 
@@ -639,13 +642,8 @@ fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<E
 }
 
 fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
-    let EffectKind::DeckSelectPick { kind } = state
-        .effect_queue
-        .front()
-        .expect("DeckSelect: head missing")
-        .kind
-    else {
-        unreachable!();
+    let Some(Modal::DeckSelect { kind, id_source }) = state.modal.take() else {
+        return Err("DeckSelect: state.modal not DeckSelect".into());
     };
     let id_card = state
         .id_deck
@@ -654,7 +652,10 @@ fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Ef
         .filter(|&id| card_in_deck_filter(&state.entities[id], kind))
         .nth(idx_option)
         .ok_or_else(|| format!("DeckSelect: idx_option {} out of range", idx_option))?;
-    // Resolve the queue-head DeckSelectPick: Resolve -> Direct(picked)
-    state.effect_queue.front_mut().unwrap().target = Target::Direct(Some(id_card));
+    state.effect_queue.push_front(Effect::direct(
+        EffectKind::DeckSelectPick { kind },
+        id_source,
+        Some(id_card),
+    ));
     Ok(Vec::new())
 }

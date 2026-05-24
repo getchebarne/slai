@@ -14,8 +14,8 @@ pub fn process_effect_deck_select_start(state: &mut GameState, kind: DeckSelectK
         kind: EffectKind::DeckSelectPick { kind },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::DeckFiltered(kind),
-            selection: SelectionKind::Input { count: 1 },
+            candidate_pool: CandidatePool::DeckFiltered(kind),
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     });
 }

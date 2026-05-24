@@ -31,8 +31,8 @@ static MOVE_DIVIDER: Move = Move {
         kind: EffectKind::HexaghostDivider,
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -48,8 +48,8 @@ static MOVE_SEAR_BURN_1_NORMAL: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -74,8 +74,8 @@ static MOVE_SEAR_BURN_1_UPGRADED: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -100,8 +100,8 @@ static MOVE_SEAR_BURN_2_NORMAL: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -126,8 +126,8 @@ static MOVE_SEAR_BURN_2_UPGRADED: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -153,16 +153,16 @@ static MOVE_TACKLE_5: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -178,16 +178,16 @@ static MOVE_TACKLE_6: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -204,8 +204,8 @@ static MOVE_INFLAME_2: Move = Move {
             kind: EffectKind::BlockGain { amount: 12 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -215,8 +215,8 @@ static MOVE_INFLAME_2: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -229,8 +229,8 @@ static MOVE_INFLAME_3: Move = Move {
             kind: EffectKind::BlockGain { amount: 12 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -240,8 +240,8 @@ static MOVE_INFLAME_3: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -256,48 +256,48 @@ static MOVE_INFERNO_2: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -318,48 +318,48 @@ static MOVE_INFERNO_3: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {

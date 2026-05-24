@@ -31,8 +31,8 @@ static MOVE_WAKE_UP: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -41,8 +41,8 @@ static MOVE_WAKE_UP: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -59,8 +59,8 @@ static MOVE_ATTACK_18: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 18 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -74,8 +74,8 @@ static MOVE_ATTACK_20: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 20 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -93,8 +93,8 @@ static MOVE_SIPHON_SOUL_1: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -104,8 +104,8 @@ static MOVE_SIPHON_SOUL_1: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -121,8 +121,8 @@ static MOVE_SIPHON_SOUL_2: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -132,8 +132,8 @@ static MOVE_SIPHON_SOUL_2: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],

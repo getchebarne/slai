@@ -28,8 +28,8 @@ pub static DEFLECT: Entity = make_entity_card(
         kind: EffectKind::BlockGain { amount: 4 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     &[],

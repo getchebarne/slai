@@ -16,16 +16,16 @@ const HIT: Effect = Effect {
     kind: EffectKind::DamagePhysical { amount: 3 },
     id_source: None,
     target: Target::Resolve {
-        candidates: CandidatePool::MonsterPicked,
-        selection: SelectionKind::Single,
+        candidate_pool: CandidatePool::MonsterPicked,
+        selection_kind: SelectionKind::Single,
     },
 };
 const HIT_PLUS: Effect = Effect {
     kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage
     id_source: None,
     target: Target::Resolve {
-        candidates: CandidatePool::MonsterPicked,
-        selection: SelectionKind::Single,
+        candidate_pool: CandidatePool::MonsterPicked,
+        selection_kind: SelectionKind::Single,
     },
 };
 
