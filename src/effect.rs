@@ -146,9 +146,7 @@ pub enum EffectKind {
     },
     HexaghostDivider,
 
-    // Select: halts the queue asking the player to pick a target. After the
-    // pick, the same EffectKind runs as `Direct` with the chosen entity,
-    // mutating state and pushing follow-up effects
+    // Halts on the pick; re-runs as `Direct` once the player chooses
     RoomSelect,
 
     // Master-deck mutation (combat rewards, events, shop, Neow)
@@ -177,8 +175,7 @@ pub enum EffectKind {
     // Umbrella skip: bulk-clear all reward pool fields
     RewardSkip,
 
-    // Roll N random cards of `kind`; halt on a CardDiscoverPick at queue head.
-    // Player picks one via `Action::CardDiscoverSelect`
+    // Rolls N cards of `kind`; halts on CardDiscoverPick for Action::CardDiscoverSelect
     CardDiscoverSelect {
         kind: CardKind,
         count: u8,
@@ -224,22 +221,21 @@ pub enum EffectKind {
         kind: DeckSelectKind,
     },
 
-    // Queue-head halt markers. Resolved via Target::Resolve { _, Input{count} };
-    // the Direct form applies the pick once the player has chosen
+    // Halt markers; re-run as `Direct` with the player's pick
     CardDiscoverPick,
     DeckSelectPick {
         kind: DeckSelectKind,
     },
 }
 
-// DiscardSource: tags a CardDiscard effect with its origin so the handler can branch on it
+// Origin tag the CardDiscard handler branches on
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiscardSource {
     Explicit,
     EndOfTurn,
 }
 
-// CandidatePool: abstract source pool for a Resolve effect's target resolution
+// Source pool for a Resolve effect
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
     Hand,
@@ -261,26 +257,23 @@ pub enum SelectionKind {
     Input { count: u16 },
 }
 
-// Target: whether an Effect's target is already known (Direct) or must be
-// resolved against live state when the effect is dequeued (Resolve)
+// Target known at queue time (Direct) or resolved against live state at dequeue (Resolve)
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Target {
     /// Target is known (or not needed). Dispatch runs the handler directly.
-    /// `None` means the effect takes no target (CardDraw, EnergyGain, etc.).
+    /// `None` means the effect takes no target (CardDraw, EnergyGain, etc.)
     Direct(Option<usize>),
 
     /// Target must be resolved against live state at dequeue time. The
-    /// dispatcher runs `resolve_targets` and either fans out to `Direct`
-    /// effects or halts on input.
+    /// dispatcher runs `resolve_selection_kind` and either fans out to `Direct`
+    /// effects or halts on input
     Resolve {
         candidate_pool: CandidatePool,
         selection_kind: SelectionKind,
     },
 }
 
-// Effect: a unit of work in the queue. Unified type used for both static card
-// and monster-move definitions (which use `Resolve` target) and
-// runtime-synthesized effects (which use `Direct` target)
+// A unit of work in the queue; static defs use `Resolve`, runtime uses `Direct`
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effect {
     pub kind: EffectKind,
@@ -288,8 +281,7 @@ pub struct Effect {
     pub target: Target,
 }
 
-// Default-zero Effect, used to fill the fixed-size Entity.card_effects array.
-// Slots past `card_effects_len` are ignored
+// Filler for slots past `card_effects_len` in Entity.card_effects
 pub const ZERO_EFFECT: Effect = Effect {
     kind: EffectKind::Noop,
     id_source: None,

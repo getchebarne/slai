@@ -101,8 +101,8 @@ use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
-use crate::types::Screen;
 use crate::types::CardColor;
+use crate::types::Screen;
 use crate::utils::shuffle;
 
 // Drain state.buf_effects back-to-front into the effect_queue front, so the
@@ -111,11 +111,6 @@ pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
     while let Some(e) = state.buf_effects.pop() {
         state.effect_queue.push_front(e);
     }
-}
-
-pub enum TargetResolution {
-    Resolved,
-    AwaitInput { num: u16 },
 }
 
 // Append an Entity to the arena; returns the assigned id
@@ -141,9 +136,10 @@ pub(crate) fn enqueue_direct_targets(
     }
 }
 
-fn resolve_candidates(
+fn fill_buf_candidates(
+    buf_candidates: &mut Vec<usize>,
     candidate_pool: CandidatePool,
-    id_source: usize,
+    id_source: Option<usize>,
     id_character: usize,
     id_hand: &[usize],
     id_monster_picked: Option<usize>,
@@ -153,28 +149,36 @@ fn resolve_candidates(
     entities: &[Entity],
     id_pick: &[usize],
     id_deck: &[usize],
-    buf_cands: &mut Vec<usize>,
 ) {
     match candidate_pool {
-        CandidatePool::Hand => buf_cands.extend_from_slice(id_hand),
-        CandidatePool::MonsterPicked => buf_cands.push(
+        CandidatePool::Hand => buf_candidates.extend_from_slice(id_hand),
+        CandidatePool::MonsterPicked => buf_candidates.push(
             id_monster_picked.expect("MonsterPicked pool requires id_monster_picked to be Some"),
         ),
-        CandidatePool::Character => buf_cands.push(id_character),
-        CandidatePool::Monsters => buf_cands.extend(id_monsters.iter().flatten().copied()),
+        CandidatePool::Character => buf_candidates.push(id_character),
+        CandidatePool::Monsters => buf_candidates.extend(id_monsters.iter().flatten().copied()),
         CandidatePool::OtherMonsters => {
-            for id in id_monsters.iter().flatten().copied() {
-                if id != id_source {
-                    buf_cands.push(id);
+            let id_source = id_source
+                .expect("Attempted to resolve `CandidatePool::OtherMonsters` without `id_source`");
+
+            // Iterate all monsters skipping the one that sourced the effect
+            for id_monster in id_monsters.iter().flatten().copied() {
+                if id_monster != id_source {
+                    buf_candidates.push(id_monster);
                 }
             }
         }
-        CandidatePool::Source => buf_cands.push(id_source),
+        CandidatePool::Source => {
+            let id_source = id_source
+                .expect("Attempted to resolve `CandidatePool::Source` without `id_source`");
+
+            buf_candidates.push(id_source)
+        }
         CandidatePool::NextRowRooms => match location {
             Location::Start => {
                 for col in 0..MAP_WIDTH {
                     if let Some(id_room) = id_rooms[0][col] {
-                        buf_cands.push(id_room);
+                        buf_candidates.push(id_room);
                     }
                 }
             }
@@ -188,7 +192,7 @@ fn resolve_candidates(
                     for col in 0..MAP_WIDTH {
                         if has_edge(current_room.edges, col) {
                             if let Some(id_room) = id_rooms[y_next][col] {
-                                buf_cands.push(id_room);
+                                buf_candidates.push(id_room);
                             }
                         }
                     }
@@ -196,70 +200,41 @@ fn resolve_candidates(
             }
             Location::BossRoom => {}
         },
-        CandidatePool::IdPick => buf_cands.extend_from_slice(id_pick),
+        CandidatePool::IdPick => buf_candidates.extend_from_slice(id_pick),
         CandidatePool::DeckFiltered(kind) => {
             for &id in id_deck {
                 if crate::events::card_in_deck_filter(&entities[id], kind) {
-                    buf_cands.push(id);
+                    buf_candidates.push(id);
                 }
             }
         }
     }
 }
 
-fn resolve_targets(
-    candidate_pool: CandidatePool,
+// Returns true if buf_candidates is fully resolved and ready to enqueue;
+// false means halt and wait for player input
+fn resolve_selection_kind(
+    buf_candidates: &mut Vec<usize>,
     selection_kind: SelectionKind,
-    id_source: usize,
-    id_character: usize,
-    id_hand: &[usize],
-    id_monster_picked: Option<usize>,
-    id_monsters: &[Option<usize>; MAX_MONSTERS],
-    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-    location: Location,
-    entities: &[Entity],
-    id_pick: &[usize],
-    id_deck: &[usize],
     rng: &mut impl Rng,
-    buf_cands: &mut Vec<usize>,
-) -> TargetResolution {
-    resolve_candidates(
-        candidate_pool,
-        id_source,
-        id_character,
-        id_hand,
-        id_monster_picked,
-        id_monsters,
-        id_rooms,
-        location,
-        entities,
-        id_pick,
-        id_deck,
-        buf_cands,
-    );
+) -> bool {
     match selection_kind {
-        SelectionKind::All => TargetResolution::Resolved,
+        SelectionKind::All => true,
         SelectionKind::Single => {
             assert_eq!(
-                buf_cands.len(),
+                buf_candidates.len(),
                 1,
                 "SelectionKind::Single resolved to {} candidates",
-                buf_cands.len()
+                buf_candidates.len()
             );
-            TargetResolution::Resolved
+            true
         }
         SelectionKind::Random { count } => {
-            shuffle(buf_cands.as_mut_slice(), rng);
-            buf_cands.truncate(count as usize);
-            TargetResolution::Resolved
+            shuffle(buf_candidates.as_mut_slice(), rng);
+            buf_candidates.truncate(count as usize);
+            true
         }
-        SelectionKind::Input { count } => {
-            if count as usize >= buf_cands.len() {
-                TargetResolution::Resolved
-            } else {
-                TargetResolution::AwaitInput { num: count }
-            }
-        }
+        SelectionKind::Input { count } => (count as usize) >= buf_candidates.len(),
     }
 }
 
@@ -275,9 +250,8 @@ pub(crate) fn get_id_actor(entities: &[Entity], id_character: usize, id_source: 
     }
 }
 
-// Returns true on halt. On AwaitInput, sets state.modal so the action handler
-// for the player's pick can build the resolved effect(s) without re-reading
-// the queue. Modal is cleared by that handler
+// Returns true on successful processing; false on halt (the unresolved Effect
+// is stashed in state.pending_effect for the action handler to consume)
 pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
     let id_target = match effect.target {
         Target::Direct(id_target) => id_target,
@@ -285,67 +259,52 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
             candidate_pool,
             selection_kind,
         } => {
-            let halted = resolve_or_halt(
-                state,
-                effect.kind,
-                effect.id_source,
-                candidate_pool,
-                selection_kind,
-            );
-            if halted {
+            let resolved = resolve_or_halt(state, effect.id_source, candidate_pool, selection_kind);
+            if resolved {
+                // Targets are in `buf_candidates`
+                enqueue_direct_targets(
+                    effect.id_source,
+                    &state.buf_candidates,
+                    effect.kind,
+                    &mut state.effect_queue,
+                );
+            } else {
+                // Effect needs player input to be resolved
                 state.pending_effect = Some(effect);
             }
-            return halted;
+            return resolved;
         }
     };
 
     dispatch_by_kind(state, effect.kind, effect.id_source, id_target);
-    false
+    true
 }
 
 fn resolve_or_halt(
     state: &mut GameState,
-    kind: EffectKind,
     id_source: Option<usize>,
     candidate_pool: CandidatePool,
     selection_kind: SelectionKind,
 ) -> bool {
-    let id_source_resolved = id_source.unwrap_or(state.id_character);
-    let (id_hand, id_monster_picked, id_pick): (&[usize], Option<usize>, &[usize]) =
-        if matches!(state.active, Screen::Combat) {
-            (&state.id_hand, state.id_monster_picked, &state.id_pick)
-        } else {
-            (&[], None, &[])
-        };
+    // Clear candidate buffer and re-fill it
     state.buf_candidates.clear();
-    let resolution = resolve_targets(
+    fill_buf_candidates(
+        &mut state.buf_candidates,
         candidate_pool,
-        selection_kind,
-        id_source_resolved,
+        id_source,
         state.id_character,
-        id_hand,
-        id_monster_picked,
+        &state.id_hand,
+        state.id_monster_picked,
         &state.id_monsters,
         &state.id_rooms,
         state.location,
         &state.entities,
-        id_pick,
+        &state.id_pick,
         &state.id_deck,
-        &mut state.rng,
-        &mut state.buf_candidates,
     );
-    match resolution {
-        TargetResolution::Resolved => {
-            enqueue_direct_targets(
-                id_source,
-                &state.buf_candidates,
-                kind,
-                &mut state.effect_queue,
-            );
-            false
-        }
-        TargetResolution::AwaitInput { .. } => true,
-    }
+
+    // Resolve `SelectionKind`. Returns `true` if the effect's targets were resolved
+    resolve_selection_kind(&mut state.buf_candidates, selection_kind, &mut state.rng)
 }
 
 fn dispatch_by_kind(
@@ -725,7 +684,7 @@ pub fn process_queue(state: &mut GameState) {
         let Some(effect) = state.effect_queue.pop_front() else {
             return; // Queue drained
         };
-        if process_effect(state, effect) {
+        if !process_effect(state, effect) {
             return; // Queue halted
         }
     }

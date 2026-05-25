@@ -1,5 +1,3 @@
-// Core type enums shared across the engine
-
 use strum::EnumCount;
 
 // Vitals: physical combat state. Shared by character and monsters

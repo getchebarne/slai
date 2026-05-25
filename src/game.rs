@@ -1,5 +1,3 @@
-// GameState definition, game loop: step, initialize, Phase determination
-
 use std::collections::VecDeque;
 
 use rand::SeedableRng;
@@ -11,11 +9,11 @@ use crate::action::handle_action;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
 use crate::consts::DISCOVER_PICK_COUNT;
-use crate::consts::ENCOUNTER_LIST_ELITE_CAPACITY;
-use crate::consts::ENCOUNTER_LIST_NORMAL_CAPACITY;
-use crate::consts::EVENT_CHANCE_MONSTER_BASE;
-use crate::consts::EVENT_CHANCE_SHOP_BASE;
-use crate::consts::EVENT_CHANCE_TREASURE_BASE;
+use crate::consts::ENCOUNTER_LIST_CAPACITY_ELITE;
+use crate::consts::ENCOUNTER_LIST_CAPACITY_NORMAL;
+use crate::consts::EVENT_CHANCE_BASE_MONSTER;
+use crate::consts::EVENT_CHANCE_BASE_SHOP;
+use crate::consts::EVENT_CHANCE_BASE_TREASURE;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_CANDIDATES;
@@ -61,14 +59,15 @@ pub struct GameState {
 
     // Engine state
     pub effect_queue: VecDeque<Effect>,
+
     // Per-handler effect builder; cleared before each use. Built in execution
     // order then drained back-to-front into effect_queue's front
     pub buf_effects: Vec<Effect>,
+
     // Per-resolve candidate buffer; cleared before each use
     pub buf_candidates: Vec<usize>,
-    // Halt overlay: Some when the queue is blocked waiting for player input.
-    // Carries the unresolved Effect; the action handler that supplies the
-    // pick reads kind/source/target, builds the resolved effect(s), and clears
+
+    // Halt overlay; cleared by the action handler that supplies the pick
     pub pending_effect: Option<Effect>,
     pub location: Location,
 
@@ -157,9 +156,9 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 
     // Pre-generate monster encounters
     let mut encounter_list_normal: Vec<MonsterEncounter> =
-        Vec::with_capacity(ENCOUNTER_LIST_NORMAL_CAPACITY);
+        Vec::with_capacity(ENCOUNTER_LIST_CAPACITY_NORMAL);
     let mut encounter_list_elite: Vec<MonsterEncounter> =
-        Vec::with_capacity(ENCOUNTER_LIST_ELITE_CAPACITY);
+        Vec::with_capacity(ENCOUNTER_LIST_CAPACITY_ELITE);
     generate_act1_monsters(
         &mut encounter_list_normal,
         &mut encounter_list_elite,
@@ -195,9 +194,9 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         buf_effects: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         buf_candidates: Vec::with_capacity(MAX_CANDIDATES),
         pending_effect: None,
-        event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
-        event_chance_shop: EVENT_CHANCE_SHOP_BASE,
-        event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,
+        event_chance_monster: EVENT_CHANCE_BASE_MONSTER,
+        event_chance_shop: EVENT_CHANCE_BASE_SHOP,
+        event_chance_treasure: EVENT_CHANCE_BASE_TREASURE,
         events_seen_this_run: Vec::with_capacity(EventName::COUNT),
         potion_drop_mod: 0,
 

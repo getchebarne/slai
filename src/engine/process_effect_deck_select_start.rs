@@ -8,7 +8,7 @@ use crate::types::DeckSelectKind;
 
 // Push a DeckSelectPick halt at the queue front. The resolver computes
 // candidates via CandidatePool::DeckFiltered(kind); if the filter yields
-// an empty set, resolve_targets short-circuits and the pick is skipped
+// an empty set, resolve_selection_kind short-circuits and the pick is skipped
 pub fn process_effect_deck_select_start(state: &mut GameState, kind: DeckSelectKind) {
     state.effect_queue.push_front(Effect {
         kind: EffectKind::DeckSelectPick { kind },
