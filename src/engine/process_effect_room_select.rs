@@ -1,4 +1,4 @@
-use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::game::GameState;
 use crate::game::Location;
@@ -14,5 +14,5 @@ pub fn process_effect_room_select(id_target: Option<usize>, state: &mut GameStat
     };
     state
         .effect_queue
-        .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
+        .push_front(effect_direct(EffectKind::RoomEnter, None, None));
 }

@@ -1,12 +1,13 @@
 use crate::consts::MAP_HEIGHT;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 
 pub fn process_effect_rest_site_exit(state: &mut GameState) {
     let at_final_row =
@@ -16,9 +17,9 @@ pub fn process_effect_rest_site_exit(state: &mut GameState) {
         state.location = Location::BossRoom;
         state
             .effect_queue
-            .push_front(Effect::direct(EffectKind::RoomEnter, None, None));
+            .push_front(effect_direct(EffectKind::RoomEnter, None, None));
     } else {
-        state.active = ActiveContext::Map;
+        state.active = Screen::Map;
         state.effect_queue.push_front(Effect {
             kind: EffectKind::RoomSelect,
             id_source: None,

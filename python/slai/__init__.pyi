@@ -285,11 +285,14 @@ class DeckSelectKind(IntEnum):
     TransformOne: int
     DuplicateAny: int
 
-class HandSelectKind(IntEnum):
-    Discard: int
-    Retain: int
-    Setup: int
-    Nightmare: int
+class Screen(IntEnum):
+    Combat: int
+    Reward: int
+    Event: int
+    Shop: int
+    Map: int
+    RestSite: int
+    Chest: int
 
 class EventName(IntEnum):
     BigFish: int
@@ -334,55 +337,38 @@ class CardCostKind:
         offset: int
         def __init__(self, offset: int) -> None: ...
 
-class Phase:
-    class Map:
-        def __init__(self) -> None: ...
+class Reward:
+    cards: list[Card]
+    relic: Relic | None
+    potion: Potion | None
+    gold: int | None
 
-    class CombatDefault:
-        def __init__(self) -> None: ...
-
-    class AwaitHandSelect:
-        kind: HandSelectKind
+class PendingInput:
+    class Discard:
         num: int
-        def __init__(self, kind: HandSelectKind, num: int) -> None: ...
+        def __init__(self, num: int) -> None: ...
 
-    class CombatAwaitDiscover:
+    class Retain:
+        num: int
+        def __init__(self, num: int) -> None: ...
+
+    class Setup:
+        def __init__(self) -> None: ...
+
+    class Nightmare:
+        def __init__(self) -> None: ...
+
+    class Discover:
         cards: list[Card]
         def __init__(self, cards: list[Card]) -> None: ...
 
-    class Reward:
-        cards: list[Card]
-        relic: Relic | None
-        potion: Potion | None
-        gold: int | None
-        def __init__(
-            self,
-            cards: list[Card],
-            relic: Relic | None,
-            potion: Potion | None,
-            gold: int | None,
-        ) -> None: ...
-
-    class RestSite:
-        def __init__(self) -> None: ...
-
-    class GameOver:
-        def __init__(self) -> None: ...
-
-    class Chest:
-        def __init__(self) -> None: ...
-
-    class Shop:
-        def __init__(self) -> None: ...
-
-    class AwaitEventChoice:
-        event: Event
-        def __init__(self, event: Event) -> None: ...
-
-    class AwaitDeckSelect:
+    class DeckSelect:
         kind: DeckSelectKind
         cards: list[Card]
         def __init__(self, kind: DeckSelectKind, cards: list[Card]) -> None: ...
+
+    class RoomSelect:
+        def __init__(self) -> None: ...
 
 class SelectionKind:
     class All:
@@ -694,16 +680,19 @@ class GameState:
     relics: list[Relic]
     energy: Energy
     map: Map
-
-    # Phase
-    phase: Union[
-        Phase.Map,
-        Phase.CombatDefault,
-        Phase.AwaitHandSelect,
-        Phase.Reward,
-        Phase.RestSite,
-        Phase.GameOver,
-    ]
+    active: Screen
+    game_over: bool
+    reward: Reward | None
+    event: Event | None
+    pending_input: Union[
+        PendingInput.Discard,
+        PendingInput.Retain,
+        PendingInput.Setup,
+        PendingInput.Nightmare,
+        PendingInput.Discover,
+        PendingInput.DeckSelect,
+        PendingInput.RoomSelect,
+    ] | None
 
 class GameEnv:
     MAX_MONSTERS: int
@@ -718,3 +707,4 @@ class GameEnv:
     def __init__(self, ascension: int = 0) -> None: ...
     def reset(self, seed: int = 42) -> GameState: ...
     def step(self, action: Action) -> tuple[GameState, bool]: ...
+    def get_legal_actions(self) -> list[Action]: ...

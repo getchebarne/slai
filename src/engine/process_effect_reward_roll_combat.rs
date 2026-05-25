@@ -15,13 +15,13 @@ use crate::engine::push_entity;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 use crate::types::RoomKind;
 use crate::utils::add_relic_reward_for_roll;
 use crate::utils::roll_card_rewards;
 
 pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomKind) {
-    let escaped = if matches!(state.active, ActiveContext::Combat) {
+    let escaped = if matches!(state.active, Screen::Combat) {
         state.escaped_this_combat
     } else {
         false
@@ -70,7 +70,7 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
         });
     state.reward_gold = gold_range.map(|(min, max)| state.rng.random_range(min..=max));
 
-    state.active = ActiveContext::Reward;
+    state.active = Screen::Reward;
 }
 
 // +10 on miss, -10 on hit; clamps to [-30, +60] ([10%, 100%])

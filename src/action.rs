@@ -3,9 +3,10 @@ use crate::consts::REST_SITE_HEAL_FACTOR;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::Modal;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::effect_direct;
+use crate::effect::input_count;
 use crate::engine::enqueue_direct_targets;
 use crate::entity::card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
@@ -18,7 +19,8 @@ use crate::map::room_at;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::potions::find_free_slot;
-use crate::types::ActiveContext;
+use crate::consts::MAP_HEIGHT;
+use crate::types::Screen;
 use crate::types::CardKind;
 use crate::types::RewardKind;
 
@@ -71,23 +73,27 @@ fn validate(action: &Action, state: &GameState) -> Result<(), String> {
         return Err("GameOver".into());
     }
 
-    if let Some(modal) = state.modal {
-        return match modal {
-            Modal::HandSelect { num, .. } => validate_hand_select(action, num),
-            Modal::Discover { .. } => validate_discover(action),
-            Modal::DeckSelect { .. } => validate_deck_select(action),
-            Modal::RoomSelect { .. } => validate_room_select(action),
+    if let Some(pending) = state.pending_effect.as_ref() {
+        return match pending.kind {
+            EffectKind::CardDiscard { .. }
+            | EffectKind::CardRetain
+            | EffectKind::CardSetupPick
+            | EffectKind::CardNightmarePick => validate_hand_select(action, input_count(pending).unwrap()),
+            EffectKind::CardDiscoverPick => validate_discover(action),
+            EffectKind::DeckSelectPick { .. } => validate_deck_select(action),
+            EffectKind::RoomSelect => validate_room_select(action),
+            _ => unreachable!("pending_effect with non-halting kind: {:?}", pending.kind),
         };
     }
 
     match state.active {
-        ActiveContext::Combat => validate_combat(action),
-        ActiveContext::Reward => validate_reward(action),
-        ActiveContext::Event => validate_event(action),
-        ActiveContext::Shop => validate_shop(action),
-        ActiveContext::Map => validate_map(action),
-        ActiveContext::RestSite => validate_rest_site(action, state),
-        ActiveContext::Chest => validate_chest(action),
+        Screen::Combat => validate_combat(action),
+        Screen::Reward => validate_reward(action),
+        Screen::Event => validate_event(action),
+        Screen::Shop => validate_shop(action),
+        Screen::Map => validate_map(action),
+        Screen::RestSite => validate_rest_site(action, state),
+        Screen::Chest => validate_chest(action),
     }
 }
 
@@ -235,6 +241,269 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
     Ok(effects)
 }
 
+// Enumerate every fully-parameterized legal Action for the current state.
+// Mirrors the dispatch shape of `validate(...)` but enumerates instead of
+// checking one. Returns empty when game_over
+pub fn get_legal_actions(state: &GameState) -> Vec<Action> {
+    if state.game_over {
+        return Vec::new();
+    }
+    if let Some(pending) = state.pending_effect.as_ref() {
+        return legal_actions_pending(state, pending);
+    }
+    match state.active {
+        Screen::Combat => legal_actions_combat(state),
+        Screen::Reward => legal_actions_reward(state),
+        Screen::Event => legal_actions_event(state),
+        Screen::Shop => legal_actions_shop(state),
+        Screen::Map => legal_actions_map(state),
+        Screen::RestSite => legal_actions_rest_site(state),
+        Screen::Chest => legal_actions_chest(state),
+    }
+}
+
+fn legal_actions_pending(state: &GameState, pending: &Effect) -> Vec<Action> {
+    let mut actions = Vec::new();
+    match pending.kind {
+        EffectKind::CardDiscard { .. } | EffectKind::CardRetain => {
+            let num = input_count(pending).unwrap_or(1) as usize;
+            for combo in hand_combinations(state.id_hand.len(), num) {
+                actions.push(Action::HandSelect { idxs: combo });
+            }
+        }
+        EffectKind::CardSetupPick | EffectKind::CardNightmarePick => {
+            for i in 0..state.id_hand.len() {
+                actions.push(Action::HandSelect { idxs: vec![i] });
+            }
+        }
+        EffectKind::CardDiscoverPick => {
+            for i in 0..state.id_pick.len() {
+                actions.push(Action::CardDiscoverSelect { idx_option: i });
+            }
+        }
+        EffectKind::DeckSelectPick { kind } => {
+            let count = state
+                .id_deck
+                .iter()
+                .filter(|&&id| card_in_deck_filter(&state.entities[id], kind))
+                .count();
+            for i in 0..count {
+                actions.push(Action::DeckSelect { idx_option: i });
+            }
+        }
+        EffectKind::RoomSelect => {
+            push_room_select_actions(state, &mut actions);
+            push_potion_actions(state, &mut actions);
+        }
+        _ => unreachable!("pending_effect with non-halting kind: {:?}", pending.kind),
+    }
+    actions
+}
+
+fn legal_actions_combat(state: &GameState) -> Vec<Action> {
+    let mut actions = Vec::new();
+    let char_mods = &state.entities[state.id_character].modifiers;
+    let entangled = modifier_has(char_mods, ModifierKind::Entangled);
+    let alive_count = state.id_monsters.iter().flatten().count();
+    for (i, &id_card) in state.id_hand.iter().enumerate() {
+        let card = &state.entities[id_card];
+        let restriction_ok =
+            is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw);
+        let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
+        if !restriction_ok || entangled_blocks {
+            continue;
+        }
+        let cost = card_effective_cost(
+            card,
+            state.this_turn_discards,
+            state.this_combat_damage_instances_taken,
+            state.energy.current,
+        );
+        if cost > state.energy.current {
+            continue;
+        }
+        if card.requires_target {
+            for m in 0..alive_count {
+                actions.push(Action::CardPlay {
+                    idx_hand: i,
+                    idx_monster: Some(m),
+                });
+            }
+        } else {
+            actions.push(Action::CardPlay {
+                idx_hand: i,
+                idx_monster: None,
+            });
+        }
+    }
+    push_potion_actions(state, &mut actions);
+    actions.push(Action::EndTurn);
+    actions
+}
+
+fn legal_actions_reward(state: &GameState) -> Vec<Action> {
+    let mut actions = Vec::new();
+    for i in 0..state.reward_id_cards.len() {
+        actions.push(Action::RewardTakeCard { idx_reward: i });
+    }
+    if state.reward_id_relic.is_some() {
+        actions.push(Action::RewardTakeRelic);
+    }
+    if state.reward_id_potion.is_some() {
+        let character = &state.entities[state.id_character];
+        if find_free_slot(&character.potion_slots, character.potion_slots_max).is_some() {
+            actions.push(Action::RewardTakePotion);
+        }
+    }
+    if state.reward_gold.is_some() {
+        actions.push(Action::RewardTakeGold);
+    }
+    actions.push(Action::RewardSkip);
+    push_potion_discard_actions(state, &mut actions);
+    actions
+}
+
+fn legal_actions_event(state: &GameState) -> Vec<Action> {
+    let mut actions = Vec::new();
+    let id_event = state.id_event.expect("Event context requires id_event");
+    let event = &state.entities[id_event];
+    for (i, opt) in event.event_options.iter().enumerate() {
+        if event_option_gate_satisfied(opt.gate, state, id_event) {
+            actions.push(Action::EventChoice { idx_option: i });
+        }
+    }
+    push_potion_actions(state, &mut actions);
+    actions
+}
+
+fn legal_actions_shop(state: &GameState) -> Vec<Action> {
+    let mut actions = vec![Action::RoomSkip];
+    push_potion_actions(state, &mut actions);
+    actions
+}
+
+fn legal_actions_map(state: &GameState) -> Vec<Action> {
+    let mut actions = Vec::new();
+    push_room_select_actions(state, &mut actions);
+    push_potion_actions(state, &mut actions);
+    actions
+}
+
+fn legal_actions_rest_site(state: &GameState) -> Vec<Action> {
+    let mut actions = vec![Action::RestSiteRest];
+    for (i, &id_card) in state.id_deck.iter().enumerate() {
+        if !state.entities[id_card].card_upgraded {
+            actions.push(Action::RestSiteCardUpgrade { idx_deck: i });
+        }
+    }
+    push_potion_actions(state, &mut actions);
+    actions
+}
+
+fn legal_actions_chest(state: &GameState) -> Vec<Action> {
+    let mut actions = vec![Action::ChestOpen];
+    push_potion_actions(state, &mut actions);
+    actions
+}
+
+fn push_room_select_actions(state: &GameState, actions: &mut Vec<Action>) {
+    match state.location {
+        Location::Start => {
+            for c in 0..MAP_WIDTH {
+                if state.id_rooms[0][c].is_some() {
+                    actions.push(Action::RoomSelect { idx_column: c });
+                }
+            }
+        }
+        Location::Overworld { y, x } => {
+            let y_next = y + 1;
+            if y_next >= MAP_HEIGHT {
+                return;
+            }
+            if let Some(id_current) = state.id_rooms[y][x] {
+                let edges = state.entities[id_current].edges;
+                for c in 0..MAP_WIDTH {
+                    if has_edge(edges, c) && state.id_rooms[y_next][c].is_some() {
+                        actions.push(Action::RoomSelect { idx_column: c });
+                    }
+                }
+            }
+        }
+        Location::BossRoom => {}
+    }
+}
+
+fn push_potion_actions(state: &GameState, actions: &mut Vec<Action>) {
+    let character = &state.entities[state.id_character];
+    let in_combat = matches!(state.active, Screen::Combat);
+    let alive_count = state.id_monsters.iter().flatten().count();
+    for s in 0..character.potion_slots_max as usize {
+        let Some(id_potion) = character.potion_slots[s] else {
+            continue;
+        };
+        let potion = &state.entities[id_potion];
+        if potion.potion_combat_only && !in_combat {
+            actions.push(Action::PotionDiscard { idx_slot: s });
+            continue;
+        }
+        if potion.requires_target {
+            if in_combat {
+                for m in 0..alive_count {
+                    actions.push(Action::PotionUse {
+                        idx_slot: s,
+                        idx_monster: Some(m),
+                    });
+                }
+            }
+        } else {
+            actions.push(Action::PotionUse {
+                idx_slot: s,
+                idx_monster: None,
+            });
+        }
+        actions.push(Action::PotionDiscard { idx_slot: s });
+    }
+}
+
+fn push_potion_discard_actions(state: &GameState, actions: &mut Vec<Action>) {
+    let character = &state.entities[state.id_character];
+    for s in 0..character.potion_slots_max as usize {
+        if character.potion_slots[s].is_some() {
+            actions.push(Action::PotionDiscard { idx_slot: s });
+        }
+    }
+}
+
+// All k-subsets of [0..n) as Vec<usize>. For HandSelect Discard/Retain
+fn hand_combinations(n: usize, k: usize) -> Vec<Vec<usize>> {
+    let mut out = Vec::new();
+    if k > n {
+        return out;
+    }
+    let mut combo: Vec<usize> = (0..k).collect();
+    loop {
+        out.push(combo.clone());
+        // Find rightmost position that can be incremented
+        let mut i = k;
+        while i > 0 {
+            i -= 1;
+            if combo[i] != i + n - k {
+                combo[i] += 1;
+                for j in i + 1..k {
+                    combo[j] = combo[j - 1] + 1;
+                }
+                break;
+            }
+            if i == 0 {
+                return out;
+            }
+        }
+        if k == 0 {
+            return out;
+        }
+    }
+}
+
 fn lookup_idx(slice: &[usize], idx: usize) -> Result<usize, String> {
     slice
         .get(idx)
@@ -256,7 +525,7 @@ fn handle_card_play(
     idx_hand: usize,
     idx_monster: Option<usize>,
 ) -> Result<Vec<Effect>, String> {
-    if !matches!(state.active, ActiveContext::Combat) {
+    if !matches!(state.active, Screen::Combat) {
         return Err("CardPlay outside Combat context".into());
     }
     let id_card = lookup_idx(&state.id_hand, idx_hand)?;
@@ -342,17 +611,13 @@ fn handle_card_play(
 }
 
 fn handle_hand_select(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
-    if !matches!(state.active, ActiveContext::Combat) {
+    if !matches!(state.active, Screen::Combat) {
         return Err("HandSelect outside Combat context".into());
     }
-    let Some(Modal::HandSelect {
-        effect_kind,
-        id_source,
-        ..
-    }) = state.modal.take()
-    else {
-        return Err("HandSelect: state.modal not HandSelect".into());
-    };
+    let pending = state
+        .pending_effect
+        .take()
+        .ok_or("HandSelect: no pending_effect")?;
     let id_cards: Vec<usize> =
         idxs.iter()
             .map(|&idx| {
@@ -361,7 +626,7 @@ fn handle_hand_select(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Eff
                 })
             })
             .collect::<Result<_, _>>()?;
-    enqueue_direct_targets(id_source, &id_cards, effect_kind, &mut state.effect_queue);
+    enqueue_direct_targets(pending.id_source, &id_cards, pending.kind, &mut state.effect_queue);
     Ok(Vec::new())
 }
 
@@ -394,19 +659,22 @@ fn handle_room_select(state: &mut GameState, idx_column: usize) -> Result<Vec<Ef
         }
     }
 
-    let Some(Modal::RoomSelect { id_source }) = state.modal.take() else {
-        return Err("RoomSelect: state.modal not RoomSelect".into());
-    };
-    state
-        .effect_queue
-        .push_front(Effect::direct(EffectKind::RoomSelect, id_source, Some(id_room)));
+    let pending = state
+        .pending_effect
+        .take()
+        .ok_or("RoomSelect: no pending_effect")?;
+    state.effect_queue.push_front(effect_direct(
+        EffectKind::RoomSelect,
+        pending.id_source,
+        Some(id_room),
+    ));
     Ok(Vec::new())
 }
 
 fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, ActiveContext::Reward));
+    debug_assert!(matches!(state.active, Screen::Reward));
     let id_card = lookup_idx(&state.reward_id_cards, idx_reward)?;
-    Ok(vec![Effect::direct(
+    Ok(vec![effect_direct(
         EffectKind::RewardTake {
             kind: RewardKind::Card,
         },
@@ -416,11 +684,11 @@ fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<E
 }
 
 fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, ActiveContext::Reward));
+    debug_assert!(matches!(state.active, Screen::Reward));
     if state.reward_id_relic.is_none() {
         return Err("RewardTakeRelic: no relic in reward pool".to_string());
     }
-    Ok(vec![Effect::direct(
+    Ok(vec![effect_direct(
         EffectKind::RewardTake {
             kind: RewardKind::Relic,
         },
@@ -430,7 +698,7 @@ fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
 }
 
 fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, ActiveContext::Reward));
+    debug_assert!(matches!(state.active, Screen::Reward));
     if state.reward_id_potion.is_none() {
         return Err("RewardTakePotion: no potion in reward pool".to_string());
     }
@@ -438,7 +706,7 @@ fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
     if find_free_slot(&character.potion_slots, character.potion_slots_max).is_none() {
         return Err("belt is full; discard a potion first".to_string());
     }
-    Ok(vec![Effect::direct(
+    Ok(vec![effect_direct(
         EffectKind::RewardTake {
             kind: RewardKind::Potion,
         },
@@ -448,11 +716,11 @@ fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
 }
 
 fn handle_reward_take_gold(state: &GameState) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, ActiveContext::Reward));
+    debug_assert!(matches!(state.active, Screen::Reward));
     if state.reward_gold.is_none() {
         return Err("RewardTakeGold: no gold in reward pool".to_string());
     }
-    Ok(vec![Effect::direct(
+    Ok(vec![effect_direct(
         EffectKind::RewardTake {
             kind: RewardKind::Gold,
         },
@@ -462,7 +730,7 @@ fn handle_reward_take_gold(state: &GameState) -> Result<Vec<Effect>, String> {
 }
 
 fn handle_reward_skip() -> Vec<Effect> {
-    vec![Effect::direct(EffectKind::RewardSkip, None, None)]
+    vec![effect_direct(EffectKind::RewardSkip, None, None)]
 }
 
 fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
@@ -497,7 +765,7 @@ fn handle_room_skip() -> Vec<Effect> {
 }
 
 fn handle_chest_open() -> Vec<Effect> {
-    vec![Effect::direct(EffectKind::ChestOpen, None, None)]
+    vec![effect_direct(EffectKind::ChestOpen, None, None)]
 }
 
 fn handle_potion_use(
@@ -513,7 +781,7 @@ fn handle_potion_use(
         .ok_or_else(|| format!("PotionUse: slot {} is empty", idx_slot))?;
     let potion = &state.entities[id_potion];
 
-    if potion.potion_combat_only && !matches!(state.active, ActiveContext::Combat) {
+    if potion.potion_combat_only && !matches!(state.active, Screen::Combat) {
         return Err(format!(
             "PotionUse: {:?} is combat-only",
             potion.potion_name
@@ -582,17 +850,18 @@ fn handle_card_discover_select(
     state: &mut GameState,
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, ActiveContext::Combat));
+    debug_assert!(matches!(state.active, Screen::Combat));
     let id_card = *state
         .id_pick
         .get(idx_option)
         .ok_or_else(|| format!("CardDiscoverSelect: idx_option {} out of range", idx_option))?;
-    let Some(Modal::Discover { id_source }) = state.modal.take() else {
-        return Err("CardDiscoverSelect: state.modal not Discover".into());
-    };
-    state.effect_queue.push_front(Effect::direct(
+    let pending = state
+        .pending_effect
+        .take()
+        .ok_or("CardDiscoverSelect: no pending_effect")?;
+    state.effect_queue.push_front(effect_direct(
         EffectKind::CardDiscoverPick,
-        id_source,
+        pending.id_source,
         Some(id_card),
     ));
     Ok(Vec::new())
@@ -607,13 +876,13 @@ fn handle_rest_site_card_upgrade(
     // Upgrade by entity id, then let the RestSiteExit handler decide whether
     // to halt (non-final row) or enter the boss room (final row)
     Ok(vec![
-        Effect::direct(EffectKind::CardUpgrade, None, Some(id_card)),
-        Effect::direct(EffectKind::RestSiteExit, None, None),
+        effect_direct(EffectKind::CardUpgrade, None, Some(id_card)),
+        effect_direct(EffectKind::RestSiteExit, None, None),
     ])
 }
 
 fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, ActiveContext::Event));
+    debug_assert!(matches!(state.active, Screen::Event));
     let id_event = state.id_event.expect("validate guarantees Event context");
     let event = &state.entities[id_event];
     if idx_option >= event.event_options.len() {
@@ -642,8 +911,15 @@ fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<E
 }
 
 fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
-    let Some(Modal::DeckSelect { kind, id_source }) = state.modal.take() else {
-        return Err("DeckSelect: state.modal not DeckSelect".into());
+    let pending = state
+        .pending_effect
+        .take()
+        .ok_or("DeckSelect: no pending_effect")?;
+    let EffectKind::DeckSelectPick { kind } = pending.kind else {
+        return Err(format!(
+            "DeckSelect: pending_effect kind is {:?}, expected DeckSelectPick",
+            pending.kind
+        ));
     };
     let id_card = state
         .id_deck
@@ -652,9 +928,9 @@ fn handle_deck_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Ef
         .filter(|&id| card_in_deck_filter(&state.entities[id], kind))
         .nth(idx_option)
         .ok_or_else(|| format!("DeckSelect: idx_option {} out of range", idx_option))?;
-    state.effect_queue.push_front(Effect::direct(
+    state.effect_queue.push_front(effect_direct(
         EffectKind::DeckSelectPick { kind },
-        id_source,
+        pending.id_source,
         Some(id_card),
     ));
     Ok(Vec::new())

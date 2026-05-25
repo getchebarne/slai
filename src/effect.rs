@@ -3,7 +3,6 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::ChestKind;
 use crate::types::DeckSelectKind;
-use crate::types::HandSelectKind;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -297,86 +296,25 @@ pub const ZERO_EFFECT: Effect = Effect {
     target: Target::Direct(None),
 };
 
-impl Effect {
-    pub const fn direct(
-        kind: EffectKind,
-        id_source: Option<usize>,
-        id_target: Option<usize>,
-    ) -> Self {
-        Self {
-            kind,
-            id_source,
-            target: Target::Direct(id_target),
-        }
+pub const fn effect_direct(
+    kind: EffectKind,
+    id_source: Option<usize>,
+    id_target: Option<usize>,
+) -> Effect {
+    Effect {
+        kind,
+        id_source,
+        target: Target::Direct(id_target),
     }
 }
 
-// Modal: the halt state. Set by process_effect when an Input-based Resolve
-// fails to auto-resolve; cleared by the action handler that supplies the
-// player's pick. Each variant carries everything the handler needs to push the
-// resolved effect(s) without re-reading the queue
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Modal {
-    HandSelect {
-        kind: HandSelectKind,
-        // Per-pick effect kind (CardDiscard{source}/CardRetain/CardSetupPick/CardNightmarePick)
-        effect_kind: EffectKind,
-        id_source: Option<usize>,
-        num: u16,
-    },
-    Discover {
-        id_source: Option<usize>,
-    },
-    DeckSelect {
-        kind: DeckSelectKind,
-        id_source: Option<usize>,
-    },
-    RoomSelect {
-        id_source: Option<usize>,
-    },
-}
-
-impl Modal {
-    // Derive a Modal from the unresolved Effect at halt time. Returns None for
-    // effect kinds that don't await input (shouldn't be reached in practice)
-    pub fn from_effect(effect: &Effect) -> Option<Self> {
-        let Target::Resolve {
+// Input count if the Effect's target is a Resolve with SelectionKind::Input
+pub fn input_count(effect: &Effect) -> Option<u16> {
+    match effect.target {
+        Target::Resolve {
             selection_kind: SelectionKind::Input { count },
             ..
-        } = effect.target
-        else {
-            return None;
-        };
-        let id_source = effect.id_source;
-        Some(match effect.kind {
-            EffectKind::CardDiscard { .. } => Self::HandSelect {
-                kind: HandSelectKind::Discard,
-                effect_kind: effect.kind,
-                id_source,
-                num: count,
-            },
-            EffectKind::CardRetain => Self::HandSelect {
-                kind: HandSelectKind::Retain,
-                effect_kind: effect.kind,
-                id_source,
-                num: count,
-            },
-            EffectKind::CardSetupPick => Self::HandSelect {
-                kind: HandSelectKind::Setup,
-                effect_kind: effect.kind,
-                id_source,
-                num: count,
-            },
-            EffectKind::CardNightmarePick => Self::HandSelect {
-                kind: HandSelectKind::Nightmare,
-                effect_kind: effect.kind,
-                id_source,
-                num: count,
-            },
-            EffectKind::CardDiscoverPick => Self::Discover { id_source },
-            EffectKind::DeckSelectPick { kind } => Self::DeckSelect { kind, id_source },
-            EffectKind::RoomSelect => Self::RoomSelect { id_source },
-            _ => return None,
-        })
+        } => Some(count),
+        _ => None,
     }
 }

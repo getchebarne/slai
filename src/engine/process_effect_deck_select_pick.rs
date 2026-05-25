@@ -1,4 +1,4 @@
-use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::game::GameState;
 use crate::types::DeckSelectKind;
@@ -12,14 +12,14 @@ pub fn process_effect_deck_select_pick(
     let id_card = id_target.expect("DeckSelectPick Direct form must have target");
     match kind {
         DeckSelectKind::Remove => {
-            state.effect_queue.push_front(Effect::direct(
+            state.effect_queue.push_front(effect_direct(
                 EffectKind::CardRemoveFromDeck,
                 None,
                 Some(id_card),
             ));
         }
         DeckSelectKind::UpgradeAny => {
-            state.effect_queue.push_front(Effect::direct(
+            state.effect_queue.push_front(effect_direct(
                 EffectKind::CardUpgrade,
                 None,
                 Some(id_card),
@@ -29,7 +29,7 @@ pub fn process_effect_deck_select_pick(
             let card = &state.entities[id_card];
             let card_name = card.card_name;
             let upgraded = card.card_upgraded;
-            state.effect_queue.push_front(Effect::direct(
+            state.effect_queue.push_front(effect_direct(
                 EffectKind::CardAddToDeck {
                     card_name,
                     upgraded,
@@ -39,12 +39,12 @@ pub fn process_effect_deck_select_pick(
             ));
         }
         DeckSelectKind::TransformOne => {
-            state.effect_queue.push_front(Effect::direct(
+            state.effect_queue.push_front(effect_direct(
                 EffectKind::CardTransformRoll,
                 None,
                 None,
             ));
-            state.effect_queue.push_front(Effect::direct(
+            state.effect_queue.push_front(effect_direct(
                 EffectKind::CardRemoveFromDeck,
                 None,
                 Some(id_card),

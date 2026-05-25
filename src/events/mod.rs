@@ -19,6 +19,7 @@ use rand::Rng;
 use strum::EnumCount;
 
 use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
@@ -29,7 +30,7 @@ use crate::types::CardRarity;
 use crate::types::EventName;
 use crate::types::RelicName;
 
-pub const EVENT_END_EFFECT: Effect = Effect::direct(EffectKind::EventEnd, None, None);
+pub const EVENT_END_EFFECT: Effect = effect_direct(EffectKind::EventEnd, None, None);
 
 #[derive(Debug, Clone, Copy)]
 pub struct EventOption {

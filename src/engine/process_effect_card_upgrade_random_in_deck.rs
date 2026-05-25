@@ -1,5 +1,5 @@
 use crate::consts::MAX_SIZE_DECK;
-use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::events::card_is_upgradable;
 use crate::game::GameState;
@@ -19,6 +19,6 @@ pub fn process_effect_card_upgrade_random_in_deck(state: &mut GameState, count: 
     for &id_card in candidates[..n].iter().rev() {
         state
             .effect_queue
-            .push_front(Effect::direct(EffectKind::CardUpgrade, None, Some(id_card)));
+            .push_front(effect_direct(EffectKind::CardUpgrade, None, Some(id_card)));
     }
 }

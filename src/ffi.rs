@@ -7,9 +7,9 @@ use crate::consts::MAP_HEIGHT;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::Modal;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::input_count;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::Intent;
@@ -22,11 +22,12 @@ use crate::map::edge_indices;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::modifier_has;
+use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::modifier_stacks;
 use crate::modifier::stacks_max_for;
 use crate::monsters::hexaghost;
 use crate::relics::iter_owned_relics;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -34,7 +35,6 @@ use crate::types::CardRarity;
 use crate::types::ChestKind;
 use crate::types::DeckSelectKind;
 use crate::types::EventName;
-use crate::types::HandSelectKind;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::PotionName;
@@ -767,35 +767,30 @@ impl From<CandidatePool> for PyCandidatePool {
 
 // Phase / Selection / Target
 
-#[pyclass(frozen, name = "Phase")]
-#[derive(Debug, Clone)]
-pub enum PyPhase {
-    Map {},
-    CombatDefault {},
-    AwaitHandSelect {
-        kind: PyHandSelectKind,
-        num: u8,
-    },
-    Reward {
-        cards: Vec<PyCard>,
-        relic: Option<PyRelic>,
-        potion: Option<PyPotion>,
-        gold: Option<u16>,
-    },
-    RestSite {},
-    GameOver {},
-    Chest {},
-    Shop {},
-    CombatAwaitDiscover {
-        cards: Vec<PyCard>,
-    },
-    AwaitEventChoice {
-        event: PyEvent,
-    },
-    AwaitDeckSelect {
-        kind: PyDeckSelectKind,
-        cards: Vec<PyCard>,
-    },
+#[pyclass(eq, eq_int, hash, frozen, name = "Screen")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyScreen {
+    Combat,
+    Reward,
+    Event,
+    Shop,
+    Map,
+    RestSite,
+    Chest,
+}
+
+impl From<Screen> for PyScreen {
+    fn from(a: Screen) -> Self {
+        match a {
+            Screen::Combat => Self::Combat,
+            Screen::Reward => Self::Reward,
+            Screen::Event => Self::Event,
+            Screen::Shop => Self::Shop,
+            Screen::Map => Self::Map,
+            Screen::RestSite => Self::RestSite,
+            Screen::Chest => Self::Chest,
+        }
+    }
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "DeckSelectKind")]
@@ -835,47 +830,6 @@ impl PyDeckSelectKind {
             Self::UpgradeAny => DeckSelectKind::UpgradeAny,
             Self::TransformOne => DeckSelectKind::TransformOne,
             Self::DuplicateAny => DeckSelectKind::DuplicateAny,
-        }
-    }
-}
-
-#[pyclass(eq, eq_int, hash, frozen, name = "HandSelectKind")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyHandSelectKind {
-    Discard,
-    Retain,
-    Setup,
-    Nightmare,
-}
-
-impl From<HandSelectKind> for PyHandSelectKind {
-    fn from(k: HandSelectKind) -> Self {
-        match k {
-            HandSelectKind::Discard => Self::Discard,
-            HandSelectKind::Retain => Self::Retain,
-            HandSelectKind::Setup => Self::Setup,
-            HandSelectKind::Nightmare => Self::Nightmare,
-        }
-    }
-}
-
-impl PyHandSelectKind {
-    fn from_u8(v: u8) -> Result<Self, String> {
-        match v {
-            0 => Ok(Self::Discard),
-            1 => Ok(Self::Retain),
-            2 => Ok(Self::Setup),
-            3 => Ok(Self::Nightmare),
-            _ => Err(format!("PyHandSelectKind: invalid discriminant {v}")),
-        }
-    }
-
-    fn to_internal(self) -> HandSelectKind {
-        match self {
-            Self::Discard => HandSelectKind::Discard,
-            Self::Retain => HandSelectKind::Retain,
-            Self::Setup => HandSelectKind::Setup,
-            Self::Nightmare => HandSelectKind::Nightmare,
         }
     }
 }
@@ -1099,6 +1053,54 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             }),
             n => Err(format!("DeckSelect expects [idx_option], got {n} idxs")),
         },
+    }
+}
+
+pub fn from_internal_action(action: Action) -> PyAction {
+    let (action_type, idxs) = match action {
+        Action::CardPlay {
+            idx_hand,
+            idx_monster: None,
+        } => (PyActionType::CardPlay, vec![idx_hand]),
+        Action::CardPlay {
+            idx_hand,
+            idx_monster: Some(m),
+        } => (PyActionType::CardPlay, vec![idx_hand, m]),
+        Action::EndTurn => (PyActionType::EndTurn, vec![]),
+        Action::HandSelect { idxs } => (PyActionType::HandSelect, idxs),
+        Action::RoomSelect { idx_column } => (PyActionType::RoomSelect, vec![idx_column]),
+        Action::RestSiteRest => (PyActionType::RestSiteRest, vec![]),
+        Action::RestSiteCardUpgrade { idx_deck } => {
+            (PyActionType::RestSiteCardUpgrade, vec![idx_deck])
+        }
+        Action::RoomSkip => (PyActionType::RoomSkip, vec![]),
+        Action::ChestOpen => (PyActionType::ChestOpen, vec![]),
+        Action::PotionUse {
+            idx_slot,
+            idx_monster: None,
+        } => (PyActionType::PotionUse, vec![idx_slot]),
+        Action::PotionUse {
+            idx_slot,
+            idx_monster: Some(m),
+        } => (PyActionType::PotionUse, vec![idx_slot, m]),
+        Action::PotionDiscard { idx_slot } => (PyActionType::PotionDiscard, vec![idx_slot]),
+        Action::CardDiscoverSelect { idx_option } => {
+            (PyActionType::CardDiscoverSelect, vec![idx_option])
+        }
+        Action::RewardTakeCard { idx_reward } => {
+            (PyActionType::RewardTakeCard, vec![idx_reward])
+        }
+        Action::RewardTakeRelic => (PyActionType::RewardTakeRelic, vec![]),
+        Action::RewardTakePotion => (PyActionType::RewardTakePotion, vec![]),
+        Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
+        Action::RewardSkip => (PyActionType::RewardSkip, vec![]),
+        Action::EventChoice { idx_option } => (PyActionType::EventChoice, vec![idx_option]),
+        Action::DeckSelect { idx_option } => (PyActionType::DeckSelect, vec![idx_option]),
+    };
+    PyAction {
+        action_type,
+        idxs,
+        kind: None,
     }
 }
 
@@ -1618,6 +1620,8 @@ pub struct PyMap {
 #[pyclass(frozen, get_all, name = "GameState")]
 #[derive(Debug, Clone)]
 pub struct PyGameState {
+    pub active: PyScreen,
+    pub game_over: bool,
     pub character: PyCharacter,
     pub monsters: Vec<PyMonster>,
     pub deck: Vec<PyCard>,
@@ -1628,31 +1632,9 @@ pub struct PyGameState {
     pub relics: Vec<PyRelic>,
     pub energy: PyEnergy,
     pub map: PyMap,
-    pub phase: PyPhase,
-    pub context: Option<PyContext>,
+    pub reward: Option<PyReward>,
+    pub event: Option<PyEvent>,
     pub pending_input: Option<PyPendingInput>,
-}
-
-// PyContext: tagged-union mirror of Rust's Context enum. Python consumers
-// dispatch via `v.context` matching to a Combat/Reward/Event/Shop variant
-#[pyclass(frozen, name = "Context")]
-#[derive(Debug, Clone)]
-pub enum PyContext {
-    Combat(PyCombat),
-    Reward(PyReward),
-    Event(PyEvent),
-    Shop(PyShop),
-}
-
-#[pyclass(frozen, get_all, name = "Combat")]
-#[derive(Debug, Clone)]
-pub struct PyCombat {
-    pub hand: Vec<PyCard>,
-    pub pile_draw: Vec<PyCard>,
-    pub pile_discard: Vec<PyCard>,
-    pub pile_exhaust: Vec<PyCard>,
-    pub monsters: Vec<PyMonster>,
-    pub energy: PyEnergy,
 }
 
 #[pyclass(frozen, get_all, name = "Reward")]
@@ -1664,22 +1646,17 @@ pub struct PyReward {
     pub gold: Option<u16>,
 }
 
-#[pyclass(frozen, get_all, name = "Shop")]
-#[derive(Debug, Clone)]
-pub struct PyShop {}
-
-// Snapshot of the queue-head input-pending Effect, when any. `None` outside
-// of halts. Python priority cascade: pending_input > context > location
+// Snapshot of the halt overlay (state.pending_effect), when any. `None`
+// outside of halts. Python priority cascade: pending_input > context > location.
+// Each variant is 1:1 with a halting EffectKind
 #[pyclass(frozen, name = "PendingInput")]
 #[derive(Debug, Clone)]
 pub enum PyPendingInput {
-    HandSelect {
-        kind: PyHandSelectKind,
-        num: u8,
-    },
-    Discover {
-        cards: Vec<PyCard>,
-    },
+    Discard { num: u8 },
+    Retain { num: u8 },
+    Setup {},
+    Nightmare {},
+    Discover { cards: Vec<PyCard> },
     DeckSelect {
         kind: PyDeckSelectKind,
         cards: Vec<PyCard>,
@@ -1879,7 +1856,7 @@ impl MonsterEncounter {
 pub fn snapshot_state(state: &GameState) -> PyGameState {
     // Combat-only fields default to empty / 0 when not in Combat context
     let (hand, pile_draw, pile_discard, pile_exhaust, energy) =
-        if matches!(state.active, ActiveContext::Combat) {
+        if matches!(state.active, Screen::Combat) {
             (
                 state
                     .id_hand
@@ -1915,8 +1892,33 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
                 PyEnergy { current: 0, max: 0 },
             )
         };
-    let context = snapshot_context(state);
     let pending_input = snapshot_pending_input(state);
+    let reward = match state.active {
+        Screen::Reward => Some(PyReward {
+            cards: state
+                .reward_id_cards
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+            relic: state
+                .reward_id_relic
+                .map(|id| snapshot_relic(&state.entities[id])),
+            potion: state
+                .reward_id_potion
+                .map(|id| snapshot_potion(&state.entities[id])),
+            gold: state.reward_gold,
+        }),
+        _ => None,
+    };
+    let event = match state.active {
+        Screen::Event => Some(snapshot_event(
+            state,
+            state
+                .id_event
+                .expect("Event context requires state.id_event"),
+        )),
+        _ => None,
+    };
     PyGameState {
         character: snapshot_character(state),
         monsters: snapshot_monsters(state),
@@ -1934,74 +1936,24 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         energy,
         map: snapshot_map(state),
-        phase: snapshot_phase(state),
-        context,
+        active: state.active.into(),
+        game_over: state.game_over,
+        reward,
+        event,
         pending_input,
     }
 }
 
-fn snapshot_context(state: &GameState) -> Option<PyContext> {
-    match state.active {
-        ActiveContext::Combat => Some(PyContext::Combat(PyCombat {
-            hand: state
-                .id_hand
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            pile_draw: state
-                .id_pile_draw
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            pile_discard: state
-                .id_pile_discard
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            pile_exhaust: state
-                .id_pile_exhaust
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            monsters: snapshot_monsters(state),
-            energy: PyEnergy {
-                current: state.energy.current,
-                max: state.energy.max,
-            },
-        })),
-        ActiveContext::Reward => Some(PyContext::Reward(PyReward {
-            cards: state
-                .reward_id_cards
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            relic: state
-                .reward_id_relic
-                .map(|id| snapshot_relic(&state.entities[id])),
-            potion: state
-                .reward_id_potion
-                .map(|id| snapshot_potion(&state.entities[id])),
-            gold: state.reward_gold,
-        })),
-        ActiveContext::Event => Some(PyContext::Event(snapshot_event(
-            state,
-            state
-                .id_event
-                .expect("Event context requires state.id_event"),
-        ))),
-        ActiveContext::Shop => Some(PyContext::Shop(PyShop {})),
-        ActiveContext::Map | ActiveContext::RestSite | ActiveContext::Chest => None,
-    }
-}
-
 fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
-    match state.modal? {
-        Modal::HandSelect { kind, num, .. } => Some(PyPendingInput::HandSelect {
-            kind: kind.into(),
-            num: num as u8,
-        }),
-        Modal::Discover { .. } => {
-            let cards = if matches!(state.active, ActiveContext::Combat) {
+    let pending = state.pending_effect.as_ref()?;
+    let num = input_count(pending).map(|c| c as u8);
+    Some(match pending.kind {
+        EffectKind::CardDiscard { .. } => PyPendingInput::Discard { num: num.unwrap_or(1) },
+        EffectKind::CardRetain => PyPendingInput::Retain { num: num.unwrap_or(1) },
+        EffectKind::CardSetupPick => PyPendingInput::Setup {},
+        EffectKind::CardNightmarePick => PyPendingInput::Nightmare {},
+        EffectKind::CardDiscoverPick => {
+            let cards = if matches!(state.active, Screen::Combat) {
                 state
                     .id_pick
                     .iter()
@@ -2010,14 +1962,15 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
             } else {
                 Vec::new()
             };
-            Some(PyPendingInput::Discover { cards })
+            PyPendingInput::Discover { cards }
         }
-        Modal::DeckSelect { kind, .. } => Some(PyPendingInput::DeckSelect {
+        EffectKind::DeckSelectPick { kind } => PyPendingInput::DeckSelect {
             kind: kind.into(),
             cards: filtered_deck_cards(state, kind),
-        }),
-        Modal::RoomSelect { .. } => Some(PyPendingInput::RoomSelect {}),
-    }
+        },
+        EffectKind::RoomSelect => PyPendingInput::RoomSelect {},
+        _ => unreachable!("pending_effect with non-halting kind: {:?}", pending.kind),
+    })
 }
 
 fn filtered_deck_cards(state: &GameState, kind: DeckSelectKind) -> Vec<PyCard> {
@@ -2028,80 +1981,6 @@ fn filtered_deck_cards(state: &GameState, kind: DeckSelectKind) -> Vec<PyCard> {
         .filter(|&id| crate::events::card_in_deck_filter(&state.entities[id], kind))
         .map(|id| snapshot_card(state, id))
         .collect()
-}
-
-fn snapshot_phase(state: &GameState) -> PyPhase {
-    use crate::types::RoomKind;
-    if state.game_over {
-        return PyPhase::GameOver {};
-    }
-    if let Some(modal) = state.modal {
-        return match modal {
-            Modal::HandSelect { kind, num, .. } => PyPhase::AwaitHandSelect {
-                kind: kind.into(),
-                num: num as u8,
-            },
-            Modal::Discover { .. } => {
-                let cards = if matches!(state.active, ActiveContext::Combat) {
-                    state
-                        .id_pick
-                        .iter()
-                        .map(|&id| snapshot_card(state, id))
-                        .collect()
-                } else {
-                    Vec::new()
-                };
-                PyPhase::CombatAwaitDiscover { cards }
-            }
-            Modal::DeckSelect { kind, .. } => PyPhase::AwaitDeckSelect {
-                kind: kind.into(),
-                cards: filtered_deck_cards(state, kind),
-            },
-            Modal::RoomSelect { .. } => PyPhase::Map {},
-        };
-    }
-    // Multi-action context screens
-    match state.active {
-        ActiveContext::Combat => PyPhase::CombatDefault {},
-        ActiveContext::Reward => PyPhase::Reward {
-            cards: state
-                .reward_id_cards
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect(),
-            relic: state
-                .reward_id_relic
-                .map(|id| snapshot_relic(&state.entities[id])),
-            potion: state
-                .reward_id_potion
-                .map(|id| snapshot_potion(&state.entities[id])),
-            gold: state.reward_gold,
-        },
-        ActiveContext::Event => PyPhase::AwaitEventChoice {
-            event: snapshot_event(
-                state,
-                state
-                    .id_event
-                    .expect("Event context requires state.id_event"),
-            ),
-        },
-        ActiveContext::Shop => PyPhase::Shop {},
-        ActiveContext::Map | ActiveContext::RestSite | ActiveContext::Chest => match state.location
-        {
-            Location::Overworld { y, x } => {
-                if let Some(room) = crate::map::room_at(&state.id_rooms, &state.entities, y, x) {
-                    match room.room_kind {
-                        RoomKind::RestSite => PyPhase::RestSite {},
-                        RoomKind::Treasure if !room.room_chest_opened => PyPhase::Chest {},
-                        _ => PyPhase::Map {},
-                    }
-                } else {
-                    PyPhase::Map {}
-                }
-            }
-            _ => PyPhase::Map {},
-        },
-    }
 }
 
 fn snapshot_event(state: &GameState, id_event: usize) -> PyEvent {
@@ -2247,7 +2126,7 @@ fn snapshot_modifiers(mods: &Modifiers) -> Vec<PyModifier> {
     while bits != 0 {
         let idx = bits.trailing_zeros() as usize;
         bits &= bits - 1;
-        let kind = ModifierKind::from_u8(idx as u8);
+        let kind = modifier_kind_from_u8(idx as u8);
         out.push(PyModifier {
             kind: kind.into(),
             stacks: mods.stacks[idx],
@@ -2266,7 +2145,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     // Combat-only context lookups for play-restriction and cost: outside
     // combat these default to permissive values (cards not played anyway)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        if matches!(state.active, ActiveContext::Combat) {
+        if matches!(state.active, Screen::Combat) {
             (
                 is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw),
                 state.this_turn_discards,

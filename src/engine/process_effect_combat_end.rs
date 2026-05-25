@@ -1,11 +1,11 @@
-use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 use crate::types::RoomKind;
 
 pub fn process_effect_combat_end(state: &mut GameState) {
@@ -15,7 +15,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
     match room_kind {
         RoomKind::CombatBoss => {}
         RoomKind::CombatMonster | RoomKind::CombatElite => {
-            state.effect_queue.push_back(Effect::direct(
+            state.effect_queue.push_back(effect_direct(
                 EffectKind::RewardRollCombat { room_kind },
                 None,
                 None,
@@ -28,7 +28,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
 
     // BossRoom victory ends the run
     if matches!(state.location, Location::BossRoom) {
-        state.active = ActiveContext::Map;
+        state.active = Screen::Map;
         state.game_over = true;
     }
 }

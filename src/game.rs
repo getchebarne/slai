@@ -28,7 +28,6 @@ use crate::consts::MAX_SIZE_HAND;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::Modal;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::engine::process_queue;
@@ -67,8 +66,10 @@ pub struct GameState {
     pub buf_effects: Vec<Effect>,
     // Per-resolve candidate buffer; cleared before each use
     pub buf_candidates: Vec<usize>,
-    // Halt overlay: Some when the queue is blocked waiting for player input
-    pub modal: Option<Modal>,
+    // Halt overlay: Some when the queue is blocked waiting for player input.
+    // Carries the unresolved Effect; the action handler that supplies the
+    // pick reads kind/source/target, builds the resolved effect(s), and clears
+    pub pending_effect: Option<Effect>,
     pub location: Location,
 
     // Entities and indices
@@ -98,7 +99,7 @@ pub struct GameState {
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
-    pub active: ActiveContext,
+    pub active: Screen,
     pub game_over: bool,
 
     // Combat working memory; meaningful when active = Combat
@@ -193,14 +194,14 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         effect_queue,
         buf_effects: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         buf_candidates: Vec::with_capacity(MAX_CANDIDATES),
-        modal: None,
+        pending_effect: None,
         event_chance_monster: EVENT_CHANCE_MONSTER_BASE,
         event_chance_shop: EVENT_CHANCE_SHOP_BASE,
         event_chance_treasure: EVENT_CHANCE_TREASURE_BASE,
         events_seen_this_run: Vec::with_capacity(EventName::COUNT),
         potion_drop_mod: 0,
 
-        active: ActiveContext::Map,
+        active: Screen::Map,
         game_over: false,
         id_hand: Vec::with_capacity(MAX_SIZE_HAND),
         id_pile_draw: Vec::with_capacity(MAX_SIZE_DECK),

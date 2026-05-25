@@ -1,7 +1,7 @@
 use crate::utils::queue_room_select;
 use crate::game::GameState;
 use crate::potions::find_free_slot;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 use crate::types::RewardKind;
 
 pub fn process_effect_reward_take(
@@ -43,7 +43,7 @@ pub fn process_effect_reward_take(
         && state.reward_id_potion.is_none()
         && state.reward_gold.is_none()
     {
-        state.active = ActiveContext::Map;
+        state.active = Screen::Map;
         queue_room_select(state);
     }
 }

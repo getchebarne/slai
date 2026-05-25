@@ -94,7 +94,6 @@ use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::Modal;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -102,7 +101,7 @@ use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 use crate::types::CardColor;
 use crate::utils::shuffle;
 
@@ -294,8 +293,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
                 selection_kind,
             );
             if halted {
-                state.modal = Modal::from_effect(&effect);
-                debug_assert!(state.modal.is_some(), "halted but no Modal derivable");
+                state.pending_effect = Some(effect);
             }
             return halted;
         }
@@ -314,7 +312,7 @@ fn resolve_or_halt(
 ) -> bool {
     let id_source_resolved = id_source.unwrap_or(state.id_character);
     let (id_hand, id_monster_picked, id_pick): (&[usize], Option<usize>, &[usize]) =
-        if matches!(state.active, ActiveContext::Combat) {
+        if matches!(state.active, Screen::Combat) {
             (&state.id_hand, state.id_monster_picked, &state.id_pick)
         } else {
             (&[], None, &[])
@@ -358,15 +356,15 @@ fn dispatch_by_kind(
 ) {
     match kind {
         EffectKind::CardDraw { count } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_draw::process_effect_card_draw(state, count)
         }
         EffectKind::DrawUpTo { amount } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_draw_up_to::process_effect_draw_up_to(state, amount)
         }
         EffectKind::CardPlay => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_play::process_effect_card_play(id_target, state)
         }
         EffectKind::CardAddToDiscard {
@@ -374,54 +372,54 @@ fn dispatch_by_kind(
             count,
             upgraded,
         } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_add_to_discard::process_effect_card_add_to_discard(
                 state, card_name, count, upgraded,
             )
         }
         EffectKind::CardDiscard { source } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_discard::process_effect_card_discard(id_target, state, source)
         }
         EffectKind::CardMoveToDiscard => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_move_to_discard::process_effect_card_move_to_discard(
                 id_target, state,
             )
         }
         EffectKind::DamageMindBlast => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_damage_mind_blast::process_effect_damage_mind_blast(
                 id_source, id_target, state,
             )
         }
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_shuffle_discard_pile_into_draw_pile::process_effect_shuffle_discard_pile_into_draw_pile(state)
         }
         EffectKind::CardRetain => {
             process_effect_card_retain::process_effect_card_retain(id_target, state)
         }
         EffectKind::CardSetupPick => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_setup_pick::process_effect_card_setup_pick(id_target, state)
         }
         EffectKind::CardNightmarePick => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_id_card_nightmare_pick::process_effect_id_card_nightmare_pick(
                 id_target, state,
             )
         }
         EffectKind::CardNightmareSpawn => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_id_card_nightmare_spawn::process_effect_id_card_nightmare_spawn(state)
         }
         EffectKind::CardExhaust => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_exhaust::process_effect_card_exhaust(id_target, state)
         }
         EffectKind::CardRemove => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_remove::process_effect_card_remove(id_target, state)
         }
         EffectKind::CardAddToHand {
@@ -429,13 +427,13 @@ fn dispatch_by_kind(
             count,
             upgraded,
         } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_add_to_hand::process_effect_card_add_to_hand(
                 state, card_name, count, upgraded,
             )
         }
         EffectKind::CalculatedGamble => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_calculated_gamble::process_effect_calculated_gamble(state)
         }
         EffectKind::CardUpgrade => {
@@ -448,19 +446,19 @@ fn dispatch_by_kind(
             process_effect_reward_roll_chest::process_effect_reward_roll_chest(state, kind);
         }
         EffectKind::RewardTake { kind } => {
-            debug_assert!(matches!(state.active, ActiveContext::Reward));
+            debug_assert!(matches!(state.active, Screen::Reward));
             process_effect_reward_take::process_effect_reward_take(id_target, state, kind)
         }
         EffectKind::RewardSkip => {
-            debug_assert!(matches!(state.active, ActiveContext::Reward));
+            debug_assert!(matches!(state.active, Screen::Reward));
             process_effect_reward_skip::process_effect_reward_skip(state);
         }
         EffectKind::TargetSet => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_target_set::process_effect_target_set(id_target, state)
         }
         EffectKind::TargetClear => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_target_clear::process_effect_target_clear(state)
         }
         EffectKind::DamagePhysical { amount } => {
@@ -479,7 +477,7 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::DistractionAdd => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_distraction_add::process_effect_distraction_add(state)
         }
         EffectKind::SetCostOverride { amount } => {
@@ -488,17 +486,17 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::EscapePlanCheck { block } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_escape_plan_check::process_effect_escape_plan_check(state, block)
         }
         EffectKind::FinisherDamage { damage } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_finisher_damage::process_effect_finisher_damage(
                 id_source, id_target, state, damage,
             )
         }
         EffectKind::FlechettesDamage { damage } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_flechettes_damage::process_effect_flechettes_damage(
                 id_source, id_target, state, damage,
             )
@@ -507,15 +505,15 @@ fn dispatch_by_kind(
             process_effect_heel_hook_proc::process_effect_heel_hook_proc(id_target, state)
         }
         EffectKind::SneakyStrikeProc { energy } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc(state, energy)
         }
         EffectKind::StormOfSteelProc { upgraded } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc(state, upgraded)
         }
         EffectKind::UnloadDiscard => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_unload_discard::process_effect_unload_discard(state)
         }
         EffectKind::DamageDeal { amount } => {
@@ -536,11 +534,11 @@ fn dispatch_by_kind(
             process_effect_block_set::process_effect_block_set(id_target, state, amount)
         }
         EffectKind::EnergyGain { amount } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_energy_gain::process_effect_energy_gain(state, amount)
         }
         EffectKind::EnergyLoss { amount } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_energy_loss::process_effect_energy_loss(state, amount)
         }
         EffectKind::ModifierGain { kind, stacks } => {
@@ -571,20 +569,20 @@ fn dispatch_by_kind(
             process_effect_death::process_effect_death(id_target, state)
         }
         EffectKind::CombatStart => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_combat_start::process_effect_combat_start(state)
         }
         EffectKind::CombatEnd => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_combat_end::process_effect_combat_end(state)
         }
         EffectKind::TurnStart => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_turn_start::process_effect_turn_start(id_target, state)
         }
         EffectKind::TurnEnd => {
             if id_target == Some(state.id_character) {
-                debug_assert!(matches!(state.active, ActiveContext::Combat));
+                debug_assert!(matches!(state.active, Screen::Combat));
                 process_effect_turn_end::process_effect_turn_end_character(state)
             } else {
                 process_effect_turn_end::process_effect_turn_end_monster(id_target, state)
@@ -604,14 +602,14 @@ fn dispatch_by_kind(
             process_effect_monster_spawn::process_effect_monster_spawn(id_source, state, name)
         }
         EffectKind::EscapeMonster => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_escape_monster::process_effect_escape_monster(id_target, state)
         }
         EffectKind::GoldSteal { amount } => {
             process_effect_gold_steal::process_effect_gold_steal(id_source, state, amount)
         }
         EffectKind::HexaghostBurnIncrease { count } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase(
                 state, count,
             )
@@ -650,7 +648,7 @@ fn dispatch_by_kind(
             process_effect_potion_add_random::process_effect_potion_add_random(state, limited)
         }
         EffectKind::CardDiscoverSelect { kind, count } => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_discover_select::process_effect_card_discover_select(
                 state,
                 kind,
@@ -710,7 +708,7 @@ fn dispatch_by_kind(
             process_effect_deck_select_start::process_effect_deck_select_start(state, kind)
         }
         EffectKind::CardDiscoverPick => {
-            debug_assert!(matches!(state.active, ActiveContext::Combat));
+            debug_assert!(matches!(state.active, Screen::Combat));
             process_effect_card_discover_pick::process_effect_card_discover_pick(id_target, state)
         }
         EffectKind::DeckSelectPick { kind: ds_kind } => {

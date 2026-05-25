@@ -1,5 +1,6 @@
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -42,12 +43,12 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     }
 
     if let Some(remaining) = shuffle_resume_remaining {
-        state.effect_queue.push_front(Effect::direct(
+        state.effect_queue.push_front(effect_direct(
             EffectKind::CardDraw { count: remaining },
             None,
             None,
         ));
-        state.effect_queue.push_front(Effect::direct(
+        state.effect_queue.push_front(effect_direct(
             EffectKind::ShuffleDiscardPileIntoDrawPile,
             None,
             None,

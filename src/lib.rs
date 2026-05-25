@@ -30,9 +30,9 @@ use ffi::PyIntent;
 use ffi::PyMap;
 use ffi::PyModifier;
 use ffi::PyMonster;
-use ffi::PyPhase;
 use ffi::PyRelic;
 use ffi::PyRoom;
+use ffi::from_internal_action;
 use ffi::snapshot_state;
 use ffi::to_internal_action;
 use game::create_game_state;
@@ -89,6 +89,15 @@ impl GameEnv {
         let obs = snapshot_state(&self.state);
         Ok((obs, self.state.game_over))
     }
+
+    // Enumerate every fully-parameterized legal Action for the current state.
+    // Authoritative: mirrors `validate(...)` rules. Empty when game_over
+    fn get_legal_actions(&self) -> Vec<PyAction> {
+        action::get_legal_actions(&self.state)
+            .into_iter()
+            .map(from_internal_action)
+            .collect()
+    }
 }
 
 #[pymodule]
@@ -126,21 +135,17 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyMonsterName>()?;
     module.add_class::<ffi::PyEventName>()?;
     module.add_class::<ffi::PyDeckSelectKind>()?;
-    module.add_class::<ffi::PyHandSelectKind>()?;
+    module.add_class::<ffi::PyScreen>()?;
     module.add_class::<ffi::PyEvent>()?;
     module.add_class::<ffi::PyEventOption>()?;
 
     // Complex enum mirrors
-    module.add_class::<PyPhase>()?;
     module.add_class::<ffi::PySelectionKind>()?;
     module.add_class::<ffi::PyTarget>()?;
     module.add_class::<ffi::PyEffect>()?;
 
-    // Context / PendingInput surface
-    module.add_class::<ffi::PyContext>()?;
-    module.add_class::<ffi::PyCombat>()?;
+    // Reward + PendingInput surface
     module.add_class::<ffi::PyReward>()?;
-    module.add_class::<ffi::PyShop>()?;
     module.add_class::<ffi::PyPendingInput>()?;
     Ok(())
 }

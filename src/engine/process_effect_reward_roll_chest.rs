@@ -5,7 +5,7 @@ use crate::consts::CHEST_MEDIUM;
 use crate::consts::CHEST_SMALL;
 use crate::consts::ChestParams;
 use crate::game::GameState;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 use crate::types::ChestKind;
 use crate::utils::add_relic_reward_for_roll;
 
@@ -33,7 +33,7 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
     state.reward_id_cards.clear();
     state.reward_id_potion = None;
 
-    state.active = ActiveContext::Reward;
+    state.active = Screen::Reward;
 }
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {

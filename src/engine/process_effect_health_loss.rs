@@ -11,7 +11,7 @@ use crate::monsters::lagavulin;
 use crate::monsters::slime_acid_large;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 use crate::types::MonsterName;
 
 pub fn process_effect_health_loss(id_target: Option<usize>, state: &mut GameState, amount: u16) {
@@ -20,7 +20,7 @@ pub fn process_effect_health_loss(id_target: Option<usize>, state: &mut GameStat
     // event (post-block, so amount > 0 excludes fully-absorbed hits)
     if id_target == state.id_character
         && amount > 0
-        && matches!(state.active, ActiveContext::Combat)
+        && matches!(state.active, Screen::Combat)
     {
         state.this_combat_damage_instances_taken =
             state.this_combat_damage_instances_taken.saturating_add(1);

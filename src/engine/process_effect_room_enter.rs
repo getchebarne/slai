@@ -3,6 +3,7 @@ use rand::Rng;
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::engine::flush_effects_from_buf_to_queue_front;
 use crate::engine::push_entity;
@@ -13,7 +14,7 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
-use crate::types::ActiveContext;
+use crate::types::Screen;
 use crate::types::ChestKind;
 use crate::types::EventName;
 use crate::types::MonsterEncounter;
@@ -39,7 +40,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
         }
         RoomKind::RestSite => {
-            state.active = ActiveContext::RestSite;
+            state.active = Screen::RestSite;
         }
         RoomKind::Treasure => {
             let Location::Overworld { y, x } = state.location else {
@@ -55,7 +56,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             } else {
                 ChestKind::Large
             });
-            state.active = ActiveContext::Chest;
+            state.active = Screen::Chest;
         }
         RoomKind::EventRoom => {
             if let Some(id_event) = spawn_random_event(
@@ -63,20 +64,20 @@ pub fn process_effect_room_enter(state: &mut GameState) {
                 &mut state.events_seen_this_run,
                 &mut state.rng,
             ) {
-                state.active = ActiveContext::Event;
+                state.active = Screen::Event;
                 state.id_event = Some(id_event);
                 return;
             }
         }
         RoomKind::Shop => {
-            state.active = ActiveContext::Shop;
+            state.active = Screen::Shop;
         }
     }
 
     if !state.buf_effects.is_empty() {
         state
             .buf_effects
-            .push(Effect::direct(EffectKind::CombatStart, None, None));
+            .push(effect_direct(EffectKind::CombatStart, None, None));
         flush_effects_from_buf_to_queue_front(state);
     }
 }
@@ -146,7 +147,7 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
 }
 
 fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
-    effects.push(Effect::direct(
+    effects.push(effect_direct(
         EffectKind::MonsterSpawn { name },
         None,
         None,

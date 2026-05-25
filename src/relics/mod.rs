@@ -19,6 +19,7 @@ use strum::EnumCount;
 use crate::entity::Entity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
+use crate::types::relic_name_from_u8;
 
 pub fn get_relic(name: RelicName) -> Entity {
     match name {
@@ -46,7 +47,7 @@ pub fn iter_owned_relics(
     id_relics
         .iter()
         .enumerate()
-        .filter_map(|(i, &opt)| opt.map(|id| (RelicName::from_u8(i as u8), id)))
+        .filter_map(|(i, &opt)| opt.map(|id| (relic_name_from_u8(i as u8), id)))
 }
 
 pub const ALL_RELICS: &[&'static Entity] = &[

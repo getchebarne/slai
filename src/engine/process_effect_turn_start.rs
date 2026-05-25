@@ -2,6 +2,7 @@ use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
@@ -30,7 +31,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     if modifier_has(modifiers, ModifierKind::Poison) {
         state
             .buf_effects
-            .push(Effect::direct(EffectKind::PoisonTick, None, Some(id_actor)));
+            .push(effect_direct(EffectKind::PoisonTick, None, Some(id_actor)));
     }
 
     let mut new_block: u16 = 0;

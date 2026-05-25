@@ -1,5 +1,6 @@
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
+use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -19,7 +20,7 @@ pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool)
     });
     for i in 0..state.id_hand.len() {
         let id_card = state.id_hand[i];
-        state.effect_queue.push_front(Effect::direct(
+        state.effect_queue.push_front(effect_direct(
             EffectKind::CardDiscard {
                 source: DiscardSource::Explicit,
             },

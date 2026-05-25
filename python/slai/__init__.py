@@ -31,7 +31,6 @@ IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
 CandidatePool = _to_intenum("CandidatePool", _rs.CandidatePool)
 EventName = _to_intenum("EventName", _rs.EventName)
 DeckSelectKind = _to_intenum("DeckSelectKind", _rs.DeckSelectKind)
-HandSelectKind = _to_intenum("HandSelectKind", _rs.HandSelectKind)
 
 
 # Action schema types
@@ -157,17 +156,14 @@ Event = _rs.Event
 EventOption = _rs.EventOption
 
 # Complex enums
-Phase = _rs.Phase
 SelectionKind = _rs.SelectionKind
 Target = _rs.Target
 Effect = _rs.Effect
 CardCostKind = _rs.CardCostKind
 
-# Context / PendingInput surface
-Context = _rs.Context
-Combat = _rs.Combat
+# Reward + PendingInput surface
+Screen = _to_intenum("Screen", _rs.Screen)
 Reward = _rs.Reward
-Shop = _rs.Shop
 PendingInput = _rs.PendingInput
 
 __all__ = [
@@ -210,16 +206,12 @@ __all__ = [
     "MonsterName",
     "EventName",
     "DeckSelectKind",
-    "HandSelectKind",
+    "Screen",
     # Complex enums
-    "Phase",
     "SelectionKind",
     "Target",
     "Effect",
-    # Context / PendingInput
-    "Context",
-    "Combat",
+    # Reward + PendingInput
     "Reward",
-    "Shop",
     "PendingInput",
 ]

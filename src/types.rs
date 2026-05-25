@@ -12,7 +12,7 @@ pub struct Vitals {
 
 // Persistent screen; transient working memory lives in flat GameState fields
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ActiveContext {
+pub enum Screen {
     Combat,
     Reward,
     Event,
@@ -21,7 +21,6 @@ pub enum ActiveContext {
     RestSite,
     Chest,
 }
-
 
 pub const ZERO_VITALS: Vitals = Vitals {
     health: 0,
@@ -278,14 +277,6 @@ pub enum DeckSelectKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum HandSelectKind {
-    Discard,
-    Retain,
-    Setup,
-    Nightmare,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ChestKind {
     Small,
     Medium,
@@ -346,12 +337,10 @@ pub enum RelicName {
     Circlet,
 }
 
-impl RelicName {
-    pub fn from_u8(v: u8) -> Self {
-        assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
-        // SAFETY: repr(u8) and we validated the range
-        unsafe { std::mem::transmute(v) }
-    }
+pub fn relic_name_from_u8(v: u8) -> RelicName {
+    assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
+    // SAFETY: repr(u8) and we validated the range
+    unsafe { std::mem::transmute(v) }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
