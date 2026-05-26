@@ -13,11 +13,12 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-const PRAY: &[Effect] = &[
+// Pray
+const OPTION_PRAY: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: HealthDeltaSign::Loss,
-            amount: HealthDeltaAmount::Flat(7),
+            amount: HealthDeltaAmount::Absolute(7),
         },
         id_source: None,
         target: Target::Resolve {
@@ -26,18 +27,19 @@ const PRAY: &[Effect] = &[
         },
     },
     Effect {
-            kind: EffectKind::CardPurge,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck { filter: CandidatePoolDeckFilter::Purgeable },
-                selection_kind: SelectionKind::Input { count: 1 },
+        kind: EffectKind::CardPurge,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Deck {
+                filter: CandidatePoolDeckFilter::Purgeable,
             },
+            selection_kind: SelectionKind::Input { count: 1 },
         },
+    },
     EVENT_END_EFFECT,
 ];
-
-// StS uses rand(50,80); fixed at midpoint pending range-aware effect kinds
-const ATTACK: &[Effect] = &[
+// Attack; StS rolls 50–80 gold, fixed at midpoint pending range-aware effects
+const OPTION_ATTACK: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldGain { amount: 65 },
         id_source: None,
@@ -45,25 +47,30 @@ const ATTACK: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+// Leave
+const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
-const LEAVE: &[Effect] = &[EVENT_END_EFFECT];
-
-const OPTIONS: &[EventOption] = &[
+// All options
+const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
         label: "Pray (lose 7 HP, remove a card)",
-        effects: PRAY,
+        effects: OPTION_PRAY,
         gate: EventGate::HasPurgeableInDeck,
     },
     EventOption {
         label: "Attack (+65 gold)",
-        effects: ATTACK,
+        effects: OPTION_ATTACK,
         gate: EventGate::HasDamageCardInDeck { min_base: 10 },
     },
     EventOption {
         label: "Leave",
-        effects: LEAVE,
+        effects: OPTION_LEAVE,
         gate: EventGate::None,
     },
 ];
 
-pub static GOLDEN_WING: Entity = make_entity_event(EventName::GoldenWing, OPTIONS);
+// Export event
+static EVENT_WING_STATUE: Entity = make_entity_event(EventName::WingStatue, OPTIONS_ALL);
+pub fn spawn_event_wing_statue(_ascension: u8) -> Entity {
+    EVENT_WING_STATUE
+}

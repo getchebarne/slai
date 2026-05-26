@@ -17,7 +17,7 @@ pub static BLOOD_VIAL: Entity = make_entity_relic(
     &[Effect {
         kind: EffectKind::HealthDelta {
             sign: HealthDeltaSign::Gain,
-            amount: HealthDeltaAmount::Flat(2),
+            amount: HealthDeltaAmount::Absolute(2),
         },
         id_source: None,
         target: Target::Resolve {

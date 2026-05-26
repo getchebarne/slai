@@ -20,7 +20,7 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
         Effect {
             kind: EffectKind::MaxHealthDelta {
                 sign: HealthDeltaSign::Gain,
-                amount: HealthDeltaAmount::Flat(5),
+                amount: HealthDeltaAmount::Absolute(5),
             },
             id_source: None,
             target: Target::Resolve {
@@ -31,7 +31,7 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: HealthDeltaSign::Gain,
-                amount: HealthDeltaAmount::Flat(5),
+                amount: HealthDeltaAmount::Absolute(5),
             },
             id_source: None,
             target: Target::Resolve {

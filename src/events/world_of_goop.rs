@@ -12,13 +12,12 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// A15+: leave-gold range 20-50 → 35-75 (fixed at midpoint; no range-aware effect)
-
-const GATHER: &[Effect] = &[
+// Gather
+const OPTION_GATHER: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: HealthDeltaSign::Loss,
-            amount: HealthDeltaAmount::Flat(11),
+            amount: HealthDeltaAmount::Absolute(11),
         },
         id_source: None,
         target: Target::Resolve {
@@ -33,7 +32,7 @@ const GATHER: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
-
+// Leave; StS rolls 20–50 (base) / 35–75 (A15+), fixed at midpoint pending range-aware effects
 const fn leave(gold_loss: u16) -> [Effect; 2] {
     [
         Effect {
@@ -44,15 +43,15 @@ const fn leave(gold_loss: u16) -> [Effect; 2] {
         EVENT_END_EFFECT,
     ]
 }
+static OPTION_LEAVE_BASE: [Effect; 2] = leave(35);
+static OPTION_LEAVE_A15: [Effect; 2] = leave(55); // +20 gold cost
 
-static LEAVE_BASE: [Effect; 2] = leave(35);
-static LEAVE_A15: [Effect; 2] = leave(55);
-
+// All options
 const fn options(leave_effects: &'static [Effect], leave_label: &'static str) -> [EventOption; 2] {
     [
         EventOption {
             label: "Gather Gold (lose 11 HP, +75 gold)",
-            effects: GATHER,
+            effects: OPTION_GATHER,
             gate: EventGate::None,
         },
         EventOption {
@@ -62,17 +61,18 @@ const fn options(leave_effects: &'static [Effect], leave_label: &'static str) ->
         },
     ]
 }
+static OPTIONS_ALL_BASE: [EventOption; 2] = options(&OPTION_LEAVE_BASE, "Leave (lose 35 gold)");
+static OPTIONS_ALL_A15: [EventOption; 2] = options(&OPTION_LEAVE_A15, "Leave (lose 55 gold)");
 
-static OPTIONS_BASE: [EventOption; 2] = options(&LEAVE_BASE, "Leave (lose 35 gold)");
-static OPTIONS_A15: [EventOption; 2] = options(&LEAVE_A15, "Leave (lose 55 gold)");
-
-pub static GOOP_PUDDLE_BASE: Entity = make_entity_event(EventName::GoopPuddle, &OPTIONS_BASE);
-pub static GOOP_PUDDLE_A15: Entity = make_entity_event(EventName::GoopPuddle, &OPTIONS_A15);
-
-pub fn spawn_event_goop_puddle(ascension: u8) -> Entity {
+// Export event
+static EVENT_WORLD_OF_GOOP_BASE: Entity =
+    make_entity_event(EventName::WorldOfGoop, &OPTIONS_ALL_BASE);
+static EVENT_WORLD_OF_GOOP_A15: Entity =
+    make_entity_event(EventName::WorldOfGoop, &OPTIONS_ALL_A15);
+pub fn spawn_event_world_of_goop(ascension: u8) -> Entity {
     if ascension < 15 {
-        GOOP_PUDDLE_BASE
+        EVENT_WORLD_OF_GOOP_BASE
     } else {
-        GOOP_PUDDLE_A15
+        EVENT_WORLD_OF_GOOP_A15
     }
 }

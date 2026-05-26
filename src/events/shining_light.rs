@@ -1,6 +1,6 @@
+use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
-use crate::effect::CandidatePool;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
 use crate::effect::HealthDeltaSign;
@@ -13,14 +13,16 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// A15+: HP loss 20% max → 30% max
-
-const fn enter(numer: u8, denom: u8) -> [Effect; 3] {
+// Enter
+const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
     [
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: HealthDeltaSign::Loss,
-                amount: HealthDeltaAmount::Pct { numer, denom },
+                amount: HealthDeltaAmount::Relative {
+                    numerator,
+                    denominator,
+                },
             },
             id_source: None,
             target: Target::Direct(None),
@@ -29,19 +31,21 @@ const fn enter(numer: u8, denom: u8) -> [Effect; 3] {
             kind: EffectKind::CardUpgrade,
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck { filter: CandidatePoolDeckFilter::Upgradeable },
+                candidate_pool: CandidatePool::Deck {
+                    filter: CandidatePoolDeckFilter::Upgradeable,
+                },
                 selection_kind: SelectionKind::Random { count: 2 },
             },
         },
         EVENT_END_EFFECT,
     ]
 }
+static OPTION_ENTER_BASE: [Effect; 3] = enter(1, 5);
+static OPTION_ENTER_A15: [Effect; 3] = enter(3, 10); // 20% → 30% max HP loss
+// Leave
+const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
-static ENTER_BASE: [Effect; 3] = enter(1, 5);
-static ENTER_A15: [Effect; 3] = enter(3, 10);
-
-const LEAVE: &[Effect] = &[EVENT_END_EFFECT];
-
+// All options
 const fn options(enter_effects: &'static [Effect], enter_label: &'static str) -> [EventOption; 2] {
     [
         EventOption {
@@ -51,28 +55,29 @@ const fn options(enter_effects: &'static [Effect], enter_label: &'static str) ->
         },
         EventOption {
             label: "Leave",
-            effects: LEAVE,
+            effects: OPTION_LEAVE,
             gate: EventGate::None,
         },
     ]
 }
-
-static OPTIONS_BASE: [EventOption; 2] = options(
-    &ENTER_BASE,
+static OPTIONS_ALL_BASE: [EventOption; 2] = options(
+    &OPTION_ENTER_BASE,
     "Enter (lose 20% max HP, upgrade up to 2 random cards)",
 );
-static OPTIONS_A15: [EventOption; 2] = options(
-    &ENTER_A15,
+static OPTIONS_ALL_A15: [EventOption; 2] = options(
+    &OPTION_ENTER_A15,
     "Enter (lose 30% max HP, upgrade up to 2 random cards)",
 );
 
-pub static SHINING_LIGHT_BASE: Entity = make_entity_event(EventName::ShiningLight, &OPTIONS_BASE);
-pub static SHINING_LIGHT_A15: Entity = make_entity_event(EventName::ShiningLight, &OPTIONS_A15);
-
+// Export event
+static EVENT_SHINING_LIGHT_BASE: Entity =
+    make_entity_event(EventName::ShiningLight, &OPTIONS_ALL_BASE);
+static EVENT_SHINING_LIGHT_A15: Entity =
+    make_entity_event(EventName::ShiningLight, &OPTIONS_ALL_A15);
 pub fn spawn_event_shining_light(ascension: u8) -> Entity {
     if ascension < 15 {
-        SHINING_LIGHT_BASE
+        EVENT_SHINING_LIGHT_BASE
     } else {
-        SHINING_LIGHT_A15
+        EVENT_SHINING_LIGHT_A15
     }
 }

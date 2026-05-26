@@ -188,7 +188,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.buf_effects.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: HealthDeltaSign::Loss,
-                    amount: HealthDeltaAmount::Flat(stacks as u16),
+                    amount: HealthDeltaAmount::Absolute(stacks as u16),
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),

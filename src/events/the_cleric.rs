@@ -1,10 +1,10 @@
+use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
-use crate::effect::CandidatePool;
-use crate::effect::SelectionKind;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
 use crate::effect::HealthDeltaSign;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
@@ -13,9 +13,8 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// A15+: purify cost 50 → 75
-
-const HEAL: &[Effect] = &[
+// Heal
+const OPTION_HEAL: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldLoss { amount: 35 },
         id_source: None,
@@ -24,7 +23,10 @@ const HEAL: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: HealthDeltaSign::Gain,
-            amount: HealthDeltaAmount::Pct { numer: 1, denom: 4 },
+            amount: HealthDeltaAmount::Relative {
+                numerator: 1,
+                denominator: 4,
+            },
         },
         id_source: None,
         target: Target::Direct(None),
@@ -32,6 +34,7 @@ const HEAL: &[Effect] = &[
     EVENT_END_EFFECT,
 ];
 
+// Purify
 const fn purify(cost: u16) -> [Effect; 3] {
     [
         Effect {
@@ -43,22 +46,26 @@ const fn purify(cost: u16) -> [Effect; 3] {
             kind: EffectKind::CardPurge,
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck { filter: CandidatePoolDeckFilter::Purgeable },
+                candidate_pool: CandidatePool::Deck {
+                    filter: CandidatePoolDeckFilter::Purgeable,
+                },
                 selection_kind: SelectionKind::Input { count: 1 },
             },
         },
         EVENT_END_EFFECT,
     ]
 }
+static OPTION_PURIFY_BASE: [Effect; 3] = purify(50);
+static OPTION_PURIFY_A15: [Effect; 3] = purify(75); // +25 gold cost
+const OPTION_PURIFY_GATE_BASE: &[EventGate] =
+    &[EventGate::GoldAtLeast(50), EventGate::HasPurgeableInDeck];
+const OPTION_PURIFY_GATE_A15: &[EventGate] =
+    &[EventGate::GoldAtLeast(75), EventGate::HasPurgeableInDeck];
 
-static PURIFY_BASE: [Effect; 3] = purify(50);
-static PURIFY_A15: [Effect; 3] = purify(75);
+// Leave
+const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
-const LEAVE: &[Effect] = &[EVENT_END_EFFECT];
-
-const PURIFY_GATE_BASE: &[EventGate] = &[EventGate::GoldAtLeast(50), EventGate::HasPurgeableInDeck];
-const PURIFY_GATE_A15: &[EventGate] = &[EventGate::GoldAtLeast(75), EventGate::HasPurgeableInDeck];
-
+// All options
 const fn options(
     purify_effects: &'static [Effect],
     purify_label: &'static str,
@@ -67,7 +74,7 @@ const fn options(
     [
         EventOption {
             label: "Heal (35 gold, +25% max HP)",
-            effects: HEAL,
+            effects: OPTION_HEAL,
             gate: EventGate::GoldAtLeast(35),
         },
         EventOption {
@@ -77,30 +84,29 @@ const fn options(
         },
         EventOption {
             label: "Leave",
-            effects: LEAVE,
+            effects: OPTION_LEAVE,
             gate: EventGate::None,
         },
     ]
 }
-
-static OPTIONS_BASE: [EventOption; 3] = options(
-    &PURIFY_BASE,
+static OPTIONS_ALL_BASE: [EventOption; 3] = options(
+    &OPTION_PURIFY_BASE,
     "Purification (50 gold, remove a card)",
-    PURIFY_GATE_BASE,
+    OPTION_PURIFY_GATE_BASE,
 );
-static OPTIONS_A15: [EventOption; 3] = options(
-    &PURIFY_A15,
+static OPTIONS_ALL_A15: [EventOption; 3] = options(
+    &OPTION_PURIFY_A15,
     "Purification (75 gold, remove a card)",
-    PURIFY_GATE_A15,
+    OPTION_PURIFY_GATE_A15,
 );
 
-pub static CLERIC_BASE: Entity = make_entity_event(EventName::Cleric, &OPTIONS_BASE);
-pub static CLERIC_A15: Entity = make_entity_event(EventName::Cleric, &OPTIONS_A15);
-
-pub fn spawn_event_cleric(ascension: u8) -> Entity {
+// Export event
+static EVENT_THE_CLERIC_BASE: Entity = make_entity_event(EventName::TheCleric, &OPTIONS_ALL_BASE);
+static EVENT_THE_CLERIC_A15: Entity = make_entity_event(EventName::TheCleric, &OPTIONS_ALL_A15);
+pub fn spawn_event_the_cleric(ascension: u8) -> Entity {
     if ascension < 15 {
-        CLERIC_BASE
+        EVENT_THE_CLERIC_BASE
     } else {
-        CLERIC_A15
+        EVENT_THE_CLERIC_A15
     }
 }

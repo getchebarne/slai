@@ -13,23 +13,27 @@ use crate::events::EventOption;
 use crate::types::CardName;
 use crate::types::EventName;
 
-const BANANA: &[Effect] = &[
+// Banana
+const OPTION_BANANA: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: HealthDeltaSign::Gain,
-            amount: HealthDeltaAmount::Pct { numer: 1, denom: 3 },
+            amount: HealthDeltaAmount::Relative {
+                numerator: 1,
+                denominator: 3,
+            },
         },
         id_source: None,
         target: Target::Direct(None),
     },
     EVENT_END_EFFECT,
 ];
-
-const DONUT: &[Effect] = &[
+// Donut
+const OPTION_DONUT: &[Effect] = &[
     Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: HealthDeltaSign::Gain,
-            amount: HealthDeltaAmount::Flat(5),
+            amount: HealthDeltaAmount::Absolute(5),
         },
         id_source: None,
         target: Target::Resolve {
@@ -39,8 +43,8 @@ const DONUT: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
-
-const BOX: &[Effect] = &[
+// Box
+const OPTION_BOX: &[Effect] = &[
     Effect {
         kind: EffectKind::CardAddToDeck {
             card_name: CardName::Regret,
@@ -56,23 +60,27 @@ const BOX: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
-
-const OPTIONS: &[EventOption] = &[
+// All options
+const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
         label: "Banana (heal 1/3 max HP)",
-        effects: BANANA,
+        effects: OPTION_BANANA,
         gate: EventGate::None,
     },
     EventOption {
         label: "Donut (+5 max HP)",
-        effects: DONUT,
+        effects: OPTION_DONUT,
         gate: EventGate::None,
     },
     EventOption {
         label: "Box (curse + random relic)",
-        effects: BOX,
+        effects: OPTION_BOX,
         gate: EventGate::None,
     },
 ];
 
-pub static BIG_FISH: Entity = make_entity_event(EventName::BigFish, OPTIONS);
+// Export event
+static EVENT_BIG_FISH: Entity = make_entity_event(EventName::BigFish, OPTIONS_ALL);
+pub fn spawn_event_big_fish(_ascension: u8) -> Entity {
+    EVENT_BIG_FISH
+}

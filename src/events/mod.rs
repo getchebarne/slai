@@ -1,22 +1,20 @@
 mod big_fish;
-mod cleric;
-mod designer;
 mod duplicator;
-mod gold_shrine;
-mod golden_idol_event;
-mod golden_wing;
-mod goop_puddle;
+mod golden_idol;
+mod golden_shrine;
 mod living_wall;
-mod purification_shrine;
+mod purifier;
 mod scrap_ooze;
 mod shining_light;
-mod sssserpent;
+mod the_cleric;
+mod the_ssssserpent;
 mod transmogrifier;
 mod upgrade_shrine;
 mod we_meet_again;
+mod wing_statue;
+mod world_of_goop;
 
 use rand::Rng;
-use strum::EnumCount;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -111,55 +109,23 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     false
 }
 
-pub const ALL_EVENTS: &[&'static Entity] = &[
-    &big_fish::BIG_FISH,
-    &cleric::CLERIC_BASE,
-    &designer::DESIGNER_BASE,
-    &duplicator::DUPLICATOR,
-    &gold_shrine::GOLD_SHRINE_BASE,
-    &golden_idol_event::GOLDEN_IDOL_EVENT,
-    &golden_wing::GOLDEN_WING,
-    &goop_puddle::GOOP_PUDDLE_BASE,
-    &living_wall::LIVING_WALL,
-    &purification_shrine::PURIFICATION_SHRINE,
-    &scrap_ooze::SCRAP_OOZE_BASE,
-    &shining_light::SHINING_LIGHT_BASE,
-    &sssserpent::SSSSERPENT_BASE,
-    &transmogrifier::TRANSMOGRIFIER,
-    &upgrade_shrine::UPGRADE_SHRINE,
-    &we_meet_again::WE_MEET_AGAIN,
-];
-
-const _: () = {
-    assert!(ALL_EVENTS.len() == EventName::COUNT);
-    let mut seen = [false; EventName::COUNT];
-    let mut idx = 0;
-    while idx < ALL_EVENTS.len() {
-        let i = ALL_EVENTS[idx].event_name as usize;
-        assert!(!seen[i], "ALL_EVENTS contains a duplicate EventName");
-        seen[i] = true;
-        idx += 1;
-    }
-};
-
 pub fn get_event(name: EventName, ascension: u8) -> Entity {
     match name {
-        EventName::BigFish => big_fish::BIG_FISH,
-        EventName::Cleric => cleric::spawn_event_cleric(ascension),
-        EventName::Designer => designer::spawn_event_designer(ascension),
-        EventName::Duplicator => duplicator::DUPLICATOR,
-        EventName::GoldShrine => gold_shrine::spawn_event_gold_shrine(ascension),
-        EventName::GoldenIdolEvent => golden_idol_event::GOLDEN_IDOL_EVENT,
-        EventName::GoldenWing => golden_wing::GOLDEN_WING,
-        EventName::GoopPuddle => goop_puddle::spawn_event_goop_puddle(ascension),
-        EventName::LivingWall => living_wall::LIVING_WALL,
-        EventName::PurificationShrine => purification_shrine::PURIFICATION_SHRINE,
+        EventName::BigFish => big_fish::spawn_event_big_fish(ascension),
+        EventName::TheCleric => the_cleric::spawn_event_the_cleric(ascension),
+        EventName::Duplicator => duplicator::spawn_event_duplicator(ascension),
+        EventName::GoldenShrine => golden_shrine::spawn_event_golden_shrine(ascension),
+        EventName::GoldenIdol => golden_idol::spawn_event_golden_idol(ascension),
+        EventName::WingStatue => wing_statue::spawn_event_wing_statue(ascension),
+        EventName::WorldOfGoop => world_of_goop::spawn_event_world_of_goop(ascension),
+        EventName::LivingWall => living_wall::spawn_event_living_wall(ascension),
+        EventName::Purifier => purifier::spawn_event_purifier(ascension),
         EventName::ScrapOoze => scrap_ooze::spawn_event_scrap_ooze(ascension),
         EventName::ShiningLight => shining_light::spawn_event_shining_light(ascension),
-        EventName::Sssserpent => sssserpent::spawn_event_sssserpent(ascension),
-        EventName::Transmogrifier => transmogrifier::TRANSMOGRIFIER,
-        EventName::UpgradeShrine => upgrade_shrine::UPGRADE_SHRINE,
-        EventName::WeMeetAgain => we_meet_again::WE_MEET_AGAIN,
+        EventName::TheSsssserpent => the_ssssserpent::spawn_event_the_ssssserpent(ascension),
+        EventName::Transmogrifier => transmogrifier::spawn_event_transmogrifier(ascension),
+        EventName::UpgradeShrine => upgrade_shrine::spawn_event_upgrade_shrine(ascension),
+        EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(ascension),
     }
 }
 
@@ -169,18 +135,17 @@ pub fn spawn_event(name: EventName, ascension: u8, _rng: &mut impl Rng) -> Entit
 
 pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::BigFish,
-    EventName::Cleric,
-    EventName::Designer,
+    EventName::TheCleric,
     EventName::Duplicator,
-    EventName::GoldShrine,
-    EventName::GoldenIdolEvent,
-    EventName::GoldenWing,
-    EventName::GoopPuddle,
+    EventName::GoldenShrine,
+    EventName::GoldenIdol,
+    EventName::WingStatue,
+    EventName::WorldOfGoop,
     EventName::LivingWall,
-    EventName::PurificationShrine,
+    EventName::Purifier,
     EventName::ScrapOoze,
     EventName::ShiningLight,
-    EventName::Sssserpent,
+    EventName::TheSsssserpent,
     EventName::Transmogrifier,
     EventName::UpgradeShrine,
     EventName::WeMeetAgain,

@@ -27,7 +27,7 @@ pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameStat
     state.effect_queue.push_front(Effect {
         kind: EffectKind::HealthDelta {
             sign: HealthDeltaSign::Loss,
-            amount: HealthDeltaAmount::Flat(stacks as u16),
+            amount: HealthDeltaAmount::Absolute(stacks as u16),
         },
         id_source: None,
         target: Target::Direct(Some(id_target)),

@@ -8,9 +8,8 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// Gold-only subset; StS also offers a rolled potion or card
-
-const GIVE_GOLD: &[Effect] = &[
+// Give gold; StS also offers a rolled potion or card (omitted)
+const OPTION_GIVE_GOLD: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldLoss { amount: 100 },
         id_source: None,
@@ -23,20 +22,25 @@ const GIVE_GOLD: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+// Refuse
+const OPTION_REFUSE: &[Effect] = &[EVENT_END_EFFECT];
 
-const REFUSE: &[Effect] = &[EVENT_END_EFFECT];
-
-const OPTIONS: &[EventOption] = &[
+// All options
+const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
         label: "Give 100 gold (gain random relic)",
-        effects: GIVE_GOLD,
+        effects: OPTION_GIVE_GOLD,
         gate: EventGate::GoldAtLeast(100),
     },
     EventOption {
         label: "Refuse",
-        effects: REFUSE,
+        effects: OPTION_REFUSE,
         gate: EventGate::None,
     },
 ];
 
-pub static WE_MEET_AGAIN: Entity = make_entity_event(EventName::WeMeetAgain, OPTIONS);
+// Export event
+static EVENT_WE_MEET_AGAIN: Entity = make_entity_event(EventName::WeMeetAgain, OPTIONS_ALL);
+pub fn spawn_event_we_meet_again(_ascension: u8) -> Entity {
+    EVENT_WE_MEET_AGAIN
+}

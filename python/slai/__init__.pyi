@@ -89,13 +89,17 @@ class IntentKind(IntEnum):
 
 class CandidatePool(IntEnum):
     Hand: int
-    CardTarget: int
     Character: int
     Monsters: int
-    OtherMonsters: int
     Source: int
     NextRowRooms: int
-    CardRewardPool: int
+    IdPick: int
+    Deck: int
+
+class CandidatePoolMonstersFilter(IntEnum):
+    All: int
+    Other: int
+    Picked: int
 
 class RelicName(IntEnum):
     SnakeRing: int
@@ -279,11 +283,11 @@ class ActionType(IntEnum):
     EventChoice: int
     DeckSelect: int
 
-class DeckSelectKind(IntEnum):
-    Remove: int
-    UpgradeAny: int
-    TransformOne: int
-    DuplicateAny: int
+class CandidatePoolDeckFilter(IntEnum):
+    Purgeable: int
+    Upgradeable: int
+    Any: int
+    Transformable: int
 
 class Screen(IntEnum):
     Combat: int
@@ -296,18 +300,17 @@ class Screen(IntEnum):
 
 class EventName(IntEnum):
     BigFish: int
-    Cleric: int
-    Designer: int
+    TheCleric: int
     Duplicator: int
-    GoldShrine: int
-    GoldenIdolEvent: int
-    GoldenWing: int
-    GoopPuddle: int
+    GoldenShrine: int
+    GoldenIdol: int
+    WingStatue: int
+    WorldOfGoop: int
     LivingWall: int
-    PurificationShrine: int
+    Purifier: int
     ScrapOoze: int
     ShiningLight: int
-    Sssserpent: int
+    TheSsssserpent: int
     Transmogrifier: int
     UpgradeShrine: int
     WeMeetAgain: int
@@ -363,9 +366,9 @@ class PendingInput:
         def __init__(self, cards: list[Card]) -> None: ...
 
     class DeckSelect:
-        kind: DeckSelectKind
+        filter: CandidatePoolDeckFilter
         cards: list[Card]
-        def __init__(self, kind: DeckSelectKind, cards: list[Card]) -> None: ...
+        def __init__(self, filter: CandidatePoolDeckFilter, cards: list[Card]) -> None: ...
 
     class RoomSelect:
         def __init__(self) -> None: ...

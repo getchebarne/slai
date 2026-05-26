@@ -152,15 +152,21 @@ impl From<HealthDeltaSign> for PyHealthDeltaSign {
 #[pyclass(eq, hash, frozen, name = "HealthDeltaAmount")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyHealthDeltaAmount {
-    Flat { amount: u16 },
-    Pct { numer: u8, denom: u8 },
+    Absolute { amount: u16 },
+    Relative { numerator: u8, denominator: u8 },
 }
 
 impl From<HealthDeltaAmount> for PyHealthDeltaAmount {
     fn from(amount: HealthDeltaAmount) -> Self {
         match amount {
-            HealthDeltaAmount::Flat(amount) => Self::Flat { amount },
-            HealthDeltaAmount::Pct { numer, denom } => Self::Pct { numer, denom },
+            HealthDeltaAmount::Absolute(amount) => Self::Absolute { amount },
+            HealthDeltaAmount::Relative {
+                numerator,
+                denominator,
+            } => Self::Relative {
+                numerator,
+                denominator,
+            },
         }
     }
 }
@@ -606,18 +612,17 @@ impl From<MonsterName> for PyMonsterName {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyEventName {
     BigFish,
-    Cleric,
-    Designer,
+    TheCleric,
     Duplicator,
-    GoldShrine,
-    GoldenIdolEvent,
-    GoldenWing,
-    GoopPuddle,
+    GoldenShrine,
+    GoldenIdol,
+    WingStatue,
+    WorldOfGoop,
     LivingWall,
-    PurificationShrine,
+    Purifier,
     ScrapOoze,
     ShiningLight,
-    Sssserpent,
+    TheSsssserpent,
     Transmogrifier,
     UpgradeShrine,
     WeMeetAgain,
@@ -627,18 +632,17 @@ impl From<EventName> for PyEventName {
     fn from(name: EventName) -> Self {
         match name {
             EventName::BigFish => Self::BigFish,
-            EventName::Cleric => Self::Cleric,
-            EventName::Designer => Self::Designer,
+            EventName::TheCleric => Self::TheCleric,
             EventName::Duplicator => Self::Duplicator,
-            EventName::GoldShrine => Self::GoldShrine,
-            EventName::GoldenIdolEvent => Self::GoldenIdolEvent,
-            EventName::GoldenWing => Self::GoldenWing,
-            EventName::GoopPuddle => Self::GoopPuddle,
+            EventName::GoldenShrine => Self::GoldenShrine,
+            EventName::GoldenIdol => Self::GoldenIdol,
+            EventName::WingStatue => Self::WingStatue,
+            EventName::WorldOfGoop => Self::WorldOfGoop,
             EventName::LivingWall => Self::LivingWall,
-            EventName::PurificationShrine => Self::PurificationShrine,
+            EventName::Purifier => Self::Purifier,
             EventName::ScrapOoze => Self::ScrapOoze,
             EventName::ShiningLight => Self::ShiningLight,
-            EventName::Sssserpent => Self::Sssserpent,
+            EventName::TheSsssserpent => Self::TheSsssserpent,
             EventName::Transmogrifier => Self::Transmogrifier,
             EventName::UpgradeShrine => Self::UpgradeShrine,
             EventName::WeMeetAgain => Self::WeMeetAgain,
@@ -1795,18 +1799,17 @@ impl EventName {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::BigFish => "Big Fish",
-            Self::Cleric => "Cleric",
-            Self::Designer => "Designer In-Spire",
+            Self::TheCleric => "The Cleric",
             Self::Duplicator => "Duplicator",
-            Self::GoldShrine => "Golden Shrine",
-            Self::GoldenIdolEvent => "Golden Idol",
-            Self::GoldenWing => "Golden Wing",
-            Self::GoopPuddle => "Goop Puddle",
+            Self::GoldenShrine => "Golden Shrine",
+            Self::GoldenIdol => "Golden Idol",
+            Self::WingStatue => "Wing Statue",
+            Self::WorldOfGoop => "World of Goop",
             Self::LivingWall => "Living Wall",
-            Self::PurificationShrine => "Purifier",
+            Self::Purifier => "Purifier",
             Self::ScrapOoze => "Scrap Ooze",
             Self::ShiningLight => "Shining Light",
-            Self::Sssserpent => "Sssserpent",
+            Self::TheSsssserpent => "The Ssssserpent",
             Self::Transmogrifier => "Transmogrifier",
             Self::UpgradeShrine => "Upgrade Shrine",
             Self::WeMeetAgain => "We Meet Again",

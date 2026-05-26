@@ -8,16 +8,19 @@ pub fn process_effect_max_health_delta(
     sign: HealthDeltaSign,
     amount: HealthDeltaAmount,
 ) {
-    // Pct ignores id_target and resolves against the character
+    // Relative ignores id_target and resolves against the character
     let (id_target, amount) = match amount {
-        HealthDeltaAmount::Flat(a) => (
+        HealthDeltaAmount::Absolute(a) => (
             id_target.expect("MaxHealthDelta Flat requires id_target"),
             a,
         ),
-        HealthDeltaAmount::Pct { numer, denom } => {
+        HealthDeltaAmount::Relative {
+            numerator,
+            denominator,
+        } => {
             let id = state.id_character;
             let health_max = state.entities[id].vitals.health_max;
-            let raw = (health_max as u32 * numer as u32) / denom as u32;
+            let raw = (health_max as u32 * numerator as u32) / denominator as u32;
             let a = match sign {
                 HealthDeltaSign::Loss => raw.max(1) as u16,
                 HealthDeltaSign::Gain => raw as u16,

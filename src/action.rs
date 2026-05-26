@@ -752,7 +752,7 @@ fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: HealthDeltaSign::Gain,
-                amount: HealthDeltaAmount::Flat(heal_amt),
+                amount: HealthDeltaAmount::Absolute(heal_amt),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),

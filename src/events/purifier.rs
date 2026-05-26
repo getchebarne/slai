@@ -14,11 +14,11 @@ use crate::types::EventName;
 // Pray
 const OPTION_PRAY: &[Effect] = &[
     Effect {
-        kind: EffectKind::CardTransform,
+        kind: EffectKind::CardPurge,
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck {
-                filter: CandidatePoolDeckFilter::Transformable,
+                filter: CandidatePoolDeckFilter::Purgeable,
             },
             selection_kind: SelectionKind::Input { count: 1 },
         },
@@ -31,9 +31,9 @@ const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 // All options
 const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Pray (transform a card)",
+        label: "Pray (remove a card)",
         effects: OPTION_PRAY,
-        gate: EventGate::HasNonBasicNonCurseInDeck,
+        gate: EventGate::HasPurgeableInDeck,
     },
     EventOption {
         label: "Leave",
@@ -43,7 +43,7 @@ const OPTIONS_ALL: &[EventOption] = &[
 ];
 
 // Export event
-static EVENT_TRANSMOGRIFIER: Entity = make_entity_event(EventName::Transmogrifier, OPTIONS_ALL);
-pub fn spawn_event_transmogrifier(_ascension: u8) -> Entity {
-    EVENT_TRANSMOGRIFIER
+static EVENT_PURIFIER: Entity = make_entity_event(EventName::Purifier, OPTIONS_ALL);
+pub fn spawn_event_purifier(_ascension: u8) -> Entity {
+    EVENT_PURIFIER
 }

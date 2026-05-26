@@ -9,8 +9,7 @@ use crate::events::EventOption;
 use crate::types::CardName;
 use crate::types::EventName;
 
-// A15+: agree gold 175 → 150
-
+// Agree
 const fn agree(gold: u16) -> [Effect; 3] {
     [
         Effect {
@@ -29,12 +28,12 @@ const fn agree(gold: u16) -> [Effect; 3] {
         EVENT_END_EFFECT,
     ]
 }
+static OPTION_AGREE_BASE: [Effect; 3] = agree(175);
+static OPTION_AGREE_A15: [Effect; 3] = agree(150); // -25 gold gain
+// Disagree
+const OPTION_DISAGREE: &[Effect] = &[EVENT_END_EFFECT];
 
-static AGREE_BASE: [Effect; 3] = agree(175);
-static AGREE_A15: [Effect; 3] = agree(150);
-
-const DISAGREE: &[Effect] = &[EVENT_END_EFFECT];
-
+// All options
 const fn options(agree_effects: &'static [Effect], agree_label: &'static str) -> [EventOption; 2] {
     [
         EventOption {
@@ -44,22 +43,25 @@ const fn options(agree_effects: &'static [Effect], agree_label: &'static str) ->
         },
         EventOption {
             label: "Disagree",
-            effects: DISAGREE,
+            effects: OPTION_DISAGREE,
             gate: EventGate::None,
         },
     ]
 }
+static OPTIONS_ALL_BASE: [EventOption; 2] =
+    options(&OPTION_AGREE_BASE, "Agree (+175 gold, +Doubt curse)");
+static OPTIONS_ALL_A15: [EventOption; 2] =
+    options(&OPTION_AGREE_A15, "Agree (+150 gold, +Doubt curse)");
 
-static OPTIONS_BASE: [EventOption; 2] = options(&AGREE_BASE, "Agree (+175 gold, +Doubt curse)");
-static OPTIONS_A15: [EventOption; 2] = options(&AGREE_A15, "Agree (+150 gold, +Doubt curse)");
-
-pub static SSSSERPENT_BASE: Entity = make_entity_event(EventName::Sssserpent, &OPTIONS_BASE);
-pub static SSSSERPENT_A15: Entity = make_entity_event(EventName::Sssserpent, &OPTIONS_A15);
-
-pub fn spawn_event_sssserpent(ascension: u8) -> Entity {
+// Export event
+static EVENT_THE_SSSSSERPENT_BASE: Entity =
+    make_entity_event(EventName::TheSsssserpent, &OPTIONS_ALL_BASE);
+static EVENT_THE_SSSSSERPENT_A15: Entity =
+    make_entity_event(EventName::TheSsssserpent, &OPTIONS_ALL_A15);
+pub fn spawn_event_the_ssssserpent(ascension: u8) -> Entity {
     if ascension < 15 {
-        SSSSERPENT_BASE
+        EVENT_THE_SSSSSERPENT_BASE
     } else {
-        SSSSERPENT_A15
+        EVENT_THE_SSSSSERPENT_A15
     }
 }

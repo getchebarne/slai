@@ -215,9 +215,8 @@ pub enum HealthDeltaSign {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum HealthDeltaAmount {
-    Flat(u16),
-    // Loss-pct rounds up to min 1; Gain-pct uses straight floor division
-    Pct { numer: u8, denom: u8 },
+    Absolute(u16),
+    Relative { numerator: u8, denominator: u8 },
 }
 
 // Source pool for a Resolve effect
@@ -282,7 +281,6 @@ pub const ZERO_EFFECT: Effect = Effect {
     id_source: None,
     target: Target::Direct(None),
 };
-
 
 // Input count if the Effect's target is a Resolve with SelectionKind::Input
 pub fn input_count(effect: &Effect) -> Option<u16> {

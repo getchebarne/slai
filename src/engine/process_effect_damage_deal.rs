@@ -35,7 +35,7 @@ pub fn process_effect_damage_deal(
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {
                 sign: HealthDeltaSign::Loss,
-                amount: HealthDeltaAmount::Flat(damage_over_block),
+                amount: HealthDeltaAmount::Absolute(damage_over_block),
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),

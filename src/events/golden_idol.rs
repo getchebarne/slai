@@ -12,8 +12,8 @@ use crate::types::CardName;
 use crate::types::EventName;
 use crate::types::RelicName;
 
-// TODO: swap placeholder Circlet for GoldenIdol once that relic exists
-const TAKE: &[Effect] = &[
+// Take; TODO: swap placeholder Circlet for GoldenIdol once that relic exists
+const OPTION_TAKE: &[Effect] = &[
     Effect {
         kind: EffectKind::RelicGrantSpecific {
             name: RelicName::Circlet,
@@ -28,10 +28,10 @@ const TAKE: &[Effect] = &[
         target: Target::Direct(None),
     },
 ];
-
-const LEAVE_SCREEN_0: &[Effect] = &[EVENT_END_EFFECT];
-
-const OUTRUN: &[Effect] = &[
+// Leave
+const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+// Outrun
+const OPTION_OUTRUN: &[Effect] = &[
     Effect {
         kind: EffectKind::CardAddToDeck {
             card_name: CardName::Injury,
@@ -42,26 +42,29 @@ const OUTRUN: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
-
-const SMASH: &[Effect] = &[
+// Smash
+const OPTION_SMASH: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: HealthDeltaSign::Loss,
-            amount: HealthDeltaAmount::Pct { numer: 1, denom: 4 },
+            amount: HealthDeltaAmount::Relative {
+                numerator: 1,
+                denominator: 4,
+            },
         },
         id_source: None,
         target: Target::Direct(None),
     },
     EVENT_END_EFFECT,
 ];
-
-const HIDE: &[Effect] = &[
+// Hide
+const OPTION_HIDE: &[Effect] = &[
     Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: HealthDeltaSign::Loss,
-            amount: HealthDeltaAmount::Pct {
-                numer: 8,
-                denom: 100,
+            amount: HealthDeltaAmount::Relative {
+                numerator: 8,
+                denominator: 100,
             },
         },
         id_source: None,
@@ -70,32 +73,37 @@ const HIDE: &[Effect] = &[
     EVENT_END_EFFECT,
 ];
 
-const OPTIONS: &[EventOption] = &[
+// All options
+const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
         label: "Take",
-        effects: TAKE,
+        effects: OPTION_TAKE,
         gate: EventGate::EventStateEq(0),
     },
     EventOption {
         label: "Leave",
-        effects: LEAVE_SCREEN_0,
+        effects: OPTION_LEAVE,
         gate: EventGate::EventStateEq(0),
     },
     EventOption {
         label: "Outrun (+Injury curse)",
-        effects: OUTRUN,
+        effects: OPTION_OUTRUN,
         gate: EventGate::EventStateEq(1),
     },
     EventOption {
         label: "Smash (lose 25% max HP)",
-        effects: SMASH,
+        effects: OPTION_SMASH,
         gate: EventGate::EventStateEq(1),
     },
     EventOption {
         label: "Hide (lose 8% max HP cap)",
-        effects: HIDE,
+        effects: OPTION_HIDE,
         gate: EventGate::EventStateEq(1),
     },
 ];
 
-pub static GOLDEN_IDOL_EVENT: Entity = make_entity_event(EventName::GoldenIdolEvent, OPTIONS);
+// Export event
+static EVENT_GOLDEN_IDOL: Entity = make_entity_event(EventName::GoldenIdol, OPTIONS_ALL);
+pub fn spawn_event_golden_idol(_ascension: u8) -> Entity {
+    EVENT_GOLDEN_IDOL
+}
