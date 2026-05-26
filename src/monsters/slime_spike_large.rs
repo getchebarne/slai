@@ -141,7 +141,7 @@ const IDX_MOVE_FLAME_TACKLE: usize = 0;
 const IDX_MOVE_LICK: usize = 1;
 pub const IDX_MOVE_SPLIT: usize = 2;
 
-pub fn spawn_slime_spike_large(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_slime_spike_large(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (64, 70)
     } else {

@@ -51,7 +51,7 @@ static MOVES_ASC17: [Move; 1] = [MOVE_SCRATCH_5];
 
 const IDX_MOVE_SCRATCH: usize = 0;
 
-pub fn spawn_gremlin_warrior(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_gremlin_warrior(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (20, 24)
     } else {

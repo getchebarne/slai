@@ -4,7 +4,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -12,6 +11,7 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
 use crate::types::RelicName;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 
 pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut GameState) {
     let id_actor = id_target.expect("TurnEnd (monster) requires id_target");

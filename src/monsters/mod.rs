@@ -33,50 +33,55 @@ use rand::Rng;
 
 pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut impl Rng) -> Entity {
     match monster_name {
-        MonsterName::Cultist => cultist::spawn_cultist(ascension_level, rng),
-        MonsterName::JawWorm => jaw_worm::spawn_jaw_worm(ascension_level, rng),
-        MonsterName::TheGuardian => the_guardian::spawn_the_guardian(ascension_level),
-        MonsterName::FungiBeast => fungi_beast::spawn_fungi_beast(ascension_level, rng),
-        MonsterName::SlaverBlue => slaver_blue::spawn_slaver_blue(ascension_level, rng),
+        MonsterName::Cultist => cultist::spawn_monster_cultist(ascension_level, rng),
+        MonsterName::JawWorm => jaw_worm::spawn_monster_jaw_worm(ascension_level, rng),
+        MonsterName::TheGuardian => the_guardian::spawn_monster_the_guardian(ascension_level),
+        MonsterName::FungiBeast => fungi_beast::spawn_monster_fungi_beast(ascension_level, rng),
+        MonsterName::SlaverBlue => slaver_blue::spawn_monster_slaver_blue(ascension_level, rng),
         MonsterName::SlimeAcidSmall => {
-            slime_acid_small::spawn_slime_acid_small(ascension_level, rng)
+            slime_acid_small::spawn_monster_slime_acid_small(ascension_level, rng)
         }
         MonsterName::SlimeSpikeSmall => {
-            slime_spike_small::spawn_slime_spike_small(ascension_level, rng)
+            slime_spike_small::spawn_monster_slime_spike_small(ascension_level, rng)
         }
-        MonsterName::GremlinFat => gremlin_fat::spawn_gremlin_fat(ascension_level, rng),
-        MonsterName::GremlinNob => gremlin_nob::spawn_gremlin_nob(ascension_level, rng),
-        MonsterName::GremlinThief => gremlin_thief::spawn_gremlin_thief(ascension_level, rng),
+        MonsterName::GremlinFat => gremlin_fat::spawn_monster_gremlin_fat(ascension_level, rng),
+        MonsterName::GremlinNob => gremlin_nob::spawn_monster_gremlin_nob(ascension_level, rng),
+        MonsterName::GremlinThief => {
+            gremlin_thief::spawn_monster_gremlin_thief(ascension_level, rng)
+        }
         MonsterName::GremlinTsundere => {
-            gremlin_tsundere::spawn_gremlin_tsundere(ascension_level, rng)
+            gremlin_tsundere::spawn_monster_gremlin_tsundere(ascension_level, rng)
         }
-        MonsterName::GremlinWarrior => gremlin_warrior::spawn_gremlin_warrior(ascension_level, rng),
-        MonsterName::GremlinWizard => gremlin_wizard::spawn_gremlin_wizard(ascension_level, rng),
-        MonsterName::Hexaghost => hexaghost::spawn_hexaghost(ascension_level),
-        MonsterName::Lagavulin => lagavulin::spawn_lagavulin(ascension_level, rng),
-        MonsterName::Looter => looter::spawn_looter(ascension_level, rng),
-        MonsterName::LouseDefensive => louse_green::spawn_louse_green(ascension_level, rng),
-        MonsterName::LouseNormal => louse_red::spawn_louse_red(ascension_level, rng),
-        MonsterName::Sentry => sentry::spawn_sentry(ascension_level, rng),
-        MonsterName::SlaverRed => slaver_red::spawn_slaver_red(ascension_level, rng),
+        MonsterName::GremlinWarrior => {
+            gremlin_warrior::spawn_monster_gremlin_warrior(ascension_level, rng)
+        }
+        MonsterName::GremlinWizard => {
+            gremlin_wizard::spawn_monster_gremlin_wizard(ascension_level, rng)
+        }
+        MonsterName::Hexaghost => hexaghost::spawn_monster_hexaghost(ascension_level),
+        MonsterName::Lagavulin => lagavulin::spawn_monster_lagavulin(ascension_level, rng),
+        MonsterName::Looter => looter::spawn_monster_looter(ascension_level, rng),
+        MonsterName::LouseDefensive => louse_green::spawn_monster_louse_green(ascension_level, rng),
+        MonsterName::LouseNormal => louse_red::spawn_monster_louse_red(ascension_level, rng),
+        MonsterName::Sentry => sentry::spawn_monster_sentry(ascension_level, rng),
+        MonsterName::SlaverRed => slaver_red::spawn_monster_slaver_red(ascension_level, rng),
         MonsterName::SlimeAcidLarge => {
-            slime_acid_large::spawn_slime_acid_large(ascension_level, rng)
+            slime_acid_large::spawn_monster_slime_acid_large(ascension_level, rng)
         }
         MonsterName::SlimeAcidMedium => {
-            slime_acid_medium::spawn_slime_acid_medium(ascension_level, rng)
+            slime_acid_medium::spawn_monster_slime_acid_medium(ascension_level, rng)
         }
-        MonsterName::SlimeBoss => slime_boss::spawn_slime_boss(ascension_level),
+        MonsterName::SlimeBoss => slime_boss::spawn_monster_slime_boss(ascension_level),
         MonsterName::SlimeSpikeLarge => {
-            slime_spike_large::spawn_slime_spike_large(ascension_level, rng)
+            slime_spike_large::spawn_monster_slime_spike_large(ascension_level, rng)
         }
         MonsterName::SlimeSpikeMedium => {
-            slime_spike_medium::spawn_slime_spike_medium(ascension_level, rng)
+            slime_spike_medium::spawn_monster_slime_spike_medium(ascension_level, rng)
         }
     }
 }
 
-// True if completing `move_idx` marks the end of one of this monster's
-// attack/defense cycles. Callers increment `Entity::monster_cycle_count` on true
+// True if `move_idx` ends a cycle; callers bump monster_cycle_count
 pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
     match name {
         MonsterName::TheGuardian => move_idx == the_guardian::IDX_MOVE_TWIN_SLAM as u8,

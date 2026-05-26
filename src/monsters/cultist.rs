@@ -81,7 +81,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_INCANTATION_5, MOVE_DARK_STRIKE];
 const IDX_MOVE_INCANTATION: usize = 0;
 const IDX_MOVE_DARK_STRIKE: usize = 1;
 
-pub fn spawn_cultist(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_cultist(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (48, 54)
     } else {

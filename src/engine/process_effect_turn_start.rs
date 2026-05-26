@@ -2,17 +2,16 @@ use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
-use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 
 pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
     let id_actor = id_target.expect("TurnStart requires id_target");
@@ -29,9 +28,11 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     let vitals = &mut entity.vitals;
 
     if modifier_has(modifiers, ModifierKind::Poison) {
-        state
-            .buf_effects
-            .push(effect_direct(EffectKind::PoisonTick, None, Some(id_actor)));
+        state.buf_effects.push(Effect {
+            kind: EffectKind::PoisonTick,
+            id_source: None,
+            target: Target::Direct(Some(id_actor)),
+        });
     }
 
     let mut new_block: u16 = 0;

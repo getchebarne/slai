@@ -82,7 +82,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];
 const IDX_MOVE_GROW: usize = 0;
 const IDX_MOVE_BITE: usize = 1;
 
-pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (22, 28)
     } else {

@@ -108,7 +108,7 @@ const IDX_MOVE_LUNGE: usize = 1;
 const IDX_MOVE_SMOKE_BOMB: usize = 2;
 const IDX_MOVE_ESCAPE: usize = 3;
 
-pub fn spawn_looter(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_looter(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (44, 48)
     } else {

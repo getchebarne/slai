@@ -472,8 +472,7 @@ const fn build_pool<const N: usize>(rarity: CardRarity, color: CardColor) -> [Ca
     buf
 }
 
-// Get number of cards per rarity-color-pool
-// Green
+// Pool sizes by (rarity, color) — Green
 const NUM_COMMON_GREEN: usize = count_pool(CardRarity::Common, CardColor::Green);
 const NUM_UNCOMMON_GREEN: usize = count_pool(CardRarity::Uncommon, CardColor::Green);
 const NUM_RARE_GREEN: usize = count_pool(CardRarity::Rare, CardColor::Green);
@@ -485,8 +484,7 @@ const NUM_RARE_COLORLESS: usize = count_pool(CardRarity::Rare, CardColor::Colorl
 // Curse
 const NUM_CURSE: usize = count_pool(CardRarity::Curse, CardColor::Curse);
 
-// Compute rarity-color-pools
-// Green
+// Pools by (rarity, color) — Green
 pub const POOL_COMMON_GREEN_CARD: &[CardName] =
     &build_pool::<NUM_COMMON_GREEN>(CardRarity::Common, CardColor::Green);
 pub const POOL_UNCOMMON_GREEN_CARD: &[CardName] =

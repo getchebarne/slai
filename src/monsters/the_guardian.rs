@@ -374,7 +374,7 @@ const IDX_MOVE_DEFENSIVE_MODE: usize = 4;
 const IDX_MOVE_ROLL_ATTACK: usize = 5;
 pub const IDX_MOVE_TWIN_SLAM: usize = 6;
 
-pub fn spawn_the_guardian(ascension_level: u8) -> Entity {
+pub fn spawn_monster_the_guardian(ascension_level: u8) -> Entity {
     let health_max = if ascension_level < 9 { 240 } else { 250 };
 
     let moves: &'static [Move] = if ascension_level < 4 {

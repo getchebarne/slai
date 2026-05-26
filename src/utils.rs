@@ -18,16 +18,18 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
+use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
+use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardRarity;
 use crate::types::RelicName;
 
-// Drain state.buf_effects back-to-front into the effect_queue front, so the
-// effects pop in the order they were pushed into buf_effects
+// Pop buf_effects back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
     while let Some(e) = state.buf_effects.pop() {
         state.effect_queue.push_front(e);
@@ -39,6 +41,23 @@ pub fn push_entity(entities: &mut Vec<Entity>, e: Entity) -> usize {
     let id = entities.len();
     entities.push(e);
     id
+}
+
+pub fn card_is_upgradable(entity: &Entity) -> bool {
+    if entity.kind != EntityKind::Card {
+        return false;
+    }
+    if entity.card_upgraded {
+        return false;
+    }
+    !matches!(entity.card_kind, CardKind::Curse | CardKind::Status)
+}
+
+pub fn card_is_purgeable(entity: &Entity) -> bool {
+    if entity.kind != EntityKind::Card {
+        return false;
+    }
+    !matches!(entity.card_name, CardName::AscendersBane)
 }
 
 pub fn queue_room_select(state: &mut GameState) {
@@ -68,8 +87,7 @@ pub fn reshuffle_discard_into_draw(
     shuffle(&mut id_pile_draw[..], rng);
 }
 
-// Strength, Weak, and Vulnerable scaling shared between the live damage pipeline
-// and the FFI intent view
+// Shared by the live damage pipeline and the FFI intent view
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
@@ -86,16 +104,38 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
-// Used by both elite combat-end and chest opening
-pub fn add_relic_reward_for_roll(
+pub fn roll_card_reward_pool_green(roll: i32) -> (&'static [CardName], CardRarity) {
+    if roll < CARD_REWARD_ROLL_CHANCE_RARE {
+        (POOL_RARE_GREEN_CARD, CardRarity::Rare)
+    } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
+        (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
+    } else {
+        (POOL_COMMON_GREEN_CARD, CardRarity::Common)
+    }
+}
+
+// No-op if already owned
+pub fn grant_relic(
+    name: RelicName,
+    id_relics: &mut [Option<usize>; RelicName::COUNT],
+    entities: &mut Vec<Entity>,
+) {
+    if id_relics[name as usize].is_some() {
+        return;
+    }
+    let id = push_entity(entities, get_relic(name));
+    id_relics[name as usize] = Some(id);
+}
+
+// Tier-by-roll with cascade to higher tiers when the rolled pool is exhausted
+pub fn pick_relic_by_roll(
     roll: u8,
     th_common: u8,
     th_uncommon: u8,
     id_relics: &[Option<usize>; RelicName::COUNT],
-    entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-) -> usize {
-    let name = if roll < th_common {
+) -> RelicName {
+    if roll < th_common {
         pick_from_pool(POOL_COMMON_RELIC, id_relics, rng)
             .or_else(|| pick_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
             .or_else(|| pick_from_pool(POOL_RARE_RELIC, id_relics, rng))
@@ -106,10 +146,20 @@ pub fn add_relic_reward_for_roll(
             .unwrap_or(RelicName::Circlet)
     } else {
         pick_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
-    };
+    }
+}
 
-    let id = push_entity(entities, get_relic(name));
-    id
+// Used by both elite combat-end and chest opening
+pub fn add_relic_reward_for_roll(
+    roll: u8,
+    th_common: u8,
+    th_uncommon: u8,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    entities: &mut Vec<Entity>,
+    rng: &mut impl Rng,
+) -> usize {
+    let name = pick_relic_by_roll(roll, th_common, th_uncommon, id_relics, rng);
+    push_entity(entities, get_relic(name))
 }
 
 pub fn pick_from_pool(
@@ -146,17 +196,16 @@ pub fn roll_card_rewards(
     out.clear();
     for _ in 0..MAX_COMBAT_CARD_REWARD {
         let roll = rng.random_range(0i32..99) + character_reward_roll_offset as i32;
-
-        let pool = if roll < CARD_REWARD_ROLL_CHANCE_RARE {
-            character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE;
-            POOL_RARE_GREEN_CARD
-        } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
-            POOL_UNCOMMON_GREEN_CARD
-        } else {
-            character_reward_roll_offset =
-                (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
-            POOL_COMMON_GREEN_CARD
-        };
+        let (pool, rarity) = roll_card_reward_pool_green(roll);
+        // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
+        match rarity {
+            CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,
+            CardRarity::Common => {
+                character_reward_roll_offset =
+                    (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
+            }
+            _ => {}
+        }
 
         let mut name = pool[rng.random_range(0..pool.len())];
         while rolled_card_names[..out.len()].contains(&name) {

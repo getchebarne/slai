@@ -1,16 +1,10 @@
-// Entities: every kind of thing that lives in `GameState.entities`
-//
-// One flat "fat" Entity struct holds all fields from all kinds. A runtime
-// `EntityKind` tag distinguishes them. Variant-specific `const fn`
-// constructors below (`make_entity_card`, `make_entity_monster`, etc.) are the only
-// way to build an Entity — they set the relevant fields and zero the rest
+// Fat Entity + EntityKind tag; build only via `make_entity_*` const fns
 
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_SIZE_HAND;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
-use crate::utils::push_entity;
 use crate::events::EventOption;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
@@ -29,10 +23,9 @@ use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Vitals;
 use crate::types::ZERO_VITALS;
+use crate::utils::push_entity;
 
-// Per-card effect array capacity. Largest current card is RiddleWithHoles
-// (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
-// with practical caps, etc.). Bump when a card legitimately exceeds it
+// Per-card effect array cap; bump if any card legitimately exceeds 8
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

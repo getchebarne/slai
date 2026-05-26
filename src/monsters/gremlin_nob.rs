@@ -139,7 +139,7 @@ const IDX_MOVE_BELLOW: usize = 0;
 const IDX_MOVE_BULL_RUSH: usize = 1;
 const IDX_MOVE_SKULL_BASH: usize = 2;
 
-pub fn spawn_gremlin_nob(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_gremlin_nob(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 8 {
         (82, 86)
     } else {

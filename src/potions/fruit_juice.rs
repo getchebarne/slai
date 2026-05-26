@@ -1,6 +1,8 @@
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -16,7 +18,10 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
     false,
     &[
         Effect {
-            kind: EffectKind::MaxHealthGain { amount: 5 },
+            kind: EffectKind::MaxHealthDelta {
+                sign: HealthDeltaSign::Gain,
+                amount: HealthDeltaAmount::Flat(5),
+            },
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
@@ -24,7 +29,10 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
             },
         },
         Effect {
-            kind: EffectKind::HealthGain { amount: 5 },
+            kind: EffectKind::HealthDelta {
+                sign: HealthDeltaSign::Gain,
+                amount: HealthDeltaAmount::Flat(5),
+            },
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,

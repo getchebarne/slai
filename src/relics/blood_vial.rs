@@ -1,6 +1,8 @@
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -13,7 +15,10 @@ pub static BLOOD_VIAL: Entity = make_entity_relic(
     RelicTier::Common,
     0,
     &[Effect {
-        kind: EffectKind::HealthGain { amount: 2 },
+        kind: EffectKind::HealthDelta {
+            sign: HealthDeltaSign::Gain,
+            amount: HealthDeltaAmount::Flat(2),
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,

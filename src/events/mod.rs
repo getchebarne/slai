@@ -19,18 +19,23 @@ use rand::Rng;
 use strum::EnumCount;
 
 use crate::effect::Effect;
-use crate::effect::effect_direct;
 use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::types::CardKind;
-use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::EventName;
 use crate::types::RelicName;
+use crate::utils::card_is_purgeable;
+use crate::utils::card_is_upgradable;
 
-pub const EVENT_END_EFFECT: Effect = effect_direct(EffectKind::EventEnd, None, None);
+pub const EVENT_END_EFFECT: Effect = Effect {
+    kind: EffectKind::EventEnd,
+    id_source: None,
+    target: Target::Direct(None),
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct EventOption {
@@ -89,37 +94,6 @@ pub fn event_option_gate_satisfied(gate: EventGate, state: &GameState, id_event:
     }
 }
 
-pub fn card_is_upgradable(entity: &Entity) -> bool {
-    if entity.kind != EntityKind::Card {
-        return false;
-    }
-    if entity.card_upgraded {
-        return false;
-    }
-    !matches!(entity.card_kind, CardKind::Curse | CardKind::Status)
-}
-
-pub fn card_is_purgeable(entity: &Entity) -> bool {
-    if entity.kind != EntityKind::Card {
-        return false;
-    }
-    !matches!(entity.card_name, CardName::AscendersBane)
-}
-
-pub fn card_in_deck_filter(entity: &Entity, kind: crate::types::DeckSelectKind) -> bool {
-    use crate::types::DeckSelectKind;
-    match kind {
-        DeckSelectKind::Remove => card_is_purgeable(entity),
-        DeckSelectKind::DuplicateAny => entity.kind == EntityKind::Card,
-        DeckSelectKind::UpgradeAny => card_is_upgradable(entity),
-        DeckSelectKind::TransformOne => {
-            entity.kind == EntityKind::Card
-                && entity.card_rarity != crate::types::CardRarity::Basic
-                && entity.card_kind != CardKind::Curse
-        }
-    }
-}
-
 fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     if entity.kind != EntityKind::Card {
         return false;
@@ -139,18 +113,18 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
 
 pub const ALL_EVENTS: &[&'static Entity] = &[
     &big_fish::BIG_FISH,
-    &cleric::CLERIC,
-    &designer::DESIGNER,
+    &cleric::CLERIC_BASE,
+    &designer::DESIGNER_BASE,
     &duplicator::DUPLICATOR,
-    &gold_shrine::GOLD_SHRINE,
+    &gold_shrine::GOLD_SHRINE_BASE,
     &golden_idol_event::GOLDEN_IDOL_EVENT,
     &golden_wing::GOLDEN_WING,
-    &goop_puddle::GOOP_PUDDLE,
+    &goop_puddle::GOOP_PUDDLE_BASE,
     &living_wall::LIVING_WALL,
     &purification_shrine::PURIFICATION_SHRINE,
-    &scrap_ooze::SCRAP_OOZE,
-    &shining_light::SHINING_LIGHT,
-    &sssserpent::SSSSERPENT,
+    &scrap_ooze::SCRAP_OOZE_BASE,
+    &shining_light::SHINING_LIGHT_BASE,
+    &sssserpent::SSSSERPENT_BASE,
     &transmogrifier::TRANSMOGRIFIER,
     &upgrade_shrine::UPGRADE_SHRINE,
     &we_meet_again::WE_MEET_AGAIN,
@@ -168,29 +142,29 @@ const _: () = {
     }
 };
 
-pub fn get_event(name: EventName) -> Entity {
+pub fn get_event(name: EventName, ascension: u8) -> Entity {
     match name {
         EventName::BigFish => big_fish::BIG_FISH,
-        EventName::Cleric => cleric::CLERIC,
-        EventName::Designer => designer::DESIGNER,
+        EventName::Cleric => cleric::spawn_event_cleric(ascension),
+        EventName::Designer => designer::spawn_event_designer(ascension),
         EventName::Duplicator => duplicator::DUPLICATOR,
-        EventName::GoldShrine => gold_shrine::GOLD_SHRINE,
+        EventName::GoldShrine => gold_shrine::spawn_event_gold_shrine(ascension),
         EventName::GoldenIdolEvent => golden_idol_event::GOLDEN_IDOL_EVENT,
         EventName::GoldenWing => golden_wing::GOLDEN_WING,
-        EventName::GoopPuddle => goop_puddle::GOOP_PUDDLE,
+        EventName::GoopPuddle => goop_puddle::spawn_event_goop_puddle(ascension),
         EventName::LivingWall => living_wall::LIVING_WALL,
         EventName::PurificationShrine => purification_shrine::PURIFICATION_SHRINE,
-        EventName::ScrapOoze => scrap_ooze::SCRAP_OOZE,
-        EventName::ShiningLight => shining_light::SHINING_LIGHT,
-        EventName::Sssserpent => sssserpent::SSSSERPENT,
+        EventName::ScrapOoze => scrap_ooze::spawn_event_scrap_ooze(ascension),
+        EventName::ShiningLight => shining_light::spawn_event_shining_light(ascension),
+        EventName::Sssserpent => sssserpent::spawn_event_sssserpent(ascension),
         EventName::Transmogrifier => transmogrifier::TRANSMOGRIFIER,
         EventName::UpgradeShrine => upgrade_shrine::UPGRADE_SHRINE,
         EventName::WeMeetAgain => we_meet_again::WE_MEET_AGAIN,
     }
 }
 
-pub fn spawn_event(name: EventName, _rng: &mut impl Rng) -> Entity {
-    get_event(name)
+pub fn spawn_event(name: EventName, ascension: u8, _rng: &mut impl Rng) -> Entity {
+    get_event(name, ascension)
 }
 
 pub const POOL_ACT1_EVENT: &[EventName] = &[

@@ -1,7 +1,7 @@
 use crate::cards::get_card;
-use crate::utils::push_entity;
 use crate::game::GameState;
 use crate::types::CardName;
+use crate::utils::push_entity;
 
 pub fn process_effect_card_add_to_discard(
     state: &mut GameState,

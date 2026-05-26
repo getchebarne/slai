@@ -66,7 +66,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_TACKLE_4, MOVE_LICK];
 const IDX_MOVE_TACKLE: usize = 0;
 const IDX_MOVE_LICK: usize = 1;
 
-pub fn spawn_slime_acid_small(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_slime_acid_small(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (8, 12)
     } else {

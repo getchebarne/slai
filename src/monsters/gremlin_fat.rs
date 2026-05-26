@@ -115,7 +115,7 @@ static MOVES_ASC17: [Move; 1] = [MOVE_SMASH_5_W1_F1];
 
 const IDX_MOVE_SMASH: usize = 0;
 
-pub fn spawn_gremlin_fat(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_gremlin_fat(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (13, 17)
     } else {

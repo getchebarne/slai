@@ -120,7 +120,7 @@ const IDX_MOVE_PREPARING: usize = 1;
 const IDX_MOVE_SLAM: usize = 2;
 pub const IDX_MOVE_SPLIT: usize = 3;
 
-pub fn spawn_slime_boss(ascension_level: u8) -> Entity {
+pub fn spawn_monster_slime_boss(ascension_level: u8) -> Entity {
     let health_max: u16 = if ascension_level < 9 { 140 } else { 150 };
 
     let moves: &'static [Move] = if ascension_level < 4 {

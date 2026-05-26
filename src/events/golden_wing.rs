@@ -1,6 +1,9 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -8,12 +11,14 @@ use crate::entity::make_entity_event;
 use crate::events::EVENT_END_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
-use crate::types::DeckSelectKind;
 use crate::types::EventName;
 
 const PRAY: &[Effect] = &[
     Effect {
-        kind: EffectKind::HealthLoss { amount: 7 },
+        kind: EffectKind::HealthDelta {
+            sign: HealthDeltaSign::Loss,
+            amount: HealthDeltaAmount::Flat(7),
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
@@ -21,12 +26,13 @@ const PRAY: &[Effect] = &[
         },
     },
     Effect {
-        kind: EffectKind::DeckSelectStart {
-            kind: DeckSelectKind::Remove,
+            kind: EffectKind::CardPurge,
+            id_source: None,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Deck { filter: CandidatePoolDeckFilter::Purgeable },
+                selection_kind: SelectionKind::Input { count: 1 },
+            },
         },
-        id_source: None,
-        target: Target::Direct(None),
-    },
     EVENT_END_EFFECT,
 ];
 

@@ -1,7 +1,5 @@
 use rand::Rng;
 
-use crate::consts::ELITE_TH_COMMON;
-use crate::consts::ELITE_TH_UNCOMMON;
 use crate::consts::GOLD_ELITE_MAX;
 use crate::consts::GOLD_ELITE_MIN;
 use crate::consts::GOLD_MONSTER_MAX;
@@ -11,13 +9,15 @@ use crate::consts::POTION_DROP_CHANCE_MOD_HIT;
 use crate::consts::POTION_DROP_CHANCE_MOD_MAX;
 use crate::consts::POTION_DROP_CHANCE_MOD_MIN;
 use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
-use crate::utils::push_entity;
+use crate::consts::RELIC_TIER_TH_COMMON;
+use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion;
-use crate::types::Screen;
 use crate::types::RoomKind;
+use crate::types::Screen;
 use crate::utils::add_relic_reward_for_roll;
+use crate::utils::push_entity;
 use crate::utils::roll_card_rewards;
 
 pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomKind) {
@@ -38,7 +38,7 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
         ),
         RoomKind::CombatElite => (
             Some((GOLD_ELITE_MIN, GOLD_ELITE_MAX)),
-            Some((ELITE_TH_COMMON, ELITE_TH_UNCOMMON)),
+            Some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
         ),
         _ => unreachable!(
             "RewardRollCombat with non-combat room_kind: {:?}",

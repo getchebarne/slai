@@ -1,9 +1,7 @@
 use crate::effect::EffectKind;
 use crate::game::GameState;
 
-// Glass Knife mutates its own DamagePhysical amounts in-place by `delta`.
-// `id_target` is the card itself (resolved via CandidatePool::Source from
-// the on-play rewrite that sets `id_source = id_card`)
+// Mutates Glass Knife's own DamagePhysical amounts by `delta` in-place
 pub fn process_effect_glass_knife_decay(
     id_target: Option<usize>,
     state: &mut GameState,

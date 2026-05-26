@@ -104,7 +104,7 @@ static MOVES_ASC17_BITE8: [Move; 2] = [MOVE_BITE_8, MOVE_WEB];
 const IDX_MOVE_BITE: usize = 0;
 const IDX_MOVE_WEB: usize = 1;
 
-pub fn spawn_louse_green(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_louse_green(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (11, 17)
     } else {

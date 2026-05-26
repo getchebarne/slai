@@ -5,8 +5,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
 
-// Upgrade every Burn in draw and discard piles, then add `count` upgraded
-// Burns to discard
+// Upgrade existing Burns in draw+discard, then add `count` upgraded Burns to discard
 pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) {
     let burn_upgraded = get_card(CardName::Burn, true);
     for i in 0..state.id_pile_draw.len() {

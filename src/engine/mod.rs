@@ -8,16 +8,16 @@ pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_select;
 pub mod process_effect_card_draw;
+pub mod process_effect_card_duplicate;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move_to_discard;
 pub mod process_effect_card_play;
+pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
-pub mod process_effect_card_remove_from_deck;
 pub mod process_effect_card_retain;
 pub mod process_effect_card_setup_pick;
-pub mod process_effect_card_transform_roll;
+pub mod process_effect_card_transform;
 pub mod process_effect_card_upgrade;
-pub mod process_effect_card_upgrade_random_in_deck;
 pub mod process_effect_chest_open;
 pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
@@ -25,8 +25,6 @@ pub mod process_effect_damage_deal;
 pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
-pub mod process_effect_deck_select_pick;
-pub mod process_effect_deck_select_start;
 pub mod process_effect_distraction_add;
 pub mod process_effect_draw_up_to;
 pub mod process_effect_energy_gain;
@@ -41,18 +39,13 @@ pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_gain;
 pub mod process_effect_gold_loss;
 pub mod process_effect_gold_steal;
-pub mod process_effect_health_gain;
-pub mod process_effect_health_gain_pct;
-pub mod process_effect_health_loss;
-pub mod process_effect_health_loss_pct;
+pub mod process_effect_health_delta;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_hexaghost_divider;
 pub mod process_effect_id_card_nightmare_pick;
 pub mod process_effect_id_card_nightmare_spawn;
-pub mod process_effect_max_health_gain;
-pub mod process_effect_max_health_loss;
-pub mod process_effect_max_health_loss_pct;
+pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -92,10 +85,17 @@ use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::CandidatePoolDeckFilter;
+use crate::entity::EntityKind;
+use crate::types::CardKind;
+use crate::types::CardRarity;
+use crate::utils::card_is_purgeable;
+use crate::utils::card_is_upgradable;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::game::Location;
@@ -136,22 +136,26 @@ fn fill_buf_candidates(
 ) {
     match candidate_pool {
         CandidatePool::Hand => buf_candidates.extend_from_slice(id_hand),
-        CandidatePool::MonsterPicked => buf_candidates.push(
-            id_monster_picked.expect("MonsterPicked pool requires id_monster_picked to be Some"),
-        ),
         CandidatePool::Character => buf_candidates.push(id_character),
-        CandidatePool::Monsters => buf_candidates.extend(id_monsters.iter().flatten().copied()),
-        CandidatePool::OtherMonsters => {
-            let id_source = id_source
-                .expect("Attempted to resolve `CandidatePool::OtherMonsters` without `id_source`");
-
-            // Iterate all monsters skipping the one that sourced the effect
-            for id_monster in id_monsters.iter().flatten().copied() {
-                if id_monster != id_source {
-                    buf_candidates.push(id_monster);
+        CandidatePool::Monsters { filter } => match filter {
+            CandidatePoolMonstersFilter::All => {
+                buf_candidates.extend(id_monsters.iter().flatten().copied())
+            }
+            CandidatePoolMonstersFilter::Other => {
+                let id_source =
+                    id_source.expect("CandidatePool::Monsters{Other} requires id_source");
+                // Iterate all monsters skipping the one that sourced the effect
+                for id_monster in id_monsters.iter().flatten().copied() {
+                    if id_monster != id_source {
+                        buf_candidates.push(id_monster);
+                    }
                 }
             }
-        }
+            CandidatePoolMonstersFilter::Picked => buf_candidates.push(
+                id_monster_picked
+                    .expect("CandidatePool::Monsters{Picked} requires id_monster_picked"),
+            ),
+        },
         CandidatePool::Source => {
             let id_source = id_source
                 .expect("Attempted to resolve `CandidatePool::Source` without `id_source`");
@@ -185,18 +189,44 @@ fn fill_buf_candidates(
             Location::BossRoom => {}
         },
         CandidatePool::IdPick => buf_candidates.extend_from_slice(id_pick),
-        CandidatePool::DeckFiltered(kind) => {
-            for &id in id_deck {
-                if crate::events::card_in_deck_filter(&entities[id], kind) {
-                    buf_candidates.push(id);
+        CandidatePool::Deck { filter } => match filter {
+            CandidatePoolDeckFilter::Purgeable => {
+                for &id in id_deck {
+                    if card_is_purgeable(&entities[id]) {
+                        buf_candidates.push(id);
+                    }
                 }
             }
-        }
+            CandidatePoolDeckFilter::Upgradeable => {
+                for &id in id_deck {
+                    if card_is_upgradable(&entities[id]) {
+                        buf_candidates.push(id);
+                    }
+                }
+            }
+            CandidatePoolDeckFilter::Any => {
+                for &id in id_deck {
+                    if entities[id].kind == EntityKind::Card {
+                        buf_candidates.push(id);
+                    }
+                }
+            }
+            CandidatePoolDeckFilter::Transformable => {
+                for &id in id_deck {
+                    let e = &entities[id];
+                    if e.kind == EntityKind::Card
+                        && e.card_rarity != CardRarity::Basic
+                        && e.card_kind != CardKind::Curse
+                    {
+                        buf_candidates.push(id);
+                    }
+                }
+            }
+        },
     }
 }
 
-// Returns true if buf_candidates is fully resolved and ready to enqueue;
-// false means halt and wait for player input
+// Returns true if resolved (ready to enqueue); false if halted on player input
 fn resolve_selection_kind(
     buf_candidates: &mut Vec<usize>,
     selection_kind: SelectionKind,
@@ -222,8 +252,7 @@ fn resolve_selection_kind(
     }
 }
 
-// Returns true on successful processing; false on halt (the unresolved Effect
-// is stashed in state.pending_effect for the action handler to consume)
+// Returns true on success; false on halt (unresolved Effect stashed in pending_effect)
 pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
     let id_target = match effect.target {
         Target::Direct(id_target) => id_target,
@@ -452,11 +481,8 @@ fn dispatch_by_kind(
                 id_source, id_target, state, amount,
             )
         }
-        EffectKind::HealthGain { amount } => {
-            process_effect_health_gain::process_effect_health_gain(id_target, state, amount)
-        }
-        EffectKind::HealthLoss { amount } => {
-            process_effect_health_loss::process_effect_health_loss(id_target, state, amount)
+        EffectKind::HealthDelta { sign, amount } => {
+            process_effect_health_delta::process_effect_health_delta(id_target, state, sign, amount)
         }
         EffectKind::BlockGain { amount } => process_effect_block_gain::process_effect_block_gain(
             id_source, id_target, state, amount,
@@ -495,8 +521,7 @@ fn dispatch_by_kind(
             process_effect_modifier_set_not_new::process_effect_modifier_set_not_new(state)
         }
         EffectKind::Death => {
-            // Character can die outside Combat (event damage, rest-site mishaps);
-            // monster slots are then empty so the iter-skip-Nones is a no-op
+            // Character can die outside Combat; empty monster slots make iter a no-op
             process_effect_death::process_effect_death(id_target, state)
         }
         EffectKind::CombatStart => {
@@ -554,10 +579,14 @@ fn dispatch_by_kind(
         EffectKind::RoomSelect => {
             process_effect_room_select::process_effect_room_select(id_target, state)
         }
-        EffectKind::CardRemoveFromDeck => {
-            process_effect_card_remove_from_deck::process_effect_card_remove_from_deck(
-                id_target, state,
-            )
+        EffectKind::CardPurge => {
+            process_effect_card_purge::process_effect_card_purge(id_target, state)
+        }
+        EffectKind::CardDuplicate => {
+            process_effect_card_duplicate::process_effect_card_duplicate(id_target, state)
+        }
+        EffectKind::CardTransform => {
+            process_effect_card_transform::process_effect_card_transform(id_target, state)
         }
         EffectKind::CardAddToDeck {
             card_name,
@@ -565,11 +594,10 @@ fn dispatch_by_kind(
         } => process_effect_card_add_to_deck::process_effect_card_add_to_deck(
             state, card_name, upgraded,
         ),
-        EffectKind::MaxHealthGain { amount } => {
-            process_effect_max_health_gain::process_effect_max_health_gain(id_target, state, amount)
-        }
-        EffectKind::MaxHealthLoss { amount } => {
-            process_effect_max_health_loss::process_effect_max_health_loss(id_target, state, amount)
+        EffectKind::MaxHealthDelta { sign, amount } => {
+            process_effect_max_health_delta::process_effect_max_health_delta(
+                id_target, state, sign, amount,
+            )
         }
         EffectKind::ChestOpen => process_effect_chest_open::process_effect_chest_open(state),
         EffectKind::PotionUse => {
@@ -590,27 +618,8 @@ fn dispatch_by_kind(
         EffectKind::GoldLoss { amount } => {
             process_effect_gold_loss::process_effect_gold_loss(state, amount)
         }
-        EffectKind::HealthGainPct { numer, denom } => {
-            process_effect_health_gain_pct::process_effect_health_gain_pct(state, numer, denom)
-        }
-        EffectKind::HealthLossPct { numer, denom } => {
-            process_effect_health_loss_pct::process_effect_health_loss_pct(state, numer, denom)
-        }
-        EffectKind::MaxHealthLossPct { numer, denom } => {
-            process_effect_max_health_loss_pct::process_effect_max_health_loss_pct(
-                state, numer, denom,
-            )
-        }
-        EffectKind::CardUpgradeRandomInDeck { count } => {
-            process_effect_card_upgrade_random_in_deck::process_effect_card_upgrade_random_in_deck(
-                state, count,
-            )
-        }
-        EffectKind::CardTransformRoll => {
-            process_effect_card_transform_roll::process_effect_card_transform_roll(state)
-        }
-        EffectKind::RelicGrantRandom { tier } => {
-            process_effect_relic_grant_random::process_effect_relic_grant_random(state, tier)
+        EffectKind::RelicGrantRandom => {
+            process_effect_relic_grant_random::process_effect_relic_grant_random(state)
         }
         EffectKind::RelicGrantSpecific {
             name,
@@ -635,17 +644,9 @@ fn dispatch_by_kind(
         EffectKind::EventEnd => {
             process_effect_event_end::process_effect_event_end(id_source, state)
         }
-        EffectKind::DeckSelectStart { kind } => {
-            process_effect_deck_select_start::process_effect_deck_select_start(state, kind)
-        }
         EffectKind::CardDiscoverPick => {
             debug_assert!(matches!(state.screen, Screen::Combat));
             process_effect_card_discover_pick::process_effect_card_discover_pick(id_target, state)
-        }
-        EffectKind::DeckSelectPick { kind: ds_kind } => {
-            process_effect_deck_select_pick::process_effect_deck_select_pick(
-                id_target, state, ds_kind,
-            )
         }
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }

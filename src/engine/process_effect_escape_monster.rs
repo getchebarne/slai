@@ -3,8 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 
-// Silently remove a monster from combat: flag it dead WITHOUT firing the
-// on-death hook chain
+// Mark dead WITHOUT firing the on-death hook chain
 pub fn process_effect_escape_monster(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("EscapeMonster requires id_target");
     state.entities[id_target].dead = true;

@@ -17,7 +17,7 @@ const GIVE_GOLD: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::RelicGrantRandom { tier: None },
+        kind: EffectKind::RelicGrantRandom,
         id_source: None,
         target: Target::Direct(None),
     },

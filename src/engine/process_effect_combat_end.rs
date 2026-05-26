@@ -1,12 +1,14 @@
-use crate::effect::effect_direct;
+use crate::consts::MAX_MONSTERS;
+use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
-use crate::types::Screen;
 use crate::types::RoomKind;
+use crate::types::Screen;
 
 pub fn process_effect_combat_end(state: &mut GameState) {
     combat_reset(state);
@@ -15,11 +17,11 @@ pub fn process_effect_combat_end(state: &mut GameState) {
     match room_kind {
         RoomKind::CombatBoss => {}
         RoomKind::CombatMonster | RoomKind::CombatElite => {
-            state.effect_queue.push_back(effect_direct(
-                EffectKind::RewardRollCombat { room_kind },
-                None,
-                None,
-            ));
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::RewardRollCombat { room_kind },
+                id_source: None,
+                target: Target::Direct(None),
+            });
         }
         RoomKind::RestSite | RoomKind::Treasure | RoomKind::EventRoom | RoomKind::Shop => {
             unreachable!("combat end in non-combat room: {:?}", room_kind)
@@ -41,7 +43,7 @@ fn combat_reset(state: &mut GameState) {
     state.id_pick.clear();
     state.id_card_nightmare = None;
     state.id_monster_picked = None;
-    state.id_monsters = [None; crate::consts::MAX_MONSTERS];
+    state.id_monsters = [None; MAX_MONSTERS];
     state.this_turn_discards = 0;
     state.this_turn_attacks_played = 0;
     state.this_combat_damage_instances_taken = 0;

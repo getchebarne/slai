@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -41,7 +42,9 @@ pub static LEG_SWEEP: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::MonsterPicked,
+                candidate_pool: CandidatePool::Monsters {
+                    filter: CandidatePoolMonstersFilter::Picked,
+                },
                 selection_kind: SelectionKind::Single,
             },
         },

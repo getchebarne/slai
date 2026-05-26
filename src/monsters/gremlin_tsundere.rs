@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -19,7 +20,9 @@ static MOVE_PROTECT_7: Move = Move {
         kind: EffectKind::BlockGain { amount: 7 },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::OtherMonsters,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Other,
+            },
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
@@ -31,7 +34,9 @@ static MOVE_PROTECT_8: Move = Move {
         kind: EffectKind::BlockGain { amount: 8 },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::OtherMonsters,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Other,
+            },
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
@@ -43,7 +48,9 @@ static MOVE_PROTECT_11: Move = Move {
         kind: EffectKind::BlockGain { amount: 11 },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::OtherMonsters,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Other,
+            },
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
@@ -88,7 +95,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_PROTECT_11, MOVE_BASH_8];
 const IDX_MOVE_PROTECT: usize = 0;
 const IDX_MOVE_BASH: usize = 1;
 
-pub fn spawn_gremlin_tsundere(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_gremlin_tsundere(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (12, 15)
     } else {

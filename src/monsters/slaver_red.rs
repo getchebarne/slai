@@ -152,7 +152,7 @@ const IDX_MOVE_STAB: usize = 0;
 const IDX_MOVE_ENTANGLE: usize = 1;
 const IDX_MOVE_SCRAPE: usize = 2;
 
-pub fn spawn_slaver_red(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_slaver_red(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (46, 50)
     } else {

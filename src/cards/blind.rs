@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -32,7 +33,9 @@ pub static BLIND: Entity = make_entity_card(
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::MonsterPicked,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Picked,
+            },
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -47,7 +50,9 @@ pub static BLIND_PLUS: Entity = Entity {
     card_effects: {
         let mut a = BLIND.card_effects;
         a[0].target = Target::Resolve {
-            candidate_pool: CandidatePool::Monsters,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::All,
+            },
             selection_kind: SelectionKind::All,
         }; // Targets all monsters
         a

@@ -1,5 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -11,17 +13,43 @@ use crate::monsters::lagavulin;
 use crate::monsters::slime_acid_large;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
-use crate::types::Screen;
 use crate::types::MonsterName;
+use crate::types::Screen;
 
-pub fn process_effect_health_loss(id_target: Option<usize>, state: &mut GameState, amount: u16) {
-    let id_target = id_target.expect("HealthLoss requires id_target");
-    // MasterfulStab GrowsOnDamageInstanceTaken: bump per character damage
-    // event (post-block, so amount > 0 excludes fully-absorbed hits)
-    if id_target == state.id_character
-        && amount > 0
-        && matches!(state.screen, Screen::Combat)
-    {
+pub fn process_effect_health_delta(
+    id_target: Option<usize>,
+    state: &mut GameState,
+    sign: HealthDeltaSign,
+    amount: HealthDeltaAmount,
+) {
+    // Pct ignores id_target and resolves against the character
+    let (id_target, amount) = match amount {
+        HealthDeltaAmount::Flat(a) => (id_target.expect("HealthDelta Flat requires id_target"), a),
+        HealthDeltaAmount::Pct { numer, denom } => {
+            let id = state.id_character;
+            let health_max = state.entities[id].vitals.health_max;
+            let raw = (health_max as u32 * numer as u32) / denom as u32;
+            let a = match sign {
+                HealthDeltaSign::Loss => raw.max(1) as u16,
+                HealthDeltaSign::Gain => raw as u16,
+            };
+            (id, a)
+        }
+    };
+    match sign {
+        HealthDeltaSign::Gain => apply_gain(id_target, state, amount),
+        HealthDeltaSign::Loss => apply_loss(id_target, state, amount),
+    }
+}
+
+fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
+    let vitals = &mut state.entities[id_target].vitals;
+    vitals.health = (vitals.health + amount).min(vitals.health_max);
+}
+
+fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
+    // MasterfulStab GrowsOnDamageInstanceTaken: bump per post-block character damage
+    if id_target == state.id_character && amount > 0 && matches!(state.screen, Screen::Combat) {
         state.this_combat_damage_instances_taken =
             state.this_combat_damage_instances_taken.saturating_add(1);
     }
@@ -52,10 +80,7 @@ pub fn process_effect_health_loss(id_target: Option<usize>, state: &mut GameStat
         return;
     }
 
-    // Splittable: post-HP-loss check fires on *any* damage source (attack or
-    // poison). Override move_current so the next MoveExecute runs Split
-    // instead of the slime's previously-selected attack. Consume the marker
-    // so a multi-hit doesn't retrigger
+    // Splittable: any damage at ≤½ HP overrides next MoveExecute to Split; consume marker
     if modifier_has(&entity.modifiers, ModifierKind::Splittable)
         && entity.vitals.health <= entity.vitals.health_max / 2
     {
@@ -72,9 +97,7 @@ pub fn process_effect_health_loss(id_target: Option<usize>, state: &mut GameStat
         modifier_remove(&mut entity.modifiers, ModifierKind::Splittable);
     }
 
-    // Asleep wake-via-HP-loss (Lagavulin): any damage including poison wakes
-    // him. Set move_current = Stunned (one no-damage turn) and drop Asleep +
-    // Metallicize
+    // Lagavulin: any HP loss wakes him → Stunned move, drop Asleep + Metallicize
     if modifier_has(&entity.modifiers, ModifierKind::Asleep) {
         let stunned_idx = match entity.monster_name {
             MonsterName::Lagavulin => lagavulin::IDX_MOVE_STUNNED,

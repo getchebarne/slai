@@ -3,10 +3,8 @@ use rand::Rng;
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::effect::Effect;
-use crate::effect::effect_direct;
 use crate::effect::EffectKind;
-use crate::utils::flush_effects_from_buf_to_queue_front;
-use crate::utils::push_entity;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::POOL_ACT1_EVENT;
 use crate::events::spawn_event;
@@ -14,12 +12,14 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
-use crate::types::Screen;
 use crate::types::ChestKind;
 use crate::types::EventName;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::RoomKind;
+use crate::types::Screen;
+use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::push_entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
@@ -62,6 +62,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             if let Some(id_event) = spawn_random_event(
                 &mut state.entities,
                 &mut state.events_seen_this_run,
+                state.ascension,
                 &mut state.rng,
             ) {
                 state.screen = Screen::Event;
@@ -75,9 +76,11 @@ pub fn process_effect_room_enter(state: &mut GameState) {
     }
 
     if !state.buf_effects.is_empty() {
-        state
-            .buf_effects
-            .push(effect_direct(EffectKind::CombatStart, None, None));
+        state.buf_effects.push(Effect {
+            kind: EffectKind::CombatStart,
+            id_source: None,
+            target: Target::Direct(None),
+        });
         flush_effects_from_buf_to_queue_front(state);
     }
 }
@@ -85,6 +88,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
 fn spawn_random_event(
     entities: &mut Vec<Entity>,
     events_seen_this_run: &mut Vec<EventName>,
+    ascension: u8,
     rng: &mut impl Rng,
 ) -> Option<usize> {
     if POOL_ACT1_EVENT.is_empty() {
@@ -100,7 +104,7 @@ fn spawn_random_event(
         }
     };
     events_seen_this_run.push(name);
-    let id_event = push_entity(entities, spawn_event(name, rng));
+    let id_event = push_entity(entities, spawn_event(name, ascension, rng));
     Some(id_event)
 }
 
@@ -147,11 +151,11 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
 }
 
 fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
-    effects.push(effect_direct(
-        EffectKind::MonsterSpawn { name },
-        None,
-        None,
-    ));
+    effects.push(Effect {
+        kind: EffectKind::MonsterSpawn { name },
+        id_source: None,
+        target: Target::Direct(None),
+    });
 }
 
 fn spawn_encounter_monsters(

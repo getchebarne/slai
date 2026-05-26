@@ -1,6 +1,6 @@
-use crate::engine::process_effect_relic_grant_random::grant_relic;
 use crate::game::GameState;
 use crate::types::RelicName;
+use crate::utils::grant_relic;
 
 pub fn process_effect_relic_grant_specific(
     state: &mut GameState,

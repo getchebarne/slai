@@ -1,6 +1,6 @@
-use crate::utils::queue_room_select;
 use crate::game::GameState;
 use crate::types::Screen;
+use crate::utils::queue_room_select;
 
 pub fn process_effect_event_end(id_source: Option<usize>, state: &mut GameState) {
     let id_event = id_source.expect("EventEnd requires id_source");

@@ -4,15 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 
-// Unified discard handler. `source` selects the branch:
-//
-// - Explicit (Acrobatics, Concentrate, CalculatedGamble, Unload, ToolsOfTheTrade,
-//   Storm of Steel, player-picked AwaitHandSelect, ...): move hand -> discard,
-//   bump `this_turn_discards`, fire on-discard effects
-//
-// - End of turn: turn-end auto-discard. Honors `card_retain` (clear flag, stay
-//   in hand) and `card_ethereal` (route to exhaust). Otherwise just moves
-//   hand -> discard with no counter and no on-discard effects
+// Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain/ethereal
 pub fn process_effect_card_discard(
     id_target: Option<usize>,
     state: &mut GameState,

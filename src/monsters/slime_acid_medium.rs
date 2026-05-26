@@ -120,7 +120,7 @@ const IDX_MOVE_WOUND_TACKLE: usize = 0;
 const IDX_MOVE_HEAVY_TACKLE: usize = 1;
 const IDX_MOVE_LICK: usize = 2;
 
-pub fn spawn_slime_acid_medium(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_slime_acid_medium(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (28, 32)
     } else {

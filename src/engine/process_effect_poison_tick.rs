@@ -1,5 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -7,8 +9,7 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 
-// Poison tick: deal HP loss equal to current Poison stacks, then decrement
-// Poison by 1 (remove if it would hit 0). Fires at the start of the target's turn start
+// HP loss = Poison stacks; then Poison -= 1 (remove on 0). Fires at turn start
 pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("PoisonTick requires id_target");
     let modifiers = &mut state.entities[id_target].modifiers;
@@ -24,8 +25,9 @@ pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameStat
     }
 
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::HealthLoss {
-            amount: stacks as u16,
+        kind: EffectKind::HealthDelta {
+            sign: HealthDeltaSign::Loss,
+            amount: HealthDeltaAmount::Flat(stacks as u16),
         },
         id_source: None,
         target: Target::Direct(Some(id_target)),

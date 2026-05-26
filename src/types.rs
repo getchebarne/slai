@@ -267,14 +267,6 @@ pub enum EventName {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum DeckSelectKind {
-    Remove,
-    UpgradeAny,
-    TransformOne,
-    DuplicateAny,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ChestKind {
     Small,
     Medium,

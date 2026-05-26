@@ -90,8 +90,7 @@ impl GameEnv {
         Ok((obs, self.state.game_over))
     }
 
-    // Enumerate every fully-parameterized legal Action for the current state.
-    // Authoritative: mirrors `validate(...)` rules. Empty when game_over
+    // Authoritative: mirrors validate() rules; empty when game_over
     fn get_legal_actions(&self) -> Vec<PyAction> {
         action::get_legal_actions(&self.state)
             .into_iter()
@@ -134,7 +133,8 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyCardName>()?;
     module.add_class::<ffi::PyMonsterName>()?;
     module.add_class::<ffi::PyEventName>()?;
-    module.add_class::<ffi::PyDeckSelectKind>()?;
+    module.add_class::<ffi::PyCandidatePoolDeckFilter>()?;
+    module.add_class::<ffi::PyCandidatePoolMonstersFilter>()?;
     module.add_class::<ffi::PyScreen>()?;
     module.add_class::<ffi::PyEvent>()?;
     module.add_class::<ffi::PyEventOption>()?;
@@ -143,6 +143,8 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PySelectionKind>()?;
     module.add_class::<ffi::PyTarget>()?;
     module.add_class::<ffi::PyEffect>()?;
+    module.add_class::<ffi::PyHealthDeltaSign>()?;
+    module.add_class::<ffi::PyHealthDeltaAmount>()?;
 
     // Reward + PendingInput surface
     module.add_class::<ffi::PyReward>()?;

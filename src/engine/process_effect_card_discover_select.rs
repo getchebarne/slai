@@ -4,10 +4,10 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::utils::push_entity;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;
+use crate::utils::push_entity;
 
 pub fn process_effect_card_discover_select(
     state: &mut GameState,

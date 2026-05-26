@@ -2,6 +2,8 @@ use std::collections::VecDeque;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
@@ -31,16 +33,15 @@ pub fn process_effect_damage_deal(
 
     if damage_over_block > 0 {
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::HealthLoss {
-                amount: damage_over_block,
+            kind: EffectKind::HealthDelta {
+                sign: HealthDeltaSign::Loss,
+                amount: HealthDeltaAmount::Flat(damage_over_block),
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),
         });
 
-        // Envenom: card-played attacks that land unblocked damage apply
-        // Envenom stacks of Poison to the target. `from_card` gates out
-        // modifier-driven damage (e.g. ThousandCuts)
+        // Envenom: card-played unblocked damage applies Poison; modifier-damage excluded
         if from_card && modifier_has(&mods_char, ModifierKind::Envenom) {
             let stacks = modifier_stacks(&mods_char, ModifierKind::Envenom);
             state.effect_queue.push_front(Effect {

@@ -1,16 +1,13 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 
-// Dynamic move resolution: read `move_current` at dispatch time and push the
-// move's effects. Mid-turn move overrides (slime split / Lagavulin wake on
-// poison) take effect because turn_end queues a single `MoveExecute`, not the
-// inline effects of whatever move was selected last turn
+// Reads move_current at dispatch (late binding); mid-turn overrides (split, wake) take effect
 pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameState) {
     let id_monster = id_target.expect("MoveExecute requires id_target");
     let entity = &state.entities[id_monster];

@@ -81,7 +81,7 @@ static MOVES_ASC18: [Move; 2] = [MOVE_BEAM_10, MOVE_BOLT_3];
 const IDX_MOVE_BEAM: usize = 0;
 const IDX_MOVE_BOLT: usize = 1;
 
-pub fn spawn_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 8 {
         (38, 42)
     } else {
@@ -114,10 +114,7 @@ pub fn spawn_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     )
 }
 
-// Strict Bolt <-> Beam alternation. First move depends on
-// position in the monster roster
-//     - even index: Bolt
-//     - odd: Beam
+// Strict Bolt↔Beam alternation; first is Bolt at even roster index, Beam at odd
 pub fn get_next_move_sentry(
     move_current: Option<usize>,
     move_history: &[u8],

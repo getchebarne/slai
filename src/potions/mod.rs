@@ -19,10 +19,10 @@ use strum::EnumCount;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
-use crate::utils::push_entity;
 use crate::entity::Entity;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
+use crate::utils::push_entity;
 
 pub fn get_potion(name: PotionName) -> Entity {
     match name {

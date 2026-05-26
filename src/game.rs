@@ -29,13 +29,13 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::engine::process_queue;
-use crate::utils::push_entity;
 use crate::entity::Entity;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act1_monsters;
 use crate::monsters::encounters::pick_act1_boss;
 use crate::relics::get_relic;
 use crate::types::*;
+use crate::utils::push_entity;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Energy {
@@ -60,8 +60,7 @@ pub struct GameState {
     // Engine state
     pub effect_queue: VecDeque<Effect>,
 
-    // Per-handler effect builder; cleared before each use. Built in execution
-    // order then drained back-to-front into effect_queue's front
+    // Per-handler effect builder; drained back-to-front into queue front
     pub buf_effects: Vec<Effect>,
 
     // Per-resolve candidate buffer; cleared before each use
@@ -166,8 +165,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     );
     let encounter_boss = pick_act1_boss(&mut rng);
 
-    // Seed the queue with the initial RoomSelect prompt so the player
-    // starts halted on the first map pick
+    // Seed initial RoomSelect prompt so player starts halted on first map pick
     let mut effect_queue = VecDeque::with_capacity(64);
     effect_queue.push_back(Effect {
         kind: EffectKind::RoomSelect,
@@ -231,11 +229,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     let effects = handle_action(state, action)?;
 
-    // Push action effects to the FRONT of the queue (in order). When the
-    // engine halts mid-chain (e.g., a discard prompt during a card play),
-    // the remaining effects from the interrupted chain are still in the
-    // queue. The player's response must be inserted before them so the
-    // response processes first, then the chain resumes
+    // Push to FRONT (reversed) so action effects resolve before any halt-interrupted chain
     for effect in effects.into_iter().rev() {
         state.effect_queue.push_front(effect);
     }

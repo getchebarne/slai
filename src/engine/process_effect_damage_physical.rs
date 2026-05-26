@@ -9,10 +9,7 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::utils::scale_attack_damage;
 
-// Translate `id_source` from "originating entity" to "actor entity": cards
-// delegate up to the character (cards don't carry Strength/Weak/Thorns
-// targeting), monsters and the character resolve to themselves. Used by
-// damage handlers for source-side scaling and Thorns reflect targeting
+// Source → actor: cards delegate to character; monsters/character self
 fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
     if entities[id_source].kind == EntityKind::Card {
         id_character
@@ -21,12 +18,7 @@ fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> u
     }
 }
 
-// Unified physical-damage handler. `if_poisoned` gates the hit: when true
-// (Bane), the handler bails (no damage, no Thorns) unless the target has
-// Poison; when false, the hit always lands. Scaling: Strength + Vigor + Weak
-// on actor, Vulnerable on target via `scale_attack_damage` (shared with the
-// FFI intent view), then DoubleDamage ×2, Intangible clamp, Thorns reflect,
-// finally push DamageDeal
+// Physical damage: if_poisoned bails unless target Poisoned; Str+Vigor+Weak/Vuln scale, ×2 DoubleDmg, Intangible clamp, Thorns reflect
 pub fn process_effect_damage_physical(
     id_source: Option<usize>,
     id_target: Option<usize>,

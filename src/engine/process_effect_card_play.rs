@@ -1,7 +1,8 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::Target;
-use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::entity::CardCostKind;
 use crate::entity::card_effective_cost;
 use crate::game::GameState;
@@ -10,6 +11,7 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
 use crate::types::RelicName;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardPlay requires id_target");
@@ -62,8 +64,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         energy_current,
     );
 
-    // X-cost reads raw energy_current (not effective_cost) so Setup-flagged
-    // X-cost still scales
+    // X-cost reads raw energy_current so Setup-flagged X-cost still scales
     let multiplier = match card.card_cost_kind {
         CardCostKind::XCost { offset } => (energy_current as i16 + offset as i16).max(0) as usize,
         _ => 1,
@@ -185,8 +186,9 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         if modifier_has(mods_monster, ModifierKind::Choke) {
             let stacks = modifier_stacks(mods_monster, ModifierKind::Choke);
             state.buf_effects.push(Effect {
-                kind: EffectKind::HealthLoss {
-                    amount: stacks as u16,
+                kind: EffectKind::HealthDelta {
+                    sign: HealthDeltaSign::Loss,
+                    amount: HealthDeltaAmount::Flat(stacks as u16),
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),

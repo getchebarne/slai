@@ -1,6 +1,8 @@
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -13,7 +15,10 @@ use crate::types::EventName;
 
 const BANANA: &[Effect] = &[
     Effect {
-        kind: EffectKind::HealthGainPct { numer: 1, denom: 3 },
+        kind: EffectKind::HealthDelta {
+            sign: HealthDeltaSign::Gain,
+            amount: HealthDeltaAmount::Pct { numer: 1, denom: 3 },
+        },
         id_source: None,
         target: Target::Direct(None),
     },
@@ -22,7 +27,10 @@ const BANANA: &[Effect] = &[
 
 const DONUT: &[Effect] = &[
     Effect {
-        kind: EffectKind::MaxHealthGain { amount: 5 },
+        kind: EffectKind::MaxHealthDelta {
+            sign: HealthDeltaSign::Gain,
+            amount: HealthDeltaAmount::Flat(5),
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
@@ -42,7 +50,7 @@ const BOX: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::RelicGrantRandom { tier: None },
+        kind: EffectKind::RelicGrantRandom,
         id_source: None,
         target: Target::Direct(None),
     },

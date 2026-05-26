@@ -5,8 +5,12 @@ use crate::action::Action;
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::effect::input_count;
@@ -27,13 +31,11 @@ use crate::modifier::modifier_stacks;
 use crate::modifier::stacks_max_for;
 use crate::monsters::hexaghost;
 use crate::relics::iter_owned_relics;
-use crate::types::Screen;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::ChestKind;
-use crate::types::DeckSelectKind;
 use crate::types::EventName;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
@@ -42,6 +44,7 @@ use crate::types::PotionRarity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
+use crate::types::Screen;
 use crate::utils::scale_attack_damage;
 
 // Enum mirrors
@@ -126,6 +129,38 @@ impl From<CardCostKind> for PyCardCostKind {
             CardCostKind::MinusDiscardsThisTurn => Self::MinusDiscardsThisTurn {},
             CardCostKind::GrowsOnDamageInstanceTaken => Self::GrowsOnDamageInstanceTaken {},
             CardCostKind::XCost { offset } => Self::XCost { offset },
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "HealthDeltaSign")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyHealthDeltaSign {
+    Gain,
+    Loss,
+}
+
+impl From<HealthDeltaSign> for PyHealthDeltaSign {
+    fn from(sign: HealthDeltaSign) -> Self {
+        match sign {
+            HealthDeltaSign::Gain => Self::Gain,
+            HealthDeltaSign::Loss => Self::Loss,
+        }
+    }
+}
+
+#[pyclass(eq, hash, frozen, name = "HealthDeltaAmount")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum PyHealthDeltaAmount {
+    Flat { amount: u16 },
+    Pct { numer: u8, denom: u8 },
+}
+
+impl From<HealthDeltaAmount> for PyHealthDeltaAmount {
+    fn from(amount: HealthDeltaAmount) -> Self {
+        match amount {
+            HealthDeltaAmount::Flat(amount) => Self::Flat { amount },
+            HealthDeltaAmount::Pct { numer, denom } => Self::Pct { numer, denom },
         }
     }
 }
@@ -739,28 +774,42 @@ impl From<ModifierKind> for PyModifierKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
     Hand,
-    MonsterPicked,
     Character,
     Monsters,
-    OtherMonsters,
     Source,
     NextRowRooms,
     IdPick,
-    DeckFiltered,
+    Deck,
 }
 
 impl From<CandidatePool> for PyCandidatePool {
     fn from(pool: CandidatePool) -> Self {
         match pool {
             CandidatePool::Hand => Self::Hand,
-            CandidatePool::MonsterPicked => Self::MonsterPicked,
             CandidatePool::Character => Self::Character,
-            CandidatePool::Monsters => Self::Monsters,
-            CandidatePool::OtherMonsters => Self::OtherMonsters,
+            CandidatePool::Monsters { filter: _ } => Self::Monsters,
             CandidatePool::Source => Self::Source,
             CandidatePool::NextRowRooms => Self::NextRowRooms,
             CandidatePool::IdPick => Self::IdPick,
-            CandidatePool::DeckFiltered(_) => Self::DeckFiltered,
+            CandidatePool::Deck { filter: _ } => Self::Deck,
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "CandidatePoolMonstersFilter")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyCandidatePoolMonstersFilter {
+    All,
+    Other,
+    Picked,
+}
+
+impl From<CandidatePoolMonstersFilter> for PyCandidatePoolMonstersFilter {
+    fn from(f: CandidatePoolMonstersFilter) -> Self {
+        match f {
+            CandidatePoolMonstersFilter::All => Self::All,
+            CandidatePoolMonstersFilter::Other => Self::Other,
+            CandidatePoolMonstersFilter::Picked => Self::Picked,
         }
     }
 }
@@ -793,43 +842,22 @@ impl From<Screen> for PyScreen {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "DeckSelectKind")]
+#[pyclass(eq, eq_int, hash, frozen, name = "CandidatePoolDeckFilter")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyDeckSelectKind {
-    Remove,
-    UpgradeAny,
-    TransformOne,
-    DuplicateAny,
+pub enum PyCandidatePoolDeckFilter {
+    Purgeable,
+    Upgradeable,
+    Any,
+    Transformable,
 }
 
-impl From<DeckSelectKind> for PyDeckSelectKind {
-    fn from(k: DeckSelectKind) -> Self {
-        match k {
-            DeckSelectKind::Remove => Self::Remove,
-            DeckSelectKind::UpgradeAny => Self::UpgradeAny,
-            DeckSelectKind::TransformOne => Self::TransformOne,
-            DeckSelectKind::DuplicateAny => Self::DuplicateAny,
-        }
-    }
-}
-
-impl PyDeckSelectKind {
-    fn from_u8(v: u8) -> Result<Self, String> {
-        match v {
-            0 => Ok(Self::Remove),
-            1 => Ok(Self::UpgradeAny),
-            2 => Ok(Self::TransformOne),
-            3 => Ok(Self::DuplicateAny),
-            _ => Err(format!("PyDeckSelectKind: invalid discriminant {v}")),
-        }
-    }
-
-    fn to_internal(self) -> DeckSelectKind {
-        match self {
-            Self::Remove => DeckSelectKind::Remove,
-            Self::UpgradeAny => DeckSelectKind::UpgradeAny,
-            Self::TransformOne => DeckSelectKind::TransformOne,
-            Self::DuplicateAny => DeckSelectKind::DuplicateAny,
+impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
+    fn from(f: CandidatePoolDeckFilter) -> Self {
+        match f {
+            CandidatePoolDeckFilter::Purgeable => Self::Purgeable,
+            CandidatePoolDeckFilter::Upgradeable => Self::Upgradeable,
+            CandidatePoolDeckFilter::Any => Self::Any,
+            CandidatePoolDeckFilter::Transformable => Self::Transformable,
         }
     }
 }
@@ -1087,9 +1115,7 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::CardDiscoverSelect { idx_option } => {
             (PyActionType::CardDiscoverSelect, vec![idx_option])
         }
-        Action::RewardTakeCard { idx_reward } => {
-            (PyActionType::RewardTakeCard, vec![idx_reward])
-        }
+        Action::RewardTakeCard { idx_reward } => (PyActionType::RewardTakeCard, vec![idx_reward]),
         Action::RewardTakeRelic => (PyActionType::RewardTakeRelic, vec![]),
         Action::RewardTakePotion => (PyActionType::RewardTakePotion, vec![]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
@@ -1207,12 +1233,14 @@ pub enum PyEffect {
     CalculatedGamble {
         target: Option<PyTarget>,
     },
-    MaxHealthGain {
-        amount: u16,
+    MaxHealthDelta {
+        sign: PyHealthDeltaSign,
+        amount: PyHealthDeltaAmount,
         target: Option<PyTarget>,
     },
-    HealthGain {
-        amount: u16,
+    HealthDelta {
+        sign: PyHealthDeltaSign,
+        amount: PyHealthDeltaAmount,
         target: Option<PyTarget>,
     },
     PotionAddRandom {
@@ -1228,30 +1256,7 @@ pub enum PyEffect {
         amount: u16,
         target: Option<PyTarget>,
     },
-    HealthGainPct {
-        numer: u8,
-        denom: u8,
-        target: Option<PyTarget>,
-    },
-    HealthLossPct {
-        numer: u8,
-        denom: u8,
-        target: Option<PyTarget>,
-    },
-    MaxHealthLossPct {
-        numer: u8,
-        denom: u8,
-        target: Option<PyTarget>,
-    },
-    CardUpgradeRandomInDeck {
-        count: u8,
-        target: Option<PyTarget>,
-    },
-    CardTransformRoll {
-        target: Option<PyTarget>,
-    },
     RelicGrantRandom {
-        tier: Option<PyRelicTier>,
         target: Option<PyTarget>,
     },
     RelicGrantSpecific {
@@ -1272,15 +1277,7 @@ pub enum PyEffect {
     EventEnd {
         target: Option<PyTarget>,
     },
-    DeckSelectStart {
-        kind: PyDeckSelectKind,
-        target: Option<PyTarget>,
-    },
     CardDiscoverPick {
-        target: Option<PyTarget>,
-    },
-    DeckSelectPick {
-        kind: PyDeckSelectKind,
         target: Option<PyTarget>,
     },
     CardAddToDeck {
@@ -1288,12 +1285,16 @@ pub enum PyEffect {
         upgraded: bool,
         target: Option<PyTarget>,
     },
-    HealthLoss {
-        amount: u16,
+    CardPurge {
         target: Option<PyTarget>,
     },
-    MaxHealthLoss {
-        amount: u16,
+    CardUpgrade {
+        target: Option<PyTarget>,
+    },
+    CardDuplicate {
+        target: Option<PyTarget>,
+    },
+    CardTransform {
         target: Option<PyTarget>,
     },
     GoldGain {
@@ -1371,29 +1372,20 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         }
         EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
         EffectKind::GoldLoss { amount } => PyEffect::GoldLoss { amount, target },
-        EffectKind::HealthGainPct { numer, denom } => PyEffect::HealthGainPct {
-            numer,
-            denom,
+        EffectKind::HealthDelta { sign, amount } => PyEffect::HealthDelta {
+            sign: sign.into(),
+            amount: amount.into(),
             target,
         },
-        EffectKind::HealthLossPct { numer, denom } => PyEffect::HealthLossPct {
-            numer,
-            denom,
+        EffectKind::MaxHealthDelta { sign, amount } => PyEffect::MaxHealthDelta {
+            sign: sign.into(),
+            amount: amount.into(),
             target,
         },
-        EffectKind::MaxHealthLossPct { numer, denom } => PyEffect::MaxHealthLossPct {
-            numer,
-            denom,
-            target,
-        },
-        EffectKind::CardUpgradeRandomInDeck { count } => {
-            PyEffect::CardUpgradeRandomInDeck { count, target }
-        }
-        EffectKind::CardTransformRoll => PyEffect::CardTransformRoll { target },
-        EffectKind::RelicGrantRandom { tier } => PyEffect::RelicGrantRandom {
-            tier: tier.map(Into::into),
-            target,
-        },
+        EffectKind::CardPurge => PyEffect::CardPurge { target },
+        EffectKind::CardDuplicate => PyEffect::CardDuplicate { target },
+        EffectKind::CardTransform => PyEffect::CardTransform { target },
+        EffectKind::RelicGrantRandom => PyEffect::RelicGrantRandom { target },
         EffectKind::RelicGrantSpecific {
             name,
             fallback_circlet,
@@ -1414,10 +1406,6 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         },
         EffectKind::EventEnd => PyEffect::EventEnd { target },
-        EffectKind::DeckSelectStart { kind } => PyEffect::DeckSelectStart {
-            kind: kind.into(),
-            target,
-        },
         EffectKind::CardAddToDeck {
             card_name,
             upgraded,
@@ -1426,17 +1414,14 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             upgraded,
             target,
         },
-        EffectKind::HealthLoss { amount } => PyEffect::HealthLoss { amount, target },
-        EffectKind::MaxHealthLoss { amount } => PyEffect::MaxHealthLoss { amount, target },
         EffectKind::GoldGain { amount } => PyEffect::GoldGain { amount, target },
-        EffectKind::MaxHealthGain { amount } => PyEffect::MaxHealthGain { amount, target },
-        EffectKind::HealthGain { amount } => PyEffect::HealthGain { amount, target },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
         EffectKind::CardDiscoverSelect { kind, count } => PyEffect::CardDiscoverSelect {
             kind: kind.into(),
             count,
             target,
         },
+        EffectKind::CardUpgrade => PyEffect::CardUpgrade { target },
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
             other
@@ -1646,19 +1631,23 @@ pub struct PyReward {
     pub gold: Option<u16>,
 }
 
-// Snapshot of the halt overlay (state.pending_effect), when any. `None`
-// outside of halts. Python priority cascade: pending_input > context > location.
-// Each variant is 1:1 with a halting EffectKind
+// Halt overlay snapshot; `None` outside halts. Variants 1:1 with halting EffectKind
 #[pyclass(frozen, name = "PendingInput")]
 #[derive(Debug, Clone)]
 pub enum PyPendingInput {
-    Discard { num: u8 },
-    Retain { num: u8 },
+    Discard {
+        num: u8,
+    },
+    Retain {
+        num: u8,
+    },
     Setup {},
     Nightmare {},
-    Discover { cards: Vec<PyCard> },
+    Discover {
+        cards: Vec<PyCard>,
+    },
     DeckSelect {
-        kind: PyDeckSelectKind,
+        filter: PyCandidatePoolDeckFilter,
         cards: Vec<PyCard>,
     },
     RoomSelect {},
@@ -1948,8 +1937,12 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
     let pending = state.pending_effect.as_ref()?;
     let num = input_count(pending).map(|c| c as u8);
     Some(match pending.kind {
-        EffectKind::CardDiscard { .. } => PyPendingInput::Discard { num: num.unwrap_or(1) },
-        EffectKind::CardRetain => PyPendingInput::Retain { num: num.unwrap_or(1) },
+        EffectKind::CardDiscard { .. } => PyPendingInput::Discard {
+            num: num.unwrap_or(1),
+        },
+        EffectKind::CardRetain => PyPendingInput::Retain {
+            num: num.unwrap_or(1),
+        },
         EffectKind::CardSetupPick => PyPendingInput::Setup {},
         EffectKind::CardNightmarePick => PyPendingInput::Nightmare {},
         EffectKind::CardDiscoverPick => {
@@ -1964,23 +1957,31 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
             };
             PyPendingInput::Discover { cards }
         }
-        EffectKind::DeckSelectPick { kind } => PyPendingInput::DeckSelect {
-            kind: kind.into(),
-            cards: filtered_deck_cards(state, kind),
-        },
+        EffectKind::CardPurge
+        | EffectKind::CardUpgrade
+        | EffectKind::CardDuplicate
+        | EffectKind::CardTransform => {
+            let Target::Resolve {
+                candidate_pool: CandidatePool::Deck { filter },
+                ..
+            } = pending.target
+            else {
+                unreachable!("deck-pick halt without Deck pool: {:?}", pending.target);
+            };
+            // buf_candidates was populated by resolve_or_halt at halt time
+            let cards: Vec<PyCard> = state
+                .buf_candidates
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect();
+            PyPendingInput::DeckSelect {
+                filter: filter.into(),
+                cards,
+            }
+        }
         EffectKind::RoomSelect => PyPendingInput::RoomSelect {},
         _ => unreachable!("pending_effect with non-halting kind: {:?}", pending.kind),
     })
-}
-
-fn filtered_deck_cards(state: &GameState, kind: DeckSelectKind) -> Vec<PyCard> {
-    state
-        .id_deck
-        .iter()
-        .copied()
-        .filter(|&id| crate::events::card_in_deck_filter(&state.entities[id], kind))
-        .map(|id| snapshot_card(state, id))
-        .collect()
 }
 
 fn snapshot_event(state: &GameState, id_event: usize) -> PyEvent {
@@ -2142,8 +2143,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         &state.entities[state.id_character].modifiers,
         ModifierKind::Entangled,
     );
-    // Combat-only context lookups for play-restriction and cost: outside
-    // combat these default to permissive values (cards not played anyway)
+    // Combat-only; outside combat defaults are permissive (cards not played)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
         if matches!(state.screen, Screen::Combat) {
             (

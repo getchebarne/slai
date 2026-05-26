@@ -4,9 +4,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardKind;
 
-// Deal `damage` per Skill currently in hand. Hand snapshot at handler time;
-// Flechettes itself was already moved to discard by card_play so it can't be
-// in hand
+// `damage` per Skill in hand (Flechettes itself already moved to discard)
 pub fn process_effect_flechettes_damage(
     id_source: Option<usize>,
     id_target: Option<usize>,

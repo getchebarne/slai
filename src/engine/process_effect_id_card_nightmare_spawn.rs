@@ -1,7 +1,7 @@
 use crate::consts::MAX_SIZE_HAND;
 use crate::consts::NIGHTMARE_COPIES;
-use crate::utils::push_entity;
 use crate::game::GameState;
+use crate::utils::push_entity;
 
 pub fn process_effect_id_card_nightmare_spawn(state: &mut GameState) {
     let id_template = state

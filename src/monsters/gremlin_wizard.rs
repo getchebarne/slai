@@ -55,7 +55,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];
 const IDX_MOVE_CHARGE: usize = 0;
 const IDX_MOVE_ULTIMATE_BLAST: usize = 1;
 
-pub fn spawn_gremlin_wizard(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_gremlin_wizard(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (21, 25)
     } else {
@@ -103,8 +103,7 @@ pub fn get_next_move_gremlin_wizard(
         };
     }
 
-    // Check if Ultimate Blast has already fired & calculate number of needed
-    // charges based on that
+    // Charges needed depends on whether Ultimate Blast has already fired
     let has_fired_blast = move_history
         .iter()
         .any(|&m| m == IDX_MOVE_ULTIMATE_BLAST as u8);

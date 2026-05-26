@@ -8,8 +8,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use rand::Rng;
 
-// Distraction: spawn a random Silent Skill (excluding Distraction itself) as
-// a free-to-play-once card in hand
+// Random Silent Skill (not Distraction) into hand, free-to-play-once
 pub fn process_effect_distraction_add(state: &mut GameState) {
     let mut buf = [CardName::Strike; 64];
     let mut n = 0;

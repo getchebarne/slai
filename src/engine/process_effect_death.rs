@@ -45,9 +45,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         None
     };
 
-    // CorpseExplosion: dying enemy deals damage equal to its max HP to every
-    // other alive enemy. `id_source = None` so no source-side scaling and
-    // Envenom can't proc; block still subtracts
+    // CorpseExplosion: max_health to others; no source scaling, no Envenom proc
     let corpse_explosion = modifier_has(&monster.modifiers, ModifierKind::CorpseExplosion)
         .then(|| monster.vitals.health_max);
 
@@ -86,8 +84,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             target: Target::Direct(None),
         });
     } else {
-        // Mid-combat: push to front so on-death triggers fire before any
-        // suspended chain resumes
+        // Mid-combat: push to front so on-death triggers fire before suspended chain
         if let Some(e) = spore_effect {
             state.effect_queue.push_front(e);
         }

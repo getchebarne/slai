@@ -2,9 +2,9 @@ use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::utils::push_entity;
 use crate::game::GameState;
 use crate::relics::iter_owned_relics;
+use crate::utils::push_entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(state: &mut GameState) {

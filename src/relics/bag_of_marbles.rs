@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -20,7 +21,9 @@ pub static BAG_OF_MARBLES: Entity = make_entity_relic(
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::All,
+            },
             selection_kind: SelectionKind::All,
         },
     }],

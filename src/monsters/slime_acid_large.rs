@@ -166,7 +166,7 @@ const IDX_MOVE_HEAVY_TACKLE: usize = 1;
 const IDX_MOVE_LICK: usize = 2;
 pub const IDX_MOVE_SPLIT: usize = 3;
 
-pub fn spawn_slime_acid_large(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_slime_acid_large(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (65, 69)
     } else {
@@ -203,8 +203,7 @@ pub fn get_next_move_slime_acid_large(
 ) -> usize {
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
-        // Asc 17+: 40/30/30 split. Slime Tackle no-three-in-a-row,
-        // Heavy no-three-in-a-row, Lick no-two-in-a-row
+        // Asc 17+ 40/30/30: Tackle no-3-row, Heavy no-3-row, Lick no-2-row
         if roll < 40 {
             if move_history.ends_with(&[IDX_MOVE_SLIME_TACKLE as u8, IDX_MOVE_SLIME_TACKLE as u8]) {
                 if rng.random_bool(0.6) {
@@ -235,8 +234,7 @@ pub fn get_next_move_slime_acid_large(
             IDX_MOVE_LICK
         }
     } else if roll < 30 {
-        // Asc 0-16: 30/40/30 split. Slime Tackle no-three-in-a-row,
-        // Heavy no-two-in-a-row, Lick no-three-in-a-row
+        // Asc 0-16 30/40/30: Tackle no-3-row, Heavy no-2-row, Lick no-3-row
         if move_history.ends_with(&[IDX_MOVE_SLIME_TACKLE as u8, IDX_MOVE_SLIME_TACKLE as u8]) {
             if rng.random_bool(0.5) {
                 IDX_MOVE_HEAVY_TACKLE

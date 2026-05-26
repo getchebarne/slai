@@ -1,7 +1,7 @@
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
-use crate::effect::effect_direct;
 use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
@@ -43,16 +43,16 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     }
 
     if let Some(remaining) = shuffle_resume_remaining {
-        state.effect_queue.push_front(effect_direct(
-            EffectKind::CardDraw { count: remaining },
-            None,
-            None,
-        ));
-        state.effect_queue.push_front(effect_direct(
-            EffectKind::ShuffleDiscardPileIntoDrawPile,
-            None,
-            None,
-        ));
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardDraw { count: remaining },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ShuffleDiscardPileIntoDrawPile,
+            id_source: None,
+            target: Target::Direct(None),
+        });
     }
 
     // Fire on-draw hooks in draw order; push reversed so front-of-queue resumes correctly

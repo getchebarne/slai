@@ -1,5 +1,4 @@
-// Map generation and queries
-// TODO: check if this is the exact same logic from the de-compiled original Java code
+// Map generation and queries (TODO: verify against decompiled Java)
 
 use rand::Rng;
 
@@ -12,14 +11,13 @@ use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_ROW_TREASURE;
 use crate::consts::MAP_WIDTH;
 use crate::consts::PATH_DENSITY;
-use crate::utils::push_entity;
 use crate::entity::Entity;
 use crate::entity::make_entity_room;
 use crate::game::Location;
 use crate::types::RoomKind;
+use crate::utils::push_entity;
 
-// Intermediate grid-cell during map generation. Converted to `Entity` via
-// `entitize_map` once the grid is finalized
+// Intermediate grid-cell; converted to Entity via entitize_map after finalization
 #[derive(Debug, Clone, Copy)]
 struct Room {
     pub y: usize,
@@ -360,8 +358,7 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
                 }
             }
             if !swapped {
-                // No valid host row had a free CombatMonster — downgrade
-                // this node to CombatMonster rather than violate the rule
+                // No free CombatMonster host row → downgrade this node rather than violate rule
                 if let Some(n) = &mut nodes[y][x] {
                     n.room_kind = RoomKind::CombatMonster;
                 }

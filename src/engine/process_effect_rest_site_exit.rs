@@ -1,7 +1,6 @@
 use crate::consts::MAP_HEIGHT;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
-use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
@@ -15,9 +14,11 @@ pub fn process_effect_rest_site_exit(state: &mut GameState) {
 
     if at_final_row {
         state.location = Location::BossRoom;
-        state
-            .effect_queue
-            .push_front(effect_direct(EffectKind::RoomEnter, None, None));
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::RoomEnter,
+            id_source: None,
+            target: Target::Direct(None),
+        });
     } else {
         state.screen = Screen::Map;
         state.effect_queue.push_front(Effect {

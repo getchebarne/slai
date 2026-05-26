@@ -22,9 +22,7 @@ static MOVE_ACTIVATE: Move = Move {
     intent: Intent::Unknown,
 };
 
-// Divider's true damage (HP/12+1 × 6) is computed at fire time by
-// `EffectKind::HexaghostDivider`; the placeholder Intent values shown here
-// are overridden in the view layer to display the dynamic damage
+// Divider true damage (HP/12+1 × 6) computed at fire time; placeholder Intent overridden in view
 static MOVE_DIVIDER: Move = Move {
     name: "Divider",
     effects: &[Effect {
@@ -413,7 +411,7 @@ const IDX_MOVE_TACKLE: usize = 4;
 const IDX_MOVE_INFLAME: usize = 5;
 const IDX_MOVE_INFERNO: usize = 6;
 
-pub fn spawn_hexaghost(ascension_level: u8) -> Entity {
+pub fn spawn_monster_hexaghost(ascension_level: u8) -> Entity {
     let health_max: u16 = if ascension_level < 9 { 250 } else { 264 };
 
     let moves: &'static [Move] = if ascension_level < 4 {
@@ -473,8 +471,7 @@ pub fn get_next_move_hexaghost(move_current: Option<usize>, move_history: &[u8])
         return cycle_slot(0, has_inferno);
     }
 
-    // Mid-cycle. Walk back from end to find the most recent Divider/Inferno anchor
-    // `slot` = number of moves since that anchor
+    // Mid-cycle: walk back to most recent Divider/Inferno anchor; `slot` = moves since
     let mut slot = 0usize;
     for &move_ in move_history.iter().rev() {
         if move_ == IDX_MOVE_DIVIDER as u8 || move_ == IDX_MOVE_INFERNO as u8 {

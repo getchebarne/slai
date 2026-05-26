@@ -1,5 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
+use crate::effect::HealthDeltaSign;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
@@ -43,7 +45,10 @@ const OUTRUN: &[Effect] = &[
 
 const SMASH: &[Effect] = &[
     Effect {
-        kind: EffectKind::HealthLossPct { numer: 1, denom: 4 },
+        kind: EffectKind::HealthDelta {
+            sign: HealthDeltaSign::Loss,
+            amount: HealthDeltaAmount::Pct { numer: 1, denom: 4 },
+        },
         id_source: None,
         target: Target::Direct(None),
     },
@@ -52,9 +57,12 @@ const SMASH: &[Effect] = &[
 
 const HIDE: &[Effect] = &[
     Effect {
-        kind: EffectKind::MaxHealthLossPct {
-            numer: 8,
-            denom: 100,
+        kind: EffectKind::MaxHealthDelta {
+            sign: HealthDeltaSign::Loss,
+            amount: HealthDeltaAmount::Pct {
+                numer: 8,
+                denom: 100,
+            },
         },
         id_source: None,
         target: Target::Direct(None),

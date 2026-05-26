@@ -60,9 +60,9 @@ pub const CHEST_LARGE_GOLD_BASE: u16 = 75;
 pub const CHEST_LARGE_TH_COMMON: u8 = 0;
 pub const CHEST_LARGE_TH_UNCOMMON: u8 = 75;
 
-// Cumulative thresholds for relic-tier roll
-pub const ELITE_TH_COMMON: u8 = 50;
-pub const ELITE_TH_UNCOMMON: u8 = 83;
+// Cumulative thresholds for relic-tier roll (elite reward, random grant)
+pub const RELIC_TIER_TH_COMMON: u8 = 50;
+pub const RELIC_TIER_TH_UNCOMMON: u8 = 83;
 
 // Encounter sequence sizes
 pub const NUM_ENCOUNTERS_WEAK: usize = 3;

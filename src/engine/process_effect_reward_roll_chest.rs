@@ -13,8 +13,8 @@ use crate::consts::CHEST_SMALL_GOLD_CHANCE;
 use crate::consts::CHEST_SMALL_TH_COMMON;
 use crate::consts::CHEST_SMALL_TH_UNCOMMON;
 use crate::game::GameState;
-use crate::types::Screen;
 use crate::types::ChestKind;
+use crate::types::Screen;
 use crate::utils::add_relic_reward_for_roll;
 
 #[derive(Debug, Clone, Copy)]

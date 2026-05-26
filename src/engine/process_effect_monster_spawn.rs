@@ -1,12 +1,12 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::utils::push_entity;
 use crate::game::Energy;
 use crate::game::GameState;
 use crate::monsters::spawn_monster;
-use crate::types::Screen;
 use crate::types::MonsterName;
+use crate::types::Screen;
+use crate::utils::push_entity;
 
 pub fn process_effect_monster_spawn(
     id_source: Option<usize>,
@@ -21,10 +21,7 @@ pub fn process_effect_monster_spawn(
 
     let mut monster_child = spawn_monster(name, state.ascension, &mut state.rng);
 
-    // Slime split: spawned child inherits the parent's current HP as max
-    // health. Only the three splitting slimes use this path; gate on the
-    // source's monster_name so a future non-slime caller passing a source
-    // doesn't silently inherit HP
+    // Slime split: child max HP = parent current HP; gated to splittable slimes only
     if let Some(id) = id_source {
         let parent = &state.entities[id];
         assert!(

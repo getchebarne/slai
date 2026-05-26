@@ -1,8 +1,8 @@
-use crate::utils::queue_room_select;
 use crate::game::GameState;
 use crate::potions::find_free_slot;
-use crate::types::Screen;
 use crate::types::RewardKind;
+use crate::types::Screen;
+use crate::utils::queue_room_select;
 
 pub fn process_effect_reward_take(
     id_target: Option<usize>,
@@ -25,7 +25,9 @@ pub fn process_effect_reward_take(
             if let Some(id) = state.reward_id_potion.take() {
                 let character = &mut state.entities[state.id_character];
                 let slot = find_free_slot(&character.potion_slots, character.potion_slots_max)
-                    .expect("RewardTake { Potion }: belt full (action handler should have rejected)");
+                    .expect(
+                        "RewardTake { Potion }: belt full (action handler should have rejected)",
+                    );
                 character.potion_slots[slot] = Some(id);
             }
         }

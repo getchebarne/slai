@@ -2,10 +2,8 @@ use crate::modifier::ModifierKind;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::ChestKind;
-use crate::types::DeckSelectKind;
 use crate::types::MonsterName;
 use crate::types::RelicName;
-use crate::types::RelicTier;
 use crate::types::RewardKind;
 use crate::types::RoomKind;
 
@@ -107,11 +105,9 @@ pub enum EffectKind {
     DamageDeal {
         amount: u16,
     },
-    HealthGain {
-        amount: u16,
-    },
-    HealthLoss {
-        amount: u16,
+    HealthDelta {
+        sign: HealthDeltaSign,
+        amount: HealthDeltaAmount,
     },
     BlockSet {
         amount: u16,
@@ -149,19 +145,19 @@ pub enum EffectKind {
     // Halts on the pick; re-runs as `Direct` once the player chooses
     RoomSelect,
 
-    // Master-deck mutation (combat rewards, events, shop, Neow)
-    CardRemoveFromDeck,
+    // Master-deck mutation
+    CardPurge,
+    CardDuplicate,
+    CardTransform,
     CardAddToDeck {
         card_name: CardName,
         upgraded: bool,
     },
 
     // Out-of-combat HP cap mutation
-    MaxHealthGain {
-        amount: u16,
-    },
-    MaxHealthLoss {
-        amount: u16,
+    MaxHealthDelta {
+        sign: HealthDeltaSign,
+        amount: HealthDeltaAmount,
     },
 
     ChestOpen,
@@ -185,25 +181,7 @@ pub enum EffectKind {
     GoldLoss {
         amount: u16,
     },
-    HealthGainPct {
-        numer: u8,
-        denom: u8,
-    },
-    HealthLossPct {
-        numer: u8,
-        denom: u8,
-    },
-    MaxHealthLossPct {
-        numer: u8,
-        denom: u8,
-    },
-    CardUpgradeRandomInDeck {
-        count: u8,
-    },
-    CardTransformRoll,
-    RelicGrantRandom {
-        tier: Option<RelicTier>,
-    },
+    RelicGrantRandom,
     RelicGrantSpecific {
         name: RelicName,
         fallback_circlet: bool,
@@ -217,15 +195,9 @@ pub enum EffectKind {
         on_ge: &'static [Effect],
     },
     EventEnd,
-    DeckSelectStart {
-        kind: DeckSelectKind,
-    },
 
     // Halt markers; re-run as `Direct` with the player's pick
     CardDiscoverPick,
-    DeckSelectPick {
-        kind: DeckSelectKind,
-    },
 }
 
 // Origin tag the CardDiscard handler branches on
@@ -235,18 +207,44 @@ pub enum DiscardSource {
     EndOfTurn,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum HealthDeltaSign {
+    Gain,
+    Loss,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum HealthDeltaAmount {
+    Flat(u16),
+    // Loss-pct rounds up to min 1; Gain-pct uses straight floor division
+    Pct { numer: u8, denom: u8 },
+}
+
 // Source pool for a Resolve effect
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
     Hand,
-    MonsterPicked,
     Character,
-    Monsters,
-    OtherMonsters,
+    Monsters { filter: CandidatePoolMonstersFilter },
     Source,
     NextRowRooms,
     IdPick,
-    DeckFiltered(DeckSelectKind),
+    Deck { filter: CandidatePoolDeckFilter },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CandidatePoolDeckFilter {
+    Purgeable,
+    Upgradeable,
+    Any,
+    Transformable,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CandidatePoolMonstersFilter {
+    All,
+    Other,
+    Picked,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -260,13 +258,10 @@ pub enum SelectionKind {
 // Target known at queue time (Direct) or resolved against live state at dequeue (Resolve)
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Target {
-    /// Target is known (or not needed). Dispatch runs the handler directly.
-    /// `None` means the effect takes no target (CardDraw, EnergyGain, etc.)
+    // Known target, or `None` for targetless effects (CardDraw, EnergyGain).
     Direct(Option<usize>),
 
-    /// Target must be resolved against live state at dequeue time. The
-    /// dispatcher runs `resolve_selection_kind` and either fans out to `Direct`
-    /// effects or halts on input
+    // Resolved against live state at dequeue via `resolve_selection_kind`.
     Resolve {
         candidate_pool: CandidatePool,
         selection_kind: SelectionKind,
@@ -288,17 +283,6 @@ pub const ZERO_EFFECT: Effect = Effect {
     target: Target::Direct(None),
 };
 
-pub const fn effect_direct(
-    kind: EffectKind,
-    id_source: Option<usize>,
-    id_target: Option<usize>,
-) -> Effect {
-    Effect {
-        kind,
-        id_source,
-        target: Target::Direct(id_target),
-    }
-}
 
 // Input count if the Effect's target is a Resolve with SelectionKind::Input
 pub fn input_count(effect: &Effect) -> Option<u16> {
