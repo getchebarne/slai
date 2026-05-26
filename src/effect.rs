@@ -12,7 +12,7 @@ use crate::types::RoomKind;
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
-    Noop,
+    NoOp,
     DamagePhysical {
         amount: u16,
     },
@@ -283,7 +283,7 @@ pub struct Effect {
 
 // Filler for slots past `card_effects_len` in Entity.card_effects
 pub const ZERO_EFFECT: Effect = Effect {
-    kind: EffectKind::Noop,
+    kind: EffectKind::NoOp,
     id_source: None,
     target: Target::Direct(None),
 };

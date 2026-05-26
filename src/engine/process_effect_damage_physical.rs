@@ -1,12 +1,25 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::get_id_actor;
+use crate::entity::Entity;
+use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::utils::scale_attack_damage;
+
+// Translate `id_source` from "originating entity" to "actor entity": cards
+// delegate up to the character (cards don't carry Strength/Weak/Thorns
+// targeting), monsters and the character resolve to themselves. Used by
+// damage handlers for source-side scaling and Thorns reflect targeting
+fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
+    if entities[id_source].kind == EntityKind::Card {
+        id_character
+    } else {
+        id_source
+    }
+}
 
 // Unified physical-damage handler. `if_poisoned` gates the hit: when true
 // (Bane), the handler bails (no damage, no Thorns) unless the target has

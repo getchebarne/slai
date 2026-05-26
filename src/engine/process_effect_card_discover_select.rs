@@ -4,7 +4,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::push_entity;
+use crate::utils::push_entity;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;

@@ -17,7 +17,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::push_entity;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
@@ -26,6 +25,21 @@ use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
 use crate::types::CardName;
 use crate::types::RelicName;
+
+// Drain state.buf_effects back-to-front into the effect_queue front, so the
+// effects pop in the order they were pushed into buf_effects
+pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
+    while let Some(e) = state.buf_effects.pop() {
+        state.effect_queue.push_front(e);
+    }
+}
+
+// Append an Entity to the arena; returns the assigned id
+pub fn push_entity(entities: &mut Vec<Entity>, e: Entity) -> usize {
+    let id = entities.len();
+    entities.push(e);
+    id
+}
 
 pub fn queue_room_select(state: &mut GameState) {
     state.effect_queue.push_back(Effect {

@@ -43,7 +43,7 @@ pub fn process_effect_reward_take(
         && state.reward_id_potion.is_none()
         && state.reward_gold.is_none()
     {
-        state.active = Screen::Map;
+        state.screen = Screen::Map;
         queue_room_select(state);
     }
 }

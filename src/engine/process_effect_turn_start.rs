@@ -6,7 +6,7 @@ use crate::effect::effect_direct;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::flush_effects_from_buf_to_queue_front;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;

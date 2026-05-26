@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::push_entity;
+use crate::utils::push_entity;
 use crate::game::Energy;
 use crate::game::GameState;
 use crate::monsters::spawn_monster;
@@ -14,8 +14,8 @@ pub fn process_effect_monster_spawn(
     name: MonsterName,
 ) {
     // First spawn of a combat installs the Combat context
-    if !matches!(state.active, Screen::Combat) {
-        state.active = Screen::Combat;
+    if !matches!(state.screen, Screen::Combat) {
+        state.screen = Screen::Combat;
         state.energy = Energy { current: 3, max: 3 };
     }
 

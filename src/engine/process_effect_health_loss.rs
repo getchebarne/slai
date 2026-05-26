@@ -20,7 +20,7 @@ pub fn process_effect_health_loss(id_target: Option<usize>, state: &mut GameStat
     // event (post-block, so amount > 0 excludes fully-absorbed hits)
     if id_target == state.id_character
         && amount > 0
-        && matches!(state.active, Screen::Combat)
+        && matches!(state.screen, Screen::Combat)
     {
         state.this_combat_damage_instances_taken =
             state.this_combat_damage_instances_taken.saturating_add(1);

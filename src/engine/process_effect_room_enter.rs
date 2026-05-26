@@ -5,8 +5,8 @@ use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::effect::Effect;
 use crate::effect::effect_direct;
 use crate::effect::EffectKind;
-use crate::engine::flush_effects_from_buf_to_queue_front;
-use crate::engine::push_entity;
+use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::push_entity;
 use crate::entity::Entity;
 use crate::events::POOL_ACT1_EVENT;
 use crate::events::spawn_event;
@@ -40,7 +40,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
         }
         RoomKind::RestSite => {
-            state.active = Screen::RestSite;
+            state.screen = Screen::RestSite;
         }
         RoomKind::Treasure => {
             let Location::Overworld { y, x } = state.location else {
@@ -56,7 +56,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             } else {
                 ChestKind::Large
             });
-            state.active = Screen::Chest;
+            state.screen = Screen::Chest;
         }
         RoomKind::EventRoom => {
             if let Some(id_event) = spawn_random_event(
@@ -64,13 +64,13 @@ pub fn process_effect_room_enter(state: &mut GameState) {
                 &mut state.events_seen_this_run,
                 &mut state.rng,
             ) {
-                state.active = Screen::Event;
+                state.screen = Screen::Event;
                 state.id_event = Some(id_event);
                 return;
             }
         }
         RoomKind::Shop => {
-            state.active = Screen::Shop;
+            state.screen = Screen::Shop;
         }
     }
 

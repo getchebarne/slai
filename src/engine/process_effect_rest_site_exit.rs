@@ -19,7 +19,7 @@ pub fn process_effect_rest_site_exit(state: &mut GameState) {
             .effect_queue
             .push_front(effect_direct(EffectKind::RoomEnter, None, None));
     } else {
-        state.active = Screen::Map;
+        state.screen = Screen::Map;
         state.effect_queue.push_front(Effect {
             kind: EffectKind::RoomSelect,
             id_source: None,

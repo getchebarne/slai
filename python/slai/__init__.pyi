@@ -680,7 +680,7 @@ class GameState:
     relics: list[Relic]
     energy: Energy
     map: Map
-    active: Screen
+    screen: Screen
     game_over: bool
     reward: Reward | None
     event: Event | None

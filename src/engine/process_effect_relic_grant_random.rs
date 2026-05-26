@@ -1,7 +1,7 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::engine::push_entity;
+use crate::utils::push_entity;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;

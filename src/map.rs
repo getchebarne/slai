@@ -12,7 +12,7 @@ use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_ROW_TREASURE;
 use crate::consts::MAP_WIDTH;
 use crate::consts::PATH_DENSITY;
-use crate::engine::push_entity;
+use crate::utils::push_entity;
 use crate::entity::Entity;
 use crate::entity::make_entity_room;
 use crate::game::Location;

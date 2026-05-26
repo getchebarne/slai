@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::engine::flush_effects_from_buf_to_queue_front;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::entity::CardCostKind;
 use crate::entity::card_effective_cost;
 use crate::game::GameState;

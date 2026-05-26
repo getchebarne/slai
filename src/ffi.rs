@@ -1620,7 +1620,7 @@ pub struct PyMap {
 #[pyclass(frozen, get_all, name = "GameState")]
 #[derive(Debug, Clone)]
 pub struct PyGameState {
-    pub active: PyScreen,
+    pub screen: PyScreen,
     pub game_over: bool,
     pub character: PyCharacter,
     pub monsters: Vec<PyMonster>,
@@ -1856,7 +1856,7 @@ impl MonsterEncounter {
 pub fn snapshot_state(state: &GameState) -> PyGameState {
     // Combat-only fields default to empty / 0 when not in Combat context
     let (hand, pile_draw, pile_discard, pile_exhaust, energy) =
-        if matches!(state.active, Screen::Combat) {
+        if matches!(state.screen, Screen::Combat) {
             (
                 state
                     .id_hand
@@ -1893,7 +1893,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             )
         };
     let pending_input = snapshot_pending_input(state);
-    let reward = match state.active {
+    let reward = match state.screen {
         Screen::Reward => Some(PyReward {
             cards: state
                 .reward_id_cards
@@ -1910,7 +1910,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         }),
         _ => None,
     };
-    let event = match state.active {
+    let event = match state.screen {
         Screen::Event => Some(snapshot_event(
             state,
             state
@@ -1936,7 +1936,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         energy,
         map: snapshot_map(state),
-        active: state.active.into(),
+        screen: state.screen.into(),
         game_over: state.game_over,
         reward,
         event,
@@ -1953,7 +1953,7 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
         EffectKind::CardSetupPick => PyPendingInput::Setup {},
         EffectKind::CardNightmarePick => PyPendingInput::Nightmare {},
         EffectKind::CardDiscoverPick => {
-            let cards = if matches!(state.active, Screen::Combat) {
+            let cards = if matches!(state.screen, Screen::Combat) {
                 state
                     .id_pick
                     .iter()
@@ -2145,7 +2145,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     // Combat-only context lookups for play-restriction and cost: outside
     // combat these default to permissive values (cards not played anyway)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        if matches!(state.active, Screen::Combat) {
+        if matches!(state.screen, Screen::Combat) {
             (
                 is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw),
                 state.this_turn_discards,

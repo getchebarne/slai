@@ -29,7 +29,7 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::engine::process_queue;
-use crate::engine::push_entity;
+use crate::utils::push_entity;
 use crate::entity::Entity;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act1_monsters;
@@ -98,7 +98,7 @@ pub struct GameState {
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
-    pub active: Screen,
+    pub screen: Screen,
     pub game_over: bool,
 
     // Combat working memory; meaningful when active = Combat
@@ -200,7 +200,7 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         events_seen_this_run: Vec::with_capacity(EventName::COUNT),
         potion_drop_mod: 0,
 
-        active: Screen::Map,
+        screen: Screen::Map,
         game_over: false,
         id_hand: Vec::with_capacity(MAX_SIZE_HAND),
         id_pile_draw: Vec::with_capacity(MAX_SIZE_DECK),

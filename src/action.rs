@@ -86,7 +86,7 @@ fn validate(action: &Action, state: &GameState) -> Result<(), String> {
         };
     }
 
-    match state.active {
+    match state.screen {
         Screen::Combat => validate_combat(action),
         Screen::Reward => validate_reward(action),
         Screen::Event => validate_event(action),
@@ -251,7 +251,7 @@ pub fn get_legal_actions(state: &GameState) -> Vec<Action> {
     if let Some(pending) = state.pending_effect.as_ref() {
         return legal_actions_pending(state, pending);
     }
-    match state.active {
+    match state.screen {
         Screen::Combat => legal_actions_combat(state),
         Screen::Reward => legal_actions_reward(state),
         Screen::Event => legal_actions_event(state),
@@ -435,7 +435,7 @@ fn push_room_select_actions(state: &GameState, actions: &mut Vec<Action>) {
 
 fn push_potion_actions(state: &GameState, actions: &mut Vec<Action>) {
     let character = &state.entities[state.id_character];
-    let in_combat = matches!(state.active, Screen::Combat);
+    let in_combat = matches!(state.screen, Screen::Combat);
     let alive_count = state.id_monsters.iter().flatten().count();
     for s in 0..character.potion_slots_max as usize {
         let Some(id_potion) = character.potion_slots[s] else {
@@ -525,7 +525,7 @@ fn handle_card_play(
     idx_hand: usize,
     idx_monster: Option<usize>,
 ) -> Result<Vec<Effect>, String> {
-    if !matches!(state.active, Screen::Combat) {
+    if !matches!(state.screen, Screen::Combat) {
         return Err("CardPlay outside Combat context".into());
     }
     let id_card = lookup_idx(&state.id_hand, idx_hand)?;
@@ -611,7 +611,7 @@ fn handle_card_play(
 }
 
 fn handle_hand_select(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
-    if !matches!(state.active, Screen::Combat) {
+    if !matches!(state.screen, Screen::Combat) {
         return Err("HandSelect outside Combat context".into());
     }
     let pending = state
@@ -672,7 +672,7 @@ fn handle_room_select(state: &mut GameState, idx_column: usize) -> Result<Vec<Ef
 }
 
 fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, Screen::Reward));
+    debug_assert!(matches!(state.screen, Screen::Reward));
     let id_card = lookup_idx(&state.reward_id_cards, idx_reward)?;
     Ok(vec![effect_direct(
         EffectKind::RewardTake {
@@ -684,7 +684,7 @@ fn handle_reward_take_card(state: &GameState, idx_reward: usize) -> Result<Vec<E
 }
 
 fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, Screen::Reward));
+    debug_assert!(matches!(state.screen, Screen::Reward));
     if state.reward_id_relic.is_none() {
         return Err("RewardTakeRelic: no relic in reward pool".to_string());
     }
@@ -698,7 +698,7 @@ fn handle_reward_take_relic(state: &GameState) -> Result<Vec<Effect>, String> {
 }
 
 fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, Screen::Reward));
+    debug_assert!(matches!(state.screen, Screen::Reward));
     if state.reward_id_potion.is_none() {
         return Err("RewardTakePotion: no potion in reward pool".to_string());
     }
@@ -716,7 +716,7 @@ fn handle_reward_take_potion(state: &GameState) -> Result<Vec<Effect>, String> {
 }
 
 fn handle_reward_take_gold(state: &GameState) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, Screen::Reward));
+    debug_assert!(matches!(state.screen, Screen::Reward));
     if state.reward_gold.is_none() {
         return Err("RewardTakeGold: no gold in reward pool".to_string());
     }
@@ -781,7 +781,7 @@ fn handle_potion_use(
         .ok_or_else(|| format!("PotionUse: slot {} is empty", idx_slot))?;
     let potion = &state.entities[id_potion];
 
-    if potion.potion_combat_only && !matches!(state.active, Screen::Combat) {
+    if potion.potion_combat_only && !matches!(state.screen, Screen::Combat) {
         return Err(format!(
             "PotionUse: {:?} is combat-only",
             potion.potion_name
@@ -850,7 +850,7 @@ fn handle_card_discover_select(
     state: &mut GameState,
     idx_option: usize,
 ) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, Screen::Combat));
+    debug_assert!(matches!(state.screen, Screen::Combat));
     let id_card = *state
         .id_pick
         .get(idx_option)
@@ -882,7 +882,7 @@ fn handle_rest_site_card_upgrade(
 }
 
 fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
-    debug_assert!(matches!(state.active, Screen::Event));
+    debug_assert!(matches!(state.screen, Screen::Event));
     let id_event = state.id_event.expect("validate guarantees Event context");
     let event = &state.entities[id_event];
     if idx_option >= event.event_options.len() {

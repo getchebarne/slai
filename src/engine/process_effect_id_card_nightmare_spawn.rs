@@ -1,6 +1,6 @@
 use crate::consts::MAX_SIZE_HAND;
 use crate::consts::NIGHTMARE_COPIES;
-use crate::engine::push_entity;
+use crate::utils::push_entity;
 use crate::game::GameState;
 
 pub fn process_effect_id_card_nightmare_spawn(state: &mut GameState) {
