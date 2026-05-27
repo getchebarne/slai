@@ -6,11 +6,14 @@ pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_add_to_hand;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
-pub mod process_effect_card_discover_select;
+pub mod process_effect_card_discover_roll;
 pub mod process_effect_card_draw;
+pub mod process_effect_card_draw_up_to;
 pub mod process_effect_card_duplicate;
 pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move_to_discard;
+pub mod process_effect_card_nightmare_pick;
+pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_play;
 pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
@@ -22,19 +25,18 @@ pub mod process_effect_chest_open;
 pub mod process_effect_combat_end;
 pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
+pub mod process_effect_damage_finisher;
+pub mod process_effect_damage_flechettes;
 pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_distraction_add;
-pub mod process_effect_draw_up_to;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
 pub mod process_effect_escape_monster;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_end;
-pub mod process_effect_finisher_damage;
-pub mod process_effect_flechettes_damage;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -42,8 +44,6 @@ pub mod process_effect_health_delta;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_hexaghost_divider;
-pub mod process_effect_id_card_nightmare_pick;
-pub mod process_effect_id_card_nightmare_spawn;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
@@ -63,9 +63,9 @@ pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
 pub mod process_effect_reward_skip;
 pub mod process_effect_reward_take;
-pub mod process_effect_scrap_ooze_reach;
 pub mod process_effect_room_enter;
 pub mod process_effect_room_select;
+pub mod process_effect_scrap_ooze_reach;
 pub mod process_effect_set_cost_override;
 pub mod process_effect_shuffle_discard_pile_into_draw_pile;
 pub mod process_effect_sneaky_strike_proc;
@@ -125,12 +125,12 @@ fn fill_buf_candidates(
     id_source: Option<usize>,
     id_character: usize,
     id_hand: &[usize],
-    id_monster_picked: Option<usize>,
+    id_picked_monster: Option<usize>,
     id_monsters: &[Option<usize>; MAX_MONSTERS],
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     location: Location,
     entities: &[Entity],
-    id_pick: &[usize],
+    id_discover: &[usize],
     id_deck: &[usize],
 ) {
     match candidate_pool {
@@ -151,8 +151,8 @@ fn fill_buf_candidates(
                 }
             }
             CandidatePoolMonstersFilter::Picked => buf_candidates.push(
-                id_monster_picked
-                    .expect("CandidatePool::Monsters{Picked} requires id_monster_picked"),
+                id_picked_monster
+                    .expect("CandidatePool::Monsters{Picked} requires id_picked_monster"),
             ),
         },
         CandidatePool::Source => {
@@ -187,7 +187,7 @@ fn fill_buf_candidates(
             }
             Location::BossRoom => {}
         },
-        CandidatePool::IdPick => buf_candidates.extend_from_slice(id_pick),
+        CandidatePool::Discover => buf_candidates.extend_from_slice(id_discover),
         CandidatePool::Deck { filter } => match filter {
             CandidatePoolDeckFilter::Purgeable => {
                 for &id in id_deck {
@@ -294,12 +294,12 @@ fn resolve_or_halt(
         id_source,
         state.id_character,
         &state.id_hand,
-        state.id_monster_picked,
+        state.id_picked_monster,
         &state.id_monsters,
         &state.id_rooms,
         state.location,
         &state.entities,
-        &state.id_pick,
+        &state.id_discover,
         &state.id_deck,
     );
 
@@ -318,9 +318,9 @@ fn dispatch_by_kind(
             debug_assert!(matches!(state.screen, Screen::Combat));
             process_effect_card_draw::process_effect_card_draw(state, count)
         }
-        EffectKind::DrawUpTo { amount } => {
+        EffectKind::CardDrawUpTo { amount } => {
             debug_assert!(matches!(state.screen, Screen::Combat));
-            process_effect_draw_up_to::process_effect_draw_up_to(state, amount)
+            process_effect_card_draw_up_to::process_effect_card_draw_up_to(state, amount)
         }
         EffectKind::CardPlay => {
             debug_assert!(matches!(state.screen, Screen::Combat));
@@ -365,13 +365,11 @@ fn dispatch_by_kind(
         }
         EffectKind::CardNightmarePick => {
             debug_assert!(matches!(state.screen, Screen::Combat));
-            process_effect_id_card_nightmare_pick::process_effect_id_card_nightmare_pick(
-                id_target, state,
-            )
+            process_effect_card_nightmare_pick::process_effect_card_nightmare_pick(id_target, state)
         }
         EffectKind::CardNightmareSpawn => {
             debug_assert!(matches!(state.screen, Screen::Combat));
-            process_effect_id_card_nightmare_spawn::process_effect_id_card_nightmare_spawn(state)
+            process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn(state)
         }
         EffectKind::CardExhaust => {
             debug_assert!(matches!(state.screen, Screen::Combat));
@@ -448,15 +446,15 @@ fn dispatch_by_kind(
             debug_assert!(matches!(state.screen, Screen::Combat));
             process_effect_escape_plan_check::process_effect_escape_plan_check(state, block)
         }
-        EffectKind::FinisherDamage { damage } => {
+        EffectKind::DamageFinisher { damage } => {
             debug_assert!(matches!(state.screen, Screen::Combat));
-            process_effect_finisher_damage::process_effect_finisher_damage(
+            process_effect_damage_finisher::process_effect_damage_finisher(
                 id_source, id_target, state, damage,
             )
         }
-        EffectKind::FlechettesDamage { damage } => {
+        EffectKind::DamageFlechettes { damage } => {
             debug_assert!(matches!(state.screen, Screen::Combat));
-            process_effect_flechettes_damage::process_effect_flechettes_damage(
+            process_effect_damage_flechettes::process_effect_damage_flechettes(
                 id_source, id_target, state, damage,
             )
         }
@@ -605,9 +603,9 @@ fn dispatch_by_kind(
         EffectKind::PotionAddRandom { limited } => {
             process_effect_potion_add_random::process_effect_potion_add_random(state, limited)
         }
-        EffectKind::CardDiscoverSelect { kind, count } => {
+        EffectKind::CardDiscoverRoll { kind, count } => {
             debug_assert!(matches!(state.screen, Screen::Combat));
-            process_effect_card_discover_select::process_effect_card_discover_select(
+            process_effect_card_discover_roll::process_effect_card_discover_roll(
                 state,
                 kind,
                 CardColor::Green, // TODO: other characters

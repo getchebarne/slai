@@ -16,8 +16,8 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
     let id_actor = id_target.expect("TurnStart requires id_target");
     let id_character = state.id_character;
-    let energy_max = state.energy.max;
-    let energy_current = state.energy.current;
+    let energy_max = state.energy.energy_max;
+    let energy_current = state.energy.energy_current;
     let nightmare_pending = state.id_card_nightmare.is_some();
     let id_monsters = state.id_monsters;
 

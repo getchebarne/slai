@@ -12,7 +12,10 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: GoldDeltaSign, kin
     };
     let character = &mut state.entities[state.id_character];
     character.character_gold = match sign {
-        GoldDeltaSign::Gain => character.character_gold.saturating_add(amount).min(MAX_GOLD),
+        GoldDeltaSign::Gain => character
+            .character_gold
+            .saturating_add(amount)
+            .min(MAX_GOLD),
         GoldDeltaSign::Loss => character.character_gold.saturating_sub(amount),
     };
 }

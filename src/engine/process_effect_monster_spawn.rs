@@ -16,7 +16,10 @@ pub fn process_effect_monster_spawn(
     // First spawn of a combat installs the Combat context
     if !matches!(state.screen, Screen::Combat) {
         state.screen = Screen::Combat;
-        state.energy = Energy { current: 3, max: 3 };
+        state.energy = Energy {
+            energy_current: 3,
+            energy_max: 3,
+        };
     }
 
     let mut monster_child = spawn_monster(name, state.ascension, &mut state.rng);

@@ -3,7 +3,7 @@ use crate::consts::NIGHTMARE_COPIES;
 use crate::game::GameState;
 use crate::utils::push_entity;
 
-pub fn process_effect_id_card_nightmare_spawn(state: &mut GameState) {
+pub fn process_effect_card_nightmare_spawn(state: &mut GameState) {
     let id_template = state
         .id_card_nightmare
         .take()

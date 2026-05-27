@@ -1,8 +1,8 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::Target;
 use crate::effect::GoldDeltaKind;
 use crate::effect::GoldDeltaSign;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
 use crate::events::EVENT_END_EFFECT;
@@ -54,10 +54,14 @@ const fn options(agree_effects: &'static [Effect], agree_label: &'static str) ->
         },
     ]
 }
-static OPTIONS_ALL_BASE: [EventOption; 2] =
-    options(&OPTION_AGREE_BASE, "[Agree] Gain 175 Gold. Become Cursed - Doubt.");
-static OPTIONS_ALL_A15: [EventOption; 2] =
-    options(&OPTION_AGREE_A15, "[Agree] Gain 150 Gold. Become Cursed - Doubt.");
+static OPTIONS_ALL_BASE: [EventOption; 2] = options(
+    &OPTION_AGREE_BASE,
+    "[Agree] Gain 175 Gold. Become Cursed - Doubt.",
+);
+static OPTIONS_ALL_A15: [EventOption; 2] = options(
+    &OPTION_AGREE_A15,
+    "[Agree] Gain 150 Gold. Become Cursed - Doubt.",
+);
 
 // Export event
 static EVENT_THE_SSSSSERPENT_BASE: Entity =

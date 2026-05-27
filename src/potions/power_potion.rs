@@ -4,6 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
+use crate::potions::EFFECT_CARD_DISCOVER_PICK;
 use crate::types::CardKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
@@ -13,12 +14,15 @@ pub static POWER_POTION: Entity = make_entity_potion(
     PotionRarity::Common,
     false,
     true,
-    &[Effect {
-        kind: EffectKind::CardDiscoverSelect {
-            kind: CardKind::Power,
-            count: DISCOVER_PICK_COUNT,
+    &[
+        Effect {
+            kind: EffectKind::CardDiscoverRoll {
+                kind: CardKind::Power,
+                count: DISCOVER_PICK_COUNT,
+            },
+            id_source: None,
+            target: Target::Direct(None),
         },
-        id_source: None,
-        target: Target::Direct(None),
-    }],
+        EFFECT_CARD_DISCOVER_PICK,
+    ],
 );

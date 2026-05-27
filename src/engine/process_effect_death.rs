@@ -1,8 +1,8 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::Target;
 use crate::effect::GoldDeltaKind;
 use crate::effect::GoldDeltaSign;
+use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;

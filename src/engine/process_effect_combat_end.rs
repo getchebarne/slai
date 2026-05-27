@@ -40,15 +40,15 @@ fn combat_reset(state: &mut GameState) {
     state.id_pile_draw.clear();
     state.id_pile_discard.clear();
     state.id_pile_exhaust.clear();
-    state.id_pick.clear();
+    state.id_discover.clear();
     state.id_card_nightmare = None;
-    state.id_monster_picked = None;
+    state.id_picked_monster = None;
     state.id_monsters = [None; MAX_MONSTERS];
     state.this_turn_discards = 0;
     state.this_turn_attacks_played = 0;
     state.this_combat_damage_instances_taken = 0;
     state.escaped_this_combat = false;
-    state.card_last_drawn = None;
+    state.id_card_last_drawn = None;
 
     for entity in state.entities.iter_mut() {
         match entity.kind {

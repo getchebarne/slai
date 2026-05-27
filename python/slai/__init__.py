@@ -126,7 +126,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         ),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
         create_action_spec(
-            ActionType.CardDiscoverSelect, ArgSpec("idx_option", _DISCOVER_POS)
+            ActionType.CardDiscover, ArgSpec("idx_option", _DISCOVER_POS)
         ),
         # Reward pickup family
         create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx_reward", _REWARD_POS)),

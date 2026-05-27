@@ -18,7 +18,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let id_character = state.id_character;
     let this_turn_discards = state.this_turn_discards;
     let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
-    let energy_current = state.energy.current;
+    let energy_current = state.energy.energy_current;
 
     let card = state.entities[id_card];
 

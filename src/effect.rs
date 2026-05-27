@@ -10,56 +10,16 @@ use crate::types::RoomKind;
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
-    NoOp,
-    DamagePhysical {
-        amount: u16,
-    },
-    DamagePhysicalIfPoisoned {
-        amount: u16,
-    },
-    DistractionAdd,
-    EscapePlanCheck {
-        block: u16,
-    },
-    GlassKnifeDecay {
-        delta: i16,
-    },
-    FinisherDamage {
-        damage: u16,
-    },
-    FlechettesDamage {
-        damage: u16,
-    },
-    HeelHookProc,
-    SneakyStrikeProc {
-        energy: u8,
-    },
-    StormOfSteelProc {
-        upgraded: bool,
-    },
-    UnloadDiscard,
     BlockGain {
         amount: u16,
     },
-    ModifierGain {
-        kind: ModifierKind,
-        stacks: i16,
-    },
-    ModifierMultiply {
-        kind: ModifierKind,
-        factor: u8,
-    },
-    ModifierRemove {
-        kind: ModifierKind,
-    },
-    EnergyGain {
+    BlockSet {
         amount: u16,
     },
-    CardDraw {
-        count: u16,
-    },
-    DrawUpTo {
-        amount: u8,
+    CalculatedGamble,
+    CardAddToDeck {
+        card_name: CardName,
+        upgraded: bool,
     },
     CardAddToDiscard {
         card_name: CardName,
@@ -74,128 +34,149 @@ pub enum EffectKind {
     CardDiscard {
         source: DiscardSource,
     },
-    CardMoveToDiscard,
-    DamageMindBlast,
-    ShuffleDiscardPileIntoDrawPile,
-    CardNightmarePick,
-    CardNightmareSpawn,
-    CardRetain,
-    CardSetupPick,
-    SetCostOverride {
+    CardDiscoverPick,
+    CardDiscoverRoll {
+        kind: CardKind,
+        count: u8,
+    },
+    CardDraw {
+        count: u16,
+    },
+    CardDrawUpTo {
         amount: u8,
     },
-    CalculatedGamble,
-
-    // Runtime only (for now)
-    CardPlay,
+    CardDuplicate,
     CardExhaust,
+    CardMoveToDiscard,
+    CardNightmarePick,
+    CardNightmareSpawn,
+    CardPlay,
+    CardPurge,
     CardRemove,
+    CardRetain,
+    CardSetupPick,
+    CardTransform,
     CardUpgrade,
-    RewardRollCombat {
-        room_kind: RoomKind,
-    },
-    RewardRollChest {
-        kind: ChestKind,
-    },
-    RewardTake {
-        kind: RewardKind,
-    },
-    TargetSet,
-    TargetClear,
+    ChestOpen,
+    CombatEnd,
+    CombatStart,
     DamageDeal {
         amount: u16,
     },
-    HealthDelta {
-        sign: HealthDeltaSign,
-        amount: HealthDeltaAmount,
+    DamageFinisher {
+        damage: u16,
     },
-    BlockSet {
+    DamageFlechettes {
+        damage: u16,
+    },
+    DamageMindBlast,
+    DamagePhysical {
+        amount: u16,
+    },
+    DamagePhysicalIfPoisoned {
+        amount: u16,
+    },
+    Death,
+    DistractionAdd,
+    EnergyGain {
         amount: u16,
     },
     EnergyLoss {
         amount: u8,
     },
-    ModifierTick,
-    PoisonTick,
-    ModifierSetNotNew,
-    Death,
-    CombatStart,
-    CombatEnd,
-    TurnStart,
-    TurnEnd,
-    MoveUpdate,
-    MoveExecute,
-    RoomEnter,
-    RestSiteExit,
-    MonsterSpawn {
-        name: MonsterName,
-    },
     EscapeMonster,
-    GoldSteal {
-        amount: u8,
+    EscapePlanCheck {
+        block: u16,
+    },
+    EventAdvanceState {
+        delta: i8,
+    },
+    EventEnd,
+    GlassKnifeDecay {
+        delta: i16,
     },
     GoldDelta {
         sign: GoldDeltaSign,
         kind: GoldDeltaKind,
     },
+    GoldSteal {
+        amount: u8,
+    },
+    HealthDelta {
+        sign: HealthDeltaSign,
+        amount: HealthDeltaAmount,
+    },
+    HeelHookProc,
     HexaghostBurnIncrease {
         count: u8,
     },
     HexaghostDivider,
-
-    // Halts on the pick; re-runs as `Direct` once the player chooses
-    RoomSelect,
-
-    // Master-deck mutation
-    CardPurge,
-    CardDuplicate,
-    CardTransform,
-    CardAddToDeck {
-        card_name: CardName,
-        upgraded: bool,
-    },
-
-    // Out-of-combat HP cap mutation
     MaxHealthDelta {
         sign: HealthDeltaSign,
         amount: HealthDeltaAmount,
     },
-
-    ChestOpen,
-
-    // Potions
-    PotionUse,
+    ModifierGain {
+        kind: ModifierKind,
+        stacks: i16,
+    },
+    ModifierMultiply {
+        kind: ModifierKind,
+        factor: u8,
+    },
+    ModifierRemove {
+        kind: ModifierKind,
+    },
+    ModifierSetNotNew,
+    ModifierTick,
+    MonsterSpawn {
+        name: MonsterName,
+    },
+    MoveExecute,
+    MoveUpdate,
+    NoOp,
+    PoisonTick,
     PotionAddRandom {
         limited: bool,
     },
-
-    // Umbrella skip: bulk-clear all reward pool fields
-    RewardSkip,
-
-    // Rolls N cards of `kind`; halts on CardDiscoverPick for Action::CardDiscoverSelect
-    CardDiscoverSelect {
-        kind: CardKind,
-        count: u8,
-    },
-
-    // Event substrate
+    PotionUse,
     RelicGrantRandom,
     RelicGrantSpecific {
         name: RelicName,
         fallback_circlet: bool,
     },
-    EventAdvanceState {
-        delta: i8,
+    RestSiteExit,
+    RewardRollChest {
+        kind: ChestKind,
     },
+    RewardRollCombat {
+        room_kind: RoomKind,
+    },
+    RewardSkip,
+    RewardTake {
+        kind: RewardKind,
+    },
+    RoomEnter,
+    RoomSelect,
     ScrapOozeReach {
         dmg: u16,
         chance: u8,
         advance_on_miss: bool,
     },
-    EventEnd,
-
-    // Halt markers; re-run as `Direct` with the player's pick
-    CardDiscoverPick,
+    SetCostOverride {
+        amount: u8,
+    },
+    ShuffleDiscardPileIntoDrawPile,
+    SneakyStrikeProc {
+        energy: u8,
+    },
+    StormOfSteelProc {
+        upgraded: bool,
+    },
+    TargetClear,
+    TargetSet,
+    TurnEnd,
+    TurnStart,
+    UnloadDiscard,
 }
 
 // Origin tag the CardDiscard handler branches on
@@ -238,7 +219,7 @@ pub enum CandidatePool {
     Monsters { filter: CandidatePoolMonstersFilter },
     Source,
     NextRowRooms,
-    IdPick,
+    Discover,
     Deck { filter: CandidatePoolDeckFilter },
 }
 

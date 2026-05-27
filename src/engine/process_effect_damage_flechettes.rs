@@ -5,13 +5,13 @@ use crate::game::GameState;
 use crate::types::CardKind;
 
 // `damage` per Skill in hand (Flechettes itself already moved to discard)
-pub fn process_effect_flechettes_damage(
+pub fn process_effect_damage_flechettes(
     id_source: Option<usize>,
     id_target: Option<usize>,
     state: &mut GameState,
     damage: u16,
 ) {
-    let id_target = id_target.expect("FlechettesDamage requires id_target");
+    let id_target = id_target.expect("DamageFlechettes requires id_target");
     let num_skills_in_hand = state
         .id_hand
         .iter()

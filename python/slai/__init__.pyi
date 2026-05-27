@@ -93,7 +93,7 @@ class CandidatePool(IntEnum):
     Monsters: int
     Source: int
     NextRowRooms: int
-    IdPick: int
+    Discover: int
     Deck: int
 
 class CandidatePoolMonstersFilter(IntEnum):
@@ -276,13 +276,13 @@ class ActionType(IntEnum):
     ChestOpen: int
     PotionUse: int
     PotionDiscard: int
-    CardDiscoverSelect: int
+    CardDiscover: int
     RewardTakeCard: int
     RewardTakeRelic: int
     RewardTakePotion: int
     RewardTakeGold: int
     RewardSkip: int
-    EventChoice: int
+    EventSelect: int
     DeckSelect: int
 
 class CandidatePoolDeckFilter(IntEnum):
@@ -419,7 +419,7 @@ class Effect:
     class CardNightmarePick:
         target: Optional[Target]
 
-    class CardDiscoverSelect:
+    class CardDiscover:
         kind: CardKind
         count: int
         target: Optional[Target]
@@ -431,11 +431,11 @@ class Effect:
         amount: int
         target: Optional[Target]
 
-    class FinisherDamage:
+    class DamageFinisher:
         damage: int
         target: Optional[Target]
 
-    class FlechettesDamage:
+    class DamageFlechettes:
         damage: int
         target: Optional[Target]
 
@@ -482,7 +482,7 @@ class Effect:
         count: int
         target: Optional[Target]
 
-    class DrawUpTo:
+    class CardDrawUpTo:
         amount: int
         target: Optional[Target]
 
@@ -536,7 +536,7 @@ class ActionSpecRegistry:
     ChestOpen: ActionSpec
     PotionUse: ActionSpec
     PotionDiscard: ActionSpec
-    CardDiscoverSelect: ActionSpec
+    CardDiscover: ActionSpec
     RewardTakeCard: ActionSpec
     RewardTakeRelic: ActionSpec
     RewardTakePotion: ActionSpec
@@ -609,11 +609,11 @@ class Card:
             Effect.GlassKnifeDecay,
             Effect.CardSetupPick,
             Effect.CardNightmarePick,
-            Effect.CardDiscoverSelect,
+            Effect.CardDiscoverRoll,
             Effect.DistractionAdd,
             Effect.SetCostOverride,
-            Effect.FinisherDamage,
-            Effect.FlechettesDamage,
+            Effect.DamageFinisher,
+            Effect.DamageFlechettes,
             Effect.UnloadDiscard,
             Effect.StormOfSteelProc,
             Effect.SneakyStrikeProc,
@@ -624,7 +624,7 @@ class Card:
             Effect.EnergyGain,
             Effect.CardAddToHand,
             Effect.CardDraw,
-            Effect.DrawUpTo,
+            Effect.CardDrawUpTo,
             Effect.CardDiscard,
             Effect.DamageMindBlast,
             Effect.ShuffleDiscardPileIntoDrawPile,
@@ -655,8 +655,8 @@ class Monster:
     intent: Intent
 
 class Energy:
-    current: int
-    max: int
+    energy_current: int
+    energy_max: int
 
 class Room:
     room_kind: RoomKind

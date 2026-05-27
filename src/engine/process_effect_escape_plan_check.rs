@@ -4,9 +4,9 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardKind;
 
-// If last-drawn is a Skill, gain `block`; consumes card_last_drawn
+// If last-drawn is a Skill, gain `block`; consumes id_card_last_drawn
 pub fn process_effect_escape_plan_check(state: &mut GameState, block: u16) {
-    let id_card = match state.card_last_drawn.take() {
+    let id_card = match state.id_card_last_drawn.take() {
         Some(id) => id,
         None => return,
     };

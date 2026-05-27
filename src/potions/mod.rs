@@ -19,10 +19,25 @@ use strum::EnumCount;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 use crate::utils::push_entity;
+
+// Follows a CardDiscover roll; halts until the player picks from `id_discover`
+pub const EFFECT_CARD_DISCOVER_PICK: Effect = Effect {
+    kind: EffectKind::CardDiscoverPick,
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Discover,
+        selection_kind: SelectionKind::Input { count: 1 },
+    },
+};
 
 pub fn get_potion(name: PotionName) -> Entity {
     match name {

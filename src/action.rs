@@ -57,10 +57,10 @@ pub enum Action {
     PotionDiscard {
         idx_slot: usize,
     },
-    CardDiscoverSelect {
+    CardDiscover {
         idx_option: usize,
     },
-    EventChoice {
+    EventSelect {
         idx_option: usize,
     },
     DeckSelect {
@@ -81,7 +81,7 @@ fn validate(action: &Action, state: &GameState) -> Result<(), String> {
             | EffectKind::CardNightmarePick => {
                 validate_hand_select(action, input_count(pending).unwrap())
             }
-            EffectKind::CardDiscoverPick => validate_discover(action),
+            EffectKind::CardDiscoverPick => validate_card_discover(action),
             EffectKind::CardPurge
             | EffectKind::CardUpgrade
             | EffectKind::CardDuplicate
@@ -92,13 +92,13 @@ fn validate(action: &Action, state: &GameState) -> Result<(), String> {
     }
 
     match state.screen {
-        Screen::Combat => validate_combat(action),
-        Screen::Reward => validate_reward(action),
-        Screen::Event => validate_event(action),
-        Screen::Shop => validate_shop(action),
-        Screen::Map => validate_map(action),
-        Screen::RestSite => validate_rest_site(action, state),
-        Screen::Chest => validate_chest(action),
+        Screen::Combat => validate_screen_combat(action),
+        Screen::Reward => validate_screen_reward(action),
+        Screen::Event => validate_screen_event(action),
+        Screen::Shop => validate_screen_shop(action),
+        Screen::Map => validate_screen_map(action),
+        Screen::RestSite => validate_screen_rest_site(action, state),
+        Screen::Chest => validate_screen_chest(action),
     }
 }
 
@@ -128,10 +128,10 @@ fn validate_room_select(action: &Action) -> Result<(), String> {
     }
 }
 
-fn validate_discover(action: &Action) -> Result<(), String> {
+fn validate_card_discover(action: &Action) -> Result<(), String> {
     match action {
-        Action::CardDiscoverSelect { .. } => Ok(()),
-        _ => Err(format!("Expected CardDiscoverSelect, got {:?}", action)),
+        Action::CardDiscover { .. } => Ok(()),
+        _ => Err(format!("Expected CardDiscover, got {:?}", action)),
     }
 }
 
@@ -142,7 +142,7 @@ fn validate_deck_select(action: &Action) -> Result<(), String> {
     }
 }
 
-fn validate_combat(action: &Action) -> Result<(), String> {
+fn validate_screen_combat(action: &Action) -> Result<(), String> {
     match action {
         Action::CardPlay { .. }
         | Action::EndTurn
@@ -152,7 +152,7 @@ fn validate_combat(action: &Action) -> Result<(), String> {
     }
 }
 
-fn validate_reward(action: &Action) -> Result<(), String> {
+fn validate_screen_reward(action: &Action) -> Result<(), String> {
     match action {
         Action::RewardTakeCard { .. }
         | Action::RewardTakeRelic
@@ -164,23 +164,23 @@ fn validate_reward(action: &Action) -> Result<(), String> {
     }
 }
 
-fn validate_event(action: &Action) -> Result<(), String> {
+fn validate_screen_event(action: &Action) -> Result<(), String> {
     match action {
-        Action::EventChoice { .. } | Action::PotionUse { .. } | Action::PotionDiscard { .. } => {
+        Action::EventSelect { .. } | Action::PotionUse { .. } | Action::PotionDiscard { .. } => {
             Ok(())
         }
         _ => Err(format!("Action {:?} invalid in Event context", action)),
     }
 }
 
-fn validate_shop(action: &Action) -> Result<(), String> {
+fn validate_screen_shop(action: &Action) -> Result<(), String> {
     match action {
         Action::RoomSkip | Action::PotionUse { .. } | Action::PotionDiscard { .. } => Ok(()),
         _ => Err(format!("Action {:?} invalid in Shop context", action)),
     }
 }
 
-fn validate_map(action: &Action) -> Result<(), String> {
+fn validate_screen_map(action: &Action) -> Result<(), String> {
     match action {
         Action::RoomSelect { .. } | Action::PotionUse { .. } | Action::PotionDiscard { .. } => {
             Ok(())
@@ -189,7 +189,7 @@ fn validate_map(action: &Action) -> Result<(), String> {
     }
 }
 
-fn validate_rest_site(action: &Action, state: &GameState) -> Result<(), String> {
+fn validate_screen_rest_site(action: &Action, state: &GameState) -> Result<(), String> {
     match action {
         Action::PotionUse { .. } | Action::PotionDiscard { .. } => Ok(()),
         Action::RestSiteRest => Ok(()),
@@ -206,7 +206,7 @@ fn validate_rest_site(action: &Action, state: &GameState) -> Result<(), String> 
     }
 }
 
-fn validate_chest(action: &Action) -> Result<(), String> {
+fn validate_screen_chest(action: &Action) -> Result<(), String> {
     match action {
         Action::ChestOpen | Action::PotionUse { .. } | Action::PotionDiscard { .. } => Ok(()),
         _ => Err(format!("Action {:?} invalid at Chest", action)),
@@ -238,8 +238,8 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
             idx_monster,
         } => handle_potion_use(state, idx_slot, idx_monster),
         Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
-        Action::CardDiscoverSelect { idx_option } => handle_card_discover_select(state, idx_option),
-        Action::EventChoice { idx_option } => handle_event_choice(state, idx_option),
+        Action::CardDiscover { idx_option } => handle_card_discover(state, idx_option),
+        Action::EventSelect { idx_option } => handle_event_select(state, idx_option),
         Action::DeckSelect { idx_option } => handle_deck_select(state, idx_option),
     }?;
 
@@ -280,8 +280,8 @@ fn legal_actions_pending(state: &GameState, pending: &Effect) -> Vec<Action> {
             }
         }
         EffectKind::CardDiscoverPick => {
-            for i in 0..state.id_pick.len() {
-                actions.push(Action::CardDiscoverSelect { idx_option: i });
+            for i in 0..state.id_discover.len() {
+                actions.push(Action::CardDiscover { idx_option: i });
             }
         }
         EffectKind::CardPurge
@@ -319,9 +319,9 @@ fn legal_actions_combat(state: &GameState) -> Vec<Action> {
             card,
             state.this_turn_discards,
             state.this_combat_damage_instances_taken,
-            state.energy.current,
+            state.energy.energy_current,
         );
-        if cost > state.energy.current {
+        if cost > state.energy.energy_current {
             continue;
         }
         if card.requires_target {
@@ -371,7 +371,7 @@ fn legal_actions_event(state: &GameState) -> Vec<Action> {
     let event = &state.entities[id_event];
     for (i, opt) in event.event_options.iter().enumerate() {
         if event_option_gate_satisfied(opt.gate, state, id_event) {
-            actions.push(Action::EventChoice { idx_option: i });
+            actions.push(Action::EventSelect { idx_option: i });
         }
     }
     push_potion_actions(state, &mut actions);
@@ -557,12 +557,12 @@ fn handle_card_play(
         card,
         state.this_turn_discards,
         state.this_combat_damage_instances_taken,
-        state.energy.current,
+        state.energy.energy_current,
     );
-    if effective_cost > state.energy.current {
+    if effective_cost > state.energy.energy_current {
         return Err(format!(
             "Not enough energy to play {:?}: need {}, have {}",
-            card.card_name, effective_cost, state.energy.current
+            card.card_name, effective_cost, state.energy.energy_current
         ));
     }
 
@@ -862,19 +862,16 @@ fn handle_potion_discard(state: &mut GameState, idx_slot: usize) -> Result<Vec<E
     Ok(Vec::new())
 }
 
-fn handle_card_discover_select(
-    state: &mut GameState,
-    idx_option: usize,
-) -> Result<Vec<Effect>, String> {
+fn handle_card_discover(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
     debug_assert!(matches!(state.screen, Screen::Combat));
     let id_card = *state
-        .id_pick
+        .id_discover
         .get(idx_option)
-        .ok_or_else(|| format!("CardDiscoverSelect: idx_option {} out of range", idx_option))?;
+        .ok_or_else(|| format!("CardDiscover: idx_option {} out of range", idx_option))?;
     let pending = state
         .pending_effect
         .take()
-        .ok_or("CardDiscoverSelect: no pending_effect")?;
+        .ok_or("CardDiscover: no pending_effect")?;
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardDiscoverPick,
         id_source: pending.id_source,
@@ -904,13 +901,13 @@ fn handle_rest_site_card_upgrade(
     ])
 }
 
-fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
+fn handle_event_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
     debug_assert!(matches!(state.screen, Screen::Event));
     let id_event = state.id_event.expect("validate guarantees Event context");
     let event = &state.entities[id_event];
     if idx_option >= event.event_options.len() {
         return Err(format!(
-            "EventChoice: idx_option {} out of range (options {})",
+            "EventSelect: idx_option {} out of range (options {})",
             idx_option,
             event.event_options.len()
         ));
@@ -918,7 +915,7 @@ fn handle_event_choice(state: &mut GameState, idx_option: usize) -> Result<Vec<E
     let option = event.event_options[idx_option];
     if !event_option_gate_satisfied(option.gate, state, id_event) {
         return Err(format!(
-            "EventChoice: option {} gated out ({:?})",
+            "EventSelect: option {} gated out ({:?})",
             idx_option, option.gate
         ));
     }

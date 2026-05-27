@@ -40,7 +40,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         state.id_pile_draw.push(id);
     }
 
-    state.id_monster_picked = None;
+    state.id_picked_monster = None;
 
     // Monster MoveUpdates already queued at MonsterSpawn; queue character TurnStart
     state.effect_queue.push_front(Effect {

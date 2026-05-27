@@ -32,7 +32,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
 
         if state.id_hand.len() < MAX_SIZE_HAND {
             state.id_hand.push(id_card);
-            state.card_last_drawn = Some(id_card);
+            state.id_card_last_drawn = Some(id_card);
         } else {
             state.id_pile_discard.push(id_card);
         }

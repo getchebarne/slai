@@ -11,9 +11,6 @@ use crate::character::spawn_silent;
 use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::ENCOUNTER_LIST_CAPACITY_ELITE;
 use crate::consts::ENCOUNTER_LIST_CAPACITY_NORMAL;
-use crate::consts::EVENT_CHANCE_BASE_MONSTER;
-use crate::consts::EVENT_CHANCE_BASE_SHOP;
-use crate::consts::EVENT_CHANCE_BASE_TREASURE;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_CANDIDATES;
@@ -23,6 +20,9 @@ use crate::consts::MAX_ENTITIES;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_DECK;
 use crate::consts::MAX_SIZE_HAND;
+use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
+use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
+use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -39,8 +39,8 @@ use crate::utils::push_entity;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Energy {
-    pub current: u8,
-    pub max: u8,
+    pub energy_current: u8,
+    pub energy_max: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -87,9 +87,9 @@ pub struct GameState {
     pub id_relics: [Option<usize>; RelicName::COUNT],
 
     // `?`-room drift state; event chance = 1 - sum(others)
-    pub event_chance_monster: f32,
-    pub event_chance_shop: f32,
-    pub event_chance_treasure: f32,
+    pub unknown_chance_monster: f32,
+    pub unknown_chance_shop: f32,
+    pub unknown_chance_treasure: f32,
 
     // Events already surfaced this run (no-repeat filter)
     pub events_seen_this_run: Vec<EventName>,
@@ -106,15 +106,15 @@ pub struct GameState {
     pub id_pile_discard: Vec<usize>,
     pub id_pile_exhaust: Vec<usize>,
     pub id_monsters: [Option<usize>; MAX_MONSTERS],
-    pub id_monster_picked: Option<usize>,
+    pub id_picked_monster: Option<usize>,
     pub energy: Energy,
     pub this_turn_discards: u8,
     pub this_turn_attacks_played: u8,
     pub this_combat_damage_instances_taken: u8,
     pub escaped_this_combat: bool,
-    pub card_last_drawn: Option<usize>,
+    pub id_card_last_drawn: Option<usize>,
     pub id_card_nightmare: Option<usize>,
-    pub id_pick: Vec<usize>,
+    pub id_discover: Vec<usize>,
 
     // Reward working memory; meaningful when active = Reward
     pub reward_id_cards: Vec<usize>,
@@ -192,9 +192,9 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         buf_effects: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         buf_candidates: Vec::with_capacity(MAX_CANDIDATES),
         pending_effect: None,
-        event_chance_monster: EVENT_CHANCE_BASE_MONSTER,
-        event_chance_shop: EVENT_CHANCE_BASE_SHOP,
-        event_chance_treasure: EVENT_CHANCE_BASE_TREASURE,
+        unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
+        unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
+        unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
         events_seen_this_run: Vec::with_capacity(EventName::COUNT),
         potion_drop_mod: 0,
 
@@ -205,15 +205,18 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
         id_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
         id_monsters: [None; MAX_MONSTERS],
-        id_monster_picked: None,
-        energy: Energy { current: 3, max: 3 },
+        id_picked_monster: None,
+        energy: Energy {
+            energy_current: 3,
+            energy_max: 3,
+        },
         this_turn_discards: 0,
         this_turn_attacks_played: 0,
         this_combat_damage_instances_taken: 0,
         escaped_this_combat: false,
-        card_last_drawn: None,
+        id_card_last_drawn: None,
         id_card_nightmare: None,
-        id_pick: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
+        id_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
         reward_id_cards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
         reward_id_relic: None,
         reward_id_potion: None,

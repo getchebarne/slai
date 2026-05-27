@@ -819,7 +819,7 @@ pub enum PyCandidatePool {
     Monsters,
     Source,
     NextRowRooms,
-    IdPick,
+    Discover,
     Deck,
 }
 
@@ -831,7 +831,7 @@ impl From<CandidatePool> for PyCandidatePool {
             CandidatePool::Monsters { filter: _ } => Self::Monsters,
             CandidatePool::Source => Self::Source,
             CandidatePool::NextRowRooms => Self::NextRowRooms,
-            CandidatePool::IdPick => Self::IdPick,
+            CandidatePool::Discover => Self::Discover,
             CandidatePool::Deck { filter: _ } => Self::Deck,
         }
     }
@@ -946,13 +946,13 @@ pub enum PyActionType {
     ChestOpen,
     PotionUse,
     PotionDiscard,
-    CardDiscoverSelect,
+    CardDiscover,
     RewardTakeCard,
     RewardTakeRelic,
     RewardTakePotion,
     RewardTakeGold,
     RewardSkip,
-    EventChoice,
+    EventSelect,
     DeckSelect,
 }
 
@@ -969,13 +969,13 @@ impl PyActionType {
             7 => Ok(Self::ChestOpen),
             8 => Ok(Self::PotionUse),
             9 => Ok(Self::PotionDiscard),
-            10 => Ok(Self::CardDiscoverSelect),
+            10 => Ok(Self::CardDiscover),
             11 => Ok(Self::RewardTakeCard),
             12 => Ok(Self::RewardTakeRelic),
             13 => Ok(Self::RewardTakePotion),
             14 => Ok(Self::RewardTakeGold),
             15 => Ok(Self::RewardSkip),
-            16 => Ok(Self::EventChoice),
+            16 => Ok(Self::EventSelect),
             17 => Ok(Self::DeckSelect),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
@@ -1080,13 +1080,11 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             1 => Ok(Action::PotionDiscard { idx_slot: idxs[0] }),
             n => Err(format!("PotionDiscard expects [idx_slot], got {n} idxs")),
         },
-        PyActionType::CardDiscoverSelect => match idxs.len() {
-            1 => Ok(Action::CardDiscoverSelect {
+        PyActionType::CardDiscover => match idxs.len() {
+            1 => Ok(Action::CardDiscover {
                 idx_option: idxs[0],
             }),
-            n => Err(format!(
-                "CardDiscoverSelect expects [idx_option], got {n} idxs"
-            )),
+            n => Err(format!("CardDiscover expects [idx_option], got {n} idxs")),
         },
         PyActionType::RewardTakeCard => match idxs.len() {
             1 => Ok(Action::RewardTakeCard {
@@ -1110,11 +1108,11 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::RewardSkip),
             n => Err(format!("RewardSkip expects [], got {n} idxs")),
         },
-        PyActionType::EventChoice => match idxs.len() {
-            1 => Ok(Action::EventChoice {
+        PyActionType::EventSelect => match idxs.len() {
+            1 => Ok(Action::EventSelect {
                 idx_option: idxs[0],
             }),
-            n => Err(format!("EventChoice expects [idx_option], got {n} idxs")),
+            n => Err(format!("EventSelect expects [idx_option], got {n} idxs")),
         },
         PyActionType::DeckSelect => match idxs.len() {
             1 => Ok(Action::DeckSelect {
@@ -1153,15 +1151,13 @@ pub fn from_internal_action(action: Action) -> PyAction {
             idx_monster: Some(m),
         } => (PyActionType::PotionUse, vec![idx_slot, m]),
         Action::PotionDiscard { idx_slot } => (PyActionType::PotionDiscard, vec![idx_slot]),
-        Action::CardDiscoverSelect { idx_option } => {
-            (PyActionType::CardDiscoverSelect, vec![idx_option])
-        }
+        Action::CardDiscover { idx_option } => (PyActionType::CardDiscover, vec![idx_option]),
         Action::RewardTakeCard { idx_reward } => (PyActionType::RewardTakeCard, vec![idx_reward]),
         Action::RewardTakeRelic => (PyActionType::RewardTakeRelic, vec![]),
         Action::RewardTakePotion => (PyActionType::RewardTakePotion, vec![]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
         Action::RewardSkip => (PyActionType::RewardSkip, vec![]),
-        Action::EventChoice { idx_option } => (PyActionType::EventChoice, vec![idx_option]),
+        Action::EventSelect { idx_option } => (PyActionType::EventSelect, vec![idx_option]),
         Action::DeckSelect { idx_option } => (PyActionType::DeckSelect, vec![idx_option]),
     };
     PyAction {
@@ -1207,11 +1203,11 @@ pub enum PyEffect {
         amount: u8,
         target: Option<PyTarget>,
     },
-    FinisherDamage {
+    DamageFinisher {
         damage: u16,
         target: Option<PyTarget>,
     },
-    FlechettesDamage {
+    DamageFlechettes {
         damage: u16,
         target: Option<PyTarget>,
     },
@@ -1258,7 +1254,7 @@ pub enum PyEffect {
         count: u16,
         target: Option<PyTarget>,
     },
-    DrawUpTo {
+    CardDrawUpTo {
         amount: u8,
         target: Option<PyTarget>,
     },
@@ -1288,7 +1284,7 @@ pub enum PyEffect {
         limited: bool,
         target: Option<PyTarget>,
     },
-    CardDiscoverSelect {
+    CardDiscoverRoll {
         kind: PyCardKind,
         count: u8,
         target: Option<PyTarget>,
@@ -1368,8 +1364,8 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardNightmarePick => PyEffect::CardNightmarePick { target },
         EffectKind::DistractionAdd => PyEffect::DistractionAdd { target },
         EffectKind::SetCostOverride { amount } => PyEffect::SetCostOverride { amount, target },
-        EffectKind::FinisherDamage { damage } => PyEffect::FinisherDamage { damage, target },
-        EffectKind::FlechettesDamage { damage } => PyEffect::FlechettesDamage { damage, target },
+        EffectKind::DamageFinisher { damage } => PyEffect::DamageFinisher { damage, target },
+        EffectKind::DamageFlechettes { damage } => PyEffect::DamageFlechettes { damage, target },
         EffectKind::UnloadDiscard => PyEffect::UnloadDiscard { target },
         EffectKind::StormOfSteelProc { upgraded } => {
             PyEffect::StormOfSteelProc { upgraded, target }
@@ -1402,7 +1398,7 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         },
         EffectKind::CardDraw { count } => PyEffect::CardDraw { count, target },
-        EffectKind::DrawUpTo { amount } => PyEffect::DrawUpTo { amount, target },
+        EffectKind::CardDrawUpTo { amount } => PyEffect::CardDrawUpTo { amount, target },
         EffectKind::CardDiscard { source: _ } => PyEffect::CardDiscard { target },
         EffectKind::DamageMindBlast => PyEffect::DamageMindBlast { target },
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
@@ -1457,12 +1453,13 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
-        EffectKind::CardDiscoverSelect { kind, count } => PyEffect::CardDiscoverSelect {
+        EffectKind::CardDiscoverRoll { kind, count } => PyEffect::CardDiscoverRoll {
             kind: kind.into(),
             count,
             target,
         },
         EffectKind::CardUpgrade => PyEffect::CardUpgrade { target },
+        EffectKind::CardDiscoverPick => PyEffect::CardDiscoverPick { target },
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
             other
@@ -1496,7 +1493,7 @@ pub struct PyCard {
     pub innate: bool,
     pub requires_target: bool,
     pub retain: bool,
-    // `playable` does NOT factor in energy cost; clients must also check `cost <= energy.current`
+    // `playable` does NOT factor in energy cost; clients must also check `cost <= energy.energy_current`
     pub playable: bool,
 
     // Effects
@@ -1621,8 +1618,8 @@ pub struct PyMonster {
 #[pyclass(frozen, get_all, name = "Energy")]
 #[derive(Debug, Clone)]
 pub struct PyEnergy {
-    pub current: u8,
-    pub max: u8,
+    pub energy_current: u8,
+    pub energy_max: u8,
 }
 
 #[pyclass(frozen, get_all, name = "Room")]
@@ -1907,8 +1904,8 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
                     .map(|&id| snapshot_card(state, id))
                     .collect(),
                 PyEnergy {
-                    current: state.energy.current,
-                    max: state.energy.max,
+                    energy_current: state.energy.energy_current,
+                    energy_max: state.energy.energy_max,
                 },
             )
         } else {
@@ -1917,7 +1914,10 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
                 Vec::new(),
                 Vec::new(),
                 Vec::new(),
-                PyEnergy { current: 0, max: 0 },
+                PyEnergy {
+                    energy_current: 0,
+                    energy_max: 0,
+                },
             )
         };
     let pending_input = snapshot_pending_input(state);
@@ -1987,7 +1987,7 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
         EffectKind::CardDiscoverPick => {
             let cards = if matches!(state.screen, Screen::Combat) {
                 state
-                    .id_pick
+                    .id_discover
                     .iter()
                     .map(|&id| snapshot_card(state, id))
                     .collect()
@@ -2189,7 +2189,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
                 is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw),
                 state.this_turn_discards,
                 state.this_combat_damage_instances_taken,
-                state.energy.current,
+                state.energy.energy_current,
             )
         } else {
             (true, 0, 0, 0)
