@@ -145,6 +145,8 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyEffect>()?;
     module.add_class::<ffi::PyHealthDeltaSign>()?;
     module.add_class::<ffi::PyHealthDeltaAmount>()?;
+    module.add_class::<ffi::PyGoldDeltaSign>()?;
+    module.add_class::<ffi::PyGoldDeltaKind>()?;
 
     // Reward + PendingInput surface
     module.add_class::<ffi::PyReward>()?;

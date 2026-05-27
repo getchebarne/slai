@@ -25,18 +25,19 @@ const OPTION_PRAY: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
 // All options
 const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Use (duplicate a card)",
+        label: "[Pray] Choose a card. Add a copy of it to your deck.",
         effects: OPTION_PRAY,
         gate: EventGate::None,
     },
     EventOption {
-        label: "Leave",
+        label: "[Leave] Nothing happens.",
         effects: OPTION_LEAVE,
         gate: EventGate::None,
     },
@@ -44,6 +45,6 @@ const OPTIONS_ALL: &[EventOption] = &[
 
 // Export event
 static EVENT_DUPLICATOR: Entity = make_entity_event(EventName::Duplicator, OPTIONS_ALL);
-pub fn spawn_event_duplicator(_ascension: u8) -> Entity {
+pub fn spawn_event_duplicator() -> Entity {
     EVENT_DUPLICATOR
 }

@@ -22,23 +22,19 @@ pub fn process_effect_health_delta(
     sign: HealthDeltaSign,
     amount: HealthDeltaAmount,
 ) {
-    // Relative ignores id_target and resolves against the character
-    let (id_target, amount) = match amount {
-        HealthDeltaAmount::Absolute(a) => {
-            (id_target.expect("HealthDelta Flat requires id_target"), a)
-        }
+    let id_target = id_target.expect("HealthDelta requires id_target");
+    let amount = match amount {
+        HealthDeltaAmount::Absolute(a) => a,
         HealthDeltaAmount::Relative {
             numerator,
             denominator,
         } => {
-            let id = state.id_character;
-            let health_max = state.entities[id].vitals.health_max;
+            let health_max = state.entities[id_target].vitals.health_max;
             let raw = (health_max as u32 * numerator as u32) / denominator as u32;
-            let a = match sign {
+            match sign {
                 HealthDeltaSign::Loss => raw.max(1) as u16,
                 HealthDeltaSign::Gain => raw as u16,
-            };
-            (id, a)
+            }
         }
     };
     match sign {
@@ -102,7 +98,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         modifier_remove(&mut entity.modifiers, ModifierKind::Splittable);
     }
 
-    // Lagavulin: any HP loss wakes him → Stunned move, drop Asleep + Metallicize
+    // Lagavulin: any HP loss wakes him -> Stunned move, drop Asleep + Metallicize
     if modifier_has(&entity.modifiers, ModifierKind::Asleep) {
         let stunned_idx = match entity.monster_name {
             MonsterName::Lagavulin => lagavulin::IDX_MOVE_STUNNED,

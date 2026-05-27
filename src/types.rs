@@ -262,7 +262,6 @@ pub enum EventName {
     TheSsssserpent,
     Transmogrifier,
     UpgradeShrine,
-    WeMeetAgain,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -324,6 +323,7 @@ pub enum RelicName {
     TwistedFunnel,
     Vajra,
     Circlet,
+    GoldenIdol,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

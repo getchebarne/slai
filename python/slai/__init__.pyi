@@ -116,6 +116,8 @@ class RelicName(IntEnum):
     ThreadAndNeedle: int
     TwistedFunnel: int
     Vajra: int
+    Circlet: int
+    GoldenIdol: int
 
 class RelicTier(IntEnum):
     Starter: int
@@ -313,7 +315,6 @@ class EventName(IntEnum):
     TheSsssserpent: int
     Transmogrifier: int
     UpgradeShrine: int
-    WeMeetAgain: int
 
 class EventOption:
     label: str

@@ -25,18 +25,19 @@ const OPTION_PRAY: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
 // All options
 const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Pray (remove a card)",
+        label: "[Pray] Remove a card from your deck.",
         effects: OPTION_PRAY,
         gate: EventGate::HasPurgeableInDeck,
     },
     EventOption {
-        label: "Leave",
+        label: "[Leave] Nothing happens.",
         effects: OPTION_LEAVE,
         gate: EventGate::None,
     },
@@ -44,6 +45,6 @@ const OPTIONS_ALL: &[EventOption] = &[
 
 // Export event
 static EVENT_PURIFIER: Entity = make_entity_event(EventName::Purifier, OPTIONS_ALL);
-pub fn spawn_event_purifier(_ascension: u8) -> Entity {
+pub fn spawn_event_purifier() -> Entity {
     EVENT_PURIFIER
 }

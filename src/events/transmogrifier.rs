@@ -25,18 +25,19 @@ const OPTION_PRAY: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
 // All options
 const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Pray (transform a card)",
+        label: "[Pray] Transform a card.",
         effects: OPTION_PRAY,
         gate: EventGate::HasNonBasicNonCurseInDeck,
     },
     EventOption {
-        label: "Leave",
+        label: "[Leave] Nothing happens.",
         effects: OPTION_LEAVE,
         gate: EventGate::None,
     },
@@ -44,6 +45,6 @@ const OPTIONS_ALL: &[EventOption] = &[
 
 // Export event
 static EVENT_TRANSMOGRIFIER: Entity = make_entity_event(EventName::Transmogrifier, OPTIONS_ALL);
-pub fn spawn_event_transmogrifier(_ascension: u8) -> Entity {
+pub fn spawn_event_transmogrifier() -> Entity {
     EVENT_TRANSMOGRIFIER
 }

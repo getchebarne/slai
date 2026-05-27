@@ -10,7 +10,6 @@ mod the_cleric;
 mod the_ssssserpent;
 mod transmogrifier;
 mod upgrade_shrine;
-mod we_meet_again;
 mod wing_statue;
 mod world_of_goop;
 
@@ -111,21 +110,20 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
 
 pub fn get_event(name: EventName, ascension: u8) -> Entity {
     match name {
-        EventName::BigFish => big_fish::spawn_event_big_fish(ascension),
+        EventName::BigFish => big_fish::spawn_event_big_fish(),
         EventName::TheCleric => the_cleric::spawn_event_the_cleric(ascension),
-        EventName::Duplicator => duplicator::spawn_event_duplicator(ascension),
+        EventName::Duplicator => duplicator::spawn_event_duplicator(),
         EventName::GoldenShrine => golden_shrine::spawn_event_golden_shrine(ascension),
         EventName::GoldenIdol => golden_idol::spawn_event_golden_idol(ascension),
-        EventName::WingStatue => wing_statue::spawn_event_wing_statue(ascension),
+        EventName::WingStatue => wing_statue::spawn_event_wing_statue(),
         EventName::WorldOfGoop => world_of_goop::spawn_event_world_of_goop(ascension),
-        EventName::LivingWall => living_wall::spawn_event_living_wall(ascension),
-        EventName::Purifier => purifier::spawn_event_purifier(ascension),
+        EventName::LivingWall => living_wall::spawn_event_living_wall(),
+        EventName::Purifier => purifier::spawn_event_purifier(),
         EventName::ScrapOoze => scrap_ooze::spawn_event_scrap_ooze(ascension),
         EventName::ShiningLight => shining_light::spawn_event_shining_light(ascension),
         EventName::TheSsssserpent => the_ssssserpent::spawn_event_the_ssssserpent(ascension),
-        EventName::Transmogrifier => transmogrifier::spawn_event_transmogrifier(ascension),
-        EventName::UpgradeShrine => upgrade_shrine::spawn_event_upgrade_shrine(ascension),
-        EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(ascension),
+        EventName::Transmogrifier => transmogrifier::spawn_event_transmogrifier(),
+        EventName::UpgradeShrine => upgrade_shrine::spawn_event_upgrade_shrine(),
     }
 }
 
@@ -148,5 +146,4 @@ pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::TheSsssserpent,
     EventName::Transmogrifier,
     EventName::UpgradeShrine,
-    EventName::WeMeetAgain,
 ];

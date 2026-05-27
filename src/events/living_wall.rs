@@ -25,6 +25,7 @@ const OPTION_FORGET: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Change
 const OPTION_CHANGE: &[Effect] = &[
     Effect {
@@ -39,6 +40,7 @@ const OPTION_CHANGE: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Grow
 const OPTION_GROW: &[Effect] = &[
     Effect {
@@ -57,17 +59,17 @@ const OPTION_GROW: &[Effect] = &[
 // All options
 const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Forget (remove a card)",
+        label: "[Forget] Remove a card from your deck.",
         effects: OPTION_FORGET,
         gate: EventGate::HasPurgeableInDeck,
     },
     EventOption {
-        label: "Change (transform a card)",
+        label: "[Change] Transform a card in your deck.",
         effects: OPTION_CHANGE,
         gate: EventGate::HasNonBasicNonCurseInDeck,
     },
     EventOption {
-        label: "Grow (upgrade a card)",
+        label: "[Grow] Upgrade a card in your deck.",
         effects: OPTION_GROW,
         gate: EventGate::HasUpgradableInDeck,
     },
@@ -75,6 +77,6 @@ const OPTIONS_ALL: &[EventOption] = &[
 
 // Export event
 static EVENT_LIVING_WALL: Entity = make_entity_event(EventName::LivingWall, OPTIONS_ALL);
-pub fn spawn_event_living_wall(_ascension: u8) -> Entity {
+pub fn spawn_event_living_wall() -> Entity {
     EVENT_LIVING_WALL
 }

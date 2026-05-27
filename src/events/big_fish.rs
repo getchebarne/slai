@@ -24,10 +24,14 @@ const OPTION_BANANA: &[Effect] = &[
             },
         },
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
+        },
     },
     EVENT_END_EFFECT,
 ];
+
 // Donut
 const OPTION_DONUT: &[Effect] = &[
     Effect {
@@ -43,6 +47,7 @@ const OPTION_DONUT: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Box
 const OPTION_BOX: &[Effect] = &[
     Effect {
@@ -60,20 +65,21 @@ const OPTION_BOX: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // All options
 const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Banana (heal 1/3 max HP)",
+        label: "[Banana] Heal 1/3 of your max HP.",
         effects: OPTION_BANANA,
         gate: EventGate::None,
     },
     EventOption {
-        label: "Donut (+5 max HP)",
+        label: "[Donut] Raise your max HP by 5.",
         effects: OPTION_DONUT,
         gate: EventGate::None,
     },
     EventOption {
-        label: "Box (curse + random relic)",
+        label: "[Box] Receive a Relic. Become Cursed - Regret.",
         effects: OPTION_BOX,
         gate: EventGate::None,
     },
@@ -81,6 +87,6 @@ const OPTIONS_ALL: &[EventOption] = &[
 
 // Export event
 static EVENT_BIG_FISH: Entity = make_entity_event(EventName::BigFish, OPTIONS_ALL);
-pub fn spawn_event_big_fish(_ascension: u8) -> Entity {
+pub fn spawn_event_big_fish() -> Entity {
     EVENT_BIG_FISH
 }

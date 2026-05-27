@@ -25,7 +25,10 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
                 },
             },
             id_source: None,
-            target: Target::Direct(None),
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
+            },
         },
         Effect {
             kind: EffectKind::CardUpgrade,
@@ -41,7 +44,8 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
     ]
 }
 static OPTION_ENTER_BASE: [Effect; 3] = enter(1, 5);
-static OPTION_ENTER_A15: [Effect; 3] = enter(3, 10); // 20% → 30% max HP loss
+static OPTION_ENTER_A15: [Effect; 3] = enter(3, 10); // 20% -> 30% max HP loss
+
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
@@ -54,7 +58,7 @@ const fn options(enter_effects: &'static [Effect], enter_label: &'static str) ->
             gate: EventGate::HasUpgradableInDeck,
         },
         EventOption {
-            label: "Leave",
+            label: "[Leave] Nothing happens.",
             effects: OPTION_LEAVE,
             gate: EventGate::None,
         },
@@ -62,11 +66,11 @@ const fn options(enter_effects: &'static [Effect], enter_label: &'static str) ->
 }
 static OPTIONS_ALL_BASE: [EventOption; 2] = options(
     &OPTION_ENTER_BASE,
-    "Enter (lose 20% max HP, upgrade up to 2 random cards)",
+    "[Enter] Upgrade 2 random cards. Lose 20% of your max HP.",
 );
 static OPTIONS_ALL_A15: [EventOption; 2] = options(
     &OPTION_ENTER_A15,
-    "Enter (lose 30% max HP, upgrade up to 2 random cards)",
+    "[Enter] Upgrade 2 random cards. Lose 30% of your max HP.",
 );
 
 // Export event

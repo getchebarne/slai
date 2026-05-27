@@ -9,7 +9,7 @@ use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::utils::scale_attack_damage;
 
-// Source → actor: cards delegate to character; monsters/character self
+// Source -> actor: cards delegate to character; monsters/character self
 fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
     if entities[id_source].kind == EntityKind::Card {
         id_character

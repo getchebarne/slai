@@ -435,7 +435,7 @@ pub fn spawn_monster_hexaghost(ascension_level: u8) -> Entity {
     )
 }
 
-// Cycle slot → move idx, with Sear variant chosen by `has_inferno`
+// Cycle slot -> move idx, with Sear variant chosen by `has_inferno`
 fn cycle_slot(slot: usize, has_inferno: bool) -> usize {
     let sear = if has_inferno {
         IDX_MOVE_SEAR_POST

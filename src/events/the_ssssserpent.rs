@@ -1,6 +1,8 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::effect::GoldDeltaKind;
+use crate::effect::GoldDeltaSign;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
 use crate::events::EVENT_END_EFFECT;
@@ -13,7 +15,10 @@ use crate::types::EventName;
 const fn agree(gold: u16) -> [Effect; 3] {
     [
         Effect {
-            kind: EffectKind::GoldGain { amount: gold },
+            kind: EffectKind::GoldDelta {
+                sign: GoldDeltaSign::Gain,
+                kind: GoldDeltaKind::Fixed(gold),
+            },
             id_source: None,
             target: Target::Direct(None),
         },
@@ -30,6 +35,7 @@ const fn agree(gold: u16) -> [Effect; 3] {
 }
 static OPTION_AGREE_BASE: [Effect; 3] = agree(175);
 static OPTION_AGREE_A15: [Effect; 3] = agree(150); // -25 gold gain
+
 // Disagree
 const OPTION_DISAGREE: &[Effect] = &[EVENT_END_EFFECT];
 
@@ -42,16 +48,16 @@ const fn options(agree_effects: &'static [Effect], agree_label: &'static str) ->
             gate: EventGate::None,
         },
         EventOption {
-            label: "Disagree",
+            label: "[Disagree] Nothing happens.",
             effects: OPTION_DISAGREE,
             gate: EventGate::None,
         },
     ]
 }
 static OPTIONS_ALL_BASE: [EventOption; 2] =
-    options(&OPTION_AGREE_BASE, "Agree (+175 gold, +Doubt curse)");
+    options(&OPTION_AGREE_BASE, "[Agree] Gain 175 Gold. Become Cursed - Doubt.");
 static OPTIONS_ALL_A15: [EventOption; 2] =
-    options(&OPTION_AGREE_A15, "Agree (+150 gold, +Doubt curse)");
+    options(&OPTION_AGREE_A15, "[Agree] Gain 150 Gold. Become Cursed - Doubt.");
 
 // Export event
 static EVENT_THE_SSSSSERPENT_BASE: Entity =

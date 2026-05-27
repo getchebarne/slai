@@ -36,8 +36,7 @@ pub mod process_effect_event_end;
 pub mod process_effect_finisher_damage;
 pub mod process_effect_flechettes_damage;
 pub mod process_effect_glass_knife_decay;
-pub mod process_effect_gold_gain;
-pub mod process_effect_gold_loss;
+pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
 pub mod process_effect_health_delta;
 pub mod process_effect_heel_hook_proc;
@@ -64,7 +63,7 @@ pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
 pub mod process_effect_reward_skip;
 pub mod process_effect_reward_take;
-pub mod process_effect_roll_d100_branch;
+pub mod process_effect_scrap_ooze_reach;
 pub mod process_effect_room_enter;
 pub mod process_effect_room_select;
 pub mod process_effect_set_cost_override;
@@ -573,8 +572,8 @@ fn dispatch_by_kind(
         EffectKind::HexaghostDivider => {
             process_effect_hexaghost_divider::process_effect_hexaghost_divider(id_source, state)
         }
-        EffectKind::GoldGain { amount } => {
-            process_effect_gold_gain::process_effect_gold_gain(state, amount)
+        EffectKind::GoldDelta { sign, kind } => {
+            process_effect_gold_delta::process_effect_gold_delta(state, sign, kind)
         }
         EffectKind::RoomSelect => {
             process_effect_room_select::process_effect_room_select(id_target, state)
@@ -615,9 +614,6 @@ fn dispatch_by_kind(
                 count,
             );
         }
-        EffectKind::GoldLoss { amount } => {
-            process_effect_gold_loss::process_effect_gold_loss(state, amount)
-        }
         EffectKind::RelicGrantRandom => {
             process_effect_relic_grant_random::process_effect_relic_grant_random(state)
         }
@@ -634,12 +630,16 @@ fn dispatch_by_kind(
                 id_source, state, delta,
             )
         }
-        EffectKind::RollD100Branch {
+        EffectKind::ScrapOozeReach {
+            dmg,
             chance,
-            on_lt,
-            on_ge,
-        } => process_effect_roll_d100_branch::process_effect_roll_d100_branch(
-            id_source, state, chance, on_lt, on_ge,
+            advance_on_miss,
+        } => process_effect_scrap_ooze_reach::process_effect_scrap_ooze_reach(
+            id_source,
+            state,
+            dmg,
+            chance,
+            advance_on_miss,
         ),
         EffectKind::EventEnd => {
             process_effect_event_end::process_effect_event_end(id_source, state)

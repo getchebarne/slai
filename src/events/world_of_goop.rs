@@ -1,6 +1,8 @@
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::GoldDeltaKind;
+use crate::effect::GoldDeltaSign;
 use crate::effect::HealthDeltaAmount;
 use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
@@ -26,31 +28,38 @@ const OPTION_GATHER: &[Effect] = &[
         },
     },
     Effect {
-        kind: EffectKind::GoldGain { amount: 75 },
+        kind: EffectKind::GoldDelta {
+            sign: GoldDeltaSign::Gain,
+            kind: GoldDeltaKind::Fixed(75),
+        },
         id_source: None,
         target: Target::Direct(None),
     },
     EVENT_END_EFFECT,
 ];
-// Leave; StS rolls 20–50 (base) / 35–75 (A15+), fixed at midpoint pending range-aware effects
-const fn leave(gold_loss: u16) -> [Effect; 2] {
+
+// Leave
+const fn leave(min: u16, max: u16) -> [Effect; 2] {
     [
         Effect {
-            kind: EffectKind::GoldLoss { amount: gold_loss },
+            kind: EffectKind::GoldDelta {
+                sign: GoldDeltaSign::Loss,
+                kind: GoldDeltaKind::Range { min, max },
+            },
             id_source: None,
             target: Target::Direct(None),
         },
         EVENT_END_EFFECT,
     ]
 }
-static OPTION_LEAVE_BASE: [Effect; 2] = leave(35);
-static OPTION_LEAVE_A15: [Effect; 2] = leave(55); // +20 gold cost
+static OPTION_LEAVE_BASE: [Effect; 2] = leave(20, 50);
+static OPTION_LEAVE_A15: [Effect; 2] = leave(35, 75);
 
 // All options
 const fn options(leave_effects: &'static [Effect], leave_label: &'static str) -> [EventOption; 2] {
     [
         EventOption {
-            label: "Gather Gold (lose 11 HP, +75 gold)",
+            label: "[Gather Gold] Gain 75 Gold. Lose 11 HP.",
             effects: OPTION_GATHER,
             gate: EventGate::None,
         },
@@ -61,8 +70,10 @@ const fn options(leave_effects: &'static [Effect], leave_label: &'static str) ->
         },
     ]
 }
-static OPTIONS_ALL_BASE: [EventOption; 2] = options(&OPTION_LEAVE_BASE, "Leave (lose 35 gold)");
-static OPTIONS_ALL_A15: [EventOption; 2] = options(&OPTION_LEAVE_A15, "Leave (lose 55 gold)");
+static OPTIONS_ALL_BASE: [EventOption; 2] =
+    options(&OPTION_LEAVE_BASE, "[Leave It] Lose 20-50 Gold.");
+static OPTIONS_ALL_A15: [EventOption; 2] =
+    options(&OPTION_LEAVE_A15, "[Leave It] Lose 35-75 Gold.");
 
 // Export event
 static EVENT_WORLD_OF_GOOP_BASE: Entity =

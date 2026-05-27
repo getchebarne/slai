@@ -1,6 +1,8 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::effect::GoldDeltaKind;
+use crate::effect::GoldDeltaSign;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
 use crate::events::EVENT_END_EFFECT;
@@ -13,7 +15,10 @@ use crate::types::EventName;
 const fn pray(amount: u16) -> [Effect; 2] {
     [
         Effect {
-            kind: EffectKind::GoldGain { amount },
+            kind: EffectKind::GoldDelta {
+                sign: GoldDeltaSign::Gain,
+                kind: GoldDeltaKind::Fixed(amount),
+            },
             id_source: None,
             target: Target::Direct(None),
         },
@@ -22,10 +27,14 @@ const fn pray(amount: u16) -> [Effect; 2] {
 }
 static OPTION_PRAY_BASE: [Effect; 2] = pray(100);
 static OPTION_PRAY_A15: [Effect; 2] = pray(50); // -50 gold gain
+
 // Desecrate
 const OPTION_DESECRATE: &[Effect] = &[
     Effect {
-        kind: EffectKind::GoldGain { amount: 275 },
+        kind: EffectKind::GoldDelta {
+            sign: GoldDeltaSign::Gain,
+            kind: GoldDeltaKind::Fixed(275),
+        },
         id_source: None,
         target: Target::Direct(None),
     },
@@ -39,6 +48,7 @@ const OPTION_DESECRATE: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
@@ -51,19 +61,19 @@ const fn options(pray_effects: &'static [Effect], pray_label: &'static str) -> [
             gate: EventGate::None,
         },
         EventOption {
-            label: "Desecrate (+275 gold, +Regret curse)",
+            label: "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
             effects: OPTION_DESECRATE,
             gate: EventGate::None,
         },
         EventOption {
-            label: "Leave",
+            label: "[Leave] Nothing happens.",
             effects: OPTION_LEAVE,
             gate: EventGate::None,
         },
     ]
 }
-static OPTIONS_ALL_BASE: [EventOption; 3] = options(&OPTION_PRAY_BASE, "Pray (+100 gold)");
-static OPTIONS_ALL_A15: [EventOption; 3] = options(&OPTION_PRAY_A15, "Pray (+50 gold)");
+static OPTIONS_ALL_BASE: [EventOption; 3] = options(&OPTION_PRAY_BASE, "[Pray] Gain 100 Gold.");
+static OPTIONS_ALL_A15: [EventOption; 3] = options(&OPTION_PRAY_A15, "[Pray] Gain 50 Gold.");
 
 // Export event
 static EVENT_GOLDEN_SHRINE_BASE: Entity =

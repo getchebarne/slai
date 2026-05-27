@@ -134,8 +134,9 @@ pub enum EffectKind {
     GoldSteal {
         amount: u8,
     },
-    GoldGain {
-        amount: u16,
+    GoldDelta {
+        sign: GoldDeltaSign,
+        kind: GoldDeltaKind,
     },
     HexaghostBurnIncrease {
         count: u8,
@@ -178,9 +179,6 @@ pub enum EffectKind {
     },
 
     // Event substrate
-    GoldLoss {
-        amount: u16,
-    },
     RelicGrantRandom,
     RelicGrantSpecific {
         name: RelicName,
@@ -189,10 +187,10 @@ pub enum EffectKind {
     EventAdvanceState {
         delta: i8,
     },
-    RollD100Branch {
+    ScrapOozeReach {
+        dmg: u16,
         chance: u8,
-        on_lt: &'static [Effect],
-        on_ge: &'static [Effect],
+        advance_on_miss: bool,
     },
     EventEnd,
 
@@ -217,6 +215,19 @@ pub enum HealthDeltaSign {
 pub enum HealthDeltaAmount {
     Absolute(u16),
     Relative { numerator: u8, denominator: u8 },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum GoldDeltaSign {
+    Gain,
+    Loss,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum GoldDeltaKind {
+    Fixed(u16),
+    PreRolled(u16),
+    Range { min: u16, max: u16 },
 }
 
 // Source pool for a Resolve effect

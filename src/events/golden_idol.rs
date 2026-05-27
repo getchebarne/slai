@@ -1,7 +1,9 @@
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
 use crate::effect::HealthDeltaSign;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
@@ -12,24 +14,26 @@ use crate::types::CardName;
 use crate::types::EventName;
 use crate::types::RelicName;
 
-// Take; TODO: swap placeholder Circlet for GoldenIdol once that relic exists
+// Take
 const OPTION_TAKE: &[Effect] = &[
     Effect {
         kind: EffectKind::RelicGrantSpecific {
-            name: RelicName::Circlet,
+            name: RelicName::GoldenIdol,
             fallback_circlet: false,
         },
         id_source: None,
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::EventAdvanceState { delta: 1 },
+        kind: EffectKind::EventAdvanceState { delta: 1 }, // Outrun / Smash / Hide
         id_source: None,
         target: Target::Direct(None),
     },
 ];
+
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+
 // Outrun
 const OPTION_OUTRUN: &[Effect] = &[
     Effect {
@@ -42,68 +46,108 @@ const OPTION_OUTRUN: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Smash
-const OPTION_SMASH: &[Effect] = &[
-    Effect {
-        kind: EffectKind::HealthDelta {
-            sign: HealthDeltaSign::Loss,
-            amount: HealthDeltaAmount::Relative {
-                numerator: 1,
-                denominator: 4,
+const fn smash(numerator: u8, denominator: u8) -> [Effect; 2] {
+    [
+        Effect {
+            kind: EffectKind::HealthDelta {
+                sign: HealthDeltaSign::Loss,
+                amount: HealthDeltaAmount::Relative {
+                    numerator,
+                    denominator,
+                },
+            },
+            id_source: None,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
-        id_source: None,
-        target: Target::Direct(None),
-    },
-    EVENT_END_EFFECT,
-];
+        EVENT_END_EFFECT,
+    ]
+}
+static OPTION_SMASH_BASE: [Effect; 2] = smash(1, 4);
+static OPTION_SMASH_A15: [Effect; 2] = smash(35, 100); // 25% -> 35% max HP loss
+
 // Hide
-const OPTION_HIDE: &[Effect] = &[
-    Effect {
-        kind: EffectKind::MaxHealthDelta {
-            sign: HealthDeltaSign::Loss,
-            amount: HealthDeltaAmount::Relative {
-                numerator: 8,
-                denominator: 100,
+const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
+    [
+        Effect {
+            kind: EffectKind::MaxHealthDelta {
+                sign: HealthDeltaSign::Loss,
+                amount: HealthDeltaAmount::Relative {
+                    numerator,
+                    denominator,
+                },
+            },
+            id_source: None,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
-        id_source: None,
-        target: Target::Direct(None),
-    },
-    EVENT_END_EFFECT,
-];
+        EVENT_END_EFFECT,
+    ]
+}
+static OPTION_HIDE_BASE: [Effect; 2] = hide(8, 100);
+static OPTION_HIDE_A15: [Effect; 2] = hide(10, 100); // 8% -> 10% max HP cap loss
 
 // All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "Take",
-        effects: OPTION_TAKE,
-        gate: EventGate::EventStateEq(0),
-    },
-    EventOption {
-        label: "Leave",
-        effects: OPTION_LEAVE,
-        gate: EventGate::EventStateEq(0),
-    },
-    EventOption {
-        label: "Outrun (+Injury curse)",
-        effects: OPTION_OUTRUN,
-        gate: EventGate::EventStateEq(1),
-    },
-    EventOption {
-        label: "Smash (lose 25% max HP)",
-        effects: OPTION_SMASH,
-        gate: EventGate::EventStateEq(1),
-    },
-    EventOption {
-        label: "Hide (lose 8% max HP cap)",
-        effects: OPTION_HIDE,
-        gate: EventGate::EventStateEq(1),
-    },
-];
+const fn options(
+    smash_effects: &'static [Effect],
+    smash_label: &'static str,
+    hide_effects: &'static [Effect],
+    hide_label: &'static str,
+) -> [EventOption; 5] {
+    [
+        EventOption {
+            label: "[Take] Obtain Golden Idol.",
+            effects: OPTION_TAKE,
+            gate: EventGate::EventStateEq(0),
+        },
+        EventOption {
+            label: "[Leave] Nothing happens.",
+            effects: OPTION_LEAVE,
+            gate: EventGate::EventStateEq(0),
+        },
+        EventOption {
+            label: "[Outrun] Become Cursed - Injury.",
+            effects: OPTION_OUTRUN,
+            gate: EventGate::EventStateEq(1),
+        },
+        EventOption {
+            label: smash_label,
+            effects: smash_effects,
+            gate: EventGate::EventStateEq(1),
+        },
+        EventOption {
+            label: hide_label,
+            effects: hide_effects,
+            gate: EventGate::EventStateEq(1),
+        },
+    ]
+}
+static OPTIONS_ALL_BASE: [EventOption; 5] = options(
+    &OPTION_SMASH_BASE,
+    "[Smash] Take 25% of your max HP as damage.",
+    &OPTION_HIDE_BASE,
+    "[Hide] Lose 8% of your max HP.",
+);
+static OPTIONS_ALL_A15: [EventOption; 5] = options(
+    &OPTION_SMASH_A15,
+    "[Smash] Take 35% of your max HP as damage.",
+    &OPTION_HIDE_A15,
+    "[Hide] Lose 10% of your max HP.",
+);
 
 // Export event
-static EVENT_GOLDEN_IDOL: Entity = make_entity_event(EventName::GoldenIdol, OPTIONS_ALL);
-pub fn spawn_event_golden_idol(_ascension: u8) -> Entity {
-    EVENT_GOLDEN_IDOL
+static EVENT_GOLDEN_IDOL_BASE: Entity = make_entity_event(EventName::GoldenIdol, &OPTIONS_ALL_BASE);
+static EVENT_GOLDEN_IDOL_A15: Entity = make_entity_event(EventName::GoldenIdol, &OPTIONS_ALL_A15);
+pub fn spawn_event_golden_idol(ascension: u8) -> Entity {
+    if ascension < 15 {
+        EVENT_GOLDEN_IDOL_BASE
+    } else {
+        EVENT_GOLDEN_IDOL_A15
+    }
 }

@@ -9,6 +9,8 @@ use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::GoldDeltaKind;
+use crate::effect::GoldDeltaSign;
 use crate::effect::HealthDeltaAmount;
 use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
@@ -171,6 +173,40 @@ impl From<HealthDeltaAmount> for PyHealthDeltaAmount {
     }
 }
 
+#[pyclass(eq, eq_int, hash, frozen, name = "GoldDeltaSign")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyGoldDeltaSign {
+    Gain,
+    Loss,
+}
+
+impl From<GoldDeltaSign> for PyGoldDeltaSign {
+    fn from(sign: GoldDeltaSign) -> Self {
+        match sign {
+            GoldDeltaSign::Gain => Self::Gain,
+            GoldDeltaSign::Loss => Self::Loss,
+        }
+    }
+}
+
+#[pyclass(eq, hash, frozen, name = "GoldDeltaKind")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum PyGoldDeltaKind {
+    Fixed { amount: u16 },
+    PreRolled { amount: u16 },
+    Range { min: u16, max: u16 },
+}
+
+impl From<GoldDeltaKind> for PyGoldDeltaKind {
+    fn from(kind: GoldDeltaKind) -> Self {
+        match kind {
+            GoldDeltaKind::Fixed(amount) => Self::Fixed { amount },
+            GoldDeltaKind::PreRolled(amount) => Self::PreRolled { amount },
+            GoldDeltaKind::Range { min, max } => Self::Range { min, max },
+        }
+    }
+}
+
 #[pyclass(eq, eq_int, hash, frozen, name = "RoomKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRoomKind {
@@ -291,6 +327,7 @@ pub enum PyRelicName {
     TwistedFunnel,
     Vajra,
     Circlet,
+    GoldenIdol,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -311,6 +348,7 @@ impl From<RelicName> for PyRelicName {
             RelicName::TwistedFunnel => Self::TwistedFunnel,
             RelicName::Vajra => Self::Vajra,
             RelicName::Circlet => Self::Circlet,
+            RelicName::GoldenIdol => Self::GoldenIdol,
         }
     }
 }
@@ -333,6 +371,7 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::TwistedFunnel => Self::TwistedFunnel,
             PyRelicName::Vajra => Self::Vajra,
             PyRelicName::Circlet => Self::Circlet,
+            PyRelicName::GoldenIdol => Self::GoldenIdol,
         }
     }
 }
@@ -625,7 +664,6 @@ pub enum PyEventName {
     TheSsssserpent,
     Transmogrifier,
     UpgradeShrine,
-    WeMeetAgain,
 }
 
 impl From<EventName> for PyEventName {
@@ -645,7 +683,6 @@ impl From<EventName> for PyEventName {
             EventName::TheSsssserpent => Self::TheSsssserpent,
             EventName::Transmogrifier => Self::Transmogrifier,
             EventName::UpgradeShrine => Self::UpgradeShrine,
-            EventName::WeMeetAgain => Self::WeMeetAgain,
         }
     }
 }
@@ -1256,8 +1293,9 @@ pub enum PyEffect {
         count: u8,
         target: Option<PyTarget>,
     },
-    GoldLoss {
-        amount: u16,
+    GoldDelta {
+        sign: PyGoldDeltaSign,
+        kind: PyGoldDeltaKind,
         target: Option<PyTarget>,
     },
     RelicGrantRandom {
@@ -1272,10 +1310,10 @@ pub enum PyEffect {
         delta: i8,
         target: Option<PyTarget>,
     },
-    RollD100Branch {
+    ScrapOozeReach {
+        dmg: u16,
         chance: u8,
-        on_lt: Vec<PyEffect>,
-        on_ge: Vec<PyEffect>,
+        advance_on_miss: bool,
         target: Option<PyTarget>,
     },
     EventEnd {
@@ -1299,10 +1337,6 @@ pub enum PyEffect {
         target: Option<PyTarget>,
     },
     CardTransform {
-        target: Option<PyTarget>,
-    },
-    GoldGain {
-        amount: u16,
         target: Option<PyTarget>,
     },
 }
@@ -1375,7 +1409,11 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::ShuffleDiscardPileIntoDrawPile { target }
         }
         EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
-        EffectKind::GoldLoss { amount } => PyEffect::GoldLoss { amount, target },
+        EffectKind::GoldDelta { sign, kind } => PyEffect::GoldDelta {
+            sign: sign.into(),
+            kind: kind.into(),
+            target,
+        },
         EffectKind::HealthDelta { sign, amount } => PyEffect::HealthDelta {
             sign: sign.into(),
             amount: amount.into(),
@@ -1399,14 +1437,14 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         },
         EffectKind::EventAdvanceState { delta } => PyEffect::EventAdvanceState { delta, target },
-        EffectKind::RollD100Branch {
+        EffectKind::ScrapOozeReach {
+            dmg,
             chance,
-            on_lt,
-            on_ge,
-        } => PyEffect::RollD100Branch {
+            advance_on_miss,
+        } => PyEffect::ScrapOozeReach {
+            dmg,
             chance,
-            on_lt: on_lt.iter().map(snapshot_effect).collect(),
-            on_ge: on_ge.iter().map(snapshot_effect).collect(),
+            advance_on_miss,
             target,
         },
         EffectKind::EventEnd => PyEffect::EventEnd { target },
@@ -1418,7 +1456,6 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             upgraded,
             target,
         },
-        EffectKind::GoldGain { amount } => PyEffect::GoldGain { amount, target },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
         EffectKind::CardDiscoverSelect { kind, count } => PyEffect::CardDiscoverSelect {
             kind: kind.into(),
@@ -1812,7 +1849,6 @@ impl EventName {
             Self::TheSsssserpent => "The Ssssserpent",
             Self::Transmogrifier => "Transmogrifier",
             Self::UpgradeShrine => "Upgrade Shrine",
-            Self::WeMeetAgain => "We Meet Again",
         }
     }
 }

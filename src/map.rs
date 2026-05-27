@@ -358,7 +358,7 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
                 }
             }
             if !swapped {
-                // No free CombatMonster host row → downgrade this node rather than violate rule
+                // No free CombatMonster host row -> downgrade this node rather than violate rule
                 if let Some(n) = &mut nodes[y][x] {
                     n.room_kind = RoomKind::CombatMonster;
                 }

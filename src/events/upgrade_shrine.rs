@@ -25,18 +25,19 @@ const OPTION_PRAY: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
+
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
 // All options
 const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Pray (upgrade a card)",
+        label: "[Pray] Upgrade a card.",
         effects: OPTION_PRAY,
         gate: EventGate::HasUpgradableInDeck,
     },
     EventOption {
-        label: "Leave",
+        label: "[Leave] Nothing happens.",
         effects: OPTION_LEAVE,
         gate: EventGate::None,
     },
@@ -44,6 +45,6 @@ const OPTIONS_ALL: &[EventOption] = &[
 
 // Export event
 static EVENT_UPGRADE_SHRINE: Entity = make_entity_event(EventName::UpgradeShrine, OPTIONS_ALL);
-pub fn spawn_event_upgrade_shrine(_ascension: u8) -> Entity {
+pub fn spawn_event_upgrade_shrine() -> Entity {
     EVENT_UPGRADE_SHRINE
 }

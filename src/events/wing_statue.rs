@@ -6,6 +6,8 @@ use crate::effect::HealthDeltaAmount;
 use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::GoldDeltaKind;
+use crate::effect::GoldDeltaSign;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
 use crate::events::EVENT_END_EFFECT;
@@ -38,32 +40,37 @@ const OPTION_PRAY: &[Effect] = &[
     },
     EVENT_END_EFFECT,
 ];
-// Attack; StS rolls 50–80 gold, fixed at midpoint pending range-aware effects
+
+// Attack
 const OPTION_ATTACK: &[Effect] = &[
     Effect {
-        kind: EffectKind::GoldGain { amount: 65 },
+        kind: EffectKind::GoldDelta {
+            sign: GoldDeltaSign::Gain,
+            kind: GoldDeltaKind::Range { min: 50, max: 80 },
+        },
         id_source: None,
         target: Target::Direct(None),
     },
     EVENT_END_EFFECT,
 ];
+
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
 
 // All options
 const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Pray (lose 7 HP, remove a card)",
+        label: "[Pray] Remove a card from your deck. Lose 7 HP.",
         effects: OPTION_PRAY,
         gate: EventGate::HasPurgeableInDeck,
     },
     EventOption {
-        label: "Attack (+65 gold)",
+        label: "[Destroy] Receive 50-80 Gold.",
         effects: OPTION_ATTACK,
         gate: EventGate::HasDamageCardInDeck { min_base: 10 },
     },
     EventOption {
-        label: "Leave",
+        label: "[Leave] Nothing happens.",
         effects: OPTION_LEAVE,
         gate: EventGate::None,
     },
@@ -71,6 +78,6 @@ const OPTIONS_ALL: &[EventOption] = &[
 
 // Export event
 static EVENT_WING_STATUE: Entity = make_entity_event(EventName::WingStatue, OPTIONS_ALL);
-pub fn spawn_event_wing_statue(_ascension: u8) -> Entity {
+pub fn spawn_event_wing_statue() -> Entity {
     EVENT_WING_STATUE
 }

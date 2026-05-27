@@ -577,7 +577,7 @@ fn handle_card_play(
                     .nth(idx_monster)
                     .ok_or_else(|| format!("Invalid monster index: {}", idx_monster))?;
 
-                // TargetSet → CardPlay → TargetClear; no terminator (derive_phase handles rest)
+                // TargetSet -> CardPlay -> TargetClear; no terminator (derive_phase handles rest)
                 Ok(vec![
                     Effect {
                         kind: EffectKind::TargetSet,

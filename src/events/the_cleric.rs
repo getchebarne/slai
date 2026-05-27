@@ -6,6 +6,8 @@ use crate::effect::HealthDeltaAmount;
 use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::GoldDeltaKind;
+use crate::effect::GoldDeltaSign;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
 use crate::events::EVENT_END_EFFECT;
@@ -16,7 +18,10 @@ use crate::types::EventName;
 // Heal
 const OPTION_HEAL: &[Effect] = &[
     Effect {
-        kind: EffectKind::GoldLoss { amount: 35 },
+        kind: EffectKind::GoldDelta {
+            sign: GoldDeltaSign::Loss,
+            kind: GoldDeltaKind::Fixed(35),
+        },
         id_source: None,
         target: Target::Direct(None),
     },
@@ -29,7 +34,10 @@ const OPTION_HEAL: &[Effect] = &[
             },
         },
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
+        },
     },
     EVENT_END_EFFECT,
 ];
@@ -38,7 +46,10 @@ const OPTION_HEAL: &[Effect] = &[
 const fn purify(cost: u16) -> [Effect; 3] {
     [
         Effect {
-            kind: EffectKind::GoldLoss { amount: cost },
+            kind: EffectKind::GoldDelta {
+                sign: GoldDeltaSign::Loss,
+                kind: GoldDeltaKind::Fixed(cost),
+            },
             id_source: None,
             target: Target::Direct(None),
         },
@@ -73,7 +84,7 @@ const fn options(
 ) -> [EventOption; 3] {
     [
         EventOption {
-            label: "Heal (35 gold, +25% max HP)",
+            label: "[Heal] Pay 35 Gold. Heal 25% of your max HP.",
             effects: OPTION_HEAL,
             gate: EventGate::GoldAtLeast(35),
         },
@@ -83,7 +94,7 @@ const fn options(
             gate: EventGate::All(purify_gate),
         },
         EventOption {
-            label: "Leave",
+            label: "[Leave] Nothing happens.",
             effects: OPTION_LEAVE,
             gate: EventGate::None,
         },
@@ -91,12 +102,12 @@ const fn options(
 }
 static OPTIONS_ALL_BASE: [EventOption; 3] = options(
     &OPTION_PURIFY_BASE,
-    "Purification (50 gold, remove a card)",
+    "[Purify] Pay 50 Gold. Remove a card from your deck.",
     OPTION_PURIFY_GATE_BASE,
 );
 static OPTIONS_ALL_A15: [EventOption; 3] = options(
     &OPTION_PURIFY_A15,
-    "Purification (75 gold, remove a card)",
+    "[Purify] Pay 75 Gold. Remove a card from your deck.",
     OPTION_PURIFY_GATE_A15,
 );
 
