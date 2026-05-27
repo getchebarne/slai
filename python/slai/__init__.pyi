@@ -266,29 +266,28 @@ class MonsterName(IntEnum):
     TheGuardian: int
 
 class ActionType(IntEnum):
+    CardDiscard: int
     CardDiscover: int
+    CardDuplicate: int
+    CardNightmare: int
     CardPlay: int
+    CardPurge: int
+    CardRetain: int
+    CardSetup: int
+    CardTransform: int
+    CardUpgrade: int
     ChestOpen: int
-    DeckDuplicate: int
-    DeckPurge: int
-    DeckTransform: int
-    DeckUpgrade: int
     EventSelect: int
-    HandDiscard: int
-    HandNightmarePick: int
-    HandRetain: int
-    HandSetupPick: int
     PotionDiscard: int
     PotionUse: int
-    RestSiteRest: int
-    RestSiteUpgrade: int
+    Rest: int
     RewardSkip: int
     RewardTakeCard: int
     RewardTakeGold: int
     RewardTakePotion: int
     RewardTakeRelic: int
+    RoomExit: int
     RoomSelect: int
-    RoomSkip: int
     TurnEnd: int
 
 class CandidatePoolDeckFilter(IntEnum):
@@ -536,9 +535,9 @@ class ActionSpecRegistry:
     TurnEnd: ActionSpec
     HandSelect: ActionSpec
     RoomSelect: ActionSpec
-    RestSiteRest: ActionSpec
+    Rest: ActionSpec
     RestSiteCardUpgrade: ActionSpec
-    RoomSkip: ActionSpec
+    RoomExit: ActionSpec
     ChestOpen: ActionSpec
     PotionUse: ActionSpec
     PotionDiscard: ActionSpec

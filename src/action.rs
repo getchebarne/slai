@@ -2,7 +2,6 @@ use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::consts::REST_SITE_HEAL_FACTOR;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
@@ -27,40 +26,40 @@ use crate::types::Screen;
 
 #[derive(Debug, Clone)]
 pub enum Action {
+    CardDiscard {
+        idxs: Vec<usize>,
+    },
     CardDiscover {
         idx_option: usize,
+    },
+    CardDuplicate {
+        idx_option: usize,
+    },
+    CardNightmare {
+        idxs: Vec<usize>,
     },
     CardPlay {
         idx_hand: usize,
         idx_monster: Option<usize>,
     },
+    CardPurge {
+        idx_option: usize,
+    },
+    CardRetain {
+        idxs: Vec<usize>,
+    },
+    CardSetup {
+        idxs: Vec<usize>,
+    },
+    CardTransform {
+        idx_option: usize,
+    },
+    CardUpgrade {
+        idx_option: usize,
+    },
     ChestOpen,
-    DeckDuplicate {
-        idx_option: usize,
-    },
-    DeckPurge {
-        idx_option: usize,
-    },
-    DeckTransform {
-        idx_option: usize,
-    },
-    DeckUpgrade {
-        idx_option: usize,
-    },
     EventSelect {
         idx_option: usize,
-    },
-    HandDiscard {
-        idxs: Vec<usize>,
-    },
-    HandNightmarePick {
-        idxs: Vec<usize>,
-    },
-    HandRetain {
-        idxs: Vec<usize>,
-    },
-    HandSetupPick {
-        idxs: Vec<usize>,
     },
     PotionDiscard {
         idx_slot: usize,
@@ -69,8 +68,7 @@ pub enum Action {
         idx_slot: usize,
         idx_monster: Option<usize>,
     },
-    RestSiteRest,
-    RestSiteUpgrade,
+    Rest,
     RewardSkip,
     RewardTakeCard {
         idx_reward: usize,
@@ -78,10 +76,10 @@ pub enum Action {
     RewardTakeGold,
     RewardTakePotion,
     RewardTakeRelic,
+    RoomExit,
     RoomSelect {
         idx_column: usize,
     },
-    RoomSkip,
     TurnEnd,
 }
 
@@ -114,15 +112,15 @@ fn validate_pending(action: &Action, pending: &Effect) -> Result<(), String> {
         Ok(())
     };
     match (pending.kind, action) {
-        (EffectKind::CardDiscard { .. }, Action::HandDiscard { idxs })
-        | (EffectKind::CardRetain, Action::HandRetain { idxs })
-        | (EffectKind::CardSetupPick, Action::HandSetupPick { idxs })
-        | (EffectKind::CardNightmarePick, Action::HandNightmarePick { idxs }) => check_count(idxs),
+        (EffectKind::CardDiscard { .. }, Action::CardDiscard { idxs })
+        | (EffectKind::CardRetain, Action::CardRetain { idxs })
+        | (EffectKind::CardSetupPick, Action::CardSetup { idxs })
+        | (EffectKind::CardNightmarePick, Action::CardNightmare { idxs }) => check_count(idxs),
         (EffectKind::CardDiscoverPick, Action::CardDiscover { .. })
-        | (EffectKind::CardPurge, Action::DeckPurge { .. })
-        | (EffectKind::CardUpgrade, Action::DeckUpgrade { .. })
-        | (EffectKind::CardDuplicate, Action::DeckDuplicate { .. })
-        | (EffectKind::CardTransform, Action::DeckTransform { .. }) => Ok(()),
+        | (EffectKind::CardPurge, Action::CardPurge { .. })
+        | (EffectKind::CardUpgrade, Action::CardUpgrade { .. })
+        | (EffectKind::CardDuplicate, Action::CardDuplicate { .. })
+        | (EffectKind::CardTransform, Action::CardTransform { .. }) => Ok(()),
         (
             EffectKind::RoomSelect,
             Action::RoomSelect { .. } | Action::PotionUse { .. } | Action::PotionDiscard { .. },
@@ -167,7 +165,7 @@ fn validate_screen_event(action: &Action) -> Result<(), String> {
 
 fn validate_screen_shop(action: &Action) -> Result<(), String> {
     match action {
-        Action::RoomSkip | Action::PotionUse { .. } | Action::PotionDiscard { .. } => Ok(()),
+        Action::RoomExit | Action::PotionUse { .. } | Action::PotionDiscard { .. } => Ok(()),
         _ => Err(format!("Action {:?} invalid in Shop context", action)),
     }
 }
@@ -181,14 +179,44 @@ fn validate_screen_map(action: &Action) -> Result<(), String> {
     }
 }
 
-fn validate_screen_rest_site(action: &Action, _state: &GameState) -> Result<(), String> {
+fn validate_screen_rest_site(action: &Action, state: &GameState) -> Result<(), String> {
     match action {
-        Action::PotionUse { .. }
-        | Action::PotionDiscard { .. }
-        | Action::RestSiteRest
-        | Action::RestSiteUpgrade => Ok(()),
+        Action::PotionUse { .. } | Action::PotionDiscard { .. } | Action::Rest => Ok(()),
+        Action::CardUpgrade { idx_option } => {
+            if *idx_option < count_upgradeable_deck(state) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "CardUpgrade at RestSite: idx_option {} out of range",
+                    idx_option
+                ))
+            }
+        }
         _ => Err(format!("Action {:?} invalid at RestSite", action)),
     }
+}
+
+fn count_upgradeable_deck(state: &GameState) -> usize {
+    state
+        .id_deck
+        .iter()
+        .filter(|&&id| !state.entities[id].card_upgraded)
+        .count()
+}
+
+fn upgradeable_deck_at(state: &GameState, idx_option: usize) -> Result<usize, String> {
+    state
+        .id_deck
+        .iter()
+        .filter(|&&id| !state.entities[id].card_upgraded)
+        .nth(idx_option)
+        .copied()
+        .ok_or_else(|| {
+            format!(
+                "CardUpgrade at RestSite: idx_option {} out of range",
+                idx_option
+            )
+        })
 }
 
 fn validate_screen_chest(action: &Action) -> Result<(), String> {
@@ -202,36 +230,35 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
     validate(&action, state)?;
 
     let effects = match action {
-        Action::HandDiscard { idxs }
-        | Action::HandRetain { idxs }
-        | Action::HandSetupPick { idxs }
-        | Action::HandNightmarePick { idxs } => handle_hand_pick(state, idxs),
-        Action::DeckPurge { idx_option }
-        | Action::DeckUpgrade { idx_option }
-        | Action::DeckDuplicate { idx_option }
-        | Action::DeckTransform { idx_option } => handle_deck_pick(state, idx_option),
+        Action::CardDiscard { idxs } => handle_card_discard(state, idxs),
+        Action::CardDiscover { idx_option } => handle_card_discover(state, idx_option),
+        Action::CardDuplicate { idx_option } => handle_card_duplicate(state, idx_option),
+        Action::CardNightmare { idxs } => handle_card_nightmare(state, idxs),
         Action::CardPlay {
             idx_hand,
             idx_monster,
         } => handle_card_play(state, idx_hand, idx_monster),
-        Action::RestSiteUpgrade => Ok(handle_rest_site_upgrade()),
-        Action::RewardTakeCard { idx_reward } => handle_reward_take_card(state, idx_reward),
-        Action::RewardTakeRelic => handle_reward_take_relic(state),
-        Action::RewardTakePotion => handle_reward_take_potion(state),
-        Action::RewardTakeGold => handle_reward_take_gold(state),
-        Action::RewardSkip => Ok(handle_reward_skip()),
-        Action::TurnEnd => Ok(handle_turn_end(state)),
-        Action::RoomSelect { idx_column } => handle_room_select(state, idx_column),
-        Action::RestSiteRest => Ok(handle_rest_site_rest(state)),
-        Action::RoomSkip => Ok(handle_room_skip()),
+        Action::CardPurge { idx_option } => handle_card_purge(state, idx_option),
+        Action::CardRetain { idxs } => handle_card_retain(state, idxs),
+        Action::CardSetup { idxs } => handle_card_setup(state, idxs),
+        Action::CardTransform { idx_option } => handle_card_transform(state, idx_option),
+        Action::CardUpgrade { idx_option } => handle_card_upgrade(state, idx_option),
         Action::ChestOpen => Ok(handle_chest_open()),
+        Action::EventSelect { idx_option } => handle_event_select(state, idx_option),
+        Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
         Action::PotionUse {
             idx_slot,
             idx_monster,
         } => handle_potion_use(state, idx_slot, idx_monster),
-        Action::PotionDiscard { idx_slot } => handle_potion_discard(state, idx_slot),
-        Action::CardDiscover { idx_option } => handle_card_discover(state, idx_option),
-        Action::EventSelect { idx_option } => handle_event_select(state, idx_option),
+        Action::Rest => Ok(handle_rest(state)),
+        Action::RewardSkip => Ok(handle_reward_skip()),
+        Action::RewardTakeCard { idx_reward } => handle_reward_take_card(state, idx_reward),
+        Action::RewardTakeGold => handle_reward_take_gold(state),
+        Action::RewardTakePotion => handle_reward_take_potion(state),
+        Action::RewardTakeRelic => handle_reward_take_relic(state),
+        Action::RoomExit => Ok(handle_room_exit()),
+        Action::RoomSelect { idx_column } => handle_room_select(state, idx_column),
+        Action::TurnEnd => Ok(handle_turn_end(state)),
     }?;
 
     Ok(effects)
@@ -262,23 +289,23 @@ fn legal_actions_pending(state: &GameState, pending: &Effect) -> Vec<Action> {
         EffectKind::CardDiscard { .. } => {
             let num = input_count(pending).unwrap_or(1) as usize;
             for combo in hand_combinations(state.id_hand.len(), num) {
-                actions.push(Action::HandDiscard { idxs: combo });
+                actions.push(Action::CardDiscard { idxs: combo });
             }
         }
         EffectKind::CardRetain => {
             let num = input_count(pending).unwrap_or(1) as usize;
             for combo in hand_combinations(state.id_hand.len(), num) {
-                actions.push(Action::HandRetain { idxs: combo });
+                actions.push(Action::CardRetain { idxs: combo });
             }
         }
         EffectKind::CardSetupPick => {
             for i in 0..state.id_hand.len() {
-                actions.push(Action::HandSetupPick { idxs: vec![i] });
+                actions.push(Action::CardSetup { idxs: vec![i] });
             }
         }
         EffectKind::CardNightmarePick => {
             for i in 0..state.id_hand.len() {
-                actions.push(Action::HandNightmarePick { idxs: vec![i] });
+                actions.push(Action::CardNightmare { idxs: vec![i] });
             }
         }
         EffectKind::CardDiscoverPick => {
@@ -288,22 +315,22 @@ fn legal_actions_pending(state: &GameState, pending: &Effect) -> Vec<Action> {
         }
         EffectKind::CardPurge => {
             for i in 0..state.buf_candidates.len() {
-                actions.push(Action::DeckPurge { idx_option: i });
+                actions.push(Action::CardPurge { idx_option: i });
             }
         }
         EffectKind::CardUpgrade => {
             for i in 0..state.buf_candidates.len() {
-                actions.push(Action::DeckUpgrade { idx_option: i });
+                actions.push(Action::CardUpgrade { idx_option: i });
             }
         }
         EffectKind::CardDuplicate => {
             for i in 0..state.buf_candidates.len() {
-                actions.push(Action::DeckDuplicate { idx_option: i });
+                actions.push(Action::CardDuplicate { idx_option: i });
             }
         }
         EffectKind::CardTransform => {
             for i in 0..state.buf_candidates.len() {
-                actions.push(Action::DeckTransform { idx_option: i });
+                actions.push(Action::CardTransform { idx_option: i });
             }
         }
         EffectKind::RoomSelect => {
@@ -392,7 +419,7 @@ fn legal_actions_event(state: &GameState) -> Vec<Action> {
 }
 
 fn legal_actions_shop(state: &GameState) -> Vec<Action> {
-    let mut actions = vec![Action::RoomSkip];
+    let mut actions = vec![Action::RoomExit];
     push_potion_actions(state, &mut actions);
     actions
 }
@@ -405,13 +432,9 @@ fn legal_actions_map(state: &GameState) -> Vec<Action> {
 }
 
 fn legal_actions_rest_site(state: &GameState) -> Vec<Action> {
-    let mut actions = vec![Action::RestSiteRest];
-    let has_upgradeable = state
-        .id_deck
-        .iter()
-        .any(|&id| !state.entities[id].card_upgraded);
-    if has_upgradeable {
-        actions.push(Action::RestSiteUpgrade);
+    let mut actions = vec![Action::Rest];
+    for i in 0..count_upgradeable_deck(state) {
+        actions.push(Action::CardUpgrade { idx_option: i });
     }
     push_potion_actions(state, &mut actions);
     actions
@@ -625,7 +648,24 @@ fn handle_card_play(
     }
 }
 
-fn handle_hand_pick(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
+fn handle_card_discard(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
+    resolve_hand_pending(state, idxs)
+}
+
+fn handle_card_retain(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
+    resolve_hand_pending(state, idxs)
+}
+
+fn handle_card_setup(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
+    resolve_hand_pending(state, idxs)
+}
+
+fn handle_card_nightmare(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
+    resolve_hand_pending(state, idxs)
+}
+
+// Pops effect_pending and re-enqueues it as Direct for each hand-card id
+fn resolve_hand_pending(state: &mut GameState, idxs: Vec<usize>) -> Result<Vec<Effect>, String> {
     if !matches!(state.screen, Screen::Combat) {
         return Err("Hand pick outside Combat context".into());
     }
@@ -757,7 +797,7 @@ fn handle_reward_skip() -> Vec<Effect> {
     }]
 }
 
-fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
+fn handle_rest(state: &GameState) -> Vec<Effect> {
     let id_character = state.id_character;
     let health_max = state.entities[id_character].vitals.health_max;
     let heal_amt = (REST_SITE_HEAL_FACTOR * health_max as f32) as u16;
@@ -780,7 +820,7 @@ fn handle_rest_site_rest(state: &GameState) -> Vec<Effect> {
     ]
 }
 
-fn handle_room_skip() -> Vec<Effect> {
+fn handle_room_exit() -> Vec<Effect> {
     vec![Effect {
         kind: EffectKind::RoomSelect,
         id_source: None,
@@ -895,25 +935,36 @@ fn handle_card_discover(state: &mut GameState, idx_option: usize) -> Result<Vec<
     Ok(Vec::new())
 }
 
-fn handle_rest_site_upgrade() -> Vec<Effect> {
-    // CardUpgrade halts for the player to pick from the deck; RestSiteExit fires after
-    vec![
+fn handle_card_purge(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
+    resolve_deck_pending(state, idx_option)
+}
+
+fn handle_card_duplicate(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
+    resolve_deck_pending(state, idx_option)
+}
+
+fn handle_card_transform(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
+    resolve_deck_pending(state, idx_option)
+}
+
+fn handle_card_upgrade(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
+    // Resolves a pending CardUpgrade halt; at rest site fires a direct upgrade + exit
+    if state.effect_pending.is_some() {
+        return resolve_deck_pending(state, idx_option);
+    }
+    let id_card = upgradeable_deck_at(state, idx_option)?;
+    Ok(vec![
         Effect {
             kind: EffectKind::CardUpgrade,
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck {
-                    filter: CandidatePoolDeckFilter::Upgradeable,
-                },
-                selection_kind: SelectionKind::Input { count: 1 },
-            },
+            target: Target::Direct(Some(id_card)),
         },
         Effect {
             kind: EffectKind::RestSiteExit,
             id_source: None,
             target: Target::Direct(None),
         },
-    ]
+    ])
 }
 
 fn handle_event_select(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
@@ -945,7 +996,8 @@ fn handle_event_select(state: &mut GameState, idx_option: usize) -> Result<Vec<E
     Ok(effects)
 }
 
-fn handle_deck_pick(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
+// Pops effect_pending and re-enqueues it as Direct for the resolved deck-card id
+fn resolve_deck_pending(state: &mut GameState, idx_option: usize) -> Result<Vec<Effect>, String> {
     let pending = state
         .effect_pending
         .take()
