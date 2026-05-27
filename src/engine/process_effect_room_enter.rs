@@ -32,11 +32,11 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
         }
         RoomKind::CombatMonster => {
-            let encounter = state.encounter_list_normal.remove(0);
+            let encounter = state.encounter_pool_normal.remove(0);
             spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
         }
         RoomKind::CombatElite => {
-            let encounter = state.encounter_list_elite.remove(0);
+            let encounter = state.encounter_pool_elite.remove(0);
             spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
         }
         RoomKind::RestSite => {
@@ -61,7 +61,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::EventRoom => {
             if let Some(id_event) = spawn_random_event(
                 &mut state.entities,
-                &mut state.events_seen_this_run,
+                &mut state.events_seen,
                 state.ascension,
                 &mut state.rng,
             ) {
@@ -87,23 +87,23 @@ pub fn process_effect_room_enter(state: &mut GameState) {
 
 fn spawn_random_event(
     entities: &mut Vec<Entity>,
-    events_seen_this_run: &mut Vec<EventName>,
+    events_seen: &mut Vec<EventName>,
     ascension: u8,
     rng: &mut impl Rng,
 ) -> Option<usize> {
     if POOL_ACT1_EVENT.is_empty() {
         return None;
     }
-    if events_seen_this_run.len() >= POOL_ACT1_EVENT.len() {
-        events_seen_this_run.clear();
+    if events_seen.len() >= POOL_ACT1_EVENT.len() {
+        events_seen.clear();
     }
     let name = loop {
         let cand = POOL_ACT1_EVENT[rng.random_range(0..POOL_ACT1_EVENT.len())];
-        if !events_seen_this_run.contains(&cand) {
+        if !events_seen.contains(&cand) {
             break cand;
         }
     };
-    events_seen_this_run.push(name);
+    events_seen.push(name);
     let id_event = push_entity(entities, spawn_event(name, ascension, rng));
     Some(id_event)
 }

@@ -45,9 +45,9 @@ fn combat_reset(state: &mut GameState) {
     state.id_picked_monster = None;
     state.id_monsters = [None; MAX_MONSTERS];
     state.this_turn_discards = 0;
-    state.this_turn_attacks_played = 0;
+    state.this_turn_attacks = 0;
     state.this_combat_damage_instances_taken = 0;
-    state.escaped_this_combat = false;
+    state.this_combat_escaped = false;
     state.id_card_last_drawn = None;
 
     for entity in state.entities.iter_mut() {

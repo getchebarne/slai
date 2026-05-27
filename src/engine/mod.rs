@@ -251,7 +251,7 @@ fn resolve_selection_kind(
     }
 }
 
-// Returns true on success; false on halt (unresolved Effect stashed in pending_effect)
+// Returns true on success; false on halt (unresolved Effect stashed in effect_pending)
 pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
     let id_target = match effect.target {
         Target::Direct(id_target) => id_target,
@@ -270,7 +270,7 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
                 );
             } else {
                 // Effect needs player input to be resolved
-                state.pending_effect = Some(effect);
+                state.effect_pending = Some(effect);
             }
             return resolved;
         }

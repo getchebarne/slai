@@ -78,7 +78,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
 
 pub fn process_effect_turn_end_character(state: &mut GameState) {
     state.this_turn_discards = 0;
-    state.this_turn_attacks_played = 0;
+    state.this_turn_attacks = 0;
 
     if let Some(id) = state.id_relics[RelicName::Kunai as usize] {
         state.entities[id].relic_counter = 0;

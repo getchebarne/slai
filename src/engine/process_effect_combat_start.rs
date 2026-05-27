@@ -9,7 +9,7 @@ use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(state: &mut GameState) {
     state.this_combat_damage_instances_taken = 0;
-    state.escaped_this_combat = false;
+    state.this_combat_escaped = false;
 
     // Innate cards sit on top of the draw pile, ahead of the shuffled rest
     let mut other_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];

@@ -23,7 +23,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let card = state.entities[id_card];
 
     if card.card_kind == CardKind::Attack {
-        state.this_turn_attacks_played = state.this_turn_attacks_played.saturating_add(1);
+        state.this_turn_attacks = state.this_turn_attacks.saturating_add(1);
 
         if let Some(id_kunai) = state.id_relics[RelicName::Kunai as usize] {
             let counter = &mut state.entities[id_kunai].relic_counter;

@@ -10,7 +10,7 @@ pub fn process_effect_escape_monster(id_target: Option<usize>, state: &mut GameS
     if let Some(slot) = state.id_monsters.iter().position(|s| *s == Some(id_target)) {
         state.id_monsters[slot] = None;
     }
-    state.escaped_this_combat = true;
+    state.this_combat_escaped = true;
 
     let any_alive = state.id_monsters.iter().any(|s| s.is_some());
     if !any_alive {

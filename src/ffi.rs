@@ -936,47 +936,59 @@ pub struct PyTarget {
 #[pyclass(eq, eq_int, hash, frozen, name = "ActionType")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyActionType {
-    CardPlay,
-    EndTurn,
-    HandSelect,
-    RoomSelect,
-    RestSiteRest,
-    RestSiteCardUpgrade,
-    RoomSkip,
-    ChestOpen,
-    PotionUse,
-    PotionDiscard,
     CardDiscover,
-    RewardTakeCard,
-    RewardTakeRelic,
-    RewardTakePotion,
-    RewardTakeGold,
-    RewardSkip,
+    CardPlay,
+    ChestOpen,
+    DeckDuplicate,
+    DeckPurge,
+    DeckTransform,
+    DeckUpgrade,
     EventSelect,
-    DeckSelect,
+    HandDiscard,
+    HandNightmarePick,
+    HandRetain,
+    HandSetupPick,
+    PotionDiscard,
+    PotionUse,
+    RestSiteRest,
+    RestSiteUpgrade,
+    RewardSkip,
+    RewardTakeCard,
+    RewardTakeGold,
+    RewardTakePotion,
+    RewardTakeRelic,
+    RoomSelect,
+    RoomSkip,
+    TurnEnd,
 }
 
 impl PyActionType {
     fn from_discriminant(discriminant: u8) -> Result<Self, String> {
         match discriminant {
-            0 => Ok(Self::CardPlay),
-            1 => Ok(Self::EndTurn),
-            2 => Ok(Self::HandSelect),
-            3 => Ok(Self::RoomSelect),
-            4 => Ok(Self::RestSiteRest),
-            5 => Ok(Self::RestSiteCardUpgrade),
-            6 => Ok(Self::RoomSkip),
-            7 => Ok(Self::ChestOpen),
-            8 => Ok(Self::PotionUse),
-            9 => Ok(Self::PotionDiscard),
-            10 => Ok(Self::CardDiscover),
-            11 => Ok(Self::RewardTakeCard),
-            12 => Ok(Self::RewardTakeRelic),
-            13 => Ok(Self::RewardTakePotion),
-            14 => Ok(Self::RewardTakeGold),
-            15 => Ok(Self::RewardSkip),
-            16 => Ok(Self::EventSelect),
-            17 => Ok(Self::DeckSelect),
+            0 => Ok(Self::CardDiscover),
+            1 => Ok(Self::CardPlay),
+            2 => Ok(Self::ChestOpen),
+            3 => Ok(Self::DeckDuplicate),
+            4 => Ok(Self::DeckPurge),
+            5 => Ok(Self::DeckTransform),
+            6 => Ok(Self::DeckUpgrade),
+            7 => Ok(Self::EventSelect),
+            8 => Ok(Self::HandDiscard),
+            9 => Ok(Self::HandNightmarePick),
+            10 => Ok(Self::HandRetain),
+            11 => Ok(Self::HandSetupPick),
+            12 => Ok(Self::PotionDiscard),
+            13 => Ok(Self::PotionUse),
+            14 => Ok(Self::RestSiteRest),
+            15 => Ok(Self::RestSiteUpgrade),
+            16 => Ok(Self::RewardSkip),
+            17 => Ok(Self::RewardTakeCard),
+            18 => Ok(Self::RewardTakeGold),
+            19 => Ok(Self::RewardTakePotion),
+            20 => Ok(Self::RewardTakeRelic),
+            21 => Ok(Self::RoomSelect),
+            22 => Ok(Self::RoomSkip),
+            23 => Ok(Self::TurnEnd),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -1034,11 +1046,14 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
                 "CardPlay expects [idx_hand] or [idx_hand, idx_monster], got {n} idxs"
             )),
         },
-        PyActionType::EndTurn => match idxs.len() {
-            0 => Ok(Action::EndTurn),
-            n => Err(format!("EndTurn expects [], got {n} idxs")),
+        PyActionType::TurnEnd => match idxs.len() {
+            0 => Ok(Action::TurnEnd),
+            n => Err(format!("TurnEnd expects [], got {n} idxs")),
         },
-        PyActionType::HandSelect => Ok(Action::HandSelect { idxs: idxs.clone() }),
+        PyActionType::HandDiscard => Ok(Action::HandDiscard { idxs: idxs.clone() }),
+        PyActionType::HandRetain => Ok(Action::HandRetain { idxs: idxs.clone() }),
+        PyActionType::HandSetupPick => Ok(Action::HandSetupPick { idxs: idxs.clone() }),
+        PyActionType::HandNightmarePick => Ok(Action::HandNightmarePick { idxs: idxs.clone() }),
         PyActionType::RoomSelect => match idxs.len() {
             1 => Ok(Action::RoomSelect {
                 idx_column: idxs[0],
@@ -1049,11 +1064,9 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::RestSiteRest),
             n => Err(format!("RestSiteRest expects [], got {n} idxs")),
         },
-        PyActionType::RestSiteCardUpgrade => match idxs.len() {
-            1 => Ok(Action::RestSiteCardUpgrade { idx_deck: idxs[0] }),
-            n => Err(format!(
-                "RestSiteCardUpgrade expects [idx_deck], got {n} idxs"
-            )),
+        PyActionType::RestSiteUpgrade => match idxs.len() {
+            0 => Ok(Action::RestSiteUpgrade),
+            n => Err(format!("RestSiteUpgrade expects [], got {n} idxs")),
         },
         PyActionType::RoomSkip => match idxs.len() {
             0 => Ok(Action::RoomSkip),
@@ -1114,11 +1127,29 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             }),
             n => Err(format!("EventSelect expects [idx_option], got {n} idxs")),
         },
-        PyActionType::DeckSelect => match idxs.len() {
-            1 => Ok(Action::DeckSelect {
+        PyActionType::DeckPurge => match idxs.len() {
+            1 => Ok(Action::DeckPurge {
                 idx_option: idxs[0],
             }),
-            n => Err(format!("DeckSelect expects [idx_option], got {n} idxs")),
+            n => Err(format!("DeckPurge expects [idx_option], got {n} idxs")),
+        },
+        PyActionType::DeckUpgrade => match idxs.len() {
+            1 => Ok(Action::DeckUpgrade {
+                idx_option: idxs[0],
+            }),
+            n => Err(format!("DeckUpgrade expects [idx_option], got {n} idxs")),
+        },
+        PyActionType::DeckDuplicate => match idxs.len() {
+            1 => Ok(Action::DeckDuplicate {
+                idx_option: idxs[0],
+            }),
+            n => Err(format!("DeckDuplicate expects [idx_option], got {n} idxs")),
+        },
+        PyActionType::DeckTransform => match idxs.len() {
+            1 => Ok(Action::DeckTransform {
+                idx_option: idxs[0],
+            }),
+            n => Err(format!("DeckTransform expects [idx_option], got {n} idxs")),
         },
     }
 }
@@ -1133,13 +1164,14 @@ pub fn from_internal_action(action: Action) -> PyAction {
             idx_hand,
             idx_monster: Some(m),
         } => (PyActionType::CardPlay, vec![idx_hand, m]),
-        Action::EndTurn => (PyActionType::EndTurn, vec![]),
-        Action::HandSelect { idxs } => (PyActionType::HandSelect, idxs),
+        Action::TurnEnd => (PyActionType::TurnEnd, vec![]),
+        Action::HandDiscard { idxs } => (PyActionType::HandDiscard, idxs),
+        Action::HandRetain { idxs } => (PyActionType::HandRetain, idxs),
+        Action::HandSetupPick { idxs } => (PyActionType::HandSetupPick, idxs),
+        Action::HandNightmarePick { idxs } => (PyActionType::HandNightmarePick, idxs),
         Action::RoomSelect { idx_column } => (PyActionType::RoomSelect, vec![idx_column]),
         Action::RestSiteRest => (PyActionType::RestSiteRest, vec![]),
-        Action::RestSiteCardUpgrade { idx_deck } => {
-            (PyActionType::RestSiteCardUpgrade, vec![idx_deck])
-        }
+        Action::RestSiteUpgrade => (PyActionType::RestSiteUpgrade, vec![]),
         Action::RoomSkip => (PyActionType::RoomSkip, vec![]),
         Action::ChestOpen => (PyActionType::ChestOpen, vec![]),
         Action::PotionUse {
@@ -1158,7 +1190,10 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
         Action::RewardSkip => (PyActionType::RewardSkip, vec![]),
         Action::EventSelect { idx_option } => (PyActionType::EventSelect, vec![idx_option]),
-        Action::DeckSelect { idx_option } => (PyActionType::DeckSelect, vec![idx_option]),
+        Action::DeckPurge { idx_option } => (PyActionType::DeckPurge, vec![idx_option]),
+        Action::DeckUpgrade { idx_option } => (PyActionType::DeckUpgrade, vec![idx_option]),
+        Action::DeckDuplicate { idx_option } => (PyActionType::DeckDuplicate, vec![idx_option]),
+        Action::DeckTransform { idx_option } => (PyActionType::DeckTransform, vec![idx_option]),
     };
     PyAction {
         action_type,
@@ -1684,7 +1719,7 @@ pub enum PyPendingInput {
     Discover {
         cards: Vec<PyCard>,
     },
-    DeckSelect {
+    DeckPick {
         filter: PyCandidatePoolDeckFilter,
         cards: Vec<PyCard>,
     },
@@ -1973,7 +2008,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
 }
 
 fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
-    let pending = state.pending_effect.as_ref()?;
+    let pending = state.effect_pending.as_ref()?;
     let num = input_count(pending).map(|c| c as u8);
     Some(match pending.kind {
         EffectKind::CardDiscard { .. } => PyPendingInput::Discard {
@@ -2013,13 +2048,13 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect();
-            PyPendingInput::DeckSelect {
+            PyPendingInput::DeckPick {
                 filter: filter.into(),
                 cards,
             }
         }
         EffectKind::RoomSelect => PyPendingInput::RoomSelect {},
-        _ => unreachable!("pending_effect with non-halting kind: {:?}", pending.kind),
+        _ => unreachable!("effect_pending with non-halting kind: {:?}", pending.kind),
     })
 }
 

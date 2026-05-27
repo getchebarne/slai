@@ -23,7 +23,7 @@ use crate::utils::roll_card_rewards;
 
 pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomKind) {
     let escaped = if matches!(state.screen, Screen::Combat) {
-        state.escaped_this_combat
+        state.this_combat_escaped
     } else {
         false
     };

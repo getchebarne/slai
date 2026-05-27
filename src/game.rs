@@ -9,8 +9,8 @@ use crate::action::handle_action;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
 use crate::consts::DISCOVER_PICK_COUNT;
-use crate::consts::ENCOUNTER_LIST_CAPACITY_ELITE;
-use crate::consts::ENCOUNTER_LIST_CAPACITY_NORMAL;
+use crate::consts::ENCOUNTER_POOL_CAPACITY_ELITE;
+use crate::consts::ENCOUNTER_POOL_CAPACITY_NORMAL;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_CANDIDATES;
@@ -67,7 +67,7 @@ pub struct GameState {
     pub buf_candidates: Vec<usize>,
 
     // Halt overlay; cleared by the action handler that supplies the pick
-    pub pending_effect: Option<Effect>,
+    pub effect_pending: Option<Effect>,
     pub location: Location,
 
     // Entities and indices
@@ -76,8 +76,8 @@ pub struct GameState {
     pub id_character: usize,
 
     // Monster encounters
-    pub encounter_list_normal: Vec<MonsterEncounter>,
-    pub encounter_list_elite: Vec<MonsterEncounter>,
+    pub encounter_pool_normal: Vec<MonsterEncounter>,
+    pub encounter_pool_elite: Vec<MonsterEncounter>,
     pub encounter_boss: MonsterEncounter,
 
     // Master deck (persists across combats)
@@ -92,7 +92,7 @@ pub struct GameState {
     pub unknown_chance_treasure: f32,
 
     // Events already surfaced this run (no-repeat filter)
-    pub events_seen_this_run: Vec<EventName>,
+    pub events_seen: Vec<EventName>,
 
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
@@ -109,9 +109,9 @@ pub struct GameState {
     pub id_picked_monster: Option<usize>,
     pub energy: Energy,
     pub this_turn_discards: u8,
-    pub this_turn_attacks_played: u8,
+    pub this_turn_attacks: u8,
     pub this_combat_damage_instances_taken: u8,
-    pub escaped_this_combat: bool,
+    pub this_combat_escaped: bool,
     pub id_card_last_drawn: Option<usize>,
     pub id_card_nightmare: Option<usize>,
     pub id_discover: Vec<usize>,
@@ -154,13 +154,13 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
     let (id_rooms, location) = generate_map(&mut rng, &mut entities);
 
     // Pre-generate monster encounters
-    let mut encounter_list_normal: Vec<MonsterEncounter> =
-        Vec::with_capacity(ENCOUNTER_LIST_CAPACITY_NORMAL);
-    let mut encounter_list_elite: Vec<MonsterEncounter> =
-        Vec::with_capacity(ENCOUNTER_LIST_CAPACITY_ELITE);
+    let mut encounter_pool_normal: Vec<MonsterEncounter> =
+        Vec::with_capacity(ENCOUNTER_POOL_CAPACITY_NORMAL);
+    let mut encounter_pool_elite: Vec<MonsterEncounter> =
+        Vec::with_capacity(ENCOUNTER_POOL_CAPACITY_ELITE);
     generate_act1_monsters(
-        &mut encounter_list_normal,
-        &mut encounter_list_elite,
+        &mut encounter_pool_normal,
+        &mut encounter_pool_elite,
         &mut rng,
     );
     let encounter_boss = pick_act1_boss(&mut rng);
@@ -185,17 +185,17 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         id_relics,
         id_rooms,
         location,
-        encounter_list_normal,
-        encounter_list_elite,
+        encounter_pool_normal,
+        encounter_pool_elite,
         encounter_boss,
         effect_queue,
         buf_effects: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         buf_candidates: Vec::with_capacity(MAX_CANDIDATES),
-        pending_effect: None,
+        effect_pending: None,
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
-        events_seen_this_run: Vec::with_capacity(EventName::COUNT),
+        events_seen: Vec::with_capacity(EventName::COUNT),
         potion_drop_mod: 0,
 
         screen: Screen::Map,
@@ -211,9 +211,9 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
             energy_max: 3,
         },
         this_turn_discards: 0,
-        this_turn_attacks_played: 0,
+        this_turn_attacks: 0,
         this_combat_damage_instances_taken: 0,
-        escaped_this_combat: false,
+        this_combat_escaped: false,
         id_card_last_drawn: None,
         id_card_nightmare: None,
         id_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
