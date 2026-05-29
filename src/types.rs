@@ -8,6 +8,13 @@ pub struct Vitals {
     pub block: u16,
 }
 
+// Direction of a quantity change (health, gold, etc.)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DeltaSign {
+    Gain,
+    Loss,
+}
+
 // Persistent screen; transient working memory lives in flat GameState fields
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Screen {

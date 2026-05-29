@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::effect::HealthDeltaSign;
+use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -26,7 +26,7 @@ pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameStat
 
     state.effect_queue.push_front(Effect {
         kind: EffectKind::HealthDelta {
-            sign: HealthDeltaSign::Loss,
+            sign: DeltaSign::Loss,
             amount: HealthDeltaAmount::Absolute(stacks as u16),
         },
         id_source: None,

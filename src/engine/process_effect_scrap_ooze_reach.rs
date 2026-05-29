@@ -3,7 +3,7 @@ use rand::Rng;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::effect::HealthDeltaSign;
+use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -19,7 +19,7 @@ pub fn process_effect_scrap_ooze_reach(
     state.buf_effects.clear();
     state.buf_effects.push(Effect {
         kind: EffectKind::HealthDelta {
-            sign: HealthDeltaSign::Loss,
+            sign: DeltaSign::Loss,
             amount: HealthDeltaAmount::Absolute(dmg),
         },
         id_source: None,

@@ -3,9 +3,8 @@ use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::GoldDeltaKind;
-use crate::effect::GoldDeltaSign;
+use crate::types::DeltaSign;
 use crate::effect::HealthDeltaAmount;
-use crate::effect::HealthDeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -19,7 +18,7 @@ use crate::types::EventName;
 const OPTION_HEAL: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
-            sign: GoldDeltaSign::Loss,
+            sign: DeltaSign::Loss,
             kind: GoldDeltaKind::Fixed(35),
         },
         id_source: None,
@@ -27,7 +26,7 @@ const OPTION_HEAL: &[Effect] = &[
     },
     Effect {
         kind: EffectKind::HealthDelta {
-            sign: HealthDeltaSign::Gain,
+            sign: DeltaSign::Gain,
             amount: HealthDeltaAmount::Relative {
                 numerator: 1,
                 denominator: 4,
@@ -47,7 +46,7 @@ const fn purify(cost: u16) -> [Effect; 3] {
     [
         Effect {
             kind: EffectKind::GoldDelta {
-                sign: GoldDeltaSign::Loss,
+                sign: DeltaSign::Loss,
                 kind: GoldDeltaKind::Fixed(cost),
             },
             id_source: None,

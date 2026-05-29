@@ -2,7 +2,7 @@ use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::effect::HealthDeltaSign;
+use crate::types::DeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -28,7 +28,7 @@ pub static BANDAGE_UP: Entity = make_entity_card(
     false,
     &[Effect {
         kind: EffectKind::HealthDelta {
-            sign: HealthDeltaSign::Gain,
+            sign: DeltaSign::Gain,
             amount: HealthDeltaAmount::Absolute(4),
         },
         id_source: None,
@@ -47,7 +47,7 @@ pub static BANDAGE_UP_PLUS: Entity = Entity {
     card_effects: {
         let mut a = BANDAGE_UP.card_effects;
         a[0].kind = EffectKind::HealthDelta {
-            sign: HealthDeltaSign::Gain,
+            sign: DeltaSign::Gain,
             amount: HealthDeltaAmount::Absolute(6),
         }; // +2 heal
         a

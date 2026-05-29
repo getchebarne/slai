@@ -100,7 +100,7 @@ static MOVE_SPLIT: Move = Move {
             },
         },
         Effect {
-            kind: EffectKind::EscapeMonster,
+            kind: EffectKind::MonsterEscape,
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,

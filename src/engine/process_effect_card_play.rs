@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::effect::HealthDeltaSign;
+use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::card_effective_cost;
@@ -187,7 +187,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             let stacks = modifier_stacks(mods_monster, ModifierKind::Choke);
             state.buf_effects.push(Effect {
                 kind: EffectKind::HealthDelta {
-                    sign: HealthDeltaSign::Loss,
+                    sign: DeltaSign::Loss,
                     amount: HealthDeltaAmount::Absolute(stacks as u16),
                 },
                 id_source: None,

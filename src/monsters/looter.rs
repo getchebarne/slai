@@ -90,7 +90,7 @@ static MOVE_SMOKE_BOMB: Move = Move {
 static MOVE_ESCAPE: Move = Move {
     name: "Escape",
     effects: &[Effect {
-        kind: EffectKind::EscapeMonster,
+        kind: EffectKind::MonsterEscape,
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Source,

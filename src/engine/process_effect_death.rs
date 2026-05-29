@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::GoldDeltaKind;
-use crate::effect::GoldDeltaSign;
+use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -24,7 +24,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let gold_return = if monster.monster_stolen_gold > 0 {
         Some(Effect {
             kind: EffectKind::GoldDelta {
-                sign: GoldDeltaSign::Gain,
+                sign: DeltaSign::Gain,
                 kind: GoldDeltaKind::PreRolled(monster.monster_stolen_gold),
             },
             id_source: None,

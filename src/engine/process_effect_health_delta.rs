@@ -1,7 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::effect::HealthDeltaSign;
+use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -19,7 +19,7 @@ use crate::types::Screen;
 pub fn process_effect_health_delta(
     id_target: Option<usize>,
     state: &mut GameState,
-    sign: HealthDeltaSign,
+    sign: DeltaSign,
     amount: HealthDeltaAmount,
 ) {
     let id_target = id_target.expect("HealthDelta requires id_target");
@@ -32,14 +32,14 @@ pub fn process_effect_health_delta(
             let health_max = state.entities[id_target].vitals.health_max;
             let raw = (health_max as u32 * numerator as u32) / denominator as u32;
             match sign {
-                HealthDeltaSign::Loss => raw.max(1) as u16,
-                HealthDeltaSign::Gain => raw as u16,
+                DeltaSign::Loss => raw.max(1) as u16,
+                DeltaSign::Gain => raw as u16,
             }
         }
     };
     match sign {
-        HealthDeltaSign::Gain => apply_gain(id_target, state, amount),
-        HealthDeltaSign::Loss => apply_loss(id_target, state, amount),
+        DeltaSign::Gain => apply_gain(id_target, state, amount),
+        DeltaSign::Loss => apply_loss(id_target, state, amount),
     }
 }
 

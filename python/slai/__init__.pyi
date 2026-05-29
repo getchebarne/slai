@@ -277,7 +277,7 @@ class ActionType(IntEnum):
     CardTransform: int
     CardUpgrade: int
     ChestOpen: int
-    EventSelect: int
+    EventOptionSelect: int
     PotionDiscard: int
     PotionUse: int
     Rest: int

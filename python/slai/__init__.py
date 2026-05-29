@@ -107,38 +107,38 @@ _DISCOVER_POS = "position in state.picks_card (the discovery offer)"
 # Action spec registry
 ACTION_SPEC_REGISTRY = ActionSpecRegistry(
     [
-        create_action_spec(ActionType.CardDiscover, ArgSpec("idx_option", _DISCOVER_POS)),
+        create_action_spec(ActionType.CardDiscover, ArgSpec("idx", _DISCOVER_POS)),
         create_action_spec(
             ActionType.CardPlay,
-            ArgSpec("idx_hand", _HAND_POS),
+            ArgSpec("idx_card", _HAND_POS),
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.ChestOpen),
         # Deck-pick family (resolves a deck-pick halt)
-        create_action_spec(ActionType.CardDuplicate, ArgSpec("idx_option", _DECK_POS)),
-        create_action_spec(ActionType.CardPurge, ArgSpec("idx_option", _DECK_POS)),
-        create_action_spec(ActionType.CardTransform, ArgSpec("idx_option", _DECK_POS)),
-        create_action_spec(ActionType.CardUpgrade, ArgSpec("idx_option", _DECK_POS)),
-        create_action_spec(ActionType.EventSelect, ArgSpec("idx_option", _HAND_POS)),
+        create_action_spec(ActionType.CardDuplicate, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.CardPurge, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.CardTransform, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.EventOptionSelect, ArgSpec("idx", _HAND_POS)),
         # Hand-pick family (resolves a hand-pick halt)
         create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS, variable=True)),
-        create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS, variable=True)),
+        create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS, variable=True)),
-        create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS, variable=True)),
+        create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
         create_action_spec(
             ActionType.PotionUse,
-            ArgSpec("idx_slot", _SLOT_POS),
+            ArgSpec("idx_potion", _SLOT_POS),
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.Rest),
         create_action_spec(ActionType.RewardSkip),
         # Reward pickup family
-        create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx_reward", _REWARD_POS)),
+        create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx", _REWARD_POS)),
         create_action_spec(ActionType.RewardTakeGold),
         create_action_spec(ActionType.RewardTakePotion),
         create_action_spec(ActionType.RewardTakeRelic),
-        create_action_spec(ActionType.RoomSelect, ArgSpec("idx_column", _MAP_COL)),
+        create_action_spec(ActionType.RoomSelect, ArgSpec("idx", _MAP_COL)),
         create_action_spec(ActionType.RoomExit),
         create_action_spec(ActionType.TurnEnd),
     ]

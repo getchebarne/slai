@@ -33,7 +33,7 @@ pub mod process_effect_death;
 pub mod process_effect_distraction_add;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
-pub mod process_effect_escape_monster;
+pub mod process_effect_monster_escape;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_end;
@@ -554,9 +554,9 @@ fn dispatch_by_kind(
         EffectKind::MonsterSpawn { name } => {
             process_effect_monster_spawn::process_effect_monster_spawn(id_source, state, name)
         }
-        EffectKind::EscapeMonster => {
+        EffectKind::MonsterEscape => {
             debug_assert!(matches!(state.screen, Screen::Combat));
-            process_effect_escape_monster::process_effect_escape_monster(id_target, state)
+            process_effect_monster_escape::process_effect_monster_escape(id_target, state)
         }
         EffectKind::GoldSteal { amount } => {
             process_effect_gold_steal::process_effect_gold_steal(id_source, state, amount)
