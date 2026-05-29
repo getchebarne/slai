@@ -87,14 +87,29 @@ class IntentKind(IntEnum):
     Stunned: int
     Unknown: int
 
-class CandidatePool(IntEnum):
-    Hand: int
-    Character: int
-    Monsters: int
-    Source: int
-    NextRowRooms: int
-    Discover: int
-    Deck: int
+class CandidatePool:
+    class Hand:
+        def __init__(self) -> None: ...
+
+    class Character:
+        def __init__(self) -> None: ...
+
+    class Monsters:
+        filter: CandidatePoolMonstersFilter
+        def __init__(self, filter: CandidatePoolMonstersFilter) -> None: ...
+
+    class Source:
+        def __init__(self) -> None: ...
+
+    class NextRowRooms:
+        def __init__(self) -> None: ...
+
+    class Discover:
+        def __init__(self) -> None: ...
+
+    class Deck:
+        filter: CandidatePoolDeckFilter
+        def __init__(self, filter: CandidatePoolDeckFilter) -> None: ...
 
 class CandidatePoolMonstersFilter(IntEnum):
     All: int

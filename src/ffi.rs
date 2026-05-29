@@ -793,28 +793,36 @@ impl From<ModifierKind> for PyModifierKind {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "CandidatePool")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[pyclass(eq, hash, frozen, name = "CandidatePool")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
-    Hand,
-    Character,
-    Monsters,
-    Source,
-    NextRowRooms,
-    Discover,
-    Deck,
+    Hand {},
+    Character {},
+    Monsters {
+        filter: PyCandidatePoolMonstersFilter,
+    },
+    Source {},
+    NextRowRooms {},
+    Discover {},
+    Deck {
+        filter: PyCandidatePoolDeckFilter,
+    },
 }
 
 impl From<CandidatePool> for PyCandidatePool {
     fn from(pool: CandidatePool) -> Self {
         match pool {
-            CandidatePool::Hand => Self::Hand,
-            CandidatePool::Character => Self::Character,
-            CandidatePool::Monsters { filter: _ } => Self::Monsters,
-            CandidatePool::Source => Self::Source,
-            CandidatePool::NextRowRooms => Self::NextRowRooms,
-            CandidatePool::Discover => Self::Discover,
-            CandidatePool::Deck { filter: _ } => Self::Deck,
+            CandidatePool::Hand => Self::Hand {},
+            CandidatePool::Character => Self::Character {},
+            CandidatePool::Monsters { filter } => Self::Monsters {
+                filter: filter.into(),
+            },
+            CandidatePool::Source => Self::Source {},
+            CandidatePool::NextRowRooms => Self::NextRowRooms {},
+            CandidatePool::Discover => Self::Discover {},
+            CandidatePool::Deck { filter } => Self::Deck {
+                filter: filter.into(),
+            },
         }
     }
 }
@@ -911,8 +919,6 @@ pub struct PyTarget {
     pub candidate_pool: PyCandidatePool,
     pub selection_kind: PySelectionKind,
 }
-
-// Action
 
 // `PyActionType` is the discriminant for the flat `PyAction` struct below
 #[pyclass(eq, eq_int, hash, frozen, name = "ActionType")]

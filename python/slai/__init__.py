@@ -28,7 +28,6 @@ PotionName = _to_intenum("PotionName", _rs.PotionName)
 PotionRarity = _to_intenum("PotionRarity", _rs.PotionRarity)
 ModifierKind = _to_intenum("ModifierKind", _rs.ModifierKind)
 IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
-CandidatePool = _to_intenum("CandidatePool", _rs.CandidatePool)
 CandidatePoolMonstersFilter = _to_intenum("CandidatePoolMonstersFilter", _rs.CandidatePoolMonstersFilter)
 EventName = _to_intenum("EventName", _rs.EventName)
 CandidatePoolDeckFilter = _to_intenum("CandidatePoolDeckFilter", _rs.CandidatePoolDeckFilter)
@@ -164,6 +163,7 @@ Event = _rs.Event
 EventOption = _rs.EventOption
 
 # Complex enums
+CandidatePool = _rs.CandidatePool
 SelectionKind = _rs.SelectionKind
 Target = _rs.Target
 Effect = _rs.Effect
