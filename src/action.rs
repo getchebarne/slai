@@ -18,7 +18,6 @@ use crate::types::CardKind;
 use crate::types::DeltaSign;
 use crate::types::RewardKind;
 use crate::types::Screen;
-use crate::utils::queue_room_select;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
@@ -355,33 +354,16 @@ fn handle_reward_take_relic(_state: &GameState) -> Vec<Effect> {
     }]
 }
 
-fn handle_room_exit(state: &mut GameState) -> Vec<Effect> {
-    match state.screen {
-        // Shop + Chest (skip without opening) leave straight to Map via a pending RoomSelect
-        Screen::Shop | Screen::Chest => {
-            queue_room_select(state);
-            Vec::new()
-        }
-        Screen::RestSite => vec![Effect {
-            kind: EffectKind::RestSiteExit,
-            id_source: None,
-            target: Target::Direct(None),
-        }],
-        Screen::Reward => vec![Effect {
-            kind: EffectKind::RewardExit,
-            id_source: None,
-            target: Target::Direct(None),
-        }],
-        Screen::Event => vec![Effect {
-            kind: EffectKind::EventExit,
-            id_source: None,
-            target: Target::Direct(None),
-        }],
-        _ => unreachable!("RoomExit not enumerated on {:?}", state.screen),
-    }
+fn handle_room_exit(_state: &GameState) -> Vec<Effect> {
+    // RoomExit's processor does the screen-specific cleanup and the transition to Map (or boss)
+    vec![Effect {
+        kind: EffectKind::RoomExit,
+        id_source: None,
+        target: Target::Direct(None),
+    }]
 }
 
-fn handle_room_select(state: &mut GameState, idx: usize) -> Vec<Effect> {
+fn handle_room_select(state: &GameState, idx: usize) -> Vec<Effect> {
     // membership guarantees the column has a reachable room, so row < MAP_HEIGHT and the room exists
     let y_next = match state.location {
         Location::Start => 0,
@@ -389,13 +371,11 @@ fn handle_room_select(state: &mut GameState, idx: usize) -> Vec<Effect> {
         Location::BossRoom => unreachable!("RoomSelect not enumerated from the boss room"),
     };
     let id_room = state.id_rooms[y_next][idx].expect("enumerated room exists");
-    let pending = state.effect_pending.take().expect("RoomSelect requires a pending effect");
-    state.effect_queue.push_front(Effect {
+    vec![Effect {
         kind: EffectKind::RoomSelect,
-        id_source: pending.id_source,
+        id_source: None,
         target: Target::Direct(Some(id_room)),
-    });
-    Vec::new()
+    }]
 }
 
 fn handle_turn_end(state: &GameState) -> Vec<Effect> {
@@ -474,10 +454,6 @@ fn legal_actions_pending(state: &GameState, pending: &Effect) -> Vec<Action> {
             for i in 0..state.buf_candidates.len() {
                 actions.push(Action::CardTransform { idx: i });
             }
-        }
-        EffectKind::RoomSelect => {
-            push_room_select_actions(state, &mut actions);
-            push_potion_actions(state, &mut actions);
         }
         _ => unreachable!("effect_pending with non-halting kind: {:?}", pending.kind),
     }

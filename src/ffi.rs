@@ -802,7 +802,6 @@ pub enum PyCandidatePool {
         filter: PyCandidatePoolMonstersFilter,
     },
     Source {},
-    NextRowRooms {},
     Discover {},
     Deck {
         filter: PyCandidatePoolDeckFilter,
@@ -818,7 +817,6 @@ impl From<CandidatePool> for PyCandidatePool {
                 filter: filter.into(),
             },
             CandidatePool::Source => Self::Source {},
-            CandidatePool::NextRowRooms => Self::NextRowRooms {},
             CandidatePool::Discover => Self::Discover {},
             CandidatePool::Deck { filter } => Self::Deck {
                 filter: filter.into(),
@@ -1699,7 +1697,6 @@ pub enum PyPendingInput {
         filter: PyCandidatePoolDeckFilter,
         cards: Vec<PyCard>,
     },
-    RoomSelect {},
 }
 
 // Display-name lookups
@@ -2029,7 +2026,6 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
                 cards,
             }
         }
-        EffectKind::RoomSelect => PyPendingInput::RoomSelect {},
         _ => unreachable!("effect_pending with non-halting kind: {:?}", pending.kind),
     })
 }

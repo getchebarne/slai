@@ -92,7 +92,6 @@ pub enum EffectKind {
         delta: i8,
     },
     EventConsume,
-    EventExit,
     GlassKnifeDecay {
         delta: i16,
     },
@@ -146,8 +145,6 @@ pub enum EffectKind {
         name: RelicName,
         fallback_circlet: bool,
     },
-    RestSiteExit,
-    RewardExit,
     RewardRollChest {
         kind: ChestKind,
     },
@@ -158,6 +155,7 @@ pub enum EffectKind {
         kind: RewardKind,
     },
     RoomEnter,
+    RoomExit,
     RoomSelect,
     ScrapOozeReach {
         dmg: u16,
@@ -208,7 +206,6 @@ pub enum CandidatePool {
     Character,
     Monsters { filter: CandidatePoolMonstersFilter },
     Source,
-    NextRowRooms,
     Discover,
     Deck { filter: CandidatePoolDeckFilter },
 }

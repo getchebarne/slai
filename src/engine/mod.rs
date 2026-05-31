@@ -37,7 +37,6 @@ pub mod process_effect_monster_escape;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
-pub mod process_effect_event_exit;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -59,12 +58,11 @@ pub mod process_effect_potion_add_random;
 pub mod process_effect_potion_use;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
-pub mod process_effect_rest_site_exit;
-pub mod process_effect_reward_exit;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
 pub mod process_effect_reward_take;
 pub mod process_effect_room_enter;
+pub mod process_effect_room_exit;
 pub mod process_effect_room_select;
 pub mod process_effect_scrap_ooze_reach;
 pub mod process_effect_set_cost_override;
@@ -81,8 +79,6 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-use crate::consts::MAP_HEIGHT;
-use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
@@ -94,8 +90,6 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
-use crate::game::Location;
-use crate::map::has_edge;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardRarity;
@@ -128,8 +122,6 @@ fn fill_buf_candidates(
     id_hand: &[usize],
     id_picked_monster: Option<usize>,
     id_monsters: &[Option<usize>; MAX_MONSTERS],
-    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-    location: Location,
     entities: &[Entity],
     id_discover: &[usize],
     id_deck: &[usize],
@@ -162,32 +154,6 @@ fn fill_buf_candidates(
 
             buf_candidates.push(id_source)
         }
-        CandidatePool::NextRowRooms => match location {
-            Location::Start => {
-                for col in 0..MAP_WIDTH {
-                    if let Some(id_room) = id_rooms[0][col] {
-                        buf_candidates.push(id_room);
-                    }
-                }
-            }
-            Location::Overworld { y, x } => {
-                let y_next = y + 1;
-                if y_next >= MAP_HEIGHT {
-                    return;
-                }
-                if let Some(id_current) = id_rooms[y][x] {
-                    let current_room = &entities[id_current];
-                    for col in 0..MAP_WIDTH {
-                        if has_edge(current_room.edges, col) {
-                            if let Some(id_room) = id_rooms[y_next][col] {
-                                buf_candidates.push(id_room);
-                            }
-                        }
-                    }
-                }
-            }
-            Location::BossRoom => {}
-        },
         CandidatePool::Discover => buf_candidates.extend_from_slice(id_discover),
         CandidatePool::Deck { filter } => match filter {
             CandidatePoolDeckFilter::Purgeable => {
@@ -297,8 +263,6 @@ fn resolve_or_halt(
         &state.id_hand,
         state.id_picked_monster,
         &state.id_monsters,
-        &state.id_rooms,
-        state.location,
         &state.entities,
         &state.id_discover,
         &state.id_deck,
@@ -407,10 +371,7 @@ fn dispatch_by_kind(
             debug_assert!(matches!(state.screen, Screen::Reward));
             process_effect_reward_take::process_effect_reward_take(id_target, state, kind)
         }
-        EffectKind::RewardExit => {
-            debug_assert!(matches!(state.screen, Screen::Reward));
-            process_effect_reward_exit::process_effect_reward_exit(state);
-        }
+        EffectKind::RoomExit => process_effect_room_exit::process_effect_room_exit(state),
         EffectKind::TargetSet => {
             debug_assert!(matches!(state.screen, Screen::Combat));
             process_effect_target_set::process_effect_target_set(id_target, state)
@@ -549,9 +510,6 @@ fn dispatch_by_kind(
             process_effect_move_execute::process_effect_move_execute(id_target, state)
         }
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(state),
-        EffectKind::RestSiteExit => {
-            process_effect_rest_site_exit::process_effect_rest_site_exit(state)
-        }
         EffectKind::MonsterSpawn { name } => {
             process_effect_monster_spawn::process_effect_monster_spawn(id_source, state, name)
         }
@@ -643,7 +601,6 @@ fn dispatch_by_kind(
         EffectKind::EventConsume => {
             process_effect_event_consume::process_effect_event_consume(id_source, state)
         }
-        EffectKind::EventExit => process_effect_event_exit::process_effect_event_exit(state),
         EffectKind::CardDiscoverPick => {
             debug_assert!(matches!(state.screen, Screen::Combat));
             process_effect_card_discover_pick::process_effect_card_discover_pick(id_target, state)

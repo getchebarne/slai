@@ -101,9 +101,6 @@ class CandidatePool:
     class Source:
         def __init__(self) -> None: ...
 
-    class NextRowRooms:
-        def __init__(self) -> None: ...
-
     class Discover:
         def __init__(self) -> None: ...
 
@@ -389,9 +386,6 @@ class PendingInput:
         filter: CandidatePoolDeckFilter
         cards: list[Card]
         def __init__(self, filter: CandidatePoolDeckFilter, cards: list[Card]) -> None: ...
-
-    class RoomSelect:
-        def __init__(self) -> None: ...
 
 class SelectionKind:
     class All:
@@ -713,7 +707,6 @@ class GameState:
         PendingInput.Nightmare,
         PendingInput.Discover,
         PendingInput.DeckSelect,
-        PendingInput.RoomSelect,
     ] | None
 
 class GameEnv:

@@ -12,11 +12,6 @@ use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -58,17 +53,6 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
         return false;
     }
     !matches!(entity.card_name, CardName::AscendersBane)
-}
-
-pub fn queue_room_select(state: &mut GameState) {
-    state.effect_queue.push_back(Effect {
-        kind: EffectKind::RoomSelect,
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::NextRowRooms,
-            selection_kind: SelectionKind::Input { count: 1 },
-        },
-    });
 }
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {

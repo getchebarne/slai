@@ -24,11 +24,7 @@ use crate::consts::MAX_SIZE_HAND;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::engine::process_queue;
 use crate::entity::Entity;
 use crate::map::generate_map;
@@ -172,16 +168,8 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     );
     let encounter_boss = pick_act1_boss(&mut rng);
 
-    // Seed initial RoomSelect prompt so player starts halted on first map pick
-    let mut effect_queue = VecDeque::with_capacity(64);
-    effect_queue.push_back(Effect {
-        kind: EffectKind::RoomSelect,
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::NextRowRooms,
-            selection_kind: SelectionKind::Input { count: 1 },
-        },
-    });
+    // Start unhalted on Screen::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
+    let effect_queue = VecDeque::with_capacity(64);
 
     let mut state = GameState {
         ascension,
