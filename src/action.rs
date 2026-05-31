@@ -123,7 +123,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
 }
 
 // Recompute the cached legal-action set in place; called at every settle point.
-// Enumerators push directly into state.legal_actions, reusing its allocation
+
 pub fn recompute_legal_actions(state: &mut GameState) {
     state.legal_actions.clear();
     if state.game_over {
@@ -133,17 +133,17 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         // Copy out the halt's shape so the &mut dispatch below can't alias the borrow
         let kind = pending.kind;
         let num = get_input_count(pending).unwrap_or(1) as usize;
-        legal_actions_pending(state, kind, num);
+        compute_legal_actions_pending(state, kind, num);
         return;
     }
     match state.screen {
-        Screen::Combat => legal_actions_combat(state),
-        Screen::Reward => legal_actions_reward(state),
-        Screen::Event => legal_actions_event(state),
-        Screen::Shop => legal_actions_shop(state),
-        Screen::Map => legal_actions_map(state),
-        Screen::RestSite => legal_actions_rest_site(state),
-        Screen::Chest => legal_actions_chest(state),
+        Screen::Combat => compute_legal_actions_combat(state),
+        Screen::Reward => compute_legal_actions_reward(state),
+        Screen::Event => compute_legal_actions_event(state),
+        Screen::Shop => compute_legal_actions_shop(state),
+        Screen::Map => compute_legal_actions_map(state),
+        Screen::RestSite => compute_legal_actions_rest_site(state),
+        Screen::Chest => compute_legal_actions_chest(state),
     }
 }
 
@@ -400,7 +400,7 @@ fn handle_turn_end(state: &mut GameState) {
     });
 }
 
-fn legal_actions_pending(state: &mut GameState, kind: EffectKind, num: usize) {
+fn compute_legal_actions_pending(state: &mut GameState, kind: EffectKind, num: usize) {
     match kind {
         EffectKind::CardDiscard { .. } => {
             for combo in hand_combinations(state.id_hand.len(), num) {
@@ -453,7 +453,7 @@ fn legal_actions_pending(state: &mut GameState, kind: EffectKind, num: usize) {
     }
 }
 
-fn legal_actions_combat(state: &mut GameState) {
+fn compute_legal_actions_combat(state: &mut GameState) {
     let id_character = state.id_character;
     let entangled = modifier_has(
         &state.entities[id_character].modifiers,
@@ -496,7 +496,7 @@ fn legal_actions_combat(state: &mut GameState) {
     state.legal_actions.push(Action::TurnEnd);
 }
 
-fn legal_actions_reward(state: &mut GameState) {
+fn compute_legal_actions_reward(state: &mut GameState) {
     for i in 0..state.reward_id_cards.len() {
         state.legal_actions.push(Action::RewardTakeCard { idx: i });
     }
@@ -521,7 +521,7 @@ fn legal_actions_reward(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-fn legal_actions_event(state: &mut GameState) {
+fn compute_legal_actions_event(state: &mut GameState) {
     let id_event = state.id_event.expect("Event context requires id_event");
     if state.entities[id_event].event_consumed {
         state.legal_actions.push(Action::RoomExit);
@@ -538,17 +538,17 @@ fn legal_actions_event(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-fn legal_actions_shop(state: &mut GameState) {
+fn compute_legal_actions_shop(state: &mut GameState) {
     state.legal_actions.push(Action::RoomExit);
     push_potion_actions(state);
 }
 
-fn legal_actions_map(state: &mut GameState) {
+fn compute_legal_actions_map(state: &mut GameState) {
     push_room_select_actions(state);
     push_potion_actions(state);
 }
 
-fn legal_actions_rest_site(state: &mut GameState) {
+fn compute_legal_actions_rest_site(state: &mut GameState) {
     if state.entities[current_room_id(state)].room_rest_site_done {
         state.legal_actions.push(Action::RoomExit);
     } else {
@@ -560,7 +560,7 @@ fn legal_actions_rest_site(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-fn legal_actions_chest(state: &mut GameState) {
+fn compute_legal_actions_chest(state: &mut GameState) {
     state.legal_actions.push(Action::ChestOpen);
     state.legal_actions.push(Action::RoomExit);
     push_potion_actions(state);
@@ -688,7 +688,7 @@ fn hand_combinations(n: usize, k: usize) -> Vec<Vec<usize>> {
     }
 }
 
-// Pops effect_pending and re-enqueues it as Direct for each id; membership guarantees a valid pending pick
+// Pops effect_pending and re-enqueues it as Direct for each id
 fn resolve_hand_pending(state: &mut GameState, idxs: Vec<usize>) {
     let effect_pending = state.effect_pending.take().unwrap();
 

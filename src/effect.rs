@@ -195,7 +195,6 @@ pub enum HealthDeltaAmount {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum GoldDeltaKind {
     Fixed(u16),
-    PreRolled(u16),
     Range { min: u16, max: u16 },
 }
 

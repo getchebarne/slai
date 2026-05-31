@@ -7,7 +7,7 @@ use crate::types::DeltaSign;
 
 pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, kind: GoldDeltaKind) {
     let amount = match kind {
-        GoldDeltaKind::Fixed(a) | GoldDeltaKind::PreRolled(a) => a,
+        GoldDeltaKind::Fixed(a) => a,
         GoldDeltaKind::Range { min, max } => state.rng.random_range(min..=max),
     };
     let character = &mut state.entities[state.id_character];

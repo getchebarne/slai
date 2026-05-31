@@ -613,7 +613,7 @@ fn dispatch_by_kind(
     }
 }
 
-pub fn process_queue(state: &mut GameState) {
+pub fn process_effect_queue(state: &mut GameState) {
     while !state.game_over {
         let Some(effect) = state.effect_queue.pop_front() else {
             return; // Queue drained

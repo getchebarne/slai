@@ -175,7 +175,6 @@ impl From<HealthDeltaAmount> for PyHealthDeltaAmount {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyGoldDeltaKind {
     Fixed { amount: u16 },
-    PreRolled { amount: u16 },
     Range { min: u16, max: u16 },
 }
 
@@ -183,7 +182,6 @@ impl From<GoldDeltaKind> for PyGoldDeltaKind {
     fn from(kind: GoldDeltaKind) -> Self {
         match kind {
             GoldDeltaKind::Fixed(amount) => Self::Fixed { amount },
-            GoldDeltaKind::PreRolled(amount) => Self::PreRolled { amount },
             GoldDeltaKind::Range { min, max } => Self::Range { min, max },
         }
     }

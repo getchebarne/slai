@@ -25,7 +25,7 @@ use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
-use crate::engine::process_queue;
+use crate::engine::process_effect_queue;
 use crate::entity::Entity;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act1_monsters;
@@ -192,7 +192,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
         events_seen: Vec::with_capacity(EventName::COUNT),
         potion_drop_mod: 0,
-
         screen: Screen::Map,
         game_over: false,
         id_hand: Vec::with_capacity(MAX_SIZE_HAND),
@@ -221,34 +220,43 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         fast_mode,
     };
 
-    // Run the queue so the initial halt registers
-    process_queue(&mut state);
+    // Settle on Screen::Map — enumerate the initial row-0 room picks
     recompute_legal_actions(&mut state);
     state
 }
 
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
+    // Handle the action. May enqueue elements to `state.effect_queue`
     handle_action(state, action)?;
-    process_queue(state);
+
+    // Process `state.effect_queue`
+    process_effect_queue(state);
+
+    // Recompute legal actions
     recompute_legal_actions(state);
+
+    // If fast mode is enabled, auto advance  the game until there's more than one legal action
     if state.fast_mode {
         auto_advance(state);
     }
     Ok(())
 }
 
-// Skip forced moves: while exactly one legal action exists, apply it
+// Skip forced moves: while exactly one lexgal action exists, apply it
 fn auto_advance(state: &mut GameState) {
     let mut guard = 0;
     while !state.game_over && state.legal_actions.len() == 1 {
         guard += 1;
         assert!(
-            guard < 1024,
-            "fast_mode auto-advance exceeded 1024 forced moves"
+            guard < 99,
+            "fast_mode auto-advance exceeded 99 forced moves"
         );
-        let only = state.legal_actions[0].clone();
-        handle_action(state, only).expect("cached single legal action must be valid");
-        process_queue(state);
+        // Get single legal action
+        let action = state.legal_actions[0].clone();
+
+        // Keep processing the queue until there's more than one legal action to take
+        handle_action(state, action).expect("cached single legal action must be valid");
+        process_effect_queue(state);
         recompute_legal_actions(state);
     }
 }
