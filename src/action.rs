@@ -242,7 +242,7 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) -> Vec<Effect> 
 }
 
 fn handle_potion_discard(state: &mut GameState, idx: usize) -> Vec<Effect> {
-    state.entities[state.id_character].potion_slots[idx] = None;
+    state.entities[state.id_character].character_potion_slots[idx] = None;
     Vec::new()
 }
 
@@ -251,7 +251,7 @@ fn handle_potion_use(
     idx_potion: usize,
     idx_monster: Option<usize>,
 ) -> Vec<Effect> {
-    let id_potion = state.entities[state.id_character].potion_slots[idx_potion]
+    let id_potion = state.entities[state.id_character].character_potion_slots[idx_potion]
         .expect("enumerated potion slot is occupied");
     let requires_target = state.entities[id_potion].requires_target;
     let id_monster_target = if requires_target {
@@ -270,7 +270,7 @@ fn handle_potion_use(
     };
 
     // Clear the slot before the effect chain runs
-    state.entities[state.id_character].potion_slots[idx_potion] = None;
+    state.entities[state.id_character].character_potion_slots[idx_potion] = None;
 
     let mut chain = Vec::with_capacity(3);
     if let Some(id) = id_monster_target {
@@ -511,7 +511,7 @@ fn legal_actions_reward(state: &GameState) -> Vec<Action> {
     }
     if state.reward_id_potion.is_some() {
         let character = &state.entities[state.id_character];
-        if find_free_slot(&character.potion_slots, character.potion_slots_max).is_some() {
+        if find_free_slot(&character.character_potion_slots, character.character_potion_slots_max).is_some() {
             actions.push(Action::RewardTakePotion);
         }
     }
@@ -588,7 +588,7 @@ fn push_room_select_actions(state: &GameState, actions: &mut Vec<Action>) {
                 return;
             }
             if let Some(id_current) = state.id_rooms[y][x] {
-                let edges = state.entities[id_current].edges;
+                let edges = state.entities[id_current].room_edges;
                 for c in 0..MAP_WIDTH {
                     if has_edge(edges, c) && state.id_rooms[y_next][c].is_some() {
                         actions.push(Action::RoomSelect { idx: c });
@@ -604,8 +604,8 @@ fn push_potion_actions(state: &GameState, actions: &mut Vec<Action>) {
     let character = &state.entities[state.id_character];
     let in_combat = matches!(state.screen, Screen::Combat);
     let alive_count = state.id_monsters.iter().flatten().count();
-    for s in 0..character.potion_slots_max as usize {
-        let Some(id_potion) = character.potion_slots[s] else {
+    for s in 0..character.character_potion_slots_max as usize {
+        let Some(id_potion) = character.character_potion_slots[s] else {
             continue;
         };
         let potion = &state.entities[id_potion];

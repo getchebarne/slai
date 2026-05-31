@@ -80,9 +80,9 @@ pub fn event_option_gate_satisfied(gate: EventGate, state: &GameState, id_event:
             .any(|&id| card_has_damage_at_least(&state.entities[id], min_base)),
         EventGate::HasRelicOwned(name) => state.id_relics[name as usize].is_some(),
         EventGate::PotionBeltHasAny => character
-            .potion_slots
+            .character_potion_slots
             .iter()
-            .take(character.potion_slots_max as usize)
+            .take(character.character_potion_slots_max as usize)
             .any(|slot| slot.is_some()),
         EventGate::EventStateEq(value) => state.entities[id_event].event_state == value,
         EventGate::All(gates) => gates

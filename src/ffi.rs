@@ -2070,7 +2070,7 @@ fn snapshot_potion(entity: &Entity) -> PyPotion {
 
 fn snapshot_character(state: &GameState) -> PyCharacter {
     let character = &state.entities[state.id_character];
-    let potion_slots = character.potion_slots[..character.potion_slots_max as usize]
+    let potion_slots = character.character_potion_slots[..character.character_potion_slots_max as usize]
         .iter()
         .map(|s| s.map(|id| snapshot_potion(&state.entities[id])))
         .collect();
@@ -2082,7 +2082,7 @@ fn snapshot_character(state: &GameState) -> PyCharacter {
         modifiers: snapshot_modifiers(&character.modifiers),
         gold: character.character_gold,
         potion_slots,
-        potion_slots_max: character.potion_slots_max,
+        potion_slots_max: character.character_potion_slots_max,
     }
 }
 
@@ -2097,8 +2097,8 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
         .map(|id_monster| {
             let m = &state.entities[id_monster];
 
-            let intent = if let Some(move_idx) = m.move_current {
-                let mv = &m.moves[move_idx];
+            let intent = if let Some(move_idx) = m.monster_move_current {
+                let mv = &m.monster_moves[move_idx];
                 let (mut base_damage, mut instances) = match mv.intent {
                     Intent::Attack { damage, instances }
                     | Intent::AttackBlock { damage, instances }
@@ -2244,7 +2244,7 @@ fn snapshot_map(state: &GameState) -> PyMap {
                         let room = &state.entities[id_room];
                         PyRoom {
                             room_kind: room.room_kind.into(),
-                            edges: edge_indices(room.edges).collect(),
+                            edges: edge_indices(room.room_edges).collect(),
                             chest_kind: room.room_chest_kind.map(Into::into),
                             chest_opened: room.room_chest_opened,
                         }

@@ -94,7 +94,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
                 entity.monster_name
             ),
         };
-        entity.move_current = Some(idx_split);
+        entity.monster_move_current = Some(idx_split);
         modifier_remove(&mut entity.modifiers, ModifierKind::Splittable);
     }
 
@@ -107,7 +107,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
                 entity.monster_name
             ),
         };
-        entity.move_current = Some(stunned_idx);
+        entity.monster_move_current = Some(stunned_idx);
         modifier_remove(&mut entity.modifiers, ModifierKind::Asleep);
         modifier_remove(&mut entity.modifiers, ModifierKind::Metallicize);
     }

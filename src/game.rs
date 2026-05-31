@@ -250,7 +250,10 @@ fn auto_advance(state: &mut GameState) {
     let mut guard = 0;
     while !state.game_over && state.legal_actions.len() == 1 {
         guard += 1;
-        assert!(guard < 1024, "fast_mode auto-advance exceeded 1024 forced moves");
+        assert!(
+            guard < 1024,
+            "fast_mode auto-advance exceeded 1024 forced moves"
+        );
         let only = state.legal_actions[0].clone();
         let effects = handle_action(state, only).expect("cached single legal action must be valid");
         enqueue_and_run(state, effects);

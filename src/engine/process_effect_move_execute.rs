@@ -11,7 +11,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameState) {
     let id_monster = id_target.expect("MoveExecute requires id_target");
     let entity = &state.entities[id_monster];
-    let Some(move_idx) = entity.move_current else {
+    let Some(move_idx) = entity.monster_move_current else {
         return;
     };
 
@@ -22,7 +22,7 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
     };
 
     let id_character = state.id_character;
-    let effects: &'static [Effect] = state.entities[id_monster].moves[move_idx].effects;
+    let effects: &'static [Effect] = state.entities[id_monster].monster_moves[move_idx].effects;
     state.buf_effects.clear();
     for e in effects.iter() {
         state.buf_effects.push(Effect {

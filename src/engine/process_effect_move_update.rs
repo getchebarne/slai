@@ -17,7 +17,7 @@ pub fn process_effect_move_update(id_target: Option<usize>, state: &mut GameStat
         &mut state.rng,
     );
 
-    entity.move_current = Some(move_next);
+    entity.monster_move_current = Some(move_next);
 
     let move_idx = move_next as u8;
     push_move_history(entity, move_idx);

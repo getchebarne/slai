@@ -20,7 +20,7 @@ pub fn spawn_silent(ascension: u8) -> Entity {
         CARD_REWARD_ROLL_OFFSET_BASE,
         STARTING_GOLD,
     );
-    entity.potion_slots_max = if ascension >= 11 {
+    entity.character_potion_slots_max = if ascension >= 11 {
         POTION_SLOTS_DEFAULT_A11
     } else {
         POTION_SLOTS_DEFAULT

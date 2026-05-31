@@ -1,5 +1,7 @@
 // Entity
 pub const MAX_MOVE_HISTORY: usize = 64;
+// Per-card effect array cap; bump if any card legitimately exceeds 8
+pub const MAX_EFFECTS_PER_CARD: usize = 8;
 pub const STARTING_GOLD: u16 = 99;
 pub const MAX_GOLD: u16 = 9999;
 pub const GOLD_MONSTER_MIN: u16 = 10;

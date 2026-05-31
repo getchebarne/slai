@@ -168,18 +168,18 @@ pub fn grant_potion(
     name: PotionName,
 ) -> Option<usize> {
     let character = &entities[id_character];
-    let slot = match find_free_slot(&character.potion_slots, character.potion_slots_max) {
+    let slot = match find_free_slot(&character.character_potion_slots, character.character_potion_slots_max) {
         Some(s) => s,
         None => return None,
     };
     let id_potion = push_entity(entities, get_potion(name));
-    entities[id_character].potion_slots[slot] = Some(id_potion);
+    entities[id_character].character_potion_slots[slot] = Some(id_potion);
     Some(slot)
 }
 
 pub fn take_potion(character: &mut Entity, idx_slot: usize) -> Option<usize> {
     character
-        .potion_slots
+        .character_potion_slots
         .get_mut(idx_slot)
         .and_then(|s| s.take())
 }
