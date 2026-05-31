@@ -129,21 +129,24 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     if state.game_over {
         return;
     }
-    if let Some(pending) = state.effect_pending.as_ref() {
+
+    // `state.effect_pending` takes precedence over `state.screen`
+    if let Some(effect_pending) = state.effect_pending.as_ref() {
         // Copy out the halt's shape so the &mut dispatch below can't alias the borrow
-        let kind = pending.kind;
-        let num = get_input_count(pending).unwrap_or(1) as usize;
-        compute_legal_actions_pending(state, kind, num);
+        let effect_pending_kind = effect_pending.kind;
+        let count = get_input_count(effect_pending).expect("Expected some input count, got `None`")
+            as usize;
+        fill_legal_actions_effect_pending(state, effect_pending_kind, count);
         return;
     }
     match state.screen {
-        Screen::Combat => compute_legal_actions_combat(state),
-        Screen::Reward => compute_legal_actions_reward(state),
-        Screen::Event => compute_legal_actions_event(state),
-        Screen::Shop => compute_legal_actions_shop(state),
-        Screen::Map => compute_legal_actions_map(state),
-        Screen::RestSite => compute_legal_actions_rest_site(state),
-        Screen::Chest => compute_legal_actions_chest(state),
+        Screen::Combat => fill_legal_actions_screen_combat(state),
+        Screen::Reward => fill_legal_actions_screen_reward(state),
+        Screen::Event => fill_legal_actions_screen_event(state),
+        Screen::Shop => fill_legal_actions_screen_shop(state),
+        Screen::Map => fill_legal_actions_screen_map(state),
+        Screen::RestSite => fill_legal_actions_screen_rest_site(state),
+        Screen::Chest => fill_legal_actions_screen_chest(state),
     }
 }
 
@@ -232,11 +235,16 @@ fn handle_card_upgrade(state: &mut GameState, idx: usize) {
         return;
     }
     let id_card = upgradeable_deck_at(state, idx);
-    mark_rest_site_done(state);
+    let id_room = current_room_id(state);
     state.effect_buf.push(Effect {
         kind: EffectKind::CardUpgrade,
         id_source: None,
         target: Target::Direct(Some(id_card)),
+    });
+    state.effect_buf.push(Effect {
+        kind: EffectKind::RestSiteConsume,
+        id_source: None,
+        target: Target::Direct(Some(id_room)),
     });
 }
 
@@ -262,7 +270,13 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
 }
 
 fn handle_potion_discard(state: &mut GameState, idx: usize) {
-    state.entities[state.id_character].character_potion_slots[idx] = None;
+    let id_potion = state.entities[state.id_character].character_potion_slots[idx]
+        .expect("enumerated potion slot is occupied");
+    state.effect_buf.push(Effect {
+        kind: EffectKind::PotionDiscard,
+        id_source: Some(id_potion),
+        target: Target::Direct(Some(id_potion)),
+    });
 }
 
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
@@ -283,9 +297,6 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
     } else {
         None
     };
-
-    // Clear the slot before the effect chain runs
-    state.entities[state.id_character].character_potion_slots[idx_potion] = None;
 
     if let Some(id) = id_monster_target {
         state.effect_buf.push(Effect {
@@ -310,9 +321,9 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
 
 fn handle_rest(state: &mut GameState) {
     let id_character = state.id_character;
-    mark_rest_site_done(state);
+    let id_room = current_room_id(state);
 
-    // Heal; the explicit RoomExit handles leaving the rest site
+    // Heal, then RestSiteConsume marks the site used; the explicit RoomExit leaves it
     state.effect_buf.push(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
@@ -323,6 +334,11 @@ fn handle_rest(state: &mut GameState) {
         },
         id_source: None,
         target: Target::Direct(Some(id_character)),
+    });
+    state.effect_buf.push(Effect {
+        kind: EffectKind::RestSiteConsume,
+        id_source: None,
+        target: Target::Direct(Some(id_room)),
     });
 }
 
@@ -377,7 +393,7 @@ fn handle_room_exit(state: &mut GameState) {
 }
 
 fn handle_room_select(state: &mut GameState, idx: usize) {
-    // membership guarantees the column has a reachable room, so row < MAP_HEIGHT and the room exists
+    // Membership guarantees the column has a reachable room, so row < MAP_HEIGHT and the room exists
     let y_next = match state.location {
         Location::Start => 0,
         Location::Overworld { y, .. } => y + 1,
@@ -400,7 +416,7 @@ fn handle_turn_end(state: &mut GameState) {
     });
 }
 
-fn compute_legal_actions_pending(state: &mut GameState, kind: EffectKind, num: usize) {
+fn fill_legal_actions_effect_pending(state: &mut GameState, kind: EffectKind, num: usize) {
     match kind {
         EffectKind::CardDiscard { .. } => {
             for combo in hand_combinations(state.id_hand.len(), num) {
@@ -453,7 +469,7 @@ fn compute_legal_actions_pending(state: &mut GameState, kind: EffectKind, num: u
     }
 }
 
-fn compute_legal_actions_combat(state: &mut GameState) {
+fn fill_legal_actions_screen_combat(state: &mut GameState) {
     let id_character = state.id_character;
     let entangled = modifier_has(
         &state.entities[id_character].modifiers,
@@ -496,7 +512,7 @@ fn compute_legal_actions_combat(state: &mut GameState) {
     state.legal_actions.push(Action::TurnEnd);
 }
 
-fn compute_legal_actions_reward(state: &mut GameState) {
+fn fill_legal_actions_screen_reward(state: &mut GameState) {
     for i in 0..state.reward_id_cards.len() {
         state.legal_actions.push(Action::RewardTakeCard { idx: i });
     }
@@ -521,7 +537,7 @@ fn compute_legal_actions_reward(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-fn compute_legal_actions_event(state: &mut GameState) {
+fn fill_legal_actions_screen_event(state: &mut GameState) {
     let id_event = state.id_event.expect("Event context requires id_event");
     if state.entities[id_event].event_consumed {
         state.legal_actions.push(Action::RoomExit);
@@ -538,17 +554,17 @@ fn compute_legal_actions_event(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-fn compute_legal_actions_shop(state: &mut GameState) {
+fn fill_legal_actions_screen_shop(state: &mut GameState) {
     state.legal_actions.push(Action::RoomExit);
     push_potion_actions(state);
 }
 
-fn compute_legal_actions_map(state: &mut GameState) {
+fn fill_legal_actions_screen_map(state: &mut GameState) {
     push_room_select_actions(state);
     push_potion_actions(state);
 }
 
-fn compute_legal_actions_rest_site(state: &mut GameState) {
+fn fill_legal_actions_screen_rest_site(state: &mut GameState) {
     if state.entities[current_room_id(state)].room_rest_site_done {
         state.legal_actions.push(Action::RoomExit);
     } else {
@@ -560,7 +576,7 @@ fn compute_legal_actions_rest_site(state: &mut GameState) {
     push_potion_actions(state);
 }
 
-fn compute_legal_actions_chest(state: &mut GameState) {
+fn fill_legal_actions_screen_chest(state: &mut GameState) {
     state.legal_actions.push(Action::ChestOpen);
     state.legal_actions.push(Action::RoomExit);
     push_potion_actions(state);
@@ -633,11 +649,6 @@ fn current_room_id(state: &GameState) -> usize {
         Location::Overworld { y, x } => state.id_rooms[y][x].expect("current room must exist"),
         Location::Start | Location::BossRoom => panic!("no current room outside the overworld"),
     }
-}
-
-fn mark_rest_site_done(state: &mut GameState) {
-    let id_room = current_room_id(state);
-    state.entities[id_room].room_rest_site_done = true;
 }
 
 fn count_upgradeable_deck(state: &GameState) -> usize {

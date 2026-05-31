@@ -139,12 +139,14 @@ pub enum EffectKind {
     PotionAddRandom {
         limited: bool,
     },
+    PotionDiscard,
     PotionUse,
     RelicGrantRandom,
     RelicGrantSpecific {
         name: RelicName,
         fallback_circlet: bool,
     },
+    RestSiteConsume,
     RewardRollChest {
         kind: ChestKind,
     },

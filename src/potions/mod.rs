@@ -180,9 +180,12 @@ pub fn grant_potion(
     Some(slot)
 }
 
-pub fn take_potion(character: &mut Entity, idx_slot: usize) -> Option<usize> {
-    character
-        .character_potion_slots
-        .get_mut(idx_slot)
-        .and_then(|s| s.take())
+// Clear whichever belt slot holds id_potion; no-op if absent
+pub fn remove_potion(character: &mut Entity, id_potion: usize) {
+    for slot in character.character_potion_slots.iter_mut() {
+        if *slot == Some(id_potion) {
+            *slot = None;
+            return;
+        }
+    }
 }

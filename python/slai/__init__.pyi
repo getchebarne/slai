@@ -21,6 +21,11 @@ class CardRarity(IntEnum):
     Special: int
     Curse: int
 
+class PlayRestriction(IntEnum):
+    Always: int
+    Never: int
+    DrawPileEmpty: int
+
 class RoomKind(IntEnum):
     CombatMonster: int
     CombatElite: int
@@ -601,6 +606,7 @@ class Card:
     kind: CardKind
     color: CardColor
     rarity: CardRarity
+    play_restriction: PlayRestriction
 
     # Other boolean fields
     upgraded: bool

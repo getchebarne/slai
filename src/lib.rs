@@ -122,6 +122,7 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyCardKind>()?;
     module.add_class::<ffi::PyCardColor>()?;
     module.add_class::<ffi::PyCardRarity>()?;
+    module.add_class::<ffi::PyPlayRestriction>()?;
     module.add_class::<ffi::PyCardCostKind>()?;
     module.add_class::<ffi::PyRoomKind>()?;
     module.add_class::<ffi::PyChestKind>()?;

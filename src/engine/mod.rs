@@ -55,9 +55,11 @@ pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_potion_add_random;
+pub mod process_effect_potion_discard;
 pub mod process_effect_potion_use;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
+pub mod process_effect_rest_site_consume;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
 pub mod process_effect_reward_take;
@@ -376,6 +378,9 @@ fn dispatch_by_kind(
             process_effect_reward_take::process_effect_reward_take(id_target, state, kind)
         }
         EffectKind::RoomExit => process_effect_room_exit::process_effect_room_exit(state),
+        EffectKind::RestSiteConsume => {
+            process_effect_rest_site_consume::process_effect_rest_site_consume(id_target, state)
+        }
         EffectKind::TargetSet => {
             debug_assert!(matches!(state.screen, Screen::Combat));
             process_effect_target_set::process_effect_target_set(id_target, state)
@@ -560,6 +565,9 @@ fn dispatch_by_kind(
             )
         }
         EffectKind::ChestOpen => process_effect_chest_open::process_effect_chest_open(state),
+        EffectKind::PotionDiscard => {
+            process_effect_potion_discard::process_effect_potion_discard(id_target, state)
+        }
         EffectKind::PotionUse => {
             process_effect_potion_use::process_effect_potion_use(id_target, state)
         }

@@ -16,6 +16,7 @@ use crate::effect::get_input_count;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::Intent;
+use crate::entity::PlayRestriction;
 use crate::entity::card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
 use crate::events::event_option_gate_satisfied;
@@ -129,6 +130,24 @@ impl From<CardCostKind> for PyCardCostKind {
             CardCostKind::MinusDiscardsThisTurn => Self::MinusDiscardsThisTurn {},
             CardCostKind::GrowsOnDamageInstanceTaken => Self::GrowsOnDamageInstanceTaken {},
             CardCostKind::XCost { offset } => Self::XCost { offset },
+        }
+    }
+}
+
+#[pyclass(eq, eq_int, hash, frozen, name = "PlayRestriction")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyPlayRestriction {
+    Always,
+    Never,
+    DrawPileEmpty,
+}
+
+impl From<PlayRestriction> for PyPlayRestriction {
+    fn from(restriction: PlayRestriction) -> Self {
+        match restriction {
+            PlayRestriction::Always => Self::Always,
+            PlayRestriction::Never => Self::Never,
+            PlayRestriction::DrawPileEmpty => Self::DrawPileEmpty,
         }
     }
 }
@@ -1492,6 +1511,7 @@ pub struct PyCard {
     pub kind: PyCardKind,
     pub color: PyCardColor,
     pub rarity: PyCardRarity,
+    pub play_restriction: PyPlayRestriction,
 
     // Other boolean fields
     pub upgraded: bool,
@@ -2218,6 +2238,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         kind: card.card_kind.into(),
         color: card.card_color.into(),
         rarity: card.card_rarity.into(),
+        play_restriction: card.card_play_restriction.into(),
         upgraded: card.card_upgraded,
         exhaust: card.card_exhaust,
         ethereal: card.card_ethereal,

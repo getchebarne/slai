@@ -18,6 +18,7 @@ ActionType = _to_intenum("ActionType", _rs.ActionType)
 CardKind = _to_intenum("CardKind", _rs.CardKind)
 CardColor = _to_intenum("CardColor", _rs.CardColor)
 CardRarity = _to_intenum("CardRarity", _rs.CardRarity)
+PlayRestriction = _to_intenum("PlayRestriction", _rs.PlayRestriction)
 RoomKind = _to_intenum("RoomKind", _rs.RoomKind)
 ChestKind = _to_intenum("ChestKind", _rs.ChestKind)
 RelicTier = _to_intenum("RelicTier", _rs.RelicTier)
@@ -199,6 +200,7 @@ __all__ = [
     "CardKind",
     "CardColor",
     "CardRarity",
+    "PlayRestriction",
     "CardCostKind",
     "ModifierKind",
     "IntentKind",
