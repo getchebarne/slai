@@ -168,7 +168,10 @@ pub fn grant_potion(
     name: PotionName,
 ) -> Option<usize> {
     let character = &entities[id_character];
-    let slot = match find_free_slot(&character.character_potion_slots, character.character_potion_slots_max) {
+    let slot = match find_free_slot(
+        &character.character_potion_slots,
+        character.character_potion_slots_max,
+    ) {
         Some(s) => s,
         None => return None,
     };

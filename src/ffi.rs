@@ -2070,7 +2070,8 @@ fn snapshot_potion(entity: &Entity) -> PyPotion {
 
 fn snapshot_character(state: &GameState) -> PyCharacter {
     let character = &state.entities[state.id_character];
-    let potion_slots = character.character_potion_slots[..character.character_potion_slots_max as usize]
+    let potion_slots = character.character_potion_slots
+        [..character.character_potion_slots_max as usize]
         .iter()
         .map(|s| s.map(|id| snapshot_potion(&state.entities[id])))
         .collect();

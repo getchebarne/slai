@@ -1,7 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::card_effective_cost;
@@ -10,6 +9,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
+use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 

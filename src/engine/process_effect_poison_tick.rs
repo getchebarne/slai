@@ -1,13 +1,13 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::types::DeltaSign;
 
 // HP loss = Poison stacks; then Poison -= 1 (remove on 0). Fires at turn start
 pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameState) {

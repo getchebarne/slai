@@ -1,7 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -13,6 +12,7 @@ use crate::monsters::lagavulin;
 use crate::monsters::slime_acid_large;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
+use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::Screen;
 

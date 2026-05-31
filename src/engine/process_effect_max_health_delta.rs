@@ -1,6 +1,6 @@
 use crate::effect::HealthDeltaAmount;
-use crate::types::DeltaSign;
 use crate::game::GameState;
+use crate::types::DeltaSign;
 
 pub fn process_effect_max_health_delta(
     id_target: Option<usize>,

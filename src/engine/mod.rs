@@ -33,7 +33,6 @@ pub mod process_effect_death;
 pub mod process_effect_distraction_add;
 pub mod process_effect_energy_gain;
 pub mod process_effect_energy_loss;
-pub mod process_effect_monster_escape;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
@@ -50,6 +49,7 @@ pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_set_not_new;
 pub mod process_effect_modifier_tick;
+pub mod process_effect_monster_escape;
 pub mod process_effect_monster_spawn;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
@@ -269,7 +269,11 @@ fn resolve_or_halt(
     );
 
     // Resolve `SelectionKind`. Returns `true` if the effect's targets were resolved
-    resolve_selection_kind(&mut state.effect_candidate_buf, selection_kind, &mut state.rng)
+    resolve_selection_kind(
+        &mut state.effect_candidate_buf,
+        selection_kind,
+        &mut state.rng,
+    )
 }
 
 fn dispatch_by_kind(

@@ -2,7 +2,6 @@ use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::types::DeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -11,6 +10,7 @@ use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::CardName;
+use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::RelicName;
 

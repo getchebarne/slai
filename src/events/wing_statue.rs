@@ -3,7 +3,6 @@ use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::GoldDeltaKind;
-use crate::types::DeltaSign;
 use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
@@ -12,6 +11,7 @@ use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
+use crate::types::DeltaSign;
 use crate::types::EventName;
 
 // Pray

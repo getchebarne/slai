@@ -9,8 +9,7 @@ use crate::types::Screen;
 pub fn process_effect_room_exit(state: &mut GameState) {
     match state.screen {
         // final-row rest site enters the boss instead of returning to the map
-        Screen::RestSite
-            if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1) =>
+        Screen::RestSite if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1) =>
         {
             state.location = Location::BossRoom;
             state.effect_queue.push_front(Effect {

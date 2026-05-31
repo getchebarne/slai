@@ -99,7 +99,9 @@ pub fn get_next_move(
     let history = get_move_history_slice(entity);
     match entity.monster_name {
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.monster_move_current),
-        MonsterName::JawWorm => jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng),
+        MonsterName::JawWorm => {
+            jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng)
+        }
         MonsterName::TheGuardian => the_guardian::get_next_move_the_guardian_full(
             entity.monster_move_current,
             history,
@@ -126,32 +128,47 @@ pub fn get_next_move(
             history,
             ascension_level,
         ),
-        MonsterName::Hexaghost => hexaghost::get_next_move_hexaghost(entity.monster_move_current, history),
+        MonsterName::Hexaghost => {
+            hexaghost::get_next_move_hexaghost(entity.monster_move_current, history)
+        }
         MonsterName::GremlinTsundere => {
             let other_alive_count = id_monsters
                 .iter()
                 .flatten()
                 .filter(|&&id| id != entity_id)
                 .count() as u8;
-            gremlin_tsundere::get_next_move_gremlin_tsundere(entity.monster_move_current, other_alive_count)
+            gremlin_tsundere::get_next_move_gremlin_tsundere(
+                entity.monster_move_current,
+                other_alive_count,
+            )
         }
         MonsterName::GremlinWarrior => gremlin_warrior::get_next_move_gremlin_warrior(),
-        MonsterName::Lagavulin => {
-            lagavulin::get_next_move_lagavulin(entity.monster_move_current, history, &entity.modifiers)
+        MonsterName::Lagavulin => lagavulin::get_next_move_lagavulin(
+            entity.monster_move_current,
+            history,
+            &entity.modifiers,
+        ),
+        MonsterName::Looter => {
+            looter::get_next_move_looter(entity.monster_move_current, history, rng)
         }
-        MonsterName::Looter => looter::get_next_move_looter(entity.monster_move_current, history, rng),
         MonsterName::LouseDefensive => {
             louse_green::get_next_move_louse_green(history, ascension_level, rng)
         }
         MonsterName::LouseNormal => {
             louse_red::get_next_move_louse_red(history, ascension_level, rng)
         }
-        MonsterName::Sentry => {
-            sentry::get_next_move_sentry(entity.monster_move_current, history, entity_id, id_monsters)
-        }
-        MonsterName::SlaverRed => {
-            slaver_red::get_next_move_slaver_red(entity.monster_move_current, history, ascension_level, rng)
-        }
+        MonsterName::Sentry => sentry::get_next_move_sentry(
+            entity.monster_move_current,
+            history,
+            entity_id,
+            id_monsters,
+        ),
+        MonsterName::SlaverRed => slaver_red::get_next_move_slaver_red(
+            entity.monster_move_current,
+            history,
+            ascension_level,
+            rng,
+        ),
         MonsterName::SlimeAcidLarge => {
             slime_acid_large::get_next_move_slime_acid_large(history, ascension_level, rng)
         }

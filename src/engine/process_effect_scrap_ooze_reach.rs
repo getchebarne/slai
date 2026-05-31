@@ -3,9 +3,9 @@ use rand::Rng;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::DeltaSign;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
 pub fn process_effect_scrap_ooze_reach(

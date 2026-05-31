@@ -3,7 +3,6 @@ use std::collections::VecDeque;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
@@ -12,6 +11,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::types::DeltaSign;
 
 pub fn process_effect_damage_deal(
     id_source: Option<usize>,

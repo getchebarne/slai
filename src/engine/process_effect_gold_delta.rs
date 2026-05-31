@@ -2,8 +2,8 @@ use rand::Rng;
 
 use crate::consts::MAX_GOLD;
 use crate::effect::GoldDeltaKind;
-use crate::types::DeltaSign;
 use crate::game::GameState;
+use crate::types::DeltaSign;
 
 pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, kind: GoldDeltaKind) {
     let amount = match kind {

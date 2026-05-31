@@ -2,11 +2,11 @@ use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
-use crate::types::DeltaSign;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_relic;
+use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 

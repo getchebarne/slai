@@ -1,12 +1,12 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::GoldDeltaKind;
-use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
+use crate::types::DeltaSign;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("Death requires id_target");
