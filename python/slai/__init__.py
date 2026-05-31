@@ -169,10 +169,9 @@ Target = _rs.Target
 Effect = _rs.Effect
 CardCostKind = _rs.CardCostKind
 
-# Reward + PendingInput surface
+# Reward surface
 Screen = _to_intenum("Screen", _rs.Screen)
 Reward = _rs.Reward
-PendingInput = _rs.PendingInput
 
 __all__ = [
     # Environment + action
@@ -221,7 +220,6 @@ __all__ = [
     "SelectionKind",
     "Target",
     "Effect",
-    # Reward + PendingInput
+    # Reward
     "Reward",
-    "PendingInput",
 ]

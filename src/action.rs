@@ -1,5 +1,7 @@
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
+use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
@@ -18,6 +20,8 @@ use crate::types::CardKind;
 use crate::types::DeltaSign;
 use crate::types::RewardKind;
 use crate::types::Screen;
+use crate::utils::card_is_upgradable;
+use crate::utils::deck_filter_matches;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -122,8 +126,6 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
     Ok(())
 }
 
-// Recompute the cached legal-action set in place; called at every settle point.
-
 pub fn recompute_legal_actions(state: &mut GameState) {
     state.legal_actions.clear();
     if state.game_over {
@@ -136,7 +138,8 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         let effect_pending_kind = effect_pending.kind;
         let count = get_input_count(effect_pending).expect("Expected some input count, got `None`")
             as usize;
-        fill_legal_actions_effect_pending(state, effect_pending_kind, count);
+        let deck_filter = pending_deck_filter(effect_pending);
+        fill_legal_actions_effect_pending(state, effect_pending_kind, count, deck_filter);
         return;
     }
     match state.screen {
@@ -178,7 +181,8 @@ fn handle_card_nightmare(state: &mut GameState, idx: usize) {
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
     let id_card = state.id_hand[idx_card];
     if state.entities[id_card].requires_target {
-        let idx_monster = idx_monster.expect("targeted CardPlay carries idx_monster");
+        let idx_monster =
+            idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
         let id_monster_target = state
             .id_monsters
             .iter()
@@ -187,7 +191,7 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
             .nth(idx_monster)
             .expect("enumerated monster idx is valid");
 
-        // TargetSet -> CardPlay -> TargetClear; no terminator (derive_phase handles rest)
+        // TargetSet -> CardPlay -> TargetClear
         state.effect_buf.push(Effect {
             kind: EffectKind::TargetSet,
             id_source: None,
@@ -234,7 +238,12 @@ fn handle_card_upgrade(state: &mut GameState, idx: usize) {
         resolve_deck_pending(state, idx);
         return;
     }
-    let id_card = upgradeable_deck_at(state, idx);
+    // idx is an absolute id_deck index; membership guaranteed validity, assert upgradability
+    let id_card = state.id_deck[idx];
+    assert!(
+        card_is_upgradable(&state.entities[id_card]),
+        "CardUpgrade idx {idx} targets a non-upgradable deck card"
+    );
     let id_room = current_room_id(state);
     state.effect_buf.push(Effect {
         kind: EffectKind::CardUpgrade,
@@ -284,14 +293,15 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
         .expect("enumerated potion slot is occupied");
     let requires_target = state.entities[id_potion].requires_target;
     let id_monster_target = if requires_target {
-        let idx = idx_monster.expect("targeted potion carries idx_monster");
+        let idx_monster =
+            idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
         Some(
             state
                 .id_monsters
                 .iter()
                 .flatten()
                 .copied()
-                .nth(idx)
+                .nth(idx_monster)
                 .expect("enumerated monster idx is valid"),
         )
     } else {
@@ -416,7 +426,12 @@ fn handle_turn_end(state: &mut GameState) {
     });
 }
 
-fn fill_legal_actions_effect_pending(state: &mut GameState, kind: EffectKind, num: usize) {
+fn fill_legal_actions_effect_pending(
+    state: &mut GameState,
+    kind: EffectKind,
+    num: usize,
+    deck_filter: Option<CandidatePoolDeckFilter>,
+) {
     match kind {
         EffectKind::CardDiscard { .. } => {
             for combo in hand_combinations(state.id_hand.len(), num) {
@@ -446,23 +461,35 @@ fn fill_legal_actions_effect_pending(state: &mut GameState, kind: EffectKind, nu
             }
         }
         EffectKind::CardPurge => {
-            for i in 0..state.effect_candidate_buf.len() {
-                state.legal_actions.push(Action::CardPurge { idx: i });
+            let filter = deck_filter.expect("deck pick carries a Deck filter");
+            for i in 0..state.id_deck.len() {
+                if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                    state.legal_actions.push(Action::CardPurge { idx: i });
+                }
             }
         }
         EffectKind::CardUpgrade => {
-            for i in 0..state.effect_candidate_buf.len() {
-                state.legal_actions.push(Action::CardUpgrade { idx: i });
+            let filter = deck_filter.expect("deck pick carries a Deck filter");
+            for i in 0..state.id_deck.len() {
+                if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                    state.legal_actions.push(Action::CardUpgrade { idx: i });
+                }
             }
         }
         EffectKind::CardDuplicate => {
-            for i in 0..state.effect_candidate_buf.len() {
-                state.legal_actions.push(Action::CardDuplicate { idx: i });
+            let filter = deck_filter.expect("deck pick carries a Deck filter");
+            for i in 0..state.id_deck.len() {
+                if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                    state.legal_actions.push(Action::CardDuplicate { idx: i });
+                }
             }
         }
         EffectKind::CardTransform => {
-            for i in 0..state.effect_candidate_buf.len() {
-                state.legal_actions.push(Action::CardTransform { idx: i });
+            let filter = deck_filter.expect("deck pick carries a Deck filter");
+            for i in 0..state.id_deck.len() {
+                if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                    state.legal_actions.push(Action::CardTransform { idx: i });
+                }
             }
         }
         _ => unreachable!("effect_pending with non-halting kind: {:?}", kind),
@@ -569,8 +596,11 @@ fn fill_legal_actions_screen_rest_site(state: &mut GameState) {
         state.legal_actions.push(Action::RoomExit);
     } else {
         state.legal_actions.push(Action::Rest);
-        for i in 0..count_upgradeable_deck(state) {
-            state.legal_actions.push(Action::CardUpgrade { idx: i });
+        // CardUpgrade idx is an absolute id_deck index; offer only upgradable cards
+        for i in 0..state.id_deck.len() {
+            if card_is_upgradable(&state.entities[state.id_deck[i]]) {
+                state.legal_actions.push(Action::CardUpgrade { idx: i });
+            }
         }
     }
     push_potion_actions(state);
@@ -651,24 +681,6 @@ fn current_room_id(state: &GameState) -> usize {
     }
 }
 
-fn count_upgradeable_deck(state: &GameState) -> usize {
-    state
-        .id_deck
-        .iter()
-        .filter(|&&id| !state.entities[id].card_upgraded)
-        .count()
-}
-
-fn upgradeable_deck_at(state: &GameState, idx: usize) -> usize {
-    state
-        .id_deck
-        .iter()
-        .filter(|&&id| !state.entities[id].card_upgraded)
-        .nth(idx)
-        .copied()
-        .expect("enumerated rest-site upgrade idx is valid")
-}
-
 // All k-subsets of [0..n) as Vec<usize>. For HandSelect Discard/Retain
 fn hand_combinations(n: usize, k: usize) -> Vec<Vec<usize>> {
     let mut out = Vec::new();
@@ -715,12 +727,29 @@ fn resolve_hand_pending(state: &mut GameState, idxs: Vec<usize>) {
 }
 
 // Pops effect_pending and re-enqueues it as Direct for the resolved deck-card id
+// Extract the Deck filter from a pending deck-pick effect; None for non-deck halts
+fn pending_deck_filter(effect: &Effect) -> Option<CandidatePoolDeckFilter> {
+    match effect.target {
+        Target::Resolve {
+            candidate_pool: CandidatePool::Deck { filter },
+            ..
+        } => Some(filter),
+        _ => None,
+    }
+}
+
 fn resolve_deck_pending(state: &mut GameState, idx: usize) {
     let pending = state
         .effect_pending
         .take()
         .expect("deck pick requires a pending effect");
-    let id_card = state.effect_candidate_buf[idx];
+    // idx is an absolute id_deck index; assert it still matches the pool's filter
+    let filter = pending_deck_filter(&pending).expect("deck pick has a Deck pool");
+    let id_card = state.id_deck[idx];
+    assert!(
+        deck_filter_matches(filter, &state.entities[id_card]),
+        "deck pick idx {idx} targets a card the filter rejects"
+    );
     state.effect_buf.push(Effect {
         kind: pending.kind,
         id_source: pending.id_source,

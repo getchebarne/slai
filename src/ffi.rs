@@ -12,7 +12,6 @@ use crate::effect::GoldDeltaKind;
 use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::effect::get_input_count;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::Intent;
@@ -860,8 +859,6 @@ impl From<CandidatePoolMonstersFilter> for PyCandidatePoolMonstersFilter {
     }
 }
 
-// Phase / Selection / Target
-
 #[pyclass(eq, eq_int, hash, frozen, name = "Screen")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyScreen {
@@ -1287,6 +1284,9 @@ pub enum PyEffect {
     CardDiscard {
         target: Option<PyTarget>,
     },
+    CardRetain {
+        target: Option<PyTarget>,
+    },
     DamageMindBlast {
         target: Option<PyTarget>,
     },
@@ -1426,6 +1426,7 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardDraw { count } => PyEffect::CardDraw { count, target },
         EffectKind::CardDrawUpTo { amount } => PyEffect::CardDrawUpTo { amount, target },
         EffectKind::CardDiscard { source: _ } => PyEffect::CardDiscard { target },
+        EffectKind::CardRetain => PyEffect::CardRetain { target },
         EffectKind::DamageMindBlast => PyEffect::DamageMindBlast { target },
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
             PyEffect::ShuffleDiscardPileIntoDrawPile { target }
@@ -1684,7 +1685,8 @@ pub struct PyGameState {
     pub map: PyMap,
     pub reward: Option<PyReward>,
     pub event: Option<PyEvent>,
-    pub pending_input: Option<PyPendingInput>,
+    pub pending: Option<PyEffect>,
+    pub discover: Vec<PyCard>,
 }
 
 #[pyclass(frozen, get_all, name = "Reward")]
@@ -1694,27 +1696,6 @@ pub struct PyReward {
     pub relic: Option<PyRelic>,
     pub potion: Option<PyPotion>,
     pub gold: Option<u16>,
-}
-
-// Halt overlay snapshot; `None` outside halts. Variants 1:1 with halting EffectKind
-#[pyclass(frozen, name = "PendingInput")]
-#[derive(Debug, Clone)]
-pub enum PyPendingInput {
-    Discard {
-        num: u8,
-    },
-    Retain {
-        num: u8,
-    },
-    Setup {},
-    Nightmare {},
-    Discover {
-        cards: Vec<PyCard>,
-    },
-    DeckPick {
-        filter: PyCandidatePoolDeckFilter,
-        cards: Vec<PyCard>,
-    },
 }
 
 // Display-name lookups
@@ -1946,7 +1927,12 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
                 },
             )
         };
-    let pending_input = snapshot_pending_input(state);
+    let pending = state.effect_pending.as_ref().map(snapshot_effect);
+    let discover: Vec<PyCard> = state
+        .id_discover
+        .iter()
+        .map(|&id| snapshot_card(state, id))
+        .collect();
     let reward = match state.screen {
         Screen::Reward => Some(PyReward {
             cards: state
@@ -1994,58 +1980,9 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         game_over: state.game_over,
         reward,
         event,
-        pending_input,
+        pending,
+        discover,
     }
-}
-
-fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
-    let pending = state.effect_pending.as_ref()?;
-    let num = get_input_count(pending).map(|c| c as u8);
-    Some(match pending.kind {
-        EffectKind::CardDiscard { .. } => PyPendingInput::Discard {
-            num: num.unwrap_or(1),
-        },
-        EffectKind::CardRetain => PyPendingInput::Retain {
-            num: num.unwrap_or(1),
-        },
-        EffectKind::CardSetupPick => PyPendingInput::Setup {},
-        EffectKind::CardNightmarePick => PyPendingInput::Nightmare {},
-        EffectKind::CardDiscoverPick => {
-            let cards = if matches!(state.screen, Screen::Combat) {
-                state
-                    .id_discover
-                    .iter()
-                    .map(|&id| snapshot_card(state, id))
-                    .collect()
-            } else {
-                Vec::new()
-            };
-            PyPendingInput::Discover { cards }
-        }
-        EffectKind::CardPurge
-        | EffectKind::CardUpgrade
-        | EffectKind::CardDuplicate
-        | EffectKind::CardTransform => {
-            let Target::Resolve {
-                candidate_pool: CandidatePool::Deck { filter },
-                ..
-            } = pending.target
-            else {
-                unreachable!("deck-pick halt without Deck pool: {:?}", pending.target);
-            };
-            // effect_candidate_buf was populated by resolve_or_halt at halt time
-            let cards: Vec<PyCard> = state
-                .effect_candidate_buf
-                .iter()
-                .map(|&id| snapshot_card(state, id))
-                .collect();
-            PyPendingInput::DeckPick {
-                filter: filter.into(),
-                cards,
-            }
-        }
-        _ => unreachable!("effect_pending with non-halting kind: {:?}", pending.kind),
-    })
 }
 
 fn snapshot_event(state: &GameState, id_event: usize) -> PyEvent {

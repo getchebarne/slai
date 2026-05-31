@@ -83,21 +83,16 @@ use rand::Rng;
 
 use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::types::CardColor;
-use crate::types::CardKind;
-use crate::types::CardRarity;
 use crate::types::Screen;
-use crate::utils::card_is_purgeable;
-use crate::utils::card_is_upgradable;
+use crate::utils::deck_filter_matches;
 use crate::utils::shuffle;
 
 // Iterate in reverse so push_front yields `ids` in original queue order
@@ -157,40 +152,13 @@ fn fill_buf_candidates(
             effect_candidate_buf.push(id_source)
         }
         CandidatePool::Discover => effect_candidate_buf.extend_from_slice(id_discover),
-        CandidatePool::Deck { filter } => match filter {
-            CandidatePoolDeckFilter::Purgeable => {
-                for &id in id_deck {
-                    if card_is_purgeable(&entities[id]) {
-                        effect_candidate_buf.push(id);
-                    }
+        CandidatePool::Deck { filter } => {
+            for &id in id_deck {
+                if deck_filter_matches(filter, &entities[id]) {
+                    effect_candidate_buf.push(id);
                 }
             }
-            CandidatePoolDeckFilter::Upgradeable => {
-                for &id in id_deck {
-                    if card_is_upgradable(&entities[id]) {
-                        effect_candidate_buf.push(id);
-                    }
-                }
-            }
-            CandidatePoolDeckFilter::Any => {
-                for &id in id_deck {
-                    if entities[id].kind == EntityKind::Card {
-                        effect_candidate_buf.push(id);
-                    }
-                }
-            }
-            CandidatePoolDeckFilter::Transformable => {
-                for &id in id_deck {
-                    let e = &entities[id];
-                    if e.kind == EntityKind::Card
-                        && e.card_rarity != CardRarity::Basic
-                        && e.card_kind != CardKind::Curse
-                    {
-                        effect_candidate_buf.push(id);
-                    }
-                }
-            }
-        },
+        }
     }
 }
 

@@ -368,30 +368,6 @@ class Reward:
     potion: Potion | None
     gold: int | None
 
-class PendingInput:
-    class Discard:
-        num: int
-        def __init__(self, num: int) -> None: ...
-
-    class Retain:
-        num: int
-        def __init__(self, num: int) -> None: ...
-
-    class Setup:
-        def __init__(self) -> None: ...
-
-    class Nightmare:
-        def __init__(self) -> None: ...
-
-    class Discover:
-        cards: list[Card]
-        def __init__(self, cards: list[Card]) -> None: ...
-
-    class DeckSelect:
-        filter: CandidatePoolDeckFilter
-        cards: list[Card]
-        def __init__(self, filter: CandidatePoolDeckFilter, cards: list[Card]) -> None: ...
-
 class SelectionKind:
     class All:
         def __init__(self) -> None: ...
@@ -706,14 +682,10 @@ class GameState:
     game_over: bool
     reward: Reward | None
     event: Event | None
-    pending_input: Union[
-        PendingInput.Discard,
-        PendingInput.Retain,
-        PendingInput.Setup,
-        PendingInput.Nightmare,
-        PendingInput.Discover,
-        PendingInput.DeckSelect,
-    ] | None
+    # The unresolved halt effect (a Resolve effect) when the engine awaits a pick; None otherwise
+    pending: Effect | None
+    # Discover candidates (the freshly-generated pick set); empty outside a discover halt
+    discover: list[Card]
 
 class GameEnv:
     MAX_MONSTERS: int

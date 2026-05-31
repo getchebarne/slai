@@ -12,6 +12,7 @@ use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::effect::CandidatePoolDeckFilter;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -53,6 +54,20 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
         return false;
     }
     !matches!(entity.card_name, CardName::AscendersBane)
+}
+
+// Single source of truth for which deck cards a CandidatePoolDeckFilter admits
+pub fn deck_filter_matches(filter: CandidatePoolDeckFilter, entity: &Entity) -> bool {
+    match filter {
+        CandidatePoolDeckFilter::Purgeable => card_is_purgeable(entity),
+        CandidatePoolDeckFilter::Upgradeable => card_is_upgradable(entity),
+        CandidatePoolDeckFilter::Any => entity.kind == EntityKind::Card,
+        CandidatePoolDeckFilter::Transformable => {
+            entity.kind == EntityKind::Card
+                && entity.card_rarity != CardRarity::Basic
+                && entity.card_kind != CardKind::Curse
+        }
+    }
 }
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
