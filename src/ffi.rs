@@ -47,8 +47,6 @@ use crate::types::RoomKind;
 use crate::types::Screen;
 use crate::utils::scale_attack_damage;
 
-// Enum mirrors
-
 #[pyclass(eq, eq_int, hash, frozen, name = "CardKind")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardKind {
@@ -959,6 +957,10 @@ pub enum PyActionType {
     RewardTakeRelic,
     RoomExit,
     RoomSelect,
+    ShopBuyCard,
+    ShopBuyPotion,
+    ShopBuyRelic,
+    ShopPurge,
     TurnEnd,
 }
 
@@ -986,7 +988,11 @@ impl PyActionType {
             18 => Ok(Self::RewardTakeRelic),
             19 => Ok(Self::RoomExit),
             20 => Ok(Self::RoomSelect),
-            21 => Ok(Self::TurnEnd),
+            21 => Ok(Self::ShopBuyCard),
+            22 => Ok(Self::ShopBuyPotion),
+            23 => Ok(Self::ShopBuyRelic),
+            24 => Ok(Self::ShopPurge),
+            25 => Ok(Self::TurnEnd),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -1073,6 +1079,22 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
         PyActionType::RoomSelect => match idxs.len() {
             1 => Ok(Action::RoomSelect { idx: idxs[0] }),
             n => Err(format!("RoomSelect expects [idx], got {n} idxs")),
+        },
+        PyActionType::ShopBuyCard => match idxs.len() {
+            1 => Ok(Action::ShopBuyCard { idx: idxs[0] }),
+            n => Err(format!("ShopBuyCard expects [idx], got {n} idxs")),
+        },
+        PyActionType::ShopBuyPotion => match idxs.len() {
+            1 => Ok(Action::ShopBuyPotion { idx: idxs[0] }),
+            n => Err(format!("ShopBuyPotion expects [idx], got {n} idxs")),
+        },
+        PyActionType::ShopBuyRelic => match idxs.len() {
+            1 => Ok(Action::ShopBuyRelic { idx: idxs[0] }),
+            n => Err(format!("ShopBuyRelic expects [idx], got {n} idxs")),
+        },
+        PyActionType::ShopPurge => match idxs.len() {
+            1 => Ok(Action::ShopPurge { idx_deck: idxs[0] }),
+            n => Err(format!("ShopPurge expects [idx_deck], got {n} idxs")),
         },
         PyActionType::Rest => match idxs.len() {
             0 => Ok(Action::Rest),
@@ -1164,6 +1186,10 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::RoomSelect { idx } => (PyActionType::RoomSelect, vec![idx]),
         Action::Rest => (PyActionType::Rest, vec![]),
         Action::RoomExit => (PyActionType::RoomExit, vec![]),
+        Action::ShopBuyCard { idx } => (PyActionType::ShopBuyCard, vec![idx]),
+        Action::ShopBuyPotion { idx } => (PyActionType::ShopBuyPotion, vec![idx]),
+        Action::ShopBuyRelic { idx } => (PyActionType::ShopBuyRelic, vec![idx]),
+        Action::ShopPurge { idx_deck } => (PyActionType::ShopPurge, vec![idx_deck]),
         Action::ChestOpen => (PyActionType::ChestOpen, vec![]),
         Action::PotionUse {
             idx_potion,
@@ -1690,6 +1716,7 @@ pub struct PyGameState {
     pub event: Option<PyEvent>,
     pub pending: Option<PyEffect>,
     pub discover: Vec<PyCard>,
+    pub shop: Option<PyShop>,
 }
 
 #[pyclass(frozen, get_all, name = "Reward")]
@@ -1699,6 +1726,18 @@ pub struct PyReward {
     pub relic: Option<PyRelic>,
     pub potion: Option<PyPotion>,
     pub gold: Option<u16>,
+}
+
+#[pyclass(frozen, get_all, name = "Shop")]
+#[derive(Debug, Clone)]
+pub struct PyShop {
+    pub cards: Vec<PyCard>,
+    pub card_prices: Vec<u16>,
+    pub relics: Vec<PyRelic>,
+    pub relic_prices: Vec<u16>,
+    pub potions: Vec<PyPotion>,
+    pub potion_prices: Vec<u16>,
+    pub purge_cost: u16,
 }
 
 // Display-name lookups
@@ -1962,6 +2001,30 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         )),
         _ => None,
     };
+    let shop = match state.screen {
+        Screen::Shop => Some(PyShop {
+            cards: state
+                .shop_id_cards
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+            card_prices: state.shop_card_prices.clone(),
+            relics: state
+                .shop_id_relics
+                .iter()
+                .map(|&id| snapshot_relic(&state.entities[id]))
+                .collect(),
+            relic_prices: state.shop_relic_prices.clone(),
+            potions: state
+                .shop_id_potions
+                .iter()
+                .map(|&id| snapshot_potion(&state.entities[id]))
+                .collect(),
+            potion_prices: state.shop_potion_prices.clone(),
+            purge_cost: state.shop_purge_cost,
+        }),
+        _ => None,
+    };
     PyGameState {
         character: snapshot_character(state),
         monsters: snapshot_monsters(state),
@@ -1990,6 +2053,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         event,
         pending,
         discover,
+        shop,
     }
 }
 

@@ -79,6 +79,18 @@ pub enum Action {
     RoomSelect {
         idx: usize,
     },
+    ShopBuyCard {
+        idx: usize,
+    },
+    ShopBuyPotion {
+        idx: usize,
+    },
+    ShopBuyRelic {
+        idx: usize,
+    },
+    ShopPurge {
+        idx_deck: usize,
+    },
     TurnEnd,
 }
 
@@ -120,6 +132,10 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::RewardTakeRelic => handle_reward_take_relic(state),
         Action::RoomExit => handle_room_exit(state),
         Action::RoomSelect { idx } => handle_room_select(state, idx),
+        Action::ShopBuyCard { idx } => handle_shop_buy_card(state, idx),
+        Action::ShopBuyPotion { idx } => handle_shop_buy_potion(state, idx),
+        Action::ShopBuyRelic { idx } => handle_shop_buy_relic(state, idx),
+        Action::ShopPurge { idx_deck } => handle_shop_purge(state, idx_deck),
         Action::TurnEnd => handle_turn_end(state),
     }
     flush_effects_from_buf_to_queue_front(state);
@@ -424,6 +440,38 @@ fn handle_turn_end(state: &mut GameState) {
     });
 }
 
+fn handle_shop_buy_card(state: &mut GameState, idx: usize) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::ShopBuyCard { idx },
+        id_source: None,
+        target: Target::Direct(None),
+    });
+}
+
+fn handle_shop_buy_potion(state: &mut GameState, idx: usize) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::ShopBuyPotion { idx },
+        id_source: None,
+        target: Target::Direct(None),
+    });
+}
+
+fn handle_shop_buy_relic(state: &mut GameState, idx: usize) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::ShopBuyRelic { idx },
+        id_source: None,
+        target: Target::Direct(None),
+    });
+}
+
+fn handle_shop_purge(state: &mut GameState, idx_deck: usize) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::ShopPurge { idx_deck },
+        id_source: None,
+        target: Target::Direct(None),
+    });
+}
+
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
     kind: EffectKind,
@@ -575,6 +623,31 @@ fn fill_legal_actions_screen_event(state: &mut GameState) {
 
 fn fill_legal_actions_screen_shop(state: &mut GameState) {
     state.legal_actions.push(Action::RoomExit);
+    let gold = state.entities[state.id_character].character_gold;
+    let belt_has_room = find_free_slot(&state.id_potions, state.potion_slots_max).is_some();
+
+    for i in 0..state.shop_card_prices.len() {
+        if gold >= state.shop_card_prices[i] {
+            state.legal_actions.push(Action::ShopBuyCard { idx: i });
+        }
+    }
+    for i in 0..state.shop_relic_prices.len() {
+        if gold >= state.shop_relic_prices[i] {
+            state.legal_actions.push(Action::ShopBuyRelic { idx: i });
+        }
+    }
+    if belt_has_room {
+        for i in 0..state.shop_potion_prices.len() {
+            if gold >= state.shop_potion_prices[i] {
+                state.legal_actions.push(Action::ShopBuyPotion { idx: i });
+            }
+        }
+    }
+    if gold >= state.shop_purge_cost {
+        for i in 0..state.id_deck.len() {
+            state.legal_actions.push(Action::ShopPurge { idx_deck: i });
+        }
+    }
     push_potion_actions(state);
 }
 

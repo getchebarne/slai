@@ -308,6 +308,10 @@ class ActionType(IntEnum):
     RewardTakeRelic: int
     RoomExit: int
     RoomSelect: int
+    ShopBuyCard: int
+    ShopBuyPotion: int
+    ShopBuyRelic: int
+    ShopPurge: int
     TurnEnd: int
 
 class CandidatePoolDeckFilter(IntEnum):
@@ -371,6 +375,15 @@ class Reward:
     relic: Relic | None
     potion: Potion | None
     gold: int | None
+
+class Shop:
+    cards: list[Card]
+    card_prices: list[int]
+    relics: list[Relic]
+    relic_prices: list[int]
+    potions: list[Potion]
+    potion_prices: list[int]
+    purge_cost: int
 
 class SelectionKind:
     class All:
@@ -539,6 +552,10 @@ class ActionSpecRegistry:
     RewardTakeRelic: ActionSpec
     RewardTakePotion: ActionSpec
     RewardTakeGold: ActionSpec
+    ShopBuyCard: ActionSpec
+    ShopBuyPotion: ActionSpec
+    ShopBuyRelic: ActionSpec
+    ShopPurge: ActionSpec
 
     def __getattr__(self, name: str) -> ActionSpec: ...
     def __getitem__(self, key: Union[int, str, ActionType]) -> ActionSpec: ...
@@ -693,6 +710,7 @@ class GameState:
     pending: Effect | None
     # Discover candidates (the freshly-generated pick set); empty outside a discover halt
     discover: list[Card]
+    shop: Shop | None
 
 class GameEnv:
     MAX_MONSTERS: int

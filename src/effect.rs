@@ -167,6 +167,19 @@ pub enum EffectKind {
     SetCostOverride {
         amount: u8,
     },
+    ShopBuild,
+    ShopBuyCard {
+        idx: usize,
+    },
+    ShopBuyPotion {
+        idx: usize,
+    },
+    ShopBuyRelic {
+        idx: usize,
+    },
+    ShopPurge {
+        idx_deck: usize,
+    },
     ShuffleDiscardPileIntoDrawPile,
     SneakyStrikeProc {
         energy: u8,

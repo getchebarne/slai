@@ -68,6 +68,11 @@ pub mod process_effect_room_exit;
 pub mod process_effect_room_select;
 pub mod process_effect_scrap_ooze_reach;
 pub mod process_effect_set_cost_override;
+pub mod process_effect_shop_build;
+pub mod process_effect_shop_buy_card;
+pub mod process_effect_shop_buy_potion;
+pub mod process_effect_shop_buy_relic;
+pub mod process_effect_shop_purge;
 pub mod process_effect_shuffle_discard_pile_into_draw_pile;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
@@ -535,6 +540,22 @@ fn dispatch_by_kind(
         EffectKind::ChestOpen => process_effect_chest_open::process_effect_chest_open(state),
         EffectKind::PotionDiscard => {
             process_effect_potion_discard::process_effect_potion_discard(id_target, state)
+        }
+        EffectKind::ShopBuild => {
+            debug_assert!(matches!(state.screen, Screen::Shop));
+            process_effect_shop_build::process_effect_shop_build(state)
+        }
+        EffectKind::ShopBuyCard { idx } => {
+            process_effect_shop_buy_card::process_effect_shop_buy_card(state, idx)
+        }
+        EffectKind::ShopBuyPotion { idx } => {
+            process_effect_shop_buy_potion::process_effect_shop_buy_potion(state, idx)
+        }
+        EffectKind::ShopBuyRelic { idx } => {
+            process_effect_shop_buy_relic::process_effect_shop_buy_relic(state, idx)
+        }
+        EffectKind::ShopPurge { idx_deck } => {
+            process_effect_shop_purge::process_effect_shop_purge(state, idx_deck)
         }
         EffectKind::PotionUse => {
             process_effect_potion_use::process_effect_potion_use(id_target, state)

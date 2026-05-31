@@ -92,6 +92,49 @@ pub const POTION_TH_UNCOMMON: u8 = 90;
 // Discovery: number of card options offered
 pub const DISCOVER_PICK_COUNT: u8 = 3;
 
+// Shop pricing — cards: base × U[0.9, 1.1], colorless × 1.2
+pub const SHOP_PRICE_CARD_COMMON: u16 = 50;
+pub const SHOP_PRICE_CARD_UNCOMMON: u16 = 75;
+pub const SHOP_PRICE_CARD_RARE: u16 = 150;
+pub const SHOP_PRICE_COLORLESS_NUMER: u16 = 6;
+pub const SHOP_PRICE_COLORLESS_DENOM: u16 = 5;
+pub const SHOP_PRICE_CARD_VARIANCE_LO: f32 = 0.9;
+pub const SHOP_PRICE_CARD_VARIANCE_HI: f32 = 1.1;
+
+// Shop pricing — potions and relics: base × U[0.95, 1.05]
+pub const SHOP_PRICE_POTION_COMMON: u16 = 50;
+pub const SHOP_PRICE_POTION_UNCOMMON: u16 = 75;
+pub const SHOP_PRICE_POTION_RARE: u16 = 100;
+pub const SHOP_PRICE_RELIC_COMMON: u16 = 150;
+pub const SHOP_PRICE_RELIC_UNCOMMON: u16 = 250;
+pub const SHOP_PRICE_RELIC_RARE: u16 = 300;
+pub const SHOP_PRICE_RELIC_SHOP: u16 = 150;
+pub const SHOP_PRICE_RELIC_POTION_VARIANCE_LO: f32 = 0.95;
+pub const SHOP_PRICE_RELIC_POTION_VARIANCE_HI: f32 = 1.05;
+
+pub const SHOP_PURGE_COST_BASE: u16 = 75;
+pub const SHOP_PURGE_COST_INCREMENT: u16 = 25;
+
+// A16+ markup: every price (and purge cost) × 11/10
+pub const ASCENSION_SHOP_PRICE_BUMP_LEVEL: u8 = 16;
+pub const ASCENSION_SHOP_PRICE_BUMP_NUMER: u16 = 11;
+pub const ASCENSION_SHOP_PRICE_BUMP_DENOM: u16 = 10;
+
+// Shop inventory composition
+pub const SHOP_SLOTS_CARD_COLORED: usize = 5;
+pub const SHOP_SLOTS_CARD_COLORLESS: usize = 2;
+pub const SHOP_SLOTS_CARD_TOTAL: usize = SHOP_SLOTS_CARD_COLORED + SHOP_SLOTS_CARD_COLORLESS;
+pub const SHOP_SLOTS_RELIC: usize = 3;
+pub const SHOP_SLOTS_POTION: usize = 3;
+
+// Colored-card rarity weights (cumulative < thresholds)
+pub const SHOP_CARD_TH_COMMON: u8 = 60;
+pub const SHOP_CARD_TH_UNCOMMON: u8 = 97;
+
+// Relic-tier weights for the 2 non-shop relic slots
+pub const SHOP_RELIC_TH_COMMON: u8 = 48;
+pub const SHOP_RELIC_TH_UNCOMMON: u8 = 82;
+
 // Initial capacity for the per-handler effect builder on GameState
 pub const MAX_EFFECTS_PER_HANDLER: usize = 32;
 

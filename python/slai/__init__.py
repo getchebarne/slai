@@ -102,6 +102,9 @@ _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
 _SLOT_POS = "slot in state.potions"
 _DISCOVER_POS = "position in state.picks_card (the discovery offer)"
+_SHOP_CARD_POS = "position in state.shop.cards"
+_SHOP_RELIC_POS = "position in state.shop.relics"
+_SHOP_POTION_POS = "position in state.shop.potions"
 
 
 # Action spec registry
@@ -139,6 +142,11 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.RewardTakeRelic),
         create_action_spec(ActionType.RoomSelect, ArgSpec("idx", _MAP_COL)),
         create_action_spec(ActionType.RoomExit),
+        # Shop
+        create_action_spec(ActionType.ShopBuyCard, ArgSpec("idx", _SHOP_CARD_POS)),
+        create_action_spec(ActionType.ShopBuyRelic, ArgSpec("idx", _SHOP_RELIC_POS)),
+        create_action_spec(ActionType.ShopBuyPotion, ArgSpec("idx", _SHOP_POTION_POS)),
+        create_action_spec(ActionType.ShopPurge, ArgSpec("idx_deck", _DECK_POS)),
         create_action_spec(ActionType.TurnEnd),
     ]
 )
@@ -169,9 +177,10 @@ Target = _rs.Target
 Effect = _rs.Effect
 CardCostKind = _rs.CardCostKind
 
-# Reward surface
+# Reward + Shop surface
 Screen = _to_intenum("Screen", _rs.Screen)
 Reward = _rs.Reward
+Shop = _rs.Shop
 
 __all__ = [
     # Environment + action
@@ -222,4 +231,5 @@ __all__ = [
     "Effect",
     # Reward
     "Reward",
+    "Shop",
 ]
