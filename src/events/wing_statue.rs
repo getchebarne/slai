@@ -9,7 +9,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
@@ -37,7 +37,7 @@ const OPTION_PRAY: &[Effect] = &[
             selection_kind: SelectionKind::Input { count: 1 },
         },
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // Attack
@@ -50,11 +50,11 @@ const OPTION_ATTACK: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
 // All options
 const OPTIONS_ALL: &[EventOption] = &[

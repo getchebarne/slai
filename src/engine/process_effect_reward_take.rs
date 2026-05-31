@@ -1,8 +1,6 @@
 use crate::game::GameState;
 use crate::potions::find_free_slot;
 use crate::types::RewardKind;
-use crate::types::Screen;
-use crate::utils::queue_room_select;
 
 pub fn process_effect_reward_take(
     id_target: Option<usize>,
@@ -37,15 +35,5 @@ pub fn process_effect_reward_take(
                 character.character_gold = character.character_gold.saturating_add(amount);
             }
         }
-    }
-
-    // Pool drained -> back to Map
-    if state.reward_id_cards.is_empty()
-        && state.reward_id_relic.is_none()
-        && state.reward_id_potion.is_none()
-        && state.reward_gold.is_none()
-    {
-        state.screen = Screen::Map;
-        queue_room_select(state);
     }
 }

@@ -8,7 +8,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
@@ -34,7 +34,7 @@ const OPTION_GATHER: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // Leave
@@ -48,7 +48,7 @@ const fn leave(min: u16, max: u16) -> [Effect; 2] {
             id_source: None,
             target: Target::Direct(None),
         },
-        EVENT_END_EFFECT,
+        EVENT_CONSUME_EFFECT,
     ]
 }
 static OPTION_LEAVE_BASE: [Effect; 2] = leave(20, 50);

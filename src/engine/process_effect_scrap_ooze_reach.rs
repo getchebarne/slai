@@ -34,7 +34,7 @@ pub fn process_effect_scrap_ooze_reach(
             target: Target::Direct(None),
         });
         state.buf_effects.push(Effect {
-            kind: EffectKind::EventEnd,
+            kind: EffectKind::EventConsume,
             id_source,
             target: Target::Direct(None),
         });

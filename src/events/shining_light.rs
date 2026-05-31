@@ -8,7 +8,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
@@ -40,14 +40,14 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
                 selection_kind: SelectionKind::Random { count: 2 },
             },
         },
-        EVENT_END_EFFECT,
+        EVENT_CONSUME_EFFECT,
     ]
 }
 static OPTION_ENTER_BASE: [Effect; 3] = enter(1, 5);
 static OPTION_ENTER_A15: [Effect; 3] = enter(3, 10); // 20% -> 30% max HP loss
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
 // All options
 const fn options(enter_effects: &'static [Effect], enter_label: &'static str) -> [EventOption; 2] {

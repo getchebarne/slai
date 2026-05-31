@@ -5,7 +5,7 @@ use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::CardName;
@@ -30,14 +30,14 @@ const fn agree(gold: u16) -> [Effect; 3] {
             id_source: None,
             target: Target::Direct(None),
         },
-        EVENT_END_EFFECT,
+        EVENT_CONSUME_EFFECT,
     ]
 }
 static OPTION_AGREE_BASE: [Effect; 3] = agree(175);
 static OPTION_AGREE_A15: [Effect; 3] = agree(150); // -25 gold gain
 
 // Disagree
-const OPTION_DISAGREE: &[Effect] = &[EVENT_END_EFFECT];
+const OPTION_DISAGREE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
 // All options
 const fn options(agree_effects: &'static [Effect], agree_label: &'static str) -> [EventOption; 2] {

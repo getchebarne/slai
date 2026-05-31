@@ -7,7 +7,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::CardName;
@@ -29,7 +29,7 @@ const OPTION_BANANA: &[Effect] = &[
             selection_kind: SelectionKind::Single,
         },
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // Donut
@@ -45,7 +45,7 @@ const OPTION_DONUT: &[Effect] = &[
             selection_kind: SelectionKind::Single,
         },
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // Box
@@ -63,7 +63,7 @@ const OPTION_BOX: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // All options

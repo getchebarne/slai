@@ -91,7 +91,8 @@ pub enum EffectKind {
     EventAdvanceState {
         delta: i8,
     },
-    EventEnd,
+    EventConsume,
+    EventExit,
     GlassKnifeDecay {
         delta: i16,
     },
@@ -146,13 +147,13 @@ pub enum EffectKind {
         fallback_circlet: bool,
     },
     RestSiteExit,
+    RewardExit,
     RewardRollChest {
         kind: ChestKind,
     },
     RewardRollCombat {
         room_kind: RoomKind,
     },
-    RewardSkip,
     RewardTake {
         kind: RewardKind,
     },

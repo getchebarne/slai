@@ -6,6 +6,7 @@ use strum::EnumCount;
 
 use crate::action::Action;
 use crate::action::handle_action;
+use crate::action::recompute_legal_actions;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
 use crate::consts::DISCOVER_PICK_COUNT;
@@ -124,10 +125,16 @@ pub struct GameState {
 
     // Event working memory; meaningful when active = Event
     pub id_event: Option<usize>,
+
+    // Cached legal-action set; recomputed at every settle point, source of truth for action validity
+    pub legal_actions: Vec<Action>,
+
+    // When set, step auto-applies any forced move (exactly one legal action) until a real choice appears
+    pub fast_mode: bool,
 }
 
 // Create and initialize
-pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
+pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
 
     // Initialize empty entities arena
@@ -222,21 +229,43 @@ pub fn create_game_state(ascension: u8, seed: u64) -> GameState {
         reward_id_potion: None,
         reward_gold: None,
         id_event: None,
+        legal_actions: Vec::new(),
+        fast_mode,
     };
 
     // Run the queue so the initial halt registers
     process_queue(&mut state);
+    recompute_legal_actions(&mut state);
     state
 }
 
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     let effects = handle_action(state, action)?;
+    enqueue_and_run(state, effects);
+    recompute_legal_actions(state);
+    if state.fast_mode {
+        auto_advance(state);
+    }
+    Ok(())
+}
 
-    // Push to FRONT (reversed) so action effects resolve before any halt-interrupted chain
+// Push to FRONT (reversed) so action effects resolve before any halt-interrupted chain, then drain
+fn enqueue_and_run(state: &mut GameState, effects: Vec<Effect>) {
     for effect in effects.into_iter().rev() {
         state.effect_queue.push_front(effect);
     }
-
     process_queue(state);
-    Ok(())
+}
+
+// Skip forced moves: while exactly one legal action exists, apply it
+fn auto_advance(state: &mut GameState) {
+    let mut guard = 0;
+    while !state.game_over && state.legal_actions.len() == 1 {
+        guard += 1;
+        assert!(guard < 1024, "fast_mode auto-advance exceeded 1024 forced moves");
+        let only = state.legal_actions[0].clone();
+        let effects = handle_action(state, only).expect("cached single legal action must be valid");
+        enqueue_and_run(state, effects);
+        recompute_legal_actions(state);
+    }
 }

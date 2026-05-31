@@ -939,7 +939,6 @@ pub enum PyActionType {
     PotionDiscard,
     PotionUse,
     Rest,
-    RewardSkip,
     RewardTakeCard,
     RewardTakeGold,
     RewardTakePotion,
@@ -967,14 +966,13 @@ impl PyActionType {
             12 => Ok(Self::PotionDiscard),
             13 => Ok(Self::PotionUse),
             14 => Ok(Self::Rest),
-            15 => Ok(Self::RewardSkip),
-            16 => Ok(Self::RewardTakeCard),
-            17 => Ok(Self::RewardTakeGold),
-            18 => Ok(Self::RewardTakePotion),
-            19 => Ok(Self::RewardTakeRelic),
-            20 => Ok(Self::RoomExit),
-            21 => Ok(Self::RoomSelect),
-            22 => Ok(Self::TurnEnd),
+            15 => Ok(Self::RewardTakeCard),
+            16 => Ok(Self::RewardTakeGold),
+            17 => Ok(Self::RewardTakePotion),
+            18 => Ok(Self::RewardTakeRelic),
+            19 => Ok(Self::RoomExit),
+            20 => Ok(Self::RoomSelect),
+            21 => Ok(Self::TurnEnd),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -1016,6 +1014,14 @@ impl PyAction {
     }
 }
 
+// Multi-index picks are order-insensitive; normalize to the sorted-distinct form the enumerator emits
+fn canonical_idxs(idxs: &[usize]) -> Vec<usize> {
+    let mut out = idxs.to_vec();
+    out.sort_unstable();
+    out.dedup();
+    out
+}
+
 pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
     let idxs = &action.idxs;
     match action.action_type {
@@ -1036,8 +1042,12 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::TurnEnd),
             n => Err(format!("TurnEnd expects [], got {n} idxs")),
         },
-        PyActionType::CardDiscard => Ok(Action::CardDiscard { idxs: idxs.clone() }),
-        PyActionType::CardRetain => Ok(Action::CardRetain { idxs: idxs.clone() }),
+        PyActionType::CardDiscard => Ok(Action::CardDiscard {
+            idxs: canonical_idxs(idxs),
+        }),
+        PyActionType::CardRetain => Ok(Action::CardRetain {
+            idxs: canonical_idxs(idxs),
+        }),
         PyActionType::CardSetup => match idxs.len() {
             1 => Ok(Action::CardSetup { idx: idxs[0] }),
             n => Err(format!("CardSetup expects [idx_hand], got {n} idxs")),
@@ -1099,10 +1109,6 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::RewardTakeGold),
             n => Err(format!("RewardTakeGold expects [], got {n} idxs")),
         },
-        PyActionType::RewardSkip => match idxs.len() {
-            0 => Ok(Action::RewardSkip),
-            n => Err(format!("RewardSkip expects [], got {n} idxs")),
-        },
         PyActionType::EventOptionSelect => match idxs.len() {
             1 => Ok(Action::EventOptionSelect { idx: idxs[0] }),
             n => Err(format!("EventOptionSelect expects [idx], got {n} idxs")),
@@ -1159,7 +1165,6 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::RewardTakeRelic => (PyActionType::RewardTakeRelic, vec![]),
         Action::RewardTakePotion => (PyActionType::RewardTakePotion, vec![]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
-        Action::RewardSkip => (PyActionType::RewardSkip, vec![]),
         Action::EventOptionSelect { idx } => (PyActionType::EventOptionSelect, vec![idx]),
         Action::CardPurge { idx } => (PyActionType::CardPurge, vec![idx]),
         Action::CardUpgrade { idx } => (PyActionType::CardUpgrade, vec![idx]),
@@ -1318,7 +1323,7 @@ pub enum PyEffect {
         advance_on_miss: bool,
         target: Option<PyTarget>,
     },
-    EventEnd {
+    EventConsume {
         target: Option<PyTarget>,
     },
     CardDiscoverPick {
@@ -1449,7 +1454,7 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             advance_on_miss,
             target,
         },
-        EffectKind::EventEnd => PyEffect::EventEnd { target },
+        EffectKind::EventConsume => PyEffect::EventConsume { target },
         EffectKind::CardAddToDeck {
             card_name,
             upgraded,

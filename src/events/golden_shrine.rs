@@ -5,7 +5,7 @@ use crate::types::DeltaSign;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::CardName;
@@ -22,7 +22,7 @@ const fn pray(amount: u16) -> [Effect; 2] {
             id_source: None,
             target: Target::Direct(None),
         },
-        EVENT_END_EFFECT,
+        EVENT_CONSUME_EFFECT,
     ]
 }
 static OPTION_PRAY_BASE: [Effect; 2] = pray(100);
@@ -46,11 +46,11 @@ const OPTION_DESECRATE: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
 // All options
 const fn options(pray_effects: &'static [Effect], pray_label: &'static str) -> [EventOption; 3] {

@@ -36,7 +36,8 @@ pub mod process_effect_energy_loss;
 pub mod process_effect_monster_escape;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
-pub mod process_effect_event_end;
+pub mod process_effect_event_consume;
+pub mod process_effect_event_exit;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -59,9 +60,9 @@ pub mod process_effect_potion_use;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
 pub mod process_effect_rest_site_exit;
+pub mod process_effect_reward_exit;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
-pub mod process_effect_reward_skip;
 pub mod process_effect_reward_take;
 pub mod process_effect_room_enter;
 pub mod process_effect_room_select;
@@ -406,9 +407,9 @@ fn dispatch_by_kind(
             debug_assert!(matches!(state.screen, Screen::Reward));
             process_effect_reward_take::process_effect_reward_take(id_target, state, kind)
         }
-        EffectKind::RewardSkip => {
+        EffectKind::RewardExit => {
             debug_assert!(matches!(state.screen, Screen::Reward));
-            process_effect_reward_skip::process_effect_reward_skip(state);
+            process_effect_reward_exit::process_effect_reward_exit(state);
         }
         EffectKind::TargetSet => {
             debug_assert!(matches!(state.screen, Screen::Combat));
@@ -639,9 +640,10 @@ fn dispatch_by_kind(
             chance,
             advance_on_miss,
         ),
-        EffectKind::EventEnd => {
-            process_effect_event_end::process_effect_event_end(id_source, state)
+        EffectKind::EventConsume => {
+            process_effect_event_consume::process_effect_event_consume(id_source, state)
         }
+        EffectKind::EventExit => process_effect_event_exit::process_effect_event_exit(state),
         EffectKind::CardDiscoverPick => {
             debug_assert!(matches!(state.screen, Screen::Combat));
             process_effect_card_discover_pick::process_effect_card_discover_pick(id_target, state)

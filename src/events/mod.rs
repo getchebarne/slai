@@ -28,8 +28,8 @@ use crate::types::RelicName;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 
-pub const EVENT_END_EFFECT: Effect = Effect {
-    kind: EffectKind::EventEnd,
+pub const EVENT_CONSUME_EFFECT: Effect = Effect {
+    kind: EffectKind::EventConsume,
     id_source: None,
     target: Target::Direct(None),
 };

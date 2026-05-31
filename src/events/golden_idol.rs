@@ -7,7 +7,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::CardName;
@@ -32,7 +32,7 @@ const OPTION_TAKE: &[Effect] = &[
 ];
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
 // Outrun
 const OPTION_OUTRUN: &[Effect] = &[
@@ -44,7 +44,7 @@ const OPTION_OUTRUN: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // Smash
@@ -64,7 +64,7 @@ const fn smash(numerator: u8, denominator: u8) -> [Effect; 2] {
                 selection_kind: SelectionKind::Single,
             },
         },
-        EVENT_END_EFFECT,
+        EVENT_CONSUME_EFFECT,
     ]
 }
 static OPTION_SMASH_BASE: [Effect; 2] = smash(1, 4);
@@ -87,7 +87,7 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
                 selection_kind: SelectionKind::Single,
             },
         },
-        EVENT_END_EFFECT,
+        EVENT_CONSUME_EFFECT,
     ]
 }
 static OPTION_HIDE_BASE: [Effect; 2] = hide(8, 100);

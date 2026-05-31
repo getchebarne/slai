@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
@@ -40,7 +40,7 @@ static OPTION_REACH_A15_6: [Effect; 1] = reach(11, 85, true);
 static OPTION_REACH_A15_7: [Effect; 1] = reach(12, 95, false);
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
 // All options
 const OPTIONS_ALL_BASE: &[EventOption] = &[

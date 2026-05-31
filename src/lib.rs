@@ -66,10 +66,10 @@ impl GameEnv {
     const MAP_WIDTH: usize = consts::MAP_WIDTH;
 
     #[new]
-    #[pyo3(signature = (ascension=0))]
-    fn new(ascension: u8) -> Self {
+    #[pyo3(signature = (ascension=0, fast_mode=false))]
+    fn new(ascension: u8, fast_mode: bool) -> Self {
         // Placeholder seed; consumers must call `reset(seed=...)` before stepping (gymnasium convention)
-        let state = create_game_state(ascension, 0);
+        let state = create_game_state(ascension, 0, fast_mode);
         GameEnv { state }
     }
 
@@ -77,7 +77,7 @@ impl GameEnv {
     #[pyo3(signature = (seed=42))]
     fn reset(&mut self, seed: u64) -> PyGameState {
         let asc = self.state.ascension;
-        self.state = create_game_state(asc, seed);
+        self.state = create_game_state(asc, seed, self.state.fast_mode);
         snapshot_state(&self.state)
     }
 
@@ -90,10 +90,12 @@ impl GameEnv {
         Ok((obs, self.state.game_over))
     }
 
-    // Authoritative: mirrors validate() rules; empty when game_over
+    // Cached at every settle point; empty when game_over
     fn get_legal_actions(&self) -> Vec<PyAction> {
-        action::get_legal_actions(&self.state)
-            .into_iter()
+        self.state
+            .legal_actions
+            .iter()
+            .cloned()
             .map(from_internal_action)
             .collect()
     }

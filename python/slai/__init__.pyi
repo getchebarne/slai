@@ -296,7 +296,6 @@ class ActionType(IntEnum):
     PotionDiscard: int
     PotionUse: int
     Rest: int
-    RewardSkip: int
     RewardTakeCard: int
     RewardTakeGold: int
     RewardTakePotion: int
@@ -561,7 +560,6 @@ class ActionSpecRegistry:
     RewardTakeRelic: ActionSpec
     RewardTakePotion: ActionSpec
     RewardTakeGold: ActionSpec
-    RewardSkip: ActionSpec
 
     def __getattr__(self, name: str) -> ActionSpec: ...
     def __getitem__(self, key: Union[int, str, ActionType]) -> ActionSpec: ...
@@ -728,7 +726,7 @@ class GameEnv:
     MAP_HEIGHT: int
     MAP_WIDTH: int
 
-    def __init__(self, ascension: int = 0) -> None: ...
+    def __init__(self, ascension: int = 0, fast_mode: bool = False) -> None: ...
     def reset(self, seed: int = 42) -> GameState: ...
     def step(self, action: Action) -> tuple[GameState, bool]: ...
     def get_legal_actions(self) -> list[Action]: ...

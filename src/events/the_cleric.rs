@@ -9,7 +9,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
@@ -38,7 +38,7 @@ const OPTION_HEAL: &[Effect] = &[
             selection_kind: SelectionKind::Single,
         },
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
 // Purify
@@ -62,7 +62,7 @@ const fn purify(cost: u16) -> [Effect; 3] {
                 selection_kind: SelectionKind::Input { count: 1 },
             },
         },
-        EVENT_END_EFFECT,
+        EVENT_CONSUME_EFFECT,
     ]
 }
 static OPTION_PURIFY_BASE: [Effect; 3] = purify(50);
@@ -73,7 +73,7 @@ const OPTION_PURIFY_GATE_A15: &[EventGate] =
     &[EventGate::GoldAtLeast(75), EventGate::HasPurgeableInDeck];
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
 // All options
 const fn options(
