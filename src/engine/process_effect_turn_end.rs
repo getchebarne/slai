@@ -96,12 +96,12 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     let id_character = state.id_character;
     let id_monsters = state.id_monsters;
 
-    state.buf_effects.clear();
+    state.effect_buf.clear();
 
     let mods_char = &state.entities[id_character].modifiers;
     if modifier_has(mods_char, ModifierKind::Retain) && !state.id_hand.is_empty() {
         let stacks = modifier_stacks(mods_char, ModifierKind::Retain);
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::CardRetain,
             id_source: None,
             target: Target::Resolve {
@@ -117,7 +117,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         && !mods_char.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
                 stacks,
@@ -129,7 +129,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
 
     if modifier_has(mods_char, ModifierKind::PlatedArmor) {
         let stacks = modifier_stacks(mods_char, ModifierKind::PlatedArmor);
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
@@ -140,7 +140,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
 
     if modifier_has(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Dexterity,
                 stacks: -stacks,
@@ -154,7 +154,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         let card = &state.entities[id_card];
         if card.card_name == CardName::Burn {
             let dmg: u16 = if card.card_upgraded { 4 } else { 2 };
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::DamageDeal { amount: dmg },
                 id_source: None,
                 target: Target::Direct(Some(id_character)),
@@ -163,7 +163,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     for &id_card in &state.id_hand {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::EndOfTurn,
             },
@@ -171,36 +171,36 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
             target: Target::Direct(Some(id_card)),
         });
     }
-    state.buf_effects.push(Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::ModifierSetNotNew,
         id_source: None,
         target: Target::Direct(None),
     });
 
     for id_monster in id_monsters.iter().flatten().copied() {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::TurnStart,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::MoveExecute,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::MoveUpdate,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::TurnEnd,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
     }
 
-    state.buf_effects.push(Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::TurnStart,
         id_source: None,
         target: Target::Direct(Some(id_character)),
@@ -208,7 +208,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
 
     let mods_char = &state.entities[id_character].modifiers;
     if modifier_has(mods_char, ModifierKind::Burst) {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Burst,
             },
@@ -218,7 +218,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     if modifier_has(mods_char, ModifierKind::NoDraw) {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::NoDraw,
             },
@@ -228,7 +228,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     if modifier_has(mods_char, ModifierKind::Entangled) {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Entangled,
             },

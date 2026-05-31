@@ -24,20 +24,20 @@ use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
-    state.buf_effects.clear();
+    state.effect_buf.clear();
 
     match room_kind {
         RoomKind::CombatBoss => {
             let encounter = state.encounter_boss;
-            spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
+            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
         }
         RoomKind::CombatMonster => {
             let encounter = state.encounter_pool_normal.remove(0);
-            spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
+            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
         }
         RoomKind::CombatElite => {
             let encounter = state.encounter_pool_elite.remove(0);
-            spawn_encounter_monsters(encounter, &mut state.buf_effects, &mut state.rng);
+            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
         }
         RoomKind::RestSite => {
             state.screen = Screen::RestSite;
@@ -75,8 +75,8 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
     }
 
-    if !state.buf_effects.is_empty() {
-        state.buf_effects.push(Effect {
+    if !state.effect_buf.is_empty() {
+        state.effect_buf.push(Effect {
             kind: EffectKind::CombatStart,
             id_source: None,
             target: Target::Direct(None),

@@ -58,10 +58,10 @@ pub struct GameState {
     pub effect_queue: VecDeque<Effect>,
 
     // Per-handler effect builder; drained back-to-front into queue front
-    pub buf_effects: Vec<Effect>,
+    pub effect_buf: Vec<Effect>,
 
     // Per-resolve candidate buffer; cleared before each use
-    pub buf_candidates: Vec<usize>,
+    pub effect_candidate_buf: Vec<usize>,
 
     // Halt overlay; cleared by the action handler that supplies the pick
     pub effect_pending: Option<Effect>,
@@ -184,8 +184,8 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         encounter_pool_elite,
         encounter_boss,
         effect_queue,
-        buf_effects: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
-        buf_candidates: Vec::with_capacity(MAX_CANDIDATES),
+        effect_buf: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
+        effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
@@ -228,21 +228,13 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
 }
 
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
-    let effects = handle_action(state, action)?;
-    enqueue_and_run(state, effects);
+    handle_action(state, action)?;
+    process_queue(state);
     recompute_legal_actions(state);
     if state.fast_mode {
         auto_advance(state);
     }
     Ok(())
-}
-
-// Push to FRONT (reversed) so action effects resolve before any halt-interrupted chain, then drain
-fn enqueue_and_run(state: &mut GameState, effects: Vec<Effect>) {
-    for effect in effects.into_iter().rev() {
-        state.effect_queue.push_front(effect);
-    }
-    process_queue(state);
 }
 
 // Skip forced moves: while exactly one legal action exists, apply it
@@ -255,8 +247,8 @@ fn auto_advance(state: &mut GameState) {
             "fast_mode auto-advance exceeded 1024 forced moves"
         );
         let only = state.legal_actions[0].clone();
-        let effects = handle_action(state, only).expect("cached single legal action must be valid");
-        enqueue_and_run(state, effects);
+        handle_action(state, only).expect("cached single legal action must be valid");
+        process_queue(state);
         recompute_legal_actions(state);
     }
 }

@@ -18,6 +18,7 @@ use crate::types::CardKind;
 use crate::types::DeltaSign;
 use crate::types::RewardKind;
 use crate::types::Screen;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
@@ -77,7 +78,7 @@ pub enum Action {
     TurnEnd,
 }
 
-pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect>, String> {
+pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String> {
     if state.game_over {
         return Err("GameOver".into());
     }
@@ -85,7 +86,9 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         return Err(format!("Illegal action {:?} in current state", action));
     }
 
-    Ok(match action {
+    // Handlers push their effects into effect_buf; flush drains them to the queue front (reversed)
+    state.effect_buf.clear();
+    match action {
         Action::CardDiscard { idxs } => handle_card_discard(state, idxs),
         Action::CardDiscover { idx } => handle_card_discover(state, idx),
         Action::CardDuplicate { idx } => handle_card_duplicate(state, idx),
@@ -114,7 +117,9 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<Vec<Effect
         Action::RoomExit => handle_room_exit(state),
         Action::RoomSelect { idx } => handle_room_select(state, idx),
         Action::TurnEnd => handle_turn_end(state),
-    })
+    }
+    flush_effects_from_buf_to_queue_front(state);
+    Ok(())
 }
 
 // Recompute the cached legal-action set; called at every settle point
@@ -122,34 +127,32 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     state.legal_actions = get_legal_actions(state);
 }
 
-fn handle_card_discard(state: &mut GameState, idxs: Vec<usize>) -> Vec<Effect> {
-    resolve_hand_pending(state, idxs)
+fn handle_card_discard(state: &mut GameState, idxs: Vec<usize>) {
+    resolve_hand_pending(state, idxs);
 }
 
-fn handle_card_discover(state: &mut GameState, idx: usize) -> Vec<Effect> {
+fn handle_card_discover(state: &mut GameState, idx: usize) {
     let id_card = state.id_discover[idx];
-    let pending = state.effect_pending.take().expect("CardDiscover requires a pending effect");
-    state.effect_queue.push_front(Effect {
+    let pending = state
+        .effect_pending
+        .take()
+        .expect("CardDiscover requires a pending effect");
+    state.effect_buf.push(Effect {
         kind: EffectKind::CardDiscoverPick,
         id_source: pending.id_source,
         target: Target::Direct(Some(id_card)),
     });
-    Vec::new()
 }
 
-fn handle_card_duplicate(state: &mut GameState, idx: usize) -> Vec<Effect> {
-    resolve_deck_pending(state, idx)
+fn handle_card_duplicate(state: &mut GameState, idx: usize) {
+    resolve_deck_pending(state, idx);
 }
 
-fn handle_card_nightmare(state: &mut GameState, idx: usize) -> Vec<Effect> {
-    resolve_hand_pending(state, vec![idx])
+fn handle_card_nightmare(state: &mut GameState, idx: usize) {
+    resolve_hand_pending(state, vec![idx]);
 }
 
-fn handle_card_play(
-    state: &mut GameState,
-    idx_card: usize,
-    idx_monster: Option<usize>,
-) -> Vec<Effect> {
+fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
     let id_card = state.id_hand[idx_card];
     if state.entities[id_card].requires_target {
         let idx_monster = idx_monster.expect("targeted CardPlay carries idx_monster");
@@ -162,95 +165,87 @@ fn handle_card_play(
             .expect("enumerated monster idx is valid");
 
         // TargetSet -> CardPlay -> TargetClear; no terminator (derive_phase handles rest)
-        vec![
-            Effect {
-                kind: EffectKind::TargetSet,
-                id_source: None,
-                target: Target::Direct(Some(id_monster_target)),
-            },
-            Effect {
-                kind: EffectKind::CardPlay,
-                id_source: None,
-                target: Target::Direct(Some(id_card)),
-            },
-            Effect {
-                kind: EffectKind::TargetClear,
-                id_source: None,
-                target: Target::Direct(None),
-            },
-        ]
-    } else {
-        vec![Effect {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::TargetSet,
+            id_source: None,
+            target: Target::Direct(Some(id_monster_target)),
+        });
+        state.effect_buf.push(Effect {
             kind: EffectKind::CardPlay,
             id_source: None,
             target: Target::Direct(Some(id_card)),
-        }]
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::TargetClear,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    } else {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardPlay,
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
     }
 }
 
-fn handle_card_purge(state: &mut GameState, idx: usize) -> Vec<Effect> {
-    resolve_deck_pending(state, idx)
+fn handle_card_purge(state: &mut GameState, idx: usize) {
+    resolve_deck_pending(state, idx);
 }
 
-fn handle_card_retain(state: &mut GameState, idxs: Vec<usize>) -> Vec<Effect> {
-    resolve_hand_pending(state, idxs)
+fn handle_card_retain(state: &mut GameState, idxs: Vec<usize>) {
+    resolve_hand_pending(state, idxs);
 }
 
-fn handle_card_setup(state: &mut GameState, idx: usize) -> Vec<Effect> {
-    resolve_hand_pending(state, vec![idx])
+fn handle_card_setup(state: &mut GameState, idx: usize) {
+    resolve_hand_pending(state, vec![idx]);
 }
 
-fn handle_card_transform(state: &mut GameState, idx: usize) -> Vec<Effect> {
-    resolve_deck_pending(state, idx)
+fn handle_card_transform(state: &mut GameState, idx: usize) {
+    resolve_deck_pending(state, idx);
 }
 
-fn handle_card_upgrade(state: &mut GameState, idx: usize) -> Vec<Effect> {
+fn handle_card_upgrade(state: &mut GameState, idx: usize) {
     // Dual-mode: a pending CardUpgrade resolves a deck pick; at a rest site it triggers a direct upgrade
     if state.effect_pending.is_some() {
-        return resolve_deck_pending(state, idx);
+        resolve_deck_pending(state, idx);
+        return;
     }
     let id_card = upgradeable_deck_at(state, idx);
     mark_rest_site_done(state);
-    vec![Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::CardUpgrade,
         id_source: None,
         target: Target::Direct(Some(id_card)),
-    }]
+    });
 }
 
-fn handle_chest_open(_state: &GameState) -> Vec<Effect> {
-    vec![Effect {
+fn handle_chest_open(state: &mut GameState) {
+    state.effect_buf.push(Effect {
         kind: EffectKind::ChestOpen,
         id_source: None,
         target: Target::Direct(None),
-    }]
+    });
 }
 
-fn handle_event_option_select(state: &mut GameState, idx: usize) -> Vec<Effect> {
+fn handle_event_option_select(state: &mut GameState, idx: usize) {
     let id_event = state
         .id_event
         .expect("Event screen implies id_event is set");
     let option = state.entities[id_event].event_options[idx];
-    option
-        .effects
-        .iter()
-        .map(|e| Effect {
+    for e in option.effects {
+        state.effect_buf.push(Effect {
             id_source: Some(id_event),
             ..*e
-        })
-        .collect()
+        });
+    }
 }
 
-fn handle_potion_discard(state: &mut GameState, idx: usize) -> Vec<Effect> {
+fn handle_potion_discard(state: &mut GameState, idx: usize) {
     state.entities[state.id_character].character_potion_slots[idx] = None;
-    Vec::new()
 }
 
-fn handle_potion_use(
-    state: &mut GameState,
-    idx_potion: usize,
-    idx_monster: Option<usize>,
-) -> Vec<Effect> {
+fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
     let id_potion = state.entities[state.id_character].character_potion_slots[idx_potion]
         .expect("enumerated potion slot is occupied");
     let requires_target = state.entities[id_potion].requires_target;
@@ -272,35 +267,33 @@ fn handle_potion_use(
     // Clear the slot before the effect chain runs
     state.entities[state.id_character].character_potion_slots[idx_potion] = None;
 
-    let mut chain = Vec::with_capacity(3);
     if let Some(id) = id_monster_target {
-        chain.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::TargetSet,
             id_source: None,
             target: Target::Direct(Some(id)),
         });
     }
-    chain.push(Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::PotionUse,
         id_source: Some(id_potion),
         target: Target::Direct(Some(id_potion)),
     });
     if requires_target {
-        chain.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::TargetClear,
             id_source: None,
             target: Target::Direct(None),
         });
     }
-    chain
 }
 
-fn handle_rest(state: &mut GameState) -> Vec<Effect> {
+fn handle_rest(state: &mut GameState) {
     let id_character = state.id_character;
     mark_rest_site_done(state);
 
     // Heal; the explicit RoomExit handles leaving the rest site
-    vec![Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
             amount: HealthDeltaAmount::Relative {
@@ -310,60 +303,60 @@ fn handle_rest(state: &mut GameState) -> Vec<Effect> {
         },
         id_source: None,
         target: Target::Direct(Some(id_character)),
-    }]
+    });
 }
 
-fn handle_reward_take_card(state: &GameState, idx: usize) -> Vec<Effect> {
+fn handle_reward_take_card(state: &mut GameState, idx: usize) {
     let id_card = state.reward_id_cards[idx];
-    vec![Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Card,
         },
         id_source: None,
         target: Target::Direct(Some(id_card)),
-    }]
+    });
 }
 
-fn handle_reward_take_gold(_state: &GameState) -> Vec<Effect> {
-    vec![Effect {
+fn handle_reward_take_gold(state: &mut GameState) {
+    state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Gold,
         },
         id_source: None,
         target: Target::Direct(None),
-    }]
+    });
 }
 
-fn handle_reward_take_potion(_state: &GameState) -> Vec<Effect> {
-    vec![Effect {
+fn handle_reward_take_potion(state: &mut GameState) {
+    state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Potion,
         },
         id_source: None,
         target: Target::Direct(None),
-    }]
+    });
 }
 
-fn handle_reward_take_relic(_state: &GameState) -> Vec<Effect> {
-    vec![Effect {
+fn handle_reward_take_relic(state: &mut GameState) {
+    state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Relic,
         },
         id_source: None,
         target: Target::Direct(None),
-    }]
+    });
 }
 
-fn handle_room_exit(_state: &GameState) -> Vec<Effect> {
+fn handle_room_exit(state: &mut GameState) {
     // RoomExit's processor does the screen-specific cleanup and the transition to Map (or boss)
-    vec![Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::RoomExit,
         id_source: None,
         target: Target::Direct(None),
-    }]
+    });
 }
 
-fn handle_room_select(state: &GameState, idx: usize) -> Vec<Effect> {
+fn handle_room_select(state: &mut GameState, idx: usize) {
     // membership guarantees the column has a reachable room, so row < MAP_HEIGHT and the room exists
     let y_next = match state.location {
         Location::Start => 0,
@@ -371,19 +364,20 @@ fn handle_room_select(state: &GameState, idx: usize) -> Vec<Effect> {
         Location::BossRoom => unreachable!("RoomSelect not enumerated from the boss room"),
     };
     let id_room = state.id_rooms[y_next][idx].expect("enumerated room exists");
-    vec![Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::RoomSelect,
         id_source: None,
         target: Target::Direct(Some(id_room)),
-    }]
+    });
 }
 
-fn handle_turn_end(state: &GameState) -> Vec<Effect> {
-    vec![Effect {
+fn handle_turn_end(state: &mut GameState) {
+    let id_character = state.id_character;
+    state.effect_buf.push(Effect {
         kind: EffectKind::TurnEnd,
         id_source: None,
-        target: Target::Direct(Some(state.id_character)),
-    }]
+        target: Target::Direct(Some(id_character)),
+    });
 }
 
 // Mirrors validate() shape; empty when game_over
@@ -436,22 +430,22 @@ fn legal_actions_pending(state: &GameState, pending: &Effect) -> Vec<Action> {
             }
         }
         EffectKind::CardPurge => {
-            for i in 0..state.buf_candidates.len() {
+            for i in 0..state.effect_candidate_buf.len() {
                 actions.push(Action::CardPurge { idx: i });
             }
         }
         EffectKind::CardUpgrade => {
-            for i in 0..state.buf_candidates.len() {
+            for i in 0..state.effect_candidate_buf.len() {
                 actions.push(Action::CardUpgrade { idx: i });
             }
         }
         EffectKind::CardDuplicate => {
-            for i in 0..state.buf_candidates.len() {
+            for i in 0..state.effect_candidate_buf.len() {
                 actions.push(Action::CardDuplicate { idx: i });
             }
         }
         EffectKind::CardTransform => {
-            for i in 0..state.buf_candidates.len() {
+            for i in 0..state.effect_candidate_buf.len() {
                 actions.push(Action::CardTransform { idx: i });
             }
         }
@@ -693,29 +687,30 @@ fn hand_combinations(n: usize, k: usize) -> Vec<Vec<usize>> {
 }
 
 // Pops effect_pending and re-enqueues it as Direct for each id; membership guarantees a valid pending pick
-fn resolve_hand_pending(state: &mut GameState, idxs: Vec<usize>) -> Vec<Effect> {
+fn resolve_hand_pending(state: &mut GameState, idxs: Vec<usize>) {
     let effect_pending = state.effect_pending.take().unwrap();
 
-    // Reverse so push_front yields the original idxs order at the queue front
-    for &idx in idxs.iter().rev() {
+    // Push in idxs order; flush reverses into the queue front, preserving order
+    for &idx in &idxs {
         let id_card = state.id_hand[idx];
-        state.effect_queue.push_front(Effect {
+        state.effect_buf.push(Effect {
             kind: effect_pending.kind,
             id_source: effect_pending.id_source,
             target: Target::Direct(Some(id_card)),
         });
     }
-    Vec::new()
 }
 
 // Pops effect_pending and re-enqueues it as Direct for the resolved deck-card id
-fn resolve_deck_pending(state: &mut GameState, idx: usize) -> Vec<Effect> {
-    let pending = state.effect_pending.take().expect("deck pick requires a pending effect");
-    let id_card = state.buf_candidates[idx];
-    state.effect_queue.push_front(Effect {
+fn resolve_deck_pending(state: &mut GameState, idx: usize) {
+    let pending = state
+        .effect_pending
+        .take()
+        .expect("deck pick requires a pending effect");
+    let id_card = state.effect_candidate_buf[idx];
+    state.effect_buf.push(Effect {
         kind: pending.kind,
         id_source: pending.id_source,
         target: Target::Direct(Some(id_card)),
     });
-    Vec::new()
 }

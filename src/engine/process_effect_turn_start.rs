@@ -21,14 +21,14 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     let nightmare_pending = state.id_card_nightmare.is_some();
     let id_monsters = state.id_monsters;
 
-    state.buf_effects.clear();
+    state.effect_buf.clear();
 
     let entity = &mut state.entities[id_actor];
     let modifiers = &mut entity.modifiers;
     let vitals = &mut entity.vitals;
 
     if modifier_has(modifiers, ModifierKind::Poison) {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::PoisonTick,
             id_source: None,
             target: Target::Direct(Some(id_actor)),
@@ -43,14 +43,14 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
         modifier_remove(modifiers, ModifierKind::NextTurnBlock);
     }
-    state.buf_effects.push(Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::BlockSet { amount: new_block },
         id_source: None,
         target: Target::Direct(Some(id_actor)),
     });
 
     if modifier_has(modifiers, ModifierKind::Phantasmal) {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::DoubleDamage,
                 stacks: 1,
@@ -61,7 +61,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     }
 
     if id_actor == id_character {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::CardDraw {
                 count: CARDS_DRAWN_PER_TURN,
             },
@@ -69,7 +69,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             target: Target::Direct(None),
         });
         let energy_gain = energy_max.saturating_sub(energy_current);
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::EnergyGain {
                 amount: energy_gain as u16,
             },
@@ -77,13 +77,13 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             target: Target::Direct(None),
         });
 
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierTick,
             id_source: None,
             target: Target::Direct(Some(id_character)),
         });
         for id_monster in id_monsters.iter().flatten().copied() {
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierTick,
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
@@ -93,7 +93,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         if modifier_has(modifiers, ModifierKind::NoxiousFumes) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NoxiousFumes);
             for id_monster in id_monsters.iter().flatten().copied() {
-                state.buf_effects.push(Effect {
+                state.effect_buf.push(Effect {
                     kind: EffectKind::ModifierGain {
                         kind: ModifierKind::Poison,
                         stacks,
@@ -106,7 +106,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         // Choke auto-removes at the next player turn start
         for id_monster in id_monsters.iter().flatten().copied() {
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierRemove {
                     kind: ModifierKind::Choke,
                 },
@@ -116,7 +116,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
 
         if nightmare_pending {
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardNightmareSpawn,
                 id_source: None,
                 target: Target::Direct(None),
@@ -125,14 +125,14 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         if modifier_has(modifiers, ModifierKind::DrawCardNextTurn) {
             let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw {
                     count: stacks.max(0) as u16,
                 },
                 id_source: None,
                 target: Target::Direct(None),
             });
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierRemove {
                     kind: ModifierKind::DrawCardNextTurn,
                 },
@@ -143,14 +143,14 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         if modifier_has(modifiers, ModifierKind::ToolsOfTheTrade) {
             let stacks = modifier_stacks(modifiers, ModifierKind::ToolsOfTheTrade);
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw {
                     count: stacks.max(0) as u16,
                 },
                 id_source: None,
                 target: Target::Direct(None),
             });
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardDiscard {
                     source: DiscardSource::Explicit,
                 },
@@ -166,7 +166,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::EnergyGain {
                     amount: stacks.max(0) as u16,
                 },
@@ -178,7 +178,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardAddToHand {
                     card_name: CardName::Shiv,
                     count: stacks.max(0) as u16,

@@ -23,16 +23,16 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
 
     let id_character = state.id_character;
     let effects: &'static [Effect] = state.entities[id_monster].monster_moves[move_idx].effects;
-    state.buf_effects.clear();
+    state.effect_buf.clear();
     for e in effects.iter() {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             id_source: Some(id_monster),
             ..*e
         });
         if let Some(amount) = stacks_thievery
             && matches!(e.kind, EffectKind::DamagePhysical { .. })
         {
-            state.buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::GoldSteal { amount },
                 id_source: Some(id_monster),
                 target: Target::Direct(Some(id_character)),

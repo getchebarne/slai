@@ -2015,9 +2015,9 @@ fn snapshot_pending_input(state: &GameState) -> Option<PyPendingInput> {
             else {
                 unreachable!("deck-pick halt without Deck pool: {:?}", pending.target);
             };
-            // buf_candidates was populated by resolve_or_halt at halt time
+            // effect_candidate_buf was populated by resolve_or_halt at halt time
             let cards: Vec<PyCard> = state
-                .buf_candidates
+                .effect_candidate_buf
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect();

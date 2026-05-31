@@ -16,8 +16,8 @@ pub fn process_effect_scrap_ooze_reach(
     advance_on_miss: bool,
 ) {
     let id_character = state.id_character;
-    state.buf_effects.clear();
-    state.buf_effects.push(Effect {
+    state.effect_buf.clear();
+    state.effect_buf.push(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Loss,
             amount: HealthDeltaAmount::Absolute(dmg),
@@ -28,18 +28,18 @@ pub fn process_effect_scrap_ooze_reach(
 
     let roll = state.rng.random_range(0..100) as u8;
     if roll < chance {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::RelicGrantRandom,
             id_source: None,
             target: Target::Direct(None),
         });
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::EventConsume,
             id_source,
             target: Target::Direct(None),
         });
     } else if advance_on_miss {
-        state.buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::EventAdvanceState { delta: 1 },
             id_source,
             target: Target::Direct(None),

@@ -24,9 +24,9 @@ use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::RelicName;
 
-// Pop buf_effects back-to-front so effects pop in push order
+// Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
-    while let Some(e) = state.buf_effects.pop() {
+    while let Some(e) = state.effect_buf.pop() {
         state.effect_queue.push_front(e);
     }
 }

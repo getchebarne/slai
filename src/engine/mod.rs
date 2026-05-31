@@ -115,7 +115,7 @@ pub(crate) fn enqueue_direct_targets(
 }
 
 fn fill_buf_candidates(
-    buf_candidates: &mut Vec<usize>,
+    effect_candidate_buf: &mut Vec<usize>,
     candidate_pool: CandidatePool,
     id_source: Option<usize>,
     id_character: usize,
@@ -127,11 +127,11 @@ fn fill_buf_candidates(
     id_deck: &[usize],
 ) {
     match candidate_pool {
-        CandidatePool::Hand => buf_candidates.extend_from_slice(id_hand),
-        CandidatePool::Character => buf_candidates.push(id_character),
+        CandidatePool::Hand => effect_candidate_buf.extend_from_slice(id_hand),
+        CandidatePool::Character => effect_candidate_buf.push(id_character),
         CandidatePool::Monsters { filter } => match filter {
             CandidatePoolMonstersFilter::All => {
-                buf_candidates.extend(id_monsters.iter().flatten().copied())
+                effect_candidate_buf.extend(id_monsters.iter().flatten().copied())
             }
             CandidatePoolMonstersFilter::Other => {
                 let id_source =
@@ -139,11 +139,11 @@ fn fill_buf_candidates(
                 // Iterate all monsters skipping the one that sourced the effect
                 for id_monster in id_monsters.iter().flatten().copied() {
                     if id_monster != id_source {
-                        buf_candidates.push(id_monster);
+                        effect_candidate_buf.push(id_monster);
                     }
                 }
             }
-            CandidatePoolMonstersFilter::Picked => buf_candidates.push(
+            CandidatePoolMonstersFilter::Picked => effect_candidate_buf.push(
                 id_picked_monster
                     .expect("CandidatePool::Monsters{Picked} requires id_picked_monster"),
             ),
@@ -152,28 +152,28 @@ fn fill_buf_candidates(
             let id_source = id_source
                 .expect("Attempted to resolve `CandidatePool::Source` without `id_source`");
 
-            buf_candidates.push(id_source)
+            effect_candidate_buf.push(id_source)
         }
-        CandidatePool::Discover => buf_candidates.extend_from_slice(id_discover),
+        CandidatePool::Discover => effect_candidate_buf.extend_from_slice(id_discover),
         CandidatePool::Deck { filter } => match filter {
             CandidatePoolDeckFilter::Purgeable => {
                 for &id in id_deck {
                     if card_is_purgeable(&entities[id]) {
-                        buf_candidates.push(id);
+                        effect_candidate_buf.push(id);
                     }
                 }
             }
             CandidatePoolDeckFilter::Upgradeable => {
                 for &id in id_deck {
                     if card_is_upgradable(&entities[id]) {
-                        buf_candidates.push(id);
+                        effect_candidate_buf.push(id);
                     }
                 }
             }
             CandidatePoolDeckFilter::Any => {
                 for &id in id_deck {
                     if entities[id].kind == EntityKind::Card {
-                        buf_candidates.push(id);
+                        effect_candidate_buf.push(id);
                     }
                 }
             }
@@ -184,7 +184,7 @@ fn fill_buf_candidates(
                         && e.card_rarity != CardRarity::Basic
                         && e.card_kind != CardKind::Curse
                     {
-                        buf_candidates.push(id);
+                        effect_candidate_buf.push(id);
                     }
                 }
             }
@@ -194,7 +194,7 @@ fn fill_buf_candidates(
 
 // Returns true if resolved (ready to enqueue); false if halted on player input
 fn resolve_selection_kind(
-    buf_candidates: &mut Vec<usize>,
+    effect_candidate_buf: &mut Vec<usize>,
     selection_kind: SelectionKind,
     rng: &mut impl Rng,
 ) -> bool {
@@ -202,19 +202,19 @@ fn resolve_selection_kind(
         SelectionKind::All => true,
         SelectionKind::Single => {
             assert_eq!(
-                buf_candidates.len(),
+                effect_candidate_buf.len(),
                 1,
                 "SelectionKind::Single resolved to {} candidates",
-                buf_candidates.len()
+                effect_candidate_buf.len()
             );
             true
         }
         SelectionKind::Random { count } => {
-            shuffle(buf_candidates.as_mut_slice(), rng);
-            buf_candidates.truncate(count as usize);
+            shuffle(effect_candidate_buf.as_mut_slice(), rng);
+            effect_candidate_buf.truncate(count as usize);
             true
         }
-        SelectionKind::Input { count } => (count as usize) >= buf_candidates.len(),
+        SelectionKind::Input { count } => (count as usize) >= effect_candidate_buf.len(),
     }
 }
 
@@ -228,10 +228,10 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
         } => {
             let resolved = resolve_or_halt(state, effect.id_source, candidate_pool, selection_kind);
             if resolved {
-                // Targets are in `buf_candidates`
+                // Targets are in `effect_candidate_buf`
                 enqueue_direct_targets(
                     effect.id_source,
-                    &state.buf_candidates,
+                    &state.effect_candidate_buf,
                     effect.kind,
                     &mut state.effect_queue,
                 );
@@ -254,9 +254,9 @@ fn resolve_or_halt(
     selection_kind: SelectionKind,
 ) -> bool {
     // Clear candidate buffer and re-fill it
-    state.buf_candidates.clear();
+    state.effect_candidate_buf.clear();
     fill_buf_candidates(
-        &mut state.buf_candidates,
+        &mut state.effect_candidate_buf,
         candidate_pool,
         id_source,
         state.id_character,
@@ -269,7 +269,7 @@ fn resolve_or_halt(
     );
 
     // Resolve `SelectionKind`. Returns `true` if the effect's targets were resolved
-    resolve_selection_kind(&mut state.buf_candidates, selection_kind, &mut state.rng)
+    resolve_selection_kind(&mut state.effect_candidate_buf, selection_kind, &mut state.rng)
 }
 
 fn dispatch_by_kind(
