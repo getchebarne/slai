@@ -155,9 +155,6 @@ pub struct Entity {
     pub event_options: &'static [EventOption],
     pub event_consumed: bool,
     pub event_state: u8,
-    pub event_param_a: u16,
-    pub event_param_b: u16,
-    pub event_param_c: u16,
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots
@@ -218,9 +215,6 @@ pub const ZERO_ENTITY: Entity = Entity {
     event_options: &[],
     event_consumed: false,
     event_state: 0,
-    event_param_a: 0,
-    event_param_b: 0,
-    event_param_c: 0,
 };
 
 // Constructors
