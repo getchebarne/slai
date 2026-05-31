@@ -122,9 +122,29 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
     Ok(())
 }
 
-// Recompute the cached legal-action set; called at every settle point
+// Recompute the cached legal-action set in place; called at every settle point.
+// Enumerators push directly into state.legal_actions, reusing its allocation
 pub fn recompute_legal_actions(state: &mut GameState) {
-    state.legal_actions = get_legal_actions(state);
+    state.legal_actions.clear();
+    if state.game_over {
+        return;
+    }
+    if let Some(pending) = state.effect_pending.as_ref() {
+        // Copy out the halt's shape so the &mut dispatch below can't alias the borrow
+        let kind = pending.kind;
+        let num = get_input_count(pending).unwrap_or(1) as usize;
+        legal_actions_pending(state, kind, num);
+        return;
+    }
+    match state.screen {
+        Screen::Combat => legal_actions_combat(state),
+        Screen::Reward => legal_actions_reward(state),
+        Screen::Event => legal_actions_event(state),
+        Screen::Shop => legal_actions_shop(state),
+        Screen::Map => legal_actions_map(state),
+        Screen::RestSite => legal_actions_rest_site(state),
+        Screen::Chest => legal_actions_chest(state),
+    }
 }
 
 fn handle_card_discard(state: &mut GameState, idxs: Vec<usize>) {
@@ -380,87 +400,68 @@ fn handle_turn_end(state: &mut GameState) {
     });
 }
 
-// Mirrors validate() shape; empty when game_over
-pub fn get_legal_actions(state: &GameState) -> Vec<Action> {
-    if state.game_over {
-        return Vec::new();
-    }
-    if let Some(pending) = state.effect_pending.as_ref() {
-        return legal_actions_pending(state, pending);
-    }
-    match state.screen {
-        Screen::Combat => legal_actions_combat(state),
-        Screen::Reward => legal_actions_reward(state),
-        Screen::Event => legal_actions_event(state),
-        Screen::Shop => legal_actions_shop(state),
-        Screen::Map => legal_actions_map(state),
-        Screen::RestSite => legal_actions_rest_site(state),
-        Screen::Chest => legal_actions_chest(state),
-    }
-}
-
-fn legal_actions_pending(state: &GameState, pending: &Effect) -> Vec<Action> {
-    let mut actions = Vec::new();
-    match pending.kind {
+fn legal_actions_pending(state: &mut GameState, kind: EffectKind, num: usize) {
+    match kind {
         EffectKind::CardDiscard { .. } => {
-            let num = get_input_count(pending).unwrap_or(1) as usize;
             for combo in hand_combinations(state.id_hand.len(), num) {
-                actions.push(Action::CardDiscard { idxs: combo });
+                state
+                    .legal_actions
+                    .push(Action::CardDiscard { idxs: combo });
             }
         }
         EffectKind::CardRetain => {
-            let num = get_input_count(pending).unwrap_or(1) as usize;
             for combo in hand_combinations(state.id_hand.len(), num) {
-                actions.push(Action::CardRetain { idxs: combo });
+                state.legal_actions.push(Action::CardRetain { idxs: combo });
             }
         }
         EffectKind::CardSetupPick => {
             for i in 0..state.id_hand.len() {
-                actions.push(Action::CardSetup { idx: i });
+                state.legal_actions.push(Action::CardSetup { idx: i });
             }
         }
         EffectKind::CardNightmarePick => {
             for i in 0..state.id_hand.len() {
-                actions.push(Action::CardNightmare { idx: i });
+                state.legal_actions.push(Action::CardNightmare { idx: i });
             }
         }
         EffectKind::CardDiscoverPick => {
             for i in 0..state.id_discover.len() {
-                actions.push(Action::CardDiscover { idx: i });
+                state.legal_actions.push(Action::CardDiscover { idx: i });
             }
         }
         EffectKind::CardPurge => {
             for i in 0..state.effect_candidate_buf.len() {
-                actions.push(Action::CardPurge { idx: i });
+                state.legal_actions.push(Action::CardPurge { idx: i });
             }
         }
         EffectKind::CardUpgrade => {
             for i in 0..state.effect_candidate_buf.len() {
-                actions.push(Action::CardUpgrade { idx: i });
+                state.legal_actions.push(Action::CardUpgrade { idx: i });
             }
         }
         EffectKind::CardDuplicate => {
             for i in 0..state.effect_candidate_buf.len() {
-                actions.push(Action::CardDuplicate { idx: i });
+                state.legal_actions.push(Action::CardDuplicate { idx: i });
             }
         }
         EffectKind::CardTransform => {
             for i in 0..state.effect_candidate_buf.len() {
-                actions.push(Action::CardTransform { idx: i });
+                state.legal_actions.push(Action::CardTransform { idx: i });
             }
         }
-        _ => unreachable!("effect_pending with non-halting kind: {:?}", pending.kind),
+        _ => unreachable!("effect_pending with non-halting kind: {:?}", kind),
     }
-    actions
 }
 
-fn legal_actions_combat(state: &GameState) -> Vec<Action> {
-    let mut actions = Vec::new();
-    let char_mods = &state.entities[state.id_character].modifiers;
-    let entangled = modifier_has(char_mods, ModifierKind::Entangled);
+fn legal_actions_combat(state: &mut GameState) {
+    let id_character = state.id_character;
+    let entangled = modifier_has(
+        &state.entities[id_character].modifiers,
+        ModifierKind::Entangled,
+    );
     let alive_count = state.id_monsters.iter().flatten().count();
-    for (i, &id_card) in state.id_hand.iter().enumerate() {
-        let card = &state.entities[id_card];
+    for i in 0..state.id_hand.len() {
+        let card = &state.entities[state.id_hand[i]];
         let restriction_ok =
             is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw);
         let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
@@ -476,103 +477,101 @@ fn legal_actions_combat(state: &GameState) -> Vec<Action> {
         if cost > state.energy.energy_current {
             continue;
         }
-        if card.requires_target {
+        let requires_target = card.requires_target;
+        if requires_target {
             for m in 0..alive_count {
-                actions.push(Action::CardPlay {
+                state.legal_actions.push(Action::CardPlay {
                     idx_card: i,
                     idx_monster: Some(m),
                 });
             }
         } else {
-            actions.push(Action::CardPlay {
+            state.legal_actions.push(Action::CardPlay {
                 idx_card: i,
                 idx_monster: None,
             });
         }
     }
-    push_potion_actions(state, &mut actions);
-    actions.push(Action::TurnEnd);
-    actions
+    push_potion_actions(state);
+    state.legal_actions.push(Action::TurnEnd);
 }
 
-fn legal_actions_reward(state: &GameState) -> Vec<Action> {
-    let mut actions = Vec::new();
+fn legal_actions_reward(state: &mut GameState) {
     for i in 0..state.reward_id_cards.len() {
-        actions.push(Action::RewardTakeCard { idx: i });
+        state.legal_actions.push(Action::RewardTakeCard { idx: i });
     }
     if state.reward_id_relic.is_some() {
-        actions.push(Action::RewardTakeRelic);
+        state.legal_actions.push(Action::RewardTakeRelic);
     }
     if state.reward_id_potion.is_some() {
         let character = &state.entities[state.id_character];
-        if find_free_slot(&character.character_potion_slots, character.character_potion_slots_max).is_some() {
-            actions.push(Action::RewardTakePotion);
+        if find_free_slot(
+            &character.character_potion_slots,
+            character.character_potion_slots_max,
+        )
+        .is_some()
+        {
+            state.legal_actions.push(Action::RewardTakePotion);
         }
     }
     if state.reward_gold.is_some() {
-        actions.push(Action::RewardTakeGold);
+        state.legal_actions.push(Action::RewardTakeGold);
     }
-    actions.push(Action::RoomExit);
-    push_potion_actions(state, &mut actions);
-    actions
+    state.legal_actions.push(Action::RoomExit);
+    push_potion_actions(state);
 }
 
-fn legal_actions_event(state: &GameState) -> Vec<Action> {
-    let mut actions = Vec::new();
+fn legal_actions_event(state: &mut GameState) {
     let id_event = state.id_event.expect("Event context requires id_event");
-    let event = &state.entities[id_event];
-    if event.event_consumed {
-        actions.push(Action::RoomExit);
+    if state.entities[id_event].event_consumed {
+        state.legal_actions.push(Action::RoomExit);
     } else {
-        for (i, opt) in event.event_options.iter().enumerate() {
-            if event_option_gate_satisfied(opt.gate, state, id_event) {
-                actions.push(Action::EventOptionSelect { idx: i });
+        for i in 0..state.entities[id_event].event_options.len() {
+            let gate = state.entities[id_event].event_options[i].gate;
+            if event_option_gate_satisfied(gate, state, id_event) {
+                state
+                    .legal_actions
+                    .push(Action::EventOptionSelect { idx: i });
             }
         }
     }
-    push_potion_actions(state, &mut actions);
-    actions
+    push_potion_actions(state);
 }
 
-fn legal_actions_shop(state: &GameState) -> Vec<Action> {
-    let mut actions = vec![Action::RoomExit];
-    push_potion_actions(state, &mut actions);
-    actions
+fn legal_actions_shop(state: &mut GameState) {
+    state.legal_actions.push(Action::RoomExit);
+    push_potion_actions(state);
 }
 
-fn legal_actions_map(state: &GameState) -> Vec<Action> {
-    let mut actions = Vec::new();
-    push_room_select_actions(state, &mut actions);
-    push_potion_actions(state, &mut actions);
-    actions
+fn legal_actions_map(state: &mut GameState) {
+    push_room_select_actions(state);
+    push_potion_actions(state);
 }
 
-fn legal_actions_rest_site(state: &GameState) -> Vec<Action> {
-    let mut actions = Vec::new();
+fn legal_actions_rest_site(state: &mut GameState) {
     if state.entities[current_room_id(state)].room_rest_site_done {
-        actions.push(Action::RoomExit);
+        state.legal_actions.push(Action::RoomExit);
     } else {
-        actions.push(Action::Rest);
+        state.legal_actions.push(Action::Rest);
         for i in 0..count_upgradeable_deck(state) {
-            actions.push(Action::CardUpgrade { idx: i });
+            state.legal_actions.push(Action::CardUpgrade { idx: i });
         }
     }
-    push_potion_actions(state, &mut actions);
-    actions
+    push_potion_actions(state);
 }
 
-fn legal_actions_chest(state: &GameState) -> Vec<Action> {
-    let mut actions = vec![Action::ChestOpen, Action::RoomExit];
-    push_potion_actions(state, &mut actions);
-    actions
+fn legal_actions_chest(state: &mut GameState) {
+    state.legal_actions.push(Action::ChestOpen);
+    state.legal_actions.push(Action::RoomExit);
+    push_potion_actions(state);
 }
 
-fn push_room_select_actions(state: &GameState, actions: &mut Vec<Action>) {
+fn push_room_select_actions(state: &mut GameState) {
     match state.location {
         Location::Start => {
             for c in 0..MAP_WIDTH {
                 if state.id_rooms[0][c].is_some() {
-                    actions.push(Action::RoomSelect { idx: c });
+                    state.legal_actions.push(Action::RoomSelect { idx: c });
                 }
             }
         }
@@ -585,7 +584,7 @@ fn push_room_select_actions(state: &GameState, actions: &mut Vec<Action>) {
                 let edges = state.entities[id_current].room_edges;
                 for c in 0..MAP_WIDTH {
                     if has_edge(edges, c) && state.id_rooms[y_next][c].is_some() {
-                        actions.push(Action::RoomSelect { idx: c });
+                        state.legal_actions.push(Action::RoomSelect { idx: c });
                     }
                 }
             }
@@ -594,35 +593,38 @@ fn push_room_select_actions(state: &GameState, actions: &mut Vec<Action>) {
     }
 }
 
-fn push_potion_actions(state: &GameState, actions: &mut Vec<Action>) {
-    let character = &state.entities[state.id_character];
+fn push_potion_actions(state: &mut GameState) {
+    let id_character = state.id_character;
     let in_combat = matches!(state.screen, Screen::Combat);
     let alive_count = state.id_monsters.iter().flatten().count();
-    for s in 0..character.character_potion_slots_max as usize {
-        let Some(id_potion) = character.character_potion_slots[s] else {
+    let slots_max = state.entities[id_character].character_potion_slots_max as usize;
+    for s in 0..slots_max {
+        let Some(id_potion) = state.entities[id_character].character_potion_slots[s] else {
             continue;
         };
         let potion = &state.entities[id_potion];
-        if potion.potion_combat_only && !in_combat {
-            actions.push(Action::PotionDiscard { idx: s });
+        let combat_only = potion.potion_combat_only;
+        let requires_target = potion.requires_target;
+        if combat_only && !in_combat {
+            state.legal_actions.push(Action::PotionDiscard { idx: s });
             continue;
         }
-        if potion.requires_target {
+        if requires_target {
             if in_combat {
                 for m in 0..alive_count {
-                    actions.push(Action::PotionUse {
+                    state.legal_actions.push(Action::PotionUse {
                         idx_potion: s,
                         idx_monster: Some(m),
                     });
                 }
             }
         } else {
-            actions.push(Action::PotionUse {
+            state.legal_actions.push(Action::PotionUse {
                 idx_potion: s,
                 idx_monster: None,
             });
         }
-        actions.push(Action::PotionDiscard { idx: s });
+        state.legal_actions.push(Action::PotionDiscard { idx: s });
     }
 }
 
