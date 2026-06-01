@@ -102,21 +102,20 @@ fn bump_price_a16(price: u16) -> u16 {
         as u16
 }
 
-fn roll_card_variance(rng: &mut impl Rng) -> f32 {
+fn roll_var_card(rng: &mut impl Rng) -> f32 {
     rng.random_range(SHOP_PRICE_CARD_VARIANCE_LO..SHOP_PRICE_CARD_VARIANCE_HI)
 }
 
-fn roll_relic_potion_variance(rng: &mut impl Rng) -> f32 {
+fn roll_var_relic_n_potion(rng: &mut impl Rng) -> f32 {
     rng.random_range(SHOP_PRICE_RELIC_POTION_VARIANCE_LO..SHOP_PRICE_RELIC_POTION_VARIANCE_HI)
 }
 
-fn card_base_price(rarity: CardRarity) -> u16 {
+fn get_card_base_price(rarity: CardRarity) -> u16 {
     match rarity {
         CardRarity::Common => SHOP_PRICE_CARD_COMMON,
         CardRarity::Uncommon => SHOP_PRICE_CARD_UNCOMMON,
         CardRarity::Rare => SHOP_PRICE_CARD_RARE,
-        // Shop never sells Basic/Special/Curse; treat as Common
-        _ => SHOP_PRICE_CARD_COMMON,
+        _ => unreachable!("Shop only sells Common, Uncommon, or Rare cards"),
     }
 }
 
@@ -126,14 +125,14 @@ fn push_colored_card(state: &mut GameState, kind: CardKind) {
         CardRarity::Common => POOL_COMMON_GREEN_CARD,
         CardRarity::Uncommon => POOL_UNCOMMON_GREEN_CARD,
         CardRarity::Rare => POOL_RARE_GREEN_CARD,
-        _ => POOL_COMMON_GREEN_CARD,
+        _ => unreachable!("Shop only sells Common, Uncommon, or Rare cards"),
     };
     let Some(name) = pick_card_of_kind(pool, kind, &mut state.rng) else {
         return;
     };
     let entity = get_card(name, false);
     let id = push_entity(&mut state.entities, entity);
-    let price = (card_base_price(rarity) as f32 * roll_card_variance(&mut state.rng)) as u16;
+    let price = (get_card_base_price(rarity) as f32 * roll_var_card(&mut state.rng)) as u16;
     state.shop_id_cards.push(id);
     state.shop_card_prices.push(price);
 }
@@ -145,8 +144,9 @@ fn push_colorless_card(state: &mut GameState, pool: &[CardName], rarity: CardRar
     let name = pool[state.rng.random_range(0..pool.len())];
     let entity = get_card(name, false);
     let id = push_entity(&mut state.entities, entity);
-    let base = card_base_price(rarity) * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM;
-    let price = (base as f32 * roll_card_variance(&mut state.rng)) as u16;
+    let base =
+        get_card_base_price(rarity) * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM;
+    let price = (base as f32 * roll_var_card(&mut state.rng)) as u16;
     state.shop_id_cards.push(id);
     state.shop_card_prices.push(price);
 }
@@ -175,7 +175,7 @@ fn push_shop_tier_relic(state: &mut GameState) {
 
 fn push_relic_with_price(state: &mut GameState, name: RelicName, base: u16) {
     let id = push_entity(&mut state.entities, get_relic(name));
-    let price = (base as f32 * roll_relic_potion_variance(&mut state.rng)) as u16;
+    let price = (base as f32 * roll_var_relic_n_potion(&mut state.rng)) as u16;
     state.shop_id_relics.push(id);
     state.shop_relic_prices.push(price);
 }
@@ -189,7 +189,7 @@ fn push_potion(state: &mut GameState) {
         PotionRarity::Rare => SHOP_PRICE_POTION_RARE,
     };
     let id = push_entity(&mut state.entities, entity);
-    let price = (base as f32 * roll_relic_potion_variance(&mut state.rng)) as u16;
+    let price = (base as f32 * roll_var_relic_n_potion(&mut state.rng)) as u16;
     state.shop_id_potions.push(id);
     state.shop_potion_prices.push(price);
 }
