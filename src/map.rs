@@ -1,5 +1,3 @@
-// Map generation and queries (TODO: verify against decompiled Java)
-
 use rand::Rng;
 
 use crate::consts::ANCESTOR_GAP_MIN;
@@ -291,7 +289,7 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
     for (count, kind) in [
         (num_rest, RoomKind::RestSite),
         (num_elite, RoomKind::CombatElite),
-        (num_event, RoomKind::EventRoom),
+        (num_event, RoomKind::Unknown),
         (num_shop, RoomKind::Shop),
     ] {
         types[offset..offset + count].fill(kind);

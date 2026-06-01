@@ -250,6 +250,7 @@ pub enum RoomKind {
     Treasure,
     EventRoom,
     Shop,
+    Unknown,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]

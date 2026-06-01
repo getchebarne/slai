@@ -23,7 +23,11 @@ pub fn process_effect_combat_end(state: &mut GameState) {
                 target: Target::Direct(None),
             });
         }
-        RoomKind::RestSite | RoomKind::Treasure | RoomKind::EventRoom | RoomKind::Shop => {
+        RoomKind::RestSite
+        | RoomKind::Treasure
+        | RoomKind::EventRoom
+        | RoomKind::Shop
+        | RoomKind::Unknown => {
             unreachable!("combat end in non-combat room: {:?}", room_kind)
         }
     }
