@@ -291,40 +291,38 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
     let id_potion = state.entities[state.id_character].character_potion_slots[idx_potion]
         .expect("enumerated potion slot is occupied");
-    let requires_target = state.entities[id_potion].requires_target;
-    let id_monster_target = if requires_target {
+    if state.entities[id_potion].requires_target {
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
-        Some(
-            state
-                .id_monsters
-                .iter()
-                .flatten()
-                .copied()
-                .nth(idx_monster)
-                .expect("enumerated monster idx is valid"),
-        )
-    } else {
-        None
-    };
+        let id_monster_target = state
+            .id_monsters
+            .iter()
+            .flatten()
+            .copied()
+            .nth(idx_monster)
+            .expect("enumerated monster idx is valid");
 
-    if let Some(id) = id_monster_target {
+        // TargetSet -> PotionUse -> TargetClear
         state.effect_buf.push(Effect {
             kind: EffectKind::TargetSet,
             id_source: None,
-            target: Target::Direct(Some(id)),
+            target: Target::Direct(Some(id_monster_target)),
         });
-    }
-    state.effect_buf.push(Effect {
-        kind: EffectKind::PotionUse,
-        id_source: Some(id_potion),
-        target: Target::Direct(Some(id_potion)),
-    });
-    if requires_target {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::PotionUse,
+            id_source: Some(id_potion),
+            target: Target::Direct(Some(id_potion)),
+        });
         state.effect_buf.push(Effect {
             kind: EffectKind::TargetClear,
             id_source: None,
             target: Target::Direct(None),
+        });
+    } else {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::PotionUse,
+            id_source: Some(id_potion),
+            target: Target::Direct(Some(id_potion)),
         });
     }
 }
