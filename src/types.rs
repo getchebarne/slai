@@ -1,5 +1,3 @@
-// Core type enums shared across the engine
-
 use strum::EnumCount;
 
 // Vitals: physical combat state. Shared by character and monsters
@@ -8,6 +6,25 @@ pub struct Vitals {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
+}
+
+// Direction of a quantity change (health, gold, etc.)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DeltaSign {
+    Gain,
+    Loss,
+}
+
+// Persistent screen; transient working memory lives in flat GameState fields
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Screen {
+    Combat,
+    Reward,
+    Event,
+    Shop,
+    Map,
+    RestSite,
+    Chest,
 }
 
 pub const ZERO_VITALS: Vitals = Vitals {
@@ -239,37 +256,19 @@ pub enum RoomKind {
 #[repr(u8)]
 pub enum EventName {
     BigFish,
-    Cleric,
-    Designer,
+    TheCleric,
     Duplicator,
-    GoldShrine,
-    GoldenIdolEvent,
-    GoldenWing,
-    GoopPuddle,
+    GoldenShrine,
+    GoldenIdol,
+    WingStatue,
+    WorldOfGoop,
     LivingWall,
-    PurificationShrine,
+    Purifier,
     ScrapOoze,
     ShiningLight,
-    Sssserpent,
+    TheSsssserpent,
     Transmogrifier,
     UpgradeShrine,
-    WeMeetAgain,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum DeckSelectKind {
-    Remove,
-    UpgradeAny,
-    TransformOne,
-    DuplicateAny,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum HandSelectKind {
-    Discard,
-    Retain,
-    Setup,
-    Nightmare,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -277,6 +276,14 @@ pub enum ChestKind {
     Small,
     Medium,
     Large,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RewardKind {
+    Card,
+    Relic,
+    Potion,
+    Gold,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
@@ -323,14 +330,13 @@ pub enum RelicName {
     TwistedFunnel,
     Vajra,
     Circlet,
+    GoldenIdol,
 }
 
-impl RelicName {
-    pub fn from_u8(v: u8) -> Self {
-        assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
-        // SAFETY: repr(u8) and we validated the range
-        unsafe { std::mem::transmute(v) }
-    }
+pub fn relic_name_from_u8(v: u8) -> RelicName {
+    assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
+    // SAFETY: repr(u8) and we validated the range
+    unsafe { std::mem::transmute(v) }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -342,34 +348,4 @@ pub enum RelicTier {
     Boss,
     Shop,
     Special,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Phase {
-    Reward {
-        id_cards: Vec<usize>,
-        id_relic: Option<usize>,
-        id_potion: Option<usize>,
-        gold: Option<u16>,
-    },
-    CombatDefault,
-    CombatAwaitDiscover {
-        id_cards: Vec<usize>,
-    },
-    AwaitHandSelect {
-        kind: HandSelectKind,
-        num: u8,
-    },
-    GameOver,
-    Map,
-    RestSite,
-    Chest,
-    AwaitEventChoice {
-        id_event: usize,
-    },
-    AwaitDeckSelect {
-        kind: DeckSelectKind,
-        id_options: Vec<usize>,
-    },
-    Shop,
 }

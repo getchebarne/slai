@@ -21,8 +21,8 @@ static MOVE_BITE: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -39,8 +39,8 @@ static MOVE_GROW_3: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -54,8 +54,8 @@ static MOVE_GROW_4: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -69,8 +69,8 @@ static MOVE_GROW_5: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -82,7 +82,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];
 const IDX_MOVE_GROW: usize = 0;
 const IDX_MOVE_BITE: usize = 1;
 
-pub fn spawn_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (22, 28)
     } else {

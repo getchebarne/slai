@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
@@ -7,36 +5,36 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::engine::EffectBuf;
-use crate::game::Energy;
+use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::Modifiers;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
-use crate::types::Phase;
-use crate::types::Vitals;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 
-pub fn process_effect_turn_start(
-    vitals: &mut Vitals,
-    modifiers: &mut Modifiers,
-    id_actor: usize,
-    id_character: usize,
-    energy: &Energy,
-    id_monsters: &[usize],
-    nightmare_pending: bool,
-    effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
-    // Stack locals
-    let mut buf_effects = EffectBuf::new();
+pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
+    let id_actor = id_target.expect("TurnStart requires id_target");
+    let id_character = state.id_character;
+    let energy_max = state.energy.energy_max;
+    let energy_current = state.energy.energy_current;
+    let nightmare_pending = state.id_card_nightmare.is_some();
+    let id_monsters = state.id_monsters;
 
-    // Modifier / Poison
+    state.effect_buf.clear();
+
+    let entity = &mut state.entities[id_actor];
+    let modifiers = &mut entity.modifiers;
+    let vitals = &mut entity.vitals;
+
     if modifier_has(modifiers, ModifierKind::Poison) {
-        buf_effects.push(Effect::direct(EffectKind::PoisonTick, None, Some(id_actor)));
+        state.effect_buf.push(Effect {
+            kind: EffectKind::PoisonTick,
+            id_source: None,
+            target: Target::Direct(Some(id_actor)),
+        });
     }
 
-    // Resolve new block (Blur retains, NextTurnBlock adds)
     let mut new_block: u16 = 0;
     if modifier_has(modifiers, ModifierKind::Blur) {
         new_block += vitals.block;
@@ -45,15 +43,14 @@ pub fn process_effect_turn_start(
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
         modifier_remove(modifiers, ModifierKind::NextTurnBlock);
     }
-    buf_effects.push(Effect {
+    state.effect_buf.push(Effect {
         kind: EffectKind::BlockSet { amount: new_block },
         id_source: None,
         target: Target::Direct(Some(id_actor)),
     });
 
-    // Modifier / Phantasmal
     if modifier_has(modifiers, ModifierKind::Phantasmal) {
-        buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::DoubleDamage,
                 stacks: 1,
@@ -63,19 +60,16 @@ pub fn process_effect_turn_start(
         });
     }
 
-    // Character-only effects
     if id_actor == id_character {
-        // Draw cards and restore energy
-        buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::CardDraw {
                 count: CARDS_DRAWN_PER_TURN,
             },
             id_source: None,
             target: Target::Direct(None),
         });
-        // TODO: may need a "reset energy" effect
-        let energy_gain = energy.max.saturating_sub(energy.current);
-        buf_effects.push(Effect {
+        let energy_gain = energy_max.saturating_sub(energy_current);
+        state.effect_buf.push(Effect {
             kind: EffectKind::EnergyGain {
                 amount: energy_gain as u16,
             },
@@ -83,25 +77,23 @@ pub fn process_effect_turn_start(
             target: Target::Direct(None),
         });
 
-        // Tick all combatant modifiers
-        buf_effects.push(Effect {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierTick,
             id_source: None,
             target: Target::Direct(Some(id_character)),
         });
-        for &id_monster in id_monsters {
-            buf_effects.push(Effect {
+        for id_monster in id_monsters.iter().flatten().copied() {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierTick,
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
             });
         }
 
-        // Modifier / NoxiousFumes
         if modifier_has(modifiers, ModifierKind::NoxiousFumes) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NoxiousFumes);
-            for &id_monster in id_monsters {
-                buf_effects.push(Effect {
+            for id_monster in id_monsters.iter().flatten().copied() {
+                state.effect_buf.push(Effect {
                     kind: EffectKind::ModifierGain {
                         kind: ModifierKind::Poison,
                         stacks,
@@ -112,9 +104,9 @@ pub fn process_effect_turn_start(
             }
         }
 
-        // Choke auto-removes at the next player turn start; modifier_remove is idempotent
-        for &id_monster in id_monsters {
-            buf_effects.push(Effect {
+        // Choke auto-removes at the next player turn start
+        for id_monster in id_monsters.iter().flatten().copied() {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierRemove {
                     kind: ModifierKind::Choke,
                 },
@@ -123,26 +115,24 @@ pub fn process_effect_turn_start(
             });
         }
 
-        // Nightmare
         if nightmare_pending {
-            buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardNightmareSpawn,
                 id_source: None,
                 target: Target::Direct(None),
             });
         }
 
-        // Modifier / DrawCardNextTurn
         if modifier_has(modifiers, ModifierKind::DrawCardNextTurn) {
             let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
-            buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw {
                     count: stacks.max(0) as u16,
                 },
                 id_source: None,
                 target: Target::Direct(None),
             });
-            buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierRemove {
                     kind: ModifierKind::DrawCardNextTurn,
                 },
@@ -151,34 +141,32 @@ pub fn process_effect_turn_start(
             });
         }
 
-        // Modifier / ToolsOfTheTrade
         if modifier_has(modifiers, ModifierKind::ToolsOfTheTrade) {
             let stacks = modifier_stacks(modifiers, ModifierKind::ToolsOfTheTrade);
-            buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw {
                     count: stacks.max(0) as u16,
                 },
                 id_source: None,
                 target: Target::Direct(None),
             });
-            buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardDiscard {
                     source: DiscardSource::Explicit,
                 },
                 id_source: None,
                 target: Target::Resolve {
-                    candidates: CandidatePool::Hand,
-                    selection: SelectionKind::Input {
+                    candidate_pool: CandidatePool::Hand,
+                    selection_kind: SelectionKind::Input {
                         count: stacks.max(0) as u16,
                     },
                 },
             });
         }
 
-        // Modifier / NextTurnEnergy
         if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
-            buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::EnergyGain {
                     amount: stacks.max(0) as u16,
                 },
@@ -188,10 +176,9 @@ pub fn process_effect_turn_start(
             modifier_remove(modifiers, ModifierKind::NextTurnEnergy);
         }
 
-        // Modifier / InfiniteBlades
         if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
-            buf_effects.push(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardAddToHand {
                     card_name: CardName::Shiv,
                     count: stacks.max(0) as u16,
@@ -203,6 +190,5 @@ pub fn process_effect_turn_start(
         }
     }
 
-    buf_effects.push_all_front(effect_queue);
-    None
+    flush_effects_from_buf_to_queue_front(state);
 }

@@ -1,35 +1,38 @@
 mod big_fish;
-mod cleric;
-mod designer;
 mod duplicator;
-mod gold_shrine;
-mod golden_idol_event;
-mod golden_wing;
-mod goop_puddle;
+mod golden_idol;
+mod golden_shrine;
 mod living_wall;
-mod purification_shrine;
+mod purifier;
 mod scrap_ooze;
 mod shining_light;
-mod sssserpent;
+mod the_cleric;
+mod the_ssssserpent;
 mod transmogrifier;
 mod upgrade_shrine;
-mod we_meet_again;
+mod wing_statue;
+mod world_of_goop;
 
 use rand::Rng;
-use strum::EnumCount;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::types::CardKind;
-use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::EventName;
 use crate::types::RelicName;
+use crate::utils::card_is_purgeable;
+use crate::utils::card_is_upgradable;
 
-pub const EVENT_END_EFFECT: Effect = Effect::direct(EffectKind::EventEnd, None, None);
+pub const EVENT_CONSUME_EFFECT: Effect = Effect {
+    kind: EffectKind::EventConsume,
+    id_source: None,
+    target: Target::Direct(None),
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct EventOption {
@@ -76,33 +79,16 @@ pub fn event_option_gate_satisfied(gate: EventGate, state: &GameState, id_event:
             .iter()
             .any(|&id| card_has_damage_at_least(&state.entities[id], min_base)),
         EventGate::HasRelicOwned(name) => state.id_relics[name as usize].is_some(),
-        EventGate::PotionBeltHasAny => character
-            .potion_slots
+        EventGate::PotionBeltHasAny => state
+            .id_potions
             .iter()
-            .take(character.potion_slots_max as usize)
+            .take(state.potion_slots_max as usize)
             .any(|slot| slot.is_some()),
         EventGate::EventStateEq(value) => state.entities[id_event].event_state == value,
         EventGate::All(gates) => gates
             .iter()
             .all(|g| event_option_gate_satisfied(*g, state, id_event)),
     }
-}
-
-pub fn card_is_upgradable(entity: &Entity) -> bool {
-    if entity.kind != EntityKind::Card {
-        return false;
-    }
-    if entity.card_upgraded {
-        return false;
-    }
-    !matches!(entity.card_kind, CardKind::Curse | CardKind::Status)
-}
-
-pub fn card_is_purgeable(entity: &Entity) -> bool {
-    if entity.kind != EntityKind::Card {
-        return false;
-    }
-    !matches!(entity.card_name, CardName::AscendersBane)
 }
 
 fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
@@ -122,111 +108,42 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     false
 }
 
-pub fn deck_filter_purgeable(state: &GameState) -> Vec<usize> {
-    state
-        .id_deck
-        .iter()
-        .copied()
-        .filter(|&id| card_is_purgeable(&state.entities[id]))
-        .collect()
-}
-
-pub fn deck_filter_upgradable(state: &GameState) -> Vec<usize> {
-    state
-        .id_deck
-        .iter()
-        .copied()
-        .filter(|&id| card_is_upgradable(&state.entities[id]))
-        .collect()
-}
-
-pub fn deck_filter_any(state: &GameState) -> Vec<usize> {
-    state.id_deck.clone()
-}
-
-pub fn deck_filter_non_basic_non_curse(state: &GameState) -> Vec<usize> {
-    state
-        .id_deck
-        .iter()
-        .copied()
-        .filter(|&id| {
-            let entity = &state.entities[id];
-            entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
-        })
-        .collect()
-}
-
-pub const ALL_EVENTS: &[&'static Entity] = &[
-    &big_fish::BIG_FISH,
-    &cleric::CLERIC,
-    &designer::DESIGNER,
-    &duplicator::DUPLICATOR,
-    &gold_shrine::GOLD_SHRINE,
-    &golden_idol_event::GOLDEN_IDOL_EVENT,
-    &golden_wing::GOLDEN_WING,
-    &goop_puddle::GOOP_PUDDLE,
-    &living_wall::LIVING_WALL,
-    &purification_shrine::PURIFICATION_SHRINE,
-    &scrap_ooze::SCRAP_OOZE,
-    &shining_light::SHINING_LIGHT,
-    &sssserpent::SSSSERPENT,
-    &transmogrifier::TRANSMOGRIFIER,
-    &upgrade_shrine::UPGRADE_SHRINE,
-    &we_meet_again::WE_MEET_AGAIN,
-];
-
-const _: () = {
-    assert!(ALL_EVENTS.len() == EventName::COUNT);
-    let mut seen = [false; EventName::COUNT];
-    let mut idx = 0;
-    while idx < ALL_EVENTS.len() {
-        let i = ALL_EVENTS[idx].event_name as usize;
-        assert!(!seen[i], "ALL_EVENTS contains a duplicate EventName");
-        seen[i] = true;
-        idx += 1;
-    }
-};
-
-pub fn get_event(name: EventName) -> Entity {
+pub fn get_event(name: EventName, ascension: u8) -> Entity {
     match name {
-        EventName::BigFish => big_fish::BIG_FISH,
-        EventName::Cleric => cleric::CLERIC,
-        EventName::Designer => designer::DESIGNER,
-        EventName::Duplicator => duplicator::DUPLICATOR,
-        EventName::GoldShrine => gold_shrine::GOLD_SHRINE,
-        EventName::GoldenIdolEvent => golden_idol_event::GOLDEN_IDOL_EVENT,
-        EventName::GoldenWing => golden_wing::GOLDEN_WING,
-        EventName::GoopPuddle => goop_puddle::GOOP_PUDDLE,
-        EventName::LivingWall => living_wall::LIVING_WALL,
-        EventName::PurificationShrine => purification_shrine::PURIFICATION_SHRINE,
-        EventName::ScrapOoze => scrap_ooze::SCRAP_OOZE,
-        EventName::ShiningLight => shining_light::SHINING_LIGHT,
-        EventName::Sssserpent => sssserpent::SSSSERPENT,
-        EventName::Transmogrifier => transmogrifier::TRANSMOGRIFIER,
-        EventName::UpgradeShrine => upgrade_shrine::UPGRADE_SHRINE,
-        EventName::WeMeetAgain => we_meet_again::WE_MEET_AGAIN,
+        EventName::BigFish => big_fish::spawn_event_big_fish(),
+        EventName::TheCleric => the_cleric::spawn_event_the_cleric(ascension),
+        EventName::Duplicator => duplicator::spawn_event_duplicator(),
+        EventName::GoldenShrine => golden_shrine::spawn_event_golden_shrine(ascension),
+        EventName::GoldenIdol => golden_idol::spawn_event_golden_idol(ascension),
+        EventName::WingStatue => wing_statue::spawn_event_wing_statue(),
+        EventName::WorldOfGoop => world_of_goop::spawn_event_world_of_goop(ascension),
+        EventName::LivingWall => living_wall::spawn_event_living_wall(),
+        EventName::Purifier => purifier::spawn_event_purifier(),
+        EventName::ScrapOoze => scrap_ooze::spawn_event_scrap_ooze(ascension),
+        EventName::ShiningLight => shining_light::spawn_event_shining_light(ascension),
+        EventName::TheSsssserpent => the_ssssserpent::spawn_event_the_ssssserpent(ascension),
+        EventName::Transmogrifier => transmogrifier::spawn_event_transmogrifier(),
+        EventName::UpgradeShrine => upgrade_shrine::spawn_event_upgrade_shrine(),
     }
 }
 
-pub fn spawn_event(name: EventName, _rng: &mut impl Rng) -> Entity {
-    get_event(name)
+pub fn spawn_event(name: EventName, ascension: u8, _rng: &mut impl Rng) -> Entity {
+    get_event(name, ascension)
 }
 
 pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::BigFish,
-    EventName::Cleric,
-    EventName::Designer,
+    EventName::TheCleric,
     EventName::Duplicator,
-    EventName::GoldShrine,
-    EventName::GoldenIdolEvent,
-    EventName::GoldenWing,
-    EventName::GoopPuddle,
+    EventName::GoldenShrine,
+    EventName::GoldenIdol,
+    EventName::WingStatue,
+    EventName::WorldOfGoop,
     EventName::LivingWall,
-    EventName::PurificationShrine,
+    EventName::Purifier,
     EventName::ScrapOoze,
     EventName::ShiningLight,
-    EventName::Sssserpent,
+    EventName::TheSsssserpent,
     EventName::Transmogrifier,
     EventName::UpgradeShrine,
-    EventName::WeMeetAgain,
 ];

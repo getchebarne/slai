@@ -1,17 +1,14 @@
-use std::collections::VecDeque;
-
 use rand::Rng;
 
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
-use crate::consts::MAP_HEIGHT;
-use crate::consts::MAP_WIDTH;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::engine::EffectBuf;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::POOL_ACT1_EVENT;
 use crate::events::spawn_event;
+use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
@@ -19,45 +16,39 @@ use crate::types::ChestKind;
 use crate::types::EventName;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
-use crate::types::Phase;
 use crate::types::RoomKind;
+use crate::types::Screen;
+use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::push_entity;
 use crate::utils::shuffle;
 
-pub fn process_effect_room_enter(
-    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-    location: Location,
-    entities: &mut Vec<Entity>,
-    encounter_list_normal: &mut Vec<MonsterEncounter>,
-    encounter_list_elite: &mut Vec<MonsterEncounter>,
-    encounter_boss: MonsterEncounter,
-    events_seen_this_run: &mut Vec<EventName>,
-    rng: &mut impl Rng,
-    effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
-    let room_kind = get_active_room_kind(id_rooms, location, entities).unwrap();
-    let mut buf_effects = EffectBuf::new();
+pub fn process_effect_room_enter(state: &mut GameState) {
+    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
+    state.effect_buf.clear();
 
     match room_kind {
         RoomKind::CombatBoss => {
-            spawn_encounter_monsters(encounter_boss, &mut buf_effects, rng);
+            let encounter = state.encounter_boss;
+            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
         }
         RoomKind::CombatMonster => {
-            let encounter = encounter_list_normal.remove(0);
-            spawn_encounter_monsters(encounter, &mut buf_effects, rng);
+            let encounter = state.encounter_pool_normal.remove(0);
+            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
         }
         RoomKind::CombatElite => {
-            let encounter = encounter_list_elite.remove(0);
-            spawn_encounter_monsters(encounter, &mut buf_effects, rng);
+            let encounter = state.encounter_pool_elite.remove(0);
+            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
         }
         RoomKind::RestSite => {
-            // Nothing to enqueue; derive_phase reads Location & RoomKind for RestSite
+            state.screen = Screen::RestSite;
         }
         RoomKind::Treasure => {
-            let Location::Overworld { y, x } = location else {
+            let Location::Overworld { y, x } = state.location else {
                 unreachable!("RoomEnter on Treasure outside Overworld");
             };
-            let room = room_at_mut(id_rooms, entities, y, x).expect("Treasure room missing");
-            let roll = rng.random_range(0..100) as u8;
+            let room = room_at_mut(&state.id_rooms, &mut state.entities, y, x)
+                .expect("Treasure room missing");
+            let roll = state.rng.random_range(0..100) as u8;
             room.room_chest_kind = Some(if roll < CHEST_SMALL_PCT {
                 ChestKind::Small
             } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
@@ -65,45 +56,56 @@ pub fn process_effect_room_enter(
             } else {
                 ChestKind::Large
             });
+            state.screen = Screen::Chest;
         }
         RoomKind::EventRoom => {
-            if let Some(phase) = spawn_random_event(entities, events_seen_this_run, rng) {
-                return Some(phase);
+            if let Some(id_event) = spawn_random_event(
+                &mut state.entities,
+                &mut state.events_seen,
+                state.ascension,
+                &mut state.rng,
+            ) {
+                state.screen = Screen::Event;
+                state.id_event = Some(id_event);
+                return;
             }
         }
-        RoomKind::Shop => {}
+        RoomKind::Shop => {
+            state.screen = Screen::Shop;
+        }
     }
 
-    if buf_effects.len > 0 {
-        buf_effects.push(Effect::direct(EffectKind::CombatStart, None, None));
-        buf_effects.push_all_front(effect_queue);
+    if !state.effect_buf.is_empty() {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CombatStart,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        flush_effects_from_buf_to_queue_front(state);
     }
-
-    None
 }
 
-// Drift-state ? resolution is deferred until shop/surprise-treasure paths exist
 fn spawn_random_event(
     entities: &mut Vec<Entity>,
-    events_seen_this_run: &mut Vec<EventName>,
+    events_seen: &mut Vec<EventName>,
+    ascension: u8,
     rng: &mut impl Rng,
-) -> Option<Phase> {
+) -> Option<usize> {
     if POOL_ACT1_EVENT.is_empty() {
         return None;
     }
-    if events_seen_this_run.len() >= POOL_ACT1_EVENT.len() {
-        events_seen_this_run.clear();
+    if events_seen.len() >= POOL_ACT1_EVENT.len() {
+        events_seen.clear();
     }
     let name = loop {
         let cand = POOL_ACT1_EVENT[rng.random_range(0..POOL_ACT1_EVENT.len())];
-        if !events_seen_this_run.contains(&cand) {
+        if !events_seen.contains(&cand) {
             break cand;
         }
     };
-    events_seen_this_run.push(name);
-    let id_event = entities.len();
-    entities.push(spawn_event(name, rng));
-    Some(Phase::AwaitEventChoice { id_event })
+    events_seen.push(name);
+    let id_event = push_entity(entities, spawn_event(name, ascension, rng));
+    Some(id_event)
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {
@@ -148,18 +150,17 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
-#[inline]
-fn push_monster_spawn(effects: &mut EffectBuf, name: MonsterName) {
-    effects.push(Effect::direct(
-        EffectKind::MonsterSpawn { name },
-        None,
-        None,
-    ));
+fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
+    effects.push(Effect {
+        kind: EffectKind::MonsterSpawn { name },
+        id_source: None,
+        target: Target::Direct(None),
+    });
 }
 
 fn spawn_encounter_monsters(
     encounter: MonsterEncounter,
-    effects: &mut EffectBuf,
+    effects: &mut Vec<Effect>,
     rng: &mut impl Rng,
 ) {
     match encounter {

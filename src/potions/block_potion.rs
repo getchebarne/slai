@@ -17,8 +17,8 @@ pub static BLOCK_POTION: Entity = make_entity_potion(
         kind: EffectKind::BlockGain { amount: 12 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
 );

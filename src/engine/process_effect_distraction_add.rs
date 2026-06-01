@@ -1,28 +1,22 @@
-use rand::Rng;
-
 use crate::cards::POOL_COMMON_GREEN_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
-use crate::entity::Entity;
 use crate::entity::add_card_to_hand_or_discard;
+use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::CardName;
-use crate::types::Phase;
+use rand::Rng;
 
-// Distraction: spawn a random Silent Skill (excluding Distraction itself) as
-// a free-to-play-once card in hand
-pub fn process_effect_distraction_add(
-    entities: &mut Vec<Entity>,
-    id_hand: &mut Vec<usize>,
-    id_pile_discard: &mut Vec<usize>,
-    rng: &mut impl Rng,
-) -> Option<Phase> {
-    // Build the candidate pool
-    // Stack buffer big enough for the current pool
+// Random Silent Skill (not Distraction) into hand, free-to-play-once
+pub fn process_effect_distraction_add(state: &mut GameState) {
     let mut buf = [CardName::Strike; 64];
     let mut n = 0;
-    for pool in [POOL_COMMON_GREEN_CARD, POOL_UNCOMMON_GREEN_CARD, POOL_RARE_GREEN_CARD] {
+    for pool in [
+        POOL_COMMON_GREEN_CARD,
+        POOL_UNCOMMON_GREEN_CARD,
+        POOL_RARE_GREEN_CARD,
+    ] {
         for &name in pool {
             if name == CardName::Distraction {
                 continue;
@@ -35,16 +29,17 @@ pub fn process_effect_distraction_add(
         }
     }
     if n == 0 {
-        return None;
+        return;
     }
 
-    // Pick a random card
-    let card_name = buf[rng.random_range(0..n)];
+    let card_name = buf[state.rng.random_range(0..n)];
     let mut card = get_card(card_name, false);
-
-    // Set free-to-play-once flag
     card.card_free_to_play_once = true;
 
-    add_card_to_hand_or_discard(entities, id_hand, id_pile_discard, card);
-    None
+    add_card_to_hand_or_discard(
+        &mut state.entities,
+        &mut state.id_hand,
+        &mut state.id_pile_discard,
+        card,
+    );
 }

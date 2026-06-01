@@ -2,65 +2,25 @@ use crate::modifier::ModifierKind;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::ChestKind;
-use crate::types::DeckSelectKind;
+use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
-use crate::types::RelicTier;
+use crate::types::RewardKind;
 use crate::types::RoomKind;
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
-    Noop,
-    DamagePhysical {
-        amount: u16,
-    },
-    DamagePhysicalIfPoisoned {
-        amount: u16,
-    },
-    DistractionAdd,
-    EscapePlanCheck {
-        block: u16,
-    },
-    GlassKnifeDecay {
-        delta: i16,
-    },
-    FinisherDamage {
-        damage: u16,
-    },
-    FlechettesDamage {
-        damage: u16,
-    },
-    HeelHookProc,
-    SneakyStrikeProc {
-        energy: u8,
-    },
-    StormOfSteelProc {
-        upgraded: bool,
-    },
-    UnloadDiscard,
     BlockGain {
         amount: u16,
     },
-    ModifierGain {
-        kind: ModifierKind,
-        stacks: i16,
-    },
-    ModifierMultiply {
-        kind: ModifierKind,
-        factor: u8,
-    },
-    ModifierRemove {
-        kind: ModifierKind,
-    },
-    EnergyGain {
+    BlockSet {
         amount: u16,
     },
-    CardDraw {
-        count: u16,
-    },
-    DrawUpTo {
-        amount: u8,
+    CalculatedGamble,
+    CardAddToDeck {
+        card_name: CardName,
+        upgraded: bool,
     },
     CardAddToDiscard {
         card_name: CardName,
@@ -75,177 +35,195 @@ pub enum EffectKind {
     CardDiscard {
         source: DiscardSource,
     },
-    CardMoveToDiscard,
-    DamageMindBlast,
-    ShuffleDiscardPileIntoDrawPile,
-    CardNightmarePick,
-    CardNightmareSpawn,
-    CardRetain,
-    CardSetupPick,
-    SetCostOverride {
+    CardDiscoverPick,
+    CardDiscoverRoll {
+        kind: CardKind,
+        count: u8,
+    },
+    CardDraw {
+        count: u16,
+    },
+    CardDrawUpTo {
         amount: u8,
     },
-    CalculatedGamble,
-
-    // Runtime only (for now)
-    CardPlay,
+    CardDuplicate,
     CardExhaust,
+    CardMoveToDiscard,
+    CardNightmarePick,
+    CardNightmareSpawn,
+    CardPlay,
+    CardPurge,
     CardRemove,
+    CardRetain,
+    CardSetupPick,
+    CardTransform,
     CardUpgrade,
-    CardRewardClear,
-    RewardRollCombat {
-        room_kind: RoomKind,
-    },
-    RewardRollChest {
-        kind: ChestKind,
-    },
-    TargetSet,
-    TargetClear,
+    ChestOpen,
+    CombatEnd,
+    CombatStart,
     DamageDeal {
         amount: u16,
     },
-    HealthGain {
+    DamageFinisher {
+        damage: u16,
+    },
+    DamageFlechettes {
+        damage: u16,
+    },
+    DamageMindBlast,
+    DamagePhysical {
         amount: u16,
     },
-    HealthLoss {
+    DamagePhysicalIfPoisoned {
         amount: u16,
     },
-    BlockSet {
+    Death,
+    DistractionAdd,
+    EnergyGain {
         amount: u16,
     },
     EnergyLoss {
         amount: u8,
     },
-    ModifierTick,
-    PoisonTick,
-    ModifierSetNotNew,
-    Death,
-    CombatStart,
-    CombatEnd,
-    TurnStart,
-    TurnEnd,
-    MoveUpdate,
-    MoveExecute,
-    RoomEnter,
-    RestSiteExit,
-    MonsterSpawn {
-        name: MonsterName,
-    },
-    EscapeMonster,
-    GoldSteal {
-        amount: u8,
-    },
-    GoldGain {
-        amount: u16,
-    },
-    HexaghostBurnIncrease {
-        count: u8,
-    },
-    HexaghostDivider,
-
-    // Select: halts the queue asking the player to pick a target. After the
-    // pick, the same EffectKind runs as `Direct` with the chosen entity,
-    // mutating state and pushing follow-up effects
-    RoomSelect,
-
-    // Relic flow
-    RewardTakeRelic,
-
-    // Master-deck mutation (combat rewards, events, shop, Neow)
-    CardRemoveFromDeck,
-    CardAddToDeck {
-        card_name: CardName,
-        upgraded: bool,
-    },
-
-    // Out-of-combat HP cap mutation
-    MaxHealthGain {
-        amount: u16,
-    },
-    MaxHealthLoss {
-        amount: u16,
-    },
-
-    ChestOpen,
-
-    // Potions
-    PotionUse,
-    PotionAddRandom {
-        limited: bool,
-    },
-    RewardTakePotion,
-
-    // Gold reward pickup (in-pool gold from combat-end or chest)
-    RewardTakeGold,
-
-    // Umbrella skip: bulk-clear all Phase::Reward pools
-    RewardSkip,
-
-    // Discovery: roll N random cards of `kind` and halt on `Phase::CombatAwaitDiscover`;
-    // Player picks one via `Action::CardDiscoverSelect`
-    CardDiscoverSelect {
-        kind: CardKind,
-        count: u8,
-    },
-
-    // Event substrate
-    GoldLoss {
-        amount: u16,
-    },
-    HealthGainPct {
-        numer: u8,
-        denom: u8,
-    },
-    HealthLossPct {
-        numer: u8,
-        denom: u8,
-    },
-    MaxHealthLossPct {
-        numer: u8,
-        denom: u8,
-    },
-    CardUpgradeRandomInDeck {
-        count: u8,
-    },
-    CardTransformRoll,
-    RelicGrantRandom {
-        tier: Option<RelicTier>,
-    },
-    RelicGrantSpecific {
-        name: RelicName,
-        fallback_circlet: bool,
+    EscapePlanCheck {
+        block: u16,
     },
     EventAdvanceState {
         delta: i8,
     },
-    RollD100Branch {
+    EventConsume,
+    GlassKnifeDecay {
+        delta: i16,
+    },
+    GoldDelta {
+        sign: DeltaSign,
+        kind: GoldDeltaKind,
+    },
+    GoldSteal {
+        amount: u8,
+    },
+    HealthDelta {
+        sign: DeltaSign,
+        amount: HealthDeltaAmount,
+    },
+    HeelHookProc,
+    HexaghostBurnIncrease {
+        count: u8,
+    },
+    HexaghostDivider,
+    MaxHealthDelta {
+        sign: DeltaSign,
+        amount: HealthDeltaAmount,
+    },
+    ModifierGain {
+        kind: ModifierKind,
+        stacks: i16,
+    },
+    ModifierMultiply {
+        kind: ModifierKind,
+        factor: u8,
+    },
+    ModifierRemove {
+        kind: ModifierKind,
+    },
+    ModifierSetNotNew,
+    ModifierTick,
+    MonsterEscape,
+    MonsterSpawn {
+        name: MonsterName,
+    },
+    MoveExecute,
+    MoveUpdate,
+    NoOp,
+    PoisonTick,
+    PotionAddRandom {
+        limited: bool,
+    },
+    PotionDiscard,
+    PotionUse,
+    RelicGrantRandom,
+    RelicGrantSpecific {
+        name: RelicName,
+        fallback_circlet: bool,
+    },
+    RestSiteConsume,
+    RewardRollChest {
+        kind: ChestKind,
+    },
+    RewardRollCombat {
+        room_kind: RoomKind,
+    },
+    RewardTake {
+        kind: RewardKind,
+    },
+    RoomEnter,
+    RoomExit,
+    RoomSelect,
+    ScrapOozeReach {
+        dmg: u16,
         chance: u8,
-        on_lt: &'static [Effect],
-        on_ge: &'static [Effect],
+        advance_on_miss: bool,
     },
-    EventEnd,
-    DeckSelectStart {
-        kind: DeckSelectKind,
+    SetCostOverride {
+        amount: u8,
     },
+    ShuffleDiscardPileIntoDrawPile,
+    SneakyStrikeProc {
+        energy: u8,
+    },
+    StormOfSteelProc {
+        upgraded: bool,
+    },
+    TargetClear,
+    TargetSet,
+    TurnEnd,
+    TurnStart,
+    UnloadDiscard,
 }
 
-// DiscardSource: tags a CardDiscard effect with its origin so the handler can branch on it
+// Origin tag the CardDiscard handler branches on
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiscardSource {
     Explicit,
     EndOfTurn,
 }
 
-// CandidatePool: abstract source pool for a Resolve effect's target resolution
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum HealthDeltaAmount {
+    Absolute(u16),
+    Relative { numerator: u8, denominator: u8 },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum GoldDeltaKind {
+    Fixed(u16),
+    Range { min: u16, max: u16 },
+}
+
+// Source pool for a Resolve effect
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
     Hand,
-    MonsterPicked,
     Character,
-    Monsters,
-    OtherMonsters,
+    Monsters { filter: CandidatePoolMonstersFilter },
     Source,
-    NextRowRooms,
+    Discover,
+    Deck { filter: CandidatePoolDeckFilter },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CandidatePoolDeckFilter {
+    Purgeable,
+    Upgradeable,
+    Any,
+    Transformable,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CandidatePoolMonstersFilter {
+    All,
+    Other,
+    Picked,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -256,26 +234,20 @@ pub enum SelectionKind {
     Input { count: u16 },
 }
 
-// Target: whether an Effect's target is already known (Direct) or must be
-// resolved against live state when the effect is dequeued (Resolve)
+// Target known at queue time (Direct) or resolved against live state at dequeue (Resolve)
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Target {
-    /// Target is known (or not needed). Dispatch runs the handler directly.
-    /// `None` means the effect takes no target (CardDraw, EnergyGain, etc.).
+    // Known target, or `None` for targetless effects (CardDraw, EnergyGain).
     Direct(Option<usize>),
 
-    /// Target must be resolved against live state at dequeue time. The
-    /// dispatcher runs `resolve_targets` and either fans out to `Direct`
-    /// effects or halts on input.
+    // Resolved against live state at dequeue via `resolve_selection_kind`.
     Resolve {
-        candidates: CandidatePool,
-        selection: SelectionKind,
+        candidate_pool: CandidatePool,
+        selection_kind: SelectionKind,
     },
 }
 
-// Effect: a unit of work in the queue. Unified type used for both static card
-// and monster-move definitions (which use `Resolve` target) and
-// runtime-synthesized effects (which use `Direct` target)
+// A unit of work in the queue; static defs use `Resolve`, runtime uses `Direct`
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Effect {
     pub kind: EffectKind,
@@ -283,24 +255,20 @@ pub struct Effect {
     pub target: Target,
 }
 
-// Default-zero Effect, used to fill fixed-size arrays (Entity.card_effects,
-// EffectBuf, etc.). Slots past `*_len` are ignored
+// Filler for slots past `card_effects_len` in Entity.card_effects
 pub const ZERO_EFFECT: Effect = Effect {
-    kind: EffectKind::Noop,
+    kind: EffectKind::NoOp,
     id_source: None,
     target: Target::Direct(None),
 };
 
-impl Effect {
-    pub const fn direct(
-        kind: EffectKind,
-        id_source: Option<usize>,
-        id_target: Option<usize>,
-    ) -> Self {
-        Self {
-            kind,
-            id_source,
-            target: Target::Direct(id_target),
-        }
+// Input count if the Effect's target is Resolve with SelectionKind::Input
+pub fn get_input_count(effect: &Effect) -> Option<u16> {
+    match effect.target {
+        Target::Resolve {
+            selection_kind: SelectionKind::Input { count },
+            ..
+        } => Some(count),
+        _ => None,
     }
 }

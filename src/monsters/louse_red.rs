@@ -21,8 +21,8 @@ static MOVE_BITE_5: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 5 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -36,8 +36,8 @@ static MOVE_BITE_6: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -51,8 +51,8 @@ static MOVE_BITE_7: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 7 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -66,8 +66,8 @@ static MOVE_BITE_8: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 8 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -84,8 +84,8 @@ static MOVE_STRENGTHEN_3: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
@@ -99,15 +99,14 @@ static MOVE_STRENGTHEN_4: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Buff,
 };
 
-// 9 move tables: 3 asc brackets × 3 valid bite values per bracket
-// Bite values 5/6/7 valid at Asc 0–1; 6/7/8 at Asc 2+
+// 9 move tables: 3 asc brackets × 3 bite values (5/6/7 at Asc 0-1, 6/7/8 at Asc 2+)
 static MOVES_ASC0_BITE5: [Move; 2] = [MOVE_BITE_5, MOVE_STRENGTHEN_3];
 static MOVES_ASC0_BITE6: [Move; 2] = [MOVE_BITE_6, MOVE_STRENGTHEN_3];
 static MOVES_ASC0_BITE7: [Move; 2] = [MOVE_BITE_7, MOVE_STRENGTHEN_3];
@@ -121,7 +120,7 @@ static MOVES_ASC17_BITE8: [Move; 2] = [MOVE_BITE_8, MOVE_STRENGTHEN_4];
 const IDX_MOVE_BITE: usize = 0;
 const IDX_MOVE_STRENGTHEN: usize = 1;
 
-pub fn spawn_louse_red(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_louse_red(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (10, 15)
     } else {

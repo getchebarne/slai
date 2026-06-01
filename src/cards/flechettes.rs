@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -25,11 +26,13 @@ pub static FLECHETTES: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::FlechettesDamage { damage: 4 },
+        kind: EffectKind::DamageFlechettes { damage: 4 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::MonsterPicked,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Picked,
+            },
+            selection_kind: SelectionKind::Single,
         },
     }],
     &[],
@@ -41,7 +44,7 @@ pub static FLECHETTES_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = FLECHETTES.card_effects;
-        a[0].kind = EffectKind::FlechettesDamage { damage: 6 }; // +2 damage
+        a[0].kind = EffectKind::DamageFlechettes { damage: 6 }; // +2 damage
         a
     },
     ..FLECHETTES

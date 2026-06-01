@@ -21,8 +21,8 @@ static MOVE_SCRATCH_4: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 4 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -36,8 +36,8 @@ static MOVE_SCRATCH_5: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 5 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -51,7 +51,7 @@ static MOVES_ASC17: [Move; 1] = [MOVE_SCRATCH_5];
 
 const IDX_MOVE_SCRATCH: usize = 0;
 
-pub fn spawn_gremlin_warrior(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_gremlin_warrior(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (20, 24)
     } else {

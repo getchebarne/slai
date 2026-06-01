@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -17,8 +18,10 @@ pub static FIRE_POTION: Entity = make_entity_potion(
         kind: EffectKind::DamagePhysical { amount: 20 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::MonsterPicked,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Picked,
+            },
+            selection_kind: SelectionKind::Single,
         },
     }],
 );

@@ -1,38 +1,50 @@
+use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
-use crate::types::DeckSelectKind;
 use crate::types::EventName;
 
-const USE: &[Effect] = &[
+// Pray
+const OPTION_PRAY: &[Effect] = &[
     Effect {
-        kind: EffectKind::DeckSelectStart {
-            kind: DeckSelectKind::DuplicateAny,
-        },
+        kind: EffectKind::CardDuplicate,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Deck {
+                filter: CandidatePoolDeckFilter::Any,
+            },
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
-const LEAVE: &[Effect] = &[EVENT_END_EFFECT];
+// Leave
+const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const OPTIONS: &[EventOption] = &[
+// All options
+const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Use (duplicate a card)",
-        effects: USE,
+        label: "[Pray] Choose a card. Add a copy of it to your deck.",
+        effects: OPTION_PRAY,
         gate: EventGate::None,
     },
     EventOption {
-        label: "Leave",
-        effects: LEAVE,
+        label: "[Leave] Nothing happens.",
+        effects: OPTION_LEAVE,
         gate: EventGate::None,
     },
 ];
 
-pub static DUPLICATOR: Entity = make_entity_event(EventName::Duplicator, OPTIONS);
+// Export event
+static EVENT_DUPLICATOR: Entity = make_entity_event(EventName::Duplicator, OPTIONS_ALL);
+pub fn spawn_event_duplicator() -> Entity {
+    EVENT_DUPLICATOR
+}

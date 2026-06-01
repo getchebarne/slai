@@ -1,38 +1,31 @@
-use std::collections::VecDeque;
-
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::GoldDeltaKind;
 use crate::effect::Target;
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
-use crate::types::Phase;
+use crate::types::DeltaSign;
 
-pub fn process_effect_death(
-    id_target: usize,
-    id_character: usize,
-    id_monsters: &[usize],
-    monster_count: u8,
-    entities: &mut [Entity],
-    effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
-    // Character death: abandon anything pending and mark dead so
-    // derive_phase returns Phase::GameOver on the natural drain
-    if id_target == id_character {
-        entities[id_character].dead = true;
-        effect_queue.clear();
-        return None;
+pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
+    let id_target = id_target.expect("Death requires id_target");
+    // Character death: clear pending work, mark dead, signal game over
+    if id_target == state.id_character {
+        state.entities[state.id_character].dead = true;
+        state.game_over = true;
+        state.effect_queue.clear();
+        return;
     }
 
-    // Monster-only path
-    let monster = &entities[id_target];
+    let id_character = state.id_character;
+    let monster = &state.entities[id_target];
 
-    // Stolen-gold return
     let gold_return = if monster.monster_stolen_gold > 0 {
         Some(Effect {
-            kind: EffectKind::GoldGain {
-                amount: monster.monster_stolen_gold,
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Gain,
+                kind: GoldDeltaKind::Fixed(monster.monster_stolen_gold),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
@@ -41,7 +34,6 @@ pub fn process_effect_death(
         None
     };
 
-    // SporeCloud: dying enemy stacks Vulnerable on the character
     let spore_effect = if modifier_has(&monster.modifiers, ModifierKind::SporeCloud) {
         let stacks = modifier_stacks(&monster.modifiers, ModifierKind::SporeCloud);
         Some(Effect {
@@ -56,61 +48,64 @@ pub fn process_effect_death(
         None
     };
 
-    // CorpseExplosion: dying enemy deals damage equal to its max HP to every
-    // other alive enemy. `id_source = None` so no source-side scaling and
-    // Envenom can't proc; block still subtracts
-    let effects_corpse: Vec<Effect> =
-        if modifier_has(&monster.modifiers, ModifierKind::CorpseExplosion) {
-            let dmg = monster.vitals.health_max;
-            id_monsters[..monster_count as usize]
-                .iter()
-                .filter(|&&id| id != id_target && !entities[id].dead)
-                .map(|&id| Effect {
-                    kind: EffectKind::DamageDeal { amount: dmg },
-                    id_source: None,
-                    target: Target::Direct(Some(id)),
-                })
-                .collect()
-        } else {
-            Vec::new()
-        };
+    // CorpseExplosion: max_health to others; no source scaling, no Envenom proc
+    let corpse_explosion = modifier_has(&monster.modifiers, ModifierKind::CorpseExplosion)
+        .then(|| monster.vitals.health_max);
 
-    entities[id_target].dead = true;
+    state.entities[id_target].dead = true;
+    if let Some(slot) = state.id_monsters.iter().position(|s| *s == Some(id_target)) {
+        state.id_monsters[slot] = None;
+    }
 
-    let any_alive = id_monsters[..monster_count as usize]
-        .iter()
-        .any(|&id| !entities[id].dead);
+    let any_alive = state.id_monsters.iter().any(|s| s.is_some());
 
     if !any_alive {
         // Combat ends. Replace pending effects with on-death triggers then CombatEnd
-        effect_queue.clear();
+        state.effect_queue.clear();
         if let Some(e) = gold_return {
-            effect_queue.push_back(e);
+            state.effect_queue.push_back(e);
         }
-        for e in &effects_corpse {
-            effect_queue.push_back(*e);
+        if let Some(dmg) = corpse_explosion {
+            for slot in state.id_monsters.iter() {
+                if let Some(id) = *slot
+                    && id != id_target
+                {
+                    state.effect_queue.push_back(Effect {
+                        kind: EffectKind::DamageDeal { amount: dmg },
+                        id_source: None,
+                        target: Target::Direct(Some(id)),
+                    });
+                }
+            }
         }
         if let Some(e) = spore_effect {
-            effect_queue.push_back(e);
+            state.effect_queue.push_back(e);
         }
-        effect_queue.push_back(Effect {
+        state.effect_queue.push_back(Effect {
             kind: EffectKind::CombatEnd,
             id_source: None,
             target: Target::Direct(None),
         });
     } else {
-        // Mid-combat: push to front so on-death triggers fire before any
-        // suspended chain resumes
+        // Mid-combat: push to front so on-death triggers fire before suspended chain
         if let Some(e) = spore_effect {
-            effect_queue.push_front(e);
+            state.effect_queue.push_front(e);
         }
-        for e in effects_corpse.iter().rev() {
-            effect_queue.push_front(*e);
+        if let Some(dmg) = corpse_explosion {
+            for slot in state.id_monsters.iter().rev() {
+                if let Some(id) = *slot
+                    && id != id_target
+                {
+                    state.effect_queue.push_front(Effect {
+                        kind: EffectKind::DamageDeal { amount: dmg },
+                        id_source: None,
+                        target: Target::Direct(Some(id)),
+                    });
+                }
+            }
         }
         if let Some(e) = gold_return {
-            effect_queue.push_front(e);
+            state.effect_queue.push_front(e);
         }
     }
-
-    None
 }

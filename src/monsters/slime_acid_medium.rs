@@ -22,8 +22,8 @@ static MOVE_WOUND_TACKLE_7: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -48,8 +48,8 @@ static MOVE_WOUND_TACKLE_8: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -73,8 +73,8 @@ static MOVE_HEAVY_TACKLE_10: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -88,8 +88,8 @@ static MOVE_HEAVY_TACKLE_12: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 12 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -106,8 +106,8 @@ static MOVE_LICK: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Debuff,
@@ -120,7 +120,7 @@ const IDX_MOVE_WOUND_TACKLE: usize = 0;
 const IDX_MOVE_HEAVY_TACKLE: usize = 1;
 const IDX_MOVE_LICK: usize = 2;
 
-pub fn spawn_slime_acid_medium(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_slime_acid_medium(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (28, 32)
     } else {

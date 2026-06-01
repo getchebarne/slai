@@ -33,8 +33,8 @@ pub static DOPPELGANGER: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -44,8 +44,8 @@ pub static DOPPELGANGER: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],

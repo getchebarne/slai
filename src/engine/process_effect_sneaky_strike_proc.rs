@@ -1,27 +1,18 @@
-use std::collections::VecDeque;
-
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::types::Phase;
+use crate::game::GameState;
 
-// SneakyStrike bonus: gain `energy` energy if at least one card has been
-// explicitly discarded this turn. The counter is increased in
-// `process_effect_card_discard`
-pub fn process_effect_sneaky_strike_proc(
-    this_turn_discards: u8,
-    energy: u8,
-    effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
-    if this_turn_discards == 0 {
-        return None;
+// Gain `energy` if any explicit discard this turn
+pub fn process_effect_sneaky_strike_proc(state: &mut GameState, energy: u8) {
+    if state.this_turn_discards == 0 {
+        return;
     }
-    effect_queue.push_front(Effect {
+    state.effect_queue.push_front(Effect {
         kind: EffectKind::EnergyGain {
             amount: energy as u16,
         },
         id_source: None,
         target: Target::Direct(None),
     });
-    None
 }

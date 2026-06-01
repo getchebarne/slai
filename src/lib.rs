@@ -30,9 +30,9 @@ use ffi::PyIntent;
 use ffi::PyMap;
 use ffi::PyModifier;
 use ffi::PyMonster;
-use ffi::PyPhase;
 use ffi::PyRelic;
 use ffi::PyRoom;
+use ffi::from_internal_action;
 use ffi::snapshot_state;
 use ffi::to_internal_action;
 use game::create_game_state;
@@ -66,10 +66,10 @@ impl GameEnv {
     const MAP_WIDTH: usize = consts::MAP_WIDTH;
 
     #[new]
-    #[pyo3(signature = (ascension=0))]
-    fn new(ascension: u8) -> Self {
+    #[pyo3(signature = (ascension=0, fast_mode=false))]
+    fn new(ascension: u8, fast_mode: bool) -> Self {
         // Placeholder seed; consumers must call `reset(seed=...)` before stepping (gymnasium convention)
-        let state = create_game_state(ascension, 0);
+        let state = create_game_state(ascension, 0, fast_mode);
         GameEnv { state }
     }
 
@@ -77,7 +77,7 @@ impl GameEnv {
     #[pyo3(signature = (seed=42))]
     fn reset(&mut self, seed: u64) -> PyGameState {
         let asc = self.state.ascension;
-        self.state = create_game_state(asc, seed);
+        self.state = create_game_state(asc, seed, self.state.fast_mode);
         snapshot_state(&self.state)
     }
 
@@ -87,8 +87,17 @@ impl GameEnv {
             to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
         step(&mut self.state, internal).map_err(pyo3::exceptions::PyValueError::new_err)?;
         let obs = snapshot_state(&self.state);
-        let terminated = matches!(self.state.phase, types::Phase::GameOver);
-        Ok((obs, terminated))
+        Ok((obs, self.state.game_over))
+    }
+
+    // Cached at every settle point; empty when game_over
+    fn get_legal_actions(&self) -> Vec<PyAction> {
+        self.state
+            .legal_actions
+            .iter()
+            .cloned()
+            .map(from_internal_action)
+            .collect()
     }
 }
 
@@ -113,6 +122,7 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyCardKind>()?;
     module.add_class::<ffi::PyCardColor>()?;
     module.add_class::<ffi::PyCardRarity>()?;
+    module.add_class::<ffi::PyPlayRestriction>()?;
     module.add_class::<ffi::PyCardCostKind>()?;
     module.add_class::<ffi::PyRoomKind>()?;
     module.add_class::<ffi::PyChestKind>()?;
@@ -126,15 +136,21 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyCardName>()?;
     module.add_class::<ffi::PyMonsterName>()?;
     module.add_class::<ffi::PyEventName>()?;
-    module.add_class::<ffi::PyDeckSelectKind>()?;
-    module.add_class::<ffi::PyHandSelectKind>()?;
+    module.add_class::<ffi::PyCandidatePoolDeckFilter>()?;
+    module.add_class::<ffi::PyCandidatePoolMonstersFilter>()?;
+    module.add_class::<ffi::PyScreen>()?;
     module.add_class::<ffi::PyEvent>()?;
     module.add_class::<ffi::PyEventOption>()?;
 
     // Complex enum mirrors
-    module.add_class::<PyPhase>()?;
     module.add_class::<ffi::PySelectionKind>()?;
     module.add_class::<ffi::PyTarget>()?;
     module.add_class::<ffi::PyEffect>()?;
+    module.add_class::<ffi::PyDeltaSign>()?;
+    module.add_class::<ffi::PyHealthDeltaAmount>()?;
+    module.add_class::<ffi::PyGoldDeltaKind>()?;
+
+    // Reward surface
+    module.add_class::<ffi::PyReward>()?;
     Ok(())
 }

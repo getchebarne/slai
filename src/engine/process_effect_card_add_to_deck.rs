@@ -1,16 +1,9 @@
 use crate::cards::get_card;
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::types::CardName;
-use crate::types::Phase;
+use crate::utils::push_entity;
 
-pub fn process_effect_card_add_to_deck(
-    card_name: CardName,
-    upgraded: bool,
-    entities: &mut Vec<Entity>,
-    id_deck: &mut Vec<usize>,
-) -> Option<Phase> {
-    let id = entities.len();
-    entities.push(get_card(card_name, upgraded));
-    id_deck.push(id);
-    None
+pub fn process_effect_card_add_to_deck(state: &mut GameState, card_name: CardName, upgraded: bool) {
+    let id = push_entity(&mut state.entities, get_card(card_name, upgraded));
+    state.id_deck.push(id);
 }

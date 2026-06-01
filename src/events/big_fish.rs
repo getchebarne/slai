@@ -1,38 +1,55 @@
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
-use crate::events::EVENT_END_EFFECT;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::CardName;
+use crate::types::DeltaSign;
 use crate::types::EventName;
 
-const BANANA: &[Effect] = &[
+// Banana
+const OPTION_BANANA: &[Effect] = &[
     Effect {
-        kind: EffectKind::HealthGainPct { numer: 1, denom: 3 },
-        id_source: None,
-        target: Target::Direct(None),
-    },
-    EVENT_END_EFFECT,
-];
-
-const DONUT: &[Effect] = &[
-    Effect {
-        kind: EffectKind::MaxHealthGain { amount: 5 },
+        kind: EffectKind::HealthDelta {
+            sign: DeltaSign::Gain,
+            amount: HealthDeltaAmount::Relative {
+                numerator: 1,
+                denominator: 3,
+            },
+        },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
-const BOX: &[Effect] = &[
+// Donut
+const OPTION_DONUT: &[Effect] = &[
+    Effect {
+        kind: EffectKind::MaxHealthDelta {
+            sign: DeltaSign::Gain,
+            amount: HealthDeltaAmount::Absolute(5),
+        },
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
+        },
+    },
+    EVENT_CONSUME_EFFECT,
+];
+
+// Box
+const OPTION_BOX: &[Effect] = &[
     Effect {
         kind: EffectKind::CardAddToDeck {
             card_name: CardName::Regret,
@@ -42,29 +59,34 @@ const BOX: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::RelicGrantRandom { tier: None },
+        kind: EffectKind::RelicGrantRandom,
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_END_EFFECT,
+    EVENT_CONSUME_EFFECT,
 ];
 
-const OPTIONS: &[EventOption] = &[
+// All options
+const OPTIONS_ALL: &[EventOption] = &[
     EventOption {
-        label: "Banana (heal 1/3 max HP)",
-        effects: BANANA,
+        label: "[Banana] Heal 1/3 of your max HP.",
+        effects: OPTION_BANANA,
         gate: EventGate::None,
     },
     EventOption {
-        label: "Donut (+5 max HP)",
-        effects: DONUT,
+        label: "[Donut] Raise your max HP by 5.",
+        effects: OPTION_DONUT,
         gate: EventGate::None,
     },
     EventOption {
-        label: "Box (curse + random relic)",
-        effects: BOX,
+        label: "[Box] Receive a Relic. Become Cursed - Regret.",
+        effects: OPTION_BOX,
         gate: EventGate::None,
     },
 ];
 
-pub static BIG_FISH: Entity = make_entity_event(EventName::BigFish, OPTIONS);
+// Export event
+static EVENT_BIG_FISH: Entity = make_entity_event(EventName::BigFish, OPTIONS_ALL);
+pub fn spawn_event_big_fish() -> Entity {
+    EVENT_BIG_FISH
+}

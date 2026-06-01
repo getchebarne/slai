@@ -5,6 +5,7 @@ mod bag_of_preparation;
 mod blood_vial;
 mod bronze_scales;
 mod circlet;
+mod golden_idol;
 mod kunai;
 mod ninja_scroll;
 mod oddly_smooth_stone;
@@ -19,6 +20,7 @@ use strum::EnumCount;
 use crate::entity::Entity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
+use crate::types::relic_name_from_u8;
 
 pub fn get_relic(name: RelicName) -> Entity {
     match name {
@@ -37,6 +39,7 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::TwistedFunnel => twisted_funnel::TWISTED_FUNNEL,
         RelicName::Vajra => vajra::VAJRA,
         RelicName::Circlet => circlet::CIRCLET,
+        RelicName::GoldenIdol => golden_idol::GOLDEN_IDOL,
     }
 }
 
@@ -46,7 +49,7 @@ pub fn iter_owned_relics(
     id_relics
         .iter()
         .enumerate()
-        .filter_map(|(i, &opt)| opt.map(|id| (RelicName::from_u8(i as u8), id)))
+        .filter_map(|(i, &opt)| opt.map(|id| (relic_name_from_u8(i as u8), id)))
 }
 
 pub const ALL_RELICS: &[&'static Entity] = &[
@@ -58,6 +61,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &blood_vial::BLOOD_VIAL,
     &bronze_scales::BRONZE_SCALES,
     &circlet::CIRCLET,
+    &golden_idol::GOLDEN_IDOL,
     &kunai::KUNAI,
     &ninja_scroll::NINJA_SCROLL,
     &oddly_smooth_stone::ODDLY_SMOOTH_STONE,

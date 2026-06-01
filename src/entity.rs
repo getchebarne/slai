@@ -1,10 +1,6 @@
-// Entities: every kind of thing that lives in `GameState.entities`
-//
-// One flat "fat" Entity struct holds all fields from all kinds. A runtime
-// `EntityKind` tag distinguishes them. Variant-specific `const fn`
-// constructors below (`make_entity_card`, `make_entity_monster`, etc.) are the only
-// way to build an Entity — they set the relevant fields and zero the rest
+// Fat Entity + EntityKind tag; build only via `make_entity_*` const fns
 
+use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
@@ -12,12 +8,6 @@ use crate::effect::ZERO_EFFECT;
 use crate::events::EventOption;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
-
-// Per-card effect array capacity. Largest current card is RiddleWithHoles
-// (5 hits). 8 leaves headroom for Tier 5 cards (Eviscerate × 3, Skewer × X
-// with practical caps, etc.). Bump when a card legitimately exceeds it
-pub const MAX_EFFECTS_PER_CARD: usize = 8;
-use crate::consts::POTION_SLOTS_MAX;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -33,6 +23,7 @@ use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Vitals;
 use crate::types::ZERO_VITALS;
+use crate::utils::push_entity;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EntityKind {
@@ -61,6 +52,7 @@ pub enum CardCostKind {
     XCost { offset: i8 },
 }
 
+// TODO: revisit implementation. Could be flat-enum and `damage: u16` and `instances: u8`
 #[derive(Debug, Clone, Copy)]
 pub enum Intent {
     Attack { damage: u16, instances: u8 },
@@ -90,30 +82,28 @@ pub struct Move {
 pub struct Entity {
     pub kind: EntityKind,
 
-    // Combatant (Character or Monster)
+    // Combatant — Character, Monster
     pub vitals: Vitals,
     pub modifiers: Modifiers,
     pub dead: bool,
+
+    // Card and Potion (player-played entities that may pick a monster target)
+    pub requires_target: bool,
 
     // Character-only
     pub character_name: &'static str,
     pub character_reward_roll_offset: i8,
     pub character_gold: u16,
-    pub potion_slots: [Option<usize>; POTION_SLOTS_MAX],
-    pub potion_slots_max: u8,
 
     // Monster-only
     pub monster_name: MonsterName,
     pub monster_kind: MonsterKind,
-    pub moves: &'static [Move],
-    pub move_current: Option<usize>,
-    pub move_history: [u8; MAX_MOVE_HISTORY],
-    pub move_history_len: u8,
+    pub monster_moves: &'static [Move],
+    pub monster_move_current: Option<usize>,
+    pub monster_move_history: [u8; MAX_MOVE_HISTORY],
+    pub monster_move_history_len: u8,
     pub monster_cycle_count: u8,  // Only used by "The Guardian"
     pub monster_stolen_gold: u16, // Only used by "Looter"
-
-    // Card + Potion (player-played entities that may pick a monster target)
-    pub requires_target: bool,
 
     // Card-only
     pub card_name: CardName,
@@ -139,9 +129,10 @@ pub struct Entity {
     pub room_y: usize,
     pub room_x: usize,
     pub room_kind: RoomKind,
-    pub edges: u8,
+    pub room_edges: u8,
     pub room_chest_kind: Option<ChestKind>,
     pub room_chest_opened: bool,
+    pub room_rest_site_done: bool,
 
     // Relic-only
     pub relic_name: RelicName,
@@ -161,29 +152,23 @@ pub struct Entity {
     pub event_options: &'static [EventOption],
     pub event_consumed: bool,
     pub event_state: u8,
-    pub event_param_a: u16,
-    pub event_param_b: u16,
-    pub event_param_c: u16,
 }
 
-// Private zero-fill used by the public const fn constructors below
-// Not exported — external code must go through one of the `*_entity` fns
-const ZERO_ENTITY: Entity = Entity {
+// Zero-fill sentinel; used by const constructors and unused arena slots
+pub const ZERO_ENTITY: Entity = Entity {
     kind: EntityKind::Character,
     vitals: ZERO_VITALS,
     modifiers: ZERO_MODIFIERS,
     character_name: "",
     character_reward_roll_offset: 0,
     character_gold: 0,
-    potion_slots: [None; POTION_SLOTS_MAX],
-    potion_slots_max: 0,
     monster_stolen_gold: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
-    moves: &[],
-    move_current: None,
-    move_history: [0; MAX_MOVE_HISTORY],
-    move_history_len: 0,
+    monster_moves: &[],
+    monster_move_current: None,
+    monster_move_history: [0; MAX_MOVE_HISTORY],
+    monster_move_history_len: 0,
     monster_cycle_count: 0,
     dead: false,
     card_name: CardName::Strike,
@@ -208,9 +193,10 @@ const ZERO_ENTITY: Entity = Entity {
     room_y: 0,
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
-    edges: 0,
+    room_edges: 0,
     room_chest_kind: None,
     room_chest_opened: false,
+    room_rest_site_done: false,
     relic_name: RelicName::SnakeRing,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,
@@ -224,9 +210,6 @@ const ZERO_ENTITY: Entity = Entity {
     event_options: &[],
     event_consumed: false,
     event_state: 0,
-    event_param_a: 0,
-    event_param_b: 0,
-    event_param_c: 0,
 };
 
 // Constructors
@@ -251,7 +234,7 @@ pub const fn make_entity_monster(
     monster_kind: MonsterKind,
     vitals: Vitals,
     modifiers: Modifiers,
-    moves: &'static [Move],
+    monster_moves: &'static [Move],
 ) -> Entity {
     Entity {
         kind: EntityKind::Monster,
@@ -259,7 +242,7 @@ pub const fn make_entity_monster(
         modifiers,
         monster_name: name,
         monster_kind,
-        moves,
+        monster_moves,
         ..ZERO_ENTITY
     }
 }
@@ -304,7 +287,7 @@ pub const fn make_entity_card(
         card_exhaust: exhaust,
         card_ethereal: ethereal,
         card_innate: innate,
-        requires_target: requires_target,
+        requires_target,
         card_play_restriction: play_restriction,
         card_effects: arr,
         card_effects_len: effects.len() as u8,
@@ -314,13 +297,13 @@ pub const fn make_entity_card(
     }
 }
 
-pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, edges: u8) -> Entity {
+pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, room_edges: u8) -> Entity {
     Entity {
         kind: EntityKind::Room,
         room_y: y,
         room_x: x,
         room_kind,
-        edges,
+        room_edges,
         ..ZERO_ENTITY
     }
 }
@@ -398,8 +381,7 @@ pub fn add_card_to_hand_or_discard(
     id_pile_discard: &mut Vec<usize>,
     card: Entity,
 ) -> usize {
-    let id_card = entities.len();
-    entities.push(card);
+    let id_card = push_entity(entities, card);
     if id_hand.len() < MAX_SIZE_HAND {
         id_hand.push(id_card);
     } else {
@@ -419,13 +401,13 @@ pub fn is_play_restriction_satisfied(restriction: PlayRestriction, id_pile_draw:
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     assert!(
-        (entity.move_history_len as usize) < MAX_MOVE_HISTORY,
-        "move_history overflow"
+        (entity.monster_move_history_len as usize) < MAX_MOVE_HISTORY,
+        "monster_move_history overflow"
     );
-    entity.move_history[entity.move_history_len as usize] = move_idx;
-    entity.move_history_len += 1;
+    entity.monster_move_history[entity.monster_move_history_len as usize] = move_idx;
+    entity.monster_move_history_len += 1;
 }
 
 pub fn get_move_history_slice(entity: &Entity) -> &[u8] {
-    &entity.move_history[..entity.move_history_len as usize]
+    &entity.monster_move_history[..entity.monster_move_history_len as usize]
 }

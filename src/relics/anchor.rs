@@ -16,8 +16,8 @@ pub static ANCHOR: Entity = make_entity_relic(
         kind: EffectKind::BlockGain { amount: 10 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
 );

@@ -1,10 +1,8 @@
-use crate::types::Phase;
-use crate::utils::remove_card_from_collection;
+use crate::game::GameState;
 
-pub fn process_effect_card_remove(id_card: usize, id_hand: &mut Vec<usize>) -> Option<Phase> {
-    // Remove card from the hand
-    remove_card_from_collection(id_card, id_hand);
-
-    // Continue
-    None
+pub fn process_effect_card_remove(id_target: Option<usize>, state: &mut GameState) {
+    let id_card = id_target.expect("CardRemove requires id_target");
+    if let Some(pos) = state.id_hand.iter().position(|&v| v == id_card) {
+        state.id_hand.remove(pos);
+    }
 }

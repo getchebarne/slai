@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -28,8 +29,10 @@ pub static MIND_BLAST: Entity = make_entity_card(
         kind: EffectKind::DamageMindBlast,
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::MonsterPicked,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Picked,
+            },
+            selection_kind: SelectionKind::Single,
         },
     }],
     &[],

@@ -1,31 +1,28 @@
-use rand::Rng;
-
-use crate::entity::Entity;
 use crate::entity::push_move_history;
+use crate::game::GameState;
 use crate::monsters::get_next_move;
 use crate::monsters::is_cycle_boundary;
-use crate::types::Phase;
 
-pub fn process_effect_move_update(
-    entity: &mut Entity,
-    entity_id: usize,
-    id_alive_monsters: &[usize],
-    ascension_level: u8,
-    rng: &mut impl Rng,
-) -> Option<Phase> {
-    // Get next move
-    let move_next = get_next_move(entity, entity_id, id_alive_monsters, ascension_level, rng);
+pub fn process_effect_move_update(id_target: Option<usize>, state: &mut GameState) {
+    let id_target = id_target.expect("MoveUpdate requires id_target");
+    let ascension_level = state.ascension;
+    let id_monsters = state.id_monsters;
 
-    // Set current move
-    entity.move_current = Some(move_next);
+    let entity = &mut state.entities[id_target];
+    let move_next = get_next_move(
+        entity,
+        id_target,
+        &id_monsters,
+        ascension_level,
+        &mut state.rng,
+    );
 
-    // Update move history
+    entity.monster_move_current = Some(move_next);
+
     let move_idx = move_next as u8;
     push_move_history(entity, move_idx);
 
-    // Update cycle count
     if is_cycle_boundary(entity.monster_name, move_idx) {
         entity.monster_cycle_count += 1;
     }
-    None
 }

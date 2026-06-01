@@ -19,8 +19,8 @@ static MOVE_PUNCTURE_9: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 9 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -34,8 +34,8 @@ static MOVE_PUNCTURE_10: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -49,7 +49,7 @@ static MOVES_ASC17: [Move; 1] = [MOVE_PUNCTURE_10];
 
 const IDX_MOVE_PUNCTURE: usize = 0;
 
-pub fn spawn_gremlin_thief(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_gremlin_thief(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (10, 14)
     } else {

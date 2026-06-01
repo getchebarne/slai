@@ -21,6 +21,11 @@ class CardRarity(IntEnum):
     Special: int
     Curse: int
 
+class PlayRestriction(IntEnum):
+    Always: int
+    Never: int
+    DrawPileEmpty: int
+
 class RoomKind(IntEnum):
     CombatMonster: int
     CombatElite: int
@@ -87,15 +92,31 @@ class IntentKind(IntEnum):
     Stunned: int
     Unknown: int
 
-class CandidatePool(IntEnum):
-    Hand: int
-    CardTarget: int
-    Character: int
-    Monsters: int
-    OtherMonsters: int
-    Source: int
-    NextRowRooms: int
-    CardRewardPool: int
+class CandidatePool:
+    class Hand:
+        def __init__(self) -> None: ...
+
+    class Character:
+        def __init__(self) -> None: ...
+
+    class Monsters:
+        filter: CandidatePoolMonstersFilter
+        def __init__(self, filter: CandidatePoolMonstersFilter) -> None: ...
+
+    class Source:
+        def __init__(self) -> None: ...
+
+    class Discover:
+        def __init__(self) -> None: ...
+
+    class Deck:
+        filter: CandidatePoolDeckFilter
+        def __init__(self, filter: CandidatePoolDeckFilter) -> None: ...
+
+class CandidatePoolMonstersFilter(IntEnum):
+    All: int
+    Other: int
+    Picked: int
 
 class RelicName(IntEnum):
     SnakeRing: int
@@ -112,6 +133,8 @@ class RelicName(IntEnum):
     ThreadAndNeedle: int
     TwistedFunnel: int
     Vajra: int
+    Circlet: int
+    GoldenIdol: int
 
 class RelicTier(IntEnum):
     Starter: int
@@ -260,54 +283,59 @@ class MonsterName(IntEnum):
     TheGuardian: int
 
 class ActionType(IntEnum):
-    EndTurn: int
+    CardDiscard: int
+    CardDiscover: int
+    CardDuplicate: int
+    CardNightmare: int
     CardPlay: int
-    HandSelect: int
-    RoomSelect: int
-    RestSiteRest: int
-    RestSiteCardUpgrade: int
-    RoomSkip: int
+    CardPurge: int
+    CardRetain: int
+    CardSetup: int
+    CardTransform: int
+    CardUpgrade: int
     ChestOpen: int
-    PotionUse: int
+    EventOptionSelect: int
     PotionDiscard: int
-    CardDiscoverSelect: int
+    PotionUse: int
+    Rest: int
     RewardTakeCard: int
-    RewardTakeRelic: int
-    RewardTakePotion: int
     RewardTakeGold: int
-    RewardSkip: int
-    EventChoice: int
-    DeckSelect: int
+    RewardTakePotion: int
+    RewardTakeRelic: int
+    RoomExit: int
+    RoomSelect: int
+    TurnEnd: int
 
-class DeckSelectKind(IntEnum):
-    Remove: int
-    UpgradeAny: int
-    TransformOne: int
-    DuplicateAny: int
+class CandidatePoolDeckFilter(IntEnum):
+    Purgeable: int
+    Upgradeable: int
+    Any: int
+    Transformable: int
 
-class HandSelectKind(IntEnum):
-    Discard: int
-    Retain: int
-    Setup: int
-    Nightmare: int
+class Screen(IntEnum):
+    Combat: int
+    Reward: int
+    Event: int
+    Shop: int
+    Map: int
+    RestSite: int
+    Chest: int
 
 class EventName(IntEnum):
     BigFish: int
-    Cleric: int
-    Designer: int
+    TheCleric: int
     Duplicator: int
-    GoldShrine: int
-    GoldenIdolEvent: int
-    GoldenWing: int
-    GoopPuddle: int
+    GoldenShrine: int
+    GoldenIdol: int
+    WingStatue: int
+    WorldOfGoop: int
     LivingWall: int
-    PurificationShrine: int
+    Purifier: int
     ScrapOoze: int
     ShiningLight: int
-    Sssserpent: int
+    TheSsssserpent: int
     Transmogrifier: int
     UpgradeShrine: int
-    WeMeetAgain: int
 
 class EventOption:
     label: str
@@ -334,55 +362,11 @@ class CardCostKind:
         offset: int
         def __init__(self, offset: int) -> None: ...
 
-class Phase:
-    class Map:
-        def __init__(self) -> None: ...
-
-    class CombatDefault:
-        def __init__(self) -> None: ...
-
-    class AwaitHandSelect:
-        kind: HandSelectKind
-        num: int
-        def __init__(self, kind: HandSelectKind, num: int) -> None: ...
-
-    class CombatAwaitDiscover:
-        cards: list[Card]
-        def __init__(self, cards: list[Card]) -> None: ...
-
-    class Reward:
-        cards: list[Card]
-        relic: Relic | None
-        potion: Potion | None
-        gold: int | None
-        def __init__(
-            self,
-            cards: list[Card],
-            relic: Relic | None,
-            potion: Potion | None,
-            gold: int | None,
-        ) -> None: ...
-
-    class RestSite:
-        def __init__(self) -> None: ...
-
-    class GameOver:
-        def __init__(self) -> None: ...
-
-    class Chest:
-        def __init__(self) -> None: ...
-
-    class Shop:
-        def __init__(self) -> None: ...
-
-    class AwaitEventChoice:
-        event: Event
-        def __init__(self, event: Event) -> None: ...
-
-    class AwaitDeckSelect:
-        kind: DeckSelectKind
-        cards: list[Card]
-        def __init__(self, kind: DeckSelectKind, cards: list[Card]) -> None: ...
+class Reward:
+    cards: list[Card]
+    relic: Relic | None
+    potion: Potion | None
+    gold: int | None
 
 class SelectionKind:
     class All:
@@ -429,7 +413,7 @@ class Effect:
     class CardNightmarePick:
         target: Optional[Target]
 
-    class CardDiscoverSelect:
+    class CardDiscover:
         kind: CardKind
         count: int
         target: Optional[Target]
@@ -441,11 +425,11 @@ class Effect:
         amount: int
         target: Optional[Target]
 
-    class FinisherDamage:
+    class DamageFinisher:
         damage: int
         target: Optional[Target]
 
-    class FlechettesDamage:
+    class DamageFlechettes:
         damage: int
         target: Optional[Target]
 
@@ -492,7 +476,7 @@ class Effect:
         count: int
         target: Optional[Target]
 
-    class DrawUpTo:
+    class CardDrawUpTo:
         amount: int
         target: Optional[Target]
 
@@ -537,21 +521,20 @@ class ActionSpec(NamedTuple):
 
 class ActionSpecRegistry:
     CardPlay: ActionSpec
-    EndTurn: ActionSpec
+    TurnEnd: ActionSpec
     HandSelect: ActionSpec
     RoomSelect: ActionSpec
-    RestSiteRest: ActionSpec
+    Rest: ActionSpec
     RestSiteCardUpgrade: ActionSpec
-    RoomSkip: ActionSpec
+    RoomExit: ActionSpec
     ChestOpen: ActionSpec
     PotionUse: ActionSpec
     PotionDiscard: ActionSpec
-    CardDiscoverSelect: ActionSpec
+    CardDiscover: ActionSpec
     RewardTakeCard: ActionSpec
     RewardTakeRelic: ActionSpec
     RewardTakePotion: ActionSpec
     RewardTakeGold: ActionSpec
-    RewardSkip: ActionSpec
 
     def __getattr__(self, name: str) -> ActionSpec: ...
     def __getitem__(self, key: Union[int, str, ActionType]) -> ActionSpec: ...
@@ -599,6 +582,7 @@ class Card:
     kind: CardKind
     color: CardColor
     rarity: CardRarity
+    play_restriction: PlayRestriction
 
     # Other boolean fields
     upgraded: bool
@@ -619,11 +603,11 @@ class Card:
             Effect.GlassKnifeDecay,
             Effect.CardSetupPick,
             Effect.CardNightmarePick,
-            Effect.CardDiscoverSelect,
+            Effect.CardDiscoverRoll,
             Effect.DistractionAdd,
             Effect.SetCostOverride,
-            Effect.FinisherDamage,
-            Effect.FlechettesDamage,
+            Effect.DamageFinisher,
+            Effect.DamageFlechettes,
             Effect.UnloadDiscard,
             Effect.StormOfSteelProc,
             Effect.SneakyStrikeProc,
@@ -634,7 +618,7 @@ class Card:
             Effect.EnergyGain,
             Effect.CardAddToHand,
             Effect.CardDraw,
-            Effect.DrawUpTo,
+            Effect.CardDrawUpTo,
             Effect.CardDiscard,
             Effect.DamageMindBlast,
             Effect.ShuffleDiscardPileIntoDrawPile,
@@ -665,8 +649,8 @@ class Monster:
     intent: Intent
 
 class Energy:
-    current: int
-    max: int
+    energy_current: int
+    energy_max: int
 
 class Room:
     room_kind: RoomKind
@@ -692,18 +676,19 @@ class GameState:
 
     # Relics, Energy and Map
     relics: list[Relic]
+    # Slot-indexed belt of length potion_slots_max; None at empty slots
+    potions: list[Potion | None]
+    potion_slots_max: int
     energy: Energy
     map: Map
-
-    # Phase
-    phase: Union[
-        Phase.Map,
-        Phase.CombatDefault,
-        Phase.AwaitHandSelect,
-        Phase.Reward,
-        Phase.RestSite,
-        Phase.GameOver,
-    ]
+    screen: Screen
+    game_over: bool
+    reward: Reward | None
+    event: Event | None
+    # The unresolved halt effect (a Resolve effect) when the engine awaits a pick; None otherwise
+    pending: Effect | None
+    # Discover candidates (the freshly-generated pick set); empty outside a discover halt
+    discover: list[Card]
 
 class GameEnv:
     MAX_MONSTERS: int
@@ -715,6 +700,7 @@ class GameEnv:
     MAP_HEIGHT: int
     MAP_WIDTH: int
 
-    def __init__(self, ascension: int = 0) -> None: ...
+    def __init__(self, ascension: int = 0, fast_mode: bool = False) -> None: ...
     def reset(self, seed: int = 42) -> GameState: ...
     def step(self, action: Action) -> tuple[GameState, bool]: ...
+    def get_legal_actions(self) -> list[Action]: ...
