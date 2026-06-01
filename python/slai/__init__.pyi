@@ -31,6 +31,10 @@ class RoomKind(IntEnum):
     CombatElite: int
     CombatBoss: int
     RestSite: int
+    Treasure: int
+    EventRoom: int
+    Shop: int
+    Unknown: int
 
 class ModifierKind(IntEnum):
     Accuracy: int

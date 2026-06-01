@@ -2,6 +2,9 @@ use rand::Rng;
 
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
+use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
+use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
+use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -26,7 +29,14 @@ pub fn process_effect_room_enter(state: &mut GameState) {
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     state.effect_buf.clear();
 
-    match room_kind {
+    // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
+    let resolved = if room_kind == RoomKind::Unknown {
+        roll_unknown_room(state)
+    } else {
+        room_kind
+    };
+
+    match resolved {
         RoomKind::CombatBoss => {
             let encounter = state.encounter_boss;
             spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
@@ -73,6 +83,9 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::Shop => {
             state.screen = Screen::Shop;
         }
+        RoomKind::Unknown => {
+            unreachable!("Unknown is resolved into a concrete kind before dispatch")
+        }
     }
 
     if !state.effect_buf.is_empty() {
@@ -83,6 +96,43 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         });
         flush_effects_from_buf_to_queue_front(state);
     }
+}
+
+// Resolve a "?" room into a concrete kind, then drift the running tallies
+fn roll_unknown_room(state: &mut GameState) -> RoomKind {
+    let idx = state.rng.random_range(0..100) as i32;
+    let chance_monster = (state.unknown_chance_monster * 100.0) as i32;
+    let chance_shop = (state.unknown_chance_shop * 100.0) as i32;
+    let chance_treasure = (state.unknown_chance_treasure * 100.0) as i32;
+
+    let resolved = if idx < chance_monster {
+        RoomKind::CombatMonster
+    } else if idx < chance_monster + chance_shop {
+        RoomKind::Shop
+    } else if idx < chance_monster + chance_shop + chance_treasure {
+        RoomKind::Treasure
+    } else {
+        RoomKind::EventRoom
+    };
+
+    // Drift: the chosen type resets to base, every other type accumulates by its base
+    state.unknown_chance_monster = if resolved == RoomKind::CombatMonster {
+        UNKNOWN_CHANCE_BASE_MONSTER
+    } else {
+        state.unknown_chance_monster + UNKNOWN_CHANCE_BASE_MONSTER
+    };
+    state.unknown_chance_shop = if resolved == RoomKind::Shop {
+        UNKNOWN_CHANCE_BASE_SHOP
+    } else {
+        state.unknown_chance_shop + UNKNOWN_CHANCE_BASE_SHOP
+    };
+    state.unknown_chance_treasure = if resolved == RoomKind::Treasure {
+        UNKNOWN_CHANCE_BASE_TREASURE
+    } else {
+        state.unknown_chance_treasure + UNKNOWN_CHANCE_BASE_TREASURE
+    };
+
+    resolved
 }
 
 fn spawn_random_event(
