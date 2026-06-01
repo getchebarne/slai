@@ -250,7 +250,6 @@ pub enum RoomKind {
     Treasure,
     EventRoom,
     Shop,
-    // `?` node: hidden type, resolved into a concrete kind on entry (never observed after entry)
     Unknown,
 }
 
