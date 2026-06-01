@@ -1,7 +1,5 @@
 use crate::cards::get_card;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
-use crate::consts::POTION_SLOTS_DEFAULT;
-use crate::consts::POTION_SLOTS_DEFAULT_A11;
 use crate::consts::STARTING_GOLD;
 use crate::entity::Entity;
 use crate::entity::make_entity_character;
@@ -10,7 +8,7 @@ use crate::types::Vitals;
 
 pub fn spawn_silent(ascension: u8) -> Entity {
     let (health, health_max) = silent_health(ascension);
-    let mut entity = make_entity_character(
+    make_entity_character(
         "Silent",
         Vitals {
             health,
@@ -19,13 +17,7 @@ pub fn spawn_silent(ascension: u8) -> Entity {
         },
         CARD_REWARD_ROLL_OFFSET_BASE,
         STARTING_GOLD,
-    );
-    entity.character_potion_slots_max = if ascension >= 11 {
-        POTION_SLOTS_DEFAULT_A11
-    } else {
-        POTION_SLOTS_DEFAULT
-    };
-    entity
+    )
 }
 
 pub fn get_silent_starter_deck() -> Vec<Entity> {

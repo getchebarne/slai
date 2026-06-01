@@ -676,6 +676,9 @@ class GameState:
 
     # Relics, Energy and Map
     relics: list[Relic]
+    # Slot-indexed belt of length potion_slots_max; None at empty slots
+    potions: list[Potion | None]
+    potion_slots_max: int
     energy: Energy
     map: Map
     screen: Screen

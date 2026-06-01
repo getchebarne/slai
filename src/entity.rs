@@ -3,7 +3,6 @@
 use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_SIZE_HAND;
-use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
 use crate::events::EventOption;
@@ -95,8 +94,6 @@ pub struct Entity {
     pub character_name: &'static str,
     pub character_reward_roll_offset: i8,
     pub character_gold: u16,
-    pub character_potion_slots: [Option<usize>; POTION_SLOTS_MAX],
-    pub character_potion_slots_max: u8,
 
     // Monster-only
     pub monster_name: MonsterName,
@@ -165,8 +162,6 @@ pub const ZERO_ENTITY: Entity = Entity {
     character_name: "",
     character_reward_roll_offset: 0,
     character_gold: 0,
-    character_potion_slots: [None; POTION_SLOTS_MAX],
-    character_potion_slots_max: 0,
     monster_stolen_gold: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,

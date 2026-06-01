@@ -21,6 +21,9 @@ use crate::consts::MAX_ENTITIES;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_DECK;
 use crate::consts::MAX_SIZE_HAND;
+use crate::consts::POTION_SLOTS_DEFAULT;
+use crate::consts::POTION_SLOTS_DEFAULT_A11;
+use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
@@ -82,6 +85,10 @@ pub struct GameState {
 
     // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
     pub id_relics: [Option<usize>; RelicName::COUNT],
+
+    // Slot-indexed belt; `id_potions[slot]` is `Some(entity_id)` iff occupied (duplicates allowed)
+    pub id_potions: [Option<usize>; POTION_SLOTS_MAX],
+    pub potion_slots_max: u8,
 
     // `?`-room drift state; event chance = 1 - sum(others)
     pub unknown_chance_monster: f32,
@@ -145,6 +152,14 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
     id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
 
+    // Belt capacity is a run-level rule (3, or 2 at ascension 11+); slots start empty
+    let id_potions: [Option<usize>; POTION_SLOTS_MAX] = [None; POTION_SLOTS_MAX];
+    let potion_slots_max = if ascension >= 11 {
+        POTION_SLOTS_DEFAULT_A11
+    } else {
+        POTION_SLOTS_DEFAULT
+    };
+
     // Initialize starter deck
     let deck_starter = get_silent_starter_deck();
     let mut id_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
@@ -178,6 +193,8 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         id_character: 0,
         id_deck,
         id_relics,
+        id_potions,
+        potion_slots_max,
         id_rooms,
         location,
         encounter_pool_normal,

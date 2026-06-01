@@ -269,18 +269,18 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
     let id_event = state
         .id_event
         .expect("Event screen implies id_event is set");
-    let option = state.entities[id_event].event_options[idx];
-    for e in option.effects {
+    let event_option = state.entities[id_event].event_options[idx];
+    for effect in event_option.effects {
         state.effect_buf.push(Effect {
             id_source: Some(id_event),
-            ..*e
+            ..*effect
         });
     }
 }
 
 fn handle_potion_discard(state: &mut GameState, idx: usize) {
-    let id_potion = state.entities[state.id_character].character_potion_slots[idx]
-        .expect("enumerated potion slot is occupied");
+    let id_potion = state.id_potions[idx].expect("enumerated potion slot is occupied");
+
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionDiscard,
         id_source: Some(id_potion),
@@ -289,8 +289,8 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
 }
 
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
-    let id_potion = state.entities[state.id_character].character_potion_slots[idx_potion]
-        .expect("enumerated potion slot is occupied");
+    let id_potion =
+        state.id_potions[idx_potion].expect("enumerated potion slot is occupied");
     if state.entities[id_potion].requires_target {
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
@@ -544,16 +544,10 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
     if state.reward_id_relic.is_some() {
         state.legal_actions.push(Action::RewardTakeRelic);
     }
-    if state.reward_id_potion.is_some() {
-        let character = &state.entities[state.id_character];
-        if find_free_slot(
-            &character.character_potion_slots,
-            character.character_potion_slots_max,
-        )
-        .is_some()
-        {
-            state.legal_actions.push(Action::RewardTakePotion);
-        }
+    if state.reward_id_potion.is_some()
+        && find_free_slot(&state.id_potions, state.potion_slots_max).is_some()
+    {
+        state.legal_actions.push(Action::RewardTakePotion);
     }
     if state.reward_gold.is_some() {
         state.legal_actions.push(Action::RewardTakeGold);
@@ -638,12 +632,11 @@ fn push_room_select_actions(state: &mut GameState) {
 }
 
 fn push_potion_actions(state: &mut GameState) {
-    let id_character = state.id_character;
     let in_combat = matches!(state.screen, Screen::Combat);
     let alive_count = state.id_monsters.iter().flatten().count();
-    let slots_max = state.entities[id_character].character_potion_slots_max as usize;
+    let slots_max = state.potion_slots_max as usize;
     for s in 0..slots_max {
-        let Some(id_potion) = state.entities[id_character].character_potion_slots[s] else {
+        let Some(id_potion) = state.id_potions[s] else {
             continue;
         };
         let potion = &state.entities[id_potion];

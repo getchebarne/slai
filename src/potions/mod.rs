@@ -163,26 +163,20 @@ pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) 
 
 // Returns the slot index on success, None when slots are full
 pub fn grant_potion(
+    id_potions: &mut [Option<usize>; POTION_SLOTS_MAX],
+    potion_slots_max: u8,
     entities: &mut Vec<Entity>,
-    id_character: usize,
     name: PotionName,
 ) -> Option<usize> {
-    let character = &entities[id_character];
-    let slot = match find_free_slot(
-        &character.character_potion_slots,
-        character.character_potion_slots_max,
-    ) {
-        Some(s) => s,
-        None => return None,
-    };
+    let slot = find_free_slot(id_potions, potion_slots_max)?;
     let id_potion = push_entity(entities, get_potion(name));
-    entities[id_character].character_potion_slots[slot] = Some(id_potion);
+    id_potions[slot] = Some(id_potion);
     Some(slot)
 }
 
 // Clear whichever belt slot holds id_potion; no-op if absent
-pub fn remove_potion(character: &mut Entity, id_potion: usize) {
-    for slot in character.character_potion_slots.iter_mut() {
+pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_potion: usize) {
+    for slot in id_potions.iter_mut() {
         if *slot == Some(id_potion) {
             *slot = None;
             return;

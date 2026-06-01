@@ -4,5 +4,10 @@ use crate::potions::grant_potion;
 
 pub fn process_effect_potion_add_random(state: &mut GameState, limited: bool) {
     let name = get_random_potion(&mut state.rng, limited);
-    grant_potion(&mut state.entities, state.id_character, name);
+    grant_potion(
+        &mut state.id_potions,
+        state.potion_slots_max,
+        &mut state.entities,
+        name,
+    );
 }

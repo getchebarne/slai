@@ -1581,8 +1581,6 @@ pub struct PyCharacter {
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
     pub gold: u16,
-    pub potion_slots: Vec<Option<PyPotion>>,
-    pub potion_slots_max: u8,
 }
 
 #[pyclass(eq, eq_int, hash, frozen, name = "IntentKind")]
@@ -1681,6 +1679,9 @@ pub struct PyGameState {
     pub pile_discard: Vec<PyCard>,
     pub pile_exhaust: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
+    // Slot-indexed belt (length potion_slots_max); None at empty slots so positions stay valid
+    pub potions: Vec<Option<PyPotion>>,
+    pub potion_slots_max: u8,
     pub energy: PyEnergy,
     pub map: PyMap,
     pub reward: Option<PyReward>,
@@ -1974,6 +1975,11 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(&state.entities[id]))
             .collect(),
+        potions: state.id_potions[..state.potion_slots_max as usize]
+            .iter()
+            .map(|s| s.map(|id| snapshot_potion(&state.entities[id])))
+            .collect(),
+        potion_slots_max: state.potion_slots_max,
         energy,
         map: snapshot_map(state),
         screen: state.screen.into(),
@@ -2025,11 +2031,6 @@ fn snapshot_potion(entity: &Entity) -> PyPotion {
 
 fn snapshot_character(state: &GameState) -> PyCharacter {
     let character = &state.entities[state.id_character];
-    let potion_slots = character.character_potion_slots
-        [..character.character_potion_slots_max as usize]
-        .iter()
-        .map(|s| s.map(|id| snapshot_potion(&state.entities[id])))
-        .collect();
     PyCharacter {
         name: character.character_name.to_string(),
         health: character.vitals.health,
@@ -2037,8 +2038,6 @@ fn snapshot_character(state: &GameState) -> PyCharacter {
         block: character.vitals.block,
         modifiers: snapshot_modifiers(&character.modifiers),
         gold: character.character_gold,
-        potion_slots,
-        potion_slots_max: character.character_potion_slots_max,
     }
 }
 
