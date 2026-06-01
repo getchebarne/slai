@@ -23,8 +23,8 @@ static MOVE_FLAME_TACKLE_16: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 16 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -49,8 +49,8 @@ static MOVE_FLAME_TACKLE_18: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 18 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -77,8 +77,8 @@ static MOVE_LICK_FRAIL_2: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Debuff,
@@ -92,8 +92,8 @@ static MOVE_LICK_FRAIL_3: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Debuff,
@@ -107,8 +107,8 @@ static MOVE_SPLIT: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -117,16 +117,16 @@ static MOVE_SPLIT: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
-            kind: EffectKind::EscapeMonster,
+            kind: EffectKind::MonsterEscape,
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -141,7 +141,7 @@ const IDX_MOVE_FLAME_TACKLE: usize = 0;
 const IDX_MOVE_LICK: usize = 1;
 pub const IDX_MOVE_SPLIT: usize = 2;
 
-pub fn spawn_slime_spike_large(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_slime_spike_large(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (64, 70)
     } else {
@@ -181,27 +181,27 @@ pub fn get_next_move_slime_spike_large(
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
         if roll < 30 {
-            // Flame Tackle: Asc 17+ no-two-in-a-row → fall back to Lick.
+            // Flame Tackle: Asc 17+ no-two-in-a-row -> fall back to Lick.
             if move_history.ends_with(&[IDX_MOVE_FLAME_TACKLE as u8, IDX_MOVE_FLAME_TACKLE as u8]) {
                 IDX_MOVE_LICK
             } else {
                 IDX_MOVE_FLAME_TACKLE
             }
         } else if move_history.last().copied() == Some(IDX_MOVE_LICK as u8) {
-            // Lick: Asc 17+ no-two-in-a-row → fall back to Flame Tackle.
+            // Lick: Asc 17+ no-two-in-a-row -> fall back to Flame Tackle.
             IDX_MOVE_FLAME_TACKLE
         } else {
             IDX_MOVE_LICK
         }
     } else if roll < 30 {
-        // Flame Tackle: Asc 0-16 no-three-in-a-row → fall back to Lick.
+        // Flame Tackle: Asc 0-16 no-three-in-a-row -> fall back to Lick.
         if move_history.ends_with(&[IDX_MOVE_FLAME_TACKLE as u8, IDX_MOVE_FLAME_TACKLE as u8]) {
             IDX_MOVE_LICK
         } else {
             IDX_MOVE_FLAME_TACKLE
         }
     } else if move_history.ends_with(&[IDX_MOVE_LICK as u8, IDX_MOVE_LICK as u8]) {
-        // Lick: Asc 0-16 no-three-in-a-row → fall back to Flame Tackle.
+        // Lick: Asc 0-16 no-three-in-a-row -> fall back to Flame Tackle.
         IDX_MOVE_FLAME_TACKLE
     } else {
         IDX_MOVE_LICK

@@ -52,8 +52,8 @@ static MOVE_SLAM_35: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 35 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -67,8 +67,8 @@ static MOVE_SLAM_38: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 38 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -85,8 +85,8 @@ static MOVE_SPLIT: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -95,16 +95,16 @@ static MOVE_SPLIT: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
-            kind: EffectKind::EscapeMonster,
+            kind: EffectKind::MonsterEscape,
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -120,7 +120,7 @@ const IDX_MOVE_PREPARING: usize = 1;
 const IDX_MOVE_SLAM: usize = 2;
 pub const IDX_MOVE_SPLIT: usize = 3;
 
-pub fn spawn_slime_boss(ascension_level: u8) -> Entity {
+pub fn spawn_monster_slime_boss(ascension_level: u8) -> Entity {
     let health_max: u16 = if ascension_level < 9 { 140 } else { 150 };
 
     let moves: &'static [Move] = if ascension_level < 4 {

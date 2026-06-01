@@ -410,7 +410,7 @@ const fn card_rarity_eq(lhs: CardRarity, rhs: CardRarity) -> bool {
     )
 }
 
-const fn color_eq(lhs: CardColor, rhs: CardColor) -> bool {
+const fn card_color_eq(lhs: CardColor, rhs: CardColor) -> bool {
     matches!(
         (lhs, rhs),
         (CardColor::Green, CardColor::Green)
@@ -432,7 +432,7 @@ const fn count_pool(rarity: CardRarity, color: CardColor) -> usize {
     while idx < ALL_CARDS.len() {
         let card = ALL_CARDS[idx];
         if card_rarity_eq(card.card_rarity, rarity)
-            && color_eq(card.card_color, color)
+            && card_color_eq(card.card_color, color)
             && is_rewardable_kind(card.card_kind)
         {
             // AscendersBane is Curse-rarity but Neow-only; skip
@@ -456,7 +456,7 @@ const fn build_pool<const N: usize>(rarity: CardRarity, color: CardColor) -> [Ca
     while idx_all < ALL_CARDS.len() {
         let card = ALL_CARDS[idx_all];
         if card_rarity_eq(card.card_rarity, rarity)
-            && color_eq(card.card_color, color)
+            && card_color_eq(card.card_color, color)
             && (matches!(rarity, CardRarity::Curse) || is_rewardable_kind(card.card_kind))
         {
             // AscendersBane is Curse-rarity but Neow-only; skip
@@ -472,11 +472,19 @@ const fn build_pool<const N: usize>(rarity: CardRarity, color: CardColor) -> [Ca
     buf
 }
 
-// Character-color rewardable pools (Silent / Green)
+// Pool sizes by (rarity, color) — Green
 const NUM_COMMON_GREEN: usize = count_pool(CardRarity::Common, CardColor::Green);
 const NUM_UNCOMMON_GREEN: usize = count_pool(CardRarity::Uncommon, CardColor::Green);
 const NUM_RARE_GREEN: usize = count_pool(CardRarity::Rare, CardColor::Green);
 
+// Colorless
+const NUM_UNCOMMON_COLORLESS: usize = count_pool(CardRarity::Uncommon, CardColor::Colorless);
+const NUM_RARE_COLORLESS: usize = count_pool(CardRarity::Rare, CardColor::Colorless);
+
+// Curse
+const NUM_CURSE: usize = count_pool(CardRarity::Curse, CardColor::Curse);
+
+// Pools by (rarity, color) — Green
 pub const POOL_COMMON_GREEN_CARD: &[CardName] =
     &build_pool::<NUM_COMMON_GREEN>(CardRarity::Common, CardColor::Green);
 pub const POOL_UNCOMMON_GREEN_CARD: &[CardName] =
@@ -484,33 +492,26 @@ pub const POOL_UNCOMMON_GREEN_CARD: &[CardName] =
 pub const POOL_RARE_GREEN_CARD: &[CardName] =
     &build_pool::<NUM_RARE_GREEN>(CardRarity::Rare, CardColor::Green);
 
-// Colorless pools — fed to shop, events, Neow (not combat rewards)
-const NUM_UNCOMMON_COLORLESS: usize = count_pool(CardRarity::Uncommon, CardColor::Colorless);
-const NUM_RARE_COLORLESS: usize = count_pool(CardRarity::Rare, CardColor::Colorless);
-
+// Colorless
 pub const POOL_UNCOMMON_COLORLESS_CARD: &[CardName] =
     &build_pool::<NUM_UNCOMMON_COLORLESS>(CardRarity::Uncommon, CardColor::Colorless);
 pub const POOL_RARE_COLORLESS_CARD: &[CardName] =
     &build_pool::<NUM_RARE_COLORLESS>(CardRarity::Rare, CardColor::Colorless);
 
-// Curses are kind=Curse + color=Curse; color filter unifies pool gen
-const NUM_CURSE: usize = count_pool(CardRarity::Curse, CardColor::Curse);
+// Curse
 pub const POOL_CURSE_CARD: &[CardName] =
     &build_pool::<NUM_CURSE>(CardRarity::Curse, CardColor::Curse);
 
-pub fn get_random_curse(rng: &mut impl rand::Rng) -> CardName {
-    POOL_CURSE_CARD[rng.random_range(0..POOL_CURSE_CARD.len())]
-}
-
 // Pick `count` distinct cards of the given `kind` from the rewardable pool
-pub fn get_random_cards_of_kind(
-    rng: &mut impl rand::Rng,
+pub fn get_random_cards_of_kind_and_color(
     kind: CardKind,
+    color: CardColor,
     count: usize,
+    rng: &mut impl rand::Rng,
 ) -> Vec<Entity> {
     let mut pool: Vec<Entity> = ALL_CARDS
         .iter()
-        .filter(|c| c.card_kind == kind)
+        .filter(|c| c.card_kind == kind && c.card_color == color)
         .map(|c| **c)
         .collect();
 

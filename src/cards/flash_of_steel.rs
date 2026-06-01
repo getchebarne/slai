@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -29,8 +30,10 @@ pub static FLASH_OF_STEEL: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::MonsterPicked,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Monsters {
+                    filter: CandidatePoolMonstersFilter::Picked,
+                },
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -48,7 +51,7 @@ pub static FLASH_OF_STEEL_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = FLASH_OF_STEEL.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 6 };
+        a[0].kind = EffectKind::DamagePhysical { amount: 6 }; // +3 damage
         a
     },
     ..FLASH_OF_STEEL

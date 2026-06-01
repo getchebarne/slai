@@ -1,19 +1,13 @@
-use std::collections::VecDeque;
-
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::types::Phase;
+use crate::game::GameState;
 
-pub fn process_effect_calculated_gamble(
-    id_hand: &[usize],
-    effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
-    let num_cards = id_hand.len();
-    // Draw is the LAST effect (runs after discards), so push it first
-    // (push_front reverses order)
-    effect_queue.push_front(Effect {
+pub fn process_effect_calculated_gamble(state: &mut GameState) {
+    let num_cards = state.id_hand.len();
+    // Draw runs after discards; push_front reverses, so push it first
+    state.effect_queue.push_front(Effect {
         kind: EffectKind::CardDraw {
             count: num_cards as u16,
         },
@@ -21,8 +15,9 @@ pub fn process_effect_calculated_gamble(
         target: Target::Direct(None),
     });
     // Discards in original order: iterate reverse, push_front
-    for &id_card in id_hand.iter().rev() {
-        effect_queue.push_front(Effect {
+    for i in (0..state.id_hand.len()).rev() {
+        let id_card = state.id_hand[i];
+        state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::Explicit,
             },
@@ -30,5 +25,4 @@ pub fn process_effect_calculated_gamble(
             target: Target::Direct(Some(id_card)),
         });
     }
-    None
 }

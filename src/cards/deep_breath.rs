@@ -43,7 +43,7 @@ pub static DEEP_BREATH_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = DEEP_BREATH.card_effects;
-        a[1].kind = EffectKind::CardDraw { count: 2 };
+        a[1].kind = EffectKind::CardDraw { count: 2 }; // +1 draw
         a
     },
     ..DEEP_BREATH

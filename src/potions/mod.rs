@@ -19,9 +19,25 @@ use strum::EnumCount;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
+use crate::effect::CandidatePool;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
+use crate::utils::push_entity;
+
+// Follows a CardDiscover roll; halts until the player picks from `id_discover`
+pub const EFFECT_CARD_DISCOVER_PICK: Effect = Effect {
+    kind: EffectKind::CardDiscoverPick,
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Discover,
+        selection_kind: SelectionKind::Input { count: 1 },
+    },
+};
 
 pub fn get_potion(name: PotionName) -> Entity {
     match name {
@@ -147,24 +163,23 @@ pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) 
 
 // Returns the slot index on success, None when slots are full
 pub fn grant_potion(
+    id_potions: &mut [Option<usize>; POTION_SLOTS_MAX],
+    potion_slots_max: u8,
     entities: &mut Vec<Entity>,
-    id_character: usize,
     name: PotionName,
 ) -> Option<usize> {
-    let character = &entities[id_character];
-    let slot = match find_free_slot(&character.potion_slots, character.potion_slots_max) {
-        Some(s) => s,
-        None => return None,
-    };
-    let id_potion = entities.len();
-    entities.push(get_potion(name));
-    entities[id_character].potion_slots[slot] = Some(id_potion);
+    let slot = find_free_slot(id_potions, potion_slots_max)?;
+    let id_potion = push_entity(entities, get_potion(name));
+    id_potions[slot] = Some(id_potion);
     Some(slot)
 }
 
-pub fn take_potion(character: &mut Entity, idx_slot: usize) -> Option<usize> {
-    character
-        .potion_slots
-        .get_mut(idx_slot)
-        .and_then(|s| s.take())
+// Clear whichever belt slot holds id_potion; no-op if absent
+pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_potion: usize) {
+    for slot in id_potions.iter_mut() {
+        if *slot == Some(id_potion) {
+            *slot = None;
+            return;
+        }
+    }
 }

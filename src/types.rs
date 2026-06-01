@@ -1,5 +1,3 @@
-// Core type enums shared across the engine
-
 use strum::EnumCount;
 
 // Vitals: physical combat state. Shared by character and monsters
@@ -8,6 +6,25 @@ pub struct Vitals {
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
+}
+
+// Direction of a quantity change (health, gold, etc.)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DeltaSign {
+    Gain,
+    Loss,
+}
+
+// Persistent screen; transient working memory lives in flat GameState fields
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Screen {
+    Combat,
+    Reward,
+    Event,
+    Shop,
+    Map,
+    RestSite,
+    Chest,
 }
 
 pub const ZERO_VITALS: Vitals = Vitals {
@@ -235,11 +252,38 @@ pub enum RoomKind {
     Shop,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[repr(u8)]
+pub enum EventName {
+    BigFish,
+    TheCleric,
+    Duplicator,
+    GoldenShrine,
+    GoldenIdol,
+    WingStatue,
+    WorldOfGoop,
+    LivingWall,
+    Purifier,
+    ScrapOoze,
+    ShiningLight,
+    TheSsssserpent,
+    Transmogrifier,
+    UpgradeShrine,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ChestKind {
     Small,
     Medium,
     Large,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RewardKind {
+    Card,
+    Relic,
+    Potion,
+    Gold,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
@@ -286,14 +330,13 @@ pub enum RelicName {
     TwistedFunnel,
     Vajra,
     Circlet,
+    GoldenIdol,
 }
 
-impl RelicName {
-    pub fn from_u8(v: u8) -> Self {
-        assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
-        // SAFETY: repr(u8) and we validated the range
-        unsafe { std::mem::transmute(v) }
-    }
+pub fn relic_name_from_u8(v: u8) -> RelicName {
+    assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
+    // SAFETY: repr(u8) and we validated the range
+    unsafe { std::mem::transmute(v) }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -305,32 +348,4 @@ pub enum RelicTier {
     Boss,
     Shop,
     Special,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Phase {
-    Reward {
-        id_cards: Vec<usize>,
-        id_relic: Option<usize>,
-        id_potion: Option<usize>,
-        gold: Option<u16>,
-    },
-    CombatDefault,
-    CombatAwaitDiscard {
-        num: u16,
-    },
-    CombatAwaitDiscover {
-        id_cards: Vec<usize>,
-    },
-    CombatAwaitNightmare,
-    CombatAwaitRetain {
-        num: u16,
-    },
-    CombatAwaitSetup,
-    GameOver,
-    Map,
-    RestSite,
-    Chest,
-    EventRoom,
-    Shop,
 }

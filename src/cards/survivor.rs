@@ -30,8 +30,8 @@ pub static SURVIVOR: Entity = make_entity_card(
             kind: EffectKind::BlockGain { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -40,8 +40,8 @@ pub static SURVIVOR: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 1 },
+                candidate_pool: CandidatePool::Hand,
+                selection_kind: SelectionKind::Input { count: 1 },
             },
         },
     ],

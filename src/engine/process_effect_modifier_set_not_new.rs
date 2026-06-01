@@ -1,15 +1,11 @@
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::modifier::modifier_set_not_new;
-use crate::types::Phase;
 
-pub fn process_effect_modifier_set_not_new(
-    id_character: usize,
-    entities: &mut [Entity],
-    id_alive_monsters: &[usize],
-) -> Option<Phase> {
-    modifier_set_not_new(&mut entities[id_character].modifiers);
-    for &id_monster in id_alive_monsters {
-        modifier_set_not_new(&mut entities[id_monster].modifiers);
+pub fn process_effect_modifier_set_not_new(state: &mut GameState) {
+    let id_character = state.id_character;
+    modifier_set_not_new(&mut state.entities[id_character].modifiers);
+    let id_monsters = state.id_monsters;
+    for id_monster in id_monsters.iter().flatten().copied() {
+        modifier_set_not_new(&mut state.entities[id_monster].modifiers);
     }
-    None
 }

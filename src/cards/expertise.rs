@@ -23,7 +23,7 @@ pub static EXPERTISE: Entity = make_entity_card(
     false,
     false,
     &[Effect {
-        kind: EffectKind::DrawUpTo { amount: 6 },
+        kind: EffectKind::CardDrawUpTo { amount: 6 },
         id_source: None,
         target: Target::Direct(None),
     }],
@@ -36,7 +36,7 @@ pub static EXPERTISE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = EXPERTISE.card_effects;
-        a[0].kind = EffectKind::DrawUpTo { amount: 7 }; // +1 draw
+        a[0].kind = EffectKind::CardDrawUpTo { amount: 7 }; // +1 draw
         a
     },
     ..EXPERTISE

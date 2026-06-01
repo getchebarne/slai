@@ -52,12 +52,10 @@ pub enum ModifierKind {
 
 pub const MODIFIER_COUNT: usize = ModifierKind::COUNT;
 
-impl ModifierKind {
-    pub fn from_u8(v: u8) -> Self {
-        assert!((v as usize) < MODIFIER_COUNT, "invalid ModifierKind: {v}");
-        // SAFETY: repr(u8) and we validated the range
-        unsafe { std::mem::transmute(v) }
-    }
+pub fn modifier_kind_from_u8(v: u8) -> ModifierKind {
+    assert!((v as usize) < MODIFIER_COUNT, "invalid ModifierKind: {v}");
+    // SAFETY: repr(u8) and we validated the range
+    unsafe { std::mem::transmute(v) }
 }
 
 pub fn stacks_max_for(kind: ModifierKind) -> i16 {
@@ -431,7 +429,7 @@ pub fn modifier_tick(mods: &mut Modifiers) {
     while bits != 0 {
         let idx = bits.trailing_zeros() as usize;
         bits &= bits - 1;
-        let kind = ModifierKind::from_u8(idx as u8);
+        let kind = modifier_kind_from_u8(idx as u8);
         let mod_def = modifier_def(kind);
         if mod_def.stacks_duration && !mods.is_new[idx] {
             mods.stacks[idx] -= 1;

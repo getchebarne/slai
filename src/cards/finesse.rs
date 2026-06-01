@@ -29,8 +29,8 @@ pub static FINESSE: Entity = make_entity_card(
             kind: EffectKind::BlockGain { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -48,7 +48,7 @@ pub static FINESSE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = FINESSE.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 4 };
+        a[0].kind = EffectKind::BlockGain { amount: 4 }; // +2 block
         a
     },
     ..FINESSE

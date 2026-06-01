@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -17,8 +18,10 @@ pub static EXPLOSIVE_POTION: Entity = make_entity_potion(
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Monsters,
-            selection: SelectionKind::All,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::All,
+            },
+            selection_kind: SelectionKind::All,
         },
     }],
 );

@@ -1,20 +1,14 @@
-use std::collections::VecDeque;
-
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::game::GameState;
 use crate::types::CardName;
-use crate::types::Phase;
 
-// Storm of Steel: discard the entire hand, then add 1 Shiv per discarded card
-pub fn process_effect_storm_of_steel_proc(
-    upgraded: bool,
-    id_hand: &[usize],
-    effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
-    let n = id_hand.len() as u16;
-    effect_queue.push_front(Effect {
+// Discard the entire hand, then add 1 Shiv per discarded card
+pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool) {
+    let n = state.id_hand.len() as u16;
+    state.effect_queue.push_front(Effect {
         kind: EffectKind::CardAddToHand {
             card_name: CardName::Shiv,
             count: n,
@@ -23,14 +17,14 @@ pub fn process_effect_storm_of_steel_proc(
         id_source: None,
         target: Target::Direct(None),
     });
-    for &id_card in id_hand {
-        effect_queue.push_front(Effect::direct(
-            EffectKind::CardDiscard {
+    for i in 0..state.id_hand.len() {
+        let id_card = state.id_hand[i];
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardDiscard {
                 source: DiscardSource::Explicit,
             },
-            None,
-            Some(id_card),
-        ));
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
     }
-    None
 }

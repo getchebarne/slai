@@ -28,8 +28,8 @@ pub static GOOD_INSTINCTS: Entity = make_entity_card(
         kind: EffectKind::BlockGain { amount: 6 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     &[],
@@ -41,7 +41,7 @@ pub static GOOD_INSTINCTS_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = GOOD_INSTINCTS.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 9 };
+        a[0].kind = EffectKind::BlockGain { amount: 9 }; // +3 block
         a
     },
     ..GOOD_INSTINCTS

@@ -20,8 +20,8 @@ static MOVE_STAB_13: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 13 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -35,8 +35,8 @@ static MOVE_STAB_14: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 14 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -53,8 +53,8 @@ static MOVE_ENTANGLE: Move = Move {
         },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::DebuffPowerful,
@@ -66,8 +66,8 @@ static MOVE_SCRAPE_8_VULN_1: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -77,8 +77,8 @@ static MOVE_SCRAPE_8_VULN_1: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -94,8 +94,8 @@ static MOVE_SCRAPE_9_VULN_1: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 9 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -105,8 +105,8 @@ static MOVE_SCRAPE_9_VULN_1: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -122,8 +122,8 @@ static MOVE_SCRAPE_9_VULN_2: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 9 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -133,8 +133,8 @@ static MOVE_SCRAPE_9_VULN_2: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -152,7 +152,7 @@ const IDX_MOVE_STAB: usize = 0;
 const IDX_MOVE_ENTANGLE: usize = 1;
 const IDX_MOVE_SCRAPE: usize = 2;
 
-pub fn spawn_slaver_red(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_slaver_red(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (46, 50)
     } else {

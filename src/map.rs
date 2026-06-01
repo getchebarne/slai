@@ -1,5 +1,4 @@
-// Map generation and queries
-// TODO: check if this is the exact same logic from the de-compiled original Java code
+// Map generation and queries (TODO: verify against decompiled Java)
 
 use rand::Rng;
 
@@ -16,9 +15,9 @@ use crate::entity::Entity;
 use crate::entity::make_entity_room;
 use crate::game::Location;
 use crate::types::RoomKind;
+use crate::utils::push_entity;
 
-// Intermediate grid-cell during map generation. Converted to `Entity` via
-// `entitize_map` once the grid is finalized
+// Intermediate grid-cell; converted to Entity via entitize_map after finalization
 #[derive(Debug, Clone, Copy)]
 struct Room {
     pub y: usize,
@@ -138,8 +137,10 @@ fn entitize_grid(grid: Grid, entities: &mut Vec<Entity>) -> (IdRooms, Location) 
     for (y, row) in grid.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
             if let Some(room) = cell {
-                let id_room = entities.len();
-                entities.push(make_entity_room(room.y, room.x, room.room_kind, room.edges));
+                let id_room = push_entity(
+                    entities,
+                    make_entity_room(room.y, room.x, room.room_kind, room.edges),
+                );
                 id_rooms[y][x] = Some(id_room);
             }
         }
@@ -357,8 +358,7 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
                 }
             }
             if !swapped {
-                // No valid host row had a free CombatMonster — downgrade
-                // this node to CombatMonster rather than violate the rule
+                // No free CombatMonster host row -> downgrade this node rather than violate rule
                 if let Some(n) = &mut nodes[y][x] {
                     n.room_kind = RoomKind::CombatMonster;
                 }

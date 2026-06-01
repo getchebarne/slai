@@ -30,8 +30,8 @@ pub static BULLET_TIME: Entity = make_entity_card(
             kind: EffectKind::SetCostOverride { amount: 0 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::All,
+                candidate_pool: CandidatePool::Hand,
+                selection_kind: SelectionKind::All,
             },
         },
         Effect {
@@ -41,8 +41,8 @@ pub static BULLET_TIME: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],

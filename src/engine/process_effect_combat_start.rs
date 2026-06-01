@@ -1,75 +1,57 @@
-use std::collections::VecDeque;
-
-use rand::Rng;
-use strum::EnumCount;
-
+use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
+use crate::game::GameState;
 use crate::relics::iter_owned_relics;
-use crate::types::Phase;
-use crate::types::RelicName;
+use crate::utils::push_entity;
 use crate::utils::shuffle;
 
-pub fn process_effect_combat_start(
-    id_character: usize,
-    id_deck: &[usize],
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    entities: &mut Vec<Entity>,
-    id_pile_draw: &mut Vec<usize>,
-    id_hand: &mut Vec<usize>,
-    id_pile_discard: &mut Vec<usize>,
-    id_pile_exhaust: &mut Vec<usize>,
-    id_monster_picked: &mut Option<usize>,
-    this_combat_damage_instances_taken: &mut u8,
-    escaped_this_combat: &mut bool,
-    rng: &mut impl Rng,
-    effect_queue: &mut VecDeque<Effect>,
-) -> Option<Phase> {
-    *this_combat_damage_instances_taken = 0;
-    *escaped_this_combat = false;
-    // Clone deck cards into combat copies, separating innate from non-innate
-    // These small local Vecs could become stack buffers, but deck size is
-    // unbounded at design level (decks grow across a run), so heap is the
-    // right call here
-    let mut innate_ids: Vec<usize> = Vec::new();
-    let mut other_ids: Vec<usize> = Vec::new();
+pub fn process_effect_combat_start(state: &mut GameState) {
+    state.this_combat_damage_instances_taken = 0;
+    state.this_combat_escaped = false;
 
-    for &id_card_src in id_deck {
-        let card = entities[id_card_src];
-        let id_card = entities.len();
-        entities.push(card);
+    // Innate cards sit on top of the draw pile, ahead of the shuffled rest
+    let mut other_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
+    let mut other_n: usize = 0;
+    let mut innate_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
+    let mut innate_n: usize = 0;
+
+    for i in 0..state.id_deck.len() {
+        let id_card_src = state.id_deck[i];
+        let card = state.entities[id_card_src];
+        let id_card = push_entity(&mut state.entities, card);
         if card.card_innate {
-            innate_ids.push(id_card);
+            innate_ids[innate_n] = id_card;
+            innate_n += 1;
         } else {
-            other_ids.push(id_card);
+            other_ids[other_n] = id_card;
+            other_n += 1;
         }
     }
 
-    shuffle(&mut other_ids, rng);
-    *id_pile_draw = other_ids;
-    id_pile_draw.extend(innate_ids);
+    shuffle(&mut other_ids[..other_n], &mut state.rng);
 
-    id_hand.clear();
-    id_pile_discard.clear();
-    id_pile_exhaust.clear();
-    *id_monster_picked = None;
+    state.id_pile_draw.clear();
+    for &id in &other_ids[..other_n] {
+        state.id_pile_draw.push(id);
+    }
+    for &id in &innate_ids[..innate_n] {
+        state.id_pile_draw.push(id);
+    }
 
-    // Monsters already had MoveUpdate queued at MonsterSpawn time, so we only
-    // need to queue TurnStart for the character here
-    effect_queue.push_front(Effect {
+    state.id_picked_monster = None;
+
+    // Monster MoveUpdates already queued at MonsterSpawn; queue character TurnStart
+    state.effect_queue.push_front(Effect {
         kind: EffectKind::TurnStart,
         id_source: None,
-        target: Target::Direct(Some(id_character)),
+        target: Target::Direct(Some(state.id_character)),
     });
 
-    // Each owned relic's combat-start effects run after TurnStart
-    for (_name, id_relic) in iter_owned_relics(id_relics) {
-        for &eff in entities[id_relic].relic_effects_on_combat_start {
-            effect_queue.push_back(eff);
+    for (_name, id_relic) in iter_owned_relics(&state.id_relics) {
+        for &eff in state.entities[id_relic].relic_effects_on_combat_start {
+            state.effect_queue.push_back(eff);
         }
     }
-
-    None
 }

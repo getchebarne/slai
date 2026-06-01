@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -28,8 +29,10 @@ pub static SWIFT_STRIKE: Entity = make_entity_card(
         kind: EffectKind::DamagePhysical { amount: 7 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::MonsterPicked,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Picked,
+            },
+            selection_kind: SelectionKind::Single,
         },
     }],
     &[],
@@ -41,7 +44,7 @@ pub static SWIFT_STRIKE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = SWIFT_STRIKE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 10 };
+        a[0].kind = EffectKind::DamagePhysical { amount: 10 }; // +3 damage
         a
     },
     ..SWIFT_STRIKE

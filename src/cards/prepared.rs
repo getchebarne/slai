@@ -37,8 +37,8 @@ pub static PREPARED: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Hand,
-                selection: SelectionKind::Input { count: 1 },
+                candidate_pool: CandidatePool::Hand,
+                selection_kind: SelectionKind::Input { count: 1 },
             },
         },
     ],
@@ -53,8 +53,8 @@ pub static PREPARED_PLUS: Entity = Entity {
         let mut a = PREPARED.card_effects;
         a[0].kind = EffectKind::CardDraw { count: 2 }; // +1 card
         a[1].target = Target::Resolve {
-            candidates: CandidatePool::Hand,
-            selection: SelectionKind::Input { count: 2 }, // +1 card
+            candidate_pool: CandidatePool::Hand,
+            selection_kind: SelectionKind::Input { count: 2 }, // +1 card
         };
         a
     },

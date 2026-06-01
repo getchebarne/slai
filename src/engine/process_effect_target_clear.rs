@@ -1,6 +1,5 @@
-use crate::types::Phase;
+use crate::game::GameState;
 
-pub fn process_effect_target_clear(card_target: &mut Option<usize>) -> Option<Phase> {
-    *card_target = None;
-    None
+pub fn process_effect_target_clear(state: &mut GameState) {
+    state.id_picked_monster = None;
 }

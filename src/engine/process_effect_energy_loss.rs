@@ -1,7 +1,5 @@
-use crate::game::Energy;
-use crate::types::Phase;
+use crate::game::GameState;
 
-pub fn process_effect_energy_loss(energy: &mut Energy, amount: u8) -> Option<Phase> {
-    energy.current = energy.current.saturating_sub(amount);
-    None
+pub fn process_effect_energy_loss(state: &mut GameState, amount: u8) {
+    state.energy.energy_current = state.energy.energy_current.saturating_sub(amount);
 }

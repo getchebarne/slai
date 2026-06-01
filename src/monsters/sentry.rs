@@ -1,3 +1,4 @@
+use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -22,8 +23,8 @@ static MOVE_BEAM_9: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 9 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -37,8 +38,8 @@ static MOVE_BEAM_10: Move = Move {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Character,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Character,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -80,7 +81,7 @@ static MOVES_ASC18: [Move; 2] = [MOVE_BEAM_10, MOVE_BOLT_3];
 const IDX_MOVE_BEAM: usize = 0;
 const IDX_MOVE_BOLT: usize = 1;
 
-pub fn spawn_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
+pub fn spawn_monster_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 8 {
         (38, 42)
     } else {
@@ -113,19 +114,17 @@ pub fn spawn_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     )
 }
 
-// Strict Bolt <-> Beam alternation. First move depends on
-// position in the monster roster
-//     - even index: Bolt
-//     - odd: Beam
+// Strict Bolt↔Beam alternation; first is Bolt at even roster index, Beam at odd
 pub fn get_next_move_sentry(
     move_current: Option<usize>,
     move_history: &[u8],
     entity_id: usize,
-    id_alive_monsters: &[usize],
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
 ) -> usize {
     if move_current.is_none() {
-        let position = id_alive_monsters
+        let position = id_monsters
             .iter()
+            .flatten()
             .position(|&id| id == entity_id)
             .unwrap_or(0);
         return if position % 2 == 0 {

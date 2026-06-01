@@ -22,17 +22,15 @@ static MOVE_ACTIVATE: Move = Move {
     intent: Intent::Unknown,
 };
 
-// Divider's true damage (HP/12+1 × 6) is computed at fire time by
-// `EffectKind::HexaghostDivider`; the placeholder Intent values shown here
-// are overridden in the view layer to display the dynamic damage
+// Divider true damage (HP/12+1 × 6) computed at fire time; placeholder Intent overridden in view
 static MOVE_DIVIDER: Move = Move {
     name: "Divider",
     effects: &[Effect {
         kind: EffectKind::HexaghostDivider,
         id_source: None,
         target: Target::Resolve {
-            candidates: CandidatePool::Source,
-            selection: SelectionKind::Single,
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
         },
     }],
     intent: Intent::Attack {
@@ -48,8 +46,8 @@ static MOVE_SEAR_BURN_1_NORMAL: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -74,8 +72,8 @@ static MOVE_SEAR_BURN_1_UPGRADED: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -100,8 +98,8 @@ static MOVE_SEAR_BURN_2_NORMAL: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -126,8 +124,8 @@ static MOVE_SEAR_BURN_2_UPGRADED: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -153,16 +151,16 @@ static MOVE_TACKLE_5: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -178,16 +176,16 @@ static MOVE_TACKLE_6: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -204,8 +202,8 @@ static MOVE_INFLAME_2: Move = Move {
             kind: EffectKind::BlockGain { amount: 12 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -215,8 +213,8 @@ static MOVE_INFLAME_2: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -229,8 +227,8 @@ static MOVE_INFLAME_3: Move = Move {
             kind: EffectKind::BlockGain { amount: 12 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -240,8 +238,8 @@ static MOVE_INFLAME_3: Move = Move {
             },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Source,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Source,
+                selection_kind: SelectionKind::Single,
             },
         },
     ],
@@ -256,48 +254,48 @@ static MOVE_INFERNO_2: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -318,48 +316,48 @@ static MOVE_INFERNO_3: Move = Move {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
             target: Target::Resolve {
-                candidates: CandidatePool::Character,
-                selection: SelectionKind::Single,
+                candidate_pool: CandidatePool::Character,
+                selection_kind: SelectionKind::Single,
             },
         },
         Effect {
@@ -413,7 +411,7 @@ const IDX_MOVE_TACKLE: usize = 4;
 const IDX_MOVE_INFLAME: usize = 5;
 const IDX_MOVE_INFERNO: usize = 6;
 
-pub fn spawn_hexaghost(ascension_level: u8) -> Entity {
+pub fn spawn_monster_hexaghost(ascension_level: u8) -> Entity {
     let health_max: u16 = if ascension_level < 9 { 250 } else { 264 };
 
     let moves: &'static [Move] = if ascension_level < 4 {
@@ -437,7 +435,7 @@ pub fn spawn_hexaghost(ascension_level: u8) -> Entity {
     )
 }
 
-// Cycle slot → move idx, with Sear variant chosen by `has_inferno`
+// Cycle slot -> move idx, with Sear variant chosen by `has_inferno`
 fn cycle_slot(slot: usize, has_inferno: bool) -> usize {
     let sear = if has_inferno {
         IDX_MOVE_SEAR_POST
@@ -473,8 +471,7 @@ pub fn get_next_move_hexaghost(move_current: Option<usize>, move_history: &[u8])
         return cycle_slot(0, has_inferno);
     }
 
-    // Mid-cycle. Walk back from end to find the most recent Divider/Inferno anchor
-    // `slot` = number of moves since that anchor
+    // Mid-cycle: walk back to most recent Divider/Inferno anchor; `slot` = moves since
     let mut slot = 0usize;
     for &move_ in move_history.iter().rev() {
         if move_ == IDX_MOVE_DIVIDER as u8 || move_ == IDX_MOVE_INFERNO as u8 {

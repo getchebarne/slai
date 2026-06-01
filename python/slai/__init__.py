@@ -18,6 +18,7 @@ ActionType = _to_intenum("ActionType", _rs.ActionType)
 CardKind = _to_intenum("CardKind", _rs.CardKind)
 CardColor = _to_intenum("CardColor", _rs.CardColor)
 CardRarity = _to_intenum("CardRarity", _rs.CardRarity)
+PlayRestriction = _to_intenum("PlayRestriction", _rs.PlayRestriction)
 RoomKind = _to_intenum("RoomKind", _rs.RoomKind)
 ChestKind = _to_intenum("ChestKind", _rs.ChestKind)
 RelicTier = _to_intenum("RelicTier", _rs.RelicTier)
@@ -28,7 +29,9 @@ PotionName = _to_intenum("PotionName", _rs.PotionName)
 PotionRarity = _to_intenum("PotionRarity", _rs.PotionRarity)
 ModifierKind = _to_intenum("ModifierKind", _rs.ModifierKind)
 IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
-CandidatePool = _to_intenum("CandidatePool", _rs.CandidatePool)
+CandidatePoolMonstersFilter = _to_intenum("CandidatePoolMonstersFilter", _rs.CandidatePoolMonstersFilter)
+EventName = _to_intenum("EventName", _rs.EventName)
+CandidatePoolDeckFilter = _to_intenum("CandidatePoolDeckFilter", _rs.CandidatePoolDeckFilter)
 
 
 # Action schema types
@@ -97,43 +100,46 @@ _MONSTER_POS = "position in the alive-monster list at dispatch time"
 _REWARD_POS = "slot in state.rewards_card / state.rewards_relic"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
-_SLOT_POS = "slot in state.character.potion_slots"
+_SLOT_POS = "slot in state.potions"
 _DISCOVER_POS = "position in state.picks_card (the discovery offer)"
 
 
 # Action spec registry
 ACTION_SPEC_REGISTRY = ActionSpecRegistry(
     [
+        create_action_spec(ActionType.CardDiscover, ArgSpec("idx", _DISCOVER_POS)),
         create_action_spec(
             ActionType.CardPlay,
-            ArgSpec("idx_hand", _HAND_POS),
+            ArgSpec("idx_card", _HAND_POS),
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
-        create_action_spec(ActionType.EndTurn),
+        create_action_spec(ActionType.ChestOpen),
+        # Deck-pick family (resolves a deck-pick halt)
+        create_action_spec(ActionType.CardDuplicate, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.CardPurge, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.CardTransform, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.EventOptionSelect, ArgSpec("idx", _HAND_POS)),
+        # Hand-pick family (resolves a hand-pick halt)
         create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS, variable=True)),
+        create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS, variable=True)),
         create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.RoomSelect, ArgSpec("idx_column", _MAP_COL)),
-        create_action_spec(ActionType.RestSiteRest),
-        create_action_spec(ActionType.RestSiteCardUpgrade, ArgSpec("idx_deck", _DECK_POS)),
-        create_action_spec(ActionType.RoomSkip),
-        create_action_spec(ActionType.ChestOpen),
-        create_action_spec(
-            ActionType.PotionUse,
-            ArgSpec("idx_slot", _SLOT_POS),
-            ArgSpec("idx_monster", _MONSTER_POS, optional=True),
-        ),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
         create_action_spec(
-            ActionType.CardDiscoverSelect, ArgSpec("idx_option", _DISCOVER_POS)
+            ActionType.PotionUse,
+            ArgSpec("idx_potion", _SLOT_POS),
+            ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
+        create_action_spec(ActionType.Rest),
         # Reward pickup family
-        create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx_reward", _REWARD_POS)),
-        create_action_spec(ActionType.RewardTakeRelic),
-        create_action_spec(ActionType.RewardTakePotion),
+        create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx", _REWARD_POS)),
         create_action_spec(ActionType.RewardTakeGold),
-        create_action_spec(ActionType.RewardSkip),
+        create_action_spec(ActionType.RewardTakePotion),
+        create_action_spec(ActionType.RewardTakeRelic),
+        create_action_spec(ActionType.RoomSelect, ArgSpec("idx", _MAP_COL)),
+        create_action_spec(ActionType.RoomExit),
+        create_action_spec(ActionType.TurnEnd),
     ]
 )
 
@@ -153,13 +159,19 @@ Room = _rs.Room
 Modifier = _rs.Modifier
 Monster = _rs.Monster
 Relic = _rs.Relic
+Event = _rs.Event
+EventOption = _rs.EventOption
 
 # Complex enums
-Phase = _rs.Phase
+CandidatePool = _rs.CandidatePool
 SelectionKind = _rs.SelectionKind
 Target = _rs.Target
 Effect = _rs.Effect
 CardCostKind = _rs.CardCostKind
+
+# Reward surface
+Screen = _to_intenum("Screen", _rs.Screen)
+Reward = _rs.Reward
 
 __all__ = [
     # Environment + action
@@ -181,14 +193,18 @@ __all__ = [
     "Modifier",
     "Monster",
     "Relic",
+    "Event",
+    "EventOption",
     # Unit-enum shims
     "CardKind",
     "CardColor",
     "CardRarity",
+    "PlayRestriction",
     "CardCostKind",
     "ModifierKind",
     "IntentKind",
     "CandidatePool",
+    "CandidatePoolMonstersFilter",
     "RoomKind",
     "ChestKind",
     "RelicName",
@@ -197,9 +213,13 @@ __all__ = [
     "PotionRarity",
     "CardName",
     "MonsterName",
+    "EventName",
+    "CandidatePoolDeckFilter",
+    "Screen",
     # Complex enums
-    "Phase",
     "SelectionKind",
     "Target",
     "Effect",
+    # Reward
+    "Reward",
 ]
