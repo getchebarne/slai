@@ -554,8 +554,8 @@ fn dispatch_by_kind(
         EffectKind::ShopBuyRelic { idx } => {
             process_effect_shop_buy_relic::process_effect_shop_buy_relic(state, idx)
         }
-        EffectKind::ShopPurge { idx_deck } => {
-            process_effect_shop_purge::process_effect_shop_purge(state, idx_deck)
+        EffectKind::ShopPurge { idx } => {
+            process_effect_shop_purge::process_effect_shop_purge(state, idx)
         }
         EffectKind::PotionUse => {
             process_effect_potion_use::process_effect_potion_use(id_target, state)

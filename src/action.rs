@@ -89,7 +89,7 @@ pub enum Action {
         idx: usize,
     },
     ShopPurge {
-        idx_deck: usize,
+        idx: usize,
     },
     TurnEnd,
 }
@@ -135,7 +135,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::ShopBuyCard { idx } => handle_shop_buy_card(state, idx),
         Action::ShopBuyPotion { idx } => handle_shop_buy_potion(state, idx),
         Action::ShopBuyRelic { idx } => handle_shop_buy_relic(state, idx),
-        Action::ShopPurge { idx_deck } => handle_shop_purge(state, idx_deck),
+        Action::ShopPurge { idx } => handle_shop_purge(state, idx),
         Action::TurnEnd => handle_turn_end(state),
     }
     flush_effects_from_buf_to_queue_front(state);
@@ -464,9 +464,9 @@ fn handle_shop_buy_relic(state: &mut GameState, idx: usize) {
     });
 }
 
-fn handle_shop_purge(state: &mut GameState, idx_deck: usize) {
+fn handle_shop_purge(state: &mut GameState, idx: usize) {
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopPurge { idx_deck },
+        kind: EffectKind::ShopPurge { idx },
         id_source: None,
         target: Target::Direct(None),
     });
@@ -645,7 +645,7 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
     }
     if gold >= state.shop_purge_cost {
         for i in 0..state.id_deck.len() {
-            state.legal_actions.push(Action::ShopPurge { idx_deck: i });
+            state.legal_actions.push(Action::ShopPurge { idx: i });
         }
     }
     push_potion_actions(state);

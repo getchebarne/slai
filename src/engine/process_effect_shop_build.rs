@@ -72,32 +72,32 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     push_potion(state);
     push_potion(state);
 
+    // A16+ price bumps
     if ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
-        for p in state.shop_card_prices.iter_mut() {
-            *p = bump_a16(*p);
+        for price in state.shop_card_prices.iter_mut() {
+            *price = bump_price_a16(*price);
         }
-        for p in state.shop_relic_prices.iter_mut() {
-            *p = bump_a16(*p);
+        for price in state.shop_relic_prices.iter_mut() {
+            *price = bump_price_a16(*price);
         }
-        for p in state.shop_potion_prices.iter_mut() {
-            *p = bump_a16(*p);
+        for price in state.shop_potion_prices.iter_mut() {
+            *price = bump_price_a16(*price);
         }
     }
+    state.shop_purge_cost = if ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
+        bump_price_a16(SHOP_PURGE_COST_BASE)
+    } else {
+        SHOP_PURGE_COST_BASE
+    };
 
     // Sale tag: one random card 50% off
     if !state.shop_card_prices.is_empty() {
         let idx = state.rng.random_range(0..state.shop_card_prices.len());
         state.shop_card_prices[idx] /= 2;
     }
-
-    state.shop_purge_cost = if ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
-        bump_a16(SHOP_PURGE_COST_BASE)
-    } else {
-        SHOP_PURGE_COST_BASE
-    };
 }
 
-fn bump_a16(price: u16) -> u16 {
+fn bump_price_a16(price: u16) -> u16 {
     (price as u32 * ASCENSION_SHOP_PRICE_BUMP_NUMER as u32 / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32)
         as u16
 }

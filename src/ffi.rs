@@ -1093,8 +1093,8 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("ShopBuyRelic expects [idx], got {n} idxs")),
         },
         PyActionType::ShopPurge => match idxs.len() {
-            1 => Ok(Action::ShopPurge { idx_deck: idxs[0] }),
-            n => Err(format!("ShopPurge expects [idx_deck], got {n} idxs")),
+            1 => Ok(Action::ShopPurge { idx: idxs[0] }),
+            n => Err(format!("ShopPurge expects [idx], got {n} idxs")),
         },
         PyActionType::Rest => match idxs.len() {
             0 => Ok(Action::Rest),
@@ -1189,7 +1189,7 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::ShopBuyCard { idx } => (PyActionType::ShopBuyCard, vec![idx]),
         Action::ShopBuyPotion { idx } => (PyActionType::ShopBuyPotion, vec![idx]),
         Action::ShopBuyRelic { idx } => (PyActionType::ShopBuyRelic, vec![idx]),
-        Action::ShopPurge { idx_deck } => (PyActionType::ShopPurge, vec![idx_deck]),
+        Action::ShopPurge { idx } => (PyActionType::ShopPurge, vec![idx]),
         Action::ChestOpen => (PyActionType::ChestOpen, vec![]),
         Action::PotionUse {
             idx_potion,

@@ -29,9 +29,14 @@ PotionName = _to_intenum("PotionName", _rs.PotionName)
 PotionRarity = _to_intenum("PotionRarity", _rs.PotionRarity)
 ModifierKind = _to_intenum("ModifierKind", _rs.ModifierKind)
 IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
-CandidatePoolMonstersFilter = _to_intenum("CandidatePoolMonstersFilter", _rs.CandidatePoolMonstersFilter)
+Screen = _to_intenum("Screen", _rs.Screen)
+CandidatePoolMonstersFilter = _to_intenum(
+    "CandidatePoolMonstersFilter", _rs.CandidatePoolMonstersFilter
+)
 EventName = _to_intenum("EventName", _rs.EventName)
-CandidatePoolDeckFilter = _to_intenum("CandidatePoolDeckFilter", _rs.CandidatePoolDeckFilter)
+CandidatePoolDeckFilter = _to_intenum(
+    "CandidatePoolDeckFilter", _rs.CandidatePoolDeckFilter
+)
 
 
 # Action schema types
@@ -91,7 +96,9 @@ def _arity_from_args(args: tuple[ArgSpec, ...]) -> tuple[int, Optional[int]]:
 
 
 def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:  # type: ignore[valid-type]
-    return ActionSpec(id=action_type, name=action_type.name, args=args, arity=_arity_from_args(args))
+    return ActionSpec(
+        id=action_type, name=action_type.name, args=args, arity=_arity_from_args(args)
+    )
 
 
 # Per-slot description strings
@@ -124,9 +131,13 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
         create_action_spec(ActionType.EventOptionSelect, ArgSpec("idx", _HAND_POS)),
         # Hand-pick family (resolves a hand-pick halt)
-        create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS, variable=True)),
+        create_action_spec(
+            ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS, variable=True)
+        ),
         create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS, variable=True)),
+        create_action_spec(
+            ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS, variable=True)
+        ),
         create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
         create_action_spec(
@@ -146,7 +157,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.ShopBuyCard, ArgSpec("idx", _SHOP_CARD_POS)),
         create_action_spec(ActionType.ShopBuyRelic, ArgSpec("idx", _SHOP_RELIC_POS)),
         create_action_spec(ActionType.ShopBuyPotion, ArgSpec("idx", _SHOP_POTION_POS)),
-        create_action_spec(ActionType.ShopPurge, ArgSpec("idx_deck", _DECK_POS)),
+        create_action_spec(ActionType.ShopPurge, ArgSpec("idx", _DECK_POS)),
         create_action_spec(ActionType.TurnEnd),
     ]
 )
@@ -169,6 +180,8 @@ Monster = _rs.Monster
 Relic = _rs.Relic
 Event = _rs.Event
 EventOption = _rs.EventOption
+Reward = _rs.Reward
+Shop = _rs.Shop
 
 # Complex enums
 CandidatePool = _rs.CandidatePool
@@ -177,10 +190,6 @@ Target = _rs.Target
 Effect = _rs.Effect
 CardCostKind = _rs.CardCostKind
 
-# Reward + Shop surface
-Screen = _to_intenum("Screen", _rs.Screen)
-Reward = _rs.Reward
-Shop = _rs.Shop
 
 __all__ = [
     # Environment + action
@@ -231,5 +240,6 @@ __all__ = [
     "Effect",
     # Reward
     "Reward",
+    # Shop
     "Shop",
 ]

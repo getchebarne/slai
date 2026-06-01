@@ -178,7 +178,7 @@ pub enum EffectKind {
         idx: usize,
     },
     ShopPurge {
-        idx_deck: usize,
+        idx: usize,
     },
     ShuffleDiscardPileIntoDrawPile,
     SneakyStrikeProc {

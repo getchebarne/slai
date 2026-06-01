@@ -16,18 +16,22 @@ pub fn process_effect_combat_end(state: &mut GameState) {
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     match room_kind {
         RoomKind::CombatBoss => {}
-        RoomKind::CombatMonster | RoomKind::CombatElite => {
+        RoomKind::CombatMonster | RoomKind::CombatElite | RoomKind::Unknown => {
+            // A "?" room keeps its Unknown map marker; its combat is always a normal monster
+            let reward_kind = if room_kind == RoomKind::Unknown {
+                RoomKind::CombatMonster
+            } else {
+                room_kind
+            };
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::RewardRollCombat { room_kind },
+                kind: EffectKind::RewardRollCombat {
+                    room_kind: reward_kind,
+                },
                 id_source: None,
                 target: Target::Direct(None),
             });
         }
-        RoomKind::RestSite
-        | RoomKind::Treasure
-        | RoomKind::EventRoom
-        | RoomKind::Shop
-        | RoomKind::Unknown => {
+        RoomKind::RestSite | RoomKind::Treasure | RoomKind::EventRoom | RoomKind::Shop => {
             unreachable!("combat end in non-combat room: {:?}", room_kind)
         }
     }
