@@ -1,1 +1,6 @@
 /target
+/__pycache__
+/.venv
+/.vscode
+/python/slai/__pycache__
+/python/slai/slai.cpython*

@@ -215,6 +215,7 @@ pub enum PyRoomKind {
     Treasure,
     EventRoom,
     Shop,
+    Unknown,
 }
 
 impl From<RoomKind> for PyRoomKind {
@@ -227,6 +228,7 @@ impl From<RoomKind> for PyRoomKind {
             RoomKind::Treasure => Self::Treasure,
             RoomKind::EventRoom => Self::EventRoom,
             RoomKind::Shop => Self::Shop,
+            RoomKind::Unknown => Self::Unknown,
         }
     }
 }
