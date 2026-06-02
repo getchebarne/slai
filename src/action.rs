@@ -17,6 +17,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::potions::find_free_slot;
 use crate::types::CardKind;
+use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::RewardKind;
 use crate::types::Screen;
@@ -549,7 +550,16 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
         ModifierKind::Entangled,
     );
     let alive_count = state.id_monsters.iter().flatten().count();
+    // Normality in hand caps the turn at 3 plays; blocks ANY further CardPlay
+    let normality_blocks = state.this_turn_cards_played >= 3
+        && state
+            .id_hand
+            .iter()
+            .any(|&id| state.entities[id].card_name == CardName::Normality);
     for i in 0..state.id_hand.len() {
+        if normality_blocks {
+            break;
+        }
         let card = &state.entities[state.id_hand[i]];
         let restriction_ok =
             is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw);
@@ -643,7 +653,7 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
             }
         }
     }
-    if gold >= state.shop_purge_cost {
+    if !state.entities[current_room_id(state)].room_shop_purged && gold >= state.shop_purge_cost {
         for i in 0..state.id_deck.len() {
             state.legal_actions.push(Action::ShopPurge { idx: i });
         }

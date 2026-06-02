@@ -502,16 +502,21 @@ pub const POOL_RARE_COLORLESS_CARD: &[CardName] =
 pub const POOL_CURSE_CARD: &[CardName] =
     &build_pool::<NUM_CURSE>(CardRarity::Curse, CardColor::Curse);
 
-// Pick `count` distinct cards of the given `kind` from the rewardable pool
-pub fn get_random_cards_of_kind_and_color(
-    kind: CardKind,
+// Pick `count` distinct cards from the full set, filtered by color and (when given) kind/rarity
+pub fn get_random_cards(
     color: CardColor,
+    kind: Option<CardKind>,
+    rarity: Option<CardRarity>,
+    exclude: &[CardName],
     count: usize,
     rng: &mut impl rand::Rng,
 ) -> Vec<Entity> {
     let mut pool: Vec<Entity> = ALL_CARDS
         .iter()
-        .filter(|c| c.card_kind == kind && c.card_color == color)
+        .filter(|c| c.card_color == color)
+        .filter(|c| kind.is_none_or(|k| c.card_kind == k))
+        .filter(|c| rarity.is_none_or(|r| c.card_rarity == r))
+        .filter(|c| !exclude.contains(&c.card_name))
         .map(|c| **c)
         .collect();
 

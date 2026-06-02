@@ -36,7 +36,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
         }
     }
 
-    // BossRoom victory ends the run
+    // Boss victory ends the run
     if matches!(state.location, Location::BossRoom) {
         state.screen = Screen::Map;
         state.game_over = true;

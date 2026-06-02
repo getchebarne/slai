@@ -134,7 +134,7 @@ const POOL_UNCOMMON_POTION: &[PotionName] = &build_pool::<NUM_UNCOMMON>(PotionRa
 const POOL_RARE_POTION: &[PotionName] = &build_pool::<NUM_RARE>(PotionRarity::Rare);
 
 // 65/25/10 tier roll; fall back to Common when the rolled tier is empty
-pub fn get_random_potion(rng: &mut impl Rng, limited: bool) -> PotionName {
+pub fn get_random_potion_name(rng: &mut impl Rng, limited: bool) -> PotionName {
     let roll = rng.random_range(0..100) as u8;
     let pool: &[PotionName] = if roll < POTION_TH_COMMON {
         POOL_COMMON_POTION
@@ -151,7 +151,7 @@ pub fn get_random_potion(rng: &mut impl Rng, limited: bool) -> PotionName {
     };
     let name = pool[rng.random_range(0..pool.len())];
     if limited && name == PotionName::FruitJuice {
-        return get_random_potion(rng, limited);
+        return get_random_potion_name(rng, limited);
     }
     name
 }

@@ -20,8 +20,8 @@ pub fn spawn_silent(ascension: u8) -> Entity {
     )
 }
 
-pub fn get_silent_starter_deck() -> Vec<Entity> {
-    vec![
+pub fn get_silent_starter_deck(ascension: u8) -> Vec<Entity> {
+    let mut deck = vec![
         get_card(CardName::Strike, false),
         get_card(CardName::Strike, false),
         get_card(CardName::Strike, false),
@@ -34,7 +34,11 @@ pub fn get_silent_starter_deck() -> Vec<Entity> {
         get_card(CardName::Defend, false),
         get_card(CardName::Survivor, false),
         get_card(CardName::Neutralize, false),
-    ]
+    ];
+    if ascension >= 10 {
+        deck.push(get_card(CardName::AscendersBane, false));
+    }
+    deck
 }
 
 fn silent_health(ascension: u8) -> (u16, u16) {
