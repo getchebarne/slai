@@ -133,6 +133,7 @@ pub struct Entity {
     pub room_chest_kind: Option<ChestKind>,
     pub room_chest_opened: bool,
     pub room_rest_site_done: bool,
+    pub room_shop_purged: bool,
 
     // Relic-only
     pub relic_name: RelicName,
@@ -197,6 +198,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     room_chest_kind: None,
     room_chest_opened: false,
     room_rest_site_done: false,
+    room_shop_purged: false,
     relic_name: RelicName::SnakeRing,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,

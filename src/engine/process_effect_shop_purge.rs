@@ -4,6 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::GoldDeltaKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::game::Location;
 use crate::types::DeltaSign;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
@@ -28,4 +29,11 @@ pub fn process_effect_shop_purge(state: &mut GameState, idx: usize) {
     flush_effects_from_buf_to_queue_front(state);
 
     state.shop_purge_cost += SHOP_PURGE_COST_INCREMENT;
+
+    // A shop's card removal can be used once per visit
+    if let Location::Overworld { y, x } = state.location {
+        if let Some(id_room) = state.id_rooms[y][x] {
+            state.entities[id_room].room_shop_purged = true;
+        }
+    }
 }

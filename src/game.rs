@@ -117,6 +117,7 @@ pub struct GameState {
     pub energy: Energy,
     pub this_turn_discards: u8,
     pub this_turn_attacks: u8,
+    pub this_turn_cards_played: u8,
     pub this_combat_damage_instances_taken: u8,
     pub this_combat_escaped: bool,
     pub id_card_last_drawn: Option<usize>,
@@ -173,7 +174,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     };
 
     // Initialize starter deck
-    let deck_starter = get_silent_starter_deck();
+    let deck_starter = get_silent_starter_deck(ascension);
     let mut id_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
     for card in deck_starter {
         let id_card = push_entity(&mut entities, card);
@@ -235,6 +236,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         },
         this_turn_discards: 0,
         this_turn_attacks: 0,
+        this_turn_cards_played: 0,
         this_combat_damage_instances_taken: 0,
         this_combat_escaped: false,
         id_card_last_drawn: None,

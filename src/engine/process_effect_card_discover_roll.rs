@@ -1,4 +1,4 @@
-use crate::cards::get_random_cards_of_kind_and_color;
+use crate::cards::get_random_cards;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -10,9 +10,9 @@ pub fn process_effect_card_discover_roll(
     color: CardColor,
     count: u8,
 ) {
-    let card_picks =
-        get_random_cards_of_kind_and_color(kind, color, count as usize, &mut state.rng);
     state.id_discover.clear();
+
+    let card_picks = get_random_cards(color, Some(kind), None, &[], count as usize, &mut state.rng);
     for card_pick in card_picks {
         let id = push_entity(&mut state.entities, card_pick);
         state.id_discover.push(id);

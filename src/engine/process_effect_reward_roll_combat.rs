@@ -13,7 +13,7 @@ use crate::consts::RELIC_TIER_TH_COMMON;
 use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::game::GameState;
 use crate::potions::get_potion;
-use crate::potions::get_random_potion;
+use crate::potions::get_random_potion_name;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
@@ -66,7 +66,7 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
     });
     state.reward_id_potion =
         roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod).then(|| {
-            let name = get_random_potion(&mut state.rng, false);
+            let name = get_random_potion_name(&mut state.rng, false);
             push_entity(&mut state.entities, get_potion(name))
         });
     state.reward_gold = gold_range.map(|(min, max)| {
