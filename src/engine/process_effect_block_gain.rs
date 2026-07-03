@@ -1,10 +1,10 @@
-use crate::consts::FACTOR_FRAIL;
 use crate::consts::MAX_BLOCK;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
+use crate::utils::scale_block_gain;
 
 pub fn process_effect_block_gain(
     id_source: Option<usize>,
@@ -20,18 +20,17 @@ pub fn process_effect_block_gain(
     };
 
     let modifiers = &state.entities[id_target].modifiers;
-    let mut value = amount as f32;
+    let final_block = if from_card {
+        let dex = if modifier_has(modifiers, ModifierKind::Dexterity) {
+            modifier_stacks(modifiers, ModifierKind::Dexterity)
+        } else {
+            0
+        };
+        scale_block_gain(amount, dex, modifier_has(modifiers, ModifierKind::Frail))
+    } else {
+        amount
+    };
 
-    if from_card {
-        if modifier_has(modifiers, ModifierKind::Dexterity) {
-            value += modifier_stacks(modifiers, ModifierKind::Dexterity) as f32;
-        }
-        if modifier_has(modifiers, ModifierKind::Frail) {
-            value *= FACTOR_FRAIL;
-        }
-    }
-
-    let final_block = value.max(0.0) as u16;
     if final_block > 0 {
         let vitals = &mut state.entities[id_target].vitals;
         vitals.block = (vitals.block + final_block).min(MAX_BLOCK);

@@ -62,6 +62,10 @@ pub fn stacks_max_for(kind: ModifierKind) -> i16 {
     MODIFIER_DEFS[kind as usize].stacks_max
 }
 
+pub fn modifier_is_buff(kind: ModifierKind) -> bool {
+    MODIFIER_DEFS[kind as usize].is_buff
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ModifierDef {
     pub kind: ModifierKind,

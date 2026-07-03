@@ -1,6 +1,9 @@
 #![allow(dead_code)]
 
 use pyo3::prelude::*;
+use pyo3_stub_gen::define_stub_info_gatherer;
+use pyo3_stub_gen::derive::gen_stub_pyclass;
+use pyo3_stub_gen::derive::gen_stub_pymethods;
 
 mod action;
 mod cards;
@@ -40,11 +43,13 @@ use game::step;
 
 // GameEnv
 
-#[pyclass]
+#[gen_stub_pyclass]
+#[pyclass(module = "slai.slai")]
 struct GameEnv {
     state: game::GameState,
 }
 
+#[gen_stub_pymethods]
 #[pymethods]
 impl GameEnv {
     // Game-shape constants — mirror of `crate::consts` for encoders/wrappers
@@ -125,7 +130,6 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyPlayRestriction>()?;
     module.add_class::<ffi::PyCardCostKind>()?;
     module.add_class::<ffi::PyRoomKind>()?;
-    module.add_class::<ffi::PyChestKind>()?;
     module.add_class::<ffi::PyPotionName>()?;
     module.add_class::<ffi::PyPotionRarity>()?;
     module.add_class::<ffi::PyModifierKind>()?;
@@ -135,6 +139,7 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyRelicTier>()?;
     module.add_class::<ffi::PyCardName>()?;
     module.add_class::<ffi::PyMonsterName>()?;
+    module.add_class::<ffi::PyMonsterEncounter>()?;
     module.add_class::<ffi::PyEventName>()?;
     module.add_class::<ffi::PyCandidatePoolDeckFilter>()?;
     module.add_class::<ffi::PyCandidatePoolMonstersFilter>()?;
@@ -155,3 +160,5 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyShop>()?;
     Ok(())
 }
+
+define_stub_info_gatherer!(stub_info);

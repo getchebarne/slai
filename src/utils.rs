@@ -9,6 +9,7 @@ use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
+use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
@@ -99,6 +100,15 @@ pub fn scale_attack_damage(
     }
     if target_is_vulnerable {
         value *= FACTOR_VULN;
+    }
+    value.max(0.0) as u16
+}
+
+// Shared by the live block pipeline and the FFI card preview: card-played block scales with Dex/Frail
+pub fn scale_block_gain(base: u16, dex_stacks: i16, frail: bool) -> u16 {
+    let mut value = base as f32 + dex_stacks as f32;
+    if frail {
+        value *= FACTOR_FRAIL;
     }
     value.max(0.0) as u16
 }
