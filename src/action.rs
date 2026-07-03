@@ -5,6 +5,7 @@ use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::effect::get_input_count;
 use crate::entity::card_effective_cost;
@@ -153,10 +154,8 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     if let Some(effect_pending) = state.effect_pending.as_ref() {
         // Copy out the halt's shape so the &mut dispatch below can't alias the borrow
         let effect_pending_kind = effect_pending.kind;
-        let count = get_input_count(effect_pending).expect("Expected some input count, got `None`")
-            as usize;
         let deck_filter = pending_deck_filter(effect_pending);
-        fill_legal_actions_effect_pending(state, effect_pending_kind, count, deck_filter);
+        fill_legal_actions_effect_pending(state, effect_pending_kind, deck_filter);
         return;
     }
     match state.screen {
@@ -476,20 +475,19 @@ fn handle_shop_purge(state: &mut GameState, idx: usize) {
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
     kind: EffectKind,
-    num: usize,
     deck_filter: Option<CandidatePoolDeckFilter>,
 ) {
     match kind {
+        // Discard/retain offer single-card picks; the handler re-raises the halt with a
+        // decremented count, so discard-N becomes N single picks (see resolve_hand_pending)
         EffectKind::CardDiscard { .. } => {
-            for combo in hand_combinations(state.id_hand.len(), num) {
-                state
-                    .legal_actions
-                    .push(Action::CardDiscard { idxs: combo });
+            for i in 0..state.id_hand.len() {
+                state.legal_actions.push(Action::CardDiscard { idxs: vec![i] });
             }
         }
         EffectKind::CardRetain => {
-            for combo in hand_combinations(state.id_hand.len(), num) {
-                state.legal_actions.push(Action::CardRetain { idxs: combo });
+            for i in 0..state.id_hand.len() {
+                state.legal_actions.push(Action::CardRetain { idxs: vec![i] });
             }
         }
         EffectKind::CardSetupPick => {
@@ -755,37 +753,8 @@ fn current_room_id(state: &GameState) -> usize {
     }
 }
 
-// All k-subsets of [0..n) as Vec<usize>. For HandSelect Discard/Retain
-fn hand_combinations(n: usize, k: usize) -> Vec<Vec<usize>> {
-    let mut out = Vec::new();
-    if k > n {
-        return out;
-    }
-    let mut combo: Vec<usize> = (0..k).collect();
-    loop {
-        out.push(combo.clone());
-        // Find rightmost position that can be incremented
-        let mut i = k;
-        while i > 0 {
-            i -= 1;
-            if combo[i] != i + n - k {
-                combo[i] += 1;
-                for j in i + 1..k {
-                    combo[j] = combo[j - 1] + 1;
-                }
-                break;
-            }
-            if i == 0 {
-                return out;
-            }
-        }
-        if k == 0 {
-            return out;
-        }
-    }
-}
-
-// Pops effect_pending and re-enqueues it as Direct for each id
+// Pops effect_pending, applies the picked cards as Direct effects, and re-raises the
+// halt with the remaining count so each pick is a single selection over the shrunk hand.
 fn resolve_hand_pending(state: &mut GameState, idxs: Vec<usize>) {
     let effect_pending = state.effect_pending.take().unwrap();
 
@@ -796,6 +765,21 @@ fn resolve_hand_pending(state: &mut GameState, idxs: Vec<usize>) {
             kind: effect_pending.kind,
             id_source: effect_pending.id_source,
             target: Target::Direct(Some(id_card)),
+        });
+    }
+
+    // Re-raise the remaining count; the picks flush ahead so the hand shrinks first.
+    // Input{1} (Setup/Nightmare/Survivor) leaves remaining 0; discard-N halts N times
+    let count = get_input_count(&effect_pending).expect("hand pending carries an Input count");
+    let remaining = count.saturating_sub(idxs.len() as u16);
+    if remaining > 0 {
+        state.effect_buf.push(Effect {
+            kind: effect_pending.kind,
+            id_source: effect_pending.id_source,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Hand,
+                selection_kind: SelectionKind::Input { count: remaining },
+            },
         });
     }
 }

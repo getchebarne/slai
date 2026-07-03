@@ -1,42 +1,40 @@
-from enum import IntEnum
 from typing import Iterator, NamedTuple, Optional, Union
 
 from . import slai as _rs
 
 
-# IntEnum shims for unit-only PyO3 enums
-def _to_intenum(name: str, rust_cls: type) -> type:
-    members = {
-        k: int(getattr(rust_cls, k))
-        for k in dir(rust_cls)
-        if not k.startswith("_") and isinstance(getattr(rust_cls, k), rust_cls)
-    }
-    return IntEnum(name, members)
+def members(rust_enum: type) -> list:
+    """Members of a raw pyo3 unit enum, in declaration (dir) order. Raw pyo3 enums
+    are not iterable, so this is the iteration mechanism for building index tables."""
+    return [
+        getattr(rust_enum, k)
+        for k in dir(rust_enum)
+        if not k.startswith("_") and isinstance(getattr(rust_enum, k), rust_enum)
+    ]
 
 
-ActionType = _to_intenum("ActionType", _rs.ActionType)
-CardKind = _to_intenum("CardKind", _rs.CardKind)
-CardColor = _to_intenum("CardColor", _rs.CardColor)
-CardRarity = _to_intenum("CardRarity", _rs.CardRarity)
-PlayRestriction = _to_intenum("PlayRestriction", _rs.PlayRestriction)
-RoomKind = _to_intenum("RoomKind", _rs.RoomKind)
-ChestKind = _to_intenum("ChestKind", _rs.ChestKind)
-RelicTier = _to_intenum("RelicTier", _rs.RelicTier)
-CardName = _to_intenum("CardName", _rs.CardName)
-MonsterName = _to_intenum("MonsterName", _rs.MonsterName)
-RelicName = _to_intenum("RelicName", _rs.RelicName)
-PotionName = _to_intenum("PotionName", _rs.PotionName)
-PotionRarity = _to_intenum("PotionRarity", _rs.PotionRarity)
-ModifierKind = _to_intenum("ModifierKind", _rs.ModifierKind)
-IntentKind = _to_intenum("IntentKind", _rs.IntentKind)
-Screen = _to_intenum("Screen", _rs.Screen)
-CandidatePoolMonstersFilter = _to_intenum(
-    "CandidatePoolMonstersFilter", _rs.CandidatePoolMonstersFilter
-)
-EventName = _to_intenum("EventName", _rs.EventName)
-CandidatePoolDeckFilter = _to_intenum(
-    "CandidatePoolDeckFilter", _rs.CandidatePoolDeckFilter
-)
+# Every enum is re-exported raw — exactly what the FFI hands back, so annotations /
+# isinstance / match agree with runtime values. Iterate with members(). ActionType is
+# an input type (Python constructs actions); its Rust `.name` feeds the registry below.
+ActionType = _rs.ActionType
+CardKind = _rs.CardKind
+CardColor = _rs.CardColor
+CardRarity = _rs.CardRarity
+PlayRestriction = _rs.PlayRestriction
+RoomKind = _rs.RoomKind
+RelicTier = _rs.RelicTier
+CardName = _rs.CardName
+MonsterName = _rs.MonsterName
+MonsterEncounter = _rs.MonsterEncounter
+RelicName = _rs.RelicName
+PotionName = _rs.PotionName
+PotionRarity = _rs.PotionRarity
+ModifierKind = _rs.ModifierKind
+IntentKind = _rs.IntentKind
+Screen = _rs.Screen
+EventName = _rs.EventName
+CandidatePoolMonstersFilter = _rs.CandidatePoolMonstersFilter
+CandidatePoolDeckFilter = _rs.CandidatePoolDeckFilter
 
 
 # Action schema types
@@ -48,7 +46,7 @@ class ArgSpec(NamedTuple):
 
 
 class ActionSpec(NamedTuple):
-    id: ActionType  # type: ignore[valid-type]
+    id: ActionType
     name: str
     args: tuple[ArgSpec, ...]
     arity: tuple[int, Optional[int]]
@@ -58,7 +56,7 @@ class ActionSpecRegistry:
     def __init__(self, specs: list[ActionSpec]) -> None:
         self._list: list[ActionSpec] = specs
         self._by_name: dict[str, ActionSpec] = {s.name: s for s in specs}
-        self._by_id: dict[int, ActionSpec] = {int(s.id): s for s in specs}
+        self._by_id: dict[ActionType, ActionSpec] = {s.id: s for s in specs}
 
     def __getattr__(self, name: str) -> ActionSpec:
         try:
@@ -66,10 +64,10 @@ class ActionSpecRegistry:
         except KeyError:
             raise AttributeError(name) from None
 
-    def __getitem__(self, key: Union[int, str]) -> ActionSpec:
-        if isinstance(key, int):
-            return self._by_id[int(key)]
-        return self._by_name[key]
+    def __getitem__(self, key: Union[ActionType, str]) -> ActionSpec:
+        if isinstance(key, str):
+            return self._by_name[key]
+        return self._by_id[key]
 
     def __iter__(self) -> Iterator[ActionSpec]:
         return iter(self._list)
@@ -78,11 +76,7 @@ class ActionSpecRegistry:
         return len(self._list)
 
     def __contains__(self, key: object) -> bool:
-        if isinstance(key, int):
-            return int(key) in self._by_id
-        if isinstance(key, str):
-            return key in self._by_name
-        return False
+        return key in self._by_name or key in self._by_id
 
 
 def _arity_from_args(args: tuple[ArgSpec, ...]) -> tuple[int, Optional[int]]:
@@ -95,7 +89,7 @@ def _arity_from_args(args: tuple[ArgSpec, ...]) -> tuple[int, Optional[int]]:
     return (min_len, len(args))
 
 
-def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:  # type: ignore[valid-type]
+def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
     return ActionSpec(
         id=action_type, name=action_type.name, args=args, arity=_arity_from_args(args)
     )
@@ -182,13 +176,23 @@ Event = _rs.Event
 EventOption = _rs.EventOption
 Reward = _rs.Reward
 Shop = _rs.Shop
+Potion = _rs.Potion
 
-# Complex enums
+# Plain struct view
+Target = _rs.Target
+
+# Complex enums: re-export the raw pyo3 nested-variant classes directly. Each is a
+# real class whose variants are nested subclasses (Effect.DamagePhysical, ...) with
+# field properties + __match_args__ for native isinstance/match — exactly what the
+# FFI returns, so annotations match runtime values.
+Effect = _rs.Effect
 CandidatePool = _rs.CandidatePool
 SelectionKind = _rs.SelectionKind
-Target = _rs.Target
-Effect = _rs.Effect
 CardCostKind = _rs.CardCostKind
+HealthDeltaAmount = _rs.HealthDeltaAmount
+GoldDeltaKind = _rs.GoldDeltaKind
+
+DeltaSign = _rs.DeltaSign
 
 
 __all__ = [
@@ -200,6 +204,7 @@ __all__ = [
     "ActionSpec",
     "ActionSpecRegistry",
     "ACTION_SPEC_REGISTRY",
+    "members",
     # Views
     "Card",
     "Character",
@@ -213,33 +218,38 @@ __all__ = [
     "Relic",
     "Event",
     "EventOption",
-    # Unit-enum shims
+    # Unit enums (raw)
     "CardKind",
     "CardColor",
     "CardRarity",
     "PlayRestriction",
-    "CardCostKind",
     "ModifierKind",
     "IntentKind",
-    "CandidatePool",
     "CandidatePoolMonstersFilter",
     "RoomKind",
-    "ChestKind",
     "RelicName",
     "RelicTier",
     "PotionName",
     "PotionRarity",
     "CardName",
     "MonsterName",
+    "MonsterEncounter",
     "EventName",
     "CandidatePoolDeckFilter",
     "Screen",
-    # Complex enums
+    # Complex enums (raw nested-variant classes)
+    "CandidatePool",
     "SelectionKind",
+    "CardCostKind",
     "Target",
     "Effect",
+    "HealthDeltaAmount",
+    "GoldDeltaKind",
+    "DeltaSign",
     # Reward
     "Reward",
     # Shop
     "Shop",
+    # Potion
+    "Potion",
 ]
