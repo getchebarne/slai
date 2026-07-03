@@ -332,6 +332,10 @@ pub enum RelicName {
     Vajra,
     Circlet,
     GoldenIdol,
+    Lantern,
+    ClockworkSouvenir,
+    GremlinVisage,
+    RedMask,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

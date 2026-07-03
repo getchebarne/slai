@@ -325,6 +325,10 @@ pub enum PyRelicName {
     Vajra,
     Circlet,
     GoldenIdol,
+    Lantern,
+    ClockworkSouvenir,
+    GremlinVisage,
+    RedMask,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -346,6 +350,10 @@ impl From<RelicName> for PyRelicName {
             RelicName::Vajra => Self::Vajra,
             RelicName::Circlet => Self::Circlet,
             RelicName::GoldenIdol => Self::GoldenIdol,
+            RelicName::Lantern => Self::Lantern,
+            RelicName::ClockworkSouvenir => Self::ClockworkSouvenir,
+            RelicName::GremlinVisage => Self::GremlinVisage,
+            RelicName::RedMask => Self::RedMask,
         }
     }
 }
@@ -369,6 +377,10 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::Vajra => Self::Vajra,
             PyRelicName::Circlet => Self::Circlet,
             PyRelicName::GoldenIdol => Self::GoldenIdol,
+            PyRelicName::Lantern => Self::Lantern,
+            PyRelicName::ClockworkSouvenir => Self::ClockworkSouvenir,
+            PyRelicName::GremlinVisage => Self::GremlinVisage,
+            PyRelicName::RedMask => Self::RedMask,
         }
     }
 }

@@ -5,10 +5,14 @@ mod bag_of_preparation;
 mod blood_vial;
 mod bronze_scales;
 mod circlet;
+mod clockwork_souvenir;
 mod golden_idol;
+mod gremlin_visage;
 mod kunai;
+mod lantern;
 mod ninja_scroll;
 mod oddly_smooth_stone;
+mod red_mask;
 mod shuriken;
 mod snake_ring;
 mod thread_and_needle;
@@ -40,6 +44,10 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::Vajra => vajra::VAJRA,
         RelicName::Circlet => circlet::CIRCLET,
         RelicName::GoldenIdol => golden_idol::GOLDEN_IDOL,
+        RelicName::Lantern => lantern::LANTERN,
+        RelicName::ClockworkSouvenir => clockwork_souvenir::CLOCKWORK_SOUVENIR,
+        RelicName::GremlinVisage => gremlin_visage::GREMLIN_VISAGE,
+        RelicName::RedMask => red_mask::RED_MASK,
     }
 }
 
@@ -61,10 +69,14 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &blood_vial::BLOOD_VIAL,
     &bronze_scales::BRONZE_SCALES,
     &circlet::CIRCLET,
+    &clockwork_souvenir::CLOCKWORK_SOUVENIR,
     &golden_idol::GOLDEN_IDOL,
+    &gremlin_visage::GREMLIN_VISAGE,
     &kunai::KUNAI,
+    &lantern::LANTERN,
     &ninja_scroll::NINJA_SCROLL,
     &oddly_smooth_stone::ODDLY_SMOOTH_STONE,
+    &red_mask::RED_MASK,
     &shuriken::SHURIKEN,
     &thread_and_needle::THREAD_AND_NEEDLE,
     &twisted_funnel::TWISTED_FUNNEL,

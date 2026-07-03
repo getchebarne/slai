@@ -56,3 +56,71 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::effect::Effect;
+    use crate::effect::EffectKind;
+    use crate::effect::Target;
+    use crate::engine::process_effect_queue;
+    use crate::game::GameState;
+    use crate::game::create_game_state;
+    use crate::modifier::ModifierKind;
+    use crate::modifier::modifier_stacks;
+    use crate::types::MonsterName;
+    use crate::types::RelicName;
+    use crate::utils::grant_relic;
+
+    fn combat_with_relic(relic: RelicName) -> GameState {
+        let mut state = create_game_state(0, 42, false);
+        grant_relic(relic, &mut state.id_relics, &mut state.entities);
+        for kind in [
+            EffectKind::MonsterSpawn {
+                name: MonsterName::JawWorm,
+            },
+            EffectKind::CombatStart,
+        ] {
+            state.effect_queue.push_back(Effect {
+                kind,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+        process_effect_queue(&mut state);
+        state
+    }
+
+    #[test]
+    fn lantern_adds_energy_on_first_turn() {
+        let state = combat_with_relic(RelicName::Lantern);
+        assert_eq!(state.energy.energy_current, 4);
+        assert_eq!(state.energy.energy_max, 3);
+    }
+
+    #[test]
+    fn clockwork_souvenir_grants_artifact() {
+        let state = combat_with_relic(RelicName::ClockworkSouvenir);
+        let mods = &state.entities[state.id_character].modifiers;
+        assert_eq!(modifier_stacks(mods, ModifierKind::Artifact), 1);
+    }
+
+    #[test]
+    fn gremlin_visage_weakens_character() {
+        let state = combat_with_relic(RelicName::GremlinVisage);
+        let mods = &state.entities[state.id_character].modifiers;
+        assert_eq!(modifier_stacks(mods, ModifierKind::Weak), 1);
+    }
+
+    #[test]
+    fn red_mask_weakens_all_monsters() {
+        let state = combat_with_relic(RelicName::RedMask);
+        let weakened: Vec<usize> = state
+            .id_monsters
+            .iter()
+            .flatten()
+            .filter(|&&id| modifier_stacks(&state.entities[id].modifiers, ModifierKind::Weak) == 1)
+            .copied()
+            .collect();
+        assert_eq!(weakened.len(), 1);
+    }
+}
