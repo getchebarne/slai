@@ -274,17 +274,25 @@ fn trim_redundant_first_row_edges(nodes: &mut Grid) {
 }
 
 fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
+    // Ratio denominator counts every node except row 13; forced rows
+    // (0=Monster, 8=Treasure, 14=Rest) count but never receive a drawn kind
     let mut positions: Vec<(usize, usize)> = Vec::new();
+    let mut num_rooms: usize = 0;
     for (y, row) in nodes.iter().enumerate() {
         for (x, node) in row.iter().enumerate() {
-            if node.is_some() {
+            if node.is_none() {
+                continue;
+            }
+            if y != MAP_HEIGHT - 2 {
+                num_rooms += 1;
+            }
+            if y != 0 && y != MAP_ROW_TREASURE && y != MAP_HEIGHT - 1 {
                 positions.push((y, x));
             }
         }
     }
 
     // Counts round to nearest; A1+ spawns ~60% more elites
-    let num_rooms = positions.len();
     let num_rest = (num_rooms as f32 * FACTOR_NUM_REST_SITE).round() as usize;
     let num_elite = if ascension >= 1 {
         (num_rooms as f32 * FACTOR_NUM_ELITE * FACTOR_NUM_ELITE_A1_MULT).round() as usize
@@ -294,7 +302,7 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
     let num_event = (num_rooms as f32 * FACTOR_NUM_EVENT).round() as usize;
     let num_shop = (num_rooms as f32 * FACTOR_NUM_SHOP).round() as usize;
 
-    let mut types = vec![RoomKind::CombatMonster; num_rooms];
+    let mut types = vec![RoomKind::CombatMonster; positions.len()];
     let mut offset = 0;
     for (count, kind) in [
         (num_rest, RoomKind::RestSite),
@@ -339,6 +347,10 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
             // Find a CombatMonster at a row that CAN host this kind
             let mut swapped = false;
             'swap: for y2 in 0..MAP_HEIGHT - 1 {
+                // Forced rows never host a relocated kind
+                if y2 == 0 || y2 == MAP_ROW_TREASURE {
+                    continue;
+                }
                 let row_ok = match kind {
                     RoomKind::CombatElite => y2 >= ELITE_MIN_Y,
                     RoomKind::RestSite => y2 >= REST_MIN_Y && y2 < REST_MAX_Y_EXCL,
@@ -387,6 +399,37 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
     for node in &mut nodes[MAP_HEIGHT - 1] {
         if let Some(n) = node {
             n.room_kind = RoomKind::RestSite;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rand::SeedableRng;
+    use rand::rngs::SmallRng;
+
+    use super::*;
+
+    #[test]
+    fn forced_rows_and_row_13_hold_only_legal_kinds() {
+        for seed in 0..20 {
+            let mut rng = SmallRng::seed_from_u64(seed);
+            let mut entities: Vec<Entity> = Vec::new();
+            let (id_rooms, _) = generate_map(&mut rng, &mut entities, 1);
+            for x in 0..MAP_WIDTH {
+                for (y, expect) in [
+                    (0, RoomKind::CombatMonster),
+                    (MAP_ROW_TREASURE, RoomKind::Treasure),
+                    (MAP_HEIGHT - 1, RoomKind::RestSite),
+                ] {
+                    if let Some(id) = id_rooms[y][x] {
+                        assert_eq!(entities[id].room_kind, expect, "seed {seed} row {y}");
+                    }
+                }
+                if let Some(id) = id_rooms[MAP_HEIGHT - 2][x] {
+                    assert_ne!(entities[id].room_kind, RoomKind::RestSite, "seed {seed}");
+                }
+            }
         }
     }
 }
