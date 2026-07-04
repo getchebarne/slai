@@ -13,11 +13,13 @@ pub fn process_effect_monster_spawn(
     state: &mut GameState,
     name: MonsterName,
 ) {
-    // First spawn of a combat installs the Combat context
+    // First spawn of a combat installs the Combat context.
+    // Energy starts empty; the turn-1 refill fills it (so Ice Cream's carry-over
+    // adds nothing extra on turn 1, matching the StS recharge model)
     if !matches!(state.screen, Screen::Combat) {
         state.screen = Screen::Combat;
         state.energy = Energy {
-            energy_current: 3,
+            energy_current: 0,
             energy_max: 3,
         };
     }

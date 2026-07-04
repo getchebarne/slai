@@ -347,6 +347,13 @@ pub enum PyRelicName {
     WhiteBeastStatue,
     DollysMirror,
     LeesWaffle,
+    HappyFlower,
+    IncenseBurner,
+    MercuryHourglass,
+    HornCleat,
+    CaptainsWheel,
+    Calipers,
+    IceCream,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -390,6 +397,13 @@ impl From<RelicName> for PyRelicName {
             RelicName::WhiteBeastStatue => Self::WhiteBeastStatue,
             RelicName::DollysMirror => Self::DollysMirror,
             RelicName::LeesWaffle => Self::LeesWaffle,
+            RelicName::HappyFlower => Self::HappyFlower,
+            RelicName::IncenseBurner => Self::IncenseBurner,
+            RelicName::MercuryHourglass => Self::MercuryHourglass,
+            RelicName::HornCleat => Self::HornCleat,
+            RelicName::CaptainsWheel => Self::CaptainsWheel,
+            RelicName::Calipers => Self::Calipers,
+            RelicName::IceCream => Self::IceCream,
         }
     }
 }
@@ -435,6 +449,13 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::WhiteBeastStatue => Self::WhiteBeastStatue,
             PyRelicName::DollysMirror => Self::DollysMirror,
             PyRelicName::LeesWaffle => Self::LeesWaffle,
+            PyRelicName::HappyFlower => Self::HappyFlower,
+            PyRelicName::IncenseBurner => Self::IncenseBurner,
+            PyRelicName::MercuryHourglass => Self::MercuryHourglass,
+            PyRelicName::HornCleat => Self::HornCleat,
+            PyRelicName::CaptainsWheel => Self::CaptainsWheel,
+            PyRelicName::Calipers => Self::Calipers,
+            PyRelicName::IceCream => Self::IceCream,
         }
     }
 }

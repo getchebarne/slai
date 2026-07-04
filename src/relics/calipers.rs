@@ -1,0 +1,8 @@
+use crate::entity::Entity;
+use crate::entity::make_entity_relic;
+use crate::types::RelicName;
+use crate::types::RelicTier;
+
+// At turn start, lose 15 block instead of all of it
+pub static CALIPERS: Entity =
+    make_entity_relic(RelicName::Calipers, RelicTier::Rare, 0, &[]);

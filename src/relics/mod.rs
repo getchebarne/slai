@@ -7,17 +7,24 @@ mod bag_of_preparation;
 mod bird_faced_urn;
 mod blood_vial;
 mod bronze_scales;
+mod calipers;
+mod captains_wheel;
 mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
 mod dollys_mirror;
 mod golden_idol;
 mod gremlin_visage;
+mod happy_flower;
+mod horn_cleat;
+mod ice_cream;
+mod incense_burner;
 mod ink_bottle;
 mod kunai;
 mod lantern;
 mod lees_waffle;
 mod letter_opener;
+mod mercury_hourglass;
 mod mummified_hand;
 mod ninja_scroll;
 mod nunchaku;
@@ -84,6 +91,13 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::WhiteBeastStatue => white_beast_statue::WHITE_BEAST_STATUE,
         RelicName::DollysMirror => dollys_mirror::DOLLYS_MIRROR,
         RelicName::LeesWaffle => lees_waffle::LEES_WAFFLE,
+        RelicName::HappyFlower => happy_flower::HAPPY_FLOWER,
+        RelicName::IncenseBurner => incense_burner::INCENSE_BURNER,
+        RelicName::MercuryHourglass => mercury_hourglass::MERCURY_HOURGLASS,
+        RelicName::HornCleat => horn_cleat::HORN_CLEAT,
+        RelicName::CaptainsWheel => captains_wheel::CAPTAINS_WHEEL,
+        RelicName::Calipers => calipers::CALIPERS,
+        RelicName::IceCream => ice_cream::ICE_CREAM,
     }
 }
 
@@ -117,7 +131,11 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
 ];
 
 // Per-combat relic counters; reset at combat start only
-pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[RelicName::StoneCalendar];
+pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
+    RelicName::StoneCalendar,
+    RelicName::HornCleat,
+    RelicName::CaptainsWheel,
+];
 
 pub fn iter_owned_relics(
     id_relics: &[Option<usize>; RelicName::COUNT],
@@ -139,17 +157,24 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &bird_faced_urn::BIRD_FACED_URN,
     &blood_vial::BLOOD_VIAL,
     &bronze_scales::BRONZE_SCALES,
+    &calipers::CALIPERS,
+    &captains_wheel::CAPTAINS_WHEEL,
     &chemical_x::CHEMICAL_X,
     &circlet::CIRCLET,
     &clockwork_souvenir::CLOCKWORK_SOUVENIR,
     &dollys_mirror::DOLLYS_MIRROR,
     &golden_idol::GOLDEN_IDOL,
     &gremlin_visage::GREMLIN_VISAGE,
+    &happy_flower::HAPPY_FLOWER,
+    &horn_cleat::HORN_CLEAT,
+    &ice_cream::ICE_CREAM,
+    &incense_burner::INCENSE_BURNER,
     &ink_bottle::INK_BOTTLE,
     &kunai::KUNAI,
     &lantern::LANTERN,
     &lees_waffle::LEES_WAFFLE,
     &letter_opener::LETTER_OPENER,
+    &mercury_hourglass::MERCURY_HOURGLASS,
     &mummified_hand::MUMMIFIED_HAND,
     &ninja_scroll::NINJA_SCROLL,
     &nunchaku::NUNCHAKU,

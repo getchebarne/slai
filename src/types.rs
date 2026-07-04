@@ -354,6 +354,13 @@ pub enum RelicName {
     WhiteBeastStatue,
     DollysMirror,
     LeesWaffle,
+    HappyFlower,
+    IncenseBurner,
+    MercuryHourglass,
+    HornCleat,
+    CaptainsWheel,
+    Calipers,
+    IceCream,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {
