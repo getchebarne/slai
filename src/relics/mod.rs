@@ -12,11 +12,16 @@ mod bronze_scales;
 mod calipers;
 mod captains_wheel;
 mod centennial_puzzle;
+mod ceramic_fish;
 mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
+mod darkstone_periapt;
+mod dead_branch;
 mod dollys_mirror;
+mod du_vu_doll;
 mod eternal_feather;
+mod frozen_egg;
 mod ginger;
 mod golden_idol;
 mod gremlin_horn;
@@ -37,39 +42,47 @@ mod maw_bank;
 mod meal_ticket;
 mod meat_on_the_bone;
 mod mercury_hourglass;
+mod molten_egg;
 mod mummified_hand;
 mod ninja_scroll;
 mod nunchaku;
 mod oddly_smooth_stone;
+mod omamori;
 mod orange_pellets;
 mod orichalcum;
 mod ornamental_fan;
+mod pantograph;
 mod paper_krane;
 mod pocketwatch;
 mod red_mask;
 mod regal_pillow;
 mod shuriken;
+mod sling_of_courage;
+mod smiling_mask;
+mod snake_ring;
 mod snecko_skull;
 mod stone_calendar;
 mod strange_spoon;
 mod strike_dummy;
 mod sundial;
 mod the_specimen;
+mod thread_and_needle;
 mod tingsha;
 mod tiny_chest;
 mod torii;
 mod tough_bandages;
+mod toxic_egg;
+mod toy_ornithopter;
 mod tungsten_rod;
 mod turnip;
-mod white_beast_statue;
-mod snake_ring;
-mod thread_and_needle;
 mod twisted_funnel;
 mod vajra;
+mod white_beast_statue;
 
 use strum::EnumCount;
 
 use crate::entity::Entity;
+use crate::types::CardKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::relic_name_from_u8;
@@ -144,6 +157,18 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::AncientTeaSet => ancient_tea_set::ANCIENT_TEA_SET,
         RelicName::RegalPillow => regal_pillow::REGAL_PILLOW,
         RelicName::MeatOnTheBone => meat_on_the_bone::MEAT_ON_THE_BONE,
+        RelicName::Omamori => omamori::OMAMORI,
+        RelicName::DarkstonePeriapt => darkstone_periapt::DARKSTONE_PERIAPT,
+        RelicName::CeramicFish => ceramic_fish::CERAMIC_FISH,
+        RelicName::FrozenEgg => frozen_egg::FROZEN_EGG,
+        RelicName::MoltenEgg => molten_egg::MOLTEN_EGG,
+        RelicName::ToxicEgg => toxic_egg::TOXIC_EGG,
+        RelicName::ToyOrnithopter => toy_ornithopter::TOY_ORNITHOPTER,
+        RelicName::SmilingMask => smiling_mask::SMILING_MASK,
+        RelicName::DeadBranch => dead_branch::DEAD_BRANCH,
+        RelicName::DuVuDoll => du_vu_doll::DU_VU_DOLL,
+        RelicName::Pantograph => pantograph::PANTOGRAPH,
+        RelicName::SlingOfCourage => sling_of_courage::SLING_OF_COURAGE,
     }
 }
 
@@ -164,6 +189,20 @@ pub fn relic_counter_fire(
         return true;
     }
     false
+}
+
+// Frozen/Molten/Toxic Egg: cards of the matching kind are obtained upgraded
+pub fn egg_upgrades_kind(
+    kind: CardKind,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+) -> bool {
+    let egg = match kind {
+        CardKind::Power => RelicName::FrozenEgg,
+        CardKind::Attack => RelicName::MoltenEgg,
+        CardKind::Skill => RelicName::ToxicEgg,
+        _ => return false,
+    };
+    id_relics[egg as usize].is_some()
 }
 
 // Per-turn relic counters; reset at character turn end and at combat start
@@ -209,11 +248,16 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &calipers::CALIPERS,
     &captains_wheel::CAPTAINS_WHEEL,
     &centennial_puzzle::CENTENNIAL_PUZZLE,
+    &ceramic_fish::CERAMIC_FISH,
     &chemical_x::CHEMICAL_X,
     &circlet::CIRCLET,
     &clockwork_souvenir::CLOCKWORK_SOUVENIR,
+    &darkstone_periapt::DARKSTONE_PERIAPT,
+    &dead_branch::DEAD_BRANCH,
     &dollys_mirror::DOLLYS_MIRROR,
+    &du_vu_doll::DU_VU_DOLL,
     &eternal_feather::ETERNAL_FEATHER,
+    &frozen_egg::FROZEN_EGG,
     &ginger::GINGER,
     &golden_idol::GOLDEN_IDOL,
     &gremlin_horn::GREMLIN_HORN,
@@ -234,18 +278,23 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &meal_ticket::MEAL_TICKET,
     &meat_on_the_bone::MEAT_ON_THE_BONE,
     &mercury_hourglass::MERCURY_HOURGLASS,
+    &molten_egg::MOLTEN_EGG,
     &mummified_hand::MUMMIFIED_HAND,
     &ninja_scroll::NINJA_SCROLL,
     &nunchaku::NUNCHAKU,
     &oddly_smooth_stone::ODDLY_SMOOTH_STONE,
+    &omamori::OMAMORI,
     &orange_pellets::ORANGE_PELLETS,
     &orichalcum::ORICHALCUM,
     &ornamental_fan::ORNAMENTAL_FAN,
+    &pantograph::PANTOGRAPH,
     &paper_krane::PAPER_KRANE,
     &pocketwatch::POCKETWATCH,
     &red_mask::RED_MASK,
     &regal_pillow::REGAL_PILLOW,
     &shuriken::SHURIKEN,
+    &sling_of_courage::SLING_OF_COURAGE,
+    &smiling_mask::SMILING_MASK,
     &snecko_skull::SNECKO_SKULL,
     &stone_calendar::STONE_CALENDAR,
     &strange_spoon::STRANGE_SPOON,
@@ -257,6 +306,8 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &tiny_chest::TINY_CHEST,
     &torii::TORII,
     &tough_bandages::TOUGH_BANDAGES,
+    &toxic_egg::TOXIC_EGG,
+    &toy_ornithopter::TOY_ORNITHOPTER,
     &tungsten_rod::TUNGSTEN_ROD,
     &turnip::TURNIP,
     &twisted_funnel::TWISTED_FUNNEL,

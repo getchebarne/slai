@@ -1,0 +1,8 @@
+use crate::entity::Entity;
+use crate::entity::make_entity_relic;
+use crate::types::RelicName;
+use crate::types::RelicTier;
+
+// The shop card-removal service always costs 50 gold
+pub static SMILING_MASK: Entity =
+    make_entity_relic(RelicName::SmilingMask, RelicTier::Common, 0, &[]);

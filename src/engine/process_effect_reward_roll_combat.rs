@@ -52,6 +52,7 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
         &mut state.entities,
         &mut state.rng,
         &mut state.reward_id_cards,
+        &state.id_relics,
     );
     state.reward_id_relic = relic_thresholds.map(|(th_c, th_u)| {
         let roll = state.rng.random_range(0..100) as u8;

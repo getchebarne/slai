@@ -1,5 +1,11 @@
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::GoldDeltaKind;
+use crate::effect::Target;
 use crate::game::GameState;
 use crate::potions::find_free_slot;
+use crate::types::DeltaSign;
+use crate::types::RelicName;
 use crate::types::RewardKind;
 
 pub fn process_effect_reward_take(
@@ -12,6 +18,17 @@ pub fn process_effect_reward_take(
             let id_card = id_target.expect("RewardTake { Card } requires id_target");
             state.id_deck.push(id_card);
             state.reward_id_cards.clear();
+            // Ceramic Fish: this deck-add bypasses CardAddToDeck, so pay here too
+            if state.id_relics[RelicName::CeramicFish as usize].is_some() {
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::GoldDelta {
+                        sign: DeltaSign::Gain,
+                        kind: GoldDeltaKind::Fixed(9),
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
         }
         RewardKind::Relic => {
             if let Some(id) = state.reward_id_relic.take() {

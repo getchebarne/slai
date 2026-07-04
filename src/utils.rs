@@ -21,6 +21,7 @@ use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
+use crate::relics::egg_upgrades_kind;
 use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -203,6 +204,7 @@ pub fn roll_card_rewards(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     out: &mut Vec<usize>,
+    id_relics: &[Option<usize>; RelicName::COUNT],
 ) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut rolled_card_names: [CardName; MAX_COMBAT_CARD_REWARD] =
@@ -228,7 +230,9 @@ pub fn roll_card_rewards(
         }
 
         rolled_card_names[out.len()] = name;
-        let card = get_card(name, false);
+        // Eggs upgrade matching rewards at roll time, so the preview shows the truth
+        let upgraded = egg_upgrades_kind(get_card(name, false).card_kind, id_relics);
+        let card = get_card(name, upgraded);
         let id_card = push_entity(entities, card);
         out.push(id_card);
     }

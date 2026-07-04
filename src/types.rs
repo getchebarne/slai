@@ -384,6 +384,18 @@ pub enum RelicName {
     AncientTeaSet,
     RegalPillow,
     MeatOnTheBone,
+    Omamori,
+    DarkstonePeriapt,
+    CeramicFish,
+    FrozenEgg,
+    MoltenEgg,
+    ToxicEgg,
+    ToyOrnithopter,
+    SmilingMask,
+    DeadBranch,
+    DuVuDoll,
+    Pantograph,
+    SlingOfCourage,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

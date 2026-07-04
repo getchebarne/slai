@@ -377,6 +377,18 @@ pub enum PyRelicName {
     AncientTeaSet,
     RegalPillow,
     MeatOnTheBone,
+    Omamori,
+    DarkstonePeriapt,
+    CeramicFish,
+    FrozenEgg,
+    MoltenEgg,
+    ToxicEgg,
+    ToyOrnithopter,
+    SmilingMask,
+    DeadBranch,
+    DuVuDoll,
+    Pantograph,
+    SlingOfCourage,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -450,6 +462,18 @@ impl From<RelicName> for PyRelicName {
             RelicName::AncientTeaSet => Self::AncientTeaSet,
             RelicName::RegalPillow => Self::RegalPillow,
             RelicName::MeatOnTheBone => Self::MeatOnTheBone,
+            RelicName::Omamori => Self::Omamori,
+            RelicName::DarkstonePeriapt => Self::DarkstonePeriapt,
+            RelicName::CeramicFish => Self::CeramicFish,
+            RelicName::FrozenEgg => Self::FrozenEgg,
+            RelicName::MoltenEgg => Self::MoltenEgg,
+            RelicName::ToxicEgg => Self::ToxicEgg,
+            RelicName::ToyOrnithopter => Self::ToyOrnithopter,
+            RelicName::SmilingMask => Self::SmilingMask,
+            RelicName::DeadBranch => Self::DeadBranch,
+            RelicName::DuVuDoll => Self::DuVuDoll,
+            RelicName::Pantograph => Self::Pantograph,
+            RelicName::SlingOfCourage => Self::SlingOfCourage,
         }
     }
 }
@@ -525,6 +549,18 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::AncientTeaSet => Self::AncientTeaSet,
             PyRelicName::RegalPillow => Self::RegalPillow,
             PyRelicName::MeatOnTheBone => Self::MeatOnTheBone,
+            PyRelicName::Omamori => Self::Omamori,
+            PyRelicName::DarkstonePeriapt => Self::DarkstonePeriapt,
+            PyRelicName::CeramicFish => Self::CeramicFish,
+            PyRelicName::FrozenEgg => Self::FrozenEgg,
+            PyRelicName::MoltenEgg => Self::MoltenEgg,
+            PyRelicName::ToxicEgg => Self::ToxicEgg,
+            PyRelicName::ToyOrnithopter => Self::ToyOrnithopter,
+            PyRelicName::SmilingMask => Self::SmilingMask,
+            PyRelicName::DeadBranch => Self::DeadBranch,
+            PyRelicName::DuVuDoll => Self::DuVuDoll,
+            PyRelicName::Pantograph => Self::Pantograph,
+            PyRelicName::SlingOfCourage => Self::SlingOfCourage,
         }
     }
 }

@@ -84,6 +84,10 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     } else {
         SHOP_PURGE_COST_BASE
     };
+    // Smiling Mask: the removal service is always 50 gold
+    if state.id_relics[RelicName::SmilingMask as usize].is_some() {
+        state.shop_purge_cost = 50;
+    }
 
     // Sale tag: one random card 50% off
     if !state.shop_card_prices.is_empty() {
@@ -235,5 +239,34 @@ fn roll_card_rarity(rng: &mut impl Rng) -> CardRarity {
         CardRarity::Uncommon
     } else {
         CardRarity::Rare
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::effect::Effect;
+    use crate::effect::EffectKind;
+    use crate::effect::Target;
+    use crate::engine::process_effect_queue;
+    use crate::game::create_game_state;
+    use crate::types::RelicName;
+    use crate::utils::grant_relic;
+
+    #[test]
+    fn smiling_mask_pins_the_purge_cost() {
+        let mut state = create_game_state(0, 42, false);
+        grant_relic(
+            RelicName::SmilingMask,
+            &mut state.id_relics,
+            &mut state.entities,
+        );
+        state.screen = crate::types::Screen::Shop;
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::ShopBuild,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        process_effect_queue(&mut state);
+        assert_eq!(state.shop_purge_cost, 50);
     }
 }
