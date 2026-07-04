@@ -13,6 +13,7 @@ use crate::modifier::modifier_stacks;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
 use crate::types::DeltaSign;
+use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
 pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut GameState) {
@@ -79,6 +80,10 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
 }
 
 pub fn process_effect_turn_end_character(state: &mut GameState) {
+    // Relic checks below read the pre-reset values
+    let this_turn_attacks = state.this_turn_attacks;
+    let this_turn_cards_played = state.this_turn_cards_played;
+
     state.this_turn_discards = 0;
     state.this_turn_attacks = 0;
     state.this_turn_cards_played = 0;
@@ -99,6 +104,52 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     let id_monsters = state.id_monsters;
 
     state.effect_buf.clear();
+
+    // Relic effects go through effect_buf so they resolve before the monster turns
+    if this_turn_attacks == 0 && state.id_relics[RelicName::ArtOfWar as usize].is_some() {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::NextTurnEnergy,
+                stacks: 1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+    if this_turn_cards_played <= 3 && state.id_relics[RelicName::Pocketwatch as usize].is_some() {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::DrawCardNextTurn,
+                stacks: 3,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+    // Relic-sourced block: id_source None skips Dex/Frail scaling
+    if state.entities[id_character].vitals.block == 0
+        && state.id_relics[RelicName::Orichalcum as usize].is_some()
+    {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::BlockGain { amount: 6 },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+    // Counts turn ends per combat; fires exactly once, at 7, with no reset
+    if let Some(id) = state.id_relics[RelicName::StoneCalendar as usize] {
+        let counter = &mut state.entities[id].relic_counter;
+        *counter += 1;
+        if *counter == 7 {
+            for id_monster in id_monsters.iter().flatten().copied() {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal { amount: 52 },
+                    id_source: None,
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+        }
+    }
 
     let mods_char = &state.entities[id_character].modifiers;
     if modifier_has(mods_char, ModifierKind::Retain) && !state.id_hand.is_empty() {
@@ -289,4 +340,78 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     flush_effects_from_buf_to_queue_front(state);
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::engine::test_support::combat_with_relic;
+    use crate::engine::test_support::end_turn;
+    use crate::engine::test_support::first_monster;
+    use crate::engine::test_support::play;
+    use crate::engine::test_support::put_in_hand;
+    use crate::engine::test_support::set_relic_counter;
+    use crate::types::CardName;
+    use crate::types::MonsterName;
+    use crate::types::RelicName;
+
+    #[test]
+    fn art_of_war_grants_energy_after_attackless_turn() {
+        let mut state = combat_with_relic(RelicName::ArtOfWar, MonsterName::Cultist);
+        end_turn(&mut state);
+        // Turn 2 refill 3 + NextTurnEnergy 1
+        assert_eq!(state.energy.energy_current, 4);
+    }
+
+    #[test]
+    fn art_of_war_silent_after_attacking_turn() {
+        let mut state = combat_with_relic(RelicName::ArtOfWar, MonsterName::Cultist);
+        let id = put_in_hand(&mut state, CardName::Strike);
+        play(&mut state, id);
+        end_turn(&mut state);
+        assert_eq!(state.energy.energy_current, 3);
+    }
+
+    #[test]
+    fn pocketwatch_draws_three_after_slow_turn() {
+        let mut state = combat_with_relic(RelicName::Pocketwatch, MonsterName::Cultist);
+        end_turn(&mut state);
+        // Turn 2 draw 5 + DrawCardNextTurn 3
+        assert_eq!(state.id_hand.len(), 8);
+    }
+
+    #[test]
+    fn pocketwatch_silent_after_four_plays() {
+        let mut state = combat_with_relic(RelicName::Pocketwatch, MonsterName::Cultist);
+        for _ in 0..4 {
+            let id = put_in_hand(&mut state, CardName::Strike);
+            play(&mut state, id);
+        }
+        end_turn(&mut state);
+        assert_eq!(state.id_hand.len(), 5);
+    }
+
+    #[test]
+    fn orichalcum_blocks_before_enemy_attacks() {
+        let mut state = combat_with_relic(RelicName::Orichalcum, MonsterName::JawWorm);
+        let id_character = state.id_character;
+        let hp_before = state.entities[id_character].vitals.health;
+        assert_eq!(state.entities[id_character].vitals.block, 0);
+        end_turn(&mut state);
+        // JawWorm opens Chomp 11; Orichalcum's 6 block leaves a 5 HP loss
+        assert_eq!(state.entities[id_character].vitals.health, hp_before - 5);
+    }
+
+    #[test]
+    fn stone_calendar_fires_exactly_on_turn_seven() {
+        let mut state = combat_with_relic(RelicName::StoneCalendar, MonsterName::Cultist);
+        let id_monster = first_monster(&state);
+        state.entities[id_monster].vitals.health = 200;
+        state.entities[id_monster].vitals.health_max = 200;
+        set_relic_counter(&mut state, RelicName::StoneCalendar, 6);
+        end_turn(&mut state);
+        assert_eq!(state.entities[id_monster].vitals.health, 148);
+        end_turn(&mut state);
+        // Counter is past 7; no second fire
+        assert_eq!(state.entities[id_monster].vitals.health, 148);
+    }
 }

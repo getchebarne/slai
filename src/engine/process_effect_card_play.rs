@@ -363,13 +363,11 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
 #[cfg(test)]
 mod tests {
-    use crate::cards::get_card;
-    use crate::effect::Effect;
-    use crate::effect::EffectKind;
-    use crate::effect::Target;
-    use crate::engine::process_effect_queue;
-    use crate::game::GameState;
-    use crate::game::create_game_state;
+    use crate::engine::test_support::char_modifier;
+    use crate::engine::test_support::combat_with_relic;
+    use crate::engine::test_support::play;
+    use crate::engine::test_support::put_in_hand;
+    use crate::engine::test_support::set_relic_counter;
     use crate::modifier::ModifierKind;
     use crate::modifier::modifier_apply;
     use crate::modifier::modifier_has;
@@ -377,78 +375,10 @@ mod tests {
     use crate::types::CardName;
     use crate::types::MonsterName;
     use crate::types::RelicName;
-    use crate::utils::grant_relic;
-    use crate::utils::push_entity;
-
-    fn combat_with_relic(relic: RelicName) -> GameState {
-        let mut state = create_game_state(0, 42, false);
-        grant_relic(relic, &mut state.id_relics, &mut state.entities);
-        for kind in [
-            EffectKind::MonsterSpawn {
-                name: MonsterName::JawWorm,
-            },
-            EffectKind::CombatStart,
-        ] {
-            state.effect_queue.push_back(Effect {
-                kind,
-                id_source: None,
-                target: Target::Direct(None),
-            });
-        }
-        process_effect_queue(&mut state);
-        state
-    }
-
-    fn put_in_hand(state: &mut GameState, name: CardName) -> usize {
-        let id = push_entity(&mut state.entities, get_card(name, false));
-        state.id_hand.push(id);
-        id
-    }
-
-    // Refill energy and play via the real TargetSet -> CardPlay -> TargetClear triple
-    fn play(state: &mut GameState, id_card: usize) {
-        let id_monster = state
-            .id_monsters
-            .iter()
-            .flatten()
-            .copied()
-            .next()
-            .expect("combat has a monster");
-        state.energy.energy_current = 3;
-        for effect in [
-            Effect {
-                kind: EffectKind::TargetSet,
-                id_source: None,
-                target: Target::Direct(Some(id_monster)),
-            },
-            Effect {
-                kind: EffectKind::CardPlay,
-                id_source: None,
-                target: Target::Direct(Some(id_card)),
-            },
-            Effect {
-                kind: EffectKind::TargetClear,
-                id_source: None,
-                target: Target::Direct(None),
-            },
-        ] {
-            state.effect_queue.push_back(effect);
-        }
-        process_effect_queue(state);
-    }
-
-    fn set_relic_counter(state: &mut GameState, relic: RelicName, value: i16) {
-        let id = state.id_relics[relic as usize].expect("relic owned");
-        state.entities[id].relic_counter = value;
-    }
-
-    fn char_modifier(state: &GameState, kind: ModifierKind) -> i16 {
-        modifier_stacks(&state.entities[state.id_character].modifiers, kind)
-    }
 
     #[test]
     fn kunai_grants_dexterity_on_third_attack() {
-        let mut state = combat_with_relic(RelicName::Kunai);
+        let mut state = combat_with_relic(RelicName::Kunai, MonsterName::JawWorm);
         for _ in 0..3 {
             let id = put_in_hand(&mut state, CardName::Strike);
             play(&mut state, id);
@@ -458,7 +388,7 @@ mod tests {
 
     #[test]
     fn ornamental_fan_blocks_on_third_attack() {
-        let mut state = combat_with_relic(RelicName::OrnamentalFan);
+        let mut state = combat_with_relic(RelicName::OrnamentalFan, MonsterName::JawWorm);
         for i in 0..3 {
             let id = put_in_hand(&mut state, CardName::Strike);
             play(&mut state, id);
@@ -469,7 +399,7 @@ mod tests {
 
     #[test]
     fn nunchaku_grants_energy_on_tenth_attack() {
-        let mut state = combat_with_relic(RelicName::Nunchaku);
+        let mut state = combat_with_relic(RelicName::Nunchaku, MonsterName::JawWorm);
         set_relic_counter(&mut state, RelicName::Nunchaku, 9);
         let id = put_in_hand(&mut state, CardName::Strike);
         play(&mut state, id);
@@ -481,7 +411,7 @@ mod tests {
 
     #[test]
     fn ink_bottle_draws_on_tenth_card() {
-        let mut state = combat_with_relic(RelicName::InkBottle);
+        let mut state = combat_with_relic(RelicName::InkBottle, MonsterName::JawWorm);
         set_relic_counter(&mut state, RelicName::InkBottle, 9);
         let hand_before = state.id_hand.len();
         let id = put_in_hand(&mut state, CardName::Strike);
@@ -492,7 +422,7 @@ mod tests {
 
     #[test]
     fn letter_opener_damages_all_on_third_skill() {
-        let mut state = combat_with_relic(RelicName::LetterOpener);
+        let mut state = combat_with_relic(RelicName::LetterOpener, MonsterName::JawWorm);
         let id_monster = state.id_monsters.iter().flatten().copied().next().unwrap();
         let hp_before = state.entities[id_monster].vitals.health;
         for _ in 0..3 {
@@ -504,7 +434,7 @@ mod tests {
 
     #[test]
     fn bird_faced_urn_heals_on_power() {
-        let mut state = combat_with_relic(RelicName::BirdFacedUrn);
+        let mut state = combat_with_relic(RelicName::BirdFacedUrn, MonsterName::JawWorm);
         let id_character = state.id_character;
         state.entities[id_character].vitals.health -= 10;
         let hp_before = state.entities[id_character].vitals.health;
@@ -515,7 +445,7 @@ mod tests {
 
     #[test]
     fn mummified_hand_zeroes_one_hand_card_cost() {
-        let mut state = combat_with_relic(RelicName::MummifiedHand);
+        let mut state = combat_with_relic(RelicName::MummifiedHand, MonsterName::JawWorm);
         let id = put_in_hand(&mut state, CardName::Footwork);
         play(&mut state, id);
         let zeroed = state
@@ -528,7 +458,7 @@ mod tests {
 
     #[test]
     fn orange_pellets_sweeps_debuffs_after_all_three_kinds() {
-        let mut state = combat_with_relic(RelicName::OrangePellets);
+        let mut state = combat_with_relic(RelicName::OrangePellets, MonsterName::JawWorm);
         let id_character = state.id_character;
         let mods = &mut state.entities[id_character].modifiers;
         modifier_apply(mods, ModifierKind::Weak, 2);
@@ -548,7 +478,7 @@ mod tests {
 
     #[test]
     fn strange_spoon_discards_about_half_of_exhausts() {
-        let mut state = combat_with_relic(RelicName::StrangeSpoon);
+        let mut state = combat_with_relic(RelicName::StrangeSpoon, MonsterName::JawWorm);
         // Defends: harmless to the monster, so combat never ends mid-test
         for _ in 0..20 {
             let id = put_in_hand(&mut state, CardName::Defend);
@@ -564,7 +494,7 @@ mod tests {
 
     #[test]
     fn chemical_x_adds_two_x_reps() {
-        let mut state = combat_with_relic(RelicName::ChemicalX);
+        let mut state = combat_with_relic(RelicName::ChemicalX, MonsterName::JawWorm);
         let id_monster = state.id_monsters.iter().flatten().copied().next().unwrap();
         let hp_before = state.entities[id_monster].vitals.health;
         let id = put_in_hand(&mut state, CardName::Skewer);

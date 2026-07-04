@@ -345,6 +345,15 @@ pub enum RelicName {
     OrangePellets,
     StrangeSpoon,
     ChemicalX,
+    ArtOfWar,
+    Orichalcum,
+    Pocketwatch,
+    StoneCalendar,
+    Abacus,
+    Sundial,
+    WhiteBeastStatue,
+    DollysMirror,
+    LeesWaffle,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

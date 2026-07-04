@@ -338,6 +338,15 @@ pub enum PyRelicName {
     OrangePellets,
     StrangeSpoon,
     ChemicalX,
+    ArtOfWar,
+    Orichalcum,
+    Pocketwatch,
+    StoneCalendar,
+    Abacus,
+    Sundial,
+    WhiteBeastStatue,
+    DollysMirror,
+    LeesWaffle,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -372,6 +381,15 @@ impl From<RelicName> for PyRelicName {
             RelicName::OrangePellets => Self::OrangePellets,
             RelicName::StrangeSpoon => Self::StrangeSpoon,
             RelicName::ChemicalX => Self::ChemicalX,
+            RelicName::ArtOfWar => Self::ArtOfWar,
+            RelicName::Orichalcum => Self::Orichalcum,
+            RelicName::Pocketwatch => Self::Pocketwatch,
+            RelicName::StoneCalendar => Self::StoneCalendar,
+            RelicName::Abacus => Self::Abacus,
+            RelicName::Sundial => Self::Sundial,
+            RelicName::WhiteBeastStatue => Self::WhiteBeastStatue,
+            RelicName::DollysMirror => Self::DollysMirror,
+            RelicName::LeesWaffle => Self::LeesWaffle,
         }
     }
 }
@@ -408,6 +426,15 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::OrangePellets => Self::OrangePellets,
             PyRelicName::StrangeSpoon => Self::StrangeSpoon,
             PyRelicName::ChemicalX => Self::ChemicalX,
+            PyRelicName::ArtOfWar => Self::ArtOfWar,
+            PyRelicName::Orichalcum => Self::Orichalcum,
+            PyRelicName::Pocketwatch => Self::Pocketwatch,
+            PyRelicName::StoneCalendar => Self::StoneCalendar,
+            PyRelicName::Abacus => Self::Abacus,
+            PyRelicName::Sundial => Self::Sundial,
+            PyRelicName::WhiteBeastStatue => Self::WhiteBeastStatue,
+            PyRelicName::DollysMirror => Self::DollysMirror,
+            PyRelicName::LeesWaffle => Self::LeesWaffle,
         }
     }
 }

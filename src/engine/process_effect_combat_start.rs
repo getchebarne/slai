@@ -3,6 +3,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::utils::push_entity;
@@ -14,7 +15,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     state.this_turn_cards_played = 0;
 
     // Combat can end mid-turn, skipping the turn-end reset
-    for &name in RELIC_COUNTERS_PER_TURN {
+    for &name in RELIC_COUNTERS_PER_TURN.iter().chain(RELIC_COUNTERS_PER_COMBAT) {
         if let Some(id) = state.id_relics[name as usize] {
             state.entities[id].relic_counter = 0;
         }

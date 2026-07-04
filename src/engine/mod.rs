@@ -81,6 +81,8 @@ pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
+#[cfg(test)]
+pub mod test_support;
 
 use std::collections::VecDeque;
 

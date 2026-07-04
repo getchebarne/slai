@@ -1,5 +1,7 @@
+mod abacus;
 mod akabeko;
 mod anchor;
+mod art_of_war;
 mod bag_of_marbles;
 mod bag_of_preparation;
 mod bird_faced_urn;
@@ -8,21 +10,28 @@ mod bronze_scales;
 mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
+mod dollys_mirror;
 mod golden_idol;
 mod gremlin_visage;
 mod ink_bottle;
 mod kunai;
 mod lantern;
+mod lees_waffle;
 mod letter_opener;
 mod mummified_hand;
 mod ninja_scroll;
 mod nunchaku;
 mod oddly_smooth_stone;
 mod orange_pellets;
+mod orichalcum;
 mod ornamental_fan;
+mod pocketwatch;
 mod red_mask;
 mod shuriken;
+mod stone_calendar;
 mod strange_spoon;
+mod sundial;
+mod white_beast_statue;
 mod snake_ring;
 mod thread_and_needle;
 mod twisted_funnel;
@@ -66,6 +75,15 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::OrangePellets => orange_pellets::ORANGE_PELLETS,
         RelicName::StrangeSpoon => strange_spoon::STRANGE_SPOON,
         RelicName::ChemicalX => chemical_x::CHEMICAL_X,
+        RelicName::ArtOfWar => art_of_war::ART_OF_WAR,
+        RelicName::Orichalcum => orichalcum::ORICHALCUM,
+        RelicName::Pocketwatch => pocketwatch::POCKETWATCH,
+        RelicName::StoneCalendar => stone_calendar::STONE_CALENDAR,
+        RelicName::Abacus => abacus::ABACUS,
+        RelicName::Sundial => sundial::SUNDIAL,
+        RelicName::WhiteBeastStatue => white_beast_statue::WHITE_BEAST_STATUE,
+        RelicName::DollysMirror => dollys_mirror::DOLLYS_MIRROR,
+        RelicName::LeesWaffle => lees_waffle::LEES_WAFFLE,
     }
 }
 
@@ -98,6 +116,9 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::OrangePellets,
 ];
 
+// Per-combat relic counters; reset at combat start only
+pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[RelicName::StoneCalendar];
+
 pub fn iter_owned_relics(
     id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> impl Iterator<Item = (RelicName, usize)> + '_ {
@@ -109,8 +130,10 @@ pub fn iter_owned_relics(
 
 pub const ALL_RELICS: &[&'static Entity] = &[
     &snake_ring::SNAKE_RING,
+    &abacus::ABACUS,
     &akabeko::AKABEKO,
     &anchor::ANCHOR,
+    &art_of_war::ART_OF_WAR,
     &bag_of_marbles::BAG_OF_MARBLES,
     &bag_of_preparation::BAG_OF_PREPARATION,
     &bird_faced_urn::BIRD_FACED_URN,
@@ -119,24 +142,31 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &chemical_x::CHEMICAL_X,
     &circlet::CIRCLET,
     &clockwork_souvenir::CLOCKWORK_SOUVENIR,
+    &dollys_mirror::DOLLYS_MIRROR,
     &golden_idol::GOLDEN_IDOL,
     &gremlin_visage::GREMLIN_VISAGE,
     &ink_bottle::INK_BOTTLE,
     &kunai::KUNAI,
     &lantern::LANTERN,
+    &lees_waffle::LEES_WAFFLE,
     &letter_opener::LETTER_OPENER,
     &mummified_hand::MUMMIFIED_HAND,
     &ninja_scroll::NINJA_SCROLL,
     &nunchaku::NUNCHAKU,
     &oddly_smooth_stone::ODDLY_SMOOTH_STONE,
     &orange_pellets::ORANGE_PELLETS,
+    &orichalcum::ORICHALCUM,
     &ornamental_fan::ORNAMENTAL_FAN,
+    &pocketwatch::POCKETWATCH,
     &red_mask::RED_MASK,
     &shuriken::SHURIKEN,
+    &stone_calendar::STONE_CALENDAR,
     &strange_spoon::STRANGE_SPOON,
+    &sundial::SUNDIAL,
     &thread_and_needle::THREAD_AND_NEEDLE,
     &twisted_funnel::TWISTED_FUNNEL,
     &vajra::VAJRA,
+    &white_beast_statue::WHITE_BEAST_STATUE,
 ];
 // Assert all relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);
