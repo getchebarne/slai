@@ -31,9 +31,18 @@ pub fn process_effect_reward_take(
             }
         }
         RewardKind::Relic => {
+            // The staged reward entity is orphaned; RelicGrantSpecific spawns the
+            // owned copy and fires on-pickup, keeping acquisition a single effect
             if let Some(id) = state.reward_id_relic.take() {
                 let name = state.entities[id].relic_name;
-                state.id_relics[name as usize] = Some(id);
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::RelicGrantSpecific {
+                        name,
+                        fallback_circlet: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
             }
         }
         RewardKind::Potion => {

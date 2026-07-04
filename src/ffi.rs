@@ -389,6 +389,15 @@ pub enum PyRelicName {
     DuVuDoll,
     Pantograph,
     SlingOfCourage,
+    Strawberry,
+    Pear,
+    Mango,
+    OldCoin,
+    PotionBelt,
+    WarPaint,
+    Whetstone,
+    EmptyCage,
+    PandorasBox,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -474,6 +483,15 @@ impl From<RelicName> for PyRelicName {
             RelicName::DuVuDoll => Self::DuVuDoll,
             RelicName::Pantograph => Self::Pantograph,
             RelicName::SlingOfCourage => Self::SlingOfCourage,
+            RelicName::Strawberry => Self::Strawberry,
+            RelicName::Pear => Self::Pear,
+            RelicName::Mango => Self::Mango,
+            RelicName::OldCoin => Self::OldCoin,
+            RelicName::PotionBelt => Self::PotionBelt,
+            RelicName::WarPaint => Self::WarPaint,
+            RelicName::Whetstone => Self::Whetstone,
+            RelicName::EmptyCage => Self::EmptyCage,
+            RelicName::PandorasBox => Self::PandorasBox,
         }
     }
 }
@@ -561,6 +579,15 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::DuVuDoll => Self::DuVuDoll,
             PyRelicName::Pantograph => Self::Pantograph,
             PyRelicName::SlingOfCourage => Self::SlingOfCourage,
+            PyRelicName::Strawberry => Self::Strawberry,
+            PyRelicName::Pear => Self::Pear,
+            PyRelicName::Mango => Self::Mango,
+            PyRelicName::OldCoin => Self::OldCoin,
+            PyRelicName::PotionBelt => Self::PotionBelt,
+            PyRelicName::WarPaint => Self::WarPaint,
+            PyRelicName::Whetstone => Self::Whetstone,
+            PyRelicName::EmptyCage => Self::EmptyCage,
+            PyRelicName::PandorasBox => Self::PandorasBox,
         }
     }
 }

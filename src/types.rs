@@ -396,6 +396,15 @@ pub enum RelicName {
     DuVuDoll,
     Pantograph,
     SlingOfCourage,
+    Strawberry,
+    Pear,
+    Mango,
+    OldCoin,
+    PotionBelt,
+    WarPaint,
+    Whetstone,
+    EmptyCage,
+    PandorasBox,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

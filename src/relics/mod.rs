@@ -20,6 +20,7 @@ mod darkstone_periapt;
 mod dead_branch;
 mod dollys_mirror;
 mod du_vu_doll;
+mod empty_cage;
 mod eternal_feather;
 mod frozen_egg;
 mod ginger;
@@ -38,6 +39,7 @@ mod lantern;
 mod lees_waffle;
 mod letter_opener;
 mod lizard_tail;
+mod mango;
 mod maw_bank;
 mod meal_ticket;
 mod meat_on_the_bone;
@@ -47,13 +49,17 @@ mod mummified_hand;
 mod ninja_scroll;
 mod nunchaku;
 mod oddly_smooth_stone;
+mod old_coin;
 mod omamori;
 mod orange_pellets;
 mod orichalcum;
 mod ornamental_fan;
+mod pandoras_box;
 mod pantograph;
 mod paper_krane;
+mod pear;
 mod pocketwatch;
+mod potion_belt;
 mod red_mask;
 mod regal_pillow;
 mod shuriken;
@@ -63,6 +69,7 @@ mod snake_ring;
 mod snecko_skull;
 mod stone_calendar;
 mod strange_spoon;
+mod strawberry;
 mod strike_dummy;
 mod sundial;
 mod the_specimen;
@@ -77,6 +84,8 @@ mod tungsten_rod;
 mod turnip;
 mod twisted_funnel;
 mod vajra;
+mod war_paint;
+mod whetstone;
 mod white_beast_statue;
 
 use strum::EnumCount;
@@ -169,6 +178,15 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::DuVuDoll => du_vu_doll::DU_VU_DOLL,
         RelicName::Pantograph => pantograph::PANTOGRAPH,
         RelicName::SlingOfCourage => sling_of_courage::SLING_OF_COURAGE,
+        RelicName::Strawberry => strawberry::STRAWBERRY,
+        RelicName::Pear => pear::PEAR,
+        RelicName::Mango => mango::MANGO,
+        RelicName::OldCoin => old_coin::OLD_COIN,
+        RelicName::PotionBelt => potion_belt::POTION_BELT,
+        RelicName::WarPaint => war_paint::WAR_PAINT,
+        RelicName::Whetstone => whetstone::WHETSTONE,
+        RelicName::EmptyCage => empty_cage::EMPTY_CAGE,
+        RelicName::PandorasBox => pandoras_box::PANDORAS_BOX,
     }
 }
 
@@ -256,6 +274,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &dead_branch::DEAD_BRANCH,
     &dollys_mirror::DOLLYS_MIRROR,
     &du_vu_doll::DU_VU_DOLL,
+    &empty_cage::EMPTY_CAGE,
     &eternal_feather::ETERNAL_FEATHER,
     &frozen_egg::FROZEN_EGG,
     &ginger::GINGER,
@@ -274,6 +293,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &lees_waffle::LEES_WAFFLE,
     &letter_opener::LETTER_OPENER,
     &lizard_tail::LIZARD_TAIL,
+    &mango::MANGO,
     &maw_bank::MAW_BANK,
     &meal_ticket::MEAL_TICKET,
     &meat_on_the_bone::MEAT_ON_THE_BONE,
@@ -283,13 +303,17 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &ninja_scroll::NINJA_SCROLL,
     &nunchaku::NUNCHAKU,
     &oddly_smooth_stone::ODDLY_SMOOTH_STONE,
+    &old_coin::OLD_COIN,
     &omamori::OMAMORI,
     &orange_pellets::ORANGE_PELLETS,
     &orichalcum::ORICHALCUM,
     &ornamental_fan::ORNAMENTAL_FAN,
+    &pandoras_box::PANDORAS_BOX,
     &pantograph::PANTOGRAPH,
     &paper_krane::PAPER_KRANE,
+    &pear::PEAR,
     &pocketwatch::POCKETWATCH,
+    &potion_belt::POTION_BELT,
     &red_mask::RED_MASK,
     &regal_pillow::REGAL_PILLOW,
     &shuriken::SHURIKEN,
@@ -298,6 +322,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &snecko_skull::SNECKO_SKULL,
     &stone_calendar::STONE_CALENDAR,
     &strange_spoon::STRANGE_SPOON,
+    &strawberry::STRAWBERRY,
     &strike_dummy::STRIKE_DUMMY,
     &sundial::SUNDIAL,
     &the_specimen::THE_SPECIMEN,
@@ -312,6 +337,8 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &turnip::TURNIP,
     &twisted_funnel::TWISTED_FUNNEL,
     &vajra::VAJRA,
+    &war_paint::WAR_PAINT,
+    &whetstone::WHETSTONE,
     &white_beast_statue::WHITE_BEAST_STATUE,
 ];
 // Assert all relics are included without duplicates
