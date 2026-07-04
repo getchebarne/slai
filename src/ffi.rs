@@ -362,6 +362,13 @@ pub enum PyRelicName {
     GremlinHorn,
     TheSpecimen,
     LizardTail,
+    Boot,
+    Torii,
+    TungstenRod,
+    HandDrill,
+    StrikeDummy,
+    PaperKrane,
+    CentennialPuzzle,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -420,6 +427,13 @@ impl From<RelicName> for PyRelicName {
             RelicName::GremlinHorn => Self::GremlinHorn,
             RelicName::TheSpecimen => Self::TheSpecimen,
             RelicName::LizardTail => Self::LizardTail,
+            RelicName::Boot => Self::Boot,
+            RelicName::Torii => Self::Torii,
+            RelicName::TungstenRod => Self::TungstenRod,
+            RelicName::HandDrill => Self::HandDrill,
+            RelicName::StrikeDummy => Self::StrikeDummy,
+            RelicName::PaperKrane => Self::PaperKrane,
+            RelicName::CentennialPuzzle => Self::CentennialPuzzle,
         }
     }
 }
@@ -480,6 +494,13 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::GremlinHorn => Self::GremlinHorn,
             PyRelicName::TheSpecimen => Self::TheSpecimen,
             PyRelicName::LizardTail => Self::LizardTail,
+            PyRelicName::Boot => Self::Boot,
+            PyRelicName::Torii => Self::Torii,
+            PyRelicName::TungstenRod => Self::TungstenRod,
+            PyRelicName::HandDrill => Self::HandDrill,
+            PyRelicName::StrikeDummy => Self::StrikeDummy,
+            PyRelicName::PaperKrane => Self::PaperKrane,
+            PyRelicName::CentennialPuzzle => Self::CentennialPuzzle,
         }
     }
 }
@@ -2654,6 +2675,7 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                         d,
                         str_stacks,
                         modifier_has(&m.modifiers, ModifierKind::Weak),
+                        state.id_relics[RelicName::PaperKrane as usize].is_some(),
                         modifier_has(mods_char, ModifierKind::Vulnerable),
                     );
                     if modifier_has(mods_char, ModifierKind::Intangible) && scaled > 1 {
@@ -2732,8 +2754,14 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
         .map(snapshot_effect)
         .map(|effect| match effect {
             PyEffect::DamagePhysical { amount, target } => {
-                let mut d =
-                    scale_attack_damage(amount.saturating_add(vigor), str_stacks, weak, false);
+                // Player attacker: Paper Krane never applies
+                let mut d = scale_attack_damage(
+                    amount.saturating_add(vigor),
+                    str_stacks,
+                    weak,
+                    false,
+                    false,
+                );
                 if double {
                     d = d.saturating_mul(2);
                 }

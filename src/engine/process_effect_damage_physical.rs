@@ -7,6 +7,8 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
+use crate::types::CardName;
+use crate::types::RelicName;
 use crate::utils::scale_attack_damage;
 
 // Source -> actor: cards delegate to character; monsters/character self
@@ -34,11 +36,27 @@ pub fn process_effect_damage_physical(
     }
 
     let id_actor = get_id_actor(&state.entities, state.id_character, id_source);
+
+    // Strike Dummy: Strike-tagged cards get +3 base, before Strength/Weak/Vuln scaling
+    let source = &state.entities[id_source];
+    let strike_bonus = if source.kind == EntityKind::Card
+        && matches!(
+            source.card_name,
+            CardName::Strike | CardName::SneakyStrike | CardName::SwiftStrike
+        )
+        && state.id_relics[RelicName::StrikeDummy as usize].is_some()
+    {
+        3
+    } else {
+        0
+    };
+
     let mods_actor = &state.entities[id_actor].modifiers;
     let mods_target = &target.modifiers;
 
     // Vigor folds into the base
     let base_with_vigor = amount
+        + strike_bonus
         + if modifier_has(mods_actor, ModifierKind::Vigor) {
             modifier_stacks(mods_actor, ModifierKind::Vigor).max(0) as u16
         } else {
@@ -49,10 +67,14 @@ pub fn process_effect_damage_physical(
     } else {
         0
     };
+    // Paper Krane sharpens Weak only on monster attackers
+    let weak_paper_krane = state.entities[id_actor].kind == EntityKind::Monster
+        && state.id_relics[RelicName::PaperKrane as usize].is_some();
     let mut final_damage = scale_attack_damage(
         base_with_vigor,
         str_stacks,
         modifier_has(mods_actor, ModifierKind::Weak),
+        weak_paper_krane,
         modifier_has(mods_target, ModifierKind::Vulnerable),
     );
     if modifier_has(mods_actor, ModifierKind::DoubleDamage) {
@@ -82,5 +104,50 @@ pub fn process_effect_damage_physical(
             id_source: Some(id_source),
             target: Target::Direct(Some(id_target)),
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::engine::test_support::combat_with_relic;
+    use crate::engine::test_support::end_turn;
+    use crate::engine::test_support::first_monster;
+    use crate::engine::test_support::play;
+    use crate::engine::test_support::put_in_hand;
+    use crate::modifier::ModifierKind;
+    use crate::modifier::modifier_apply;
+    use crate::types::CardName;
+    use crate::types::MonsterName;
+    use crate::types::RelicName;
+
+    #[test]
+    fn strike_dummy_boosts_strike_tagged_cards_only() {
+        let mut state = combat_with_relic(RelicName::StrikeDummy, MonsterName::JawWorm);
+        let id_monster = first_monster(&state);
+        let hp_max = state.entities[id_monster].vitals.health_max;
+        let id = put_in_hand(&mut state, CardName::Strike);
+        play(&mut state, id);
+        // Strike 6 + 3
+        assert_eq!(state.entities[id_monster].vitals.health, hp_max - 9);
+        // Neutralize is an Attack but not Strike-tagged: base 3
+        let id = put_in_hand(&mut state, CardName::Neutralize);
+        play(&mut state, id);
+        assert_eq!(state.entities[id_monster].vitals.health, hp_max - 12);
+    }
+
+    #[test]
+    fn paper_krane_sharpens_enemy_weak() {
+        let mut state = combat_with_relic(RelicName::PaperKrane, MonsterName::JawWorm);
+        let id_character = state.id_character;
+        let id_monster = first_monster(&state);
+        let hp_before = state.entities[id_character].vitals.health;
+        modifier_apply(
+            &mut state.entities[id_monster].modifiers,
+            ModifierKind::Weak,
+            2,
+        );
+        // Chomp 11 * 0.60 floors to 6 (0.75 would floor to 8)
+        end_turn(&mut state);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before - 6);
     }
 }

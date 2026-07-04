@@ -14,6 +14,7 @@ use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
+use crate::types::RelicName;
 use crate::types::Screen;
 
 pub fn process_effect_health_delta(
@@ -49,6 +50,31 @@ fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
 }
 
 fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
+    // Tungsten Rod: every HP loss is reduced by 1, before anything reacts to it
+    let amount = if id_target == state.id_character
+        && amount > 0
+        && state.id_relics[RelicName::TungstenRod as usize].is_some()
+    {
+        amount - 1
+    } else {
+        amount
+    };
+
+    // Centennial Puzzle: the first actual HP loss each combat draws 3
+    if id_target == state.id_character
+        && amount > 0
+        && matches!(state.screen, Screen::Combat)
+        && let Some(id_relic) = state.id_relics[RelicName::CentennialPuzzle as usize]
+        && state.entities[id_relic].relic_counter == 0
+    {
+        state.entities[id_relic].relic_counter = 1;
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardDraw { count: 3 },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
+
     // MasterfulStab GrowsOnDamageInstanceTaken: bump per post-block character damage
     if id_target == state.id_character && amount > 0 && matches!(state.screen, Screen::Combat) {
         state.this_combat_damage_instances_taken =
@@ -128,5 +154,53 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         } else {
             entity.modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::effect::Effect;
+    use crate::effect::EffectKind;
+    use crate::effect::HealthDeltaAmount;
+    use crate::effect::Target;
+    use crate::engine::process_effect_queue;
+    use crate::engine::test_support::combat_with_relic;
+    use crate::game::GameState;
+    use crate::types::DeltaSign;
+    use crate::types::MonsterName;
+    use crate::types::RelicName;
+
+    fn lose_hp(state: &mut GameState, amount: u16) {
+        let id_character = state.id_character;
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Loss,
+                amount: HealthDeltaAmount::Absolute(amount),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+        process_effect_queue(state);
+    }
+
+    #[test]
+    fn tungsten_rod_shaves_one_off_every_loss() {
+        let mut state = combat_with_relic(RelicName::TungstenRod, MonsterName::JawWorm);
+        let id_character = state.id_character;
+        let hp_before = state.entities[id_character].vitals.health;
+        lose_hp(&mut state, 1);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before);
+        lose_hp(&mut state, 5);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before - 4);
+    }
+
+    #[test]
+    fn centennial_puzzle_draws_on_first_loss_only() {
+        let mut state = combat_with_relic(RelicName::CentennialPuzzle, MonsterName::JawWorm);
+        let hand_before = state.id_hand.len();
+        lose_hp(&mut state, 3);
+        assert_eq!(state.id_hand.len(), hand_before + 3);
+        lose_hp(&mut state, 3);
+        assert_eq!(state.id_hand.len(), hand_before + 3);
     }
 }

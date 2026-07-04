@@ -369,6 +369,13 @@ pub enum RelicName {
     GremlinHorn,
     TheSpecimen,
     LizardTail,
+    Boot,
+    Torii,
+    TungstenRod,
+    HandDrill,
+    StrikeDummy,
+    PaperKrane,
+    CentennialPuzzle,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

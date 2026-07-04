@@ -12,6 +12,7 @@ use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
+use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::entity::Entity;
@@ -92,11 +93,16 @@ pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
     source_is_weak: bool,
+    weak_paper_krane: bool,
     target_is_vulnerable: bool,
 ) -> u16 {
     let mut value = base as f32 + source_str_stacks as f32;
     if source_is_weak {
-        value *= FACTOR_WEAK;
+        value *= if weak_paper_krane {
+            FACTOR_WEAK_PAPER_KRANE
+        } else {
+            FACTOR_WEAK
+        };
     }
     if target_is_vulnerable {
         value *= FACTOR_VULN;

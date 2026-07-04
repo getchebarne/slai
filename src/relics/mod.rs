@@ -6,9 +6,11 @@ mod bag_of_marbles;
 mod bag_of_preparation;
 mod bird_faced_urn;
 mod blood_vial;
+mod boot;
 mod bronze_scales;
 mod calipers;
 mod captains_wheel;
+mod centennial_puzzle;
 mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
@@ -17,6 +19,7 @@ mod ginger;
 mod golden_idol;
 mod gremlin_horn;
 mod gremlin_visage;
+mod hand_drill;
 mod happy_flower;
 mod horn_cleat;
 mod ice_cream;
@@ -35,16 +38,20 @@ mod oddly_smooth_stone;
 mod orange_pellets;
 mod orichalcum;
 mod ornamental_fan;
+mod paper_krane;
 mod pocketwatch;
 mod red_mask;
 mod shuriken;
 mod snecko_skull;
 mod stone_calendar;
 mod strange_spoon;
+mod strike_dummy;
 mod sundial;
 mod the_specimen;
 mod tingsha;
+mod torii;
 mod tough_bandages;
+mod tungsten_rod;
 mod turnip;
 mod white_beast_statue;
 mod snake_ring;
@@ -114,6 +121,13 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::GremlinHorn => gremlin_horn::GREMLIN_HORN,
         RelicName::TheSpecimen => the_specimen::THE_SPECIMEN,
         RelicName::LizardTail => lizard_tail::LIZARD_TAIL,
+        RelicName::Boot => boot::BOOT,
+        RelicName::Torii => torii::TORII,
+        RelicName::TungstenRod => tungsten_rod::TUNGSTEN_ROD,
+        RelicName::HandDrill => hand_drill::HAND_DRILL,
+        RelicName::StrikeDummy => strike_dummy::STRIKE_DUMMY,
+        RelicName::PaperKrane => paper_krane::PAPER_KRANE,
+        RelicName::CentennialPuzzle => centennial_puzzle::CENTENNIAL_PUZZLE,
     }
 }
 
@@ -151,6 +165,7 @@ pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
     RelicName::StoneCalendar,
     RelicName::HornCleat,
     RelicName::CaptainsWheel,
+    RelicName::CentennialPuzzle,
 ];
 
 pub fn iter_owned_relics(
@@ -172,9 +187,11 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &bag_of_preparation::BAG_OF_PREPARATION,
     &bird_faced_urn::BIRD_FACED_URN,
     &blood_vial::BLOOD_VIAL,
+    &boot::BOOT,
     &bronze_scales::BRONZE_SCALES,
     &calipers::CALIPERS,
     &captains_wheel::CAPTAINS_WHEEL,
+    &centennial_puzzle::CENTENNIAL_PUZZLE,
     &chemical_x::CHEMICAL_X,
     &circlet::CIRCLET,
     &clockwork_souvenir::CLOCKWORK_SOUVENIR,
@@ -183,6 +200,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &golden_idol::GOLDEN_IDOL,
     &gremlin_horn::GREMLIN_HORN,
     &gremlin_visage::GREMLIN_VISAGE,
+    &hand_drill::HAND_DRILL,
     &happy_flower::HAPPY_FLOWER,
     &horn_cleat::HORN_CLEAT,
     &ice_cream::ICE_CREAM,
@@ -201,17 +219,21 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &orange_pellets::ORANGE_PELLETS,
     &orichalcum::ORICHALCUM,
     &ornamental_fan::ORNAMENTAL_FAN,
+    &paper_krane::PAPER_KRANE,
     &pocketwatch::POCKETWATCH,
     &red_mask::RED_MASK,
     &shuriken::SHURIKEN,
     &snecko_skull::SNECKO_SKULL,
     &stone_calendar::STONE_CALENDAR,
     &strange_spoon::STRANGE_SPOON,
+    &strike_dummy::STRIKE_DUMMY,
     &sundial::SUNDIAL,
     &the_specimen::THE_SPECIMEN,
     &thread_and_needle::THREAD_AND_NEEDLE,
     &tingsha::TINGSHA,
+    &torii::TORII,
     &tough_bandages::TOUGH_BANDAGES,
+    &tungsten_rod::TUNGSTEN_ROD,
     &turnip::TURNIP,
     &twisted_funnel::TWISTED_FUNNEL,
     &vajra::VAJRA,
