@@ -40,12 +40,14 @@ pub const PATH_DENSITY: usize = 6;
 pub const ANCESTOR_GAP_MIN: usize = 3;
 pub const FACTOR_NUM_REST_SITE: f32 = 0.12;
 pub const FACTOR_NUM_ELITE: f32 = 0.08;
+pub const FACTOR_NUM_ELITE_A1_MULT: f32 = 1.6;
 pub const FACTOR_NUM_EVENT: f32 = 0.22;
 pub const FACTOR_NUM_SHOP: f32 = 0.05;
 pub const MAP_ROW_TREASURE: usize = 8;
 pub const UNKNOWN_CHANCE_BASE_MONSTER: f32 = 0.10;
 pub const UNKNOWN_CHANCE_BASE_SHOP: f32 = 0.03;
 pub const UNKNOWN_CHANCE_BASE_TREASURE: f32 = 0.02;
+pub const EVENT_SHRINE_CHANCE: f32 = 0.25;
 
 // Chest size roll thresholds
 pub const CHEST_SMALL_PCT: u8 = 50;
@@ -116,7 +118,7 @@ pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 = 1.05;
 pub const SHOP_PURGE_COST_BASE: u16 = 75;
 pub const SHOP_PURGE_COST_INCREMENT: u16 = 25;
 
-// A16+ markup: every price (and purge cost) × 11/10
+// A16+ markup: card/relic/potion prices × 11/10 rounded half-up; purge cost is exempt
 pub const ASCENSION_SHOP_PRICE_BUMP_LEVEL: u8 = 16;
 pub const ASCENSION_SHOP_PRICE_BUMP_NUMER: u16 = 11;
 pub const ASCENSION_SHOP_PRICE_BUMP_DENOM: u16 = 10;

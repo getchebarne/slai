@@ -205,6 +205,8 @@ pub enum DiscardSource {
 pub enum HealthDeltaAmount {
     Absolute(u16),
     Relative { numerator: u8, denominator: u8 },
+    // Same fraction, rounded half-up instead of truncated
+    RelativeRounded { numerator: u8, denominator: u8 },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

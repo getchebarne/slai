@@ -1,3 +1,8 @@
+use rand::Rng;
+
+use crate::consts::GOLD_BOSS_MAX;
+use crate::consts::GOLD_BOSS_MIN;
+use crate::consts::MAX_GOLD;
 use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -18,7 +23,17 @@ pub fn process_effect_combat_end(state: &mut GameState) {
 
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     match room_kind {
-        RoomKind::CombatBoss => {}
+        RoomKind::CombatBoss => {
+            // Granted directly: game_over halts the queue before a GoldDelta would run
+            let roll = state.rng.random_range(GOLD_BOSS_MIN..=GOLD_BOSS_MAX);
+            let amount = if state.ascension >= 13 {
+                (roll * 3 + 2) / 4 // ×0.75 rounded half-up
+            } else {
+                roll
+            };
+            let gold = &mut state.entities[state.id_character].character_gold;
+            *gold = gold.saturating_add(amount).min(MAX_GOLD);
+        }
         RoomKind::CombatMonster | RoomKind::CombatElite | RoomKind::Unknown => {
             // A "?" room keeps its Unknown map marker; its combat is always a normal monster
             let reward_kind = if room_kind == RoomKind::Unknown {
@@ -102,6 +117,7 @@ mod tests {
     use crate::engine::test_support::first_monster;
     use crate::game::GameState;
     use crate::game::Location;
+    use crate::game::create_game_state;
     use crate::types::MonsterName;
     use crate::types::RelicName;
 
@@ -117,6 +133,25 @@ mod tests {
             target: Target::Direct(Some(id_monster)),
         });
         process_effect_queue(state);
+    }
+
+    #[test]
+    fn boss_kill_drops_gold_with_a13_reduction() {
+        for (asc, lo, hi) in [(0u8, 95u16, 105u16), (13, 71, 79)] {
+            let mut state = create_game_state(asc, 5, false);
+            state.location = Location::BossRoom;
+            state.screen = crate::types::Screen::Combat;
+            let gold0 = state.entities[state.id_character].character_gold;
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::CombatEnd,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            process_effect_queue(&mut state);
+            let gained = state.entities[state.id_character].character_gold - gold0;
+            assert!(gained >= lo && gained <= hi, "asc {asc}: gained {gained}");
+            assert!(state.game_over);
+        }
     }
 
     #[test]

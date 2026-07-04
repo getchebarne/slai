@@ -149,6 +149,10 @@ fn fill_buf_candidates(
                         effect_candidate_buf.push(id_monster);
                     }
                 }
+                // Last monster standing falls back to targeting itself
+                if effect_candidate_buf.is_empty() {
+                    effect_candidate_buf.push(id_source);
+                }
             }
             CandidatePoolMonstersFilter::Picked => effect_candidate_buf.push(
                 id_picked_monster

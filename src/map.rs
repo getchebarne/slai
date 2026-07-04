@@ -2,6 +2,7 @@ use rand::Rng;
 
 use crate::consts::ANCESTOR_GAP_MIN;
 use crate::consts::FACTOR_NUM_ELITE;
+use crate::consts::FACTOR_NUM_ELITE_A1_MULT;
 use crate::consts::FACTOR_NUM_EVENT;
 use crate::consts::FACTOR_NUM_REST_SITE;
 use crate::consts::FACTOR_NUM_SHOP;
@@ -70,12 +71,16 @@ pub fn get_active_room_kind(
 
 type IdRooms = [[Option<usize>; MAP_WIDTH]; MAP_HEIGHT];
 
-pub fn generate_map(rng: &mut impl Rng, entities: &mut Vec<Entity>) -> (IdRooms, Location) {
-    let grid = generate_grid(rng);
+pub fn generate_map(
+    rng: &mut impl Rng,
+    entities: &mut Vec<Entity>,
+    ascension: u8,
+) -> (IdRooms, Location) {
+    let grid = generate_grid(rng, ascension);
     entitize_grid(grid, entities)
 }
 
-fn generate_grid(rng: &mut impl Rng) -> Grid {
+fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
     let mut nodes: Grid = [[None; MAP_WIDTH]; MAP_HEIGHT];
 
     let mut x_source_first: Option<usize> = None;
@@ -125,7 +130,7 @@ fn generate_grid(rng: &mut impl Rng) -> Grid {
     }
 
     trim_redundant_first_row_edges(&mut nodes);
-    assign_room_kinds(&mut nodes, rng);
+    assign_room_kinds(&mut nodes, rng, ascension);
 
     nodes
 }
@@ -268,7 +273,7 @@ fn trim_redundant_first_row_edges(nodes: &mut Grid) {
     }
 }
 
-fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
+fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
     let mut positions: Vec<(usize, usize)> = Vec::new();
     for (y, row) in nodes.iter().enumerate() {
         for (x, node) in row.iter().enumerate() {
@@ -278,11 +283,16 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng) {
         }
     }
 
+    // Counts round to nearest; A1+ spawns ~60% more elites
     let num_rooms = positions.len();
-    let num_rest = (FACTOR_NUM_REST_SITE * num_rooms as f32) as usize;
-    let num_elite = (FACTOR_NUM_ELITE * num_rooms as f32) as usize;
-    let num_event = (FACTOR_NUM_EVENT * num_rooms as f32) as usize;
-    let num_shop = (FACTOR_NUM_SHOP * num_rooms as f32) as usize;
+    let num_rest = (num_rooms as f32 * FACTOR_NUM_REST_SITE).round() as usize;
+    let num_elite = if ascension >= 1 {
+        (num_rooms as f32 * FACTOR_NUM_ELITE * FACTOR_NUM_ELITE_A1_MULT).round() as usize
+    } else {
+        (num_rooms as f32 * FACTOR_NUM_ELITE).round() as usize
+    };
+    let num_event = (num_rooms as f32 * FACTOR_NUM_EVENT).round() as usize;
+    let num_shop = (num_rooms as f32 * FACTOR_NUM_SHOP).round() as usize;
 
     let mut types = vec![RoomKind::CombatMonster; num_rooms];
     let mut offset = 0;

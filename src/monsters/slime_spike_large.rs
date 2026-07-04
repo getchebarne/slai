@@ -181,7 +181,7 @@ pub fn get_next_move_slime_spike_large(
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
         if roll < 30 {
-            // Flame Tackle: Asc 17+ no-two-in-a-row -> fall back to Lick.
+            // Flame Tackle: Asc 17+ no-three-in-a-row -> fall back to Lick
             if move_history.ends_with(&[IDX_MOVE_FLAME_TACKLE as u8, IDX_MOVE_FLAME_TACKLE as u8]) {
                 IDX_MOVE_LICK
             } else {

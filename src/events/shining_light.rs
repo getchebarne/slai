@@ -19,7 +19,8 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Relative {
+                // Rounded, not truncated: the source rounds this one damage roll
+                amount: HealthDeltaAmount::RelativeRounded {
                     numerator,
                     denominator,
                 },

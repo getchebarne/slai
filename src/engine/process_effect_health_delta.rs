@@ -10,6 +10,7 @@ use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::lagavulin;
 use crate::monsters::slime_acid_large;
+use crate::monsters::the_guardian;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
 use crate::types::DeltaSign;
@@ -29,9 +30,18 @@ pub fn process_effect_health_delta(
         HealthDeltaAmount::Relative {
             numerator,
             denominator,
+        }
+        | HealthDeltaAmount::RelativeRounded {
+            numerator,
+            denominator,
         } => {
             let health_max = state.entities[id_target].vitals.health_max;
-            let raw = (health_max as u32 * numerator as u32) / denominator as u32;
+            // f32 mirrors the source's (int)(maxHP * fraction) float truncation
+            let mut raw = health_max as f32 * (numerator as f32 / denominator as f32);
+            if matches!(amount, HealthDeltaAmount::RelativeRounded { .. }) {
+                raw += 0.5;
+            }
+            let raw = raw as u32;
             match sign {
                 DeltaSign::Loss => raw.max(1) as u16,
                 DeltaSign::Gain => raw as u16,
@@ -163,6 +173,14 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
                     id_source: None,
                     target: Target::Direct(Some(id_target)),
                 });
+                // Entering Defensive Mode grants block before the move swap resolves
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::BlockGain {
+                        amount: the_guardian::DEFENSIVE_MODE_BLOCK,
+                    },
+                    id_source: Some(id_target),
+                    target: Target::Direct(Some(id_target)),
+                });
             }
         } else {
             entity.modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;
@@ -178,6 +196,7 @@ mod tests {
     use crate::effect::Target;
     use crate::engine::process_effect_queue;
     use crate::engine::test_support::combat_with_relic;
+    use crate::engine::test_support::first_monster;
     use crate::game::GameState;
     use crate::types::DeltaSign;
     use crate::types::MonsterName;
@@ -217,6 +236,45 @@ mod tests {
         assert_eq!(state.entities[id_character].vitals.health, hp_before);
         lose_hp(&mut state, 5);
         assert_eq!(state.entities[id_character].vitals.health, hp_before - 4);
+    }
+
+    #[test]
+    fn relative_rounded_rounds_where_relative_truncates() {
+        let mut state = combat_with_relic(RelicName::SnakeRing, MonsterName::JawWorm);
+        let id_character = state.id_character;
+        state.entities[id_character].vitals.health_max = 72;
+        state.entities[id_character].vitals.health = 72;
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Loss,
+                amount: HealthDeltaAmount::RelativeRounded {
+                    numerator: 3,
+                    denominator: 10,
+                },
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+        process_effect_queue(&mut state);
+        // 72 * 0.3 = 21.6 rounds to 22; Relative would truncate to 21
+        assert_eq!(state.entities[id_character].vitals.health, 50);
+    }
+
+    #[test]
+    fn guardian_mode_shift_break_grants_defensive_block() {
+        let mut state = combat_with_relic(RelicName::SnakeRing, MonsterName::TheGuardian);
+        let id_monster = first_monster(&state);
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Loss,
+                amount: HealthDeltaAmount::Absolute(31),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
+        });
+        process_effect_queue(&mut state);
+        // 31 damage clears the 30-stack Mode Shift: 20 block on defensive entry
+        assert_eq!(state.entities[id_monster].vitals.block, 20);
     }
 
     #[test]

@@ -2,6 +2,7 @@ use rand::Rng;
 
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
+use crate::consts::EVENT_SHRINE_CHANCE;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
@@ -10,8 +11,6 @@ use crate::effect::EffectKind;
 use crate::effect::GoldDeltaKind;
 use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::POOL_ACT1_EVENT;
 use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
@@ -106,12 +105,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             state.screen = Screen::Chest;
         }
         RoomKind::EventRoom => {
-            if let Some(id_event) = spawn_random_event(
-                &mut state.entities,
-                &mut state.events_seen,
-                state.ascension,
-                &mut state.rng,
-            ) {
+            if let Some(id_event) = spawn_random_event(state) {
                 state.screen = Screen::Event;
                 state.id_event = Some(id_event);
                 return;
@@ -212,27 +206,41 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
     resolved
 }
 
-fn spawn_random_event(
-    entities: &mut Vec<Entity>,
-    events_seen: &mut Vec<EventName>,
-    ascension: u8,
-    rng: &mut impl Rng,
-) -> Option<usize> {
-    if POOL_ACT1_EVENT.is_empty() {
+// 25% shrine pool, else event pool; an exhausted pool falls back to the other,
+// both empty -> no event and the room is a no-op
+fn spawn_random_event(state: &mut GameState) -> Option<usize> {
+    let name = if state.rng.random_range(0.0..1.0f32) < EVENT_SHRINE_CHANCE {
+        draw_shrine(state).or_else(|| draw_event(state))
+    } else {
+        draw_event(state).or_else(|| draw_shrine(state))
+    }?;
+    let event = spawn_event(name, state.ascension, &mut state.rng);
+    Some(push_entity(&mut state.entities, event))
+}
+
+fn draw_event(state: &mut GameState) -> Option<EventName> {
+    // The Cleric only spawns with gold for its cheapest option; it stays pooled otherwise
+    let gold = state.entities[state.id_character].character_gold;
+    let eligible: Vec<usize> = state
+        .pool_events
+        .iter()
+        .enumerate()
+        .filter(|&(_, &name)| name != EventName::TheCleric || gold >= 35)
+        .map(|(i, _)| i)
+        .collect();
+    if eligible.is_empty() {
         return None;
     }
-    if events_seen.len() >= POOL_ACT1_EVENT.len() {
-        events_seen.clear();
+    let idx = eligible[state.rng.random_range(0..eligible.len())];
+    Some(state.pool_events.swap_remove(idx))
+}
+
+fn draw_shrine(state: &mut GameState) -> Option<EventName> {
+    if state.pool_shrines.is_empty() {
+        return None;
     }
-    let name = loop {
-        let cand = POOL_ACT1_EVENT[rng.random_range(0..POOL_ACT1_EVENT.len())];
-        if !events_seen.contains(&cand) {
-            break cand;
-        }
-    };
-    events_seen.push(name);
-    let id_event = push_entity(entities, spawn_event(name, ascension, rng));
-    Some(id_event)
+    let idx = state.rng.random_range(0..state.pool_shrines.len());
+    Some(state.pool_shrines.swap_remove(idx))
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {
@@ -392,6 +400,7 @@ mod tests {
     use crate::game::Location;
     use crate::game::create_game_state;
     use crate::types::DeltaSign;
+    use crate::types::EventName;
     use crate::types::MonsterName;
     use crate::types::RelicName;
     use crate::types::RoomKind;
@@ -422,6 +431,26 @@ mod tests {
 
     fn gold(state: &GameState) -> u16 {
         state.entities[state.id_character].character_gold
+    }
+
+    #[test]
+    fn event_pools_draw_without_replacement_and_gate_the_cleric() {
+        let mut state = create_game_state(0, 9, false);
+        state.entities[state.id_character].character_gold = 0;
+        let mut drawn = 0;
+        while super::draw_event(&mut state).is_some() {
+            drawn += 1;
+        }
+        // The Cleric stays pooled below 35 gold
+        assert_eq!(drawn, 8);
+        assert_eq!(state.pool_events, vec![EventName::TheCleric]);
+        state.entities[state.id_character].character_gold = 35;
+        assert_eq!(super::draw_event(&mut state), Some(EventName::TheCleric));
+        assert_eq!(super::draw_event(&mut state), None);
+        for _ in 0..4 {
+            assert!(super::draw_shrine(&mut state).is_some());
+        }
+        assert!(super::draw_shrine(&mut state).is_none());
     }
 
     #[test]

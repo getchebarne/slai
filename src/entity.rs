@@ -106,6 +106,7 @@ pub struct Entity {
     pub monster_move_history_len: u8,
     pub monster_cycle_count: u8,  // Only used by "The Guardian"
     pub monster_stolen_gold: u16, // Only used by "Looter"
+    pub monster_divider_damage: u16, // Only used by "Hexaghost"
 
     // Card-only
     pub card_name: CardName,
@@ -173,6 +174,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     monster_move_history: [0; MAX_MOVE_HISTORY],
     monster_move_history_len: 0,
     monster_cycle_count: 0,
+    monster_divider_damage: 0,
     dead: false,
     card_name: CardName::Strike,
     card_kind: CardKind::Attack,

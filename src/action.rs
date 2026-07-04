@@ -23,6 +23,7 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RewardKind;
 use crate::types::Screen;
+use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::deck_filter_matches;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -670,7 +671,9 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
     }
     if !state.entities[current_room_id(state)].room_shop_purged && gold >= state.shop_purge_cost {
         for i in 0..state.id_deck.len() {
-            state.legal_actions.push(Action::ShopPurge { idx: i });
+            if card_is_purgeable(&state.entities[state.id_deck[i]]) {
+                state.legal_actions.push(Action::ShopPurge { idx: i });
+            }
         }
     }
     push_potion_actions(state);

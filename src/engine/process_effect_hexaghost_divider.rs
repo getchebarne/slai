@@ -4,11 +4,11 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 
-// Initial Hexaghost hit
+// Initial Hexaghost hit; damage was snapshotted when the move was selected
 pub fn process_effect_hexaghost_divider(id_source: Option<usize>, state: &mut GameState) {
     let id_character = state.id_character;
-    let health = state.entities[id_character].vitals.health;
-    let dmg: u16 = health / 12 + 1;
+    let id_monster = id_source.expect("HexaghostDivider requires id_source");
+    let dmg = state.entities[id_monster].monster_divider_damage;
 
     for _ in 0..HEXAGHOST_DIVIDER_HITS {
         state.effect_queue.push_front(Effect {

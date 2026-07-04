@@ -188,7 +188,12 @@ impl From<HealthDeltaAmount> for PyHealthDeltaAmount {
     fn from(amount: HealthDeltaAmount) -> Self {
         match amount {
             HealthDeltaAmount::Absolute(amount) => Self::Absolute { amount },
+            // Rounding mode is engine-internal; the view keeps one Relative shape
             HealthDeltaAmount::Relative {
+                numerator,
+                denominator,
+            }
+            | HealthDeltaAmount::RelativeRounded {
                 numerator,
                 denominator,
             } => Self::Relative {
@@ -2766,11 +2771,11 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
-                // Hexaghost Divider's per-hit damage is dynamic (HP/12 + 1); override the static placeholder
+                // Hexaghost Divider's per-hit damage is dynamic (HP/12 + 1, fixed at selection); override the static placeholder
                 if m.monster_name == MonsterName::Hexaghost
                     && move_idx == hexaghost::IDX_MOVE_DIVIDER
                 {
-                    base_damage = Some(character.vitals.health / 12 + 1);
+                    base_damage = Some(m.monster_divider_damage);
                     instances = Some(HEXAGHOST_DIVIDER_HITS);
                 }
 

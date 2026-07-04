@@ -19,6 +19,7 @@ use crate::types::Vitals;
 const MODE_SHIFT_STACKS_30: i16 = 30;
 const MODE_SHIFT_STACKS_35: i16 = 35;
 const MODE_SHIFT_STACKS_40: i16 = 40;
+pub const DEFENSIVE_MODE_BLOCK: u16 = 20;
 
 static MOVE_CHARGING_UP: Move = Move {
     name: "Charging Up",

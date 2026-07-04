@@ -28,7 +28,8 @@ pub fn process_effect_shop_purge(state: &mut GameState, idx: usize) {
     });
     flush_effects_from_buf_to_queue_front(state);
 
-    state.shop_purge_cost += SHOP_PURGE_COST_INCREMENT;
+    // Ramps for the rest of the run; the next shop build reads the new value
+    state.shop_purge_cost_run += SHOP_PURGE_COST_INCREMENT;
 
     // A shop's card removal can be used once per visit
     if let Location::Overworld { y, x } = state.location {

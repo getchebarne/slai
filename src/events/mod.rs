@@ -134,16 +134,19 @@ pub fn spawn_event(name: EventName, ascension: u8, _rng: &mut impl Rng) -> Entit
 pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::BigFish,
     EventName::TheCleric,
-    EventName::Duplicator,
-    EventName::GoldenShrine,
     EventName::GoldenIdol,
     EventName::WingStatue,
     EventName::WorldOfGoop,
     EventName::LivingWall,
-    EventName::Purifier,
     EventName::ScrapOoze,
     EventName::ShiningLight,
     EventName::TheSsssserpent,
+];
+
+// Shrines roll separately at EVENT_SHRINE_CHANCE; Duplicator is Act 2/3-only, never pooled here
+pub const POOL_ACT1_SHRINE: &[EventName] = &[
+    EventName::GoldenShrine,
+    EventName::Purifier,
     EventName::Transmogrifier,
     EventName::UpgradeShrine,
 ];
