@@ -354,6 +354,14 @@ pub enum PyRelicName {
     CaptainsWheel,
     Calipers,
     IceCream,
+    SneckoSkull,
+    Ginger,
+    Turnip,
+    Tingsha,
+    ToughBandages,
+    GremlinHorn,
+    TheSpecimen,
+    LizardTail,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -404,6 +412,14 @@ impl From<RelicName> for PyRelicName {
             RelicName::CaptainsWheel => Self::CaptainsWheel,
             RelicName::Calipers => Self::Calipers,
             RelicName::IceCream => Self::IceCream,
+            RelicName::SneckoSkull => Self::SneckoSkull,
+            RelicName::Ginger => Self::Ginger,
+            RelicName::Turnip => Self::Turnip,
+            RelicName::Tingsha => Self::Tingsha,
+            RelicName::ToughBandages => Self::ToughBandages,
+            RelicName::GremlinHorn => Self::GremlinHorn,
+            RelicName::TheSpecimen => Self::TheSpecimen,
+            RelicName::LizardTail => Self::LizardTail,
         }
     }
 }
@@ -456,6 +472,14 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::CaptainsWheel => Self::CaptainsWheel,
             PyRelicName::Calipers => Self::Calipers,
             PyRelicName::IceCream => Self::IceCream,
+            PyRelicName::SneckoSkull => Self::SneckoSkull,
+            PyRelicName::Ginger => Self::Ginger,
+            PyRelicName::Turnip => Self::Turnip,
+            PyRelicName::Tingsha => Self::Tingsha,
+            PyRelicName::ToughBandages => Self::ToughBandages,
+            PyRelicName::GremlinHorn => Self::GremlinHorn,
+            PyRelicName::TheSpecimen => Self::TheSpecimen,
+            PyRelicName::LizardTail => Self::LizardTail,
         }
     }
 }

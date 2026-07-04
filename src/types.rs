@@ -361,6 +361,14 @@ pub enum RelicName {
     CaptainsWheel,
     Calipers,
     IceCream,
+    SneckoSkull,
+    Ginger,
+    Turnip,
+    Tingsha,
+    ToughBandages,
+    GremlinHorn,
+    TheSpecimen,
+    LizardTail,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

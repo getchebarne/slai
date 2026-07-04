@@ -13,7 +13,9 @@ mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
 mod dollys_mirror;
+mod ginger;
 mod golden_idol;
+mod gremlin_horn;
 mod gremlin_visage;
 mod happy_flower;
 mod horn_cleat;
@@ -24,6 +26,7 @@ mod kunai;
 mod lantern;
 mod lees_waffle;
 mod letter_opener;
+mod lizard_tail;
 mod mercury_hourglass;
 mod mummified_hand;
 mod ninja_scroll;
@@ -35,9 +38,14 @@ mod ornamental_fan;
 mod pocketwatch;
 mod red_mask;
 mod shuriken;
+mod snecko_skull;
 mod stone_calendar;
 mod strange_spoon;
 mod sundial;
+mod the_specimen;
+mod tingsha;
+mod tough_bandages;
+mod turnip;
 mod white_beast_statue;
 mod snake_ring;
 mod thread_and_needle;
@@ -98,6 +106,14 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::CaptainsWheel => captains_wheel::CAPTAINS_WHEEL,
         RelicName::Calipers => calipers::CALIPERS,
         RelicName::IceCream => ice_cream::ICE_CREAM,
+        RelicName::SneckoSkull => snecko_skull::SNECKO_SKULL,
+        RelicName::Ginger => ginger::GINGER,
+        RelicName::Turnip => turnip::TURNIP,
+        RelicName::Tingsha => tingsha::TINGSHA,
+        RelicName::ToughBandages => tough_bandages::TOUGH_BANDAGES,
+        RelicName::GremlinHorn => gremlin_horn::GREMLIN_HORN,
+        RelicName::TheSpecimen => the_specimen::THE_SPECIMEN,
+        RelicName::LizardTail => lizard_tail::LIZARD_TAIL,
     }
 }
 
@@ -163,7 +179,9 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &circlet::CIRCLET,
     &clockwork_souvenir::CLOCKWORK_SOUVENIR,
     &dollys_mirror::DOLLYS_MIRROR,
+    &ginger::GINGER,
     &golden_idol::GOLDEN_IDOL,
+    &gremlin_horn::GREMLIN_HORN,
     &gremlin_visage::GREMLIN_VISAGE,
     &happy_flower::HAPPY_FLOWER,
     &horn_cleat::HORN_CLEAT,
@@ -174,6 +192,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &lantern::LANTERN,
     &lees_waffle::LEES_WAFFLE,
     &letter_opener::LETTER_OPENER,
+    &lizard_tail::LIZARD_TAIL,
     &mercury_hourglass::MERCURY_HOURGLASS,
     &mummified_hand::MUMMIFIED_HAND,
     &ninja_scroll::NINJA_SCROLL,
@@ -185,10 +204,15 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &pocketwatch::POCKETWATCH,
     &red_mask::RED_MASK,
     &shuriken::SHURIKEN,
+    &snecko_skull::SNECKO_SKULL,
     &stone_calendar::STONE_CALENDAR,
     &strange_spoon::STRANGE_SPOON,
     &sundial::SUNDIAL,
+    &the_specimen::THE_SPECIMEN,
     &thread_and_needle::THREAD_AND_NEEDLE,
+    &tingsha::TINGSHA,
+    &tough_bandages::TOUGH_BANDAGES,
+    &turnip::TURNIP,
     &twisted_funnel::TWISTED_FUNNEL,
     &vajra::VAJRA,
     &white_beast_statue::WHITE_BEAST_STATUE,
