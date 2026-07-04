@@ -1,3 +1,6 @@
+use rand::Rng;
+
+use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::HealthDeltaAmount;
@@ -7,7 +10,10 @@ use crate::entity::card_effective_cost;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
+use crate::modifier::modifier_is_buff;
+use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::modifier_stacks;
+use crate::relics::relic_counter_fire;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::DeltaSign;
@@ -27,34 +33,141 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     if card.card_kind == CardKind::Attack {
         state.this_turn_attacks = state.this_turn_attacks.saturating_add(1);
 
-        if let Some(id_kunai) = state.id_relics[RelicName::Kunai as usize] {
-            let counter = &mut state.entities[id_kunai].relic_counter;
-            *counter += 1;
-            if *counter >= 3 {
-                *counter = 0;
+        if relic_counter_fire(RelicName::Kunai, 3, &state.id_relics, &mut state.entities) {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Dexterity,
+                    stacks: 1,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_character)),
+            });
+        }
+        if relic_counter_fire(RelicName::Shuriken, 3, &state.id_relics, &mut state.entities) {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Strength,
+                    stacks: 1,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_character)),
+            });
+        }
+        // Relic-sourced block: id_source None skips Dex/Frail scaling
+        if relic_counter_fire(RelicName::OrnamentalFan, 3, &state.id_relics, &mut state.entities) {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::BlockGain { amount: 4 },
+                id_source: None,
+                target: Target::Direct(Some(id_character)),
+            });
+        }
+        if relic_counter_fire(RelicName::Nunchaku, 10, &state.id_relics, &mut state.entities) {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::EnergyGain { amount: 1 },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+    }
+
+    // Thorns-type damage: id_source None skips Strength/Weak scaling and Envenom
+    if card.card_kind == CardKind::Skill
+        && relic_counter_fire(RelicName::LetterOpener, 3, &state.id_relics, &mut state.entities)
+    {
+        for id_monster in state.id_monsters.iter().flatten().copied() {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::DamageDeal { amount: 5 },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        }
+    }
+
+    if card.card_kind == CardKind::Power {
+        if state.id_relics[RelicName::BirdFacedUrn as usize].is_some() {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::HealthDelta {
+                    sign: DeltaSign::Gain,
+                    amount: HealthDeltaAmount::Absolute(2),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_character)),
+            });
+        }
+        // Random hand card with base cost > 0 still costing > 0 becomes free this turn;
+        // the played card is still in id_hand here, so exclude it
+        if state.id_relics[RelicName::MummifiedHand as usize].is_some() {
+            let mut eligible = [0usize; MAX_SIZE_HAND];
+            let mut n = 0;
+            for &id in &state.id_hand {
+                if id == id_card {
+                    continue;
+                }
+                let c = &state.entities[id];
+                let base_positive =
+                    !matches!(c.card_cost_kind, CardCostKind::XCost { .. }) && c.card_cost > 0;
+                let effective = card_effective_cost(
+                    c,
+                    this_turn_discards,
+                    this_combat_damage_instances_taken,
+                    energy_current,
+                );
+                if base_positive && effective > 0 {
+                    eligible[n] = id;
+                    n += 1;
+                }
+            }
+            if n > 0 {
+                let id_pick = eligible[state.rng.random_range(0..n)];
                 state.effect_queue.push_back(Effect {
-                    kind: EffectKind::ModifierGain {
-                        kind: ModifierKind::Dexterity,
-                        stacks: 1,
-                    },
+                    kind: EffectKind::SetCostOverride { amount: 0 },
                     id_source: None,
-                    target: Target::Direct(Some(id_character)),
+                    target: Target::Direct(Some(id_pick)),
                 });
             }
         }
-        if let Some(id_shuriken) = state.id_relics[RelicName::Shuriken as usize] {
-            let counter = &mut state.entities[id_shuriken].relic_counter;
-            *counter += 1;
-            if *counter >= 3 {
+    }
+
+    // Counts every card played; counter persists across turns and combats
+    if relic_counter_fire(RelicName::InkBottle, 10, &state.id_relics, &mut state.entities) {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::CardDraw { count: 1 },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
+
+    // relic_counter is a seen-kinds bitmask; all three kinds in one turn sweeps debuffs
+    if let Some(id_pellets) = state.id_relics[RelicName::OrangePellets as usize] {
+        let bit = match card.card_kind {
+            CardKind::Attack => 1,
+            CardKind::Skill => 2,
+            CardKind::Power => 4,
+            _ => 0,
+        };
+        if bit != 0 {
+            let counter = &mut state.entities[id_pellets].relic_counter;
+            *counter |= bit;
+            if *counter == 7 {
                 *counter = 0;
-                state.effect_queue.push_back(Effect {
-                    kind: EffectKind::ModifierGain {
-                        kind: ModifierKind::Strength,
-                        stacks: 1,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_character)),
-                });
+                let mods = &state.entities[id_character].modifiers;
+                let mut bits = mods.active;
+                while bits != 0 {
+                    let idx = bits.trailing_zeros() as usize;
+                    bits &= bits - 1;
+                    let kind = modifier_kind_from_u8(idx as u8);
+                    // Negative Strength/Dexterity count as debuffs despite is_buff
+                    let negative_stat =
+                        matches!(kind, ModifierKind::Strength | ModifierKind::Dexterity)
+                            && mods.stacks[idx] < 0;
+                    if !modifier_is_buff(kind) || negative_stat {
+                        state.effect_queue.push_back(Effect {
+                            kind: EffectKind::ModifierRemove { kind },
+                            id_source: None,
+                            target: Target::Direct(Some(id_character)),
+                        });
+                    }
+                }
             }
         }
     }
@@ -68,7 +181,15 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     // X-cost reads raw energy_current so Setup-flagged X-cost still scales
     let multiplier = match card.card_cost_kind {
-        CardCostKind::XCost { offset } => (energy_current as i16 + offset as i16).max(0) as usize,
+        CardCostKind::XCost { offset } => {
+            let x = (energy_current as i16 + offset as i16).max(0) as usize;
+            // Chemical X: X+2 on effect reps; energy paid is unchanged
+            if state.id_relics[RelicName::ChemicalX as usize].is_some() {
+                x + 2
+            } else {
+                x
+            }
+        }
         _ => 1,
     };
 
@@ -85,8 +206,15 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     });
 
     if card.card_exhaust {
+        // Strange Spoon: on-play exhausts have a 50% chance to discard instead
+        let spooned = state.id_relics[RelicName::StrangeSpoon as usize].is_some()
+            && state.rng.random_range(0..100) < 50;
         state.effect_buf.push(Effect {
-            kind: EffectKind::CardExhaust,
+            kind: if spooned {
+                EffectKind::CardMoveToDiscard
+            } else {
+                EffectKind::CardExhaust
+            },
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });
@@ -231,4 +359,217 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     flush_effects_from_buf_to_queue_front(state);
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::cards::get_card;
+    use crate::effect::Effect;
+    use crate::effect::EffectKind;
+    use crate::effect::Target;
+    use crate::engine::process_effect_queue;
+    use crate::game::GameState;
+    use crate::game::create_game_state;
+    use crate::modifier::ModifierKind;
+    use crate::modifier::modifier_apply;
+    use crate::modifier::modifier_has;
+    use crate::modifier::modifier_stacks;
+    use crate::types::CardName;
+    use crate::types::MonsterName;
+    use crate::types::RelicName;
+    use crate::utils::grant_relic;
+    use crate::utils::push_entity;
+
+    fn combat_with_relic(relic: RelicName) -> GameState {
+        let mut state = create_game_state(0, 42, false);
+        grant_relic(relic, &mut state.id_relics, &mut state.entities);
+        for kind in [
+            EffectKind::MonsterSpawn {
+                name: MonsterName::JawWorm,
+            },
+            EffectKind::CombatStart,
+        ] {
+            state.effect_queue.push_back(Effect {
+                kind,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+        process_effect_queue(&mut state);
+        state
+    }
+
+    fn put_in_hand(state: &mut GameState, name: CardName) -> usize {
+        let id = push_entity(&mut state.entities, get_card(name, false));
+        state.id_hand.push(id);
+        id
+    }
+
+    // Refill energy and play via the real TargetSet -> CardPlay -> TargetClear triple
+    fn play(state: &mut GameState, id_card: usize) {
+        let id_monster = state
+            .id_monsters
+            .iter()
+            .flatten()
+            .copied()
+            .next()
+            .expect("combat has a monster");
+        state.energy.energy_current = 3;
+        for effect in [
+            Effect {
+                kind: EffectKind::TargetSet,
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            },
+            Effect {
+                kind: EffectKind::CardPlay,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            },
+            Effect {
+                kind: EffectKind::TargetClear,
+                id_source: None,
+                target: Target::Direct(None),
+            },
+        ] {
+            state.effect_queue.push_back(effect);
+        }
+        process_effect_queue(state);
+    }
+
+    fn set_relic_counter(state: &mut GameState, relic: RelicName, value: i16) {
+        let id = state.id_relics[relic as usize].expect("relic owned");
+        state.entities[id].relic_counter = value;
+    }
+
+    fn char_modifier(state: &GameState, kind: ModifierKind) -> i16 {
+        modifier_stacks(&state.entities[state.id_character].modifiers, kind)
+    }
+
+    #[test]
+    fn kunai_grants_dexterity_on_third_attack() {
+        let mut state = combat_with_relic(RelicName::Kunai);
+        for _ in 0..3 {
+            let id = put_in_hand(&mut state, CardName::Strike);
+            play(&mut state, id);
+        }
+        assert_eq!(char_modifier(&state, ModifierKind::Dexterity), 1);
+    }
+
+    #[test]
+    fn ornamental_fan_blocks_on_third_attack() {
+        let mut state = combat_with_relic(RelicName::OrnamentalFan);
+        for i in 0..3 {
+            let id = put_in_hand(&mut state, CardName::Strike);
+            play(&mut state, id);
+            let expected = if i < 2 { 0 } else { 4 };
+            assert_eq!(state.entities[state.id_character].vitals.block, expected);
+        }
+    }
+
+    #[test]
+    fn nunchaku_grants_energy_on_tenth_attack() {
+        let mut state = combat_with_relic(RelicName::Nunchaku);
+        set_relic_counter(&mut state, RelicName::Nunchaku, 9);
+        let id = put_in_hand(&mut state, CardName::Strike);
+        play(&mut state, id);
+        // 3 refilled - 1 Strike + 1 Nunchaku
+        assert_eq!(state.energy.energy_current, 3);
+        let id_relic = state.id_relics[RelicName::Nunchaku as usize].unwrap();
+        assert_eq!(state.entities[id_relic].relic_counter, 0);
+    }
+
+    #[test]
+    fn ink_bottle_draws_on_tenth_card() {
+        let mut state = combat_with_relic(RelicName::InkBottle);
+        set_relic_counter(&mut state, RelicName::InkBottle, 9);
+        let hand_before = state.id_hand.len();
+        let id = put_in_hand(&mut state, CardName::Strike);
+        play(&mut state, id);
+        // Strike left the hand, Ink Bottle drew a replacement
+        assert_eq!(state.id_hand.len(), hand_before + 1);
+    }
+
+    #[test]
+    fn letter_opener_damages_all_on_third_skill() {
+        let mut state = combat_with_relic(RelicName::LetterOpener);
+        let id_monster = state.id_monsters.iter().flatten().copied().next().unwrap();
+        let hp_before = state.entities[id_monster].vitals.health;
+        for _ in 0..3 {
+            let id = put_in_hand(&mut state, CardName::Defend);
+            play(&mut state, id);
+        }
+        assert_eq!(state.entities[id_monster].vitals.health, hp_before - 5);
+    }
+
+    #[test]
+    fn bird_faced_urn_heals_on_power() {
+        let mut state = combat_with_relic(RelicName::BirdFacedUrn);
+        let id_character = state.id_character;
+        state.entities[id_character].vitals.health -= 10;
+        let hp_before = state.entities[id_character].vitals.health;
+        let id = put_in_hand(&mut state, CardName::Footwork);
+        play(&mut state, id);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before + 2);
+    }
+
+    #[test]
+    fn mummified_hand_zeroes_one_hand_card_cost() {
+        let mut state = combat_with_relic(RelicName::MummifiedHand);
+        let id = put_in_hand(&mut state, CardName::Footwork);
+        play(&mut state, id);
+        let zeroed = state
+            .id_hand
+            .iter()
+            .filter(|&&id| state.entities[id].card_cost_override == Some(0))
+            .count();
+        assert_eq!(zeroed, 1);
+    }
+
+    #[test]
+    fn orange_pellets_sweeps_debuffs_after_all_three_kinds() {
+        let mut state = combat_with_relic(RelicName::OrangePellets);
+        let id_character = state.id_character;
+        let mods = &mut state.entities[id_character].modifiers;
+        modifier_apply(mods, ModifierKind::Weak, 2);
+        modifier_apply(mods, ModifierKind::Frail, 2);
+        modifier_apply(mods, ModifierKind::Strength, -1);
+        for name in [CardName::Strike, CardName::Defend, CardName::Footwork] {
+            let id = put_in_hand(&mut state, name);
+            play(&mut state, id);
+        }
+        let mods = &state.entities[id_character].modifiers;
+        assert!(!modifier_has(mods, ModifierKind::Weak));
+        assert!(!modifier_has(mods, ModifierKind::Frail));
+        assert!(!modifier_has(mods, ModifierKind::Strength));
+        // Buffs survive the sweep (Footwork's own Dexterity)
+        assert_eq!(modifier_stacks(mods, ModifierKind::Dexterity), 2);
+    }
+
+    #[test]
+    fn strange_spoon_discards_about_half_of_exhausts() {
+        let mut state = combat_with_relic(RelicName::StrangeSpoon);
+        // Defends: harmless to the monster, so combat never ends mid-test
+        for _ in 0..20 {
+            let id = put_in_hand(&mut state, CardName::Defend);
+            state.entities[id].card_exhaust = true;
+            play(&mut state, id);
+        }
+        let exhausted = state.id_pile_exhaust.len();
+        let discarded = state.id_pile_discard.len();
+        assert_eq!(exhausted + discarded, 20);
+        assert!(exhausted > 0, "seeded run should exhaust at least once");
+        assert!(discarded > 0, "seeded run should discard at least once");
+    }
+
+    #[test]
+    fn chemical_x_adds_two_x_reps() {
+        let mut state = combat_with_relic(RelicName::ChemicalX);
+        let id_monster = state.id_monsters.iter().flatten().copied().next().unwrap();
+        let hp_before = state.entities[id_monster].vitals.health;
+        let id = put_in_hand(&mut state, CardName::Skewer);
+        play(&mut state, id);
+        // X = 3 energy + 2 from Chemical X -> 5 reps x 7 damage
+        assert_eq!(state.entities[id_monster].vitals.health, hp_before - 35);
+    }
 }

@@ -329,6 +329,15 @@ pub enum PyRelicName {
     ClockworkSouvenir,
     GremlinVisage,
     RedMask,
+    Nunchaku,
+    InkBottle,
+    LetterOpener,
+    OrnamentalFan,
+    BirdFacedUrn,
+    MummifiedHand,
+    OrangePellets,
+    StrangeSpoon,
+    ChemicalX,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -354,6 +363,15 @@ impl From<RelicName> for PyRelicName {
             RelicName::ClockworkSouvenir => Self::ClockworkSouvenir,
             RelicName::GremlinVisage => Self::GremlinVisage,
             RelicName::RedMask => Self::RedMask,
+            RelicName::Nunchaku => Self::Nunchaku,
+            RelicName::InkBottle => Self::InkBottle,
+            RelicName::LetterOpener => Self::LetterOpener,
+            RelicName::OrnamentalFan => Self::OrnamentalFan,
+            RelicName::BirdFacedUrn => Self::BirdFacedUrn,
+            RelicName::MummifiedHand => Self::MummifiedHand,
+            RelicName::OrangePellets => Self::OrangePellets,
+            RelicName::StrangeSpoon => Self::StrangeSpoon,
+            RelicName::ChemicalX => Self::ChemicalX,
         }
     }
 }
@@ -381,6 +399,15 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::ClockworkSouvenir => Self::ClockworkSouvenir,
             PyRelicName::GremlinVisage => Self::GremlinVisage,
             PyRelicName::RedMask => Self::RedMask,
+            PyRelicName::Nunchaku => Self::Nunchaku,
+            PyRelicName::InkBottle => Self::InkBottle,
+            PyRelicName::LetterOpener => Self::LetterOpener,
+            PyRelicName::OrnamentalFan => Self::OrnamentalFan,
+            PyRelicName::BirdFacedUrn => Self::BirdFacedUrn,
+            PyRelicName::MummifiedHand => Self::MummifiedHand,
+            PyRelicName::OrangePellets => Self::OrangePellets,
+            PyRelicName::StrangeSpoon => Self::StrangeSpoon,
+            PyRelicName::ChemicalX => Self::ChemicalX,
         }
     }
 }

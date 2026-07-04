@@ -336,6 +336,15 @@ pub enum RelicName {
     ClockworkSouvenir,
     GremlinVisage,
     RedMask,
+    Nunchaku,
+    InkBottle,
+    LetterOpener,
+    OrnamentalFan,
+    BirdFacedUrn,
+    MummifiedHand,
+    OrangePellets,
+    StrangeSpoon,
+    ChemicalX,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

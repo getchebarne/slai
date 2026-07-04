@@ -2,18 +2,27 @@ mod akabeko;
 mod anchor;
 mod bag_of_marbles;
 mod bag_of_preparation;
+mod bird_faced_urn;
 mod blood_vial;
 mod bronze_scales;
+mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
 mod golden_idol;
 mod gremlin_visage;
+mod ink_bottle;
 mod kunai;
 mod lantern;
+mod letter_opener;
+mod mummified_hand;
 mod ninja_scroll;
+mod nunchaku;
 mod oddly_smooth_stone;
+mod orange_pellets;
+mod ornamental_fan;
 mod red_mask;
 mod shuriken;
+mod strange_spoon;
 mod snake_ring;
 mod thread_and_needle;
 mod twisted_funnel;
@@ -48,8 +57,46 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::ClockworkSouvenir => clockwork_souvenir::CLOCKWORK_SOUVENIR,
         RelicName::GremlinVisage => gremlin_visage::GREMLIN_VISAGE,
         RelicName::RedMask => red_mask::RED_MASK,
+        RelicName::Nunchaku => nunchaku::NUNCHAKU,
+        RelicName::InkBottle => ink_bottle::INK_BOTTLE,
+        RelicName::LetterOpener => letter_opener::LETTER_OPENER,
+        RelicName::OrnamentalFan => ornamental_fan::ORNAMENTAL_FAN,
+        RelicName::BirdFacedUrn => bird_faced_urn::BIRD_FACED_URN,
+        RelicName::MummifiedHand => mummified_hand::MUMMIFIED_HAND,
+        RelicName::OrangePellets => orange_pellets::ORANGE_PELLETS,
+        RelicName::StrangeSpoon => strange_spoon::STRANGE_SPOON,
+        RelicName::ChemicalX => chemical_x::CHEMICAL_X,
     }
 }
+
+// Bump a relic's counter if owned; at `threshold` reset it to 0 and report the fire
+pub fn relic_counter_fire(
+    name: RelicName,
+    threshold: i16,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    entities: &mut [Entity],
+) -> bool {
+    let Some(id) = id_relics[name as usize] else {
+        return false;
+    };
+    let counter = &mut entities[id].relic_counter;
+    *counter += 1;
+    if *counter >= threshold {
+        *counter = 0;
+        return true;
+    }
+    false
+}
+
+// Per-turn relic counters; reset at character turn end and at combat start
+// (combat can end mid-turn, so turn-end resets alone leak into the next combat)
+pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
+    RelicName::Kunai,
+    RelicName::Shuriken,
+    RelicName::OrnamentalFan,
+    RelicName::LetterOpener,
+    RelicName::OrangePellets,
+];
 
 pub fn iter_owned_relics(
     id_relics: &[Option<usize>; RelicName::COUNT],
@@ -66,18 +113,27 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &anchor::ANCHOR,
     &bag_of_marbles::BAG_OF_MARBLES,
     &bag_of_preparation::BAG_OF_PREPARATION,
+    &bird_faced_urn::BIRD_FACED_URN,
     &blood_vial::BLOOD_VIAL,
     &bronze_scales::BRONZE_SCALES,
+    &chemical_x::CHEMICAL_X,
     &circlet::CIRCLET,
     &clockwork_souvenir::CLOCKWORK_SOUVENIR,
     &golden_idol::GOLDEN_IDOL,
     &gremlin_visage::GREMLIN_VISAGE,
+    &ink_bottle::INK_BOTTLE,
     &kunai::KUNAI,
     &lantern::LANTERN,
+    &letter_opener::LETTER_OPENER,
+    &mummified_hand::MUMMIFIED_HAND,
     &ninja_scroll::NINJA_SCROLL,
+    &nunchaku::NUNCHAKU,
     &oddly_smooth_stone::ODDLY_SMOOTH_STONE,
+    &orange_pellets::ORANGE_PELLETS,
+    &ornamental_fan::ORNAMENTAL_FAN,
     &red_mask::RED_MASK,
     &shuriken::SHURIKEN,
+    &strange_spoon::STRANGE_SPOON,
     &thread_and_needle::THREAD_AND_NEEDLE,
     &twisted_funnel::TWISTED_FUNNEL,
     &vajra::VAJRA,

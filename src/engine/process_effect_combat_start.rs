@@ -3,6 +3,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
@@ -11,6 +12,13 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     state.this_combat_damage_instances_taken = 0;
     state.this_combat_escaped = false;
     state.this_turn_cards_played = 0;
+
+    // Combat can end mid-turn, skipping the turn-end reset
+    for &name in RELIC_COUNTERS_PER_TURN {
+        if let Some(id) = state.id_relics[name as usize] {
+            state.entities[id].relic_counter = 0;
+        }
+    }
 
     // Innate cards sit on top of the draw pile, ahead of the shuffled rest
     let mut other_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
