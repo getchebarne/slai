@@ -4,12 +4,24 @@ use crate::consts::MAX_GOLD;
 use crate::effect::GoldDeltaKind;
 use crate::game::GameState;
 use crate::types::DeltaSign;
+use crate::types::RelicName;
+use crate::types::Screen;
 
 pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, kind: GoldDeltaKind) {
     let amount = match kind {
         GoldDeltaKind::Fixed(a) => a,
         GoldDeltaKind::Range { min, max } => state.rng.random_range(min..=max),
     };
+
+    // Maw Bank deactivates the first time gold is spent at a shop (event costs don't count)
+    if sign == DeltaSign::Loss
+        && amount > 0
+        && matches!(state.screen, Screen::Shop)
+        && let Some(id) = state.id_relics[RelicName::MawBank as usize]
+    {
+        state.entities[id].relic_used_up = true;
+    }
+
     let character = &mut state.entities[state.id_character];
     character.character_gold = match sign {
         DeltaSign::Gain => character

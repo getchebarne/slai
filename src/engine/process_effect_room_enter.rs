@@ -7,6 +7,8 @@ use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::GoldDeltaKind;
+use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::POOL_ACT1_EVENT;
@@ -16,9 +18,11 @@ use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
 use crate::types::ChestKind;
+use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
+use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -28,6 +32,21 @@ use crate::utils::shuffle;
 pub fn process_effect_room_enter(state: &mut GameState) {
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     state.effect_buf.clear();
+
+    // Maw Bank: 12 gold on every room entry until deactivated by spending at a shop.
+    // Straight to effect_queue: effect_buf is reserved for the combat-spawn path below
+    if let Some(id) = state.id_relics[RelicName::MawBank as usize]
+        && !state.entities[id].relic_used_up
+    {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Gain,
+                kind: GoldDeltaKind::Fixed(12),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
 
     // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
     let resolved = if room_kind == RoomKind::Unknown {
@@ -51,6 +70,24 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
         RoomKind::RestSite => {
             state.screen = Screen::RestSite;
+            // Eternal Feather: 3 HP per 5 deck cards on arrival
+            if state.id_relics[RelicName::EternalFeather as usize].is_some() {
+                let heal = (state.id_deck.len() / 5) * 3;
+                if heal > 0 {
+                    state.effect_queue.push_back(Effect {
+                        kind: EffectKind::HealthDelta {
+                            sign: DeltaSign::Gain,
+                            amount: HealthDeltaAmount::Absolute(heal as u16),
+                        },
+                        id_source: None,
+                        target: Target::Direct(Some(state.id_character)),
+                    });
+                }
+            }
+            // Ancient Tea Set: prime for the next combat
+            if let Some(id) = state.id_relics[RelicName::AncientTeaSet as usize] {
+                state.entities[id].relic_counter = 1;
+            }
         }
         RoomKind::Treasure => {
             let Location::Overworld { y, x } = state.location else {
@@ -82,6 +119,16 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
         RoomKind::Shop => {
             state.screen = Screen::Shop;
+            if state.id_relics[RelicName::MealTicket as usize].is_some() {
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::HealthDelta {
+                        sign: DeltaSign::Gain,
+                        amount: HealthDeltaAmount::Absolute(15),
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::ShopBuild,
                 id_source: None,
@@ -105,19 +152,37 @@ pub fn process_effect_room_enter(state: &mut GameState) {
 
 // Resolve a "?" room into a concrete kind, then drift the running tallies
 fn roll_unknown_room(state: &mut GameState) -> RoomKind {
-    let idx = state.rng.random_range(0..100) as i32;
-    let chance_monster = (state.unknown_chance_monster * 100.0) as i32;
-    let chance_shop = (state.unknown_chance_shop * 100.0) as i32;
-    let chance_treasure = (state.unknown_chance_treasure * 100.0) as i32;
+    // Tiny Chest: every 4th ? room is forced Treasure; drift still runs as if rolled
+    let forced_treasure = if let Some(id) = state.id_relics[RelicName::TinyChest as usize] {
+        let counter = &mut state.entities[id].relic_counter;
+        *counter += 1;
+        if *counter >= 4 {
+            *counter = 0;
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    };
 
-    let resolved = if idx < chance_monster {
-        RoomKind::CombatMonster
-    } else if idx < chance_monster + chance_shop {
-        RoomKind::Shop
-    } else if idx < chance_monster + chance_shop + chance_treasure {
+    let mut resolved = if forced_treasure {
         RoomKind::Treasure
     } else {
-        RoomKind::EventRoom
+        let idx = state.rng.random_range(0..100) as i32;
+        let chance_monster = (state.unknown_chance_monster * 100.0) as i32;
+        let chance_shop = (state.unknown_chance_shop * 100.0) as i32;
+        let chance_treasure = (state.unknown_chance_treasure * 100.0) as i32;
+
+        if idx < chance_monster {
+            RoomKind::CombatMonster
+        } else if idx < chance_monster + chance_shop {
+            RoomKind::Shop
+        } else if idx < chance_monster + chance_shop + chance_treasure {
+            RoomKind::Treasure
+        } else {
+            RoomKind::EventRoom
+        }
     };
 
     // Drift: the chosen type resets to base, every other type accumulates by its base
@@ -136,6 +201,13 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
     } else {
         state.unknown_chance_treasure + UNKNOWN_CHANCE_BASE_TREASURE
     };
+
+    // Juzu Bracelet: a monster resolution becomes an event (after the drift settles)
+    if resolved == RoomKind::CombatMonster
+        && state.id_relics[RelicName::JuzuBracelet as usize].is_some()
+    {
+        resolved = RoomKind::EventRoom;
+    }
 
     resolved
 }
@@ -302,5 +374,164 @@ fn spawn_encounter_monsters(
         MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian),
         MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost),
         MonsterEncounter::SlimeBoss => push_monster_spawn(effects, MonsterName::SlimeBoss),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::action::Action;
+    use crate::action::handle_action;
+    use crate::action::recompute_legal_actions;
+    use crate::consts::MAP_WIDTH;
+    use crate::effect::Effect;
+    use crate::effect::EffectKind;
+    use crate::effect::GoldDeltaKind;
+    use crate::effect::Target;
+    use crate::engine::process_effect_queue;
+    use crate::game::GameState;
+    use crate::game::Location;
+    use crate::game::create_game_state;
+    use crate::types::DeltaSign;
+    use crate::types::MonsterName;
+    use crate::types::RelicName;
+    use crate::types::RoomKind;
+    use crate::types::Screen;
+    use crate::utils::grant_relic;
+
+    fn game_with_relic(relic: RelicName) -> GameState {
+        let mut state = create_game_state(0, 42, false);
+        grant_relic(relic, &mut state.id_relics, &mut state.entities);
+        state
+    }
+
+    // Repurpose a row-0 room as `kind` and enter it
+    fn enter_room(state: &mut GameState, kind: RoomKind) {
+        let x = (0..MAP_WIDTH)
+            .find(|&x| state.id_rooms[0][x].is_some())
+            .expect("row 0 has a room");
+        let id_room = state.id_rooms[0][x].unwrap();
+        state.entities[id_room].room_kind = kind;
+        state.location = Location::Overworld { y: 0, x };
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::RoomEnter,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        process_effect_queue(state);
+    }
+
+    fn gold(state: &GameState) -> u16 {
+        state.entities[state.id_character].character_gold
+    }
+
+    #[test]
+    fn meal_ticket_heals_on_shop_entry() {
+        let mut state = game_with_relic(RelicName::MealTicket);
+        let id_character = state.id_character;
+        state.entities[id_character].vitals.health -= 20;
+        let hp_before = state.entities[id_character].vitals.health;
+        enter_room(&mut state, RoomKind::Shop);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before + 15);
+    }
+
+    #[test]
+    fn maw_bank_pays_until_gold_is_spent_at_a_shop() {
+        let mut state = game_with_relic(RelicName::MawBank);
+        let gold0 = gold(&state);
+        enter_room(&mut state, RoomKind::RestSite);
+        assert_eq!(gold(&state), gold0 + 12);
+        // Gold lost outside a shop does not deactivate it
+        state.screen = Screen::Event;
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Loss,
+                kind: GoldDeltaKind::Fixed(5),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        process_effect_queue(&mut state);
+        enter_room(&mut state, RoomKind::RestSite);
+        assert_eq!(gold(&state), gold0 + 19);
+        // Spending at a shop kills it for the rest of the run
+        state.screen = Screen::Shop;
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Loss,
+                kind: GoldDeltaKind::Fixed(5),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        process_effect_queue(&mut state);
+        enter_room(&mut state, RoomKind::RestSite);
+        assert_eq!(gold(&state), gold0 + 14);
+    }
+
+    #[test]
+    fn juzu_bracelet_turns_monster_rolls_into_events() {
+        let mut state = game_with_relic(RelicName::JuzuBracelet);
+        state.unknown_chance_monster = 1.0;
+        state.unknown_chance_shop = 0.0;
+        state.unknown_chance_treasure = 0.0;
+        enter_room(&mut state, RoomKind::Unknown);
+        assert_eq!(state.screen, Screen::Event);
+    }
+
+    #[test]
+    fn tiny_chest_forces_every_fourth_unknown_to_treasure() {
+        let mut state = game_with_relic(RelicName::TinyChest);
+        let id = state.id_relics[RelicName::TinyChest as usize].unwrap();
+        state.entities[id].relic_counter = 3;
+        enter_room(&mut state, RoomKind::Unknown);
+        assert_eq!(state.screen, Screen::Chest);
+        assert_eq!(state.entities[id].relic_counter, 0);
+    }
+
+    #[test]
+    fn eternal_feather_heals_per_five_deck_cards() {
+        let mut state = game_with_relic(RelicName::EternalFeather);
+        let id_character = state.id_character;
+        state.entities[id_character].vitals.health -= 20;
+        let hp_before = state.entities[id_character].vitals.health;
+        // Starter deck is 12 cards: (12 / 5) * 3 = 6
+        enter_room(&mut state, RoomKind::RestSite);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before + 6);
+    }
+
+    #[test]
+    fn ancient_tea_set_primes_at_rest_and_sips_at_combat_start() {
+        let mut state = game_with_relic(RelicName::AncientTeaSet);
+        let id = state.id_relics[RelicName::AncientTeaSet as usize].unwrap();
+        enter_room(&mut state, RoomKind::RestSite);
+        assert_eq!(state.entities[id].relic_counter, 1);
+        for kind in [
+            EffectKind::MonsterSpawn {
+                name: MonsterName::JawWorm,
+            },
+            EffectKind::CombatStart,
+        ] {
+            state.effect_queue.push_back(Effect {
+                kind,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+        process_effect_queue(&mut state);
+        assert_eq!(state.energy.energy_current, 5);
+        assert_eq!(state.entities[id].relic_counter, 0);
+    }
+
+    #[test]
+    fn regal_pillow_heals_more_on_rest() {
+        let mut state = game_with_relic(RelicName::RegalPillow);
+        let id_character = state.id_character;
+        state.entities[id_character].vitals.health = 20;
+        enter_room(&mut state, RoomKind::RestSite);
+        recompute_legal_actions(&mut state);
+        handle_action(&mut state, Action::Rest).unwrap();
+        process_effect_queue(&mut state);
+        // 30% of 70 max = 21, plus the pillow's 15
+        assert_eq!(state.entities[id_character].vitals.health, 56);
     }
 }

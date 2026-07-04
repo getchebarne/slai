@@ -376,6 +376,14 @@ pub enum RelicName {
     StrikeDummy,
     PaperKrane,
     CentennialPuzzle,
+    MealTicket,
+    MawBank,
+    JuzuBracelet,
+    TinyChest,
+    EternalFeather,
+    AncientTeaSet,
+    RegalPillow,
+    MeatOnTheBone,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

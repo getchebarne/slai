@@ -6,6 +6,7 @@ use crate::game::GameState;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
+use crate::types::RelicName;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
@@ -63,6 +64,18 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         for &eff in state.entities[id_relic].relic_effects_on_combat_start {
             state.effect_queue.push_back(eff);
         }
+    }
+
+    // Ancient Tea Set: primed at the last rest site; sip for 2 energy, then unprime
+    if let Some(id) = state.id_relics[RelicName::AncientTeaSet as usize]
+        && state.entities[id].relic_counter == 1
+    {
+        state.entities[id].relic_counter = 0;
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::EnergyGain { amount: 2 },
+            id_source: None,
+            target: Target::Direct(None),
+        });
     }
 }
 

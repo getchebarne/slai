@@ -20,6 +20,7 @@ use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::DeltaSign;
+use crate::types::RelicName;
 use crate::types::RewardKind;
 use crate::types::Screen;
 use crate::utils::card_is_upgradable;
@@ -359,6 +360,17 @@ fn handle_rest(state: &mut GameState) {
         id_source: None,
         target: Target::Direct(Some(id_character)),
     });
+    // Regal Pillow: resting heals 15 more
+    if state.id_relics[RelicName::RegalPillow as usize].is_some() {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Gain,
+                amount: HealthDeltaAmount::Absolute(15),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
     state.effect_buf.push(Effect {
         kind: EffectKind::RestSiteConsume,
         id_source: None,

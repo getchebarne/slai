@@ -369,6 +369,14 @@ pub enum PyRelicName {
     StrikeDummy,
     PaperKrane,
     CentennialPuzzle,
+    MealTicket,
+    MawBank,
+    JuzuBracelet,
+    TinyChest,
+    EternalFeather,
+    AncientTeaSet,
+    RegalPillow,
+    MeatOnTheBone,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -434,6 +442,14 @@ impl From<RelicName> for PyRelicName {
             RelicName::StrikeDummy => Self::StrikeDummy,
             RelicName::PaperKrane => Self::PaperKrane,
             RelicName::CentennialPuzzle => Self::CentennialPuzzle,
+            RelicName::MealTicket => Self::MealTicket,
+            RelicName::MawBank => Self::MawBank,
+            RelicName::JuzuBracelet => Self::JuzuBracelet,
+            RelicName::TinyChest => Self::TinyChest,
+            RelicName::EternalFeather => Self::EternalFeather,
+            RelicName::AncientTeaSet => Self::AncientTeaSet,
+            RelicName::RegalPillow => Self::RegalPillow,
+            RelicName::MeatOnTheBone => Self::MeatOnTheBone,
         }
     }
 }
@@ -501,6 +517,14 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::StrikeDummy => Self::StrikeDummy,
             PyRelicName::PaperKrane => Self::PaperKrane,
             PyRelicName::CentennialPuzzle => Self::CentennialPuzzle,
+            PyRelicName::MealTicket => Self::MealTicket,
+            PyRelicName::MawBank => Self::MawBank,
+            PyRelicName::JuzuBracelet => Self::JuzuBracelet,
+            PyRelicName::TinyChest => Self::TinyChest,
+            PyRelicName::EternalFeather => Self::EternalFeather,
+            PyRelicName::AncientTeaSet => Self::AncientTeaSet,
+            PyRelicName::RegalPillow => Self::RegalPillow,
+            PyRelicName::MeatOnTheBone => Self::MeatOnTheBone,
         }
     }
 }

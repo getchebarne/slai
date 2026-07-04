@@ -1,6 +1,7 @@
 mod abacus;
 mod akabeko;
 mod anchor;
+mod ancient_tea_set;
 mod art_of_war;
 mod bag_of_marbles;
 mod bag_of_preparation;
@@ -15,6 +16,7 @@ mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
 mod dollys_mirror;
+mod eternal_feather;
 mod ginger;
 mod golden_idol;
 mod gremlin_horn;
@@ -25,11 +27,15 @@ mod horn_cleat;
 mod ice_cream;
 mod incense_burner;
 mod ink_bottle;
+mod juzu_bracelet;
 mod kunai;
 mod lantern;
 mod lees_waffle;
 mod letter_opener;
 mod lizard_tail;
+mod maw_bank;
+mod meal_ticket;
+mod meat_on_the_bone;
 mod mercury_hourglass;
 mod mummified_hand;
 mod ninja_scroll;
@@ -41,6 +47,7 @@ mod ornamental_fan;
 mod paper_krane;
 mod pocketwatch;
 mod red_mask;
+mod regal_pillow;
 mod shuriken;
 mod snecko_skull;
 mod stone_calendar;
@@ -49,6 +56,7 @@ mod strike_dummy;
 mod sundial;
 mod the_specimen;
 mod tingsha;
+mod tiny_chest;
 mod torii;
 mod tough_bandages;
 mod tungsten_rod;
@@ -128,6 +136,14 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::StrikeDummy => strike_dummy::STRIKE_DUMMY,
         RelicName::PaperKrane => paper_krane::PAPER_KRANE,
         RelicName::CentennialPuzzle => centennial_puzzle::CENTENNIAL_PUZZLE,
+        RelicName::MealTicket => meal_ticket::MEAL_TICKET,
+        RelicName::MawBank => maw_bank::MAW_BANK,
+        RelicName::JuzuBracelet => juzu_bracelet::JUZU_BRACELET,
+        RelicName::TinyChest => tiny_chest::TINY_CHEST,
+        RelicName::EternalFeather => eternal_feather::ETERNAL_FEATHER,
+        RelicName::AncientTeaSet => ancient_tea_set::ANCIENT_TEA_SET,
+        RelicName::RegalPillow => regal_pillow::REGAL_PILLOW,
+        RelicName::MeatOnTheBone => meat_on_the_bone::MEAT_ON_THE_BONE,
     }
 }
 
@@ -182,6 +198,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &abacus::ABACUS,
     &akabeko::AKABEKO,
     &anchor::ANCHOR,
+    &ancient_tea_set::ANCIENT_TEA_SET,
     &art_of_war::ART_OF_WAR,
     &bag_of_marbles::BAG_OF_MARBLES,
     &bag_of_preparation::BAG_OF_PREPARATION,
@@ -196,6 +213,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &circlet::CIRCLET,
     &clockwork_souvenir::CLOCKWORK_SOUVENIR,
     &dollys_mirror::DOLLYS_MIRROR,
+    &eternal_feather::ETERNAL_FEATHER,
     &ginger::GINGER,
     &golden_idol::GOLDEN_IDOL,
     &gremlin_horn::GREMLIN_HORN,
@@ -206,11 +224,15 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &ice_cream::ICE_CREAM,
     &incense_burner::INCENSE_BURNER,
     &ink_bottle::INK_BOTTLE,
+    &juzu_bracelet::JUZU_BRACELET,
     &kunai::KUNAI,
     &lantern::LANTERN,
     &lees_waffle::LEES_WAFFLE,
     &letter_opener::LETTER_OPENER,
     &lizard_tail::LIZARD_TAIL,
+    &maw_bank::MAW_BANK,
+    &meal_ticket::MEAL_TICKET,
+    &meat_on_the_bone::MEAT_ON_THE_BONE,
     &mercury_hourglass::MERCURY_HOURGLASS,
     &mummified_hand::MUMMIFIED_HAND,
     &ninja_scroll::NINJA_SCROLL,
@@ -222,6 +244,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &paper_krane::PAPER_KRANE,
     &pocketwatch::POCKETWATCH,
     &red_mask::RED_MASK,
+    &regal_pillow::REGAL_PILLOW,
     &shuriken::SHURIKEN,
     &snecko_skull::SNECKO_SKULL,
     &stone_calendar::STONE_CALENDAR,
@@ -231,6 +254,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &the_specimen::THE_SPECIMEN,
     &thread_and_needle::THREAD_AND_NEEDLE,
     &tingsha::TINGSHA,
+    &tiny_chest::TINY_CHEST,
     &torii::TORII,
     &tough_bandages::TOUGH_BANDAGES,
     &tungsten_rod::TUNGSTEN_ROD,
