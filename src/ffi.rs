@@ -398,6 +398,12 @@ pub enum PyRelicName {
     Whetstone,
     EmptyCage,
     PandorasBox,
+    PenNib,
+    FossilizedHelix,
+    PreservedInsect,
+    UnceasingTop,
+    BlueCandle,
+    MedicalKit,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -492,6 +498,12 @@ impl From<RelicName> for PyRelicName {
             RelicName::Whetstone => Self::Whetstone,
             RelicName::EmptyCage => Self::EmptyCage,
             RelicName::PandorasBox => Self::PandorasBox,
+            RelicName::PenNib => Self::PenNib,
+            RelicName::FossilizedHelix => Self::FossilizedHelix,
+            RelicName::PreservedInsect => Self::PreservedInsect,
+            RelicName::UnceasingTop => Self::UnceasingTop,
+            RelicName::BlueCandle => Self::BlueCandle,
+            RelicName::MedicalKit => Self::MedicalKit,
         }
     }
 }
@@ -588,6 +600,12 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::Whetstone => Self::Whetstone,
             PyRelicName::EmptyCage => Self::EmptyCage,
             PyRelicName::PandorasBox => Self::PandorasBox,
+            PyRelicName::PenNib => Self::PenNib,
+            PyRelicName::FossilizedHelix => Self::FossilizedHelix,
+            PyRelicName::PreservedInsect => Self::PreservedInsect,
+            PyRelicName::UnceasingTop => Self::UnceasingTop,
+            PyRelicName::BlueCandle => Self::BlueCandle,
+            PyRelicName::MedicalKit => Self::MedicalKit,
         }
     }
 }
@@ -1033,6 +1051,8 @@ pub enum PyModifierKind {
     Vulnerable,
     Weak,
     WraithForm,
+    Buffer,
+    PenNib,
 }
 
 #[gen_stub_pymethods]
@@ -1095,6 +1115,8 @@ impl From<ModifierKind> for PyModifierKind {
             ModifierKind::Vulnerable => Self::Vulnerable,
             ModifierKind::Weak => Self::Weak,
             ModifierKind::WraithForm => Self::WraithForm,
+            ModifierKind::Buffer => Self::Buffer,
+            ModifierKind::PenNib => Self::PenNib,
         }
     }
 }
@@ -2873,7 +2895,12 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
         if matches!(state.screen, Screen::Combat) {
             (
-                is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw),
+                is_play_restriction_satisfied(
+                    card.card_play_restriction,
+                    card.card_kind,
+                    &state.id_pile_draw,
+                    &state.id_relics,
+                ),
                 state.this_turn_discards,
                 state.this_combat_damage_instances_taken,
                 state.energy.energy_current,

@@ -85,6 +85,21 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         });
     }
 
+    // Preserved Insect: elites start at 75% HP; direct write skips damage triggers
+    // (a HealthDelta would wake Lagavulin and decrement PlatedArmor)
+    if state.id_relics[RelicName::PreservedInsect as usize].is_some()
+        && matches!(
+            get_active_room_kind(&state.id_rooms, state.location, &state.entities),
+            Some(RoomKind::CombatElite)
+        )
+    {
+        let id_monsters = state.id_monsters;
+        for id in id_monsters.iter().flatten().copied() {
+            let vitals = &mut state.entities[id].vitals;
+            vitals.health = (vitals.health_max as u32 * 3 / 4) as u16;
+        }
+    }
+
     // Du-Vu Doll: +1 Strength per Curse in the master deck
     if state.id_relics[RelicName::DuVuDoll as usize].is_some() {
         let curses = state
@@ -122,11 +137,11 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         });
     }
 
-    // Sling of Courage: elite fights (boss rooms included) open with 2 Strength
+    // Sling of Courage: elite fights open with 2 Strength (eliteTrigger is elite-only)
     if state.id_relics[RelicName::SlingOfCourage as usize].is_some()
         && matches!(
             get_active_room_kind(&state.id_rooms, state.location, &state.entities),
-            Some(RoomKind::CombatElite | RoomKind::CombatBoss)
+            Some(RoomKind::CombatElite)
         )
     {
         state.effect_queue.push_back(Effect {
@@ -245,6 +260,34 @@ mod tests {
         let hp_before = state.entities[id_character].vitals.health;
         start_combat(&mut state, MonsterName::JawWorm);
         assert_eq!(state.entities[id_character].vitals.health, hp_before);
+    }
+
+    #[test]
+    fn preserved_insect_cuts_elite_hp_without_waking_lagavulin() {
+        let mut state = create_game_state(0, 42, false);
+        grant_relic(
+            RelicName::PreservedInsect,
+            &mut state.id_relics,
+            &mut state.entities,
+        );
+        let x = (0..crate::consts::MAP_WIDTH)
+            .find(|&x| state.id_rooms[0][x].is_some())
+            .expect("row 0 has a room");
+        let id_room = state.id_rooms[0][x].unwrap();
+        state.entities[id_room].room_kind = crate::types::RoomKind::CombatElite;
+        state.location = crate::game::Location::Overworld { y: 0, x };
+        start_combat(&mut state, MonsterName::Lagavulin);
+        let id_monster = state.id_monsters.iter().flatten().copied().next().unwrap();
+        let monster = &state.entities[id_monster];
+        assert_eq!(
+            monster.vitals.health,
+            (monster.vitals.health_max as u32 * 3 / 4) as u16
+        );
+        // The direct write skips damage triggers: Lagavulin stays asleep
+        assert!(crate::modifier::modifier_has(
+            &monster.modifiers,
+            crate::modifier::ModifierKind::Asleep
+        ));
     }
 
     #[test]

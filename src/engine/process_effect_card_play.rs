@@ -70,6 +70,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
+    // Pen Nib: the 10th Attack resolves inside its own double-damage bracket
+    let pen_nib_fires = card.card_kind == CardKind::Attack
+        && relic_counter_fire(RelicName::PenNib, 10, &state.id_relics, &mut state.entities);
+
     // Thorns-type damage: id_source None skips Strength/Weak scaling and Envenom
     if card.card_kind == CardKind::Skill
         && relic_counter_fire(RelicName::LetterOpener, 3, &state.id_relics, &mut state.entities)
@@ -205,7 +209,25 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         target: Target::Direct(None),
     });
 
-    if card.card_exhaust {
+    // Blue Candle / Medical Kit: relic-enabled plays exhaust; the candle also costs 1 HP
+    let relic_exhaust = (card.card_kind == CardKind::Curse
+        && state.id_relics[RelicName::BlueCandle as usize].is_some())
+        || (card.card_kind == CardKind::Status
+            && state.id_relics[RelicName::MedicalKit as usize].is_some());
+    if card.card_kind == CardKind::Curse
+        && state.id_relics[RelicName::BlueCandle as usize].is_some()
+    {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Loss,
+                amount: HealthDeltaAmount::Absolute(1),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    if card.card_exhaust || relic_exhaust {
         // Strange Spoon: on-play exhausts have a 50% chance to discard instead
         let spooned = state.id_relics[RelicName::StrangeSpoon as usize].is_some()
             && state.rng.random_range(0..100) < 50;
@@ -281,6 +303,16 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let burst =
         modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
     let reps = if burst { 2 * multiplier } else { multiplier };
+    if pen_nib_fires {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::PenNib,
+                stacks: 1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
             state.effect_buf.push(Effect {
@@ -288,6 +320,15 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                 ..*e
             });
         }
+    }
+    if pen_nib_fires {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::PenNib,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
     }
     if burst {
         state.effect_buf.push(Effect {
@@ -375,6 +416,69 @@ mod tests {
     use crate::types::CardName;
     use crate::types::MonsterName;
     use crate::types::RelicName;
+
+    #[test]
+    fn pen_nib_doubles_the_tenth_attack_including_strength() {
+        let mut state = combat_with_relic(RelicName::PenNib, MonsterName::JawWorm);
+        set_relic_counter(&mut state, RelicName::PenNib, 9);
+        let id_character = state.id_character;
+        modifier_apply(
+            &mut state.entities[id_character].modifiers,
+            ModifierKind::Strength,
+            3,
+        );
+        let id_monster = crate::engine::test_support::first_monster(&state);
+        let hp_max = state.entities[id_monster].vitals.health_max;
+        let id = put_in_hand(&mut state, CardName::Strike);
+        play(&mut state, id);
+        // (6 + 3 Strength) * 2
+        assert_eq!(state.entities[id_monster].vitals.health, hp_max - 18);
+        // The bracket closed: the 11th attack is normal again
+        let id = put_in_hand(&mut state, CardName::Strike);
+        play(&mut state, id);
+        assert_eq!(state.entities[id_monster].vitals.health, hp_max - 27);
+        assert!(!modifier_has(
+            &state.entities[id_character].modifiers,
+            ModifierKind::PenNib
+        ));
+    }
+
+    #[test]
+    fn blue_candle_makes_curses_playable_for_one_hp() {
+        let mut state = combat_with_relic(RelicName::BlueCandle, MonsterName::JawWorm);
+        let id_character = state.id_character;
+        let hp_before = state.entities[id_character].vitals.health;
+        let id = put_in_hand(&mut state, CardName::Regret);
+        let idx = state.id_hand.len() - 1;
+        crate::action::recompute_legal_actions(&mut state);
+        assert!(state.legal_actions.iter().any(
+            |a| matches!(a, crate::action::Action::CardPlay { idx_card, .. } if *idx_card == idx)
+        ));
+        play(&mut state, id);
+        assert_eq!(state.id_pile_exhaust.len(), 1);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before - 1);
+    }
+
+    #[test]
+    fn curses_stay_unplayable_without_blue_candle() {
+        let mut state = combat_with_relic(RelicName::Kunai, MonsterName::JawWorm);
+        put_in_hand(&mut state, CardName::Regret);
+        let idx = state.id_hand.len() - 1;
+        crate::action::recompute_legal_actions(&mut state);
+        assert!(!state.legal_actions.iter().any(
+            |a| matches!(a, crate::action::Action::CardPlay { idx_card, .. } if *idx_card == idx)
+        ));
+    }
+
+    #[test]
+    fn medical_kit_plays_statuses_free_and_exhausts_them() {
+        let mut state = combat_with_relic(RelicName::MedicalKit, MonsterName::JawWorm);
+        let id = put_in_hand(&mut state, CardName::Burn);
+        play(&mut state, id);
+        assert_eq!(state.id_pile_exhaust.len(), 1);
+        // Burn costs 0: the refilled 3 energy is untouched
+        assert_eq!(state.energy.energy_current, 3);
+    }
 
     #[test]
     fn kunai_grants_dexterity_on_third_attack() {

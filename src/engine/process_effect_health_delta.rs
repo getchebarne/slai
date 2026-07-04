@@ -50,6 +50,19 @@ fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
 }
 
 fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
+    // Buffer: absorb one HP-loss instance outright, before anything reacts to it
+    if amount > 0 {
+        let modifiers = &mut state.entities[id_target].modifiers;
+        if modifier_has(modifiers, ModifierKind::Buffer) {
+            if modifier_stacks(modifiers, ModifierKind::Buffer) <= 1 {
+                modifier_remove(modifiers, ModifierKind::Buffer);
+            } else {
+                modifiers.stacks[ModifierKind::Buffer as usize] -= 1;
+            }
+            return;
+        }
+    }
+
     // Tungsten Rod: every HP loss is reduced by 1, before anything reacts to it
     let amount = if id_target == state.id_character
         && amount > 0
@@ -181,6 +194,18 @@ mod tests {
             target: Target::Direct(Some(id_character)),
         });
         process_effect_queue(state);
+    }
+
+    #[test]
+    fn fossilized_helix_buffer_absorbs_one_loss() {
+        let mut state = combat_with_relic(RelicName::FossilizedHelix, MonsterName::JawWorm);
+        let id_character = state.id_character;
+        let hp_before = state.entities[id_character].vitals.health;
+        // Combat start granted Buffer 1; the first loss is absorbed whole
+        lose_hp(&mut state, 5);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before);
+        lose_hp(&mut state, 5);
+        assert_eq!(state.entities[id_character].vitals.health, hp_before - 5);
     }
 
     #[test]

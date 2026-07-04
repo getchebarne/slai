@@ -7,6 +7,7 @@ mod bag_of_marbles;
 mod bag_of_preparation;
 mod bird_faced_urn;
 mod blood_vial;
+mod blue_candle;
 mod boot;
 mod bronze_scales;
 mod calipers;
@@ -22,6 +23,7 @@ mod dollys_mirror;
 mod du_vu_doll;
 mod empty_cage;
 mod eternal_feather;
+mod fossilized_helix;
 mod frozen_egg;
 mod ginger;
 mod golden_idol;
@@ -43,6 +45,7 @@ mod mango;
 mod maw_bank;
 mod meal_ticket;
 mod meat_on_the_bone;
+mod medical_kit;
 mod mercury_hourglass;
 mod molten_egg;
 mod mummified_hand;
@@ -58,8 +61,10 @@ mod pandoras_box;
 mod pantograph;
 mod paper_krane;
 mod pear;
+mod pen_nib;
 mod pocketwatch;
 mod potion_belt;
+mod preserved_insect;
 mod red_mask;
 mod regal_pillow;
 mod shuriken;
@@ -83,6 +88,7 @@ mod toy_ornithopter;
 mod tungsten_rod;
 mod turnip;
 mod twisted_funnel;
+mod unceasing_top;
 mod vajra;
 mod war_paint;
 mod whetstone;
@@ -187,6 +193,12 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::Whetstone => whetstone::WHETSTONE,
         RelicName::EmptyCage => empty_cage::EMPTY_CAGE,
         RelicName::PandorasBox => pandoras_box::PANDORAS_BOX,
+        RelicName::PenNib => pen_nib::PEN_NIB,
+        RelicName::FossilizedHelix => fossilized_helix::FOSSILIZED_HELIX,
+        RelicName::PreservedInsect => preserved_insect::PRESERVED_INSECT,
+        RelicName::UnceasingTop => unceasing_top::UNCEASING_TOP,
+        RelicName::BlueCandle => blue_candle::BLUE_CANDLE,
+        RelicName::MedicalKit => medical_kit::MEDICAL_KIT,
     }
 }
 
@@ -261,6 +273,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &bag_of_preparation::BAG_OF_PREPARATION,
     &bird_faced_urn::BIRD_FACED_URN,
     &blood_vial::BLOOD_VIAL,
+    &blue_candle::BLUE_CANDLE,
     &boot::BOOT,
     &bronze_scales::BRONZE_SCALES,
     &calipers::CALIPERS,
@@ -276,6 +289,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &du_vu_doll::DU_VU_DOLL,
     &empty_cage::EMPTY_CAGE,
     &eternal_feather::ETERNAL_FEATHER,
+    &fossilized_helix::FOSSILIZED_HELIX,
     &frozen_egg::FROZEN_EGG,
     &ginger::GINGER,
     &golden_idol::GOLDEN_IDOL,
@@ -297,6 +311,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &maw_bank::MAW_BANK,
     &meal_ticket::MEAL_TICKET,
     &meat_on_the_bone::MEAT_ON_THE_BONE,
+    &medical_kit::MEDICAL_KIT,
     &mercury_hourglass::MERCURY_HOURGLASS,
     &molten_egg::MOLTEN_EGG,
     &mummified_hand::MUMMIFIED_HAND,
@@ -312,8 +327,10 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &pantograph::PANTOGRAPH,
     &paper_krane::PAPER_KRANE,
     &pear::PEAR,
+    &pen_nib::PEN_NIB,
     &pocketwatch::POCKETWATCH,
     &potion_belt::POTION_BELT,
+    &preserved_insect::PRESERVED_INSECT,
     &red_mask::RED_MASK,
     &regal_pillow::REGAL_PILLOW,
     &shuriken::SHURIKEN,
@@ -336,6 +353,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &tungsten_rod::TUNGSTEN_ROD,
     &turnip::TURNIP,
     &twisted_funnel::TWISTED_FUNNEL,
+    &unceasing_top::UNCEASING_TOP,
     &vajra::VAJRA,
     &war_paint::WAR_PAINT,
     &whetstone::WHETSTONE,

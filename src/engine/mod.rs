@@ -97,7 +97,10 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::modifier_has;
 use crate::types::CardColor;
+use crate::types::RelicName;
 use crate::types::Screen;
 use crate::utils::deck_filter_matches;
 use crate::utils::shuffle;
@@ -615,10 +618,61 @@ fn dispatch_by_kind(
 pub fn process_effect_queue(state: &mut GameState) {
     while !state.game_over {
         let Some(effect) = state.effect_queue.pop_front() else {
+            // Unceasing Top: an empty hand at queue rest draws 1 and keeps going
+            if unceasing_top_fires(state) {
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::CardDraw { count: 1 },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+                continue;
+            }
             return; // Queue drained
         };
         if !process_effect(state, effect) {
             return; // Queue halted
         }
+    }
+}
+
+// Queue rest in Combat means the player is about to act; a drawable card ends the loop
+fn unceasing_top_fires(state: &GameState) -> bool {
+    state.id_relics[RelicName::UnceasingTop as usize].is_some()
+        && matches!(state.screen, Screen::Combat)
+        && state.effect_pending.is_none()
+        && state.id_hand.is_empty()
+        && !(state.id_pile_draw.is_empty() && state.id_pile_discard.is_empty())
+        && !modifier_has(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::NoDraw,
+        )
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::effect::DiscardSource;
+    use crate::effect::Effect;
+    use crate::effect::EffectKind;
+    use crate::effect::Target;
+    use crate::engine::process_effect_queue;
+    use crate::engine::test_support::combat_with_relic;
+    use crate::types::MonsterName;
+    use crate::types::RelicName;
+
+    #[test]
+    fn unceasing_top_draws_when_the_hand_empties() {
+        let mut state = combat_with_relic(RelicName::UnceasingTop, MonsterName::JawWorm);
+        // Discard the whole opening hand; the drain check refills exactly one card
+        for id in state.id_hand.clone() {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::CardDiscard {
+                    source: DiscardSource::Explicit,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id)),
+            });
+        }
+        process_effect_queue(&mut state);
+        assert_eq!(state.id_hand.len(), 1);
     }
 }

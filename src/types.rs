@@ -405,6 +405,12 @@ pub enum RelicName {
     Whetstone,
     EmptyCage,
     PandorasBox,
+    PenNib,
+    FossilizedHelix,
+    PreservedInsect,
+    UnceasingTop,
+    BlueCandle,
+    MedicalKit,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

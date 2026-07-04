@@ -1,5 +1,7 @@
 // Fat Entity + EntityKind tag; build only via `make_entity_*` const fns
 
+use strum::EnumCount;
+
 use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_SIZE_HAND;
@@ -392,11 +394,21 @@ pub fn add_card_to_hand_or_discard(
     id_card
 }
 
-// Evaluate a PlayRestriction against the relevant slice of game state
-pub fn is_play_restriction_satisfied(restriction: PlayRestriction, id_pile_draw: &[usize]) -> bool {
+// Evaluate a PlayRestriction against the relevant slice of game state.
+// Blue Candle / Medical Kit lift the unplayable restriction for their card kind
+pub fn is_play_restriction_satisfied(
+    restriction: PlayRestriction,
+    card_kind: CardKind,
+    id_pile_draw: &[usize],
+    id_relics: &[Option<usize>; RelicName::COUNT],
+) -> bool {
     match restriction {
         PlayRestriction::Always => true,
-        PlayRestriction::Never => false,
+        PlayRestriction::Never => match card_kind {
+            CardKind::Curse => id_relics[RelicName::BlueCandle as usize].is_some(),
+            CardKind::Status => id_relics[RelicName::MedicalKit as usize].is_some(),
+            _ => false,
+        },
         PlayRestriction::DrawPileEmpty => id_pile_draw.is_empty(),
     }
 }

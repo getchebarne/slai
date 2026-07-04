@@ -80,6 +80,9 @@ pub fn process_effect_damage_physical(
     if modifier_has(mods_actor, ModifierKind::DoubleDamage) {
         final_damage = final_damage.saturating_mul(2);
     }
+    if modifier_has(mods_actor, ModifierKind::PenNib) {
+        final_damage = final_damage.saturating_mul(2);
+    }
     if modifier_has(mods_target, ModifierKind::Intangible) && final_damage > 1 {
         final_damage = 1;
     }

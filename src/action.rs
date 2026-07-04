@@ -572,7 +572,12 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
         }
         let card = &state.entities[state.id_hand[i]];
         let restriction_ok =
-            is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw);
+            is_play_restriction_satisfied(
+                card.card_play_restriction,
+                card.card_kind,
+                &state.id_pile_draw,
+                &state.id_relics,
+            );
         let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
         if !restriction_ok || entangled_blocks {
             continue;
