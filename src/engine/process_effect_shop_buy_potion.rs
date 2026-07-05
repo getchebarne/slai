@@ -7,8 +7,14 @@ use crate::potions::grant_potion;
 use crate::types::DeltaSign;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
-pub fn process_effect_shop_buy_potion(state: &mut GameState, idx: usize) {
-    let id_potion = state.shop_id_potions.remove(idx);
+pub fn process_effect_shop_buy_potion(id_target: Option<usize>, state: &mut GameState) {
+    let id_potion = id_target.expect("ShopBuyPotion requires id_target");
+    let idx = state
+        .shop_id_potions
+        .iter()
+        .position(|&id| id == id_potion)
+        .expect("bought potion is a shop entry");
+    state.shop_id_potions.remove(idx);
     let price = state.shop_potion_prices.remove(idx);
     let name = state.entities[id_potion].potion_name;
 

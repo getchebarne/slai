@@ -545,17 +545,17 @@ fn dispatch_by_kind(
             debug_assert!(matches!(state.screen, Screen::Shop));
             process_effect_shop_build::process_effect_shop_build(state)
         }
-        EffectKind::ShopBuyCard { idx } => {
-            process_effect_shop_buy_card::process_effect_shop_buy_card(state, idx)
+        EffectKind::ShopBuyCard => {
+            process_effect_shop_buy_card::process_effect_shop_buy_card(id_target, state)
         }
-        EffectKind::ShopBuyPotion { idx } => {
-            process_effect_shop_buy_potion::process_effect_shop_buy_potion(state, idx)
+        EffectKind::ShopBuyPotion => {
+            process_effect_shop_buy_potion::process_effect_shop_buy_potion(id_target, state)
         }
-        EffectKind::ShopBuyRelic { idx } => {
-            process_effect_shop_buy_relic::process_effect_shop_buy_relic(state, idx)
+        EffectKind::ShopBuyRelic => {
+            process_effect_shop_buy_relic::process_effect_shop_buy_relic(id_target, state)
         }
-        EffectKind::ShopPurge { idx } => {
-            process_effect_shop_purge::process_effect_shop_purge(state, idx)
+        EffectKind::ShopPurge => {
+            process_effect_shop_purge::process_effect_shop_purge(id_target, state)
         }
         EffectKind::PotionUse => {
             process_effect_potion_use::process_effect_potion_use(id_target, state)

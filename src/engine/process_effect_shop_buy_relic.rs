@@ -6,8 +6,14 @@ use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
-pub fn process_effect_shop_buy_relic(state: &mut GameState, idx: usize) {
-    let id_relic = state.shop_id_relics.remove(idx);
+pub fn process_effect_shop_buy_relic(id_target: Option<usize>, state: &mut GameState) {
+    let id_relic = id_target.expect("ShopBuyRelic requires id_target");
+    let idx = state
+        .shop_id_relics
+        .iter()
+        .position(|&id| id == id_relic)
+        .expect("bought relic is a shop entry");
+    state.shop_id_relics.remove(idx);
     let price = state.shop_relic_prices.remove(idx);
     let name = state.entities[id_relic].relic_name;
 

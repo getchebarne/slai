@@ -168,18 +168,10 @@ pub enum EffectKind {
         amount: u8,
     },
     ShopBuild,
-    ShopBuyCard {
-        idx: usize,
-    },
-    ShopBuyPotion {
-        idx: usize,
-    },
-    ShopBuyRelic {
-        idx: usize,
-    },
-    ShopPurge {
-        idx: usize,
-    },
+    ShopBuyCard,
+    ShopBuyPotion,
+    ShopBuyRelic,
+    ShopPurge,
     ShuffleDiscardPileIntoDrawPile,
     SneakyStrikeProc {
         energy: u8,

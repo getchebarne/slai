@@ -305,8 +305,7 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
 }
 
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
-    let id_potion =
-        state.id_potions[idx_potion].expect("enumerated potion slot is occupied");
+    let id_potion = state.id_potions[idx_potion].expect("enumerated potion slot is occupied");
     if state.entities[id_potion].requires_target {
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
@@ -441,34 +440,38 @@ fn handle_turn_end(state: &mut GameState) {
 }
 
 fn handle_shop_buy_card(state: &mut GameState, idx: usize) {
+    let id_card = state.shop_id_cards[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyCard { idx },
+        kind: EffectKind::ShopBuyCard,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_card)),
     });
 }
 
 fn handle_shop_buy_potion(state: &mut GameState, idx: usize) {
+    let id_potion = state.shop_id_potions[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyPotion { idx },
+        kind: EffectKind::ShopBuyPotion,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_potion)),
     });
 }
 
 fn handle_shop_buy_relic(state: &mut GameState, idx: usize) {
+    let id_relic = state.shop_id_relics[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyRelic { idx },
+        kind: EffectKind::ShopBuyRelic,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_relic)),
     });
 }
 
 fn handle_shop_purge(state: &mut GameState, idx: usize) {
+    let id_card = state.id_deck[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopPurge { idx },
+        kind: EffectKind::ShopPurge,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_card)),
     });
 }
 
@@ -482,12 +485,16 @@ fn fill_legal_actions_effect_pending(
         // decremented count, so discard-N becomes N single picks (see resolve_hand_pending)
         EffectKind::CardDiscard { .. } => {
             for i in 0..state.id_hand.len() {
-                state.legal_actions.push(Action::CardDiscard { idxs: vec![i] });
+                state
+                    .legal_actions
+                    .push(Action::CardDiscard { idxs: vec![i] });
             }
         }
         EffectKind::CardRetain => {
             for i in 0..state.id_hand.len() {
-                state.legal_actions.push(Action::CardRetain { idxs: vec![i] });
+                state
+                    .legal_actions
+                    .push(Action::CardRetain { idxs: vec![i] });
             }
         }
         EffectKind::CardSetupPick => {

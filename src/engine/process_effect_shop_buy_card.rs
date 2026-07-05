@@ -6,8 +6,14 @@ use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
-pub fn process_effect_shop_buy_card(state: &mut GameState, idx: usize) {
-    let id_card = state.shop_id_cards.remove(idx);
+pub fn process_effect_shop_buy_card(id_target: Option<usize>, state: &mut GameState) {
+    let id_card = id_target.expect("ShopBuyCard requires id_target");
+    let idx = state
+        .shop_id_cards
+        .iter()
+        .position(|&id| id == id_card)
+        .expect("bought card is a shop entry");
+    state.shop_id_cards.remove(idx);
     let price = state.shop_card_prices.remove(idx);
     let entity = &state.entities[id_card];
     let card_name = entity.card_name;
