@@ -1,6 +1,6 @@
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
@@ -17,7 +17,7 @@ const fn pray(amount: u16) -> [Effect; 2] {
         Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                kind: GoldDeltaKind::Fixed(amount),
+                amount: Amount::Fixed(amount),
             },
             id_source: None,
             target: Target::Direct(None),
@@ -33,7 +33,7 @@ const OPTION_DESECRATE: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Gain,
-            kind: GoldDeltaKind::Fixed(275),
+            amount: Amount::Fixed(275),
         },
         id_source: None,
         target: Target::Direct(None),

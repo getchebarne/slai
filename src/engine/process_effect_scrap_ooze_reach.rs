@@ -1,8 +1,8 @@
 use rand::Rng;
 
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -20,7 +20,7 @@ pub fn process_effect_scrap_ooze_reach(
     state.effect_buf.push(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Loss,
-            amount: HealthDeltaAmount::Absolute(dmg),
+            amount: Amount::Fixed(dmg),
         },
         id_source: None,
         target: Target::Direct(Some(id_character)),

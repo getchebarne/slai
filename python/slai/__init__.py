@@ -189,8 +189,7 @@ Effect = _rs.Effect
 CandidatePool = _rs.CandidatePool
 SelectionKind = _rs.SelectionKind
 CardCostKind = _rs.CardCostKind
-HealthDeltaAmount = _rs.HealthDeltaAmount
-GoldDeltaKind = _rs.GoldDeltaKind
+Amount = _rs.Amount
 
 DeltaSign = _rs.DeltaSign
 
@@ -243,8 +242,7 @@ __all__ = [
     "CardCostKind",
     "Target",
     "Effect",
-    "HealthDeltaAmount",
-    "GoldDeltaKind",
+    "Amount",
     "DeltaSign",
     # Reward
     "Reward",

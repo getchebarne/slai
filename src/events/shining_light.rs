@@ -1,8 +1,8 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -19,7 +19,7 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Relative {
+                amount: Amount::Relative {
                     numerator,
                     denominator,
                 },

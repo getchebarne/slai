@@ -18,14 +18,14 @@ pub fn process_effect_combat_end(state: &mut GameState) {
         RoomKind::CombatBoss => {}
         RoomKind::CombatMonster | RoomKind::CombatElite | RoomKind::Unknown => {
             // A "?" room keeps its Unknown map marker; its combat is always a normal monster
-            let reward_kind = if room_kind == RoomKind::Unknown {
+            let room_kind_reward = if room_kind == RoomKind::Unknown {
                 RoomKind::CombatMonster
             } else {
                 room_kind
             };
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::RewardRollCombat {
-                    room_kind: reward_kind,
+                    room_kind: room_kind_reward,
                 },
                 id_source: None,
                 target: Target::Direct(None),

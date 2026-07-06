@@ -2,9 +2,13 @@ use rand::Rng;
 
 use crate::consts::RELIC_TIER_TH_COMMON;
 use crate::consts::RELIC_TIER_TH_UNCOMMON;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
-use crate::utils::grant_relic;
+use crate::relics::get_relic;
 use crate::utils::pick_relic_by_roll;
+use crate::utils::push_entity;
 
 pub fn process_effect_relic_grant_random(state: &mut GameState) {
     let roll = state.rng.random_range(0..100) as u8;
@@ -15,5 +19,14 @@ pub fn process_effect_relic_grant_random(state: &mut GameState) {
         &state.id_relics,
         &mut state.rng,
     );
-    grant_relic(name, &mut state.id_relics, &mut state.entities);
+    // The roll excludes owned relics but can fall back to an owned Circlet
+    if state.id_relics[name as usize].is_some() {
+        return;
+    }
+    let id = push_entity(&mut state.entities, get_relic(name));
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::RelicAdopt,
+        id_source: None,
+        target: Target::Direct(Some(id)),
+    });
 }

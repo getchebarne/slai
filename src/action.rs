@@ -1,10 +1,10 @@
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::effect::get_input_count;
@@ -350,7 +350,7 @@ fn handle_rest(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
-            amount: HealthDeltaAmount::Relative {
+            amount: Amount::Relative {
                 numerator: 3,
                 denominator: 10,
             },

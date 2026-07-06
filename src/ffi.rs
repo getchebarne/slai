@@ -7,13 +7,12 @@ use pyo3_stub_gen::derive::gen_stub_pymethods;
 use crate::action::Action;
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -177,41 +176,26 @@ impl From<DeltaSign> for PyDeltaSign {
 }
 
 #[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "HealthDeltaAmount", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, name = "Amount", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyHealthDeltaAmount {
-    Absolute { amount: u16 },
+pub enum PyAmount {
+    Fixed { amount: u16 },
     Relative { numerator: u8, denominator: u8 },
+    Range { min: u16, max: u16 },
 }
 
-impl From<HealthDeltaAmount> for PyHealthDeltaAmount {
-    fn from(amount: HealthDeltaAmount) -> Self {
+impl From<Amount> for PyAmount {
+    fn from(amount: Amount) -> Self {
         match amount {
-            HealthDeltaAmount::Absolute(amount) => Self::Absolute { amount },
-            HealthDeltaAmount::Relative {
+            Amount::Fixed(amount) => Self::Fixed { amount },
+            Amount::Relative {
                 numerator,
                 denominator,
             } => Self::Relative {
                 numerator,
                 denominator,
             },
-        }
-    }
-}
-
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "GoldDeltaKind", module = "slai.slai")]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyGoldDeltaKind {
-    Fixed { amount: u16 },
-    Range { min: u16, max: u16 },
-}
-
-impl From<GoldDeltaKind> for PyGoldDeltaKind {
-    fn from(kind: GoldDeltaKind) -> Self {
-        match kind {
-            GoldDeltaKind::Fixed(amount) => Self::Fixed { amount },
-            GoldDeltaKind::Range { min, max } => Self::Range { min, max },
+            Amount::Range { min, max } => Self::Range { min, max },
         }
     }
 }
@@ -1444,12 +1428,12 @@ pub enum PyEffect {
     },
     MaxHealthDelta {
         sign: PyDeltaSign,
-        amount: PyHealthDeltaAmount,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     HealthDelta {
         sign: PyDeltaSign,
-        amount: PyHealthDeltaAmount,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     PotionAddRandom {
@@ -1463,7 +1447,7 @@ pub enum PyEffect {
     },
     GoldDelta {
         sign: PyDeltaSign,
-        kind: PyGoldDeltaKind,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     RelicGrantRandom {
@@ -1578,9 +1562,9 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::ShuffleDiscardPileIntoDrawPile { target }
         }
         EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
-        EffectKind::GoldDelta { sign, kind } => PyEffect::GoldDelta {
+        EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta {
             sign: sign.into(),
-            kind: kind.into(),
+            amount: amount.into(),
             target,
         },
         EffectKind::HealthDelta { sign, amount } => PyEffect::HealthDelta {
@@ -1986,11 +1970,7 @@ pub struct PyRoom {
 #[pymethods]
 impl PyRoom {
     #[new]
-    fn new(
-        room_kind: PyRoomKind,
-        edges: Vec<usize>,
-        chest_opened: bool,
-    ) -> Self {
+    fn new(room_kind: PyRoomKind, edges: Vec<usize>, chest_opened: bool) -> Self {
         Self {
             room_kind,
             edges,
@@ -2037,6 +2017,7 @@ impl PyMap {
 pub struct PyGameState {
     pub screen: PyScreen,
     pub game_over: bool,
+    pub ascension: u8,
     pub character: PyCharacter,
     pub monsters: Vec<PyMonster>,
     pub deck: Vec<PyCard>,
@@ -2433,6 +2414,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         map: snapshot_map(state),
         screen: state.screen.into(),
         game_over: state.game_over,
+        ascension: state.ascension,
         reward,
         event,
         pending,
@@ -2850,21 +2832,39 @@ mod card_combat_tests {
         let defend = get_card(CardName::Defend, false);
 
         // No modifiers -> base
-        assert_eq!(dmg(&snapshot_adjusted_effects(&strike, &modifiers_new())), 6);
-        assert_eq!(block(&snapshot_adjusted_effects(&defend, &modifiers_new())), 5);
+        assert_eq!(
+            dmg(&snapshot_adjusted_effects(&strike, &modifiers_new())),
+            6
+        );
+        assert_eq!(
+            block(&snapshot_adjusted_effects(&defend, &modifiers_new())),
+            5
+        );
 
         // Damage: Strength/Vigor add, Weak *0.75 (floor), DoubleDamage *2
         let s = |m| dmg(&snapshot_adjusted_effects(&strike, &m));
         assert_eq!(s(mods(&[(ModifierKind::Strength, 3)])), 9);
         assert_eq!(s(mods(&[(ModifierKind::Vigor, 5)])), 11);
         assert_eq!(s(mods(&[(ModifierKind::Weak, 1)])), 4);
-        assert_eq!(s(mods(&[(ModifierKind::Strength, 3), (ModifierKind::Weak, 1)])), 6); // floor((6+3)*.75)
+        assert_eq!(
+            s(mods(&[
+                (ModifierKind::Strength, 3),
+                (ModifierKind::Weak, 1)
+            ])),
+            6
+        ); // floor((6+3)*.75)
         assert_eq!(s(mods(&[(ModifierKind::DoubleDamage, 1)])), 12);
 
         // Block: Dexterity adds, Frail *0.75 (floor)
         let b = |m| block(&snapshot_adjusted_effects(&defend, &m));
         assert_eq!(b(mods(&[(ModifierKind::Dexterity, 2)])), 7);
         assert_eq!(b(mods(&[(ModifierKind::Frail, 1)])), 3);
-        assert_eq!(b(mods(&[(ModifierKind::Dexterity, 2), (ModifierKind::Frail, 1)])), 5); // floor((5+2)*.75)
+        assert_eq!(
+            b(mods(&[
+                (ModifierKind::Dexterity, 2),
+                (ModifierKind::Frail, 1)
+            ])),
+            5
+        ); // floor((5+2)*.75)
     }
 }

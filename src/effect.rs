@@ -32,6 +32,7 @@ pub enum EffectKind {
         count: u16,
         upgraded: bool,
     },
+    CardAdopt,
     CardDiscard {
         source: DiscardSource,
     },
@@ -97,14 +98,14 @@ pub enum EffectKind {
     },
     GoldDelta {
         sign: DeltaSign,
-        kind: GoldDeltaKind,
+        amount: Amount,
     },
     GoldSteal {
         amount: u8,
     },
     HealthDelta {
         sign: DeltaSign,
-        amount: HealthDeltaAmount,
+        amount: Amount,
     },
     HeelHookProc,
     HexaghostBurnIncrease {
@@ -113,7 +114,7 @@ pub enum EffectKind {
     HexaghostDivider,
     MaxHealthDelta {
         sign: DeltaSign,
-        amount: HealthDeltaAmount,
+        amount: Amount,
     },
     ModifierGain {
         kind: ModifierKind,
@@ -139,8 +140,10 @@ pub enum EffectKind {
     PotionAddRandom {
         limited: bool,
     },
+    PotionAdopt,
     PotionDiscard,
     PotionUse,
+    RelicAdopt,
     RelicGrantRandom,
     RelicGrantSpecific {
         name: RelicName,
@@ -194,14 +197,9 @@ pub enum DiscardSource {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum HealthDeltaAmount {
-    Absolute(u16),
-    Relative { numerator: u8, denominator: u8 },
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum GoldDeltaKind {
+pub enum Amount {
     Fixed(u16),
+    Relative { numerator: u8, denominator: u8 },
     Range { min: u16, max: u16 },
 }
 

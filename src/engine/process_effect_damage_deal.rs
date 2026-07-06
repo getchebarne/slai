@@ -1,8 +1,8 @@
 use std::collections::VecDeque;
 
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
@@ -35,7 +35,7 @@ pub fn process_effect_damage_deal(
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Absolute(damage_over_block),
+                amount: Amount::Fixed(damage_over_block),
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),

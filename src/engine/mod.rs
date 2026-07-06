@@ -4,6 +4,7 @@ pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_add_to_hand;
+pub mod process_effect_card_adopt;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_roll;
@@ -55,8 +56,10 @@ pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
 pub mod process_effect_potion_add_random;
+pub mod process_effect_potion_adopt;
 pub mod process_effect_potion_discard;
 pub mod process_effect_potion_use;
+pub mod process_effect_relic_adopt;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
 pub mod process_effect_rest_site_consume;
@@ -478,8 +481,8 @@ fn dispatch_by_kind(
         EffectKind::HexaghostDivider => {
             process_effect_hexaghost_divider::process_effect_hexaghost_divider(id_source, state)
         }
-        EffectKind::GoldDelta { sign, kind } => {
-            process_effect_gold_delta::process_effect_gold_delta(state, sign, kind)
+        EffectKind::GoldDelta { sign, amount } => {
+            process_effect_gold_delta::process_effect_gold_delta(state, sign, amount)
         }
         EffectKind::RoomSelect => {
             process_effect_room_select::process_effect_room_select(id_target, state)
@@ -499,6 +502,9 @@ fn dispatch_by_kind(
         } => process_effect_card_add_to_deck::process_effect_card_add_to_deck(
             state, card_name, upgraded,
         ),
+        EffectKind::CardAdopt => {
+            process_effect_card_adopt::process_effect_card_adopt(id_target, state)
+        }
         EffectKind::MaxHealthDelta { sign, amount } => {
             process_effect_max_health_delta::process_effect_max_health_delta(
                 id_target, state, sign, amount,
@@ -529,6 +535,9 @@ fn dispatch_by_kind(
         EffectKind::PotionAddRandom { limited } => {
             process_effect_potion_add_random::process_effect_potion_add_random(state, limited)
         }
+        EffectKind::PotionAdopt => {
+            process_effect_potion_adopt::process_effect_potion_adopt(id_target, state)
+        }
         EffectKind::CardDiscoverRoll { kind, count } => {
             process_effect_card_discover_roll::process_effect_card_discover_roll(
                 state,
@@ -548,6 +557,9 @@ fn dispatch_by_kind(
             name,
             fallback_circlet,
         ),
+        EffectKind::RelicAdopt => {
+            process_effect_relic_adopt::process_effect_relic_adopt(id_target, state)
+        }
         EffectKind::EventAdvanceState { delta } => {
             process_effect_event_advance_state::process_effect_event_advance_state(
                 id_source, state, delta,

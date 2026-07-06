@@ -4,8 +4,8 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
-use crate::game::clear_shop_state;
 use crate::types::Screen;
+use crate::utils::clear_shop_state;
 
 pub fn process_effect_room_exit(state: &mut GameState) {
     match state.screen {

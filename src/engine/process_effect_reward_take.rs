@@ -21,8 +21,9 @@ pub fn process_effect_reward_take(
         }
         RewardKind::Potion => {
             if let Some(id) = state.reward_id_potion.take() {
-                let slot = find_free_slot(&state.id_potions, state.potion_slots_max)
-                    .expect("RewardTake { Potion }: belt full (action handler should have rejected)");
+                let slot = find_free_slot(&state.id_potions, state.potion_slots_max).expect(
+                    "RewardTake { Potion }: belt full (action handler should have rejected)",
+                );
                 state.id_potions[slot] = Some(id);
             }
         }

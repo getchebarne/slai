@@ -1,8 +1,8 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::EntityKind;
@@ -177,7 +177,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Loss,
-                        amount: HealthDeltaAmount::Absolute(hand_len),
+                        amount: Amount::Fixed(hand_len),
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_character)),

@@ -1,6 +1,6 @@
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::card_effective_cost;
@@ -190,7 +190,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Loss,
-                    amount: HealthDeltaAmount::Absolute(stacks as u16),
+                    amount: Amount::Fixed(stacks as u16),
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
@@ -222,7 +222,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Loss,
-                    amount: HealthDeltaAmount::Absolute(1),
+                    amount: Amount::Fixed(1),
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_character)),
