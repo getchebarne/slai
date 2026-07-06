@@ -32,6 +32,7 @@ pub enum EffectKind {
         count: u16,
         upgraded: bool,
     },
+    CardAdopt,
     CardDiscard {
         source: DiscardSource,
     },
@@ -97,14 +98,14 @@ pub enum EffectKind {
     },
     GoldDelta {
         sign: DeltaSign,
-        kind: GoldDeltaKind,
+        amount: Amount,
     },
     GoldSteal {
         amount: u8,
     },
     HealthDelta {
         sign: DeltaSign,
-        amount: HealthDeltaAmount,
+        amount: Amount,
     },
     HeelHookProc,
     HexaghostBurnIncrease {
@@ -113,7 +114,7 @@ pub enum EffectKind {
     HexaghostDivider,
     MaxHealthDelta {
         sign: DeltaSign,
-        amount: HealthDeltaAmount,
+        amount: Amount,
     },
     ModifierGain {
         kind: ModifierKind,
@@ -139,8 +140,10 @@ pub enum EffectKind {
     PotionAddRandom {
         limited: bool,
     },
+    PotionAdopt,
     PotionDiscard,
     PotionUse,
+    RelicAdopt,
     RelicGrantRandom,
     RelicGrantSpecific {
         name: RelicName,
@@ -167,6 +170,11 @@ pub enum EffectKind {
     SetCostOverride {
         amount: u8,
     },
+    ShopBuild,
+    ShopBuyCard,
+    ShopBuyPotion,
+    ShopBuyRelic,
+    ShopPurge,
     ShuffleDiscardPileIntoDrawPile,
     SneakyStrikeProc {
         energy: u8,
@@ -189,14 +197,9 @@ pub enum DiscardSource {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum HealthDeltaAmount {
+pub enum Amount {
     Absolute(u16),
     Relative { numerator: u8, denominator: u8 },
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum GoldDeltaKind {
-    Fixed(u16),
     Range { min: u16, max: u16 },
 }
 
@@ -261,14 +264,3 @@ pub const ZERO_EFFECT: Effect = Effect {
     id_source: None,
     target: Target::Direct(None),
 };
-
-// Input count if the Effect's target is Resolve with SelectionKind::Input
-pub fn get_input_count(effect: &Effect) -> Option<u16> {
-    match effect.target {
-        Target::Resolve {
-            selection_kind: SelectionKind::Input { count },
-            ..
-        } => Some(count),
-        _ => None,
-    }
-}

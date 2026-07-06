@@ -24,6 +24,9 @@ use crate::consts::MAX_SIZE_HAND;
 use crate::consts::POTION_SLOTS_DEFAULT;
 use crate::consts::POTION_SLOTS_DEFAULT_A11;
 use crate::consts::POTION_SLOTS_MAX;
+use crate::consts::SHOP_SLOTS_CARD_TOTAL;
+use crate::consts::SHOP_SLOTS_POTION;
+use crate::consts::SHOP_SLOTS_RELIC;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
@@ -114,6 +117,7 @@ pub struct GameState {
     pub energy: Energy,
     pub this_turn_discards: u8,
     pub this_turn_attacks: u8,
+    pub this_turn_cards_played: u8,
     pub this_combat_damage_instances_taken: u8,
     pub this_combat_escaped: bool,
     pub id_card_last_drawn: Option<usize>,
@@ -128,6 +132,15 @@ pub struct GameState {
 
     // Event working memory; meaningful when active = Event
     pub id_event: Option<usize>,
+
+    // Shop working memory; meaningful when screen = Shop
+    pub shop_id_cards: Vec<usize>,
+    pub shop_id_relics: Vec<usize>,
+    pub shop_id_potions: Vec<usize>,
+    pub shop_card_prices: Vec<u16>,
+    pub shop_relic_prices: Vec<u16>,
+    pub shop_potion_prices: Vec<u16>,
+    pub shop_purge_cost: u16,
 
     // Cached legal-action set; recomputed at every settle point, source of truth for action validity
     pub legal_actions: Vec<Action>,
@@ -161,7 +174,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     };
 
     // Initialize starter deck
-    let deck_starter = get_silent_starter_deck();
+    let deck_starter = get_silent_starter_deck(ascension);
     let mut id_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
     for card in deck_starter {
         let id_card = push_entity(&mut entities, card);
@@ -223,6 +236,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         },
         this_turn_discards: 0,
         this_turn_attacks: 0,
+        this_turn_cards_played: 0,
         this_combat_damage_instances_taken: 0,
         this_combat_escaped: false,
         id_card_last_drawn: None,
@@ -233,6 +247,13 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         reward_id_potion: None,
         reward_gold: None,
         id_event: None,
+        shop_id_cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
+        shop_id_relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
+        shop_id_potions: Vec::with_capacity(SHOP_SLOTS_POTION),
+        shop_card_prices: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
+        shop_relic_prices: Vec::with_capacity(SHOP_SLOTS_RELIC),
+        shop_potion_prices: Vec::with_capacity(SHOP_SLOTS_POTION),
+        shop_purge_cost: 0,
         legal_actions: Vec::new(),
         fast_mode,
     };

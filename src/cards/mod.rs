@@ -5,6 +5,7 @@ mod adrenaline;
 mod after_image;
 mod alchemize;
 mod all_out_attack;
+mod ascenders_bane;
 mod backflip;
 mod backstab;
 mod bandage_up;
@@ -24,12 +25,12 @@ mod cloak_and_dagger;
 mod concentrate;
 mod corpse_explosion;
 mod crippling_poison;
-mod curses;
 mod dagger_spray;
 mod dagger_throw;
 mod dash;
 mod dazed;
 mod deadly_poison;
+mod decay;
 mod deep_breath;
 mod defend;
 mod deflect;
@@ -37,6 +38,7 @@ mod die_die_die;
 mod distraction;
 mod dodge_and_roll;
 mod doppelganger;
+mod doubt;
 mod endless_agony;
 mod envenom;
 mod escape_plan;
@@ -53,6 +55,7 @@ mod good_instincts;
 mod grand_finale;
 mod heel_hook;
 mod infinite_blades;
+mod injury;
 mod leg_sweep;
 mod malaise;
 mod master_of_strategy;
@@ -60,8 +63,11 @@ mod masterful_stab;
 mod mind_blast;
 mod neutralize;
 mod nightmare;
+mod normality;
 mod noxious_fumes;
 mod outmaneuver;
+mod pain;
+mod parasite;
 mod phantasmal_killer;
 mod piercing_wail;
 mod poisoned_stab;
@@ -69,8 +75,10 @@ mod predator;
 mod prepared;
 mod quick_slash;
 mod reflex;
+mod regret;
 mod riddle_with_holes;
 mod setup;
+mod shame;
 mod shiv;
 mod skewer;
 mod slice;
@@ -87,6 +95,7 @@ mod tools_of_the_trade;
 mod unload;
 mod well_laid_plans;
 mod wraith_form;
+mod writhe;
 
 use crate::entity::Entity;
 use crate::types::CardColor;
@@ -272,16 +281,16 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::WellLaidPlans, true) => well_laid_plans::WELL_LAID_PLANS_PLUS,
         (CardName::WraithForm, false) => wraith_form::WRAITH_FORM,
         (CardName::WraithForm, true) => wraith_form::WRAITH_FORM_PLUS,
-        (CardName::AscendersBane, _) => curses::ASCENDERS_BANE,
-        (CardName::Regret, _) => curses::REGRET,
-        (CardName::Pain, _) => curses::PAIN,
-        (CardName::Doubt, _) => curses::DOUBT,
-        (CardName::Decay, _) => curses::DECAY,
-        (CardName::Injury, _) => curses::INJURY,
-        (CardName::Shame, _) => curses::SHAME,
-        (CardName::Writhe, _) => curses::WRITHE,
-        (CardName::Parasite, _) => curses::PARASITE,
-        (CardName::Normality, _) => curses::NORMALITY,
+        (CardName::AscendersBane, _) => ascenders_bane::ASCENDERS_BANE,
+        (CardName::Regret, _) => regret::REGRET,
+        (CardName::Pain, _) => pain::PAIN,
+        (CardName::Doubt, _) => doubt::DOUBT,
+        (CardName::Decay, _) => decay::DECAY,
+        (CardName::Injury, _) => injury::INJURY,
+        (CardName::Shame, _) => shame::SHAME,
+        (CardName::Writhe, _) => writhe::WRITHE,
+        (CardName::Parasite, _) => parasite::PARASITE,
+        (CardName::Normality, _) => normality::NORMALITY,
     }
 }
 
@@ -374,16 +383,16 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &unload::UNLOAD,
     &well_laid_plans::WELL_LAID_PLANS,
     &wraith_form::WRAITH_FORM,
-    &curses::ASCENDERS_BANE,
-    &curses::REGRET,
-    &curses::PAIN,
-    &curses::DOUBT,
-    &curses::DECAY,
-    &curses::INJURY,
-    &curses::SHAME,
-    &curses::WRITHE,
-    &curses::PARASITE,
-    &curses::NORMALITY,
+    &ascenders_bane::ASCENDERS_BANE,
+    &regret::REGRET,
+    &pain::PAIN,
+    &doubt::DOUBT,
+    &decay::DECAY,
+    &injury::INJURY,
+    &shame::SHAME,
+    &writhe::WRITHE,
+    &parasite::PARASITE,
+    &normality::NORMALITY,
 ];
 // Assert all cards are included without duplicates
 const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);
@@ -502,16 +511,21 @@ pub const POOL_RARE_COLORLESS_CARD: &[CardName] =
 pub const POOL_CURSE_CARD: &[CardName] =
     &build_pool::<NUM_CURSE>(CardRarity::Curse, CardColor::Curse);
 
-// Pick `count` distinct cards of the given `kind` from the rewardable pool
-pub fn get_random_cards_of_kind_and_color(
-    kind: CardKind,
+// Pick `count` distinct cards from the full set, filtered by color and (when given) kind/rarity
+pub fn get_random_cards(
     color: CardColor,
+    kind: Option<CardKind>,
+    rarity: Option<CardRarity>,
+    exclude: &[CardName],
     count: usize,
     rng: &mut impl rand::Rng,
 ) -> Vec<Entity> {
     let mut pool: Vec<Entity> = ALL_CARDS
         .iter()
-        .filter(|c| c.card_kind == kind && c.card_color == color)
+        .filter(|c| c.card_color == color)
+        .filter(|c| kind.is_none_or(|k| c.card_kind == k))
+        .filter(|c| rarity.is_none_or(|r| c.card_rarity == r))
+        .filter(|c| !exclude.contains(&c.card_name))
         .map(|c| **c)
         .collect();
 

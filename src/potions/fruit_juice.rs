@@ -1,7 +1,7 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -20,7 +20,7 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
         Effect {
             kind: EffectKind::MaxHealthDelta {
                 sign: DeltaSign::Gain,
-                amount: HealthDeltaAmount::Absolute(5),
+                amount: Amount::Absolute(5),
             },
             id_source: None,
             target: Target::Resolve {
@@ -31,7 +31,7 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,
-                amount: HealthDeltaAmount::Absolute(5),
+                amount: Amount::Absolute(5),
             },
             id_source: None,
             target: Target::Resolve {

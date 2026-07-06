@@ -1,15 +1,18 @@
 use pyo3::prelude::*;
+use pyo3_stub_gen::derive::gen_stub_pyclass;
+use pyo3_stub_gen::derive::gen_stub_pyclass_complex_enum;
+use pyo3_stub_gen::derive::gen_stub_pyclass_enum;
+use pyo3_stub_gen::derive::gen_stub_pymethods;
 
 use crate::action::Action;
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -25,6 +28,7 @@ use crate::map::edge_indices;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::modifier_has;
+use crate::modifier::modifier_is_buff;
 use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::modifier_stacks;
 use crate::modifier::stacks_max_for;
@@ -34,7 +38,6 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
-use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::MonsterEncounter;
@@ -46,10 +49,10 @@ use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Screen;
 use crate::utils::scale_attack_damage;
+use crate::utils::scale_block_gain;
 
-// Enum mirrors
-
-#[pyclass(eq, eq_int, hash, frozen, name = "CardKind")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "CardKind", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardKind {
     Attack,
@@ -71,7 +74,8 @@ impl From<CardKind> for PyCardKind {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "CardColor")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "CardColor", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardColor {
     Green,
@@ -89,7 +93,8 @@ impl From<CardColor> for PyCardColor {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "CardRarity")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "CardRarity", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardRarity {
     Basic,
@@ -113,7 +118,8 @@ impl From<CardRarity> for PyCardRarity {
     }
 }
 
-#[pyclass(eq, hash, frozen, name = "CardCostKind")]
+#[gen_stub_pyclass_complex_enum]
+#[pyclass(eq, hash, frozen, name = "CardCostKind", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCardCostKind {
     Fixed {},
@@ -133,7 +139,8 @@ impl From<CardCostKind> for PyCardCostKind {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "PlayRestriction")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "PlayRestriction", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyPlayRestriction {
     Always,
@@ -151,7 +158,8 @@ impl From<PlayRestriction> for PyPlayRestriction {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "DeltaSign")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "DeltaSign", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyDeltaSign {
     Gain,
@@ -167,45 +175,33 @@ impl From<DeltaSign> for PyDeltaSign {
     }
 }
 
-#[pyclass(eq, hash, frozen, name = "HealthDeltaAmount")]
+#[gen_stub_pyclass_complex_enum]
+#[pyclass(eq, hash, frozen, name = "Amount", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyHealthDeltaAmount {
+pub enum PyAmount {
     Absolute { amount: u16 },
     Relative { numerator: u8, denominator: u8 },
+    Range { min: u16, max: u16 },
 }
 
-impl From<HealthDeltaAmount> for PyHealthDeltaAmount {
-    fn from(amount: HealthDeltaAmount) -> Self {
+impl From<Amount> for PyAmount {
+    fn from(amount: Amount) -> Self {
         match amount {
-            HealthDeltaAmount::Absolute(amount) => Self::Absolute { amount },
-            HealthDeltaAmount::Relative {
+            Amount::Absolute(amount) => Self::Absolute { amount },
+            Amount::Relative {
                 numerator,
                 denominator,
             } => Self::Relative {
                 numerator,
                 denominator,
             },
+            Amount::Range { min, max } => Self::Range { min, max },
         }
     }
 }
 
-#[pyclass(eq, hash, frozen, name = "GoldDeltaKind")]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyGoldDeltaKind {
-    Fixed { amount: u16 },
-    Range { min: u16, max: u16 },
-}
-
-impl From<GoldDeltaKind> for PyGoldDeltaKind {
-    fn from(kind: GoldDeltaKind) -> Self {
-        match kind {
-            GoldDeltaKind::Fixed(amount) => Self::Fixed { amount },
-            GoldDeltaKind::Range { min, max } => Self::Range { min, max },
-        }
-    }
-}
-
-#[pyclass(eq, eq_int, hash, frozen, name = "RoomKind")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "RoomKind", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRoomKind {
     CombatMonster,
@@ -233,25 +229,8 @@ impl From<RoomKind> for PyRoomKind {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "ChestKind")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyChestKind {
-    Small,
-    Medium,
-    Large,
-}
-
-impl From<ChestKind> for PyChestKind {
-    fn from(kind: ChestKind) -> Self {
-        match kind {
-            ChestKind::Small => Self::Small,
-            ChestKind::Medium => Self::Medium,
-            ChestKind::Large => Self::Large,
-        }
-    }
-}
-
-#[pyclass(eq, eq_int, hash, frozen, name = "PotionName")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "PotionName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyPotionName {
     EnergyPotion,
@@ -291,7 +270,8 @@ impl From<PotionName> for PyPotionName {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "PotionRarity")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "PotionRarity", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyPotionRarity {
     Common,
@@ -309,7 +289,8 @@ impl From<PotionRarity> for PyPotionRarity {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "RelicName")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "RelicName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRelicName {
     SnakeRing,
@@ -376,7 +357,8 @@ impl From<PyRelicName> for RelicName {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "CardName")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "CardName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardName {
     AThousandCuts,
@@ -585,7 +567,8 @@ impl From<CardName> for PyCardName {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "MonsterName")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "MonsterName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyMonsterName {
     Cultist,
@@ -647,7 +630,61 @@ impl From<MonsterName> for PyMonsterName {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "EventName")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "MonsterEncounter", module = "slai.slai")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyMonsterEncounter {
+    Cultist,
+    JawWorm,
+    TwoLouse,
+    SmallSlimes,
+    BlueSlaver,
+    RedSlaver,
+    Looter,
+    TwoFungiBeasts,
+    ThreeLouse,
+    LargeSlime,
+    LotsOfSlimes,
+    GremlinGang,
+    ExordiumThugs,
+    ExordiumWildlife,
+    GremlinNob,
+    Lagavulin,
+    ThreeSentries,
+    TheGuardian,
+    Hexaghost,
+    SlimeBoss,
+}
+
+impl From<MonsterEncounter> for PyMonsterEncounter {
+    fn from(e: MonsterEncounter) -> Self {
+        match e {
+            MonsterEncounter::Cultist => Self::Cultist,
+            MonsterEncounter::JawWorm => Self::JawWorm,
+            MonsterEncounter::TwoLouse => Self::TwoLouse,
+            MonsterEncounter::SmallSlimes => Self::SmallSlimes,
+            MonsterEncounter::BlueSlaver => Self::BlueSlaver,
+            MonsterEncounter::RedSlaver => Self::RedSlaver,
+            MonsterEncounter::Looter => Self::Looter,
+            MonsterEncounter::TwoFungiBeasts => Self::TwoFungiBeasts,
+            MonsterEncounter::ThreeLouse => Self::ThreeLouse,
+            MonsterEncounter::LargeSlime => Self::LargeSlime,
+            MonsterEncounter::LotsOfSlimes => Self::LotsOfSlimes,
+            MonsterEncounter::GremlinGang => Self::GremlinGang,
+            MonsterEncounter::ExordiumThugs => Self::ExordiumThugs,
+            MonsterEncounter::ExordiumWildlife => Self::ExordiumWildlife,
+            MonsterEncounter::GremlinNob => Self::GremlinNob,
+            MonsterEncounter::Lagavulin => Self::Lagavulin,
+            MonsterEncounter::ThreeSentries => Self::ThreeSentries,
+            MonsterEncounter::TheGuardian => Self::TheGuardian,
+            MonsterEncounter::Hexaghost => Self::Hexaghost,
+            MonsterEncounter::SlimeBoss => Self::SlimeBoss,
+        }
+    }
+}
+
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "EventName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyEventName {
     BigFish,
@@ -687,7 +724,8 @@ impl From<EventName> for PyEventName {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "RelicTier")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "RelicTier", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRelicTier {
     Starter,
@@ -713,7 +751,8 @@ impl From<RelicTier> for PyRelicTier {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "ModifierKind")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "ModifierKind", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyModifierKind {
     Accuracy,
@@ -759,6 +798,20 @@ pub enum PyModifierKind {
     Vulnerable,
     Weak,
     WraithForm,
+}
+
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyModifierKind {
+    #[getter]
+    fn is_buff(&self) -> bool {
+        modifier_is_buff(modifier_kind_from_u8(*self as u8))
+    }
+
+    // hash by discriminant (other unit enums get this via impl_discriminant_hash)
+    fn __hash__(&self) -> isize {
+        *self as isize
+    }
 }
 
 impl From<ModifierKind> for PyModifierKind {
@@ -811,7 +864,8 @@ impl From<ModifierKind> for PyModifierKind {
     }
 }
 
-#[pyclass(eq, hash, frozen, name = "CandidatePool")]
+#[gen_stub_pyclass_complex_enum]
+#[pyclass(eq, hash, frozen, name = "CandidatePool", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
     Hand {},
@@ -843,7 +897,14 @@ impl From<CandidatePool> for PyCandidatePool {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "CandidatePoolMonstersFilter")]
+#[gen_stub_pyclass_enum]
+#[pyclass(
+    eq,
+    eq_int,
+    frozen,
+    name = "CandidatePoolMonstersFilter",
+    module = "slai.slai"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCandidatePoolMonstersFilter {
     All,
@@ -861,7 +922,8 @@ impl From<CandidatePoolMonstersFilter> for PyCandidatePoolMonstersFilter {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "Screen")]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "Screen", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyScreen {
     Combat,
@@ -887,7 +949,14 @@ impl From<Screen> for PyScreen {
     }
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "CandidatePoolDeckFilter")]
+#[gen_stub_pyclass_enum]
+#[pyclass(
+    eq,
+    eq_int,
+    frozen,
+    name = "CandidatePoolDeckFilter",
+    module = "slai.slai"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCandidatePoolDeckFilter {
     Purgeable,
@@ -907,7 +976,8 @@ impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
     }
 }
 
-#[pyclass(eq, hash, frozen, name = "SelectionKind")]
+#[gen_stub_pyclass_complex_enum]
+#[pyclass(eq, hash, frozen, name = "SelectionKind", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PySelectionKind {
     All {},
@@ -927,16 +997,30 @@ impl From<SelectionKind> for PySelectionKind {
     }
 }
 
-#[pyclass(eq, hash, frozen, get_all, name = "Target")]
+#[gen_stub_pyclass]
+#[pyclass(eq, hash, frozen, get_all, name = "Target", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyTarget {
     pub candidate_pool: PyCandidatePool,
     pub selection_kind: PySelectionKind,
 }
 
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyTarget {
+    #[new]
+    fn new(candidate_pool: PyCandidatePool, selection_kind: PySelectionKind) -> Self {
+        Self {
+            candidate_pool,
+            selection_kind,
+        }
+    }
+}
+
 // `PyActionType` is the discriminant for the flat `PyAction` struct below
-#[pyclass(eq, eq_int, hash, frozen, name = "ActionType")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "ActionType", module = "slai.slai")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::IntoStaticStr)]
 pub enum PyActionType {
     CardDiscard,
     CardDiscover,
@@ -959,7 +1043,26 @@ pub enum PyActionType {
     RewardTakeRelic,
     RoomExit,
     RoomSelect,
+    ShopBuyCard,
+    ShopBuyPotion,
+    ShopBuyRelic,
+    ShopPurge,
     TurnEnd,
+}
+
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyActionType {
+    // variant name for the action-spec registry (raw pyo3 enums have no .name)
+    #[getter]
+    fn name(&self) -> &'static str {
+        self.into()
+    }
+
+    // hash by discriminant so eq and hash agree (see impl_discriminant_hash below)
+    fn __hash__(&self) -> isize {
+        *self as isize
+    }
 }
 
 impl PyActionType {
@@ -986,13 +1089,18 @@ impl PyActionType {
             18 => Ok(Self::RewardTakeRelic),
             19 => Ok(Self::RoomExit),
             20 => Ok(Self::RoomSelect),
-            21 => Ok(Self::TurnEnd),
+            21 => Ok(Self::ShopBuyCard),
+            22 => Ok(Self::ShopBuyPotion),
+            23 => Ok(Self::ShopBuyRelic),
+            24 => Ok(Self::ShopPurge),
+            25 => Ok(Self::TurnEnd),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
 }
 
-#[pyclass(eq, hash, frozen, name = "Action")]
+#[gen_stub_pyclass]
+#[pyclass(eq, hash, frozen, name = "Action", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyAction {
     #[pyo3(get)]
@@ -1003,18 +1111,17 @@ pub struct PyAction {
     pub kind: Option<u8>,
 }
 
+#[gen_stub_pymethods]
 #[pymethods]
 impl PyAction {
     #[new]
     #[pyo3(signature = (action_type, idxs, kind=None))]
-    fn new(action_type: u8, idxs: Vec<usize>, kind: Option<u8>) -> PyResult<Self> {
-        let action_type = PyActionType::from_discriminant(action_type)
-            .map_err(pyo3::exceptions::PyValueError::new_err)?;
-        Ok(Self {
+    fn new(action_type: PyActionType, idxs: Vec<usize>, kind: Option<u8>) -> Self {
+        Self {
             action_type,
             idxs,
             kind,
-        })
+        }
     }
 
     fn __repr__(&self) -> String {
@@ -1026,14 +1133,6 @@ impl PyAction {
             None => format!("PyAction({:?}, {:?})", self.action_type, self.idxs),
         }
     }
-}
-
-// Multi-index picks are order-insensitive; normalize to the sorted-distinct form the enumerator emits
-fn canonical_idxs(idxs: &[usize]) -> Vec<usize> {
-    let mut out = idxs.to_vec();
-    out.sort_unstable();
-    out.dedup();
-    out
 }
 
 pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
@@ -1056,12 +1155,14 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::TurnEnd),
             n => Err(format!("TurnEnd expects [], got {n} idxs")),
         },
-        PyActionType::CardDiscard => Ok(Action::CardDiscard {
-            idxs: canonical_idxs(idxs),
-        }),
-        PyActionType::CardRetain => Ok(Action::CardRetain {
-            idxs: canonical_idxs(idxs),
-        }),
+        PyActionType::CardDiscard => match idxs.len() {
+            1 => Ok(Action::CardDiscard { idx: idxs[0] }),
+            n => Err(format!("CardDiscard expects [idx_hand], got {n} idxs")),
+        },
+        PyActionType::CardRetain => match idxs.len() {
+            1 => Ok(Action::CardRetain { idx: idxs[0] }),
+            n => Err(format!("CardRetain expects [idx_hand], got {n} idxs")),
+        },
         PyActionType::CardSetup => match idxs.len() {
             1 => Ok(Action::CardSetup { idx: idxs[0] }),
             n => Err(format!("CardSetup expects [idx_hand], got {n} idxs")),
@@ -1073,6 +1174,22 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
         PyActionType::RoomSelect => match idxs.len() {
             1 => Ok(Action::RoomSelect { idx: idxs[0] }),
             n => Err(format!("RoomSelect expects [idx], got {n} idxs")),
+        },
+        PyActionType::ShopBuyCard => match idxs.len() {
+            1 => Ok(Action::ShopBuyCard { idx: idxs[0] }),
+            n => Err(format!("ShopBuyCard expects [idx], got {n} idxs")),
+        },
+        PyActionType::ShopBuyPotion => match idxs.len() {
+            1 => Ok(Action::ShopBuyPotion { idx: idxs[0] }),
+            n => Err(format!("ShopBuyPotion expects [idx], got {n} idxs")),
+        },
+        PyActionType::ShopBuyRelic => match idxs.len() {
+            1 => Ok(Action::ShopBuyRelic { idx: idxs[0] }),
+            n => Err(format!("ShopBuyRelic expects [idx], got {n} idxs")),
+        },
+        PyActionType::ShopPurge => match idxs.len() {
+            1 => Ok(Action::ShopPurge { idx: idxs[0] }),
+            n => Err(format!("ShopPurge expects [idx], got {n} idxs")),
         },
         PyActionType::Rest => match idxs.len() {
             0 => Ok(Action::Rest),
@@ -1157,13 +1274,17 @@ pub fn from_internal_action(action: Action) -> PyAction {
             idx_monster: Some(m),
         } => (PyActionType::CardPlay, vec![idx_card, m]),
         Action::TurnEnd => (PyActionType::TurnEnd, vec![]),
-        Action::CardDiscard { idxs } => (PyActionType::CardDiscard, idxs),
-        Action::CardRetain { idxs } => (PyActionType::CardRetain, idxs),
+        Action::CardDiscard { idx } => (PyActionType::CardDiscard, vec![idx]),
+        Action::CardRetain { idx } => (PyActionType::CardRetain, vec![idx]),
         Action::CardSetup { idx } => (PyActionType::CardSetup, vec![idx]),
         Action::CardNightmare { idx } => (PyActionType::CardNightmare, vec![idx]),
         Action::RoomSelect { idx } => (PyActionType::RoomSelect, vec![idx]),
         Action::Rest => (PyActionType::Rest, vec![]),
         Action::RoomExit => (PyActionType::RoomExit, vec![]),
+        Action::ShopBuyCard { idx } => (PyActionType::ShopBuyCard, vec![idx]),
+        Action::ShopBuyPotion { idx } => (PyActionType::ShopBuyPotion, vec![idx]),
+        Action::ShopBuyRelic { idx } => (PyActionType::ShopBuyRelic, vec![idx]),
+        Action::ShopPurge { idx } => (PyActionType::ShopPurge, vec![idx]),
         Action::ChestOpen => (PyActionType::ChestOpen, vec![]),
         Action::PotionUse {
             idx_potion,
@@ -1193,7 +1314,8 @@ pub fn from_internal_action(action: Action) -> PyAction {
 }
 
 // Mirrors only EffectKind variants reachable from static card/monster defs; snapshot_effect panics on runtime-only variants
-#[pyclass(eq, hash, frozen, name = "Effect")]
+#[gen_stub_pyclass_complex_enum]
+#[pyclass(eq, hash, frozen, name = "Effect", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyEffect {
     DamagePhysical {
@@ -1300,12 +1422,12 @@ pub enum PyEffect {
     },
     MaxHealthDelta {
         sign: PyDeltaSign,
-        amount: PyHealthDeltaAmount,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     HealthDelta {
         sign: PyDeltaSign,
-        amount: PyHealthDeltaAmount,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     PotionAddRandom {
@@ -1319,7 +1441,7 @@ pub enum PyEffect {
     },
     GoldDelta {
         sign: PyDeltaSign,
-        kind: PyGoldDeltaKind,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     RelicGrantRandom {
@@ -1434,9 +1556,9 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::ShuffleDiscardPileIntoDrawPile { target }
         }
         EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
-        EffectKind::GoldDelta { sign, kind } => PyEffect::GoldDelta {
+        EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta {
             sign: sign.into(),
-            kind: kind.into(),
+            amount: amount.into(),
             target,
         },
         EffectKind::HealthDelta { sign, amount } => PyEffect::HealthDelta {
@@ -1497,7 +1619,8 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
 }
 
 // Exposed structs
-#[pyclass(frozen, get_all, name = "Card")]
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Card", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyCard {
     pub name: PyCardName,
@@ -1526,11 +1649,19 @@ pub struct PyCard {
     // `playable` does NOT factor in energy cost; clients must also check `cost <= energy.energy_current`
     pub playable: bool,
 
-    // Effects
+    // Effects. Snapshot copy: DamagePhysical / BlockGain amounts carry the current player-modifier
+    // adjustment (Str/Vigor/Weak/DoubleDamage, Dex/Frail), target-agnostic, so clients read finished
+    // combat values. This makes identity_hash (which hashes effects) vary with combat modifiers.
     pub effects: Vec<PyEffect>,
+
+    // Fingerprint over every snapshot field above except display_name (derived from
+    // name+upgraded): one u64 getter replaces a per-field FFI walk for clients that
+    // key caches/dedup on card identity. Deterministic across processes.
+    pub identity_hash: u64,
 }
 
-#[pyclass(frozen, get_all, name = "Modifier")]
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Modifier", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyModifier {
     pub kind: PyModifierKind,
@@ -1538,16 +1669,53 @@ pub struct PyModifier {
     pub stacks_max: i16,
 }
 
-#[pyclass(frozen, get_all, name = "Relic")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyModifier {
+    #[new]
+    fn new(kind: PyModifierKind, stacks: i16, stacks_max: i16) -> Self {
+        Self {
+            kind,
+            stacks,
+            stacks_max,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Relic", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyRelic {
     pub name: PyRelicName,
     pub tier: PyRelicTier,
     pub counter: i16,
     pub used_up: bool,
+    pub effects_on_combat_start: Vec<PyEffect>,
 }
 
-#[pyclass(frozen, get_all, name = "Potion")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyRelic {
+    #[new]
+    fn new(
+        name: PyRelicName,
+        tier: PyRelicTier,
+        counter: i16,
+        used_up: bool,
+        effects_on_combat_start: Vec<PyEffect>,
+    ) -> Self {
+        Self {
+            name,
+            tier,
+            counter,
+            used_up,
+            effects_on_combat_start,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Potion", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyPotion {
     pub name: PyPotionName,
@@ -1557,7 +1725,29 @@ pub struct PyPotion {
     pub effects: Vec<PyEffect>,
 }
 
-#[pyclass(frozen, get_all, name = "EventOption")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyPotion {
+    #[new]
+    fn new(
+        name: PyPotionName,
+        rarity: PyPotionRarity,
+        requires_target: bool,
+        combat_only: bool,
+        effects: Vec<PyEffect>,
+    ) -> Self {
+        Self {
+            name,
+            rarity,
+            requires_target,
+            combat_only,
+            effects,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "EventOption", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyEventOption {
     pub label: String,
@@ -1565,7 +1755,21 @@ pub struct PyEventOption {
     pub effects: Vec<PyEffect>,
 }
 
-#[pyclass(frozen, get_all, name = "Event")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyEventOption {
+    #[new]
+    fn new(label: String, gated_out: bool, effects: Vec<PyEffect>) -> Self {
+        Self {
+            label,
+            gated_out,
+            effects,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Event", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyEvent {
     pub name: PyEventName,
@@ -1574,7 +1778,27 @@ pub struct PyEvent {
     pub state: u8,
 }
 
-#[pyclass(frozen, get_all, name = "Character")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyEvent {
+    #[new]
+    fn new(
+        name: PyEventName,
+        display_name: String,
+        options: Vec<PyEventOption>,
+        state: u8,
+    ) -> Self {
+        Self {
+            name,
+            display_name,
+            options,
+            state,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Character", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyCharacter {
     pub name: String,
@@ -1585,7 +1809,31 @@ pub struct PyCharacter {
     pub gold: u16,
 }
 
-#[pyclass(eq, eq_int, hash, frozen, name = "IntentKind")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyCharacter {
+    #[new]
+    fn new(
+        name: String,
+        health: u16,
+        health_max: u16,
+        block: u16,
+        modifiers: Vec<PyModifier>,
+        gold: u16,
+    ) -> Self {
+        Self {
+            name,
+            health,
+            health_max,
+            block,
+            modifiers,
+            gold,
+        }
+    }
+}
+
+#[gen_stub_pyclass_enum]
+#[pyclass(eq, eq_int, frozen, name = "IntentKind", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyIntentKind {
     Attack,
@@ -1623,7 +1871,8 @@ impl From<Intent> for PyIntentKind {
     }
 }
 
-#[pyclass(frozen, get_all, name = "Intent")]
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Intent", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyIntent {
     pub kind: PyIntentKind,
@@ -1631,7 +1880,21 @@ pub struct PyIntent {
     pub instances: Option<u8>,
 }
 
-#[pyclass(frozen, get_all, name = "Monster")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyIntent {
+    #[new]
+    fn new(kind: PyIntentKind, damage: Option<u16>, instances: Option<u8>) -> Self {
+        Self {
+            kind,
+            damage,
+            instances,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Monster", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyMonster {
     pub name: PyMonsterName,
@@ -1643,36 +1906,112 @@ pub struct PyMonster {
     pub intent: PyIntent,
 }
 
-#[pyclass(frozen, get_all, name = "Energy")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyMonster {
+    #[new]
+    fn new(
+        name: PyMonsterName,
+        display_name: String,
+        health: u16,
+        health_max: u16,
+        block: u16,
+        modifiers: Vec<PyModifier>,
+        intent: PyIntent,
+    ) -> Self {
+        Self {
+            name,
+            display_name,
+            health,
+            health_max,
+            block,
+            modifiers,
+            intent,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Energy", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyEnergy {
     pub energy_current: u8,
     pub energy_max: u8,
 }
 
-#[pyclass(frozen, get_all, name = "Room")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyEnergy {
+    #[new]
+    fn new(energy_current: u8, energy_max: u8) -> Self {
+        Self {
+            energy_current,
+            energy_max,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Room", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyRoom {
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
-    pub chest_kind: Option<PyChestKind>,
     pub chest_opened: bool,
 }
 
-#[pyclass(frozen, get_all, name = "Map")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyRoom {
+    #[new]
+    fn new(room_kind: PyRoomKind, edges: Vec<usize>, chest_opened: bool) -> Self {
+        Self {
+            room_kind,
+            edges,
+            chest_opened,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Map", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyMap {
     pub rooms: Vec<Vec<Option<PyRoom>>>,
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
-    pub boss_name: String,
+    pub boss: PyMonsterEncounter,
+    pub identity_hash: u64,
 }
 
-#[pyclass(frozen, get_all, name = "GameState")]
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyMap {
+    #[new]
+    fn new(
+        rooms: Vec<Vec<Option<PyRoom>>>,
+        y_current: Option<usize>,
+        x_current: Option<usize>,
+        boss: PyMonsterEncounter,
+        identity_hash: u64,
+    ) -> Self {
+        Self {
+            rooms,
+            y_current,
+            x_current,
+            boss,
+            identity_hash,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "GameState", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyGameState {
     pub screen: PyScreen,
     pub game_over: bool,
+    pub ascension: u8,
     pub character: PyCharacter,
     pub monsters: Vec<PyMonster>,
     pub deck: Vec<PyCard>,
@@ -1690,15 +2029,74 @@ pub struct PyGameState {
     pub event: Option<PyEvent>,
     pub pending: Option<PyEffect>,
     pub discover: Vec<PyCard>,
+    pub shop: Option<PyShop>,
 }
 
-#[pyclass(frozen, get_all, name = "Reward")]
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Reward", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyReward {
     pub cards: Vec<PyCard>,
     pub relic: Option<PyRelic>,
     pub potion: Option<PyPotion>,
     pub gold: Option<u16>,
+}
+
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyReward {
+    #[new]
+    fn new(
+        cards: Vec<PyCard>,
+        relic: Option<PyRelic>,
+        potion: Option<PyPotion>,
+        gold: Option<u16>,
+    ) -> Self {
+        Self {
+            cards,
+            relic,
+            potion,
+            gold,
+        }
+    }
+}
+
+#[gen_stub_pyclass]
+#[pyclass(frozen, get_all, name = "Shop", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyShop {
+    pub cards: Vec<PyCard>,
+    pub card_prices: Vec<u16>,
+    pub relics: Vec<PyRelic>,
+    pub relic_prices: Vec<u16>,
+    pub potions: Vec<PyPotion>,
+    pub potion_prices: Vec<u16>,
+    pub purge_cost: u16,
+}
+
+#[gen_stub_pymethods]
+#[pymethods]
+impl PyShop {
+    #[new]
+    fn new(
+        cards: Vec<PyCard>,
+        card_prices: Vec<u16>,
+        relics: Vec<PyRelic>,
+        relic_prices: Vec<u16>,
+        potions: Vec<PyPotion>,
+        potion_prices: Vec<u16>,
+        purge_cost: u16,
+    ) -> Self {
+        Self {
+            cards,
+            card_prices,
+            relics,
+            relic_prices,
+            potions,
+            potion_prices,
+            purge_cost,
+        }
+    }
 }
 
 // Display-name lookups
@@ -1962,6 +2360,30 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         )),
         _ => None,
     };
+    let shop = match state.screen {
+        Screen::Shop => Some(PyShop {
+            cards: state
+                .shop_id_cards
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+            card_prices: state.shop_card_prices.clone(),
+            relics: state
+                .shop_id_relics
+                .iter()
+                .map(|&id| snapshot_relic(&state.entities[id]))
+                .collect(),
+            relic_prices: state.shop_relic_prices.clone(),
+            potions: state
+                .shop_id_potions
+                .iter()
+                .map(|&id| snapshot_potion(&state.entities[id]))
+                .collect(),
+            potion_prices: state.shop_potion_prices.clone(),
+            purge_cost: state.shop_purge_cost,
+        }),
+        _ => None,
+    };
     PyGameState {
         character: snapshot_character(state),
         monsters: snapshot_monsters(state),
@@ -1986,10 +2408,12 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         map: snapshot_map(state),
         screen: state.screen.into(),
         game_over: state.game_over,
+        ascension: state.ascension,
         reward,
         event,
         pending,
         discover,
+        shop,
     }
 }
 
@@ -2018,6 +2442,11 @@ fn snapshot_relic(entity: &Entity) -> PyRelic {
         tier: entity.relic_tier.into(),
         counter: entity.relic_counter,
         used_up: entity.relic_used_up,
+        effects_on_combat_start: entity
+            .relic_effects_on_combat_start
+            .iter()
+            .map(snapshot_effect)
+            .collect(),
     }
 }
 
@@ -2140,6 +2569,50 @@ fn snapshot_modifiers(mods: &Modifiers) -> Vec<PyModifier> {
     out
 }
 
+// Snapshot a card's effects with the current player modifiers folded into the DamagePhysical /
+// BlockGain amounts (target-agnostic — Vulnerable/Intangible depend on the L3 target chosen later),
+// via the same scaling utils as the live pipeline. Other effect kinds pass through unchanged.
+fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffect> {
+    let vigor = if modifier_has(char_mods, ModifierKind::Vigor) {
+        modifier_stacks(char_mods, ModifierKind::Vigor).max(0) as u16
+    } else {
+        0
+    };
+    let str_stacks = if modifier_has(char_mods, ModifierKind::Strength) {
+        modifier_stacks(char_mods, ModifierKind::Strength)
+    } else {
+        0
+    };
+    let weak = modifier_has(char_mods, ModifierKind::Weak);
+    let double = modifier_has(char_mods, ModifierKind::DoubleDamage);
+    let dex = if modifier_has(char_mods, ModifierKind::Dexterity) {
+        modifier_stacks(char_mods, ModifierKind::Dexterity)
+    } else {
+        0
+    };
+    let frail = modifier_has(char_mods, ModifierKind::Frail);
+
+    card.card_effects[..card.card_effects_len as usize]
+        .iter()
+        .map(snapshot_effect)
+        .map(|effect| match effect {
+            PyEffect::DamagePhysical { amount, target } => {
+                let mut d =
+                    scale_attack_damage(amount.saturating_add(vigor), str_stacks, weak, false);
+                if double {
+                    d = d.saturating_mul(2);
+                }
+                PyEffect::DamagePhysical { amount: d, target }
+            }
+            PyEffect::BlockGain { amount, target } => PyEffect::BlockGain {
+                amount: scale_block_gain(amount, dex, frail),
+                target,
+            },
+            other => other,
+        })
+        .collect()
+}
+
 fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let card = &state.entities[id_card];
     let entangled = modifier_has(
@@ -2165,7 +2638,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     } else {
         base.to_string()
     };
-    PyCard {
+    let mut py_card = PyCard {
         name: card.card_name.into(),
         display_name,
         cost: card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
@@ -2184,11 +2657,54 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         requires_target: card.requires_target,
         retain: card.card_retain,
         playable: restriction_ok && !entangled_blocks,
-        effects: card.card_effects[..card.card_effects_len as usize]
-            .iter()
-            .map(snapshot_effect)
-            .collect(),
+        effects: snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers),
+        identity_hash: 0,
+    };
+    py_card.identity_hash = card_identity_hash(&py_card);
+    py_card
+}
+
+// Fingerprint over the snapshot fields clients key identity on. DefaultHasher::new()
+// uses fixed keys, so the value is deterministic across processes.
+fn card_identity_hash(card: &PyCard) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::Hash;
+    use std::hash::Hasher;
+    let mut h = DefaultHasher::new();
+    card.name.hash(&mut h);
+    card.kind.hash(&mut h);
+    card.color.hash(&mut h);
+    card.rarity.hash(&mut h);
+    card.cost_kind.hash(&mut h);
+    card.cost.hash(&mut h);
+    card.cost_base.hash(&mut h);
+    card.cost_zero_once.hash(&mut h);
+    card.cost_override.hash(&mut h);
+    card.upgraded.hash(&mut h);
+    card.exhaust.hash(&mut h);
+    card.innate.hash(&mut h);
+    card.ethereal.hash(&mut h);
+    card.retain.hash(&mut h);
+    card.requires_target.hash(&mut h);
+    card.playable.hash(&mut h);
+    card.effects.hash(&mut h);
+    h.finish()
+}
+
+// Position-independent hash of the room topology (kinds + edges) — a stable map identity for the
+// RL encoder's static-grid cache. Excludes the live position so it's constant across a map's life.
+fn map_identity_hash(state: &GameState) -> u64 {
+    use std::hash::{Hash, Hasher};
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    for (y, row) in state.id_rooms.iter().enumerate() {
+        for (x, cell) in row.iter().enumerate() {
+            if let Some(id_room) = *cell {
+                let room = &state.entities[id_room];
+                (y, x, room.room_kind, room.room_edges).hash(&mut hasher);
+            }
+        }
     }
+    hasher.finish()
 }
 
 fn snapshot_map(state: &GameState) -> PyMap {
@@ -2203,7 +2719,6 @@ fn snapshot_map(state: &GameState) -> PyMap {
                         PyRoom {
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.room_edges).collect(),
-                            chest_kind: room.room_chest_kind.map(Into::into),
                             chest_opened: room.room_chest_opened,
                         }
                     })
@@ -2221,6 +2736,45 @@ fn snapshot_map(state: &GameState) -> PyMap {
         rooms,
         y_current,
         x_current,
-        boss_name: state.encounter_boss.as_str().to_string(),
+        boss: state.encounter_boss.into(),
+        identity_hash: map_identity_hash(state),
     }
 }
+
+// pyo3's derived `hash` runs the discriminant through a hasher, so hash(enum) != hash(int)
+// even though `eq_int` makes enum == int. That violates Python's eq/hash contract and makes
+// these enums silently un-findable in int/IntEnum-keyed dicts. Hash by the raw discriminant
+// so eq and hash agree.
+macro_rules! impl_discriminant_hash {
+    ($($ty:ty),+ $(,)?) => {
+        $(
+            #[pymethods]
+            impl $ty {
+                fn __hash__(&self) -> isize {
+                    *self as isize
+                }
+            }
+        )+
+    };
+}
+
+impl_discriminant_hash!(
+    PyCardKind,
+    PyCardColor,
+    PyCardRarity,
+    PyPlayRestriction,
+    PyDeltaSign,
+    PyRoomKind,
+    PyPotionName,
+    PyPotionRarity,
+    PyRelicName,
+    PyCardName,
+    PyMonsterName,
+    PyMonsterEncounter,
+    PyEventName,
+    PyRelicTier,
+    PyCandidatePoolMonstersFilter,
+    PyScreen,
+    PyCandidatePoolDeckFilter,
+    PyIntentKind,
+);

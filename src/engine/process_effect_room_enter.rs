@@ -82,6 +82,11 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
         RoomKind::Shop => {
             state.screen = Screen::Shop;
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::ShopBuild,
+                id_source: None,
+                target: Target::Direct(None),
+            });
         }
         RoomKind::Unknown => {
             unreachable!("Unknown is resolved into a concrete kind before dispatch")

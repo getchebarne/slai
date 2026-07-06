@@ -5,6 +5,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::types::Screen;
+use crate::utils::clear_shop_state;
 
 pub fn process_effect_room_exit(state: &mut GameState) {
     match state.screen {
@@ -26,7 +27,8 @@ pub fn process_effect_room_exit(state: &mut GameState) {
             state.reward_gold = None;
         }
         Screen::Event => state.id_event = None,
-        _ => {} // RestSite (non-final), Shop, Chest: no cleanup
+        Screen::Shop => clear_shop_state(state),
+        _ => {} // RestSite (non-final), Chest: no cleanup
     }
     state.screen = Screen::Map;
 }

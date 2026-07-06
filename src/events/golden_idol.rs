@@ -1,7 +1,7 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -53,7 +53,7 @@ const fn smash(numerator: u8, denominator: u8) -> [Effect; 2] {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Relative {
+                amount: Amount::Relative {
                     numerator,
                     denominator,
                 },
@@ -76,7 +76,7 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
         Effect {
             kind: EffectKind::MaxHealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Relative {
+                amount: Amount::Relative {
                     numerator,
                     denominator,
                 },

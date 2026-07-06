@@ -1,6 +1,6 @@
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::card_effective_cost;
@@ -9,6 +9,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardKind;
+use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -16,6 +17,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardPlay requires id_target");
     let id_character = state.id_character;
+    state.this_turn_cards_played = state.this_turn_cards_played.saturating_add(1);
     let this_turn_discards = state.this_turn_discards;
     let this_combat_damage_instances_taken = state.this_combat_damage_instances_taken;
     let energy_current = state.energy.energy_current;
@@ -188,7 +190,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Loss,
-                    amount: HealthDeltaAmount::Absolute(stacks as u16),
+                    amount: Amount::Absolute(stacks as u16),
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
@@ -211,6 +213,20 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                     target: Target::Direct(Some(id_monster)),
                 });
             }
+        }
+    }
+
+    // Pain: each copy in hand bleeds 1 HP on any other card play; HealthDelta ignores block
+    for i in 0..state.id_hand.len() {
+        if state.entities[state.id_hand[i]].card_name == CardName::Pain {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::HealthDelta {
+                    sign: DeltaSign::Loss,
+                    amount: Amount::Absolute(1),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_character)),
+            });
         }
     }
 

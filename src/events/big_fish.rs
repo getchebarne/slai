@@ -1,7 +1,7 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -18,7 +18,7 @@ const OPTION_BANANA: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
-            amount: HealthDeltaAmount::Relative {
+            amount: Amount::Relative {
                 numerator: 1,
                 denominator: 3,
             },
@@ -37,7 +37,7 @@ const OPTION_DONUT: &[Effect] = &[
     Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: DeltaSign::Gain,
-            amount: HealthDeltaAmount::Absolute(5),
+            amount: Amount::Absolute(5),
         },
         id_source: None,
         target: Target::Resolve {

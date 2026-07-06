@@ -9,6 +9,7 @@ use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
+use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
@@ -37,6 +38,16 @@ pub fn push_entity(entities: &mut Vec<Entity>, e: Entity) -> usize {
     let id = entities.len();
     entities.push(e);
     id
+}
+
+pub fn clear_shop_state(state: &mut GameState) {
+    state.shop_id_cards.clear();
+    state.shop_id_relics.clear();
+    state.shop_id_potions.clear();
+    state.shop_card_prices.clear();
+    state.shop_relic_prices.clear();
+    state.shop_potion_prices.clear();
+    state.shop_purge_cost = 0;
 }
 
 pub fn card_is_upgradable(entity: &Entity) -> bool {
@@ -103,6 +114,15 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
+// Shared by the live block pipeline and the FFI card preview
+pub fn scale_block_gain(base: u16, dex_stacks: i16, frail: bool) -> u16 {
+    let mut value = base as f32 + dex_stacks as f32;
+    if frail {
+        value *= FACTOR_FRAIL;
+    }
+    value.max(0.0) as u16
+}
+
 pub fn roll_card_reward_pool_green(roll: i32) -> (&'static [CardName], CardRarity) {
     if roll < CARD_REWARD_ROLL_CHANCE_RARE {
         (POOL_RARE_GREEN_CARD, CardRarity::Rare)
@@ -111,19 +131,6 @@ pub fn roll_card_reward_pool_green(roll: i32) -> (&'static [CardName], CardRarit
     } else {
         (POOL_COMMON_GREEN_CARD, CardRarity::Common)
     }
-}
-
-// No-op if already owned
-pub fn grant_relic(
-    name: RelicName,
-    id_relics: &mut [Option<usize>; RelicName::COUNT],
-    entities: &mut Vec<Entity>,
-) {
-    if id_relics[name as usize].is_some() {
-        return;
-    }
-    let id = push_entity(entities, get_relic(name));
-    id_relics[name as usize] = Some(id);
 }
 
 // Tier-by-roll with cascade to higher tiers when the rolled pool is exhausted

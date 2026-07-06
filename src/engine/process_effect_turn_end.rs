@@ -1,3 +1,4 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
@@ -10,6 +11,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
+use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
@@ -79,6 +81,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
 pub fn process_effect_turn_end_character(state: &mut GameState) {
     state.this_turn_discards = 0;
     state.this_turn_attacks = 0;
+    state.this_turn_cards_played = 0;
 
     if let Some(id) = state.id_relics[RelicName::Kunai as usize] {
         state.entities[id].relic_counter = 0;
@@ -150,15 +153,37 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
+    let hand_len = state.id_hand.len() as u16; // EOT hand size, before discard
     for &id_card in &state.id_hand {
         let card = &state.entities[id_card];
-        if card.card_name == CardName::Burn {
-            let dmg: u16 = if card.card_upgraded { 4 } else { 2 };
-            state.effect_buf.push(Effect {
-                kind: EffectKind::DamageDeal { amount: dmg },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
+        match card.card_name {
+            CardName::Burn => {
+                let dmg_burn: u16 = if card.card_upgraded { 4 } else { 2 };
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal { amount: dmg_burn },
+                    id_source: None,
+                    target: Target::Direct(Some(id_character)),
+                });
+            }
+            CardName::Decay => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal { amount: 2 },
+                    id_source: None,
+                    target: Target::Direct(Some(id_character)),
+                });
+            }
+            CardName::Regret => {
+                // Each copy loses the full EOT hand size
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::HealthDelta {
+                        sign: DeltaSign::Loss,
+                        amount: Amount::Absolute(hand_len),
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_character)),
+                });
+            }
+            _ => {}
         }
     }
 
@@ -176,6 +201,33 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         id_source: None,
         target: Target::Direct(None),
     });
+
+    // After `ModifierSetNotNew` so Weak / Frail keep is_new=true through next TurnStart tick
+    for &id_card in &state.id_hand {
+        match state.entities[id_card].card_name {
+            CardName::Doubt => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::Weak,
+                        stacks: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_character)),
+                });
+            }
+            CardName::Shame => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::Frail,
+                        stacks: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_character)),
+                });
+            }
+            _ => {}
+        }
+    }
 
     for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_buf.push(Effect {

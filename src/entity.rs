@@ -133,6 +133,7 @@ pub struct Entity {
     pub room_chest_kind: Option<ChestKind>,
     pub room_chest_opened: bool,
     pub room_rest_site_done: bool,
+    pub room_shop_purged: bool,
 
     // Relic-only
     pub relic_name: RelicName,
@@ -197,6 +198,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     room_chest_kind: None,
     room_chest_opened: false,
     room_rest_site_done: false,
+    room_shop_purged: false,
     relic_name: RelicName::SnakeRing,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,
@@ -400,12 +402,15 @@ pub fn is_play_restriction_satisfied(restriction: PlayRestriction, id_pile_draw:
 }
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
-    assert!(
-        (entity.monster_move_history_len as usize) < MAX_MOVE_HISTORY,
-        "monster_move_history overflow"
-    );
-    entity.monster_move_history[entity.monster_move_history_len as usize] = move_idx;
-    entity.monster_move_history_len += 1;
+    let len = entity.monster_move_history_len as usize;
+    if len < MAX_MOVE_HISTORY {
+        entity.monster_move_history[len] = move_idx;
+        entity.monster_move_history_len += 1;
+    } else {
+        // Marathon combat: drop the oldest, keep the last MAX_MOVE_HISTORY moves
+        entity.monster_move_history.copy_within(1.., 0);
+        entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
+    }
 }
 
 pub fn get_move_history_slice(entity: &Entity) -> &[u8] {

@@ -5,9 +5,19 @@ edition = "2024"
 
 [lib]
 name = "slai"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
+
+[[bin]]
+name = "stub_gen"
+doc = false
 
 [dependencies]
-pyo3 = { version = "0.24", features = ["extension-module"] }
+pyo3 = "0.28"
+pyo3-stub-gen = "0.22.3"
 rand = "0.9"
 strum = { version = "0.28", features = ["derive"] }
+
+[features]
+# extension-module is gated so the stub_gen binary can link libpython (the
+# cdylib build enables it via maturin; the bin must NOT, or it fails to link).
+extension-module = ["pyo3/extension-module"]

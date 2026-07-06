@@ -1,6 +1,10 @@
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
+use crate::relics::get_relic;
 use crate::types::RelicName;
-use crate::utils::grant_relic;
+use crate::utils::push_entity;
 
 pub fn process_effect_relic_grant_specific(
     state: &mut GameState,
@@ -13,5 +17,13 @@ pub fn process_effect_relic_grant_specific(
         (true, true) => RelicName::Circlet,
         (true, false) => return,
     };
-    grant_relic(target, &mut state.id_relics, &mut state.entities);
+    if state.id_relics[target as usize].is_some() {
+        return;
+    }
+    let id = push_entity(&mut state.entities, get_relic(target));
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::RelicAdopt,
+        id_source: None,
+        target: Target::Direct(Some(id)),
+    });
 }

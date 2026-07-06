@@ -1,6 +1,8 @@
+use rand::Rng;
+
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -20,12 +22,12 @@ pub fn process_effect_health_delta(
     id_target: Option<usize>,
     state: &mut GameState,
     sign: DeltaSign,
-    amount: HealthDeltaAmount,
+    amount: Amount,
 ) {
     let id_target = id_target.expect("HealthDelta requires id_target");
     let amount = match amount {
-        HealthDeltaAmount::Absolute(a) => a,
-        HealthDeltaAmount::Relative {
+        Amount::Absolute(a) => a,
+        Amount::Relative {
             numerator,
             denominator,
         } => {
@@ -36,6 +38,7 @@ pub fn process_effect_health_delta(
                 DeltaSign::Gain => raw as u16,
             }
         }
+        Amount::Range { min, max } => state.rng.random_range(min..=max),
     };
     match sign {
         DeltaSign::Gain => apply_gain(id_target, state, amount),

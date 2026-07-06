@@ -1,7 +1,7 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -17,7 +17,7 @@ pub static BLOOD_VIAL: Entity = make_entity_relic(
     &[Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
-            amount: HealthDeltaAmount::Absolute(2),
+            amount: Amount::Absolute(2),
         },
         id_source: None,
         target: Target::Resolve {

@@ -1,6 +1,6 @@
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -25,7 +25,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         Some(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                kind: GoldDeltaKind::Fixed(monster.monster_stolen_gold),
+                amount: Amount::Absolute(monster.monster_stolen_gold),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
