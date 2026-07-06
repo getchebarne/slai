@@ -1,8 +1,7 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -18,7 +17,7 @@ const OPTION_GATHER: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Loss,
-            amount: HealthDeltaAmount::Absolute(11),
+            amount: Amount::Absolute(11),
         },
         id_source: None,
         target: Target::Resolve {
@@ -29,7 +28,7 @@ const OPTION_GATHER: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Gain,
-            kind: GoldDeltaKind::Fixed(75),
+            amount: Amount::Absolute(75),
         },
         id_source: None,
         target: Target::Direct(None),
@@ -43,7 +42,7 @@ const fn leave(min: u16, max: u16) -> [Effect; 2] {
         Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Loss,
-                kind: GoldDeltaKind::Range { min, max },
+                amount: Amount::Range { min, max },
             },
             id_source: None,
             target: Target::Direct(None),

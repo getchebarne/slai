@@ -27,7 +27,6 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
-use crate::utils::push_entity;
 
 // Follows a CardDiscover roll; halts until the player picks from `id_discover`
 pub const EFFECT_CARD_DISCOVER_PICK: Effect = Effect {
@@ -159,19 +158,6 @@ pub fn get_random_potion_name(rng: &mut impl Rng, limited: bool) -> PotionName {
 pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) -> Option<usize> {
     let cap = (slots_max as usize).min(POTION_SLOTS_MAX);
     slots[..cap].iter().position(|s| s.is_none())
-}
-
-// Returns the slot index on success, None when slots are full
-pub fn grant_potion(
-    id_potions: &mut [Option<usize>; POTION_SLOTS_MAX],
-    potion_slots_max: u8,
-    entities: &mut Vec<Entity>,
-    name: PotionName,
-) -> Option<usize> {
-    let slot = find_free_slot(id_potions, potion_slots_max)?;
-    let id_potion = push_entity(entities, get_potion(name));
-    id_potions[slot] = Some(id_potion);
-    Some(slot)
 }
 
 // Clear whichever belt slot holds id_potion; no-op if absent

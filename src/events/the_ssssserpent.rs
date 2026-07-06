@@ -1,6 +1,6 @@
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event;
@@ -17,7 +17,7 @@ const fn agree(gold: u16) -> [Effect; 3] {
         Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                kind: GoldDeltaKind::Fixed(gold),
+                amount: Amount::Absolute(gold),
             },
             id_source: None,
             target: Target::Direct(None),

@@ -1,8 +1,11 @@
+use strum::EnumCount;
+
 use crate::cards::get_card;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::engine::process_effect_queue;
+use crate::entity::Entity;
 use crate::game::GameState;
 use crate::game::create_game_state;
 use crate::modifier::ModifierKind;
@@ -10,8 +13,18 @@ use crate::modifier::modifier_stacks;
 use crate::types::CardName;
 use crate::types::MonsterName;
 use crate::types::RelicName;
-use crate::utils::grant_relic;
+use crate::relics::get_relic;
 use crate::utils::push_entity;
+
+// Register ownership directly, skipping on-pickup effects (tests drive those explicitly)
+pub fn grant_relic(
+    name: RelicName,
+    id_relics: &mut [Option<usize>; RelicName::COUNT],
+    entities: &mut Vec<Entity>,
+) {
+    let id = push_entity(entities, get_relic(name));
+    id_relics[name as usize] = Some(id);
+}
 
 pub fn combat_with_relic(relic: RelicName, monster: MonsterName) -> GameState {
     let mut state = create_game_state(0, 42, false);

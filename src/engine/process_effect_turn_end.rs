@@ -1,8 +1,8 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::EntityKind;
@@ -208,9 +208,9 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         let card = &state.entities[id_card];
         match card.card_name {
             CardName::Burn => {
-                let dmg: u16 = if card.card_upgraded { 4 } else { 2 };
+                let dmg_burn: u16 = if card.card_upgraded { 4 } else { 2 };
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: dmg },
+                    kind: EffectKind::DamageDeal { amount: dmg_burn },
                     id_source: None,
                     target: Target::Direct(Some(id_character)),
                 });
@@ -223,11 +223,11 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
                 });
             }
             CardName::Regret => {
-                // each copy loses the full EOT hand size
+                // Each copy loses the full EOT hand size
                 state.effect_buf.push(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Loss,
-                        amount: HealthDeltaAmount::Absolute(hand_len),
+                        amount: Amount::Absolute(hand_len),
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_character)),
@@ -252,7 +252,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         target: Target::Direct(None),
     });
 
-    // after ModifierSetNotNew so Weak/Frail keep is_new=true through next TurnStart tick
+    // After `ModifierSetNotNew` so Weak / Frail keep is_new=true through next TurnStart tick
     for &id_card in &state.id_hand {
         match state.entities[id_card].card_name {
             CardName::Doubt => {

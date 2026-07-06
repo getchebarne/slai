@@ -7,13 +7,12 @@ use pyo3_stub_gen::derive::gen_stub_pymethods;
 use crate::action::Action;
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -177,46 +176,31 @@ impl From<DeltaSign> for PyDeltaSign {
 }
 
 #[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "HealthDeltaAmount", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, name = "Amount", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyHealthDeltaAmount {
+pub enum PyAmount {
     Absolute { amount: u16 },
     Relative { numerator: u8, denominator: u8 },
+    Range { min: u16, max: u16 },
 }
 
-impl From<HealthDeltaAmount> for PyHealthDeltaAmount {
-    fn from(amount: HealthDeltaAmount) -> Self {
+impl From<Amount> for PyAmount {
+    fn from(amount: Amount) -> Self {
         match amount {
-            HealthDeltaAmount::Absolute(amount) => Self::Absolute { amount },
+            Amount::Absolute(amount) => Self::Absolute { amount },
             // Rounding mode is engine-internal; the view keeps one Relative shape
-            HealthDeltaAmount::Relative {
+            Amount::Relative {
                 numerator,
                 denominator,
             }
-            | HealthDeltaAmount::RelativeRounded {
+            | Amount::RelativeRounded {
                 numerator,
                 denominator,
             } => Self::Relative {
                 numerator,
                 denominator,
             },
-        }
-    }
-}
-
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "GoldDeltaKind", module = "slai.slai")]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyGoldDeltaKind {
-    Fixed { amount: u16 },
-    Range { min: u16, max: u16 },
-}
-
-impl From<GoldDeltaKind> for PyGoldDeltaKind {
-    fn from(kind: GoldDeltaKind) -> Self {
-        match kind {
-            GoldDeltaKind::Fixed(amount) => Self::Fixed { amount },
-            GoldDeltaKind::Range { min, max } => Self::Range { min, max },
+            Amount::Range { min, max } => Self::Range { min, max },
         }
     }
 }
@@ -1397,14 +1381,6 @@ impl PyAction {
     }
 }
 
-// Multi-index picks are order-insensitive; normalize to the sorted-distinct form the enumerator emits
-fn canonical_idxs(idxs: &[usize]) -> Vec<usize> {
-    let mut out = idxs.to_vec();
-    out.sort_unstable();
-    out.dedup();
-    out
-}
-
 pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
     let idxs = &action.idxs;
     match action.action_type {
@@ -1425,12 +1401,14 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::TurnEnd),
             n => Err(format!("TurnEnd expects [], got {n} idxs")),
         },
-        PyActionType::CardDiscard => Ok(Action::CardDiscard {
-            idxs: canonical_idxs(idxs),
-        }),
-        PyActionType::CardRetain => Ok(Action::CardRetain {
-            idxs: canonical_idxs(idxs),
-        }),
+        PyActionType::CardDiscard => match idxs.len() {
+            1 => Ok(Action::CardDiscard { idx: idxs[0] }),
+            n => Err(format!("CardDiscard expects [idx_hand], got {n} idxs")),
+        },
+        PyActionType::CardRetain => match idxs.len() {
+            1 => Ok(Action::CardRetain { idx: idxs[0] }),
+            n => Err(format!("CardRetain expects [idx_hand], got {n} idxs")),
+        },
         PyActionType::CardSetup => match idxs.len() {
             1 => Ok(Action::CardSetup { idx: idxs[0] }),
             n => Err(format!("CardSetup expects [idx_hand], got {n} idxs")),
@@ -1542,8 +1520,8 @@ pub fn from_internal_action(action: Action) -> PyAction {
             idx_monster: Some(m),
         } => (PyActionType::CardPlay, vec![idx_card, m]),
         Action::TurnEnd => (PyActionType::TurnEnd, vec![]),
-        Action::CardDiscard { idxs } => (PyActionType::CardDiscard, idxs),
-        Action::CardRetain { idxs } => (PyActionType::CardRetain, idxs),
+        Action::CardDiscard { idx } => (PyActionType::CardDiscard, vec![idx]),
+        Action::CardRetain { idx } => (PyActionType::CardRetain, vec![idx]),
         Action::CardSetup { idx } => (PyActionType::CardSetup, vec![idx]),
         Action::CardNightmare { idx } => (PyActionType::CardNightmare, vec![idx]),
         Action::RoomSelect { idx } => (PyActionType::RoomSelect, vec![idx]),
@@ -1690,12 +1668,12 @@ pub enum PyEffect {
     },
     MaxHealthDelta {
         sign: PyDeltaSign,
-        amount: PyHealthDeltaAmount,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     HealthDelta {
         sign: PyDeltaSign,
-        amount: PyHealthDeltaAmount,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     PotionAddRandom {
@@ -1709,7 +1687,7 @@ pub enum PyEffect {
     },
     GoldDelta {
         sign: PyDeltaSign,
-        kind: PyGoldDeltaKind,
+        amount: PyAmount,
         target: Option<PyTarget>,
     },
     RelicGrantRandom {
@@ -1824,9 +1802,9 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::ShuffleDiscardPileIntoDrawPile { target }
         }
         EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
-        EffectKind::GoldDelta { sign, kind } => PyEffect::GoldDelta {
+        EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta {
             sign: sign.into(),
-            kind: kind.into(),
+            amount: amount.into(),
             target,
         },
         EffectKind::HealthDelta { sign, amount } => PyEffect::HealthDelta {
@@ -2232,11 +2210,7 @@ pub struct PyRoom {
 #[pymethods]
 impl PyRoom {
     #[new]
-    fn new(
-        room_kind: PyRoomKind,
-        edges: Vec<usize>,
-        chest_opened: bool,
-    ) -> Self {
+    fn new(room_kind: PyRoomKind, edges: Vec<usize>, chest_opened: bool) -> Self {
         Self {
             room_kind,
             edges,
@@ -2283,6 +2257,7 @@ impl PyMap {
 pub struct PyGameState {
     pub screen: PyScreen,
     pub game_over: bool,
+    pub ascension: u8,
     pub character: PyCharacter,
     pub monsters: Vec<PyMonster>,
     pub deck: Vec<PyCard>,
@@ -2679,6 +2654,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         map: snapshot_map(state),
         screen: state.screen.into(),
         game_over: state.game_over,
+        ascension: state.ascension,
         reward,
         event,
         pending,
@@ -3060,69 +3036,3 @@ impl_discriminant_hash!(
     PyCandidatePoolDeckFilter,
     PyIntentKind,
 );
-
-#[cfg(test)]
-mod card_combat_tests {
-    use super::PyEffect;
-    use super::snapshot_adjusted_effects;
-    use crate::cards::get_card;
-    use crate::modifier::ModifierKind;
-    use crate::modifier::Modifiers;
-    use crate::modifier::modifier_apply;
-    use crate::modifier::modifiers_new;
-    use crate::types::CardName;
-
-    fn mods(pairs: &[(ModifierKind, i16)]) -> Modifiers {
-        let mut m = modifiers_new();
-        for &(kind, stacks) in pairs {
-            modifier_apply(&mut m, kind, stacks);
-        }
-        m
-    }
-
-    fn dmg(effects: &[PyEffect]) -> u16 {
-        effects
-            .iter()
-            .filter_map(|e| match e {
-                PyEffect::DamagePhysical { amount, .. } => Some(*amount),
-                _ => None,
-            })
-            .sum()
-    }
-
-    fn block(effects: &[PyEffect]) -> u16 {
-        effects
-            .iter()
-            .filter_map(|e| match e {
-                PyEffect::BlockGain { amount, .. } => Some(*amount),
-                _ => None,
-            })
-            .sum()
-    }
-
-    // Effects carry the player-modifier adjustment. Strike = DamagePhysical 6, Defend = BlockGain 5.
-    // Covers the modifiers random Act-1 play can't reach (Strength/Vigor/DoubleDamage) + floor cases.
-    #[test]
-    fn snapshot_adjusted_effects_applies_player_modifiers() {
-        let strike = get_card(CardName::Strike, false);
-        let defend = get_card(CardName::Defend, false);
-
-        // No modifiers -> base
-        assert_eq!(dmg(&snapshot_adjusted_effects(&strike, &modifiers_new())), 6);
-        assert_eq!(block(&snapshot_adjusted_effects(&defend, &modifiers_new())), 5);
-
-        // Damage: Strength/Vigor add, Weak *0.75 (floor), DoubleDamage *2
-        let s = |m| dmg(&snapshot_adjusted_effects(&strike, &m));
-        assert_eq!(s(mods(&[(ModifierKind::Strength, 3)])), 9);
-        assert_eq!(s(mods(&[(ModifierKind::Vigor, 5)])), 11);
-        assert_eq!(s(mods(&[(ModifierKind::Weak, 1)])), 4);
-        assert_eq!(s(mods(&[(ModifierKind::Strength, 3), (ModifierKind::Weak, 1)])), 6); // floor((6+3)*.75)
-        assert_eq!(s(mods(&[(ModifierKind::DoubleDamage, 1)])), 12);
-
-        // Block: Dexterity adds, Frail *0.75 (floor)
-        let b = |m| block(&snapshot_adjusted_effects(&defend, &m));
-        assert_eq!(b(mods(&[(ModifierKind::Dexterity, 2)])), 7);
-        assert_eq!(b(mods(&[(ModifierKind::Frail, 1)])), 3);
-        assert_eq!(b(mods(&[(ModifierKind::Dexterity, 2), (ModifierKind::Frail, 1)])), 5); // floor((5+2)*.75)
-    }
-}

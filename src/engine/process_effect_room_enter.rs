@@ -6,10 +6,9 @@ use crate::consts::EVENT_SHRINE_CHANCE;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::events::spawn_event;
 use crate::game::GameState;
@@ -40,7 +39,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                kind: GoldDeltaKind::Fixed(12),
+                amount: Amount::Absolute(12),
             },
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
@@ -76,7 +75,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
                     state.effect_queue.push_back(Effect {
                         kind: EffectKind::HealthDelta {
                             sign: DeltaSign::Gain,
-                            amount: HealthDeltaAmount::Absolute(heal as u16),
+                            amount: Amount::Absolute(heal as u16),
                         },
                         id_source: None,
                         target: Target::Direct(Some(state.id_character)),
@@ -117,7 +116,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Gain,
-                        amount: HealthDeltaAmount::Absolute(15),
+                        amount: Amount::Absolute(15),
                     },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
@@ -391,10 +390,10 @@ mod tests {
     use crate::action::handle_action;
     use crate::action::recompute_legal_actions;
     use crate::consts::MAP_WIDTH;
+    use crate::effect::Amount;
     use crate::effect::Effect;
     use crate::effect::EffectKind;
-    use crate::effect::GoldDeltaKind;
-    use crate::effect::Target;
+        use crate::effect::Target;
     use crate::engine::process_effect_queue;
     use crate::game::GameState;
     use crate::game::Location;
@@ -405,7 +404,7 @@ mod tests {
     use crate::types::RelicName;
     use crate::types::RoomKind;
     use crate::types::Screen;
-    use crate::utils::grant_relic;
+    use crate::engine::test_support::grant_relic;
 
     fn game_with_relic(relic: RelicName) -> GameState {
         let mut state = create_game_state(0, 42, false);
@@ -474,7 +473,7 @@ mod tests {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Loss,
-                kind: GoldDeltaKind::Fixed(5),
+                amount: Amount::Absolute(5),
             },
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
@@ -487,7 +486,7 @@ mod tests {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Loss,
-                kind: GoldDeltaKind::Fixed(5),
+                amount: Amount::Absolute(5),
             },
             id_source: None,
             target: Target::Direct(Some(state.id_character)),

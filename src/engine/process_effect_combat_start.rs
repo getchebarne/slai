@@ -2,7 +2,7 @@ use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::effect::HealthDeltaAmount;
+use crate::effect::Amount;
 use crate::game::GameState;
 use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
@@ -130,7 +130,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,
-                amount: HealthDeltaAmount::Absolute(25),
+                amount: Amount::Absolute(25),
             },
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
@@ -167,7 +167,7 @@ mod tests {
     use crate::modifier::modifier_stacks;
     use crate::types::MonsterName;
     use crate::types::RelicName;
-    use crate::utils::grant_relic;
+    use crate::engine::test_support::grant_relic;
 
     fn start_combat(state: &mut GameState, monster: MonsterName) {
         for kind in [

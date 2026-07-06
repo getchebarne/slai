@@ -6,7 +6,7 @@ use crate::consts::MAX_GOLD;
 use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
+use crate::effect::Amount;
 use crate::effect::Target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -36,14 +36,14 @@ pub fn process_effect_combat_end(state: &mut GameState) {
         }
         RoomKind::CombatMonster | RoomKind::CombatElite | RoomKind::Unknown => {
             // A "?" room keeps its Unknown map marker; its combat is always a normal monster
-            let reward_kind = if room_kind == RoomKind::Unknown {
+            let room_kind_reward = if room_kind == RoomKind::Unknown {
                 RoomKind::CombatMonster
             } else {
                 room_kind
             };
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::RewardRollCombat {
-                    room_kind: reward_kind,
+                    room_kind: room_kind_reward,
                 },
                 id_source: None,
                 target: Target::Direct(None),
@@ -61,7 +61,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Gain,
-                    amount: HealthDeltaAmount::Absolute(12),
+                    amount: Amount::Absolute(12),
                 },
                 id_source: None,
                 target: Target::Direct(Some(state.id_character)),

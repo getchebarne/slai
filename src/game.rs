@@ -272,16 +272,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     state
 }
 
-pub fn clear_shop_state(state: &mut GameState) {
-    state.shop_id_cards.clear();
-    state.shop_id_relics.clear();
-    state.shop_id_potions.clear();
-    state.shop_card_prices.clear();
-    state.shop_relic_prices.clear();
-    state.shop_potion_prices.clear();
-    state.shop_purge_cost = 0;
-}
-
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     // Handle the action. May enqueue elements to `state.effect_queue`
     handle_action(state, action)?;

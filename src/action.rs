@@ -1,13 +1,12 @@
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::effect::get_input_count;
 use crate::entity::card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
 use crate::events::event_option_gate_satisfied;
@@ -31,7 +30,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
     CardDiscard {
-        idxs: Vec<usize>,
+        idx: usize,
     },
     CardDiscover {
         idx: usize,
@@ -50,7 +49,7 @@ pub enum Action {
         idx: usize,
     },
     CardRetain {
-        idxs: Vec<usize>,
+        idx: usize,
     },
     CardSetup {
         idx: usize,
@@ -109,7 +108,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
     // Handlers push their effects into effect_buf; flush drains them to the queue front (reversed)
     state.effect_buf.clear();
     match action {
-        Action::CardDiscard { idxs } => handle_card_discard(state, idxs),
+        Action::CardDiscard { idx } => handle_card_discard(state, idx),
         Action::CardDiscover { idx } => handle_card_discover(state, idx),
         Action::CardDuplicate { idx } => handle_card_duplicate(state, idx),
         Action::CardNightmare { idx } => handle_card_nightmare(state, idx),
@@ -118,7 +117,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
             idx_monster,
         } => handle_card_play(state, idx_card, idx_monster),
         Action::CardPurge { idx } => handle_card_purge(state, idx),
-        Action::CardRetain { idxs } => handle_card_retain(state, idxs),
+        Action::CardRetain { idx } => handle_card_retain(state, idx),
         Action::CardSetup { idx } => handle_card_setup(state, idx),
         Action::CardTransform { idx } => handle_card_transform(state, idx),
         Action::CardUpgrade { idx } => handle_card_upgrade(state, idx),
@@ -171,8 +170,8 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     }
 }
 
-fn handle_card_discard(state: &mut GameState, idxs: Vec<usize>) {
-    resolve_hand_pending(state, idxs);
+fn handle_card_discard(state: &mut GameState, idx: usize) {
+    resolve_pending_pick(state, state.id_hand[idx]);
 }
 
 fn handle_card_discover(state: &mut GameState, idx: usize) {
@@ -193,7 +192,7 @@ fn handle_card_duplicate(state: &mut GameState, idx: usize) {
 }
 
 fn handle_card_nightmare(state: &mut GameState, idx: usize) {
-    resolve_hand_pending(state, vec![idx]);
+    resolve_pending_pick(state, state.id_hand[idx]);
 }
 
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
@@ -238,12 +237,12 @@ fn handle_card_purge(state: &mut GameState, idx: usize) {
     resolve_deck_pending(state, idx);
 }
 
-fn handle_card_retain(state: &mut GameState, idxs: Vec<usize>) {
-    resolve_hand_pending(state, idxs);
+fn handle_card_retain(state: &mut GameState, idx: usize) {
+    resolve_pending_pick(state, state.id_hand[idx]);
 }
 
 fn handle_card_setup(state: &mut GameState, idx: usize) {
-    resolve_hand_pending(state, vec![idx]);
+    resolve_pending_pick(state, state.id_hand[idx]);
 }
 
 fn handle_card_transform(state: &mut GameState, idx: usize) {
@@ -307,8 +306,7 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
 }
 
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
-    let id_potion =
-        state.id_potions[idx_potion].expect("enumerated potion slot is occupied");
+    let id_potion = state.id_potions[idx_potion].expect("enumerated potion slot is occupied");
     if state.entities[id_potion].requires_target {
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
@@ -353,7 +351,7 @@ fn handle_rest(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
-            amount: HealthDeltaAmount::Relative {
+            amount: Amount::Relative {
                 numerator: 3,
                 denominator: 10,
             },
@@ -366,7 +364,7 @@ fn handle_rest(state: &mut GameState) {
         state.effect_buf.push(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,
-                amount: HealthDeltaAmount::Absolute(15),
+                amount: Amount::Absolute(15),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
@@ -454,34 +452,38 @@ fn handle_turn_end(state: &mut GameState) {
 }
 
 fn handle_shop_buy_card(state: &mut GameState, idx: usize) {
+    let id_card = state.shop_id_cards[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyCard { idx },
+        kind: EffectKind::ShopBuyCard,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_card)),
     });
 }
 
 fn handle_shop_buy_potion(state: &mut GameState, idx: usize) {
+    let id_potion = state.shop_id_potions[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyPotion { idx },
+        kind: EffectKind::ShopBuyPotion,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_potion)),
     });
 }
 
 fn handle_shop_buy_relic(state: &mut GameState, idx: usize) {
+    let id_relic = state.shop_id_relics[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyRelic { idx },
+        kind: EffectKind::ShopBuyRelic,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_relic)),
     });
 }
 
 fn handle_shop_purge(state: &mut GameState, idx: usize) {
+    let id_card = state.id_deck[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopPurge { idx },
+        kind: EffectKind::ShopPurge,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_card)),
     });
 }
 
@@ -495,12 +497,12 @@ fn fill_legal_actions_effect_pending(
         // decremented count, so discard-N becomes N single picks (see resolve_hand_pending)
         EffectKind::CardDiscard { .. } => {
             for i in 0..state.id_hand.len() {
-                state.legal_actions.push(Action::CardDiscard { idxs: vec![i] });
+                state.legal_actions.push(Action::CardDiscard { idx: i });
             }
         }
         EffectKind::CardRetain => {
             for i in 0..state.id_hand.len() {
-                state.legal_actions.push(Action::CardRetain { idxs: vec![i] });
+                state.legal_actions.push(Action::CardRetain { idx: i });
             }
         }
         EffectKind::CardSetupPick => {
@@ -652,16 +654,21 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
     let gold = state.entities[state.id_character].character_gold;
     let belt_has_room = find_free_slot(&state.id_potions, state.potion_slots_max).is_some();
 
+    // Cards
     for i in 0..state.shop_card_prices.len() {
         if gold >= state.shop_card_prices[i] {
             state.legal_actions.push(Action::ShopBuyCard { idx: i });
         }
     }
+
+    // Relics
     for i in 0..state.shop_relic_prices.len() {
         if gold >= state.shop_relic_prices[i] {
             state.legal_actions.push(Action::ShopBuyRelic { idx: i });
         }
     }
+
+    // Potions
     if belt_has_room {
         for i in 0..state.shop_potion_prices.len() {
             if gold >= state.shop_potion_prices[i] {
@@ -669,6 +676,8 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
             }
         }
     }
+
+    // Purge
     if !state.entities[current_room_id(state)].room_shop_purged && gold >= state.shop_purge_cost {
         for i in 0..state.id_deck.len() {
             if card_is_purgeable(&state.entities[state.id_deck[i]]) {
@@ -773,35 +782,37 @@ fn current_room_id(state: &GameState) -> usize {
     }
 }
 
-// Pops effect_pending, applies the picked cards as Direct effects, and re-raises the
-// halt with the remaining count so each pick is a single selection over the shrunk hand.
-fn resolve_hand_pending(state: &mut GameState, idxs: Vec<usize>) {
+// Pops effect_pending, applies the picked entity as a Direct effect, and re-raises the
+// halt with the remaining count against the pending's own pool
+fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
     let effect_pending = state.effect_pending.take().unwrap();
 
-    // Push in idxs order; flush reverses into the queue front, preserving order
-    for &idx in &idxs {
-        let id_card = state.id_hand[idx];
-        state.effect_buf.push(Effect {
-            kind: effect_pending.kind,
-            id_source: effect_pending.id_source,
-            target: Target::Direct(Some(id_card)),
-        });
-    }
+    state.effect_buf.push(Effect {
+        kind: effect_pending.kind,
+        id_source: effect_pending.id_source,
+        target: Target::Direct(Some(id_picked)),
+    });
 
-    // Re-raise the remaining count; the picks flush ahead so the hand shrinks first.
-    // Input{1} (Setup/Nightmare/Survivor) leaves remaining 0; discard-N halts N times
-    let count = get_input_count(&effect_pending).expect("hand pending carries an Input count");
-    let remaining = count.saturating_sub(idxs.len() as u16);
+    // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
+    let Target::Resolve {
+        candidate_pool,
+        selection_kind: SelectionKind::Input { count },
+    } = effect_pending.target
+    else {
+        panic!("pending pick carries an Input halt");
+    };
+    let remaining = count.saturating_sub(1);
     if remaining > 0 {
         state.effect_buf.push(Effect {
             kind: effect_pending.kind,
             id_source: effect_pending.id_source,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool,
                 selection_kind: SelectionKind::Input { count: remaining },
             },
         });
     }
+
 }
 
 // Pops effect_pending and re-enqueues it as Direct for the resolved deck-card id
@@ -819,18 +830,14 @@ fn pending_deck_filter(effect: &Effect) -> Option<CandidatePoolDeckFilter> {
 fn resolve_deck_pending(state: &mut GameState, idx: usize) {
     let pending = state
         .effect_pending
-        .take()
+        .as_ref()
         .expect("deck pick requires a pending effect");
     // idx is an absolute id_deck index; assert it still matches the pool's filter
-    let filter = pending_deck_filter(&pending).expect("deck pick has a Deck pool");
+    let filter = pending_deck_filter(pending).expect("deck pick has a Deck pool");
     let id_card = state.id_deck[idx];
     assert!(
         deck_filter_matches(filter, &state.entities[id_card]),
         "deck pick idx {idx} targets a card the filter rejects"
     );
-    state.effect_buf.push(Effect {
-        kind: pending.kind,
-        id_source: pending.id_source,
-        target: Target::Direct(Some(id_card)),
-    });
+    resolve_pending_pick(state, id_card);
 }

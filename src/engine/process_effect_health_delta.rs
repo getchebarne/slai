@@ -1,6 +1,8 @@
+use rand::Rng;
+
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -22,23 +24,23 @@ pub fn process_effect_health_delta(
     id_target: Option<usize>,
     state: &mut GameState,
     sign: DeltaSign,
-    amount: HealthDeltaAmount,
+    amount: Amount,
 ) {
     let id_target = id_target.expect("HealthDelta requires id_target");
     let amount = match amount {
-        HealthDeltaAmount::Absolute(a) => a,
-        HealthDeltaAmount::Relative {
+        Amount::Absolute(a) => a,
+        Amount::Relative {
             numerator,
             denominator,
         }
-        | HealthDeltaAmount::RelativeRounded {
+        | Amount::RelativeRounded {
             numerator,
             denominator,
         } => {
             let health_max = state.entities[id_target].vitals.health_max;
             // f32 mirrors the source's (int)(maxHP * fraction) float truncation
             let mut raw = health_max as f32 * (numerator as f32 / denominator as f32);
-            if matches!(amount, HealthDeltaAmount::RelativeRounded { .. }) {
+            if matches!(amount, Amount::RelativeRounded { .. }) {
                 raw += 0.5;
             }
             let raw = raw as u32;
@@ -47,6 +49,7 @@ pub fn process_effect_health_delta(
                 DeltaSign::Gain => raw as u16,
             }
         }
+        Amount::Range { min, max } => state.rng.random_range(min..=max),
     };
     match sign {
         DeltaSign::Gain => apply_gain(id_target, state, amount),
@@ -190,10 +193,10 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
 
 #[cfg(test)]
 mod tests {
+    use crate::effect::Amount;
     use crate::effect::Effect;
     use crate::effect::EffectKind;
-    use crate::effect::HealthDeltaAmount;
-    use crate::effect::Target;
+        use crate::effect::Target;
     use crate::engine::process_effect_queue;
     use crate::engine::test_support::combat_with_relic;
     use crate::engine::test_support::first_monster;
@@ -207,7 +210,7 @@ mod tests {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Absolute(amount),
+                amount: Amount::Absolute(amount),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
@@ -247,7 +250,7 @@ mod tests {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::RelativeRounded {
+                amount: Amount::RelativeRounded {
                     numerator: 3,
                     denominator: 10,
                 },
@@ -267,7 +270,7 @@ mod tests {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Absolute(31),
+                amount: Amount::Absolute(31),
             },
             id_source: None,
             target: Target::Direct(Some(id_monster)),

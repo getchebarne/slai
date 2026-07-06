@@ -1,8 +1,8 @@
+use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -38,7 +38,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         Some(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                kind: GoldDeltaKind::Fixed(monster.monster_stolen_gold),
+                amount: Amount::Absolute(monster.monster_stolen_gold),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
@@ -158,10 +158,10 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
 
 #[cfg(test)]
 mod tests {
+    use crate::effect::Amount;
     use crate::effect::Effect;
     use crate::effect::EffectKind;
-    use crate::effect::HealthDeltaAmount;
-    use crate::effect::Target;
+        use crate::effect::Target;
     use crate::engine::process_effect_queue;
     use crate::engine::test_support::combat_with_relic;
     use crate::game::GameState;
@@ -234,7 +234,7 @@ mod tests {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Absolute(999),
+                amount: Amount::Absolute(999),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
@@ -249,7 +249,7 @@ mod tests {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: HealthDeltaAmount::Absolute(999),
+                amount: Amount::Absolute(999),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),

@@ -125,13 +125,9 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
         create_action_spec(ActionType.EventOptionSelect, ArgSpec("idx", _HAND_POS)),
         # Hand-pick family (resolves a hand-pick halt)
-        create_action_spec(
-            ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS, variable=True)
-        ),
+        create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(
-            ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS, variable=True)
-        ),
+        create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
         create_action_spec(
@@ -189,8 +185,7 @@ Effect = _rs.Effect
 CandidatePool = _rs.CandidatePool
 SelectionKind = _rs.SelectionKind
 CardCostKind = _rs.CardCostKind
-HealthDeltaAmount = _rs.HealthDeltaAmount
-GoldDeltaKind = _rs.GoldDeltaKind
+Amount = _rs.Amount
 
 DeltaSign = _rs.DeltaSign
 
@@ -243,8 +238,7 @@ __all__ = [
     "CardCostKind",
     "Target",
     "Effect",
-    "HealthDeltaAmount",
-    "GoldDeltaKind",
+    "Amount",
     "DeltaSign",
     # Reward
     "Reward",

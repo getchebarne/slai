@@ -1,8 +1,7 @@
 use crate::cards::get_card;
 use crate::effect::Effect;
+use crate::effect::Amount;
 use crate::effect::EffectKind;
-use crate::effect::GoldDeltaKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::relics::egg_upgrades_kind;
@@ -34,7 +33,7 @@ pub fn process_effect_card_add_to_deck(state: &mut GameState, card_name: CardNam
         state.effect_queue.push_back(Effect {
             kind: EffectKind::MaxHealthDelta {
                 sign: DeltaSign::Gain,
-                amount: HealthDeltaAmount::Absolute(6),
+                amount: Amount::Absolute(6),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
@@ -42,28 +41,20 @@ pub fn process_effect_card_add_to_deck(state: &mut GameState, card_name: CardNam
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,
-                amount: HealthDeltaAmount::Absolute(6),
+                amount: Amount::Absolute(6),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
         });
     }
 
-    // Ceramic Fish: 9 gold per card that actually joins the deck
-    if state.id_relics[RelicName::CeramicFish as usize].is_some() {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::GoldDelta {
-                sign: DeltaSign::Gain,
-                kind: GoldDeltaKind::Fixed(9),
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
     let upgraded = upgraded || egg_upgrades_kind(kind, &state.id_relics);
     let id = push_entity(&mut state.entities, get_card(card_name, upgraded));
-    state.id_deck.push(id);
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::CardAdopt,
+        id_source: None,
+        target: Target::Direct(Some(id)),
+    });
 }
 
 #[cfg(test)]
@@ -78,7 +69,7 @@ mod tests {
     use crate::types::CardName;
     use crate::types::RelicName;
     use crate::types::RewardKind;
-    use crate::utils::grant_relic;
+    use crate::engine::test_support::grant_relic;
     use crate::utils::push_entity;
     use crate::utils::roll_card_rewards;
 

@@ -1,16 +1,30 @@
 use rand::Rng;
 
 use crate::consts::MAX_GOLD;
-use crate::effect::GoldDeltaKind;
+use crate::effect::Amount;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::Screen;
 
-pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, kind: GoldDeltaKind) {
-    let amount = match kind {
-        GoldDeltaKind::Fixed(a) => a,
-        GoldDeltaKind::Range { min, max } => state.rng.random_range(min..=max),
+pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount: Amount) {
+    let amount = match amount {
+        Amount::Absolute(a) => a,
+        Amount::Relative {
+            numerator,
+            denominator,
+        } => {
+            let gold = state.entities[state.id_character].character_gold;
+            ((gold as u32 * numerator as u32) / denominator as u32) as u16
+        }
+        Amount::RelativeRounded {
+            numerator,
+            denominator,
+        } => {
+            let gold = state.entities[state.id_character].character_gold;
+            ((gold as u32 * numerator as u32 + denominator as u32 / 2) / denominator as u32) as u16
+        }
+        Amount::Range { min, max } => state.rng.random_range(min..=max),
     };
 
     // Maw Bank deactivates the first time gold is spent at a shop (event costs don't count)

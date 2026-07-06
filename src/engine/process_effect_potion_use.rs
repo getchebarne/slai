@@ -1,6 +1,6 @@
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::HealthDeltaAmount;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::potions::remove_potion;
@@ -24,7 +24,7 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,
-                amount: HealthDeltaAmount::Absolute(5),
+                amount: Amount::Absolute(5),
             },
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
@@ -42,7 +42,7 @@ mod tests {
     use crate::potions::get_potion;
     use crate::types::PotionName;
     use crate::types::RelicName;
-    use crate::utils::grant_relic;
+    use crate::engine::test_support::grant_relic;
     use crate::utils::push_entity;
 
     #[test]
