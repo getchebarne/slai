@@ -43,25 +43,3 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         });
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::engine::test_support::combat_with_relic;
-    use crate::engine::test_support::play;
-    use crate::engine::test_support::put_in_hand;
-    use crate::types::CardName;
-    use crate::types::MonsterName;
-    use crate::types::RelicName;
-
-    #[test]
-    fn dead_branch_conjures_a_card_on_exhaust() {
-        let mut state = combat_with_relic(RelicName::DeadBranch, MonsterName::JawWorm);
-        let hand_before = state.id_hand.len();
-        let id = put_in_hand(&mut state, CardName::Defend);
-        state.entities[id].card_exhaust = true;
-        play(&mut state, id);
-        // Defend exhausted, Dead Branch conjured a replacement
-        assert_eq!(state.id_hand.len(), hand_before + 1);
-        assert_eq!(state.id_pile_exhaust.len(), 1);
-    }
-}

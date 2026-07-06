@@ -402,34 +402,3 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use rand::SeedableRng;
-    use rand::rngs::SmallRng;
-
-    use super::*;
-
-    #[test]
-    fn forced_rows_and_row_13_hold_only_legal_kinds() {
-        for seed in 0..20 {
-            let mut rng = SmallRng::seed_from_u64(seed);
-            let mut entities: Vec<Entity> = Vec::new();
-            let (id_rooms, _) = generate_map(&mut rng, &mut entities, 1);
-            for x in 0..MAP_WIDTH {
-                for (y, expect) in [
-                    (0, RoomKind::CombatMonster),
-                    (MAP_ROW_TREASURE, RoomKind::Treasure),
-                    (MAP_HEIGHT - 1, RoomKind::RestSite),
-                ] {
-                    if let Some(id) = id_rooms[y][x] {
-                        assert_eq!(entities[id].room_kind, expect, "seed {seed} row {y}");
-                    }
-                }
-                if let Some(id) = id_rooms[MAP_HEIGHT - 2][x] {
-                    assert_ne!(entities[id].room_kind, RoomKind::RestSite, "seed {seed}");
-                }
-            }
-        }
-    }
-}

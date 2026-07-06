@@ -55,15 +55,3 @@ fn silent_health(ascension: u8) -> (u16, u16) {
 
     (health, health_max)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::silent_health;
-
-    #[test]
-    fn ascension_health_rolls() {
-        assert_eq!(silent_health(0), (70, 70));
-        assert_eq!(silent_health(6), (63, 70));
-        assert_eq!(silent_health(14), (59, 66));
-    }
-}

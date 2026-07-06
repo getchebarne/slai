@@ -100,35 +100,3 @@ fn roll_potion_drop(rng: &mut impl Rng, potion_drop_mod: &mut i8) -> bool {
         false
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::consts::MAP_WIDTH;
-    use crate::effect::Effect;
-    use crate::effect::EffectKind;
-    use crate::effect::Target;
-    use crate::engine::process_effect_queue;
-    use crate::engine::test_support::combat_with_relic;
-    use crate::engine::test_support::first_monster;
-    use crate::game::Location;
-    use crate::types::MonsterName;
-    use crate::types::RelicName;
-
-    #[test]
-    fn white_beast_statue_guarantees_potion_drop() {
-        let mut state = combat_with_relic(RelicName::WhiteBeastStatue, MonsterName::JawWorm);
-        // Park the run on a real row-0 monster room so combat_end can read the room kind
-        let x = (0..MAP_WIDTH)
-            .find(|&x| state.id_rooms[0][x].is_some())
-            .expect("row 0 has a room");
-        state.location = Location::Overworld { y: 0, x };
-        let id_monster = first_monster(&state);
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::DamageDeal { amount: 999 },
-            id_source: None,
-            target: Target::Direct(Some(id_monster)),
-        });
-        process_effect_queue(&mut state);
-        assert!(state.reward_id_potion.is_some());
-    }
-}

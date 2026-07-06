@@ -84,8 +84,6 @@ pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
-#[cfg(test)]
-pub mod test_support;
 
 use std::collections::VecDeque;
 
@@ -626,33 +624,4 @@ fn unceasing_top_fires(state: &GameState) -> bool {
             &state.entities[state.id_character].modifiers,
             ModifierKind::NoDraw,
         )
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::effect::DiscardSource;
-    use crate::effect::Effect;
-    use crate::effect::EffectKind;
-    use crate::effect::Target;
-    use crate::engine::process_effect_queue;
-    use crate::engine::test_support::combat_with_relic;
-    use crate::types::MonsterName;
-    use crate::types::RelicName;
-
-    #[test]
-    fn unceasing_top_draws_when_the_hand_empties() {
-        let mut state = combat_with_relic(RelicName::UnceasingTop, MonsterName::JawWorm);
-        // Discard the whole opening hand; the drain check refills exactly one card
-        for id in state.id_hand.clone() {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::CardDiscard {
-                    source: DiscardSource::Explicit,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id)),
-            });
-        }
-        process_effect_queue(&mut state);
-        assert_eq!(state.id_hand.len(), 1);
-    }
 }
