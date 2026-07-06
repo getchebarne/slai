@@ -17,7 +17,7 @@ pub fn process_effect_shop_purge(id_target: Option<usize>, state: &mut GameState
     state.effect_buf.push(Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Fixed(cost),
+            amount: Amount::Absolute(cost),
         },
         id_source: None,
         target: Target::Direct(None),
@@ -29,6 +29,7 @@ pub fn process_effect_shop_purge(id_target: Option<usize>, state: &mut GameState
     });
     flush_effects_from_buf_to_queue_front(state);
 
+    // Increment purge cost for the rest of the run
     state.shop_purge_cost += SHOP_PURGE_COST_INCREMENT;
 
     // A shop's card removal can be used once per visit

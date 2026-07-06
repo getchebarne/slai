@@ -17,7 +17,7 @@ const OPTION_GATHER: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Fixed(11),
+            amount: Amount::Absolute(11),
         },
         id_source: None,
         target: Target::Resolve {
@@ -28,7 +28,7 @@ const OPTION_GATHER: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Gain,
-            amount: Amount::Fixed(75),
+            amount: Amount::Absolute(75),
         },
         id_source: None,
         target: Target::Direct(None),

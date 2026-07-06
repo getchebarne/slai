@@ -22,7 +22,7 @@ pub fn process_effect_shop_buy_relic(id_target: Option<usize>, state: &mut GameS
     state.effect_buf.push(Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Fixed(price),
+            amount: Amount::Absolute(price),
         },
         id_source: None,
         target: Target::Direct(None),

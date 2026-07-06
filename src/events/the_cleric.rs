@@ -18,7 +18,7 @@ const OPTION_HEAL: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Fixed(35),
+            amount: Amount::Absolute(35),
         },
         id_source: None,
         target: Target::Direct(None),
@@ -46,7 +46,7 @@ const fn purify(cost: u16) -> [Effect; 3] {
         Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Loss,
-                amount: Amount::Fixed(cost),
+                amount: Amount::Absolute(cost),
             },
             id_source: None,
             target: Target::Direct(None),

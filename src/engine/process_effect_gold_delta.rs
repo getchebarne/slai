@@ -7,7 +7,7 @@ use crate::types::DeltaSign;
 
 pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount: Amount) {
     let amount = match amount {
-        Amount::Fixed(a) => a,
+        Amount::Absolute(a) => a,
         Amount::Relative {
             numerator,
             denominator,

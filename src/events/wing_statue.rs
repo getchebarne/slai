@@ -18,7 +18,7 @@ const OPTION_PRAY: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Fixed(7),
+            amount: Amount::Absolute(7),
         },
         id_source: None,
         target: Target::Resolve {

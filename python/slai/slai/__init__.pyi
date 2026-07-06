@@ -65,11 +65,11 @@ class Action:
 
 class Amount:
     @typing.final
-    class Fixed(Amount):
+    class Absolute(Amount):
         __match_args__ = ("amount",)
         @property
         def amount(self) -> builtins.int: ...
-        def __new__(cls, amount: builtins.int) -> Amount.Fixed: ...
+        def __new__(cls, amount: builtins.int) -> Amount.Absolute: ...
     
     @typing.final
     class Relative(Amount):

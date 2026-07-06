@@ -14,7 +14,7 @@ pub fn process_effect_card_purge(id_target: Option<usize>, state: &mut GameState
         state.effect_queue.push_front(Effect {
             kind: EffectKind::MaxHealthDelta {
                 sign: DeltaSign::Loss,
-                amount: Amount::Fixed(3),
+                amount: Amount::Absolute(3),
             },
             id_source: None,
             target: Target::Direct(Some(state.id_character)),

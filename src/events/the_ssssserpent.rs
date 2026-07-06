@@ -17,7 +17,7 @@ const fn agree(gold: u16) -> [Effect; 3] {
         Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                amount: Amount::Fixed(gold),
+                amount: Amount::Absolute(gold),
             },
             id_source: None,
             target: Target::Direct(None),

@@ -25,7 +25,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         Some(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                amount: Amount::Fixed(monster.monster_stolen_gold),
+                amount: Amount::Absolute(monster.monster_stolen_gold),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),

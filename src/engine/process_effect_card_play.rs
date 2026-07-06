@@ -190,7 +190,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Loss,
-                    amount: Amount::Fixed(stacks as u16),
+                    amount: Amount::Absolute(stacks as u16),
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
@@ -222,7 +222,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Loss,
-                    amount: Amount::Fixed(1),
+                    amount: Amount::Absolute(1),
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_character)),

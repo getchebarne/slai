@@ -179,7 +179,7 @@ impl From<DeltaSign> for PyDeltaSign {
 #[pyclass(eq, hash, frozen, name = "Amount", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyAmount {
-    Fixed { amount: u16 },
+    Absolute { amount: u16 },
     Relative { numerator: u8, denominator: u8 },
     Range { min: u16, max: u16 },
 }
@@ -187,7 +187,7 @@ pub enum PyAmount {
 impl From<Amount> for PyAmount {
     fn from(amount: Amount) -> Self {
         match amount {
-            Amount::Fixed(amount) => Self::Fixed { amount },
+            Amount::Absolute(amount) => Self::Absolute { amount },
             Amount::Relative {
                 numerator,
                 denominator,
@@ -1135,14 +1135,6 @@ impl PyAction {
     }
 }
 
-// Multi-index picks are order-insensitive; normalize to the sorted-distinct form the enumerator emits
-fn canonical_idxs(idxs: &[usize]) -> Vec<usize> {
-    let mut out = idxs.to_vec();
-    out.sort_unstable();
-    out.dedup();
-    out
-}
-
 pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
     let idxs = &action.idxs;
     match action.action_type {
@@ -1163,12 +1155,14 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::TurnEnd),
             n => Err(format!("TurnEnd expects [], got {n} idxs")),
         },
-        PyActionType::CardDiscard => Ok(Action::CardDiscard {
-            idxs: canonical_idxs(idxs),
-        }),
-        PyActionType::CardRetain => Ok(Action::CardRetain {
-            idxs: canonical_idxs(idxs),
-        }),
+        PyActionType::CardDiscard => match idxs.len() {
+            1 => Ok(Action::CardDiscard { idx: idxs[0] }),
+            n => Err(format!("CardDiscard expects [idx_hand], got {n} idxs")),
+        },
+        PyActionType::CardRetain => match idxs.len() {
+            1 => Ok(Action::CardRetain { idx: idxs[0] }),
+            n => Err(format!("CardRetain expects [idx_hand], got {n} idxs")),
+        },
         PyActionType::CardSetup => match idxs.len() {
             1 => Ok(Action::CardSetup { idx: idxs[0] }),
             n => Err(format!("CardSetup expects [idx_hand], got {n} idxs")),
@@ -1280,8 +1274,8 @@ pub fn from_internal_action(action: Action) -> PyAction {
             idx_monster: Some(m),
         } => (PyActionType::CardPlay, vec![idx_card, m]),
         Action::TurnEnd => (PyActionType::TurnEnd, vec![]),
-        Action::CardDiscard { idxs } => (PyActionType::CardDiscard, idxs),
-        Action::CardRetain { idxs } => (PyActionType::CardRetain, idxs),
+        Action::CardDiscard { idx } => (PyActionType::CardDiscard, vec![idx]),
+        Action::CardRetain { idx } => (PyActionType::CardRetain, vec![idx]),
         Action::CardSetup { idx } => (PyActionType::CardSetup, vec![idx]),
         Action::CardNightmare { idx } => (PyActionType::CardNightmare, vec![idx]),
         Action::RoomSelect { idx } => (PyActionType::RoomSelect, vec![idx]),
@@ -2784,4 +2778,3 @@ impl_discriminant_hash!(
     PyCandidatePoolDeckFilter,
     PyIntentKind,
 );
-

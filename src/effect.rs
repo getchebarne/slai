@@ -198,7 +198,7 @@ pub enum DiscardSource {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Amount {
-    Fixed(u16),
+    Absolute(u16),
     Relative { numerator: u8, denominator: u8 },
     Range { min: u16, max: u16 },
 }
@@ -264,14 +264,3 @@ pub const ZERO_EFFECT: Effect = Effect {
     id_source: None,
     target: Target::Direct(None),
 };
-
-// Input count if the Effect's target is Resolve with SelectionKind::Input
-pub fn get_input_count(effect: &Effect) -> Option<u16> {
-    match effect.target {
-        Target::Resolve {
-            selection_kind: SelectionKind::Input { count },
-            ..
-        } => Some(count),
-        _ => None,
-    }
-}

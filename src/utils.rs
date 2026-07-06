@@ -114,7 +114,7 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
-// Shared by the live block pipeline and the FFI card preview: card-played block scales with Dex/Frail
+// Shared by the live block pipeline and the FFI card preview
 pub fn scale_block_gain(base: u16, dex_stacks: i16, frail: bool) -> u16 {
     let mut value = base as f32 + dex_stacks as f32;
     if frail {

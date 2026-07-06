@@ -17,7 +17,7 @@ const fn pray(amount: u16) -> [Effect; 2] {
         Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                amount: Amount::Fixed(amount),
+                amount: Amount::Absolute(amount),
             },
             id_source: None,
             target: Target::Direct(None),
@@ -33,7 +33,7 @@ const OPTION_DESECRATE: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Gain,
-            amount: Amount::Fixed(275),
+            amount: Amount::Absolute(275),
         },
         id_source: None,
         target: Target::Direct(None),

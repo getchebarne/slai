@@ -37,7 +37,7 @@ const OPTION_DONUT: &[Effect] = &[
     Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: DeltaSign::Gain,
-            amount: Amount::Fixed(5),
+            amount: Amount::Absolute(5),
         },
         id_source: None,
         target: Target::Resolve {

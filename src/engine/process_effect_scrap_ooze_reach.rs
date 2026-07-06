@@ -20,7 +20,7 @@ pub fn process_effect_scrap_ooze_reach(
     state.effect_buf.push(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Fixed(dmg),
+            amount: Amount::Absolute(dmg),
         },
         id_source: None,
         target: Target::Direct(Some(id_character)),

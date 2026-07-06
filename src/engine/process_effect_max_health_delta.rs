@@ -12,7 +12,7 @@ pub fn process_effect_max_health_delta(
 ) {
     let id_target = id_target.expect("MaxHealthDelta requires id_target");
     let amount = match amount {
-        Amount::Fixed(a) => a,
+        Amount::Absolute(a) => a,
         Amount::Relative {
             numerator,
             denominator,
