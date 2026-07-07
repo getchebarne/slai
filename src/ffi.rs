@@ -19,7 +19,7 @@ use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::PlayRestriction;
-use crate::entity::card_effective_cost;
+use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
 use crate::events::event_option_gate_satisfied;
 use crate::game::GameState;
@@ -2899,7 +2899,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let mut py_card = PyCard {
         name: card.card_name.into(),
         display_name,
-        cost: card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
+        cost: get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
         cost_base: card.card_cost,
         cost_zero_once: card.card_free_to_play_once,
         cost_override: card.card_cost_override,
@@ -2952,7 +2952,8 @@ fn card_identity_hash(card: &PyCard) -> u64 {
 // Position-independent hash of the room topology (kinds + edges) — a stable map identity for the
 // RL encoder's static-grid cache. Excludes the live position so it's constant across a map's life.
 fn map_identity_hash(state: &GameState) -> u64 {
-    use std::hash::{Hash, Hasher};
+    use std::hash::Hash;
+    use std::hash::Hasher;
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     for (y, row) in state.id_rooms.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {

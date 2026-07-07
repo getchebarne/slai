@@ -104,8 +104,8 @@ pub struct Entity {
     pub monster_move_current: Option<usize>,
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_len: u8,
-    pub monster_cycle_count: u8,  // Only used by "The Guardian"
-    pub monster_stolen_gold: u16, // Only used by "Looter"
+    pub monster_cycle_count: u8,     // Only used by "The Guardian"
+    pub monster_stolen_gold: u16,    // Only used by "Looter"
     pub monster_divider_damage: u16, // Only used by "Hexaghost"
 
     // Card-only
@@ -358,7 +358,7 @@ pub const fn make_entity_event(name: EventName, options: &'static [EventOption])
     }
 }
 
-pub fn card_effective_cost(
+pub fn get_card_effective_cost(
     card: &Entity,
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,

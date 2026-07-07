@@ -41,6 +41,7 @@ pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
 pub mod process_effect_health_delta;
+pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_hexaghost_divider;
@@ -98,13 +99,10 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::GameState;
-use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
 use crate::types::CardColor;
-use crate::types::RelicName;
-use crate::types::Screen;
 use crate::utils::deck_filter_matches;
 use crate::utils::shuffle;
+use crate::utils::unceasing_top_fires;
 
 // Iterate in reverse so push_front yields `ids` in original queue order
 pub(crate) fn enqueue_direct_targets(
@@ -410,6 +408,9 @@ fn dispatch_by_kind(
         EffectKind::HealthDelta { sign, amount } => {
             process_effect_health_delta::process_effect_health_delta(id_target, state, sign, amount)
         }
+        EffectKind::HealthSet { amount } => {
+            process_effect_health_set::process_effect_health_set(id_target, state, amount)
+        }
         EffectKind::BlockGain { amount } => process_effect_block_gain::process_effect_block_gain(
             id_source, id_target, state, amount,
         ),
@@ -611,17 +612,4 @@ pub fn process_effect_queue(state: &mut GameState) {
             return; // Queue halted
         }
     }
-}
-
-// Queue rest in Combat means the player is about to act; a drawable card ends the loop
-fn unceasing_top_fires(state: &GameState) -> bool {
-    state.id_relics[RelicName::UnceasingTop as usize].is_some()
-        && matches!(state.screen, Screen::Combat)
-        && state.effect_pending.is_none()
-        && state.id_hand.is_empty()
-        && !(state.id_pile_draw.is_empty() && state.id_pile_discard.is_empty())
-        && !modifier_has(
-            &state.entities[state.id_character].modifiers,
-            ModifierKind::NoDraw,
-        )
 }

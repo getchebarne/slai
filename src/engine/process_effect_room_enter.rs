@@ -15,6 +15,7 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
+use crate::monsters;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
@@ -31,8 +32,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     state.effect_buf.clear();
 
-    // Maw Bank: 12 gold on every room entry until deactivated by spending at a shop.
-    // Straight to effect_queue: effect_buf is reserved for the combat-spawn path below
+    // Maw Bank: 12 gold on every room entry until deactivated
     if let Some(id) = state.id_relics[RelicName::MawBank as usize]
         && !state.entities[id].relic_used_up
     {
@@ -47,16 +47,28 @@ pub fn process_effect_room_enter(state: &mut GameState) {
     }
 
     // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
-    let resolved = if room_kind == RoomKind::Unknown {
+    let room_kind_resolved = if room_kind == RoomKind::Unknown {
         roll_unknown_room(state)
     } else {
         room_kind
     };
 
-    match resolved {
+    match room_kind_resolved {
         RoomKind::CombatBoss => {
             let encounter = state.encounter_boss;
             spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
+
+            // Pantograph: boss fights open with a 25 HP heal
+            if state.id_relics[RelicName::Pantograph as usize].is_some() {
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::HealthDelta {
+                        sign: DeltaSign::Gain,
+                        amount: Amount::Absolute(25),
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
         }
         RoomKind::CombatMonster => {
             let encounter = state.encounter_pool_normal.remove(0);

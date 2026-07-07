@@ -107,6 +107,9 @@ pub enum EffectKind {
         sign: DeltaSign,
         amount: Amount,
     },
+    HealthSet {
+        amount: Amount,
+    },
     HeelHookProc,
     HexaghostBurnIncrease {
         count: u8,

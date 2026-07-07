@@ -7,7 +7,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::card_effective_cost;
+use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
 use crate::events::event_option_gate_satisfied;
 use crate::game::GameState;
@@ -585,7 +585,7 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
         if !restriction_ok || entangled_blocks {
             continue;
         }
-        let cost = card_effective_cost(
+        let cost = get_card_effective_cost(
             card,
             state.this_turn_discards,
             state.this_combat_damage_instances_taken,

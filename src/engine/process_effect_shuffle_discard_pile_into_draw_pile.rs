@@ -2,7 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::relics::relic_counter_fire;
+use crate::relics::trigger_relic_counter;
 use crate::types::RelicName;
 use crate::utils::reshuffle_discard_into_draw;
 
@@ -22,7 +22,7 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
         });
     }
     // Persistent reshuffle counter; every 3rd fires
-    if relic_counter_fire(RelicName::Sundial, 3, &state.id_relics, &mut state.entities) {
+    if trigger_relic_counter(RelicName::Sundial, 3, &state.id_relics, &mut state.entities) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::EnergyGain { amount: 2 },
             id_source: None,

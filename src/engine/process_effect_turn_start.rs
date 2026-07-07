@@ -10,7 +10,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
-use crate::relics::relic_counter_fire;
+use crate::relics::trigger_relic_counter;
 use crate::types::CardName;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -201,14 +201,24 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
 
         // Persistent turn counters, spanning combats
-        if relic_counter_fire(RelicName::HappyFlower, 3, &state.id_relics, &mut state.entities) {
+        if trigger_relic_counter(
+            RelicName::HappyFlower,
+            3,
+            &state.id_relics,
+            &mut state.entities,
+        ) {
             state.effect_buf.push(Effect {
                 kind: EffectKind::EnergyGain { amount: 1 },
                 id_source: None,
                 target: Target::Direct(None),
             });
         }
-        if relic_counter_fire(RelicName::IncenseBurner, 6, &state.id_relics, &mut state.entities) {
+        if trigger_relic_counter(
+            RelicName::IncenseBurner,
+            6,
+            &state.id_relics,
+            &mut state.entities,
+        ) {
             state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierGain {
                     kind: ModifierKind::Intangible,
@@ -219,7 +229,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Thorns-type damage: id_source None skips Strength/Weak scaling and Envenom
+        // Thorns-type: unscaled, no Envenom
         if state.id_relics[RelicName::MercuryHourglass as usize].is_some() {
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {

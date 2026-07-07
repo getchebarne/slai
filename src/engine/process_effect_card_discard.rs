@@ -50,7 +50,7 @@ pub fn process_effect_card_discard(
                 });
             }
 
-            // Thorns-type damage: id_source None skips Strength/Weak scaling and Envenom
+            // Thorns-type: unscaled, no Envenom
             if state.id_relics[RelicName::Tingsha as usize].is_some() {
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::DamageDeal { amount: 3 },

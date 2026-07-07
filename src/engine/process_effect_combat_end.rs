@@ -4,9 +4,9 @@ use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_GOLD;
 use crate::consts::MAX_MONSTERS;
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::Amount;
 use crate::effect::Target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -91,15 +91,10 @@ fn combat_reset(state: &mut GameState) {
     state.this_combat_escaped = false;
     state.id_card_last_drawn = None;
 
+    // Combat modifiers don't persist; card combat-state lives on the discarded copies
     for entity in state.entities.iter_mut() {
-        match entity.kind {
-            EntityKind::Card => {
-                entity.card_retain = false;
-            }
-            EntityKind::Monster | EntityKind::Character => {
-                modifier_clear(&mut entity.modifiers);
-            }
-            _ => {}
+        if matches!(entity.kind, EntityKind::Monster | EntityKind::Character) {
+            modifier_clear(&mut entity.modifiers);
         }
     }
 

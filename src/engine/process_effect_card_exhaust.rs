@@ -1,13 +1,9 @@
-use rand::Rng;
-
-use crate::cards::POOL_COMMON_GREEN_CARD;
-use crate::cards::POOL_RARE_GREEN_CARD;
-use crate::cards::POOL_UNCOMMON_GREEN_CARD;
+use crate::cards::get_random_cards;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::types::CardName;
+use crate::types::CardColor;
 use crate::types::RelicName;
 
 pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameState) {
@@ -18,20 +14,10 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
     state.id_pile_exhaust.push(id_card);
 
     // Dead Branch: every exhaust conjures a random Silent card into the hand
+    // (all green cards are rewardable, so no kind/rarity filter is needed)
     if state.id_relics[RelicName::DeadBranch as usize].is_some() {
-        let mut buf = [CardName::Strike; 96];
-        let mut n = 0;
-        for pool in [
-            POOL_COMMON_GREEN_CARD,
-            POOL_UNCOMMON_GREEN_CARD,
-            POOL_RARE_GREEN_CARD,
-        ] {
-            for &name in pool {
-                buf[n] = name;
-                n += 1;
-            }
-        }
-        let card_name = buf[state.rng.random_range(0..n)];
+        let card_name =
+            get_random_cards(CardColor::Green, None, None, &[], 1, &mut state.rng)[0].card_name;
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAddToHand {
                 card_name,

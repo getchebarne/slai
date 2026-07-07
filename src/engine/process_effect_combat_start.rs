@@ -1,8 +1,8 @@
 use crate::consts::MAX_SIZE_DECK;
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::effect::Amount;
 use crate::game::GameState;
 use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
@@ -10,8 +10,6 @@ use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
-use crate::types::DeltaSign;
-use crate::types::MonsterKind;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::push_entity;
@@ -23,7 +21,10 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     state.this_turn_cards_played = 0;
 
     // Combat can end mid-turn, skipping the turn-end reset
-    for &name in RELIC_COUNTERS_PER_TURN.iter().chain(RELIC_COUNTERS_PER_COMBAT) {
+    for &name in RELIC_COUNTERS_PER_TURN
+        .iter()
+        .chain(RELIC_COUNTERS_PER_COMBAT)
+    {
         if let Some(id) = state.id_relics[name as usize] {
             state.entities[id].relic_counter = 0;
         }
@@ -73,7 +74,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         }
     }
 
-    // Ancient Tea Set: primed at the last rest site; sip for 2 energy, then unprime
+    // Ancient Tea Set
     if let Some(id) = state.id_relics[RelicName::AncientTeaSet as usize]
         && state.entities[id].relic_counter == 1
     {
@@ -85,33 +86,55 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         });
     }
 
-    // Preserved Insect: elites start at 75% HP; direct write skips damage triggers
-    // (a HealthDelta would wake Lagavulin and decrement PlatedArmor)
+    // Pen Nib: a charge primed at combat end (counter 9) survives as the counter but not
+    // the modifier, so re-apply the double-next-attack charge here
+    if let Some(id) = state.id_relics[RelicName::PenNib as usize]
+        && state.entities[id].relic_counter == 9
+    {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::PenNib,
+                stacks: 1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
+    // Preserved Insect
     if state.id_relics[RelicName::PreservedInsect as usize].is_some()
         && matches!(
             get_active_room_kind(&state.id_rooms, state.location, &state.entities),
             Some(RoomKind::CombatElite)
         )
     {
-        let id_monsters = state.id_monsters;
-        for id in id_monsters.iter().flatten().copied() {
-            let vitals = &mut state.entities[id].vitals;
-            vitals.health = (vitals.health_max as u32 * 3 / 4) as u16;
+        for id in state.id_monsters.iter().flatten().copied() {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::HealthSet {
+                    amount: Amount::Relative {
+                        numerator: 3,
+                        denominator: 4,
+                    },
+                },
+                id_source: None,
+                target: Target::Direct(Some(id)),
+            });
         }
     }
 
-    // Du-Vu Doll: +1 Strength per Curse in the master deck
+    // Du-Vu Doll
     if state.id_relics[RelicName::DuVuDoll as usize].is_some() {
-        let curses = state
+        let num_curses = state
             .id_deck
             .iter()
             .filter(|&&id| state.entities[id].card_kind == CardKind::Curse)
             .count();
-        if curses > 0 {
+
+        if num_curses > 0 {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::ModifierGain {
                     kind: ModifierKind::Strength,
-                    stacks: curses as i16,
+                    stacks: num_curses as i16,
                 },
                 id_source: None,
                 target: Target::Direct(Some(state.id_character)),
@@ -119,25 +142,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         }
     }
 
-    // Pantograph: boss fights open with a 25 HP heal
-    if state.id_relics[RelicName::Pantograph as usize].is_some()
-        && state
-            .id_monsters
-            .iter()
-            .flatten()
-            .any(|&id| state.entities[id].monster_kind == MonsterKind::Boss)
-    {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::HealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(25),
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    // Sling of Courage: elite fights open with 2 Strength (eliteTrigger is elite-only)
+    // Sling of Courage: Elite fights open with 2 Strength
     if state.id_relics[RelicName::SlingOfCourage as usize].is_some()
         && matches!(
             get_active_room_kind(&state.id_rooms, state.location, &state.entities),

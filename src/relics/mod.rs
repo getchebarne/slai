@@ -203,17 +203,22 @@ pub fn get_relic(name: RelicName) -> Entity {
 }
 
 // Bump a relic's counter if owned; at `threshold` reset it to 0 and report the fire
-pub fn relic_counter_fire(
+pub fn trigger_relic_counter(
     name: RelicName,
     threshold: i16,
     id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &mut [Entity],
 ) -> bool {
     let Some(id) = id_relics[name as usize] else {
+        // If the relic is not owned, return
         return false;
     };
+
+    // Increase counter
     let counter = &mut entities[id].relic_counter;
     *counter += 1;
+
+    // Reset if needed
     if *counter >= threshold {
         *counter = 0;
         return true;
@@ -222,10 +227,7 @@ pub fn relic_counter_fire(
 }
 
 // Frozen/Molten/Toxic Egg: cards of the matching kind are obtained upgraded
-pub fn egg_upgrades_kind(
-    kind: CardKind,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-) -> bool {
+pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::COUNT]) -> bool {
     let egg = match kind {
         CardKind::Power => RelicName::FrozenEgg,
         CardKind::Attack => RelicName::MoltenEgg,

@@ -18,6 +18,8 @@ use crate::effect::CandidatePoolDeckFilter;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::modifier_has;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
@@ -27,6 +29,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::RelicName;
+use crate::types::Screen;
 
 // Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
@@ -97,6 +100,19 @@ pub fn reshuffle_discard_into_draw(
 ) {
     id_pile_draw.append(id_pile_discard);
     shuffle(&mut id_pile_draw[..], rng);
+}
+
+// Queue rest in Combat means the player is about to act; a drawable card ends the loop
+pub fn unceasing_top_fires(state: &GameState) -> bool {
+    state.id_relics[RelicName::UnceasingTop as usize].is_some()
+        && matches!(state.screen, Screen::Combat)
+        && state.effect_pending.is_none()
+        && state.id_hand.is_empty()
+        && !(state.id_pile_draw.is_empty() && state.id_pile_discard.is_empty())
+        && !modifier_has(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::NoDraw,
+        )
 }
 
 // Shared by the live damage pipeline and the FFI intent view
