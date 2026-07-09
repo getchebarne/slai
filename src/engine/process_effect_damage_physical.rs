@@ -5,7 +5,7 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
 use crate::types::RelicName;
@@ -31,7 +31,7 @@ pub fn process_effect_damage_physical(
     let id_source = id_source.expect("DamagePhysical requires id_source");
     let id_target = id_target.expect("DamagePhysical requires id_target");
     let target = &state.entities[id_target];
-    if if_poisoned && (target.dead || !modifier_has(&target.modifiers, ModifierKind::Poison)) {
+    if if_poisoned && (target.dead || !has_modifier(&target.modifiers, ModifierKind::Poison)) {
         return;
     }
 
@@ -57,12 +57,12 @@ pub fn process_effect_damage_physical(
     // Vigor folds into the base
     let base_with_vigor = amount
         + strike_bonus
-        + if modifier_has(mods_actor, ModifierKind::Vigor) {
+        + if has_modifier(mods_actor, ModifierKind::Vigor) {
             modifier_stacks(mods_actor, ModifierKind::Vigor).max(0) as u16
         } else {
             0
         };
-    let str_stacks = if modifier_has(mods_actor, ModifierKind::Strength) {
+    let str_stacks = if has_modifier(mods_actor, ModifierKind::Strength) {
         modifier_stacks(mods_actor, ModifierKind::Strength)
     } else {
         0
@@ -73,22 +73,22 @@ pub fn process_effect_damage_physical(
     let mut final_damage = scale_attack_damage(
         base_with_vigor,
         str_stacks,
-        modifier_has(mods_actor, ModifierKind::Weak),
+        has_modifier(mods_actor, ModifierKind::Weak),
         weak_paper_krane,
-        modifier_has(mods_target, ModifierKind::Vulnerable),
+        has_modifier(mods_target, ModifierKind::Vulnerable),
     );
-    if modifier_has(mods_actor, ModifierKind::DoubleDamage) {
+    if has_modifier(mods_actor, ModifierKind::DoubleDamage) {
         final_damage = final_damage.saturating_mul(2);
     }
-    if modifier_has(mods_actor, ModifierKind::PenNib) {
+    if has_modifier(mods_actor, ModifierKind::PenNib) {
         final_damage = final_damage.saturating_mul(2);
     }
-    if modifier_has(mods_target, ModifierKind::Intangible) && final_damage > 1 {
+    if has_modifier(mods_target, ModifierKind::Intangible) && final_damage > 1 {
         final_damage = 1;
     }
 
     // Thorns: triggers per attack instance regardless of damage actually dealt
-    if id_actor != id_target && modifier_has(mods_target, ModifierKind::Thorns) {
+    if id_actor != id_target && has_modifier(mods_target, ModifierKind::Thorns) {
         let stacks = modifier_stacks(mods_target, ModifierKind::Thorns);
         state.effect_queue.push_front(Effect {
             kind: EffectKind::DamageDeal {

@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
@@ -15,7 +15,7 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
         return;
     };
 
-    let stacks_thievery = if modifier_has(&entity.modifiers, ModifierKind::Thievery) {
+    let stacks_thievery = if has_modifier(&entity.modifiers, ModifierKind::Thievery) {
         Some(modifier_stacks(&entity.modifiers, ModifierKind::Thievery) as u8)
     } else {
         None

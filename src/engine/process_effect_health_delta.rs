@@ -7,7 +7,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_def;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::lagavulin;
@@ -66,7 +66,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     // Buffer: absorb one HP-loss instance outright, before anything reacts to it
     if amount > 0 {
         let modifiers = &mut state.entities[id_target].modifiers;
-        if modifier_has(modifiers, ModifierKind::Buffer) {
+        if has_modifier(modifiers, ModifierKind::Buffer) {
             if modifier_stacks(modifiers, ModifierKind::Buffer) <= 1 {
                 modifier_remove(modifiers, ModifierKind::Buffer);
             } else {
@@ -110,7 +110,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     let entity = &mut state.entities[id_target];
 
     // TODO: should only decrement for physical attacks
-    if amount > 0 && modifier_has(&entity.modifiers, ModifierKind::PlatedArmor) {
+    if amount > 0 && has_modifier(&entity.modifiers, ModifierKind::PlatedArmor) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::PlatedArmor,
@@ -134,7 +134,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     }
 
     // Splittable: any damage at ≤½ HP overrides next MoveExecute to Split; consume marker
-    if modifier_has(&entity.modifiers, ModifierKind::Splittable)
+    if has_modifier(&entity.modifiers, ModifierKind::Splittable)
         && entity.vitals.health <= entity.vitals.health_max / 2
     {
         let idx_split = match entity.monster_name {
@@ -151,7 +151,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     }
 
     // Lagavulin: any HP loss wakes him -> Stunned move, drop Asleep + Metallicize
-    if modifier_has(&entity.modifiers, ModifierKind::Asleep) {
+    if has_modifier(&entity.modifiers, ModifierKind::Asleep) {
         let stunned_idx = match entity.monster_name {
             MonsterName::Lagavulin => lagavulin::IDX_MOVE_STUNNED,
             _ => panic!(
@@ -164,7 +164,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         modifier_remove(&mut entity.modifiers, ModifierKind::Metallicize);
     }
 
-    if modifier_has(&entity.modifiers, ModifierKind::ModeShift) {
+    if has_modifier(&entity.modifiers, ModifierKind::ModeShift) {
         // ModeShift: damage reduces stacks, triggers move update on break
         let new_stacks =
             modifier_stacks(&entity.modifiers, ModifierKind::ModeShift) - amount as i16;

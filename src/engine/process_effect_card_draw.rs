@@ -4,11 +4,11 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
-    if modifier_has(
+    if has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::NoDraw,
     ) {

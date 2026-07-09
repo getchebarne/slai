@@ -14,7 +14,7 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -558,7 +558,7 @@ fn fill_legal_actions_effect_pending(
 
 fn fill_legal_actions_screen_combat(state: &mut GameState) {
     let id_character = state.id_character;
-    let entangled = modifier_has(
+    let entangled = has_modifier(
         &state.entities[id_character].modifiers,
         ModifierKind::Entangled,
     );
@@ -574,13 +574,12 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
             break;
         }
         let card = &state.entities[state.id_hand[i]];
-        let restriction_ok =
-            is_play_restriction_satisfied(
-                card.card_play_restriction,
-                card.card_kind,
-                &state.id_pile_draw,
-                &state.id_relics,
-            );
+        let restriction_ok = is_play_restriction_satisfied(
+            card.card_play_restriction,
+            card.card_kind,
+            &state.id_pile_draw,
+            &state.id_relics,
+        );
         let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
         if !restriction_ok || entangled_blocks {
             continue;
@@ -812,7 +811,6 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
             },
         });
     }
-
 }
 
 // Pops effect_pending and re-enqueues it as Direct for the resolved deck-card id

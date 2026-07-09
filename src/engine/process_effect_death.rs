@@ -7,7 +7,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
@@ -47,7 +47,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         None
     };
 
-    let spore_effect = if modifier_has(&monster.modifiers, ModifierKind::SporeCloud) {
+    let spore_effect = if has_modifier(&monster.modifiers, ModifierKind::SporeCloud) {
         let stacks = modifier_stacks(&monster.modifiers, ModifierKind::SporeCloud);
         Some(Effect {
             kind: EffectKind::ModifierGain {
@@ -62,12 +62,12 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     };
 
     // CorpseExplosion: max_health to others; no source scaling, no Envenom proc
-    let corpse_explosion = modifier_has(&monster.modifiers, ModifierKind::CorpseExplosion)
+    let corpse_explosion = has_modifier(&monster.modifiers, ModifierKind::CorpseExplosion)
         .then(|| monster.vitals.health_max);
 
     // The Specimen: the corpse's Poison moves to a random survivor
     let specimen_poison = (state.id_relics[RelicName::TheSpecimen as usize].is_some()
-        && modifier_has(&monster.modifiers, ModifierKind::Poison))
+        && has_modifier(&monster.modifiers, ModifierKind::Poison))
     .then(|| modifier_stacks(&monster.modifiers, ModifierKind::Poison));
 
     state.entities[id_target].dead = true;

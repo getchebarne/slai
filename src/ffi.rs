@@ -27,7 +27,8 @@ use crate::game::Location;
 use crate::map::edge_indices;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
-use crate::modifier::modifier_has;
+use crate::modifier::active_modifier_kinds;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_is_buff;
 use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::modifier_stacks;
@@ -2756,7 +2757,7 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 }
 
                 let damage = base_damage.map(|d| {
-                    let str_stacks = if modifier_has(&m.modifiers, ModifierKind::Strength) {
+                    let str_stacks = if has_modifier(&m.modifiers, ModifierKind::Strength) {
                         modifier_stacks(&m.modifiers, ModifierKind::Strength)
                     } else {
                         0
@@ -2764,11 +2765,11 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     let mut scaled = scale_attack_damage(
                         d,
                         str_stacks,
-                        modifier_has(&m.modifiers, ModifierKind::Weak),
+                        has_modifier(&m.modifiers, ModifierKind::Weak),
                         state.id_relics[RelicName::PaperKrane as usize].is_some(),
-                        modifier_has(mods_char, ModifierKind::Vulnerable),
+                        has_modifier(mods_char, ModifierKind::Vulnerable),
                     );
-                    if modifier_has(mods_char, ModifierKind::Intangible) && scaled > 1 {
+                    if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
                         scaled = 1;
                     }
                     scaled
@@ -2801,43 +2802,37 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
 }
 
 fn snapshot_modifiers(mods: &Modifiers) -> Vec<PyModifier> {
-    let mut out = Vec::new();
-    let mut bits = mods.active;
-    while bits != 0 {
-        let idx = bits.trailing_zeros() as usize;
-        bits &= bits - 1;
-        let kind = modifier_kind_from_u8(idx as u8);
-        out.push(PyModifier {
+    active_modifier_kinds(mods.active)
+        .map(|kind| PyModifier {
             kind: kind.into(),
-            stacks: mods.stacks[idx],
+            stacks: mods.stacks[kind as usize],
             stacks_max: stacks_max_for(kind),
-        });
-    }
-    out
+        })
+        .collect()
 }
 
 // Snapshot a card's effects with the current player modifiers folded into the DamagePhysical /
 // BlockGain amounts (target-agnostic — Vulnerable/Intangible depend on the L3 target chosen later),
 // via the same scaling utils as the live pipeline. Other effect kinds pass through unchanged.
 fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffect> {
-    let vigor = if modifier_has(char_mods, ModifierKind::Vigor) {
+    let vigor = if has_modifier(char_mods, ModifierKind::Vigor) {
         modifier_stacks(char_mods, ModifierKind::Vigor).max(0) as u16
     } else {
         0
     };
-    let str_stacks = if modifier_has(char_mods, ModifierKind::Strength) {
+    let str_stacks = if has_modifier(char_mods, ModifierKind::Strength) {
         modifier_stacks(char_mods, ModifierKind::Strength)
     } else {
         0
     };
-    let weak = modifier_has(char_mods, ModifierKind::Weak);
-    let double = modifier_has(char_mods, ModifierKind::DoubleDamage);
-    let dex = if modifier_has(char_mods, ModifierKind::Dexterity) {
+    let weak = has_modifier(char_mods, ModifierKind::Weak);
+    let double = has_modifier(char_mods, ModifierKind::DoubleDamage);
+    let dex = if has_modifier(char_mods, ModifierKind::Dexterity) {
         modifier_stacks(char_mods, ModifierKind::Dexterity)
     } else {
         0
     };
-    let frail = modifier_has(char_mods, ModifierKind::Frail);
+    let frail = has_modifier(char_mods, ModifierKind::Frail);
 
     card.card_effects[..card.card_effects_len as usize]
         .iter()
@@ -2868,7 +2863,7 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
 
 fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let card = &state.entities[id_card];
-    let entangled = modifier_has(
+    let entangled = has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::Entangled,
     );

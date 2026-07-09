@@ -8,7 +8,7 @@ use crate::effect::Target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
@@ -20,7 +20,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
     let id_actor = id_target.expect("TurnEnd (monster) requires id_target");
     let modifiers = &state.entities[id_actor].modifiers;
 
-    if modifier_has(modifiers, ModifierKind::Shackled) {
+    if has_modifier(modifiers, ModifierKind::Shackled) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierRemove {
@@ -40,7 +40,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
     }
 
     let modifiers = &state.entities[id_actor].modifiers;
-    if modifier_has(modifiers, ModifierKind::Ritual)
+    if has_modifier(modifiers, ModifierKind::Ritual)
         && !modifiers.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(modifiers, ModifierKind::Ritual);
@@ -55,7 +55,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
     }
 
     let modifiers = &state.entities[id_actor].modifiers;
-    if modifier_has(modifiers, ModifierKind::Metallicize) {
+    if has_modifier(modifiers, ModifierKind::Metallicize) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Metallicize);
         state.effect_queue.push_front(Effect {
             kind: EffectKind::BlockGain {
@@ -67,7 +67,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
     }
 
     let modifiers = &state.entities[id_actor].modifiers;
-    if modifier_has(modifiers, ModifierKind::PlatedArmor) {
+    if has_modifier(modifiers, ModifierKind::PlatedArmor) {
         let stacks = modifier_stacks(modifiers, ModifierKind::PlatedArmor);
         state.effect_queue.push_front(Effect {
             kind: EffectKind::BlockGain {
@@ -152,7 +152,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     let mods_char = &state.entities[id_character].modifiers;
-    if modifier_has(mods_char, ModifierKind::Retain) && !state.id_hand.is_empty() {
+    if has_modifier(mods_char, ModifierKind::Retain) && !state.id_hand.is_empty() {
         let stacks = modifier_stacks(mods_char, ModifierKind::Retain);
         state.effect_buf.push(Effect {
             kind: EffectKind::CardRetain,
@@ -166,7 +166,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    if modifier_has(mods_char, ModifierKind::Ritual)
+    if has_modifier(mods_char, ModifierKind::Ritual)
         && !mods_char.is_new[ModifierKind::Ritual as usize]
     {
         let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
@@ -180,7 +180,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    if modifier_has(mods_char, ModifierKind::PlatedArmor) {
+    if has_modifier(mods_char, ModifierKind::PlatedArmor) {
         let stacks = modifier_stacks(mods_char, ModifierKind::PlatedArmor);
         state.effect_buf.push(Effect {
             kind: EffectKind::BlockGain {
@@ -191,7 +191,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    if modifier_has(mods_char, ModifierKind::WraithForm) {
+    if has_modifier(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
@@ -309,7 +309,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     });
 
     let mods_char = &state.entities[id_character].modifiers;
-    if modifier_has(mods_char, ModifierKind::Burst) {
+    if has_modifier(mods_char, ModifierKind::Burst) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Burst,
@@ -319,7 +319,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    if modifier_has(mods_char, ModifierKind::NoDraw) {
+    if has_modifier(mods_char, ModifierKind::NoDraw) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::NoDraw,
@@ -329,7 +329,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    if modifier_has(mods_char, ModifierKind::Entangled) {
+    if has_modifier(mods_char, ModifierKind::Entangled) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Entangled,

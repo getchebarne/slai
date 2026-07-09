@@ -11,7 +11,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -211,7 +211,7 @@ pub fn get_next_move_lagavulin(
         return IDX_MOVE_SLEEP;
     }
 
-    if modifier_has(modifiers, ModifierKind::Asleep) {
+    if has_modifier(modifiers, ModifierKind::Asleep) {
         // Count trailing Sleep moves in history
         let trailing_sleeps = move_history
             .iter()

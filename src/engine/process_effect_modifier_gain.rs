@@ -6,7 +6,7 @@ use crate::types::RelicName;
 use crate::modifier::Modifiers;
 use crate::modifier::modifier_apply;
 use crate::modifier::modifier_def;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 
@@ -58,7 +58,7 @@ pub fn process_effect_modifier_gain(
     // Check artifact
     let is_debuff_attempt = (stacks > 0 && !modifier_def(kind).is_buff)
         || (stacks < 0 && (kind == ModifierKind::Dexterity || kind == ModifierKind::Strength));
-    if is_debuff_attempt && modifier_has(modifiers, ModifierKind::Artifact) {
+    if is_debuff_attempt && has_modifier(modifiers, ModifierKind::Artifact) {
         let stacks_new = modifier_stacks(modifiers, ModifierKind::Artifact) - 1;
         if stacks_new < modifier_def(ModifierKind::Artifact).stacks_min {
             modifier_remove(modifiers, ModifierKind::Artifact);
@@ -70,7 +70,7 @@ pub fn process_effect_modifier_gain(
 
     // Negative stacks reduce existing modifier, removing if below minimum
     if stacks < 0 {
-        if modifier_has(modifiers, kind) {
+        if has_modifier(modifiers, kind) {
             let idx = kind as usize;
             modifiers.stacks[idx] += stacks;
             let mod_def = modifier_def(kind);

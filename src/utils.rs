@@ -19,7 +19,7 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
@@ -109,7 +109,7 @@ pub fn unceasing_top_fires(state: &GameState) -> bool {
         && state.effect_pending.is_none()
         && state.id_hand.is_empty()
         && !(state.id_pile_draw.is_empty() && state.id_pile_discard.is_empty())
-        && !modifier_has(
+        && !has_modifier(
             &state.entities[state.id_character].modifiers,
             ModifierKind::NoDraw,
         )

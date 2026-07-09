@@ -9,9 +9,9 @@ use crate::entity::CardCostKind;
 use crate::entity::get_card_effective_cost;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::active_modifier_kinds;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_is_buff;
-use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::modifier_stacks;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardKind;
@@ -181,8 +181,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // Orange Pellets: Attack + Skill + Power in one turn sweeps all debuffs
-    if let Some(id_pellets) = state.id_relics[RelicName::OrangePellets as usize] {
-        orange_pellets_track_and_sweep(state, id_pellets, card.card_kind, id_character);
+    if let Some(id_relic_pellets) = state.id_relics[RelicName::OrangePellets as usize] {
+        orange_pellets_track_and_sweep(state, card.card_kind, id_relic_pellets, id_character);
     }
 
     // Clear `free_to_play_once` flag
@@ -263,7 +263,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let char_modifiers = &state.entities[id_character].modifiers;
 
     // After Image
-    if modifier_has(char_modifiers, ModifierKind::AfterImage) {
+    if has_modifier(char_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
         state.effect_buf.push(Effect {
             kind: EffectKind::BlockGain {
@@ -275,7 +275,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // Thousand Cuts
-    if modifier_has(char_modifiers, ModifierKind::ThousandCuts) {
+    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for id_monster in state.id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
@@ -292,7 +292,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     if card.card_kind == CardKind::Attack {
         for id_monster in state.id_monsters.iter().flatten().copied() {
             let monster_modifiers = &state.entities[id_monster].modifiers;
-            if modifier_has(monster_modifiers, ModifierKind::SharpHide) {
+            if has_modifier(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
@@ -320,7 +320,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         _ => 1,
     };
     let burst =
-        modifier_has(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
+        has_modifier(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
     let reps = if burst { 2 * mul } else { mul };
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
@@ -342,7 +342,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // Vigor
-    if card.card_kind == CardKind::Attack && modifier_has(char_modifiers, ModifierKind::Vigor) {
+    if card.card_kind == CardKind::Attack && has_modifier(char_modifiers, ModifierKind::Vigor) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Vigor,
@@ -355,7 +355,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     // Choke (enemy): pushed after card_effects so the played card resolves first
     for id_monster in state.id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;
-        if modifier_has(mods_monster, ModifierKind::Choke) {
+        if has_modifier(mods_monster, ModifierKind::Choke) {
             let stacks = modifier_stacks(mods_monster, ModifierKind::Choke);
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
@@ -372,7 +372,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     if card.card_kind == CardKind::Skill {
         for id_monster in state.id_monsters.iter().flatten().copied() {
             let mods_monster = &state.entities[id_monster].modifiers;
-            if modifier_has(mods_monster, ModifierKind::Enrage) {
+            if has_modifier(mods_monster, ModifierKind::Enrage) {
                 let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);
                 state.effect_buf.push(Effect {
                     kind: EffectKind::ModifierGain {
@@ -403,37 +403,43 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     flush_effects_from_buf_to_queue_front(state);
 }
 
-// Zeroes the cost of one random hand card that still costs energy this turn.
-// Excludes the just-played card (still in id_hand here), X-cost, and base-0 cards.
+// Zeroes the cost of one random hand card that still costs energy this turn
 fn free_random_costed_hand_card(
     state: &mut GameState,
-    id_played: usize,
+    id_card_played: usize,
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
 ) {
-    let mut eligible = [0usize; MAX_SIZE_HAND];
-    let mut n = 0;
-    for &id in &state.id_hand {
-        if id == id_played {
+    let mut cards_valid = [0usize; MAX_SIZE_HAND];
+    let mut num = 0;
+    for &id_card in &state.id_hand {
+        // Exclude just-played card
+        if id_card == id_card_played {
             continue;
         }
-        let c = &state.entities[id];
-        let base_positive =
-            !matches!(c.card_cost_kind, CardCostKind::XCost { .. }) && c.card_cost > 0;
-        let effective = get_card_effective_cost(
-            c,
+
+        // Calculate base and effective costs
+        let card = &state.entities[id_card];
+        let cost_base_positive =
+            !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) && card.card_cost > 0;
+        let cost_effective = get_card_effective_cost(
+            card,
             this_turn_discards,
             this_combat_damage_instances_taken,
             energy_current,
         );
-        if base_positive && effective > 0 {
-            eligible[n] = id;
-            n += 1;
+
+        // Only consider eligible if the base cost and effective costs are grater than zero (excludes X-cost)
+        if cost_base_positive && cost_effective > 0 {
+            cards_valid[num] = id_card;
+            num += 1;
         }
     }
-    if n > 0 {
-        let id_pick = eligible[state.rng.random_range(0..n)];
+
+    // Sample
+    if num > 0 {
+        let id_pick = cards_valid[state.rng.random_range(0..num)];
         state.effect_queue.push_back(Effect {
             kind: EffectKind::SetCostOverride { amount: 0 },
             id_source: None,
@@ -443,36 +449,39 @@ fn free_random_costed_hand_card(
 }
 
 // Tracks the played kind in a seen-kinds bitmask (Attack=1, Skill=2, Power=4) on the
-// relic counter; once all three are seen in a turn, clears the character's debuffs and resets.
+// relic counter; once all three are seen in a turn, clears the character's debuffs and resets
 fn orange_pellets_track_and_sweep(
     state: &mut GameState,
-    id_pellets: usize,
     card_kind: CardKind,
+    id_relic_pellets: usize,
     id_character: usize,
 ) {
+    // Get bit
     let bit = match card_kind {
         CardKind::Attack => 1,
         CardKind::Skill => 2,
         CardKind::Power => 4,
         _ => return,
     };
-    let counter = &mut state.entities[id_pellets].relic_counter;
+
+    // Increase `relic_counter`
+    let counter = &mut state.entities[id_relic_pellets].relic_counter;
     *counter |= bit;
+
+    // If all three types (Attack, Skill, Power) have not been played yet, return
     if *counter != 7 {
         return;
     }
-    *counter = 0;
 
-    let mods = &state.entities[id_character].modifiers;
-    let mut bits = mods.active;
-    while bits != 0 {
-        let idx = bits.trailing_zeros() as usize;
-        bits &= bits - 1;
-        let kind = modifier_kind_from_u8(idx as u8);
-        // Negative Strength/Dexterity count as debuffs despite is_buff
-        let negative_stat = matches!(kind, ModifierKind::Strength | ModifierKind::Dexterity)
-            && mods.stacks[idx] < 0;
-        if !modifier_is_buff(kind) || negative_stat {
+    // Else, reset the counter and queue the debuff-clearing effects
+    *counter = 0;
+    let char_mods = &state.entities[id_character].modifiers;
+    for kind in active_modifier_kinds(char_mods.active) {
+        if !modifier_is_buff(kind)
+            // Negative Strength / Dexterity count as debuffs despite `is_buff` flag
+            || matches!(kind, ModifierKind::Strength | ModifierKind::Dexterity)
+                && char_mods.stacks[kind as usize] < 0
+        {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::ModifierRemove { kind },
                 id_source: None,

@@ -420,14 +420,29 @@ pub fn modifier_stacks(mods: &Modifiers, kind: ModifierKind) -> i16 {
     mods.stacks[kind as usize]
 }
 
-pub fn modifier_has(mods: &Modifiers, kind: ModifierKind) -> bool {
+pub fn has_modifier(mods: &Modifiers, kind: ModifierKind) -> bool {
     mods.active & (1 << kind as u32) != 0
+}
+
+// Iterate the ModifierKinds set in an `active` bitmask. Takes the mask by value (a
+// snapshot), so the source Modifiers may be mutated while iterating. `kind as usize`
+// recovers the index into `stacks`/`is_new`.
+pub fn active_modifier_kinds(active: u64) -> impl Iterator<Item = ModifierKind> {
+    let mut bits = active;
+    std::iter::from_fn(move || {
+        if bits == 0 {
+            return None;
+        }
+        let kind = modifier_kind_from_u8(bits.trailing_zeros() as u8);
+        bits &= bits - 1;
+        Some(kind)
+    })
 }
 
 pub fn modifier_apply(mods: &mut Modifiers, kind: ModifierKind, stacks: i16) {
     let mod_def = modifier_def(kind);
     let idx = kind as usize;
-    if modifier_has(mods, kind) {
+    if has_modifier(mods, kind) {
         mods.stacks[idx] =
             (mods.stacks[idx] + stacks).clamp(mod_def.stacks_min, mod_def.stacks_max);
     } else {
@@ -445,11 +460,8 @@ pub fn modifier_remove(mods: &mut Modifiers, kind: ModifierKind) {
 }
 
 pub fn modifier_tick(mods: &mut Modifiers) {
-    let mut bits = mods.active;
-    while bits != 0 {
-        let idx = bits.trailing_zeros() as usize;
-        bits &= bits - 1;
-        let kind = modifier_kind_from_u8(idx as u8);
+    for kind in active_modifier_kinds(mods.active) {
+        let idx = kind as usize;
         let mod_def = modifier_def(kind);
         if mod_def.stacks_duration && !mods.is_new[idx] {
             mods.stacks[idx] -= 1;

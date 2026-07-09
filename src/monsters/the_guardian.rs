@@ -11,7 +11,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -423,7 +423,7 @@ pub fn get_next_move_the_guardian_full(
         .last()
         .expect("`move_history` cannot be empty here") as usize;
 
-    if modifier_has(modifiers, ModifierKind::ModeShift) {
+    if has_modifier(modifiers, ModifierKind::ModeShift) {
         match move_last {
             IDX_MOVE_CHARGING_UP => IDX_MOVE_FIERCE_BASH,
             IDX_MOVE_FIERCE_BASH => IDX_MOVE_VENT_STEAM,
@@ -435,7 +435,7 @@ pub fn get_next_move_the_guardian_full(
                 move_last
             ),
         }
-    } else if modifier_has(modifiers, ModifierKind::SharpHide) {
+    } else if has_modifier(modifiers, ModifierKind::SharpHide) {
         match move_last {
             IDX_MOVE_DEFENSIVE_MODE => IDX_MOVE_ROLL_ATTACK,
             IDX_MOVE_ROLL_ATTACK => IDX_MOVE_TWIN_SLAM,

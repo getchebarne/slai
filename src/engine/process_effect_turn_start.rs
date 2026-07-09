@@ -7,7 +7,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::relics::trigger_relic_counter;
@@ -29,7 +29,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     let modifiers = &mut entity.modifiers;
     let vitals = &mut entity.vitals;
 
-    if modifier_has(modifiers, ModifierKind::Poison) {
+    if has_modifier(modifiers, ModifierKind::Poison) {
         state.effect_buf.push(Effect {
             kind: EffectKind::PoisonTick,
             id_source: None,
@@ -38,14 +38,14 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     }
 
     let mut new_block: u16 = 0;
-    if modifier_has(modifiers, ModifierKind::Blur) {
+    if has_modifier(modifiers, ModifierKind::Blur) {
         new_block += vitals.block;
     }
     // Calipers: retain block minus 15 instead of losing all; max with Blur, never additive
     if id_actor == id_character && state.id_relics[RelicName::Calipers as usize].is_some() {
         new_block = new_block.max(vitals.block.saturating_sub(15));
     }
-    if modifier_has(modifiers, ModifierKind::NextTurnBlock) {
+    if has_modifier(modifiers, ModifierKind::NextTurnBlock) {
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
         modifier_remove(modifiers, ModifierKind::NextTurnBlock);
     }
@@ -55,7 +55,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         target: Target::Direct(Some(id_actor)),
     });
 
-    if modifier_has(modifiers, ModifierKind::Phantasmal) {
+    if has_modifier(modifiers, ModifierKind::Phantasmal) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::DoubleDamage,
@@ -101,7 +101,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        if modifier_has(modifiers, ModifierKind::NoxiousFumes) {
+        if has_modifier(modifiers, ModifierKind::NoxiousFumes) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NoxiousFumes);
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
@@ -134,7 +134,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        if modifier_has(modifiers, ModifierKind::DrawCardNextTurn) {
+        if has_modifier(modifiers, ModifierKind::DrawCardNextTurn) {
             let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw {
@@ -152,7 +152,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        if modifier_has(modifiers, ModifierKind::ToolsOfTheTrade) {
+        if has_modifier(modifiers, ModifierKind::ToolsOfTheTrade) {
             let stacks = modifier_stacks(modifiers, ModifierKind::ToolsOfTheTrade);
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw {
@@ -175,7 +175,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
+        if has_modifier(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
             state.effect_buf.push(Effect {
                 kind: EffectKind::EnergyGain {
@@ -187,7 +187,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             modifier_remove(modifiers, ModifierKind::NextTurnEnergy);
         }
 
-        if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
+        if has_modifier(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardAddToHand {
