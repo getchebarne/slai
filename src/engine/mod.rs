@@ -465,8 +465,8 @@ fn dispatch_by_kind(
                 process_effect_turn_end::process_effect_turn_end_monster(id_target, state)
             }
         }
-        EffectKind::MoveUpdate => {
-            process_effect_move_update::process_effect_move_update(id_target, state)
+        EffectKind::MoveUpdate { move_override } => {
+            process_effect_move_update::process_effect_move_update(id_target, state, move_override)
         }
         EffectKind::MoveExecute => {
             process_effect_move_execute::process_effect_move_execute(id_target, state)

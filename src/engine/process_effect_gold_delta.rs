@@ -10,21 +10,10 @@ use crate::types::Screen;
 pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount: Amount) {
     let amount = match amount {
         Amount::Absolute(a) => a,
-        Amount::Relative {
-            numerator,
-            denominator,
-        } => {
-            let gold = state.entities[state.id_character].character_gold;
-            ((gold as u32 * numerator as u32) / denominator as u32) as u16
-        }
-        Amount::RelativeRounded {
-            numerator,
-            denominator,
-        } => {
-            let gold = state.entities[state.id_character].character_gold;
-            ((gold as u32 * numerator as u32 + denominator as u32 / 2) / denominator as u32) as u16
-        }
         Amount::Range { min, max } => state.rng.random_range(min..=max),
+        Amount::Relative { .. } | Amount::RelativeRounded { .. } => {
+            unreachable!("GoldDelta only resolves Absolute or Range")
+        }
     };
 
     // Maw Bank deactivates the first time gold is spent at a shop (event costs don't count)
@@ -36,6 +25,7 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
         state.entities[id].relic_used_up = true;
     }
 
+    // Apply delta
     let character = &mut state.entities[state.id_character];
     character.character_gold = match sign {
         DeltaSign::Gain => character

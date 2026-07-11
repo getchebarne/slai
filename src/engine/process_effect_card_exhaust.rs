@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::cards::get_random_cards;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -15,7 +16,7 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
 
     // Dead Branch: every exhaust conjures a random Silent card into the hand
     // (all green cards are rewardable, so no kind/rarity filter is needed)
-    if state.id_relics[RelicName::DeadBranch as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::DeadBranch) {
         let card_name =
             get_random_cards(CardColor::Green, None, None, &[], 1, &mut state.rng)[0].card_name;
         state.effect_queue.push_back(Effect {

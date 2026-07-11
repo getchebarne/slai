@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::DiscardSource;
@@ -51,7 +52,7 @@ pub fn process_effect_card_discard(
             }
 
             // Thorns-type: unscaled, no Envenom
-            if state.id_relics[RelicName::Tingsha as usize].is_some() {
+            if has_relic(&state.id_relics, RelicName::Tingsha) {
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::DamageDeal { amount: 3 },
                     id_source: None,
@@ -64,7 +65,7 @@ pub fn process_effect_card_discard(
                 });
             }
             // Relic-sourced block: id_source None skips Dex/Frail scaling
-            if state.id_relics[RelicName::ToughBandages as usize].is_some() {
+            if has_relic(&state.id_relics, RelicName::ToughBandages) {
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::BlockGain { amount: 3 },
                     id_source: None,

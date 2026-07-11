@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
@@ -106,7 +107,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     state.effect_buf.clear();
 
     // Relic effects go through effect_buf so they resolve before the monster turns
-    if this_turn_attacks == 0 && state.id_relics[RelicName::ArtOfWar as usize].is_some() {
+    if this_turn_attacks == 0 && has_relic(&state.id_relics, RelicName::ArtOfWar) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::NextTurnEnergy,
@@ -116,7 +117,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
             target: Target::Direct(Some(id_character)),
         });
     }
-    if this_turn_cards_played <= 3 && state.id_relics[RelicName::Pocketwatch as usize].is_some() {
+    if this_turn_cards_played <= 3 && has_relic(&state.id_relics, RelicName::Pocketwatch) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::DrawCardNextTurn,
@@ -128,7 +129,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
     // Relic-sourced block: id_source None skips Dex/Frail scaling
     if state.entities[id_character].vitals.block == 0
-        && state.id_relics[RelicName::Orichalcum as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::Orichalcum)
     {
         state.effect_buf.push(Effect {
             kind: EffectKind::BlockGain { amount: 6 },
@@ -291,7 +292,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
             target: Target::Direct(Some(id_monster)),
         });
         state.effect_buf.push(Effect {
-            kind: EffectKind::MoveUpdate,
+            kind: EffectKind::MoveUpdate { move_override: None },
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });

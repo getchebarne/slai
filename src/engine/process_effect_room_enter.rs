@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::utils::has_relic;
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::consts::EVENT_SHRINE_CHANCE;
@@ -59,7 +60,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
 
             // Pantograph: boss fights open with a 25 HP heal
-            if state.id_relics[RelicName::Pantograph as usize].is_some() {
+            if has_relic(&state.id_relics, RelicName::Pantograph) {
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Gain,
@@ -81,7 +82,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::RestSite => {
             state.screen = Screen::RestSite;
             // Eternal Feather: 3 HP per 5 deck cards on arrival
-            if state.id_relics[RelicName::EternalFeather as usize].is_some() {
+            if has_relic(&state.id_relics, RelicName::EternalFeather) {
                 let heal = (state.id_deck.len() / 5) * 3;
                 if heal > 0 {
                     state.effect_queue.push_back(Effect {
@@ -124,7 +125,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
         RoomKind::Shop => {
             state.screen = Screen::Shop;
-            if state.id_relics[RelicName::MealTicket as usize].is_some() {
+            if has_relic(&state.id_relics, RelicName::MealTicket) {
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Gain,
@@ -209,7 +210,7 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
 
     // Juzu Bracelet: a monster resolution becomes an event (after the drift settles)
     if resolved == RoomKind::CombatMonster
-        && state.id_relics[RelicName::JuzuBracelet as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::JuzuBracelet)
     {
         resolved = RoomKind::EventRoom;
     }

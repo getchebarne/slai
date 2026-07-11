@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::utils::has_relic;
 use crate::consts::GOLD_ELITE_MAX;
 use crate::consts::GOLD_ELITE_MIN;
 use crate::consts::GOLD_MONSTER_MAX;
@@ -66,7 +67,7 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
         )
     });
     // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
-    let potion_drops = state.id_relics[RelicName::WhiteBeastStatue as usize].is_some()
+    let potion_drops = has_relic(&state.id_relics, RelicName::WhiteBeastStatue)
         || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod);
     state.reward_id_potion = potion_drops.then(|| {
         let name = get_random_potion_name(&mut state.rng, false);
@@ -75,7 +76,7 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
     state.reward_gold = gold_range.map(|(min, max)| {
         let gold = state.rng.random_range(min..=max);
         // GoldenIdol: +25% rounded half-up on combat rewards only
-        if state.id_relics[RelicName::GoldenIdol as usize].is_some() {
+        if has_relic(&state.id_relics, RelicName::GoldenIdol) {
             gold + (gold + 2) / 4
         } else {
             gold

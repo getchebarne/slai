@@ -4,6 +4,7 @@ use pyo3_stub_gen::derive::gen_stub_pyclass_complex_enum;
 use pyo3_stub_gen::derive::gen_stub_pyclass_enum;
 use pyo3_stub_gen::derive::gen_stub_pymethods;
 
+use crate::utils::has_relic;
 use crate::action::Action;
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
@@ -50,6 +51,7 @@ use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Screen;
 use crate::utils::scale_attack_damage;
+use crate::utils::weak_factor;
 use crate::utils::scale_block_gain;
 
 #[gen_stub_pyclass_enum]
@@ -2765,8 +2767,10 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     let mut scaled = scale_attack_damage(
                         d,
                         str_stacks,
-                        has_modifier(&m.modifiers, ModifierKind::Weak),
-                        state.id_relics[RelicName::PaperKrane as usize].is_some(),
+                        weak_factor(
+                            has_modifier(&m.modifiers, ModifierKind::Weak),
+                            has_relic(&state.id_relics, RelicName::PaperKrane),
+                        ),
                         has_modifier(mods_char, ModifierKind::Vulnerable),
                     );
                     if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
@@ -2843,8 +2847,7 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
                 let mut d = scale_attack_damage(
                     amount.saturating_add(vigor),
                     str_stacks,
-                    weak,
-                    false,
+                    weak_factor(weak, false),
                     false,
                 );
                 if double {

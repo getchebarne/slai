@@ -2,6 +2,7 @@
 
 use strum::EnumCount;
 
+use crate::utils::has_relic;
 use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_SIZE_HAND;
@@ -407,8 +408,8 @@ pub fn is_play_restriction_satisfied(
     match restriction {
         PlayRestriction::Always => true,
         PlayRestriction::Never => match card_kind {
-            CardKind::Curse => id_relics[RelicName::BlueCandle as usize].is_some(),
-            CardKind::Status => id_relics[RelicName::MedicalKit as usize].is_some(),
+            CardKind::Curse => has_relic(id_relics, RelicName::BlueCandle),
+            CardKind::Status => has_relic(id_relics, RelicName::MedicalKit),
             _ => false,
         },
         PlayRestriction::DrawPileEmpty => id_pile_draw.is_empty(),

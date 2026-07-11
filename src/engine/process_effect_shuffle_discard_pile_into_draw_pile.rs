@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -14,7 +15,7 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
     );
 
     // Relic-sourced block: id_source None skips Dex/Frail scaling
-    if state.id_relics[RelicName::Abacus as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::Abacus) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::BlockGain { amount: 6 },
             id_source: None,

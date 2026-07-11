@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
@@ -360,7 +361,7 @@ fn handle_rest(state: &mut GameState) {
         target: Target::Direct(Some(id_character)),
     });
     // Regal Pillow: resting heals 15 more
-    if state.id_relics[RelicName::RegalPillow as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::RegalPillow) {
         state.effect_buf.push(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,

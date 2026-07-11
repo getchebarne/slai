@@ -5,20 +5,22 @@ use crate::monsters::hexaghost;
 use crate::monsters::is_cycle_boundary;
 use crate::types::MonsterName;
 
-pub fn process_effect_move_update(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_move_update(
+    id_target: Option<usize>,
+    state: &mut GameState,
+    move_override: Option<usize>,
+) {
     let id_target = id_target.expect("MoveUpdate requires id_target");
     let ascension_level = state.ascension;
     let id_monsters = state.id_monsters;
     let character_health = state.entities[state.id_character].vitals.health;
 
     let entity = &mut state.entities[id_target];
-    let move_next = get_next_move(
-        entity,
-        id_target,
-        &id_monsters,
-        ascension_level,
-        &mut state.rng,
-    );
+    // A forced move (Split, wake-up) skips the AI and its RNG draw
+    let move_next = match move_override {
+        Some(idx) => idx,
+        None => get_next_move(entity, id_target, &id_monsters, ascension_level, &mut state.rng),
+    };
 
     entity.monster_move_current = Some(move_next);
 

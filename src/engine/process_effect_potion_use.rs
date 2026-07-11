@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -20,7 +21,7 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
     }
 
     // Toy Ornithopter: any potion use heals 5, in or out of combat
-    if state.id_relics[RelicName::ToyOrnithopter as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::ToyOrnithopter) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,

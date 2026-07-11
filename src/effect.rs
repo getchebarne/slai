@@ -137,7 +137,9 @@ pub enum EffectKind {
         name: MonsterName,
     },
     MoveExecute,
-    MoveUpdate,
+    MoveUpdate {
+        move_override: Option<usize>,
+    },
     NoOp,
     PoisonTick,
     PotionAddRandom {

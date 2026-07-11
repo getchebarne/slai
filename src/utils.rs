@@ -45,6 +45,10 @@ pub fn push_entity(entities: &mut Vec<Entity>, e: Entity) -> usize {
     id
 }
 
+pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName) -> bool {
+    id_relics[name as usize].is_some()
+}
+
 pub fn clear_shop_state(state: &mut GameState) {
     state.shop_id_cards.clear();
     state.shop_id_relics.clear();
@@ -104,7 +108,7 @@ pub fn reshuffle_discard_into_draw(
 
 // Queue rest in Combat means the player is about to act; a drawable card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
-    state.id_relics[RelicName::UnceasingTop as usize].is_some()
+    has_relic(&state.id_relics, RelicName::UnceasingTop)
         && matches!(state.screen, Screen::Combat)
         && state.effect_pending.is_none()
         && state.id_hand.is_empty()
@@ -116,21 +120,22 @@ pub fn unceasing_top_fires(state: &GameState) -> bool {
 }
 
 // Shared by the live damage pipeline and the FFI intent view
+pub fn weak_factor(is_weak: bool, paper_krane: bool) -> f32 {
+    match (is_weak, paper_krane) {
+        (false, _) => 1.0,
+        (true, false) => FACTOR_WEAK,
+        (true, true) => FACTOR_WEAK_PAPER_KRANE,
+    }
+}
+
+// Shared by the live damage pipeline and the FFI intent view
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
-    source_is_weak: bool,
-    weak_paper_krane: bool,
+    weak_factor: f32,
     target_is_vulnerable: bool,
 ) -> u16 {
-    let mut value = base as f32 + source_str_stacks as f32;
-    if source_is_weak {
-        value *= if weak_paper_krane {
-            FACTOR_WEAK_PAPER_KRANE
-        } else {
-            FACTOR_WEAK
-        };
-    }
+    let mut value = (base as f32 + source_str_stacks as f32) * weak_factor;
     if target_is_vulnerable {
         value *= FACTOR_VULN;
     }

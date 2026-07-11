@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::utils::has_relic;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Amount;
 use crate::effect::Effect;
@@ -144,7 +145,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     // On-power play triggers
     if card.card_kind == CardKind::Power {
         // Bird-Faced Urn
-        if state.id_relics[RelicName::BirdFacedUrn as usize].is_some() {
+        if has_relic(&state.id_relics, RelicName::BirdFacedUrn) {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Gain,
@@ -155,7 +156,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             });
         }
         // Mummified Hand: make a random still-costed hand card free this turn
-        if state.id_relics[RelicName::MummifiedHand as usize].is_some() {
+        if has_relic(&state.id_relics, RelicName::MummifiedHand) {
             free_random_costed_hand_card(
                 state,
                 id_card,
@@ -210,7 +211,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     // Blue Candle / Medical Kit: relic-enabled plays exhaust; the candle also costs 1 HP
     let relic_exhaust = if card.card_kind == CardKind::Curse
-        && state.id_relics[RelicName::BlueCandle as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::BlueCandle)
     {
         state.effect_buf.push(Effect {
             kind: EffectKind::HealthDelta {
@@ -222,7 +223,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         });
         true
     } else if card.card_kind == CardKind::Status
-        && state.id_relics[RelicName::MedicalKit as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::MedicalKit)
     {
         true
     } else {
@@ -232,7 +233,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     // Relocate the card to the appropriate pile
     if card.card_exhaust || relic_exhaust {
         // Strange Spoon: on-play exhausts have a 50% chance to discard instead
-        let effect_kind = if state.id_relics[RelicName::StrangeSpoon as usize].is_some()
+        let effect_kind = if has_relic(&state.id_relics, RelicName::StrangeSpoon)
             && state.rng.random_range(0..100) < 50
         {
             EffectKind::CardMoveToDiscard
@@ -311,7 +312,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         CardCostKind::XCost { offset } => {
             let x = (energy_current as i16 + offset as i16).max(0) as usize;
             // Chemical X: X+2 on effect reps; energy paid is unchanged
-            if state.id_relics[RelicName::ChemicalX as usize].is_some() {
+            if has_relic(&state.id_relics, RelicName::ChemicalX) {
                 x + 2
             } else {
                 x

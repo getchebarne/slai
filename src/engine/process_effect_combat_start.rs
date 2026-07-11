@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Amount;
 use crate::effect::Effect;
@@ -102,7 +103,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Preserved Insect
-    if state.id_relics[RelicName::PreservedInsect as usize].is_some()
+    if has_relic(&state.id_relics, RelicName::PreservedInsect)
         && matches!(
             get_active_room_kind(&state.id_rooms, state.location, &state.entities),
             Some(RoomKind::CombatElite)
@@ -123,7 +124,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Du-Vu Doll
-    if state.id_relics[RelicName::DuVuDoll as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::DuVuDoll) {
         let num_curses = state
             .id_deck
             .iter()
@@ -143,7 +144,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Sling of Courage: Elite fights open with 2 Strength
-    if state.id_relics[RelicName::SlingOfCourage as usize].is_some()
+    if has_relic(&state.id_relics, RelicName::SlingOfCourage)
         && matches!(
             get_active_room_kind(&state.id_rooms, state.location, &state.entities),
             Some(RoomKind::CombatElite)

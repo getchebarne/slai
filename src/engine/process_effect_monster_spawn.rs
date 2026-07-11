@@ -52,7 +52,7 @@ pub fn process_effect_monster_spawn(
     state.id_monsters[slot] = Some(id_child);
 
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::MoveUpdate,
+        kind: EffectKind::MoveUpdate { move_override: None },
         id_source: None,
         target: Target::Direct(Some(id_child)),
     });

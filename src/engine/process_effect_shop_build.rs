@@ -1,6 +1,7 @@
 use rand::Rng;
 use strum::EnumCount;
 
+use crate::utils::has_relic;
 use crate::cards::get_random_cards;
 use crate::consts::ASCENSION_SHOP_PRICE_BUMP_DENOM;
 use crate::consts::ASCENSION_SHOP_PRICE_BUMP_LEVEL;
@@ -87,7 +88,7 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     }
     state.shop_purge_cost = state.shop_purge_cost_run;
     // Smiling Mask: the removal service is always 50 gold
-    if state.id_relics[RelicName::SmilingMask as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::SmilingMask) {
         state.shop_purge_cost = 50;
     }
 }

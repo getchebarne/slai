@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::cards::get_card;
 use crate::effect::Effect;
 use crate::effect::Amount;
@@ -28,7 +29,7 @@ pub fn process_effect_card_add_to_deck(state: &mut GameState, card_name: CardNam
     }
 
     // Darkstone Periapt: obtaining a curse raises max HP by 6 and heals 6
-    if kind == CardKind::Curse && state.id_relics[RelicName::DarkstonePeriapt as usize].is_some() {
+    if kind == CardKind::Curse && has_relic(&state.id_relics, RelicName::DarkstonePeriapt) {
         let id_character = state.id_character;
         state.effect_queue.push_back(Effect {
             kind: EffectKind::MaxHealthDelta {

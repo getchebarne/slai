@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -22,9 +23,9 @@ pub fn process_effect_modifier_gain(
     if id_target == state.id_character
         && stacks > 0
         && ((kind == ModifierKind::Weak
-            && state.id_relics[RelicName::Ginger as usize].is_some())
+            && has_relic(&state.id_relics, RelicName::Ginger))
             || (kind == ModifierKind::Frail
-                && state.id_relics[RelicName::Turnip as usize].is_some()))
+                && has_relic(&state.id_relics, RelicName::Turnip)))
     {
         return;
     }
@@ -35,7 +36,7 @@ pub fn process_effect_modifier_gain(
     let stacks = if kind == ModifierKind::Poison
         && stacks > 0
         && matches!(entity.kind, EntityKind::Monster)
-        && state.id_relics[RelicName::SneckoSkull as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::SneckoSkull)
     {
         stacks + 1
     } else {

@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
@@ -42,7 +43,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         new_block += vitals.block;
     }
     // Calipers: retain block minus 15 instead of losing all; max with Blur, never additive
-    if id_actor == id_character && state.id_relics[RelicName::Calipers as usize].is_some() {
+    if id_actor == id_character && has_relic(&state.id_relics, RelicName::Calipers) {
         new_block = new_block.max(vitals.block.saturating_sub(15));
     }
     if has_modifier(modifiers, ModifierKind::NextTurnBlock) {
@@ -75,7 +76,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             target: Target::Direct(None),
         });
         // Ice Cream: refill adds a full energy_max on top instead of topping up
-        let energy_gain = if state.id_relics[RelicName::IceCream as usize].is_some() {
+        let energy_gain = if has_relic(&state.id_relics, RelicName::IceCream) {
             energy_max
         } else {
             energy_max.saturating_sub(energy_current)
@@ -230,7 +231,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
 
         // Thorns-type: unscaled, no Envenom
-        if state.id_relics[RelicName::MercuryHourglass as usize].is_some() {
+        if has_relic(&state.id_relics, RelicName::MercuryHourglass) {
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal { amount: 3 },

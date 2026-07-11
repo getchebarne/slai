@@ -1,24 +1,23 @@
-use rand::Rng;
-
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_def;
 use crate::modifier::has_modifier;
+use crate::modifier::modifier_def;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::lagavulin;
 use crate::monsters::slime_acid_large;
-use crate::monsters::the_guardian;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
+use crate::monsters::the_guardian;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::Screen;
+use crate::utils::has_relic;
 
 pub fn process_effect_health_delta(
     id_target: Option<usize>,
@@ -27,6 +26,8 @@ pub fn process_effect_health_delta(
     amount: Amount,
 ) {
     let id_target = id_target.expect("HealthDelta requires id_target");
+
+    // Resolve amount
     let amount = match amount {
         Amount::Absolute(a) => a,
         Amount::Relative {
@@ -49,8 +50,10 @@ pub fn process_effect_health_delta(
                 DeltaSign::Gain => raw as u16,
             }
         }
-        Amount::Range { min, max } => state.rng.random_range(min..=max),
+        Amount::Range { .. } => unreachable!("HealthDelta is never constructed with Range"),
     };
+
+    // Apply amount
     match sign {
         DeltaSign::Gain => apply_gain(id_target, state, amount),
         DeltaSign::Loss => apply_loss(id_target, state, amount),
@@ -79,7 +82,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     // Tungsten Rod: every HP loss is reduced by 1, before anything reacts to it
     let amount = if id_target == state.id_character
         && amount > 0
-        && state.id_relics[RelicName::TungstenRod as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::TungstenRod)
     {
         amount - 1
     } else {
@@ -101,16 +104,18 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         });
     }
 
-    // MasterfulStab GrowsOnDamageInstanceTaken: bump per post-block character damage
+    // Bump number of damage instances taken this combat
     if id_target == state.id_character && amount > 0 && matches!(state.screen, Screen::Combat) {
         state.this_combat_damage_instances_taken =
             state.this_combat_damage_instances_taken.saturating_add(1);
     }
 
-    let entity = &mut state.entities[id_target];
+    // Get mutable target reference
+    let target = &mut state.entities[id_target];
 
+    // Plated Armor: Decrement stacks
     // TODO: should only decrement for physical attacks
-    if amount > 0 && has_modifier(&entity.modifiers, ModifierKind::PlatedArmor) {
+    if amount > 0 && has_modifier(&target.modifiers, ModifierKind::PlatedArmor) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::PlatedArmor,
@@ -121,10 +126,11 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         });
     }
 
-    let entity = &mut state.entities[id_target];
-    entity.vitals.health = entity.vitals.health.saturating_sub(amount);
+    // Decrement health
+    target.vitals.health = target.vitals.health.saturating_sub(amount);
 
-    if entity.vitals.health == 0 {
+    // Check if the target's dead. If so, queue death effect and return early
+    if target.vitals.health == 0 {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::Death,
             id_source: None,
@@ -133,49 +139,83 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         return;
     }
 
-    // Splittable: any damage at ≤½ HP overrides next MoveExecute to Split; consume marker
-    if has_modifier(&entity.modifiers, ModifierKind::Splittable)
-        && entity.vitals.health <= entity.vitals.health_max / 2
+    // Splittable: any damage at <= health_max / 2 overrides next move to Split
+    if has_modifier(&target.modifiers, ModifierKind::Splittable)
+        && target.vitals.health <= target.vitals.health_max / 2
     {
-        let idx_split = match entity.monster_name {
+        let idx_split = match target.monster_name {
             MonsterName::SlimeAcidLarge => slime_acid_large::IDX_MOVE_SPLIT,
             MonsterName::SlimeSpikeLarge => slime_spike_large::IDX_MOVE_SPLIT,
             MonsterName::SlimeBoss => slime_boss::IDX_MOVE_SPLIT,
             _ => panic!(
                 "Splittable on unexpected monster: {:?}",
-                entity.monster_name
+                target.monster_name
             ),
         };
-        entity.monster_move_current = Some(idx_split);
-        modifier_remove(&mut entity.modifiers, ModifierKind::Splittable);
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::MoveUpdate {
+                move_override: Some(idx_split),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Splittable,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
     }
 
-    // Lagavulin: any HP loss wakes him -> Stunned move, drop Asleep + Metallicize
-    if has_modifier(&entity.modifiers, ModifierKind::Asleep) {
-        let stunned_idx = match entity.monster_name {
+    // Lagavulin: any HP loss wakes him up
+    if has_modifier(&target.modifiers, ModifierKind::Asleep) {
+        let idx_stunned = match target.monster_name {
             MonsterName::Lagavulin => lagavulin::IDX_MOVE_STUNNED,
             _ => panic!(
                 "Unsupported monster name for Asleep modifier: {:?}",
-                entity.monster_name
+                target.monster_name
             ),
         };
-        entity.monster_move_current = Some(stunned_idx);
-        modifier_remove(&mut entity.modifiers, ModifierKind::Asleep);
-        modifier_remove(&mut entity.modifiers, ModifierKind::Metallicize);
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::MoveUpdate {
+                move_override: Some(idx_stunned),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Asleep,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Metallicize,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
     }
 
-    if has_modifier(&entity.modifiers, ModifierKind::ModeShift) {
-        // ModeShift: damage reduces stacks, triggers move update on break
+    // Mode Shift (The Guardian): Damage reduces stacks, triggers move update on break
+    if has_modifier(&target.modifiers, ModifierKind::ModeShift) {
         let new_stacks =
-            modifier_stacks(&entity.modifiers, ModifierKind::ModeShift) - amount as i16;
+            modifier_stacks(&target.modifiers, ModifierKind::ModeShift) - amount as i16;
+
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
-            modifier_remove(&mut entity.modifiers, ModifierKind::ModeShift);
+            modifier_remove(&mut target.modifiers, ModifierKind::ModeShift);
             if id_target != state.id_character {
                 state.effect_queue.push_front(Effect {
-                    kind: EffectKind::MoveUpdate,
+                    kind: EffectKind::MoveUpdate {
+                        move_override: None,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(id_target)),
                 });
+
                 // Entering Defensive Mode grants block before the move swap resolves
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::BlockGain {
@@ -184,9 +224,11 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
                     id_source: Some(id_target),
                     target: Target::Direct(Some(id_target)),
                 });
+            } else {
+                panic!("Tried to remove Mode Shift from the Character")
             }
         } else {
-            entity.modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;
+            target.modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;
         }
     }
 }
