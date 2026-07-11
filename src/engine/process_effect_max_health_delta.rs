@@ -9,6 +9,8 @@ pub fn process_effect_max_health_delta(
     amount: Amount,
 ) {
     let id_target = id_target.expect("MaxHealthDelta requires id_target");
+
+    // Resolve amount
     let amount = match amount {
         Amount::Absolute(a) => a,
         Amount::Relative {
@@ -23,10 +25,12 @@ pub fn process_effect_max_health_delta(
                 DeltaSign::Gain => raw as u16,
             }
         }
-        Amount::RelativeRounded { .. } | Amount::Range { .. } => {
+        _ => {
             unreachable!("MaxHealthDelta only resolves Absolute or Relative")
         }
     };
+
+    // Apply amount
     let vitals = &mut state.entities[id_target].vitals;
     match sign {
         DeltaSign::Gain => {

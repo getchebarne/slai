@@ -114,7 +114,6 @@ pub enum EffectKind {
     HexaghostBurnIncrease {
         count: u8,
     },
-    HexaghostDivider,
     MaxHealthDelta {
         sign: DeltaSign,
         amount: Amount,

@@ -1,7 +1,6 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::utils::has_relic;
 use crate::cards::get_random_cards;
 use crate::consts::ASCENSION_SHOP_PRICE_BUMP_DENOM;
 use crate::consts::ASCENSION_SHOP_PRICE_BUMP_LEVEL;
@@ -24,8 +23,8 @@ use crate::consts::SHOP_PRICE_RELIC_RARE;
 use crate::consts::SHOP_PRICE_RELIC_SHOP;
 use crate::consts::SHOP_PRICE_RELIC_UNCOMMON;
 use crate::consts::SHOP_RELIC_TH_COMMON;
-use crate::consts::SHOP_SLOTS_CARD_COLORED;
 use crate::consts::SHOP_RELIC_TH_UNCOMMON;
+use crate::consts::SHOP_SLOTS_CARD_COLORED;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
@@ -41,6 +40,7 @@ use crate::types::CardRarity;
 use crate::types::PotionRarity;
 use crate::types::RelicName;
 use crate::utils::clear_shop_state;
+use crate::utils::has_relic;
 use crate::utils::pick_from_pool;
 use crate::utils::push_entity;
 
@@ -86,14 +86,15 @@ pub fn process_effect_shop_build(state: &mut GameState) {
             *price = bump_price_a16(*price);
         }
     }
-    state.shop_purge_cost = state.shop_purge_cost_run;
+
     // Smiling Mask: the removal service is always 50 gold
     if has_relic(&state.id_relics, RelicName::SmilingMask) {
         state.shop_purge_cost = 50;
+    } else {
+        state.shop_purge_cost = state.shop_purge_cost_run;
     }
 }
 
-// ×11/10 rounded half-up
 fn bump_price_a16(price: u16) -> u16 {
     ((price as u32 * ASCENSION_SHOP_PRICE_BUMP_NUMER as u32
         + ASCENSION_SHOP_PRICE_BUMP_DENOM as u32 / 2)

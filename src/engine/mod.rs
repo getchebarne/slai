@@ -44,7 +44,6 @@ pub mod process_effect_health_delta;
 pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
-pub mod process_effect_hexaghost_divider;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
@@ -485,9 +484,6 @@ fn dispatch_by_kind(
             process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase(
                 state, count,
             )
-        }
-        EffectKind::HexaghostDivider => {
-            process_effect_hexaghost_divider::process_effect_hexaghost_divider(id_source, state)
         }
         EffectKind::GoldDelta { sign, amount } => {
             process_effect_gold_delta::process_effect_gold_delta(state, sign, amount)

@@ -4,9 +4,7 @@ use pyo3_stub_gen::derive::gen_stub_pyclass_complex_enum;
 use pyo3_stub_gen::derive::gen_stub_pyclass_enum;
 use pyo3_stub_gen::derive::gen_stub_pymethods;
 
-use crate::utils::has_relic;
 use crate::action::Action;
-use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
@@ -34,7 +32,6 @@ use crate::modifier::modifier_is_buff;
 use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::modifier_stacks;
 use crate::modifier::stacks_max_for;
-use crate::monsters::hexaghost;
 use crate::relics::iter_owned_relics;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -50,9 +47,10 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Screen;
+use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
-use crate::utils::weak_factor;
 use crate::utils::scale_block_gain;
+use crate::utils::weak_factor;
 
 #[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "CardKind", module = "slai.slai")]
@@ -2734,7 +2732,7 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
 
             let intent = if let Some(move_idx) = m.monster_move_current {
                 let mv = &m.monster_moves[move_idx];
-                let (mut base_damage, mut instances) = match mv.intent {
+                let (base_damage, instances) = match mv.intent {
                     Intent::Attack { damage, instances }
                     | Intent::AttackBlock { damage, instances }
                     | Intent::AttackBuff { damage, instances }
@@ -2749,14 +2747,6 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Stunned
                     | Intent::Unknown => (None, None),
                 };
-
-                // Hexaghost Divider's per-hit damage is dynamic (HP/12 + 1, fixed at selection); override the static placeholder
-                if m.monster_name == MonsterName::Hexaghost
-                    && move_idx == hexaghost::IDX_MOVE_DIVIDER
-                {
-                    base_damage = Some(m.monster_divider_damage);
-                    instances = Some(HEXAGHOST_DIVIDER_HITS);
-                }
 
                 let damage = base_damage.map(|d| {
                     let str_stacks = if has_modifier(&m.modifiers, ModifierKind::Strength) {

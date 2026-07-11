@@ -7,6 +7,7 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
+use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::CardName;
@@ -15,9 +16,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_FLAME_TACKLE_8: Move = Move {
-    name: "Flame Tackle",
-    effects: &[
+static MOVE_FLAME_TACKLE_8: Move = make_move(
+    "Flame Tackle",
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
@@ -36,14 +37,14 @@ static MOVE_FLAME_TACKLE_8: Move = Move {
             target: Target::Direct(None),
         },
     ],
-    intent: Intent::AttackDebuff {
+    Intent::AttackDebuff {
         damage: 8,
         instances: 1,
     },
-};
-static MOVE_FLAME_TACKLE_10: Move = Move {
-    name: "Flame Tackle",
-    effects: &[
+);
+static MOVE_FLAME_TACKLE_10: Move = make_move(
+    "Flame Tackle",
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
@@ -62,14 +63,14 @@ static MOVE_FLAME_TACKLE_10: Move = Move {
             target: Target::Direct(None),
         },
     ],
-    intent: Intent::AttackDebuff {
+    Intent::AttackDebuff {
         damage: 10,
         instances: 1,
     },
-};
-static MOVE_LICK: Move = Move {
-    name: "Lick",
-    effects: &[Effect {
+);
+static MOVE_LICK: Move = make_move(
+    "Lick",
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Frail,
             stacks: 1,
@@ -80,8 +81,8 @@ static MOVE_LICK: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Debuff,
-};
+    Intent::Debuff,
+);
 
 static MOVES_ASC0: [Move; 2] = [MOVE_FLAME_TACKLE_8, MOVE_LICK];
 static MOVES_ASC2: [Move; 2] = [MOVE_FLAME_TACKLE_10, MOVE_LICK];

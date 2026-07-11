@@ -1,3 +1,6 @@
+use crate::consts::HEXAGHOST_DIVIDER_HITS;
+use crate::effect::EffectKind;
+use crate::entity::Intent;
 use crate::entity::push_move_history;
 use crate::game::GameState;
 use crate::monsters::get_next_move;
@@ -19,14 +22,30 @@ pub fn process_effect_move_update(
     // A forced move (Split, wake-up) skips the AI and its RNG draw
     let move_next = match move_override {
         Some(idx) => idx,
-        None => get_next_move(entity, id_target, &id_monsters, ascension_level, &mut state.rng),
+        None => get_next_move(
+            entity,
+            id_target,
+            &id_monsters,
+            ascension_level,
+            &mut state.rng,
+        ),
     };
 
     entity.monster_move_current = Some(move_next);
 
     // Divider damage locks in at selection; later HP changes don't move it
     if entity.monster_name == MonsterName::Hexaghost && move_next == hexaghost::IDX_MOVE_DIVIDER {
-        entity.monster_divider_damage = character_health / 12 + 1;
+        let damage = character_health / 12 + 1;
+        let move_divider = &mut entity.monster_moves[hexaghost::IDX_MOVE_DIVIDER];
+        for effect in move_divider.effects[..move_divider.effects_len as usize].iter_mut() {
+            if let EffectKind::DamagePhysical { amount } = &mut effect.kind {
+                *amount = damage;
+            }
+        }
+        move_divider.intent = Intent::Attack {
+            damage,
+            instances: HEXAGHOST_DIVIDER_HITS,
+        };
     }
 
     let move_idx = move_next as u8;

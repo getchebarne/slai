@@ -44,7 +44,7 @@ pub static DAGGER_THROW: Entity = make_entity_card(
         },
         Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit,
+                source: DiscardSource::Explicit, // Triggers on-discard sinergies
             },
             id_source: None,
             target: Target::Resolve {

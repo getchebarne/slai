@@ -7,6 +7,7 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
+use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
@@ -15,9 +16,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BITE: Move = Move {
-    name: "Bite",
-    effects: &[Effect {
+static MOVE_BITE: Move = make_move(
+    "Bite",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
@@ -25,14 +26,14 @@ static MOVE_BITE: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 6,
         instances: 1,
     },
-};
-static MOVE_GROW_3: Move = Move {
-    name: "Grow",
-    effects: &[Effect {
+);
+static MOVE_GROW_3: Move = make_move(
+    "Grow",
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Strength,
             stacks: 3,
@@ -43,11 +44,11 @@ static MOVE_GROW_3: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Buff,
-};
-static MOVE_GROW_4: Move = Move {
-    name: "Grow",
-    effects: &[Effect {
+    Intent::Buff,
+);
+static MOVE_GROW_4: Move = make_move(
+    "Grow",
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Strength,
             stacks: 4,
@@ -58,11 +59,11 @@ static MOVE_GROW_4: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Buff,
-};
-static MOVE_GROW_5: Move = Move {
-    name: "Grow",
-    effects: &[Effect {
+    Intent::Buff,
+);
+static MOVE_GROW_5: Move = make_move(
+    "Grow",
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Strength,
             stacks: 5,
@@ -73,8 +74,8 @@ static MOVE_GROW_5: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Buff,
-};
+    Intent::Buff,
+);
 static MOVES_ASC0: [Move; 2] = [MOVE_GROW_3, MOVE_BITE];
 static MOVES_ASC2: [Move; 2] = [MOVE_GROW_4, MOVE_BITE];
 static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];

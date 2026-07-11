@@ -1,9 +1,9 @@
-use crate::utils::has_relic;
 use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::game::Energy;
 use crate::game::GameState;
 use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
@@ -13,10 +13,17 @@ use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
 use crate::types::RelicName;
 use crate::types::RoomKind;
+use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(state: &mut GameState) {
+    // Energy starts empty; the turn-1 refill fills
+    state.energy = Energy {
+        energy_current: 0,
+        energy_max: 3, // TODO: Max energy relics
+    };
+
     state.this_combat_damage_instances_taken = 0;
     state.this_combat_escaped = false;
     state.this_turn_cards_played = 0;
