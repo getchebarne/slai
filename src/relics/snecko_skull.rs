@@ -1,0 +1,8 @@
+use crate::entity::Entity;
+use crate::entity::make_entity_relic;
+use crate::types::RelicName;
+use crate::types::RelicTier;
+
+// Applying Poison to an enemy applies 1 more
+pub static SNECKO_SKULL: Entity =
+    make_entity_relic(RelicName::SneckoSkull, RelicTier::Common, 0, &[]);

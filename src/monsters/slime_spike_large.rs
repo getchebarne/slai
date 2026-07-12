@@ -7,6 +7,7 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
+use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
@@ -16,9 +17,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_FLAME_TACKLE_16: Move = Move {
-    name: "Flame Tackle",
-    effects: &[
+static MOVE_FLAME_TACKLE_16: Move = make_move(
+    "Flame Tackle",
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 16 },
             id_source: None,
@@ -37,14 +38,14 @@ static MOVE_FLAME_TACKLE_16: Move = Move {
             target: Target::Direct(None),
         },
     ],
-    intent: Intent::AttackDebuff {
+    Intent::AttackDebuff {
         damage: 16,
         instances: 1,
     },
-};
-static MOVE_FLAME_TACKLE_18: Move = Move {
-    name: "Flame Tackle",
-    effects: &[
+);
+static MOVE_FLAME_TACKLE_18: Move = make_move(
+    "Flame Tackle",
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 18 },
             id_source: None,
@@ -63,14 +64,14 @@ static MOVE_FLAME_TACKLE_18: Move = Move {
             target: Target::Direct(None),
         },
     ],
-    intent: Intent::AttackDebuff {
+    Intent::AttackDebuff {
         damage: 18,
         instances: 1,
     },
-};
-static MOVE_LICK_FRAIL_2: Move = Move {
-    name: "Lick",
-    effects: &[Effect {
+);
+static MOVE_LICK_FRAIL_2: Move = make_move(
+    "Lick",
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Frail,
             stacks: 2,
@@ -81,11 +82,11 @@ static MOVE_LICK_FRAIL_2: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Debuff,
-};
-static MOVE_LICK_FRAIL_3: Move = Move {
-    name: "Lick",
-    effects: &[Effect {
+    Intent::Debuff,
+);
+static MOVE_LICK_FRAIL_3: Move = make_move(
+    "Lick",
+    &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Frail,
             stacks: 3,
@@ -96,11 +97,11 @@ static MOVE_LICK_FRAIL_3: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Debuff,
-};
-static MOVE_SPLIT: Move = Move {
-    name: "Split",
-    effects: &[
+    Intent::Debuff,
+);
+static MOVE_SPLIT: Move = make_move(
+    "Split",
+    &[
         Effect {
             kind: EffectKind::MonsterSpawn {
                 name: MonsterName::SlimeSpikeMedium,
@@ -130,8 +131,8 @@ static MOVE_SPLIT: Move = Move {
             },
         },
     ],
-    intent: Intent::Unknown,
-};
+    Intent::Unknown,
+);
 
 static MOVES_ASC0: [Move; 3] = [MOVE_FLAME_TACKLE_16, MOVE_LICK_FRAIL_2, MOVE_SPLIT];
 static MOVES_ASC2: [Move; 3] = [MOVE_FLAME_TACKLE_18, MOVE_LICK_FRAIL_2, MOVE_SPLIT];
@@ -181,7 +182,7 @@ pub fn get_next_move_slime_spike_large(
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
         if roll < 30 {
-            // Flame Tackle: Asc 17+ no-two-in-a-row -> fall back to Lick.
+            // Flame Tackle: Asc 17+ no-three-in-a-row -> fall back to Lick
             if move_history.ends_with(&[IDX_MOVE_FLAME_TACKLE as u8, IDX_MOVE_FLAME_TACKLE as u8]) {
                 IDX_MOVE_LICK
             } else {

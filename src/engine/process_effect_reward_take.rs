@@ -1,7 +1,11 @@
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
-use crate::potions::find_free_slot;
 use crate::types::RewardKind;
 
+// Claims hand the staged reward entity to the matching Adopt effect, which owns
+// registration and any on-pickup behavior
 pub fn process_effect_reward_take(
     id_target: Option<usize>,
     state: &mut GameState,
@@ -10,21 +14,32 @@ pub fn process_effect_reward_take(
     match kind {
         RewardKind::Card => {
             let id_card = id_target.expect("RewardTake { Card } requires id_target");
-            state.id_deck.push(id_card);
+
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardAdopt,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
+
+            // Clear the rest of the cards
             state.reward_id_cards.clear();
         }
         RewardKind::Relic => {
             if let Some(id) = state.reward_id_relic.take() {
-                let name = state.entities[id].relic_name;
-                state.id_relics[name as usize] = Some(id);
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::RelicAdopt,
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                });
             }
         }
         RewardKind::Potion => {
             if let Some(id) = state.reward_id_potion.take() {
-                let slot = find_free_slot(&state.id_potions, state.potion_slots_max).expect(
-                    "RewardTake { Potion }: belt full (action handler should have rejected)",
-                );
-                state.id_potions[slot] = Some(id);
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::PotionAdopt,
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                });
             }
         }
         RewardKind::Gold => {

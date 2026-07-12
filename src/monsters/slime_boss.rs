@@ -7,6 +7,7 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
+use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
@@ -15,9 +16,9 @@ use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 
-static MOVE_GOOP_SPRAY_3: Move = Move {
-    name: "Goop Spray",
-    effects: &[Effect {
+static MOVE_GOOP_SPRAY_3: Move = make_move(
+    "Goop Spray",
+    &[Effect {
         kind: EffectKind::CardAddToDiscard {
             card_name: CardName::Slimed,
             count: 3,
@@ -26,11 +27,11 @@ static MOVE_GOOP_SPRAY_3: Move = Move {
         id_source: None,
         target: Target::Direct(None),
     }],
-    intent: Intent::DebuffPowerful,
-};
-static MOVE_GOOP_SPRAY_5: Move = Move {
-    name: "Goop Spray",
-    effects: &[Effect {
+    Intent::DebuffPowerful,
+);
+static MOVE_GOOP_SPRAY_5: Move = make_move(
+    "Goop Spray",
+    &[Effect {
         kind: EffectKind::CardAddToDiscard {
             card_name: CardName::Slimed,
             count: 5,
@@ -39,16 +40,12 @@ static MOVE_GOOP_SPRAY_5: Move = Move {
         id_source: None,
         target: Target::Direct(None),
     }],
-    intent: Intent::DebuffPowerful,
-};
-static MOVE_PREPARING: Move = Move {
-    name: "Preparing",
-    effects: &[],
-    intent: Intent::Unknown,
-};
-static MOVE_SLAM_35: Move = Move {
-    name: "Slam",
-    effects: &[Effect {
+    Intent::DebuffPowerful,
+);
+static MOVE_PREPARING: Move = make_move("Preparing", &[], Intent::Unknown);
+static MOVE_SLAM_35: Move = make_move(
+    "Slam",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 35 },
         id_source: None,
         target: Target::Resolve {
@@ -56,14 +53,14 @@ static MOVE_SLAM_35: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 35,
         instances: 1,
     },
-};
-static MOVE_SLAM_38: Move = Move {
-    name: "Slam",
-    effects: &[Effect {
+);
+static MOVE_SLAM_38: Move = make_move(
+    "Slam",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 38 },
         id_source: None,
         target: Target::Resolve {
@@ -71,14 +68,14 @@ static MOVE_SLAM_38: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 38,
         instances: 1,
     },
-};
-static MOVE_SPLIT: Move = Move {
-    name: "Split",
-    effects: &[
+);
+static MOVE_SPLIT: Move = make_move(
+    "Split",
+    &[
         Effect {
             kind: EffectKind::MonsterSpawn {
                 name: MonsterName::SlimeSpikeLarge,
@@ -108,8 +105,8 @@ static MOVE_SPLIT: Move = Move {
             },
         },
     ],
-    intent: Intent::Unknown,
-};
+    Intent::Unknown,
+);
 
 static MOVES_ASC0: [Move; 4] = [MOVE_GOOP_SPRAY_3, MOVE_PREPARING, MOVE_SLAM_35, MOVE_SPLIT];
 static MOVES_ASC4: [Move; 4] = [MOVE_GOOP_SPRAY_3, MOVE_PREPARING, MOVE_SLAM_38, MOVE_SPLIT];

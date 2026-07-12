@@ -1,7 +1,11 @@
 // Fat Entity + EntityKind tag; build only via `make_entity_*` const fns
 
+use strum::EnumCount;
+
 use crate::consts::MAX_EFFECTS_PER_CARD;
+use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MOVE_HISTORY;
+use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
@@ -23,6 +27,7 @@ use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Vitals;
 use crate::types::ZERO_VITALS;
+use crate::utils::has_relic;
 use crate::utils::push_entity;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -73,8 +78,36 @@ pub enum Intent {
 #[derive(Debug, Clone, Copy)]
 pub struct Move {
     pub name: &'static str,
-    pub effects: &'static [Effect],
+    pub effects: [Effect; MAX_EFFECTS_PER_MOVE],
+    pub effects_len: u8,
     pub intent: Intent,
+}
+
+// Zero-fill sentinel; pads slots past effects_len / monster_moves_len
+pub const ZERO_MOVE: Move = Move {
+    name: "",
+    effects: [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE],
+    effects_len: 0,
+    intent: Intent::Unknown,
+};
+
+pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
+    assert!(
+        effects.len() <= MAX_EFFECTS_PER_MOVE,
+        "move effects exceeds MAX_EFFECTS_PER_MOVE",
+    );
+    let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
+    let mut i = 0;
+    while i < effects.len() {
+        arr[i] = effects[i];
+        i += 1;
+    }
+    Move {
+        name,
+        effects: arr,
+        effects_len: effects.len() as u8,
+        intent,
+    }
 }
 
 // Fat Entity
@@ -98,7 +131,8 @@ pub struct Entity {
     // Monster-only
     pub monster_name: MonsterName,
     pub monster_kind: MonsterKind,
-    pub monster_moves: &'static [Move],
+    pub monster_moves: [Move; MAX_MOVES_PER_MONSTER],
+    pub monster_moves_len: u8,
     pub monster_move_current: Option<usize>,
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_len: u8,
@@ -166,7 +200,8 @@ pub const ZERO_ENTITY: Entity = Entity {
     monster_stolen_gold: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
-    monster_moves: &[],
+    monster_moves: [ZERO_MOVE; MAX_MOVES_PER_MONSTER],
+    monster_moves_len: 0,
     monster_move_current: None,
     monster_move_history: [0; MAX_MOVE_HISTORY],
     monster_move_history_len: 0,
@@ -236,15 +271,26 @@ pub const fn make_entity_monster(
     monster_kind: MonsterKind,
     vitals: Vitals,
     modifiers: Modifiers,
-    monster_moves: &'static [Move],
+    moves: &[Move],
 ) -> Entity {
+    assert!(
+        moves.len() <= MAX_MOVES_PER_MONSTER,
+        "monster_moves exceeds MAX_MOVES_PER_MONSTER",
+    );
+    let mut arr = [ZERO_MOVE; MAX_MOVES_PER_MONSTER];
+    let mut i = 0;
+    while i < moves.len() {
+        arr[i] = moves[i];
+        i += 1;
+    }
     Entity {
         kind: EntityKind::Monster,
         vitals,
         modifiers,
         monster_name: name,
         monster_kind,
-        monster_moves,
+        monster_moves: arr,
+        monster_moves_len: moves.len() as u8,
         ..ZERO_ENTITY
     }
 }
@@ -354,7 +400,7 @@ pub const fn make_entity_event(name: EventName, options: &'static [EventOption])
     }
 }
 
-pub fn card_effective_cost(
+pub fn get_card_effective_cost(
     card: &Entity,
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
@@ -392,11 +438,21 @@ pub fn add_card_to_hand_or_discard(
     id_card
 }
 
-// Evaluate a PlayRestriction against the relevant slice of game state
-pub fn is_play_restriction_satisfied(restriction: PlayRestriction, id_pile_draw: &[usize]) -> bool {
+// Evaluate a PlayRestriction against the relevant slice of game state.
+// Blue Candle / Medical Kit lift the unplayable restriction for their card kind
+pub fn is_play_restriction_satisfied(
+    restriction: PlayRestriction,
+    card_kind: CardKind,
+    id_pile_draw: &[usize],
+    id_relics: &[Option<usize>; RelicName::COUNT],
+) -> bool {
     match restriction {
         PlayRestriction::Always => true,
-        PlayRestriction::Never => false,
+        PlayRestriction::Never => match card_kind {
+            CardKind::Curse => has_relic(id_relics, RelicName::BlueCandle),
+            CardKind::Status => has_relic(id_relics, RelicName::MedicalKit),
+            _ => false,
+        },
         PlayRestriction::DrawPileEmpty => id_pile_draw.is_empty(),
     }
 }
@@ -416,3 +472,4 @@ pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
 pub fn get_move_history_slice(entity: &Entity) -> &[u8] {
     &entity.monster_move_history[..entity.monster_move_history_len as usize]
 }
+

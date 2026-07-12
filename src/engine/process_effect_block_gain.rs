@@ -2,7 +2,7 @@ use crate::consts::MAX_BLOCK;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_has;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::utils::scale_block_gain;
 
@@ -21,12 +21,12 @@ pub fn process_effect_block_gain(
 
     let modifiers = &state.entities[id_target].modifiers;
     let final_block = if from_card {
-        let dex = if modifier_has(modifiers, ModifierKind::Dexterity) {
+        let dex = if has_modifier(modifiers, ModifierKind::Dexterity) {
             modifier_stacks(modifiers, ModifierKind::Dexterity)
         } else {
             0
         };
-        scale_block_gain(amount, dex, modifier_has(modifiers, ModifierKind::Frail))
+        scale_block_gain(amount, dex, has_modifier(modifiers, ModifierKind::Frail))
     } else {
         amount
     };

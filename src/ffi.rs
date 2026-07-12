@@ -5,7 +5,6 @@ use pyo3_stub_gen::derive::gen_stub_pyclass_enum;
 use pyo3_stub_gen::derive::gen_stub_pymethods;
 
 use crate::action::Action;
-use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
@@ -19,7 +18,7 @@ use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::PlayRestriction;
-use crate::entity::card_effective_cost;
+use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
 use crate::events::event_option_gate_satisfied;
 use crate::game::GameState;
@@ -27,12 +26,12 @@ use crate::game::Location;
 use crate::map::edge_indices;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
-use crate::modifier::modifier_has;
+use crate::modifier::active_modifier_kinds;
+use crate::modifier::has_modifier;
 use crate::modifier::modifier_is_buff;
 use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::modifier_stacks;
 use crate::modifier::stacks_max_for;
-use crate::monsters::hexaghost;
 use crate::relics::iter_owned_relics;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -48,8 +47,10 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Screen;
+use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
+use crate::utils::weak_factor;
 
 #[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "CardKind", module = "slai.slai")]
@@ -188,7 +189,12 @@ impl From<Amount> for PyAmount {
     fn from(amount: Amount) -> Self {
         match amount {
             Amount::Absolute(amount) => Self::Absolute { amount },
+            // Rounding mode is engine-internal; the view keeps one Relative shape
             Amount::Relative {
+                numerator,
+                denominator,
+            }
+            | Amount::RelativeRounded {
                 numerator,
                 denominator,
             } => Self::Relative {
@@ -309,6 +315,85 @@ pub enum PyRelicName {
     Vajra,
     Circlet,
     GoldenIdol,
+    Lantern,
+    ClockworkSouvenir,
+    GremlinVisage,
+    RedMask,
+    Nunchaku,
+    InkBottle,
+    LetterOpener,
+    OrnamentalFan,
+    BirdFacedUrn,
+    MummifiedHand,
+    OrangePellets,
+    StrangeSpoon,
+    ChemicalX,
+    ArtOfWar,
+    Orichalcum,
+    Pocketwatch,
+    StoneCalendar,
+    Abacus,
+    Sundial,
+    WhiteBeastStatue,
+    DollysMirror,
+    LeesWaffle,
+    HappyFlower,
+    IncenseBurner,
+    MercuryHourglass,
+    HornCleat,
+    CaptainsWheel,
+    Calipers,
+    IceCream,
+    SneckoSkull,
+    Ginger,
+    Turnip,
+    Tingsha,
+    ToughBandages,
+    GremlinHorn,
+    TheSpecimen,
+    LizardTail,
+    Boot,
+    Torii,
+    TungstenRod,
+    HandDrill,
+    StrikeDummy,
+    PaperKrane,
+    CentennialPuzzle,
+    MealTicket,
+    MawBank,
+    JuzuBracelet,
+    TinyChest,
+    EternalFeather,
+    AncientTeaSet,
+    RegalPillow,
+    MeatOnTheBone,
+    Omamori,
+    DarkstonePeriapt,
+    CeramicFish,
+    FrozenEgg,
+    MoltenEgg,
+    ToxicEgg,
+    ToyOrnithopter,
+    SmilingMask,
+    DeadBranch,
+    DuVuDoll,
+    Pantograph,
+    SlingOfCourage,
+    Strawberry,
+    Pear,
+    Mango,
+    OldCoin,
+    PotionBelt,
+    WarPaint,
+    Whetstone,
+    EmptyCage,
+    PandorasBox,
+    PenNib,
+    FossilizedHelix,
+    PreservedInsect,
+    UnceasingTop,
+    BlueCandle,
+    MedicalKit,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -330,6 +415,85 @@ impl From<RelicName> for PyRelicName {
             RelicName::Vajra => Self::Vajra,
             RelicName::Circlet => Self::Circlet,
             RelicName::GoldenIdol => Self::GoldenIdol,
+            RelicName::Lantern => Self::Lantern,
+            RelicName::ClockworkSouvenir => Self::ClockworkSouvenir,
+            RelicName::GremlinVisage => Self::GremlinVisage,
+            RelicName::RedMask => Self::RedMask,
+            RelicName::Nunchaku => Self::Nunchaku,
+            RelicName::InkBottle => Self::InkBottle,
+            RelicName::LetterOpener => Self::LetterOpener,
+            RelicName::OrnamentalFan => Self::OrnamentalFan,
+            RelicName::BirdFacedUrn => Self::BirdFacedUrn,
+            RelicName::MummifiedHand => Self::MummifiedHand,
+            RelicName::OrangePellets => Self::OrangePellets,
+            RelicName::StrangeSpoon => Self::StrangeSpoon,
+            RelicName::ChemicalX => Self::ChemicalX,
+            RelicName::ArtOfWar => Self::ArtOfWar,
+            RelicName::Orichalcum => Self::Orichalcum,
+            RelicName::Pocketwatch => Self::Pocketwatch,
+            RelicName::StoneCalendar => Self::StoneCalendar,
+            RelicName::Abacus => Self::Abacus,
+            RelicName::Sundial => Self::Sundial,
+            RelicName::WhiteBeastStatue => Self::WhiteBeastStatue,
+            RelicName::DollysMirror => Self::DollysMirror,
+            RelicName::LeesWaffle => Self::LeesWaffle,
+            RelicName::HappyFlower => Self::HappyFlower,
+            RelicName::IncenseBurner => Self::IncenseBurner,
+            RelicName::MercuryHourglass => Self::MercuryHourglass,
+            RelicName::HornCleat => Self::HornCleat,
+            RelicName::CaptainsWheel => Self::CaptainsWheel,
+            RelicName::Calipers => Self::Calipers,
+            RelicName::IceCream => Self::IceCream,
+            RelicName::SneckoSkull => Self::SneckoSkull,
+            RelicName::Ginger => Self::Ginger,
+            RelicName::Turnip => Self::Turnip,
+            RelicName::Tingsha => Self::Tingsha,
+            RelicName::ToughBandages => Self::ToughBandages,
+            RelicName::GremlinHorn => Self::GremlinHorn,
+            RelicName::TheSpecimen => Self::TheSpecimen,
+            RelicName::LizardTail => Self::LizardTail,
+            RelicName::Boot => Self::Boot,
+            RelicName::Torii => Self::Torii,
+            RelicName::TungstenRod => Self::TungstenRod,
+            RelicName::HandDrill => Self::HandDrill,
+            RelicName::StrikeDummy => Self::StrikeDummy,
+            RelicName::PaperKrane => Self::PaperKrane,
+            RelicName::CentennialPuzzle => Self::CentennialPuzzle,
+            RelicName::MealTicket => Self::MealTicket,
+            RelicName::MawBank => Self::MawBank,
+            RelicName::JuzuBracelet => Self::JuzuBracelet,
+            RelicName::TinyChest => Self::TinyChest,
+            RelicName::EternalFeather => Self::EternalFeather,
+            RelicName::AncientTeaSet => Self::AncientTeaSet,
+            RelicName::RegalPillow => Self::RegalPillow,
+            RelicName::MeatOnTheBone => Self::MeatOnTheBone,
+            RelicName::Omamori => Self::Omamori,
+            RelicName::DarkstonePeriapt => Self::DarkstonePeriapt,
+            RelicName::CeramicFish => Self::CeramicFish,
+            RelicName::FrozenEgg => Self::FrozenEgg,
+            RelicName::MoltenEgg => Self::MoltenEgg,
+            RelicName::ToxicEgg => Self::ToxicEgg,
+            RelicName::ToyOrnithopter => Self::ToyOrnithopter,
+            RelicName::SmilingMask => Self::SmilingMask,
+            RelicName::DeadBranch => Self::DeadBranch,
+            RelicName::DuVuDoll => Self::DuVuDoll,
+            RelicName::Pantograph => Self::Pantograph,
+            RelicName::SlingOfCourage => Self::SlingOfCourage,
+            RelicName::Strawberry => Self::Strawberry,
+            RelicName::Pear => Self::Pear,
+            RelicName::Mango => Self::Mango,
+            RelicName::OldCoin => Self::OldCoin,
+            RelicName::PotionBelt => Self::PotionBelt,
+            RelicName::WarPaint => Self::WarPaint,
+            RelicName::Whetstone => Self::Whetstone,
+            RelicName::EmptyCage => Self::EmptyCage,
+            RelicName::PandorasBox => Self::PandorasBox,
+            RelicName::PenNib => Self::PenNib,
+            RelicName::FossilizedHelix => Self::FossilizedHelix,
+            RelicName::PreservedInsect => Self::PreservedInsect,
+            RelicName::UnceasingTop => Self::UnceasingTop,
+            RelicName::BlueCandle => Self::BlueCandle,
+            RelicName::MedicalKit => Self::MedicalKit,
         }
     }
 }
@@ -353,6 +517,85 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::Vajra => Self::Vajra,
             PyRelicName::Circlet => Self::Circlet,
             PyRelicName::GoldenIdol => Self::GoldenIdol,
+            PyRelicName::Lantern => Self::Lantern,
+            PyRelicName::ClockworkSouvenir => Self::ClockworkSouvenir,
+            PyRelicName::GremlinVisage => Self::GremlinVisage,
+            PyRelicName::RedMask => Self::RedMask,
+            PyRelicName::Nunchaku => Self::Nunchaku,
+            PyRelicName::InkBottle => Self::InkBottle,
+            PyRelicName::LetterOpener => Self::LetterOpener,
+            PyRelicName::OrnamentalFan => Self::OrnamentalFan,
+            PyRelicName::BirdFacedUrn => Self::BirdFacedUrn,
+            PyRelicName::MummifiedHand => Self::MummifiedHand,
+            PyRelicName::OrangePellets => Self::OrangePellets,
+            PyRelicName::StrangeSpoon => Self::StrangeSpoon,
+            PyRelicName::ChemicalX => Self::ChemicalX,
+            PyRelicName::ArtOfWar => Self::ArtOfWar,
+            PyRelicName::Orichalcum => Self::Orichalcum,
+            PyRelicName::Pocketwatch => Self::Pocketwatch,
+            PyRelicName::StoneCalendar => Self::StoneCalendar,
+            PyRelicName::Abacus => Self::Abacus,
+            PyRelicName::Sundial => Self::Sundial,
+            PyRelicName::WhiteBeastStatue => Self::WhiteBeastStatue,
+            PyRelicName::DollysMirror => Self::DollysMirror,
+            PyRelicName::LeesWaffle => Self::LeesWaffle,
+            PyRelicName::HappyFlower => Self::HappyFlower,
+            PyRelicName::IncenseBurner => Self::IncenseBurner,
+            PyRelicName::MercuryHourglass => Self::MercuryHourglass,
+            PyRelicName::HornCleat => Self::HornCleat,
+            PyRelicName::CaptainsWheel => Self::CaptainsWheel,
+            PyRelicName::Calipers => Self::Calipers,
+            PyRelicName::IceCream => Self::IceCream,
+            PyRelicName::SneckoSkull => Self::SneckoSkull,
+            PyRelicName::Ginger => Self::Ginger,
+            PyRelicName::Turnip => Self::Turnip,
+            PyRelicName::Tingsha => Self::Tingsha,
+            PyRelicName::ToughBandages => Self::ToughBandages,
+            PyRelicName::GremlinHorn => Self::GremlinHorn,
+            PyRelicName::TheSpecimen => Self::TheSpecimen,
+            PyRelicName::LizardTail => Self::LizardTail,
+            PyRelicName::Boot => Self::Boot,
+            PyRelicName::Torii => Self::Torii,
+            PyRelicName::TungstenRod => Self::TungstenRod,
+            PyRelicName::HandDrill => Self::HandDrill,
+            PyRelicName::StrikeDummy => Self::StrikeDummy,
+            PyRelicName::PaperKrane => Self::PaperKrane,
+            PyRelicName::CentennialPuzzle => Self::CentennialPuzzle,
+            PyRelicName::MealTicket => Self::MealTicket,
+            PyRelicName::MawBank => Self::MawBank,
+            PyRelicName::JuzuBracelet => Self::JuzuBracelet,
+            PyRelicName::TinyChest => Self::TinyChest,
+            PyRelicName::EternalFeather => Self::EternalFeather,
+            PyRelicName::AncientTeaSet => Self::AncientTeaSet,
+            PyRelicName::RegalPillow => Self::RegalPillow,
+            PyRelicName::MeatOnTheBone => Self::MeatOnTheBone,
+            PyRelicName::Omamori => Self::Omamori,
+            PyRelicName::DarkstonePeriapt => Self::DarkstonePeriapt,
+            PyRelicName::CeramicFish => Self::CeramicFish,
+            PyRelicName::FrozenEgg => Self::FrozenEgg,
+            PyRelicName::MoltenEgg => Self::MoltenEgg,
+            PyRelicName::ToxicEgg => Self::ToxicEgg,
+            PyRelicName::ToyOrnithopter => Self::ToyOrnithopter,
+            PyRelicName::SmilingMask => Self::SmilingMask,
+            PyRelicName::DeadBranch => Self::DeadBranch,
+            PyRelicName::DuVuDoll => Self::DuVuDoll,
+            PyRelicName::Pantograph => Self::Pantograph,
+            PyRelicName::SlingOfCourage => Self::SlingOfCourage,
+            PyRelicName::Strawberry => Self::Strawberry,
+            PyRelicName::Pear => Self::Pear,
+            PyRelicName::Mango => Self::Mango,
+            PyRelicName::OldCoin => Self::OldCoin,
+            PyRelicName::PotionBelt => Self::PotionBelt,
+            PyRelicName::WarPaint => Self::WarPaint,
+            PyRelicName::Whetstone => Self::Whetstone,
+            PyRelicName::EmptyCage => Self::EmptyCage,
+            PyRelicName::PandorasBox => Self::PandorasBox,
+            PyRelicName::PenNib => Self::PenNib,
+            PyRelicName::FossilizedHelix => Self::FossilizedHelix,
+            PyRelicName::PreservedInsect => Self::PreservedInsect,
+            PyRelicName::UnceasingTop => Self::UnceasingTop,
+            PyRelicName::BlueCandle => Self::BlueCandle,
+            PyRelicName::MedicalKit => Self::MedicalKit,
         }
     }
 }
@@ -798,6 +1041,8 @@ pub enum PyModifierKind {
     Vulnerable,
     Weak,
     WraithForm,
+    Buffer,
+    PenNib,
 }
 
 #[gen_stub_pymethods]
@@ -860,6 +1105,8 @@ impl From<ModifierKind> for PyModifierKind {
             ModifierKind::Vulnerable => Self::Vulnerable,
             ModifierKind::Weak => Self::Weak,
             ModifierKind::WraithForm => Self::WraithForm,
+            ModifierKind::Buffer => Self::Buffer,
+            ModifierKind::PenNib => Self::PenNib,
         }
     }
 }
@@ -2485,7 +2732,7 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
 
             let intent = if let Some(move_idx) = m.monster_move_current {
                 let mv = &m.monster_moves[move_idx];
-                let (mut base_damage, mut instances) = match mv.intent {
+                let (base_damage, instances) = match mv.intent {
                     Intent::Attack { damage, instances }
                     | Intent::AttackBlock { damage, instances }
                     | Intent::AttackBuff { damage, instances }
@@ -2501,16 +2748,8 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
-                // Hexaghost Divider's per-hit damage is dynamic (HP/12 + 1); override the static placeholder
-                if m.monster_name == MonsterName::Hexaghost
-                    && move_idx == hexaghost::IDX_MOVE_DIVIDER
-                {
-                    base_damage = Some(character.vitals.health / 12 + 1);
-                    instances = Some(HEXAGHOST_DIVIDER_HITS);
-                }
-
                 let damage = base_damage.map(|d| {
-                    let str_stacks = if modifier_has(&m.modifiers, ModifierKind::Strength) {
+                    let str_stacks = if has_modifier(&m.modifiers, ModifierKind::Strength) {
                         modifier_stacks(&m.modifiers, ModifierKind::Strength)
                     } else {
                         0
@@ -2518,10 +2757,13 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     let mut scaled = scale_attack_damage(
                         d,
                         str_stacks,
-                        modifier_has(&m.modifiers, ModifierKind::Weak),
-                        modifier_has(mods_char, ModifierKind::Vulnerable),
+                        weak_factor(
+                            has_modifier(&m.modifiers, ModifierKind::Weak),
+                            has_relic(&state.id_relics, RelicName::PaperKrane),
+                        ),
+                        has_modifier(mods_char, ModifierKind::Vulnerable),
                     );
-                    if modifier_has(mods_char, ModifierKind::Intangible) && scaled > 1 {
+                    if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
                         scaled = 1;
                     }
                     scaled
@@ -2554,51 +2796,50 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
 }
 
 fn snapshot_modifiers(mods: &Modifiers) -> Vec<PyModifier> {
-    let mut out = Vec::new();
-    let mut bits = mods.active;
-    while bits != 0 {
-        let idx = bits.trailing_zeros() as usize;
-        bits &= bits - 1;
-        let kind = modifier_kind_from_u8(idx as u8);
-        out.push(PyModifier {
+    active_modifier_kinds(mods.active)
+        .map(|kind| PyModifier {
             kind: kind.into(),
-            stacks: mods.stacks[idx],
+            stacks: mods.stacks[kind as usize],
             stacks_max: stacks_max_for(kind),
-        });
-    }
-    out
+        })
+        .collect()
 }
 
 // Snapshot a card's effects with the current player modifiers folded into the DamagePhysical /
 // BlockGain amounts (target-agnostic — Vulnerable/Intangible depend on the L3 target chosen later),
 // via the same scaling utils as the live pipeline. Other effect kinds pass through unchanged.
 fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffect> {
-    let vigor = if modifier_has(char_mods, ModifierKind::Vigor) {
+    let vigor = if has_modifier(char_mods, ModifierKind::Vigor) {
         modifier_stacks(char_mods, ModifierKind::Vigor).max(0) as u16
     } else {
         0
     };
-    let str_stacks = if modifier_has(char_mods, ModifierKind::Strength) {
+    let str_stacks = if has_modifier(char_mods, ModifierKind::Strength) {
         modifier_stacks(char_mods, ModifierKind::Strength)
     } else {
         0
     };
-    let weak = modifier_has(char_mods, ModifierKind::Weak);
-    let double = modifier_has(char_mods, ModifierKind::DoubleDamage);
-    let dex = if modifier_has(char_mods, ModifierKind::Dexterity) {
+    let weak = has_modifier(char_mods, ModifierKind::Weak);
+    let double = has_modifier(char_mods, ModifierKind::DoubleDamage);
+    let dex = if has_modifier(char_mods, ModifierKind::Dexterity) {
         modifier_stacks(char_mods, ModifierKind::Dexterity)
     } else {
         0
     };
-    let frail = modifier_has(char_mods, ModifierKind::Frail);
+    let frail = has_modifier(char_mods, ModifierKind::Frail);
 
     card.card_effects[..card.card_effects_len as usize]
         .iter()
         .map(snapshot_effect)
         .map(|effect| match effect {
             PyEffect::DamagePhysical { amount, target } => {
-                let mut d =
-                    scale_attack_damage(amount.saturating_add(vigor), str_stacks, weak, false);
+                // Player attacker: Paper Krane never applies
+                let mut d = scale_attack_damage(
+                    amount.saturating_add(vigor),
+                    str_stacks,
+                    weak_factor(weak, false),
+                    false,
+                );
                 if double {
                     d = d.saturating_mul(2);
                 }
@@ -2615,7 +2856,7 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
 
 fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let card = &state.entities[id_card];
-    let entangled = modifier_has(
+    let entangled = has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::Entangled,
     );
@@ -2623,7 +2864,12 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
         if matches!(state.screen, Screen::Combat) {
             (
-                is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw),
+                is_play_restriction_satisfied(
+                    card.card_play_restriction,
+                    card.card_kind,
+                    &state.id_pile_draw,
+                    &state.id_relics,
+                ),
                 state.this_turn_discards,
                 state.this_combat_damage_instances_taken,
                 state.energy.energy_current,
@@ -2641,7 +2887,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let mut py_card = PyCard {
         name: card.card_name.into(),
         display_name,
-        cost: card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
+        cost: get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
         cost_base: card.card_cost,
         cost_zero_once: card.card_free_to_play_once,
         cost_override: card.card_cost_override,
@@ -2694,7 +2940,8 @@ fn card_identity_hash(card: &PyCard) -> u64 {
 // Position-independent hash of the room topology (kinds + edges) — a stable map identity for the
 // RL encoder's static-grid cache. Excludes the live position so it's constant across a map's life.
 fn map_identity_hash(state: &GameState) -> u64 {
-    use std::hash::{Hash, Hasher};
+    use std::hash::Hash;
+    use std::hash::Hasher;
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     for (y, row) in state.id_rooms.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {

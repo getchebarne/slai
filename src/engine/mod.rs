@@ -41,9 +41,9 @@ pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
 pub mod process_effect_health_delta;
+pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
-pub mod process_effect_hexaghost_divider;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
@@ -99,9 +99,9 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::types::CardColor;
-use crate::types::Screen;
 use crate::utils::deck_filter_matches;
 use crate::utils::shuffle;
+use crate::utils::unceasing_top_fires;
 
 // Iterate in reverse so push_front yields `ids` in original queue order
 pub(crate) fn enqueue_direct_targets(
@@ -146,6 +146,10 @@ fn fill_buf_candidates(
                     if id_monster != id_source {
                         effect_candidate_buf.push(id_monster);
                     }
+                }
+                // Last monster standing falls back to targeting itself
+                if effect_candidate_buf.is_empty() {
+                    effect_candidate_buf.push(id_source);
                 }
             }
             CandidatePoolMonstersFilter::Picked => effect_candidate_buf.push(
@@ -403,6 +407,9 @@ fn dispatch_by_kind(
         EffectKind::HealthDelta { sign, amount } => {
             process_effect_health_delta::process_effect_health_delta(id_target, state, sign, amount)
         }
+        EffectKind::HealthSet { amount } => {
+            process_effect_health_set::process_effect_health_set(id_target, state, amount)
+        }
         EffectKind::BlockGain { amount } => process_effect_block_gain::process_effect_block_gain(
             id_source, id_target, state, amount,
         ),
@@ -457,8 +464,8 @@ fn dispatch_by_kind(
                 process_effect_turn_end::process_effect_turn_end_monster(id_target, state)
             }
         }
-        EffectKind::MoveUpdate => {
-            process_effect_move_update::process_effect_move_update(id_target, state)
+        EffectKind::MoveUpdate { move_override } => {
+            process_effect_move_update::process_effect_move_update(id_target, state, move_override)
         }
         EffectKind::MoveExecute => {
             process_effect_move_execute::process_effect_move_execute(id_target, state)
@@ -477,9 +484,6 @@ fn dispatch_by_kind(
             process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase(
                 state, count,
             )
-        }
-        EffectKind::HexaghostDivider => {
-            process_effect_hexaghost_divider::process_effect_hexaghost_divider(id_source, state)
         }
         EffectKind::GoldDelta { sign, amount } => {
             process_effect_gold_delta::process_effect_gold_delta(state, sign, amount)
@@ -589,6 +593,15 @@ fn dispatch_by_kind(
 pub fn process_effect_queue(state: &mut GameState) {
     while !state.game_over {
         let Some(effect) = state.effect_queue.pop_front() else {
+            // Unceasing Top: an empty hand at queue rest draws 1 and keeps going
+            if unceasing_top_fires(state) {
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::CardDraw { count: 1 },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+                continue;
+            }
             return; // Queue drained
         };
         if !process_effect(state, effect) {

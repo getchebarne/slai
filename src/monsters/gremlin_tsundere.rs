@@ -8,15 +8,16 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
+use crate::entity::make_move;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_PROTECT_7: Move = Move {
-    name: "Protect",
-    effects: &[Effect {
+static MOVE_PROTECT_7: Move = make_move(
+    "Protect",
+    &[Effect {
         kind: EffectKind::BlockGain { amount: 7 },
         id_source: None,
         target: Target::Resolve {
@@ -26,11 +27,11 @@ static MOVE_PROTECT_7: Move = Move {
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
-    intent: Intent::Block,
-};
-static MOVE_PROTECT_8: Move = Move {
-    name: "Protect",
-    effects: &[Effect {
+    Intent::Block,
+);
+static MOVE_PROTECT_8: Move = make_move(
+    "Protect",
+    &[Effect {
         kind: EffectKind::BlockGain { amount: 8 },
         id_source: None,
         target: Target::Resolve {
@@ -40,11 +41,11 @@ static MOVE_PROTECT_8: Move = Move {
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
-    intent: Intent::Block,
-};
-static MOVE_PROTECT_11: Move = Move {
-    name: "Protect",
-    effects: &[Effect {
+    Intent::Block,
+);
+static MOVE_PROTECT_11: Move = make_move(
+    "Protect",
+    &[Effect {
         kind: EffectKind::BlockGain { amount: 11 },
         id_source: None,
         target: Target::Resolve {
@@ -54,11 +55,11 @@ static MOVE_PROTECT_11: Move = Move {
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
-    intent: Intent::Block,
-};
-static MOVE_BASH_6: Move = Move {
-    name: "Shield Bash",
-    effects: &[Effect {
+    Intent::Block,
+);
+static MOVE_BASH_6: Move = make_move(
+    "Shield Bash",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
@@ -66,14 +67,14 @@ static MOVE_BASH_6: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 6,
         instances: 1,
     },
-};
-static MOVE_BASH_8: Move = Move {
-    name: "Shield Bash",
-    effects: &[Effect {
+);
+static MOVE_BASH_8: Move = make_move(
+    "Shield Bash",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 8 },
         id_source: None,
         target: Target::Resolve {
@@ -81,11 +82,11 @@ static MOVE_BASH_8: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 8,
         instances: 1,
     },
-};
+);
 
 static MOVES_ASC0: [Move; 2] = [MOVE_PROTECT_7, MOVE_BASH_6];
 static MOVES_ASC2: [Move; 2] = [MOVE_PROTECT_7, MOVE_BASH_8];

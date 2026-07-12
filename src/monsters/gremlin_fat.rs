@@ -7,6 +7,7 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
+use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -14,9 +15,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_SMASH_4_W1: Move = Move {
-    name: "Smash",
-    effects: &[
+static MOVE_SMASH_4_W1: Move = make_move(
+    "Smash",
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 4 },
             id_source: None,
@@ -37,14 +38,14 @@ static MOVE_SMASH_4_W1: Move = Move {
             },
         },
     ],
-    intent: Intent::AttackDebuff {
+    Intent::AttackDebuff {
         damage: 4,
         instances: 1,
     },
-};
-static MOVE_SMASH_5_W1: Move = Move {
-    name: "Smash",
-    effects: &[
+);
+static MOVE_SMASH_5_W1: Move = make_move(
+    "Smash",
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
@@ -65,14 +66,14 @@ static MOVE_SMASH_5_W1: Move = Move {
             },
         },
     ],
-    intent: Intent::AttackDebuff {
+    Intent::AttackDebuff {
         damage: 5,
         instances: 1,
     },
-};
-static MOVE_SMASH_5_W1_F1: Move = Move {
-    name: "Smash",
-    effects: &[
+);
+static MOVE_SMASH_5_W1_F1: Move = make_move(
+    "Smash",
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
@@ -104,11 +105,11 @@ static MOVE_SMASH_5_W1_F1: Move = Move {
             },
         },
     ],
-    intent: Intent::AttackDebuff {
+    Intent::AttackDebuff {
         damage: 5,
         instances: 1,
     },
-};
+);
 static MOVES_ASC0: [Move; 1] = [MOVE_SMASH_4_W1];
 static MOVES_ASC2: [Move; 1] = [MOVE_SMASH_5_W1];
 static MOVES_ASC17: [Move; 1] = [MOVE_SMASH_5_W1_F1];

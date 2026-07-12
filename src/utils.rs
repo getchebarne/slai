@@ -12,19 +12,24 @@ use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
+use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::effect::CandidatePoolDeckFilter;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::has_modifier;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
+use crate::relics::egg_upgrades_kind;
 use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::RelicName;
+use crate::types::Screen;
 
 // Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
@@ -38,6 +43,10 @@ pub fn push_entity(entities: &mut Vec<Entity>, e: Entity) -> usize {
     let id = entities.len();
     entities.push(e);
     id
+}
+
+pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName) -> bool {
+    id_relics[name as usize].is_some()
 }
 
 pub fn clear_shop_state(state: &mut GameState) {
@@ -97,17 +106,36 @@ pub fn reshuffle_discard_into_draw(
     shuffle(&mut id_pile_draw[..], rng);
 }
 
+// Queue rest in Combat means the player is about to act; a drawable card ends the loop
+pub fn unceasing_top_fires(state: &GameState) -> bool {
+    has_relic(&state.id_relics, RelicName::UnceasingTop)
+        && matches!(state.screen, Screen::Combat)
+        && state.effect_pending.is_none()
+        && state.id_hand.is_empty()
+        && !(state.id_pile_draw.is_empty() && state.id_pile_discard.is_empty())
+        && !has_modifier(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::NoDraw,
+        )
+}
+
+// Shared by the live damage pipeline and the FFI intent view
+pub fn weak_factor(is_weak: bool, paper_krane: bool) -> f32 {
+    match (is_weak, paper_krane) {
+        (false, _) => 1.0,
+        (true, false) => FACTOR_WEAK,
+        (true, true) => FACTOR_WEAK_PAPER_KRANE,
+    }
+}
+
 // Shared by the live damage pipeline and the FFI intent view
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
-    source_is_weak: bool,
+    weak_factor: f32,
     target_is_vulnerable: bool,
 ) -> u16 {
-    let mut value = base as f32 + source_str_stacks as f32;
-    if source_is_weak {
-        value *= FACTOR_WEAK;
-    }
+    let mut value = (base as f32 + source_str_stacks as f32) * weak_factor;
     if target_is_vulnerable {
         value *= FACTOR_VULN;
     }
@@ -194,6 +222,7 @@ pub fn roll_card_rewards(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     out: &mut Vec<usize>,
+    id_relics: &[Option<usize>; RelicName::COUNT],
 ) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut rolled_card_names: [CardName; MAX_COMBAT_CARD_REWARD] =
@@ -219,7 +248,9 @@ pub fn roll_card_rewards(
         }
 
         rolled_card_names[out.len()] = name;
-        let card = get_card(name, false);
+        // Eggs upgrade matching rewards at roll time, so the preview shows the truth
+        let upgraded = egg_upgrades_kind(get_card(name, false).card_kind, id_relics);
+        let card = get_card(name, upgraded);
         let id_card = push_entity(entities, card);
         out.push(id_card);
     }

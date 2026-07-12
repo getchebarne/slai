@@ -2,62 +2,120 @@ use rand::Rng;
 
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
+use crate::consts::EVENT_SHRINE_CHANCE;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::POOL_ACT1_EVENT;
 use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
 use crate::types::ChestKind;
+use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
+use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
-    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
-    state.effect_buf.clear();
+    // Maw Bank: 12 gold on every room entry until deactivated
+    if let Some(id) = state.id_relics[RelicName::MawBank as usize]
+        && !state.entities[id].relic_used_up
+    {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(12),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
 
     // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
-    let resolved = if room_kind == RoomKind::Unknown {
+    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
+    let room_kind_resolved = if room_kind == RoomKind::Unknown {
         roll_unknown_room(state)
     } else {
         room_kind
     };
 
-    match resolved {
+    match room_kind_resolved {
         RoomKind::CombatBoss => {
+            state.screen = Screen::Combat;
+
+            // Spawn boss
             let encounter = state.encounter_boss;
-            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
+            spawn_encounter_monsters(state, encounter);
+
+            // Pantograph: boss fights open with a 25 HP heal
+            if has_relic(&state.id_relics, RelicName::Pantograph) {
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::HealthDelta {
+                        sign: DeltaSign::Gain,
+                        amount: Amount::Absolute(25),
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
         }
         RoomKind::CombatMonster => {
+            state.screen = Screen::Combat;
+
+            // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_normal.remove(0);
-            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
+            spawn_encounter_monsters(state, encounter);
         }
         RoomKind::CombatElite => {
+            state.screen = Screen::Combat;
+
+            // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_elite.remove(0);
-            spawn_encounter_monsters(encounter, &mut state.effect_buf, &mut state.rng);
+            spawn_encounter_monsters(state, encounter);
         }
         RoomKind::RestSite => {
             state.screen = Screen::RestSite;
+
+            // Eternal Feather: 3 HP per 5 deck cards on arrival
+            if has_relic(&state.id_relics, RelicName::EternalFeather) {
+                let heal = (state.id_deck.len() / 5) * 3;
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::HealthDelta {
+                        sign: DeltaSign::Gain,
+                        amount: Amount::Absolute(heal as u16),
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
+
+            // Ancient Tea Set: prime for the next combat
+            if let Some(id) = state.id_relics[RelicName::AncientTeaSet as usize] {
+                state.entities[id].relic_counter = 1;
+            }
         }
         RoomKind::Treasure => {
+            state.screen = Screen::Chest;
+
             let Location::Overworld { y, x } = state.location else {
                 unreachable!("RoomEnter on Treasure outside Overworld");
             };
             let room = room_at_mut(&state.id_rooms, &mut state.entities, y, x)
                 .expect("Treasure room missing");
+
+            // Roll chest kind and set it in the Entity
             let roll = state.rng.random_range(0..100) as u8;
             room.room_chest_kind = Some(if roll < CHEST_SMALL_PCT {
                 ChestKind::Small
@@ -66,22 +124,31 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             } else {
                 ChestKind::Large
             });
-            state.screen = Screen::Chest;
         }
         RoomKind::EventRoom => {
-            if let Some(id_event) = spawn_random_event(
-                &mut state.entities,
-                &mut state.events_seen,
-                state.ascension,
-                &mut state.rng,
-            ) {
+            if let Some(id_event) = spawn_random_event(state) {
                 state.screen = Screen::Event;
                 state.id_event = Some(id_event);
                 return;
             }
+
+            // Both pools dry: explicit no-op room, straight back to the map
+            state.screen = Screen::Map;
         }
         RoomKind::Shop => {
             state.screen = Screen::Shop;
+
+            // Meal Ticket: Heal 15 on shop enter
+            if has_relic(&state.id_relics, RelicName::MealTicket) {
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::HealthDelta {
+                        sign: DeltaSign::Gain,
+                        amount: Amount::Absolute(15),
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::ShopBuild,
                 id_source: None,
@@ -92,75 +159,113 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             unreachable!("Unknown is resolved into a concrete kind before dispatch")
         }
     }
-
-    if !state.effect_buf.is_empty() {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CombatStart,
-            id_source: None,
-            target: Target::Direct(None),
-        });
-        flush_effects_from_buf_to_queue_front(state);
-    }
 }
 
 // Resolve a "?" room into a concrete kind, then drift the running tallies
 fn roll_unknown_room(state: &mut GameState) -> RoomKind {
-    let idx = state.rng.random_range(0..100) as i32;
-    let chance_monster = (state.unknown_chance_monster * 100.0) as i32;
-    let chance_shop = (state.unknown_chance_shop * 100.0) as i32;
-    let chance_treasure = (state.unknown_chance_treasure * 100.0) as i32;
+    // Tiny Chest: every 4th ? room is forced Treasure; drift still runs as if rolled
+    let force_treasure = if let Some(id) = state.id_relics[RelicName::TinyChest as usize] {
+        // Increase counter
+        let counter = &mut state.entities[id].relic_counter;
+        *counter += 1;
 
-    let resolved = if idx < chance_monster {
-        RoomKind::CombatMonster
-    } else if idx < chance_monster + chance_shop {
-        RoomKind::Shop
-    } else if idx < chance_monster + chance_shop + chance_treasure {
+        // Reset
+        if *counter >= 4 {
+            *counter = 0;
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+
+    // Resolve the room kind
+    let mut room_kind_resolved = if force_treasure {
         RoomKind::Treasure
     } else {
-        RoomKind::EventRoom
+        let idx = state.rng.random_range(0..100) as i32;
+        let chance_monster = (state.unknown_chance_monster * 100.0) as i32;
+        let chance_shop = (state.unknown_chance_shop * 100.0) as i32;
+        let chance_treasure = (state.unknown_chance_treasure * 100.0) as i32;
+
+        if idx < chance_monster {
+            RoomKind::CombatMonster
+        } else if idx < chance_monster + chance_shop {
+            RoomKind::Shop
+        } else if idx < chance_monster + chance_shop + chance_treasure {
+            RoomKind::Treasure
+        } else {
+            RoomKind::EventRoom
+        }
     };
 
     // Drift: the chosen type resets to base, every other type accumulates by its base
-    state.unknown_chance_monster = if resolved == RoomKind::CombatMonster {
+    state.unknown_chance_monster = if room_kind_resolved == RoomKind::CombatMonster {
         UNKNOWN_CHANCE_BASE_MONSTER
     } else {
         state.unknown_chance_monster + UNKNOWN_CHANCE_BASE_MONSTER
     };
-    state.unknown_chance_shop = if resolved == RoomKind::Shop {
+    state.unknown_chance_shop = if room_kind_resolved == RoomKind::Shop {
         UNKNOWN_CHANCE_BASE_SHOP
     } else {
         state.unknown_chance_shop + UNKNOWN_CHANCE_BASE_SHOP
     };
-    state.unknown_chance_treasure = if resolved == RoomKind::Treasure {
+    state.unknown_chance_treasure = if room_kind_resolved == RoomKind::Treasure {
         UNKNOWN_CHANCE_BASE_TREASURE
     } else {
         state.unknown_chance_treasure + UNKNOWN_CHANCE_BASE_TREASURE
     };
 
-    resolved
+    // Juzu Bracelet: a monster resolution becomes an event (after the drift settles)
+    if room_kind_resolved == RoomKind::CombatMonster
+        && has_relic(&state.id_relics, RelicName::JuzuBracelet)
+    {
+        room_kind_resolved = RoomKind::EventRoom;
+    }
+
+    room_kind_resolved
 }
 
-fn spawn_random_event(
-    entities: &mut Vec<Entity>,
-    events_seen: &mut Vec<EventName>,
-    ascension: u8,
-    rng: &mut impl Rng,
-) -> Option<usize> {
-    if POOL_ACT1_EVENT.is_empty() {
+// 25% shrine pool, else event pool; an exhausted pool falls back to the other,
+// both empty -> no event and the room is a no-op
+fn spawn_random_event(state: &mut GameState) -> Option<usize> {
+    let name = if state.rng.random_range(0.0..1.0f32) < EVENT_SHRINE_CHANCE {
+        draw_shrine(state).or_else(|| draw_event(state))
+    } else {
+        draw_event(state).or_else(|| draw_shrine(state))
+    }?;
+    let event = spawn_event(name, state.ascension, &mut state.rng);
+    Some(push_entity(&mut state.entities, event))
+}
+
+fn draw_event(state: &mut GameState) -> Option<EventName> {
+    // "The Cleric" only spawns with gold for its cheapest option; it stays pooled otherwise
+    let gold = state.entities[state.id_character].character_gold;
+    let eligible: Vec<usize> = state
+        .pool_events
+        .iter()
+        .enumerate()
+        .filter(|&(_, &name)| name != EventName::TheCleric || gold >= 35)
+        .map(|(i, _)| i)
+        .collect();
+
+    // Early return if empty
+    if eligible.is_empty() {
         return None;
     }
-    if events_seen.len() >= POOL_ACT1_EVENT.len() {
-        events_seen.clear();
+
+    // Roll, pop from `pool_events` and return the rolled event's name
+    let idx = eligible[state.rng.random_range(0..eligible.len())];
+    Some(state.pool_events.swap_remove(idx))
+}
+
+fn draw_shrine(state: &mut GameState) -> Option<EventName> {
+    if state.pool_shrines.is_empty() {
+        return None;
     }
-    let name = loop {
-        let cand = POOL_ACT1_EVENT[rng.random_range(0..POOL_ACT1_EVENT.len())];
-        if !events_seen.contains(&cand) {
-            break cand;
-        }
-    };
-    events_seen.push(name);
-    let id_event = push_entity(entities, spawn_event(name, ascension, rng));
-    Some(id_event)
+    let idx = state.rng.random_range(0..state.pool_shrines.len());
+    Some(state.pool_shrines.swap_remove(idx))
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {
@@ -213,11 +318,11 @@ fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
     });
 }
 
-fn spawn_encounter_monsters(
-    encounter: MonsterEncounter,
-    effects: &mut Vec<Effect>,
-    rng: &mut impl Rng,
-) {
+// Queues the encounter's spawns followed by `EffectKind::CombatStart` onto the queue front
+fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncounter) {
+    state.effect_buf.clear();
+    let effects = &mut state.effect_buf;
+    let rng = &mut state.rng;
     match encounter {
         MonsterEncounter::Cultist => push_monster_spawn(effects, MonsterName::Cultist),
         MonsterEncounter::JawWorm => push_monster_spawn(effects, MonsterName::JawWorm),
@@ -303,4 +408,11 @@ fn spawn_encounter_monsters(
         MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost),
         MonsterEncounter::SlimeBoss => push_monster_spawn(effects, MonsterName::SlimeBoss),
     }
+
+    effects.push(Effect {
+        kind: EffectKind::CombatStart,
+        id_source: None,
+        target: Target::Direct(None),
+    });
+    flush_effects_from_buf_to_queue_front(state);
 }

@@ -50,7 +50,7 @@ fn silent_health(ascension: u8) -> (u16, u16) {
         health = health_max;
     }
     if ascension >= 6 {
-        health = (0.90 * health as f32) as u16;
+        health = (0.90 * health as f32).round() as u16;
     }
 
     (health, health_max)
