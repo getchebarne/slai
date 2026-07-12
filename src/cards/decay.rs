@@ -23,4 +23,5 @@ pub static DECAY: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable. At the end of your turn, take 2 damage.",
 );

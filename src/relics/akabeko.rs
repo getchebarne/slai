@@ -26,4 +26,5 @@ pub static AKABEKO: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Your first attack each combat deals 8 additional damage.",
 );

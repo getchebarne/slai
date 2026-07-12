@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_relic_adopt.rs`
 pub static STRAWBERRY: Entity =
-    make_entity_relic(RelicName::Strawberry, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::Strawberry, RelicTier::Common, 0, &[],
+    "Upon pickup, raise your Max HP by 7.",
+);

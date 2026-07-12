@@ -49,6 +49,7 @@ pub static BLUR: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {block} Block. Block is not removed at the start of your next turn.",
 );
 // Upgraded
 pub static BLUR_PLUS: Entity = Entity {

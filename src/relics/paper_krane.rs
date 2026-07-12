@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_damage_physical.rs`
 pub static PAPER_KRANE: Entity =
-    make_entity_relic(RelicName::PaperKrane, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::PaperKrane, RelicTier::Uncommon, 0, &[],
+    "Enemies with Weak deal 40% less damage rather than 25%.",
+);

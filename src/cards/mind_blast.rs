@@ -38,6 +38,7 @@ pub static MIND_BLAST: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Innate. Deal damage equal to the number of cards in your draw pile.",
 );
 // Upgraded
 pub static MIND_BLAST_PLUS: Entity = Entity {

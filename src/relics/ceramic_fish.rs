@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_adopt.rs`
 pub static CERAMIC_FISH: Entity =
-    make_entity_relic(RelicName::CeramicFish, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::CeramicFish, RelicTier::Common, 0, &[],
+    "Whenever you add a card to your deck, gain 9 gold.",
+);

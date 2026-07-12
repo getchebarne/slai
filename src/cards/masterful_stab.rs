@@ -38,6 +38,7 @@ pub static MASTERFUL_STAB: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Costs 1 additional for each time you lose HP this combat. Deal {damage} damage.",
 );
 // Upgraded
 pub static MASTERFUL_STAB_PLUS: Entity = Entity {

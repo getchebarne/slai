@@ -26,4 +26,5 @@ pub static BRONZE_SCALES: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Start each combat with 3 Thorns.",
 );

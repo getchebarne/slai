@@ -17,4 +17,5 @@ pub static SNAKE_RING: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "Replaces Ring of the Snake. At the start of your turn, draw 1 additional card.",
 );

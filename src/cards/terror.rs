@@ -44,6 +44,7 @@ pub static TERROR: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Apply 99 Vulnerable. Exhaust.",
 );
 // Upgraded
 pub static TERROR_PLUS: Entity = Entity {

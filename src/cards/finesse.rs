@@ -42,6 +42,7 @@ pub static FINESSE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {block} Block. Draw 1 card.",
 );
 // Upgraded
 pub static FINESSE_PLUS: Entity = Entity {

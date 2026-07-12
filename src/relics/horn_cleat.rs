@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_turn_start.rs`
 pub static HORN_CLEAT: Entity =
-    make_entity_relic(RelicName::HornCleat, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::HornCleat, RelicTier::Uncommon, 0, &[],
+    "At the start of your 2nd turn, gain 14 Block.",
+);

@@ -34,6 +34,7 @@ pub static BLADE_DANCE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Add {magic} Shivs into your hand.",
 );
 // Upgraded
 pub static BLADE_DANCE_PLUS: Entity = Entity {

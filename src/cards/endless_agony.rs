@@ -46,6 +46,7 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
         target: Target::Direct(None),
     }],
     PlayRestriction::Always,
+    "Whenever you draw this card, add a copy of it into your hand. Deal {damage} damage. Exhaust.",
 );
 // Upgraded
 pub static ENDLESS_AGONY_PLUS: Entity = Entity {

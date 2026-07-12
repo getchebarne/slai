@@ -39,6 +39,7 @@ pub static NOXIOUS_FUMES: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "At the start of your turn, apply {magic} Poison to ALL enemies.",
 );
 // Upgraded
 pub static NOXIOUS_FUMES_PLUS: Entity = Entity {

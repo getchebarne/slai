@@ -27,4 +27,5 @@ pub static BLOOD_VIAL: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "At the start of each combat, heal 2 HP.",
 );

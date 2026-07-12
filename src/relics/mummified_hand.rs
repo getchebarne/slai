@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_play.rs`
 pub static MUMMIFIED_HAND: Entity =
-    make_entity_relic(RelicName::MummifiedHand, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::MummifiedHand, RelicTier::Uncommon, 0, &[],
+    "Whenever you play a Power, a random card in your hand costs 0 for the turn.",
+);

@@ -23,4 +23,5 @@ pub static DOUBT: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable. At the end of your turn, gain 1 Weak.",
 );

@@ -60,6 +60,7 @@ pub static EVISCERATE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Costs 1 less for each card discarded this turn. Deal {damage} damage 3 times.",
 );
 // Upgraded
 pub static EVISCERATE_PLUS: Entity = Entity {

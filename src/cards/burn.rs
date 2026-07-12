@@ -23,6 +23,7 @@ pub static BURN: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable. At the end of your turn, take 2 damage.",
 );
 
 pub static BURN_UPGRADED: Entity = make_entity_card(
@@ -41,4 +42,5 @@ pub static BURN_UPGRADED: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable. At the end of your turn, take 4 damage.",
 );

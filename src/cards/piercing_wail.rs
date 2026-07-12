@@ -57,10 +57,12 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "ALL enemies lose 6 Strength this turn. Exhaust.",
 );
 // Upgraded
 pub static PIERCING_WAIL_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "ALL enemies lose 8 Strength this turn. Exhaust.",
     card_effects: {
         let mut a = PIERCING_WAIL.card_effects;
         a[0].kind = EffectKind::ModifierGain {

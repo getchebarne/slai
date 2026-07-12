@@ -39,6 +39,7 @@ pub static ACCURACY: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Shivs deal {magic} additional damage.",
 );
 // Upgraded
 pub static ACCURACY_PLUS: Entity = Entity {

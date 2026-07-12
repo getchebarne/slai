@@ -48,6 +48,7 @@ pub static DASH: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {block} Block. Deal {damage} damage.",
 );
 // Upgraded
 pub static DASH_PLUS: Entity = Entity {

@@ -23,4 +23,5 @@ pub static PAIN: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable. While in hand, lose 1 HP when other cards are played.",
 );

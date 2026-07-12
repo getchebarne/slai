@@ -30,9 +30,11 @@ pub static TACTICIAN: Entity = make_entity_card(
     }],
     &[],
     PlayRestriction::Never,
+    "Unplayable. If this card is discarded from your hand, gain 1 Energy.",
 );
 pub static TACTICIAN_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Unplayable. If this card is discarded from your hand, gain 2 Energy.",
     card_on_discard_effects: &[Effect {
         kind: EffectKind::EnergyGain { amount: 2 }, // +1 energy
         id_source: None,

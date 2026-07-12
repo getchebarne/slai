@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `action.rs`
 pub static REGAL_PILLOW: Entity =
-    make_entity_relic(RelicName::RegalPillow, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::RegalPillow, RelicTier::Common, 0, &[],
+    "Heal an additional 15 HP when you Rest.",
+);

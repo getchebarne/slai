@@ -23,4 +23,5 @@ pub static INJURY: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable.",
 );

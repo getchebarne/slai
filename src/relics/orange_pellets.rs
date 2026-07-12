@@ -8,4 +8,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_play.rs`
 pub static ORANGE_PELLETS: Entity =
-    make_entity_relic(RelicName::OrangePellets, RelicTier::Shop, 0, &[]);
+    make_entity_relic(RelicName::OrangePellets, RelicTier::Shop, 0, &[],
+    "Whenever you play a Power, Attack, and Skill in the same turn, remove all of your Debuffs.",
+);

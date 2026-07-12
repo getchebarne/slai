@@ -22,4 +22,5 @@ pub static NINJA_SCROLL: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "Start each combat with 3 Shivs in hand.",
 );

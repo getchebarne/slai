@@ -27,4 +27,5 @@ pub static FOSSILIZED_HELIX: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Prevent the first time you would lose HP in combat.",
 );

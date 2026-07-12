@@ -50,6 +50,7 @@ pub static DAGGER_SPRAY: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage to ALL enemies twice.",
 );
 // Upgraded
 pub static DAGGER_SPRAY_PLUS: Entity = Entity {

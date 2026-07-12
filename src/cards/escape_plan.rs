@@ -42,6 +42,7 @@ pub static ESCAPE_PLAN: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Draw 1 card. If you draw a Skill, gain {block} Block.",
 );
 // Upgraded
 pub static ESCAPE_PLAN_PLUS: Entity = Entity {

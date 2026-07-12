@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_room_enter.rs`
 pub static PANTOGRAPH: Entity =
-    make_entity_relic(RelicName::Pantograph, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::Pantograph, RelicTier::Uncommon, 0, &[],
+    "At the start of boss combats, heal 25 HP.",
+);

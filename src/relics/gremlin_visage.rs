@@ -26,4 +26,5 @@ pub static GREMLIN_VISAGE: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Start each combat with 1 Weak.",
 );

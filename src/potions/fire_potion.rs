@@ -24,4 +24,5 @@ pub static FIRE_POTION: Entity = make_entity_potion(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Deal 20 damage to target enemy.",
 );

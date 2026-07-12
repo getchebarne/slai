@@ -25,4 +25,5 @@ pub static SKILL_POTION: Entity = make_entity_potion(
         },
         EFFECT_CARD_DISCOVER_PICK,
     ],
+    "Add 1 of 3 random Skill cards to your hand. It costs 0 Energy this turn.",
 );

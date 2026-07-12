@@ -40,4 +40,5 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
             },
         },
     ],
+    "Gain 5 Max HP.",
 );

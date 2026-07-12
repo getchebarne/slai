@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_damage_physical.rs`
 pub static STRIKE_DUMMY: Entity =
-    make_entity_relic(RelicName::StrikeDummy, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::StrikeDummy, RelicTier::Uncommon, 0, &[],
+    "Cards containing \"Strike\" deal 3 additional damage.",
+);

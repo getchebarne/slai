@@ -16,4 +16,5 @@ pub static ENERGY_POTION: Entity = make_entity_potion(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "Gain 2 Energy.",
 );

@@ -6,4 +6,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_relic_grant_specific.rs`
 //    - `utils.rs`
-pub static CIRCLET: Entity = make_entity_relic(RelicName::Circlet, RelicTier::Special, 0, &[]);
+pub static CIRCLET: Entity = make_entity_relic(RelicName::Circlet, RelicTier::Special, 0, &[],
+    "Collect as many as you can.",
+);

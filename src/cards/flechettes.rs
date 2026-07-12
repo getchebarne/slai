@@ -38,6 +38,7 @@ pub static FLECHETTES: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage for each Skill in your hand.",
 );
 // Upgraded
 pub static FLECHETTES_PLUS: Entity = Entity {

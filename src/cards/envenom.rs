@@ -39,6 +39,7 @@ pub static ENVENOM: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Whenever an Attack deals unblocked damage, apply 1 Poison.",
 );
 // Upgraded
 pub static ENVENOM_PLUS: Entity = Entity {

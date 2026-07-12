@@ -115,6 +115,9 @@ pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -
 pub struct Entity {
     pub kind: EntityKind,
 
+    // Card / Potion / Relic display template ({damage}/{block}/{magic} for cards)
+    pub description: &'static str,
+
     // Combatant — Character, Monster
     pub vitals: Vitals,
     pub modifiers: Modifiers,
@@ -192,6 +195,7 @@ pub struct Entity {
 // Zero-fill sentinel; used by const constructors and unused arena slots
 pub const ZERO_ENTITY: Entity = Entity {
     kind: EntityKind::Character,
+    description: "",
     vitals: ZERO_VITALS,
     modifiers: ZERO_MODIFIERS,
     character_name: "",
@@ -312,6 +316,7 @@ pub const fn make_entity_card(
     on_discard_effects: &'static [Effect],
     on_draw_effects: &'static [Effect],
     play_restriction: PlayRestriction,
+    description: &'static str,
 ) -> Entity {
     assert!(
         effects.len() <= MAX_EFFECTS_PER_CARD,
@@ -325,6 +330,7 @@ pub const fn make_entity_card(
     }
     Entity {
         kind: EntityKind::Card,
+        description,
         card_name: name,
         card_kind: kind,
         card_color: color,
@@ -361,9 +367,11 @@ pub const fn make_entity_relic(
     tier: RelicTier,
     counter_init: i16,
     effects_on_combat_start: &'static [Effect],
+    description: &'static str,
 ) -> Entity {
     Entity {
         kind: EntityKind::Relic,
+        description,
         relic_name: name,
         relic_tier: tier,
         relic_counter: counter_init,
@@ -379,9 +387,11 @@ pub const fn make_entity_potion(
     requires_target: bool,
     combat_only: bool,
     effects: &'static [Effect],
+    description: &'static str,
 ) -> Entity {
     Entity {
         kind: EntityKind::Potion,
+        description,
         potion_name: name,
         potion_rarity: rarity,
         requires_target: requires_target,

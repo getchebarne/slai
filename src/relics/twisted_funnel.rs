@@ -29,4 +29,5 @@ pub static TWISTED_FUNNEL: Entity = make_entity_relic(
             selection_kind: SelectionKind::All,
         },
     }],
+    "At the start of each combat, apply 4 Poison to ALL enemies.",
 );

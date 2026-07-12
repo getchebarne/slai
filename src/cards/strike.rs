@@ -38,6 +38,7 @@ pub static STRIKE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage.",
 );
 // Upgraded
 pub static STRIKE_PLUS: Entity = Entity {

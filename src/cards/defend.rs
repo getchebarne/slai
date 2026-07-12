@@ -35,6 +35,7 @@ pub static DEFEND: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {block} Block.",
 );
 // Upgraded
 pub static DEFEND_PLUS: Entity = Entity {

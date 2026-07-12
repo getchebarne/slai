@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_health_delta.rs`
 pub static CENTENNIAL_PUZZLE: Entity =
-    make_entity_relic(RelicName::CentennialPuzzle, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::CentennialPuzzle, RelicTier::Common, 0, &[],
+    "The first time you lose HP each combat, draw 3 cards.",
+);

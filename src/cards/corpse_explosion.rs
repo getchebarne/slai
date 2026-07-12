@@ -57,6 +57,7 @@ pub static CORPSE_EXPLOSION: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Apply {magic} Poison. When the enemy dies, deal damage equal to its max HP to ALL enemies.",
 );
 // Upgraded
 pub static CORPSE_EXPLOSION_PLUS: Entity = Entity {

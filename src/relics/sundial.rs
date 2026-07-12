@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_shuffle_discard_pile_into_draw_pile.rs`
 pub static SUNDIAL: Entity =
-    make_entity_relic(RelicName::Sundial, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::Sundial, RelicTier::Uncommon, 0, &[],
+    "Every 3 times you shuffle your draw pile, gain 2 Energy.",
+);

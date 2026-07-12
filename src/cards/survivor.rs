@@ -48,6 +48,7 @@ pub static SURVIVOR: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {block} Block. Discard 1 card.",
 );
 // Upgraded
 pub static SURVIVOR_PLUS: Entity = Entity {

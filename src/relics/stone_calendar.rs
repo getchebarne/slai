@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_turn_end.rs`
 pub static STONE_CALENDAR: Entity =
-    make_entity_relic(RelicName::StoneCalendar, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::StoneCalendar, RelicTier::Rare, 0, &[],
+    "At the end of turn 7, deal 52 damage to ALL enemies.",
+);

@@ -23,4 +23,5 @@ pub static REGRET: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable. At the end of your turn, lose 1 HP for each card in your hand.",
 );

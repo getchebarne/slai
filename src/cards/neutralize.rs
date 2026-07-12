@@ -54,6 +54,7 @@ pub static NEUTRALIZE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Apply {magic} Weak.",
 );
 // Upgraded
 pub static NEUTRALIZE_PLUS: Entity = Entity {

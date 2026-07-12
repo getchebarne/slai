@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_shop_build.rs`
 pub static SMILING_MASK: Entity =
-    make_entity_relic(RelicName::SmilingMask, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::SmilingMask, RelicTier::Common, 0, &[],
+    "The merchant's card removal service now always costs 50 Gold.",
+);

@@ -42,6 +42,7 @@ pub static BLIND: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Apply 2 Weak.",
 );
 // Upgraded
 pub static BLIND_PLUS: Entity = Entity {

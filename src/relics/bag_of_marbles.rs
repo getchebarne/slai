@@ -29,4 +29,5 @@ pub static BAG_OF_MARBLES: Entity = make_entity_relic(
             selection_kind: SelectionKind::All,
         },
     }],
+    "At the start of each combat, apply 1 Vulnerable to ALL enemies.",
 );

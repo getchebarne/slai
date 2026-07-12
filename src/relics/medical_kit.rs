@@ -8,4 +8,6 @@ use crate::types::RelicTier;
 //    - `entity.rs`
 //    - `process_effect_card_play.rs`
 pub static MEDICAL_KIT: Entity =
-    make_entity_relic(RelicName::MedicalKit, RelicTier::Shop, 0, &[]);
+    make_entity_relic(RelicName::MedicalKit, RelicTier::Shop, 0, &[],
+    "Unplayable Status cards can now be played. Playing a Status will Exhaust the card.",
+);

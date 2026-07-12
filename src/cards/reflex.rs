@@ -30,10 +30,12 @@ pub static REFLEX: Entity = make_entity_card(
     }],
     &[],
     PlayRestriction::Never,
+    "Unplayable. If this card is discarded from your hand, draw 2 cards.",
 );
 // Upgraded
 pub static REFLEX_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Unplayable. If this card is discarded from your hand, draw 3 cards.",
     card_on_discard_effects: &[Effect {
         kind: EffectKind::CardDraw { count: 3 }, // +1 draw
         id_source: None,

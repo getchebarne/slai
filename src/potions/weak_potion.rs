@@ -28,4 +28,5 @@ pub static WEAK_POTION: Entity = make_entity_potion(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Apply 3 Weak.",
 );

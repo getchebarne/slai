@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_damage_deal.rs`
 pub static TORII: Entity =
-    make_entity_relic(RelicName::Torii, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::Torii, RelicTier::Rare, 0, &[],
+    "Whenever you would receive 5 or less unblocked Attack damage, reduce it to 1.",
+);

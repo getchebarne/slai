@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_modifier_gain.rs`
 pub static TURNIP: Entity =
-    make_entity_relic(RelicName::Turnip, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::Turnip, RelicTier::Rare, 0, &[],
+    "You can no longer become Frail.",
+);

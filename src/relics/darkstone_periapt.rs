@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_add_to_deck.rs`
 pub static DARKSTONE_PERIAPT: Entity =
-    make_entity_relic(RelicName::DarkstonePeriapt, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::DarkstonePeriapt, RelicTier::Uncommon, 0, &[],
+    "Whenever you obtain a Curse, increase your Max HP by 6.",
+);

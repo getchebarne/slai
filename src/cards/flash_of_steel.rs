@@ -45,6 +45,7 @@ pub static FLASH_OF_STEEL: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Draw 1 card.",
 );
 // Upgraded
 pub static FLASH_OF_STEEL_PLUS: Entity = Entity {

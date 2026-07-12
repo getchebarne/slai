@@ -22,4 +22,5 @@ pub static ANCHOR: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Start each combat with 10 Block.",
 );

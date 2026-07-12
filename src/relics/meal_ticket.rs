@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_room_enter.rs`
 pub static MEAL_TICKET: Entity =
-    make_entity_relic(RelicName::MealTicket, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::MealTicket, RelicTier::Common, 0, &[],
+    "Whenever you enter a shop room, heal 15 HP.",
+);

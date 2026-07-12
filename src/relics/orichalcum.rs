@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_turn_end.rs`
 pub static ORICHALCUM: Entity =
-    make_entity_relic(RelicName::Orichalcum, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::Orichalcum, RelicTier::Common, 0, &[],
+    "If you end your turn without Block, gain 6 Block.",
+);

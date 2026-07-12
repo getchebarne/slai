@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_relic_adopt.rs`
 pub static PANDORAS_BOX: Entity =
-    make_entity_relic(RelicName::PandorasBox, RelicTier::Boss, 0, &[]);
+    make_entity_relic(RelicName::PandorasBox, RelicTier::Boss, 0, &[],
+    "Transform all Strikes and Defends.",
+);

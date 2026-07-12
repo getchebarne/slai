@@ -6,4 +6,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_reward_roll_combat.rs`
 pub static GOLDEN_IDOL: Entity =
-    make_entity_relic(RelicName::GoldenIdol, RelicTier::Special, 0, &[]);
+    make_entity_relic(RelicName::GoldenIdol, RelicTier::Special, 0, &[],
+    "Enemies drop 25% more Gold.",
+);

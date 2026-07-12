@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_turn_end.rs`
 pub static ART_OF_WAR: Entity =
-    make_entity_relic(RelicName::ArtOfWar, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::ArtOfWar, RelicTier::Common, 0, &[],
+    "If you do not play any Attacks during your turn, gain an extra Energy next turn.",
+);

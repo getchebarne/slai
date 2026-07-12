@@ -23,4 +23,5 @@ pub static PARASITE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable. If transformed or removed from your deck, lose 3 Max HP.",
 );

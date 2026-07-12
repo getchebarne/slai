@@ -30,6 +30,7 @@ pub static EXPERTISE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Draw cards until you have {magic} in your hand.",
 );
 // Upgraded
 pub static EXPERTISE_PLUS: Entity = Entity {

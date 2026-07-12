@@ -39,6 +39,7 @@ pub static BURST: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "This turn, your next Skill is played twice.",
 );
 // Upgraded
 pub static BURST_PLUS: Entity = Entity {

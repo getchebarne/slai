@@ -17,4 +17,5 @@ pub static BAG_OF_PREPARATION: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "At the start of each combat, draw 2 additional cards.",
 );

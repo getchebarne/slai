@@ -26,4 +26,5 @@ pub static ODDLY_SMOOTH_STONE: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "At the start of each combat, gain 1 Dexterity.",
 );

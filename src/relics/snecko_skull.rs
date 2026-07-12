@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_modifier_gain.rs`
 pub static SNECKO_SKULL: Entity =
-    make_entity_relic(RelicName::SneckoSkull, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::SneckoSkull, RelicTier::Common, 0, &[],
+    "Whenever you apply Poison, apply an additional 1 Poison.",
+);

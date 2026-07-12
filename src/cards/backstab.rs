@@ -38,6 +38,7 @@ pub static BACKSTAB: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Innate. Deal {damage} damage. Exhaust.",
 );
 // Upgraded
 pub static BACKSTAB_PLUS: Entity = Entity {

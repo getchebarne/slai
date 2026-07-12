@@ -8,4 +8,6 @@ use crate::types::RelicTier;
 //    - `engine/mod.rs`
 //    - `utils.rs`
 pub static UNCEASING_TOP: Entity =
-    make_entity_relic(RelicName::UnceasingTop, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::UnceasingTop, RelicTier::Rare, 0, &[],
+    "Whenever you have no cards in hand during your turn, draw a card.",
+);

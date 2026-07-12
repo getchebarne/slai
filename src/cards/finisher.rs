@@ -38,6 +38,7 @@ pub static FINISHER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage for each Attack played this turn.",
 );
 // Upgraded
 pub static FINISHER_PLUS: Entity = Entity {

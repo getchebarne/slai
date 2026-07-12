@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_room_enter.rs`
 pub static TINY_CHEST: Entity =
-    make_entity_relic(RelicName::TinyChest, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::TinyChest, RelicTier::Common, 0, &[],
+    "Every 4th&#160;? room is a Treasure room.",
+);

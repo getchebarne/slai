@@ -58,6 +58,7 @@ pub static GLASS_KNIFE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage twice. Decrease the damage of this card by 2 this combat.",
 );
 // Upgraded
 pub static GLASS_KNIFE_PLUS: Entity = Entity {

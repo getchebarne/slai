@@ -38,6 +38,7 @@ pub static SWIFT_STRIKE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage.",
 );
 // Upgraded
 pub static SWIFT_STRIKE_PLUS: Entity = Entity {

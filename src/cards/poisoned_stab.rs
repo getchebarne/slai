@@ -54,6 +54,7 @@ pub static POISONED_STAB: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Apply {magic} Poison.",
 );
 // Upgraded: +2 damage, +1 poison
 pub static POISONED_STAB_PLUS: Entity = Entity {

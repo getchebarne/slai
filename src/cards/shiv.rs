@@ -38,6 +38,7 @@ pub static SHIV: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Exhaust.",
 );
 // Upgraded
 pub static SHIV_PLUS: Entity = Entity {

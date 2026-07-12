@@ -8,4 +8,6 @@ use crate::types::RelicTier;
 //    - `process_effect_card_play.rs`
 //    - `process_effect_combat_start.rs`
 pub static PEN_NIB: Entity =
-    make_entity_relic(RelicName::PenNib, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::PenNib, RelicTier::Common, 0, &[],
+    "Every 10th Attack you play deals double damage.",
+);

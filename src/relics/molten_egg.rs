@@ -8,4 +8,6 @@ use crate::types::RelicTier;
 //    - `process_effect_card_add_to_deck.rs`
 //    - `utils.rs`
 pub static MOLTEN_EGG: Entity =
-    make_entity_relic(RelicName::MoltenEgg, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::MoltenEgg, RelicTier::Uncommon, 0, &[],
+    "Whenever you add an Attack card to your deck, it is Upgraded.",
+);

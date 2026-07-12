@@ -17,4 +17,5 @@ pub static LANTERN: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "Gain 1 Energy on the first turn of each combat.",
 );

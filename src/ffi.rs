@@ -1872,6 +1872,8 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
 pub struct PyCard {
     pub name: PyCardName,
     pub display_name: String,
+    // Rendered from the card's template with live modifier-scaled damage/block
+    pub description: String,
 
     // Cost-related fields
     pub cost: u8,
@@ -1937,6 +1939,7 @@ pub struct PyRelic {
     pub tier: PyRelicTier,
     pub counter: i16,
     pub used_up: bool,
+    pub description: String,
     pub effects_on_combat_start: Vec<PyEffect>,
 }
 
@@ -1949,6 +1952,7 @@ impl PyRelic {
         tier: PyRelicTier,
         counter: i16,
         used_up: bool,
+        description: String,
         effects_on_combat_start: Vec<PyEffect>,
     ) -> Self {
         Self {
@@ -1956,6 +1960,7 @@ impl PyRelic {
             tier,
             counter,
             used_up,
+            description,
             effects_on_combat_start,
         }
     }
@@ -1969,6 +1974,7 @@ pub struct PyPotion {
     pub rarity: PyPotionRarity,
     pub requires_target: bool,
     pub combat_only: bool,
+    pub description: String,
     pub effects: Vec<PyEffect>,
 }
 
@@ -1981,6 +1987,7 @@ impl PyPotion {
         rarity: PyPotionRarity,
         requires_target: bool,
         combat_only: bool,
+        description: String,
         effects: Vec<PyEffect>,
     ) -> Self {
         Self {
@@ -1988,6 +1995,7 @@ impl PyPotion {
             rarity,
             requires_target,
             combat_only,
+            description,
             effects,
         }
     }
@@ -2689,6 +2697,7 @@ fn snapshot_relic(entity: &Entity) -> PyRelic {
         tier: entity.relic_tier.into(),
         counter: entity.relic_counter,
         used_up: entity.relic_used_up,
+        description: entity.description.to_string(),
         effects_on_combat_start: entity
             .relic_effects_on_combat_start
             .iter()
@@ -2703,6 +2712,7 @@ fn snapshot_potion(entity: &Entity) -> PyPotion {
         rarity: entity.potion_rarity.into(),
         requires_target: entity.requires_target,
         combat_only: entity.potion_combat_only,
+        description: entity.description.to_string(),
         effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
     }
 }
@@ -2854,6 +2864,48 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
         .collect()
 }
 
+// Classify an effect's display number: 0=damage, 1=block, 2=magic (secondary)
+fn effect_display_amount(e: &PyEffect) -> Option<(u8, i64)> {
+    use PyEffect::*;
+    Some(match e {
+        DamagePhysical { amount, .. } | DamagePhysicalIfPoisoned { amount, .. } => {
+            (0, *amount as i64)
+        }
+        DamageFinisher { damage, .. } | DamageFlechettes { damage, .. } => (0, *damage as i64),
+        BlockGain { amount, .. } => (1, *amount as i64),
+        EscapePlanCheck { block, .. } => (1, *block as i64),
+        ModifierGain { stacks, .. } => (2, *stacks as i64),
+        EnergyGain { amount, .. } => (2, *amount as i64),
+        CardAddToHand { count, .. } | CardDraw { count, .. } => (2, *count as i64),
+        CardDiscoverRoll { count, .. } => (2, *count as i64),
+        CardDrawUpTo { amount, .. } => (2, *amount as i64),
+        _ => return None,
+    })
+}
+
+// Fill {damage}/{block}/{magic} from the (already modifier-scaled) effects
+fn render_description(template: &str, effects: &[PyEffect]) -> String {
+    if !template.contains('{') {
+        return template.to_string();
+    }
+    let (mut dmg, mut blk, mut mag): (Option<i64>, Option<i64>, Option<i64>) = (None, None, None);
+    for e in effects {
+        match effect_display_amount(e) {
+            Some((0, v)) => dmg = dmg.or(Some(v)),
+            Some((1, v)) => blk = blk.or(Some(v)),
+            Some((_, v)) => mag = mag.or(Some(v)),
+            None => {}
+        }
+    }
+    let mut out = template.to_string();
+    for (key, val) in [("{damage}", dmg), ("{block}", blk), ("{magic}", mag)] {
+        if let Some(v) = val {
+            out = out.replace(key, &v.to_string());
+        }
+    }
+    out
+}
+
 fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let card = &state.entities[id_card];
     let entangled = has_modifier(
@@ -2884,9 +2936,11 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     } else {
         base.to_string()
     };
+    let effects = snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers);
     let mut py_card = PyCard {
         name: card.card_name.into(),
         display_name,
+        description: render_description(card.description, &effects),
         cost: get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
         cost_base: card.card_cost,
         cost_zero_once: card.card_free_to_play_once,
@@ -2903,7 +2957,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         requires_target: card.requires_target,
         retain: card.card_retain,
         playable: restriction_ok && !entangled_blocks,
-        effects: snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers),
+        effects,
         identity_hash: 0,
     };
     py_card.identity_hash = card_identity_hash(&py_card);
@@ -3025,3 +3079,27 @@ impl_discriminant_hash!(
     PyCandidatePoolDeckFilter,
     PyIntentKind,
 );
+
+#[cfg(test)]
+mod description_render_tests {
+    use super::{render_description, snapshot_adjusted_effects};
+    use crate::cards::{get_card, ALL_CARDS};
+    use crate::modifier::ZERO_MODIFIERS;
+
+    // Every card template must fully resolve to concrete text (no leftover {..})
+    #[test]
+    fn all_card_descriptions_render_without_placeholders() {
+        let mut bad = Vec::new();
+        for base in ALL_CARDS {
+            for upgraded in [false, true] {
+                let card = get_card(base.card_name, upgraded);
+                let effects = snapshot_adjusted_effects(&card, &ZERO_MODIFIERS);
+                let rendered = render_description(card.description, &effects);
+                if rendered.contains('{') {
+                    bad.push(format!("{:?} (upgraded={upgraded}): {rendered:?}", base.card_name));
+                }
+            }
+        }
+        assert!(bad.is_empty(), "unresolved placeholders:\n{}", bad.join("\n"));
+    }
+}

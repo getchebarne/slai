@@ -29,4 +29,5 @@ pub static RED_MASK: Entity = make_entity_relic(
             selection_kind: SelectionKind::All,
         },
     }],
+    "At the start of each combat, apply 1 Weak to ALL enemies.",
 );

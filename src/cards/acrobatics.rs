@@ -45,6 +45,7 @@ pub static ACROBATICS: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Draw {magic} cards. Discard 1 card.",
 );
 // Upgraded
 pub static ACROBATICS_PLUS: Entity = Entity {

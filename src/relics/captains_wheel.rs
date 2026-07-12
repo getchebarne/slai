@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_turn_start.rs`
 pub static CAPTAINS_WHEEL: Entity =
-    make_entity_relic(RelicName::CaptainsWheel, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::CaptainsWheel, RelicTier::Rare, 0, &[],
+    "At the start of your 3rd turn, gain 18 Block.",
+);

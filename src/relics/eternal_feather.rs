@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_room_enter.rs`
 pub static ETERNAL_FEATHER: Entity =
-    make_entity_relic(RelicName::EternalFeather, RelicTier::Uncommon, 0, &[]);
+    make_entity_relic(RelicName::EternalFeather, RelicTier::Uncommon, 0, &[],
+    "For every 5 cards in your deck, heal 3 HP whenever you enter a Rest Site.",
+);

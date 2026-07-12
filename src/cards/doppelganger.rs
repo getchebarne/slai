@@ -52,6 +52,7 @@ pub static DOPPELGANGER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Next turn, draw X cards and gain X Energy. Exhaust.",
 );
 // Upgraded
 pub static DOPPELGANGER_PLUS: Entity = Entity {

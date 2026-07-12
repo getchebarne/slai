@@ -49,6 +49,7 @@ pub static BULLET_TIME: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "You cannot draw additional cards this turn. Reduce the cost of all cards in your hand to 0 this turn.",
 );
 // Upgraded
 pub static BULLET_TIME_PLUS: Entity = Entity {

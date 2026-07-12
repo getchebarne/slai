@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_health_delta.rs`
 pub static TUNGSTEN_ROD: Entity =
-    make_entity_relic(RelicName::TungstenRod, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::TungstenRod, RelicTier::Rare, 0, &[],
+    "Whenever you would lose HP, lose 1 less.",
+);

@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_play.rs`
 pub static BIRD_FACED_URN: Entity =
-    make_entity_relic(RelicName::BirdFacedUrn, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::BirdFacedUrn, RelicTier::Rare, 0, &[],
+    "Whenever you play a Power, heal 2 HP.",
+);

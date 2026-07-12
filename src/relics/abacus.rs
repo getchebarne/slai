@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_shuffle_discard_pile_into_draw_pile.rs`
 pub static ABACUS: Entity =
-    make_entity_relic(RelicName::Abacus, RelicTier::Shop, 0, &[]);
+    make_entity_relic(RelicName::Abacus, RelicTier::Shop, 0, &[],
+    "Gain 6 Block whenever you shuffle your draw pile.",
+);

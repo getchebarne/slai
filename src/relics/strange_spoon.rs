@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_play.rs`
 pub static STRANGE_SPOON: Entity =
-    make_entity_relic(RelicName::StrangeSpoon, RelicTier::Shop, 0, &[]);
+    make_entity_relic(RelicName::StrangeSpoon, RelicTier::Shop, 0, &[],
+    "Cards which Exhaust when played will instead discard 50% of the time.",
+);

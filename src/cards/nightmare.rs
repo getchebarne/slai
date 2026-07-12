@@ -35,6 +35,7 @@ pub static NIGHTMARE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Choose a card. Next turn, add 3 copies of that card into your hand. Exhaust.",
 );
 // Upgraded
 pub static NIGHTMARE_PLUS: Entity = Entity {

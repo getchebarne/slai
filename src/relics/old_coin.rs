@@ -7,4 +7,6 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_relic_adopt.rs`
 pub static OLD_COIN: Entity =
-    make_entity_relic(RelicName::OldCoin, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::OldCoin, RelicTier::Rare, 0, &[],
+    "Gain 300 Gold.",
+);
