@@ -4,5 +4,10 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Entering any room grants 12 gold until gold is spent at a shop
+// See:
+//    - `process_effect_gold_delta.rs`
+//    - `process_effect_room_enter.rs`
 pub static MAW_BANK: Entity =
-    make_entity_relic(RelicName::MawBank, RelicTier::Common, 0, &[]);
+    make_entity_relic(RelicName::MawBank, RelicTier::Common, 0, &[],
+    "Whenever you climb a floor, gain 12 Gold. No longer works when you spend any Gold at the shop.",
+);

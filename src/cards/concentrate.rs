@@ -28,7 +28,7 @@ pub static CONCENTRATE: Entity = make_entity_card(
     &[
         Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit,
+                source: DiscardSource::Explicit, // Triggers on-discard sinergies
             },
             id_source: None,
             target: Target::Resolve {
@@ -45,10 +45,12 @@ pub static CONCENTRATE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Discard 3 cards. Gain 2 Energy.",
 );
 // Upgraded
 pub static CONCENTRATE_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Discard 2 cards. Gain 2 Energy.",
     card_effects: {
         let mut a = CONCENTRATE.card_effects;
         a[0].target = Target::Resolve {

@@ -38,6 +38,7 @@ pub static GRAND_FINALE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::DrawPileEmpty,
+    "Can only be played if there are no cards in your draw pile. Deal {damage} damage to ALL enemies.",
 );
 // Upgraded
 pub static GRAND_FINALE_PLUS: Entity = Entity {

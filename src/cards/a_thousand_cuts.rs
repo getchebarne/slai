@@ -39,10 +39,12 @@ pub static A_THOUSAND_CUTS: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Whenever you play a card, deal 1 damage to ALL enemies.",
 );
 // Upgraded
 pub static A_THOUSAND_CUTS_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Whenever you play a card, deal 2 damage to ALL enemies.",
     card_effects: {
         let mut a = A_THOUSAND_CUTS.card_effects;
         a[0].kind = EffectKind::ModifierGain {

@@ -57,6 +57,7 @@ pub static MALAISE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Enemy loses X Strength. Apply X Weak. Exhaust.",
 );
 // Upgraded
 pub static MALAISE_PLUS: Entity = Entity {

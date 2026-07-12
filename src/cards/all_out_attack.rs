@@ -39,7 +39,7 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
         },
         Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit,
+                source: DiscardSource::Explicit, // Triggers on-discard sinergies
             },
             id_source: None,
             target: Target::Resolve {
@@ -51,6 +51,7 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage to ALL enemies. Discard 1 card at random.",
 );
 // Upgraded
 pub static ALL_OUT_ATTACK_PLUS: Entity = Entity {

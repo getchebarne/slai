@@ -54,6 +54,7 @@ pub static SUCKER_PUNCH: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Apply {magic} Weak.",
 );
 // Upgraded
 pub static SUCKER_PUNCH_PLUS: Entity = Entity {

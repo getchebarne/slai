@@ -4,5 +4,9 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // At turn start, lose 15 block instead of all of it
+// See:
+//    - `process_effect_turn_start.rs`
 pub static CALIPERS: Entity =
-    make_entity_relic(RelicName::Calipers, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::Calipers, RelicTier::Rare, 0, &[],
+    "At the start of your turn, lose 15 Block rather than all of your Block.",
+);

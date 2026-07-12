@@ -8,6 +8,8 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static ANCHOR: Entity = make_entity_relic(
     RelicName::Anchor,
     RelicTier::Common,
@@ -20,4 +22,5 @@ pub static ANCHOR: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Start each combat with 10 Block.",
 );

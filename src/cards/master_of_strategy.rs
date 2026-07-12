@@ -30,6 +30,7 @@ pub static MASTER_OF_STRATEGY: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Draw {magic} cards. Exhaust.",
 );
 // Upgraded
 pub static MASTER_OF_STRATEGY_PLUS: Entity = Entity {

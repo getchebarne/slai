@@ -33,7 +33,7 @@ pub static PREPARED: Entity = make_entity_card(
         },
         Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit,
+                source: DiscardSource::Explicit, // Triggers on-discard sinergies
             },
             id_source: None,
             target: Target::Resolve {
@@ -45,10 +45,12 @@ pub static PREPARED: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Draw 1 card. Discard 1 card.",
 );
 // Upgraded
 pub static PREPARED_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Draw 2 cards. Discard 2 cards.",
     card_effects: {
         let mut a = PREPARED.card_effects;
         a[0].kind = EffectKind::CardDraw { count: 2 }; // +1 card

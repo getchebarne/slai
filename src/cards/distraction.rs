@@ -30,6 +30,7 @@ pub static DISTRACTION: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Add a random Skill into your hand. It costs 0 this turn. Exhaust.",
 );
 // Upgraded
 pub static DISTRACTION_PLUS: Entity = Entity {

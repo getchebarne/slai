@@ -39,6 +39,7 @@ pub static FOOTWORK: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {magic} Dexterity.",
 );
 // Upgraded
 pub static FOOTWORK_PLUS: Entity = Entity {

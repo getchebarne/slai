@@ -23,4 +23,5 @@ pub static SLIMED: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Exhaust.",
 );

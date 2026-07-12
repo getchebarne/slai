@@ -12,7 +12,7 @@ pub fn process_effect_unload_discard(state: &mut GameState) {
         if state.entities[id_card].card_kind != CardKind::Attack {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardDiscard {
-                    source: DiscardSource::Explicit,
+                    source: DiscardSource::Explicit, // Triggers on-discard sinergies
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_card)),

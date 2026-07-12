@@ -54,6 +54,7 @@ pub static CHOKE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Whenever you play a card this turn, the enemy loses {magic} HP.",
 );
 // Upgraded
 pub static CHOKE_PLUS: Entity = Entity {

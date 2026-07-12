@@ -425,8 +425,7 @@ pub fn has_modifier(mods: &Modifiers, kind: ModifierKind) -> bool {
 }
 
 // Iterate the ModifierKinds set in an `active` bitmask. Takes the mask by value (a
-// snapshot), so the source Modifiers may be mutated while iterating. `kind as usize`
-// recovers the index into `stacks`/`is_new`.
+// snapshot), so the source Modifiers may be mutated while iterating
 pub fn active_modifier_kinds(active: u64) -> impl Iterator<Item = ModifierKind> {
     let mut bits = active;
     std::iter::from_fn(move || {
@@ -439,17 +438,31 @@ pub fn active_modifier_kinds(active: u64) -> impl Iterator<Item = ModifierKind> 
     })
 }
 
+// Sum onto the existing stacks (0 if absent); below stacks_min removes, above stacks_max saturates
 pub fn modifier_apply(mods: &mut Modifiers, kind: ModifierKind, stacks: i16) {
     let mod_def = modifier_def(kind);
     let idx = kind as usize;
-    if has_modifier(mods, kind) {
-        mods.stacks[idx] =
-            (mods.stacks[idx] + stacks).clamp(mod_def.stacks_min, mod_def.stacks_max);
+
+    // Calculate new amount of stacks
+    let stacks_new = if has_modifier(mods, kind) {
+        mods.stacks[idx] + stacks
     } else {
-        mods.stacks[idx] = stacks.clamp(mod_def.stacks_min, mod_def.stacks_max);
+        stacks
+    };
+
+    // Remove if below minimum stacks
+    if stacks_new < mod_def.stacks_min {
+        return modifier_remove(mods, kind);
+    }
+
+    // If not previously owned, create it with `is_new = True`
+    if !has_modifier(mods, kind) {
         mods.is_new[idx] = true;
         mods.active |= 1 << kind as u32;
     }
+
+    // Else, set new value
+    mods.stacks[idx] = stacks_new.min(mod_def.stacks_max);
 }
 
 pub fn modifier_remove(mods: &mut Modifiers, kind: ModifierKind) {

@@ -37,6 +37,7 @@ pub static ADRENALINE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {magic} Energy. Draw 2 cards. Exhaust.",
 );
 // Upgraded
 pub static ADRENALINE_PLUS: Entity = Entity {

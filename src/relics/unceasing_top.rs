@@ -4,5 +4,10 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // An empty hand during your turn draws 1 card
+// See:
+//    - `engine/mod.rs`
+//    - `utils.rs`
 pub static UNCEASING_TOP: Entity =
-    make_entity_relic(RelicName::UnceasingTop, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::UnceasingTop, RelicTier::Rare, 0, &[],
+    "Whenever you have no cards in hand during your turn, draw a card.",
+);

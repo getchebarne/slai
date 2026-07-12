@@ -40,10 +40,12 @@ pub static BANDAGE_UP: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Heal 4 HP. Exhaust.",
 );
 // Upgraded
 pub static BANDAGE_UP_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Heal 6 HP. Exhaust.",
     card_effects: {
         let mut a = BANDAGE_UP.card_effects;
         a[0].kind = EffectKind::HealthDelta {

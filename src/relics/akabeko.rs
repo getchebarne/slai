@@ -9,6 +9,8 @@ use crate::modifier::ModifierKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static AKABEKO: Entity = make_entity_relic(
     RelicName::Akabeko,
     RelicTier::Common,
@@ -24,4 +26,5 @@ pub static AKABEKO: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Your first attack each combat deals 8 additional damage.",
 );

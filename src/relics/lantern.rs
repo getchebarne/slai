@@ -6,6 +6,8 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static LANTERN: Entity = make_entity_relic(
     RelicName::Lantern,
     RelicTier::Common,
@@ -15,4 +17,5 @@ pub static LANTERN: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "Gain 1 Energy on the first turn of each combat.",
 );

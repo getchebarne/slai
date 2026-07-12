@@ -42,6 +42,7 @@ pub static DEADLY_POISON: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Apply {magic} Poison.",
 );
 // Upgraded
 pub static DEADLY_POISON_PLUS: Entity = Entity {

@@ -4,5 +4,9 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Exhausting a card conjures a random card into the hand
+// See:
+//    - `process_effect_card_exhaust.rs`
 pub static DEAD_BRANCH: Entity =
-    make_entity_relic(RelicName::DeadBranch, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::DeadBranch, RelicTier::Rare, 0, &[],
+    "Whenever you Exhaust a card, add a random card to your hand.",
+);

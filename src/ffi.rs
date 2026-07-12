@@ -5,7 +5,6 @@ use pyo3_stub_gen::derive::gen_stub_pyclass_enum;
 use pyo3_stub_gen::derive::gen_stub_pymethods;
 
 use crate::action::Action;
-use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
@@ -33,7 +32,6 @@ use crate::modifier::modifier_is_buff;
 use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::modifier_stacks;
 use crate::modifier::stacks_max_for;
-use crate::monsters::hexaghost;
 use crate::relics::iter_owned_relics;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -49,8 +47,10 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::Screen;
+use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
+use crate::utils::weak_factor;
 
 #[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "CardKind", module = "slai.slai")]
@@ -1872,6 +1872,8 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
 pub struct PyCard {
     pub name: PyCardName,
     pub display_name: String,
+    // Rendered from the card's template with live modifier-scaled damage/block
+    pub description: String,
 
     // Cost-related fields
     pub cost: u8,
@@ -1937,6 +1939,7 @@ pub struct PyRelic {
     pub tier: PyRelicTier,
     pub counter: i16,
     pub used_up: bool,
+    pub description: String,
     pub effects_on_combat_start: Vec<PyEffect>,
 }
 
@@ -1949,6 +1952,7 @@ impl PyRelic {
         tier: PyRelicTier,
         counter: i16,
         used_up: bool,
+        description: String,
         effects_on_combat_start: Vec<PyEffect>,
     ) -> Self {
         Self {
@@ -1956,6 +1960,7 @@ impl PyRelic {
             tier,
             counter,
             used_up,
+            description,
             effects_on_combat_start,
         }
     }
@@ -1969,6 +1974,7 @@ pub struct PyPotion {
     pub rarity: PyPotionRarity,
     pub requires_target: bool,
     pub combat_only: bool,
+    pub description: String,
     pub effects: Vec<PyEffect>,
 }
 
@@ -1981,6 +1987,7 @@ impl PyPotion {
         rarity: PyPotionRarity,
         requires_target: bool,
         combat_only: bool,
+        description: String,
         effects: Vec<PyEffect>,
     ) -> Self {
         Self {
@@ -1988,6 +1995,7 @@ impl PyPotion {
             rarity,
             requires_target,
             combat_only,
+            description,
             effects,
         }
     }
@@ -2689,6 +2697,7 @@ fn snapshot_relic(entity: &Entity) -> PyRelic {
         tier: entity.relic_tier.into(),
         counter: entity.relic_counter,
         used_up: entity.relic_used_up,
+        description: entity.description.to_string(),
         effects_on_combat_start: entity
             .relic_effects_on_combat_start
             .iter()
@@ -2703,6 +2712,7 @@ fn snapshot_potion(entity: &Entity) -> PyPotion {
         rarity: entity.potion_rarity.into(),
         requires_target: entity.requires_target,
         combat_only: entity.potion_combat_only,
+        description: entity.description.to_string(),
         effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
     }
 }
@@ -2732,7 +2742,7 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
 
             let intent = if let Some(move_idx) = m.monster_move_current {
                 let mv = &m.monster_moves[move_idx];
-                let (mut base_damage, mut instances) = match mv.intent {
+                let (base_damage, instances) = match mv.intent {
                     Intent::Attack { damage, instances }
                     | Intent::AttackBlock { damage, instances }
                     | Intent::AttackBuff { damage, instances }
@@ -2748,14 +2758,6 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
-                // Hexaghost Divider's per-hit damage is dynamic (HP/12 + 1, fixed at selection); override the static placeholder
-                if m.monster_name == MonsterName::Hexaghost
-                    && move_idx == hexaghost::IDX_MOVE_DIVIDER
-                {
-                    base_damage = Some(m.monster_divider_damage);
-                    instances = Some(HEXAGHOST_DIVIDER_HITS);
-                }
-
                 let damage = base_damage.map(|d| {
                     let str_stacks = if has_modifier(&m.modifiers, ModifierKind::Strength) {
                         modifier_stacks(&m.modifiers, ModifierKind::Strength)
@@ -2765,8 +2767,10 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     let mut scaled = scale_attack_damage(
                         d,
                         str_stacks,
-                        has_modifier(&m.modifiers, ModifierKind::Weak),
-                        state.id_relics[RelicName::PaperKrane as usize].is_some(),
+                        weak_factor(
+                            has_modifier(&m.modifiers, ModifierKind::Weak),
+                            has_relic(&state.id_relics, RelicName::PaperKrane),
+                        ),
                         has_modifier(mods_char, ModifierKind::Vulnerable),
                     );
                     if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
@@ -2843,8 +2847,7 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
                 let mut d = scale_attack_damage(
                     amount.saturating_add(vigor),
                     str_stacks,
-                    weak,
-                    false,
+                    weak_factor(weak, false),
                     false,
                 );
                 if double {
@@ -2859,6 +2862,55 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
             other => other,
         })
         .collect()
+}
+
+// Classify an effect's display number: 0=damage, 1=block, 2=magic (secondary)
+fn effect_display_amount(e: &PyEffect) -> Option<(u8, i64)> {
+    use PyEffect::*;
+    Some(match e {
+        DamagePhysical { amount, .. } | DamagePhysicalIfPoisoned { amount, .. } => {
+            (0, *amount as i64)
+        }
+        DamageFinisher { damage, .. } | DamageFlechettes { damage, .. } => (0, *damage as i64),
+        BlockGain { amount, .. } => (1, *amount as i64),
+        EscapePlanCheck { block, .. } => (1, *block as i64),
+        ModifierGain { stacks, .. } => (2, *stacks as i64),
+        EnergyGain { amount, .. } => (2, *amount as i64),
+        CardAddToHand { count, .. } | CardDraw { count, .. } => (2, *count as i64),
+        CardDiscoverRoll { count, .. } => (2, *count as i64),
+        CardDrawUpTo { amount, .. } => (2, *amount as i64),
+        _ => return None,
+    })
+}
+
+// Fill {damage}/{block}/{magic}/{magic2} from the (already modifier-scaled) effects
+fn render_description(template: &str, effects: &[PyEffect]) -> String {
+    if !template.contains('{') {
+        return template.to_string();
+    }
+    let (mut dmg, mut blk, mut mag): (Vec<i64>, Vec<i64>, Vec<i64>) =
+        (Vec::new(), Vec::new(), Vec::new());
+    for e in effects {
+        match effect_display_amount(e) {
+            Some((0, v)) => dmg.push(v),
+            Some((1, v)) => blk.push(v),
+            Some((_, v)) => mag.push(v),
+            None => {}
+        }
+    }
+    let mut out = template.to_string();
+    // {magic2} before {magic} so the shorter key doesn't match the longer one's prefix
+    for (key, val) in [
+        ("{magic2}", mag.get(1)),
+        ("{damage}", dmg.first()),
+        ("{block}", blk.first()),
+        ("{magic}", mag.first()),
+    ] {
+        if let Some(v) = val {
+            out = out.replace(key, &v.to_string());
+        }
+    }
+    out
 }
 
 fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
@@ -2891,9 +2943,11 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     } else {
         base.to_string()
     };
+    let effects = snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers);
     let mut py_card = PyCard {
         name: card.card_name.into(),
         display_name,
+        description: render_description(card.description, &effects),
         cost: get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
         cost_base: card.card_cost,
         cost_zero_once: card.card_free_to_play_once,
@@ -2910,7 +2964,7 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         requires_target: card.requires_target,
         retain: card.card_retain,
         playable: restriction_ok && !entangled_blocks,
-        effects: snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers),
+        effects,
         identity_hash: 0,
     };
     py_card.identity_hash = card_identity_hash(&py_card);
@@ -3032,3 +3086,27 @@ impl_discriminant_hash!(
     PyCandidatePoolDeckFilter,
     PyIntentKind,
 );
+
+#[cfg(test)]
+mod description_render_tests {
+    use super::{render_description, snapshot_adjusted_effects};
+    use crate::cards::{get_card, ALL_CARDS};
+    use crate::modifier::ZERO_MODIFIERS;
+
+    // Every card template must fully resolve to concrete text (no leftover {..})
+    #[test]
+    fn all_card_descriptions_render_without_placeholders() {
+        let mut bad = Vec::new();
+        for base in ALL_CARDS {
+            for upgraded in [false, true] {
+                let card = get_card(base.card_name, upgraded);
+                let effects = snapshot_adjusted_effects(&card, &ZERO_MODIFIERS);
+                let rendered = render_description(card.description, &effects);
+                if rendered.contains('{') {
+                    bad.push(format!("{:?} (upgraded={upgraded}): {rendered:?}", base.card_name));
+                }
+            }
+        }
+        assert!(bad.is_empty(), "unresolved placeholders:\n{}", bad.join("\n"));
+    }
+}

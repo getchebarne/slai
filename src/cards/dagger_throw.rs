@@ -44,7 +44,7 @@ pub static DAGGER_THROW: Entity = make_entity_card(
         },
         Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit,
+                source: DiscardSource::Explicit, // Triggers on-discard sinergies
             },
             id_source: None,
             target: Target::Resolve {
@@ -56,6 +56,7 @@ pub static DAGGER_THROW: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Draw 1 card. Discard 1 card.",
 );
 // Upgraded
 pub static DAGGER_THROW_PLUS: Entity = Entity {

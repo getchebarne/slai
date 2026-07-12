@@ -50,6 +50,7 @@ pub static HEEL_HOOK: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. If the enemy has Weak, gain 1 Energy and draw 1 card.",
 );
 // Upgraded
 pub static HEEL_HOOK_PLUS: Entity = Entity {

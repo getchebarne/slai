@@ -52,6 +52,7 @@ pub static PREDATOR: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Next turn, draw 2 additional cards.",
 );
 // Upgraded
 pub static PREDATOR_PLUS: Entity = Entity {

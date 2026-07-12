@@ -4,5 +4,9 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Manually discarding a card grants 3 block
+// See:
+//    - `process_effect_card_discard.rs`
 pub static TOUGH_BANDAGES: Entity =
-    make_entity_relic(RelicName::ToughBandages, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::ToughBandages, RelicTier::Rare, 0, &[],
+    "Whenever you discard a card during your turn, gain 3 Block.",
+);

@@ -39,6 +39,7 @@ pub static TOOLS_OF_THE_TRADE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "At the start of your turn, draw 1 card and discard 1 card.",
 );
 // Upgraded
 pub static TOOLS_OF_THE_TRADE_PLUS: Entity = Entity {

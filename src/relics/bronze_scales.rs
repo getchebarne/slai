@@ -9,6 +9,8 @@ use crate::modifier::ModifierKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static BRONZE_SCALES: Entity = make_entity_relic(
     RelicName::BronzeScales,
     RelicTier::Common,
@@ -24,4 +26,5 @@ pub static BRONZE_SCALES: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Start each combat with 3 Thorns.",
 );

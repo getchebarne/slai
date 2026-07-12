@@ -3,6 +3,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::game::Energy;
 use crate::game::GameState;
 use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
@@ -12,10 +13,17 @@ use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
 use crate::types::RelicName;
 use crate::types::RoomKind;
+use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(state: &mut GameState) {
+    // Energy starts empty; the turn-1 refill fills
+    state.energy = Energy {
+        energy_current: 0,
+        energy_max: 3, // TODO: Max energy relics
+    };
+
     state.this_combat_damage_instances_taken = 0;
     state.this_combat_escaped = false;
     state.this_turn_cards_played = 0;
@@ -102,7 +110,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Preserved Insect
-    if state.id_relics[RelicName::PreservedInsect as usize].is_some()
+    if has_relic(&state.id_relics, RelicName::PreservedInsect)
         && matches!(
             get_active_room_kind(&state.id_rooms, state.location, &state.entities),
             Some(RoomKind::CombatElite)
@@ -123,7 +131,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Du-Vu Doll
-    if state.id_relics[RelicName::DuVuDoll as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::DuVuDoll) {
         let num_curses = state
             .id_deck
             .iter()
@@ -143,7 +151,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Sling of Courage: Elite fights open with 2 Strength
-    if state.id_relics[RelicName::SlingOfCourage as usize].is_some()
+    if has_relic(&state.id_relics, RelicName::SlingOfCourage)
         && matches!(
             get_active_room_kind(&state.id_rooms, state.location, &state.entities),
             Some(RoomKind::CombatElite)

@@ -10,6 +10,8 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Start each combat with 1 Buffer (prevent the next HP loss)
+// See:
+//    - `process_effect_combat_start.rs`
 pub static FOSSILIZED_HELIX: Entity = make_entity_relic(
     RelicName::FossilizedHelix,
     RelicTier::Rare,
@@ -25,4 +27,5 @@ pub static FOSSILIZED_HELIX: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Prevent the first time you would lose HP in combat.",
 );

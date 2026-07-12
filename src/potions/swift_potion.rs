@@ -16,4 +16,5 @@ pub static SWIFT_POTION: Entity = make_entity_potion(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "Draw 3 cards.",
 );

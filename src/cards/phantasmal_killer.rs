@@ -39,6 +39,7 @@ pub static PHANTASMAL_KILLER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Next turn, your Attacks deal double damage.",
 );
 // Upgraded
 pub static PHANTASMAL_KILLER_PLUS: Entity = Entity {

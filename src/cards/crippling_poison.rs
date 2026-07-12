@@ -57,6 +57,7 @@ pub static CRIPPLING_POISON: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Apply {magic} Poison and 2 Weak to ALL enemies. Exhaust.",
 );
 // Upgraded
 pub static CRIPPLING_POISON_PLUS: Entity = Entity {

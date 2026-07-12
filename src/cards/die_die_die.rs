@@ -38,6 +38,7 @@ pub static DIE_DIE_DIE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage to ALL enemies. Exhaust.",
 );
 // Upgraded
 pub static DIE_DIE_DIE_PLUS: Entity = Entity {

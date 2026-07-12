@@ -30,6 +30,7 @@ pub static ALCHEMIZE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Obtain a random potion. Exhaust.",
 );
 // Upgraded
 pub static ALCHEMIZE_PLUS: Entity = Entity {

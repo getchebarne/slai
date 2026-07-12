@@ -42,6 +42,7 @@ pub static BACKFLIP: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {block} Block. Draw 2 cards.",
 );
 // Upgraded
 pub static BACKFLIP_PLUS: Entity = Entity {

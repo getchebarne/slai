@@ -6,6 +6,8 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static BAG_OF_PREPARATION: Entity = make_entity_relic(
     RelicName::BagOfPreparation,
     RelicTier::Common,
@@ -15,4 +17,5 @@ pub static BAG_OF_PREPARATION: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "At the start of each combat, draw 2 additional cards.",
 );

@@ -39,6 +39,7 @@ pub static OUTMANEUVER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Next turn, gain {magic} Energy.",
 );
 // Upgraded
 pub static OUTMANEUVER_PLUS: Entity = Entity {

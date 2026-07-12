@@ -23,4 +23,5 @@ pub static NORMALITY: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Never,
+    "Unplayable. You cannot play more than 3 cards this turn.",
 );

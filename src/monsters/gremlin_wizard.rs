@@ -7,20 +7,17 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
+use crate::entity::make_move;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_CHARGE: Move = Move {
-    name: "Charge",
-    effects: &[],
-    intent: Intent::Unknown,
-};
-static MOVE_ULTIMATE_BLAST_25: Move = Move {
-    name: "Ultimate Blast",
-    effects: &[Effect {
+static MOVE_CHARGE: Move = make_move("Charge", &[], Intent::Unknown);
+static MOVE_ULTIMATE_BLAST_25: Move = make_move(
+    "Ultimate Blast",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 25 },
         id_source: None,
         target: Target::Resolve {
@@ -28,14 +25,14 @@ static MOVE_ULTIMATE_BLAST_25: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 25,
         instances: 1,
     },
-};
-static MOVE_ULTIMATE_BLAST_30: Move = Move {
-    name: "Ultimate Blast",
-    effects: &[Effect {
+);
+static MOVE_ULTIMATE_BLAST_30: Move = make_move(
+    "Ultimate Blast",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 30 },
         id_source: None,
         target: Target::Resolve {
@@ -43,11 +40,11 @@ static MOVE_ULTIMATE_BLAST_30: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 30,
         instances: 1,
     },
-};
+);
 static MOVES_ASC0: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_25];
 static MOVES_ASC2: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];
 static MOVES_ASC17: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];

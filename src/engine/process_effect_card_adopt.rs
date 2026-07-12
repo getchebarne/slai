@@ -1,3 +1,4 @@
+use crate::utils::has_relic;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -11,7 +12,7 @@ pub fn process_effect_card_adopt(id_target: Option<usize>, state: &mut GameState
     state.id_deck.push(id_card);
 
     // Ceramic Fish: 9 gold per card that actually joins the deck
-    if state.id_relics[RelicName::CeramicFish as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::CeramicFish) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,

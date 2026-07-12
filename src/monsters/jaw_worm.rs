@@ -7,6 +7,7 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
+use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -14,9 +15,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_CHOMP_11: Move = Move {
-    name: "Chomp",
-    effects: &[Effect {
+static MOVE_CHOMP_11: Move = make_move(
+    "Chomp",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 11 },
         id_source: None,
         target: Target::Resolve {
@@ -24,14 +25,14 @@ static MOVE_CHOMP_11: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 11,
         instances: 1,
     },
-};
-static MOVE_CHOMP_12: Move = Move {
-    name: "Chomp",
-    effects: &[Effect {
+);
+static MOVE_CHOMP_12: Move = make_move(
+    "Chomp",
+    &[Effect {
         kind: EffectKind::DamagePhysical { amount: 12 },
         id_source: None,
         target: Target::Resolve {
@@ -39,14 +40,14 @@ static MOVE_CHOMP_12: Move = Move {
             selection_kind: SelectionKind::Single,
         },
     }],
-    intent: Intent::Attack {
+    Intent::Attack {
         damage: 12,
         instances: 1,
     },
-};
-static MOVE_THRASH: Move = Move {
-    name: "Thrash",
-    effects: &[
+);
+static MOVE_THRASH: Move = make_move(
+    "Thrash",
+    &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
@@ -64,14 +65,14 @@ static MOVE_THRASH: Move = Move {
             },
         },
     ],
-    intent: Intent::AttackBlock {
+    Intent::AttackBlock {
         damage: 7,
         instances: 1,
     },
-};
-static MOVE_BELLOW_3_6: Move = Move {
-    name: "Bellow",
-    effects: &[
+);
+static MOVE_BELLOW_3_6: Move = make_move(
+    "Bellow",
+    &[
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
@@ -92,11 +93,11 @@ static MOVE_BELLOW_3_6: Move = Move {
             },
         },
     ],
-    intent: Intent::BlockBuff,
-};
-static MOVE_BELLOW_4_6: Move = Move {
-    name: "Bellow",
-    effects: &[
+    Intent::BlockBuff,
+);
+static MOVE_BELLOW_4_6: Move = make_move(
+    "Bellow",
+    &[
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
@@ -117,11 +118,11 @@ static MOVE_BELLOW_4_6: Move = Move {
             },
         },
     ],
-    intent: Intent::BlockBuff,
-};
-static MOVE_BELLOW_5_9: Move = Move {
-    name: "Bellow",
-    effects: &[
+    Intent::BlockBuff,
+);
+static MOVE_BELLOW_5_9: Move = make_move(
+    "Bellow",
+    &[
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
@@ -142,8 +143,8 @@ static MOVE_BELLOW_5_9: Move = Move {
             },
         },
     ],
-    intent: Intent::BlockBuff,
-};
+    Intent::BlockBuff,
+);
 static MOVES_ASC0: [Move; 3] = [MOVE_CHOMP_11, MOVE_BELLOW_3_6, MOVE_THRASH];
 static MOVES_ASC2: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_4_6, MOVE_THRASH];
 static MOVES_ASC17: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_5_9, MOVE_THRASH];

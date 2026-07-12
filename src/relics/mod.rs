@@ -226,7 +226,7 @@ pub fn trigger_relic_counter(
     false
 }
 
-// Frozen/Molten/Toxic Egg: cards of the matching kind are obtained upgraded
+// Frozen / Molten / Toxic Egg: cards of the matching kind are obtained upgraded
 pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::COUNT]) -> bool {
     let egg = match kind {
         CardKind::Power => RelicName::FrozenEgg,

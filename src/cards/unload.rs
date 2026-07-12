@@ -45,6 +45,7 @@ pub static UNLOAD: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Discard all non-Attack cards in your hand.",
 );
 // Upgraded
 pub static UNLOAD_PLUS: Entity = Entity {

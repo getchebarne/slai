@@ -39,10 +39,12 @@ pub static CALTROPS: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Whenever you are attacked, deal 3 damage back.",
 );
 // Upgraded
 pub static CALTROPS_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Whenever you are attacked, deal 5 damage back.",
     card_effects: {
         let mut a = CALTROPS.card_effects;
         a[0].kind = EffectKind::ModifierGain {

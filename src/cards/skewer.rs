@@ -38,6 +38,7 @@ pub static SKEWER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage X times.",
 );
 // Upgraded
 pub static SKEWER_PLUS: Entity = Entity {

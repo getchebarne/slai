@@ -50,6 +50,7 @@ pub static BANE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. If the enemy has Poison, deal {damage} damage again.",
 );
 // Upgraded
 pub static BANE_PLUS: Entity = Entity {

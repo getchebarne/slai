@@ -6,6 +6,8 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static SNAKE_RING: Entity = make_entity_relic(
     RelicName::SnakeRing,
     RelicTier::Starter,
@@ -15,4 +17,5 @@ pub static SNAKE_RING: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "Replaces Ring of the Snake. At the start of your turn, draw 1 additional card.",
 );

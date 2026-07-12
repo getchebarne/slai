@@ -37,6 +37,7 @@ pub static DEEP_BREATH: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Shuffle your discard pile into your draw pile. Draw {magic} card.",
 );
 // Upgraded
 pub static DEEP_BREATH_PLUS: Entity = Entity {

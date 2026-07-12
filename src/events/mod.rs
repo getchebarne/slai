@@ -143,7 +143,7 @@ pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::TheSsssserpent,
 ];
 
-// Shrines roll separately at EVENT_SHRINE_CHANCE; Duplicator is Act 2/3-only, never pooled here
+// Shrines roll separately at EVENT_SHRINE_CHANCE; Duplicator is Act 2 and 3 only
 pub const POOL_ACT1_SHRINE: &[EventName] = &[
     EventName::GoldenShrine,
     EventName::Purifier,

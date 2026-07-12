@@ -24,4 +24,5 @@ pub static EXPLOSIVE_POTION: Entity = make_entity_potion(
             selection_kind: SelectionKind::All,
         },
     }],
+    "Deal 10 damage to all enemies.",
 );

@@ -39,6 +39,7 @@ pub static AFTER_IMAGE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Whenever you play a card, gain 1 Block.",
 );
 // Upgraded
 pub static AFTER_IMAGE_PLUS: Entity = Entity {

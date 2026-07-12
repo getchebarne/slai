@@ -52,10 +52,12 @@ pub static WRAITH_FORM: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain 1 Intangible. At the end of your turn, lose 1 Dexterity.",
 );
 // Upgraded
 pub static WRAITH_FORM_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Gain 2 Intangible. At the end of your turn, lose 1 Dexterity.",
     card_effects: {
         let mut a = WRAITH_FORM.card_effects;
         a[0].kind = EffectKind::ModifierGain {

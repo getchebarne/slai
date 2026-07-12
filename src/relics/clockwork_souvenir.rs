@@ -9,6 +9,8 @@ use crate::modifier::ModifierKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static CLOCKWORK_SOUVENIR: Entity = make_entity_relic(
     RelicName::ClockworkSouvenir,
     RelicTier::Shop,
@@ -24,4 +26,5 @@ pub static CLOCKWORK_SOUVENIR: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "At the start of each combat, gain 1 Artifact.",
 );

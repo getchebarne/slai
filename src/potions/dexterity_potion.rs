@@ -25,4 +25,5 @@ pub static DEXTERITY_POTION: Entity = make_entity_potion(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Gain 2 Dexterity.",
 );

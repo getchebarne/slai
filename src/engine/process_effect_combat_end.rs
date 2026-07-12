@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::utils::has_relic;
 use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_GOLD;
@@ -55,7 +56,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
     }
 
     // Meat on the Bone: ending combat at half HP or less heals 12
-    if state.id_relics[RelicName::MeatOnTheBone as usize].is_some() {
+    if has_relic(&state.id_relics, RelicName::MeatOnTheBone) {
         let vitals = &state.entities[state.id_character].vitals;
         if vitals.health > 0 && vitals.health * 2 <= vitals.health_max {
             state.effect_queue.push_back(Effect {

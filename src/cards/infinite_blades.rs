@@ -39,6 +39,7 @@ pub static INFINITE_BLADES: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "At the start of your turn, add a Shiv into your hand.",
 );
 // Upgraded
 pub static INFINITE_BLADES_PLUS: Entity = Entity {

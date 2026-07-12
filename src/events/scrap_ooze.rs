@@ -139,7 +139,7 @@ const OPTIONS_ALL_A15: &[EventOption] = &[
         gate: EventGate::EventStateEq(7),
     },
     EventOption {
-        label: "[Reach Inside] Lose 13 HP. 105% chance for a Relic.",
+        label: "[Reach Inside] Lose 13 HP. 105% chance for a Relic.", // Base game also reads 105%. I'm innocent
         effects: &OPTION_REACH_A15_8,
         gate: EventGate::EventStateEq(8),
     },

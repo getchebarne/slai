@@ -44,10 +44,12 @@ pub static BOUNCING_FLASK: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Apply 3 Poison to a random enemy 3 times.",
 );
 // Upgraded: one more bounce
 pub static BOUNCING_FLASK_PLUS: Entity = Entity {
     card_upgraded: true,
+    description: "Apply 3 Poison to a random enemy 4 times.",
     card_effects: {
         let mut a = BOUNCING_FLASK.card_effects;
         a[3] = BOUNCE; // +1 bounce

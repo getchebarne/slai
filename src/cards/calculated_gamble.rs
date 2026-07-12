@@ -30,6 +30,7 @@ pub static CALCULATED_GAMBLE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Discard your hand, then draw that many cards. Exhaust.",
 );
 // Upgraded
 pub static CALCULATED_GAMBLE_PLUS: Entity = Entity {

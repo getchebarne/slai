@@ -33,9 +33,9 @@ pub fn process_effect_shop_purge(id_target: Option<usize>, state: &mut GameState
     state.shop_purge_cost_run += SHOP_PURGE_COST_INCREMENT;
 
     // A shop's card removal can be used once per visit
-    if let Location::Overworld { y, x } = state.location {
-        if let Some(id_room) = state.id_rooms[y][x] {
-            state.entities[id_room].room_shop_purged = true;
-        }
+    if let Location::Overworld { y, x } = state.location
+        && let Some(id_room) = state.id_rooms[y][x]
+    {
+        state.entities[id_room].room_shop_purged = true;
     }
 }

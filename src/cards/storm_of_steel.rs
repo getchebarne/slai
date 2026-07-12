@@ -30,6 +30,7 @@ pub static STORM_OF_STEEL: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Discard your hand. Add 1 Shiv into your hand for each card discarded.",
 );
 // Upgraded
 pub static STORM_OF_STEEL_PLUS: Entity = Entity {

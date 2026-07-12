@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use crate::utils::has_relic;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -43,7 +44,7 @@ pub fn process_effect_damage_deal(
         && target.kind == EntityKind::Monster
         && 1 <= damage_over_block
         && damage_over_block <= 4
-        && state.id_relics[RelicName::Boot as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::Boot)
     {
         damage_over_block = 5;
     }
@@ -54,7 +55,7 @@ pub fn process_effect_damage_deal(
         && id_target == id_character
         && 2 <= damage_over_block
         && damage_over_block <= 5
-        && state.id_relics[RelicName::Torii as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::Torii)
     {
         damage_over_block = 1;
     }
@@ -63,7 +64,7 @@ pub fn process_effect_damage_deal(
     if target.kind == EntityKind::Monster
         && block_prev > 0
         && target.vitals.block == 0
-        && state.id_relics[RelicName::HandDrill as usize].is_some()
+        && has_relic(&state.id_relics, RelicName::HandDrill)
     {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {

@@ -1,11 +1,9 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::game::Energy;
 use crate::game::GameState;
 use crate::monsters::spawn_monster;
 use crate::types::MonsterName;
-use crate::types::Screen;
 use crate::utils::push_entity;
 
 pub fn process_effect_monster_spawn(
@@ -13,18 +11,8 @@ pub fn process_effect_monster_spawn(
     state: &mut GameState,
     name: MonsterName,
 ) {
-    // First spawn of a combat installs the Combat context.
-    // Energy starts empty; the turn-1 refill fills it (so Ice Cream's carry-over
-    // adds nothing extra on turn 1, matching the StS recharge model)
-    if !matches!(state.screen, Screen::Combat) {
-        state.screen = Screen::Combat;
-        state.energy = Energy {
-            energy_current: 0,
-            energy_max: 3,
-        };
-    }
-
-    let mut monster_child = spawn_monster(name, state.ascension, &mut state.rng);
+    // Create the monster `Entity`
+    let mut monster = spawn_monster(name, state.ascension, &mut state.rng);
 
     // Slime split: child max HP = parent current HP; gated to splittable slimes only
     if let Some(id) = id_source {
@@ -37,23 +25,27 @@ pub fn process_effect_monster_spawn(
             "MonsterSpawn id_source must be a splitting slime, got {:?}",
             parent.monster_name,
         );
-        let health_parent = parent.vitals.health;
-        monster_child.vitals.health = health_parent;
-        monster_child.vitals.health_max = health_parent;
+        monster.vitals.health = parent.vitals.health;
+        monster.vitals.health_max = parent.vitals.health;
     }
 
-    let id_child = push_entity(&mut state.entities, monster_child);
+    // Push it
+    let id_monster = push_entity(&mut state.entities, monster);
 
-    let slot = state
+    // Place it in the first empty monster slot
+    let idx = state
         .id_monsters
         .iter()
         .position(|s| s.is_none())
-        .expect("MonsterSpawn would overflow id_monsters: no empty slot");
-    state.id_monsters[slot] = Some(id_child);
+        .expect("MonsterSpawn would overflow id_monsters: no empty idx");
+    state.id_monsters[idx] = Some(id_monster);
 
+    // Queue an effect to update its move
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::MoveUpdate,
+        kind: EffectKind::MoveUpdate {
+            move_override: None,
+        },
         id_source: None,
-        target: Target::Direct(Some(id_child)),
+        target: Target::Direct(Some(id_monster)),
     });
 }

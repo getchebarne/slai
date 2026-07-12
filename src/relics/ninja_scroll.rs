@@ -7,6 +7,8 @@ use crate::types::CardName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static NINJA_SCROLL: Entity = make_entity_relic(
     RelicName::NinjaScroll,
     RelicTier::Uncommon,
@@ -20,4 +22,5 @@ pub static NINJA_SCROLL: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
+    "Start each combat with 3 Shivs in hand.",
 );

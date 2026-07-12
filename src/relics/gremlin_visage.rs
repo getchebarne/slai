@@ -9,6 +9,8 @@ use crate::modifier::ModifierKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static GREMLIN_VISAGE: Entity = make_entity_relic(
     RelicName::GremlinVisage,
     RelicTier::Special,
@@ -24,4 +26,5 @@ pub static GREMLIN_VISAGE: Entity = make_entity_relic(
             selection_kind: SelectionKind::Single,
         },
     }],
+    "Start each combat with 1 Weak.",
 );

@@ -35,6 +35,7 @@ pub static SETUP: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Put a card from your hand on top of your draw pile. It costs 0 until played.",
 );
 // Upgraded
 pub static SETUP_PLUS: Entity = Entity {

@@ -45,6 +45,7 @@ pub static QUICK_SLASH: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. Draw 1 card.",
 );
 // Upgraded
 pub static QUICK_SLASH_PLUS: Entity = Entity {

@@ -4,5 +4,9 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Elite combats start with 2 Strength
+// See:
+//    - `process_effect_combat_start.rs`
 pub static SLING_OF_COURAGE: Entity =
-    make_entity_relic(RelicName::SlingOfCourage, RelicTier::Shop, 0, &[]);
+    make_entity_relic(RelicName::SlingOfCourage, RelicTier::Shop, 0, &[],
+    "Start each Elite combat with 2 Strength.",
+);

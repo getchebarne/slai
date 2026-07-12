@@ -11,25 +11,35 @@ pub fn process_effect_reward_take(
     state: &mut GameState,
     kind: RewardKind,
 ) {
-    let adopt = |kind, id| Effect {
-        kind,
-        id_source: None,
-        target: Target::Direct(Some(id)),
-    };
     match kind {
         RewardKind::Card => {
             let id_card = id_target.expect("RewardTake { Card } requires id_target");
+
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardAdopt,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
+
+            // Clear the rest of the cards
             state.reward_id_cards.clear();
-            state.effect_queue.push_front(adopt(EffectKind::CardAdopt, id_card));
         }
         RewardKind::Relic => {
             if let Some(id) = state.reward_id_relic.take() {
-                state.effect_queue.push_front(adopt(EffectKind::RelicAdopt, id));
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::RelicAdopt,
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                });
             }
         }
         RewardKind::Potion => {
             if let Some(id) = state.reward_id_potion.take() {
-                state.effect_queue.push_front(adopt(EffectKind::PotionAdopt, id));
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::PotionAdopt,
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                });
             }
         }
         RewardKind::Gold => {

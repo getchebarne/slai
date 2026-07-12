@@ -45,6 +45,7 @@ pub static SNEAKY_STRIKE: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Deal {damage} damage. If you have discarded a card this turn, gain 2 Energy.",
 );
 // Upgraded
 pub static SNEAKY_STRIKE_PLUS: Entity = Entity {

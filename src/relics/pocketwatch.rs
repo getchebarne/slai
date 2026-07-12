@@ -4,5 +4,9 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Playing 3 or fewer cards in a turn draws 3 extra cards next turn
+// See:
+//    - `process_effect_turn_end.rs`
 pub static POCKETWATCH: Entity =
-    make_entity_relic(RelicName::Pocketwatch, RelicTier::Rare, 0, &[]);
+    make_entity_relic(RelicName::Pocketwatch, RelicTier::Rare, 0, &[],
+    "Whenever you play 3 or less cards in a turn, draw 3 additional cards at the start of your next turn.",
+);

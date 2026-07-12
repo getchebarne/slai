@@ -4,5 +4,9 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // On pickup, choose a deck card and obtain a copy of it
+// See:
+//    - `process_effect_relic_adopt.rs`
 pub static DOLLYS_MIRROR: Entity =
-    make_entity_relic(RelicName::DollysMirror, RelicTier::Shop, 0, &[]);
+    make_entity_relic(RelicName::DollysMirror, RelicTier::Shop, 0, &[],
+    "Upon pickup, obtain an additional copy of a card in your deck.",
+);

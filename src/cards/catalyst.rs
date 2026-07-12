@@ -42,6 +42,7 @@ pub static CATALYST: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Double the enemy's Poison. Exhaust.",
 );
 // Upgraded: triples instead of doubles
 pub static CATALYST_PLUS: Entity = Entity {

@@ -10,6 +10,8 @@ use crate::modifier::ModifierKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static RED_MASK: Entity = make_entity_relic(
     RelicName::RedMask,
     RelicTier::Special,
@@ -27,4 +29,5 @@ pub static RED_MASK: Entity = make_entity_relic(
             selection_kind: SelectionKind::All,
         },
     }],
+    "At the start of each combat, apply 1 Weak to ALL enemies.",
 );

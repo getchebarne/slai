@@ -46,6 +46,7 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {block} Block. Add {magic} Shiv into your hand.",
 );
 // Upgraded
 pub static CLOAK_AND_DAGGER_PLUS: Entity = Entity {

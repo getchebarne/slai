@@ -35,6 +35,7 @@ pub static GOOD_INSTINCTS: Entity = make_entity_card(
     &[],
     &[],
     PlayRestriction::Always,
+    "Gain {block} Block.",
 );
 // Upgraded
 pub static GOOD_INSTINCTS_PLUS: Entity = Entity {
