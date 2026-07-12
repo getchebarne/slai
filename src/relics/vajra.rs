@@ -9,6 +9,8 @@ use crate::modifier::ModifierKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
+// See:
+//    - `process_effect_combat_start.rs`
 pub static VAJRA: Entity = make_entity_relic(
     RelicName::Vajra,
     RelicTier::Common,

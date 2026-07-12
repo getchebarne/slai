@@ -4,5 +4,7 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // An enemy dying with Poison passes it to a random enemy
+// See:
+//    - `process_effect_death.rs`
 pub static THE_SPECIMEN: Entity =
     make_entity_relic(RelicName::TheSpecimen, RelicTier::Rare, 0, &[]);

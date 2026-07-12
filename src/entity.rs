@@ -438,8 +438,7 @@ pub fn add_card_to_hand_or_discard(
     id_card
 }
 
-// Evaluate a PlayRestriction against the relevant slice of game state.
-// Blue Candle / Medical Kit lift the unplayable restriction for their card kind
+// Evaluate a PlayRestriction against the relevant slice of game state
 pub fn is_play_restriction_satisfied(
     restriction: PlayRestriction,
     card_kind: CardKind,
@@ -472,4 +471,3 @@ pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
 pub fn get_move_history_slice(entity: &Entity) -> &[u8] {
     &entity.monster_move_history[..entity.monster_move_history_len as usize]
 }
-

@@ -248,9 +248,11 @@ pub fn roll_card_rewards(
         }
 
         rolled_card_names[out.len()] = name;
-        // Eggs upgrade matching rewards at roll time, so the preview shows the truth
-        let upgraded = egg_upgrades_kind(get_card(name, false).card_kind, id_relics);
-        let card = get_card(name, upgraded);
+        let card = get_card(
+            name,
+            // Eggs upgrade matching rewards at roll time, so the preview shows the truth
+            egg_upgrades_kind(get_card(name, false).card_kind, id_relics),
+        );
         let id_card = push_entity(entities, card);
         out.push(id_card);
     }

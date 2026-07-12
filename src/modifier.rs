@@ -425,8 +425,7 @@ pub fn has_modifier(mods: &Modifiers, kind: ModifierKind) -> bool {
 }
 
 // Iterate the ModifierKinds set in an `active` bitmask. Takes the mask by value (a
-// snapshot), so the source Modifiers may be mutated while iterating. `kind as usize`
-// recovers the index into `stacks`/`is_new`.
+// snapshot), so the source Modifiers may be mutated while iterating
 pub fn active_modifier_kinds(active: u64) -> impl Iterator<Item = ModifierKind> {
     let mut bits = active;
     std::iter::from_fn(move || {

@@ -1,4 +1,3 @@
-use crate::utils::has_relic;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
@@ -27,6 +26,7 @@ use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::deck_filter_matches;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::has_relic;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
@@ -344,6 +344,7 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
     }
 }
 
+// TODO: add `EffectKind::Rest`
 fn handle_rest(state: &mut GameState) {
     let id_character = state.id_character;
     let id_room = current_room_id(state);
@@ -360,6 +361,7 @@ fn handle_rest(state: &mut GameState) {
         id_source: None,
         target: Target::Direct(Some(id_character)),
     });
+
     // Regal Pillow: resting heals 15 more
     if has_relic(&state.id_relics, RelicName::RegalPillow) {
         state.effect_buf.push(Effect {
