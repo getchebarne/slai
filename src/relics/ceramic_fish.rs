@@ -1,8 +1,0 @@
-use crate::entity::Entity;
-use crate::entity::make_entity_relic;
-use crate::types::RelicName;
-use crate::types::RelicTier;
-
-// Adding a card to the deck grants 9 gold
-pub static CERAMIC_FISH: Entity =
-    make_entity_relic(RelicName::CeramicFish, RelicTier::Common, 0, &[]);

@@ -26,9 +26,8 @@ pub fn process_effect_scrap_ooze_reach(
         target: Target::Direct(Some(id_character)),
     });
 
-    // Success is (chance+1)-in-100; the 105 rung cannot fail
     let roll = state.rng.random_range(0..100) as u8;
-    if roll as u16 + chance as u16 >= 99 {
+    if roll < chance {
         state.effect_buf.push(Effect {
             kind: EffectKind::RelicGrantRandom,
             id_source: None,

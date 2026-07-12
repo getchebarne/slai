@@ -7,7 +7,6 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -15,9 +14,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_STAB_13: Move = make_move(
-    "Stab",
-    &[Effect {
+static MOVE_STAB_13: Move = Move {
+    name: "Stab",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 13 },
         id_source: None,
         target: Target::Resolve {
@@ -25,14 +24,14 @@ static MOVE_STAB_13: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 13,
         instances: 1,
     },
-);
-static MOVE_STAB_14: Move = make_move(
-    "Stab",
-    &[Effect {
+};
+static MOVE_STAB_14: Move = Move {
+    name: "Stab",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 14 },
         id_source: None,
         target: Target::Resolve {
@@ -40,14 +39,14 @@ static MOVE_STAB_14: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 14,
         instances: 1,
     },
-);
-static MOVE_ENTANGLE: Move = make_move(
-    "Entangle",
-    &[Effect {
+};
+static MOVE_ENTANGLE: Move = Move {
+    name: "Entangle",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Entangled,
             stacks: 1,
@@ -58,11 +57,11 @@ static MOVE_ENTANGLE: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::DebuffPowerful,
-);
-static MOVE_SCRAPE_8_VULN_1: Move = make_move(
-    "Scrape",
-    &[
+    intent: Intent::DebuffPowerful,
+};
+static MOVE_SCRAPE_8_VULN_1: Move = Move {
+    name: "Scrape",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
@@ -83,14 +82,14 @@ static MOVE_SCRAPE_8_VULN_1: Move = make_move(
             },
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 8,
         instances: 1,
     },
-);
-static MOVE_SCRAPE_9_VULN_1: Move = make_move(
-    "Scrape",
-    &[
+};
+static MOVE_SCRAPE_9_VULN_1: Move = Move {
+    name: "Scrape",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 9 },
             id_source: None,
@@ -111,14 +110,14 @@ static MOVE_SCRAPE_9_VULN_1: Move = make_move(
             },
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 9,
         instances: 1,
     },
-);
-static MOVE_SCRAPE_9_VULN_2: Move = make_move(
-    "Scrape",
-    &[
+};
+static MOVE_SCRAPE_9_VULN_2: Move = Move {
+    name: "Scrape",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 9 },
             id_source: None,
@@ -139,11 +138,11 @@ static MOVE_SCRAPE_9_VULN_2: Move = make_move(
             },
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 9,
         instances: 1,
     },
-);
+};
 
 static MOVES_ASC0: [Move; 3] = [MOVE_STAB_13, MOVE_ENTANGLE, MOVE_SCRAPE_8_VULN_1];
 static MOVES_ASC2: [Move; 3] = [MOVE_STAB_14, MOVE_ENTANGLE, MOVE_SCRAPE_9_VULN_1];

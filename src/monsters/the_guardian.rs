@@ -7,12 +7,11 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
-use crate::modifier::has_modifier;
 use crate::modifier::modifier_apply;
+use crate::modifier::modifier_has;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -20,11 +19,10 @@ use crate::types::Vitals;
 const MODE_SHIFT_STACKS_30: i16 = 30;
 const MODE_SHIFT_STACKS_35: i16 = 35;
 const MODE_SHIFT_STACKS_40: i16 = 40;
-pub const DEFENSIVE_MODE_BLOCK: u16 = 20;
 
-static MOVE_CHARGING_UP: Move = make_move(
-    "Charging Up",
-    &[Effect {
+static MOVE_CHARGING_UP: Move = Move {
+    name: "Charging Up",
+    effects: &[Effect {
         kind: EffectKind::BlockGain { amount: 9 },
         id_source: None,
         target: Target::Resolve {
@@ -32,11 +30,11 @@ static MOVE_CHARGING_UP: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Block,
-);
-static MOVE_FIERCE_BASH_32: Move = make_move(
-    "Fierce Bash",
-    &[Effect {
+    intent: Intent::Block,
+};
+static MOVE_FIERCE_BASH_32: Move = Move {
+    name: "Fierce Bash",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 32 },
         id_source: None,
         target: Target::Resolve {
@@ -44,14 +42,14 @@ static MOVE_FIERCE_BASH_32: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 32,
         instances: 1,
     },
-);
-static MOVE_FIERCE_BASH_36: Move = make_move(
-    "Fierce Bash",
-    &[Effect {
+};
+static MOVE_FIERCE_BASH_36: Move = Move {
+    name: "Fierce Bash",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 36 },
         id_source: None,
         target: Target::Resolve {
@@ -59,14 +57,14 @@ static MOVE_FIERCE_BASH_36: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 36,
         instances: 1,
     },
-);
-static MOVE_VENT_STEAM: Move = make_move(
-    "Vent Steam",
-    &[
+};
+static MOVE_VENT_STEAM: Move = Move {
+    name: "Vent Steam",
+    effects: &[
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Weak,
@@ -90,11 +88,11 @@ static MOVE_VENT_STEAM: Move = make_move(
             },
         },
     ],
-    Intent::DebuffPowerful,
-);
-static MOVE_WHIRLWIND: Move = make_move(
-    "Whirlwind",
-    &[
+    intent: Intent::DebuffPowerful,
+};
+static MOVE_WHIRLWIND: Move = Move {
+    name: "Whirlwind",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
@@ -128,14 +126,14 @@ static MOVE_WHIRLWIND: Move = make_move(
             },
         },
     ],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 5,
         instances: 4,
     },
-);
-static MOVE_DEFENSIVE_MODE_3: Move = make_move(
-    "Defensive Mode",
-    &[Effect {
+};
+static MOVE_DEFENSIVE_MODE_3: Move = Move {
+    name: "Defensive Mode",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::SharpHide,
             stacks: 3,
@@ -146,11 +144,11 @@ static MOVE_DEFENSIVE_MODE_3: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Buff,
-);
-static MOVE_DEFENSIVE_MODE_4: Move = make_move(
-    "Defensive Mode",
-    &[Effect {
+    intent: Intent::Buff,
+};
+static MOVE_DEFENSIVE_MODE_4: Move = Move {
+    name: "Defensive Mode",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::SharpHide,
             stacks: 4,
@@ -161,11 +159,11 @@ static MOVE_DEFENSIVE_MODE_4: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Buff,
-);
-static MOVE_ROLL_ATTACK_9: Move = make_move(
-    "Roll Attack",
-    &[Effect {
+    intent: Intent::Buff,
+};
+static MOVE_ROLL_ATTACK_9: Move = Move {
+    name: "Roll Attack",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 9 },
         id_source: None,
         target: Target::Resolve {
@@ -173,14 +171,14 @@ static MOVE_ROLL_ATTACK_9: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 9,
         instances: 1,
     },
-);
-static MOVE_ROLL_ATTACK_10: Move = make_move(
-    "Roll Attack",
-    &[Effect {
+};
+static MOVE_ROLL_ATTACK_10: Move = Move {
+    name: "Roll Attack",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
@@ -188,14 +186,14 @@ static MOVE_ROLL_ATTACK_10: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 10,
         instances: 1,
     },
-);
-static MOVE_TWIN_SLAM_30: Move = make_move(
-    "Twin Slam",
-    &[
+};
+static MOVE_TWIN_SLAM_30: Move = Move {
+    name: "Twin Slam",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
@@ -234,14 +232,14 @@ static MOVE_TWIN_SLAM_30: Move = make_move(
             },
         },
     ],
-    Intent::AttackBuff {
+    intent: Intent::AttackBuff {
         damage: 8,
         instances: 2,
     },
-);
-static MOVE_TWIN_SLAM_35: Move = make_move(
-    "Twin Slam",
-    &[
+};
+static MOVE_TWIN_SLAM_35: Move = Move {
+    name: "Twin Slam",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
@@ -280,14 +278,14 @@ static MOVE_TWIN_SLAM_35: Move = make_move(
             },
         },
     ],
-    Intent::AttackBuff {
+    intent: Intent::AttackBuff {
         damage: 8,
         instances: 2,
     },
-);
-static MOVE_TWIN_SLAM_40: Move = make_move(
-    "Twin Slam",
-    &[
+};
+static MOVE_TWIN_SLAM_40: Move = Move {
+    name: "Twin Slam",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
@@ -326,11 +324,11 @@ static MOVE_TWIN_SLAM_40: Move = make_move(
             },
         },
     ],
-    Intent::AttackBuff {
+    intent: Intent::AttackBuff {
         damage: 8,
         instances: 2,
     },
-);
+};
 static MOVES_ASC0: [Move; 7] = [
     MOVE_CHARGING_UP,
     MOVE_FIERCE_BASH_32,
@@ -424,7 +422,7 @@ pub fn get_next_move_the_guardian_full(
         .last()
         .expect("`move_history` cannot be empty here") as usize;
 
-    if has_modifier(modifiers, ModifierKind::ModeShift) {
+    if modifier_has(modifiers, ModifierKind::ModeShift) {
         match move_last {
             IDX_MOVE_CHARGING_UP => IDX_MOVE_FIERCE_BASH,
             IDX_MOVE_FIERCE_BASH => IDX_MOVE_VENT_STEAM,
@@ -436,7 +434,7 @@ pub fn get_next_move_the_guardian_full(
                 move_last
             ),
         }
-    } else if has_modifier(modifiers, ModifierKind::SharpHide) {
+    } else if modifier_has(modifiers, ModifierKind::SharpHide) {
         match move_last {
             IDX_MOVE_DEFENSIVE_MODE => IDX_MOVE_ROLL_ATTACK,
             IDX_MOVE_ROLL_ATTACK => IDX_MOVE_TWIN_SLAM,

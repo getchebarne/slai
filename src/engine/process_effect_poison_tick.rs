@@ -4,7 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::has_modifier;
+use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::types::DeltaSign;
@@ -13,7 +13,7 @@ use crate::types::DeltaSign;
 pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("PoisonTick requires id_target");
     let modifiers = &mut state.entities[id_target].modifiers;
-    if !has_modifier(modifiers, ModifierKind::Poison) {
+    if !modifier_has(modifiers, ModifierKind::Poison) {
         return;
     }
     let stacks = modifier_stacks(modifiers, ModifierKind::Poison);

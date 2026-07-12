@@ -7,28 +7,27 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::has_modifier;
+use crate::modifier::modifier_has;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
-use crate::relics::trigger_relic_counter;
 use crate::types::CardName;
-use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
-use crate::utils::has_relic;
 
 pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
     let id_actor = id_target.expect("TurnStart requires id_target");
+    let id_character = state.id_character;
+    let energy_max = state.energy.energy_max;
+    let energy_current = state.energy.energy_current;
+    let nightmare_pending = state.id_card_nightmare.is_some();
+    let id_monsters = state.id_monsters;
 
-    // Clear effect buffer
     state.effect_buf.clear();
 
-    // Get mutable references
     let entity = &mut state.entities[id_actor];
     let modifiers = &mut entity.modifiers;
     let vitals = &mut entity.vitals;
 
-    // Poison: queue Poison Tick
-    if has_modifier(modifiers, ModifierKind::Poison) {
+    if modifier_has(modifiers, ModifierKind::Poison) {
         state.effect_buf.push(Effect {
             kind: EffectKind::PoisonTick,
             id_source: None,
@@ -36,32 +35,21 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         });
     }
 
-    // Blur: existing block skips turn-stat reset
     let mut new_block: u16 = 0;
-    if has_modifier(modifiers, ModifierKind::Blur) {
+    if modifier_has(modifiers, ModifierKind::Blur) {
         new_block += vitals.block;
     }
-
-    // Calipers: retain block minus 15 instead of losing all; max with Blur, never additive
-    if id_actor == state.id_character && has_relic(&state.id_relics, RelicName::Calipers) {
-        new_block = new_block.max(vitals.block.saturating_sub(15));
-    }
-
-    // Next turn block (Dodge and Roll)
-    if has_modifier(modifiers, ModifierKind::NextTurnBlock) {
+    if modifier_has(modifiers, ModifierKind::NextTurnBlock) {
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
         modifier_remove(modifiers, ModifierKind::NextTurnBlock);
     }
-
-    // Set new block value (should be zero most of the time)
     state.effect_buf.push(Effect {
         kind: EffectKind::BlockSet { amount: new_block },
         id_source: None,
         target: Target::Direct(Some(id_actor)),
     });
 
-    // Phantasmal: gains double damage
-    if has_modifier(modifiers, ModifierKind::Phantasmal) {
+    if modifier_has(modifiers, ModifierKind::Phantasmal) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::DoubleDamage,
@@ -72,9 +60,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         });
     }
 
-    // Character's turn start
-    if id_actor == state.id_character {
-        // Organic card draw
+    if id_actor == id_character {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardDraw {
                 count: CARDS_DRAWN_PER_TURN,
@@ -82,18 +68,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             id_source: None,
             target: Target::Direct(None),
         });
-
-        // Ice Cream: refill adds a full energy_max on top instead of topping up
-        let energy_gain = if has_relic(&state.id_relics, RelicName::IceCream) {
-            state.energy.energy_max
-        } else {
-            state
-                .energy
-                .energy_max
-                .saturating_sub(state.energy.energy_current)
-        };
-
-        // Energy refill
+        let energy_gain = energy_max.saturating_sub(energy_current);
         state.effect_buf.push(Effect {
             kind: EffectKind::EnergyGain {
                 amount: energy_gain as u16,
@@ -102,13 +77,12 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             target: Target::Direct(None),
         });
 
-        // Modifier tick (Character's and Monsters')
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierTick,
             id_source: None,
-            target: Target::Direct(Some(state.id_character)),
+            target: Target::Direct(Some(id_character)),
         });
-        for id_monster in state.id_monsters.iter().flatten().copied() {
+        for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierTick,
                 id_source: None,
@@ -116,10 +90,9 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Noxius Fumes: Monsters get `stacks` poison stacks
-        if has_modifier(modifiers, ModifierKind::NoxiousFumes) {
+        if modifier_has(modifiers, ModifierKind::NoxiousFumes) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NoxiousFumes);
-            for id_monster in state.id_monsters.iter().flatten().copied() {
+            for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::ModifierGain {
                         kind: ModifierKind::Poison,
@@ -132,7 +105,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
 
         // Choke auto-removes at the next player turn start
-        for id_monster in state.id_monsters.iter().flatten().copied() {
+        for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierRemove {
                     kind: ModifierKind::Choke,
@@ -142,8 +115,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Spawn nightmare copies
-        if state.id_card_nightmare.is_some() {
+        if nightmare_pending {
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardNightmareSpawn,
                 id_source: None,
@@ -151,8 +123,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Draw cards next turn (Predator, Pocketwatch): apply and clear
-        if has_modifier(modifiers, ModifierKind::DrawCardNextTurn) {
+        if modifier_has(modifiers, ModifierKind::DrawCardNextTurn) {
             let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw {
@@ -170,8 +141,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Tools of the trade: draw `stacks`, discard `stacks`
-        if has_modifier(modifiers, ModifierKind::ToolsOfTheTrade) {
+        if modifier_has(modifiers, ModifierKind::ToolsOfTheTrade) {
             let stacks = modifier_stacks(modifiers, ModifierKind::ToolsOfTheTrade);
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardDraw {
@@ -182,7 +152,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardDiscard {
-                    source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                    source: DiscardSource::Explicit,
                 },
                 id_source: None,
                 target: Target::Resolve {
@@ -194,8 +164,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Next turn energy: apply and clear
-        if has_modifier(modifiers, ModifierKind::NextTurnEnergy) {
+        if modifier_has(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
             state.effect_buf.push(Effect {
                 kind: EffectKind::EnergyGain {
@@ -207,8 +176,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             modifier_remove(modifiers, ModifierKind::NextTurnEnergy);
         }
 
-        // Infinite blades: add `stacks` Shivs
-        if has_modifier(modifiers, ModifierKind::InfiniteBlades) {
+        if modifier_has(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardAddToHand {
@@ -219,74 +187,6 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 id_source: None,
                 target: Target::Direct(None),
             });
-        }
-
-        // Persistent turn counters, spanning combats
-        // Happy Flower: gain +1 energy every 3 turns
-        if trigger_relic_counter(
-            RelicName::HappyFlower,
-            3,
-            &state.id_relics,
-            &mut state.entities,
-        ) {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::EnergyGain { amount: 1 },
-                id_source: None,
-                target: Target::Direct(None),
-            });
-        }
-
-        // Incense Burner: gain +1 `ModifierKind::Intangible` every 6 turns
-        if trigger_relic_counter(
-            RelicName::IncenseBurner,
-            6,
-            &state.id_relics,
-            &mut state.entities,
-        ) {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierGain {
-                    kind: ModifierKind::Intangible,
-                    stacks: 1,
-                },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
-        }
-
-        // Mercury Hourglass: deal 3 damage to all Monsters
-        if has_relic(&state.id_relics, RelicName::MercuryHourglass) {
-            for id_monster in state.id_monsters.iter().flatten().copied() {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 3 },
-                    id_source: None,
-                    target: Target::Direct(Some(id_monster)),
-                });
-            }
-        }
-
-        // Horn Cleat and Captain's Wheel: gain block at the 2nd and 3rd turns, respectively
-        // TODO: add combat turn # field to `GameState`
-        for (name, turn_num, block) in [
-            (RelicName::HornCleat, 2, 14),
-            (RelicName::CaptainsWheel, 3, 18),
-        ] {
-            if let Some(id) = state.id_relics[name as usize] {
-                let counter = &mut state.entities[id].relic_counter;
-                if *counter >= 0 {
-                    *counter += 1;
-                    if *counter == turn_num {
-                        // Use -1 so that it doesn't proc again
-                        *counter = -1;
-
-                        // Relic-sourced block: id_source None skips Dex / Frail scaling
-                        state.effect_buf.push(Effect {
-                            kind: EffectKind::BlockGain { amount: block },
-                            id_source: None,
-                            target: Target::Direct(Some(state.id_character)),
-                        });
-                    }
-                }
-            }
         }
     }
 

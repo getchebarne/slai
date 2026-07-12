@@ -8,7 +8,7 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// Reach in; +1 HP and +10% per miss until the 105% rung, which cannot fail
+// Reach in (base); state 7 self-loops on miss (no advance)
 const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 1] {
     [Effect {
         kind: EffectKind::ScrapOozeReach {
@@ -27,8 +27,7 @@ static OPTION_REACH_BASE_3: [Effect; 1] = reach(6, 55, true);
 static OPTION_REACH_BASE_4: [Effect; 1] = reach(7, 65, true);
 static OPTION_REACH_BASE_5: [Effect; 1] = reach(8, 75, true);
 static OPTION_REACH_BASE_6: [Effect; 1] = reach(9, 85, true);
-static OPTION_REACH_BASE_7: [Effect; 1] = reach(10, 95, true);
-static OPTION_REACH_BASE_8: [Effect; 1] = reach(11, 105, false);
+static OPTION_REACH_BASE_7: [Effect; 1] = reach(10, 95, false);
 
 // Base damage 3 -> 5
 static OPTION_REACH_A15_0: [Effect; 1] = reach(5, 25, true);
@@ -38,8 +37,7 @@ static OPTION_REACH_A15_3: [Effect; 1] = reach(8, 55, true);
 static OPTION_REACH_A15_4: [Effect; 1] = reach(9, 65, true);
 static OPTION_REACH_A15_5: [Effect; 1] = reach(10, 75, true);
 static OPTION_REACH_A15_6: [Effect; 1] = reach(11, 85, true);
-static OPTION_REACH_A15_7: [Effect; 1] = reach(12, 95, true);
-static OPTION_REACH_A15_8: [Effect; 1] = reach(13, 105, false);
+static OPTION_REACH_A15_7: [Effect; 1] = reach(12, 95, false);
 
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
@@ -87,11 +85,6 @@ const OPTIONS_ALL_BASE: &[EventOption] = &[
         gate: EventGate::EventStateEq(7),
     },
     EventOption {
-        label: "[Reach Inside] Lose 11 HP. 105% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_8,
-        gate: EventGate::EventStateEq(8),
-    },
-    EventOption {
         label: "[Leave] Nothing happens.",
         effects: OPTION_LEAVE,
         gate: EventGate::None,
@@ -137,11 +130,6 @@ const OPTIONS_ALL_A15: &[EventOption] = &[
         label: "[Reach Inside] Lose 12 HP. 95% chance for a Relic.",
         effects: &OPTION_REACH_A15_7,
         gate: EventGate::EventStateEq(7),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 13 HP. 105% chance for a Relic.",
-        effects: &OPTION_REACH_A15_8,
-        gate: EventGate::EventStateEq(8),
     },
     EventOption {
         label: "[Leave] Nothing happens.",

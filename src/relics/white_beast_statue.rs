@@ -1,8 +1,0 @@
-use crate::entity::Entity;
-use crate::entity::make_entity_relic;
-use crate::types::RelicName;
-use crate::types::RelicTier;
-
-// Potions always drop after combat
-pub static WHITE_BEAST_STATUE: Entity =
-    make_entity_relic(RelicName::WhiteBeastStatue, RelicTier::Uncommon, 0, &[]);

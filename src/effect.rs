@@ -107,13 +107,11 @@ pub enum EffectKind {
         sign: DeltaSign,
         amount: Amount,
     },
-    HealthSet {
-        amount: Amount,
-    },
     HeelHookProc,
     HexaghostBurnIncrease {
         count: u8,
     },
+    HexaghostDivider,
     MaxHealthDelta {
         sign: DeltaSign,
         amount: Amount,
@@ -136,9 +134,7 @@ pub enum EffectKind {
         name: MonsterName,
     },
     MoveExecute,
-    MoveUpdate {
-        move_override: Option<usize>,
-    },
+    MoveUpdate,
     NoOp,
     PoisonTick,
     PotionAddRandom {
@@ -204,8 +200,6 @@ pub enum DiscardSource {
 pub enum Amount {
     Absolute(u16),
     Relative { numerator: u8, denominator: u8 },
-    // Same fraction, rounded half-up instead of truncated
-    RelativeRounded { numerator: u8, denominator: u8 },
     Range { min: u16, max: u16 },
 }
 

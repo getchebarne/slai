@@ -7,7 +7,6 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -15,9 +14,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_DARK_STRIKE: Move = make_move(
-    "Dark Strike",
-    &[Effect {
+static MOVE_DARK_STRIKE: Move = Move {
+    name: "Dark Strike",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 6 },
         id_source: None,
         target: Target::Resolve {
@@ -25,14 +24,14 @@ static MOVE_DARK_STRIKE: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 6,
         instances: 1,
     },
-);
-static MOVE_INCANTATION_3: Move = make_move(
-    "Incantation",
-    &[Effect {
+};
+static MOVE_INCANTATION_3: Move = Move {
+    name: "Incantation",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Ritual,
             stacks: 3,
@@ -43,11 +42,11 @@ static MOVE_INCANTATION_3: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Buff,
-);
-static MOVE_INCANTATION_4: Move = make_move(
-    "Incantation",
-    &[Effect {
+    intent: Intent::Buff,
+};
+static MOVE_INCANTATION_4: Move = Move {
+    name: "Incantation",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Ritual,
             stacks: 4,
@@ -58,11 +57,11 @@ static MOVE_INCANTATION_4: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Buff,
-);
-static MOVE_INCANTATION_5: Move = make_move(
-    "Incantation",
-    &[Effect {
+    intent: Intent::Buff,
+};
+static MOVE_INCANTATION_5: Move = Move {
+    name: "Incantation",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Ritual,
             stacks: 5,
@@ -73,8 +72,8 @@ static MOVE_INCANTATION_5: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Buff,
-);
+    intent: Intent::Buff,
+};
 static MOVES_ASC0: [Move; 2] = [MOVE_INCANTATION_3, MOVE_DARK_STRIKE];
 static MOVES_ASC2: [Move; 2] = [MOVE_INCANTATION_4, MOVE_DARK_STRIKE];
 static MOVES_ASC17: [Move; 2] = [MOVE_INCANTATION_5, MOVE_DARK_STRIKE];

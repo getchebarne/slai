@@ -1,4 +1,3 @@
-use crate::utils::has_relic;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
@@ -8,22 +7,20 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::get_card_effective_cost;
+use crate::entity::card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
 use crate::events::event_option_gate_satisfied;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
 use crate::modifier::ModifierKind;
-use crate::modifier::has_modifier;
+use crate::modifier::modifier_has;
 use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::DeltaSign;
-use crate::types::RelicName;
 use crate::types::RewardKind;
 use crate::types::Screen;
-use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::deck_filter_matches;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -360,17 +357,6 @@ fn handle_rest(state: &mut GameState) {
         id_source: None,
         target: Target::Direct(Some(id_character)),
     });
-    // Regal Pillow: resting heals 15 more
-    if has_relic(&state.id_relics, RelicName::RegalPillow) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::HealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(15),
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_character)),
-        });
-    }
     state.effect_buf.push(Effect {
         kind: EffectKind::RestSiteConsume,
         id_source: None,
@@ -559,7 +545,7 @@ fn fill_legal_actions_effect_pending(
 
 fn fill_legal_actions_screen_combat(state: &mut GameState) {
     let id_character = state.id_character;
-    let entangled = has_modifier(
+    let entangled = modifier_has(
         &state.entities[id_character].modifiers,
         ModifierKind::Entangled,
     );
@@ -575,17 +561,13 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
             break;
         }
         let card = &state.entities[state.id_hand[i]];
-        let restriction_ok = is_play_restriction_satisfied(
-            card.card_play_restriction,
-            card.card_kind,
-            &state.id_pile_draw,
-            &state.id_relics,
-        );
+        let restriction_ok =
+            is_play_restriction_satisfied(card.card_play_restriction, &state.id_pile_draw);
         let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
         if !restriction_ok || entangled_blocks {
             continue;
         }
-        let cost = get_card_effective_cost(
+        let cost = card_effective_cost(
             card,
             state.this_turn_discards,
             state.this_combat_damage_instances_taken,
@@ -680,9 +662,7 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
     // Purge
     if !state.entities[current_room_id(state)].room_shop_purged && gold >= state.shop_purge_cost {
         for i in 0..state.id_deck.len() {
-            if card_is_purgeable(&state.entities[state.id_deck[i]]) {
-                state.legal_actions.push(Action::ShopPurge { idx: i });
-            }
+            state.legal_actions.push(Action::ShopPurge { idx: i });
         }
     }
     push_potion_actions(state);

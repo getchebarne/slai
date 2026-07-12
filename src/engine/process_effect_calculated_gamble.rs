@@ -19,7 +19,7 @@ pub fn process_effect_calculated_gamble(state: &mut GameState) {
         let id_card = state.id_hand[i];
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                source: DiscardSource::Explicit,
             },
             id_source: None,
             target: Target::Direct(Some(id_card)),

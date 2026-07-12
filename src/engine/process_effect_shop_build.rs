@@ -22,9 +22,9 @@ use crate::consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MIN;
 use crate::consts::SHOP_PRICE_RELIC_RARE;
 use crate::consts::SHOP_PRICE_RELIC_SHOP;
 use crate::consts::SHOP_PRICE_RELIC_UNCOMMON;
+use crate::consts::SHOP_PURGE_COST_BASE;
 use crate::consts::SHOP_RELIC_TH_COMMON;
 use crate::consts::SHOP_RELIC_TH_UNCOMMON;
-use crate::consts::SHOP_SLOTS_CARD_COLORED;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
@@ -40,7 +40,6 @@ use crate::types::CardRarity;
 use crate::types::PotionRarity;
 use crate::types::RelicName;
 use crate::utils::clear_shop_state;
-use crate::utils::has_relic;
 use crate::utils::pick_from_pool;
 use crate::utils::push_entity;
 
@@ -68,13 +67,7 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     push_potion(state);
     push_potion(state);
 
-    // Sale tag: one random colored card 50% off, before the A16 markup
-    if !state.shop_card_prices.is_empty() {
-        let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
-        state.shop_card_prices[idx] /= 2;
-    }
-
-    // A16+ price bumps; the purge cost is exempt
+    // A16+ price bumps
     if state.ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
         for price in state.shop_card_prices.iter_mut() {
             *price = bump_price_a16(*price);
@@ -86,19 +79,22 @@ pub fn process_effect_shop_build(state: &mut GameState) {
             *price = bump_price_a16(*price);
         }
     }
-
-    // Smiling Mask: the removal service is always 50 gold
-    if has_relic(&state.id_relics, RelicName::SmilingMask) {
-        state.shop_purge_cost = 50;
+    state.shop_purge_cost = if state.ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
+        bump_price_a16(SHOP_PURGE_COST_BASE)
     } else {
-        state.shop_purge_cost = state.shop_purge_cost_run;
+        SHOP_PURGE_COST_BASE
+    };
+
+    // Sale tag: one random card 50% off
+    if !state.shop_card_prices.is_empty() {
+        let idx = state.rng.random_range(0..state.shop_card_prices.len());
+        state.shop_card_prices[idx] /= 2;
     }
 }
 
 fn bump_price_a16(price: u16) -> u16 {
-    ((price as u32 * ASCENSION_SHOP_PRICE_BUMP_NUMER as u32
-        + ASCENSION_SHOP_PRICE_BUMP_DENOM as u32 / 2)
-        / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
+    (price as u32 * ASCENSION_SHOP_PRICE_BUMP_NUMER as u32 / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32)
+        as u16
 }
 
 fn roll_var_card(rng: &mut impl Rng) -> f32 {

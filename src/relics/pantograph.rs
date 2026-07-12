@@ -1,8 +1,0 @@
-use crate::entity::Entity;
-use crate::entity::make_entity_relic;
-use crate::types::RelicName;
-use crate::types::RelicTier;
-
-// Boss combats start with a 25 HP heal
-pub static PANTOGRAPH: Entity =
-    make_entity_relic(RelicName::Pantograph, RelicTier::Uncommon, 0, &[]);

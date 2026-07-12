@@ -8,7 +8,6 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::CardName;
@@ -17,29 +16,32 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 
 // First move: essentially a no-op
-static MOVE_ACTIVATE: Move = make_move("Activate", &[], Intent::Unknown);
-
-// Divider true damage (HP/12+1 × 6); amounts and intent locked in at move selection
-static DIVIDER_HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 0 },
-    id_source: None,
-    target: Target::Resolve {
-        candidate_pool: CandidatePool::Character,
-        selection_kind: SelectionKind::Single,
-    },
+static MOVE_ACTIVATE: Move = Move {
+    name: "Activate",
+    effects: &[],
+    intent: Intent::Unknown,
 };
-static MOVE_DIVIDER: Move = make_move(
-    "Divider",
-    &[DIVIDER_HIT; HEXAGHOST_DIVIDER_HITS as usize],
-    Intent::Attack {
-        damage: 0, // Placeholder
+
+// Divider true damage (HP/12+1 × 6) computed at fire time; placeholder Intent overridden in view
+static MOVE_DIVIDER: Move = Move {
+    name: "Divider",
+    effects: &[Effect {
+        kind: EffectKind::HexaghostDivider,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Source,
+            selection_kind: SelectionKind::Single,
+        },
+    }],
+    intent: Intent::Attack {
+        damage: 1, // Placehoder
         instances: HEXAGHOST_DIVIDER_HITS,
     },
-);
+};
 
-static MOVE_SEAR_BURN_1_NORMAL: Move = make_move(
-    "Sear",
-    &[
+static MOVE_SEAR_BURN_1_NORMAL: Move = Move {
+    name: "Sear",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
@@ -58,14 +60,14 @@ static MOVE_SEAR_BURN_1_NORMAL: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 6,
         instances: 1,
     },
-);
-static MOVE_SEAR_BURN_1_UPGRADED: Move = make_move(
-    "Sear",
-    &[
+};
+static MOVE_SEAR_BURN_1_UPGRADED: Move = Move {
+    name: "Sear",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
@@ -84,14 +86,14 @@ static MOVE_SEAR_BURN_1_UPGRADED: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 6,
         instances: 1,
     },
-);
-static MOVE_SEAR_BURN_2_NORMAL: Move = make_move(
-    "Sear",
-    &[
+};
+static MOVE_SEAR_BURN_2_NORMAL: Move = Move {
+    name: "Sear",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
@@ -110,14 +112,14 @@ static MOVE_SEAR_BURN_2_NORMAL: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 6,
         instances: 1,
     },
-);
-static MOVE_SEAR_BURN_2_UPGRADED: Move = make_move(
-    "Sear",
-    &[
+};
+static MOVE_SEAR_BURN_2_UPGRADED: Move = Move {
+    name: "Sear",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
@@ -136,15 +138,15 @@ static MOVE_SEAR_BURN_2_UPGRADED: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 6,
         instances: 1,
     },
-);
+};
 
-static MOVE_TACKLE_5: Move = make_move(
-    "Tackle",
-    &[
+static MOVE_TACKLE_5: Move = Move {
+    name: "Tackle",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
@@ -162,14 +164,14 @@ static MOVE_TACKLE_5: Move = make_move(
             },
         },
     ],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 5,
         instances: 2,
     },
-);
-static MOVE_TACKLE_6: Move = make_move(
-    "Tackle",
-    &[
+};
+static MOVE_TACKLE_6: Move = Move {
+    name: "Tackle",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
@@ -187,15 +189,15 @@ static MOVE_TACKLE_6: Move = make_move(
             },
         },
     ],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 6,
         instances: 2,
     },
-);
+};
 
-static MOVE_INFLAME_2: Move = make_move(
-    "Inflame",
-    &[
+static MOVE_INFLAME_2: Move = Move {
+    name: "Inflame",
+    effects: &[
         Effect {
             kind: EffectKind::BlockGain { amount: 12 },
             id_source: None,
@@ -216,11 +218,11 @@ static MOVE_INFLAME_2: Move = make_move(
             },
         },
     ],
-    Intent::BlockBuff,
-);
-static MOVE_INFLAME_3: Move = make_move(
-    "Inflame",
-    &[
+    intent: Intent::BlockBuff,
+};
+static MOVE_INFLAME_3: Move = Move {
+    name: "Inflame",
+    effects: &[
         Effect {
             kind: EffectKind::BlockGain { amount: 12 },
             id_source: None,
@@ -241,13 +243,13 @@ static MOVE_INFLAME_3: Move = make_move(
             },
         },
     ],
-    Intent::BlockBuff,
-);
+    intent: Intent::BlockBuff,
+};
 
 // Inferno: 6 hits + Burn increase (upgrade existing Burns + add 3 upgraded)
-static MOVE_INFERNO_2: Move = make_move(
-    "Inferno",
-    &[
+static MOVE_INFERNO_2: Move = Move {
+    name: "Inferno",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 2 },
             id_source: None,
@@ -302,14 +304,14 @@ static MOVE_INFERNO_2: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 2,
         instances: 6,
     },
-);
-static MOVE_INFERNO_3: Move = make_move(
-    "Inferno",
-    &[
+};
+static MOVE_INFERNO_3: Move = Move {
+    name: "Inferno",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 3 },
             id_source: None,
@@ -364,11 +366,11 @@ static MOVE_INFERNO_3: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 3,
         instances: 6,
     },
-);
+};
 
 // Asc 0-3: Tackle 5, Inferno 2, Sear 1 Burn, Inflame +2 Str
 static MOVES_ASC0: [Move; 7] = [

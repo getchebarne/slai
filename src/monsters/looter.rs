@@ -7,7 +7,6 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
@@ -16,9 +15,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_MUG_10: Move = make_move(
-    "Mug",
-    &[Effect {
+static MOVE_MUG_10: Move = Move {
+    name: "Mug",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
@@ -26,14 +25,14 @@ static MOVE_MUG_10: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 10,
         instances: 1,
     },
-);
-static MOVE_MUG_11: Move = make_move(
-    "Mug",
-    &[Effect {
+};
+static MOVE_MUG_11: Move = Move {
+    name: "Mug",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 11 },
         id_source: None,
         target: Target::Resolve {
@@ -41,14 +40,14 @@ static MOVE_MUG_11: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 11,
         instances: 1,
     },
-);
-static MOVE_LUNGE_12: Move = make_move(
-    "Lunge",
-    &[Effect {
+};
+static MOVE_LUNGE_12: Move = Move {
+    name: "Lunge",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 12 },
         id_source: None,
         target: Target::Resolve {
@@ -56,14 +55,14 @@ static MOVE_LUNGE_12: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 12,
         instances: 1,
     },
-);
-static MOVE_LUNGE_14: Move = make_move(
-    "Lunge",
-    &[Effect {
+};
+static MOVE_LUNGE_14: Move = Move {
+    name: "Lunge",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 14 },
         id_source: None,
         target: Target::Resolve {
@@ -71,14 +70,14 @@ static MOVE_LUNGE_14: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 14,
         instances: 1,
     },
-);
-static MOVE_SMOKE_BOMB: Move = make_move(
-    "Smoke Bomb",
-    &[Effect {
+};
+static MOVE_SMOKE_BOMB: Move = Move {
+    name: "Smoke Bomb",
+    effects: &[Effect {
         kind: EffectKind::BlockGain { amount: 6 },
         id_source: None,
         target: Target::Resolve {
@@ -86,11 +85,11 @@ static MOVE_SMOKE_BOMB: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Block,
-);
-static MOVE_ESCAPE: Move = make_move(
-    "Escape",
-    &[Effect {
+    intent: Intent::Block,
+};
+static MOVE_ESCAPE: Move = Move {
+    name: "Escape",
+    effects: &[Effect {
         kind: EffectKind::MonsterEscape,
         id_source: None,
         target: Target::Resolve {
@@ -98,8 +97,8 @@ static MOVE_ESCAPE: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Escape,
-);
+    intent: Intent::Escape,
+};
 
 static MOVES_ASC0: [Move; 4] = [MOVE_MUG_10, MOVE_LUNGE_12, MOVE_SMOKE_BOMB, MOVE_ESCAPE];
 static MOVES_ASC2: [Move; 4] = [MOVE_MUG_11, MOVE_LUNGE_14, MOVE_SMOKE_BOMB, MOVE_ESCAPE];

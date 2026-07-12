@@ -2,10 +2,6 @@
 pub const MAX_MOVE_HISTORY: usize = 64;
 // Per-card effect array cap; bump if any card legitimately exceeds 8
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
-// Per-move effect array cap; Hexaghost's Inferno is the 7-effect maximum
-pub const MAX_EFFECTS_PER_MOVE: usize = 7;
-// Per-monster move array cap; Hexaghost and The Guardian have 7
-pub const MAX_MOVES_PER_MONSTER: usize = 7;
 pub const STARTING_GOLD: u16 = 99;
 pub const MAX_GOLD: u16 = 9999;
 pub const GOLD_MONSTER_MIN: u16 = 10;
@@ -22,7 +18,6 @@ pub const MAX_ENTITIES: usize = 1024;
 pub const CARDS_DRAWN_PER_TURN: u16 = 5;
 pub const MAX_COMBAT_CARD_REWARD: usize = 3;
 pub const FACTOR_WEAK: f32 = 0.75;
-pub const FACTOR_WEAK_PAPER_KRANE: f32 = 0.60;
 pub const FACTOR_VULN: f32 = 1.50;
 pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
@@ -44,14 +39,12 @@ pub const PATH_DENSITY: usize = 6;
 pub const ANCESTOR_GAP_MIN: usize = 3;
 pub const FACTOR_NUM_REST_SITE: f32 = 0.12;
 pub const FACTOR_NUM_ELITE: f32 = 0.08;
-pub const FACTOR_NUM_ELITE_A1_MULT: f32 = 1.6;
 pub const FACTOR_NUM_EVENT: f32 = 0.22;
 pub const FACTOR_NUM_SHOP: f32 = 0.05;
 pub const MAP_ROW_TREASURE: usize = 8;
 pub const UNKNOWN_CHANCE_BASE_MONSTER: f32 = 0.10;
 pub const UNKNOWN_CHANCE_BASE_SHOP: f32 = 0.03;
 pub const UNKNOWN_CHANCE_BASE_TREASURE: f32 = 0.02;
-pub const EVENT_SHRINE_CHANCE: f32 = 0.25;
 
 // Chest size roll thresholds
 pub const CHEST_SMALL_PCT: u8 = 50;
@@ -122,7 +115,7 @@ pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 = 1.05;
 pub const SHOP_PURGE_COST_BASE: u16 = 75;
 pub const SHOP_PURGE_COST_INCREMENT: u16 = 25;
 
-// A16+ markup: card/relic/potion prices × 11/10 rounded half-up; purge cost is exempt
+// A16+ markup: every price (and purge cost) × 11/10
 pub const ASCENSION_SHOP_PRICE_BUMP_LEVEL: u8 = 16;
 pub const ASCENSION_SHOP_PRICE_BUMP_NUMER: u16 = 11;
 pub const ASCENSION_SHOP_PRICE_BUMP_DENOM: u16 = 10;

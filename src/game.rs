@@ -24,7 +24,6 @@ use crate::consts::MAX_SIZE_HAND;
 use crate::consts::POTION_SLOTS_DEFAULT;
 use crate::consts::POTION_SLOTS_DEFAULT_A11;
 use crate::consts::POTION_SLOTS_MAX;
-use crate::consts::SHOP_PURGE_COST_BASE;
 use crate::consts::SHOP_SLOTS_CARD_TOTAL;
 use crate::consts::SHOP_SLOTS_POTION;
 use crate::consts::SHOP_SLOTS_RELIC;
@@ -34,8 +33,6 @@ use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
-use crate::events::POOL_ACT1_EVENT;
-use crate::events::POOL_ACT1_SHRINE;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act1_monsters;
 use crate::monsters::encounters::pick_act1_boss;
@@ -101,9 +98,8 @@ pub struct GameState {
     pub unknown_chance_shop: f32,
     pub unknown_chance_treasure: f32,
 
-    // Run-scoped event draw pools; drawn without replacement, never refilled
-    pub pool_events: Vec<EventName>,
-    pub pool_shrines: Vec<EventName>,
+    // Events already surfaced this run (no-repeat filter)
+    pub events_seen: Vec<EventName>,
 
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
@@ -146,9 +142,6 @@ pub struct GameState {
     pub shop_potion_prices: Vec<u16>,
     pub shop_purge_cost: u16,
 
-    // Removal cost for the whole run: 75 + 25 per purge, never reset
-    pub shop_purge_cost_run: u16,
-
     // Cached legal-action set; recomputed at every settle point, source of truth for action validity
     pub legal_actions: Vec<Action>,
 
@@ -189,7 +182,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     }
 
     // Initialize map
-    let (id_rooms, location) = generate_map(&mut rng, &mut entities, ascension);
+    let (id_rooms, location) = generate_map(&mut rng, &mut entities);
 
     // Pre-generate monster encounters
     let mut encounter_pool_normal: Vec<MonsterEncounter> =
@@ -227,8 +220,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
-        pool_events: POOL_ACT1_EVENT.to_vec(),
-        pool_shrines: POOL_ACT1_SHRINE.to_vec(),
+        events_seen: Vec::with_capacity(EventName::COUNT),
         potion_drop_mod: 0,
         screen: Screen::Map,
         game_over: false,
@@ -262,7 +254,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         shop_relic_prices: Vec::with_capacity(SHOP_SLOTS_RELIC),
         shop_potion_prices: Vec::with_capacity(SHOP_SLOTS_POTION),
         shop_purge_cost: 0,
-        shop_purge_cost_run: SHOP_PURGE_COST_BASE,
         legal_actions: Vec::new(),
         fast_mode,
     };

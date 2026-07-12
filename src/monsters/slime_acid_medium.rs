@@ -7,7 +7,6 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::CardName;
@@ -16,9 +15,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_WOUND_TACKLE_7: Move = make_move(
-    "Corrosive Spit",
-    &[
+static MOVE_WOUND_TACKLE_7: Move = Move {
+    name: "Corrosive Spit",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
@@ -37,14 +36,14 @@ static MOVE_WOUND_TACKLE_7: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 7,
         instances: 1,
     },
-);
-static MOVE_WOUND_TACKLE_8: Move = make_move(
-    "Corrosive Spit",
-    &[
+};
+static MOVE_WOUND_TACKLE_8: Move = Move {
+    name: "Corrosive Spit",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
@@ -63,14 +62,14 @@ static MOVE_WOUND_TACKLE_8: Move = make_move(
             target: Target::Direct(None),
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 8,
         instances: 1,
     },
-);
-static MOVE_HEAVY_TACKLE_10: Move = make_move(
-    "Tackle",
-    &[Effect {
+};
+static MOVE_HEAVY_TACKLE_10: Move = Move {
+    name: "Tackle",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
@@ -78,14 +77,14 @@ static MOVE_HEAVY_TACKLE_10: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 10,
         instances: 1,
     },
-);
-static MOVE_HEAVY_TACKLE_12: Move = make_move(
-    "Tackle",
-    &[Effect {
+};
+static MOVE_HEAVY_TACKLE_12: Move = Move {
+    name: "Tackle",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 12 },
         id_source: None,
         target: Target::Resolve {
@@ -93,14 +92,14 @@ static MOVE_HEAVY_TACKLE_12: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 12,
         instances: 1,
     },
-);
-static MOVE_LICK: Move = make_move(
-    "Lick",
-    &[Effect {
+};
+static MOVE_LICK: Move = Move {
+    name: "Lick",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Weak,
             stacks: 1,
@@ -111,8 +110,8 @@ static MOVE_LICK: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Debuff,
-);
+    intent: Intent::Debuff,
+};
 
 static MOVES_ASC0: [Move; 3] = [MOVE_WOUND_TACKLE_7, MOVE_HEAVY_TACKLE_10, MOVE_LICK];
 static MOVES_ASC2: [Move; 3] = [MOVE_WOUND_TACKLE_8, MOVE_HEAVY_TACKLE_12, MOVE_LICK];

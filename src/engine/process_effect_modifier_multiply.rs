@@ -1,7 +1,7 @@
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_def;
-use crate::modifier::has_modifier;
+use crate::modifier::modifier_has;
 
 // Multiply target's stacks of `kind` by `factor`. No-op if target doesn't have the modifier
 pub fn process_effect_modifier_multiply(
@@ -12,7 +12,7 @@ pub fn process_effect_modifier_multiply(
 ) {
     let id_target = id_target.expect("ModifierMultiply requires id_target");
     let modifiers = &mut state.entities[id_target].modifiers;
-    if !has_modifier(modifiers, kind) {
+    if !modifier_has(modifiers, kind) {
         return;
     }
     let mod_def = modifier_def(kind);

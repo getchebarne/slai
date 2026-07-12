@@ -3,7 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::has_modifier;
+use crate::modifier::modifier_has;
 use crate::modifier::modifier_stacks;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
@@ -15,23 +15,22 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
         return;
     };
 
-    let stacks_thievery = if has_modifier(&entity.modifiers, ModifierKind::Thievery) {
+    let stacks_thievery = if modifier_has(&entity.modifiers, ModifierKind::Thievery) {
         Some(modifier_stacks(&entity.modifiers, ModifierKind::Thievery) as u8)
     } else {
         None
     };
 
     let id_character = state.id_character;
-    // Copy the Move out so effect_buf/queue mutations below don't hold `entities` borrowed
-    let move_current = state.entities[id_monster].monster_moves[move_idx];
+    let effects: &'static [Effect] = state.entities[id_monster].monster_moves[move_idx].effects;
     state.effect_buf.clear();
-    for effect in move_current.effects[..move_current.effects_len as usize].iter() {
+    for e in effects.iter() {
         state.effect_buf.push(Effect {
             id_source: Some(id_monster),
-            ..*effect
+            ..*e
         });
         if let Some(amount) = stacks_thievery
-            && matches!(effect.kind, EffectKind::DamagePhysical { .. })
+            && matches!(e.kind, EffectKind::DamagePhysical { .. })
         {
             state.effect_buf.push(Effect {
                 kind: EffectKind::GoldSteal { amount },

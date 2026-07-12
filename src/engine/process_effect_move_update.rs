@@ -1,52 +1,23 @@
-use crate::consts::HEXAGHOST_DIVIDER_HITS;
-use crate::effect::EffectKind;
-use crate::entity::Intent;
 use crate::entity::push_move_history;
 use crate::game::GameState;
 use crate::monsters::get_next_move;
-use crate::monsters::hexaghost;
 use crate::monsters::is_cycle_boundary;
-use crate::types::MonsterName;
 
-pub fn process_effect_move_update(
-    id_target: Option<usize>,
-    state: &mut GameState,
-    move_override: Option<usize>,
-) {
+pub fn process_effect_move_update(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("MoveUpdate requires id_target");
     let ascension_level = state.ascension;
     let id_monsters = state.id_monsters;
-    let character_health = state.entities[state.id_character].vitals.health;
 
     let entity = &mut state.entities[id_target];
-    // A forced move (Split, wake-up) skips the AI and its RNG draw
-    let move_next = match move_override {
-        Some(idx) => idx,
-        None => get_next_move(
-            entity,
-            id_target,
-            &id_monsters,
-            ascension_level,
-            &mut state.rng,
-        ),
-    };
+    let move_next = get_next_move(
+        entity,
+        id_target,
+        &id_monsters,
+        ascension_level,
+        &mut state.rng,
+    );
 
     entity.monster_move_current = Some(move_next);
-
-    // Divider damage locks in at selection; later HP changes don't move it
-    if entity.monster_name == MonsterName::Hexaghost && move_next == hexaghost::IDX_MOVE_DIVIDER {
-        let damage = character_health / 12 + 1;
-        let move_divider = &mut entity.monster_moves[hexaghost::IDX_MOVE_DIVIDER];
-        for effect in move_divider.effects[..move_divider.effects_len as usize].iter_mut() {
-            if let EffectKind::DamagePhysical { amount } = &mut effect.kind {
-                *amount = damage;
-            }
-        }
-        move_divider.intent = Intent::Attack {
-            damage,
-            instances: HEXAGHOST_DIVIDER_HITS,
-        };
-    }
 
     let move_idx = move_next as u8;
     push_move_history(entity, move_idx);

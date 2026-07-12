@@ -8,7 +8,6 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
@@ -18,9 +17,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BEAM_9: Move = make_move(
-    "Beam",
-    &[Effect {
+static MOVE_BEAM_9: Move = Move {
+    name: "Beam",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 9 },
         id_source: None,
         target: Target::Resolve {
@@ -28,14 +27,14 @@ static MOVE_BEAM_9: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 9,
         instances: 1,
     },
-);
-static MOVE_BEAM_10: Move = make_move(
-    "Beam",
-    &[Effect {
+};
+static MOVE_BEAM_10: Move = Move {
+    name: "Beam",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 10 },
         id_source: None,
         target: Target::Resolve {
@@ -43,14 +42,14 @@ static MOVE_BEAM_10: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 10,
         instances: 1,
     },
-);
-static MOVE_BOLT_2: Move = make_move(
-    "Bolt",
-    &[Effect {
+};
+static MOVE_BOLT_2: Move = Move {
+    name: "Bolt",
+    effects: &[Effect {
         kind: EffectKind::CardAddToDiscard {
             card_name: CardName::Dazed,
             count: 2,
@@ -59,11 +58,11 @@ static MOVE_BOLT_2: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::Debuff,
-);
-static MOVE_BOLT_3: Move = make_move(
-    "Bolt",
-    &[Effect {
+    intent: Intent::Debuff,
+};
+static MOVE_BOLT_3: Move = Move {
+    name: "Bolt",
+    effects: &[Effect {
         kind: EffectKind::CardAddToDiscard {
             card_name: CardName::Dazed,
             count: 3,
@@ -72,8 +71,8 @@ static MOVE_BOLT_3: Move = make_move(
         id_source: None,
         target: Target::Direct(None),
     }],
-    Intent::Debuff,
-);
+    intent: Intent::Debuff,
+};
 
 static MOVES_ASC0: [Move; 2] = [MOVE_BEAM_9, MOVE_BOLT_2];
 static MOVES_ASC3: [Move; 2] = [MOVE_BEAM_10, MOVE_BOLT_2];

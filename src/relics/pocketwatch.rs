@@ -1,8 +1,0 @@
-use crate::entity::Entity;
-use crate::entity::make_entity_relic;
-use crate::types::RelicName;
-use crate::types::RelicTier;
-
-// Playing 3 or fewer cards in a turn draws 3 extra cards next turn
-pub static POCKETWATCH: Entity =
-    make_entity_relic(RelicName::Pocketwatch, RelicTier::Rare, 0, &[]);

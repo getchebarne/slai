@@ -1,103 +1,23 @@
-mod abacus;
 mod akabeko;
 mod anchor;
-mod ancient_tea_set;
-mod art_of_war;
 mod bag_of_marbles;
 mod bag_of_preparation;
-mod bird_faced_urn;
 mod blood_vial;
-mod blue_candle;
-mod boot;
 mod bronze_scales;
-mod calipers;
-mod captains_wheel;
-mod centennial_puzzle;
-mod ceramic_fish;
-mod chemical_x;
 mod circlet;
-mod clockwork_souvenir;
-mod darkstone_periapt;
-mod dead_branch;
-mod dollys_mirror;
-mod du_vu_doll;
-mod empty_cage;
-mod eternal_feather;
-mod fossilized_helix;
-mod frozen_egg;
-mod ginger;
 mod golden_idol;
-mod gremlin_horn;
-mod gremlin_visage;
-mod hand_drill;
-mod happy_flower;
-mod horn_cleat;
-mod ice_cream;
-mod incense_burner;
-mod ink_bottle;
-mod juzu_bracelet;
 mod kunai;
-mod lantern;
-mod lees_waffle;
-mod letter_opener;
-mod lizard_tail;
-mod mango;
-mod maw_bank;
-mod meal_ticket;
-mod meat_on_the_bone;
-mod medical_kit;
-mod mercury_hourglass;
-mod molten_egg;
-mod mummified_hand;
 mod ninja_scroll;
-mod nunchaku;
 mod oddly_smooth_stone;
-mod old_coin;
-mod omamori;
-mod orange_pellets;
-mod orichalcum;
-mod ornamental_fan;
-mod pandoras_box;
-mod pantograph;
-mod paper_krane;
-mod pear;
-mod pen_nib;
-mod pocketwatch;
-mod potion_belt;
-mod preserved_insect;
-mod red_mask;
-mod regal_pillow;
 mod shuriken;
-mod sling_of_courage;
-mod smiling_mask;
 mod snake_ring;
-mod snecko_skull;
-mod stone_calendar;
-mod strange_spoon;
-mod strawberry;
-mod strike_dummy;
-mod sundial;
-mod the_specimen;
 mod thread_and_needle;
-mod tingsha;
-mod tiny_chest;
-mod torii;
-mod tough_bandages;
-mod toxic_egg;
-mod toy_ornithopter;
-mod tungsten_rod;
-mod turnip;
 mod twisted_funnel;
-mod unceasing_top;
 mod vajra;
-mod war_paint;
-mod whetstone;
-mod white_beast_statue;
 
 use strum::EnumCount;
 
 use crate::entity::Entity;
-use crate::types::CardKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::relic_name_from_u8;
@@ -120,140 +40,8 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::Vajra => vajra::VAJRA,
         RelicName::Circlet => circlet::CIRCLET,
         RelicName::GoldenIdol => golden_idol::GOLDEN_IDOL,
-        RelicName::Lantern => lantern::LANTERN,
-        RelicName::ClockworkSouvenir => clockwork_souvenir::CLOCKWORK_SOUVENIR,
-        RelicName::GremlinVisage => gremlin_visage::GREMLIN_VISAGE,
-        RelicName::RedMask => red_mask::RED_MASK,
-        RelicName::Nunchaku => nunchaku::NUNCHAKU,
-        RelicName::InkBottle => ink_bottle::INK_BOTTLE,
-        RelicName::LetterOpener => letter_opener::LETTER_OPENER,
-        RelicName::OrnamentalFan => ornamental_fan::ORNAMENTAL_FAN,
-        RelicName::BirdFacedUrn => bird_faced_urn::BIRD_FACED_URN,
-        RelicName::MummifiedHand => mummified_hand::MUMMIFIED_HAND,
-        RelicName::OrangePellets => orange_pellets::ORANGE_PELLETS,
-        RelicName::StrangeSpoon => strange_spoon::STRANGE_SPOON,
-        RelicName::ChemicalX => chemical_x::CHEMICAL_X,
-        RelicName::ArtOfWar => art_of_war::ART_OF_WAR,
-        RelicName::Orichalcum => orichalcum::ORICHALCUM,
-        RelicName::Pocketwatch => pocketwatch::POCKETWATCH,
-        RelicName::StoneCalendar => stone_calendar::STONE_CALENDAR,
-        RelicName::Abacus => abacus::ABACUS,
-        RelicName::Sundial => sundial::SUNDIAL,
-        RelicName::WhiteBeastStatue => white_beast_statue::WHITE_BEAST_STATUE,
-        RelicName::DollysMirror => dollys_mirror::DOLLYS_MIRROR,
-        RelicName::LeesWaffle => lees_waffle::LEES_WAFFLE,
-        RelicName::HappyFlower => happy_flower::HAPPY_FLOWER,
-        RelicName::IncenseBurner => incense_burner::INCENSE_BURNER,
-        RelicName::MercuryHourglass => mercury_hourglass::MERCURY_HOURGLASS,
-        RelicName::HornCleat => horn_cleat::HORN_CLEAT,
-        RelicName::CaptainsWheel => captains_wheel::CAPTAINS_WHEEL,
-        RelicName::Calipers => calipers::CALIPERS,
-        RelicName::IceCream => ice_cream::ICE_CREAM,
-        RelicName::SneckoSkull => snecko_skull::SNECKO_SKULL,
-        RelicName::Ginger => ginger::GINGER,
-        RelicName::Turnip => turnip::TURNIP,
-        RelicName::Tingsha => tingsha::TINGSHA,
-        RelicName::ToughBandages => tough_bandages::TOUGH_BANDAGES,
-        RelicName::GremlinHorn => gremlin_horn::GREMLIN_HORN,
-        RelicName::TheSpecimen => the_specimen::THE_SPECIMEN,
-        RelicName::LizardTail => lizard_tail::LIZARD_TAIL,
-        RelicName::Boot => boot::BOOT,
-        RelicName::Torii => torii::TORII,
-        RelicName::TungstenRod => tungsten_rod::TUNGSTEN_ROD,
-        RelicName::HandDrill => hand_drill::HAND_DRILL,
-        RelicName::StrikeDummy => strike_dummy::STRIKE_DUMMY,
-        RelicName::PaperKrane => paper_krane::PAPER_KRANE,
-        RelicName::CentennialPuzzle => centennial_puzzle::CENTENNIAL_PUZZLE,
-        RelicName::MealTicket => meal_ticket::MEAL_TICKET,
-        RelicName::MawBank => maw_bank::MAW_BANK,
-        RelicName::JuzuBracelet => juzu_bracelet::JUZU_BRACELET,
-        RelicName::TinyChest => tiny_chest::TINY_CHEST,
-        RelicName::EternalFeather => eternal_feather::ETERNAL_FEATHER,
-        RelicName::AncientTeaSet => ancient_tea_set::ANCIENT_TEA_SET,
-        RelicName::RegalPillow => regal_pillow::REGAL_PILLOW,
-        RelicName::MeatOnTheBone => meat_on_the_bone::MEAT_ON_THE_BONE,
-        RelicName::Omamori => omamori::OMAMORI,
-        RelicName::DarkstonePeriapt => darkstone_periapt::DARKSTONE_PERIAPT,
-        RelicName::CeramicFish => ceramic_fish::CERAMIC_FISH,
-        RelicName::FrozenEgg => frozen_egg::FROZEN_EGG,
-        RelicName::MoltenEgg => molten_egg::MOLTEN_EGG,
-        RelicName::ToxicEgg => toxic_egg::TOXIC_EGG,
-        RelicName::ToyOrnithopter => toy_ornithopter::TOY_ORNITHOPTER,
-        RelicName::SmilingMask => smiling_mask::SMILING_MASK,
-        RelicName::DeadBranch => dead_branch::DEAD_BRANCH,
-        RelicName::DuVuDoll => du_vu_doll::DU_VU_DOLL,
-        RelicName::Pantograph => pantograph::PANTOGRAPH,
-        RelicName::SlingOfCourage => sling_of_courage::SLING_OF_COURAGE,
-        RelicName::Strawberry => strawberry::STRAWBERRY,
-        RelicName::Pear => pear::PEAR,
-        RelicName::Mango => mango::MANGO,
-        RelicName::OldCoin => old_coin::OLD_COIN,
-        RelicName::PotionBelt => potion_belt::POTION_BELT,
-        RelicName::WarPaint => war_paint::WAR_PAINT,
-        RelicName::Whetstone => whetstone::WHETSTONE,
-        RelicName::EmptyCage => empty_cage::EMPTY_CAGE,
-        RelicName::PandorasBox => pandoras_box::PANDORAS_BOX,
-        RelicName::PenNib => pen_nib::PEN_NIB,
-        RelicName::FossilizedHelix => fossilized_helix::FOSSILIZED_HELIX,
-        RelicName::PreservedInsect => preserved_insect::PRESERVED_INSECT,
-        RelicName::UnceasingTop => unceasing_top::UNCEASING_TOP,
-        RelicName::BlueCandle => blue_candle::BLUE_CANDLE,
-        RelicName::MedicalKit => medical_kit::MEDICAL_KIT,
     }
 }
-
-// Bump a relic's counter if owned; at `threshold` reset it to 0 and report the fire
-pub fn trigger_relic_counter(
-    name: RelicName,
-    threshold: i16,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    entities: &mut [Entity],
-) -> bool {
-    let Some(id) = id_relics[name as usize] else {
-        // If the relic is not owned, return
-        return false;
-    };
-
-    // Increase counter
-    let counter = &mut entities[id].relic_counter;
-    *counter += 1;
-
-    // Reset if needed
-    if *counter >= threshold {
-        *counter = 0;
-        return true;
-    }
-    false
-}
-
-// Frozen/Molten/Toxic Egg: cards of the matching kind are obtained upgraded
-pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::COUNT]) -> bool {
-    let egg = match kind {
-        CardKind::Power => RelicName::FrozenEgg,
-        CardKind::Attack => RelicName::MoltenEgg,
-        CardKind::Skill => RelicName::ToxicEgg,
-        _ => return false,
-    };
-    id_relics[egg as usize].is_some()
-}
-
-// Per-turn relic counters; reset at character turn end and at combat start
-// (combat can end mid-turn, so turn-end resets alone leak into the next combat)
-pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
-    RelicName::Kunai,
-    RelicName::Shuriken,
-    RelicName::OrnamentalFan,
-    RelicName::LetterOpener,
-    RelicName::OrangePellets,
-];
-
-// Per-combat relic counters; reset at combat start only
-pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
-    RelicName::StoneCalendar,
-    RelicName::HornCleat,
-    RelicName::CaptainsWheel,
-    RelicName::CentennialPuzzle,
-];
 
 pub fn iter_owned_relics(
     id_relics: &[Option<usize>; RelicName::COUNT],
@@ -266,100 +54,21 @@ pub fn iter_owned_relics(
 
 pub const ALL_RELICS: &[&'static Entity] = &[
     &snake_ring::SNAKE_RING,
-    &abacus::ABACUS,
     &akabeko::AKABEKO,
     &anchor::ANCHOR,
-    &ancient_tea_set::ANCIENT_TEA_SET,
-    &art_of_war::ART_OF_WAR,
     &bag_of_marbles::BAG_OF_MARBLES,
     &bag_of_preparation::BAG_OF_PREPARATION,
-    &bird_faced_urn::BIRD_FACED_URN,
     &blood_vial::BLOOD_VIAL,
-    &blue_candle::BLUE_CANDLE,
-    &boot::BOOT,
     &bronze_scales::BRONZE_SCALES,
-    &calipers::CALIPERS,
-    &captains_wheel::CAPTAINS_WHEEL,
-    &centennial_puzzle::CENTENNIAL_PUZZLE,
-    &ceramic_fish::CERAMIC_FISH,
-    &chemical_x::CHEMICAL_X,
     &circlet::CIRCLET,
-    &clockwork_souvenir::CLOCKWORK_SOUVENIR,
-    &darkstone_periapt::DARKSTONE_PERIAPT,
-    &dead_branch::DEAD_BRANCH,
-    &dollys_mirror::DOLLYS_MIRROR,
-    &du_vu_doll::DU_VU_DOLL,
-    &empty_cage::EMPTY_CAGE,
-    &eternal_feather::ETERNAL_FEATHER,
-    &fossilized_helix::FOSSILIZED_HELIX,
-    &frozen_egg::FROZEN_EGG,
-    &ginger::GINGER,
     &golden_idol::GOLDEN_IDOL,
-    &gremlin_horn::GREMLIN_HORN,
-    &gremlin_visage::GREMLIN_VISAGE,
-    &hand_drill::HAND_DRILL,
-    &happy_flower::HAPPY_FLOWER,
-    &horn_cleat::HORN_CLEAT,
-    &ice_cream::ICE_CREAM,
-    &incense_burner::INCENSE_BURNER,
-    &ink_bottle::INK_BOTTLE,
-    &juzu_bracelet::JUZU_BRACELET,
     &kunai::KUNAI,
-    &lantern::LANTERN,
-    &lees_waffle::LEES_WAFFLE,
-    &letter_opener::LETTER_OPENER,
-    &lizard_tail::LIZARD_TAIL,
-    &mango::MANGO,
-    &maw_bank::MAW_BANK,
-    &meal_ticket::MEAL_TICKET,
-    &meat_on_the_bone::MEAT_ON_THE_BONE,
-    &medical_kit::MEDICAL_KIT,
-    &mercury_hourglass::MERCURY_HOURGLASS,
-    &molten_egg::MOLTEN_EGG,
-    &mummified_hand::MUMMIFIED_HAND,
     &ninja_scroll::NINJA_SCROLL,
-    &nunchaku::NUNCHAKU,
     &oddly_smooth_stone::ODDLY_SMOOTH_STONE,
-    &old_coin::OLD_COIN,
-    &omamori::OMAMORI,
-    &orange_pellets::ORANGE_PELLETS,
-    &orichalcum::ORICHALCUM,
-    &ornamental_fan::ORNAMENTAL_FAN,
-    &pandoras_box::PANDORAS_BOX,
-    &pantograph::PANTOGRAPH,
-    &paper_krane::PAPER_KRANE,
-    &pear::PEAR,
-    &pen_nib::PEN_NIB,
-    &pocketwatch::POCKETWATCH,
-    &potion_belt::POTION_BELT,
-    &preserved_insect::PRESERVED_INSECT,
-    &red_mask::RED_MASK,
-    &regal_pillow::REGAL_PILLOW,
     &shuriken::SHURIKEN,
-    &sling_of_courage::SLING_OF_COURAGE,
-    &smiling_mask::SMILING_MASK,
-    &snecko_skull::SNECKO_SKULL,
-    &stone_calendar::STONE_CALENDAR,
-    &strange_spoon::STRANGE_SPOON,
-    &strawberry::STRAWBERRY,
-    &strike_dummy::STRIKE_DUMMY,
-    &sundial::SUNDIAL,
-    &the_specimen::THE_SPECIMEN,
     &thread_and_needle::THREAD_AND_NEEDLE,
-    &tingsha::TINGSHA,
-    &tiny_chest::TINY_CHEST,
-    &torii::TORII,
-    &tough_bandages::TOUGH_BANDAGES,
-    &toxic_egg::TOXIC_EGG,
-    &toy_ornithopter::TOY_ORNITHOPTER,
-    &tungsten_rod::TUNGSTEN_ROD,
-    &turnip::TURNIP,
     &twisted_funnel::TWISTED_FUNNEL,
-    &unceasing_top::UNCEASING_TOP,
     &vajra::VAJRA,
-    &war_paint::WAR_PAINT,
-    &whetstone::WHETSTONE,
-    &white_beast_statue::WHITE_BEAST_STATUE,
 ];
 // Assert all relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);

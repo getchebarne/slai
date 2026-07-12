@@ -28,7 +28,7 @@ pub static CONCENTRATE: Entity = make_entity_card(
     &[
         Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                source: DiscardSource::Explicit,
             },
             id_source: None,
             target: Target::Resolve {

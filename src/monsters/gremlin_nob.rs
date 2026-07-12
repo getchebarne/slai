@@ -7,7 +7,6 @@ use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -15,9 +14,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BELLOW_2: Move = make_move(
-    "Bellow",
-    &[Effect {
+static MOVE_BELLOW_2: Move = Move {
+    name: "Bellow",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Enrage,
             stacks: 2,
@@ -28,11 +27,11 @@ static MOVE_BELLOW_2: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Buff,
-);
-static MOVE_BELLOW_3: Move = make_move(
-    "Bellow",
-    &[Effect {
+    intent: Intent::Buff,
+};
+static MOVE_BELLOW_3: Move = Move {
+    name: "Bellow",
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Enrage,
             stacks: 3,
@@ -43,11 +42,11 @@ static MOVE_BELLOW_3: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Buff,
-);
-static MOVE_BULL_RUSH_14: Move = make_move(
-    "Bull Rush",
-    &[Effect {
+    intent: Intent::Buff,
+};
+static MOVE_BULL_RUSH_14: Move = Move {
+    name: "Bull Rush",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 14 },
         id_source: None,
         target: Target::Resolve {
@@ -55,14 +54,14 @@ static MOVE_BULL_RUSH_14: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 14,
         instances: 1,
     },
-);
-static MOVE_BULL_RUSH_16: Move = make_move(
-    "Bull Rush",
-    &[Effect {
+};
+static MOVE_BULL_RUSH_16: Move = Move {
+    name: "Bull Rush",
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical { amount: 16 },
         id_source: None,
         target: Target::Resolve {
@@ -70,14 +69,14 @@ static MOVE_BULL_RUSH_16: Move = make_move(
             selection_kind: SelectionKind::Single,
         },
     }],
-    Intent::Attack {
+    intent: Intent::Attack {
         damage: 16,
         instances: 1,
     },
-);
-static MOVE_SKULL_BASH_6: Move = make_move(
-    "Skull Bash",
-    &[
+};
+static MOVE_SKULL_BASH_6: Move = Move {
+    name: "Skull Bash",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 6 },
             id_source: None,
@@ -98,14 +97,14 @@ static MOVE_SKULL_BASH_6: Move = make_move(
             },
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 6,
         instances: 1,
     },
-);
-static MOVE_SKULL_BASH_8: Move = make_move(
-    "Skull Bash",
-    &[
+};
+static MOVE_SKULL_BASH_8: Move = Move {
+    name: "Skull Bash",
+    effects: &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 8 },
             id_source: None,
@@ -126,11 +125,11 @@ static MOVE_SKULL_BASH_8: Move = make_move(
             },
         },
     ],
-    Intent::AttackDebuff {
+    intent: Intent::AttackDebuff {
         damage: 8,
         instances: 1,
     },
-);
+};
 
 static MOVES_ASC0: [Move; 3] = [MOVE_BELLOW_2, MOVE_BULL_RUSH_14, MOVE_SKULL_BASH_6];
 static MOVES_ASC3: [Move; 3] = [MOVE_BELLOW_2, MOVE_BULL_RUSH_16, MOVE_SKULL_BASH_8];

@@ -18,7 +18,6 @@ use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
 use crate::utils::add_relic_reward_for_roll;
-use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::roll_card_rewards;
 
@@ -29,7 +28,6 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
         false
     };
 
-    // Select roll parameters according to `RoomKind`
     let (gold_range, relic_thresholds) = match room_kind {
         RoomKind::CombatMonster => (
             if escaped {
@@ -49,42 +47,32 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
         ),
     };
 
-    // Roll Cards
     roll_card_rewards(
         state.id_character,
         &mut state.entities,
         &mut state.rng,
         &mut state.reward_id_cards,
-        &state.id_relics,
     );
-
-    // Roll Relic (only for Elite combats)
-    state.reward_id_relic = relic_thresholds.map(|(th_common, th_uncommon)| {
+    state.reward_id_relic = relic_thresholds.map(|(th_c, th_u)| {
         let roll = state.rng.random_range(0..100) as u8;
         add_relic_reward_for_roll(
             roll,
-            th_common,
-            th_uncommon,
+            th_c,
+            th_u,
             &state.id_relics,
             &mut state.entities,
             &mut state.rng,
         )
     });
-
-    // Roll Potions
-    // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
-    let potion_drops = has_relic(&state.id_relics, RelicName::WhiteBeastStatue)
-        || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod);
-    state.reward_id_potion = potion_drops.then(|| {
-        let name = get_random_potion_name(&mut state.rng, false);
-        push_entity(&mut state.entities, get_potion(name))
-    });
-
-    // Roll gold
+    state.reward_id_potion =
+        roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod).then(|| {
+            let name = get_random_potion_name(&mut state.rng, false);
+            push_entity(&mut state.entities, get_potion(name))
+        });
     state.reward_gold = gold_range.map(|(min, max)| {
         let gold = state.rng.random_range(min..=max);
-        // Golden Idol: 25% bonus rounded half-up on combat rewards only
-        if has_relic(&state.id_relics, RelicName::GoldenIdol) {
+        // GoldenIdol: +25% rounded half-up on combat rewards only
+        if state.id_relics[RelicName::GoldenIdol as usize].is_some() {
             gold + (gold + 2) / 4
         } else {
             gold

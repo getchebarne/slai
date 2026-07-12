@@ -1,13 +1,8 @@
-use crate::utils::has_relic;
-use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::types::RelicName;
 
 // Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain/ethereal
 pub fn process_effect_card_discard(
@@ -48,28 +43,6 @@ pub fn process_effect_card_discard(
                 state.effect_queue.push_front(Effect {
                     id_source: Some(id_target),
                     ..*effect
-                });
-            }
-
-            // Thorns-type: unscaled, no Envenom
-            if has_relic(&state.id_relics, RelicName::Tingsha) {
-                state.effect_queue.push_back(Effect {
-                    kind: EffectKind::DamageDeal { amount: 3 },
-                    id_source: None,
-                    target: Target::Resolve {
-                        candidate_pool: CandidatePool::Monsters {
-                            filter: CandidatePoolMonstersFilter::All,
-                        },
-                        selection_kind: SelectionKind::Random { count: 1 },
-                    },
-                });
-            }
-            // Relic-sourced block: id_source None skips Dex/Frail scaling
-            if has_relic(&state.id_relics, RelicName::ToughBandages) {
-                state.effect_queue.push_back(Effect {
-                    kind: EffectKind::BlockGain { amount: 3 },
-                    id_source: None,
-                    target: Target::Direct(Some(state.id_character)),
                 });
             }
         }
