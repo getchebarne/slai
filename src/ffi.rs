@@ -2883,29 +2883,22 @@ fn effect_display_amount(e: &PyEffect) -> Option<(u8, i64)> {
     })
 }
 
-// Fill {damage}/{block}/{magic}/{magic2} from the (already modifier-scaled) effects
+// Fill {damage}/{block}/{magic} from the (already modifier-scaled) effects
 fn render_description(template: &str, effects: &[PyEffect]) -> String {
     if !template.contains('{') {
         return template.to_string();
     }
-    let (mut dmg, mut blk, mut mag): (Vec<i64>, Vec<i64>, Vec<i64>) =
-        (Vec::new(), Vec::new(), Vec::new());
+    let (mut dmg, mut blk, mut mag): (Option<i64>, Option<i64>, Option<i64>) = (None, None, None);
     for e in effects {
         match effect_display_amount(e) {
-            Some((0, v)) => dmg.push(v),
-            Some((1, v)) => blk.push(v),
-            Some((_, v)) => mag.push(v),
+            Some((0, v)) => dmg = dmg.or(Some(v)),
+            Some((1, v)) => blk = blk.or(Some(v)),
+            Some((_, v)) => mag = mag.or(Some(v)),
             None => {}
         }
     }
     let mut out = template.to_string();
-    // {magic2} before {magic} so the shorter key doesn't match the longer one's prefix
-    for (key, val) in [
-        ("{magic2}", mag.get(1)),
-        ("{damage}", dmg.first()),
-        ("{block}", blk.first()),
-        ("{magic}", mag.first()),
-    ] {
+    for (key, val) in [("{damage}", dmg), ("{block}", blk), ("{magic}", mag)] {
         if let Some(v) = val {
             out = out.replace(key, &v.to_string());
         }
