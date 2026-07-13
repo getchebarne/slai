@@ -1,4 +1,3 @@
-use crate::utils::has_relic;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -7,6 +6,7 @@ use crate::game::GameState;
 use crate::potions::remove_potion;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
+use crate::utils::has_relic;
 
 pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState) {
     let id_potion = id_target.expect("PotionUse requires id_target");

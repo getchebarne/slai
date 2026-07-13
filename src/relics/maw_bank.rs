@@ -7,5 +7,4 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_gold_delta.rs`
 //    - `process_effect_room_enter.rs`
-pub static MAW_BANK: Entity =
-    make_entity_relic(RelicName::MawBank, RelicTier::Common, 0, &[]);
+pub static MAW_BANK: Entity = make_entity_relic(RelicName::MawBank, RelicTier::Common, 0, &[]);

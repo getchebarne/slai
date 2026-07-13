@@ -1,7 +1,7 @@
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_def;
 use crate::modifier::has_modifier;
+use crate::modifier::modifier_def;
 
 // Multiply target's stacks of `kind` by `factor`. No-op if target doesn't have the modifier
 pub fn process_effect_modifier_multiply(

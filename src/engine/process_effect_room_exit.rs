@@ -23,7 +23,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         Screen::Reward => {
             state.reward_id_cards.clear();
             state.reward_id_relic = None;
-            state.reward_id_potion = None;
+            state.reward_id_potions.clear();
             state.reward_gold = None;
         }
         Screen::Event => state.id_event = None,

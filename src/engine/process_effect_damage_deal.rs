@@ -1,6 +1,5 @@
 use std::collections::VecDeque;
 
-use crate::utils::has_relic;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -14,6 +13,7 @@ use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
+use crate::utils::has_relic;
 
 pub fn process_effect_damage_deal(
     id_source: Option<usize>,

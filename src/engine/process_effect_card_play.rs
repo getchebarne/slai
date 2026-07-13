@@ -1,6 +1,5 @@
 use rand::Rng;
 
-use crate::utils::has_relic;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Amount;
 use crate::effect::Effect;
@@ -20,6 +19,7 @@ use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::has_relic;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardPlay requires id_target");

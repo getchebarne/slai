@@ -197,6 +197,10 @@ impl From<Amount> for PyAmount {
             | Amount::RelativeRounded {
                 numerator,
                 denominator,
+            }
+            | Amount::RelativeCeil {
+                numerator,
+                denominator,
             } => Self::Relative {
                 numerator,
                 denominator,
@@ -944,6 +948,9 @@ pub enum PyEventName {
     TheSsssserpent,
     Transmogrifier,
     UpgradeShrine,
+    TheDivineFountain,
+    TheLab,
+    TheWomanInBlue,
 }
 
 impl From<EventName> for PyEventName {
@@ -963,6 +970,9 @@ impl From<EventName> for PyEventName {
             EventName::TheSsssserpent => Self::TheSsssserpent,
             EventName::Transmogrifier => Self::Transmogrifier,
             EventName::UpgradeShrine => Self::UpgradeShrine,
+            EventName::TheDivineFountain => Self::TheDivineFountain,
+            EventName::TheLab => Self::TheLab,
+            EventName::TheWomanInBlue => Self::TheWomanInBlue,
         }
     }
 }
@@ -1210,6 +1220,7 @@ pub enum PyCandidatePoolDeckFilter {
     Upgradeable,
     Any,
     Transformable,
+    PurgeableCurse,
 }
 
 impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
@@ -1219,6 +1230,7 @@ impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
             CandidatePoolDeckFilter::Upgradeable => Self::Upgradeable,
             CandidatePoolDeckFilter::Any => Self::Any,
             CandidatePoolDeckFilter::Transformable => Self::Transformable,
+            CandidatePoolDeckFilter::PurgeableCurse => Self::PurgeableCurse,
         }
     }
 }
@@ -1480,8 +1492,8 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("RewardTakeRelic expects [], got {n} idxs")),
         },
         PyActionType::RewardTakePotion => match idxs.len() {
-            0 => Ok(Action::RewardTakePotion),
-            n => Err(format!("RewardTakePotion expects [], got {n} idxs")),
+            1 => Ok(Action::RewardTakePotion { idx: idxs[0] }),
+            n => Err(format!("RewardTakePotion expects [idx], got {n} idxs")),
         },
         PyActionType::RewardTakeGold => match idxs.len() {
             0 => Ok(Action::RewardTakeGold),
@@ -1545,7 +1557,7 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::CardDiscover { idx } => (PyActionType::CardDiscover, vec![idx]),
         Action::RewardTakeCard { idx } => (PyActionType::RewardTakeCard, vec![idx]),
         Action::RewardTakeRelic => (PyActionType::RewardTakeRelic, vec![]),
-        Action::RewardTakePotion => (PyActionType::RewardTakePotion, vec![]),
+        Action::RewardTakePotion { idx } => (PyActionType::RewardTakePotion, vec![idx]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
         Action::EventOptionSelect { idx } => (PyActionType::EventOptionSelect, vec![idx]),
         Action::CardPurge { idx } => (PyActionType::CardPurge, vec![idx]),
@@ -1679,6 +1691,13 @@ pub enum PyEffect {
     },
     PotionAddRandom {
         limited: bool,
+        target: Option<PyTarget>,
+    },
+    PotionDiscard {
+        target: Option<PyTarget>,
+    },
+    RewardRollPotions {
+        count: u8,
         target: Option<PyTarget>,
     },
     CardDiscoverRoll {
@@ -1851,6 +1870,8 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
+        EffectKind::PotionDiscard => PyEffect::PotionDiscard { target },
+        EffectKind::RewardRollPotions { count } => PyEffect::RewardRollPotions { count, target },
         EffectKind::CardDiscoverRoll { kind, count } => PyEffect::CardDiscoverRoll {
             kind: kind.into(),
             count,
@@ -2285,7 +2306,7 @@ pub struct PyGameState {
 pub struct PyReward {
     pub cards: Vec<PyCard>,
     pub relic: Option<PyRelic>,
-    pub potion: Option<PyPotion>,
+    pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
 }
 
@@ -2296,13 +2317,13 @@ impl PyReward {
     fn new(
         cards: Vec<PyCard>,
         relic: Option<PyRelic>,
-        potion: Option<PyPotion>,
+        potions: Vec<PyPotion>,
         gold: Option<u16>,
     ) -> Self {
         Self {
             cards,
             relic,
-            potion,
+            potions,
             gold,
         }
     }
@@ -2501,6 +2522,9 @@ impl EventName {
             Self::TheSsssserpent => "The Ssssserpent",
             Self::Transmogrifier => "Transmogrifier",
             Self::UpgradeShrine => "Upgrade Shrine",
+            Self::TheDivineFountain => "The Divine Fountain",
+            Self::TheLab => "The Lab",
+            Self::TheWomanInBlue => "The Woman in Blue",
         }
     }
 }
@@ -2591,9 +2615,11 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             relic: state
                 .reward_id_relic
                 .map(|id| snapshot_relic(&state.entities[id])),
-            potion: state
-                .reward_id_potion
-                .map(|id| snapshot_potion(&state.entities[id])),
+            potions: state
+                .reward_id_potions
+                .iter()
+                .map(|&id| snapshot_potion(&state.entities[id]))
+                .collect(),
             gold: state.reward_gold,
         }),
         _ => None,

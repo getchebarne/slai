@@ -7,7 +7,10 @@ mod purifier;
 mod scrap_ooze;
 mod shining_light;
 mod the_cleric;
+mod the_divine_fountain;
+mod the_lab;
 mod the_ssssserpent;
+mod the_woman_in_blue;
 mod transmogrifier;
 mod upgrade_shrine;
 mod wing_statue;
@@ -124,6 +127,9 @@ pub fn get_event(name: EventName, ascension: u8) -> Entity {
         EventName::TheSsssserpent => the_ssssserpent::spawn_event_the_ssssserpent(ascension),
         EventName::Transmogrifier => transmogrifier::spawn_event_transmogrifier(),
         EventName::UpgradeShrine => upgrade_shrine::spawn_event_upgrade_shrine(),
+        EventName::TheDivineFountain => the_divine_fountain::spawn_event_the_divine_fountain(),
+        EventName::TheLab => the_lab::spawn_event_the_lab(ascension),
+        EventName::TheWomanInBlue => the_woman_in_blue::spawn_event_the_woman_in_blue(ascension),
     }
 }
 
@@ -143,10 +149,13 @@ pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::TheSsssserpent,
 ];
 
-// Shrines roll separately at EVENT_SHRINE_CHANCE; Duplicator is Act 2 and 3 only
-pub const POOL_ACT1_SHRINE: &[EventName] = &[
+// Shrines and one-time specials roll together at EVENT_SPECIAL_CHANCE
+pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
     EventName::GoldenShrine,
     EventName::Purifier,
     EventName::Transmogrifier,
     EventName::UpgradeShrine,
+    EventName::TheDivineFountain,
+    EventName::TheLab,
+    EventName::TheWomanInBlue,
 ];

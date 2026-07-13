@@ -51,7 +51,7 @@ pub const MAP_ROW_TREASURE: usize = 8;
 pub const UNKNOWN_CHANCE_BASE_MONSTER: f32 = 0.10;
 pub const UNKNOWN_CHANCE_BASE_SHOP: f32 = 0.03;
 pub const UNKNOWN_CHANCE_BASE_TREASURE: f32 = 0.02;
-pub const EVENT_SHRINE_CHANCE: f32 = 0.25;
+pub const EVENT_SPECIAL_CHANCE: f32 = 0.25;
 
 // Chest size roll thresholds
 pub const CHEST_SMALL_PCT: u8 = 50;

@@ -62,7 +62,7 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
         &mut state.rng,
     ));
     state.reward_id_cards.clear();
-    state.reward_id_potion = None;
+    state.reward_id_potions.clear();
 
     state.screen = Screen::Reward;
 }
