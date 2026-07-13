@@ -277,6 +277,7 @@ pub enum EventName {
     BonfireSpirits,
     OminousForge,
     FaceTrader,
+    WeMeetAgain,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

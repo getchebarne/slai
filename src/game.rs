@@ -134,8 +134,12 @@ pub struct GameState {
     pub reward_id_potion: Option<usize>,
     pub reward_gold: Option<u16>,
 
-    // Event working memory; meaningful when active = Event
+    // Event working memory; meaningful when active = Event.
+    // `id_event_picks` holds entity ids rolled at event entry (We Meet Again etc.);
+    // consumed via CandidatePool::EventPick*, cleared on EventConsume
     pub id_event: Option<usize>,
+    pub id_event_picks: Vec<usize>,
+    pub event_gold_rolled: u16,
 
     // Shop working memory; meaningful when screen = Shop
     pub shop_id_cards: Vec<usize>,
@@ -255,6 +259,8 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         reward_id_potion: None,
         reward_gold: None,
         id_event: None,
+        id_event_picks: Vec::new(),
+        event_gold_rolled: 0,
         shop_id_cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
         shop_id_relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
         shop_id_potions: Vec::with_capacity(SHOP_SLOTS_POTION),

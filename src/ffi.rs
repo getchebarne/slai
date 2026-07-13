@@ -16,6 +16,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
+use crate::entity::EntityKind;
 use crate::entity::Intent;
 use crate::entity::PlayRestriction;
 use crate::entity::get_card_effective_cost;
@@ -183,6 +184,8 @@ pub enum PyAmount {
     Absolute { amount: u16 },
     Relative { numerator: u8, denominator: u8 },
     Range { min: u16, max: u16 },
+    // Rolled at event entry; the value lives in GameState.event.gold_rolled
+    EventGoldRolled {},
 }
 
 impl From<Amount> for PyAmount {
@@ -206,6 +209,7 @@ impl From<Amount> for PyAmount {
                 denominator,
             },
             Amount::Range { min, max } => Self::Range { min, max },
+            Amount::EventGoldRolled => Self::EventGoldRolled {},
         }
     }
 }
@@ -973,6 +977,7 @@ pub enum PyEventName {
     BonfireSpirits,
     OminousForge,
     FaceTrader,
+    WeMeetAgain,
 }
 
 impl From<EventName> for PyEventName {
@@ -999,6 +1004,7 @@ impl From<EventName> for PyEventName {
             EventName::BonfireSpirits => Self::BonfireSpirits,
             EventName::OminousForge => Self::OminousForge,
             EventName::FaceTrader => Self::FaceTrader,
+            EventName::WeMeetAgain => Self::WeMeetAgain,
         }
     }
 }
@@ -1161,6 +1167,8 @@ pub enum PyCandidatePool {
     Deck {
         filter: PyCandidatePoolDeckFilter,
     },
+    EventPickCard {},
+    EventPickPotion {},
 }
 
 impl From<CandidatePool> for PyCandidatePool {
@@ -1176,6 +1184,8 @@ impl From<CandidatePool> for PyCandidatePool {
             CandidatePool::Deck { filter } => Self::Deck {
                 filter: filter.into(),
             },
+            CandidatePool::EventPickCard => Self::EventPickCard {},
+            CandidatePool::EventPickPotion => Self::EventPickPotion {},
         }
     }
 }
@@ -1719,6 +1729,9 @@ pub enum PyEffect {
         limited: bool,
         target: Option<PyTarget>,
     },
+    PotionDiscard {
+        target: Option<PyTarget>,
+    },
     CardDiscoverRoll {
         kind: PyCardKind,
         count: u8,
@@ -1901,6 +1914,7 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
+        EffectKind::PotionDiscard => PyEffect::PotionDiscard { target },
         EffectKind::CardDiscoverRoll { kind, count } => PyEffect::CardDiscoverRoll {
             kind: kind.into(),
             count,
@@ -2073,6 +2087,10 @@ pub struct PyEvent {
     pub display_name: String,
     pub options: Vec<PyEventOption>,
     pub state: u8,
+    // Entry-rolled picks (We Meet Again etc.); referenced by EventPick* pools
+    pub pick_card: Option<PyCard>,
+    pub pick_potion: Option<PyPotion>,
+    pub gold_rolled: u16,
 }
 
 #[gen_stub_pymethods]
@@ -2084,12 +2102,18 @@ impl PyEvent {
         display_name: String,
         options: Vec<PyEventOption>,
         state: u8,
+        pick_card: Option<PyCard>,
+        pick_potion: Option<PyPotion>,
+        gold_rolled: u16,
     ) -> Self {
         Self {
             name,
             display_name,
             options,
             state,
+            pick_card,
+            pick_potion,
+            gold_rolled,
         }
     }
 }
@@ -2558,6 +2582,7 @@ impl EventName {
             Self::BonfireSpirits => "Bonfire Spirits",
             Self::OminousForge => "Ominous Forge",
             Self::FaceTrader => "Face Trader",
+            Self::WeMeetAgain => "We Meet Again!",
         }
     }
 }
@@ -2732,11 +2757,22 @@ fn snapshot_event(state: &GameState, id_event: usize) -> PyEvent {
             effects: opt.effects.iter().map(snapshot_effect).collect(),
         })
         .collect();
+    let pick_of_kind = |kind: EntityKind| {
+        state
+            .id_event_picks
+            .iter()
+            .copied()
+            .find(|&id| state.entities[id].kind == kind)
+    };
     PyEvent {
         name: event.event_name.into(),
         display_name: event.event_name.as_str().to_string(),
         options,
         state: event.event_state,
+        pick_card: pick_of_kind(EntityKind::Card).map(|id| snapshot_card(state, id)),
+        pick_potion: pick_of_kind(EntityKind::Potion)
+            .map(|id| snapshot_potion(&state.entities[id])),
+        gold_rolled: state.event_gold_rolled,
     }
 }
 

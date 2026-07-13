@@ -101,6 +101,7 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
+use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::utils::deck_filter_matches;
@@ -134,6 +135,7 @@ fn fill_buf_candidates(
     entities: &[Entity],
     id_discover: &[usize],
     id_deck: &[usize],
+    id_event_picks: &[usize],
 ) {
     match candidate_pool {
         CandidatePool::Hand => effect_candidate_buf.extend_from_slice(id_hand),
@@ -171,6 +173,20 @@ fn fill_buf_candidates(
         CandidatePool::Deck { filter } => {
             for &id in id_deck {
                 if deck_filter_matches(filter, &entities[id]) {
+                    effect_candidate_buf.push(id);
+                }
+            }
+        }
+        CandidatePool::EventPickCard => {
+            for &id in id_event_picks {
+                if entities[id].kind == EntityKind::Card {
+                    effect_candidate_buf.push(id);
+                }
+            }
+        }
+        CandidatePool::EventPickPotion => {
+            for &id in id_event_picks {
+                if entities[id].kind == EntityKind::Potion {
                     effect_candidate_buf.push(id);
                 }
             }
@@ -252,6 +268,7 @@ fn resolve_or_halt(
         &state.entities,
         &state.id_discover,
         &state.id_deck,
+        &state.id_event_picks,
     );
 
     // Resolve `SelectionKind`. Returns `true` if the effect's targets were resolved

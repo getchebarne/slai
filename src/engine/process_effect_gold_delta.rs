@@ -11,8 +11,9 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
     let amount = match amount {
         Amount::Absolute(a) => a,
         Amount::Range { min, max } => state.rng.random_range(min..=max),
+        Amount::EventGoldRolled => state.event_gold_rolled,
         Amount::Relative { .. } | Amount::RelativeRounded { .. } | Amount::RelativeCeil { .. } => {
-            unreachable!("GoldDelta only resolves Absolute or Range")
+            unreachable!("GoldDelta only resolves Absolute, Range, or EventGoldRolled")
         }
     };
 

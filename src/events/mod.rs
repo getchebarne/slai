@@ -16,6 +16,7 @@ mod the_ssssserpent;
 mod the_woman_in_blue;
 mod transmogrifier;
 mod upgrade_shrine;
+mod we_meet_again;
 mod wheel_of_change;
 mod wing_statue;
 mod world_of_goop;
@@ -59,6 +60,7 @@ pub enum EventGate {
     HasDamageCardInDeck { min_base: u16 },
     HasRelicOwned(RelicName),
     PotionBeltHasAny,
+    EventPickValid(EntityKind),
     EventStateEq(u8),
     All(&'static [EventGate]),
 }
@@ -91,6 +93,14 @@ pub fn event_option_gate_satisfied(gate: EventGate, state: &GameState, id_event:
             .iter()
             .take(state.potion_slots_max as usize)
             .any(|slot| slot.is_some()),
+        EventGate::EventPickValid(kind) => state.id_event_picks.iter().any(|&id| {
+            state.entities[id].kind == kind
+                && match kind {
+                    EntityKind::Card => state.id_deck.contains(&id),
+                    EntityKind::Potion => state.id_potions.contains(&Some(id)),
+                    _ => unreachable!("EventPickValid on unsupported kind: {kind:?}"),
+                }
+        }),
         EventGate::EventStateEq(value) => state.entities[id_event].event_state == value,
         EventGate::All(gates) => gates
             .iter()
@@ -138,11 +148,49 @@ pub fn get_event(name: EventName, ascension: u8) -> Entity {
         EventName::BonfireSpirits => bonfire_spirits::spawn_event_bonfire_spirits(),
         EventName::OminousForge => ominous_forge::spawn_event_ominous_forge(),
         EventName::FaceTrader => face_trader::spawn_event_face_trader(ascension),
+        EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(),
     }
 }
 
 pub fn spawn_event(name: EventName, ascension: u8, _rng: &mut impl Rng) -> Entity {
     get_event(name, ascension)
+}
+
+// Entry rolls for events whose options name specific owned entities (see id_event_picks)
+pub fn roll_event_entry_picks(state: &mut GameState, name: EventName) {
+    state.id_event_picks.clear();
+    state.event_gold_rolled = 0;
+    if name != EventName::WeMeetAgain {
+        return;
+    }
+
+    // Card: uniform among non-Basic, non-Curse deck cards
+    let eligible: Vec<usize> = state
+        .id_deck
+        .iter()
+        .copied()
+        .filter(|&id| {
+            let entity = &state.entities[id];
+            entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
+        })
+        .collect();
+    if !eligible.is_empty() {
+        let id = eligible[state.rng.random_range(0..eligible.len())];
+        state.id_event_picks.push(id);
+    }
+
+    // Potion: uniform among occupied belt slots
+    let slotted: Vec<usize> = state.id_potions.iter().flatten().copied().collect();
+    if !slotted.is_empty() {
+        let id = slotted[state.rng.random_range(0..slotted.len())];
+        state.id_event_picks.push(id);
+    }
+
+    // Gold ask: 50..=150, capped by holdings; 0 (option gated out) below 50
+    let gold = state.entities[state.id_character].character_gold;
+    if gold >= 50 {
+        state.event_gold_rolled = state.rng.random_range(50..=gold.min(150));
+    }
 }
 
 pub const POOL_ACT1_EVENT: &[EventName] = &[
@@ -171,4 +219,5 @@ pub const POOL_ACT1_SHRINE: &[EventName] = &[
     EventName::BonfireSpirits,
     EventName::OminousForge,
     EventName::FaceTrader,
+    EventName::WeMeetAgain,
 ];

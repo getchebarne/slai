@@ -211,6 +211,7 @@ pub enum Amount {
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
+    EventGoldRolled, // Reads `state.event_gold_rolled` at dequeue (rolled at event entry)
 }
 
 // Source pool for a Resolve effect
@@ -222,6 +223,9 @@ pub enum CandidatePool {
     Source,
     Discover,
     Deck { filter: CandidatePoolDeckFilter },
+    // Entry-rolled event picks (state.id_event_picks), filtered by entity kind
+    EventPickCard,
+    EventPickPotion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

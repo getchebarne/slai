@@ -11,6 +11,7 @@ use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::events::roll_event_entry_picks;
 use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
@@ -142,6 +143,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             if let Some(id_event) = spawn_random_event(state) {
                 state.screen = Screen::Event;
                 state.id_event = Some(id_event);
+                roll_event_entry_picks(state, state.entities[id_event].event_name);
                 return;
             }
 
