@@ -197,6 +197,10 @@ impl From<Amount> for PyAmount {
             | Amount::RelativeRounded {
                 numerator,
                 denominator,
+            }
+            | Amount::RelativeCeil {
+                numerator,
+                denominator,
             } => Self::Relative {
                 numerator,
                 denominator,
@@ -944,6 +948,9 @@ pub enum PyEventName {
     TheSsssserpent,
     Transmogrifier,
     UpgradeShrine,
+    TheDivineFountain,
+    TheLab,
+    TheWomanInBlue,
 }
 
 impl From<EventName> for PyEventName {
@@ -963,6 +970,9 @@ impl From<EventName> for PyEventName {
             EventName::TheSsssserpent => Self::TheSsssserpent,
             EventName::Transmogrifier => Self::Transmogrifier,
             EventName::UpgradeShrine => Self::UpgradeShrine,
+            EventName::TheDivineFountain => Self::TheDivineFountain,
+            EventName::TheLab => Self::TheLab,
+            EventName::TheWomanInBlue => Self::TheWomanInBlue,
         }
     }
 }
@@ -1210,6 +1220,7 @@ pub enum PyCandidatePoolDeckFilter {
     Upgradeable,
     Any,
     Transformable,
+    Curse,
 }
 
 impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
@@ -1219,6 +1230,7 @@ impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
             CandidatePoolDeckFilter::Upgradeable => Self::Upgradeable,
             CandidatePoolDeckFilter::Any => Self::Any,
             CandidatePoolDeckFilter::Transformable => Self::Transformable,
+            CandidatePoolDeckFilter::Curse => Self::Curse,
         }
     }
 }
@@ -2501,6 +2513,9 @@ impl EventName {
             Self::TheSsssserpent => "The Ssssserpent",
             Self::Transmogrifier => "Transmogrifier",
             Self::UpgradeShrine => "Upgrade Shrine",
+            Self::TheDivineFountain => "The Divine Fountain",
+            Self::TheLab => "The Lab",
+            Self::TheWomanInBlue => "The Woman in Blue",
         }
     }
 }

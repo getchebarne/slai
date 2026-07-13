@@ -7,5 +7,4 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_play.rs`
 //    - `process_effect_combat_start.rs`
-pub static PEN_NIB: Entity =
-    make_entity_relic(RelicName::PenNib, RelicTier::Common, 0, &[]);
+pub static PEN_NIB: Entity = make_entity_relic(RelicName::PenNib, RelicTier::Common, 0, &[]);

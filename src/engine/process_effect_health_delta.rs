@@ -37,12 +37,18 @@ pub fn process_effect_health_delta(
         | Amount::RelativeRounded {
             numerator,
             denominator,
+        }
+        | Amount::RelativeCeil {
+            numerator,
+            denominator,
         } => {
             let health_max = state.entities[id_target].vitals.health_max;
             // f32 mirrors the source's (int)(maxHP * fraction) float truncation
             let mut raw = health_max as f32 * (numerator as f32 / denominator as f32);
-            if matches!(amount, Amount::RelativeRounded { .. }) {
-                raw += 0.5;
+            match amount {
+                Amount::RelativeRounded { .. } => raw += 0.5,
+                Amount::RelativeCeil { .. } => raw = raw.ceil(),
+                _ => {}
             }
             let raw = raw as u32;
             match sign {

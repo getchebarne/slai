@@ -7,6 +7,7 @@ use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Amount;
+use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -23,6 +24,7 @@ use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
+use crate::utils::deck_filter_matches;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
@@ -261,10 +263,31 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
 }
 
 fn draw_shrine(state: &mut GameState) -> Option<EventName> {
-    if state.pool_shrines.is_empty() {
+    // Draw-gated shrines stay pooled until eligible (source: getShrine's one-time filters)
+    let gold = state.entities[state.id_character].character_gold;
+    let has_removable_curse = state
+        .id_deck
+        .iter()
+        .any(|&id| deck_filter_matches(CandidatePoolDeckFilter::Curse, &state.entities[id]));
+    let eligible: Vec<usize> = state
+        .pool_shrines
+        .iter()
+        .enumerate()
+        .filter(|&(_, &name)| match name {
+            EventName::TheDivineFountain => has_removable_curse,
+            EventName::TheWomanInBlue => gold >= 50,
+            _ => true,
+        })
+        .map(|(i, _)| i)
+        .collect();
+
+    // Early return if empty
+    if eligible.is_empty() {
         return None;
     }
-    let idx = state.rng.random_range(0..state.pool_shrines.len());
+
+    // Roll, pop from `pool_shrines` and return the rolled shrine's name
+    let idx = eligible[state.rng.random_range(0..eligible.len())];
     Some(state.pool_shrines.swap_remove(idx))
 }
 

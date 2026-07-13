@@ -1,4 +1,3 @@
-use crate::utils::has_relic;
 use crate::cards::get_random_cards;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -6,6 +5,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::RelicName;
+use crate::utils::has_relic;
 
 pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardExhaust requires id_target");

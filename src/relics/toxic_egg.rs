@@ -7,5 +7,4 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_add_to_deck.rs`
 //    - `utils.rs`
-pub static TOXIC_EGG: Entity =
-    make_entity_relic(RelicName::ToxicEgg, RelicTier::Uncommon, 0, &[]);
+pub static TOXIC_EGG: Entity = make_entity_relic(RelicName::ToxicEgg, RelicTier::Uncommon, 0, &[]);

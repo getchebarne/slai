@@ -6,5 +6,4 @@ use crate::types::RelicTier;
 // Manually discarding a card deals 3 damage to a random enemy
 // See:
 //    - `process_effect_card_discard.rs`
-pub static TINGSHA: Entity =
-    make_entity_relic(RelicName::Tingsha, RelicTier::Rare, 0, &[]);
+pub static TINGSHA: Entity = make_entity_relic(RelicName::Tingsha, RelicTier::Rare, 0, &[]);

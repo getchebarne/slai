@@ -87,6 +87,9 @@ pub fn deck_filter_matches(filter: CandidatePoolDeckFilter, entity: &Entity) -> 
                 && entity.card_rarity != CardRarity::Basic
                 && entity.card_kind != CardKind::Curse
         }
+        CandidatePoolDeckFilter::Curse => {
+            entity.card_kind == CardKind::Curse && card_is_purgeable(entity)
+        }
     }
 }
 
