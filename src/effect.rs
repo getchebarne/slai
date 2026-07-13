@@ -17,6 +17,7 @@ pub enum EffectKind {
     BlockSet {
         amount: u16,
     },
+    BonfireOffer,
     CalculatedGamble,
     CardAddToDeck {
         card_name: CardName,
@@ -93,6 +94,7 @@ pub enum EffectKind {
         delta: i8,
     },
     EventConsume,
+    FaceTrade,
     GlassKnifeDecay {
         delta: i16,
     },
@@ -191,6 +193,8 @@ pub enum EffectKind {
     TurnEnd,
     TurnStart,
     UnloadDiscard,
+    WarpedTongsProc,
+    WheelSpin,
 }
 
 // Origin tag the CardDiscard handler branches on

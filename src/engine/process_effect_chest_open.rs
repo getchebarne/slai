@@ -4,6 +4,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::room_at_mut;
+use crate::types::RelicName;
 
 pub fn process_effect_chest_open(state: &mut GameState) {
     let Location::Overworld { y, x } = state.location else {
@@ -17,6 +18,14 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         .expect("ChestOpen with no chest_kind on room");
 
     room.room_chest_opened = true;
+
+    // N'loth's Hungry Face: the next chest opened is empty (one-shot)
+    if let Some(id) = state.id_relics[RelicName::NlothsHungryFace as usize]
+        && !state.entities[id].relic_used_up
+    {
+        state.entities[id].relic_used_up = true;
+        return;
+    }
 
     state.effect_queue.push_back(Effect {
         kind: EffectKind::RewardRollChest { kind: chest_kind },

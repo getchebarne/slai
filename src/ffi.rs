@@ -398,6 +398,12 @@ pub enum PyRelicName {
     UnceasingTop,
     BlueCandle,
     MedicalKit,
+    SpiritPoop,
+    WarpedTongs,
+    CultistHeadpiece,
+    FaceOfCleric,
+    NlothsHungryFace,
+    SsserpentHead,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -498,6 +504,12 @@ impl From<RelicName> for PyRelicName {
             RelicName::UnceasingTop => Self::UnceasingTop,
             RelicName::BlueCandle => Self::BlueCandle,
             RelicName::MedicalKit => Self::MedicalKit,
+            RelicName::SpiritPoop => Self::SpiritPoop,
+            RelicName::WarpedTongs => Self::WarpedTongs,
+            RelicName::CultistHeadpiece => Self::CultistHeadpiece,
+            RelicName::FaceOfCleric => Self::FaceOfCleric,
+            RelicName::NlothsHungryFace => Self::NlothsHungryFace,
+            RelicName::SsserpentHead => Self::SsserpentHead,
         }
     }
 }
@@ -600,6 +612,12 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::UnceasingTop => Self::UnceasingTop,
             PyRelicName::BlueCandle => Self::BlueCandle,
             PyRelicName::MedicalKit => Self::MedicalKit,
+            PyRelicName::SpiritPoop => Self::SpiritPoop,
+            PyRelicName::WarpedTongs => Self::WarpedTongs,
+            PyRelicName::CultistHeadpiece => Self::CultistHeadpiece,
+            PyRelicName::FaceOfCleric => Self::FaceOfCleric,
+            PyRelicName::NlothsHungryFace => Self::NlothsHungryFace,
+            PyRelicName::SsserpentHead => Self::SsserpentHead,
         }
     }
 }
@@ -951,6 +969,10 @@ pub enum PyEventName {
     TheDivineFountain,
     TheLab,
     TheWomanInBlue,
+    WheelOfChange,
+    BonfireSpirits,
+    OminousForge,
+    FaceTrader,
 }
 
 impl From<EventName> for PyEventName {
@@ -973,6 +995,10 @@ impl From<EventName> for PyEventName {
             EventName::TheDivineFountain => Self::TheDivineFountain,
             EventName::TheLab => Self::TheLab,
             EventName::TheWomanInBlue => Self::TheWomanInBlue,
+            EventName::WheelOfChange => Self::WheelOfChange,
+            EventName::BonfireSpirits => Self::BonfireSpirits,
+            EventName::OminousForge => Self::OminousForge,
+            EventName::FaceTrader => Self::FaceTrader,
         }
     }
 }
@@ -1706,6 +1732,15 @@ pub enum PyEffect {
     RelicGrantRandom {
         target: Option<PyTarget>,
     },
+    WheelSpin {
+        target: Option<PyTarget>,
+    },
+    BonfireOffer {
+        target: Option<PyTarget>,
+    },
+    FaceTrade {
+        target: Option<PyTarget>,
+    },
     RelicGrantSpecific {
         name: PyRelicName,
         fallback_circlet: bool,
@@ -1834,6 +1869,9 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardDuplicate => PyEffect::CardDuplicate { target },
         EffectKind::CardTransform => PyEffect::CardTransform { target },
         EffectKind::RelicGrantRandom => PyEffect::RelicGrantRandom { target },
+        EffectKind::WheelSpin => PyEffect::WheelSpin { target },
+        EffectKind::BonfireOffer => PyEffect::BonfireOffer { target },
+        EffectKind::FaceTrade => PyEffect::FaceTrade { target },
         EffectKind::RelicGrantSpecific {
             name,
             fallback_circlet,
@@ -2516,6 +2554,10 @@ impl EventName {
             Self::TheDivineFountain => "The Divine Fountain",
             Self::TheLab => "The Lab",
             Self::TheWomanInBlue => "The Woman in Blue",
+            Self::WheelOfChange => "Wheel of Change",
+            Self::BonfireSpirits => "Bonfire Spirits",
+            Self::OminousForge => "Ominous Forge",
+            Self::FaceTrader => "Face Trader",
         }
     }
 }

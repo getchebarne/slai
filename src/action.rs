@@ -523,7 +523,8 @@ fn fill_legal_actions_effect_pending(
                 state.legal_actions.push(Action::CardDiscover { idx: i });
             }
         }
-        EffectKind::CardPurge => {
+        // Bonfire's offer pick reuses CardPurge actions: same pool, same resolution shape
+        EffectKind::CardPurge | EffectKind::BonfireOffer => {
             let filter = deck_filter.expect("deck pick carries a Deck filter");
             for i in 0..state.id_deck.len() {
                 if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {

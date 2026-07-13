@@ -288,6 +288,15 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 }
             }
         }
+
+        // Warped Tongs: pushed after the draws so the pick sees the drawn hand
+        if has_relic(&state.id_relics, RelicName::WarpedTongs) {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::WarpedTongsProc,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
     }
 
     flush_effects_from_buf_to_queue_front(state);

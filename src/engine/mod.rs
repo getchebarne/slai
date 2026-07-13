@@ -1,5 +1,6 @@
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
+pub mod process_effect_bonfire_offer;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_add_to_discard;
@@ -37,6 +38,7 @@ pub mod process_effect_energy_loss;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
+pub mod process_effect_face_trade;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -84,6 +86,8 @@ pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
+pub mod process_effect_warped_tongs_proc;
+pub mod process_effect_wheel_spin;
 
 use std::collections::VecDeque;
 
@@ -329,6 +333,14 @@ fn dispatch_by_kind(
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(state)
         }
+        EffectKind::BonfireOffer => {
+            process_effect_bonfire_offer::process_effect_bonfire_offer(id_target, state)
+        }
+        EffectKind::FaceTrade => process_effect_face_trade::process_effect_face_trade(state),
+        EffectKind::WarpedTongsProc => {
+            process_effect_warped_tongs_proc::process_effect_warped_tongs_proc(state)
+        }
+        EffectKind::WheelSpin => process_effect_wheel_spin::process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => {
             process_effect_card_upgrade::process_effect_card_upgrade(id_target, state)
         }

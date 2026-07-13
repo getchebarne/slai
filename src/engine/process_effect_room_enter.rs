@@ -48,6 +48,17 @@ pub fn process_effect_room_enter(state: &mut GameState) {
     // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     let room_kind_resolved = if room_kind == RoomKind::Unknown {
+        // Ssserpent Head: gain 50 gold on entering a "?" room, whatever it resolves to
+        if has_relic(&state.id_relics, RelicName::SsserpentHead) {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::GoldDelta {
+                    sign: DeltaSign::Gain,
+                    amount: Amount::Absolute(50),
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
         roll_unknown_room(state)
     } else {
         room_kind

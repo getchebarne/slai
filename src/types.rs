@@ -273,6 +273,10 @@ pub enum EventName {
     TheDivineFountain,
     TheLab,
     TheWomanInBlue,
+    WheelOfChange,
+    BonfireSpirits,
+    OminousForge,
+    FaceTrader,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -414,6 +418,12 @@ pub enum RelicName {
     UnceasingTop,
     BlueCandle,
     MedicalKit,
+    SpiritPoop,
+    WarpedTongs,
+    CultistHeadpiece,
+    FaceOfCleric,
+    NlothsHungryFace,
+    SsserpentHead,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {
