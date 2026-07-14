@@ -11,6 +11,7 @@ use crate::types::RoomKind;
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
+    AdventurerSearch,
     BlockGain {
         amount: u16,
     },

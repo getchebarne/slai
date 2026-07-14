@@ -17,19 +17,16 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
+use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
-use crate::types::MonsterEncounter;
-use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
 use crate::utils::deck_filter_matches;
-use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
-use crate::utils::shuffle;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
     // Maw Bank: 12 gold on every room entry until deactivated
@@ -67,8 +64,6 @@ pub fn process_effect_room_enter(state: &mut GameState) {
 
     match room_kind_resolved {
         RoomKind::CombatBoss => {
-            state.screen = Screen::Combat;
-
             // Spawn boss
             let encounter = state.encounter_boss;
             spawn_encounter_monsters(state, encounter);
@@ -86,15 +81,11 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             }
         }
         RoomKind::CombatMonster => {
-            state.screen = Screen::Combat;
-
             // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_normal.remove(0);
             spawn_encounter_monsters(state, encounter);
         }
         RoomKind::CombatElite => {
-            state.screen = Screen::Combat;
-
             // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_elite.remove(0);
             spawn_encounter_monsters(state, encounter);
@@ -255,13 +246,22 @@ fn spawn_random_event(state: &mut GameState) -> Option<usize> {
 }
 
 fn draw_event(state: &mut GameState) -> Option<EventName> {
-    // "The Cleric" only spawns with gold for its cheapest option; it stays pooled otherwise
+    // Draw-gated events stay pooled until eligible (source: getEvent's filters)
     let gold = state.entities[state.id_character].character_gold;
+    let floor = match state.location {
+        Location::Overworld { y, .. } => y + 1,
+        _ => 0,
+    };
     let eligible: Vec<usize> = state
         .pool_events
         .iter()
         .enumerate()
-        .filter(|&(_, &name)| name != EventName::TheCleric || gold >= 35)
+        .filter(|&(_, &name)| match name {
+            // The Cleric only spawns with gold for its cheapest option
+            EventName::TheCleric => gold >= 35,
+            EventName::Mushrooms | EventName::DeadAdventurer => floor > 6,
+            _ => true,
+        })
         .map(|(i, _)| i)
         .collect();
 
@@ -302,153 +302,4 @@ fn draw_shrine(state: &mut GameState) -> Option<EventName> {
     // Roll, pop from `pool_shrines` and return the rolled shrine's name
     let idx = eligible[state.rng.random_range(0..eligible.len())];
     Some(state.pool_shrines.swap_remove(idx))
-}
-
-fn pick_louse(rng: &mut impl Rng) -> MonsterName {
-    if rng.random_bool(0.5) {
-        MonsterName::LouseNormal
-    } else {
-        MonsterName::LouseDefensive
-    }
-}
-
-fn pick_slaver(rng: &mut impl Rng) -> MonsterName {
-    if rng.random_bool(0.5) {
-        MonsterName::SlaverRed
-    } else {
-        MonsterName::SlaverBlue
-    }
-}
-
-fn pick_wildlife_weak(rng: &mut impl Rng) -> MonsterName {
-    match rng.random_range(0..3) {
-        0 => pick_louse(rng),
-        1 => MonsterName::SlimeSpikeMedium,
-        2 => MonsterName::SlimeAcidMedium,
-        _ => unreachable!(),
-    }
-}
-
-fn pick_wildlife_strong(rng: &mut impl Rng) -> MonsterName {
-    if rng.random_bool(0.5) {
-        MonsterName::FungiBeast
-    } else {
-        MonsterName::JawWorm
-    }
-}
-
-fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
-    match rng.random_range(0..3) {
-        0 => MonsterName::Cultist,
-        1 => pick_slaver(rng),
-        2 => MonsterName::Looter,
-        _ => unreachable!(),
-    }
-}
-
-fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
-    effects.push(Effect {
-        kind: EffectKind::MonsterSpawn { name },
-        id_source: None,
-        target: Target::Direct(None),
-    });
-}
-
-// Queues the encounter's spawns followed by `EffectKind::CombatStart` onto the queue front
-fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncounter) {
-    state.effect_buf.clear();
-    let effects = &mut state.effect_buf;
-    let rng = &mut state.rng;
-    match encounter {
-        MonsterEncounter::Cultist => push_monster_spawn(effects, MonsterName::Cultist),
-        MonsterEncounter::JawWorm => push_monster_spawn(effects, MonsterName::JawWorm),
-        MonsterEncounter::TwoLouse => {
-            for _ in 0..2 {
-                push_monster_spawn(effects, pick_louse(rng));
-            }
-        }
-        MonsterEncounter::SmallSlimes => {
-            let (small, medium) = if rng.random_bool(0.5) {
-                (MonsterName::SlimeSpikeSmall, MonsterName::SlimeAcidMedium)
-            } else {
-                (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
-            };
-            push_monster_spawn(effects, small);
-            push_monster_spawn(effects, medium);
-        }
-        MonsterEncounter::BlueSlaver => push_monster_spawn(effects, MonsterName::SlaverBlue),
-        MonsterEncounter::RedSlaver => push_monster_spawn(effects, MonsterName::SlaverRed),
-        MonsterEncounter::Looter => push_monster_spawn(effects, MonsterName::Looter),
-        MonsterEncounter::TwoFungiBeasts => {
-            push_monster_spawn(effects, MonsterName::FungiBeast);
-            push_monster_spawn(effects, MonsterName::FungiBeast);
-        }
-        MonsterEncounter::ThreeLouse => {
-            for _ in 0..3 {
-                push_monster_spawn(effects, pick_louse(rng));
-            }
-        }
-        MonsterEncounter::LargeSlime => {
-            let name = if rng.random_bool(0.5) {
-                MonsterName::SlimeAcidLarge
-            } else {
-                MonsterName::SlimeSpikeLarge
-            };
-            push_monster_spawn(effects, name);
-        }
-        MonsterEncounter::LotsOfSlimes => {
-            let mut pool = [
-                MonsterName::SlimeSpikeSmall,
-                MonsterName::SlimeSpikeSmall,
-                MonsterName::SlimeSpikeSmall,
-                MonsterName::SlimeAcidSmall,
-                MonsterName::SlimeAcidSmall,
-            ];
-            shuffle(&mut pool, rng);
-            for &name in &pool {
-                push_monster_spawn(effects, name);
-            }
-        }
-        MonsterEncounter::GremlinGang => {
-            let mut pool = [
-                MonsterName::GremlinWarrior,
-                MonsterName::GremlinWarrior,
-                MonsterName::GremlinThief,
-                MonsterName::GremlinThief,
-                MonsterName::GremlinFat,
-                MonsterName::GremlinFat,
-                MonsterName::GremlinTsundere,
-                MonsterName::GremlinWizard,
-            ];
-            shuffle(&mut pool, rng);
-            for &name in &pool[..4] {
-                push_monster_spawn(effects, name);
-            }
-        }
-        MonsterEncounter::ExordiumThugs => {
-            push_monster_spawn(effects, pick_wildlife_weak(rng));
-            push_monster_spawn(effects, pick_humanoid_strong(rng));
-        }
-        MonsterEncounter::ExordiumWildlife => {
-            push_monster_spawn(effects, pick_wildlife_strong(rng));
-            push_monster_spawn(effects, pick_wildlife_weak(rng));
-        }
-        MonsterEncounter::GremlinNob => push_monster_spawn(effects, MonsterName::GremlinNob),
-        MonsterEncounter::Lagavulin => push_monster_spawn(effects, MonsterName::Lagavulin),
-        MonsterEncounter::ThreeSentries => {
-            for _ in 0..3 {
-                push_monster_spawn(effects, MonsterName::Sentry);
-            }
-        }
-        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian),
-        MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost),
-        MonsterEncounter::SlimeBoss => push_monster_spawn(effects, MonsterName::SlimeBoss),
-    }
-
-    effects.push(Effect {
-        kind: EffectKind::CombatStart,
-        id_source: None,
-        target: Target::Direct(None),
-    });
-    flush_effects_from_buf_to_queue_front(state);
 }

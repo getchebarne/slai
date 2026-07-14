@@ -54,6 +54,7 @@ mod mummified_hand;
 mod ninja_scroll;
 mod nloths_hungry_face;
 mod nunchaku;
+mod odd_mushroom;
 mod oddly_smooth_stone;
 mod old_coin;
 mod omamori;
@@ -211,6 +212,7 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::FaceOfCleric => face_of_cleric::FACE_OF_CLERIC,
         RelicName::NlothsHungryFace => nloths_hungry_face::NLOTHS_HUNGRY_FACE,
         RelicName::SsserpentHead => ssserpent_head::SSSERPENT_HEAD,
+        RelicName::OddMushroom => odd_mushroom::ODD_MUSHROOM,
     }
 }
 
@@ -378,6 +380,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &face_of_cleric::FACE_OF_CLERIC,
     &nloths_hungry_face::NLOTHS_HUNGRY_FACE,
     &ssserpent_head::SSSERPENT_HEAD,
+    &odd_mushroom::ODD_MUSHROOM,
 ];
 // Assert all relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);

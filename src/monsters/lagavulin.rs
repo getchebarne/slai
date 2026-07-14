@@ -158,7 +158,7 @@ static MOVES_ASC18: [Move; 5] = [
 const IDX_MOVE_SLEEP: usize = 0;
 const IDX_MOVE_WAKE_UP: usize = 1;
 pub const IDX_MOVE_STUNNED: usize = 2;
-const IDX_MOVE_ATTACK: usize = 3;
+pub const IDX_MOVE_ATTACK: usize = 3;
 const IDX_MOVE_SIPHON: usize = 4;
 
 pub fn spawn_monster_lagavulin(ascension_level: u8, rng: &mut impl Rng) -> Entity {

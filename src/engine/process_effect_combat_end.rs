@@ -35,9 +35,15 @@ pub fn process_effect_combat_end(state: &mut GameState) {
             let gold = &mut state.entities[state.id_character].character_gold;
             *gold = gold.saturating_add(amount).min(MAX_GOLD);
         }
-        RoomKind::CombatMonster | RoomKind::CombatElite | RoomKind::Unknown => {
-            // A "?" room keeps its Unknown map marker; its combat is always a normal monster
-            let room_kind_reward = if room_kind == RoomKind::Unknown {
+        RoomKind::CombatMonster
+        | RoomKind::CombatElite
+        | RoomKind::Unknown
+        | RoomKind::EventRoom => {
+            // A live id_event means an event started this fight (covers "?" rooms that
+            // resolved to an event); otherwise a "?" marker is a normal monster combat
+            let room_kind_reward = if state.id_event.is_some() {
+                RoomKind::EventRoom
+            } else if room_kind == RoomKind::Unknown {
                 RoomKind::CombatMonster
             } else {
                 room_kind
@@ -50,7 +56,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
                 target: Target::Direct(None),
             });
         }
-        RoomKind::RestSite | RoomKind::Treasure | RoomKind::EventRoom | RoomKind::Shop => {
+        RoomKind::RestSite | RoomKind::Treasure | RoomKind::Shop => {
             unreachable!("combat end in non-combat room: {:?}", room_kind)
         }
     }

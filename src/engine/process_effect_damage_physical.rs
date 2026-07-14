@@ -11,6 +11,7 @@ use crate::types::CardName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
+use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
 // Source -> actor: cards delegate to character; monsters/character self
@@ -77,6 +78,10 @@ pub fn process_effect_damage_physical(
     let weak_paper_krane = state.entities[id_actor].kind == EntityKind::Monster
         && has_relic(&state.id_relics, RelicName::PaperKrane);
 
+    // Odd Mushroom: softens Vulnerable when the character is the target
+    let vuln_odd_mushroom = state.entities[id_target].kind == EntityKind::Character
+        && has_relic(&state.id_relics, RelicName::OddMushroom);
+
     // Calculate final base attack damage
     let mut final_damage = scale_attack_damage(
         base_damage.max(0) as u16,
@@ -85,7 +90,10 @@ pub fn process_effect_damage_physical(
             has_modifier(mods_source_actor, ModifierKind::Weak),
             weak_paper_krane,
         ),
-        has_modifier(mods_target, ModifierKind::Vulnerable),
+        vuln_factor(
+            has_modifier(mods_target, ModifierKind::Vulnerable),
+            vuln_odd_mushroom,
+        ),
     );
 
     // Double damage

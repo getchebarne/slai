@@ -11,6 +11,7 @@ use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
+use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
@@ -131,17 +132,23 @@ pub fn weak_factor(is_weak: bool, paper_krane: bool) -> f32 {
     }
 }
 
+// Odd Mushroom softens Vulnerable on the character only
+pub fn vuln_factor(is_vulnerable: bool, odd_mushroom: bool) -> f32 {
+    match (is_vulnerable, odd_mushroom) {
+        (false, _) => 1.0,
+        (true, false) => FACTOR_VULN,
+        (true, true) => FACTOR_VULN_ODD_MUSHROOM,
+    }
+}
+
 // Shared by the live damage pipeline and the FFI intent view
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
     weak_factor: f32,
-    target_is_vulnerable: bool,
+    vuln_factor: f32,
 ) -> u16 {
-    let mut value = (base as f32 + source_str_stacks as f32) * weak_factor;
-    if target_is_vulnerable {
-        value *= FACTOR_VULN;
-    }
+    let value = (base as f32 + source_str_stacks as f32) * weak_factor * vuln_factor;
     value.max(0.0) as u16
 }
 

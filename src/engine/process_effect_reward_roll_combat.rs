@@ -11,9 +11,13 @@ use crate::consts::POTION_DROP_CHANCE_MOD_MIN;
 use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
 use crate::consts::RELIC_TIER_TH_COMMON;
 use crate::consts::RELIC_TIER_TH_UNCOMMON;
+use crate::events::ADVENTURER_REWARD_GOLD;
+use crate::events::ADVENTURER_REWARD_RELIC;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
+use crate::relics::get_relic;
+use crate::types::EventName;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
@@ -29,8 +33,9 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
         false
     };
 
-    // Select roll parameters according to `RoomKind`
-    let (gold_range, relic_thresholds) = match room_kind {
+    // Select roll parameters according to `RoomKind`; event combats inject their
+    // event-specific extras (a fixed relic and a bespoke gold range)
+    let (gold_range, relic_thresholds, event_relic) = match room_kind {
         RoomKind::CombatMonster => (
             if escaped {
                 None
@@ -38,11 +43,36 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
                 Some((GOLD_MONSTER_MIN, GOLD_MONSTER_MAX))
             },
             None,
+            None,
         ),
         RoomKind::CombatElite => (
             Some((GOLD_ELITE_MIN, GOLD_ELITE_MAX)),
             Some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
+            None,
         ),
+        RoomKind::EventRoom => {
+            let id_event = state.id_event.expect("event-room combat requires id_event");
+            match state.entities[id_event].event_name {
+                EventName::Mushrooms => (Some((20, 30)), None, Some(RelicName::OddMushroom)),
+                EventName::DeadAdventurer => {
+                    // Un-found rewards fold into the fight's loot
+                    let searches_done = state.entities[id_event].event_state as usize;
+                    let unfound = &state.event_rolls[1 + searches_done..];
+                    let gold_extra: u16 = unfound
+                        .iter()
+                        .filter(|&&r| r == ADVENTURER_REWARD_GOLD)
+                        .count() as u16
+                        * 30;
+                    let relic_unfound = unfound.contains(&ADVENTURER_REWARD_RELIC);
+                    (
+                        Some((25 + gold_extra, 35 + gold_extra)),
+                        relic_unfound.then_some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
+                        None,
+                    )
+                }
+                name => unreachable!("combat reward in non-combat event: {name:?}"),
+            }
+        }
         _ => unreachable!(
             "RewardRollCombat with non-combat room_kind: {:?}",
             room_kind
@@ -70,6 +100,16 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
             &mut state.rng,
         )
     });
+
+    // Event-injected relic; Circlet substitutes when it is already owned
+    if let Some(name) = event_relic {
+        let name = if has_relic(&state.id_relics, name) {
+            RelicName::Circlet
+        } else {
+            name
+        };
+        state.reward_id_relic = Some(push_entity(&mut state.entities, get_relic(name)));
+    }
 
     // Roll Potions
     // White Beast Statue: guaranteed drop, bypassing the drifting chance roll

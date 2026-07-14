@@ -26,9 +26,13 @@ pub fn process_effect_room_exit(state: &mut GameState) {
             state.reward_id_potion = None;
             state.reward_gold = None;
         }
-        Screen::Event => state.id_event = None,
         Screen::Shop => clear_shop_state(state),
-        _ => {} // RestSite (non-final), Chest: no cleanup
+        _ => {} // Event, RestSite (non-final), Chest: no per-screen cleanup
     }
+    // Event combats exit via the Reward screen, so event working memory clears here, not per-screen
+    state.id_event = None;
+    state.id_event_picks.clear();
+    state.event_gold_rolled = 0;
+    state.event_rolls.clear();
     state.screen = Screen::Map;
 }

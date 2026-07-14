@@ -1,10 +1,12 @@
 mod big_fish;
 mod bonfire_spirits;
+mod dead_adventurer;
 mod duplicator;
 mod face_trader;
 mod golden_idol;
 mod golden_shrine;
 mod living_wall;
+mod mushrooms;
 mod ominous_forge;
 mod purifier;
 mod scrap_ooze;
@@ -32,9 +34,11 @@ use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::CardRarity;
 use crate::types::EventName;
+use crate::types::MonsterEncounter;
 use crate::types::RelicName;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
+use crate::utils::shuffle;
 
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
@@ -149,6 +153,8 @@ pub fn get_event(name: EventName, ascension: u8) -> Entity {
         EventName::OminousForge => ominous_forge::spawn_event_ominous_forge(),
         EventName::FaceTrader => face_trader::spawn_event_face_trader(ascension),
         EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(),
+        EventName::Mushrooms => mushrooms::spawn_event_mushrooms(),
+        EventName::DeadAdventurer => dead_adventurer::spawn_event_dead_adventurer(),
     }
 }
 
@@ -160,6 +166,15 @@ pub fn spawn_event(name: EventName, ascension: u8, _rng: &mut impl Rng) -> Entit
 pub fn roll_event_entry_picks(state: &mut GameState, name: EventName) {
     state.id_event_picks.clear();
     state.event_gold_rolled = 0;
+    state.event_rolls.clear();
+
+    if name == EventName::DeadAdventurer {
+        state.event_rolls.push(state.rng.random_range(0..3));
+        let mut rewards = [ADVENTURER_REWARD_GOLD, 1, ADVENTURER_REWARD_RELIC];
+        shuffle(&mut rewards, &mut state.rng);
+        state.event_rolls.extend_from_slice(&rewards);
+        return;
+    }
     if name != EventName::WeMeetAgain {
         return;
     }
@@ -193,8 +208,25 @@ pub fn roll_event_entry_picks(state: &mut GameState, name: EventName) {
     }
 }
 
+// Dead Adventurer entry rolls: [enemy, reward0, reward1, reward2].
+// Rewards: 0 = 30 gold, 1 = nothing, 2 = random relic; a shuffled one-each order
+pub const ADVENTURER_REWARD_GOLD: u8 = 0;
+pub const ADVENTURER_REWARD_RELIC: u8 = 2;
+
+pub fn adventurer_enemy_encounter(roll: u8) -> MonsterEncounter {
+    match roll {
+        0 => MonsterEncounter::ThreeSentries,
+        1 => MonsterEncounter::GremlinNob,
+        2 => MonsterEncounter::Lagavulin,
+        _ => unreachable!("adventurer enemy roll out of range: {roll}"),
+    }
+}
+
+// Mushrooms and Dead Adventurer are draw-gated in `draw_event` (floor 7+)
 pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::BigFish,
+    EventName::Mushrooms,
+    EventName::DeadAdventurer,
     EventName::TheCleric,
     EventName::GoldenIdol,
     EventName::WingStatue,

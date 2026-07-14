@@ -1,3 +1,4 @@
+pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_bonfire_offer;
@@ -349,6 +350,9 @@ fn dispatch_by_kind(
         }
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(state)
+        }
+        EffectKind::AdventurerSearch => {
+            process_effect_adventurer_search::process_effect_adventurer_search(id_source, state)
         }
         EffectKind::BonfireOffer => {
             process_effect_bonfire_offer::process_effect_bonfire_offer(id_target, state)

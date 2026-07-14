@@ -5,19 +5,22 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::Energy;
 use crate::game::GameState;
-use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
+use crate::types::MonsterKind;
 use crate::types::RelicName;
-use crate::types::RoomKind;
+use crate::types::Screen;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(state: &mut GameState) {
+    // Combat starting implies the combat screen, wherever it was queued from
+    state.screen = Screen::Combat;
+
     // Energy starts empty; the turn-1 refill fills
     state.energy = Energy {
         energy_current: 0,
@@ -109,13 +112,16 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         });
     }
 
+    // Elite fights are identified by the monsters, not the room: Dead Adventurer's
+    // elite returns inside an event room
+    let elite_fight = state
+        .id_monsters
+        .iter()
+        .flatten()
+        .any(|&id| state.entities[id].monster_kind == MonsterKind::Elite);
+
     // Preserved Insect
-    if has_relic(&state.id_relics, RelicName::PreservedInsect)
-        && matches!(
-            get_active_room_kind(&state.id_rooms, state.location, &state.entities),
-            Some(RoomKind::CombatElite)
-        )
-    {
+    if has_relic(&state.id_relics, RelicName::PreservedInsect) && elite_fight {
         for id in state.id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthSet {
@@ -151,12 +157,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Sling of Courage: Elite fights open with 2 Strength
-    if has_relic(&state.id_relics, RelicName::SlingOfCourage)
-        && matches!(
-            get_active_room_kind(&state.id_rooms, state.location, &state.entities),
-            Some(RoomKind::CombatElite)
-        )
-    {
+    if has_relic(&state.id_relics, RelicName::SlingOfCourage) && elite_fight {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,

@@ -1,6 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::monsters::spawn_monster;
 use crate::types::MonsterName;
@@ -14,8 +15,11 @@ pub fn process_effect_monster_spawn(
     // Create the monster `Entity`
     let mut monster = spawn_monster(name, state.ascension, &mut state.rng);
 
-    // Slime split: child max HP = parent current HP; gated to splittable slimes only
-    if let Some(id) = id_source {
+    // Slime split: child max HP = parent current HP; gated to splittable slimes only.
+    // Non-monster sources (an event option stamps its event as id_source) spawn plain
+    if let Some(id) = id_source
+        && state.entities[id].kind == EntityKind::Monster
+    {
         let parent = &state.entities[id];
         assert!(
             matches!(

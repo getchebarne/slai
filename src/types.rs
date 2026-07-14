@@ -207,6 +207,7 @@ pub enum EncounterPool {
     Act1Hard,
     Act1Elite,
     Act1Boss,
+    Event,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
@@ -239,6 +240,9 @@ pub enum MonsterEncounter {
     TheGuardian,
     Hexaghost,
     SlimeBoss,
+
+    // Event-only (never pooled)
+    ThreeFungiBeasts,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -278,6 +282,8 @@ pub enum EventName {
     OminousForge,
     FaceTrader,
     WeMeetAgain,
+    Mushrooms,
+    DeadAdventurer,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -425,6 +431,7 @@ pub enum RelicName {
     FaceOfCleric,
     NlothsHungryFace,
     SsserpentHead,
+    OddMushroom,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

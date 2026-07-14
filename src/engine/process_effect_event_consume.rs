@@ -7,4 +7,5 @@ pub fn process_effect_event_consume(id_source: Option<usize>, state: &mut GameSt
     // Entry-rolled picks die with the event
     state.id_event_picks.clear();
     state.event_gold_rolled = 0;
+    state.event_rolls.clear();
 }

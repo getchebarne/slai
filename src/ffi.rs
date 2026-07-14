@@ -21,6 +21,7 @@ use crate::entity::Intent;
 use crate::entity::PlayRestriction;
 use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
+use crate::events::adventurer_enemy_encounter;
 use crate::events::event_option_gate_satisfied;
 use crate::game::GameState;
 use crate::game::Location;
@@ -51,6 +52,7 @@ use crate::types::Screen;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
+use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
 #[gen_stub_pyclass_enum]
@@ -408,6 +410,7 @@ pub enum PyRelicName {
     FaceOfCleric,
     NlothsHungryFace,
     SsserpentHead,
+    OddMushroom,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -514,6 +517,7 @@ impl From<RelicName> for PyRelicName {
             RelicName::FaceOfCleric => Self::FaceOfCleric,
             RelicName::NlothsHungryFace => Self::NlothsHungryFace,
             RelicName::SsserpentHead => Self::SsserpentHead,
+            RelicName::OddMushroom => Self::OddMushroom,
         }
     }
 }
@@ -622,6 +626,7 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::FaceOfCleric => Self::FaceOfCleric,
             PyRelicName::NlothsHungryFace => Self::NlothsHungryFace,
             PyRelicName::SsserpentHead => Self::SsserpentHead,
+            PyRelicName::OddMushroom => Self::OddMushroom,
         }
     }
 }
@@ -923,6 +928,7 @@ pub enum PyMonsterEncounter {
     TheGuardian,
     Hexaghost,
     SlimeBoss,
+    ThreeFungiBeasts,
 }
 
 impl From<MonsterEncounter> for PyMonsterEncounter {
@@ -948,6 +954,7 @@ impl From<MonsterEncounter> for PyMonsterEncounter {
             MonsterEncounter::TheGuardian => Self::TheGuardian,
             MonsterEncounter::Hexaghost => Self::Hexaghost,
             MonsterEncounter::SlimeBoss => Self::SlimeBoss,
+            MonsterEncounter::ThreeFungiBeasts => Self::ThreeFungiBeasts,
         }
     }
 }
@@ -978,6 +985,8 @@ pub enum PyEventName {
     OminousForge,
     FaceTrader,
     WeMeetAgain,
+    Mushrooms,
+    DeadAdventurer,
 }
 
 impl From<EventName> for PyEventName {
@@ -1005,6 +1014,8 @@ impl From<EventName> for PyEventName {
             EventName::OminousForge => Self::OminousForge,
             EventName::FaceTrader => Self::FaceTrader,
             EventName::WeMeetAgain => Self::WeMeetAgain,
+            EventName::Mushrooms => Self::Mushrooms,
+            EventName::DeadAdventurer => Self::DeadAdventurer,
         }
     }
 }
@@ -1754,6 +1765,16 @@ pub enum PyEffect {
     FaceTrade {
         target: Option<PyTarget>,
     },
+    MonsterSpawn {
+        name: PyMonsterName,
+        target: Option<PyTarget>,
+    },
+    CombatStart {
+        target: Option<PyTarget>,
+    },
+    AdventurerSearch {
+        target: Option<PyTarget>,
+    },
     RelicGrantSpecific {
         name: PyRelicName,
         fallback_circlet: bool,
@@ -1885,6 +1906,12 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::WheelSpin => PyEffect::WheelSpin { target },
         EffectKind::BonfireOffer => PyEffect::BonfireOffer { target },
         EffectKind::FaceTrade => PyEffect::FaceTrade { target },
+        EffectKind::MonsterSpawn { name } => PyEffect::MonsterSpawn {
+            name: name.into(),
+            target,
+        },
+        EffectKind::CombatStart => PyEffect::CombatStart { target },
+        EffectKind::AdventurerSearch => PyEffect::AdventurerSearch { target },
         EffectKind::RelicGrantSpecific {
             name,
             fallback_circlet,
@@ -2091,6 +2118,8 @@ pub struct PyEvent {
     pub pick_card: Option<PyCard>,
     pub pick_potion: Option<PyPotion>,
     pub gold_rolled: u16,
+    // Dead Adventurer's telegraphed elite; the reward order stays hidden like the source
+    pub encounter: Option<PyMonsterEncounter>,
 }
 
 #[gen_stub_pymethods]
@@ -2105,6 +2134,7 @@ impl PyEvent {
         pick_card: Option<PyCard>,
         pick_potion: Option<PyPotion>,
         gold_rolled: u16,
+        encounter: Option<PyMonsterEncounter>,
     ) -> Self {
         Self {
             name,
@@ -2114,6 +2144,7 @@ impl PyEvent {
             pick_card,
             pick_potion,
             gold_rolled,
+            encounter,
         }
     }
 }
@@ -2583,6 +2614,8 @@ impl EventName {
             Self::OminousForge => "Ominous Forge",
             Self::FaceTrader => "Face Trader",
             Self::WeMeetAgain => "We Meet Again!",
+            Self::Mushrooms => "Hypnotizing Colored Mushrooms",
+            Self::DeadAdventurer => "Dead Adventurer",
         }
     }
 }
@@ -2598,6 +2631,7 @@ impl MonsterEncounter {
             Self::RedSlaver => "Red Slaver",
             Self::Looter => "Looter",
             Self::TwoFungiBeasts => "2 Fungi Beasts",
+            Self::ThreeFungiBeasts => "3 Fungi Beasts",
             Self::ThreeLouse => "3 Louse",
             Self::LargeSlime => "Large Slime",
             Self::LotsOfSlimes => "Lots of Slimes",
@@ -2773,6 +2807,8 @@ fn snapshot_event(state: &GameState, id_event: usize) -> PyEvent {
         pick_potion: pick_of_kind(EntityKind::Potion)
             .map(|id| snapshot_potion(&state.entities[id])),
         gold_rolled: state.event_gold_rolled,
+        encounter: (event.event_name == EventName::DeadAdventurer && !state.event_rolls.is_empty())
+            .then(|| adventurer_enemy_encounter(state.event_rolls[0]).into()),
     }
 }
 
@@ -2854,7 +2890,10 @@ fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                             has_modifier(&m.modifiers, ModifierKind::Weak),
                             has_relic(&state.id_relics, RelicName::PaperKrane),
                         ),
-                        has_modifier(mods_char, ModifierKind::Vulnerable),
+                        vuln_factor(
+                            has_modifier(mods_char, ModifierKind::Vulnerable),
+                            has_relic(&state.id_relics, RelicName::OddMushroom),
+                        ),
                     );
                     if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
                         scaled = 1;
@@ -2931,7 +2970,7 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
                     amount.saturating_add(vigor),
                     str_stacks,
                     weak_factor(weak, false),
-                    false,
+                    vuln_factor(false, false),
                 );
                 if double {
                     d = d.saturating_mul(2);
