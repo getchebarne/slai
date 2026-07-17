@@ -2,11 +2,12 @@ use rand::Rng;
 
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
-use crate::consts::EVENT_SHRINE_CHANCE;
+use crate::consts::EVENT_SPECIAL_CHANCE;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Amount;
+use crate::effect::CandidatePoolDeckFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -23,6 +24,7 @@ use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
+use crate::utils::deck_filter_matches;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
@@ -227,13 +229,13 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
     room_kind_resolved
 }
 
-// 25% shrine pool, else event pool; an exhausted pool falls back to the other,
+// 25% special pool (shrines + one-time events), else event pool; an exhausted pool falls back to the other,
 // both empty -> no event and the room is a no-op
 fn spawn_random_event(state: &mut GameState) -> Option<usize> {
-    let name = if state.rng.random_range(0.0..1.0f32) < EVENT_SHRINE_CHANCE {
-        draw_shrine(state).or_else(|| draw_event(state))
+    let name = if state.rng.random_range(0.0..1.0f32) < EVENT_SPECIAL_CHANCE {
+        draw_event_special(state).or_else(|| draw_event(state))
     } else {
-        draw_event(state).or_else(|| draw_shrine(state))
+        draw_event(state).or_else(|| draw_event_special(state))
     }?;
     let event = spawn_event(name, state.ascension, &mut state.rng);
     Some(push_entity(&mut state.entities, event))
@@ -260,12 +262,36 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
     Some(state.pool_events.swap_remove(idx))
 }
 
-fn draw_shrine(state: &mut GameState) -> Option<EventName> {
-    if state.pool_shrines.is_empty() {
+fn draw_event_special(state: &mut GameState) -> Option<EventName> {
+    // Draw-gated specials stay pooled until eligible
+    let gold = state.entities[state.id_character].character_gold;
+
+    // Calculate if there's any removable curses in the deck. This gates "The Divine Fountain"
+    let has_removable_curse = state.id_deck.iter().any(|&id| {
+        deck_filter_matches(CandidatePoolDeckFilter::PurgeableCurse, &state.entities[id])
+    });
+
+    // Calculate eligible specials
+    let eligible: Vec<usize> = state
+        .pool_event_special
+        .iter()
+        .enumerate()
+        .filter(|&(_, &name)| match name {
+            EventName::TheDivineFountain => has_removable_curse,
+            EventName::TheWomanInBlue => gold >= 50,
+            _ => true,
+        })
+        .map(|(i, _)| i)
+        .collect();
+
+    // Early return if empty
+    if eligible.is_empty() {
         return None;
     }
-    let idx = state.rng.random_range(0..state.pool_shrines.len());
-    Some(state.pool_shrines.swap_remove(idx))
+
+    // Roll, pop from `pool_event_special` and return the rolled special's name
+    let idx = eligible[state.rng.random_range(0..eligible.len())];
+    Some(state.pool_event_special.swap_remove(idx))
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {

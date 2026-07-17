@@ -270,6 +270,9 @@ pub enum EventName {
     TheSsssserpent,
     Transmogrifier,
     UpgradeShrine,
+    TheDivineFountain,
+    TheLab,
+    TheWomanInBlue,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -1,7 +1,6 @@
-use crate::utils::has_relic;
 use crate::cards::get_card;
-use crate::effect::Effect;
 use crate::effect::Amount;
+use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -10,6 +9,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
+use crate::utils::has_relic;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_add_to_deck(state: &mut GameState, card_name: CardName, upgraded: bool) {

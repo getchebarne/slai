@@ -6,5 +6,4 @@ use crate::types::RelicTier;
 // On pickup, gain 7 max HP
 // See:
 //    - `process_effect_relic_adopt.rs`
-pub static STRAWBERRY: Entity =
-    make_entity_relic(RelicName::Strawberry, RelicTier::Common, 0, &[]);
+pub static STRAWBERRY: Entity = make_entity_relic(RelicName::Strawberry, RelicTier::Common, 0, &[]);

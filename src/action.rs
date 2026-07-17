@@ -77,7 +77,9 @@ pub enum Action {
         idx: usize,
     },
     RewardTakeGold,
-    RewardTakePotion,
+    RewardTakePotion {
+        idx: usize,
+    },
     RewardTakeRelic,
     RoomExit,
     RoomSelect {
@@ -132,7 +134,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::Rest => handle_rest(state),
         Action::RewardTakeCard { idx } => handle_reward_take_card(state, idx),
         Action::RewardTakeGold => handle_reward_take_gold(state),
-        Action::RewardTakePotion => handle_reward_take_potion(state),
+        Action::RewardTakePotion { idx } => handle_reward_take_potion(state, idx),
         Action::RewardTakeRelic => handle_reward_take_relic(state),
         Action::RoomExit => handle_room_exit(state),
         Action::RoomSelect { idx } => handle_room_select(state, idx),
@@ -401,13 +403,14 @@ fn handle_reward_take_gold(state: &mut GameState) {
     });
 }
 
-fn handle_reward_take_potion(state: &mut GameState) {
+fn handle_reward_take_potion(state: &mut GameState, idx: usize) {
+    let id_potion = state.reward_id_potions[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Potion,
         },
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_potion)),
     });
 }
 
@@ -622,10 +625,12 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
     if state.reward_id_relic.is_some() {
         state.legal_actions.push(Action::RewardTakeRelic);
     }
-    if state.reward_id_potion.is_some()
-        && find_free_slot(&state.id_potions, state.potion_slots_max).is_some()
-    {
-        state.legal_actions.push(Action::RewardTakePotion);
+    if find_free_slot(&state.id_potions, state.potion_slots_max).is_some() {
+        for i in 0..state.reward_id_potions.len() {
+            state
+                .legal_actions
+                .push(Action::RewardTakePotion { idx: i });
+        }
     }
     if state.reward_gold.is_some() {
         state.legal_actions.push(Action::RewardTakeGold);

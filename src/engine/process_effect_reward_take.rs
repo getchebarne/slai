@@ -34,13 +34,18 @@ pub fn process_effect_reward_take(
             }
         }
         RewardKind::Potion => {
-            if let Some(id) = state.reward_id_potion.take() {
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::PotionAdopt,
-                    id_source: None,
-                    target: Target::Direct(Some(id)),
-                });
-            }
+            let id_potion = id_target.expect("RewardTake { Potion } requires id_target");
+            let pos = state
+                .reward_id_potions
+                .iter()
+                .position(|&id| id == id_potion)
+                .expect("taken potion is a staged reward");
+            state.reward_id_potions.remove(pos);
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::PotionAdopt,
+                id_source: None,
+                target: Target::Direct(Some(id_potion)),
+            });
         }
         RewardKind::Gold => {
             if let Some(amount) = state.reward_gold.take() {

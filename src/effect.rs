@@ -160,6 +160,9 @@ pub enum EffectKind {
     RewardRollCombat {
         room_kind: RoomKind,
     },
+    RewardRollPotions {
+        count: u8,
+    },
     RewardTake {
         kind: RewardKind,
     },
@@ -205,6 +208,7 @@ pub enum Amount {
     Absolute(u16),
     Relative { numerator: u8, denominator: u8 }, // Truncated
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
+    RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
 }
 
@@ -225,6 +229,7 @@ pub enum CandidatePoolDeckFilter {
     Upgradeable,
     Any,
     Transformable,
+    PurgeableCurse,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

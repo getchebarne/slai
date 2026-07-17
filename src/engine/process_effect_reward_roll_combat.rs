@@ -75,10 +75,12 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
     // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
     let potion_drops = has_relic(&state.id_relics, RelicName::WhiteBeastStatue)
         || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod);
-    state.reward_id_potion = potion_drops.then(|| {
+    state.reward_id_potions.clear();
+    if potion_drops {
         let name = get_random_potion_name(&mut state.rng, false);
-        push_entity(&mut state.entities, get_potion(name))
-    });
+        let id = push_entity(&mut state.entities, get_potion(name));
+        state.reward_id_potions.push(id);
+    }
 
     // Roll gold
     state.reward_gold = gold_range.map(|(min, max)| {

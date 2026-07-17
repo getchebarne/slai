@@ -75,6 +75,7 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
     }
     !matches!(entity.card_name, CardName::AscendersBane)
 }
+use card_is_purgeable as card_is_transformable;
 
 // Single source of truth for which deck cards a CandidatePoolDeckFilter admits
 pub fn deck_filter_matches(filter: CandidatePoolDeckFilter, entity: &Entity) -> bool {
@@ -82,10 +83,9 @@ pub fn deck_filter_matches(filter: CandidatePoolDeckFilter, entity: &Entity) -> 
         CandidatePoolDeckFilter::Purgeable => card_is_purgeable(entity),
         CandidatePoolDeckFilter::Upgradeable => card_is_upgradable(entity),
         CandidatePoolDeckFilter::Any => entity.kind == EntityKind::Card,
-        CandidatePoolDeckFilter::Transformable => {
-            entity.kind == EntityKind::Card
-                && entity.card_rarity != CardRarity::Basic
-                && entity.card_kind != CardKind::Curse
+        CandidatePoolDeckFilter::Transformable => card_is_transformable(entity),
+        CandidatePoolDeckFilter::PurgeableCurse => {
+            entity.card_kind == CardKind::Curse && card_is_purgeable(entity)
         }
     }
 }

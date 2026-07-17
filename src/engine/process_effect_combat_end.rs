@@ -1,6 +1,5 @@
 use rand::Rng;
 
-use crate::utils::has_relic;
 use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_GOLD;
@@ -18,6 +17,7 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::types::Screen;
+use crate::utils::has_relic;
 
 pub fn process_effect_combat_end(state: &mut GameState) {
     combat_reset(state);

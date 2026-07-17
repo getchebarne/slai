@@ -6,5 +6,4 @@ use crate::types::RelicTier;
 // Playing 3 or fewer cards in a turn draws 3 extra cards next turn
 // See:
 //    - `process_effect_turn_end.rs`
-pub static POCKETWATCH: Entity =
-    make_entity_relic(RelicName::Pocketwatch, RelicTier::Rare, 0, &[]);
+pub static POCKETWATCH: Entity = make_entity_relic(RelicName::Pocketwatch, RelicTier::Rare, 0, &[]);

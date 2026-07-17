@@ -1,4 +1,3 @@
-use crate::utils::has_relic;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::DiscardSource;
@@ -8,6 +7,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::RelicName;
+use crate::utils::has_relic;
 
 // Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain/ethereal
 pub fn process_effect_card_discard(
