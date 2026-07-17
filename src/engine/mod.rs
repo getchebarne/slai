@@ -55,6 +55,7 @@ pub mod process_effect_modifier_set_not_new;
 pub mod process_effect_modifier_tick;
 pub mod process_effect_monster_escape;
 pub mod process_effect_monster_spawn;
+pub mod process_effect_monster_split;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
@@ -511,7 +512,10 @@ fn dispatch_by_kind(
         }
         EffectKind::RoomEnter => process_effect_room_enter::process_effect_room_enter(state),
         EffectKind::MonsterSpawn { name } => {
-            process_effect_monster_spawn::process_effect_monster_spawn(id_source, state, name)
+            process_effect_monster_spawn::process_effect_monster_spawn(state, name)
+        }
+        EffectKind::MonsterSplit { name } => {
+            process_effect_monster_split::process_effect_monster_split(id_source, state, name)
         }
         EffectKind::MonsterEscape => {
             process_effect_monster_escape::process_effect_monster_escape(id_target, state)

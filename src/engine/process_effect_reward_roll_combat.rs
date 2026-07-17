@@ -11,6 +11,7 @@ use crate::consts::POTION_DROP_CHANCE_MOD_MIN;
 use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
 use crate::consts::RELIC_TIER_TH_COMMON;
 use crate::consts::RELIC_TIER_TH_UNCOMMON;
+use crate::events::ADVENTURER_IDX_REWARDS;
 use crate::events::ADVENTURER_REWARD_GOLD;
 use crate::events::ADVENTURER_REWARD_RELIC;
 use crate::game::GameState;
@@ -56,14 +57,15 @@ pub fn process_effect_reward_roll_combat(state: &mut GameState, room_kind: RoomK
                 EventName::Mushrooms => (Some((20, 30)), None, Some(RelicName::OddMushroom)),
                 EventName::DeadAdventurer => {
                     // Un-found rewards fold into the fight's loot
-                    let searches_done = state.entities[id_event].event_state as usize;
-                    let unfound = &state.event_rolls[1 + searches_done..];
-                    let gold_extra: u16 = unfound
+                    let event = &state.entities[id_event];
+                    let unfound_rewards =
+                        &event.event_rolls[ADVENTURER_IDX_REWARDS..event.event_rolls_len as usize];
+                    let gold_extra = unfound_rewards
                         .iter()
                         .filter(|&&r| r == ADVENTURER_REWARD_GOLD)
                         .count() as u16
                         * 30;
-                    let relic_unfound = unfound.contains(&ADVENTURER_REWARD_RELIC);
+                    let relic_unfound = unfound_rewards.contains(&ADVENTURER_REWARD_RELIC);
                     (
                         Some((25 + gold_extra, 35 + gold_extra)),
                         relic_unfound.then_some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),

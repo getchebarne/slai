@@ -29,6 +29,7 @@ pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
 pub const HEXAGHOST_DIVIDER_HITS: u8 = 6;
 pub const MAX_MONSTERS: usize = 5;
+pub const MAX_EVENT_ROLLS: usize = 4;
 pub const MAX_BLOCK: u16 = 999;
 pub const NIGHTMARE_COPIES: u8 = 3;
 

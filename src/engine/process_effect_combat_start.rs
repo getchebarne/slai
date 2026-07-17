@@ -114,14 +114,14 @@ pub fn process_effect_combat_start(state: &mut GameState) {
 
     // Elite fights are identified by the monsters, not the room: Dead Adventurer's
     // elite returns inside an event room
-    let elite_fight = state
+    let is_elite_fight = state
         .id_monsters
         .iter()
         .flatten()
         .any(|&id| state.entities[id].monster_kind == MonsterKind::Elite);
 
     // Preserved Insect
-    if has_relic(&state.id_relics, RelicName::PreservedInsect) && elite_fight {
+    if has_relic(&state.id_relics, RelicName::PreservedInsect) && is_elite_fight {
         for id in state.id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthSet {
@@ -157,7 +157,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Sling of Courage: Elite fights open with 2 Strength
-    if has_relic(&state.id_relics, RelicName::SlingOfCourage) && elite_fight {
+    if has_relic(&state.id_relics, RelicName::SlingOfCourage) && is_elite_fight {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,

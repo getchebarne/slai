@@ -21,6 +21,7 @@ use crate::entity::Intent;
 use crate::entity::PlayRestriction;
 use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
+use crate::events::ADVENTURER_IDX_ENEMY;
 use crate::events::adventurer_enemy_encounter;
 use crate::events::event_option_gate_satisfied;
 use crate::game::GameState;
@@ -186,8 +187,8 @@ pub enum PyAmount {
     Absolute { amount: u16 },
     Relative { numerator: u8, denominator: u8 },
     Range { min: u16, max: u16 },
-    // Rolled at event entry; the value lives in GameState.event.gold_rolled
-    EventGoldRolled {},
+    // Reads the current event's entry-roll slot at dequeue
+    EventRoll { idx: u8 },
 }
 
 impl From<Amount> for PyAmount {
@@ -211,7 +212,7 @@ impl From<Amount> for PyAmount {
                 denominator,
             },
             Amount::Range { min, max } => Self::Range { min, max },
-            Amount::EventGoldRolled => Self::EventGoldRolled {},
+            Amount::EventRoll { idx } => Self::EventRoll { idx },
         }
     }
 }
@@ -2817,9 +2818,11 @@ fn snapshot_event(state: &GameState, id_event: usize) -> PyEvent {
         pick_card: pick_of_kind(EntityKind::Card).map(|id| snapshot_card(state, id)),
         pick_potion: pick_of_kind(EntityKind::Potion)
             .map(|id| snapshot_potion(&state.entities[id])),
-        gold_rolled: state.event_gold_rolled,
-        encounter: (event.event_name == EventName::DeadAdventurer && !state.event_rolls.is_empty())
-            .then(|| adventurer_enemy_encounter(state.event_rolls[0]).into()),
+        gold_rolled: (event.event_name == EventName::WeMeetAgain && event.event_rolls_len > 0)
+            .then(|| event.event_rolls[0])
+            .unwrap_or(0),
+        encounter: (event.event_name == EventName::DeadAdventurer && event.event_rolls_len > 0)
+            .then(|| adventurer_enemy_encounter(event.event_rolls[ADVENTURER_IDX_ENEMY]).into()),
     }
 }
 

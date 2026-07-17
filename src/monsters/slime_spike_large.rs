@@ -103,7 +103,7 @@ static MOVE_SPLIT: Move = make_move(
     "Split",
     &[
         Effect {
-            kind: EffectKind::MonsterSpawn {
+            kind: EffectKind::MonsterSplit {
                 name: MonsterName::SlimeSpikeMedium,
             },
             id_source: None,
@@ -113,7 +113,7 @@ static MOVE_SPLIT: Move = make_move(
             },
         },
         Effect {
-            kind: EffectKind::MonsterSpawn {
+            kind: EffectKind::MonsterSplit {
                 name: MonsterName::SlimeSpikeMedium,
             },
             id_source: None,

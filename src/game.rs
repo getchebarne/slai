@@ -139,8 +139,6 @@ pub struct GameState {
     // consumed via CandidatePool::EventPick*, cleared on EventConsume
     pub id_event: Option<usize>,
     pub id_event_picks: Vec<usize>,
-    pub event_gold_rolled: u16,
-    pub event_rolls: Vec<u8>,
 
     // Shop working memory; meaningful when screen = Shop
     pub shop_id_cards: Vec<usize>,
@@ -261,8 +259,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         reward_gold: None,
         id_event: None,
         id_event_picks: Vec::new(),
-        event_gold_rolled: 0,
-        event_rolls: Vec::new(),
         shop_id_cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
         shop_id_relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
         shop_id_potions: Vec::with_capacity(SHOP_SLOTS_POTION),

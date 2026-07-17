@@ -32,7 +32,5 @@ pub fn process_effect_room_exit(state: &mut GameState) {
     // Event combats exit via the Reward screen, so event working memory clears here, not per-screen
     state.id_event = None;
     state.id_event_picks.clear();
-    state.event_gold_rolled = 0;
-    state.event_rolls.clear();
     state.screen = Screen::Map;
 }

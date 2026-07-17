@@ -11,7 +11,6 @@ use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::events::roll_event_entry_picks;
 use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
@@ -26,7 +25,6 @@ use crate::types::RoomKind;
 use crate::types::Screen;
 use crate::utils::card_filter_matches;
 use crate::utils::has_relic;
-use crate::utils::push_entity;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
     // Maw Bank: 12 gold on every room entry until deactivated
@@ -120,7 +118,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             let room = room_at_mut(&state.id_rooms, &mut state.entities, y, x)
                 .expect("Treasure room missing");
 
-            // Roll chest kind and set it in the Entity
+            // Roll chest kind and set it in the `Entity`
             let roll = state.rng.random_range(0..100) as u8;
             room.room_chest_kind = Some(if roll < CHEST_SMALL_PCT {
                 ChestKind::Small
@@ -131,10 +129,8 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             });
         }
         RoomKind::EventRoom => {
-            if let Some(id_event) = spawn_random_event(state) {
+            if spawn_random_event(state) {
                 state.screen = Screen::Event;
-                state.id_event = Some(id_event);
-                roll_event_entry_picks(state, state.entities[id_event].event_name);
                 return;
             }
 
@@ -235,14 +231,23 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
 
 // 25% special pool (shrines + one-time events), else event pool; an exhausted pool falls back to the other,
 // both empty -> no event and the room is a no-op
-fn spawn_random_event(state: &mut GameState) -> Option<usize> {
+fn spawn_random_event(state: &mut GameState) -> bool {
+    // Event working memory is cleared on consume and room exit; nothing may linger here
+    assert!(
+        state.id_event_picks.is_empty(),
+        "event spawn with picks already staged"
+    );
+
     let name = if state.rng.random_range(0.0..1.0f32) < EVENT_SPECIAL_CHANCE {
         draw_event_special(state).or_else(|| draw_event(state))
     } else {
         draw_event(state).or_else(|| draw_event_special(state))
-    }?;
-    let event = spawn_event(name, state.ascension, &mut state.rng);
-    Some(push_entity(&mut state.entities, event))
+    };
+    let Some(name) = name else {
+        return false;
+    };
+    spawn_event(state, name);
+    true
 }
 
 fn draw_event(state: &mut GameState) -> Option<EventName> {

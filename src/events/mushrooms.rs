@@ -22,7 +22,7 @@ const SPAWN_FUNGI: Effect = Effect {
     target: Target::Direct(None),
 };
 
-// Stomp: fight 3 Fungi Beasts; the reward roll injects 20-30 gold + Odd Mushroom
+// Stomp: fight 3 Fungi Beasts — the reward roll gives gold and an Odd Mushroom
 const OPTION_STOMP: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
     SPAWN_FUNGI,
@@ -35,7 +35,7 @@ const OPTION_STOMP: &[Effect] = &[
     },
 ];
 
-// Eat: heal 25% max HP (truncated), become Cursed - Parasite
+// Eat: heal 25% max HP and become Cursed w/ Parasite
 const OPTION_EAT: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {

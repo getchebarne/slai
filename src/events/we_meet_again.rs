@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
@@ -10,6 +12,9 @@ use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventGate;
 use crate::events::EventOption;
+use crate::game::GameState;
+use crate::types::CardKind;
+use crate::types::CardRarity;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 
@@ -19,8 +24,7 @@ const RELIC_REWARD: Effect = Effect {
     target: Target::Direct(None),
 };
 
-// The offered potion/card/gold are rolled at event entry (see roll_event_entry_picks)
-// and exposed on the snapshot; options resolve them through the EventPick* pools
+// Give potion
 const OPTION_GIVE_POTION: &[Effect] = &[
     Effect {
         kind: EffectKind::PotionDiscard,
@@ -34,11 +38,12 @@ const OPTION_GIVE_POTION: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
+// Give give gold
 const OPTION_GIVE_GOLD: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::EventGoldRolled,
+            amount: Amount::EventRoll { idx: 0 },
         },
         id_source: None,
         target: Target::Direct(None),
@@ -89,6 +94,38 @@ const OPTIONS_ALL: &[EventOption] = &[
 
 // Export event
 static EVENT_WE_MEET_AGAIN: Entity = make_entity_event(EventName::WeMeetAgain, OPTIONS_ALL);
-pub fn spawn_event_we_meet_again() -> Entity {
-    EVENT_WE_MEET_AGAIN
+pub fn spawn_event_we_meet_again(state: &mut GameState) -> Entity {
+    let mut event = EVENT_WE_MEET_AGAIN;
+
+    // Card offer: uniform among non-Basic, non-Curse deck cards
+    let eligible: Vec<usize> = state
+        .id_deck
+        .iter()
+        .copied()
+        .filter(|&id| {
+            let entity = &state.entities[id];
+            entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
+        })
+        .collect();
+    if !eligible.is_empty() {
+        let id = eligible[state.rng.random_range(0..eligible.len())];
+        state.id_event_picks.push(id);
+    }
+
+    // Potion offer: uniform among occupied belt slots
+    let slotted: Vec<usize> = state.id_potions.iter().flatten().copied().collect();
+    if !slotted.is_empty() {
+        let id = slotted[state.rng.random_range(0..slotted.len())];
+        state.id_event_picks.push(id);
+    }
+
+    // Gold ask into roll slot 0: 50..=150, capped by holdings; unrolled (option
+    // gated out by GoldAtLeast) below 50
+    let gold = state.entities[state.id_character].character_gold;
+    if gold >= 50 {
+        event.event_rolls[0] = state.rng.random_range(50..=gold.min(150));
+        event.event_rolls_len = 1;
+    }
+
+    event
 }

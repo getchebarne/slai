@@ -4,6 +4,7 @@ use strum::EnumCount;
 
 use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
+use crate::consts::MAX_EVENT_ROLLS;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::consts::MAX_SIZE_HAND;
@@ -182,11 +183,14 @@ pub struct Entity {
     pub potion_combat_only: bool,
     pub potion_effects: &'static [Effect],
 
-    // Event-only
+    // Event-only. `event_rolls` holds scalar entry rolls (Dead Adventurer's enemy and
+    // reward order); entity picks live in GameState.id_event_picks, never on entities
     pub event_name: EventName,
     pub event_options: &'static [EventOption],
     pub event_consumed: bool,
     pub event_state: u8,
+    pub event_rolls: [u16; MAX_EVENT_ROLLS],
+    pub event_rolls_len: u8,
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots
@@ -247,6 +251,8 @@ pub const ZERO_ENTITY: Entity = Entity {
     event_options: &[],
     event_consumed: false,
     event_state: 0,
+    event_rolls: [0; MAX_EVENT_ROLLS],
+    event_rolls_len: 0,
 };
 
 // Constructors

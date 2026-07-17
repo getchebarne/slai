@@ -138,6 +138,9 @@ pub enum EffectKind {
     MonsterSpawn {
         name: MonsterName,
     },
+    MonsterSplit {
+        name: MonsterName,
+    },
     MoveExecute,
     MoveUpdate {
         move_override: Option<usize>,
@@ -214,7 +217,7 @@ pub enum Amount {
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
-    EventGoldRolled, // Reads `state.event_gold_rolled` at dequeue (rolled at event entry)
+    EventRoll { idx: u8 }, // Reads the current event's entry-roll slot at dequeue
 }
 
 // Source pool for a Resolve effect

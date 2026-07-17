@@ -23,8 +23,6 @@ mod wheel_of_change;
 mod wing_statue;
 mod world_of_goop;
 
-use rand::Rng;
-
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -38,7 +36,7 @@ use crate::types::MonsterEncounter;
 use crate::types::RelicName;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
-use crate::utils::shuffle;
+use crate::utils::push_entity;
 
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
@@ -129,8 +127,10 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     false
 }
 
-pub fn get_event(name: EventName, ascension: u8) -> Entity {
-    match name {
+// Spawns `name`, registers it as the active event, and runs its entry rolls
+pub fn spawn_event(state: &mut GameState, name: EventName) {
+    let ascension = state.ascension;
+    let event = match name {
         EventName::BigFish => big_fish::spawn_event_big_fish(),
         EventName::TheCleric => the_cleric::spawn_event_the_cleric(ascension),
         EventName::Duplicator => duplicator::spawn_event_duplicator(),
@@ -152,74 +152,12 @@ pub fn get_event(name: EventName, ascension: u8) -> Entity {
         EventName::BonfireSpirits => bonfire_spirits::spawn_event_bonfire_spirits(),
         EventName::OminousForge => ominous_forge::spawn_event_ominous_forge(),
         EventName::FaceTrader => face_trader::spawn_event_face_trader(ascension),
-        EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(),
+        EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(state),
         EventName::Mushrooms => mushrooms::spawn_event_mushrooms(),
-        EventName::DeadAdventurer => dead_adventurer::spawn_event_dead_adventurer(),
-    }
-}
-
-pub fn spawn_event(name: EventName, ascension: u8, _rng: &mut impl Rng) -> Entity {
-    get_event(name, ascension)
-}
-
-// Entry rolls for events whose options name specific owned entities (see id_event_picks)
-pub fn roll_event_entry_picks(state: &mut GameState, name: EventName) {
-    state.id_event_picks.clear();
-    state.event_gold_rolled = 0;
-    state.event_rolls.clear();
-
-    if name == EventName::DeadAdventurer {
-        state.event_rolls.push(state.rng.random_range(0..3));
-        let mut rewards = [ADVENTURER_REWARD_GOLD, 1, ADVENTURER_REWARD_RELIC];
-        shuffle(&mut rewards, &mut state.rng);
-        state.event_rolls.extend_from_slice(&rewards);
-        return;
-    }
-    if name != EventName::WeMeetAgain {
-        return;
-    }
-
-    // Card: uniform among non-Basic, non-Curse deck cards
-    let eligible: Vec<usize> = state
-        .id_deck
-        .iter()
-        .copied()
-        .filter(|&id| {
-            let entity = &state.entities[id];
-            entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
-        })
-        .collect();
-    if !eligible.is_empty() {
-        let id = eligible[state.rng.random_range(0..eligible.len())];
-        state.id_event_picks.push(id);
-    }
-
-    // Potion: uniform among occupied belt slots
-    let slotted: Vec<usize> = state.id_potions.iter().flatten().copied().collect();
-    if !slotted.is_empty() {
-        let id = slotted[state.rng.random_range(0..slotted.len())];
-        state.id_event_picks.push(id);
-    }
-
-    // Gold ask: 50..=150, capped by holdings; 0 (option gated out) below 50
-    let gold = state.entities[state.id_character].character_gold;
-    if gold >= 50 {
-        state.event_gold_rolled = state.rng.random_range(50..=gold.min(150));
-    }
-}
-
-// Dead Adventurer entry rolls: [enemy, reward0, reward1, reward2].
-// Rewards: 0 = 30 gold, 1 = nothing, 2 = random relic; a shuffled one-each order
-pub const ADVENTURER_REWARD_GOLD: u8 = 0;
-pub const ADVENTURER_REWARD_RELIC: u8 = 2;
-
-pub fn adventurer_enemy_encounter(roll: u8) -> MonsterEncounter {
-    match roll {
-        0 => MonsterEncounter::ThreeSentries,
-        1 => MonsterEncounter::GremlinNob,
-        2 => MonsterEncounter::Lagavulin,
-        _ => unreachable!("adventurer enemy roll out of range: {roll}"),
-    }
+        EventName::DeadAdventurer => dead_adventurer::spawn_event_dead_adventurer(state),
+    };
+    let id_event = push_entity(&mut state.entities, event);
+    state.id_event = Some(id_event);
 }
 
 // Mushrooms and Dead Adventurer are draw-gated in `draw_event` (floor 7+)
@@ -252,3 +190,20 @@ pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
     EventName::FaceTrader,
     EventName::WeMeetAgain,
 ];
+
+// Dead Adventurer entry rolls: [enemy, remaining rewards..]. Slots past
+// ADVENTURER_IDX_REWARDS hold the not-yet-found rewards; finds swap-remove them
+pub const ADVENTURER_IDX_ENEMY: usize = 0;
+pub const ADVENTURER_IDX_REWARDS: usize = 1;
+pub const ADVENTURER_REWARD_GOLD: u16 = 0;
+pub const ADVENTURER_REWARD_NOTHING: u16 = 1;
+pub const ADVENTURER_REWARD_RELIC: u16 = 2;
+
+pub fn adventurer_enemy_encounter(roll: u16) -> MonsterEncounter {
+    match roll {
+        0 => MonsterEncounter::ThreeSentries,
+        1 => MonsterEncounter::GremlinNob,
+        2 => MonsterEncounter::Lagavulin,
+        _ => unreachable!("adventurer enemy roll out of range: {roll}"),
+    }
+}

@@ -56,7 +56,7 @@ pub fn process_effect_health_delta(
                 DeltaSign::Gain => raw as u16,
             }
         }
-        Amount::Range { .. } | Amount::EventGoldRolled => {
+        _ => {
             unreachable!("HealthDelta resolves only Absolute or Relative amounts")
         }
     };
