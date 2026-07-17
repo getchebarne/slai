@@ -9,7 +9,7 @@ __all__ = [
     "ActionType",
     "Amount",
     "CandidatePool",
-    "CandidatePoolDeckFilter",
+    "CandidatePoolCardFilter",
     "CandidatePoolMonstersFilter",
     "Card",
     "CardColor",
@@ -94,8 +94,10 @@ class Amount:
 class CandidatePool:
     @typing.final
     class Hand(CandidatePool):
-        __match_args__ = ()
-        def __new__(cls) -> CandidatePool.Hand: ...
+        __match_args__ = ("filter",)
+        @property
+        def filter(self) -> CandidatePoolCardFilter: ...
+        def __new__(cls, filter: CandidatePoolCardFilter) -> CandidatePool.Hand: ...
     
     @typing.final
     class Character(CandidatePool):
@@ -123,8 +125,8 @@ class CandidatePool:
     class Deck(CandidatePool):
         __match_args__ = ("filter",)
         @property
-        def filter(self) -> CandidatePoolDeckFilter: ...
-        def __new__(cls, filter: CandidatePoolDeckFilter) -> CandidatePool.Deck: ...
+        def filter(self) -> CandidatePoolCardFilter: ...
+        def __new__(cls, filter: CandidatePoolCardFilter) -> CandidatePool.Deck: ...
     
     ...
 
@@ -908,7 +910,7 @@ class ActionType(enum.Enum):
     def __hash__(self) -> builtins.int: ...
 
 @typing.final
-class CandidatePoolDeckFilter(enum.Enum):
+class CandidatePoolCardFilter(enum.Enum):
     Purgeable = ...
     Upgradeable = ...
     Any = ...

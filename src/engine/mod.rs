@@ -87,7 +87,6 @@ pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
-pub mod process_effect_warped_tongs_proc;
 pub mod process_effect_wheel_spin;
 
 use std::collections::VecDeque;
@@ -104,7 +103,7 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::types::CardColor;
-use crate::utils::deck_filter_matches;
+use crate::utils::card_filter_matches;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -137,7 +136,13 @@ fn fill_buf_candidates(
     id_deck: &[usize],
 ) {
     match candidate_pool {
-        CandidatePool::Hand => effect_candidate_buf.extend_from_slice(id_hand),
+        CandidatePool::Hand { filter } => {
+            for &id in id_hand {
+                if card_filter_matches(filter, &entities[id]) {
+                    effect_candidate_buf.push(id);
+                }
+            }
+        }
         CandidatePool::Character => effect_candidate_buf.push(id_character),
         CandidatePool::Monsters { filter } => match filter {
             CandidatePoolMonstersFilter::All => {
@@ -171,7 +176,7 @@ fn fill_buf_candidates(
         CandidatePool::Discover => effect_candidate_buf.extend_from_slice(id_discover),
         CandidatePool::Deck { filter } => {
             for &id in id_deck {
-                if deck_filter_matches(filter, &entities[id]) {
+                if card_filter_matches(filter, &entities[id]) {
                     effect_candidate_buf.push(id);
                 }
             }
@@ -338,9 +343,6 @@ fn dispatch_by_kind(
             process_effect_bonfire_offer::process_effect_bonfire_offer(id_target, state)
         }
         EffectKind::FaceTrade => process_effect_face_trade::process_effect_face_trade(state),
-        EffectKind::WarpedTongsProc => {
-            process_effect_warped_tongs_proc::process_effect_warped_tongs_proc(state)
-        }
         EffectKind::WheelSpin => process_effect_wheel_spin::process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => {
             process_effect_card_upgrade::process_effect_card_upgrade(id_target, state)

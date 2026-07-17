@@ -14,7 +14,7 @@ use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -77,14 +77,14 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
 }
 use card_is_purgeable as card_is_transformable;
 
-// Single source of truth for which deck cards a CandidatePoolDeckFilter admits
-pub fn deck_filter_matches(filter: CandidatePoolDeckFilter, entity: &Entity) -> bool {
+// Single source of truth for which cards a CandidatePoolCardFilter admits (deck or hand pools)
+pub fn card_filter_matches(filter: CandidatePoolCardFilter, entity: &Entity) -> bool {
     match filter {
-        CandidatePoolDeckFilter::Purgeable => card_is_purgeable(entity),
-        CandidatePoolDeckFilter::Upgradeable => card_is_upgradable(entity),
-        CandidatePoolDeckFilter::Any => entity.kind == EntityKind::Card,
-        CandidatePoolDeckFilter::Transformable => card_is_transformable(entity),
-        CandidatePoolDeckFilter::PurgeableCurse => {
+        CandidatePoolCardFilter::Purgeable => card_is_purgeable(entity),
+        CandidatePoolCardFilter::Upgradeable => card_is_upgradable(entity),
+        CandidatePoolCardFilter::Any => entity.kind == EntityKind::Card,
+        CandidatePoolCardFilter::Transformable => card_is_transformable(entity),
+        CandidatePoolCardFilter::PurgeableCurse => {
             entity.card_kind == CardKind::Curse && card_is_purgeable(entity)
         }
     }

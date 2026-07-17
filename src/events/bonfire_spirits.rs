@@ -1,5 +1,5 @@
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -11,15 +11,14 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// Offer: pick a card to purge; the reward keys on its rarity (see BonfireOffer).
-// An empty purgeable pool auto-resolves to nothing, matching the patched source
+// Offer: pick a card to purge. An empty purgeable pool auto-resolves to nothing
 const OPTION_OFFER: &[Effect] = &[
     Effect {
         kind: EffectKind::BonfireOffer,
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck {
-                filter: CandidatePoolDeckFilter::Purgeable,
+                filter: CandidatePoolCardFilter::Purgeable,
             },
             selection_kind: SelectionKind::Input { count: 1 },
         },

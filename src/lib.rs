@@ -141,7 +141,7 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyMonsterName>()?;
     module.add_class::<ffi::PyMonsterEncounter>()?;
     module.add_class::<ffi::PyEventName>()?;
-    module.add_class::<ffi::PyCandidatePoolDeckFilter>()?;
+    module.add_class::<ffi::PyCandidatePoolCardFilter>()?;
     module.add_class::<ffi::PyCandidatePoolMonstersFilter>()?;
     module.add_class::<ffi::PyScreen>()?;
     module.add_class::<ffi::PyEvent>()?;

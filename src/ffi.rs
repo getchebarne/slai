@@ -8,7 +8,7 @@ use crate::action::Action;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -1151,7 +1151,9 @@ impl From<ModifierKind> for PyModifierKind {
 #[pyclass(eq, hash, frozen, name = "CandidatePool", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
-    Hand {},
+    Hand {
+        filter: PyCandidatePoolCardFilter,
+    },
     Character {},
     Monsters {
         filter: PyCandidatePoolMonstersFilter,
@@ -1159,14 +1161,16 @@ pub enum PyCandidatePool {
     Source {},
     Discover {},
     Deck {
-        filter: PyCandidatePoolDeckFilter,
+        filter: PyCandidatePoolCardFilter,
     },
 }
 
 impl From<CandidatePool> for PyCandidatePool {
     fn from(pool: CandidatePool) -> Self {
         match pool {
-            CandidatePool::Hand => Self::Hand {},
+            CandidatePool::Hand { filter } => Self::Hand {
+                filter: filter.into(),
+            },
             CandidatePool::Character => Self::Character {},
             CandidatePool::Monsters { filter } => Self::Monsters {
                 filter: filter.into(),
@@ -1237,11 +1241,11 @@ impl From<Screen> for PyScreen {
     eq,
     eq_int,
     frozen,
-    name = "CandidatePoolDeckFilter",
+    name = "CandidatePoolCardFilter",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCandidatePoolDeckFilter {
+pub enum PyCandidatePoolCardFilter {
     Purgeable,
     Upgradeable,
     Any,
@@ -1249,14 +1253,14 @@ pub enum PyCandidatePoolDeckFilter {
     PurgeableCurse,
 }
 
-impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
-    fn from(f: CandidatePoolDeckFilter) -> Self {
+impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
+    fn from(f: CandidatePoolCardFilter) -> Self {
         match f {
-            CandidatePoolDeckFilter::Purgeable => Self::Purgeable,
-            CandidatePoolDeckFilter::Upgradeable => Self::Upgradeable,
-            CandidatePoolDeckFilter::Any => Self::Any,
-            CandidatePoolDeckFilter::Transformable => Self::Transformable,
-            CandidatePoolDeckFilter::PurgeableCurse => Self::PurgeableCurse,
+            CandidatePoolCardFilter::Purgeable => Self::Purgeable,
+            CandidatePoolCardFilter::Upgradeable => Self::Upgradeable,
+            CandidatePoolCardFilter::Any => Self::Any,
+            CandidatePoolCardFilter::Transformable => Self::Transformable,
+            CandidatePoolCardFilter::PurgeableCurse => Self::PurgeableCurse,
         }
     }
 }
@@ -3090,6 +3094,6 @@ impl_discriminant_hash!(
     PyRelicTier,
     PyCandidatePoolMonstersFilter,
     PyScreen,
-    PyCandidatePoolDeckFilter,
+    PyCandidatePoolCardFilter,
     PyIntentKind,
 );

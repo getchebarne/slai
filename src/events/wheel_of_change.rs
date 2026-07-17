@@ -8,7 +8,7 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// Spin: mandatory in the source; the outcome roll happens in the processor
+// Spin
 const OPTION_SPIN: &[Effect] = &[
     Effect {
         kind: EffectKind::WheelSpin,
@@ -18,6 +18,7 @@ const OPTION_SPIN: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
+// Spin is mandatory, there's no "Leave" option
 const OPTIONS_ALL: &[EventOption] = &[EventOption {
     label: "[Spin] Gold, a relic, a full heal, a Decay, a card removal, or HP loss.",
     effects: OPTION_SPIN,

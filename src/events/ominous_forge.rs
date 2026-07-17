@@ -1,5 +1,5 @@
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -20,7 +20,7 @@ const OPTION_FORGE: &[Effect] = &[
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck {
-                filter: CandidatePoolDeckFilter::Upgradeable,
+                filter: CandidatePoolCardFilter::Upgradeable,
             },
             selection_kind: SelectionKind::Input { count: 1 },
         },
@@ -28,7 +28,7 @@ const OPTION_FORGE: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-// Rummage: deterministic since Weekly Patch 41
+// Rummage
 const OPTION_RUMMAGE: &[Effect] = &[
     Effect {
         kind: EffectKind::RelicGrantSpecific {

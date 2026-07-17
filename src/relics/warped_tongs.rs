@@ -4,7 +4,6 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // See:
-//    - `process_effect_turn_start.rs` (queues WarpedTongsProc post-draw)
-//    - `process_effect_warped_tongs_proc.rs`
+//    - `process_effect_turn_start.rs` (queues a random hand upgrade post-draw)
 pub static WARPED_TONGS: Entity =
     make_entity_relic(RelicName::WarpedTongs, RelicTier::Special, 0, &[]);

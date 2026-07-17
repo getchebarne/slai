@@ -1,5 +1,5 @@
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -18,7 +18,7 @@ const OPTION_PRAY: &[Effect] = &[
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck {
-                filter: CandidatePoolDeckFilter::Purgeable,
+                filter: CandidatePoolCardFilter::Purgeable,
             },
             selection_kind: SelectionKind::Input { count: 1 },
         },

@@ -2,7 +2,7 @@ use rand::Rng;
 
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -11,9 +11,10 @@ use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::DeltaSign;
 
-// Wheel of Change: uniform 1/6 across gold / relic / full heal / Decay / purge / HP loss
 pub fn process_effect_wheel_spin(state: &mut GameState) {
     let id_character = state.id_character;
+
+    // Uniform 1/6 across gold / relic / full heal / decay / purge / health loss
     let effect = match state.rng.random_range(0..6) {
         0 => Effect {
             kind: EffectKind::GoldDelta {
@@ -52,13 +53,12 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Deck {
-                    filter: CandidatePoolDeckFilter::Purgeable,
+                    filter: CandidatePoolCardFilter::Purgeable,
                 },
                 selection_kind: SelectionKind::Input { count: 1 },
             },
         },
         _ => {
-            // Truncated like the source's (int)(maxHP * pct); 10%, 15% at A15+
             let (numerator, denominator) = if state.ascension < 15 {
                 (1, 10)
             } else {
@@ -77,5 +77,7 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
             }
         }
     };
+
+    // Push
     state.effect_queue.push_front(effect);
 }

@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -30,7 +31,9 @@ pub static BULLET_TIME: Entity = make_entity_card(
             kind: EffectKind::SetCostOverride { amount: 0 },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::Hand {
+                    filter: CandidatePoolCardFilter::Any,
+                },
                 selection_kind: SelectionKind::All,
             },
         },
