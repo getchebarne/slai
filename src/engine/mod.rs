@@ -67,6 +67,7 @@ pub mod process_effect_relic_grant_specific;
 pub mod process_effect_rest_site_consume;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
+pub mod process_effect_reward_roll_potions;
 pub mod process_effect_reward_take;
 pub mod process_effect_room_enter;
 pub mod process_effect_room_exit;
@@ -346,6 +347,9 @@ fn dispatch_by_kind(
         }
         EffectKind::RewardRollCombat { room_kind } => {
             process_effect_reward_roll_combat::process_effect_reward_roll_combat(state, room_kind);
+        }
+        EffectKind::RewardRollPotions { count } => {
+            process_effect_reward_roll_potions::process_effect_reward_roll_potions(state, count)
         }
         EffectKind::RewardRollChest { kind } => {
             process_effect_reward_roll_chest::process_effect_reward_roll_chest(state, kind);

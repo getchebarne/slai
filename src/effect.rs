@@ -162,6 +162,9 @@ pub enum EffectKind {
     RewardRollCombat {
         room_kind: RoomKind,
     },
+    RewardRollPotions {
+        count: u8,
+    },
     RewardTake {
         kind: RewardKind,
     },
@@ -230,7 +233,7 @@ pub enum CandidatePoolDeckFilter {
     Upgradeable,
     Any,
     Transformable,
-    Curse,
+    PurgeableCurse,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
