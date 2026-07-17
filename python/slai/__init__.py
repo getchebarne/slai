@@ -34,7 +34,7 @@ IntentKind = _rs.IntentKind
 Screen = _rs.Screen
 EventName = _rs.EventName
 CandidatePoolMonstersFilter = _rs.CandidatePoolMonstersFilter
-CandidatePoolDeckFilter = _rs.CandidatePoolDeckFilter
+CandidatePoolCardFilter = _rs.CandidatePoolCardFilter
 
 
 # Action schema types
@@ -233,7 +233,7 @@ __all__ = [
     "MonsterName",
     "MonsterEncounter",
     "EventName",
-    "CandidatePoolDeckFilter",
+    "CandidatePoolCardFilter",
     "Screen",
     # Complex enums (raw nested-variant classes)
     "CandidatePool",

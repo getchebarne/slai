@@ -1,5 +1,6 @@
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
+pub mod process_effect_bonfire_offer;
 pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_add_to_discard;
@@ -37,6 +38,7 @@ pub mod process_effect_energy_loss;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
+pub mod process_effect_face_trade;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -85,6 +87,7 @@ pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
+pub mod process_effect_wheel_spin;
 
 use std::collections::VecDeque;
 
@@ -100,7 +103,7 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::types::CardColor;
-use crate::utils::deck_filter_matches;
+use crate::utils::card_filter_matches;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -133,7 +136,13 @@ fn fill_buf_candidates(
     id_deck: &[usize],
 ) {
     match candidate_pool {
-        CandidatePool::Hand => effect_candidate_buf.extend_from_slice(id_hand),
+        CandidatePool::Hand { filter } => {
+            for &id in id_hand {
+                if card_filter_matches(filter, &entities[id]) {
+                    effect_candidate_buf.push(id);
+                }
+            }
+        }
         CandidatePool::Character => effect_candidate_buf.push(id_character),
         CandidatePool::Monsters { filter } => match filter {
             CandidatePoolMonstersFilter::All => {
@@ -167,7 +176,7 @@ fn fill_buf_candidates(
         CandidatePool::Discover => effect_candidate_buf.extend_from_slice(id_discover),
         CandidatePool::Deck { filter } => {
             for &id in id_deck {
-                if deck_filter_matches(filter, &entities[id]) {
+                if card_filter_matches(filter, &entities[id]) {
                     effect_candidate_buf.push(id);
                 }
             }
@@ -330,6 +339,11 @@ fn dispatch_by_kind(
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(state)
         }
+        EffectKind::BonfireOffer => {
+            process_effect_bonfire_offer::process_effect_bonfire_offer(id_target, state)
+        }
+        EffectKind::FaceTrade => process_effect_face_trade::process_effect_face_trade(state),
+        EffectKind::WheelSpin => process_effect_wheel_spin::process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => {
             process_effect_card_upgrade::process_effect_card_upgrade(id_target, state)
         }

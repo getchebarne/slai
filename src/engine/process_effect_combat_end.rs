@@ -55,6 +55,18 @@ pub fn process_effect_combat_end(state: &mut GameState) {
         }
     }
 
+    // Face of Cleric: +1 max HP after each combat
+    if has_relic(&state.id_relics, RelicName::FaceOfCleric) {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::MaxHealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(1),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
     // Meat on the Bone: ending combat at half HP or less heals 12
     if has_relic(&state.id_relics, RelicName::MeatOnTheBone) {
         let vitals = &state.entities[state.id_character].vitals;

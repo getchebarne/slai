@@ -11,10 +11,10 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// Pray
-const OPTION_PRAY: &[Effect] = &[
+// Offer: pick a card to purge. An empty purgeable pool auto-resolves to nothing
+const OPTION_OFFER: &[Effect] = &[
     Effect {
-        kind: EffectKind::CardPurge,
+        kind: EffectKind::BonfireOffer,
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck {
@@ -26,25 +26,14 @@ const OPTION_PRAY: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-// Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
-
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Pray] Remove a card from your deck.",
-        effects: OPTION_PRAY,
-        gate: EventGate::HasPurgeableInDeck,
-    },
-    EventOption {
-        label: "[Leave] Nothing happens.",
-        effects: OPTION_LEAVE,
-        gate: EventGate::None,
-    },
-];
+const OPTIONS_ALL: &[EventOption] = &[EventOption {
+    label: "[Offer] Remove a card; its rarity decides the spirits' blessing.",
+    effects: OPTION_OFFER,
+    gate: EventGate::None,
+}];
 
 // Export event
-static EVENT_PURIFIER: Entity = make_entity_event(EventName::Purifier, OPTIONS_ALL);
-pub fn spawn_event_purifier() -> Entity {
-    EVENT_PURIFIER
+static EVENT_BONFIRE_SPIRITS: Entity = make_entity_event(EventName::BonfireSpirits, OPTIONS_ALL);
+pub fn spawn_event_bonfire_spirits() -> Entity {
+    EVENT_BONFIRE_SPIRITS
 }

@@ -1,8 +1,11 @@
 mod big_fish;
+mod bonfire_spirits;
 mod duplicator;
+mod face_trader;
 mod golden_idol;
 mod golden_shrine;
 mod living_wall;
+mod ominous_forge;
 mod purifier;
 mod scrap_ooze;
 mod shining_light;
@@ -13,6 +16,7 @@ mod the_ssssserpent;
 mod the_woman_in_blue;
 mod transmogrifier;
 mod upgrade_shrine;
+mod wheel_of_change;
 mod wing_statue;
 mod world_of_goop;
 
@@ -130,6 +134,10 @@ pub fn get_event(name: EventName, ascension: u8) -> Entity {
         EventName::TheDivineFountain => the_divine_fountain::spawn_event_the_divine_fountain(),
         EventName::TheLab => the_lab::spawn_event_the_lab(ascension),
         EventName::TheWomanInBlue => the_woman_in_blue::spawn_event_the_woman_in_blue(ascension),
+        EventName::WheelOfChange => wheel_of_change::spawn_event_wheel_of_change(),
+        EventName::BonfireSpirits => bonfire_spirits::spawn_event_bonfire_spirits(),
+        EventName::OminousForge => ominous_forge::spawn_event_ominous_forge(),
+        EventName::FaceTrader => face_trader::spawn_event_face_trader(ascension),
     }
 }
 
@@ -158,4 +166,8 @@ pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
     EventName::TheDivineFountain,
     EventName::TheLab,
     EventName::TheWomanInBlue,
+    EventName::WheelOfChange,
+    EventName::BonfireSpirits,
+    EventName::OminousForge,
+    EventName::FaceTrader,
 ];

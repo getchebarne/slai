@@ -17,6 +17,7 @@ pub enum EffectKind {
     BlockSet {
         amount: u16,
     },
+    BonfireOffer,
     CalculatedGamble,
     CardAddToDeck {
         card_name: CardName,
@@ -93,6 +94,7 @@ pub enum EffectKind {
         delta: i8,
     },
     EventConsume,
+    FaceTrade,
     GlassKnifeDecay {
         delta: i16,
     },
@@ -194,6 +196,7 @@ pub enum EffectKind {
     TurnEnd,
     TurnStart,
     UnloadDiscard,
+    WheelSpin,
 }
 
 // Origin tag the CardDiscard handler branches on
@@ -215,16 +218,16 @@ pub enum Amount {
 // Source pool for a Resolve effect
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
-    Hand,
+    Hand { filter: CandidatePoolCardFilter },
     Character,
     Monsters { filter: CandidatePoolMonstersFilter },
     Source,
     Discover,
-    Deck { filter: CandidatePoolDeckFilter },
+    Deck { filter: CandidatePoolCardFilter },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CandidatePoolDeckFilter {
+pub enum CandidatePoolCardFilter {
     Purgeable,
     Upgradeable,
     Any,

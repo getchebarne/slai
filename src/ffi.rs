@@ -8,7 +8,7 @@ use crate::action::Action;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -398,6 +398,12 @@ pub enum PyRelicName {
     UnceasingTop,
     BlueCandle,
     MedicalKit,
+    SpiritPoop,
+    WarpedTongs,
+    CultistHeadpiece,
+    FaceOfCleric,
+    NlothsHungryFace,
+    SsserpentHead,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -498,6 +504,12 @@ impl From<RelicName> for PyRelicName {
             RelicName::UnceasingTop => Self::UnceasingTop,
             RelicName::BlueCandle => Self::BlueCandle,
             RelicName::MedicalKit => Self::MedicalKit,
+            RelicName::SpiritPoop => Self::SpiritPoop,
+            RelicName::WarpedTongs => Self::WarpedTongs,
+            RelicName::CultistHeadpiece => Self::CultistHeadpiece,
+            RelicName::FaceOfCleric => Self::FaceOfCleric,
+            RelicName::NlothsHungryFace => Self::NlothsHungryFace,
+            RelicName::SsserpentHead => Self::SsserpentHead,
         }
     }
 }
@@ -600,6 +612,12 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::UnceasingTop => Self::UnceasingTop,
             PyRelicName::BlueCandle => Self::BlueCandle,
             PyRelicName::MedicalKit => Self::MedicalKit,
+            PyRelicName::SpiritPoop => Self::SpiritPoop,
+            PyRelicName::WarpedTongs => Self::WarpedTongs,
+            PyRelicName::CultistHeadpiece => Self::CultistHeadpiece,
+            PyRelicName::FaceOfCleric => Self::FaceOfCleric,
+            PyRelicName::NlothsHungryFace => Self::NlothsHungryFace,
+            PyRelicName::SsserpentHead => Self::SsserpentHead,
         }
     }
 }
@@ -951,6 +969,10 @@ pub enum PyEventName {
     TheDivineFountain,
     TheLab,
     TheWomanInBlue,
+    WheelOfChange,
+    BonfireSpirits,
+    OminousForge,
+    FaceTrader,
 }
 
 impl From<EventName> for PyEventName {
@@ -973,6 +995,10 @@ impl From<EventName> for PyEventName {
             EventName::TheDivineFountain => Self::TheDivineFountain,
             EventName::TheLab => Self::TheLab,
             EventName::TheWomanInBlue => Self::TheWomanInBlue,
+            EventName::WheelOfChange => Self::WheelOfChange,
+            EventName::BonfireSpirits => Self::BonfireSpirits,
+            EventName::OminousForge => Self::OminousForge,
+            EventName::FaceTrader => Self::FaceTrader,
         }
     }
 }
@@ -1125,7 +1151,9 @@ impl From<ModifierKind> for PyModifierKind {
 #[pyclass(eq, hash, frozen, name = "CandidatePool", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
-    Hand {},
+    Hand {
+        filter: PyCandidatePoolCardFilter,
+    },
     Character {},
     Monsters {
         filter: PyCandidatePoolMonstersFilter,
@@ -1133,14 +1161,16 @@ pub enum PyCandidatePool {
     Source {},
     Discover {},
     Deck {
-        filter: PyCandidatePoolDeckFilter,
+        filter: PyCandidatePoolCardFilter,
     },
 }
 
 impl From<CandidatePool> for PyCandidatePool {
     fn from(pool: CandidatePool) -> Self {
         match pool {
-            CandidatePool::Hand => Self::Hand {},
+            CandidatePool::Hand { filter } => Self::Hand {
+                filter: filter.into(),
+            },
             CandidatePool::Character => Self::Character {},
             CandidatePool::Monsters { filter } => Self::Monsters {
                 filter: filter.into(),
@@ -1211,11 +1241,11 @@ impl From<Screen> for PyScreen {
     eq,
     eq_int,
     frozen,
-    name = "CandidatePoolDeckFilter",
+    name = "CandidatePoolCardFilter",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCandidatePoolDeckFilter {
+pub enum PyCandidatePoolCardFilter {
     Purgeable,
     Upgradeable,
     Any,
@@ -1223,14 +1253,14 @@ pub enum PyCandidatePoolDeckFilter {
     PurgeableCurse,
 }
 
-impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
-    fn from(f: CandidatePoolDeckFilter) -> Self {
+impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
+    fn from(f: CandidatePoolCardFilter) -> Self {
         match f {
-            CandidatePoolDeckFilter::Purgeable => Self::Purgeable,
-            CandidatePoolDeckFilter::Upgradeable => Self::Upgradeable,
-            CandidatePoolDeckFilter::Any => Self::Any,
-            CandidatePoolDeckFilter::Transformable => Self::Transformable,
-            CandidatePoolDeckFilter::PurgeableCurse => Self::PurgeableCurse,
+            CandidatePoolCardFilter::Purgeable => Self::Purgeable,
+            CandidatePoolCardFilter::Upgradeable => Self::Upgradeable,
+            CandidatePoolCardFilter::Any => Self::Any,
+            CandidatePoolCardFilter::Transformable => Self::Transformable,
+            CandidatePoolCardFilter::PurgeableCurse => Self::PurgeableCurse,
         }
     }
 }
@@ -1713,6 +1743,15 @@ pub enum PyEffect {
     RelicGrantRandom {
         target: Option<PyTarget>,
     },
+    WheelSpin {
+        target: Option<PyTarget>,
+    },
+    BonfireOffer {
+        target: Option<PyTarget>,
+    },
+    FaceTrade {
+        target: Option<PyTarget>,
+    },
     RelicGrantSpecific {
         name: PyRelicName,
         fallback_circlet: bool,
@@ -1841,6 +1880,9 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardDuplicate => PyEffect::CardDuplicate { target },
         EffectKind::CardTransform => PyEffect::CardTransform { target },
         EffectKind::RelicGrantRandom => PyEffect::RelicGrantRandom { target },
+        EffectKind::WheelSpin => PyEffect::WheelSpin { target },
+        EffectKind::BonfireOffer => PyEffect::BonfireOffer { target },
+        EffectKind::FaceTrade => PyEffect::FaceTrade { target },
         EffectKind::RelicGrantSpecific {
             name,
             fallback_circlet,
@@ -2525,6 +2567,10 @@ impl EventName {
             Self::TheDivineFountain => "The Divine Fountain",
             Self::TheLab => "The Lab",
             Self::TheWomanInBlue => "The Woman in Blue",
+            Self::WheelOfChange => "Wheel of Change",
+            Self::BonfireSpirits => "Bonfire Spirits",
+            Self::OminousForge => "Ominous Forge",
+            Self::FaceTrader => "Face Trader",
         }
     }
 }
@@ -3048,6 +3094,6 @@ impl_discriminant_hash!(
     PyRelicTier,
     PyCandidatePoolMonstersFilter,
     PyScreen,
-    PyCandidatePoolDeckFilter,
+    PyCandidatePoolCardFilter,
     PyIntentKind,
 );

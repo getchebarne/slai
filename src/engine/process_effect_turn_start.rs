@@ -1,5 +1,6 @@
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -186,7 +187,9 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 },
                 id_source: None,
                 target: Target::Resolve {
-                    candidate_pool: CandidatePool::Hand,
+                    candidate_pool: CandidatePool::Hand {
+                        filter: CandidatePoolCardFilter::Any,
+                    },
                     selection_kind: SelectionKind::Input {
                         count: stacks.max(0) as u16,
                     },
@@ -287,6 +290,20 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                     }
                 }
             }
+        }
+
+        // Warped Tongs: pushed after the draws so the pick sees the drawn hand
+        if has_relic(&state.id_relics, RelicName::WarpedTongs) {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::CardUpgrade,
+                id_source: None,
+                target: Target::Resolve {
+                    candidate_pool: CandidatePool::Hand {
+                        filter: CandidatePoolCardFilter::Upgradeable,
+                    },
+                    selection_kind: SelectionKind::Random { count: 1 },
+                },
+            });
         }
     }
 

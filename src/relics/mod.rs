@@ -17,12 +17,14 @@ mod ceramic_fish;
 mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
+mod cultist_headpiece;
 mod darkstone_periapt;
 mod dead_branch;
 mod dollys_mirror;
 mod du_vu_doll;
 mod empty_cage;
 mod eternal_feather;
+mod face_of_cleric;
 mod fossilized_helix;
 mod frozen_egg;
 mod ginger;
@@ -50,6 +52,7 @@ mod mercury_hourglass;
 mod molten_egg;
 mod mummified_hand;
 mod ninja_scroll;
+mod nloths_hungry_face;
 mod nunchaku;
 mod oddly_smooth_stone;
 mod old_coin;
@@ -72,6 +75,8 @@ mod sling_of_courage;
 mod smiling_mask;
 mod snake_ring;
 mod snecko_skull;
+mod spirit_poop;
+mod ssserpent_head;
 mod stone_calendar;
 mod strange_spoon;
 mod strawberry;
@@ -91,6 +96,7 @@ mod twisted_funnel;
 mod unceasing_top;
 mod vajra;
 mod war_paint;
+mod warped_tongs;
 mod whetstone;
 mod white_beast_statue;
 
@@ -199,6 +205,12 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::UnceasingTop => unceasing_top::UNCEASING_TOP,
         RelicName::BlueCandle => blue_candle::BLUE_CANDLE,
         RelicName::MedicalKit => medical_kit::MEDICAL_KIT,
+        RelicName::SpiritPoop => spirit_poop::SPIRIT_POOP,
+        RelicName::WarpedTongs => warped_tongs::WARPED_TONGS,
+        RelicName::CultistHeadpiece => cultist_headpiece::CULTIST_HEADPIECE,
+        RelicName::FaceOfCleric => face_of_cleric::FACE_OF_CLERIC,
+        RelicName::NlothsHungryFace => nloths_hungry_face::NLOTHS_HUNGRY_FACE,
+        RelicName::SsserpentHead => ssserpent_head::SSSERPENT_HEAD,
     }
 }
 
@@ -360,6 +372,12 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &war_paint::WAR_PAINT,
     &whetstone::WHETSTONE,
     &white_beast_statue::WHITE_BEAST_STATUE,
+    &spirit_poop::SPIRIT_POOP,
+    &warped_tongs::WARPED_TONGS,
+    &cultist_headpiece::CULTIST_HEADPIECE,
+    &face_of_cleric::FACE_OF_CLERIC,
+    &nloths_hungry_face::NLOTHS_HUNGRY_FACE,
+    &ssserpent_head::SSSERPENT_HEAD,
 ];
 // Assert all relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);
