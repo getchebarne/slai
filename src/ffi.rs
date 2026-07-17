@@ -8,7 +8,7 @@ use crate::action::Action;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -1168,7 +1168,9 @@ impl From<ModifierKind> for PyModifierKind {
 #[pyclass(eq, hash, frozen, name = "CandidatePool", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
-    Hand {},
+    Hand {
+        filter: PyCandidatePoolCardFilter,
+    },
     Character {},
     Monsters {
         filter: PyCandidatePoolMonstersFilter,
@@ -1176,7 +1178,7 @@ pub enum PyCandidatePool {
     Source {},
     Discover {},
     Deck {
-        filter: PyCandidatePoolDeckFilter,
+        filter: PyCandidatePoolCardFilter,
     },
     EventPickCard {},
     EventPickPotion {},
@@ -1185,7 +1187,9 @@ pub enum PyCandidatePool {
 impl From<CandidatePool> for PyCandidatePool {
     fn from(pool: CandidatePool) -> Self {
         match pool {
-            CandidatePool::Hand => Self::Hand {},
+            CandidatePool::Hand { filter } => Self::Hand {
+                filter: filter.into(),
+            },
             CandidatePool::Character => Self::Character {},
             CandidatePool::Monsters { filter } => Self::Monsters {
                 filter: filter.into(),
@@ -1258,26 +1262,26 @@ impl From<Screen> for PyScreen {
     eq,
     eq_int,
     frozen,
-    name = "CandidatePoolDeckFilter",
+    name = "CandidatePoolCardFilter",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCandidatePoolDeckFilter {
+pub enum PyCandidatePoolCardFilter {
     Purgeable,
     Upgradeable,
     Any,
     Transformable,
-    Curse,
+    PurgeableCurse,
 }
 
-impl From<CandidatePoolDeckFilter> for PyCandidatePoolDeckFilter {
-    fn from(f: CandidatePoolDeckFilter) -> Self {
+impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
+    fn from(f: CandidatePoolCardFilter) -> Self {
         match f {
-            CandidatePoolDeckFilter::Purgeable => Self::Purgeable,
-            CandidatePoolDeckFilter::Upgradeable => Self::Upgradeable,
-            CandidatePoolDeckFilter::Any => Self::Any,
-            CandidatePoolDeckFilter::Transformable => Self::Transformable,
-            CandidatePoolDeckFilter::Curse => Self::Curse,
+            CandidatePoolCardFilter::Purgeable => Self::Purgeable,
+            CandidatePoolCardFilter::Upgradeable => Self::Upgradeable,
+            CandidatePoolCardFilter::Any => Self::Any,
+            CandidatePoolCardFilter::Transformable => Self::Transformable,
+            CandidatePoolCardFilter::PurgeableCurse => Self::PurgeableCurse,
         }
     }
 }
@@ -1539,8 +1543,8 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("RewardTakeRelic expects [], got {n} idxs")),
         },
         PyActionType::RewardTakePotion => match idxs.len() {
-            0 => Ok(Action::RewardTakePotion),
-            n => Err(format!("RewardTakePotion expects [], got {n} idxs")),
+            1 => Ok(Action::RewardTakePotion { idx: idxs[0] }),
+            n => Err(format!("RewardTakePotion expects [idx], got {n} idxs")),
         },
         PyActionType::RewardTakeGold => match idxs.len() {
             0 => Ok(Action::RewardTakeGold),
@@ -1604,7 +1608,7 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::CardDiscover { idx } => (PyActionType::CardDiscover, vec![idx]),
         Action::RewardTakeCard { idx } => (PyActionType::RewardTakeCard, vec![idx]),
         Action::RewardTakeRelic => (PyActionType::RewardTakeRelic, vec![]),
-        Action::RewardTakePotion => (PyActionType::RewardTakePotion, vec![]),
+        Action::RewardTakePotion { idx } => (PyActionType::RewardTakePotion, vec![idx]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
         Action::EventOptionSelect { idx } => (PyActionType::EventOptionSelect, vec![idx]),
         Action::CardPurge { idx } => (PyActionType::CardPurge, vec![idx]),
@@ -1741,6 +1745,10 @@ pub enum PyEffect {
         target: Option<PyTarget>,
     },
     PotionDiscard {
+        target: Option<PyTarget>,
+    },
+    RewardRollPotions {
+        count: u8,
         target: Option<PyTarget>,
     },
     CardDiscoverRoll {
@@ -1942,6 +1950,7 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         },
         EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
         EffectKind::PotionDiscard => PyEffect::PotionDiscard { target },
+        EffectKind::RewardRollPotions { count } => PyEffect::RewardRollPotions { count, target },
         EffectKind::CardDiscoverRoll { kind, count } => PyEffect::CardDiscoverRoll {
             kind: kind.into(),
             count,
@@ -2390,7 +2399,7 @@ pub struct PyGameState {
 pub struct PyReward {
     pub cards: Vec<PyCard>,
     pub relic: Option<PyRelic>,
-    pub potion: Option<PyPotion>,
+    pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
 }
 
@@ -2401,13 +2410,13 @@ impl PyReward {
     fn new(
         cards: Vec<PyCard>,
         relic: Option<PyRelic>,
-        potion: Option<PyPotion>,
+        potions: Vec<PyPotion>,
         gold: Option<u16>,
     ) -> Self {
         Self {
             cards,
             relic,
-            potion,
+            potions,
             gold,
         }
     }
@@ -2707,9 +2716,11 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             relic: state
                 .reward_id_relic
                 .map(|id| snapshot_relic(&state.entities[id])),
-            potion: state
-                .reward_id_potion
-                .map(|id| snapshot_potion(&state.entities[id])),
+            potions: state
+                .reward_id_potions
+                .iter()
+                .map(|&id| snapshot_potion(&state.entities[id]))
+                .collect(),
             gold: state.reward_gold,
         }),
         _ => None,
@@ -3154,6 +3165,6 @@ impl_discriminant_hash!(
     PyRelicTier,
     PyCandidatePoolMonstersFilter,
     PyScreen,
-    PyCandidatePoolDeckFilter,
+    PyCandidatePoolCardFilter,
     PyIntentKind,
 );

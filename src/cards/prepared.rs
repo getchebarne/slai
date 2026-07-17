@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -37,7 +38,9 @@ pub static PREPARED: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::Hand {
+                    filter: CandidatePoolCardFilter::Any,
+                },
                 selection_kind: SelectionKind::Input { count: 1 },
             },
         },
@@ -53,7 +56,9 @@ pub static PREPARED_PLUS: Entity = Entity {
         let mut a = PREPARED.card_effects;
         a[0].kind = EffectKind::CardDraw { count: 2 }; // +1 card
         a[1].target = Target::Resolve {
-            candidate_pool: CandidatePool::Hand,
+            candidate_pool: CandidatePool::Hand {
+                filter: CandidatePoolCardFilter::Any,
+            },
             selection_kind: SelectionKind::Input { count: 2 }, // +1 card
         };
         a

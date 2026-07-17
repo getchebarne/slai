@@ -12,7 +12,7 @@ use crate::events::EventOption;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 
-// Touch: gold first, then lose maxHP/10 (truncated, min 1) like the source
+// Touch: gold gain first, then health loss
 const fn touch(gold: u16) -> [Effect; 3] {
     [
         Effect {
@@ -43,7 +43,7 @@ const fn touch(gold: u16) -> [Effect; 3] {
 static OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
 static OPTION_TOUCH_A15: [Effect; 3] = touch(50); // -25 gold gain
 
-// Trade: a random unowned face relic (see FaceTrade)
+// Trade: gain random unowned face relic
 const OPTION_TRADE: &[Effect] = &[
     Effect {
         kind: EffectKind::FaceTrade,
@@ -78,11 +78,11 @@ const fn options(touch_effects: &'static [Effect], touch_label: &'static str) ->
 }
 static OPTIONS_ALL_BASE: [EventOption; 3] = options(
     &OPTION_TOUCH_BASE,
-    "[Touch] Gain 75 Gold. Lose 10% of your Max HP.",
+    "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
 );
 static OPTIONS_ALL_A15: [EventOption; 3] = options(
     &OPTION_TOUCH_A15,
-    "[Touch] Gain 50 Gold. Lose 10% of your Max HP.",
+    "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
 );
 
 // Export event

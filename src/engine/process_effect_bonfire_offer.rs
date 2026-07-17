@@ -11,10 +11,10 @@ use crate::types::RelicName;
 pub fn process_effect_bonfire_offer(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("BonfireOffer requires id_target");
     let id_character = state.id_character;
-    let rarity = state.entities[id_card].card_rarity;
+    let card_rarity = state.entities[id_card].card_rarity;
 
-    // push_front in reverse: CardPurge pops first, then the reward
-    let heal_full = Effect {
+    // Used by both `CardRarity:Uncommon` and `CardRarity:Rare` arms
+    let effect_heal_full = Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
             amount: Amount::Relative {
@@ -25,7 +25,9 @@ pub fn process_effect_bonfire_offer(id_target: Option<usize>, state: &mut GameSt
         id_source: None,
         target: Target::Direct(Some(id_character)),
     };
-    match rarity {
+
+    // Dispatch according to the Card's rarity
+    match card_rarity {
         CardRarity::Curse => state.effect_queue.push_front(Effect {
             kind: EffectKind::RelicGrantSpecific {
                 name: RelicName::SpiritPoop,
@@ -43,9 +45,9 @@ pub fn process_effect_bonfire_offer(id_target: Option<usize>, state: &mut GameSt
             id_source: None,
             target: Target::Direct(Some(id_character)),
         }),
-        CardRarity::Uncommon => state.effect_queue.push_front(heal_full),
+        CardRarity::Uncommon => state.effect_queue.push_front(effect_heal_full),
         CardRarity::Rare => {
-            state.effect_queue.push_front(heal_full);
+            state.effect_queue.push_front(effect_heal_full);
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::MaxHealthDelta {
                     sign: DeltaSign::Gain,

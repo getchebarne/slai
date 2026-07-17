@@ -8,30 +8,31 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-const POTION_EFFECT: Effect = Effect {
-    kind: EffectKind::PotionAddRandom { limited: false },
-    id_source: None,
-    target: Target::Direct(None),
-};
+const fn search(count: u8) -> [Effect; 2] {
+    [
+        Effect {
+            kind: EffectKind::RewardRollPotions { count },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+        EVENT_CONSUME_EFFECT,
+    ]
+}
 
-// Search; potions beyond free belt slots are lost (source lets you skip on a reward screen)
-const OPTION_SEARCH_BASE: &[Effect] = &[
-    POTION_EFFECT,
-    POTION_EFFECT,
-    POTION_EFFECT,
-    EVENT_CONSUME_EFFECT,
-];
-const OPTION_SEARCH_A15: &[Effect] = &[POTION_EFFECT, POTION_EFFECT, EVENT_CONSUME_EFFECT];
+// Search: the rolled potions land on the reward screen, where the belt is
+// interactive (discard-to-swap), matching the source's combatRewardScreen
+static OPTION_SEARCH_BASE: [Effect; 2] = search(3);
+static OPTION_SEARCH_A15: [Effect; 2] = search(2); // one fewer potion
 
 // All options; the source game offers no way to decline
 const OPTIONS_ALL_BASE: &[EventOption] = &[EventOption {
     label: "[Search] Obtain 3 random potions.",
-    effects: OPTION_SEARCH_BASE,
+    effects: &OPTION_SEARCH_BASE,
     gate: EventGate::None,
 }];
 const OPTIONS_ALL_A15: &[EventOption] = &[EventOption {
     label: "[Search] Obtain 2 random potions.",
-    effects: OPTION_SEARCH_A15,
+    effects: &OPTION_SEARCH_A15,
     gate: EventGate::None,
 }];
 

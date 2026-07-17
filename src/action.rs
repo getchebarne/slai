@@ -2,7 +2,7 @@ use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -22,9 +22,9 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RewardKind;
 use crate::types::Screen;
+use crate::utils::card_filter_matches;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
-use crate::utils::deck_filter_matches;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
@@ -77,7 +77,9 @@ pub enum Action {
         idx: usize,
     },
     RewardTakeGold,
-    RewardTakePotion,
+    RewardTakePotion {
+        idx: usize,
+    },
     RewardTakeRelic,
     RoomExit,
     RoomSelect {
@@ -132,7 +134,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::Rest => handle_rest(state),
         Action::RewardTakeCard { idx } => handle_reward_take_card(state, idx),
         Action::RewardTakeGold => handle_reward_take_gold(state),
-        Action::RewardTakePotion => handle_reward_take_potion(state),
+        Action::RewardTakePotion { idx } => handle_reward_take_potion(state, idx),
         Action::RewardTakeRelic => handle_reward_take_relic(state),
         Action::RoomExit => handle_room_exit(state),
         Action::RoomSelect { idx } => handle_room_select(state, idx),
@@ -401,13 +403,14 @@ fn handle_reward_take_gold(state: &mut GameState) {
     });
 }
 
-fn handle_reward_take_potion(state: &mut GameState) {
+fn handle_reward_take_potion(state: &mut GameState, idx: usize) {
+    let id_potion = state.reward_id_potions[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Potion,
         },
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_potion)),
     });
 }
 
@@ -493,7 +496,7 @@ fn handle_shop_purge(state: &mut GameState, idx: usize) {
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
     kind: EffectKind,
-    deck_filter: Option<CandidatePoolDeckFilter>,
+    deck_filter: Option<CandidatePoolCardFilter>,
 ) {
     match kind {
         // Discard/retain offer single-card picks; the handler re-raises the halt with a
@@ -523,11 +526,11 @@ fn fill_legal_actions_effect_pending(
                 state.legal_actions.push(Action::CardDiscover { idx: i });
             }
         }
-        // Bonfire's offer pick reuses CardPurge actions: same pool, same resolution shape
+        // Bonfire's offer pick reuses `CardPurge` actions: same pool, same resolution shape
         EffectKind::CardPurge | EffectKind::BonfireOffer => {
             let filter = deck_filter.expect("deck pick carries a Deck filter");
             for i in 0..state.id_deck.len() {
-                if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardPurge { idx: i });
                 }
             }
@@ -535,7 +538,7 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardUpgrade => {
             let filter = deck_filter.expect("deck pick carries a Deck filter");
             for i in 0..state.id_deck.len() {
-                if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardUpgrade { idx: i });
                 }
             }
@@ -543,7 +546,7 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardDuplicate => {
             let filter = deck_filter.expect("deck pick carries a Deck filter");
             for i in 0..state.id_deck.len() {
-                if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardDuplicate { idx: i });
                 }
             }
@@ -551,7 +554,7 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardTransform => {
             let filter = deck_filter.expect("deck pick carries a Deck filter");
             for i in 0..state.id_deck.len() {
-                if deck_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardTransform { idx: i });
                 }
             }
@@ -623,10 +626,12 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
     if state.reward_id_relic.is_some() {
         state.legal_actions.push(Action::RewardTakeRelic);
     }
-    if state.reward_id_potion.is_some()
-        && find_free_slot(&state.id_potions, state.potion_slots_max).is_some()
-    {
-        state.legal_actions.push(Action::RewardTakePotion);
+    if find_free_slot(&state.id_potions, state.potion_slots_max).is_some() {
+        for i in 0..state.reward_id_potions.len() {
+            state
+                .legal_actions
+                .push(Action::RewardTakePotion { idx: i });
+        }
     }
     if state.reward_gold.is_some() {
         state.legal_actions.push(Action::RewardTakeGold);
@@ -819,7 +824,7 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
 
 // Pops effect_pending and re-enqueues it as Direct for the resolved deck-card id
 // Extract the Deck filter from a pending deck-pick effect; None for non-deck halts
-fn pending_deck_filter(effect: &Effect) -> Option<CandidatePoolDeckFilter> {
+fn pending_deck_filter(effect: &Effect) -> Option<CandidatePoolCardFilter> {
     match effect.target {
         Target::Resolve {
             candidate_pool: CandidatePool::Deck { filter },
@@ -838,7 +843,7 @@ fn resolve_deck_pending(state: &mut GameState, idx: usize) {
     let filter = pending_deck_filter(pending).expect("deck pick has a Deck pool");
     let id_card = state.id_deck[idx];
     assert!(
-        deck_filter_matches(filter, &state.entities[id_card]),
+        card_filter_matches(filter, &state.entities[id_card]),
         "deck pick idx {idx} targets a card the filter rejects"
     );
     resolve_pending_pick(state, id_card);

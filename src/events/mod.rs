@@ -237,9 +237,8 @@ pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::TheSsssserpent,
 ];
 
-// Shrines roll separately at EVENT_SHRINE_CHANCE; Duplicator is Act 2 and 3 only.
-// Fountain and Woman in Blue are draw-gated in `draw_shrine` (curse / gold)
-pub const POOL_ACT1_SHRINE: &[EventName] = &[
+// Shrines and one-time specials roll together at EVENT_SPECIAL_CHANCE
+pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
     EventName::GoldenShrine,
     EventName::Purifier,
     EventName::Transmogrifier,

@@ -4,7 +4,7 @@ use crate::consts::MAX_SIZE_DECK;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -38,7 +38,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 id_source: None,
                 target: Target::Resolve {
                     candidate_pool: CandidatePool::Deck {
-                        filter: CandidatePoolDeckFilter::Any,
+                        filter: CandidatePoolCardFilter::Any,
                     },
                     selection_kind: SelectionKind::Input { count: 1 },
                 },
@@ -92,7 +92,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                     id_source: None,
                     target: Target::Resolve {
                         candidate_pool: CandidatePool::Deck {
-                            filter: CandidatePoolDeckFilter::Purgeable,
+                            filter: CandidatePoolCardFilter::Purgeable,
                         },
                         selection_kind: SelectionKind::Input { count: 1 },
                     },

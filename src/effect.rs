@@ -163,6 +163,9 @@ pub enum EffectKind {
     RewardRollCombat {
         room_kind: RoomKind,
     },
+    RewardRollPotions {
+        count: u8,
+    },
     RewardTake {
         kind: RewardKind,
     },
@@ -194,7 +197,6 @@ pub enum EffectKind {
     TurnEnd,
     TurnStart,
     UnloadDiscard,
-    WarpedTongsProc,
     WheelSpin,
 }
 
@@ -218,24 +220,24 @@ pub enum Amount {
 // Source pool for a Resolve effect
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
-    Hand,
+    Hand { filter: CandidatePoolCardFilter },
     Character,
     Monsters { filter: CandidatePoolMonstersFilter },
     Source,
     Discover,
-    Deck { filter: CandidatePoolDeckFilter },
+    Deck { filter: CandidatePoolCardFilter },
     // Entry-rolled event picks (state.id_event_picks), filtered by entity kind
     EventPickCard,
     EventPickPotion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CandidatePoolDeckFilter {
+pub enum CandidatePoolCardFilter {
     Purgeable,
     Upgradeable,
     Any,
     Transformable,
-    Curse,
+    PurgeableCurse,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

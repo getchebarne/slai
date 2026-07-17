@@ -34,7 +34,7 @@ IntentKind = _rs.IntentKind
 Screen = _rs.Screen
 EventName = _rs.EventName
 CandidatePoolMonstersFilter = _rs.CandidatePoolMonstersFilter
-CandidatePoolDeckFilter = _rs.CandidatePoolDeckFilter
+CandidatePoolCardFilter = _rs.CandidatePoolCardFilter
 
 
 # Action schema types
@@ -102,6 +102,7 @@ _REWARD_POS = "slot in state.rewards_card / state.rewards_relic"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
 _SLOT_POS = "slot in state.potions"
+_REWARD_POTION_POS = "slot in state.reward.potions"
 _DISCOVER_POS = "position in state.picks_card (the discovery offer)"
 _SHOP_CARD_POS = "position in state.shop.cards"
 _SHOP_RELIC_POS = "position in state.shop.relics"
@@ -139,7 +140,9 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         # Reward pickup family
         create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx", _REWARD_POS)),
         create_action_spec(ActionType.RewardTakeGold),
-        create_action_spec(ActionType.RewardTakePotion),
+        create_action_spec(
+            ActionType.RewardTakePotion, ArgSpec("idx", _REWARD_POTION_POS)
+        ),
         create_action_spec(ActionType.RewardTakeRelic),
         create_action_spec(ActionType.RoomSelect, ArgSpec("idx", _MAP_COL)),
         create_action_spec(ActionType.RoomExit),
@@ -230,7 +233,7 @@ __all__ = [
     "MonsterName",
     "MonsterEncounter",
     "EventName",
-    "CandidatePoolDeckFilter",
+    "CandidatePoolCardFilter",
     "Screen",
     # Complex enums (raw nested-variant classes)
     "CandidatePool",

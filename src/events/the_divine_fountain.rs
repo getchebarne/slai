@@ -1,5 +1,5 @@
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolDeckFilter;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -11,14 +11,14 @@ use crate::events::EventGate;
 use crate::events::EventOption;
 use crate::types::EventName;
 
-// Drink: purge every removable curse at once (bottled/unpurgeable curses survive)
+// Drink: purge every removable curse at once
 const OPTION_DRINK: &[Effect] = &[
     Effect {
         kind: EffectKind::CardPurge,
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck {
-                filter: CandidatePoolDeckFilter::Curse,
+                filter: CandidatePoolCardFilter::PurgeableCurse,
             },
             selection_kind: SelectionKind::All,
         },

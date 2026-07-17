@@ -35,7 +35,7 @@ use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
 use crate::events::POOL_ACT1_EVENT;
-use crate::events::POOL_ACT1_SHRINE;
+use crate::events::POOL_ACT1_EVENT_SPECIAL;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act1_monsters;
 use crate::monsters::encounters::pick_act1_boss;
@@ -103,7 +103,7 @@ pub struct GameState {
 
     // Run-scoped event draw pools; drawn without replacement, never refilled
     pub pool_events: Vec<EventName>,
-    pub pool_shrines: Vec<EventName>,
+    pub pool_event_special: Vec<EventName>,
 
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
@@ -131,7 +131,7 @@ pub struct GameState {
     // Reward working memory; meaningful when active = Reward
     pub reward_id_cards: Vec<usize>,
     pub reward_id_relic: Option<usize>,
-    pub reward_id_potion: Option<usize>,
+    pub reward_id_potions: Vec<usize>,
     pub reward_gold: Option<u16>,
 
     // Event working memory; meaningful when active = Event.
@@ -233,7 +233,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
         pool_events: POOL_ACT1_EVENT.to_vec(),
-        pool_shrines: POOL_ACT1_SHRINE.to_vec(),
+        pool_event_special: POOL_ACT1_EVENT_SPECIAL.to_vec(),
         potion_drop_mod: 0,
         screen: Screen::Map,
         game_over: false,
@@ -257,7 +257,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         id_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
         reward_id_cards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
         reward_id_relic: None,
-        reward_id_potion: None,
+        reward_id_potions: Vec::new(),
         reward_gold: None,
         id_event: None,
         id_event_picks: Vec::new(),

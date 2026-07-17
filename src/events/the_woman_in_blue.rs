@@ -12,38 +12,29 @@ use crate::events::EventOption;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 
-const POTION_EFFECT: Effect = Effect {
-    kind: EffectKind::PotionAddRandom { limited: false },
-    id_source: None,
-    target: Target::Direct(None),
-};
-
-const fn gold_cost(cost: u16) -> Effect {
-    Effect {
-        kind: EffectKind::GoldDelta {
-            sign: DeltaSign::Loss,
-            amount: Amount::Absolute(cost),
+const fn buy(cost: u16, count: u8) -> [Effect; 3] {
+    [
+        Effect {
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Loss,
+                amount: Amount::Absolute(cost),
+            },
+            id_source: None,
+            target: Target::Direct(None),
         },
-        id_source: None,
-        target: Target::Direct(None),
-    }
+        // Rolled potions land on the reward screen, where the belt is interactive
+        // (discard-to-swap), matching the source's combatRewardScreen
+        Effect {
+            kind: EffectKind::RewardRollPotions { count },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+        EVENT_CONSUME_EFFECT,
+    ]
 }
-
-// Buy; potions beyond free belt slots are lost (source lets you skip on a reward screen)
-const OPTION_BUY_1: &[Effect] = &[gold_cost(20), POTION_EFFECT, EVENT_CONSUME_EFFECT];
-const OPTION_BUY_2: &[Effect] = &[
-    gold_cost(30),
-    POTION_EFFECT,
-    POTION_EFFECT,
-    EVENT_CONSUME_EFFECT,
-];
-const OPTION_BUY_3: &[Effect] = &[
-    gold_cost(40),
-    POTION_EFFECT,
-    POTION_EFFECT,
-    POTION_EFFECT,
-    EVENT_CONSUME_EFFECT,
-];
+static OPTION_BUY_1: [Effect; 3] = buy(20, 1);
+static OPTION_BUY_2: [Effect; 3] = buy(30, 2);
+static OPTION_BUY_3: [Effect; 3] = buy(40, 3);
 
 // Leave: free below A15; costs ceil(5% max HP) at A15+
 const OPTION_LEAVE_BASE: &[Effect] = &[EVENT_CONSUME_EFFECT];
@@ -70,17 +61,17 @@ const fn options(leave_effects: &'static [Effect], leave_label: &'static str) ->
     [
         EventOption {
             label: "[Buy 1 Potion] Lose 20 Gold.",
-            effects: OPTION_BUY_1,
+            effects: &OPTION_BUY_1,
             gate: EventGate::None,
         },
         EventOption {
             label: "[Buy 2 Potions] Lose 30 Gold.",
-            effects: OPTION_BUY_2,
+            effects: &OPTION_BUY_2,
             gate: EventGate::None,
         },
         EventOption {
             label: "[Buy 3 Potions] Lose 40 Gold.",
-            effects: OPTION_BUY_3,
+            effects: &OPTION_BUY_3,
             gate: EventGate::None,
         },
         EventOption {

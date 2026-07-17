@@ -1,4 +1,5 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolCardFilter;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
@@ -43,7 +44,9 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
+                candidate_pool: CandidatePool::Hand {
+                    filter: CandidatePoolCardFilter::Any,
+                },
                 selection_kind: SelectionKind::Random { count: 1 },
             },
         },
