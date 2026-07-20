@@ -99,8 +99,7 @@ pub struct GameState {
     pub mode: Mode,
     pub game_over: bool,
 
-    // Event working memory; meaningful when active = Event.
-    // Typed rolled state lives in the payload; cleared on room exit
+    // The active event; typed rolled state lives in the payload, cleared on room exit
     pub event: Option<Event>,
 
     // Removal cost for the whole run: 75 + 25 per purge, never reset

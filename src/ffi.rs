@@ -2119,10 +2119,12 @@ pub struct PyEvent {
     pub name: PyEventName,
     pub display_name: String,
     pub options: Vec<PyEventOption>,
+    // Legacy flat progress counter (stage/attempts/searches); observation-shape parity
     pub state: u8,
     // Entry-rolled picks (We Meet Again etc.); referenced by EventPick* pools
     pub pick_card: Option<PyCard>,
     pub pick_potion: Option<PyPotion>,
+    // 0 = unrolled; observation-shape parity
     pub gold_rolled: u16,
     // Dead Adventurer's telegraphed elite; the reward order stays hidden like the source
     pub encounter: Option<PyMonsterEncounter>,

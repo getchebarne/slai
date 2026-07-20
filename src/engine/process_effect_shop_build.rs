@@ -25,6 +25,9 @@ use crate::consts::SHOP_PRICE_RELIC_UNCOMMON;
 use crate::consts::SHOP_RELIC_TH_COMMON;
 use crate::consts::SHOP_RELIC_TH_UNCOMMON;
 use crate::consts::SHOP_SLOTS_CARD_COLORED;
+use crate::consts::SHOP_SLOTS_CARD_TOTAL;
+use crate::consts::SHOP_SLOTS_POTION;
+use crate::consts::SHOP_SLOTS_RELIC;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
@@ -47,12 +50,12 @@ use crate::utils::push_entity;
 
 pub fn process_effect_shop_build(state: &mut GameState) {
     let mut shop = Shop {
-        id_cards: Vec::new(),
-        id_relics: Vec::new(),
-        id_potions: Vec::new(),
-        card_prices: Vec::new(),
-        relic_prices: Vec::new(),
-        potion_prices: Vec::new(),
+        id_cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
+        id_relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
+        id_potions: Vec::with_capacity(SHOP_SLOTS_POTION),
+        card_prices: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
+        relic_prices: Vec::with_capacity(SHOP_SLOTS_RELIC),
+        potion_prices: Vec::with_capacity(SHOP_SLOTS_POTION),
         purge_cost: 0,
     };
 

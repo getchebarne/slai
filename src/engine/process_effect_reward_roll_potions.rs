@@ -14,7 +14,7 @@ pub fn process_effect_reward_roll_potions(state: &mut GameState, count: u8) {
     );
 
     // Roll
-    let mut id_potions: Vec<usize> = Vec::new();
+    let mut id_potions: Vec<usize> = Vec::with_capacity(count as usize);
     for _ in 0..count {
         let potion_name = get_random_potion_name(&mut state.rng, false);
         let id = push_entity(&mut state.entities, get_potion(potion_name));

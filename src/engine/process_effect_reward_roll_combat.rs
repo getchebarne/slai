@@ -4,6 +4,7 @@ use crate::consts::GOLD_ELITE_MAX;
 use crate::consts::GOLD_ELITE_MIN;
 use crate::consts::GOLD_MONSTER_MAX;
 use crate::consts::GOLD_MONSTER_MIN;
+use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::POTION_DROP_CHANCE_BASE;
 use crate::consts::POTION_DROP_CHANCE_MOD_HIT;
 use crate::consts::POTION_DROP_CHANCE_MOD_MAX;
@@ -83,7 +84,7 @@ pub fn process_effect_reward_roll_combat(
     };
 
     // Roll Cards
-    let mut id_cards: Vec<usize> = Vec::new();
+    let mut id_cards: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
     roll_card_rewards(
         state.id_character,
         &mut state.entities,
@@ -119,7 +120,7 @@ pub fn process_effect_reward_roll_combat(
     // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
     let potion_drops = has_relic(&state.id_relics, RelicName::WhiteBeastStatue)
         || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod);
-    let mut id_potions: Vec<usize> = Vec::new();
+    let mut id_potions: Vec<usize> = Vec::with_capacity(1);
     if potion_drops {
         let name = get_random_potion_name(&mut state.rng, false);
         let id = push_entity(&mut state.entities, get_potion(name));

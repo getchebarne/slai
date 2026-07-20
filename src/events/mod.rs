@@ -29,10 +29,9 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
-use crate::types::CardKind;
-use crate::types::CardRarity;
 use crate::types::EventName;
 use crate::types::MonsterEncounter;
+use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 
@@ -44,14 +43,14 @@ pub const EVENT_CONSUME_EFFECT: Effect = Effect {
 
 // The active event: typed rolled state per event, plus the consumed flag.
 // Statics never hold entity ids; the ids here are runtime leaf data validated at use
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Event {
     pub name: EventName,
     pub payload: EventPayload,
     pub consumed: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub enum EventPayload {
     BigFish,
     TheCleric,
@@ -173,7 +172,7 @@ pub fn push_event_option_effects(
     }
 }
 
-// Replaces the old gate interpreter: plain per-event availability checks
+// Per-event availability checks
 pub fn event_option_available(state: &GameState, payload: EventPayload, idx: usize) -> bool {
     match payload {
         EventPayload::BigFish
@@ -236,7 +235,7 @@ pub fn event_option_labels(payload: EventPayload, ascension: u8) -> &'static [&'
     }
 }
 
-// Shared deck-scan predicates (the old EventGate arms as plain functions)
+// Shared deck-scan predicates
 
 pub fn deck_has_upgradable(state: &GameState) -> bool {
     state
@@ -253,10 +252,10 @@ pub fn deck_has_purgeable(state: &GameState) -> bool {
 }
 
 pub fn deck_has_non_basic_non_curse(state: &GameState) -> bool {
-    state.id_deck.iter().any(|&id| {
-        let entity = &state.entities[id];
-        entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
-    })
+    state
+        .id_deck
+        .iter()
+        .any(|&id| card_is_non_basic_non_curse(&state.entities[id]))
 }
 
 pub fn deck_has_damage_card(state: &GameState, min_base: u16) -> bool {

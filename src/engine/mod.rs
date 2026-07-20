@@ -105,6 +105,7 @@ use crate::entity::Entity;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
+use crate::map::room_at;
 use crate::types::CardColor;
 use crate::types::Combat;
 use crate::types::Mode;
@@ -648,9 +649,7 @@ fn debug_assert_mode_consistent(state: &GameState) {
     }
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities);
     let room = match state.location {
-        Location::Overworld { y, x } => {
-            state.id_rooms[y][x].map(|id_room| &state.entities[id_room])
-        }
+        Location::Overworld { y, x } => room_at(&state.id_rooms, &state.entities, y, x),
         _ => None,
     };
     let ok = match &state.mode {

@@ -7,9 +7,8 @@ use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventPayload;
 use crate::game::GameState;
-use crate::types::CardKind;
-use crate::types::CardRarity;
 use crate::types::DeltaSign;
+use crate::utils::card_is_non_basic_non_curse;
 
 const RELIC_REWARD: Effect = Effect {
     kind: EffectKind::RelicGrantRandom,
@@ -30,10 +29,7 @@ pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventPayload {
         .id_deck
         .iter()
         .copied()
-        .filter(|&id| {
-            let entity = &state.entities[id];
-            entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
-        })
+        .filter(|&id| card_is_non_basic_non_curse(&state.entities[id]))
         .collect();
     let id_card =
         (!eligible.is_empty()).then(|| eligible[state.rng.random_range(0..eligible.len())]);

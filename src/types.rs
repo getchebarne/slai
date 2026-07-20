@@ -19,7 +19,7 @@ pub enum DeltaSign {
 
 // The game's mode: each variant owns the working memory that is only meaningful
 // while it is active; constructed whole at entry, destroyed by variant replacement
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub enum Mode {
     Combat(Combat),
     CombatEnded,
@@ -32,7 +32,7 @@ pub enum Mode {
     ChestOpened,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct Energy {
     pub energy_current: u8,
     pub energy_max: u8,
@@ -40,7 +40,7 @@ pub struct Energy {
 
 // Constructed empty at the first monster spawn; combat_start fills the piles
 // and scalars, the turn-1 refill fills energy
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Combat {
     pub id_hand: Vec<usize>,
     pub id_pile_draw: Vec<usize>,
@@ -59,7 +59,7 @@ pub struct Combat {
     pub id_discover: Vec<usize>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub struct Rewards {
     pub id_cards: Vec<usize>,
     pub id_relic: Option<usize>,
@@ -68,7 +68,7 @@ pub struct Rewards {
 }
 
 // Price vecs parallel the id vecs; `purge_cost` is per-visit (run ramp lives on GameState)
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone)]
 pub struct Shop {
     pub id_cards: Vec<usize>,
     pub id_relics: Vec<usize>,

@@ -60,6 +60,12 @@ pub fn card_is_upgradable(entity: &Entity) -> bool {
     !matches!(entity.card_kind, CardKind::Curse | CardKind::Status)
 }
 
+pub fn card_is_non_basic_non_curse(entity: &Entity) -> bool {
+    entity.kind == EntityKind::Card
+        && entity.card_rarity != CardRarity::Basic
+        && entity.card_kind != CardKind::Curse
+}
+
 pub fn card_is_purgeable(entity: &Entity) -> bool {
     if entity.kind != EntityKind::Card {
         return false;

@@ -10,12 +10,16 @@ use crate::events::deck_has_purgeable;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
+const COST_HEAL: u16 = 35;
+const COST_PURIFY_BASE: u16 = 50;
+const COST_PURIFY_A15: u16 = 75;
+
 // Heal
 const OPTION_HEAL: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Absolute(35),
+            amount: Amount::Absolute(COST_HEAL),
         },
         id_source: None,
         target: Target::Direct(None),
@@ -61,8 +65,8 @@ const fn purify(cost: u16) -> [Effect; 3] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_PURIFY_BASE: [Effect; 3] = purify(50);
-static OPTION_PURIFY_A15: [Effect; 3] = purify(75);
+static OPTION_PURIFY_BASE: [Effect; 3] = purify(COST_PURIFY_BASE);
+static OPTION_PURIFY_A15: [Effect; 3] = purify(COST_PURIFY_A15);
 
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
@@ -99,9 +103,13 @@ pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     let gold = state.entities[state.id_character].character_gold;
     match idx {
-        0 => gold >= 35,
+        0 => gold >= COST_HEAL,
         1 => {
-            let cost = if state.ascension < 15 { 50 } else { 75 };
+            let cost = if state.ascension < 15 {
+                COST_PURIFY_BASE
+            } else {
+                COST_PURIFY_A15
+            };
             gold >= cost && deck_has_purgeable(state)
         }
         2 => true,

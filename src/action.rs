@@ -113,17 +113,17 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
     // Handlers push their effects into effect_buf; flush drains them to the queue front (reversed)
     state.effect_buf.clear();
     match action {
-        Action::CardDiscard { idx } => handle_card_discard(state, idx),
+        Action::CardDiscard { idx } => resolve_pending_hand_pick(state, idx),
         Action::CardDiscover { idx } => handle_card_discover(state, idx),
         Action::CardDuplicate { idx } => handle_card_duplicate(state, idx),
-        Action::CardNightmare { idx } => handle_card_nightmare(state, idx),
+        Action::CardNightmare { idx } => resolve_pending_hand_pick(state, idx),
         Action::CardPlay {
             idx_card,
             idx_monster,
         } => handle_card_play(state, idx_card, idx_monster),
         Action::CardPurge { idx } => handle_card_purge(state, idx),
-        Action::CardRetain { idx } => handle_card_retain(state, idx),
-        Action::CardSetup { idx } => handle_card_setup(state, idx),
+        Action::CardRetain { idx } => resolve_pending_hand_pick(state, idx),
+        Action::CardSetup { idx } => resolve_pending_hand_pick(state, idx),
         Action::CardTransform { idx } => handle_card_transform(state, idx),
         Action::CardUpgrade { idx } => handle_card_upgrade(state, idx),
         Action::ChestOpen => handle_chest_open(state),
@@ -177,9 +177,10 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     }
 }
 
-fn handle_card_discard(state: &mut GameState, idx: usize) {
+// Discard / retain / setup / nightmare picks all resolve a pending hand pick
+fn resolve_pending_hand_pick(state: &mut GameState, idx: usize) {
     let Mode::Combat(combat) = &state.mode else {
-        unreachable!("handle_card_discard outside Combat mode")
+        unreachable!("hand pick outside Combat mode")
     };
     let id_card = combat.id_hand[idx];
     resolve_pending_pick(state, id_card);
@@ -203,14 +204,6 @@ fn handle_card_discover(state: &mut GameState, idx: usize) {
 
 fn handle_card_duplicate(state: &mut GameState, idx: usize) {
     resolve_deck_pending(state, idx);
-}
-
-fn handle_card_nightmare(state: &mut GameState, idx: usize) {
-    let Mode::Combat(combat) = &state.mode else {
-        unreachable!("handle_card_nightmare outside Combat mode")
-    };
-    let id_card = combat.id_hand[idx];
-    resolve_pending_pick(state, id_card);
 }
 
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
@@ -256,22 +249,6 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
 
 fn handle_card_purge(state: &mut GameState, idx: usize) {
     resolve_deck_pending(state, idx);
-}
-
-fn handle_card_retain(state: &mut GameState, idx: usize) {
-    let Mode::Combat(combat) = &state.mode else {
-        unreachable!("handle_card_retain outside Combat mode")
-    };
-    let id_card = combat.id_hand[idx];
-    resolve_pending_pick(state, id_card);
-}
-
-fn handle_card_setup(state: &mut GameState, idx: usize) {
-    let Mode::Combat(combat) = &state.mode else {
-        unreachable!("handle_card_setup outside Combat mode")
-    };
-    let id_card = combat.id_hand[idx];
-    resolve_pending_pick(state, id_card);
 }
 
 fn handle_card_transform(state: &mut GameState, idx: usize) {
@@ -679,26 +656,20 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
     let Mode::Reward(rewards) = &state.mode else {
         unreachable!("Reward legality outside Reward mode")
     };
-    let (num_cards, has_relic, num_potions, has_gold) = (
-        rewards.id_cards.len(),
-        rewards.id_relic.is_some(),
-        rewards.id_potions.len(),
-        rewards.gold.is_some(),
-    );
-    for i in 0..num_cards {
+    for i in 0..rewards.id_cards.len() {
         state.legal_actions.push(Action::RewardTakeCard { idx: i });
     }
-    if has_relic {
+    if rewards.id_relic.is_some() {
         state.legal_actions.push(Action::RewardTakeRelic);
     }
     if find_free_slot(&state.id_potions, state.potion_slots_max).is_some() {
-        for i in 0..num_potions {
+        for i in 0..rewards.id_potions.len() {
             state
                 .legal_actions
                 .push(Action::RewardTakePotion { idx: i });
         }
     }
-    if has_gold {
+    if rewards.gold.is_some() {
         state.legal_actions.push(Action::RewardTakeGold);
     }
     state.legal_actions.push(Action::RoomExit);
