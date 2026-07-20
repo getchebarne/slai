@@ -20,9 +20,9 @@ use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
+use crate::types::Mode;
 use crate::types::RelicName;
 use crate::types::RoomKind;
-use crate::types::Screen;
 use crate::utils::card_filter_matches;
 use crate::utils::has_relic;
 
@@ -89,7 +89,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             spawn_encounter_monsters(state, encounter);
         }
         RoomKind::RestSite => {
-            state.screen = Screen::RestSite;
+            state.mode = Mode::RestSite;
 
             // Eternal Feather: 3 HP per 5 deck cards on arrival
             if has_relic(&state.id_relics, RelicName::EternalFeather) {
@@ -110,7 +110,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             }
         }
         RoomKind::Treasure => {
-            state.screen = Screen::Chest;
+            state.mode = Mode::Chest;
 
             let Location::Overworld { y, x } = state.location else {
                 unreachable!("RoomEnter on Treasure outside Overworld");
@@ -130,15 +130,15 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
         RoomKind::EventRoom => {
             if spawn_random_event(state) {
-                state.screen = Screen::Event;
+                state.mode = Mode::Event;
                 return;
             }
 
             // Both pools dry: explicit no-op room, straight back to the map
-            state.screen = Screen::Map;
+            state.mode = Mode::Map;
         }
         RoomKind::Shop => {
-            state.screen = Screen::Shop;
+            // ShopBuild constructs Mode::Shop; until it runs the mode stays Map
 
             // Meal Ticket: Heal 15 on shop enter
             if has_relic(&state.id_relics, RelicName::MealTicket) {
@@ -232,10 +232,10 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
 // 25% special pool (shrines + one-time events), else event pool; an exhausted pool falls back to the other,
 // both empty -> no event and the room is a no-op
 fn spawn_random_event(state: &mut GameState) -> bool {
-    // Event working memory is cleared on consume and room exit; nothing may linger here
+    // Event working memory is cleared on room exit; nothing may linger here
     assert!(
-        state.id_event_picks.is_empty(),
-        "event spawn with picks already staged"
+        state.event.is_none(),
+        "event spawn with an event still live"
     );
 
     let name = if state.rng.random_range(0.0..1.0f32) < EVENT_SPECIAL_CHANCE {

@@ -9,7 +9,9 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
-use crate::events::event_option_gate_satisfied;
+use crate::events::event_option_available;
+use crate::events::event_option_labels;
+use crate::events::push_event_option_effects;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::has_edge;
@@ -19,9 +21,9 @@ use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::DeltaSign;
+use crate::types::Mode;
 use crate::types::RelicName;
 use crate::types::RewardKind;
-use crate::types::Screen;
 use crate::utils::card_filter_matches;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
@@ -154,7 +156,7 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         return;
     }
 
-    // `state.effect_pending` takes precedence over `state.screen`
+    // `state.effect_pending` takes precedence over `state.mode`
     if let Some(effect_pending) = state.effect_pending.as_ref() {
         // Copy out the halt's shape so the &mut dispatch below can't alias the borrow
         let effect_pending_kind = effect_pending.kind;
@@ -162,23 +164,32 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         fill_legal_actions_effect_pending(state, effect_pending_kind, deck_filter);
         return;
     }
-    match state.screen {
-        Screen::Combat => fill_legal_actions_screen_combat(state),
-        Screen::Reward => fill_legal_actions_screen_reward(state),
-        Screen::Event => fill_legal_actions_screen_event(state),
-        Screen::Shop => fill_legal_actions_screen_shop(state),
-        Screen::Map => fill_legal_actions_screen_map(state),
-        Screen::RestSite => fill_legal_actions_screen_rest_site(state),
-        Screen::Chest => fill_legal_actions_screen_chest(state),
+    match state.mode {
+        Mode::Combat(_) => fill_legal_actions_screen_combat(state),
+        Mode::CombatEnded => unreachable!("CombatEnded rests only at game_over"),
+        Mode::Reward(_) => fill_legal_actions_screen_reward(state),
+        Mode::Event => fill_legal_actions_screen_event(state),
+        Mode::Shop(_) => fill_legal_actions_screen_shop(state),
+        Mode::Map => fill_legal_actions_screen_map(state),
+        Mode::RestSite => fill_legal_actions_screen_rest_site(state),
+        Mode::Chest => fill_legal_actions_screen_chest(state),
+        Mode::ChestOpened => fill_legal_actions_screen_chest_opened(state),
     }
 }
 
 fn handle_card_discard(state: &mut GameState, idx: usize) {
-    resolve_pending_pick(state, state.id_hand[idx]);
+    let Mode::Combat(combat) = &state.mode else {
+        unreachable!("handle_card_discard outside Combat mode")
+    };
+    let id_card = combat.id_hand[idx];
+    resolve_pending_pick(state, id_card);
 }
 
 fn handle_card_discover(state: &mut GameState, idx: usize) {
-    let id_card = state.id_discover[idx];
+    let Mode::Combat(combat) = &state.mode else {
+        unreachable!("handle_card_discover outside Combat mode")
+    };
+    let id_card = combat.id_discover[idx];
     let pending = state
         .effect_pending
         .take()
@@ -195,15 +206,22 @@ fn handle_card_duplicate(state: &mut GameState, idx: usize) {
 }
 
 fn handle_card_nightmare(state: &mut GameState, idx: usize) {
-    resolve_pending_pick(state, state.id_hand[idx]);
+    let Mode::Combat(combat) = &state.mode else {
+        unreachable!("handle_card_nightmare outside Combat mode")
+    };
+    let id_card = combat.id_hand[idx];
+    resolve_pending_pick(state, id_card);
 }
 
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
-    let id_card = state.id_hand[idx_card];
+    let Mode::Combat(combat) = &state.mode else {
+        unreachable!("handle_card_play outside Combat mode")
+    };
+    let id_card = combat.id_hand[idx_card];
     if state.entities[id_card].requires_target {
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
-        let id_monster_target = state
+        let id_monster_target = combat
             .id_monsters
             .iter()
             .flatten()
@@ -241,11 +259,19 @@ fn handle_card_purge(state: &mut GameState, idx: usize) {
 }
 
 fn handle_card_retain(state: &mut GameState, idx: usize) {
-    resolve_pending_pick(state, state.id_hand[idx]);
+    let Mode::Combat(combat) = &state.mode else {
+        unreachable!("handle_card_retain outside Combat mode")
+    };
+    let id_card = combat.id_hand[idx];
+    resolve_pending_pick(state, id_card);
 }
 
 fn handle_card_setup(state: &mut GameState, idx: usize) {
-    resolve_pending_pick(state, state.id_hand[idx]);
+    let Mode::Combat(combat) = &state.mode else {
+        unreachable!("handle_card_setup outside Combat mode")
+    };
+    let id_card = combat.id_hand[idx];
+    resolve_pending_pick(state, id_card);
 }
 
 fn handle_card_transform(state: &mut GameState, idx: usize) {
@@ -286,16 +312,10 @@ fn handle_chest_open(state: &mut GameState) {
 }
 
 fn handle_event_option_select(state: &mut GameState, idx: usize) {
-    let id_event = state
-        .id_event
-        .expect("Event screen implies id_event is set");
-    let event_option = state.entities[id_event].event_options[idx];
-    for effect in event_option.effects {
-        state.effect_buf.push(Effect {
-            id_source: Some(id_event),
-            ..*effect
-        });
-    }
+    let event = state.event.expect("Event screen implies an active event");
+    debug_assert!(!event.consumed, "option select on a consumed event");
+    let ascension = state.ascension;
+    push_event_option_effects(&mut state.effect_buf, event.payload, ascension, idx);
 }
 
 fn handle_potion_discard(state: &mut GameState, idx: usize) {
@@ -311,9 +331,12 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
     let id_potion = state.id_potions[idx_potion].expect("enumerated potion slot is occupied");
     if state.entities[id_potion].requires_target {
+        let Mode::Combat(combat) = &state.mode else {
+            unreachable!("targeted potion use outside Combat mode")
+        };
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
-        let id_monster_target = state
+        let id_monster_target = combat
             .id_monsters
             .iter()
             .flatten()
@@ -383,7 +406,10 @@ fn handle_rest(state: &mut GameState) {
 }
 
 fn handle_reward_take_card(state: &mut GameState, idx: usize) {
-    let id_card = state.reward_id_cards[idx];
+    let Mode::Reward(rewards) = &state.mode else {
+        unreachable!("RewardTakeCard outside Reward mode")
+    };
+    let id_card = rewards.id_cards[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Card,
@@ -404,7 +430,10 @@ fn handle_reward_take_gold(state: &mut GameState) {
 }
 
 fn handle_reward_take_potion(state: &mut GameState, idx: usize) {
-    let id_potion = state.reward_id_potions[idx];
+    let Mode::Reward(rewards) = &state.mode else {
+        unreachable!("RewardTakePotion outside Reward mode")
+    };
+    let id_potion = rewards.id_potions[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Potion,
@@ -458,7 +487,10 @@ fn handle_turn_end(state: &mut GameState) {
 }
 
 fn handle_shop_buy_card(state: &mut GameState, idx: usize) {
-    let id_card = state.shop_id_cards[idx];
+    let Mode::Shop(shop) = &state.mode else {
+        unreachable!("ShopBuyCard outside Shop mode")
+    };
+    let id_card = shop.id_cards[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::ShopBuyCard,
         id_source: None,
@@ -467,7 +499,10 @@ fn handle_shop_buy_card(state: &mut GameState, idx: usize) {
 }
 
 fn handle_shop_buy_potion(state: &mut GameState, idx: usize) {
-    let id_potion = state.shop_id_potions[idx];
+    let Mode::Shop(shop) = &state.mode else {
+        unreachable!("ShopBuyPotion outside Shop mode")
+    };
+    let id_potion = shop.id_potions[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::ShopBuyPotion,
         id_source: None,
@@ -476,7 +511,10 @@ fn handle_shop_buy_potion(state: &mut GameState, idx: usize) {
 }
 
 fn handle_shop_buy_relic(state: &mut GameState, idx: usize) {
-    let id_relic = state.shop_id_relics[idx];
+    let Mode::Shop(shop) = &state.mode else {
+        unreachable!("ShopBuyRelic outside Shop mode")
+    };
+    let id_relic = shop.id_relics[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::ShopBuyRelic,
         id_source: None,
@@ -502,27 +540,42 @@ fn fill_legal_actions_effect_pending(
         // Discard/retain offer single-card picks; the handler re-raises the halt with a
         // decremented count, so discard-N becomes N single picks (see resolve_hand_pending)
         EffectKind::CardDiscard { .. } => {
-            for i in 0..state.id_hand.len() {
+            let Mode::Combat(combat) = &state.mode else {
+                unreachable!("hand pick outside Combat mode")
+            };
+            for i in 0..combat.id_hand.len() {
                 state.legal_actions.push(Action::CardDiscard { idx: i });
             }
         }
         EffectKind::CardRetain => {
-            for i in 0..state.id_hand.len() {
+            let Mode::Combat(combat) = &state.mode else {
+                unreachable!("hand pick outside Combat mode")
+            };
+            for i in 0..combat.id_hand.len() {
                 state.legal_actions.push(Action::CardRetain { idx: i });
             }
         }
         EffectKind::CardSetupPick => {
-            for i in 0..state.id_hand.len() {
+            let Mode::Combat(combat) = &state.mode else {
+                unreachable!("hand pick outside Combat mode")
+            };
+            for i in 0..combat.id_hand.len() {
                 state.legal_actions.push(Action::CardSetup { idx: i });
             }
         }
         EffectKind::CardNightmarePick => {
-            for i in 0..state.id_hand.len() {
+            let Mode::Combat(combat) = &state.mode else {
+                unreachable!("hand pick outside Combat mode")
+            };
+            for i in 0..combat.id_hand.len() {
                 state.legal_actions.push(Action::CardNightmare { idx: i });
             }
         }
         EffectKind::CardDiscoverPick => {
-            for i in 0..state.id_discover.len() {
+            let Mode::Combat(combat) = &state.mode else {
+                unreachable!("discover pick outside Combat mode")
+            };
+            for i in 0..combat.id_discover.len() {
                 state.legal_actions.push(Action::CardDiscover { idx: i });
             }
         }
@@ -564,27 +617,30 @@ fn fill_legal_actions_effect_pending(
 }
 
 fn fill_legal_actions_screen_combat(state: &mut GameState) {
+    let Mode::Combat(combat) = &state.mode else {
+        unreachable!("Combat legality outside Combat mode")
+    };
     let id_character = state.id_character;
     let entangled = has_modifier(
         &state.entities[id_character].modifiers,
         ModifierKind::Entangled,
     );
-    let alive_count = state.id_monsters.iter().flatten().count();
+    let alive_count = combat.id_monsters.iter().flatten().count();
     // Normality in hand caps the turn at 3 plays; blocks ANY further CardPlay
-    let normality_blocks = state.this_turn_cards_played >= 3
-        && state
+    let normality_blocks = combat.this_turn_cards_played >= 3
+        && combat
             .id_hand
             .iter()
             .any(|&id| state.entities[id].card_name == CardName::Normality);
-    for i in 0..state.id_hand.len() {
+    for i in 0..combat.id_hand.len() {
         if normality_blocks {
             break;
         }
-        let card = &state.entities[state.id_hand[i]];
+        let card = &state.entities[combat.id_hand[i]];
         let restriction_ok = is_play_restriction_satisfied(
             card.card_play_restriction,
             card.card_kind,
-            &state.id_pile_draw,
+            &combat.id_pile_draw,
             &state.id_relics,
         );
         let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
@@ -593,11 +649,11 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
         }
         let cost = get_card_effective_cost(
             card,
-            state.this_turn_discards,
-            state.this_combat_damage_instances_taken,
-            state.energy.energy_current,
+            combat.this_turn_discards,
+            combat.this_combat_damage_instances_taken,
+            combat.energy.energy_current,
         );
-        if cost > state.energy.energy_current {
+        if cost > combat.energy.energy_current {
             continue;
         }
         let requires_target = card.requires_target;
@@ -620,20 +676,29 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
 }
 
 fn fill_legal_actions_screen_reward(state: &mut GameState) {
-    for i in 0..state.reward_id_cards.len() {
+    let Mode::Reward(rewards) = &state.mode else {
+        unreachable!("Reward legality outside Reward mode")
+    };
+    let (num_cards, has_relic, num_potions, has_gold) = (
+        rewards.id_cards.len(),
+        rewards.id_relic.is_some(),
+        rewards.id_potions.len(),
+        rewards.gold.is_some(),
+    );
+    for i in 0..num_cards {
         state.legal_actions.push(Action::RewardTakeCard { idx: i });
     }
-    if state.reward_id_relic.is_some() {
+    if has_relic {
         state.legal_actions.push(Action::RewardTakeRelic);
     }
     if find_free_slot(&state.id_potions, state.potion_slots_max).is_some() {
-        for i in 0..state.reward_id_potions.len() {
+        for i in 0..num_potions {
             state
                 .legal_actions
                 .push(Action::RewardTakePotion { idx: i });
         }
     }
-    if state.reward_gold.is_some() {
+    if has_gold {
         state.legal_actions.push(Action::RewardTakeGold);
     }
     state.legal_actions.push(Action::RoomExit);
@@ -641,13 +706,13 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
 }
 
 fn fill_legal_actions_screen_event(state: &mut GameState) {
-    let id_event = state.id_event.expect("Event context requires id_event");
-    if state.entities[id_event].event_consumed {
+    let event = state.event.expect("Event context requires an active event");
+    if event.consumed {
         state.legal_actions.push(Action::RoomExit);
     } else {
-        for i in 0..state.entities[id_event].event_options.len() {
-            let gate = state.entities[id_event].event_options[i].gate;
-            if event_option_gate_satisfied(gate, state, id_event) {
+        let num_options = event_option_labels(event.payload, state.ascension).len();
+        for i in 0..num_options {
+            if event_option_available(state, event.payload, i) {
                 state
                     .legal_actions
                     .push(Action::EventOptionSelect { idx: i });
@@ -658,35 +723,38 @@ fn fill_legal_actions_screen_event(state: &mut GameState) {
 }
 
 fn fill_legal_actions_screen_shop(state: &mut GameState) {
+    let Mode::Shop(shop) = &state.mode else {
+        unreachable!("Shop legality outside Shop mode")
+    };
     state.legal_actions.push(Action::RoomExit);
     let gold = state.entities[state.id_character].character_gold;
     let belt_has_room = find_free_slot(&state.id_potions, state.potion_slots_max).is_some();
 
     // Cards
-    for i in 0..state.shop_card_prices.len() {
-        if gold >= state.shop_card_prices[i] {
+    for i in 0..shop.card_prices.len() {
+        if gold >= shop.card_prices[i] {
             state.legal_actions.push(Action::ShopBuyCard { idx: i });
         }
     }
 
     // Relics
-    for i in 0..state.shop_relic_prices.len() {
-        if gold >= state.shop_relic_prices[i] {
+    for i in 0..shop.relic_prices.len() {
+        if gold >= shop.relic_prices[i] {
             state.legal_actions.push(Action::ShopBuyRelic { idx: i });
         }
     }
 
     // Potions
     if belt_has_room {
-        for i in 0..state.shop_potion_prices.len() {
-            if gold >= state.shop_potion_prices[i] {
+        for i in 0..shop.potion_prices.len() {
+            if gold >= shop.potion_prices[i] {
                 state.legal_actions.push(Action::ShopBuyPotion { idx: i });
             }
         }
     }
 
     // Purge
-    if !state.entities[current_room_id(state)].room_shop_purged && gold >= state.shop_purge_cost {
+    if !state.entities[current_room_id(state)].room_shop_purged && gold >= shop.purge_cost {
         for i in 0..state.id_deck.len() {
             if card_is_purgeable(&state.entities[state.id_deck[i]]) {
                 state.legal_actions.push(Action::ShopPurge { idx: i });
@@ -722,6 +790,12 @@ fn fill_legal_actions_screen_chest(state: &mut GameState) {
     push_potion_actions(state);
 }
 
+// An opened chest cannot be opened again (N'loth's eaten chests rest here)
+fn fill_legal_actions_screen_chest_opened(state: &mut GameState) {
+    state.legal_actions.push(Action::RoomExit);
+    push_potion_actions(state);
+}
+
 fn push_room_select_actions(state: &mut GameState) {
     match state.location {
         Location::Start => {
@@ -750,8 +824,10 @@ fn push_room_select_actions(state: &mut GameState) {
 }
 
 fn push_potion_actions(state: &mut GameState) {
-    let in_combat = matches!(state.screen, Screen::Combat);
-    let alive_count = state.id_monsters.iter().flatten().count();
+    let (in_combat, alive_count) = match &state.mode {
+        Mode::Combat(combat) => (true, combat.id_monsters.iter().flatten().count()),
+        _ => (false, 0),
+    };
     let slots_max = state.potion_slots_max as usize;
     for s in 0..slots_max {
         let Some(id_potion) = state.id_potions[s] else {

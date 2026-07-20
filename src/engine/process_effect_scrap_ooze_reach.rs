@@ -9,7 +9,6 @@ use crate::types::DeltaSign;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
 pub fn process_effect_scrap_ooze_reach(
-    id_source: Option<usize>,
     state: &mut GameState,
     dmg: u16,
     chance: u8,
@@ -36,13 +35,13 @@ pub fn process_effect_scrap_ooze_reach(
         });
         state.effect_buf.push(Effect {
             kind: EffectKind::EventConsume,
-            id_source,
+            id_source: None,
             target: Target::Direct(None),
         });
     } else if advance_on_miss {
         state.effect_buf.push(Effect {
             kind: EffectKind::EventAdvanceState { delta: 1 },
-            id_source,
+            id_source: None,
             target: Target::Direct(None),
         });
     }

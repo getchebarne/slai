@@ -1,5 +1,7 @@
 use strum::EnumCount;
 
+use crate::consts::MAX_MONSTERS;
+
 // Vitals: physical combat state. Shared by character and monsters
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
@@ -15,16 +17,66 @@ pub enum DeltaSign {
     Loss,
 }
 
-// Persistent screen; transient working memory lives in flat GameState fields
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Screen {
-    Combat,
-    Reward,
+// The game's mode: each variant owns the working memory that is only meaningful
+// while it is active; constructed whole at entry, destroyed by variant replacement
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum Mode {
+    Combat(Combat),
+    CombatEnded,
+    Reward(Rewards),
     Event,
-    Shop,
+    Shop(Shop),
     Map,
     RestSite,
     Chest,
+    ChestOpened,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct Energy {
+    pub energy_current: u8,
+    pub energy_max: u8,
+}
+
+// Constructed empty at the first monster spawn; combat_start fills the piles
+// and scalars, the turn-1 refill fills energy
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+pub struct Combat {
+    pub id_hand: Vec<usize>,
+    pub id_pile_draw: Vec<usize>,
+    pub id_pile_discard: Vec<usize>,
+    pub id_pile_exhaust: Vec<usize>,
+    pub id_monsters: [Option<usize>; MAX_MONSTERS],
+    pub id_picked_monster: Option<usize>,
+    pub energy: Energy,
+    pub this_turn_discards: u8,
+    pub this_turn_attacks: u8,
+    pub this_turn_cards_played: u8,
+    pub this_combat_damage_instances_taken: u8,
+    pub this_combat_escaped: bool,
+    pub id_card_last_drawn: Option<usize>,
+    pub id_card_nightmare: Option<usize>,
+    pub id_discover: Vec<usize>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Rewards {
+    pub id_cards: Vec<usize>,
+    pub id_relic: Option<usize>,
+    pub id_potions: Vec<usize>,
+    pub gold: Option<u16>,
+}
+
+// Price vecs parallel the id vecs; `purge_cost` is per-visit (run ramp lives on GameState)
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Shop {
+    pub id_cards: Vec<usize>,
+    pub id_relics: Vec<usize>,
+    pub id_potions: Vec<usize>,
+    pub card_prices: Vec<u16>,
+    pub relic_prices: Vec<u16>,
+    pub potion_prices: Vec<u16>,
+    pub purge_cost: u16,
 }
 
 pub const ZERO_VITALS: Vitals = Vitals {

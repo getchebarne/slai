@@ -37,62 +37,73 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::types::Mode;
 use crate::types::PotionRarity;
 use crate::types::RelicName;
-use crate::utils::clear_shop_state;
+use crate::types::Shop;
 use crate::utils::has_relic;
 use crate::utils::pick_from_pool;
 use crate::utils::push_entity;
 
 pub fn process_effect_shop_build(state: &mut GameState) {
-    clear_shop_state(state);
+    let mut shop = Shop {
+        id_cards: Vec::new(),
+        id_relics: Vec::new(),
+        id_potions: Vec::new(),
+        card_prices: Vec::new(),
+        relic_prices: Vec::new(),
+        potion_prices: Vec::new(),
+        purge_cost: 0,
+    };
 
     // Colored: 2 Attack + 2 Skill + 1 Power
-    push_card_colored(state, CardKind::Attack);
-    push_card_colored(state, CardKind::Attack);
-    push_card_colored(state, CardKind::Skill);
-    push_card_colored(state, CardKind::Skill);
-    push_card_colored(state, CardKind::Power);
+    push_card_colored(state, &mut shop, CardKind::Attack);
+    push_card_colored(state, &mut shop, CardKind::Attack);
+    push_card_colored(state, &mut shop, CardKind::Skill);
+    push_card_colored(state, &mut shop, CardKind::Skill);
+    push_card_colored(state, &mut shop, CardKind::Power);
 
     // Colorless: 1 Uncommon + 1 Rare
-    push_card_colorless(state, CardRarity::Uncommon);
-    push_card_colorless(state, CardRarity::Rare);
+    push_card_colorless(state, &mut shop, CardRarity::Uncommon);
+    push_card_colorless(state, &mut shop, CardRarity::Rare);
 
     // Relics: 2 random-tier, 1 shop-tier
-    push_relic_random(state);
-    push_relic_random(state);
-    push_relic_shop(state);
+    push_relic_random(state, &mut shop);
+    push_relic_random(state, &mut shop);
+    push_relic_shop(state, &mut shop);
 
     // Potions: 3 (rarity rolled by get_random_potion_name)
-    push_potion(state);
-    push_potion(state);
-    push_potion(state);
+    push_potion(state, &mut shop);
+    push_potion(state, &mut shop);
+    push_potion(state, &mut shop);
 
     // Sale tag: one random colored card 50% off, before the A16 markup
-    if !state.shop_card_prices.is_empty() {
+    if !shop.card_prices.is_empty() {
         let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
-        state.shop_card_prices[idx] /= 2;
+        shop.card_prices[idx] /= 2;
     }
 
     // A16+ price bumps; the purge cost is exempt
     if state.ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
-        for price in state.shop_card_prices.iter_mut() {
+        for price in shop.card_prices.iter_mut() {
             *price = bump_price_a16(*price);
         }
-        for price in state.shop_relic_prices.iter_mut() {
+        for price in shop.relic_prices.iter_mut() {
             *price = bump_price_a16(*price);
         }
-        for price in state.shop_potion_prices.iter_mut() {
+        for price in shop.potion_prices.iter_mut() {
             *price = bump_price_a16(*price);
         }
     }
 
     // Smiling Mask: the removal service is always 50 gold
-    if has_relic(&state.id_relics, RelicName::SmilingMask) {
-        state.shop_purge_cost = 50;
+    shop.purge_cost = if has_relic(&state.id_relics, RelicName::SmilingMask) {
+        50
     } else {
-        state.shop_purge_cost = state.shop_purge_cost_run;
-    }
+        state.shop_purge_cost_run
+    };
+
+    state.mode = Mode::Shop(shop);
 }
 
 fn bump_price_a16(price: u16) -> u16 {
@@ -119,9 +130,8 @@ fn get_card_base_price(rarity: CardRarity) -> u16 {
 }
 
 // Card names already placed in this shop, so the shop's cards stay distinct
-fn get_shop_placed_card_names(state: &GameState) -> Vec<CardName> {
-    state
-        .shop_id_cards
+fn get_shop_placed_card_names(state: &GameState, shop: &Shop) -> Vec<CardName> {
+    shop.id_cards
         .iter()
         .map(|&id| state.entities[id].card_name)
         .collect()
@@ -130,13 +140,14 @@ fn get_shop_placed_card_names(state: &GameState) -> Vec<CardName> {
 // Sample one distinct shop card and push it with a variance-rolled price
 fn push_card(
     state: &mut GameState,
+    shop: &mut Shop,
     color: CardColor,
     kind: Option<CardKind>,
     rarity: CardRarity,
     base_price: u16,
 ) {
     // Sample card and its price
-    let cards_placed = get_shop_placed_card_names(state);
+    let cards_placed = get_shop_placed_card_names(state, shop);
     let card = get_random_cards(color, kind, Some(rarity), &cards_placed, 1, &mut state.rng)
         .into_iter()
         .next()
@@ -145,11 +156,11 @@ fn push_card(
 
     // Push it
     let id_card = push_entity(&mut state.entities, card);
-    state.shop_id_cards.push(id_card);
-    state.shop_card_prices.push(card_price);
+    shop.id_cards.push(id_card);
+    shop.card_prices.push(card_price);
 }
 
-fn push_card_colored(state: &mut GameState, kind: CardKind) {
+fn push_card_colored(state: &mut GameState, shop: &mut Shop, kind: CardKind) {
     let mut rarity = roll_card_rarity(&mut state.rng);
 
     // No Common green Powers exist, so a Power slot can't be Common; bump it to Uncommon
@@ -159,6 +170,7 @@ fn push_card_colored(state: &mut GameState, kind: CardKind) {
 
     push_card(
         state,
+        shop,
         CardColor::Green,
         Some(kind),
         rarity,
@@ -166,22 +178,22 @@ fn push_card_colored(state: &mut GameState, kind: CardKind) {
     );
 }
 
-fn push_card_colorless(state: &mut GameState, rarity: CardRarity) {
+fn push_card_colorless(state: &mut GameState, shop: &mut Shop, rarity: CardRarity) {
     let base =
         get_card_base_price(rarity) * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM;
-    push_card(state, CardColor::Colorless, None, rarity, base);
+    push_card(state, shop, CardColor::Colorless, None, rarity, base);
 }
 
 // Owned relics plus those already placed in this shop, so the shop's relics stay distinct
-fn get_shop_taken_relic_names(state: &GameState) -> [Option<usize>; RelicName::COUNT] {
+fn get_shop_taken_relic_names(state: &GameState, shop: &Shop) -> [Option<usize>; RelicName::COUNT] {
     let mut taken = state.id_relics;
-    for &id in &state.shop_id_relics {
+    for &id in &shop.id_relics {
         taken[state.entities[id].relic_name as usize] = Some(id);
     }
     taken
 }
 
-fn push_relic_random(state: &mut GameState) {
+fn push_relic_random(state: &mut GameState, shop: &mut Shop) {
     // Roll tier pool and its base price
     let roll = state.rng.random_range(0..100) as u8;
     let (pool, base_price): (&[RelicName], u16) = if roll < SHOP_RELIC_TH_COMMON {
@@ -193,32 +205,32 @@ fn push_relic_random(state: &mut GameState) {
     };
 
     // Sample relic and push it
-    let taken = get_shop_taken_relic_names(state);
+    let taken = get_shop_taken_relic_names(state, shop);
     let Some(name) = pick_from_pool(pool, &taken, &mut state.rng) else {
         return;
     };
-    push_relic_with_price(state, name, base_price);
+    push_relic_with_price(state, shop, name, base_price);
 }
 
-fn push_relic_shop(state: &mut GameState) {
-    let taken = get_shop_taken_relic_names(state);
+fn push_relic_shop(state: &mut GameState, shop: &mut Shop) {
+    let taken = get_shop_taken_relic_names(state, shop);
     let Some(name) = pick_from_pool(POOL_SHOP_RELIC, &taken, &mut state.rng) else {
         return;
     };
-    push_relic_with_price(state, name, SHOP_PRICE_RELIC_SHOP);
+    push_relic_with_price(state, shop, name, SHOP_PRICE_RELIC_SHOP);
 }
 
-fn push_relic_with_price(state: &mut GameState, name: RelicName, base_price: u16) {
+fn push_relic_with_price(state: &mut GameState, shop: &mut Shop, name: RelicName, base_price: u16) {
     // Price it
     let id_relic = push_entity(&mut state.entities, get_relic(name));
     let relic_price = (base_price as f32 * roll_var_relic_n_potion(&mut state.rng)) as u16;
 
     // Push it
-    state.shop_id_relics.push(id_relic);
-    state.shop_relic_prices.push(relic_price);
+    shop.id_relics.push(id_relic);
+    shop.relic_prices.push(relic_price);
 }
 
-fn push_potion(state: &mut GameState) {
+fn push_potion(state: &mut GameState, shop: &mut Shop) {
     // Sample potion and its base price
     let name = get_random_potion_name(&mut state.rng, false);
     let entity = get_potion(name);
@@ -231,8 +243,8 @@ fn push_potion(state: &mut GameState) {
     // Push it
     let id_potion = push_entity(&mut state.entities, entity);
     let potion_price = (base_price as f32 * roll_var_relic_n_potion(&mut state.rng)) as u16;
-    state.shop_id_potions.push(id_potion);
-    state.shop_potion_prices.push(potion_price);
+    shop.id_potions.push(id_potion);
+    shop.potion_prices.push(potion_price);
 }
 
 fn roll_card_rarity(rng: &mut impl Rng) -> CardRarity {

@@ -4,12 +4,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
-use crate::types::EventName;
+use crate::events::deck_has_non_basic_non_curse;
+use crate::game::GameState;
 
 // Pray
 const OPTION_PRAY: &[Effect] = &[
@@ -29,22 +26,20 @@ const OPTION_PRAY: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Pray] Transform a card.",
-        effects: OPTION_PRAY,
-        gate: EventGate::HasNonBasicNonCurseInDeck,
-    },
-    EventOption {
-        label: "[Leave] Nothing happens.",
-        effects: OPTION_LEAVE,
-        gate: EventGate::None,
-    },
-];
+pub const LABELS: &[&str] = &["[Pray] Transform a card.", "[Leave] Nothing happens."];
 
-// Export event
-static EVENT_TRANSMOGRIFIER: Entity = make_entity_event(EventName::Transmogrifier, OPTIONS_ALL);
-pub fn spawn_event_transmogrifier() -> Entity {
-    EVENT_TRANSMOGRIFIER
+pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => OPTION_PRAY,
+        1 => OPTION_LEAVE,
+        _ => unreachable!("transmogrifier option out of range: {idx}"),
+    });
+}
+
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    match idx {
+        0 => deck_has_non_basic_non_curse(state),
+        1 => true,
+        _ => unreachable!("transmogrifier option out of range: {idx}"),
+    }
 }

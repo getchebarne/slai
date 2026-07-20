@@ -1,22 +1,15 @@
 use rand::Rng;
 
 use crate::effect::Amount;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::EntityKind;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
+use crate::events::EventPayload;
 use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::CardRarity;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
 const RELIC_REWARD: Effect = Effect {
     kind: EffectKind::RelicGrantRandom,
@@ -24,79 +17,14 @@ const RELIC_REWARD: Effect = Effect {
     target: Target::Direct(None),
 };
 
-// Give potion
-const OPTION_GIVE_POTION: &[Effect] = &[
-    Effect {
-        kind: EffectKind::PotionDiscard,
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::EventPickPotion,
-            selection_kind: SelectionKind::Single,
-        },
-    },
-    RELIC_REWARD,
-    EVENT_CONSUME_EFFECT,
+pub const LABELS: &[&str] = &[
+    "[Give Potion] Lose the offered potion. Obtain a random relic.",
+    "[Give Gold] Lose the asked gold. Obtain a random relic.",
+    "[Give Card] Lose the offered card. Obtain a random relic.",
+    "[Attack] Nothing happens.",
 ];
 
-// Give give gold
-const OPTION_GIVE_GOLD: &[Effect] = &[
-    Effect {
-        kind: EffectKind::GoldDelta {
-            sign: DeltaSign::Loss,
-            amount: Amount::EventRoll { idx: 0 },
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    },
-    RELIC_REWARD,
-    EVENT_CONSUME_EFFECT,
-];
-
-const OPTION_GIVE_CARD: &[Effect] = &[
-    Effect {
-        kind: EffectKind::CardPurge,
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::EventPickCard,
-            selection_kind: SelectionKind::Single,
-        },
-    },
-    RELIC_REWARD,
-    EVENT_CONSUME_EFFECT,
-];
-
-// Attack
-const OPTION_ATTACK: &[Effect] = &[EVENT_CONSUME_EFFECT];
-
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Give Potion] Lose the offered potion. Obtain a random relic.",
-        effects: OPTION_GIVE_POTION,
-        gate: EventGate::EventPickValid(EntityKind::Potion),
-    },
-    EventOption {
-        label: "[Give Gold] Lose the asked gold. Obtain a random relic.",
-        effects: OPTION_GIVE_GOLD,
-        gate: EventGate::GoldAtLeast(50),
-    },
-    EventOption {
-        label: "[Give Card] Lose the offered card. Obtain a random relic.",
-        effects: OPTION_GIVE_CARD,
-        gate: EventGate::EventPickValid(EntityKind::Card),
-    },
-    EventOption {
-        label: "[Attack] Nothing happens.",
-        effects: OPTION_ATTACK,
-        gate: EventGate::None,
-    },
-];
-
-// Export event
-static EVENT_WE_MEET_AGAIN: Entity = make_entity_event(EventName::WeMeetAgain, OPTIONS_ALL);
-pub fn spawn_event_we_meet_again(state: &mut GameState) -> Entity {
-    let mut event = EVENT_WE_MEET_AGAIN;
-
+pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventPayload {
     // Card offer: uniform among non-Basic, non-Curse deck cards
     let eligible: Vec<usize> = state
         .id_deck
@@ -107,25 +35,83 @@ pub fn spawn_event_we_meet_again(state: &mut GameState) -> Entity {
             entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
         })
         .collect();
-    if !eligible.is_empty() {
-        let id = eligible[state.rng.random_range(0..eligible.len())];
-        state.id_event_picks.push(id);
-    }
+    let id_card =
+        (!eligible.is_empty()).then(|| eligible[state.rng.random_range(0..eligible.len())]);
 
     // Potion offer: uniform among occupied belt slots
     let slotted: Vec<usize> = state.id_potions.iter().flatten().copied().collect();
-    if !slotted.is_empty() {
-        let id = slotted[state.rng.random_range(0..slotted.len())];
-        state.id_event_picks.push(id);
-    }
+    let id_potion =
+        (!slotted.is_empty()).then(|| slotted[state.rng.random_range(0..slotted.len())]);
 
-    // Gold ask into roll slot 0: 50..=150, capped by holdings; unrolled (option
-    // gated out by GoldAtLeast) below 50
+    // Gold ask: 50..=150, capped by holdings; unrolled (option unavailable) below 50
     let gold = state.entities[state.id_character].character_gold;
-    if gold >= 50 {
-        event.event_rolls[0] = state.rng.random_range(50..=gold.min(150));
-        event.event_rolls_len = 1;
-    }
+    let gold_ask = (gold >= 50).then(|| state.rng.random_range(50..=gold.min(150)));
 
-    event
+    EventPayload::WeMeetAgain {
+        id_card,
+        id_potion,
+        gold_ask,
+    }
+}
+
+pub fn push_option_effects(
+    buf: &mut Vec<Effect>,
+    id_card: Option<usize>,
+    id_potion: Option<usize>,
+    gold_ask: Option<u16>,
+    idx: usize,
+) {
+    // Unrolled picks build as Direct(None)/0: the snapshot still renders gated-out
+    // options, and availability keeps the action path off them
+    match idx {
+        0 => {
+            buf.push(Effect {
+                kind: EffectKind::PotionDiscard,
+                id_source: None,
+                target: Target::Direct(id_potion),
+            });
+            buf.push(RELIC_REWARD);
+            buf.push(EVENT_CONSUME_EFFECT);
+        }
+        1 => {
+            buf.push(Effect {
+                kind: EffectKind::GoldDelta {
+                    sign: DeltaSign::Loss,
+                    amount: Amount::Absolute(gold_ask.unwrap_or(0)),
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            buf.push(RELIC_REWARD);
+            buf.push(EVENT_CONSUME_EFFECT);
+        }
+        2 => {
+            buf.push(Effect {
+                kind: EffectKind::CardPurge,
+                id_source: None,
+                target: Target::Direct(id_card),
+            });
+            buf.push(RELIC_REWARD);
+            buf.push(EVENT_CONSUME_EFFECT);
+        }
+        3 => buf.push(EVENT_CONSUME_EFFECT),
+        _ => unreachable!("we meet again option out of range: {idx}"),
+    }
+}
+
+pub fn option_available(
+    state: &GameState,
+    id_card: Option<usize>,
+    id_potion: Option<usize>,
+    gold_ask: Option<u16>,
+    idx: usize,
+) -> bool {
+    match idx {
+        // Rolled ids are validated at use: the pick must still be owned
+        0 => id_potion.is_some_and(|id| state.id_potions.contains(&Some(id))),
+        1 => gold_ask.is_some() && state.entities[state.id_character].character_gold >= 50,
+        2 => id_card.is_some_and(|id| state.id_deck.contains(&id)),
+        3 => true,
+        _ => unreachable!("we meet again option out of range: {idx}"),
+    }
 }

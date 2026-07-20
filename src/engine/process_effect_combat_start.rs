@@ -3,33 +3,33 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::game::Energy;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
+use crate::types::Energy;
+use crate::types::Mode;
 use crate::types::MonsterKind;
 use crate::types::RelicName;
-use crate::types::Screen;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(state: &mut GameState) {
-    // Combat starting implies the combat screen, wherever it was queued from
-    state.screen = Screen::Combat;
-
+    let Mode::Combat(combat) = &mut state.mode else {
+        unreachable!("process_effect_combat_start outside Combat mode")
+    };
     // Energy starts empty; the turn-1 refill fills
-    state.energy = Energy {
+    combat.energy = Energy {
         energy_current: 0,
         energy_max: 3, // TODO: Max energy relics
     };
 
-    state.this_combat_damage_instances_taken = 0;
-    state.this_combat_escaped = false;
-    state.this_turn_cards_played = 0;
+    combat.this_combat_damage_instances_taken = 0;
+    combat.this_combat_escaped = false;
+    combat.this_turn_cards_played = 0;
 
     // Combat can end mid-turn, skipping the turn-end reset
     for &name in RELIC_COUNTERS_PER_TURN
@@ -62,15 +62,15 @@ pub fn process_effect_combat_start(state: &mut GameState) {
 
     shuffle(&mut other_ids[..other_n], &mut state.rng);
 
-    state.id_pile_draw.clear();
+    combat.id_pile_draw.clear();
     for &id in &other_ids[..other_n] {
-        state.id_pile_draw.push(id);
+        combat.id_pile_draw.push(id);
     }
     for &id in &innate_ids[..innate_n] {
-        state.id_pile_draw.push(id);
+        combat.id_pile_draw.push(id);
     }
 
-    state.id_picked_monster = None;
+    combat.id_picked_monster = None;
 
     // Monster MoveUpdates already queued at MonsterSpawn; queue character TurnStart
     state.effect_queue.push_front(Effect {
@@ -114,7 +114,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
 
     // Elite fights are identified by the monsters, not the room: Dead Adventurer's
     // elite returns inside an event room
-    let is_elite_fight = state
+    let is_elite_fight = combat
         .id_monsters
         .iter()
         .flatten()
@@ -122,7 +122,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
 
     // Preserved Insect
     if has_relic(&state.id_relics, RelicName::PreservedInsect) && is_elite_fight {
-        for id in state.id_monsters.iter().flatten().copied() {
+        for id in combat.id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthSet {
                     amount: Amount::Relative {

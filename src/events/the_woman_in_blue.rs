@@ -4,13 +4,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
 const fn buy(cost: u16, count: u8) -> [Effect; 3] {
     [
@@ -56,44 +51,35 @@ const OPTION_LEAVE_A15: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-// All options; the event only spawns with >= 50 gold, which covers every price
-const fn options(leave_effects: &'static [Effect], leave_label: &'static str) -> [EventOption; 4] {
-    [
-        EventOption {
-            label: "[Buy 1 Potion] Lose 20 Gold.",
-            effects: &OPTION_BUY_1,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Buy 2 Potions] Lose 30 Gold.",
-            effects: &OPTION_BUY_2,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Buy 3 Potions] Lose 40 Gold.",
-            effects: &OPTION_BUY_3,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: leave_label,
-            effects: leave_effects,
-            gate: EventGate::None,
-        },
-    ]
-}
-static OPTIONS_ALL_BASE: [EventOption; 4] = options(OPTION_LEAVE_BASE, "[Leave] Nothing happens.");
-static OPTIONS_ALL_A15: [EventOption; 4] =
-    options(OPTION_LEAVE_A15, "[Leave] Lose 5% of your Max HP.");
+// The event only spawns with >= 50 gold, which covers every price
+const LABELS_BASE: &[&str] = &[
+    "[Buy 1 Potion] Lose 20 Gold.",
+    "[Buy 2 Potions] Lose 30 Gold.",
+    "[Buy 3 Potions] Lose 40 Gold.",
+    "[Leave] Nothing happens.",
+];
+const LABELS_A15: &[&str] = &[
+    "[Buy 1 Potion] Lose 20 Gold.",
+    "[Buy 2 Potions] Lose 30 Gold.",
+    "[Buy 3 Potions] Lose 40 Gold.",
+    "[Leave] Lose 5% of your Max HP.",
+];
 
-// Export event
-static EVENT_THE_WOMAN_IN_BLUE_BASE: Entity =
-    make_entity_event(EventName::TheWomanInBlue, &OPTIONS_ALL_BASE);
-static EVENT_THE_WOMAN_IN_BLUE_A15: Entity =
-    make_entity_event(EventName::TheWomanInBlue, &OPTIONS_ALL_A15);
-pub fn spawn_event_the_woman_in_blue(ascension: u8) -> Entity {
+pub fn labels(ascension: u8) -> &'static [&'static str] {
     if ascension < 15 {
-        EVENT_THE_WOMAN_IN_BLUE_BASE
+        LABELS_BASE
     } else {
-        EVENT_THE_WOMAN_IN_BLUE_A15
+        LABELS_A15
     }
+}
+
+pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => &OPTION_BUY_1,
+        1 => &OPTION_BUY_2,
+        2 => &OPTION_BUY_3,
+        3 if ascension < 15 => OPTION_LEAVE_BASE,
+        3 => OPTION_LEAVE_A15,
+        _ => unreachable!("the woman in blue option out of range: {idx}"),
+    });
 }

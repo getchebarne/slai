@@ -1,13 +1,10 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
-use crate::types::EventName;
 
+// Search: the rolled potions land on the reward screen, where the belt is
+// interactive (discard-to-swap), matching the source's combatRewardScreen
 const fn search(count: u8) -> [Effect; 2] {
     [
         Effect {
@@ -18,31 +15,25 @@ const fn search(count: u8) -> [Effect; 2] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-
-// Search: the rolled potions land on the reward screen, where the belt is
-// interactive (discard-to-swap), matching the source's combatRewardScreen
 static OPTION_SEARCH_BASE: [Effect; 2] = search(3);
-static OPTION_SEARCH_A15: [Effect; 2] = search(2); // one fewer potion
+static OPTION_SEARCH_A15: [Effect; 2] = search(2);
 
-// All options; the source game offers no way to decline
-const OPTIONS_ALL_BASE: &[EventOption] = &[EventOption {
-    label: "[Search] Obtain 3 random potions.",
-    effects: &OPTION_SEARCH_BASE,
-    gate: EventGate::None,
-}];
-const OPTIONS_ALL_A15: &[EventOption] = &[EventOption {
-    label: "[Search] Obtain 2 random potions.",
-    effects: &OPTION_SEARCH_A15,
-    gate: EventGate::None,
-}];
+// The source game offers no way to decline
+const LABELS_BASE: &[&str] = &["[Search] Obtain 3 random potions."];
+const LABELS_A15: &[&str] = &["[Search] Obtain 2 random potions."];
 
-// Export event
-static EVENT_THE_LAB_BASE: Entity = make_entity_event(EventName::TheLab, OPTIONS_ALL_BASE);
-static EVENT_THE_LAB_A15: Entity = make_entity_event(EventName::TheLab, OPTIONS_ALL_A15);
-pub fn spawn_event_the_lab(ascension: u8) -> Entity {
+pub fn labels(ascension: u8) -> &'static [&'static str] {
     if ascension < 15 {
-        EVENT_THE_LAB_BASE
+        LABELS_BASE
     } else {
-        EVENT_THE_LAB_A15
+        LABELS_A15
     }
+}
+
+pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 if ascension < 15 => &OPTION_SEARCH_BASE,
+        0 => &OPTION_SEARCH_A15,
+        _ => unreachable!("the lab option out of range: {idx}"),
+    });
 }

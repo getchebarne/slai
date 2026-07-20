@@ -4,15 +4,10 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
-// Touch: gold gain first, then health loss
+// Touch: gold gain first, then health loss; -25 gold gain at A15
 const fn touch(gold: u16) -> [Effect; 3] {
     [
         Effect {
@@ -41,7 +36,7 @@ const fn touch(gold: u16) -> [Effect; 3] {
     ]
 }
 static OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
-static OPTION_TOUCH_A15: [Effect; 3] = touch(50); // -25 gold gain
+static OPTION_TOUCH_A15: [Effect; 3] = touch(50);
 
 // Trade: gain random unowned face relic
 const OPTION_TRADE: &[Effect] = &[
@@ -56,42 +51,31 @@ const OPTION_TRADE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const fn options(touch_effects: &'static [Effect], touch_label: &'static str) -> [EventOption; 3] {
-    [
-        EventOption {
-            label: touch_label,
-            effects: touch_effects,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Trade] Obtain a random face.",
-            effects: OPTION_TRADE,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Leave] Nothing happens.",
-            effects: OPTION_LEAVE,
-            gate: EventGate::None,
-        },
-    ]
-}
-static OPTIONS_ALL_BASE: [EventOption; 3] = options(
-    &OPTION_TOUCH_BASE,
+const LABELS_BASE: &[&str] = &[
     "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
-);
-static OPTIONS_ALL_A15: [EventOption; 3] = options(
-    &OPTION_TOUCH_A15,
+    "[Trade] Obtain a random face.",
+    "[Leave] Nothing happens.",
+];
+const LABELS_A15: &[&str] = &[
     "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
-);
+    "[Trade] Obtain a random face.",
+    "[Leave] Nothing happens.",
+];
 
-// Export event
-static EVENT_FACE_TRADER_BASE: Entity = make_entity_event(EventName::FaceTrader, &OPTIONS_ALL_BASE);
-static EVENT_FACE_TRADER_A15: Entity = make_entity_event(EventName::FaceTrader, &OPTIONS_ALL_A15);
-pub fn spawn_event_face_trader(ascension: u8) -> Entity {
+pub fn labels(ascension: u8) -> &'static [&'static str] {
     if ascension < 15 {
-        EVENT_FACE_TRADER_BASE
+        LABELS_BASE
     } else {
-        EVENT_FACE_TRADER_A15
+        LABELS_A15
     }
+}
+
+pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 if ascension < 15 => &OPTION_TOUCH_BASE,
+        0 => &OPTION_TOUCH_A15,
+        1 => OPTION_TRADE,
+        2 => OPTION_LEAVE,
+        _ => unreachable!("face trader option out of range: {idx}"),
+    });
 }

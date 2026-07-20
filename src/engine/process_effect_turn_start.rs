@@ -13,11 +13,15 @@ use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardName;
+use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
 pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
+    let Mode::Combat(combat) = &mut state.mode else {
+        unreachable!("process_effect_turn_start outside Combat mode")
+    };
     let id_actor = id_target.expect("TurnStart requires id_target");
 
     // Clear effect buffer
@@ -86,12 +90,12 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         // Ice Cream: refill adds a full energy_max on top instead of topping up
         let energy_gain = if has_relic(&state.id_relics, RelicName::IceCream) {
-            state.energy.energy_max
+            combat.energy.energy_max
         } else {
-            state
+            combat
                 .energy
                 .energy_max
-                .saturating_sub(state.energy.energy_current)
+                .saturating_sub(combat.energy.energy_current)
         };
 
         // Energy refill
@@ -109,7 +113,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
         });
-        for id_monster in state.id_monsters.iter().flatten().copied() {
+        for id_monster in combat.id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierTick,
                 id_source: None,
@@ -120,7 +124,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         // Noxius Fumes: Monsters get `stacks` poison stacks
         if has_modifier(modifiers, ModifierKind::NoxiousFumes) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NoxiousFumes);
-            for id_monster in state.id_monsters.iter().flatten().copied() {
+            for id_monster in combat.id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::ModifierGain {
                         kind: ModifierKind::Poison,
@@ -133,7 +137,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
 
         // Choke auto-removes at the next player turn start
-        for id_monster in state.id_monsters.iter().flatten().copied() {
+        for id_monster in combat.id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierRemove {
                     kind: ModifierKind::Choke,
@@ -144,7 +148,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
 
         // Spawn nightmare copies
-        if state.id_card_nightmare.is_some() {
+        if combat.id_card_nightmare.is_some() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardNightmareSpawn,
                 id_source: None,
@@ -258,7 +262,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         // Mercury Hourglass: deal 3 damage to all Monsters
         if has_relic(&state.id_relics, RelicName::MercuryHourglass) {
-            for id_monster in state.id_monsters.iter().flatten().copied() {
+            for id_monster in combat.id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal { amount: 3 },
                     id_source: None,

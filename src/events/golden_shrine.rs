@@ -2,16 +2,11 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
 use crate::types::CardName;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
-// Pray
+// Pray: -50 gold gain at A15
 const fn pray(amount: u16) -> [Effect; 2] {
     [
         Effect {
@@ -26,7 +21,7 @@ const fn pray(amount: u16) -> [Effect; 2] {
     ]
 }
 static OPTION_PRAY_BASE: [Effect; 2] = pray(100);
-static OPTION_PRAY_A15: [Effect; 2] = pray(50); // -50 gold gain
+static OPTION_PRAY_A15: [Effect; 2] = pray(50);
 
 // Desecrate
 const OPTION_DESECRATE: &[Effect] = &[
@@ -52,38 +47,31 @@ const OPTION_DESECRATE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const fn options(pray_effects: &'static [Effect], pray_label: &'static str) -> [EventOption; 3] {
-    [
-        EventOption {
-            label: pray_label,
-            effects: pray_effects,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
-            effects: OPTION_DESECRATE,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Leave] Nothing happens.",
-            effects: OPTION_LEAVE,
-            gate: EventGate::None,
-        },
-    ]
-}
-static OPTIONS_ALL_BASE: [EventOption; 3] = options(&OPTION_PRAY_BASE, "[Pray] Gain 100 Gold.");
-static OPTIONS_ALL_A15: [EventOption; 3] = options(&OPTION_PRAY_A15, "[Pray] Gain 50 Gold.");
+const LABELS_BASE: &[&str] = &[
+    "[Pray] Gain 100 Gold.",
+    "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
+    "[Leave] Nothing happens.",
+];
+const LABELS_A15: &[&str] = &[
+    "[Pray] Gain 50 Gold.",
+    "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
+    "[Leave] Nothing happens.",
+];
 
-// Export event
-static EVENT_GOLDEN_SHRINE_BASE: Entity =
-    make_entity_event(EventName::GoldenShrine, &OPTIONS_ALL_BASE);
-static EVENT_GOLDEN_SHRINE_A15: Entity =
-    make_entity_event(EventName::GoldenShrine, &OPTIONS_ALL_A15);
-pub fn spawn_event_golden_shrine(ascension: u8) -> Entity {
+pub fn labels(ascension: u8) -> &'static [&'static str] {
     if ascension < 15 {
-        EVENT_GOLDEN_SHRINE_BASE
+        LABELS_BASE
     } else {
-        EVENT_GOLDEN_SHRINE_A15
+        LABELS_A15
     }
+}
+
+pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 if ascension < 15 => &OPTION_PRAY_BASE,
+        0 => &OPTION_PRAY_A15,
+        1 => OPTION_DESECRATE,
+        2 => OPTION_LEAVE,
+        _ => unreachable!("golden shrine option out of range: {idx}"),
+    });
 }

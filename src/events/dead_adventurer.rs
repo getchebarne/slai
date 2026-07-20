@@ -3,19 +3,14 @@ use rand::Rng;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
-use crate::events::ADVENTURER_REWARD_GOLD;
-use crate::events::ADVENTURER_REWARD_NOTHING;
-use crate::events::ADVENTURER_REWARD_RELIC;
+use crate::events::DeadAdventurerReward;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
+use crate::events::EventPayload;
 use crate::game::GameState;
-use crate::types::EventName;
+use crate::types::MonsterEncounter;
 
 // Search: escalating elite-return chance; the AdventurerSearch processor grants
-// the pre-rolled loot, advances event_state, and consumes after the third find
+// the pre-rolled loot, advances the search count, and consumes after the third find
 const OPTION_SEARCH: &[Effect] = &[Effect {
     kind: EffectKind::AdventurerSearch,
     id_source: None,
@@ -25,35 +20,37 @@ const OPTION_SEARCH: &[Effect] = &[Effect {
 // Escape
 const OPTION_ESCAPE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Search] Find loot; the telegraphed elite may return.",
-        effects: OPTION_SEARCH,
-        gate: EventGate::None,
-    },
-    EventOption {
-        label: "[Escape] Leave with what you found.",
-        effects: OPTION_ESCAPE,
-        gate: EventGate::None,
-    },
+pub const LABELS: &[&str] = &[
+    "[Search] Find loot; the telegraphed elite may return.",
+    "[Escape] Leave with what you found.",
 ];
 
-// Export event
-static EVENT_DEAD_ADVENTURER: Entity = make_entity_event(EventName::DeadAdventurer, OPTIONS_ALL);
-pub fn spawn_event_dead_adventurer(state: &mut GameState) -> Entity {
-    let mut event = EVENT_DEAD_ADVENTURER;
-
+pub fn spawn_event_dead_adventurer(state: &mut GameState) -> EventPayload {
     // Which elite returns (telegraphed in the snapshot); rewards are a shrinking
     // pool: each miss draws one uniformly and removes it, which matches the
     // source's shuffled-order-consumed-in-sequence distribution
-    event.event_rolls = [
-        state.rng.random_range(0..3),
-        ADVENTURER_REWARD_GOLD,
-        ADVENTURER_REWARD_NOTHING,
-        ADVENTURER_REWARD_RELIC,
-    ];
-    event.event_rolls_len = 4;
+    let encounter = match state.rng.random_range(0..3) {
+        0 => MonsterEncounter::ThreeSentries,
+        1 => MonsterEncounter::GremlinNob,
+        2 => MonsterEncounter::Lagavulin,
+        roll => unreachable!("adventurer enemy roll out of range: {roll}"),
+    };
+    EventPayload::DeadAdventurer {
+        encounter,
+        rewards: [
+            DeadAdventurerReward::Gold,
+            DeadAdventurerReward::Nothing,
+            DeadAdventurerReward::Relic,
+        ],
+        rewards_len: 3,
+        searches: 0,
+    }
+}
 
-    event
+pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => OPTION_SEARCH,
+        1 => OPTION_ESCAPE,
+        _ => unreachable!("dead adventurer option out of range: {idx}"),
+    });
 }

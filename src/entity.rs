@@ -4,13 +4,11 @@ use strum::EnumCount;
 
 use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
-use crate::consts::MAX_EVENT_ROLLS;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
-use crate::events::EventOption;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::CardColor;
@@ -18,7 +16,6 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::ChestKind;
-use crate::types::EventName;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::PotionName;
@@ -39,7 +36,6 @@ pub enum EntityKind {
     Room,
     Relic,
     Potion,
-    Event,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -182,15 +178,6 @@ pub struct Entity {
     pub potion_rarity: PotionRarity,
     pub potion_combat_only: bool,
     pub potion_effects: &'static [Effect],
-
-    // Event-only. `event_rolls` holds scalar entry rolls (Dead Adventurer's enemy and
-    // reward order); entity picks live in GameState.id_event_picks, never on entities
-    pub event_name: EventName,
-    pub event_options: &'static [EventOption],
-    pub event_consumed: bool,
-    pub event_state: u8,
-    pub event_rolls: [u16; MAX_EVENT_ROLLS],
-    pub event_rolls_len: u8,
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots
@@ -247,12 +234,6 @@ pub const ZERO_ENTITY: Entity = Entity {
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,
     potion_effects: &[],
-    event_name: EventName::BigFish,
-    event_options: &[],
-    event_consumed: false,
-    event_state: 0,
-    event_rolls: [0; MAX_EVENT_ROLLS],
-    event_rolls_len: 0,
 };
 
 // Constructors
@@ -393,15 +374,6 @@ pub const fn make_entity_potion(
         requires_target: requires_target,
         potion_combat_only: combat_only,
         potion_effects: effects,
-        ..ZERO_ENTITY
-    }
-}
-
-pub const fn make_entity_event(name: EventName, options: &'static [EventOption]) -> Entity {
-    Entity {
-        kind: EntityKind::Event,
-        event_name: name,
-        event_options: options,
         ..ZERO_ENTITY
     }
 }

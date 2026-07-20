@@ -1,5 +1,9 @@
 use crate::game::GameState;
+use crate::types::Mode;
 
 pub fn process_effect_target_clear(state: &mut GameState) {
-    state.id_picked_monster = None;
+    let Mode::Combat(combat) = &mut state.mode else {
+        unreachable!("process_effect_target_clear outside Combat mode")
+    };
+    combat.id_picked_monster = None;
 }

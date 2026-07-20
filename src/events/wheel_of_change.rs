@@ -1,12 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
-use crate::types::EventName;
 
 // Spin
 const OPTION_SPIN: &[Effect] = &[
@@ -19,14 +14,12 @@ const OPTION_SPIN: &[Effect] = &[
 ];
 
 // Spin is mandatory, there's no "Leave" option
-const OPTIONS_ALL: &[EventOption] = &[EventOption {
-    label: "[Spin] Gold, a relic, a full heal, a Decay, a card removal, or HP loss.",
-    effects: OPTION_SPIN,
-    gate: EventGate::None,
-}];
+pub const LABELS: &[&str] =
+    &["[Spin] Gold, a relic, a full heal, a Decay, a card removal, or HP loss."];
 
-// Export event
-static EVENT_WHEEL_OF_CHANGE: Entity = make_entity_event(EventName::WheelOfChange, OPTIONS_ALL);
-pub fn spawn_event_wheel_of_change() -> Entity {
-    EVENT_WHEEL_OF_CHANGE
+pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => OPTION_SPIN,
+        _ => unreachable!("wheel of change option out of range: {idx}"),
+    });
 }

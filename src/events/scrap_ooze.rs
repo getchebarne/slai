@@ -1,12 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
-use crate::types::EventName;
 
 // Reach in; +1 HP and +10% per miss until the 105% rung, which cannot fail
 const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 1] {
@@ -20,143 +15,80 @@ const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 1] {
         target: Target::Direct(None),
     }]
 }
-static OPTION_REACH_BASE_0: [Effect; 1] = reach(3, 25, true);
-static OPTION_REACH_BASE_1: [Effect; 1] = reach(4, 35, true);
-static OPTION_REACH_BASE_2: [Effect; 1] = reach(5, 45, true);
-static OPTION_REACH_BASE_3: [Effect; 1] = reach(6, 55, true);
-static OPTION_REACH_BASE_4: [Effect; 1] = reach(7, 65, true);
-static OPTION_REACH_BASE_5: [Effect; 1] = reach(8, 75, true);
-static OPTION_REACH_BASE_6: [Effect; 1] = reach(9, 85, true);
-static OPTION_REACH_BASE_7: [Effect; 1] = reach(10, 95, true);
-static OPTION_REACH_BASE_8: [Effect; 1] = reach(11, 105, false);
+static OPTIONS_REACH_BASE: [[Effect; 1]; 9] = [
+    reach(3, 25, true),
+    reach(4, 35, true),
+    reach(5, 45, true),
+    reach(6, 55, true),
+    reach(7, 65, true),
+    reach(8, 75, true),
+    reach(9, 85, true),
+    reach(10, 95, true),
+    reach(11, 105, false),
+];
 
-// Base damage 3 -> 5
-static OPTION_REACH_A15_0: [Effect; 1] = reach(5, 25, true);
-static OPTION_REACH_A15_1: [Effect; 1] = reach(6, 35, true);
-static OPTION_REACH_A15_2: [Effect; 1] = reach(7, 45, true);
-static OPTION_REACH_A15_3: [Effect; 1] = reach(8, 55, true);
-static OPTION_REACH_A15_4: [Effect; 1] = reach(9, 65, true);
-static OPTION_REACH_A15_5: [Effect; 1] = reach(10, 75, true);
-static OPTION_REACH_A15_6: [Effect; 1] = reach(11, 85, true);
-static OPTION_REACH_A15_7: [Effect; 1] = reach(12, 95, true);
-static OPTION_REACH_A15_8: [Effect; 1] = reach(13, 105, false);
+// Base damage 3 -> 5 at A15
+static OPTIONS_REACH_A15: [[Effect; 1]; 9] = [
+    reach(5, 25, true),
+    reach(6, 35, true),
+    reach(7, 45, true),
+    reach(8, 55, true),
+    reach(9, 65, true),
+    reach(10, 75, true),
+    reach(11, 85, true),
+    reach(12, 95, true),
+    reach(13, 105, false),
+];
 
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const OPTIONS_ALL_BASE: &[EventOption] = &[
-    EventOption {
-        label: "[Reach Inside] Lose 3 HP. 25% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_0,
-        gate: EventGate::EventStateEq(0),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 4 HP. 35% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_1,
-        gate: EventGate::EventStateEq(1),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 5 HP. 45% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_2,
-        gate: EventGate::EventStateEq(2),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 6 HP. 55% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_3,
-        gate: EventGate::EventStateEq(3),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 7 HP. 65% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_4,
-        gate: EventGate::EventStateEq(4),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 8 HP. 75% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_5,
-        gate: EventGate::EventStateEq(5),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 9 HP. 85% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_6,
-        gate: EventGate::EventStateEq(6),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 10 HP. 95% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_7,
-        gate: EventGate::EventStateEq(7),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 11 HP. 105% chance for a Relic.",
-        effects: &OPTION_REACH_BASE_8,
-        gate: EventGate::EventStateEq(8),
-    },
-    EventOption {
-        label: "[Leave] Nothing happens.",
-        effects: OPTION_LEAVE,
-        gate: EventGate::None,
-    },
+const LABELS_BASE: &[&str] = &[
+    "[Reach Inside] Lose 3 HP. 25% chance for a Relic.",
+    "[Reach Inside] Lose 4 HP. 35% chance for a Relic.",
+    "[Reach Inside] Lose 5 HP. 45% chance for a Relic.",
+    "[Reach Inside] Lose 6 HP. 55% chance for a Relic.",
+    "[Reach Inside] Lose 7 HP. 65% chance for a Relic.",
+    "[Reach Inside] Lose 8 HP. 75% chance for a Relic.",
+    "[Reach Inside] Lose 9 HP. 85% chance for a Relic.",
+    "[Reach Inside] Lose 10 HP. 95% chance for a Relic.",
+    "[Reach Inside] Lose 11 HP. 105% chance for a Relic.",
+    "[Leave] Nothing happens.",
 ];
-const OPTIONS_ALL_A15: &[EventOption] = &[
-    EventOption {
-        label: "[Reach Inside] Lose 5 HP. 25% chance for a Relic.",
-        effects: &OPTION_REACH_A15_0,
-        gate: EventGate::EventStateEq(0),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 6 HP. 35% chance for a Relic.",
-        effects: &OPTION_REACH_A15_1,
-        gate: EventGate::EventStateEq(1),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 7 HP. 45% chance for a Relic.",
-        effects: &OPTION_REACH_A15_2,
-        gate: EventGate::EventStateEq(2),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 8 HP. 55% chance for a Relic.",
-        effects: &OPTION_REACH_A15_3,
-        gate: EventGate::EventStateEq(3),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 9 HP. 65% chance for a Relic.",
-        effects: &OPTION_REACH_A15_4,
-        gate: EventGate::EventStateEq(4),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 10 HP. 75% chance for a Relic.",
-        effects: &OPTION_REACH_A15_5,
-        gate: EventGate::EventStateEq(5),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 11 HP. 85% chance for a Relic.",
-        effects: &OPTION_REACH_A15_6,
-        gate: EventGate::EventStateEq(6),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 12 HP. 95% chance for a Relic.",
-        effects: &OPTION_REACH_A15_7,
-        gate: EventGate::EventStateEq(7),
-    },
-    EventOption {
-        label: "[Reach Inside] Lose 13 HP. 105% chance for a Relic.", // Base game also reads 105%. I'm innocent
-        effects: &OPTION_REACH_A15_8,
-        gate: EventGate::EventStateEq(8),
-    },
-    EventOption {
-        label: "[Leave] Nothing happens.",
-        effects: OPTION_LEAVE,
-        gate: EventGate::None,
-    },
+const LABELS_A15: &[&str] = &[
+    "[Reach Inside] Lose 5 HP. 25% chance for a Relic.",
+    "[Reach Inside] Lose 6 HP. 35% chance for a Relic.",
+    "[Reach Inside] Lose 7 HP. 45% chance for a Relic.",
+    "[Reach Inside] Lose 8 HP. 55% chance for a Relic.",
+    "[Reach Inside] Lose 9 HP. 65% chance for a Relic.",
+    "[Reach Inside] Lose 10 HP. 75% chance for a Relic.",
+    "[Reach Inside] Lose 11 HP. 85% chance for a Relic.",
+    "[Reach Inside] Lose 12 HP. 95% chance for a Relic.",
+    "[Reach Inside] Lose 13 HP. 105% chance for a Relic.", // Base game also reads 105%. I'm innocent
+    "[Leave] Nothing happens.",
 ];
 
-// Export event
-static EVENT_SCRAP_OOZE_BASE: Entity = make_entity_event(EventName::ScrapOoze, OPTIONS_ALL_BASE);
-static EVENT_SCRAP_OOZE_A15: Entity = make_entity_event(EventName::ScrapOoze, OPTIONS_ALL_A15);
-pub fn spawn_event_scrap_ooze(ascension: u8) -> Entity {
+pub fn labels(ascension: u8) -> &'static [&'static str] {
     if ascension < 15 {
-        EVENT_SCRAP_OOZE_BASE
+        LABELS_BASE
     } else {
-        EVENT_SCRAP_OOZE_A15
+        LABELS_A15
+    }
+}
+
+pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0..=8 if ascension < 15 => &OPTIONS_REACH_BASE[idx],
+        0..=8 => &OPTIONS_REACH_A15[idx],
+        9 => OPTION_LEAVE,
+        _ => unreachable!("scrap ooze option out of range: {idx}"),
+    });
+}
+
+pub fn option_available(attempts: u8, idx: usize) -> bool {
+    match idx {
+        0..=8 => idx as u8 == attempts,
+        9 => true,
+        _ => unreachable!("scrap ooze option out of range: {idx}"),
     }
 }

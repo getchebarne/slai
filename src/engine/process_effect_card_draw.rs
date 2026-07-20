@@ -5,9 +5,13 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
+use crate::types::Mode;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
+    let Mode::Combat(combat) = &mut state.mode else {
+        unreachable!("process_effect_card_draw outside Combat mode")
+    };
     if has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::NoDraw,
@@ -20,21 +24,21 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     let mut shuffle_resume_remaining: Option<u16> = None;
 
     for i in 0..count {
-        if state.id_pile_draw.is_empty() {
-            if state.id_pile_discard.is_empty() {
+        if combat.id_pile_draw.is_empty() {
+            if combat.id_pile_discard.is_empty() {
                 break;
             }
             shuffle_resume_remaining = Some(count - i);
             break;
         }
 
-        let id_card = state.id_pile_draw.pop().unwrap();
+        let id_card = combat.id_pile_draw.pop().unwrap();
 
-        if state.id_hand.len() < MAX_SIZE_HAND {
-            state.id_hand.push(id_card);
-            state.id_card_last_drawn = Some(id_card);
+        if combat.id_hand.len() < MAX_SIZE_HAND {
+            combat.id_hand.push(id_card);
+            combat.id_card_last_drawn = Some(id_card);
         } else {
-            state.id_pile_discard.push(id_card);
+            combat.id_pile_discard.push(id_card);
         }
         if id_drawn_n < id_drawn.len() {
             id_drawn[id_drawn_n] = id_card;

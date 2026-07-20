@@ -14,9 +14,9 @@ use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
 use crate::monsters::the_guardian;
 use crate::types::DeltaSign;
+use crate::types::Mode;
 use crate::types::MonsterName;
 use crate::types::RelicName;
-use crate::types::Screen;
 use crate::utils::has_relic;
 
 pub fn process_effect_health_delta(
@@ -100,7 +100,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     // Centennial Puzzle: the first actual HP loss each combat draws 3
     if id_target == state.id_character
         && amount > 0
-        && matches!(state.screen, Screen::Combat)
+        && matches!(state.mode, Mode::Combat(_))
         && let Some(id_relic) = state.id_relics[RelicName::CentennialPuzzle as usize]
         && state.entities[id_relic].relic_counter == 0
     {
@@ -113,9 +113,12 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     }
 
     // Bump number of damage instances taken this combat
-    if id_target == state.id_character && amount > 0 && matches!(state.screen, Screen::Combat) {
-        state.this_combat_damage_instances_taken =
-            state.this_combat_damage_instances_taken.saturating_add(1);
+    if id_target == state.id_character
+        && amount > 0
+        && let Mode::Combat(combat) = &mut state.mode
+    {
+        combat.this_combat_damage_instances_taken =
+            combat.this_combat_damage_instances_taken.saturating_add(1);
     }
 
     // Get mutable target reference

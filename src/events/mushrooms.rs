@@ -4,14 +4,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
 use crate::types::CardName;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 use crate::types::MonsterName;
 
 const SPAWN_FUNGI: Effect = Effect {
@@ -62,22 +57,15 @@ const OPTION_EAT: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Stomp] Fight 3 Fungi Beasts.",
-        effects: OPTION_STOMP,
-        gate: EventGate::None,
-    },
-    EventOption {
-        label: "[Eat] Heal 25% of your Max HP. Become Cursed - Parasite.",
-        effects: OPTION_EAT,
-        gate: EventGate::None,
-    },
+pub const LABELS: &[&str] = &[
+    "[Stomp] Fight 3 Fungi Beasts.",
+    "[Eat] Heal 25% of your Max HP. Become Cursed - Parasite.",
 ];
 
-// Export event
-static EVENT_MUSHROOMS: Entity = make_entity_event(EventName::Mushrooms, OPTIONS_ALL);
-pub fn spawn_event_mushrooms() -> Entity {
-    EVENT_MUSHROOMS
+pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => OPTION_STOMP,
+        1 => OPTION_EAT,
+        _ => unreachable!("mushrooms option out of range: {idx}"),
+    });
 }

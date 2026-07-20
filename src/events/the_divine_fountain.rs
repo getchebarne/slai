@@ -4,12 +4,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
-use crate::types::EventName;
 
 // Drink: purge every removable curse at once
 const OPTION_DRINK: &[Effect] = &[
@@ -29,23 +24,16 @@ const OPTION_DRINK: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options; the event only spawns with a removable curse in the deck
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Drink] Remove all Curses from your deck.",
-        effects: OPTION_DRINK,
-        gate: EventGate::None,
-    },
-    EventOption {
-        label: "[Leave] Nothing happens.",
-        effects: OPTION_LEAVE,
-        gate: EventGate::None,
-    },
+// The event only spawns with a removable curse in the deck
+pub const LABELS: &[&str] = &[
+    "[Drink] Remove all Curses from your deck.",
+    "[Leave] Nothing happens.",
 ];
 
-// Export event
-static EVENT_THE_DIVINE_FOUNTAIN: Entity =
-    make_entity_event(EventName::TheDivineFountain, OPTIONS_ALL);
-pub fn spawn_event_the_divine_fountain() -> Entity {
-    EVENT_THE_DIVINE_FOUNTAIN
+pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => OPTION_DRINK,
+        1 => OPTION_LEAVE,
+        _ => unreachable!("divine fountain option out of range: {idx}"),
+    });
 }

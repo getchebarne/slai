@@ -14,7 +14,8 @@ use crate::consts::CHEST_SMALL_TH_COMMON;
 use crate::consts::CHEST_SMALL_TH_UNCOMMON;
 use crate::game::GameState;
 use crate::types::ChestKind;
-use crate::types::Screen;
+use crate::types::Mode;
+use crate::types::Rewards;
 use crate::utils::add_relic_reward_for_roll;
 
 #[derive(Debug, Clone, Copy)]
@@ -48,12 +49,12 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
     };
 
     let roll = state.rng.random_range(0..100) as u8;
-    state.reward_gold = if roll < chest_params.gold_chance {
+    let gold = if roll < chest_params.gold_chance {
         Some(roll_gold_amount(&mut state.rng, chest_params))
     } else {
         None
     };
-    state.reward_id_relic = Some(add_relic_reward_for_roll(
+    let id_relic = Some(add_relic_reward_for_roll(
         roll,
         chest_params.th_common,
         chest_params.th_uncommon,
@@ -61,10 +62,13 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
         &mut state.entities,
         &mut state.rng,
     ));
-    state.reward_id_cards.clear();
-    state.reward_id_potions.clear();
 
-    state.screen = Screen::Reward;
+    state.mode = Mode::Reward(Rewards {
+        id_cards: Vec::new(),
+        id_relic,
+        id_potions: Vec::new(),
+        gold,
+    });
 }
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {

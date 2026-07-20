@@ -4,14 +4,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
 use crate::types::CardName;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
 // Banana
 const OPTION_BANANA: &[Effect] = &[
@@ -66,27 +61,17 @@ const OPTION_BOX: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Banana] Heal 1/3 of your max HP.",
-        effects: OPTION_BANANA,
-        gate: EventGate::None,
-    },
-    EventOption {
-        label: "[Donut] Raise your max HP by 5.",
-        effects: OPTION_DONUT,
-        gate: EventGate::None,
-    },
-    EventOption {
-        label: "[Box] Receive a Relic. Become Cursed - Regret.",
-        effects: OPTION_BOX,
-        gate: EventGate::None,
-    },
+pub const LABELS: &[&str] = &[
+    "[Banana] Heal 1/3 of your max HP.",
+    "[Donut] Raise your max HP by 5.",
+    "[Box] Receive a Relic. Become Cursed - Regret.",
 ];
 
-// Export event
-static EVENT_BIG_FISH: Entity = make_entity_event(EventName::BigFish, OPTIONS_ALL);
-pub fn spawn_event_big_fish() -> Entity {
-    EVENT_BIG_FISH
+pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => OPTION_BANANA,
+        1 => OPTION_DONUT,
+        2 => OPTION_BOX,
+        _ => unreachable!("big fish option out of range: {idx}"),
+    });
 }

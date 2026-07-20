@@ -165,6 +165,7 @@ pub enum EffectKind {
     },
     RewardRollCombat {
         room_kind: RoomKind,
+        escaped: bool,
     },
     RewardRollPotions {
         count: u8,
@@ -217,7 +218,6 @@ pub enum Amount {
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
-    EventRoll { idx: u8 }, // Reads the current event's entry-roll slot at dequeue
 }
 
 // Source pool for a Resolve effect
@@ -229,9 +229,6 @@ pub enum CandidatePool {
     Source,
     Discover,
     Deck { filter: CandidatePoolCardFilter },
-    // Entry-rolled event picks (state.id_event_picks), filtered by entity kind
-    EventPickCard,
-    EventPickPotion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

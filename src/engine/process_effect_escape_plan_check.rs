@@ -3,10 +3,14 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardKind;
+use crate::types::Mode;
 
 // If last-drawn is a Skill, gain `block`; consumes id_card_last_drawn
 pub fn process_effect_escape_plan_check(state: &mut GameState, block: u16) {
-    let id_card = match state.id_card_last_drawn.take() {
+    let Mode::Combat(combat) = &mut state.mode else {
+        unreachable!("process_effect_escape_plan_check outside Combat mode")
+    };
+    let id_card = match combat.id_card_last_drawn.take() {
         Some(id) => id,
         None => return,
     };

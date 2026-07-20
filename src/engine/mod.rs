@@ -95,7 +95,6 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-use crate::consts::MAX_MONSTERS;
 use crate::effect::CandidatePool;
 use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
@@ -103,9 +102,13 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::EntityKind;
 use crate::game::GameState;
+use crate::game::Location;
+use crate::map::get_active_room_kind;
 use crate::types::CardColor;
+use crate::types::Combat;
+use crate::types::Mode;
+use crate::types::RoomKind;
 use crate::utils::card_filter_matches;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
@@ -131,17 +134,15 @@ fn fill_buf_candidates(
     candidate_pool: CandidatePool,
     id_source: Option<usize>,
     id_character: usize,
-    id_hand: &[usize],
-    id_picked_monster: Option<usize>,
-    id_monsters: &[Option<usize>; MAX_MONSTERS],
+    combat: Option<&Combat>,
     entities: &[Entity],
-    id_discover: &[usize],
     id_deck: &[usize],
-    id_event_picks: &[usize],
 ) {
+    // Combat-scoped pools demand the combat context; Character/Source/Deck don't
+    let in_combat = || combat.expect("combat-scoped candidate pool outside Combat mode");
     match candidate_pool {
         CandidatePool::Hand { filter } => {
-            for &id in id_hand {
+            for &id in &in_combat().id_hand {
                 if card_filter_matches(filter, &entities[id]) {
                     effect_candidate_buf.push(id);
                 }
@@ -150,13 +151,13 @@ fn fill_buf_candidates(
         CandidatePool::Character => effect_candidate_buf.push(id_character),
         CandidatePool::Monsters { filter } => match filter {
             CandidatePoolMonstersFilter::All => {
-                effect_candidate_buf.extend(id_monsters.iter().flatten().copied())
+                effect_candidate_buf.extend(in_combat().id_monsters.iter().flatten().copied())
             }
             CandidatePoolMonstersFilter::Other => {
                 let id_source =
                     id_source.expect("CandidatePool::Monsters{Other} requires id_source");
                 // Iterate all monsters skipping the one that sourced the effect
-                for id_monster in id_monsters.iter().flatten().copied() {
+                for id_monster in in_combat().id_monsters.iter().flatten().copied() {
                     if id_monster != id_source {
                         effect_candidate_buf.push(id_monster);
                     }
@@ -167,7 +168,8 @@ fn fill_buf_candidates(
                 }
             }
             CandidatePoolMonstersFilter::Picked => effect_candidate_buf.push(
-                id_picked_monster
+                in_combat()
+                    .id_picked_monster
                     .expect("CandidatePool::Monsters{Picked} requires id_picked_monster"),
             ),
         },
@@ -177,24 +179,10 @@ fn fill_buf_candidates(
 
             effect_candidate_buf.push(id_source)
         }
-        CandidatePool::Discover => effect_candidate_buf.extend_from_slice(id_discover),
+        CandidatePool::Discover => effect_candidate_buf.extend_from_slice(&in_combat().id_discover),
         CandidatePool::Deck { filter } => {
             for &id in id_deck {
                 if card_filter_matches(filter, &entities[id]) {
-                    effect_candidate_buf.push(id);
-                }
-            }
-        }
-        CandidatePool::EventPickCard => {
-            for &id in id_event_picks {
-                if entities[id].kind == EntityKind::Card {
-                    effect_candidate_buf.push(id);
-                }
-            }
-        }
-        CandidatePool::EventPickPotion => {
-            for &id in id_event_picks {
-                if entities[id].kind == EntityKind::Potion {
                     effect_candidate_buf.push(id);
                 }
             }
@@ -265,18 +253,18 @@ fn resolve_or_halt(
 ) -> bool {
     // Clear candidate buffer and re-fill it
     state.effect_candidate_buf.clear();
+    let combat = match &state.mode {
+        Mode::Combat(combat) => Some(combat),
+        _ => None,
+    };
     fill_buf_candidates(
         &mut state.effect_candidate_buf,
         candidate_pool,
         id_source,
         state.id_character,
-        &state.id_hand,
-        state.id_picked_monster,
-        &state.id_monsters,
+        combat,
         &state.entities,
-        &state.id_discover,
         &state.id_deck,
-        &state.id_event_picks,
     );
 
     // Resolve `SelectionKind`. Returns `true` if the effect's targets were resolved
@@ -359,7 +347,7 @@ fn dispatch_by_kind(
             process_effect_calculated_gamble::process_effect_calculated_gamble(state)
         }
         EffectKind::AdventurerSearch => {
-            process_effect_adventurer_search::process_effect_adventurer_search(id_source, state)
+            process_effect_adventurer_search::process_effect_adventurer_search(state)
         }
         EffectKind::BonfireOffer => {
             process_effect_bonfire_offer::process_effect_bonfire_offer(id_target, state)
@@ -369,8 +357,8 @@ fn dispatch_by_kind(
         EffectKind::CardUpgrade => {
             process_effect_card_upgrade::process_effect_card_upgrade(id_target, state)
         }
-        EffectKind::RewardRollCombat { room_kind } => {
-            process_effect_reward_roll_combat::process_effect_reward_roll_combat(state, room_kind);
+        EffectKind::RewardRollCombat { room_kind, escaped } => {
+            process_effect_reward_roll_combat::process_effect_reward_roll_combat(state, room_kind, escaped);
         }
         EffectKind::RewardRollPotions { count } => {
             process_effect_reward_roll_potions::process_effect_reward_roll_potions(state, count)
@@ -608,23 +596,20 @@ fn dispatch_by_kind(
             process_effect_relic_adopt::process_effect_relic_adopt(id_target, state)
         }
         EffectKind::EventAdvanceState { delta } => {
-            process_effect_event_advance_state::process_effect_event_advance_state(
-                id_source, state, delta,
-            )
+            process_effect_event_advance_state::process_effect_event_advance_state(state, delta)
         }
         EffectKind::ScrapOozeReach {
             dmg,
             chance,
             advance_on_miss,
         } => process_effect_scrap_ooze_reach::process_effect_scrap_ooze_reach(
-            id_source,
             state,
             dmg,
             chance,
             advance_on_miss,
         ),
         EffectKind::EventConsume => {
-            process_effect_event_consume::process_effect_event_consume(id_source, state)
+            process_effect_event_consume::process_effect_event_consume(state)
         }
         EffectKind::CardDiscoverPick => {
             process_effect_card_discover_pick::process_effect_card_discover_pick(id_target, state)
@@ -645,10 +630,68 @@ pub fn process_effect_queue(state: &mut GameState) {
                 });
                 continue;
             }
+            debug_assert_mode_consistent(state);
             return; // Queue drained
         };
         if !process_effect(state, effect) {
+            debug_assert_mode_consistent(state);
             return; // Queue halted
         }
     }
+}
+
+// Cross-source witness: the mode must agree with world facts (room kind, room
+// flags, event presence) at every rest. A stale mode cannot lie to all of them
+fn debug_assert_mode_consistent(state: &GameState) {
+    if !cfg!(debug_assertions) || state.game_over {
+        return;
+    }
+    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities);
+    let room = match state.location {
+        Location::Overworld { y, x } => {
+            state.id_rooms[y][x].map(|id_room| &state.entities[id_room])
+        }
+        _ => None,
+    };
+    let ok = match &state.mode {
+        // Map doubles as the between-rooms state; nothing to cross-check
+        Mode::Map => true,
+        Mode::RestSite => room_kind == Some(RoomKind::RestSite),
+        Mode::Chest => {
+            matches!(room_kind, Some(RoomKind::Treasure | RoomKind::Unknown))
+                && room.is_some_and(|room| !room.room_chest_opened)
+        }
+        Mode::ChestOpened => {
+            matches!(room_kind, Some(RoomKind::Treasure | RoomKind::Unknown))
+                && room.is_some_and(|room| room.room_chest_opened)
+        }
+        Mode::Event => state.event.is_some(),
+        // "?" rooms keep RoomKind::Unknown on the map after resolving
+        Mode::Shop(_) => matches!(room_kind, Some(RoomKind::Shop | RoomKind::Unknown)),
+        Mode::Combat(_) | Mode::CombatEnded => matches!(
+            room_kind,
+            Some(
+                RoomKind::CombatMonster
+                    | RoomKind::CombatElite
+                    | RoomKind::CombatBoss
+                    | RoomKind::EventRoom
+                    | RoomKind::Unknown
+            )
+        ),
+        Mode::Reward(_) => matches!(
+            room_kind,
+            Some(
+                RoomKind::CombatMonster
+                    | RoomKind::CombatElite
+                    | RoomKind::EventRoom
+                    | RoomKind::Treasure
+                    | RoomKind::Unknown
+            )
+        ),
+    };
+    debug_assert!(
+        ok,
+        "mode {:?} inconsistent with room kind {:?} at {:?}",
+        state.mode, room_kind, state.location
+    );
 }

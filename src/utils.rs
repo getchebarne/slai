@@ -29,8 +29,8 @@ use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::types::Mode;
 use crate::types::RelicName;
-use crate::types::Screen;
 
 // Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
@@ -48,16 +48,6 @@ pub fn push_entity(entities: &mut Vec<Entity>, e: Entity) -> usize {
 
 pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName) -> bool {
     id_relics[name as usize].is_some()
-}
-
-pub fn clear_shop_state(state: &mut GameState) {
-    state.shop_id_cards.clear();
-    state.shop_id_relics.clear();
-    state.shop_id_potions.clear();
-    state.shop_card_prices.clear();
-    state.shop_relic_prices.clear();
-    state.shop_potion_prices.clear();
-    state.shop_purge_cost = 0;
 }
 
 pub fn card_is_upgradable(entity: &Entity) -> bool {
@@ -109,11 +99,13 @@ pub fn reshuffle_discard_into_draw(
 
 // Queue rest in Combat means the player is about to act; a drawable card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
+    let Mode::Combat(combat) = &state.mode else {
+        return false;
+    };
     has_relic(&state.id_relics, RelicName::UnceasingTop)
-        && matches!(state.screen, Screen::Combat)
         && state.effect_pending.is_none()
-        && state.id_hand.is_empty()
-        && !(state.id_pile_draw.is_empty() && state.id_pile_discard.is_empty())
+        && combat.id_hand.is_empty()
+        && !(combat.id_pile_draw.is_empty() && combat.id_pile_discard.is_empty())
         && !has_modifier(
             &state.entities[state.id_character].modifiers,
             ModifierKind::NoDraw,

@@ -4,13 +4,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
 // Gather
 const OPTION_GATHER: &[Effect] = &[
@@ -53,35 +48,28 @@ const fn leave(min: u16, max: u16) -> [Effect; 2] {
 static OPTION_LEAVE_BASE: [Effect; 2] = leave(20, 50);
 static OPTION_LEAVE_A15: [Effect; 2] = leave(35, 75);
 
-// All options
-const fn options(leave_effects: &'static [Effect], leave_label: &'static str) -> [EventOption; 2] {
-    [
-        EventOption {
-            label: "[Gather Gold] Gain 75 Gold. Lose 11 HP.",
-            effects: OPTION_GATHER,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: leave_label,
-            effects: leave_effects,
-            gate: EventGate::None,
-        },
-    ]
-}
-static OPTIONS_ALL_BASE: [EventOption; 2] =
-    options(&OPTION_LEAVE_BASE, "[Leave It] Lose 20-50 Gold.");
-static OPTIONS_ALL_A15: [EventOption; 2] =
-    options(&OPTION_LEAVE_A15, "[Leave It] Lose 35-75 Gold.");
+const LABELS_BASE: &[&str] = &[
+    "[Gather Gold] Gain 75 Gold. Lose 11 HP.",
+    "[Leave It] Lose 20-50 Gold.",
+];
+const LABELS_A15: &[&str] = &[
+    "[Gather Gold] Gain 75 Gold. Lose 11 HP.",
+    "[Leave It] Lose 35-75 Gold.",
+];
 
-// Export event
-static EVENT_WORLD_OF_GOOP_BASE: Entity =
-    make_entity_event(EventName::WorldOfGoop, &OPTIONS_ALL_BASE);
-static EVENT_WORLD_OF_GOOP_A15: Entity =
-    make_entity_event(EventName::WorldOfGoop, &OPTIONS_ALL_A15);
-pub fn spawn_event_world_of_goop(ascension: u8) -> Entity {
+pub fn labels(ascension: u8) -> &'static [&'static str] {
     if ascension < 15 {
-        EVENT_WORLD_OF_GOOP_BASE
+        LABELS_BASE
     } else {
-        EVENT_WORLD_OF_GOOP_A15
+        LABELS_A15
     }
+}
+
+pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => OPTION_GATHER,
+        1 if ascension < 15 => &OPTION_LEAVE_BASE,
+        1 => &OPTION_LEAVE_A15,
+        _ => unreachable!("world of goop option out of range: {idx}"),
+    });
 }

@@ -4,12 +4,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::entity::make_entity_event;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
-use crate::types::EventName;
+use crate::events::deck_has_purgeable;
+use crate::game::GameState;
 
 // Pray
 const OPTION_PRAY: &[Effect] = &[
@@ -29,22 +26,23 @@ const OPTION_PRAY: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Pray] Remove a card from your deck.",
-        effects: OPTION_PRAY,
-        gate: EventGate::HasPurgeableInDeck,
-    },
-    EventOption {
-        label: "[Leave] Nothing happens.",
-        effects: OPTION_LEAVE,
-        gate: EventGate::None,
-    },
+pub const LABELS: &[&str] = &[
+    "[Pray] Remove a card from your deck.",
+    "[Leave] Nothing happens.",
 ];
 
-// Export event
-static EVENT_PURIFIER: Entity = make_entity_event(EventName::Purifier, OPTIONS_ALL);
-pub fn spawn_event_purifier() -> Entity {
-    EVENT_PURIFIER
+pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
+    buf.extend_from_slice(match idx {
+        0 => OPTION_PRAY,
+        1 => OPTION_LEAVE,
+        _ => unreachable!("purifier option out of range: {idx}"),
+    });
+}
+
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    match idx {
+        0 => deck_has_purgeable(state),
+        1 => true,
+        _ => unreachable!("purifier option out of range: {idx}"),
+    }
 }
