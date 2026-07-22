@@ -26,15 +26,10 @@ const OPTION_PRAY: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-pub const LABELS: &[&str] = &["[Pray] Upgrade a card.", "[Leave] Nothing happens."];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_PRAY,
-        1 => OPTION_LEAVE,
-        _ => unreachable!("upgrade shrine option out of range: {idx}"),
-    });
-}
+pub const OPTIONS: &[(&str, &[Effect])] = &[
+    ("[Pray] Upgrade a card.", OPTION_PRAY),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
+];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {

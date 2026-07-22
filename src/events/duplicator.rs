@@ -24,15 +24,10 @@ const OPTION_PRAY: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-pub const LABELS: &[&str] = &[
-    "[Pray] Choose a card. Add a copy of it to your deck.",
-    "[Leave] Nothing happens.",
+pub const OPTIONS: &[(&str, &[Effect])] = &[
+    (
+        "[Pray] Choose a card. Add a copy of it to your deck.",
+        OPTION_PRAY,
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_PRAY,
-        1 => OPTION_LEAVE,
-        _ => unreachable!("duplicator option out of range: {idx}"),
-    });
-}

@@ -15,7 +15,6 @@ use crate::consts::CHEST_SMALL_TH_UNCOMMON;
 use crate::game::GameState;
 use crate::types::ChestKind;
 use crate::types::Mode;
-use crate::types::Rewards;
 use crate::utils::add_relic_reward_for_roll;
 
 #[derive(Debug, Clone, Copy)]
@@ -63,12 +62,12 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
         &mut state.rng,
     ));
 
-    state.mode = Mode::Reward(Rewards {
-        id_cards: Vec::new(),
-        id_relic,
-        id_potions: Vec::new(),
-        gold,
-    });
+    state.mode = Mode::Reward {
+        reward_id_cards: Vec::new(),
+        reward_id_relic: id_relic,
+        reward_id_potions: Vec::new(),
+        reward_gold: gold,
+    };
 }
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {

@@ -11,7 +11,12 @@ use rand::Rng;
 
 // Random Silent Skill (not Distraction) into hand, free-to-play-once
 pub fn process_effect_distraction_add(state: &mut GameState) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat {
+        id_hand,
+        id_pile_discard,
+        ..
+    } = &mut state.mode
+    else {
         unreachable!("process_effect_distraction_add outside Combat mode")
     };
     let mut buf = [CardName::Strike; 64];
@@ -42,8 +47,8 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
 
     add_card_to_hand_or_discard(
         &mut state.entities,
-        &mut combat.id_hand,
-        &mut combat.id_pile_discard,
+        &mut *id_hand,
+        &mut *id_pile_discard,
         card,
     );
 }

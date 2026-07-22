@@ -28,27 +28,20 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
+use crate::entity::make_entity_event_option;
 use crate::game::GameState;
 use crate::types::EventName;
-use crate::types::MonsterEncounter;
+use crate::types::Mode;
 use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
+use crate::utils::push_entity;
 
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
     id_source: None,
     target: Target::Direct(None),
 };
-
-// The active event: typed rolled state per event, plus the consumed flag.
-// Statics never hold entity ids; the ids here are runtime leaf data validated at use
-#[derive(Debug, Clone, Copy)]
-pub struct Event {
-    pub name: EventName,
-    pub payload: EventPayload,
-    pub consumed: bool,
-}
 
 #[derive(Debug, Clone, Copy)]
 pub enum EventPayload {
@@ -84,21 +77,14 @@ pub enum EventPayload {
         gold_ask: Option<u16>,
     },
     DeadAdventurer {
-        encounter: MonsterEncounter,
-        rewards: [DeadAdventurerReward; 3],
-        rewards_len: u8,
+        found_gold: bool,
+        found_nothing: bool,
+        found_relic: bool,
         searches: u8,
     },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum DeadAdventurerReward {
-    Gold,
-    Nothing,
-    Relic,
-}
-
-// Spawns `name` and registers it as the active event; entry rolls land in the payload
+// Spawns `name` as the active mode; entry rolls land in the payload
 pub fn spawn_event(state: &mut GameState, name: EventName) {
     let payload = match name {
         EventName::BigFish => EventPayload::BigFish,
@@ -124,51 +110,64 @@ pub fn spawn_event(state: &mut GameState, name: EventName) {
         EventName::FaceTrader => EventPayload::FaceTrader,
         EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(state),
         EventName::Mushrooms => EventPayload::Mushrooms,
-        EventName::DeadAdventurer => dead_adventurer::spawn_event_dead_adventurer(state),
+        EventName::DeadAdventurer => EventPayload::DeadAdventurer {
+            found_gold: false,
+            found_nothing: false,
+            found_relic: false,
+            searches: 0,
+        },
     };
-    state.event = Some(Event {
+    let id_options = bake_event_options(state, payload);
+    state.mode = Mode::Event {
         name,
         payload,
         consumed: false,
-    });
+        id_options,
+    };
 }
 
-// Builds the concrete effects for option `idx`; rolled payloads bake their values in
-pub fn push_event_option_effects(
-    buf: &mut Vec<Effect>,
-    payload: EventPayload,
-    ascension: u8,
-    idx: usize,
-) {
+// One Entity per option, baked once at spawn from the (label, effects) table
+pub fn bake_options(state: &mut GameState, options: &[(&'static str, &[Effect])]) -> Vec<usize> {
+    let mut id_options = Vec::with_capacity(options.len());
+    for &(label, effects) in options {
+        let entity = make_entity_event_option(label, effects);
+        id_options.push(push_entity(&mut state.entities, entity));
+    }
+    id_options
+}
+
+// Option lists encode only spawn-time state; mid-event dynamism lives in processors
+fn bake_event_options(state: &mut GameState, payload: EventPayload) -> Vec<usize> {
+    let ascension = state.ascension;
     match payload {
-        EventPayload::BigFish => big_fish::push_option_effects(buf, idx),
-        EventPayload::TheCleric => the_cleric::push_option_effects(buf, ascension, idx),
-        EventPayload::Duplicator => duplicator::push_option_effects(buf, idx),
-        EventPayload::GoldenShrine => golden_shrine::push_option_effects(buf, ascension, idx),
-        EventPayload::WingStatue => wing_statue::push_option_effects(buf, idx),
-        EventPayload::WorldOfGoop => world_of_goop::push_option_effects(buf, ascension, idx),
-        EventPayload::LivingWall => living_wall::push_option_effects(buf, idx),
-        EventPayload::Purifier => purifier::push_option_effects(buf, idx),
-        EventPayload::ShiningLight => shining_light::push_option_effects(buf, ascension, idx),
-        EventPayload::TheSsssserpent => the_ssssserpent::push_option_effects(buf, ascension, idx),
-        EventPayload::Transmogrifier => transmogrifier::push_option_effects(buf, idx),
-        EventPayload::UpgradeShrine => upgrade_shrine::push_option_effects(buf, idx),
-        EventPayload::TheDivineFountain => the_divine_fountain::push_option_effects(buf, idx),
-        EventPayload::TheLab => the_lab::push_option_effects(buf, ascension, idx),
-        EventPayload::TheWomanInBlue => the_woman_in_blue::push_option_effects(buf, ascension, idx),
-        EventPayload::WheelOfChange => wheel_of_change::push_option_effects(buf, idx),
-        EventPayload::BonfireSpirits => bonfire_spirits::push_option_effects(buf, idx),
-        EventPayload::OminousForge => ominous_forge::push_option_effects(buf, idx),
-        EventPayload::FaceTrader => face_trader::push_option_effects(buf, ascension, idx),
-        EventPayload::Mushrooms => mushrooms::push_option_effects(buf, idx),
-        EventPayload::GoldenIdol { .. } => golden_idol::push_option_effects(buf, ascension, idx),
-        EventPayload::ScrapOoze { .. } => scrap_ooze::push_option_effects(buf, ascension, idx),
+        EventPayload::BigFish => bake_options(state, big_fish::OPTIONS),
+        EventPayload::TheCleric => bake_options(state, the_cleric::options(ascension)),
+        EventPayload::Duplicator => bake_options(state, duplicator::OPTIONS),
+        EventPayload::GoldenShrine => bake_options(state, golden_shrine::options(ascension)),
+        EventPayload::WingStatue => bake_options(state, wing_statue::OPTIONS),
+        EventPayload::WorldOfGoop => bake_options(state, world_of_goop::options(ascension)),
+        EventPayload::LivingWall => bake_options(state, living_wall::OPTIONS),
+        EventPayload::Purifier => bake_options(state, purifier::OPTIONS),
+        EventPayload::ShiningLight => bake_options(state, shining_light::options(ascension)),
+        EventPayload::TheSsssserpent => bake_options(state, the_ssssserpent::options(ascension)),
+        EventPayload::Transmogrifier => bake_options(state, transmogrifier::OPTIONS),
+        EventPayload::UpgradeShrine => bake_options(state, upgrade_shrine::OPTIONS),
+        EventPayload::TheDivineFountain => bake_options(state, the_divine_fountain::OPTIONS),
+        EventPayload::TheLab => bake_options(state, the_lab::options(ascension)),
+        EventPayload::TheWomanInBlue => bake_options(state, the_woman_in_blue::options(ascension)),
+        EventPayload::WheelOfChange => bake_options(state, wheel_of_change::OPTIONS),
+        EventPayload::BonfireSpirits => bake_options(state, bonfire_spirits::OPTIONS),
+        EventPayload::OminousForge => bake_options(state, ominous_forge::OPTIONS),
+        EventPayload::FaceTrader => bake_options(state, face_trader::options(ascension)),
+        EventPayload::Mushrooms => bake_options(state, mushrooms::OPTIONS),
+        EventPayload::GoldenIdol { .. } => bake_options(state, golden_idol::options(ascension)),
+        EventPayload::ScrapOoze { .. } => bake_options(state, scrap_ooze::options(ascension)),
         EventPayload::WeMeetAgain {
             id_card,
             id_potion,
             gold_ask,
-        } => we_meet_again::push_option_effects(buf, id_card, id_potion, gold_ask, idx),
-        EventPayload::DeadAdventurer { .. } => dead_adventurer::push_option_effects(buf, idx),
+        } => we_meet_again::bake(state, id_card, id_potion, gold_ask),
+        EventPayload::DeadAdventurer { .. } => bake_options(state, dead_adventurer::OPTIONS),
     }
 }
 
@@ -203,35 +202,6 @@ pub fn event_option_available(state: &GameState, payload: EventPayload, idx: usi
             id_potion,
             gold_ask,
         } => we_meet_again::option_available(state, id_card, id_potion, gold_ask, idx),
-    }
-}
-
-pub fn event_option_labels(payload: EventPayload, ascension: u8) -> &'static [&'static str] {
-    match payload {
-        EventPayload::BigFish => big_fish::LABELS,
-        EventPayload::TheCleric => the_cleric::labels(ascension),
-        EventPayload::Duplicator => duplicator::LABELS,
-        EventPayload::GoldenShrine => golden_shrine::labels(ascension),
-        EventPayload::WingStatue => wing_statue::LABELS,
-        EventPayload::WorldOfGoop => world_of_goop::labels(ascension),
-        EventPayload::LivingWall => living_wall::LABELS,
-        EventPayload::Purifier => purifier::LABELS,
-        EventPayload::ShiningLight => shining_light::labels(ascension),
-        EventPayload::TheSsssserpent => the_ssssserpent::labels(ascension),
-        EventPayload::Transmogrifier => transmogrifier::LABELS,
-        EventPayload::UpgradeShrine => upgrade_shrine::LABELS,
-        EventPayload::TheDivineFountain => the_divine_fountain::LABELS,
-        EventPayload::TheLab => the_lab::labels(ascension),
-        EventPayload::TheWomanInBlue => the_woman_in_blue::labels(ascension),
-        EventPayload::WheelOfChange => wheel_of_change::LABELS,
-        EventPayload::BonfireSpirits => bonfire_spirits::LABELS,
-        EventPayload::OminousForge => ominous_forge::LABELS,
-        EventPayload::FaceTrader => face_trader::labels(ascension),
-        EventPayload::Mushrooms => mushrooms::LABELS,
-        EventPayload::GoldenIdol { .. } => golden_idol::labels(ascension),
-        EventPayload::ScrapOoze { .. } => scrap_ooze::labels(ascension),
-        EventPayload::WeMeetAgain { .. } => we_meet_again::LABELS,
-        EventPayload::DeadAdventurer { .. } => dead_adventurer::LABELS,
     }
 }
 

@@ -21,11 +21,7 @@ const OPTION_OFFER: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub const LABELS: &[&str] = &["[Offer] Remove a card; its rarity decides the spirits' blessing."];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_OFFER,
-        _ => unreachable!("bonfire spirits option out of range: {idx}"),
-    });
-}
+pub const OPTIONS: &[(&str, &[Effect])] = &[(
+    "[Offer] Remove a card; its rarity decides the spirits' blessing.",
+    OPTION_OFFER,
+)];

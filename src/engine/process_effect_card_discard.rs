@@ -16,7 +16,13 @@ pub fn process_effect_card_discard(
     state: &mut GameState,
     source: DiscardSource,
 ) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat {
+        id_hand,
+        id_pile_discard,
+        this_turn_discards,
+        ..
+    } = &mut state.mode
+    else {
         unreachable!("process_effect_card_discard outside Combat mode")
     };
     let id_target = id_target.expect("CardDiscard requires id_target");
@@ -34,17 +40,17 @@ pub fn process_effect_card_discard(
                 });
                 return;
             }
-            if let Some(pos) = combat.id_hand.iter().position(|&v| v == id_target) {
-                combat.id_hand.remove(pos);
+            if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
+                id_hand.remove(pos);
             }
-            combat.id_pile_discard.push(id_target);
+            id_pile_discard.push(id_target);
         }
         DiscardSource::Explicit => {
-            if let Some(pos) = combat.id_hand.iter().position(|&v| v == id_target) {
-                combat.id_hand.remove(pos);
+            if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
+                id_hand.remove(pos);
             }
-            combat.id_pile_discard.push(id_target);
-            combat.this_turn_discards = combat.this_turn_discards.saturating_add(1);
+            id_pile_discard.push(id_target);
+            *this_turn_discards = this_turn_discards.saturating_add(1);
 
             // Push reversed so first effect runs first when queue resumes
             let effects_on_discard = state.entities[id_target].card_on_discard_effects;

@@ -14,12 +14,12 @@ pub fn process_effect_move_update(
     state: &mut GameState,
     move_override: Option<usize>,
 ) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
         unreachable!("process_effect_move_update outside Combat mode")
     };
     let id_target = id_target.expect("MoveUpdate requires id_target");
     let ascension_level = state.ascension;
-    let id_monsters = combat.id_monsters;
+    let id_monsters = id_monsters;
     let character_health = state.entities[state.id_character].vitals.health;
 
     let entity = &mut state.entities[id_target];

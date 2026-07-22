@@ -14,7 +14,7 @@ mod engine;
 mod entity;
 mod events;
 mod ffi;
-mod game;
+pub mod game;
 mod map;
 mod modifier;
 mod monsters;

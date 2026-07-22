@@ -49,20 +49,14 @@ const OPTION_RUMMAGE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-pub const LABELS: &[&str] = &[
-    "[Forge] Upgrade a card.",
-    "[Rummage] Obtain Warped Tongs. Become Cursed - Pain.",
-    "[Leave] Nothing happens.",
+pub const OPTIONS: &[(&str, &[Effect])] = &[
+    ("[Forge] Upgrade a card.", OPTION_FORGE),
+    (
+        "[Rummage] Obtain Warped Tongs. Become Cursed - Pain.",
+        OPTION_RUMMAGE,
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_FORGE,
-        1 => OPTION_RUMMAGE,
-        2 => OPTION_LEAVE,
-        _ => unreachable!("ominous forge option out of range: {idx}"),
-    });
-}
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {

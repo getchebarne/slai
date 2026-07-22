@@ -105,13 +105,19 @@ pub fn reshuffle_discard_into_draw(
 
 // Queue rest in Combat means the player is about to act; a drawable card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
-    let Mode::Combat(combat) = &state.mode else {
+    let Mode::Combat {
+        id_hand,
+        id_pile_draw,
+        id_pile_discard,
+        ..
+    } = &state.mode
+    else {
         return false;
     };
     has_relic(&state.id_relics, RelicName::UnceasingTop)
         && state.effect_pending.is_none()
-        && combat.id_hand.is_empty()
-        && !(combat.id_pile_draw.is_empty() && combat.id_pile_discard.is_empty())
+        && id_hand.is_empty()
+        && !(id_pile_draw.is_empty() && id_pile_discard.is_empty())
         && !has_modifier(
             &state.entities[state.id_character].modifiers,
             ModifierKind::NoDraw,

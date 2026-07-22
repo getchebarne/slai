@@ -4,6 +4,7 @@ use strum::EnumCount;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
 use crate::consts::NUM_ENCOUNTERS_WEAK;
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -11,6 +12,7 @@ use crate::game::GameState;
 use crate::types::EncounterPool;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
+use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::shuffle;
 
@@ -377,8 +379,15 @@ fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
     });
 }
 
-// Queues the encounter's spawns followed by `EffectKind::CombatStart` onto the queue front
-pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncounter) {
+// Queues the encounter's spawns followed by `EffectKind::CombatStart` onto the
+// queue front; the event_* loot params ride on CombatStart (None for ordinary fights)
+pub fn spawn_encounter_monsters(
+    state: &mut GameState,
+    encounter: MonsterEncounter,
+    event_gold: Option<Amount>,
+    event_relic: Option<RelicName>,
+    event_relic_roll: bool,
+) {
     state.effect_buf.clear();
     let effects = &mut state.effect_buf;
     let rng = &mut state.rng;
@@ -474,7 +483,11 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
     }
 
     effects.push(Effect {
-        kind: EffectKind::CombatStart,
+        kind: EffectKind::CombatStart {
+            event_gold,
+            event_relic,
+            event_relic_roll,
+        },
         id_source: None,
         target: Target::Direct(None),
     });

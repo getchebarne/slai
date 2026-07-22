@@ -9,14 +9,19 @@ use crate::types::RelicName;
 use crate::utils::has_relic;
 
 pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat {
+        id_hand,
+        id_pile_exhaust,
+        ..
+    } = &mut state.mode
+    else {
         unreachable!("process_effect_card_exhaust outside Combat mode")
     };
     let id_card = id_target.expect("CardExhaust requires id_target");
-    if let Some(pos) = combat.id_hand.iter().position(|&v| v == id_card) {
-        combat.id_hand.remove(pos);
+    if let Some(pos) = id_hand.iter().position(|&v| v == id_card) {
+        id_hand.remove(pos);
     }
-    combat.id_pile_exhaust.push(id_card);
+    id_pile_exhaust.push(id_card);
 
     // Dead Branch: every exhaust conjures a random Silent card into the hand
     // (all green cards are rewardable, so no kind/rarity filter is needed)

@@ -11,14 +11,14 @@ pub fn process_effect_card_discover_roll(
     color: CardColor,
     count: u8,
 ) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat { id_discover, .. } = &mut state.mode else {
         unreachable!("process_effect_card_discover_roll outside Combat mode")
     };
-    combat.id_discover.clear();
+    id_discover.clear();
 
     let card_picks = get_random_cards(color, Some(kind), None, &[], count as usize, &mut state.rng);
     for card_pick in card_picks {
         let id = push_entity(&mut state.entities, card_pick);
-        combat.id_discover.push(id);
+        id_discover.push(id);
     }
 }

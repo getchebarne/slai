@@ -55,20 +55,11 @@ const OPTION_GROW: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub const LABELS: &[&str] = &[
-    "[Forget] Remove a card from your deck.",
-    "[Change] Transform a card in your deck.",
-    "[Grow] Upgrade a card in your deck.",
+pub const OPTIONS: &[(&str, &[Effect])] = &[
+    ("[Forget] Remove a card from your deck.", OPTION_FORGET),
+    ("[Change] Transform a card in your deck.", OPTION_CHANGE),
+    ("[Grow] Upgrade a card in your deck.", OPTION_GROW),
 ];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_FORGET,
-        1 => OPTION_CHANGE,
-        2 => OPTION_GROW,
-        _ => unreachable!("living wall option out of range: {idx}"),
-    });
-}
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {

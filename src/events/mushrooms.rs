@@ -8,6 +8,7 @@ use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
+use crate::types::RelicName;
 
 const SPAWN_FUNGI: Effect = Effect {
     kind: EffectKind::MonsterSpawn {
@@ -24,7 +25,11 @@ const OPTION_STOMP: &[Effect] = &[
     SPAWN_FUNGI,
     SPAWN_FUNGI,
     Effect {
-        kind: EffectKind::CombatStart,
+        kind: EffectKind::CombatStart {
+            event_gold: Some(Amount::Range { min: 20, max: 30 }),
+            event_relic: Some(RelicName::OddMushroom),
+            event_relic_roll: false,
+        },
         id_source: None,
         target: Target::Direct(None),
     },
@@ -57,15 +62,10 @@ const OPTION_EAT: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub const LABELS: &[&str] = &[
-    "[Stomp] Fight 3 Fungi Beasts.",
-    "[Eat] Heal 25% of your Max HP. Become Cursed - Parasite.",
+pub const OPTIONS: &[(&str, &[Effect])] = &[
+    ("[Stomp] Fight 3 Fungi Beasts.", OPTION_STOMP),
+    (
+        "[Eat] Heal 25% of your Max HP. Become Cursed - Parasite.",
+        OPTION_EAT,
+    ),
 ];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_STOMP,
-        1 => OPTION_EAT,
-        _ => unreachable!("mushrooms option out of range: {idx}"),
-    });
-}

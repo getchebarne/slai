@@ -12,7 +12,14 @@ pub fn process_effect_reward_take(
     state: &mut GameState,
     kind: RewardKind,
 ) {
-    let Mode::Reward(rewards) = &mut state.mode else {
+    let Mode::Reward {
+        reward_id_cards,
+        reward_id_relic,
+        reward_id_potions,
+        reward_gold,
+        ..
+    } = &mut state.mode
+    else {
         unreachable!("RewardTake outside Reward mode")
     };
     match kind {
@@ -26,10 +33,10 @@ pub fn process_effect_reward_take(
             });
 
             // Clear the rest of the cards
-            rewards.id_cards.clear();
+            reward_id_cards.clear();
         }
         RewardKind::Relic => {
-            if let Some(id) = rewards.id_relic.take() {
+            if let Some(id) = reward_id_relic.take() {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::RelicAdopt,
                     id_source: None,
@@ -39,12 +46,11 @@ pub fn process_effect_reward_take(
         }
         RewardKind::Potion => {
             let id_potion = id_target.expect("RewardTake { Potion } requires id_target");
-            let pos = rewards
-                .id_potions
+            let pos = reward_id_potions
                 .iter()
                 .position(|&id| id == id_potion)
                 .expect("taken potion is a staged reward");
-            rewards.id_potions.remove(pos);
+            reward_id_potions.remove(pos);
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::PotionAdopt,
                 id_source: None,
@@ -52,7 +58,7 @@ pub fn process_effect_reward_take(
             });
         }
         RewardKind::Gold => {
-            if let Some(amount) = rewards.gold.take() {
+            if let Some(amount) = reward_gold.take() {
                 let character = &mut state.entities[state.id_character];
                 character.character_gold = character.character_gold.saturating_add(amount);
             }

@@ -83,7 +83,15 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
 }
 
 pub fn process_effect_turn_end_character(state: &mut GameState) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat {
+        id_hand,
+        id_monsters,
+        this_turn_discards,
+        this_turn_attacks,
+        this_turn_cards_played,
+        ..
+    } = &mut state.mode
+    else {
         unreachable!("process_effect_turn_end_character outside Combat mode")
     };
     // Reset per-turn relic counters
@@ -105,7 +113,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     state.effect_buf.clear();
 
     // Art of War: 1 energy next turn if no attacks were played this turn
-    if combat.this_turn_attacks == 0 && has_relic(&state.id_relics, RelicName::ArtOfWar) {
+    if *this_turn_attacks == 0 && has_relic(&state.id_relics, RelicName::ArtOfWar) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::NextTurnEnergy,
@@ -117,7 +125,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Pocketwatch: draw 3 extra cards next turn if 3 or fewer were played this turn
-    if combat.this_turn_cards_played <= 3 && has_relic(&state.id_relics, RelicName::Pocketwatch) {
+    if *this_turn_cards_played <= 3 && has_relic(&state.id_relics, RelicName::Pocketwatch) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::DrawCardNextTurn,
@@ -144,7 +152,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         let counter = &mut state.entities[id].relic_counter;
         *counter += 1;
         if *counter == 7 {
-            for id_monster in combat.id_monsters.iter().flatten().copied() {
+            for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal { amount: 52 },
                     id_source: None,
@@ -156,7 +164,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
 
     // Retain: pick up to `stacks` cards to keep through the end-of-turn discard
     let mods_char = &state.entities[state.id_character].modifiers;
-    if has_modifier(mods_char, ModifierKind::Retain) && !combat.id_hand.is_empty() {
+    if has_modifier(mods_char, ModifierKind::Retain) && !id_hand.is_empty() {
         let stacks = modifier_stacks(mods_char, ModifierKind::Retain);
         state.effect_buf.push(Effect {
             kind: EffectKind::CardRetain,
@@ -213,7 +221,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Card-held-in-hand-at-the-end-of-turn effects
-    for &id_card in &combat.id_hand {
+    for &id_card in id_hand.iter() {
         let card = &state.entities[id_card];
         match card.card_name {
             CardName::Burn => {
@@ -235,7 +243,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Loss,
-                        amount: Amount::Absolute(combat.id_hand.len() as u16),
+                        amount: Amount::Absolute(id_hand.len() as u16),
                     },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
@@ -246,7 +254,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Queue organic discards
-    for &id_card in &combat.id_hand {
+    for &id_card in id_hand.iter() {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::EndOfTurn,
@@ -265,7 +273,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
 
     // After `ModifierSetNotNew` so Weak / Frail keep `is_new` through next
     // `EffectKind::TurnStart` tick
-    for &id_card in &combat.id_hand {
+    for &id_card in id_hand.iter() {
         match state.entities[id_card].card_name {
             CardName::Doubt => {
                 state.effect_buf.push(Effect {
@@ -292,7 +300,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Queue Monsters' turns
-    for id_monster in combat.id_monsters.iter().flatten().copied() {
+    for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_buf.push(Effect {
             kind: EffectKind::TurnStart,
             id_source: None,
@@ -356,9 +364,9 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Reset per-turn trackers in `GameState`
-    combat.this_turn_discards = 0;
-    combat.this_turn_attacks = 0;
-    combat.this_turn_cards_played = 0;
+    *this_turn_discards = 0;
+    *this_turn_attacks = 0;
+    *this_turn_cards_played = 0;
 
     flush_effects_from_buf_to_queue_front(state);
 }

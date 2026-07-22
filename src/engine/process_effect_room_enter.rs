@@ -64,7 +64,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::CombatBoss => {
             // Spawn boss
             let encounter = state.encounter_boss;
-            spawn_encounter_monsters(state, encounter);
+            spawn_encounter_monsters(state, encounter, None, None, false);
 
             // Pantograph: boss fights open with a 25 HP heal
             if has_relic(&state.id_relics, RelicName::Pantograph) {
@@ -81,12 +81,12 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::CombatMonster => {
             // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_normal.remove(0);
-            spawn_encounter_monsters(state, encounter);
+            spawn_encounter_monsters(state, encounter, None, None, false);
         }
         RoomKind::CombatElite => {
             // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_elite.remove(0);
-            spawn_encounter_monsters(state, encounter);
+            spawn_encounter_monsters(state, encounter, None, None, false);
         }
         RoomKind::RestSite => {
             state.mode = Mode::RestSite;
@@ -129,8 +129,8 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             });
         }
         RoomKind::EventRoom => {
+            // spawn_event constructs Mode::Event whole
             if spawn_random_event(state) {
-                state.mode = Mode::Event;
                 return;
             }
 
@@ -232,12 +232,6 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
 // 25% special pool (shrines + one-time events), else event pool; an exhausted pool falls back to the other,
 // both empty -> no event and the room is a no-op
 fn spawn_random_event(state: &mut GameState) -> bool {
-    // Event working memory is cleared on room exit; nothing may linger here
-    assert!(
-        state.event.is_none(),
-        "event spawn with an event still live"
-    );
-
     let name = if state.rng.random_range(0.0..1.0f32) < EVENT_SPECIAL_CHANCE {
         draw_event_special(state).or_else(|| draw_event(state))
     } else {

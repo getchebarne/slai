@@ -28,34 +28,31 @@ const fn agree(gold: u16) -> [Effect; 3] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_AGREE_BASE: [Effect; 3] = agree(175);
-static OPTION_AGREE_A15: [Effect; 3] = agree(150);
+const OPTION_AGREE_BASE: [Effect; 3] = agree(175);
+const OPTION_AGREE_A15: [Effect; 3] = agree(150);
 
 // Disagree
 const OPTION_DISAGREE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const LABELS_BASE: &[&str] = &[
-    "[Agree] Gain 175 Gold. Become Cursed - Doubt.",
-    "[Disagree] Nothing happens.",
+const OPTIONS_BASE: &[(&str, &[Effect])] = &[
+    (
+        "[Agree] Gain 175 Gold. Become Cursed - Doubt.",
+        &OPTION_AGREE_BASE,
+    ),
+    ("[Disagree] Nothing happens.", OPTION_DISAGREE),
 ];
-const LABELS_A15: &[&str] = &[
-    "[Agree] Gain 150 Gold. Become Cursed - Doubt.",
-    "[Disagree] Nothing happens.",
+const OPTIONS_A15: &[(&str, &[Effect])] = &[
+    (
+        "[Agree] Gain 150 Gold. Become Cursed - Doubt.",
+        &OPTION_AGREE_A15,
+    ),
+    ("[Disagree] Nothing happens.", OPTION_DISAGREE),
 ];
 
-pub fn labels(ascension: u8) -> &'static [&'static str] {
+pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
     if ascension < 15 {
-        LABELS_BASE
+        OPTIONS_BASE
     } else {
-        LABELS_A15
+        OPTIONS_A15
     }
-}
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 if ascension < 15 => &OPTION_AGREE_BASE,
-        0 => &OPTION_AGREE_A15,
-        1 => OPTION_DISAGREE,
-        _ => unreachable!("the ssssserpent option out of range: {idx}"),
-    });
 }

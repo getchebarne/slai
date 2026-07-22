@@ -6,6 +6,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventPayload;
+use crate::events::bake_options;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::utils::card_is_non_basic_non_curse;
@@ -16,7 +17,7 @@ const RELIC_REWARD: Effect = Effect {
     target: Target::Direct(None),
 };
 
-pub const LABELS: &[&str] = &[
+const LABELS: &[&str] = &[
     "[Give Potion] Lose the offered potion. Obtain a random relic.",
     "[Give Gold] Lose the asked gold. Obtain a random relic.",
     "[Give Card] Lose the offered card. Obtain a random relic.",
@@ -50,49 +51,51 @@ pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventPayload {
     }
 }
 
-pub fn push_option_effects(
-    buf: &mut Vec<Effect>,
+// Unrolled picks bake as Direct(None)/0: the snapshot still renders gated-out
+// options, and availability keeps the action path off them
+pub fn bake(
+    state: &mut GameState,
     id_card: Option<usize>,
     id_potion: Option<usize>,
     gold_ask: Option<u16>,
-    idx: usize,
-) {
-    // Unrolled picks build as Direct(None)/0: the snapshot still renders gated-out
-    // options, and availability keeps the action path off them
-    match idx {
-        0 => {
-            buf.push(Effect {
-                kind: EffectKind::PotionDiscard,
-                id_source: None,
-                target: Target::Direct(id_potion),
-            });
-            buf.push(RELIC_REWARD);
-            buf.push(EVENT_CONSUME_EFFECT);
-        }
-        1 => {
-            buf.push(Effect {
-                kind: EffectKind::GoldDelta {
-                    sign: DeltaSign::Loss,
-                    amount: Amount::Absolute(gold_ask.unwrap_or(0)),
-                },
-                id_source: None,
-                target: Target::Direct(None),
-            });
-            buf.push(RELIC_REWARD);
-            buf.push(EVENT_CONSUME_EFFECT);
-        }
-        2 => {
-            buf.push(Effect {
-                kind: EffectKind::CardPurge,
-                id_source: None,
-                target: Target::Direct(id_card),
-            });
-            buf.push(RELIC_REWARD);
-            buf.push(EVENT_CONSUME_EFFECT);
-        }
-        3 => buf.push(EVENT_CONSUME_EFFECT),
-        _ => unreachable!("we meet again option out of range: {idx}"),
-    }
+) -> Vec<usize> {
+    let give_potion = [
+        Effect {
+            kind: EffectKind::PotionDiscard,
+            id_source: None,
+            target: Target::Direct(id_potion),
+        },
+        RELIC_REWARD,
+        EVENT_CONSUME_EFFECT,
+    ];
+    let give_gold = [
+        Effect {
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Loss,
+                amount: Amount::Absolute(gold_ask.unwrap_or(0)),
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+        RELIC_REWARD,
+        EVENT_CONSUME_EFFECT,
+    ];
+    let give_card = [
+        Effect {
+            kind: EffectKind::CardPurge,
+            id_source: None,
+            target: Target::Direct(id_card),
+        },
+        RELIC_REWARD,
+        EVENT_CONSUME_EFFECT,
+    ];
+    let options: [(&str, &[Effect]); 4] = [
+        (LABELS[0], &give_potion),
+        (LABELS[1], &give_gold),
+        (LABELS[2], &give_card),
+        (LABELS[3], &[EVENT_CONSUME_EFFECT]),
+    ];
+    bake_options(state, &options)
 }
 
 pub fn option_available(

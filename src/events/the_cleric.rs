@@ -65,39 +65,35 @@ const fn purify(cost: u16) -> [Effect; 3] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_PURIFY_BASE: [Effect; 3] = purify(COST_PURIFY_BASE);
-static OPTION_PURIFY_A15: [Effect; 3] = purify(COST_PURIFY_A15);
+const OPTION_PURIFY_BASE: [Effect; 3] = purify(COST_PURIFY_BASE);
+const OPTION_PURIFY_A15: [Effect; 3] = purify(COST_PURIFY_A15);
 
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const LABELS_BASE: &[&str] = &[
-    "[Heal] Pay 35 Gold. Heal 25% of your max HP.",
-    "[Purify] Pay 50 Gold. Remove a card from your deck.",
-    "[Leave] Nothing happens.",
+const OPTIONS_BASE: &[(&str, &[Effect])] = &[
+    ("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
+    (
+        "[Purify] Pay 50 Gold. Remove a card from your deck.",
+        &OPTION_PURIFY_BASE,
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const LABELS_A15: &[&str] = &[
-    "[Heal] Pay 35 Gold. Heal 25% of your max HP.",
-    "[Purify] Pay 75 Gold. Remove a card from your deck.",
-    "[Leave] Nothing happens.",
+const OPTIONS_A15: &[(&str, &[Effect])] = &[
+    ("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
+    (
+        "[Purify] Pay 75 Gold. Remove a card from your deck.",
+        &OPTION_PURIFY_A15,
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn labels(ascension: u8) -> &'static [&'static str] {
+pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
     if ascension < 15 {
-        LABELS_BASE
+        OPTIONS_BASE
     } else {
-        LABELS_A15
+        OPTIONS_A15
     }
-}
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_HEAL,
-        1 if ascension < 15 => &OPTION_PURIFY_BASE,
-        1 => &OPTION_PURIFY_A15,
-        2 => OPTION_LEAVE,
-        _ => unreachable!("the cleric option out of range: {idx}"),
-    });
 }
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {

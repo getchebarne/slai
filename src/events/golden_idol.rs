@@ -62,8 +62,8 @@ const fn smash(numerator: u8, denominator: u8) -> [Effect; 2] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_SMASH_BASE: [Effect; 2] = smash(1, 4);
-static OPTION_SMASH_A15: [Effect; 2] = smash(35, 100);
+const OPTION_SMASH_BASE: [Effect; 2] = smash(1, 4);
+const OPTION_SMASH_A15: [Effect; 2] = smash(35, 100);
 
 // Hide: 8% -> 10% max HP cap loss at A15
 const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
@@ -85,43 +85,36 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_HIDE_BASE: [Effect; 2] = hide(8, 100);
-static OPTION_HIDE_A15: [Effect; 2] = hide(10, 100);
+const OPTION_HIDE_BASE: [Effect; 2] = hide(8, 100);
+const OPTION_HIDE_A15: [Effect; 2] = hide(10, 100);
 
-const LABELS_BASE: &[&str] = &[
-    "[Take] Obtain Golden Idol.",
-    "[Leave] Nothing happens.",
-    "[Outrun] Become Cursed - Injury.",
-    "[Smash] Take 25% of your max HP as damage.",
-    "[Hide] Lose 8% of your max HP.",
+const OPTIONS_BASE: &[(&str, &[Effect])] = &[
+    ("[Take] Obtain Golden Idol.", OPTION_TAKE),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    ("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
+    (
+        "[Smash] Take 25% of your max HP as damage.",
+        &OPTION_SMASH_BASE,
+    ),
+    ("[Hide] Lose 8% of your max HP.", &OPTION_HIDE_BASE),
 ];
-const LABELS_A15: &[&str] = &[
-    "[Take] Obtain Golden Idol.",
-    "[Leave] Nothing happens.",
-    "[Outrun] Become Cursed - Injury.",
-    "[Smash] Take 35% of your max HP as damage.",
-    "[Hide] Lose 10% of your max HP.",
+const OPTIONS_A15: &[(&str, &[Effect])] = &[
+    ("[Take] Obtain Golden Idol.", OPTION_TAKE),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    ("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
+    (
+        "[Smash] Take 35% of your max HP as damage.",
+        &OPTION_SMASH_A15,
+    ),
+    ("[Hide] Lose 10% of your max HP.", &OPTION_HIDE_A15),
 ];
 
-pub fn labels(ascension: u8) -> &'static [&'static str] {
+pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
     if ascension < 15 {
-        LABELS_BASE
+        OPTIONS_BASE
     } else {
-        LABELS_A15
+        OPTIONS_A15
     }
-}
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_TAKE,
-        1 => OPTION_LEAVE,
-        2 => OPTION_OUTRUN,
-        3 if ascension < 15 => &OPTION_SMASH_BASE,
-        3 => &OPTION_SMASH_A15,
-        4 if ascension < 15 => &OPTION_HIDE_BASE,
-        4 => &OPTION_HIDE_A15,
-        _ => unreachable!("golden idol option out of range: {idx}"),
-    });
 }
 
 pub fn option_available(stage: u8, idx: usize) -> bool {

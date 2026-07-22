@@ -41,23 +41,19 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     // Monster-death path
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
         unreachable!("monster death outside Combat mode")
     };
     let id_character = state.id_character;
 
     // Mark the corpse dead, drop it from the live roster, and check if combat continues
     state.entities[id_target].dead = true;
-    if let Some(slot) = combat
-        .id_monsters
-        .iter()
-        .position(|s| *s == Some(id_target))
-    {
-        combat.id_monsters[slot] = None; // Clear from `id_monsters` Vec
+    if let Some(slot) = id_monsters.iter().position(|s| *s == Some(id_target)) {
+        id_monsters[slot] = None; // Clear from `id_monsters` Vec
     }
 
     // Calculate if there're any monsters left alive
-    let any_alive = combat.id_monsters.iter().any(|s| s.is_some());
+    let any_alive = id_monsters.iter().any(|s| s.is_some());
 
     // Return stolen gold. Only relevant for "Looter"s in practice
     let stolen_gold = state.entities[id_target].monster_stolen_gold;
@@ -147,7 +143,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         state.effect_queue.push_front(e);
     }
     if let Some(dmg) = corpse_explosion {
-        for slot in combat.id_monsters.iter().rev() {
+        for slot in id_monsters.iter().rev() {
             if let Some(id) = *slot
                 && id != id_target
             {

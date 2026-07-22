@@ -61,17 +61,8 @@ const OPTION_BOX: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub const LABELS: &[&str] = &[
-    "[Banana] Heal 1/3 of your max HP.",
-    "[Donut] Raise your max HP by 5.",
-    "[Box] Receive a Relic. Become Cursed - Regret.",
+pub const OPTIONS: &[(&str, &[Effect])] = &[
+    ("[Banana] Heal 1/3 of your max HP.", OPTION_BANANA),
+    ("[Donut] Raise your max HP by 5.", OPTION_DONUT),
+    ("[Box] Receive a Relic. Become Cursed - Regret.", OPTION_BOX),
 ];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_BANANA,
-        1 => OPTION_DONUT,
-        2 => OPTION_BOX,
-        _ => unreachable!("big fish option out of range: {idx}"),
-    });
-}

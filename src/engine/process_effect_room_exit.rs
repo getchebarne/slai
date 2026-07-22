@@ -23,7 +23,5 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         // RestSite (non-final), Chest need no per-mode cleanup
         _ => {}
     }
-    // Event combats exit via the Reward screen, so event working memory clears here, not per-screen
-    state.event = None;
     state.mode = Mode::Map;
 }

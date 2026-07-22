@@ -7,7 +7,6 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
@@ -20,18 +19,25 @@ use crate::utils::has_relic;
 
 pub fn process_effect_combat_end(state: &mut GameState) {
     // Capture provenance, then drop the combat: teardown is the variant swap
-    let Mode::Combat(combat) = &state.mode else {
+    let Mode::Combat {
+        this_combat_escaped,
+        event_gold,
+        event_relic,
+        event_relic_roll,
+        ..
+    } = &state.mode
+    else {
         unreachable!("CombatEnd outside Combat mode")
     };
-    let escaped = combat.this_combat_escaped;
+    let escaped = *this_combat_escaped;
+    let event_gold = *event_gold;
+    let event_relic = *event_relic;
+    let event_relic_roll = *event_relic_roll;
     state.mode = Mode::CombatEnded;
 
-    // Combat modifiers don't persist; arena entities live outside the variant
-    for entity in state.entities.iter_mut() {
-        if matches!(entity.kind, EntityKind::Monster | EntityKind::Character) {
-            modifier_clear(&mut entity.modifiers);
-        }
-    }
+    // Combat modifiers don't persist. Only the Character outlives the fight;
+    // monster corpses are unreachable once the roster drops with the variant
+    modifier_clear(&mut state.entities[state.id_character].modifiers);
 
     // Replace pending combat work with the teardown chain queued below
     state.effect_queue.clear();
@@ -53,9 +59,9 @@ pub fn process_effect_combat_end(state: &mut GameState) {
         | RoomKind::CombatElite
         | RoomKind::Unknown
         | RoomKind::EventRoom => {
-            // A live event means an event started this fight (covers "?" rooms that
+            // Stamped loot means an event started this fight (covers "?" rooms that
             // resolved to an event); otherwise a "?" marker is a normal monster combat
-            let room_kind_reward = if state.event.is_some() {
+            let room_kind_reward = if event_gold.is_some() {
                 RoomKind::EventRoom
             } else if room_kind == RoomKind::Unknown {
                 RoomKind::CombatMonster
@@ -66,6 +72,9 @@ pub fn process_effect_combat_end(state: &mut GameState) {
                 kind: EffectKind::RewardRollCombat {
                     room_kind: room_kind_reward,
                     escaped,
+                    event_gold,
+                    event_relic,
+                    event_relic_roll,
                 },
                 id_source: None,
                 target: Target::Direct(None),

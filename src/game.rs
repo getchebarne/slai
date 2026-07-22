@@ -27,7 +27,6 @@ use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
-use crate::events::Event;
 use crate::events::POOL_ACT1_EVENT;
 use crate::events::POOL_ACT1_EVENT_SPECIAL;
 use crate::map::generate_map;
@@ -98,9 +97,6 @@ pub struct GameState {
 
     pub mode: Mode,
     pub game_over: bool,
-
-    // The active event; typed rolled state lives in the payload, cleared on room exit
-    pub event: Option<Event>,
 
     // Removal cost for the whole run: 75 + 25 per purge, never reset
     pub shop_purge_cost_run: u16,
@@ -188,7 +184,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         potion_drop_mod: 0,
         mode: Mode::Map,
         game_over: false,
-        event: None,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,
         legal_actions: Vec::new(),
         fast_mode,

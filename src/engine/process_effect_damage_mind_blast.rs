@@ -10,13 +10,13 @@ pub fn process_effect_damage_mind_blast(
     id_target: Option<usize>,
     state: &mut GameState,
 ) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat { id_pile_draw, .. } = &mut state.mode else {
         unreachable!("process_effect_damage_mind_blast outside Combat mode")
     };
     let id_target = id_target.expect("DamageMindBlast requires id_target");
     state.effect_queue.push_front(Effect {
         kind: EffectKind::DamagePhysical {
-            amount: combat.id_pile_draw.len() as u16,
+            amount: id_pile_draw.len() as u16,
         },
         id_source,
         target: Target::Direct(Some(id_target)),

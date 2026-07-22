@@ -20,8 +20,8 @@ const fn pray(amount: u16) -> [Effect; 2] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_PRAY_BASE: [Effect; 2] = pray(100);
-static OPTION_PRAY_A15: [Effect; 2] = pray(50);
+const OPTION_PRAY_BASE: [Effect; 2] = pray(100);
+const OPTION_PRAY_A15: [Effect; 2] = pray(50);
 
 // Desecrate
 const OPTION_DESECRATE: &[Effect] = &[
@@ -47,31 +47,27 @@ const OPTION_DESECRATE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const LABELS_BASE: &[&str] = &[
-    "[Pray] Gain 100 Gold.",
-    "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
-    "[Leave] Nothing happens.",
+const OPTIONS_BASE: &[(&str, &[Effect])] = &[
+    ("[Pray] Gain 100 Gold.", &OPTION_PRAY_BASE),
+    (
+        "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
+        OPTION_DESECRATE,
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const LABELS_A15: &[&str] = &[
-    "[Pray] Gain 50 Gold.",
-    "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
-    "[Leave] Nothing happens.",
+const OPTIONS_A15: &[(&str, &[Effect])] = &[
+    ("[Pray] Gain 50 Gold.", &OPTION_PRAY_A15),
+    (
+        "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
+        OPTION_DESECRATE,
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn labels(ascension: u8) -> &'static [&'static str] {
+pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
     if ascension < 15 {
-        LABELS_BASE
+        OPTIONS_BASE
     } else {
-        LABELS_A15
+        OPTIONS_A15
     }
-}
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 if ascension < 15 => &OPTION_PRAY_BASE,
-        0 => &OPTION_PRAY_A15,
-        1 => OPTION_DESECRATE,
-        2 => OPTION_LEAVE,
-        _ => unreachable!("golden shrine option out of range: {idx}"),
-    });
 }

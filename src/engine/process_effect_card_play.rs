@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use rand::Rng;
 
 use crate::consts::MAX_SIZE_HAND;
@@ -6,6 +8,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
+use crate::entity::Entity;
 use crate::entity::get_card_effective_cost;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -23,22 +26,32 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat {
+        id_hand,
+        id_monsters,
+        energy,
+        this_turn_discards,
+        this_turn_attacks,
+        this_turn_cards_played,
+        this_combat_damage_instances_taken,
+        ..
+    } = &mut state.mode
+    else {
         unreachable!("process_effect_card_play outside Combat mode")
     };
     let id_card = id_target.expect("CardPlay requires id_target");
     let id_character = state.id_character;
-    let this_turn_discards = combat.this_turn_discards;
-    let this_combat_damage_instances_taken = combat.this_combat_damage_instances_taken;
-    let energy_current = combat.energy.energy_current;
+    let this_turn_discards = *this_turn_discards;
+    let this_combat_damage_instances_taken = *this_combat_damage_instances_taken;
+    let energy_current = energy.energy_current;
     let card = state.entities[id_card];
 
     // Increase this-turn-played-cards counter
-    combat.this_turn_cards_played = combat.this_turn_cards_played.saturating_add(1);
+    *this_turn_cards_played = this_turn_cards_played.saturating_add(1);
 
     if card.card_kind == CardKind::Attack {
         // Increase this-turn-played-attacks counter
-        combat.this_turn_attacks = combat.this_turn_attacks.saturating_add(1);
+        *this_turn_attacks = this_turn_attacks.saturating_add(1);
 
         // Kunai
         if trigger_relic_counter(RelicName::Kunai, 3, &state.id_relics, &mut state.entities) {
@@ -137,7 +150,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             &mut state.entities,
         )
     {
-        for id_monster in combat.id_monsters.iter().flatten().copied() {
+        for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::DamageDeal { amount: 5 },
                 id_source: None,
@@ -162,7 +175,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         // Mummified Hand: make a random still-costed hand card free this turn
         if has_relic(&state.id_relics, RelicName::MummifiedHand) {
             free_random_costed_hand_card(
-                state,
+                &*id_hand,
+                &state.entities,
+                &mut state.rng,
+                &mut state.effect_queue,
                 id_card,
                 this_turn_discards,
                 this_combat_damage_instances_taken,
@@ -187,13 +203,14 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     // Orange Pellets: Attack + Skill + Power in one turn sweeps all debuffs
     if let Some(id_relic_pellets) = state.id_relics[RelicName::OrangePellets as usize] {
-        orange_pellets_track_and_sweep(state, card.card_kind, id_relic_pellets, id_character);
+        orange_pellets_track_and_sweep(
+            &mut state.entities,
+            &mut state.effect_queue,
+            card.card_kind,
+            id_relic_pellets,
+            id_character,
+        );
     }
-
-    // Re-borrow the combat after the whole-state relic helpers above
-    let Mode::Combat(combat) = &mut state.mode else {
-        unreachable!("CardPlay outside Combat mode")
-    };
 
     // Clear `free_to_play_once` flag
     if card.card_free_to_play_once {
@@ -287,7 +304,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     // Thousand Cuts
     if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
-        for id_monster in combat.id_monsters.iter().flatten().copied() {
+        for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: stacks as u16,
@@ -300,7 +317,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     // Sharp Hide (enemy)
     if card.card_kind == CardKind::Attack {
-        for id_monster in combat.id_monsters.iter().flatten().copied() {
+        for id_monster in id_monsters.iter().flatten().copied() {
             let monster_modifiers = &state.entities[id_monster].modifiers;
             if has_modifier(monster_modifiers, ModifierKind::SharpHide) {
                 let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
@@ -363,7 +380,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // Choke (enemy): pushed after card_effects so the played card resolves first
-    for id_monster in combat.id_monsters.iter().flatten().copied() {
+    for id_monster in id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;
         if has_modifier(mods_monster, ModifierKind::Choke) {
             let stacks = modifier_stacks(mods_monster, ModifierKind::Choke);
@@ -380,7 +397,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     // Enrage (enemy): gain strength on played skill
     if card.card_kind == CardKind::Skill {
-        for id_monster in combat.id_monsters.iter().flatten().copied() {
+        for id_monster in id_monsters.iter().flatten().copied() {
             let mods_monster = &state.entities[id_monster].modifiers;
             if has_modifier(mods_monster, ModifierKind::Enrage) {
                 let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);
@@ -397,8 +414,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // Pain: each copy in hand bleeds 1 HP on any other card play; HealthDelta ignores block
-    for i in 0..combat.id_hand.len() {
-        if state.entities[combat.id_hand[i]].card_name == CardName::Pain {
+    for i in 0..id_hand.len() {
+        if state.entities[id_hand[i]].card_name == CardName::Pain {
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Loss,
@@ -415,25 +432,25 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
 // Zeroes the cost of one random hand card that still costs energy this turn
 fn free_random_costed_hand_card(
-    state: &mut GameState,
+    id_hand: &[usize],
+    entities: &[Entity],
+    rng: &mut impl Rng,
+    effect_queue: &mut VecDeque<Effect>,
     id_card_played: usize,
     this_turn_discards: u8,
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
 ) {
-    let Mode::Combat(combat) = &mut state.mode else {
-        unreachable!("free_random_costed_hand_card outside Combat mode")
-    };
     let mut cards_valid = [0usize; MAX_SIZE_HAND];
     let mut num = 0;
-    for &id_card in &combat.id_hand {
+    for &id_card in id_hand.iter() {
         // Exclude just-played card
         if id_card == id_card_played {
             continue;
         }
 
         // Calculate base and effective costs
-        let card = &state.entities[id_card];
+        let card = &entities[id_card];
         let cost_base_positive =
             !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) && card.card_cost > 0;
         let cost_effective = get_card_effective_cost(
@@ -452,8 +469,8 @@ fn free_random_costed_hand_card(
 
     // Sample
     if num > 0 {
-        let id_pick = cards_valid[state.rng.random_range(0..num)];
-        state.effect_queue.push_back(Effect {
+        let id_pick = cards_valid[rng.random_range(0..num)];
+        effect_queue.push_back(Effect {
             kind: EffectKind::SetCostOverride { amount: 0 },
             id_source: None,
             target: Target::Direct(Some(id_pick)),
@@ -464,7 +481,8 @@ fn free_random_costed_hand_card(
 // Tracks the played kind in a seen-kinds bitmask (Attack=1, Skill=2, Power=4) on the
 // relic counter; once all three are seen in a turn, clears the character's debuffs and resets
 fn orange_pellets_track_and_sweep(
-    state: &mut GameState,
+    entities: &mut [Entity],
+    effect_queue: &mut VecDeque<Effect>,
     card_kind: CardKind,
     id_relic_pellets: usize,
     id_character: usize,
@@ -478,7 +496,7 @@ fn orange_pellets_track_and_sweep(
     };
 
     // Increase `relic_counter`
-    let counter = &mut state.entities[id_relic_pellets].relic_counter;
+    let counter = &mut entities[id_relic_pellets].relic_counter;
     *counter |= bit;
 
     // If all three types (Attack, Skill, Power) have not been played yet, return
@@ -488,14 +506,14 @@ fn orange_pellets_track_and_sweep(
 
     // Else, reset the counter and queue the debuff-clearing effects
     *counter = 0;
-    let char_mods = &state.entities[id_character].modifiers;
+    let char_mods = &entities[id_character].modifiers;
     for kind in active_modifier_kinds(char_mods.active) {
         if !modifier_is_buff(kind)
             // Negative Strength / Dexterity count as debuffs despite `is_buff` flag
             || matches!(kind, ModifierKind::Strength | ModifierKind::Dexterity)
                 && char_mods.stacks[kind as usize] < 0
         {
-            state.effect_queue.push_back(Effect {
+            effect_queue.push_back(Effect {
                 kind: EffectKind::ModifierRemove { kind },
                 id_source: None,
                 target: Target::Direct(Some(id_character)),

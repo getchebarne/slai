@@ -20,11 +20,8 @@ use crate::entity::Intent;
 use crate::entity::PlayRestriction;
 use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
-use crate::events::Event;
 use crate::events::EventPayload;
 use crate::events::event_option_available;
-use crate::events::event_option_labels;
-use crate::events::push_event_option_effects;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::edge_indices;
@@ -1242,11 +1239,11 @@ pub enum PyScreen {
 // modes never rest, so they collapse onto the screen the player effectively sees
 fn project_screen(mode: &Mode) -> PyScreen {
     match mode {
-        Mode::Combat(_) => PyScreen::Combat,
+        Mode::Combat { .. } => PyScreen::Combat,
         Mode::CombatEnded => PyScreen::Map,
-        Mode::Reward(_) => PyScreen::Reward,
-        Mode::Event => PyScreen::Event,
-        Mode::Shop(_) => PyScreen::Shop,
+        Mode::Reward { .. } => PyScreen::Reward,
+        Mode::Event { .. } => PyScreen::Event,
+        Mode::Shop { .. } => PyScreen::Shop,
         Mode::Map => PyScreen::Map,
         Mode::RestSite => PyScreen::RestSite,
         Mode::Chest => PyScreen::Chest,
@@ -1775,6 +1772,9 @@ pub enum PyEffect {
         target: Option<PyTarget>,
     },
     CombatStart {
+        event_gold: Option<PyAmount>,
+        event_relic: Option<PyRelicName>,
+        event_relic_roll: bool,
         target: Option<PyTarget>,
     },
     AdventurerSearch {
@@ -1915,7 +1915,16 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
             name: name.into(),
             target,
         },
-        EffectKind::CombatStart => PyEffect::CombatStart { target },
+        EffectKind::CombatStart {
+            event_gold,
+            event_relic,
+            event_relic_roll,
+        } => PyEffect::CombatStart {
+            event_gold: event_gold.map(Into::into),
+            event_relic: event_relic.map(Into::into),
+            event_relic_roll,
+            target,
+        },
         EffectKind::AdventurerSearch => PyEffect::AdventurerSearch { target },
         EffectKind::RelicGrantSpecific {
             name,
@@ -2126,8 +2135,6 @@ pub struct PyEvent {
     pub pick_potion: Option<PyPotion>,
     // 0 = unrolled; observation-shape parity
     pub gold_rolled: u16,
-    // Dead Adventurer's telegraphed elite; the reward order stays hidden like the source
-    pub encounter: Option<PyMonsterEncounter>,
 }
 
 #[gen_stub_pymethods]
@@ -2142,7 +2149,6 @@ impl PyEvent {
         pick_card: Option<PyCard>,
         pick_potion: Option<PyPotion>,
         gold_rolled: u16,
-        encounter: Option<PyMonsterEncounter>,
     ) -> Self {
         Self {
             name,
@@ -2152,7 +2158,6 @@ impl PyEvent {
             pick_card,
             pick_potion,
             gold_rolled,
-            encounter,
         }
     }
 }
@@ -2659,69 +2664,70 @@ impl MonsterEncounter {
 // Snapshot builders
 pub fn snapshot_state(state: &GameState) -> PyGameState {
     // Combat-only fields default to empty / 0 when not in Combat context
-    let (hand, pile_draw, pile_discard, pile_exhaust, energy, discover) =
-        if let Mode::Combat(combat) = &state.mode {
-            (
-                combat
-                    .id_hand
-                    .iter()
-                    .map(|&id| snapshot_card(state, id))
-                    .collect(),
-                combat
-                    .id_pile_draw
-                    .iter()
-                    .map(|&id| snapshot_card(state, id))
-                    .collect(),
-                combat
-                    .id_pile_discard
-                    .iter()
-                    .map(|&id| snapshot_card(state, id))
-                    .collect(),
-                combat
-                    .id_pile_exhaust
-                    .iter()
-                    .map(|&id| snapshot_card(state, id))
-                    .collect(),
-                PyEnergy {
-                    energy_current: combat.energy.energy_current,
-                    energy_max: combat.energy.energy_max,
-                },
-                combat
-                    .id_discover
-                    .iter()
-                    .map(|&id| snapshot_card(state, id))
-                    .collect(),
-            )
-        } else {
-            (
-                Vec::new(),
-                Vec::new(),
-                Vec::new(),
-                Vec::new(),
-                PyEnergy {
-                    energy_current: 0,
-                    energy_max: 0,
-                },
-                Vec::new(),
-            )
-        };
-    let pending = state.effect_pending.as_ref().map(snapshot_effect);
-    let reward = match &state.mode {
-        Mode::Reward(rewards) => Some(PyReward {
-            cards: rewards
-                .id_cards
+    let (hand, pile_draw, pile_discard, pile_exhaust, energy, discover) = if let Mode::Combat {
+        id_hand,
+        id_pile_draw,
+        id_pile_discard,
+        id_pile_exhaust,
+        energy,
+        id_discover,
+        ..
+    } = &state.mode
+    {
+        (
+            id_hand.iter().map(|&id| snapshot_card(state, id)).collect(),
+            id_pile_draw
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            relic: rewards
-                .id_relic
-                .map(|id| snapshot_relic(&state.entities[id])),
-            potions: rewards
-                .id_potions
+            id_pile_discard
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+            id_pile_exhaust
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+            PyEnergy {
+                energy_current: energy.energy_current,
+                energy_max: energy.energy_max,
+            },
+            id_discover
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+        )
+    } else {
+        (
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            PyEnergy {
+                energy_current: 0,
+                energy_max: 0,
+            },
+            Vec::new(),
+        )
+    };
+    let pending = state.effect_pending.as_ref().map(snapshot_effect);
+    let reward = match &state.mode {
+        Mode::Reward {
+            reward_id_cards,
+            reward_id_relic,
+            reward_id_potions,
+            reward_gold,
+        } => Some(PyReward {
+            cards: reward_id_cards
+                .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+            relic: reward_id_relic.map(|id| snapshot_relic(&state.entities[id])),
+            potions: reward_id_potions
                 .iter()
                 .map(|&id| snapshot_potion(&state.entities[id]))
                 .collect(),
-            gold: rewards.gold,
+            gold: *reward_gold,
         }),
         // Eaten chest (N'loth): rests as an empty reward screen
         Mode::ChestOpened => Some(PyReward {
@@ -2732,34 +2738,43 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         }),
         _ => None,
     };
-    let event = match state.mode {
-        Mode::Event => Some(snapshot_event(
-            state,
-            state.event.expect("Event context requires an active event"),
+    let event = match &state.mode {
+        Mode::Event {
+            name,
+            payload,
+            consumed,
+            id_options,
+        } => Some(snapshot_event(
+            state, *name, *payload, *consumed, id_options,
         )),
         _ => None,
     };
     let shop = match &state.mode {
-        Mode::Shop(shop) => Some(PyShop {
-            cards: shop
-                .id_cards
+        Mode::Shop {
+            shop_id_cards,
+            shop_id_relics,
+            shop_id_potions,
+            shop_card_prices,
+            shop_relic_prices,
+            shop_potion_prices,
+            shop_purge_cost,
+        } => Some(PyShop {
+            cards: shop_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            card_prices: shop.card_prices.clone(),
-            relics: shop
-                .id_relics
+            card_prices: shop_card_prices.clone(),
+            relics: shop_id_relics
                 .iter()
                 .map(|&id| snapshot_relic(&state.entities[id]))
                 .collect(),
-            relic_prices: shop.relic_prices.clone(),
-            potions: shop
-                .id_potions
+            relic_prices: shop_relic_prices.clone(),
+            potions: shop_id_potions
                 .iter()
                 .map(|&id| snapshot_potion(&state.entities[id]))
                 .collect(),
-            potion_prices: shop.potion_prices.clone(),
-            purge_cost: shop.purge_cost,
+            potion_prices: shop_potion_prices.clone(),
+            purge_cost: *shop_purge_cost,
         }),
         _ => None,
     };
@@ -2796,35 +2811,41 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
     }
 }
 
-fn snapshot_event(state: &GameState, event: Event) -> PyEvent {
-    let labels = event_option_labels(event.payload, state.ascension);
-    let mut scratch: Vec<Effect> = Vec::new();
-    let options: Vec<PyEventOption> = labels
+fn snapshot_event(
+    state: &GameState,
+    name: EventName,
+    payload: EventPayload,
+    consumed: bool,
+    id_options: &[usize],
+) -> PyEvent {
+    let options: Vec<PyEventOption> = id_options
         .iter()
         .enumerate()
-        .map(|(idx, label)| {
-            scratch.clear();
-            push_event_option_effects(&mut scratch, event.payload, state.ascension, idx);
+        .map(|(idx, &id_option)| {
+            let option = &state.entities[id_option];
             PyEventOption {
-                label: label.to_string(),
-                gated_out: !event_option_available(state, event.payload, idx),
-                effects: scratch.iter().map(snapshot_event_option_effect).collect(),
+                label: option.event_option_label.to_string(),
+                gated_out: !event_option_available(state, payload, idx),
+                effects: option.card_effects[..option.card_effects_len as usize]
+                    .iter()
+                    .map(snapshot_event_option_effect)
+                    .collect(),
             }
         })
         .collect();
 
     // Rolled picks disappear from the view once the event is consumed
-    let (pick_card, pick_potion, gold_rolled) = match event.payload {
+    let (pick_card, pick_potion, gold_rolled) = match payload {
         EventPayload::WeMeetAgain {
             id_card,
             id_potion,
             gold_ask,
         } => (
-            (!event.consumed)
+            (!consumed)
                 .then_some(id_card)
                 .flatten()
                 .map(|id| snapshot_card(state, id)),
-            (!event.consumed)
+            (!consumed)
                 .then_some(id_potion)
                 .flatten()
                 .map(|id| snapshot_potion(&state.entities[id])),
@@ -2834,10 +2855,10 @@ fn snapshot_event(state: &GameState, event: Event) -> PyEvent {
     };
 
     PyEvent {
-        name: event.name.into(),
-        display_name: event.name.as_str().to_string(),
+        name: name.into(),
+        display_name: name.as_str().to_string(),
         options,
-        state: match event.payload {
+        state: match payload {
             EventPayload::GoldenIdol { stage } => stage,
             EventPayload::ScrapOoze { attempts } => attempts,
             EventPayload::DeadAdventurer { searches, .. } => searches,
@@ -2846,10 +2867,6 @@ fn snapshot_event(state: &GameState, event: Event) -> PyEvent {
         pick_card,
         pick_potion,
         gold_rolled,
-        encounter: match event.payload {
-            EventPayload::DeadAdventurer { encounter, .. } => Some(encounter.into()),
-            _ => None,
-        },
     }
 }
 
@@ -2900,13 +2917,12 @@ fn snapshot_character(state: &GameState) -> PyCharacter {
 }
 
 fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
-    let Mode::Combat(combat) = &state.mode else {
+    let Mode::Combat { id_monsters, .. } = &state.mode else {
         return Vec::new();
     };
     let character = &state.entities[state.id_character];
     let mods_char = &character.modifiers;
-    combat
-        .id_monsters
+    id_monsters
         .iter()
         .flatten()
         .copied()
@@ -3048,17 +3064,24 @@ fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     );
     // Combat-only; outside combat defaults are permissive (cards not played)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        if let Mode::Combat(combat) = &state.mode {
+        if let Mode::Combat {
+            id_pile_draw,
+            energy,
+            this_turn_discards,
+            this_combat_damage_instances_taken,
+            ..
+        } = &state.mode
+        {
             (
                 is_play_restriction_satisfied(
                     card.card_play_restriction,
                     card.card_kind,
-                    &combat.id_pile_draw,
+                    &id_pile_draw,
                     &state.id_relics,
                 ),
-                combat.this_turn_discards,
-                combat.this_combat_damage_instances_taken,
-                combat.energy.energy_current,
+                *this_turn_discards,
+                *this_combat_damage_instances_taken,
+                energy.energy_current,
             )
         } else {
             (true, 0, 0, 0)

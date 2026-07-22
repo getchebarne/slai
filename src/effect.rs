@@ -63,7 +63,11 @@ pub enum EffectKind {
     CardUpgrade,
     ChestOpen,
     CombatEnd,
-    CombatStart,
+    CombatStart {
+        event_gold: Option<Amount>,
+        event_relic: Option<RelicName>,
+        event_relic_roll: bool,
+    },
     DamageDeal {
         amount: u16,
     },
@@ -166,6 +170,9 @@ pub enum EffectKind {
     RewardRollCombat {
         room_kind: RoomKind,
         escaped: bool,
+        event_gold: Option<Amount>,
+        event_relic: Option<RelicName>,
+        event_relic_roll: bool,
     },
     RewardRollPotions {
         count: u8,

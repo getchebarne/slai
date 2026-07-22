@@ -45,31 +45,22 @@ const fn leave(min: u16, max: u16) -> [Effect; 2] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_LEAVE_BASE: [Effect; 2] = leave(20, 50);
-static OPTION_LEAVE_A15: [Effect; 2] = leave(35, 75);
+const OPTION_LEAVE_BASE: [Effect; 2] = leave(20, 50);
+const OPTION_LEAVE_A15: [Effect; 2] = leave(35, 75);
 
-const LABELS_BASE: &[&str] = &[
-    "[Gather Gold] Gain 75 Gold. Lose 11 HP.",
-    "[Leave It] Lose 20-50 Gold.",
+const OPTIONS_BASE: &[(&str, &[Effect])] = &[
+    ("[Gather Gold] Gain 75 Gold. Lose 11 HP.", OPTION_GATHER),
+    ("[Leave It] Lose 20-50 Gold.", &OPTION_LEAVE_BASE),
 ];
-const LABELS_A15: &[&str] = &[
-    "[Gather Gold] Gain 75 Gold. Lose 11 HP.",
-    "[Leave It] Lose 35-75 Gold.",
+const OPTIONS_A15: &[(&str, &[Effect])] = &[
+    ("[Gather Gold] Gain 75 Gold. Lose 11 HP.", OPTION_GATHER),
+    ("[Leave It] Lose 35-75 Gold.", &OPTION_LEAVE_A15),
 ];
 
-pub fn labels(ascension: u8) -> &'static [&'static str] {
+pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
     if ascension < 15 {
-        LABELS_BASE
+        OPTIONS_BASE
     } else {
-        LABELS_A15
+        OPTIONS_A15
     }
-}
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_GATHER,
-        1 if ascension < 15 => &OPTION_LEAVE_BASE,
-        1 => &OPTION_LEAVE_A15,
-        _ => unreachable!("world of goop option out of range: {idx}"),
-    });
 }

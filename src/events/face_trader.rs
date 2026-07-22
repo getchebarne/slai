@@ -35,8 +35,8 @@ const fn touch(gold: u16) -> [Effect; 3] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
-static OPTION_TOUCH_A15: [Effect; 3] = touch(50);
+const OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
+const OPTION_TOUCH_A15: [Effect; 3] = touch(50);
 
 // Trade: gain random unowned face relic
 const OPTION_TRADE: &[Effect] = &[
@@ -51,31 +51,27 @@ const OPTION_TRADE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const LABELS_BASE: &[&str] = &[
-    "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
-    "[Trade] Obtain a random face.",
-    "[Leave] Nothing happens.",
+const OPTIONS_BASE: &[(&str, &[Effect])] = &[
+    (
+        "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
+        &OPTION_TOUCH_BASE,
+    ),
+    ("[Trade] Obtain a random face.", OPTION_TRADE),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const LABELS_A15: &[&str] = &[
-    "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
-    "[Trade] Obtain a random face.",
-    "[Leave] Nothing happens.",
+const OPTIONS_A15: &[(&str, &[Effect])] = &[
+    (
+        "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
+        &OPTION_TOUCH_A15,
+    ),
+    ("[Trade] Obtain a random face.", OPTION_TRADE),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn labels(ascension: u8) -> &'static [&'static str] {
+pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
     if ascension < 15 {
-        LABELS_BASE
+        OPTIONS_BASE
     } else {
-        LABELS_A15
+        OPTIONS_A15
     }
-}
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 if ascension < 15 => &OPTION_TOUCH_BASE,
-        0 => &OPTION_TOUCH_A15,
-        1 => OPTION_TRADE,
-        2 => OPTION_LEAVE,
-        _ => unreachable!("face trader option out of range: {idx}"),
-    });
 }

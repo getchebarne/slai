@@ -6,10 +6,13 @@ use crate::types::Mode;
 
 // Gain `energy` if any explicit discard this turn
 pub fn process_effect_sneaky_strike_proc(state: &mut GameState, energy: u8) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat {
+        this_turn_discards, ..
+    } = &mut state.mode
+    else {
         unreachable!("process_effect_sneaky_strike_proc outside Combat mode")
     };
-    if combat.this_turn_discards == 0 {
+    if *this_turn_discards == 0 {
         return;
     }
     state.effect_queue.push_front(Effect {

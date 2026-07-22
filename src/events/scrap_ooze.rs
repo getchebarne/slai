@@ -15,7 +15,7 @@ const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 1] {
         target: Target::Direct(None),
     }]
 }
-static OPTIONS_REACH_BASE: [[Effect; 1]; 9] = [
+const OPTIONS_REACH_BASE: [[Effect; 1]; 9] = [
     reach(3, 25, true),
     reach(4, 35, true),
     reach(5, 45, true),
@@ -28,7 +28,7 @@ static OPTIONS_REACH_BASE: [[Effect; 1]; 9] = [
 ];
 
 // Base damage 3 -> 5 at A15
-static OPTIONS_REACH_A15: [[Effect; 1]; 9] = [
+const OPTIONS_REACH_A15: [[Effect; 1]; 9] = [
     reach(5, 25, true),
     reach(6, 35, true),
     reach(7, 45, true),
@@ -43,46 +43,92 @@ static OPTIONS_REACH_A15: [[Effect; 1]; 9] = [
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const LABELS_BASE: &[&str] = &[
-    "[Reach Inside] Lose 3 HP. 25% chance for a Relic.",
-    "[Reach Inside] Lose 4 HP. 35% chance for a Relic.",
-    "[Reach Inside] Lose 5 HP. 45% chance for a Relic.",
-    "[Reach Inside] Lose 6 HP. 55% chance for a Relic.",
-    "[Reach Inside] Lose 7 HP. 65% chance for a Relic.",
-    "[Reach Inside] Lose 8 HP. 75% chance for a Relic.",
-    "[Reach Inside] Lose 9 HP. 85% chance for a Relic.",
-    "[Reach Inside] Lose 10 HP. 95% chance for a Relic.",
-    "[Reach Inside] Lose 11 HP. 105% chance for a Relic.",
-    "[Leave] Nothing happens.",
+const OPTIONS_BASE: &[(&str, &[Effect])] = &[
+    (
+        "[Reach Inside] Lose 3 HP. 25% chance for a Relic.",
+        &OPTIONS_REACH_BASE[0],
+    ),
+    (
+        "[Reach Inside] Lose 4 HP. 35% chance for a Relic.",
+        &OPTIONS_REACH_BASE[1],
+    ),
+    (
+        "[Reach Inside] Lose 5 HP. 45% chance for a Relic.",
+        &OPTIONS_REACH_BASE[2],
+    ),
+    (
+        "[Reach Inside] Lose 6 HP. 55% chance for a Relic.",
+        &OPTIONS_REACH_BASE[3],
+    ),
+    (
+        "[Reach Inside] Lose 7 HP. 65% chance for a Relic.",
+        &OPTIONS_REACH_BASE[4],
+    ),
+    (
+        "[Reach Inside] Lose 8 HP. 75% chance for a Relic.",
+        &OPTIONS_REACH_BASE[5],
+    ),
+    (
+        "[Reach Inside] Lose 9 HP. 85% chance for a Relic.",
+        &OPTIONS_REACH_BASE[6],
+    ),
+    (
+        "[Reach Inside] Lose 10 HP. 95% chance for a Relic.",
+        &OPTIONS_REACH_BASE[7],
+    ),
+    (
+        "[Reach Inside] Lose 11 HP. 105% chance for a Relic.",
+        &OPTIONS_REACH_BASE[8],
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const LABELS_A15: &[&str] = &[
-    "[Reach Inside] Lose 5 HP. 25% chance for a Relic.",
-    "[Reach Inside] Lose 6 HP. 35% chance for a Relic.",
-    "[Reach Inside] Lose 7 HP. 45% chance for a Relic.",
-    "[Reach Inside] Lose 8 HP. 55% chance for a Relic.",
-    "[Reach Inside] Lose 9 HP. 65% chance for a Relic.",
-    "[Reach Inside] Lose 10 HP. 75% chance for a Relic.",
-    "[Reach Inside] Lose 11 HP. 85% chance for a Relic.",
-    "[Reach Inside] Lose 12 HP. 95% chance for a Relic.",
-    "[Reach Inside] Lose 13 HP. 105% chance for a Relic.", // Base game also reads 105%. I'm innocent
-    "[Leave] Nothing happens.",
+const OPTIONS_A15: &[(&str, &[Effect])] = &[
+    (
+        "[Reach Inside] Lose 5 HP. 25% chance for a Relic.",
+        &OPTIONS_REACH_A15[0],
+    ),
+    (
+        "[Reach Inside] Lose 6 HP. 35% chance for a Relic.",
+        &OPTIONS_REACH_A15[1],
+    ),
+    (
+        "[Reach Inside] Lose 7 HP. 45% chance for a Relic.",
+        &OPTIONS_REACH_A15[2],
+    ),
+    (
+        "[Reach Inside] Lose 8 HP. 55% chance for a Relic.",
+        &OPTIONS_REACH_A15[3],
+    ),
+    (
+        "[Reach Inside] Lose 9 HP. 65% chance for a Relic.",
+        &OPTIONS_REACH_A15[4],
+    ),
+    (
+        "[Reach Inside] Lose 10 HP. 75% chance for a Relic.",
+        &OPTIONS_REACH_A15[5],
+    ),
+    (
+        "[Reach Inside] Lose 11 HP. 85% chance for a Relic.",
+        &OPTIONS_REACH_A15[6],
+    ),
+    (
+        "[Reach Inside] Lose 12 HP. 95% chance for a Relic.",
+        &OPTIONS_REACH_A15[7],
+    ),
+    // Base game also reads 105%. I'm innocent
+    (
+        "[Reach Inside] Lose 13 HP. 105% chance for a Relic.",
+        &OPTIONS_REACH_A15[8],
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn labels(ascension: u8) -> &'static [&'static str] {
+pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
     if ascension < 15 {
-        LABELS_BASE
+        OPTIONS_BASE
     } else {
-        LABELS_A15
+        OPTIONS_A15
     }
-}
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0..=8 if ascension < 15 => &OPTIONS_REACH_BASE[idx],
-        0..=8 => &OPTIONS_REACH_A15[idx],
-        9 => OPTION_LEAVE,
-        _ => unreachable!("scrap ooze option out of range: {idx}"),
-    });
 }
 
 pub fn option_available(attempts: u8, idx: usize) -> bool {

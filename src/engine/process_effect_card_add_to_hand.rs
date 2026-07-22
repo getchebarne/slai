@@ -10,7 +10,12 @@ pub fn process_effect_card_add_to_hand(
     count: u16,
     upgraded: bool,
 ) {
-    let Mode::Combat(combat) = &mut state.mode else {
+    let Mode::Combat {
+        id_hand,
+        id_pile_discard,
+        ..
+    } = &mut state.mode
+    else {
         unreachable!("process_effect_card_add_to_hand outside Combat mode")
     };
     if count == 0 {
@@ -20,8 +25,8 @@ pub fn process_effect_card_add_to_hand(
         let card = get_card(card_name, upgraded);
         add_card_to_hand_or_discard(
             &mut state.entities,
-            &mut combat.id_hand,
-            &mut combat.id_pile_discard,
+            &mut *id_hand,
+            &mut *id_pile_discard,
             card,
         );
     }

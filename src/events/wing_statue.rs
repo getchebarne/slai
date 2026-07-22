@@ -53,20 +53,14 @@ const OPTION_ATTACK: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-pub const LABELS: &[&str] = &[
-    "[Pray] Remove a card from your deck. Lose 7 HP.",
-    "[Destroy] Receive 50-80 Gold.",
-    "[Leave] Nothing happens.",
+pub const OPTIONS: &[(&str, &[Effect])] = &[
+    (
+        "[Pray] Remove a card from your deck. Lose 7 HP.",
+        OPTION_PRAY,
+    ),
+    ("[Destroy] Receive 50-80 Gold.", OPTION_ATTACK),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_PRAY,
-        1 => OPTION_ATTACK,
-        2 => OPTION_LEAVE,
-        _ => unreachable!("wing statue option out of range: {idx}"),
-    });
-}
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {

@@ -41,36 +41,33 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_ENTER_BASE: [Effect; 3] = enter(1, 5);
-static OPTION_ENTER_A15: [Effect; 3] = enter(3, 10);
+const OPTION_ENTER_BASE: [Effect; 3] = enter(1, 5);
+const OPTION_ENTER_A15: [Effect; 3] = enter(3, 10);
 
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const LABELS_BASE: &[&str] = &[
-    "[Enter] Upgrade 2 random cards. Lose 20% of your max HP.",
-    "[Leave] Nothing happens.",
+const OPTIONS_BASE: &[(&str, &[Effect])] = &[
+    (
+        "[Enter] Upgrade 2 random cards. Lose 20% of your max HP.",
+        &OPTION_ENTER_BASE,
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const LABELS_A15: &[&str] = &[
-    "[Enter] Upgrade 2 random cards. Lose 30% of your max HP.",
-    "[Leave] Nothing happens.",
+const OPTIONS_A15: &[(&str, &[Effect])] = &[
+    (
+        "[Enter] Upgrade 2 random cards. Lose 30% of your max HP.",
+        &OPTION_ENTER_A15,
+    ),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn labels(ascension: u8) -> &'static [&'static str] {
+pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
     if ascension < 15 {
-        LABELS_BASE
+        OPTIONS_BASE
     } else {
-        LABELS_A15
+        OPTIONS_A15
     }
-}
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, ascension: u8, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 if ascension < 15 => &OPTION_ENTER_BASE,
-        0 => &OPTION_ENTER_A15,
-        1 => OPTION_LEAVE,
-        _ => unreachable!("shining light option out of range: {idx}"),
-    });
 }
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {

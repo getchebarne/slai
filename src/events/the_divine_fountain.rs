@@ -25,15 +25,7 @@ const OPTION_DRINK: &[Effect] = &[
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
 // The event only spawns with a removable curse in the deck
-pub const LABELS: &[&str] = &[
-    "[Drink] Remove all Curses from your deck.",
-    "[Leave] Nothing happens.",
+pub const OPTIONS: &[(&str, &[Effect])] = &[
+    ("[Drink] Remove all Curses from your deck.", OPTION_DRINK),
+    ("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_DRINK,
-        1 => OPTION_LEAVE,
-        _ => unreachable!("divine fountain option out of range: {idx}"),
-    });
-}

@@ -12,15 +12,13 @@ use crate::consts::POTION_DROP_CHANCE_MOD_MIN;
 use crate::consts::POTION_DROP_CHANCE_MOD_MISS;
 use crate::consts::RELIC_TIER_TH_COMMON;
 use crate::consts::RELIC_TIER_TH_UNCOMMON;
-use crate::events::DeadAdventurerReward;
-use crate::events::EventPayload;
+use crate::effect::Amount;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
 use crate::relics::get_relic;
 use crate::types::Mode;
 use crate::types::RelicName;
-use crate::types::Rewards;
 use crate::types::RoomKind;
 use crate::utils::add_relic_reward_for_roll;
 use crate::utils::has_relic;
@@ -31,52 +29,34 @@ pub fn process_effect_reward_roll_combat(
     state: &mut GameState,
     room_kind: RoomKind,
     escaped: bool,
+    event_gold: Option<Amount>,
+    event_relic: Option<RelicName>,
+    event_relic_roll: bool,
 ) {
     // Select roll parameters according to `RoomKind`; event combats inject their
     // event-specific extras (a fixed relic and a bespoke gold range)
-    let (gold_range, relic_thresholds, event_relic) = match room_kind {
+    let (gold_amount, relic_thresholds, event_relic) = match room_kind {
         RoomKind::CombatMonster => (
-            if escaped {
-                None
-            } else {
-                Some((GOLD_MONSTER_MIN, GOLD_MONSTER_MAX))
-            },
+            (!escaped).then_some(Amount::Range {
+                min: GOLD_MONSTER_MIN,
+                max: GOLD_MONSTER_MAX,
+            }),
             None,
             None,
         ),
         RoomKind::CombatElite => (
-            Some((GOLD_ELITE_MIN, GOLD_ELITE_MAX)),
+            Some(Amount::Range {
+                min: GOLD_ELITE_MIN,
+                max: GOLD_ELITE_MAX,
+            }),
             Some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
             None,
         ),
-        RoomKind::EventRoom => {
-            let event = state
-                .event
-                .expect("event-room combat requires an active event");
-            match event.payload {
-                EventPayload::Mushrooms => (Some((20, 30)), None, Some(RelicName::OddMushroom)),
-                EventPayload::DeadAdventurer {
-                    rewards,
-                    rewards_len,
-                    ..
-                } => {
-                    // Un-found rewards fold into the fight's loot
-                    let unfound_rewards = &rewards[..rewards_len as usize];
-                    let gold_extra = unfound_rewards
-                        .iter()
-                        .filter(|&&r| r == DeadAdventurerReward::Gold)
-                        .count() as u16
-                        * 30;
-                    let relic_unfound = unfound_rewards.contains(&DeadAdventurerReward::Relic);
-                    (
-                        Some((25 + gold_extra, 35 + gold_extra)),
-                        relic_unfound.then_some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
-                        None,
-                    )
-                }
-                payload => unreachable!("combat reward in non-combat event: {payload:?}"),
-            }
-        }
+        RoomKind::EventRoom => (
+            Some(event_gold.expect("event fight without stamped loot")),
+            event_relic_roll.then_some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
+            event_relic,
+        ),
         _ => unreachable!(
             "RewardRollCombat with non-combat room_kind: {:?}",
             room_kind
@@ -128,8 +108,12 @@ pub fn process_effect_reward_roll_combat(
     }
 
     // Roll gold
-    let gold = gold_range.map(|(min, max)| {
-        let gold = state.rng.random_range(min..=max);
+    let gold = gold_amount.map(|amount| {
+        let gold = match amount {
+            Amount::Absolute(amount) => amount,
+            Amount::Range { min, max } => state.rng.random_range(min..=max),
+            _ => unreachable!("reward gold only resolves Absolute or Range"),
+        };
         // Golden Idol: 25% bonus rounded half-up on combat rewards only
         if has_relic(&state.id_relics, RelicName::GoldenIdol) {
             gold + (gold + 2) / 4
@@ -138,12 +122,12 @@ pub fn process_effect_reward_roll_combat(
         }
     });
 
-    state.mode = Mode::Reward(Rewards {
-        id_cards,
-        id_relic,
-        id_potions,
-        gold,
-    });
+    state.mode = Mode::Reward {
+        reward_id_cards: id_cards,
+        reward_id_relic: id_relic,
+        reward_id_potions: id_potions,
+        reward_gold: gold,
+    };
 }
 
 // +10 on miss, -10 on hit; clamps to [-30, +60] ([10%, 100%])

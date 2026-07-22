@@ -36,6 +36,7 @@ pub enum EntityKind {
     Room,
     Relic,
     Potion,
+    EventOption,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -178,6 +179,9 @@ pub struct Entity {
     pub potion_rarity: PotionRarity,
     pub potion_combat_only: bool,
     pub potion_effects: &'static [Effect],
+
+    // EventOption-only (effects reuse card_effects / card_effects_len)
+    pub event_option_label: &'static str,
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots
@@ -234,6 +238,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,
     potion_effects: &[],
+    event_option_label: "",
 };
 
 // Constructors
@@ -376,6 +381,21 @@ pub const fn make_entity_potion(
         potion_effects: effects,
         ..ZERO_ENTITY
     }
+}
+
+pub fn make_entity_event_option(label: &'static str, effects: &[Effect]) -> Entity {
+    assert!(
+        effects.len() <= MAX_EFFECTS_PER_CARD,
+        "event option effect list exceeds MAX_EFFECTS_PER_CARD"
+    );
+    let mut entity = Entity {
+        kind: EntityKind::EventOption,
+        event_option_label: label,
+        card_effects_len: effects.len() as u8,
+        ..ZERO_ENTITY
+    };
+    entity.card_effects[..effects.len()].copy_from_slice(effects);
+    entity
 }
 
 pub fn get_card_effective_cost(

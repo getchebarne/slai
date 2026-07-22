@@ -14,12 +14,7 @@ const OPTION_SPIN: &[Effect] = &[
 ];
 
 // Spin is mandatory, there's no "Leave" option
-pub const LABELS: &[&str] =
-    &["[Spin] Gold, a relic, a full heal, a Decay, a card removal, or HP loss."];
-
-pub fn push_option_effects(buf: &mut Vec<Effect>, idx: usize) {
-    buf.extend_from_slice(match idx {
-        0 => OPTION_SPIN,
-        _ => unreachable!("wheel of change option out of range: {idx}"),
-    });
-}
+pub const OPTIONS: &[(&str, &[Effect])] = &[(
+    "[Spin] Gold, a relic, a full heal, a Decay, a card removal, or HP loss.",
+    OPTION_SPIN,
+)];
