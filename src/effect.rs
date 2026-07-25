@@ -225,6 +225,8 @@ pub enum Amount {
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
+    // We Meet Again's rolled ask, read from the event payload at execution time
+    EventGoldAsk,
 }
 
 // Source pool for a Resolve effect
@@ -236,6 +238,9 @@ pub enum CandidatePool {
     Source,
     Discover,
     Deck { filter: CandidatePoolCardFilter },
+    // We Meet Again's rolled picks, read from the event payload at execution time
+    EventPickCard,
+    EventPickPotion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -2,6 +2,8 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
 use crate::types::DeltaSign;
@@ -34,22 +36,22 @@ const OPTION_AGREE_A15: [Effect; 3] = agree(150);
 // Disagree
 const OPTION_DISAGREE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const OPTIONS_BASE: &[(&str, &[Effect])] = &[
-    (
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option(
         "[Agree] Gain 175 Gold. Become Cursed - Doubt.",
         &OPTION_AGREE_BASE,
     ),
-    ("[Disagree] Nothing happens.", OPTION_DISAGREE),
+    make_entity_event_option("[Disagree] Nothing happens.", OPTION_DISAGREE),
 ];
-const OPTIONS_A15: &[(&str, &[Effect])] = &[
-    (
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option(
         "[Agree] Gain 150 Gold. Become Cursed - Doubt.",
         &OPTION_AGREE_A15,
     ),
-    ("[Disagree] Nothing happens.", OPTION_DISAGREE),
+    make_entity_event_option("[Disagree] Nothing happens.", OPTION_DISAGREE),
 ];
 
-pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

@@ -2,6 +2,8 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
 use crate::types::DeltaSign;
@@ -47,24 +49,24 @@ const OPTION_DESECRATE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const OPTIONS_BASE: &[(&str, &[Effect])] = &[
-    ("[Pray] Gain 100 Gold.", &OPTION_PRAY_BASE),
-    (
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option("[Pray] Gain 100 Gold.", &OPTION_PRAY_BASE),
+    make_entity_event_option(
         "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
         OPTION_DESECRATE,
     ),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const OPTIONS_A15: &[(&str, &[Effect])] = &[
-    ("[Pray] Gain 50 Gold.", &OPTION_PRAY_A15),
-    (
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option("[Pray] Gain 50 Gold.", &OPTION_PRAY_A15),
+    make_entity_event_option(
         "[Desecrate] Gain 275 Gold. Become Cursed - Regret.",
         OPTION_DESECRATE,
     ),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

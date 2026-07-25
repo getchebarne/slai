@@ -5,6 +5,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_upgradable;
 use crate::game::GameState;
@@ -47,22 +49,22 @@ const OPTION_ENTER_A15: [Effect; 3] = enter(3, 10);
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const OPTIONS_BASE: &[(&str, &[Effect])] = &[
-    (
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option(
         "[Enter] Upgrade 2 random cards. Lose 20% of your max HP.",
         &OPTION_ENTER_BASE,
     ),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const OPTIONS_A15: &[(&str, &[Effect])] = &[
-    (
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option(
         "[Enter] Upgrade 2 random cards. Lose 30% of your max HP.",
         &OPTION_ENTER_A15,
     ),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

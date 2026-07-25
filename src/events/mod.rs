@@ -28,7 +28,6 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
-use crate::entity::make_entity_event_option;
 use crate::game::GameState;
 use crate::types::EventName;
 use crate::utils::card_is_non_basic_non_curse;
@@ -83,8 +82,7 @@ pub enum EventKind {
     },
 }
 
-// Builds the event: entry rolls land in the kind, options bake into the arena.
-// The caller installs Mode::Event
+// Builds the event: entry rolls land in the kind, options bake into the arena
 pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<usize>) {
     let kind = match name {
         EventName::BigFish => EventKind::BigFish,
@@ -120,6 +118,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
     let id_options = bake_event_options(state, kind);
     (kind, id_options)
 }
+
 impl EventKind {
     pub fn name(&self) -> EventName {
         match self {
@@ -151,12 +150,11 @@ impl EventKind {
     }
 }
 
-// One Entity per option, baked once at spawn from the (label, effects) table
-pub fn bake_options(state: &mut GameState, options: &[(&'static str, &[Effect])]) -> Vec<usize> {
+// One Entity per option, copied into the arena at spawn (the card-spawn idiom)
+pub fn bake_options(state: &mut GameState, options: &[Entity]) -> Vec<usize> {
     let mut id_options = Vec::with_capacity(options.len());
-    for &(label, effects) in options {
-        let entity = make_entity_event_option(label, effects);
-        id_options.push(push_entity(&mut state.entities, entity));
+    for &option in options {
+        id_options.push(push_entity(&mut state.entities, option));
     }
     id_options
 }
@@ -187,11 +185,7 @@ fn bake_event_options(state: &mut GameState, kind: EventKind) -> Vec<usize> {
         EventKind::Mushrooms => bake_options(state, mushrooms::OPTIONS),
         EventKind::GoldenIdol { .. } => bake_options(state, golden_idol::options(ascension)),
         EventKind::ScrapOoze { .. } => bake_options(state, scrap_ooze::options(ascension)),
-        EventKind::WeMeetAgain {
-            id_card,
-            id_potion,
-            gold_ask,
-        } => we_meet_again::bake(state, id_card, id_potion, gold_ask),
+        EventKind::WeMeetAgain { .. } => bake_options(state, we_meet_again::OPTIONS),
         EventKind::DeadAdventurer { .. } => bake_options(state, dead_adventurer::OPTIONS),
     }
 }

@@ -102,6 +102,7 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
+use crate::events::EventKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
@@ -202,6 +203,26 @@ fn fill_buf_candidates(
                     effect_candidate_buf.push(id);
                 }
             }
+        }
+        CandidatePool::EventPickCard => {
+            let Mode::Event {
+                kind: EventKind::WeMeetAgain { id_card, .. },
+                ..
+            } = mode
+            else {
+                unreachable!("EventPickCard pool outside We Meet Again")
+            };
+            effect_candidate_buf.push(id_card.expect("EventPickCard without a rolled pick"));
+        }
+        CandidatePool::EventPickPotion => {
+            let Mode::Event {
+                kind: EventKind::WeMeetAgain { id_potion, .. },
+                ..
+            } = mode
+            else {
+                unreachable!("EventPickPotion pool outside We Meet Again")
+            };
+            effect_candidate_buf.push(id_potion.expect("EventPickPotion without a rolled pick"));
         }
     }
 }

@@ -4,6 +4,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
 use crate::types::DeltaSign;
@@ -61,8 +63,8 @@ const OPTION_BOX: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub const OPTIONS: &[(&str, &[Effect])] = &[
-    ("[Banana] Heal 1/3 of your max HP.", OPTION_BANANA),
-    ("[Donut] Raise your max HP by 5.", OPTION_DONUT),
-    ("[Box] Receive a Relic. Become Cursed - Regret.", OPTION_BOX),
+pub static OPTIONS: &[Entity] = &[
+    make_entity_event_option("[Banana] Heal 1/3 of your max HP.", OPTION_BANANA),
+    make_entity_event_option("[Donut] Raise your max HP by 5.", OPTION_DONUT),
+    make_entity_event_option("[Box] Receive a Relic. Become Cursed - Regret.", OPTION_BOX),
 ];

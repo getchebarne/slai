@@ -4,6 +4,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::DeltaSign;
 
@@ -51,24 +53,24 @@ const OPTION_TRADE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const OPTIONS_BASE: &[(&str, &[Effect])] = &[
-    (
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option(
         "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
         &OPTION_TOUCH_BASE,
     ),
-    ("[Trade] Obtain a random face.", OPTION_TRADE),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Trade] Obtain a random face.", OPTION_TRADE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const OPTIONS_A15: &[(&str, &[Effect])] = &[
-    (
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option(
         "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
         &OPTION_TOUCH_A15,
     ),
-    ("[Trade] Obtain a random face.", OPTION_TRADE),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Trade] Obtain a random face.", OPTION_TRADE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

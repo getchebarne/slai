@@ -185,6 +185,7 @@ pub enum PyAmount {
     Absolute { amount: u16 },
     Relative { numerator: u8, denominator: u8 },
     Range { min: u16, max: u16 },
+    EventGoldAsk {},
 }
 
 impl From<Amount> for PyAmount {
@@ -208,6 +209,7 @@ impl From<Amount> for PyAmount {
                 denominator,
             },
             Amount::Range { min, max } => Self::Range { min, max },
+            Amount::EventGoldAsk => Self::EventGoldAsk {},
         }
     }
 }
@@ -1176,6 +1178,8 @@ pub enum PyCandidatePool {
     Deck {
         filter: PyCandidatePoolCardFilter,
     },
+    EventPickCard {},
+    EventPickPotion {},
 }
 
 impl From<CandidatePool> for PyCandidatePool {
@@ -1193,6 +1197,8 @@ impl From<CandidatePool> for PyCandidatePool {
             CandidatePool::Deck { filter } => Self::Deck {
                 filter: filter.into(),
             },
+            CandidatePool::EventPickCard => Self::EventPickCard {},
+            CandidatePool::EventPickPotion => Self::EventPickPotion {},
         }
     }
 }
@@ -2825,7 +2831,7 @@ fn snapshot_event(
                 gated_out: !event_option_available(state, kind, idx),
                 effects: option.card_effects[..option.card_effects_len as usize]
                     .iter()
-                    .map(snapshot_event_option_effect)
+                    .map(snapshot_effect)
                     .collect(),
             }
         })
@@ -2865,16 +2871,6 @@ fn snapshot_event(
         pick_potion,
         gold_rolled,
     }
-}
-
-// Rolled event options carry resolved entity-id targets; the arena id itself is not
-// part of the observation (pick_card / pick_potion carry the specifics)
-fn snapshot_event_option_effect(effect: &Effect) -> PyEffect {
-    let mut effect = *effect;
-    if let Target::Direct(Some(_)) = effect.target {
-        effect.target = Target::Direct(None);
-    }
-    snapshot_effect(&effect)
 }
 
 fn snapshot_relic(entity: &Entity) -> PyRelic {

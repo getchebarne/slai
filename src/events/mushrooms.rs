@@ -4,6 +4,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
 use crate::types::DeltaSign;
@@ -62,9 +64,9 @@ const OPTION_EAT: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub const OPTIONS: &[(&str, &[Effect])] = &[
-    ("[Stomp] Fight 3 Fungi Beasts.", OPTION_STOMP),
-    (
+pub static OPTIONS: &[Entity] = &[
+    make_entity_event_option("[Stomp] Fight 3 Fungi Beasts.", OPTION_STOMP),
+    make_entity_event_option(
         "[Eat] Heal 25% of your Max HP. Become Cursed - Parasite.",
         OPTION_EAT,
     ),

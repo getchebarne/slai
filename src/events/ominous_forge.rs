@@ -4,6 +4,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_upgradable;
 use crate::game::GameState;
@@ -49,13 +51,13 @@ const OPTION_RUMMAGE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-pub const OPTIONS: &[(&str, &[Effect])] = &[
-    ("[Forge] Upgrade a card.", OPTION_FORGE),
-    (
+pub static OPTIONS: &[Entity] = &[
+    make_entity_event_option("[Forge] Upgrade a card.", OPTION_FORGE),
+    make_entity_event_option(
         "[Rummage] Obtain Warped Tongs. Become Cursed - Pain.",
         OPTION_RUMMAGE,
     ),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {

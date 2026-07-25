@@ -2,6 +2,7 @@ use rand::Rng;
 
 use crate::consts::MAX_GOLD;
 use crate::effect::Amount;
+use crate::events::EventKind;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::Mode;
@@ -11,8 +12,18 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
     let amount = match amount {
         Amount::Absolute(a) => a,
         Amount::Range { min, max } => state.rng.random_range(min..=max),
+        Amount::EventGoldAsk => {
+            let Mode::Event {
+                kind: EventKind::WeMeetAgain { gold_ask, .. },
+                ..
+            } = &state.mode
+            else {
+                unreachable!("EventGoldAsk outside We Meet Again")
+            };
+            gold_ask.expect("EventGoldAsk without a rolled ask")
+        }
         _ => {
-            unreachable!("GoldDelta only resolves Absolute or Range")
+            unreachable!("GoldDelta only resolves Absolute, Range, or EventGoldAsk")
         }
     };
 

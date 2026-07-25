@@ -383,19 +383,24 @@ pub const fn make_entity_potion(
     }
 }
 
-pub fn make_entity_event_option(label: &'static str, effects: &[Effect]) -> Entity {
+pub const fn make_entity_event_option(label: &'static str, effects: &[Effect]) -> Entity {
     assert!(
         effects.len() <= MAX_EFFECTS_PER_CARD,
         "event option effect list exceeds MAX_EFFECTS_PER_CARD"
     );
-    let mut entity = Entity {
+    let mut card_effects = [ZERO_EFFECT; MAX_EFFECTS_PER_CARD];
+    let mut i = 0;
+    while i < effects.len() {
+        card_effects[i] = effects[i];
+        i += 1;
+    }
+    Entity {
         kind: EntityKind::EventOption,
         event_option_label: label,
+        card_effects,
         card_effects_len: effects.len() as u8,
         ..ZERO_ENTITY
-    };
-    entity.card_effects[..effects.len()].copy_from_slice(effects);
-    entity
+    }
 }
 
 pub fn get_card_effective_cost(

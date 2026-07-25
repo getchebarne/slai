@@ -4,6 +4,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
 use crate::types::DeltaSign;
@@ -88,28 +90,28 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
 const OPTION_HIDE_BASE: [Effect; 2] = hide(8, 100);
 const OPTION_HIDE_A15: [Effect; 2] = hide(10, 100);
 
-const OPTIONS_BASE: &[(&str, &[Effect])] = &[
-    ("[Take] Obtain Golden Idol.", OPTION_TAKE),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
-    ("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
-    (
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option("[Take] Obtain Golden Idol.", OPTION_TAKE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
+    make_entity_event_option(
         "[Smash] Take 25% of your max HP as damage.",
         &OPTION_SMASH_BASE,
     ),
-    ("[Hide] Lose 8% of your max HP.", &OPTION_HIDE_BASE),
+    make_entity_event_option("[Hide] Lose 8% of your max HP.", &OPTION_HIDE_BASE),
 ];
-const OPTIONS_A15: &[(&str, &[Effect])] = &[
-    ("[Take] Obtain Golden Idol.", OPTION_TAKE),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
-    ("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
-    (
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option("[Take] Obtain Golden Idol.", OPTION_TAKE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
+    make_entity_event_option(
         "[Smash] Take 35% of your max HP as damage.",
         &OPTION_SMASH_A15,
     ),
-    ("[Hide] Lose 10% of your max HP.", &OPTION_HIDE_A15),
+    make_entity_event_option("[Hide] Lose 10% of your max HP.", &OPTION_HIDE_A15),
 ];
 
-pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

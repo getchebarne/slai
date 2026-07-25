@@ -1,6 +1,8 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 
 // Search: escalating elite-return chance; the AdventurerSearch processor draws
@@ -14,10 +16,10 @@ const OPTION_SEARCH: &[Effect] = &[Effect {
 // Escape
 const OPTION_ESCAPE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-pub const OPTIONS: &[(&str, &[Effect])] = &[
-    (
+pub static OPTIONS: &[Entity] = &[
+    make_entity_event_option(
         "[Search] Find loot; whatever killed the adventurer may return.",
         OPTION_SEARCH,
     ),
-    ("[Escape] Leave with what you found.", OPTION_ESCAPE),
+    make_entity_event_option("[Escape] Leave with what you found.", OPTION_ESCAPE),
 ];

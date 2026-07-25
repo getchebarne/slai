@@ -1,12 +1,15 @@
 use rand::Rng;
 
 use crate::effect::Amount;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventKind;
-use crate::events::bake_options;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::utils::card_is_non_basic_non_curse;
@@ -17,11 +20,64 @@ const RELIC_REWARD: Effect = Effect {
     target: Target::Direct(None),
 };
 
-const LABELS: &[&str] = &[
-    "[Give Potion] Lose the offered potion. Obtain a random relic.",
-    "[Give Gold] Lose the asked gold. Obtain a random relic.",
-    "[Give Card] Lose the offered card. Obtain a random relic.",
-    "[Attack] Nothing happens.",
+// The picks and the gold ask resolve from the payload at execution time
+// (EventPickCard / EventPickPotion / EventGoldAsk); availability guards
+// unrolled or no-longer-owned picks, so resolution always finds them
+const OPTION_GIVE_POTION: &[Effect] = &[
+    Effect {
+        kind: EffectKind::PotionDiscard,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::EventPickPotion,
+            selection_kind: SelectionKind::Single,
+        },
+    },
+    RELIC_REWARD,
+    EVENT_CONSUME_EFFECT,
+];
+
+const OPTION_GIVE_GOLD: &[Effect] = &[
+    Effect {
+        kind: EffectKind::GoldDelta {
+            sign: DeltaSign::Loss,
+            amount: Amount::EventGoldAsk,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    },
+    RELIC_REWARD,
+    EVENT_CONSUME_EFFECT,
+];
+
+const OPTION_GIVE_CARD: &[Effect] = &[
+    Effect {
+        kind: EffectKind::CardPurge,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::EventPickCard,
+            selection_kind: SelectionKind::Single,
+        },
+    },
+    RELIC_REWARD,
+    EVENT_CONSUME_EFFECT,
+];
+
+const OPTION_ATTACK: &[Effect] = &[EVENT_CONSUME_EFFECT];
+
+pub static OPTIONS: &[Entity] = &[
+    make_entity_event_option(
+        "[Give Potion] Lose the offered potion. Obtain a random relic.",
+        OPTION_GIVE_POTION,
+    ),
+    make_entity_event_option(
+        "[Give Gold] Lose the asked gold. Obtain a random relic.",
+        OPTION_GIVE_GOLD,
+    ),
+    make_entity_event_option(
+        "[Give Card] Lose the offered card. Obtain a random relic.",
+        OPTION_GIVE_CARD,
+    ),
+    make_entity_event_option("[Attack] Nothing happens.", OPTION_ATTACK),
 ];
 
 pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventKind {
@@ -49,53 +105,6 @@ pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventKind {
         id_potion,
         gold_ask,
     }
-}
-
-// Unrolled picks bake as Direct(None)/0: the snapshot still renders gated-out
-// options, and availability keeps the action path off them
-pub fn bake(
-    state: &mut GameState,
-    id_card: Option<usize>,
-    id_potion: Option<usize>,
-    gold_ask: Option<u16>,
-) -> Vec<usize> {
-    let give_potion = [
-        Effect {
-            kind: EffectKind::PotionDiscard,
-            id_source: None,
-            target: Target::Direct(id_potion),
-        },
-        RELIC_REWARD,
-        EVENT_CONSUME_EFFECT,
-    ];
-    let give_gold = [
-        Effect {
-            kind: EffectKind::GoldDelta {
-                sign: DeltaSign::Loss,
-                amount: Amount::Absolute(gold_ask.unwrap_or(0)),
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        },
-        RELIC_REWARD,
-        EVENT_CONSUME_EFFECT,
-    ];
-    let give_card = [
-        Effect {
-            kind: EffectKind::CardPurge,
-            id_source: None,
-            target: Target::Direct(id_card),
-        },
-        RELIC_REWARD,
-        EVENT_CONSUME_EFFECT,
-    ];
-    let options: [(&str, &[Effect]); 4] = [
-        (LABELS[0], &give_potion),
-        (LABELS[1], &give_gold),
-        (LABELS[2], &give_card),
-        (LABELS[3], &[EVENT_CONSUME_EFFECT]),
-    ];
-    bake_options(state, &options)
 }
 
 pub fn option_available(

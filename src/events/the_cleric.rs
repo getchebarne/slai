@@ -5,6 +5,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_purgeable;
 use crate::game::GameState;
@@ -71,24 +73,24 @@ const OPTION_PURIFY_A15: [Effect; 3] = purify(COST_PURIFY_A15);
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-const OPTIONS_BASE: &[(&str, &[Effect])] = &[
-    ("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
-    (
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
+    make_entity_event_option(
         "[Purify] Pay 50 Gold. Remove a card from your deck.",
         &OPTION_PURIFY_BASE,
     ),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
-const OPTIONS_A15: &[(&str, &[Effect])] = &[
-    ("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
-    (
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
+    make_entity_event_option(
         "[Purify] Pay 75 Gold. Remove a card from your deck.",
         &OPTION_PURIFY_A15,
     ),
-    ("[Leave] Nothing happens.", OPTION_LEAVE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-pub fn options(ascension: u8) -> &'static [(&'static str, &'static [Effect])] {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {
