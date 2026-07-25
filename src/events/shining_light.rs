@@ -74,6 +74,6 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
         0 => deck_has_upgradable(state),
         1 => true,
-        _ => unreachable!("shining light option out of range: {idx}"),
+        _ => unreachable!("Shining light option out of range: {idx}"),
     }
 }

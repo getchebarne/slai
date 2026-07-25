@@ -129,17 +129,16 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             });
         }
         RoomKind::EventRoom => {
-            // spawn_event constructs Mode::Event whole
-            if spawn_random_event(state) {
-                return;
-            }
-
-            // Both pools dry: explicit no-op room, straight back to the map
-            state.mode = Mode::Map;
+            let name = draw_random_event(state).expect("Event room with no drawable event");
+            let (kind, id_options) = spawn_event(state, name);
+            state.mode = Mode::Event {
+                kind,
+                consumed: false,
+                id_options,
+            };
         }
+        // ShopBuild constructs Mode::Shop; until it runs the mode stays Map
         RoomKind::Shop => {
-            // ShopBuild constructs Mode::Shop; until it runs the mode stays Map
-
             // Meal Ticket: Heal 15 on shop enter
             if has_relic(&state.id_relics, RelicName::MealTicket) {
                 state.effect_queue.push_back(Effect {
@@ -229,19 +228,14 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
     room_kind_resolved
 }
 
-// 25% special pool (shrines + one-time events), else event pool; an exhausted pool falls back to the other,
-// both empty -> no event and the room is a no-op
-fn spawn_random_event(state: &mut GameState) -> bool {
-    let name = if state.rng.random_range(0.0..1.0f32) < EVENT_SPECIAL_CHANCE {
+// 25% special pool (shrines + one-time events), else event pool; an exhausted
+// pool falls back to the other, both empty -> None
+fn draw_random_event(state: &mut GameState) -> Option<EventName> {
+    if state.rng.random_range(0.0..1.0f32) < EVENT_SPECIAL_CHANCE {
         draw_event_special(state).or_else(|| draw_event(state))
     } else {
         draw_event(state).or_else(|| draw_event_special(state))
-    };
-    let Some(name) = name else {
-        return false;
-    };
-    spawn_event(state, name);
-    true
+    }
 }
 
 fn draw_event(state: &mut GameState) -> Option<EventName> {

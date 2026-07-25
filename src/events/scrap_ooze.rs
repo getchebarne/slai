@@ -135,6 +135,6 @@ pub fn option_available(attempts: u8, idx: usize) -> bool {
     match idx {
         0..=8 => idx as u8 == attempts,
         9 => true,
-        _ => unreachable!("scrap ooze option out of range: {idx}"),
+        _ => unreachable!("Scrap ooze option out of range: {idx}"),
     }
 }

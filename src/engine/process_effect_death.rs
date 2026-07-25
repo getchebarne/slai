@@ -42,7 +42,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
 
     // Monster-death path
     let Mode::Combat { id_monsters, .. } = &mut state.mode else {
-        unreachable!("monster death outside Combat mode")
+        unreachable!("Monster death outside Combat mode")
     };
     let id_character = state.id_character;
 

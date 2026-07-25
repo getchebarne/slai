@@ -2,7 +2,7 @@ use strum::EnumCount;
 
 use crate::consts::MAX_MONSTERS;
 use crate::effect::Amount;
-use crate::events::EventPayload;
+use crate::events::EventKind;
 
 // Vitals: physical combat state. Shared by character and monsters
 #[derive(Debug, Clone, Copy)]
@@ -55,8 +55,7 @@ pub enum Mode {
         reward_gold: Option<u16>,
     },
     Event {
-        name: EventName,
-        payload: EventPayload,
+        kind: EventKind,
         consumed: bool,
         id_options: Vec<usize>,
     },

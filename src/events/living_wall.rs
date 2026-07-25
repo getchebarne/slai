@@ -66,6 +66,6 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
         0 => deck_has_purgeable(state),
         1 => deck_has_non_basic_non_curse(state),
         2 => deck_has_upgradable(state),
-        _ => unreachable!("living wall option out of range: {idx}"),
+        _ => unreachable!("Living wall option out of range: {idx}"),
     }
 }

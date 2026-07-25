@@ -31,7 +31,6 @@ use crate::entity::EntityKind;
 use crate::entity::make_entity_event_option;
 use crate::game::GameState;
 use crate::types::EventName;
-use crate::types::Mode;
 use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
@@ -44,7 +43,7 @@ pub const EVENT_CONSUME_EFFECT: Effect = Effect {
 };
 
 #[derive(Debug, Clone, Copy)]
-pub enum EventPayload {
+pub enum EventKind {
     BigFish,
     TheCleric,
     Duplicator,
@@ -84,46 +83,72 @@ pub enum EventPayload {
     },
 }
 
-// Spawns `name` as the active mode; entry rolls land in the payload
-pub fn spawn_event(state: &mut GameState, name: EventName) {
-    let payload = match name {
-        EventName::BigFish => EventPayload::BigFish,
-        EventName::TheCleric => EventPayload::TheCleric,
-        EventName::Duplicator => EventPayload::Duplicator,
-        EventName::GoldenShrine => EventPayload::GoldenShrine,
-        EventName::GoldenIdol => EventPayload::GoldenIdol { stage: 0 },
-        EventName::WingStatue => EventPayload::WingStatue,
-        EventName::WorldOfGoop => EventPayload::WorldOfGoop,
-        EventName::LivingWall => EventPayload::LivingWall,
-        EventName::Purifier => EventPayload::Purifier,
-        EventName::ScrapOoze => EventPayload::ScrapOoze { attempts: 0 },
-        EventName::ShiningLight => EventPayload::ShiningLight,
-        EventName::TheSsssserpent => EventPayload::TheSsssserpent,
-        EventName::Transmogrifier => EventPayload::Transmogrifier,
-        EventName::UpgradeShrine => EventPayload::UpgradeShrine,
-        EventName::TheDivineFountain => EventPayload::TheDivineFountain,
-        EventName::TheLab => EventPayload::TheLab,
-        EventName::TheWomanInBlue => EventPayload::TheWomanInBlue,
-        EventName::WheelOfChange => EventPayload::WheelOfChange,
-        EventName::BonfireSpirits => EventPayload::BonfireSpirits,
-        EventName::OminousForge => EventPayload::OminousForge,
-        EventName::FaceTrader => EventPayload::FaceTrader,
+// Builds the event: entry rolls land in the kind, options bake into the arena.
+// The caller installs Mode::Event
+pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<usize>) {
+    let kind = match name {
+        EventName::BigFish => EventKind::BigFish,
+        EventName::TheCleric => EventKind::TheCleric,
+        EventName::Duplicator => EventKind::Duplicator,
+        EventName::GoldenShrine => EventKind::GoldenShrine,
+        EventName::GoldenIdol => EventKind::GoldenIdol { stage: 0 },
+        EventName::WingStatue => EventKind::WingStatue,
+        EventName::WorldOfGoop => EventKind::WorldOfGoop,
+        EventName::LivingWall => EventKind::LivingWall,
+        EventName::Purifier => EventKind::Purifier,
+        EventName::ScrapOoze => EventKind::ScrapOoze { attempts: 0 },
+        EventName::ShiningLight => EventKind::ShiningLight,
+        EventName::TheSsssserpent => EventKind::TheSsssserpent,
+        EventName::Transmogrifier => EventKind::Transmogrifier,
+        EventName::UpgradeShrine => EventKind::UpgradeShrine,
+        EventName::TheDivineFountain => EventKind::TheDivineFountain,
+        EventName::TheLab => EventKind::TheLab,
+        EventName::TheWomanInBlue => EventKind::TheWomanInBlue,
+        EventName::WheelOfChange => EventKind::WheelOfChange,
+        EventName::BonfireSpirits => EventKind::BonfireSpirits,
+        EventName::OminousForge => EventKind::OminousForge,
+        EventName::FaceTrader => EventKind::FaceTrader,
         EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(state),
-        EventName::Mushrooms => EventPayload::Mushrooms,
-        EventName::DeadAdventurer => EventPayload::DeadAdventurer {
+        EventName::Mushrooms => EventKind::Mushrooms,
+        EventName::DeadAdventurer => EventKind::DeadAdventurer {
             found_gold: false,
             found_nothing: false,
             found_relic: false,
             searches: 0,
         },
     };
-    let id_options = bake_event_options(state, payload);
-    state.mode = Mode::Event {
-        name,
-        payload,
-        consumed: false,
-        id_options,
-    };
+    let id_options = bake_event_options(state, kind);
+    (kind, id_options)
+}
+impl EventKind {
+    pub fn name(&self) -> EventName {
+        match self {
+            EventKind::BigFish => EventName::BigFish,
+            EventKind::TheCleric => EventName::TheCleric,
+            EventKind::Duplicator => EventName::Duplicator,
+            EventKind::GoldenShrine => EventName::GoldenShrine,
+            EventKind::WingStatue => EventName::WingStatue,
+            EventKind::WorldOfGoop => EventName::WorldOfGoop,
+            EventKind::LivingWall => EventName::LivingWall,
+            EventKind::Purifier => EventName::Purifier,
+            EventKind::ShiningLight => EventName::ShiningLight,
+            EventKind::TheSsssserpent => EventName::TheSsssserpent,
+            EventKind::Transmogrifier => EventName::Transmogrifier,
+            EventKind::UpgradeShrine => EventName::UpgradeShrine,
+            EventKind::TheDivineFountain => EventName::TheDivineFountain,
+            EventKind::TheLab => EventName::TheLab,
+            EventKind::TheWomanInBlue => EventName::TheWomanInBlue,
+            EventKind::WheelOfChange => EventName::WheelOfChange,
+            EventKind::BonfireSpirits => EventName::BonfireSpirits,
+            EventKind::OminousForge => EventName::OminousForge,
+            EventKind::FaceTrader => EventName::FaceTrader,
+            EventKind::Mushrooms => EventName::Mushrooms,
+            EventKind::GoldenIdol { .. } => EventName::GoldenIdol,
+            EventKind::ScrapOoze { .. } => EventName::ScrapOoze,
+            EventKind::WeMeetAgain { .. } => EventName::WeMeetAgain,
+            EventKind::DeadAdventurer { .. } => EventName::DeadAdventurer,
+        }
+    }
 }
 
 // One Entity per option, baked once at spawn from the (label, effects) table
@@ -137,67 +162,67 @@ pub fn bake_options(state: &mut GameState, options: &[(&'static str, &[Effect])]
 }
 
 // Option lists encode only spawn-time state; mid-event dynamism lives in processors
-fn bake_event_options(state: &mut GameState, payload: EventPayload) -> Vec<usize> {
+fn bake_event_options(state: &mut GameState, kind: EventKind) -> Vec<usize> {
     let ascension = state.ascension;
-    match payload {
-        EventPayload::BigFish => bake_options(state, big_fish::OPTIONS),
-        EventPayload::TheCleric => bake_options(state, the_cleric::options(ascension)),
-        EventPayload::Duplicator => bake_options(state, duplicator::OPTIONS),
-        EventPayload::GoldenShrine => bake_options(state, golden_shrine::options(ascension)),
-        EventPayload::WingStatue => bake_options(state, wing_statue::OPTIONS),
-        EventPayload::WorldOfGoop => bake_options(state, world_of_goop::options(ascension)),
-        EventPayload::LivingWall => bake_options(state, living_wall::OPTIONS),
-        EventPayload::Purifier => bake_options(state, purifier::OPTIONS),
-        EventPayload::ShiningLight => bake_options(state, shining_light::options(ascension)),
-        EventPayload::TheSsssserpent => bake_options(state, the_ssssserpent::options(ascension)),
-        EventPayload::Transmogrifier => bake_options(state, transmogrifier::OPTIONS),
-        EventPayload::UpgradeShrine => bake_options(state, upgrade_shrine::OPTIONS),
-        EventPayload::TheDivineFountain => bake_options(state, the_divine_fountain::OPTIONS),
-        EventPayload::TheLab => bake_options(state, the_lab::options(ascension)),
-        EventPayload::TheWomanInBlue => bake_options(state, the_woman_in_blue::options(ascension)),
-        EventPayload::WheelOfChange => bake_options(state, wheel_of_change::OPTIONS),
-        EventPayload::BonfireSpirits => bake_options(state, bonfire_spirits::OPTIONS),
-        EventPayload::OminousForge => bake_options(state, ominous_forge::OPTIONS),
-        EventPayload::FaceTrader => bake_options(state, face_trader::options(ascension)),
-        EventPayload::Mushrooms => bake_options(state, mushrooms::OPTIONS),
-        EventPayload::GoldenIdol { .. } => bake_options(state, golden_idol::options(ascension)),
-        EventPayload::ScrapOoze { .. } => bake_options(state, scrap_ooze::options(ascension)),
-        EventPayload::WeMeetAgain {
+    match kind {
+        EventKind::BigFish => bake_options(state, big_fish::OPTIONS),
+        EventKind::TheCleric => bake_options(state, the_cleric::options(ascension)),
+        EventKind::Duplicator => bake_options(state, duplicator::OPTIONS),
+        EventKind::GoldenShrine => bake_options(state, golden_shrine::options(ascension)),
+        EventKind::WingStatue => bake_options(state, wing_statue::OPTIONS),
+        EventKind::WorldOfGoop => bake_options(state, world_of_goop::options(ascension)),
+        EventKind::LivingWall => bake_options(state, living_wall::OPTIONS),
+        EventKind::Purifier => bake_options(state, purifier::OPTIONS),
+        EventKind::ShiningLight => bake_options(state, shining_light::options(ascension)),
+        EventKind::TheSsssserpent => bake_options(state, the_ssssserpent::options(ascension)),
+        EventKind::Transmogrifier => bake_options(state, transmogrifier::OPTIONS),
+        EventKind::UpgradeShrine => bake_options(state, upgrade_shrine::OPTIONS),
+        EventKind::TheDivineFountain => bake_options(state, the_divine_fountain::OPTIONS),
+        EventKind::TheLab => bake_options(state, the_lab::options(ascension)),
+        EventKind::TheWomanInBlue => bake_options(state, the_woman_in_blue::options(ascension)),
+        EventKind::WheelOfChange => bake_options(state, wheel_of_change::OPTIONS),
+        EventKind::BonfireSpirits => bake_options(state, bonfire_spirits::OPTIONS),
+        EventKind::OminousForge => bake_options(state, ominous_forge::OPTIONS),
+        EventKind::FaceTrader => bake_options(state, face_trader::options(ascension)),
+        EventKind::Mushrooms => bake_options(state, mushrooms::OPTIONS),
+        EventKind::GoldenIdol { .. } => bake_options(state, golden_idol::options(ascension)),
+        EventKind::ScrapOoze { .. } => bake_options(state, scrap_ooze::options(ascension)),
+        EventKind::WeMeetAgain {
             id_card,
             id_potion,
             gold_ask,
         } => we_meet_again::bake(state, id_card, id_potion, gold_ask),
-        EventPayload::DeadAdventurer { .. } => bake_options(state, dead_adventurer::OPTIONS),
+        EventKind::DeadAdventurer { .. } => bake_options(state, dead_adventurer::OPTIONS),
     }
 }
 
 // Per-event availability checks
-pub fn event_option_available(state: &GameState, payload: EventPayload, idx: usize) -> bool {
-    match payload {
-        EventPayload::BigFish
-        | EventPayload::Duplicator
-        | EventPayload::GoldenShrine
-        | EventPayload::WorldOfGoop
-        | EventPayload::TheSsssserpent
-        | EventPayload::TheDivineFountain
-        | EventPayload::TheLab
-        | EventPayload::TheWomanInBlue
-        | EventPayload::WheelOfChange
-        | EventPayload::BonfireSpirits
-        | EventPayload::FaceTrader
-        | EventPayload::Mushrooms
-        | EventPayload::DeadAdventurer { .. } => true,
-        EventPayload::TheCleric => the_cleric::option_available(state, idx),
-        EventPayload::WingStatue => wing_statue::option_available(state, idx),
-        EventPayload::LivingWall => living_wall::option_available(state, idx),
-        EventPayload::Purifier => purifier::option_available(state, idx),
-        EventPayload::ShiningLight => shining_light::option_available(state, idx),
-        EventPayload::Transmogrifier => transmogrifier::option_available(state, idx),
-        EventPayload::UpgradeShrine => upgrade_shrine::option_available(state, idx),
-        EventPayload::OminousForge => ominous_forge::option_available(state, idx),
-        EventPayload::GoldenIdol { stage } => golden_idol::option_available(stage, idx),
-        EventPayload::ScrapOoze { attempts } => scrap_ooze::option_available(attempts, idx),
-        EventPayload::WeMeetAgain {
+pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) -> bool {
+    match kind {
+        EventKind::BigFish
+        | EventKind::Duplicator
+        | EventKind::GoldenShrine
+        | EventKind::WorldOfGoop
+        | EventKind::TheSsssserpent
+        | EventKind::TheDivineFountain
+        | EventKind::TheLab
+        | EventKind::TheWomanInBlue
+        | EventKind::WheelOfChange
+        | EventKind::BonfireSpirits
+        | EventKind::FaceTrader
+        | EventKind::Mushrooms
+        | EventKind::DeadAdventurer { .. } => true,
+        EventKind::TheCleric => the_cleric::option_available(state, idx),
+        EventKind::WingStatue => wing_statue::option_available(state, idx),
+        EventKind::LivingWall => living_wall::option_available(state, idx),
+        EventKind::Purifier => purifier::option_available(state, idx),
+        EventKind::ShiningLight => shining_light::option_available(state, idx),
+        EventKind::Transmogrifier => transmogrifier::option_available(state, idx),
+        EventKind::UpgradeShrine => upgrade_shrine::option_available(state, idx),
+        EventKind::OminousForge => ominous_forge::option_available(state, idx),
+        EventKind::GoldenIdol { stage } => golden_idol::option_available(stage, idx),
+        EventKind::ScrapOoze { attempts } => scrap_ooze::option_available(attempts, idx),
+        EventKind::WeMeetAgain {
             id_card,
             id_potion,
             gold_ask,

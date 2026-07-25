@@ -81,7 +81,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
             });
         }
         RoomKind::RestSite | RoomKind::Treasure | RoomKind::Shop => {
-            unreachable!("combat end in non-combat room: {:?}", room_kind)
+            unreachable!("Combat end in non-combat room: {:?}", room_kind)
         }
     }
 

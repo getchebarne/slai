@@ -5,7 +5,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventPayload;
+use crate::events::EventKind;
 use crate::events::bake_options;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -24,7 +24,7 @@ const LABELS: &[&str] = &[
     "[Attack] Nothing happens.",
 ];
 
-pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventPayload {
+pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventKind {
     // Card offer: uniform among non-Basic, non-Curse deck cards
     let eligible: Vec<usize> = state
         .id_deck
@@ -44,7 +44,7 @@ pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventPayload {
     let gold = state.entities[state.id_character].character_gold;
     let gold_ask = (gold >= 50).then(|| state.rng.random_range(50..=gold.min(150)));
 
-    EventPayload::WeMeetAgain {
+    EventKind::WeMeetAgain {
         id_card,
         id_potion,
         gold_ask,
@@ -111,6 +111,6 @@ pub fn option_available(
         1 => gold_ask.is_some() && state.entities[state.id_character].character_gold >= 50,
         2 => id_card.is_some_and(|id| state.id_deck.contains(&id)),
         3 => true,
-        _ => unreachable!("we meet again option out of range: {idx}"),
+        _ => unreachable!("We meet again option out of range: {idx}"),
     }
 }

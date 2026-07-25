@@ -178,7 +178,7 @@ pub fn recompute_legal_actions(state: &mut GameState) {
 // Discard / retain / setup / nightmare picks all resolve a pending hand pick
 fn resolve_pending_hand_pick(state: &mut GameState, idx: usize) {
     let Mode::Combat { id_hand, .. } = &state.mode else {
-        unreachable!("hand pick outside Combat mode")
+        unreachable!("Hand pick outside Combat mode")
     };
     let id_card = id_hand[idx];
     resolve_pending_pick(state, id_card);
@@ -324,7 +324,7 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
     let id_potion = state.id_potions[idx_potion].expect("enumerated potion slot is occupied");
     if state.entities[id_potion].requires_target {
         let Mode::Combat { id_monsters, .. } = &state.mode else {
-            unreachable!("targeted potion use outside Combat mode")
+            unreachable!("Targeted potion use outside Combat mode")
         };
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
@@ -541,7 +541,7 @@ fn fill_legal_actions_effect_pending(
         // decremented count, so discard-N becomes N single picks (see resolve_hand_pending)
         EffectKind::CardDiscard { .. } => {
             let Mode::Combat { id_hand, .. } = &state.mode else {
-                unreachable!("hand pick outside Combat mode")
+                unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
                 state.legal_actions.push(Action::CardDiscard { idx: i });
@@ -549,7 +549,7 @@ fn fill_legal_actions_effect_pending(
         }
         EffectKind::CardRetain => {
             let Mode::Combat { id_hand, .. } = &state.mode else {
-                unreachable!("hand pick outside Combat mode")
+                unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
                 state.legal_actions.push(Action::CardRetain { idx: i });
@@ -557,7 +557,7 @@ fn fill_legal_actions_effect_pending(
         }
         EffectKind::CardSetupPick => {
             let Mode::Combat { id_hand, .. } = &state.mode else {
-                unreachable!("hand pick outside Combat mode")
+                unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
                 state.legal_actions.push(Action::CardSetup { idx: i });
@@ -565,7 +565,7 @@ fn fill_legal_actions_effect_pending(
         }
         EffectKind::CardNightmarePick => {
             let Mode::Combat { id_hand, .. } = &state.mode else {
-                unreachable!("hand pick outside Combat mode")
+                unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
                 state.legal_actions.push(Action::CardNightmare { idx: i });
@@ -573,7 +573,7 @@ fn fill_legal_actions_effect_pending(
         }
         EffectKind::CardDiscoverPick => {
             let Mode::Combat { id_discover, .. } = &state.mode else {
-                unreachable!("discover pick outside Combat mode")
+                unreachable!("Discover pick outside Combat mode")
             };
             for i in 0..id_discover.len() {
                 state.legal_actions.push(Action::CardDiscover { idx: i });
@@ -717,7 +717,7 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
 
 fn fill_legal_actions_screen_event(state: &mut GameState) {
     let Mode::Event {
-        payload,
+        kind,
         consumed,
         id_options,
         ..
@@ -728,10 +728,10 @@ fn fill_legal_actions_screen_event(state: &mut GameState) {
     if *consumed {
         state.legal_actions.push(Action::RoomExit);
     } else {
-        let payload = *payload;
+        let kind = *kind;
         let num_options = id_options.len();
         for i in 0..num_options {
-            if event_option_available(state, payload, i) {
+            if event_option_available(state, kind, i) {
                 state
                     .legal_actions
                     .push(Action::EventOptionSelect { idx: i });

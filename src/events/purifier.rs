@@ -35,6 +35,6 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
         0 => deck_has_purgeable(state),
         1 => true,
-        _ => unreachable!("purifier option out of range: {idx}"),
+        _ => unreachable!("Purifier option out of range: {idx}"),
     }
 }

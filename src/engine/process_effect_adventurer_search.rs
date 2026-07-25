@@ -7,7 +7,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::events::EventPayload;
+use crate::events::EventKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::monsters::encounters::spawn_encounter_monsters;
@@ -19,8 +19,8 @@ use crate::types::MonsterEncounter;
 // Dead Adventurer search: escalating chance an elite returns
 pub fn process_effect_adventurer_search(state: &mut GameState) {
     let Mode::Event {
-        payload:
-            EventPayload::DeadAdventurer {
+        kind:
+            EventKind::DeadAdventurer {
                 found_gold,
                 found_nothing,
                 found_relic,
@@ -48,7 +48,7 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
             0 => MonsterEncounter::ThreeSentries,
             1 => MonsterEncounter::GremlinNob,
             2 => MonsterEncounter::Lagavulin,
-            roll => unreachable!("adventurer enemy roll out of range: {roll}"),
+            roll => unreachable!("Adventurer enemy roll out of range: {roll}"),
         };
         spawn_encounter_monsters(
             state,

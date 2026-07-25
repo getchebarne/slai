@@ -34,7 +34,7 @@ pub fn process_effect_reward_roll_combat(
     event_relic_roll: bool,
 ) {
     // Select roll parameters according to `RoomKind`; event combats inject their
-    // event-specific extras (a fixed relic and a bespoke gold range)
+    // event-specific extras
     let (gold_amount, relic_thresholds, event_relic) = match room_kind {
         RoomKind::CombatMonster => (
             (!escaped).then_some(Amount::Range {
@@ -108,19 +108,20 @@ pub fn process_effect_reward_roll_combat(
     }
 
     // Roll gold
-    let gold = gold_amount.map(|amount| {
-        let gold = match amount {
+    let gold = if let Some(amount) = gold_amount {
+        let mut rolled = match amount {
             Amount::Absolute(amount) => amount,
             Amount::Range { min, max } => state.rng.random_range(min..=max),
-            _ => unreachable!("reward gold only resolves Absolute or Range"),
+            _ => unreachable!("Reward gold only resolves Absolute or Range"),
         };
         // Golden Idol: 25% bonus rounded half-up on combat rewards only
         if has_relic(&state.id_relics, RelicName::GoldenIdol) {
-            gold + (gold + 2) / 4
-        } else {
-            gold
+            rolled += (rolled + 2) / 4;
         }
-    });
+        Some(rolled)
+    } else {
+        None
+    };
 
     state.mode = Mode::Reward {
         reward_id_cards: id_cards,

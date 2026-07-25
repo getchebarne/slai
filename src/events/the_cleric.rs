@@ -109,6 +109,6 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
             gold >= cost && deck_has_purgeable(state)
         }
         2 => true,
-        _ => unreachable!("the cleric option out of range: {idx}"),
+        _ => unreachable!("The cleric option out of range: {idx}"),
     }
 }

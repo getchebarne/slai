@@ -41,6 +41,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     };
     let id_card = id_target.expect("CardPlay requires id_target");
     let id_character = state.id_character;
+    // Read-only here: copied out so the body below can borrow the whole state
     let this_turn_discards = *this_turn_discards;
     let this_combat_damage_instances_taken = *this_combat_damage_instances_taken;
     let energy_current = energy.energy_current;

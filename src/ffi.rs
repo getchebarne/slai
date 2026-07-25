@@ -20,7 +20,7 @@ use crate::entity::Intent;
 use crate::entity::PlayRestriction;
 use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
-use crate::events::EventPayload;
+use crate::events::EventKind;
 use crate::events::event_option_available;
 use crate::game::GameState;
 use crate::game::Location;
@@ -2740,13 +2740,10 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
     };
     let event = match &state.mode {
         Mode::Event {
-            name,
-            payload,
+            kind,
             consumed,
             id_options,
-        } => Some(snapshot_event(
-            state, *name, *payload, *consumed, id_options,
-        )),
+        } => Some(snapshot_event(state, *kind, *consumed, id_options)),
         _ => None,
     };
     let shop = match &state.mode {
@@ -2813,11 +2810,11 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
 
 fn snapshot_event(
     state: &GameState,
-    name: EventName,
-    payload: EventPayload,
+    kind: EventKind,
     consumed: bool,
     id_options: &[usize],
 ) -> PyEvent {
+    let name = kind.name();
     let options: Vec<PyEventOption> = id_options
         .iter()
         .enumerate()
@@ -2825,7 +2822,7 @@ fn snapshot_event(
             let option = &state.entities[id_option];
             PyEventOption {
                 label: option.event_option_label.to_string(),
-                gated_out: !event_option_available(state, payload, idx),
+                gated_out: !event_option_available(state, kind, idx),
                 effects: option.card_effects[..option.card_effects_len as usize]
                     .iter()
                     .map(snapshot_event_option_effect)
@@ -2835,8 +2832,8 @@ fn snapshot_event(
         .collect();
 
     // Rolled picks disappear from the view once the event is consumed
-    let (pick_card, pick_potion, gold_rolled) = match payload {
-        EventPayload::WeMeetAgain {
+    let (pick_card, pick_potion, gold_rolled) = match kind {
+        EventKind::WeMeetAgain {
             id_card,
             id_potion,
             gold_ask,
@@ -2858,10 +2855,10 @@ fn snapshot_event(
         name: name.into(),
         display_name: name.as_str().to_string(),
         options,
-        state: match payload {
-            EventPayload::GoldenIdol { stage } => stage,
-            EventPayload::ScrapOoze { attempts } => attempts,
-            EventPayload::DeadAdventurer { searches, .. } => searches,
+        state: match kind {
+            EventKind::GoldenIdol { stage } => stage,
+            EventKind::ScrapOoze { attempts } => attempts,
+            EventKind::DeadAdventurer { searches, .. } => searches,
             _ => 0,
         },
         pick_card,

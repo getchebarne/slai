@@ -35,6 +35,6 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
         0 => deck_has_non_basic_non_curse(state),
         1 => true,
-        _ => unreachable!("transmogrifier option out of range: {idx}"),
+        _ => unreachable!("Transmogrifier option out of range: {idx}"),
     }
 }

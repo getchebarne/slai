@@ -39,11 +39,12 @@ pub fn process_effect_combat_start(
     else {
         unreachable!("process_effect_combat_start outside Combat mode")
     };
-    // Stamp the event fight's reward parameters (None for ordinary fights);
-    // combat_end carries them into the RewardRollCombat payload
+
+    // Stamp the event fight's reward parameters (None for ordinary fights)
     *combat_event_gold = event_gold;
     *combat_event_relic = event_relic;
     *combat_event_relic_roll = event_relic_roll;
+
     // Energy starts empty; the turn-1 refill fills
     *energy = Energy {
         energy_current: 0,

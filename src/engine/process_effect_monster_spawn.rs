@@ -12,10 +12,8 @@ use crate::types::Mode;
 use crate::types::MonsterName;
 use crate::utils::push_entity;
 
-// A monster spawning implies a combat: the first spawn of a fight constructs
-// it (all three fight paths funnel here, incl. Mushrooms' static option list);
-// mid-fight spawns join the live one
 pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
+    // A monster spawning implies a combat: the first spawn of a fight constructs it
     if !matches!(state.mode, Mode::Combat { .. }) {
         state.mode = Mode::Combat {
             id_hand: Vec::with_capacity(MAX_SIZE_HAND),
@@ -42,7 +40,7 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
         };
     }
     let Mode::Combat { id_monsters, .. } = &mut state.mode else {
-        unreachable!("constructed above")
+        unreachable!("Constructed above")
     };
 
     // Create the monster `Entity`

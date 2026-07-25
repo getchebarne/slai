@@ -121,6 +121,6 @@ pub fn option_available(stage: u8, idx: usize) -> bool {
     match idx {
         0 | 1 => stage == 0,
         2..=4 => stage == 1,
-        _ => unreachable!("golden idol option out of range: {idx}"),
+        _ => unreachable!("Golden idol option out of range: {idx}"),
     }
 }

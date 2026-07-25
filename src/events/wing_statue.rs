@@ -67,6 +67,6 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
         0 => deck_has_purgeable(state),
         1 => deck_has_damage_card(state, 10),
         2 => true,
-        _ => unreachable!("wing statue option out of range: {idx}"),
+        _ => unreachable!("Wing statue option out of range: {idx}"),
     }
 }
