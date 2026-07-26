@@ -47,7 +47,7 @@ pub static SADISTIC_NATURE_PLUS: Entity = Entity {
         let mut a = SADISTIC_NATURE.card_effects;
         a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::SadisticNature,
-            stacks: 7, // +2 damage
+            stacks: 7, // +2 stacks
         };
         a
     },

@@ -813,11 +813,10 @@ fn fill_legal_actions_screen_event(state: &mut GameState) {
 
 fn fill_legal_actions_screen_shop(state: &mut GameState) {
     let Mode::Shop {
-        shop_card_prices,
-        shop_relic_prices,
-        shop_potion_prices,
+        shop_id_cards,
+        shop_id_relics,
+        shop_id_potions,
         shop_purge_cost,
-        ..
     } = &state.mode
     else {
         unreachable!("Shop legality outside Shop mode")
@@ -827,23 +826,23 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
     let belt_has_room = find_free_slot(&state.id_potions, state.potion_slots_max).is_some();
 
     // Cards
-    for i in 0..shop_card_prices.len() {
-        if gold >= shop_card_prices[i] {
+    for i in 0..shop_id_cards.len() {
+        if gold >= state.entities[shop_id_cards[i]].price {
             state.legal_actions.push(Action::ShopBuyCard { idx: i });
         }
     }
 
     // Relics
-    for i in 0..shop_relic_prices.len() {
-        if gold >= shop_relic_prices[i] {
+    for i in 0..shop_id_relics.len() {
+        if gold >= state.entities[shop_id_relics[i]].price {
             state.legal_actions.push(Action::ShopBuyRelic { idx: i });
         }
     }
 
     // Potions
     if belt_has_room {
-        for i in 0..shop_potion_prices.len() {
-            if gold >= shop_potion_prices[i] {
+        for i in 0..shop_id_potions.len() {
+            if gold >= state.entities[shop_id_potions[i]].price {
                 state.legal_actions.push(Action::ShopBuyPotion { idx: i });
             }
         }

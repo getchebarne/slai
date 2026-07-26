@@ -47,7 +47,7 @@ pub static THE_BOMB_PLUS: Entity = Entity {
         let mut a = THE_BOMB.card_effects;
         a[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::TheBomb,
-            stacks: 50, // +10 damage
+            stacks: 50, // +10 stacks
         };
         a
     },

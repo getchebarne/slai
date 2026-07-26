@@ -67,14 +67,11 @@ pub enum Mode {
         consumed: bool,
         id_options: Vec<usize>,
     },
-    // Price vecs parallel the id vecs; per-visit purge cost (run ramp lives on GameState)
+    // Stock prices live on the entities; per-visit purge cost (run ramp lives on GameState)
     Shop {
         shop_id_cards: Vec<usize>,
         shop_id_relics: Vec<usize>,
         shop_id_potions: Vec<usize>,
-        shop_card_prices: Vec<u16>,
-        shop_relic_prices: Vec<u16>,
-        shop_potion_prices: Vec<u16>,
         shop_purge_cost: u16,
     },
     Map,

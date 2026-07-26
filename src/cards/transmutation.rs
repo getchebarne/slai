@@ -12,7 +12,6 @@ use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
 
-// X-cost: the reps multiplier in card_play repeats the single-spawn effect X times
 pub static TRANSMUTATION: Entity = make_entity_card(
     CardName::Transmutation,
     CardKind::Skill,
@@ -52,7 +51,7 @@ pub static TRANSMUTATION_PLUS: Entity = Entity {
             pile: CardPile::Hand,
             count: 1,
             cost_zero: Some(CostScope::Turn),
-            upgraded: true, // Adds upgraded copies
+            upgraded: true, // Added cards are upgraded
         };
         a
     },

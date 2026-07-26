@@ -12,7 +12,6 @@ pub fn process_effect_shop_buy_card(id_target: Option<usize>, state: &mut GameSt
     let id_card = id_target.expect("ShopBuyCard requires id_target");
     let Mode::Shop {
         shop_id_cards,
-        shop_card_prices,
         ..
     } = &mut state.mode
     else {
@@ -23,7 +22,7 @@ pub fn process_effect_shop_buy_card(id_target: Option<usize>, state: &mut GameSt
         .position(|&id| id == id_card)
         .expect("bought card is a shop entry");
     shop_id_cards.remove(idx);
-    let price = shop_card_prices.remove(idx);
+    let price = state.entities[id_card].price;
 
     // Charge gold and add the card to the deck
     state.effect_buf.clear();

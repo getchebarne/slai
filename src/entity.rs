@@ -179,6 +179,9 @@ pub struct Entity {
     pub relic_name: RelicName,
     pub relic_tier: RelicTier,
     pub relic_counter: i16,
+
+    // Shop price while stocked; stale after purchase (nothing reads it outside Shop mode)
+    pub price: u16,
     pub relic_used_up: bool,
     pub relic_effects_on_combat_start: &'static [Effect],
 
@@ -240,6 +243,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     relic_name: RelicName::SnakeRing,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,
+    price: 0,
     relic_used_up: false,
     relic_effects_on_combat_start: &[],
     potion_name: PotionName::EnergyPotion,
