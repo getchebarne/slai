@@ -1,5 +1,7 @@
 use crate::consts::MAX_SIZE_HAND;
+use crate::entity::CostOverride;
 use crate::game::GameState;
+use crate::types::CostScope;
 use crate::types::Mode;
 
 pub fn process_effect_card_discover_pick(id_target: Option<usize>, state: &mut GameState) {
@@ -13,7 +15,11 @@ pub fn process_effect_card_discover_pick(id_target: Option<usize>, state: &mut G
         unreachable!("process_effect_card_discover_pick outside Combat mode")
     };
     let id_card = id_target.expect("CardDiscoverPick Direct form must have target");
-    state.entities[id_card].card_free_to_play_once = true;
+    // Costs 0 this turn (was until-played; StS scopes it to the turn)
+    state.entities[id_card].card_cost_override = Some(CostOverride {
+        amount: 0,
+        scope: CostScope::Turn,
+    });
     if id_hand.len() < MAX_SIZE_HAND {
         id_hand.push(id_card);
     } else {

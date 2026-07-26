@@ -11,6 +11,7 @@ use crate::entity::make_entity_card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
 
 pub static SECRET_WEAPON: Entity = make_entity_card(
@@ -26,7 +27,9 @@ pub static SECRET_WEAPON: Entity = make_entity_card(
     false,
     false,
     &[Effect {
-        kind: EffectKind::CardMoveToHand,
+        kind: EffectKind::CardMove {
+            pile: CardPile::Hand,
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::PileDraw {

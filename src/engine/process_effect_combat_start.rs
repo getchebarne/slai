@@ -9,6 +9,7 @@ use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
+use crate::types::DeltaSign;
 use crate::types::Energy;
 use crate::types::Mode;
 use crate::types::MonsterKind;
@@ -119,7 +120,10 @@ pub fn process_effect_combat_start(
     {
         state.entities[id].relic_counter = 0;
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::EnergyGain { amount: 2 },
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
+                amount: 2,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

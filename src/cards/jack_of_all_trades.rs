@@ -8,6 +8,7 @@ use crate::entity::make_entity_card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
 
 pub static JACK_OF_ALL_TRADES: Entity = make_entity_card(
@@ -26,10 +27,9 @@ pub static JACK_OF_ALL_TRADES: Entity = make_entity_card(
         kind: EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
+            pile: CardPile::Hand,
             count: 1,
-            into_draw: false,
-            cost_zero_turn: false,
-            cost_zero_combat: false,
+            cost_zero: None,
             upgraded: false,
         },
         id_source: None,
@@ -47,10 +47,9 @@ pub static JACK_OF_ALL_TRADES_PLUS: Entity = Entity {
         a[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
+            pile: CardPile::Hand,
             count: 2, // +1 card
-            into_draw: false,
-            cost_zero_turn: false,
-            cost_zero_combat: false,
+            cost_zero: None,
             upgraded: false,
         };
         a

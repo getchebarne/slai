@@ -134,7 +134,10 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             target: Target::Direct(None),
         });
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::EnergyGain { amount: 1 },
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
+                amount: 1,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

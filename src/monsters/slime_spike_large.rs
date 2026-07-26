@@ -12,6 +12,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -29,8 +30,9 @@ static MOVE_FLAME_TACKLE_16: Move = make_move(
             },
         },
         Effect {
-            kind: EffectKind::CardAddToDiscard {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Slimed,
+                pile: CardPile::Discard,
                 count: 2,
                 upgraded: false,
             },
@@ -55,8 +57,9 @@ static MOVE_FLAME_TACKLE_18: Move = make_move(
             },
         },
         Effect {
-            kind: EffectKind::CardAddToDiscard {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Slimed,
+                pile: CardPile::Discard,
                 count: 2,
                 upgraded: false,
             },

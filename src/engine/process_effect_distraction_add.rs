@@ -2,10 +2,12 @@ use crate::cards::POOL_COMMON_GREEN_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
+use crate::entity::CostOverride;
 use crate::entity::add_card_to_hand_or_discard;
 use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CostScope;
 use crate::types::Mode;
 use rand::Rng;
 
@@ -43,7 +45,11 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
 
     let card_name = buf[state.rng.random_range(0..n)];
     let mut card = get_card(card_name, false);
-    card.card_free_to_play_once = true;
+    // Costs 0 this turn (was until-played; StS scopes it to the turn)
+    card.card_cost_override = Some(CostOverride {
+        amount: 0,
+        scope: CostScope::Turn,
+    });
 
     add_card_to_hand_or_discard(
         &mut state.entities,

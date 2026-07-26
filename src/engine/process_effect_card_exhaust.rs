@@ -4,6 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardColor;
+use crate::types::CardPile;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -29,8 +30,9 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         let card_name =
             get_random_cards(CardColor::Green, None, None, &[], 1, &mut state.rng)[0].card_name;
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::CardAddToHand {
+            kind: EffectKind::CardAdd {
                 card_name,
+                pile: CardPile::Hand,
                 count: 1,
                 upgraded: false,
             },

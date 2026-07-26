@@ -1,4 +1,6 @@
+use crate::entity::CostOverride;
 use crate::game::GameState;
+use crate::types::CostScope;
 use crate::types::Mode;
 
 pub fn process_effect_card_setup_pick(
@@ -17,7 +19,10 @@ pub fn process_effect_card_setup_pick(
     };
     let id_target = id_target.expect("CardSetupPick requires id_target");
     if free {
-        state.entities[id_target].card_free_to_play_once = true;
+        state.entities[id_target].card_cost_override = Some(CostOverride {
+            amount: 0,
+            scope: CostScope::UntilPlayed,
+        });
     }
     if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
         id_hand.remove(pos);

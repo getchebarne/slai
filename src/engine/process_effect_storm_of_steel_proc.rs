@@ -4,6 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::Mode;
 
 // Discard the entire hand, then add 1 Shiv per discarded card
@@ -15,8 +16,9 @@ pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool)
     // Add the Shivs
     let count = id_hand.len() as u16;
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::CardAddToHand {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
+            pile: CardPile::Hand,
             count,
             upgraded,
         },

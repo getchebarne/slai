@@ -10,6 +10,7 @@ use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_upgradable;
 use crate::game::GameState;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::RelicName;
 
 // Forge
@@ -38,8 +39,10 @@ const OPTION_RUMMAGE: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::CardAddToDeck {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Pain,
+            pile: CardPile::Deck,
+            count: 1,
             upgraded: false,
         },
         id_source: None,

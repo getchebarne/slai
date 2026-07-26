@@ -16,6 +16,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::ChestKind;
+use crate::types::CostScope;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::PotionName;
@@ -47,6 +48,12 @@ pub enum PlayRestriction {
 }
 
 // XCost.offset is consumed by the per-play multiplier in `process_effect_card_play`
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct CostOverride {
+    pub amount: u8,
+    pub scope: CostScope,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CardCostKind {
     Fixed,
@@ -149,9 +156,10 @@ pub struct Entity {
     pub card_innate: bool,
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
-    pub card_free_to_play_once: bool,
+
     pub card_cost_kind: CardCostKind,
-    pub card_cost_override: Option<u8>,
+    // Paired amount+lifetime; Turn clears at turn end, UntilPlayed clears on play
+    pub card_cost_override: Option<CostOverride>,
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
     pub card_on_discard_effects: &'static [Effect],
@@ -215,7 +223,6 @@ pub const ZERO_ENTITY: Entity = Entity {
     requires_target: false,
     card_retain: false,
     card_play_restriction: PlayRestriction::Always,
-    card_free_to_play_once: false,
     card_cost_kind: CardCostKind::Fixed,
     card_cost_override: None,
     card_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_CARD],
@@ -400,11 +407,8 @@ pub fn get_card_effective_cost(
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
 ) -> u8 {
-    if card.card_free_to_play_once {
-        return 0;
-    }
     if let Some(override_) = card.card_cost_override {
-        return override_;
+        return override_.amount;
     }
     match card.card_cost_kind {
         CardCostKind::Fixed => card.card_cost,

@@ -18,6 +18,7 @@ use crate::modifier::has_modifier;
 use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
@@ -204,7 +205,6 @@ fn handle_pending_hand_pick(state: &mut GameState, idx: usize) {
     let id_card = id_hand[idx];
     resolve_pending_pick(state, id_card);
 }
-
 
 // idx is an absolute id_pile_draw index; assert it still matches the pool's filter
 fn handle_card_move_to_hand_pick(state: &mut GameState, idx: usize) {
@@ -612,7 +612,9 @@ fn fill_legal_actions_effect_pending(
                 state.legal_actions.push(Action::CardExhaust { idx: i });
             }
         }
-        EffectKind::CardMoveToHand => {
+        EffectKind::CardMove {
+            pile: CardPile::Hand,
+        } => {
             let Mode::Combat { id_pile_draw, .. } = &state.mode else {
                 unreachable!("Draw-pile pick outside Combat mode")
             };

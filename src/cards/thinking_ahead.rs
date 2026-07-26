@@ -39,8 +39,8 @@ pub static THINKING_AHEAD: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Hand {
-                filter: CandidatePoolCardFilter::Any,
-            },
+                    filter: CandidatePoolCardFilter::Any,
+                },
                 selection_kind: SelectionKind::Input { count: 1 },
             },
         },

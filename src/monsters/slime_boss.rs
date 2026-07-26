@@ -12,6 +12,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -19,8 +20,9 @@ use crate::types::Vitals;
 static MOVE_GOOP_SPRAY_3: Move = make_move(
     "Goop Spray",
     &[Effect {
-        kind: EffectKind::CardAddToDiscard {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Slimed,
+            pile: CardPile::Discard,
             count: 3,
             upgraded: false,
         },
@@ -32,8 +34,9 @@ static MOVE_GOOP_SPRAY_3: Move = make_move(
 static MOVE_GOOP_SPRAY_5: Move = make_move(
     "Goop Spray",
     &[Effect {
-        kind: EffectKind::CardAddToDiscard {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Slimed,
+            pile: CardPile::Discard,
             count: 5,
             upgraded: false,
         },

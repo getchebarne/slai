@@ -8,6 +8,7 @@ use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
@@ -54,8 +55,10 @@ const OPTION_EAT: &[Effect] = &[
         },
     },
     Effect {
-        kind: EffectKind::CardAddToDeck {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Parasite,
+            pile: CardPile::Deck,
+            count: 1,
             upgraded: false,
         },
         id_source: None,

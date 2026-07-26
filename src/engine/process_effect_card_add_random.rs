@@ -2,13 +2,15 @@ use rand::Rng;
 
 use crate::cards::ALL_CARDS;
 use crate::cards::get_card;
+use crate::entity::CostOverride;
 use crate::entity::Entity;
-use crate::entity::add_card_to_hand_or_discard;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;
+use crate::types::CardPile;
 use crate::types::CardRarity;
-use crate::types::Mode;
+use crate::types::CostScope;
+use crate::utils::place_card;
 use crate::utils::push_entity;
 
 // Rolls like StS returnTrulyRandom*InCombat: reward rarities only, independent rolls (dupes allowed)
@@ -16,10 +18,9 @@ pub fn process_effect_card_add_random(
     state: &mut GameState,
     color: CardColor,
     kind: Option<CardKind>,
+    pile: CardPile,
     count: u8,
-    into_draw: bool,
-    cost_zero_turn: bool,
-    cost_zero_combat: bool,
+    cost_zero: Option<CostScope>,
     upgraded: bool,
 ) {
     let pool: Vec<&Entity> = ALL_CARDS
@@ -41,32 +42,17 @@ pub fn process_effect_card_add_random(
     for _ in 0..count {
         let name = pool[state.rng.random_range(0..pool.len())].card_name;
         let mut card = get_card(name, upgraded);
-        if cost_zero_combat && card.card_cost > 0 {
-            card.card_cost = 0;
+        match cost_zero {
+            // StS writes the base cost only when it is positive (Chrysalis/Metamorphosis)
+            Some(CostScope::Combat) => {
+                if card.card_cost > 0 {
+                    card.card_cost = 0;
+                }
+            }
+            Some(scope) => card.card_cost_override = Some(CostOverride { amount: 0, scope }),
+            None => {}
         }
-        if cost_zero_turn {
-            card.card_cost_override = Some(0);
-        }
-        let Mode::Combat {
-            id_hand,
-            id_pile_draw,
-            id_pile_discard,
-            ..
-        } = &mut state.mode
-        else {
-            unreachable!("process_effect_card_add_random outside Combat mode")
-        };
-        if into_draw {
-            let id = push_entity(&mut state.entities, card);
-            let idx = state.rng.random_range(0..=id_pile_draw.len());
-            id_pile_draw.insert(idx, id);
-        } else {
-            add_card_to_hand_or_discard(
-                &mut state.entities,
-                &mut *id_hand,
-                &mut *id_pile_discard,
-                card,
-            );
-        }
+        let id_card = push_entity(&mut state.entities, card);
+        place_card(state, id_card, pile);
     }
 }

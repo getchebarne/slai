@@ -15,6 +15,7 @@ use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::consts::MAX_SIZE_HAND;
 use crate::effect::CandidatePoolCardFilter;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
@@ -29,6 +30,7 @@ use crate::relics::egg_upgrades_kind;
 use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::Mode;
 use crate::types::RelicName;
@@ -90,7 +92,61 @@ pub fn card_filter_matches(filter: CandidatePoolCardFilter, entity: &Entity) -> 
         CandidatePoolCardFilter::Costed => {
             !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
                 && entity.card_cost > 0
-                && entity.card_cost_override.unwrap_or(entity.card_cost) > 0
+                && entity
+                    .card_cost_override
+                    .map_or(entity.card_cost, |o| o.amount)
+                    > 0
+        }
+    }
+}
+
+// Insert an entity id into `pile`; Hand overflows to discard, Draw inserts at a random position
+pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) {
+    if pile == CardPile::Deck {
+        state.id_deck.push(id_card);
+        return;
+    }
+    let Mode::Combat {
+        id_hand,
+        id_pile_draw,
+        id_pile_discard,
+        ..
+    } = &mut state.mode
+    else {
+        unreachable!("combat pile placement outside Combat mode")
+    };
+    match pile {
+        CardPile::Hand => {
+            if id_hand.len() < MAX_SIZE_HAND {
+                id_hand.push(id_card);
+            } else {
+                id_pile_discard.push(id_card);
+            }
+        }
+        CardPile::Draw => {
+            let idx = state.rng.random_range(0..=id_pile_draw.len());
+            id_pile_draw.insert(idx, id_card);
+        }
+        CardPile::Discard => id_pile_discard.push(id_card),
+        CardPile::Deck => unreachable!(),
+    }
+}
+
+// Remove the id from whichever combat pile holds it; played cards are pile-less (no-op)
+pub fn detach_card(mode: &mut Mode, id_card: usize) {
+    let Mode::Combat {
+        id_hand,
+        id_pile_draw,
+        id_pile_discard,
+        ..
+    } = mode
+    else {
+        unreachable!("detach_card outside Combat mode")
+    };
+    for pile in [id_hand, id_pile_draw, id_pile_discard] {
+        if let Some(pos) = pile.iter().position(|&v| v == id_card) {
+            pile.remove(pos);
+            return;
         }
     }
 }

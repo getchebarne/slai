@@ -12,6 +12,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardName;
+use crate::types::CardPile;
 
 pub fn process_effect_card_transform(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardTransform requires id_target");
@@ -39,8 +40,10 @@ pub fn process_effect_card_transform(id_target: Option<usize>, state: &mut GameS
 
     // CardPurge pops first, then CardAddToDeck
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::CardAddToDeck {
+        kind: EffectKind::CardAdd {
             card_name,
+            pile: CardPile::Deck,
+            count: 1,
             upgraded: false,
         },
         id_source: None,

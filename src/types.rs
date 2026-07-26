@@ -30,18 +30,25 @@ pub enum Mode {
         id_pile_exhaust: Vec<usize>,
         id_monsters: [Option<usize>; MAX_MONSTERS],
         id_picked_monster: Option<usize>,
+        id_card_last_drawn: Option<usize>,
+        id_card_nightmare: Option<usize>,
+        id_discover: Vec<usize>,
+
+        // Energy
         energy: Energy,
+
+        // Per-turn counters
         this_turn_discards: u8,
         this_turn_attacks: u8,
         this_turn_cards_played: u8,
         this_turn_panache: u8,
-        // The Bomb timer; lazily armed at turn end, 0 = inactive
-        bomb_countdown: u8,
+
+        // Per-combat counters
         this_combat_damage_instances_taken: u8,
         this_combat_escaped: bool,
-        id_card_last_drawn: Option<usize>,
-        id_card_nightmare: Option<usize>,
-        id_discover: Vec<usize>,
+
+        // Bomb countdown
+        bomb_countdown: u8,
 
         // Event-spawned fights (Mushrooms / Dead Adventurer)
         event_gold: Option<Amount>,
@@ -222,6 +229,23 @@ pub enum CardName {
     SecretWeapon,
     TheBomb,
     Violence,
+}
+
+// Lifetime of a cost override; Combat writes the base cost and is never stored on the entity
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CostScope {
+    Turn,
+    Combat,
+    UntilPlayed,
+}
+
+// Destination for card spawns and moves
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CardPile {
+    Hand,
+    Draw,
+    Discard,
+    Deck,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

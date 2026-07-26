@@ -166,7 +166,9 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
         },
         PyActionType::CardMoveToHand => match idxs.len() {
             1 => Ok(Action::CardMoveToHand { idx: idxs[0] }),
-            n => Err(format!("CardMoveToHand expects [idx_pile_draw], got {n} idxs")),
+            n => Err(format!(
+                "CardMoveToHand expects [idx_pile_draw], got {n} idxs"
+            )),
         },
         PyActionType::PickSkip => match idxs.len() {
             0 => Ok(Action::PickSkip),

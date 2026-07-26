@@ -4,7 +4,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::CostOverride;
 use crate::game::GameState;
+use crate::types::CostScope;
 use crate::types::Mode;
 
 // StS PlayTopCardAction: lift the top card (no draw, no on-draw hooks) and autoplay it
@@ -37,7 +39,10 @@ pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
 
     // Detached from the pile here; card_play's routing effects move it onward
     let id_card = id_pile_draw.pop().unwrap();
-    state.entities[id_card].card_free_to_play_once = true;
+    state.entities[id_card].card_cost_override = Some(CostOverride {
+        amount: 0,
+        scope: CostScope::UntilPlayed,
+    });
 
     state.effect_queue.push_front(Effect {
         kind: EffectKind::TargetClear,
