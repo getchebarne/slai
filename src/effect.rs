@@ -1,4 +1,5 @@
 use crate::modifier::ModifierKind;
+use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::ChestKind;
@@ -20,6 +21,15 @@ pub enum EffectKind {
     },
     BonfireOffer,
     CalculatedGamble,
+    CardAddRandom {
+        color: CardColor,
+        kind: Option<CardKind>,
+        count: u8,
+        into_draw: bool,
+        cost_zero_turn: bool,
+        cost_zero_combat: bool,
+        upgraded: bool,
+    },
     CardAddToDeck {
         card_name: CardName,
         upgraded: bool,
@@ -40,10 +50,13 @@ pub enum EffectKind {
     },
     CardDiscoverPick,
     CardDiscoverRoll {
-        kind: CardKind,
+        kind: Option<CardKind>,
         count: u8,
     },
     CardDraw {
+        count: u16,
+    },
+    CardDrawIfNoAttacks {
         count: u16,
     },
     CardDrawUpTo {
@@ -52,13 +65,18 @@ pub enum EffectKind {
     CardDuplicate,
     CardExhaust,
     CardMoveToDiscard,
+    CardMoveToHand,
     CardNightmarePick,
     CardNightmareSpawn,
     CardPlay,
+    CardPlayFromDrawTop,
     CardPurge,
     CardRemove,
     CardRetain,
-    CardSetupPick,
+    CardSetupPick {
+        free: bool,
+        bottom: bool,
+    },
     CardTransform,
     CardUpgrade,
     ChestOpen,
@@ -109,6 +127,9 @@ pub enum EffectKind {
     },
     GoldSteal {
         amount: u8,
+    },
+    HandOfGreedProc {
+        gold: u16,
     },
     HealthDelta {
         sign: DeltaSign,
@@ -190,6 +211,8 @@ pub enum EffectKind {
     },
     SetCostOverride {
         amount: u8,
+        only_reduce: bool,
+        permanent: bool,
     },
     ShopBuild,
     ShopBuyCard,
@@ -241,6 +264,9 @@ pub enum CandidatePool {
     // We Meet Again's rolled picks, read from the event payload at execution time
     EventPickCard,
     EventPickPotion,
+    PileDraw { filter: CandidatePoolCardFilter },
+    PileDiscard,
+    PileExhaust,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -250,6 +276,11 @@ pub enum CandidatePoolCardFilter {
     Any,
     Transformable,
     PurgeableCurse,
+    // Kind gates for draw-pile tutors (Secret Technique / Secret Weapon / Violence)
+    Attack,
+    Skill,
+    // Fixed base cost > 0 and not overridden to 0 (Madness pick pool)
+    Costed,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -265,6 +296,8 @@ pub enum SelectionKind {
     Single,
     Random { count: u8 },
     Input { count: u16 },
+    // Like Input but optional: the player may stop early via PickSkip (never auto-resolves)
+    InputUpTo { count: u16 },
 }
 
 // Target known at queue time (Direct) or resolved against live state at dequeue (Resolve)

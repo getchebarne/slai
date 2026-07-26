@@ -1,0 +1,47 @@
+use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolCardFilter;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
+use crate::effect::Target;
+use crate::entity::CardCostKind;
+use crate::entity::Entity;
+use crate::entity::PlayRestriction;
+use crate::entity::make_entity_card;
+use crate::types::CardColor;
+use crate::types::CardKind;
+use crate::types::CardName;
+use crate::types::CardRarity;
+
+pub static SECRET_WEAPON: Entity = make_entity_card(
+    CardName::SecretWeapon,
+    CardKind::Skill,
+    CardColor::Colorless,
+    CardRarity::Rare,
+    0,
+    CardCostKind::Fixed,
+    false,
+    true,
+    false,
+    false,
+    false,
+    &[Effect {
+        kind: EffectKind::CardMoveToHand,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::PileDraw {
+                filter: CandidatePoolCardFilter::Attack,
+            },
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
+    }],
+    &[],
+    &[],
+    PlayRestriction::Always,
+);
+// Upgraded
+pub static SECRET_WEAPON_PLUS: Entity = Entity {
+    card_upgraded: true,
+    card_exhaust: false, // Upgrade removes Exhaust
+    ..SECRET_WEAPON
+};

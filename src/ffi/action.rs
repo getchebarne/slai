@@ -39,6 +39,9 @@ pub enum PyActionType {
     ShopBuyRelic,
     ShopPurge,
     TurnEnd,
+    CardExhaust,
+    CardMoveToHand,
+    PickSkip,
 }
 
 #[pymethods]
@@ -84,6 +87,9 @@ impl PyActionType {
             23 => Ok(Self::ShopBuyRelic),
             24 => Ok(Self::ShopPurge),
             25 => Ok(Self::TurnEnd),
+            26 => Ok(Self::CardExhaust),
+            27 => Ok(Self::CardMoveToHand),
+            28 => Ok(Self::PickSkip),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -153,6 +159,18 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
         PyActionType::CardDiscard => match idxs.len() {
             1 => Ok(Action::CardDiscard { idx: idxs[0] }),
             n => Err(format!("CardDiscard expects [idx_hand], got {n} idxs")),
+        },
+        PyActionType::CardExhaust => match idxs.len() {
+            1 => Ok(Action::CardExhaust { idx: idxs[0] }),
+            n => Err(format!("CardExhaust expects [idx_hand], got {n} idxs")),
+        },
+        PyActionType::CardMoveToHand => match idxs.len() {
+            1 => Ok(Action::CardMoveToHand { idx: idxs[0] }),
+            n => Err(format!("CardMoveToHand expects [idx_pile_draw], got {n} idxs")),
+        },
+        PyActionType::PickSkip => match idxs.len() {
+            0 => Ok(Action::PickSkip),
+            n => Err(format!("PickSkip expects [], got {n} idxs")),
         },
         PyActionType::CardRetain => match idxs.len() {
             1 => Ok(Action::CardRetain { idx: idxs[0] }),
@@ -270,6 +288,9 @@ pub fn from_internal_action(action: Action) -> PyAction {
         } => (PyActionType::CardPlay, vec![idx_card, m]),
         Action::TurnEnd => (PyActionType::TurnEnd, vec![]),
         Action::CardDiscard { idx } => (PyActionType::CardDiscard, vec![idx]),
+        Action::CardExhaust { idx } => (PyActionType::CardExhaust, vec![idx]),
+        Action::CardMoveToHand { idx } => (PyActionType::CardMoveToHand, vec![idx]),
+        Action::PickSkip => (PyActionType::PickSkip, vec![]),
         Action::CardRetain { idx } => (PyActionType::CardRetain, vec![idx]),
         Action::CardSetup { idx } => (PyActionType::CardSetup, vec![idx]),
         Action::CardNightmare { idx } => (PyActionType::CardNightmare, vec![idx]),

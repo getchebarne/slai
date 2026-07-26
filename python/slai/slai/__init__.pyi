@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Final, final
+from typing import Any, Final, final
 
 @final
 class Action:
@@ -20,6 +20,8 @@ class ActionType:
     CardDiscard: Final[ActionType]
     CardDiscover: Final[ActionType]
     CardDuplicate: Final[ActionType]
+    CardExhaust: Final[ActionType]
+    CardMoveToHand: Final[ActionType]
     CardNightmare: Final[ActionType]
     CardPlay: Final[ActionType]
     CardPurge: Final[ActionType]
@@ -29,6 +31,7 @@ class ActionType:
     CardUpgrade: Final[ActionType]
     ChestOpen: Final[ActionType]
     EventOptionSelect: Final[ActionType]
+    PickSkip: Final[ActionType]
     PotionDiscard: Final[ActionType]
     PotionUse: Final[ActionType]
     Rest: Final[ActionType]
@@ -88,8 +91,11 @@ class AmountRelative:
 @final
 class CandidatePoolCardFilter:
     Any: Final[CandidatePoolCardFilter]
+    Attack: Final[CandidatePoolCardFilter]
+    Costed: Final[CandidatePoolCardFilter]
     Purgeable: Final[CandidatePoolCardFilter]
     PurgeableCurse: Final[CandidatePoolCardFilter]
+    Skill: Final[CandidatePoolCardFilter]
     Transformable: Final[CandidatePoolCardFilter]
     Upgradeable: Final[CandidatePoolCardFilter]
     def __eq__(self, other: object) -> bool: ...
@@ -180,7 +186,7 @@ class Card:
     @property
     def display_name(self, /) -> str: ...
     @property
-    def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform]: ...
+    def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any]: ...
     @property
     def ethereal(self, /) -> bool: ...
     @property
@@ -265,11 +271,14 @@ class CardName:
     AfterImage: Final[CardName]
     Alchemize: Final[CardName]
     AllOutAttack: Final[CardName]
+    Apotheosis: Final[CardName]
+    Apparition: Final[CardName]
     AscendersBane: Final[CardName]
     Backflip: Final[CardName]
     Backstab: Final[CardName]
     BandageUp: Final[CardName]
     Bane: Final[CardName]
+    Bite: Final[CardName]
     BladeDance: Final[CardName]
     Blind: Final[CardName]
     Blur: Final[CardName]
@@ -281,12 +290,14 @@ class CardName:
     Caltrops: Final[CardName]
     Catalyst: Final[CardName]
     Choke: Final[CardName]
+    Chrysalis: Final[CardName]
     CloakAndDagger: Final[CardName]
     Concentrate: Final[CardName]
     CorpseExplosion: Final[CardName]
     CripplingPoison: Final[CardName]
     DaggerSpray: Final[CardName]
     DaggerThrow: Final[CardName]
+    DarkShackles: Final[CardName]
     Dash: Final[CardName]
     Dazed: Final[CardName]
     DeadlyPoison: Final[CardName]
@@ -295,11 +306,14 @@ class CardName:
     Defend: Final[CardName]
     Deflect: Final[CardName]
     DieDieDie: Final[CardName]
+    Discovery: Final[CardName]
     Distraction: Final[CardName]
     DodgeAndRoll: Final[CardName]
     Doppelganger: Final[CardName]
     Doubt: Final[CardName]
+    DramaticEntrance: Final[CardName]
     EndlessAgony: Final[CardName]
+    Enlightenment: Final[CardName]
     Envenom: Final[CardName]
     EscapePlan: Final[CardName]
     Eviscerate: Final[CardName]
@@ -310,16 +324,25 @@ class CardName:
     Flechettes: Final[CardName]
     FlyingKnee: Final[CardName]
     Footwork: Final[CardName]
+    Forethought: Final[CardName]
     GlassKnife: Final[CardName]
     GoodInstincts: Final[CardName]
     GrandFinale: Final[CardName]
+    HandOfGreed: Final[CardName]
     HeelHook: Final[CardName]
+    Impatience: Final[CardName]
     InfiniteBlades: Final[CardName]
     Injury: Final[CardName]
+    JackOfAllTrades: Final[CardName]
+    Jax: Final[CardName]
     LegSweep: Final[CardName]
+    Madness: Final[CardName]
+    Magnetism: Final[CardName]
     Malaise: Final[CardName]
     MasterOfStrategy: Final[CardName]
     MasterfulStab: Final[CardName]
+    Mayhem: Final[CardName]
+    Metamorphosis: Final[CardName]
     MindBlast: Final[CardName]
     Neutralize: Final[CardName]
     Nightmare: Final[CardName]
@@ -327,16 +350,23 @@ class CardName:
     NoxiousFumes: Final[CardName]
     Outmaneuver: Final[CardName]
     Pain: Final[CardName]
+    Panacea: Final[CardName]
+    Panache: Final[CardName]
+    PanicButton: Final[CardName]
     Parasite: Final[CardName]
     PhantasmalKiller: Final[CardName]
     PiercingWail: Final[CardName]
     PoisonedStab: Final[CardName]
     Predator: Final[CardName]
     Prepared: Final[CardName]
+    Purity: Final[CardName]
     QuickSlash: Final[CardName]
     Reflex: Final[CardName]
     Regret: Final[CardName]
     RiddleWithHoles: Final[CardName]
+    SadisticNature: Final[CardName]
+    SecretTechnique: Final[CardName]
+    SecretWeapon: Final[CardName]
     Setup: Final[CardName]
     Shame: Final[CardName]
     Shiv: Final[CardName]
@@ -351,8 +381,13 @@ class CardName:
     SwiftStrike: Final[CardName]
     Tactician: Final[CardName]
     Terror: Final[CardName]
+    TheBomb: Final[CardName]
+    ThinkingAhead: Final[CardName]
     ToolsOfTheTrade: Final[CardName]
+    Transmutation: Final[CardName]
+    Trip: Final[CardName]
     Unload: Final[CardName]
+    Violence: Final[CardName]
     WellLaidPlans: Final[CardName]
     WraithForm: Final[CardName]
     Writhe: Final[CardName]
@@ -486,7 +521,7 @@ class EffectCardDiscoverRoll:
     @property
     def count(self, /) -> int: ...
     @property
-    def kind(self, /) -> CardKind: ...
+    def kind(self, /) -> CardKind |None: ...
     @property
     def target(self, /) -> Target |None: ...
 
@@ -547,6 +582,10 @@ class EffectCardSetupPick:
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __ne__(self, other: object) -> bool: ...
+    @property
+    def bottom(self, /) -> bool: ...
+    @property
+    def free(self, /) -> bool: ...
     @property
     def target(self, /) -> Target |None: ...
 
@@ -850,6 +889,10 @@ class EffectSetCostOverride:
     @property
     def amount(self, /) -> int: ...
     @property
+    def only_reduce(self, /) -> bool: ...
+    @property
+    def permanent(self, /) -> bool: ...
+    @property
     def target(self, /) -> Target |None: ...
 
 @final
@@ -1024,7 +1067,7 @@ class GameState:
     @property
     def mode(self, /) -> ModeMap |ModeRestSite |ModeChest |ModeChestOpened |ModeCombatEnded |ModeCombat |ModeReward |ModeShop |ModeEvent: ...
     @property
-    def pending(self, /) -> EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |None: ...
+    def pending(self, /) -> EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any |None: ...
     @property
     def potion_slots_max(self, /) -> int: ...
     @property
@@ -1086,6 +1129,8 @@ class ModeChestOpened: ...
 @final
 class ModeCombat:
     @property
+    def bomb_countdown(self, /) -> int: ...
+    @property
     def discover(self, /) -> list[Card]: ...
     @property
     def energy(self, /) -> Energy: ...
@@ -1110,7 +1155,7 @@ class ModeEvent:
     @property
     def kind(self, /) -> EventKindBigFish |EventKindTheCleric |EventKindDuplicator |EventKindGoldenShrine |EventKindWingStatue |EventKindWorldOfGoop |EventKindLivingWall |EventKindPurifier |EventKindShiningLight |EventKindTheSsssserpent |EventKindTransmogrifier |EventKindUpgradeShrine |EventKindTheDivineFountain |EventKindTheLab |EventKindTheWomanInBlue |EventKindWheelOfChange |EventKindBonfireSpirits |EventKindOminousForge |EventKindFaceTrader |EventKindMushrooms |EventKindGoldenIdol |EventKindScrapOoze |EventKindWeMeetAgain |EventKindDeadAdventurer: ...
     @property
-    def options(self, /) -> list[list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform]]: ...
+    def options(self, /) -> list[list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any]]: ...
 
 @final
 class ModeMap: ...
@@ -1178,23 +1223,29 @@ class ModifierKind:
     Frail: Final[ModifierKind]
     InfiniteBlades: Final[ModifierKind]
     Intangible: Final[ModifierKind]
+    Magnetism: Final[ModifierKind]
+    Mayhem: Final[ModifierKind]
     Metallicize: Final[ModifierKind]
     ModeShift: Final[ModifierKind]
     NextTurnBlock: Final[ModifierKind]
     NextTurnEnergy: Final[ModifierKind]
+    NoBlock: Final[ModifierKind]
     NoDraw: Final[ModifierKind]
     NoxiousFumes: Final[ModifierKind]
+    Panache: Final[ModifierKind]
     PenNib: Final[ModifierKind]
     Phantasmal: Final[ModifierKind]
     PlatedArmor: Final[ModifierKind]
     Poison: Final[ModifierKind]
     Retain: Final[ModifierKind]
     Ritual: Final[ModifierKind]
+    SadisticNature: Final[ModifierKind]
     Shackled: Final[ModifierKind]
     SharpHide: Final[ModifierKind]
     Splittable: Final[ModifierKind]
     SporeCloud: Final[ModifierKind]
     Strength: Final[ModifierKind]
+    TheBomb: Final[ModifierKind]
     Thievery: Final[ModifierKind]
     Thorns: Final[ModifierKind]
     ThousandCuts: Final[ModifierKind]
@@ -1307,7 +1358,7 @@ class Potion:
     @property
     def combat_only(self, /) -> bool: ...
     @property
-    def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform]: ...
+    def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any]: ...
     @property
     def name(self, /) -> PotionName: ...
     @property
@@ -1353,7 +1404,7 @@ class Relic:
     @property
     def counter(self, /) -> int: ...
     @property
-    def effects_on_combat_start(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform]: ...
+    def effects_on_combat_start(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any]: ...
     @property
     def name(self, /) -> RelicName: ...
     @property
@@ -1546,6 +1597,6 @@ class Target:
     def __hash__(self, /) -> int: ...
     def __ne__(self, other: object) -> bool: ...
     @property
-    def candidate_pool(self, /) -> CandidatePoolHand |CandidatePoolCharacter |CandidatePoolMonsters |CandidatePoolSource |CandidatePoolDiscover |CandidatePoolDeck |CandidatePoolEventPickCard |CandidatePoolEventPickPotion: ...
+    def candidate_pool(self, /) -> CandidatePoolHand |CandidatePoolCharacter |CandidatePoolMonsters |CandidatePoolSource |CandidatePoolDiscover |CandidatePoolDeck |CandidatePoolEventPickCard |CandidatePoolEventPickPotion |Any |Any |Any: ...
     @property
-    def selection_kind(self, /) -> SelectionKindAll |SelectionKindSingle |SelectionKindRandom |SelectionKindInput: ...
+    def selection_kind(self, /) -> SelectionKindAll |SelectionKindSingle |SelectionKindRandom |SelectionKindInput |Any: ...

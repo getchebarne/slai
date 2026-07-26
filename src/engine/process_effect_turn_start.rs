@@ -12,6 +12,7 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::relics::trigger_relic_counter;
+use crate::types::CardColor;
 use crate::types::CardName;
 use crate::types::Mode;
 use crate::types::RelicName;
@@ -85,6 +86,18 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
     // Character's turn start
     if id_actor == state.id_character {
+        // Mayhem: autoplay the top card `stacks` times, before the turn's draw (StS atStartOfTurn)
+        if has_modifier(modifiers, ModifierKind::Mayhem) {
+            let stacks = modifier_stacks(modifiers, ModifierKind::Mayhem);
+            for _ in 0..stacks.max(0) {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::CardPlayFromDrawTop,
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
+        }
+
         // Organic card draw
         state.effect_buf.push(Effect {
             kind: EffectKind::CardDraw {
@@ -224,6 +237,24 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 kind: EffectKind::CardAddToHand {
                     card_name: CardName::Shiv,
                     count: stacks.max(0) as u16,
+                    upgraded: false,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+
+        // Magnetism: add `stacks` random colorless cards
+        if has_modifier(modifiers, ModifierKind::Magnetism) {
+            let stacks = modifier_stacks(modifiers, ModifierKind::Magnetism);
+            state.effect_buf.push(Effect {
+                kind: EffectKind::CardAddRandom {
+                    color: CardColor::Colorless,
+                    kind: None,
+                    count: stacks.max(0) as u8,
+                    into_draw: false,
+                    cost_zero_turn: false,
+                    cost_zero_combat: false,
                     upgraded: false,
                 },
                 id_source: None,

@@ -127,6 +127,11 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         ),
         # Hand-pick family (resolves a hand-pick halt)
         create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS)),
+        create_action_spec(ActionType.CardExhaust, ArgSpec("idx_hand", _HAND_POS)),
+        create_action_spec(
+            ActionType.CardMoveToHand, ArgSpec("idx", "position in state.pile_draw")
+        ),
+        create_action_spec(ActionType.PickSkip),
         create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),

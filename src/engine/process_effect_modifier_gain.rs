@@ -1,4 +1,7 @@
 use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -63,6 +66,25 @@ pub fn process_effect_modifier_gain(
     }
 
     modifier_apply(modifiers, kind, stacks);
+
+    // Sadistic Nature: player-applied debuffs landing on a monster proc THORNS-type damage
+    // Shackled is the buff-typed GainStrength half of Piercing Wail/Dark Shackles in StS
+    if is_debuff_attempt
+        && kind != ModifierKind::Shackled
+        && state.entities[id_target].kind == EntityKind::Monster
+    {
+        let mods_char = &state.entities[state.id_character].modifiers;
+        if has_modifier(mods_char, ModifierKind::SadisticNature) {
+            let dmg = modifier_stacks(mods_char, ModifierKind::SadisticNature);
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::DamageDeal {
+                    amount: dmg.max(0) as u16,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_target)),
+            });
+        }
+    }
 }
 
 fn process_mode_shift_gain(modifiers: &mut Modifiers, stacks: i16, monster_cycle_count: u8) {

@@ -89,6 +89,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         this_turn_discards,
         this_turn_attacks,
         this_turn_cards_played,
+        this_turn_panache,
+        bomb_countdown,
         ..
     } = &mut state.mode
     else {
@@ -363,10 +365,39 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Reset per-turn trackers in `GameState`
+    // The Bomb: lazily armed 3-turn timer, detonates for `stacks` on all enemies
+    // ponytail: one slot per kind — a second Bomb merges damage into the earliest timer
+    if has_modifier(mods_char, ModifierKind::TheBomb) {
+        if *bomb_countdown == 0 {
+            *bomb_countdown = 3;
+        }
+        *bomb_countdown -= 1;
+        if *bomb_countdown == 0 {
+            let stacks = modifier_stacks(mods_char, ModifierKind::TheBomb);
+            for id_monster in id_monsters.iter().flatten().copied() {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: stacks.max(0) as u16,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ModifierRemove {
+                    kind: ModifierKind::TheBomb,
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+        }
+    }
+
+    // Reset per-turn trackers
     *this_turn_discards = 0;
     *this_turn_attacks = 0;
     *this_turn_cards_played = 0;
+    *this_turn_panache = 0;
 
     flush_effects_from_buf_to_queue_front(state);
 }

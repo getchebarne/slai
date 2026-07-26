@@ -33,6 +33,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         this_turn_discards,
         this_turn_attacks,
         this_turn_cards_played,
+        this_turn_panache,
         this_combat_damage_instances_taken,
         ..
     } = &mut state.mode
@@ -316,6 +317,24 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
+    // Panache: every 5th card played while active hits all enemies for `stacks`
+    if has_modifier(char_modifiers, ModifierKind::Panache) {
+        *this_turn_panache += 1;
+        if *this_turn_panache == 5 {
+            *this_turn_panache = 0;
+            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
+            for id_monster in id_monsters.iter().flatten().copied() {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: stacks.max(0) as u16,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+        }
+    }
+
     // Sharp Hide (enemy)
     if card.card_kind == CardKind::Attack {
         for id_monster in id_monsters.iter().flatten().copied() {
@@ -472,7 +491,11 @@ fn free_random_costed_hand_card(
     if num > 0 {
         let id_pick = cards_valid[rng.random_range(0..num)];
         effect_queue.push_back(Effect {
-            kind: EffectKind::SetCostOverride { amount: 0 },
+            kind: EffectKind::SetCostOverride {
+                amount: 0,
+                only_reduce: false,
+                permanent: false,
+            },
             id_source: None,
             target: Target::Direct(Some(id_pick)),
         });

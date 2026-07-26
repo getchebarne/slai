@@ -29,6 +29,8 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
             this_turn_discards: 0,
             this_turn_attacks: 0,
             this_turn_cards_played: 0,
+            this_turn_panache: 0,
+            bomb_countdown: 0,
             this_combat_damage_instances_taken: 0,
             this_combat_escaped: false,
             id_card_last_drawn: None,

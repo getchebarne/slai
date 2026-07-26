@@ -50,6 +50,12 @@ pub enum ModifierKind {
     WraithForm,
     Buffer,
     PenNib,
+    Magnetism,
+    NoBlock,
+    Panache,
+    SadisticNature,
+    Mayhem,
+    TheBomb,
 }
 
 pub const MODIFIER_COUNT: usize = ModifierKind::COUNT;
@@ -392,6 +398,49 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_duration: false,
         stacks_min: 1,
         stacks_max: 1,
+    },
+    ModifierDef {
+        kind: ModifierKind::Magnetism,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::NoBlock,
+        is_buff: false,
+        stacks_duration: true,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Panache,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::SadisticNature,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Mayhem,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    // stacks = detonation damage; the 3-turn timer lives in GameState.bomb_countdown
+    ModifierDef {
+        kind: ModifierKind::TheBomb,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
     },
 ];
 

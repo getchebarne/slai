@@ -29,6 +29,8 @@ pub fn process_effect_combat_start(
         id_picked_monster,
         energy,
         this_turn_cards_played,
+        this_turn_panache,
+        bomb_countdown,
         this_combat_damage_instances_taken,
         this_combat_escaped,
         event_gold: combat_event_gold,
@@ -54,6 +56,8 @@ pub fn process_effect_combat_start(
     *this_combat_damage_instances_taken = 0;
     *this_combat_escaped = false;
     *this_turn_cards_played = 0;
+    *this_turn_panache = 0;
+    *bomb_countdown = 0;
 
     // Combat can end mid-turn, skipping the turn-end reset
     for &name in RELIC_COUNTERS_PER_TURN

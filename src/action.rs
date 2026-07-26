@@ -36,7 +36,13 @@ pub enum Action {
     CardDiscover {
         idx: usize,
     },
+    CardExhaust {
+        idx: usize,
+    },
     CardDuplicate {
+        idx: usize,
+    },
+    CardMoveToHand {
         idx: usize,
     },
     CardNightmare {
@@ -65,6 +71,7 @@ pub enum Action {
     EventOptionSelect {
         idx: usize,
     },
+    PickSkip,
     PotionDiscard {
         idx: usize,
     },
@@ -112,6 +119,9 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
     state.effect_buf.clear();
     match action {
         Action::CardDiscard { idx } => handle_pending_hand_pick(state, idx),
+        Action::CardExhaust { idx } => handle_pending_hand_pick(state, idx),
+        Action::CardMoveToHand { idx } => handle_card_move_to_hand_pick(state, idx),
+        Action::PickSkip => handle_pick_skip(state),
         Action::CardDiscover { idx } => handle_card_discover(state, idx),
         Action::CardDuplicate { idx } => handle_card_duplicate(state, idx),
         Action::CardNightmare { idx } => handle_pending_hand_pick(state, idx),
@@ -159,7 +169,18 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         // Copy out the halt's shape so the &mut dispatch below can't alias the borrow
         let effect_pending_kind = effect_pending.kind;
         let deck_filter = pending_deck_filter(effect_pending);
-        fill_legal_actions_effect_pending(state, effect_pending_kind, deck_filter);
+        let pile_filter = pending_pile_filter(effect_pending);
+        let up_to = matches!(
+            effect_pending.target,
+            Target::Resolve {
+                selection_kind: SelectionKind::InputUpTo { .. },
+                ..
+            }
+        );
+        fill_legal_actions_effect_pending(state, effect_pending_kind, deck_filter, pile_filter);
+        if up_to {
+            state.legal_actions.push(Action::PickSkip);
+        }
         return;
     }
     match state.mode {
@@ -182,6 +203,33 @@ fn handle_pending_hand_pick(state: &mut GameState, idx: usize) {
     };
     let id_card = id_hand[idx];
     resolve_pending_pick(state, id_card);
+}
+
+
+// idx is an absolute id_pile_draw index; assert it still matches the pool's filter
+fn handle_card_move_to_hand_pick(state: &mut GameState, idx: usize) {
+    let pending = state
+        .effect_pending
+        .as_ref()
+        .expect("draw-pile pick requires a pending effect");
+    let filter = pending_pile_filter(pending).expect("draw-pile pick has a PileDraw pool");
+    let Mode::Combat { id_pile_draw, .. } = &state.mode else {
+        unreachable!("draw-pile pick outside Combat mode")
+    };
+    let id_card = id_pile_draw[idx];
+    assert!(
+        card_filter_matches(filter, &state.entities[id_card]),
+        "draw-pile pick idx {idx} targets a card the filter rejects"
+    );
+    resolve_pending_pick(state, id_card);
+}
+
+// Ends an InputUpTo halt early; remaining picks are forfeited
+fn handle_pick_skip(state: &mut GameState) {
+    state
+        .effect_pending
+        .take()
+        .expect("PickSkip requires a pending effect");
 }
 
 fn handle_card_discover(state: &mut GameState, idx: usize) {
@@ -535,6 +583,7 @@ fn fill_legal_actions_effect_pending(
     state: &mut GameState,
     kind: EffectKind,
     deck_filter: Option<CandidatePoolCardFilter>,
+    pile_filter: Option<CandidatePoolCardFilter>,
 ) {
     match kind {
         // Discard/retain offer single-card picks; the handler re-raises the halt with a
@@ -555,7 +604,26 @@ fn fill_legal_actions_effect_pending(
                 state.legal_actions.push(Action::CardRetain { idx: i });
             }
         }
-        EffectKind::CardSetupPick => {
+        EffectKind::CardExhaust => {
+            let Mode::Combat { id_hand, .. } = &state.mode else {
+                unreachable!("Hand pick outside Combat mode")
+            };
+            for i in 0..id_hand.len() {
+                state.legal_actions.push(Action::CardExhaust { idx: i });
+            }
+        }
+        EffectKind::CardMoveToHand => {
+            let Mode::Combat { id_pile_draw, .. } = &state.mode else {
+                unreachable!("Draw-pile pick outside Combat mode")
+            };
+            let filter = pile_filter.expect("draw-pile pick carries a PileDraw filter");
+            for i in 0..id_pile_draw.len() {
+                if card_filter_matches(filter, &state.entities[id_pile_draw[i]]) {
+                    state.legal_actions.push(Action::CardMoveToHand { idx: i });
+                }
+            }
+        }
+        EffectKind::CardSetupPick { .. } => {
             let Mode::Combat { id_hand, .. } = &state.mode else {
                 unreachable!("Hand pick outside Combat mode")
             };
@@ -904,21 +972,38 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
     });
 
     // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
-    let Target::Resolve {
-        candidate_pool,
-        selection_kind: SelectionKind::Input { count },
-    } = effect_pending.target
-    else {
-        panic!("pending pick carries an Input halt");
+    let (candidate_pool, selection_kind) = match effect_pending.target {
+        Target::Resolve {
+            candidate_pool,
+            selection_kind: SelectionKind::Input { count },
+        } => (
+            candidate_pool,
+            SelectionKind::Input {
+                count: count.saturating_sub(1),
+            },
+        ),
+        Target::Resolve {
+            candidate_pool,
+            selection_kind: SelectionKind::InputUpTo { count },
+        } => (
+            candidate_pool,
+            SelectionKind::InputUpTo {
+                count: count.saturating_sub(1),
+            },
+        ),
+        _ => panic!("pending pick carries an Input halt"),
     };
-    let remaining = count.saturating_sub(1);
+    let remaining = match selection_kind {
+        SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count,
+        _ => unreachable!(),
+    };
     if remaining > 0 {
         state.effect_buf.push(Effect {
             kind: effect_pending.kind,
             id_source: effect_pending.id_source,
             target: Target::Resolve {
                 candidate_pool,
-                selection_kind: SelectionKind::Input { count: remaining },
+                selection_kind,
             },
         });
     }
@@ -930,6 +1015,17 @@ fn pending_deck_filter(effect: &Effect) -> Option<CandidatePoolCardFilter> {
     match effect.target {
         Target::Resolve {
             candidate_pool: CandidatePool::Deck { filter },
+            ..
+        } => Some(filter),
+        _ => None,
+    }
+}
+
+// Extract the PileDraw filter from a pending draw-pile pick; None for other halts
+fn pending_pile_filter(effect: &Effect) -> Option<CandidatePoolCardFilter> {
+    match effect.target {
+        Target::Resolve {
+            candidate_pool: CandidatePool::PileDraw { filter },
             ..
         } => Some(filter),
         _ => None,

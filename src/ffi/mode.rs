@@ -71,6 +71,8 @@ pub struct PyModeCombat {
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
     pub discover: Vec<PyCard>,
+    // The Bomb timer (turns until detonation; 0 = no bomb armed)
+    pub bomb_countdown: u8,
 }
 
 #[pyclass(
@@ -183,6 +185,7 @@ pub(crate) fn snapshot_mode(state: &GameState) -> PyMode {
             id_pile_exhaust,
             energy,
             id_discover,
+            bomb_countdown,
             ..
         } => PyMode::Combat(PyModeCombat {
             hand: id_hand.iter().map(|&id| snapshot_card(state, id)).collect(),
@@ -207,6 +210,7 @@ pub(crate) fn snapshot_mode(state: &GameState) -> PyMode {
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
+            bomb_countdown: *bomb_countdown,
         }),
         Mode::Reward {
             reward_id_cards,

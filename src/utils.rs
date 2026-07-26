@@ -16,6 +16,7 @@ use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::effect::CandidatePoolCardFilter;
+use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
@@ -83,6 +84,13 @@ pub fn card_filter_matches(filter: CandidatePoolCardFilter, entity: &Entity) -> 
         CandidatePoolCardFilter::Transformable => card_is_transformable(entity),
         CandidatePoolCardFilter::PurgeableCurse => {
             entity.card_kind == CardKind::Curse && card_is_purgeable(entity)
+        }
+        CandidatePoolCardFilter::Attack => entity.card_kind == CardKind::Attack,
+        CandidatePoolCardFilter::Skill => entity.card_kind == CardKind::Skill,
+        CandidatePoolCardFilter::Costed => {
+            !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
+                && entity.card_cost > 0
+                && entity.card_cost_override.unwrap_or(entity.card_cost) > 0
         }
     }
 }
