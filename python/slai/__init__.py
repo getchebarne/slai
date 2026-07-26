@@ -176,47 +176,257 @@ Potion = _rs.Potion
 # Plain struct view
 Target = _rs.Target
 
-# Complex enums: re-export the raw pyo3 nested-variant classes directly. Each is a
-# real class whose variants are nested subclasses (Effect.DamagePhysical, ...) with
-# field properties + __match_args__ for native isinstance/match — exactly what the
-# FFI returns, so annotations match runtime values.
-Effect = _rs.Effect
-CandidatePool = _rs.CandidatePool
-SelectionKind = _rs.SelectionKind
-CardCostKind = _rs.CardCostKind
-Amount = _rs.Amount
-Mode = _rs.Mode
-EventKind = _rs.EventKind
+# Sum types: one flat frozen class per variant (EffectDamagePhysical, ...) plus a
+# PEP 604 union alias per family. The union works as annotation, isinstance target,
+# and typing.get_args source alike; the FFI returns instances of the flat classes.
+EffectDamagePhysical = _rs.EffectDamagePhysical
+EffectDamagePhysicalIfPoisoned = _rs.EffectDamagePhysicalIfPoisoned
+EffectHeelHookProc = _rs.EffectHeelHookProc
+EffectEscapePlanCheck = _rs.EffectEscapePlanCheck
+EffectGlassKnifeDecay = _rs.EffectGlassKnifeDecay
+EffectCardSetupPick = _rs.EffectCardSetupPick
+EffectCardNightmarePick = _rs.EffectCardNightmarePick
+EffectDistractionAdd = _rs.EffectDistractionAdd
+EffectSetCostOverride = _rs.EffectSetCostOverride
+EffectDamageFinisher = _rs.EffectDamageFinisher
+EffectDamageFlechettes = _rs.EffectDamageFlechettes
+EffectUnloadDiscard = _rs.EffectUnloadDiscard
+EffectStormOfSteelProc = _rs.EffectStormOfSteelProc
+EffectSneakyStrikeProc = _rs.EffectSneakyStrikeProc
+EffectBlockGain = _rs.EffectBlockGain
+EffectModifierGain = _rs.EffectModifierGain
+EffectModifierMultiply = _rs.EffectModifierMultiply
+EffectModifierRemove = _rs.EffectModifierRemove
+EffectEnergyGain = _rs.EffectEnergyGain
+EffectCardAddToHand = _rs.EffectCardAddToHand
+EffectCardDraw = _rs.EffectCardDraw
+EffectCardDrawUpTo = _rs.EffectCardDrawUpTo
+EffectCardDiscard = _rs.EffectCardDiscard
+EffectCardRetain = _rs.EffectCardRetain
+EffectDamageMindBlast = _rs.EffectDamageMindBlast
+EffectShuffleDiscardPileIntoDrawPile = _rs.EffectShuffleDiscardPileIntoDrawPile
+EffectCalculatedGamble = _rs.EffectCalculatedGamble
+EffectMaxHealthDelta = _rs.EffectMaxHealthDelta
+EffectHealthDelta = _rs.EffectHealthDelta
+EffectPotionAddRandom = _rs.EffectPotionAddRandom
+EffectPotionDiscard = _rs.EffectPotionDiscard
+EffectRewardRollPotions = _rs.EffectRewardRollPotions
+EffectCardDiscoverRoll = _rs.EffectCardDiscoverRoll
+EffectGoldDelta = _rs.EffectGoldDelta
+EffectRelicGrantRandom = _rs.EffectRelicGrantRandom
+EffectWheelSpin = _rs.EffectWheelSpin
+EffectBonfireOffer = _rs.EffectBonfireOffer
+EffectFaceTrade = _rs.EffectFaceTrade
+EffectMonsterSpawn = _rs.EffectMonsterSpawn
+EffectCombatStart = _rs.EffectCombatStart
+EffectAdventurerSearch = _rs.EffectAdventurerSearch
+EffectRelicGrantSpecific = _rs.EffectRelicGrantSpecific
+EffectEventAdvanceState = _rs.EffectEventAdvanceState
+EffectScrapOozeReach = _rs.EffectScrapOozeReach
+EffectEventConsume = _rs.EffectEventConsume
+EffectCardDiscoverPick = _rs.EffectCardDiscoverPick
+EffectCardAddToDeck = _rs.EffectCardAddToDeck
+EffectCardPurge = _rs.EffectCardPurge
+EffectCardUpgrade = _rs.EffectCardUpgrade
+EffectCardDuplicate = _rs.EffectCardDuplicate
+EffectCardTransform = _rs.EffectCardTransform
+Effect = (
+    EffectDamagePhysical
+    | EffectDamagePhysicalIfPoisoned
+    | EffectHeelHookProc
+    | EffectEscapePlanCheck
+    | EffectGlassKnifeDecay
+    | EffectCardSetupPick
+    | EffectCardNightmarePick
+    | EffectDistractionAdd
+    | EffectSetCostOverride
+    | EffectDamageFinisher
+    | EffectDamageFlechettes
+    | EffectUnloadDiscard
+    | EffectStormOfSteelProc
+    | EffectSneakyStrikeProc
+    | EffectBlockGain
+    | EffectModifierGain
+    | EffectModifierMultiply
+    | EffectModifierRemove
+    | EffectEnergyGain
+    | EffectCardAddToHand
+    | EffectCardDraw
+    | EffectCardDrawUpTo
+    | EffectCardDiscard
+    | EffectCardRetain
+    | EffectDamageMindBlast
+    | EffectShuffleDiscardPileIntoDrawPile
+    | EffectCalculatedGamble
+    | EffectMaxHealthDelta
+    | EffectHealthDelta
+    | EffectPotionAddRandom
+    | EffectPotionDiscard
+    | EffectRewardRollPotions
+    | EffectCardDiscoverRoll
+    | EffectGoldDelta
+    | EffectRelicGrantRandom
+    | EffectWheelSpin
+    | EffectBonfireOffer
+    | EffectFaceTrade
+    | EffectMonsterSpawn
+    | EffectCombatStart
+    | EffectAdventurerSearch
+    | EffectRelicGrantSpecific
+    | EffectEventAdvanceState
+    | EffectScrapOozeReach
+    | EffectEventConsume
+    | EffectCardDiscoverPick
+    | EffectCardAddToDeck
+    | EffectCardPurge
+    | EffectCardUpgrade
+    | EffectCardDuplicate
+    | EffectCardTransform
+)
+CandidatePoolHand = _rs.CandidatePoolHand
+CandidatePoolCharacter = _rs.CandidatePoolCharacter
+CandidatePoolMonsters = _rs.CandidatePoolMonsters
+CandidatePoolSource = _rs.CandidatePoolSource
+CandidatePoolDiscover = _rs.CandidatePoolDiscover
+CandidatePoolDeck = _rs.CandidatePoolDeck
+CandidatePoolEventPickCard = _rs.CandidatePoolEventPickCard
+CandidatePoolEventPickPotion = _rs.CandidatePoolEventPickPotion
+CandidatePool = (
+    CandidatePoolHand
+    | CandidatePoolCharacter
+    | CandidatePoolMonsters
+    | CandidatePoolSource
+    | CandidatePoolDiscover
+    | CandidatePoolDeck
+    | CandidatePoolEventPickCard
+    | CandidatePoolEventPickPotion
+)
+SelectionKindAll = _rs.SelectionKindAll
+SelectionKindSingle = _rs.SelectionKindSingle
+SelectionKindRandom = _rs.SelectionKindRandom
+SelectionKindInput = _rs.SelectionKindInput
+SelectionKind = (
+    SelectionKindAll | SelectionKindSingle | SelectionKindRandom | SelectionKindInput
+)
+
+# Flat variant classes + PEP 604 union aliases. The union works as annotation,
+# isinstance target, and typing.get_args source alike
+CardCostKindFixed = _rs.CardCostKindFixed
+CardCostKindMinusDiscardsThisTurn = _rs.CardCostKindMinusDiscardsThisTurn
+CardCostKindGrowsOnDamageInstanceTaken = _rs.CardCostKindGrowsOnDamageInstanceTaken
+CardCostKindXCost = _rs.CardCostKindXCost
+CardCostKind = (
+    CardCostKindFixed
+    | CardCostKindMinusDiscardsThisTurn
+    | CardCostKindGrowsOnDamageInstanceTaken
+    | CardCostKindXCost
+)
+
+AmountAbsolute = _rs.AmountAbsolute
+AmountRelative = _rs.AmountRelative
+AmountRange = _rs.AmountRange
+AmountEventGoldAsk = _rs.AmountEventGoldAsk
+Amount = AmountAbsolute | AmountRelative | AmountRange | AmountEventGoldAsk
+ModeMap = _rs.ModeMap
+ModeRestSite = _rs.ModeRestSite
+ModeChest = _rs.ModeChest
+ModeChestOpened = _rs.ModeChestOpened
+ModeCombatEnded = _rs.ModeCombatEnded
+ModeCombat = _rs.ModeCombat
+ModeReward = _rs.ModeReward
+ModeShop = _rs.ModeShop
+ModeEvent = _rs.ModeEvent
+Mode = (
+    ModeMap
+    | ModeRestSite
+    | ModeChest
+    | ModeChestOpened
+    | ModeCombatEnded
+    | ModeCombat
+    | ModeReward
+    | ModeShop
+    | ModeEvent
+)
+EventKindBigFish = _rs.EventKindBigFish
+EventKindTheCleric = _rs.EventKindTheCleric
+EventKindDuplicator = _rs.EventKindDuplicator
+EventKindGoldenShrine = _rs.EventKindGoldenShrine
+EventKindWingStatue = _rs.EventKindWingStatue
+EventKindWorldOfGoop = _rs.EventKindWorldOfGoop
+EventKindLivingWall = _rs.EventKindLivingWall
+EventKindPurifier = _rs.EventKindPurifier
+EventKindShiningLight = _rs.EventKindShiningLight
+EventKindTheSsssserpent = _rs.EventKindTheSsssserpent
+EventKindTransmogrifier = _rs.EventKindTransmogrifier
+EventKindUpgradeShrine = _rs.EventKindUpgradeShrine
+EventKindTheDivineFountain = _rs.EventKindTheDivineFountain
+EventKindTheLab = _rs.EventKindTheLab
+EventKindTheWomanInBlue = _rs.EventKindTheWomanInBlue
+EventKindWheelOfChange = _rs.EventKindWheelOfChange
+EventKindBonfireSpirits = _rs.EventKindBonfireSpirits
+EventKindOminousForge = _rs.EventKindOminousForge
+EventKindFaceTrader = _rs.EventKindFaceTrader
+EventKindMushrooms = _rs.EventKindMushrooms
+EventKindGoldenIdol = _rs.EventKindGoldenIdol
+EventKindScrapOoze = _rs.EventKindScrapOoze
+EventKindWeMeetAgain = _rs.EventKindWeMeetAgain
+EventKindDeadAdventurer = _rs.EventKindDeadAdventurer
+EventKind = (
+    EventKindBigFish
+    | EventKindTheCleric
+    | EventKindDuplicator
+    | EventKindGoldenShrine
+    | EventKindWingStatue
+    | EventKindWorldOfGoop
+    | EventKindLivingWall
+    | EventKindPurifier
+    | EventKindShiningLight
+    | EventKindTheSsssserpent
+    | EventKindTransmogrifier
+    | EventKindUpgradeShrine
+    | EventKindTheDivineFountain
+    | EventKindTheLab
+    | EventKindTheWomanInBlue
+    | EventKindWheelOfChange
+    | EventKindBonfireSpirits
+    | EventKindOminousForge
+    | EventKindFaceTrader
+    | EventKindMushrooms
+    | EventKindGoldenIdol
+    | EventKindScrapOoze
+    | EventKindWeMeetAgain
+    | EventKindDeadAdventurer
+)
 
 DeltaSign = _rs.DeltaSign
 
 # EventKind variants in engine declaration order — the stable event-identity
 # index for featurization (variant classes carry no discriminant of their own)
 EVENT_KIND_ORDER: tuple[type, ...] = (
-    EventKind.BigFish,
-    EventKind.TheCleric,
-    EventKind.Duplicator,
-    EventKind.GoldenShrine,
-    EventKind.WingStatue,
-    EventKind.WorldOfGoop,
-    EventKind.LivingWall,
-    EventKind.Purifier,
-    EventKind.ShiningLight,
-    EventKind.TheSsssserpent,
-    EventKind.Transmogrifier,
-    EventKind.UpgradeShrine,
-    EventKind.TheDivineFountain,
-    EventKind.TheLab,
-    EventKind.TheWomanInBlue,
-    EventKind.WheelOfChange,
-    EventKind.BonfireSpirits,
-    EventKind.OminousForge,
-    EventKind.FaceTrader,
-    EventKind.Mushrooms,
-    EventKind.GoldenIdol,
-    EventKind.ScrapOoze,
-    EventKind.WeMeetAgain,
-    EventKind.DeadAdventurer,
+    EventKindBigFish,
+    EventKindTheCleric,
+    EventKindDuplicator,
+    EventKindGoldenShrine,
+    EventKindWingStatue,
+    EventKindWorldOfGoop,
+    EventKindLivingWall,
+    EventKindPurifier,
+    EventKindShiningLight,
+    EventKindTheSsssserpent,
+    EventKindTransmogrifier,
+    EventKindUpgradeShrine,
+    EventKindTheDivineFountain,
+    EventKindTheLab,
+    EventKindTheWomanInBlue,
+    EventKindWheelOfChange,
+    EventKindBonfireSpirits,
+    EventKindOminousForge,
+    EventKindFaceTrader,
+    EventKindMushrooms,
+    EventKindGoldenIdol,
+    EventKindScrapOoze,
+    EventKindWeMeetAgain,
+    EventKindDeadAdventurer,
 )
 
 
@@ -258,15 +468,119 @@ __all__ = [
     "MonsterName",
     "MonsterEncounter",
     "CandidatePoolCardFilter",
-    # Complex enums (raw nested-variant classes)
+    # Sum types (flat variant classes + union aliases)
     "CandidatePool",
+    "CandidatePoolHand",
+    "CandidatePoolCharacter",
+    "CandidatePoolMonsters",
+    "CandidatePoolSource",
+    "CandidatePoolDiscover",
+    "CandidatePoolDeck",
+    "CandidatePoolEventPickCard",
+    "CandidatePoolEventPickPotion",
     "SelectionKind",
+    "SelectionKindAll",
+    "SelectionKindSingle",
+    "SelectionKindRandom",
+    "SelectionKindInput",
     "CardCostKind",
+    "CardCostKindFixed",
+    "CardCostKindMinusDiscardsThisTurn",
+    "CardCostKindGrowsOnDamageInstanceTaken",
+    "CardCostKindXCost",
     "Target",
     "Effect",
+    "EffectDamagePhysical",
+    "EffectDamagePhysicalIfPoisoned",
+    "EffectHeelHookProc",
+    "EffectEscapePlanCheck",
+    "EffectGlassKnifeDecay",
+    "EffectCardSetupPick",
+    "EffectCardNightmarePick",
+    "EffectDistractionAdd",
+    "EffectSetCostOverride",
+    "EffectDamageFinisher",
+    "EffectDamageFlechettes",
+    "EffectUnloadDiscard",
+    "EffectStormOfSteelProc",
+    "EffectSneakyStrikeProc",
+    "EffectBlockGain",
+    "EffectModifierGain",
+    "EffectModifierMultiply",
+    "EffectModifierRemove",
+    "EffectEnergyGain",
+    "EffectCardAddToHand",
+    "EffectCardDraw",
+    "EffectCardDrawUpTo",
+    "EffectCardDiscard",
+    "EffectCardRetain",
+    "EffectDamageMindBlast",
+    "EffectShuffleDiscardPileIntoDrawPile",
+    "EffectCalculatedGamble",
+    "EffectMaxHealthDelta",
+    "EffectHealthDelta",
+    "EffectPotionAddRandom",
+    "EffectPotionDiscard",
+    "EffectRewardRollPotions",
+    "EffectCardDiscoverRoll",
+    "EffectGoldDelta",
+    "EffectRelicGrantRandom",
+    "EffectWheelSpin",
+    "EffectBonfireOffer",
+    "EffectFaceTrade",
+    "EffectMonsterSpawn",
+    "EffectCombatStart",
+    "EffectAdventurerSearch",
+    "EffectRelicGrantSpecific",
+    "EffectEventAdvanceState",
+    "EffectScrapOozeReach",
+    "EffectEventConsume",
+    "EffectCardDiscoverPick",
+    "EffectCardAddToDeck",
+    "EffectCardPurge",
+    "EffectCardUpgrade",
+    "EffectCardDuplicate",
+    "EffectCardTransform",
     "Amount",
+    "AmountAbsolute",
+    "AmountRelative",
+    "AmountRange",
+    "AmountEventGoldAsk",
     "Mode",
+    "ModeMap",
+    "ModeRestSite",
+    "ModeChest",
+    "ModeChestOpened",
+    "ModeCombatEnded",
+    "ModeCombat",
+    "ModeReward",
+    "ModeShop",
+    "ModeEvent",
     "EventKind",
+    "EventKindBigFish",
+    "EventKindTheCleric",
+    "EventKindDuplicator",
+    "EventKindGoldenShrine",
+    "EventKindWingStatue",
+    "EventKindWorldOfGoop",
+    "EventKindLivingWall",
+    "EventKindPurifier",
+    "EventKindShiningLight",
+    "EventKindTheSsssserpent",
+    "EventKindTransmogrifier",
+    "EventKindUpgradeShrine",
+    "EventKindTheDivineFountain",
+    "EventKindTheLab",
+    "EventKindTheWomanInBlue",
+    "EventKindWheelOfChange",
+    "EventKindBonfireSpirits",
+    "EventKindOminousForge",
+    "EventKindFaceTrader",
+    "EventKindMushrooms",
+    "EventKindGoldenIdol",
+    "EventKindScrapOoze",
+    "EventKindWeMeetAgain",
+    "EventKindDeadAdventurer",
     "EVENT_KIND_ORDER",
     "DeltaSign",
     # Potion

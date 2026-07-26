@@ -1,8 +1,7 @@
+use pyo3::inspect::PyStaticExpr;
 use pyo3::prelude::*;
-use pyo3_stub_gen::derive::gen_stub_pyclass;
-use pyo3_stub_gen::derive::gen_stub_pyclass_complex_enum;
-use pyo3_stub_gen::derive::gen_stub_pyclass_enum;
-use pyo3_stub_gen::derive::gen_stub_pymethods;
+use pyo3::type_hint_union;
+use pyo3::type_object::PyTypeInfo;
 
 use crate::action::Action;
 use crate::consts::MAP_HEIGHT;
@@ -52,7 +51,6 @@ use crate::utils::scale_block_gain;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "CardKind", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardKind {
@@ -75,7 +73,6 @@ impl From<CardKind> for PyCardKind {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "CardColor", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardColor {
@@ -94,7 +91,6 @@ impl From<CardColor> for PyCardColor {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "CardRarity", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardRarity {
@@ -119,28 +115,95 @@ impl From<CardRarity> for PyCardRarity {
     }
 }
 
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "CardCostKind", module = "slai.slai")]
+// Complex enums are exposed as one flat pyclass per variant. The Rust enum
+// survives for composition; variant_union! gives it IntoPyObject dispatch plus
+// a union OUTPUT_TYPE so generated stubs type fields as `VariantA | VariantB | ...`
+macro_rules! variant_union {
+    ($enum:ident { $($variant:ident => $cls:ident),+ $(,)? }) => {
+        impl<'py> IntoPyObject<'py> for $enum {
+            type Target = PyAny;
+            type Output = Bound<'py, PyAny>;
+            type Error = PyErr;
+            const OUTPUT_TYPE: PyStaticExpr =
+                type_hint_union!($(<$cls as PyTypeInfo>::TYPE_HINT),+);
+            fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+                Ok(match self {
+                    $( Self::$variant(v) => Bound::new(py, v)?.into_any(), )+
+                })
+            }
+        }
+    };
+}
+
+#[pyclass(eq, hash, frozen, name = "CardCostKindFixed", module = "slai.slai")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCardCostKindFixed;
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    name = "CardCostKindMinusDiscardsThisTurn",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCardCostKindMinusDiscardsThisTurn;
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    name = "CardCostKindGrowsOnDamageInstanceTaken",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCardCostKindGrowsOnDamageInstanceTaken;
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "CardCostKindXCost",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCardCostKindXCost {
+    pub offset: i8,
+}
+
+// NB: variant order and field order must stay byte-identical to the internal
+// enum — card_identity_hash feeds this through derived Hash
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCardCostKind {
-    Fixed {},
-    MinusDiscardsThisTurn {},
-    GrowsOnDamageInstanceTaken {},
-    XCost { offset: i8 },
+    Fixed(PyCardCostKindFixed),
+    MinusDiscardsThisTurn(PyCardCostKindMinusDiscardsThisTurn),
+    GrowsOnDamageInstanceTaken(PyCardCostKindGrowsOnDamageInstanceTaken),
+    XCost(PyCardCostKindXCost),
 }
+
+variant_union!(PyCardCostKind {
+    Fixed => PyCardCostKindFixed,
+    MinusDiscardsThisTurn => PyCardCostKindMinusDiscardsThisTurn,
+    GrowsOnDamageInstanceTaken => PyCardCostKindGrowsOnDamageInstanceTaken,
+    XCost => PyCardCostKindXCost,
+});
 
 impl From<CardCostKind> for PyCardCostKind {
     fn from(kind: CardCostKind) -> Self {
         match kind {
-            CardCostKind::Fixed => Self::Fixed {},
-            CardCostKind::MinusDiscardsThisTurn => Self::MinusDiscardsThisTurn {},
-            CardCostKind::GrowsOnDamageInstanceTaken => Self::GrowsOnDamageInstanceTaken {},
-            CardCostKind::XCost { offset } => Self::XCost { offset },
+            CardCostKind::Fixed => Self::Fixed(PyCardCostKindFixed),
+            CardCostKind::MinusDiscardsThisTurn => {
+                Self::MinusDiscardsThisTurn(PyCardCostKindMinusDiscardsThisTurn)
+            }
+            CardCostKind::GrowsOnDamageInstanceTaken => {
+                Self::GrowsOnDamageInstanceTaken(PyCardCostKindGrowsOnDamageInstanceTaken)
+            }
+            CardCostKind::XCost { offset } => Self::XCost(PyCardCostKindXCost { offset }),
         }
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "PlayRestriction", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyPlayRestriction {
@@ -159,7 +222,6 @@ impl From<PlayRestriction> for PyPlayRestriction {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "DeltaSign", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyDeltaSign {
@@ -176,20 +238,63 @@ impl From<DeltaSign> for PyDeltaSign {
     }
 }
 
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "Amount", module = "slai.slai")]
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "AmountAbsolute",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyAmountAbsolute {
+    pub amount: u16,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "AmountRelative",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyAmountRelative {
+    pub numerator: u8,
+    pub denominator: u8,
+}
+
+#[pyclass(eq, hash, frozen, get_all, name = "AmountRange", module = "slai.slai")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyAmountRange {
+    pub min: u16,
+    pub max: u16,
+}
+
+#[pyclass(eq, hash, frozen, name = "AmountEventGoldAsk", module = "slai.slai")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyAmountEventGoldAsk;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyAmount {
-    Absolute { amount: u16 },
-    Relative { numerator: u8, denominator: u8 },
-    Range { min: u16, max: u16 },
-    EventGoldAsk {},
+    Absolute(PyAmountAbsolute),
+    Relative(PyAmountRelative),
+    Range(PyAmountRange),
+    EventGoldAsk(PyAmountEventGoldAsk),
 }
+
+variant_union!(PyAmount {
+    Absolute => PyAmountAbsolute,
+    Relative => PyAmountRelative,
+    Range => PyAmountRange,
+    EventGoldAsk => PyAmountEventGoldAsk,
+});
 
 impl From<Amount> for PyAmount {
     fn from(amount: Amount) -> Self {
         match amount {
-            Amount::Absolute(amount) => Self::Absolute { amount },
+            Amount::Absolute(amount) => Self::Absolute(PyAmountAbsolute { amount }),
             // Rounding mode is engine-internal; the view keeps one Relative shape
             Amount::Relative {
                 numerator,
@@ -202,17 +307,16 @@ impl From<Amount> for PyAmount {
             | Amount::RelativeCeil {
                 numerator,
                 denominator,
-            } => Self::Relative {
+            } => Self::Relative(PyAmountRelative {
                 numerator,
                 denominator,
-            },
-            Amount::Range { min, max } => Self::Range { min, max },
-            Amount::EventGoldAsk => Self::EventGoldAsk {},
+            }),
+            Amount::Range { min, max } => Self::Range(PyAmountRange { min, max }),
+            Amount::EventGoldAsk => Self::EventGoldAsk(PyAmountEventGoldAsk),
         }
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "RoomKind", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRoomKind {
@@ -241,7 +345,6 @@ impl From<RoomKind> for PyRoomKind {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "PotionName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyPotionName {
@@ -282,7 +385,6 @@ impl From<PotionName> for PyPotionName {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "PotionRarity", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyPotionRarity {
@@ -301,7 +403,6 @@ impl From<PotionRarity> for PyPotionRarity {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "RelicName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRelicName {
@@ -627,7 +728,6 @@ impl From<PyRelicName> for RelicName {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "CardName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyCardName {
@@ -837,7 +937,6 @@ impl From<CardName> for PyCardName {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "MonsterName", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyMonsterName {
@@ -900,7 +999,6 @@ impl From<MonsterName> for PyMonsterName {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "MonsterEncounter", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyMonsterEncounter {
@@ -955,7 +1053,6 @@ impl From<MonsterEncounter> for PyMonsterEncounter {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "RelicTier", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRelicTier {
@@ -982,7 +1079,6 @@ impl From<RelicTier> for PyRelicTier {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "ModifierKind", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyModifierKind {
@@ -1033,7 +1129,6 @@ pub enum PyModifierKind {
     PenNib,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyModifierKind {
     #[getter]
@@ -1099,48 +1194,127 @@ impl From<ModifierKind> for PyModifierKind {
     }
 }
 
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "CandidatePool", module = "slai.slai")]
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "CandidatePoolHand",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolHand {
+    pub filter: PyCandidatePoolCardFilter,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    name = "CandidatePoolCharacter",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolCharacter;
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "CandidatePoolMonsters",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolMonsters {
+    pub filter: PyCandidatePoolMonstersFilter,
+}
+
+#[pyclass(eq, hash, frozen, name = "CandidatePoolSource", module = "slai.slai")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolSource;
+
+#[pyclass(eq, hash, frozen, name = "CandidatePoolDiscover", module = "slai.slai")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolDiscover;
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "CandidatePoolDeck",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolDeck {
+    pub filter: PyCandidatePoolCardFilter,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    name = "CandidatePoolEventPickCard",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolEventPickCard;
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    name = "CandidatePoolEventPickPotion",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolEventPickPotion;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
-    Hand {
-        filter: PyCandidatePoolCardFilter,
-    },
-    Character {},
-    Monsters {
-        filter: PyCandidatePoolMonstersFilter,
-    },
-    Source {},
-    Discover {},
-    Deck {
-        filter: PyCandidatePoolCardFilter,
-    },
-    EventPickCard {},
-    EventPickPotion {},
+    Hand(PyCandidatePoolHand),
+    Character(PyCandidatePoolCharacter),
+    Monsters(PyCandidatePoolMonsters),
+    Source(PyCandidatePoolSource),
+    Discover(PyCandidatePoolDiscover),
+    Deck(PyCandidatePoolDeck),
+    EventPickCard(PyCandidatePoolEventPickCard),
+    EventPickPotion(PyCandidatePoolEventPickPotion),
 }
+
+variant_union!(PyCandidatePool {
+    Hand => PyCandidatePoolHand,
+    Character => PyCandidatePoolCharacter,
+    Monsters => PyCandidatePoolMonsters,
+    Source => PyCandidatePoolSource,
+    Discover => PyCandidatePoolDiscover,
+    Deck => PyCandidatePoolDeck,
+    EventPickCard => PyCandidatePoolEventPickCard,
+    EventPickPotion => PyCandidatePoolEventPickPotion,
+});
 
 impl From<CandidatePool> for PyCandidatePool {
     fn from(pool: CandidatePool) -> Self {
         match pool {
-            CandidatePool::Hand { filter } => Self::Hand {
+            CandidatePool::Hand { filter } => Self::Hand(PyCandidatePoolHand {
                 filter: filter.into(),
-            },
-            CandidatePool::Character => Self::Character {},
-            CandidatePool::Monsters { filter } => Self::Monsters {
+            }),
+            CandidatePool::Character => Self::Character(PyCandidatePoolCharacter),
+            CandidatePool::Monsters { filter } => Self::Monsters(PyCandidatePoolMonsters {
                 filter: filter.into(),
-            },
-            CandidatePool::Source => Self::Source {},
-            CandidatePool::Discover => Self::Discover {},
-            CandidatePool::Deck { filter } => Self::Deck {
+            }),
+            CandidatePool::Source => Self::Source(PyCandidatePoolSource),
+            CandidatePool::Discover => Self::Discover(PyCandidatePoolDiscover),
+            CandidatePool::Deck { filter } => Self::Deck(PyCandidatePoolDeck {
                 filter: filter.into(),
-            },
-            CandidatePool::EventPickCard => Self::EventPickCard {},
-            CandidatePool::EventPickPotion => Self::EventPickPotion {},
+            }),
+            CandidatePool::EventPickCard => Self::EventPickCard(PyCandidatePoolEventPickCard),
+            CandidatePool::EventPickPotion => Self::EventPickPotion(PyCandidatePoolEventPickPotion),
         }
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(
     eq,
     eq_int,
@@ -1165,7 +1339,6 @@ impl From<CandidatePoolMonstersFilter> for PyCandidatePoolMonstersFilter {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(
     eq,
     eq_int,
@@ -1194,28 +1367,66 @@ impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
     }
 }
 
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "SelectionKind", module = "slai.slai")]
+#[pyclass(eq, hash, frozen, name = "SelectionKindAll", module = "slai.slai")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PySelectionKindAll;
+
+#[pyclass(eq, hash, frozen, name = "SelectionKindSingle", module = "slai.slai")]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PySelectionKindSingle;
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "SelectionKindRandom",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PySelectionKindRandom {
+    pub count: u8,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "SelectionKindInput",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PySelectionKindInput {
+    pub count: u16,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PySelectionKind {
-    All {},
-    Single {},
-    Random { count: u8 },
-    Input { count: u16 },
+    All(PySelectionKindAll),
+    Single(PySelectionKindSingle),
+    Random(PySelectionKindRandom),
+    Input(PySelectionKindInput),
 }
+
+variant_union!(PySelectionKind {
+    All => PySelectionKindAll,
+    Single => PySelectionKindSingle,
+    Random => PySelectionKindRandom,
+    Input => PySelectionKindInput,
+});
 
 impl From<SelectionKind> for PySelectionKind {
     fn from(selection_kind: SelectionKind) -> Self {
         match selection_kind {
-            SelectionKind::All => Self::All {},
-            SelectionKind::Single => Self::Single {},
-            SelectionKind::Random { count } => Self::Random { count },
-            SelectionKind::Input { count } => Self::Input { count },
+            SelectionKind::All => Self::All(PySelectionKindAll),
+            SelectionKind::Single => Self::Single(PySelectionKindSingle),
+            SelectionKind::Random { count } => Self::Random(PySelectionKindRandom { count }),
+            SelectionKind::Input { count } => Self::Input(PySelectionKindInput { count }),
         }
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(eq, hash, frozen, get_all, name = "Target", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyTarget {
@@ -1223,20 +1434,7 @@ pub struct PyTarget {
     pub selection_kind: PySelectionKind,
 }
 
-#[gen_stub_pymethods]
-#[pymethods]
-impl PyTarget {
-    #[new]
-    fn new(candidate_pool: PyCandidatePool, selection_kind: PySelectionKind) -> Self {
-        Self {
-            candidate_pool,
-            selection_kind,
-        }
-    }
-}
-
 // `PyActionType` is the discriminant for the flat `PyAction` struct below
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "ActionType", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::IntoStaticStr)]
 pub enum PyActionType {
@@ -1268,7 +1466,6 @@ pub enum PyActionType {
     TurnEnd,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyActionType {
     // variant name for the action-spec registry (raw pyo3 enums have no .name)
@@ -1317,7 +1514,6 @@ impl PyActionType {
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(eq, hash, frozen, name = "Action", module = "slai.slai")]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyAction {
@@ -1329,7 +1525,6 @@ pub struct PyAction {
     pub kind: Option<u8>,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyAction {
     #[new]
@@ -1532,207 +1727,821 @@ pub fn from_internal_action(action: Action) -> PyAction {
 }
 
 // Mirrors only EffectKind variants reachable from static card/monster defs; snapshot_effect panics on runtime-only variants
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(eq, hash, frozen, name = "Effect", module = "slai.slai")]
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectDamagePhysical",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectDamagePhysical {
+    pub amount: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectDamagePhysicalIfPoisoned",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectDamagePhysicalIfPoisoned {
+    pub amount: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectHeelHookProc",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectHeelHookProc {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectEscapePlanCheck",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectEscapePlanCheck {
+    pub block: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectGlassKnifeDecay",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectGlassKnifeDecay {
+    pub delta: i16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardSetupPick",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardSetupPick {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardNightmarePick",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardNightmarePick {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectDistractionAdd",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectDistractionAdd {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectSetCostOverride",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectSetCostOverride {
+    pub amount: u8,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectDamageFinisher",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectDamageFinisher {
+    pub damage: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectDamageFlechettes",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectDamageFlechettes {
+    pub damage: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectUnloadDiscard",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectUnloadDiscard {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectStormOfSteelProc",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectStormOfSteelProc {
+    pub upgraded: bool,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectSneakyStrikeProc",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectSneakyStrikeProc {
+    pub energy: u8,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectBlockGain",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectBlockGain {
+    pub amount: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectModifierGain",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectModifierGain {
+    pub kind: PyModifierKind,
+    pub stacks: i16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectModifierMultiply",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectModifierMultiply {
+    pub kind: PyModifierKind,
+    pub factor: u8,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectModifierRemove",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectModifierRemove {
+    pub kind: PyModifierKind,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectEnergyGain",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectEnergyGain {
+    pub amount: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardAddToHand",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardAddToHand {
+    pub card_name: String,
+    pub count: u16,
+    pub upgraded: bool,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardDraw",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardDraw {
+    pub count: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardDrawUpTo",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardDrawUpTo {
+    pub amount: u8,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardDiscard",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardDiscard {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardRetain",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardRetain {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectDamageMindBlast",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectDamageMindBlast {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectShuffleDiscardPileIntoDrawPile",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectShuffleDiscardPileIntoDrawPile {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCalculatedGamble",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCalculatedGamble {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectMaxHealthDelta",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectMaxHealthDelta {
+    pub sign: PyDeltaSign,
+    pub amount: PyAmount,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectHealthDelta",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectHealthDelta {
+    pub sign: PyDeltaSign,
+    pub amount: PyAmount,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectPotionAddRandom",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectPotionAddRandom {
+    pub limited: bool,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectPotionDiscard",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectPotionDiscard {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectRewardRollPotions",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectRewardRollPotions {
+    pub count: u8,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardDiscoverRoll",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardDiscoverRoll {
+    pub kind: PyCardKind,
+    pub count: u8,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectGoldDelta",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectGoldDelta {
+    pub sign: PyDeltaSign,
+    pub amount: PyAmount,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectRelicGrantRandom",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectRelicGrantRandom {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectWheelSpin",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectWheelSpin {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectBonfireOffer",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectBonfireOffer {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectFaceTrade",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectFaceTrade {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectMonsterSpawn",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectMonsterSpawn {
+    pub name: PyMonsterName,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCombatStart",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCombatStart {
+    pub event_gold: Option<PyAmount>,
+    pub event_relic: Option<PyRelicName>,
+    pub event_relic_roll: bool,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectAdventurerSearch",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectAdventurerSearch {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectRelicGrantSpecific",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectRelicGrantSpecific {
+    pub name: PyRelicName,
+    pub fallback_circlet: bool,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectEventAdvanceState",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectEventAdvanceState {
+    pub delta: i8,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectScrapOozeReach",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectScrapOozeReach {
+    pub dmg: u16,
+    pub chance: u8,
+    pub advance_on_miss: bool,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectEventConsume",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectEventConsume {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardDiscoverPick",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardDiscoverPick {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardAddToDeck",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardAddToDeck {
+    pub card_name: String,
+    pub upgraded: bool,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardPurge",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardPurge {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardUpgrade",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardUpgrade {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardDuplicate",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardDuplicate {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardTransform",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardTransform {
+    pub target: Option<PyTarget>,
+}
+
+// NB: variant order matches the old complex enum — card_identity_hash depends on it
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyEffect {
-    DamagePhysical {
-        amount: u16,
-        target: Option<PyTarget>,
-    },
-    DamagePhysicalIfPoisoned {
-        amount: u16,
-        target: Option<PyTarget>,
-    },
-    HeelHookProc {
-        target: Option<PyTarget>,
-    },
-    EscapePlanCheck {
-        block: u16,
-        target: Option<PyTarget>,
-    },
-    GlassKnifeDecay {
-        delta: i16,
-        target: Option<PyTarget>,
-    },
-    CardSetupPick {
-        target: Option<PyTarget>,
-    },
-    CardNightmarePick {
-        target: Option<PyTarget>,
-    },
-    DistractionAdd {
-        target: Option<PyTarget>,
-    },
-    SetCostOverride {
-        amount: u8,
-        target: Option<PyTarget>,
-    },
-    DamageFinisher {
-        damage: u16,
-        target: Option<PyTarget>,
-    },
-    DamageFlechettes {
-        damage: u16,
-        target: Option<PyTarget>,
-    },
-    UnloadDiscard {
-        target: Option<PyTarget>,
-    },
-    StormOfSteelProc {
-        upgraded: bool,
-        target: Option<PyTarget>,
-    },
-    SneakyStrikeProc {
-        energy: u8,
-        target: Option<PyTarget>,
-    },
-    BlockGain {
-        amount: u16,
-        target: Option<PyTarget>,
-    },
-    ModifierGain {
-        kind: PyModifierKind,
-        stacks: i16,
-        target: Option<PyTarget>,
-    },
-    ModifierMultiply {
-        kind: PyModifierKind,
-        factor: u8,
-        target: Option<PyTarget>,
-    },
-    ModifierRemove {
-        kind: PyModifierKind,
-        target: Option<PyTarget>,
-    },
-    EnergyGain {
-        amount: u16,
-        target: Option<PyTarget>,
-    },
-    CardAddToHand {
-        card_name: String,
-        count: u16,
-        upgraded: bool,
-        target: Option<PyTarget>,
-    },
-    CardDraw {
-        count: u16,
-        target: Option<PyTarget>,
-    },
-    CardDrawUpTo {
-        amount: u8,
-        target: Option<PyTarget>,
-    },
-    CardDiscard {
-        target: Option<PyTarget>,
-    },
-    CardRetain {
-        target: Option<PyTarget>,
-    },
-    DamageMindBlast {
-        target: Option<PyTarget>,
-    },
-    ShuffleDiscardPileIntoDrawPile {
-        target: Option<PyTarget>,
-    },
-    CalculatedGamble {
-        target: Option<PyTarget>,
-    },
-    MaxHealthDelta {
-        sign: PyDeltaSign,
-        amount: PyAmount,
-        target: Option<PyTarget>,
-    },
-    HealthDelta {
-        sign: PyDeltaSign,
-        amount: PyAmount,
-        target: Option<PyTarget>,
-    },
-    PotionAddRandom {
-        limited: bool,
-        target: Option<PyTarget>,
-    },
-    PotionDiscard {
-        target: Option<PyTarget>,
-    },
-    RewardRollPotions {
-        count: u8,
-        target: Option<PyTarget>,
-    },
-    CardDiscoverRoll {
-        kind: PyCardKind,
-        count: u8,
-        target: Option<PyTarget>,
-    },
-    GoldDelta {
-        sign: PyDeltaSign,
-        amount: PyAmount,
-        target: Option<PyTarget>,
-    },
-    RelicGrantRandom {
-        target: Option<PyTarget>,
-    },
-    WheelSpin {
-        target: Option<PyTarget>,
-    },
-    BonfireOffer {
-        target: Option<PyTarget>,
-    },
-    FaceTrade {
-        target: Option<PyTarget>,
-    },
-    MonsterSpawn {
-        name: PyMonsterName,
-        target: Option<PyTarget>,
-    },
-    CombatStart {
-        event_gold: Option<PyAmount>,
-        event_relic: Option<PyRelicName>,
-        event_relic_roll: bool,
-        target: Option<PyTarget>,
-    },
-    AdventurerSearch {
-        target: Option<PyTarget>,
-    },
-    RelicGrantSpecific {
-        name: PyRelicName,
-        fallback_circlet: bool,
-        target: Option<PyTarget>,
-    },
-    EventAdvanceState {
-        delta: i8,
-        target: Option<PyTarget>,
-    },
-    ScrapOozeReach {
-        dmg: u16,
-        chance: u8,
-        advance_on_miss: bool,
-        target: Option<PyTarget>,
-    },
-    EventConsume {
-        target: Option<PyTarget>,
-    },
-    CardDiscoverPick {
-        target: Option<PyTarget>,
-    },
-    CardAddToDeck {
-        card_name: String,
-        upgraded: bool,
-        target: Option<PyTarget>,
-    },
-    CardPurge {
-        target: Option<PyTarget>,
-    },
-    CardUpgrade {
-        target: Option<PyTarget>,
-    },
-    CardDuplicate {
-        target: Option<PyTarget>,
-    },
-    CardTransform {
-        target: Option<PyTarget>,
-    },
+    DamagePhysical(PyEffectDamagePhysical),
+    DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned),
+    HeelHookProc(PyEffectHeelHookProc),
+    EscapePlanCheck(PyEffectEscapePlanCheck),
+    GlassKnifeDecay(PyEffectGlassKnifeDecay),
+    CardSetupPick(PyEffectCardSetupPick),
+    CardNightmarePick(PyEffectCardNightmarePick),
+    DistractionAdd(PyEffectDistractionAdd),
+    SetCostOverride(PyEffectSetCostOverride),
+    DamageFinisher(PyEffectDamageFinisher),
+    DamageFlechettes(PyEffectDamageFlechettes),
+    UnloadDiscard(PyEffectUnloadDiscard),
+    StormOfSteelProc(PyEffectStormOfSteelProc),
+    SneakyStrikeProc(PyEffectSneakyStrikeProc),
+    BlockGain(PyEffectBlockGain),
+    ModifierGain(PyEffectModifierGain),
+    ModifierMultiply(PyEffectModifierMultiply),
+    ModifierRemove(PyEffectModifierRemove),
+    EnergyGain(PyEffectEnergyGain),
+    CardAddToHand(PyEffectCardAddToHand),
+    CardDraw(PyEffectCardDraw),
+    CardDrawUpTo(PyEffectCardDrawUpTo),
+    CardDiscard(PyEffectCardDiscard),
+    CardRetain(PyEffectCardRetain),
+    DamageMindBlast(PyEffectDamageMindBlast),
+    ShuffleDiscardPileIntoDrawPile(PyEffectShuffleDiscardPileIntoDrawPile),
+    CalculatedGamble(PyEffectCalculatedGamble),
+    MaxHealthDelta(PyEffectMaxHealthDelta),
+    HealthDelta(PyEffectHealthDelta),
+    PotionAddRandom(PyEffectPotionAddRandom),
+    PotionDiscard(PyEffectPotionDiscard),
+    RewardRollPotions(PyEffectRewardRollPotions),
+    CardDiscoverRoll(PyEffectCardDiscoverRoll),
+    GoldDelta(PyEffectGoldDelta),
+    RelicGrantRandom(PyEffectRelicGrantRandom),
+    WheelSpin(PyEffectWheelSpin),
+    BonfireOffer(PyEffectBonfireOffer),
+    FaceTrade(PyEffectFaceTrade),
+    MonsterSpawn(PyEffectMonsterSpawn),
+    CombatStart(PyEffectCombatStart),
+    AdventurerSearch(PyEffectAdventurerSearch),
+    RelicGrantSpecific(PyEffectRelicGrantSpecific),
+    EventAdvanceState(PyEffectEventAdvanceState),
+    ScrapOozeReach(PyEffectScrapOozeReach),
+    EventConsume(PyEffectEventConsume),
+    CardDiscoverPick(PyEffectCardDiscoverPick),
+    CardAddToDeck(PyEffectCardAddToDeck),
+    CardPurge(PyEffectCardPurge),
+    CardUpgrade(PyEffectCardUpgrade),
+    CardDuplicate(PyEffectCardDuplicate),
+    CardTransform(PyEffectCardTransform),
 }
+
+variant_union!(PyEffect {
+    DamagePhysical => PyEffectDamagePhysical,
+    DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned,
+    HeelHookProc => PyEffectHeelHookProc,
+    EscapePlanCheck => PyEffectEscapePlanCheck,
+    GlassKnifeDecay => PyEffectGlassKnifeDecay,
+    CardSetupPick => PyEffectCardSetupPick,
+    CardNightmarePick => PyEffectCardNightmarePick,
+    DistractionAdd => PyEffectDistractionAdd,
+    SetCostOverride => PyEffectSetCostOverride,
+    DamageFinisher => PyEffectDamageFinisher,
+    DamageFlechettes => PyEffectDamageFlechettes,
+    UnloadDiscard => PyEffectUnloadDiscard,
+    StormOfSteelProc => PyEffectStormOfSteelProc,
+    SneakyStrikeProc => PyEffectSneakyStrikeProc,
+    BlockGain => PyEffectBlockGain,
+    ModifierGain => PyEffectModifierGain,
+    ModifierMultiply => PyEffectModifierMultiply,
+    ModifierRemove => PyEffectModifierRemove,
+    EnergyGain => PyEffectEnergyGain,
+    CardAddToHand => PyEffectCardAddToHand,
+    CardDraw => PyEffectCardDraw,
+    CardDrawUpTo => PyEffectCardDrawUpTo,
+    CardDiscard => PyEffectCardDiscard,
+    CardRetain => PyEffectCardRetain,
+    DamageMindBlast => PyEffectDamageMindBlast,
+    ShuffleDiscardPileIntoDrawPile => PyEffectShuffleDiscardPileIntoDrawPile,
+    CalculatedGamble => PyEffectCalculatedGamble,
+    MaxHealthDelta => PyEffectMaxHealthDelta,
+    HealthDelta => PyEffectHealthDelta,
+    PotionAddRandom => PyEffectPotionAddRandom,
+    PotionDiscard => PyEffectPotionDiscard,
+    RewardRollPotions => PyEffectRewardRollPotions,
+    CardDiscoverRoll => PyEffectCardDiscoverRoll,
+    GoldDelta => PyEffectGoldDelta,
+    RelicGrantRandom => PyEffectRelicGrantRandom,
+    WheelSpin => PyEffectWheelSpin,
+    BonfireOffer => PyEffectBonfireOffer,
+    FaceTrade => PyEffectFaceTrade,
+    MonsterSpawn => PyEffectMonsterSpawn,
+    CombatStart => PyEffectCombatStart,
+    AdventurerSearch => PyEffectAdventurerSearch,
+    RelicGrantSpecific => PyEffectRelicGrantSpecific,
+    EventAdvanceState => PyEffectEventAdvanceState,
+    ScrapOozeReach => PyEffectScrapOozeReach,
+    EventConsume => PyEffectEventConsume,
+    CardDiscoverPick => PyEffectCardDiscoverPick,
+    CardAddToDeck => PyEffectCardAddToDeck,
+    CardPurge => PyEffectCardPurge,
+    CardUpgrade => PyEffectCardUpgrade,
+    CardDuplicate => PyEffectCardDuplicate,
+    CardTransform => PyEffectCardTransform,
+});
 
 fn snapshot_effect(effect: &Effect) -> PyEffect {
     let target = match effect.target {
@@ -1750,134 +2559,182 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
         ),
     };
     match effect.kind {
-        EffectKind::DamagePhysical { amount } => PyEffect::DamagePhysical { amount, target },
+        EffectKind::DamagePhysical { amount } => {
+            PyEffect::DamagePhysical(PyEffectDamagePhysical { amount, target })
+        }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
-            PyEffect::DamagePhysicalIfPoisoned { amount, target }
+            PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned { amount, target })
         }
-        EffectKind::HeelHookProc => PyEffect::HeelHookProc { target },
-        EffectKind::EscapePlanCheck { block } => PyEffect::EscapePlanCheck { block, target },
-        EffectKind::GlassKnifeDecay { delta } => PyEffect::GlassKnifeDecay { delta, target },
-        EffectKind::CardSetupPick => PyEffect::CardSetupPick { target },
-        EffectKind::CardNightmarePick => PyEffect::CardNightmarePick { target },
-        EffectKind::DistractionAdd => PyEffect::DistractionAdd { target },
-        EffectKind::SetCostOverride { amount } => PyEffect::SetCostOverride { amount, target },
-        EffectKind::DamageFinisher { damage } => PyEffect::DamageFinisher { damage, target },
-        EffectKind::DamageFlechettes { damage } => PyEffect::DamageFlechettes { damage, target },
-        EffectKind::UnloadDiscard => PyEffect::UnloadDiscard { target },
+        EffectKind::HeelHookProc => PyEffect::HeelHookProc(PyEffectHeelHookProc { target }),
+        EffectKind::EscapePlanCheck { block } => {
+            PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck { block, target })
+        }
+        EffectKind::GlassKnifeDecay { delta } => {
+            PyEffect::GlassKnifeDecay(PyEffectGlassKnifeDecay { delta, target })
+        }
+        EffectKind::CardSetupPick => PyEffect::CardSetupPick(PyEffectCardSetupPick { target }),
+        EffectKind::CardNightmarePick => {
+            PyEffect::CardNightmarePick(PyEffectCardNightmarePick { target })
+        }
+        EffectKind::DistractionAdd => PyEffect::DistractionAdd(PyEffectDistractionAdd { target }),
+        EffectKind::SetCostOverride { amount } => {
+            PyEffect::SetCostOverride(PyEffectSetCostOverride { amount, target })
+        }
+        EffectKind::DamageFinisher { damage } => {
+            PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target })
+        }
+        EffectKind::DamageFlechettes { damage } => {
+            PyEffect::DamageFlechettes(PyEffectDamageFlechettes { damage, target })
+        }
+        EffectKind::UnloadDiscard => PyEffect::UnloadDiscard(PyEffectUnloadDiscard { target }),
         EffectKind::StormOfSteelProc { upgraded } => {
-            PyEffect::StormOfSteelProc { upgraded, target }
+            PyEffect::StormOfSteelProc(PyEffectStormOfSteelProc { upgraded, target })
         }
-        EffectKind::SneakyStrikeProc { energy } => PyEffect::SneakyStrikeProc { energy, target },
-        EffectKind::BlockGain { amount } => PyEffect::BlockGain { amount, target },
-        EffectKind::ModifierGain { kind, stacks } => PyEffect::ModifierGain {
+        EffectKind::SneakyStrikeProc { energy } => {
+            PyEffect::SneakyStrikeProc(PyEffectSneakyStrikeProc { energy, target })
+        }
+        EffectKind::BlockGain { amount } => {
+            PyEffect::BlockGain(PyEffectBlockGain { amount, target })
+        }
+        EffectKind::ModifierGain { kind, stacks } => PyEffect::ModifierGain(PyEffectModifierGain {
             kind: kind.into(),
             stacks,
             target,
-        },
-        EffectKind::ModifierMultiply { kind, factor } => PyEffect::ModifierMultiply {
+        }),
+        EffectKind::ModifierMultiply { kind, factor } => {
+            PyEffect::ModifierMultiply(PyEffectModifierMultiply {
+                kind: kind.into(),
+                factor,
+                target,
+            })
+        }
+        EffectKind::ModifierRemove { kind } => PyEffect::ModifierRemove(PyEffectModifierRemove {
             kind: kind.into(),
-            factor,
             target,
-        },
-        EffectKind::ModifierRemove { kind } => PyEffect::ModifierRemove {
-            kind: kind.into(),
-            target,
-        },
-        EffectKind::EnergyGain { amount } => PyEffect::EnergyGain { amount, target },
+        }),
+        EffectKind::EnergyGain { amount } => {
+            PyEffect::EnergyGain(PyEffectEnergyGain { amount, target })
+        }
         EffectKind::CardAddToHand {
             card_name,
             count,
             upgraded,
-        } => PyEffect::CardAddToHand {
+        } => PyEffect::CardAddToHand(PyEffectCardAddToHand {
             card_name: card_name.as_str().to_string(),
             count,
             upgraded,
             target,
-        },
-        EffectKind::CardDraw { count } => PyEffect::CardDraw { count, target },
-        EffectKind::CardDrawUpTo { amount } => PyEffect::CardDrawUpTo { amount, target },
-        EffectKind::CardDiscard { source: _ } => PyEffect::CardDiscard { target },
-        EffectKind::CardRetain => PyEffect::CardRetain { target },
-        EffectKind::DamageMindBlast => PyEffect::DamageMindBlast { target },
-        EffectKind::ShuffleDiscardPileIntoDrawPile => {
-            PyEffect::ShuffleDiscardPileIntoDrawPile { target }
+        }),
+        EffectKind::CardDraw { count } => PyEffect::CardDraw(PyEffectCardDraw { count, target }),
+        EffectKind::CardDrawUpTo { amount } => {
+            PyEffect::CardDrawUpTo(PyEffectCardDrawUpTo { amount, target })
         }
-        EffectKind::CalculatedGamble => PyEffect::CalculatedGamble { target },
-        EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta {
+        EffectKind::CardDiscard { source: _ } => {
+            PyEffect::CardDiscard(PyEffectCardDiscard { target })
+        }
+        EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain { target }),
+        EffectKind::DamageMindBlast => {
+            PyEffect::DamageMindBlast(PyEffectDamageMindBlast { target })
+        }
+        EffectKind::ShuffleDiscardPileIntoDrawPile => {
+            PyEffect::ShuffleDiscardPileIntoDrawPile(PyEffectShuffleDiscardPileIntoDrawPile {
+                target,
+            })
+        }
+        EffectKind::CalculatedGamble => {
+            PyEffect::CalculatedGamble(PyEffectCalculatedGamble { target })
+        }
+        EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta(PyEffectGoldDelta {
             sign: sign.into(),
             amount: amount.into(),
             target,
-        },
-        EffectKind::HealthDelta { sign, amount } => PyEffect::HealthDelta {
+        }),
+        EffectKind::HealthDelta { sign, amount } => PyEffect::HealthDelta(PyEffectHealthDelta {
             sign: sign.into(),
             amount: amount.into(),
             target,
-        },
-        EffectKind::MaxHealthDelta { sign, amount } => PyEffect::MaxHealthDelta {
-            sign: sign.into(),
-            amount: amount.into(),
-            target,
-        },
-        EffectKind::CardPurge => PyEffect::CardPurge { target },
-        EffectKind::CardDuplicate => PyEffect::CardDuplicate { target },
-        EffectKind::CardTransform => PyEffect::CardTransform { target },
-        EffectKind::RelicGrantRandom => PyEffect::RelicGrantRandom { target },
-        EffectKind::WheelSpin => PyEffect::WheelSpin { target },
-        EffectKind::BonfireOffer => PyEffect::BonfireOffer { target },
-        EffectKind::FaceTrade => PyEffect::FaceTrade { target },
-        EffectKind::MonsterSpawn { name } => PyEffect::MonsterSpawn {
+        }),
+        EffectKind::MaxHealthDelta { sign, amount } => {
+            PyEffect::MaxHealthDelta(PyEffectMaxHealthDelta {
+                sign: sign.into(),
+                amount: amount.into(),
+                target,
+            })
+        }
+        EffectKind::CardPurge => PyEffect::CardPurge(PyEffectCardPurge { target }),
+        EffectKind::CardDuplicate => PyEffect::CardDuplicate(PyEffectCardDuplicate { target }),
+        EffectKind::CardTransform => PyEffect::CardTransform(PyEffectCardTransform { target }),
+        EffectKind::RelicGrantRandom => {
+            PyEffect::RelicGrantRandom(PyEffectRelicGrantRandom { target })
+        }
+        EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin { target }),
+        EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
+        EffectKind::FaceTrade => PyEffect::FaceTrade(PyEffectFaceTrade { target }),
+        EffectKind::MonsterSpawn { name } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
             name: name.into(),
             target,
-        },
+        }),
         EffectKind::CombatStart {
             event_gold,
             event_relic,
             event_relic_roll,
-        } => PyEffect::CombatStart {
+        } => PyEffect::CombatStart(PyEffectCombatStart {
             event_gold: event_gold.map(Into::into),
             event_relic: event_relic.map(Into::into),
             event_relic_roll,
             target,
-        },
-        EffectKind::AdventurerSearch => PyEffect::AdventurerSearch { target },
+        }),
+        EffectKind::AdventurerSearch => {
+            PyEffect::AdventurerSearch(PyEffectAdventurerSearch { target })
+        }
         EffectKind::RelicGrantSpecific {
             name,
             fallback_circlet,
-        } => PyEffect::RelicGrantSpecific {
+        } => PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific {
             name: name.into(),
             fallback_circlet,
             target,
-        },
-        EffectKind::EventAdvanceState { delta } => PyEffect::EventAdvanceState { delta, target },
+        }),
+        EffectKind::EventAdvanceState { delta } => {
+            PyEffect::EventAdvanceState(PyEffectEventAdvanceState { delta, target })
+        }
         EffectKind::ScrapOozeReach {
             dmg,
             chance,
             advance_on_miss,
-        } => PyEffect::ScrapOozeReach {
+        } => PyEffect::ScrapOozeReach(PyEffectScrapOozeReach {
             dmg,
             chance,
             advance_on_miss,
             target,
-        },
-        EffectKind::EventConsume => PyEffect::EventConsume { target },
+        }),
+        EffectKind::EventConsume => PyEffect::EventConsume(PyEffectEventConsume { target }),
         EffectKind::CardAddToDeck {
             card_name,
             upgraded,
-        } => PyEffect::CardAddToDeck {
+        } => PyEffect::CardAddToDeck(PyEffectCardAddToDeck {
             card_name: card_name.as_str().to_string(),
             upgraded,
             target,
-        },
-        EffectKind::PotionAddRandom { limited } => PyEffect::PotionAddRandom { limited, target },
-        EffectKind::PotionDiscard => PyEffect::PotionDiscard { target },
-        EffectKind::RewardRollPotions { count } => PyEffect::RewardRollPotions { count, target },
-        EffectKind::CardDiscoverRoll { kind, count } => PyEffect::CardDiscoverRoll {
-            kind: kind.into(),
-            count,
-            target,
-        },
-        EffectKind::CardUpgrade => PyEffect::CardUpgrade { target },
-        EffectKind::CardDiscoverPick => PyEffect::CardDiscoverPick { target },
+        }),
+        EffectKind::PotionAddRandom { limited } => {
+            PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited, target })
+        }
+        EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard { target }),
+        EffectKind::RewardRollPotions { count } => {
+            PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count, target })
+        }
+        EffectKind::CardDiscoverRoll { kind, count } => {
+            PyEffect::CardDiscoverRoll(PyEffectCardDiscoverRoll {
+                kind: kind.into(),
+                count,
+                target,
+            })
+        }
+        EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade { target }),
+        EffectKind::CardDiscoverPick => {
+            PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick { target })
+        }
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
             other
@@ -1886,7 +2743,6 @@ fn snapshot_effect(effect: &Effect) -> PyEffect {
 }
 
 // Exposed structs
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Card", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyCard {
@@ -1927,7 +2783,6 @@ pub struct PyCard {
     pub identity_hash: u64,
 }
 
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Modifier", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyModifier {
@@ -1936,7 +2791,6 @@ pub struct PyModifier {
     pub stacks_max: i16,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyModifier {
     #[new]
@@ -1949,7 +2803,6 @@ impl PyModifier {
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Relic", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyRelic {
@@ -1960,28 +2813,6 @@ pub struct PyRelic {
     pub effects_on_combat_start: Vec<PyEffect>,
 }
 
-#[gen_stub_pymethods]
-#[pymethods]
-impl PyRelic {
-    #[new]
-    fn new(
-        name: PyRelicName,
-        tier: PyRelicTier,
-        counter: i16,
-        used_up: bool,
-        effects_on_combat_start: Vec<PyEffect>,
-    ) -> Self {
-        Self {
-            name,
-            tier,
-            counter,
-            used_up,
-            effects_on_combat_start,
-        }
-    }
-}
-
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Potion", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyPotion {
@@ -1992,111 +2823,261 @@ pub struct PyPotion {
     pub effects: Vec<PyEffect>,
 }
 
-#[gen_stub_pymethods]
-#[pymethods]
-impl PyPotion {
-    #[new]
-    fn new(
-        name: PyPotionName,
-        rarity: PyPotionRarity,
-        requires_target: bool,
-        combat_only: bool,
-        effects: Vec<PyEffect>,
-    ) -> Self {
-        Self {
-            name,
-            rarity,
-            requires_target,
-            combat_only,
-            effects,
-        }
-    }
+#[pyclass(frozen, name = "EventKindBigFish", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindBigFish;
+
+#[pyclass(frozen, name = "EventKindTheCleric", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindTheCleric;
+
+#[pyclass(frozen, name = "EventKindDuplicator", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindDuplicator;
+
+#[pyclass(frozen, name = "EventKindGoldenShrine", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindGoldenShrine;
+
+#[pyclass(frozen, name = "EventKindWingStatue", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindWingStatue;
+
+#[pyclass(frozen, name = "EventKindWorldOfGoop", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindWorldOfGoop;
+
+#[pyclass(frozen, name = "EventKindLivingWall", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindLivingWall;
+
+#[pyclass(frozen, name = "EventKindPurifier", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindPurifier;
+
+#[pyclass(frozen, name = "EventKindShiningLight", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindShiningLight;
+
+#[pyclass(frozen, name = "EventKindTheSsssserpent", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindTheSsssserpent;
+
+#[pyclass(frozen, name = "EventKindTransmogrifier", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindTransmogrifier;
+
+#[pyclass(frozen, name = "EventKindUpgradeShrine", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindUpgradeShrine;
+
+#[pyclass(frozen, name = "EventKindTheDivineFountain", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindTheDivineFountain;
+
+#[pyclass(frozen, name = "EventKindTheLab", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindTheLab;
+
+#[pyclass(frozen, name = "EventKindTheWomanInBlue", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindTheWomanInBlue;
+
+#[pyclass(frozen, name = "EventKindWheelOfChange", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindWheelOfChange;
+
+#[pyclass(frozen, name = "EventKindBonfireSpirits", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindBonfireSpirits;
+
+#[pyclass(frozen, name = "EventKindOminousForge", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindOminousForge;
+
+#[pyclass(frozen, name = "EventKindFaceTrader", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindFaceTrader;
+
+#[pyclass(frozen, name = "EventKindMushrooms", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindMushrooms;
+
+#[pyclass(frozen, get_all, name = "EventKindGoldenIdol", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindGoldenIdol {
+    pub stage: u8,
 }
 
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(frozen, name = "EventKind", module = "slai.slai")]
+#[pyclass(frozen, get_all, name = "EventKindScrapOoze", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindScrapOoze {
+    pub attempts: u8,
+}
+
+#[pyclass(frozen, get_all, name = "EventKindWeMeetAgain", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyEventKindWeMeetAgain {
+    pub pick_card: Option<PyCard>,
+    pub pick_potion: Option<PyPotion>,
+    pub gold_ask: Option<u16>,
+}
+
+#[pyclass(
+    frozen,
+    get_all,
+    name = "EventKindDeadAdventurer",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone)]
+pub struct PyEventKindDeadAdventurer {
+    pub found_gold: bool,
+    pub found_nothing: bool,
+    pub found_relic: bool,
+    pub searches: u8,
+}
+
 #[derive(Debug, Clone)]
 pub enum PyEventKind {
-    BigFish {},
-    TheCleric {},
-    Duplicator {},
-    GoldenShrine {},
-    WingStatue {},
-    WorldOfGoop {},
-    LivingWall {},
-    Purifier {},
-    ShiningLight {},
-    TheSsssserpent {},
-    Transmogrifier {},
-    UpgradeShrine {},
-    TheDivineFountain {},
-    TheLab {},
-    TheWomanInBlue {},
-    WheelOfChange {},
-    BonfireSpirits {},
-    OminousForge {},
-    FaceTrader {},
-    Mushrooms {},
-    GoldenIdol {
-        stage: u8,
-    },
-    ScrapOoze {
-        attempts: u8,
-    },
-    WeMeetAgain {
-        pick_card: Option<PyCard>,
-        pick_potion: Option<PyPotion>,
-        gold_ask: Option<u16>,
-    },
-    DeadAdventurer {
-        found_gold: bool,
-        found_nothing: bool,
-        found_relic: bool,
-        searches: u8,
-    },
+    BigFish(PyEventKindBigFish),
+    TheCleric(PyEventKindTheCleric),
+    Duplicator(PyEventKindDuplicator),
+    GoldenShrine(PyEventKindGoldenShrine),
+    WingStatue(PyEventKindWingStatue),
+    WorldOfGoop(PyEventKindWorldOfGoop),
+    LivingWall(PyEventKindLivingWall),
+    Purifier(PyEventKindPurifier),
+    ShiningLight(PyEventKindShiningLight),
+    TheSsssserpent(PyEventKindTheSsssserpent),
+    Transmogrifier(PyEventKindTransmogrifier),
+    UpgradeShrine(PyEventKindUpgradeShrine),
+    TheDivineFountain(PyEventKindTheDivineFountain),
+    TheLab(PyEventKindTheLab),
+    TheWomanInBlue(PyEventKindTheWomanInBlue),
+    WheelOfChange(PyEventKindWheelOfChange),
+    BonfireSpirits(PyEventKindBonfireSpirits),
+    OminousForge(PyEventKindOminousForge),
+    FaceTrader(PyEventKindFaceTrader),
+    Mushrooms(PyEventKindMushrooms),
+    GoldenIdol(PyEventKindGoldenIdol),
+    ScrapOoze(PyEventKindScrapOoze),
+    WeMeetAgain(PyEventKindWeMeetAgain),
+    DeadAdventurer(PyEventKindDeadAdventurer),
 }
 
-#[gen_stub_pyclass_complex_enum]
-#[pyclass(frozen, name = "Mode", module = "slai.slai")]
+variant_union!(PyEventKind {
+    BigFish => PyEventKindBigFish,
+    TheCleric => PyEventKindTheCleric,
+    Duplicator => PyEventKindDuplicator,
+    GoldenShrine => PyEventKindGoldenShrine,
+    WingStatue => PyEventKindWingStatue,
+    WorldOfGoop => PyEventKindWorldOfGoop,
+    LivingWall => PyEventKindLivingWall,
+    Purifier => PyEventKindPurifier,
+    ShiningLight => PyEventKindShiningLight,
+    TheSsssserpent => PyEventKindTheSsssserpent,
+    Transmogrifier => PyEventKindTransmogrifier,
+    UpgradeShrine => PyEventKindUpgradeShrine,
+    TheDivineFountain => PyEventKindTheDivineFountain,
+    TheLab => PyEventKindTheLab,
+    TheWomanInBlue => PyEventKindTheWomanInBlue,
+    WheelOfChange => PyEventKindWheelOfChange,
+    BonfireSpirits => PyEventKindBonfireSpirits,
+    OminousForge => PyEventKindOminousForge,
+    FaceTrader => PyEventKindFaceTrader,
+    Mushrooms => PyEventKindMushrooms,
+    GoldenIdol => PyEventKindGoldenIdol,
+    ScrapOoze => PyEventKindScrapOoze,
+    WeMeetAgain => PyEventKindWeMeetAgain,
+    DeadAdventurer => PyEventKindDeadAdventurer,
+});
+
+#[pyclass(frozen, name = "ModeMap", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeMap;
+
+#[pyclass(frozen, name = "ModeRestSite", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeRestSite;
+
+#[pyclass(frozen, name = "ModeChest", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeChest;
+
+#[pyclass(frozen, name = "ModeChestOpened", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeChestOpened;
+
+#[pyclass(frozen, name = "ModeCombatEnded", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeCombatEnded;
+
+#[pyclass(frozen, get_all, name = "ModeCombat", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeCombat {
+    pub hand: Vec<PyCard>,
+    pub pile_draw: Vec<PyCard>,
+    pub pile_discard: Vec<PyCard>,
+    pub pile_exhaust: Vec<PyCard>,
+    pub energy: PyEnergy,
+    pub monsters: Vec<PyMonster>,
+    pub discover: Vec<PyCard>,
+}
+
+#[pyclass(frozen, get_all, name = "ModeReward", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeReward {
+    pub cards: Vec<PyCard>,
+    pub relic: Option<PyRelic>,
+    pub potions: Vec<PyPotion>,
+    pub gold: Option<u16>,
+}
+
+#[pyclass(frozen, get_all, name = "ModeShop", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeShop {
+    pub cards: Vec<PyCard>,
+    pub card_prices: Vec<u16>,
+    pub relics: Vec<PyRelic>,
+    pub relic_prices: Vec<u16>,
+    pub potions: Vec<PyPotion>,
+    pub potion_prices: Vec<u16>,
+    pub purge_cost: u16,
+}
+
+#[pyclass(frozen, get_all, name = "ModeEvent", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub struct PyModeEvent {
+    pub kind: PyEventKind,
+    pub options: Vec<Vec<PyEffect>>,
+    pub consumed: bool,
+}
+
 #[derive(Debug, Clone)]
 pub enum PyMode {
-    Map {},
-    RestSite {},
-    Chest {},
-    ChestOpened {},
-    CombatEnded {},
-    Combat {
-        hand: Vec<PyCard>,
-        pile_draw: Vec<PyCard>,
-        pile_discard: Vec<PyCard>,
-        pile_exhaust: Vec<PyCard>,
-        energy: PyEnergy,
-        monsters: Vec<PyMonster>,
-        discover: Vec<PyCard>,
-    },
-    Reward {
-        cards: Vec<PyCard>,
-        relic: Option<PyRelic>,
-        potions: Vec<PyPotion>,
-        gold: Option<u16>,
-    },
-    Shop {
-        cards: Vec<PyCard>,
-        card_prices: Vec<u16>,
-        relics: Vec<PyRelic>,
-        relic_prices: Vec<u16>,
-        potions: Vec<PyPotion>,
-        potion_prices: Vec<u16>,
-        purge_cost: u16,
-    },
-    Event {
-        kind: PyEventKind,
-        options: Vec<Vec<PyEffect>>,
-        consumed: bool,
-    },
+    Map(PyModeMap),
+    RestSite(PyModeRestSite),
+    Chest(PyModeChest),
+    ChestOpened(PyModeChestOpened),
+    CombatEnded(PyModeCombatEnded),
+    Combat(PyModeCombat),
+    Reward(PyModeReward),
+    Shop(PyModeShop),
+    Event(PyModeEvent),
 }
 
-#[gen_stub_pyclass]
+variant_union!(PyMode {
+    Map => PyModeMap,
+    RestSite => PyModeRestSite,
+    Chest => PyModeChest,
+    ChestOpened => PyModeChestOpened,
+    CombatEnded => PyModeCombatEnded,
+    Combat => PyModeCombat,
+    Reward => PyModeReward,
+    Shop => PyModeShop,
+    Event => PyModeEvent,
+});
+
 #[pyclass(frozen, get_all, name = "Character", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyCharacter {
@@ -2108,7 +3089,6 @@ pub struct PyCharacter {
     pub gold: u16,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyCharacter {
     #[new]
@@ -2131,7 +3111,6 @@ impl PyCharacter {
     }
 }
 
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "IntentKind", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyIntentKind {
@@ -2170,7 +3149,6 @@ impl From<Intent> for PyIntentKind {
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Intent", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyIntent {
@@ -2179,7 +3157,6 @@ pub struct PyIntent {
     pub instances: Option<u8>,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyIntent {
     #[new]
@@ -2192,7 +3169,6 @@ impl PyIntent {
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Monster", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyMonster {
@@ -2205,7 +3181,6 @@ pub struct PyMonster {
     pub intent: PyIntent,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyMonster {
     #[new]
@@ -2230,7 +3205,6 @@ impl PyMonster {
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Energy", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyEnergy {
@@ -2238,7 +3212,6 @@ pub struct PyEnergy {
     pub energy_max: u8,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyEnergy {
     #[new]
@@ -2250,7 +3223,6 @@ impl PyEnergy {
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Room", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyRoom {
@@ -2259,7 +3231,6 @@ pub struct PyRoom {
     pub chest_opened: bool,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyRoom {
     #[new]
@@ -2272,7 +3243,6 @@ impl PyRoom {
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "Map", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyMap {
@@ -2283,7 +3253,6 @@ pub struct PyMap {
     pub identity_hash: u64,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl PyMap {
     #[new]
@@ -2304,7 +3273,6 @@ impl PyMap {
     }
 }
 
-#[gen_stub_pyclass]
 #[pyclass(frozen, get_all, name = "GameState", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyGameState {
@@ -2515,11 +3483,11 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
 
 fn snapshot_mode(state: &GameState) -> PyMode {
     match &state.mode {
-        Mode::Map => PyMode::Map {},
-        Mode::RestSite => PyMode::RestSite {},
-        Mode::Chest => PyMode::Chest {},
-        Mode::ChestOpened => PyMode::ChestOpened {},
-        Mode::CombatEnded => PyMode::CombatEnded {},
+        Mode::Map => PyMode::Map(PyModeMap),
+        Mode::RestSite => PyMode::RestSite(PyModeRestSite),
+        Mode::Chest => PyMode::Chest(PyModeChest),
+        Mode::ChestOpened => PyMode::ChestOpened(PyModeChestOpened),
+        Mode::CombatEnded => PyMode::CombatEnded(PyModeCombatEnded),
         Mode::Combat {
             id_hand,
             id_pile_draw,
@@ -2528,7 +3496,7 @@ fn snapshot_mode(state: &GameState) -> PyMode {
             energy,
             id_discover,
             ..
-        } => PyMode::Combat {
+        } => PyMode::Combat(PyModeCombat {
             hand: id_hand.iter().map(|&id| snapshot_card(state, id)).collect(),
             pile_draw: id_pile_draw
                 .iter()
@@ -2551,13 +3519,13 @@ fn snapshot_mode(state: &GameState) -> PyMode {
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-        },
+        }),
         Mode::Reward {
             reward_id_cards,
             reward_id_relic,
             reward_id_potions,
             reward_gold,
-        } => PyMode::Reward {
+        } => PyMode::Reward(PyModeReward {
             cards: reward_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
@@ -2568,7 +3536,7 @@ fn snapshot_mode(state: &GameState) -> PyMode {
                 .map(|&id| snapshot_potion(&state.entities[id]))
                 .collect(),
             gold: *reward_gold,
-        },
+        }),
         Mode::Shop {
             shop_id_cards,
             shop_id_relics,
@@ -2577,7 +3545,7 @@ fn snapshot_mode(state: &GameState) -> PyMode {
             shop_relic_prices,
             shop_potion_prices,
             shop_purge_cost,
-        } => PyMode::Shop {
+        } => PyMode::Shop(PyModeShop {
             cards: shop_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
@@ -2594,12 +3562,12 @@ fn snapshot_mode(state: &GameState) -> PyMode {
                 .collect(),
             potion_prices: shop_potion_prices.clone(),
             purge_cost: *shop_purge_cost,
-        },
+        }),
         Mode::Event {
             kind,
             consumed,
             id_options,
-        } => PyMode::Event {
+        } => PyMode::Event(PyModeEvent {
             kind: snapshot_event_kind(state, *kind),
             options: id_options
                 .iter()
@@ -2612,54 +3580,58 @@ fn snapshot_mode(state: &GameState) -> PyMode {
                 })
                 .collect(),
             consumed: *consumed,
-        },
+        }),
     }
 }
 
 fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEventKind {
     match kind {
-        EventKind::BigFish => PyEventKind::BigFish {},
-        EventKind::TheCleric => PyEventKind::TheCleric {},
-        EventKind::Duplicator => PyEventKind::Duplicator {},
-        EventKind::GoldenShrine => PyEventKind::GoldenShrine {},
-        EventKind::WingStatue => PyEventKind::WingStatue {},
-        EventKind::WorldOfGoop => PyEventKind::WorldOfGoop {},
-        EventKind::LivingWall => PyEventKind::LivingWall {},
-        EventKind::Purifier => PyEventKind::Purifier {},
-        EventKind::ShiningLight => PyEventKind::ShiningLight {},
-        EventKind::TheSsssserpent => PyEventKind::TheSsssserpent {},
-        EventKind::Transmogrifier => PyEventKind::Transmogrifier {},
-        EventKind::UpgradeShrine => PyEventKind::UpgradeShrine {},
-        EventKind::TheDivineFountain => PyEventKind::TheDivineFountain {},
-        EventKind::TheLab => PyEventKind::TheLab {},
-        EventKind::TheWomanInBlue => PyEventKind::TheWomanInBlue {},
-        EventKind::WheelOfChange => PyEventKind::WheelOfChange {},
-        EventKind::BonfireSpirits => PyEventKind::BonfireSpirits {},
-        EventKind::OminousForge => PyEventKind::OminousForge {},
-        EventKind::FaceTrader => PyEventKind::FaceTrader {},
-        EventKind::Mushrooms => PyEventKind::Mushrooms {},
-        EventKind::GoldenIdol { stage } => PyEventKind::GoldenIdol { stage },
-        EventKind::ScrapOoze { attempts } => PyEventKind::ScrapOoze { attempts },
+        EventKind::BigFish => PyEventKind::BigFish(PyEventKindBigFish),
+        EventKind::TheCleric => PyEventKind::TheCleric(PyEventKindTheCleric),
+        EventKind::Duplicator => PyEventKind::Duplicator(PyEventKindDuplicator),
+        EventKind::GoldenShrine => PyEventKind::GoldenShrine(PyEventKindGoldenShrine),
+        EventKind::WingStatue => PyEventKind::WingStatue(PyEventKindWingStatue),
+        EventKind::WorldOfGoop => PyEventKind::WorldOfGoop(PyEventKindWorldOfGoop),
+        EventKind::LivingWall => PyEventKind::LivingWall(PyEventKindLivingWall),
+        EventKind::Purifier => PyEventKind::Purifier(PyEventKindPurifier),
+        EventKind::ShiningLight => PyEventKind::ShiningLight(PyEventKindShiningLight),
+        EventKind::TheSsssserpent => PyEventKind::TheSsssserpent(PyEventKindTheSsssserpent),
+        EventKind::Transmogrifier => PyEventKind::Transmogrifier(PyEventKindTransmogrifier),
+        EventKind::UpgradeShrine => PyEventKind::UpgradeShrine(PyEventKindUpgradeShrine),
+        EventKind::TheDivineFountain => {
+            PyEventKind::TheDivineFountain(PyEventKindTheDivineFountain)
+        }
+        EventKind::TheLab => PyEventKind::TheLab(PyEventKindTheLab),
+        EventKind::TheWomanInBlue => PyEventKind::TheWomanInBlue(PyEventKindTheWomanInBlue),
+        EventKind::WheelOfChange => PyEventKind::WheelOfChange(PyEventKindWheelOfChange),
+        EventKind::BonfireSpirits => PyEventKind::BonfireSpirits(PyEventKindBonfireSpirits),
+        EventKind::OminousForge => PyEventKind::OminousForge(PyEventKindOminousForge),
+        EventKind::FaceTrader => PyEventKind::FaceTrader(PyEventKindFaceTrader),
+        EventKind::Mushrooms => PyEventKind::Mushrooms(PyEventKindMushrooms),
+        EventKind::GoldenIdol { stage } => PyEventKind::GoldenIdol(PyEventKindGoldenIdol { stage }),
+        EventKind::ScrapOoze { attempts } => {
+            PyEventKind::ScrapOoze(PyEventKindScrapOoze { attempts })
+        }
         EventKind::WeMeetAgain {
             id_card,
             id_potion,
             gold_ask,
-        } => PyEventKind::WeMeetAgain {
+        } => PyEventKind::WeMeetAgain(PyEventKindWeMeetAgain {
             pick_card: id_card.map(|id| snapshot_card(state, id)),
             pick_potion: id_potion.map(|id| snapshot_potion(&state.entities[id])),
             gold_ask,
-        },
+        }),
         EventKind::DeadAdventurer {
             found_gold,
             found_nothing,
             found_relic,
             searches,
-        } => PyEventKind::DeadAdventurer {
+        } => PyEventKind::DeadAdventurer(PyEventKindDeadAdventurer {
             found_gold,
             found_nothing,
             found_relic,
             searches,
-        },
+        }),
     }
 }
 
@@ -2817,7 +3789,7 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
         .iter()
         .map(snapshot_effect)
         .map(|effect| match effect {
-            PyEffect::DamagePhysical { amount, target } => {
+            PyEffect::DamagePhysical(PyEffectDamagePhysical { amount, target }) => {
                 // Player attacker: Paper Krane never applies
                 let mut d = scale_attack_damage(
                     amount.saturating_add(vigor),
@@ -2828,12 +3800,14 @@ fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffe
                 if double {
                     d = d.saturating_mul(2);
                 }
-                PyEffect::DamagePhysical { amount: d, target }
+                PyEffect::DamagePhysical(PyEffectDamagePhysical { amount: d, target })
             }
-            PyEffect::BlockGain { amount, target } => PyEffect::BlockGain {
-                amount: scale_block_gain(amount, dex, frail),
-                target,
-            },
+            PyEffect::BlockGain(PyEffectBlockGain { amount, target }) => {
+                PyEffect::BlockGain(PyEffectBlockGain {
+                    amount: scale_block_gain(amount, dex, frail),
+                    target,
+                })
+            }
             other => other,
         })
         .collect()

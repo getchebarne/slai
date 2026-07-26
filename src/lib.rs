@@ -1,9 +1,6 @@
 #![allow(dead_code)]
 
 use pyo3::prelude::*;
-use pyo3_stub_gen::define_stub_info_gatherer;
-use pyo3_stub_gen::derive::gen_stub_pyclass;
-use pyo3_stub_gen::derive::gen_stub_pymethods;
 
 mod action;
 mod cards;
@@ -14,7 +11,7 @@ mod engine;
 mod entity;
 mod events;
 mod ffi;
-pub mod game;
+mod game;
 mod map;
 mod modifier;
 mod monsters;
@@ -24,17 +21,7 @@ mod types;
 mod utils;
 
 use ffi::PyAction;
-use ffi::PyActionType;
-use ffi::PyCard;
-use ffi::PyCharacter;
-use ffi::PyEnergy;
 use ffi::PyGameState;
-use ffi::PyIntent;
-use ffi::PyMap;
-use ffi::PyModifier;
-use ffi::PyMonster;
-use ffi::PyRelic;
-use ffi::PyRoom;
 use ffi::from_internal_action;
 use ffi::snapshot_state;
 use ffi::to_internal_action;
@@ -43,13 +30,11 @@ use game::step;
 
 // GameEnv
 
-#[gen_stub_pyclass]
 #[pyclass(module = "slai.slai")]
 struct GameEnv {
     state: game::GameState,
 }
 
-#[gen_stub_pymethods]
 #[pymethods]
 impl GameEnv {
     // Game-shape constants — mirror of `crate::consts` for encoders/wrappers
@@ -107,53 +92,74 @@ impl GameEnv {
 }
 
 #[pymodule]
-fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
-    module.add_class::<GameEnv>()?;
-    module.add_class::<PyActionType>()?;
-    module.add_class::<PyAction>()?;
-    module.add_class::<PyGameState>()?;
-    module.add_class::<PyCard>()?;
-    module.add_class::<PyCharacter>()?;
-    module.add_class::<PyMonster>()?;
-    module.add_class::<PyIntent>()?;
-    module.add_class::<PyEnergy>()?;
-    module.add_class::<PyMap>()?;
-    module.add_class::<PyRoom>()?;
-    module.add_class::<PyModifier>()?;
-    module.add_class::<PyRelic>()?;
-    module.add_class::<ffi::PyPotion>()?;
-
-    // Unit-enum mirrors
-    module.add_class::<ffi::PyCardKind>()?;
-    module.add_class::<ffi::PyCardColor>()?;
-    module.add_class::<ffi::PyCardRarity>()?;
-    module.add_class::<ffi::PyPlayRestriction>()?;
-    module.add_class::<ffi::PyCardCostKind>()?;
-    module.add_class::<ffi::PyRoomKind>()?;
-    module.add_class::<ffi::PyPotionName>()?;
-    module.add_class::<ffi::PyPotionRarity>()?;
-    module.add_class::<ffi::PyModifierKind>()?;
-    module.add_class::<ffi::PyIntentKind>()?;
-    module.add_class::<ffi::PyCandidatePool>()?;
-    module.add_class::<ffi::PyMode>()?;
-    module.add_class::<ffi::PyEventKind>()?;
-    module.add_class::<ffi::PyRelicName>()?;
-    module.add_class::<ffi::PyRelicTier>()?;
-    module.add_class::<ffi::PyCardName>()?;
-    module.add_class::<ffi::PyMonsterName>()?;
-    module.add_class::<ffi::PyMonsterEncounter>()?;
-    module.add_class::<ffi::PyCandidatePoolCardFilter>()?;
-    module.add_class::<ffi::PyCandidatePoolMonstersFilter>()?;
-
-    // Complex enum mirrors
-    module.add_class::<ffi::PySelectionKind>()?;
-    module.add_class::<ffi::PyTarget>()?;
-    module.add_class::<ffi::PyEffect>()?;
-    module.add_class::<ffi::PyDeltaSign>()?;
-    module.add_class::<ffi::PyAmount>()?;
-
-    // Reward + Shop surface
-    Ok(())
+mod slai {
+    #[pymodule_export]
+    use super::GameEnv;
+    // Action layer
+    #[pymodule_export]
+    use super::ffi::{PyAction, PyActionType};
+    // Snapshot views
+    #[pymodule_export]
+    use super::ffi::{
+        PyCard, PyCharacter, PyEnergy, PyGameState, PyIntent, PyMap, PyModifier, PyMonster,
+        PyPotion, PyRelic, PyRoom, PyTarget,
+    };
+    // Unit enums
+    #[pymodule_export]
+    use super::ffi::{
+        PyCandidatePoolCardFilter, PyCandidatePoolMonstersFilter, PyCardColor, PyCardKind,
+        PyCardName, PyCardRarity, PyDeltaSign, PyIntentKind, PyModifierKind, PyMonsterEncounter,
+        PyMonsterName, PyPlayRestriction, PyPotionName, PyPotionRarity, PyRelicName, PyRelicTier,
+        PyRoomKind,
+    };
+    // Flat variant classes (Python-side union aliases live in python/slai/__init__.py)
+    #[pymodule_export]
+    use super::ffi::{PyAmountAbsolute, PyAmountEventGoldAsk, PyAmountRange, PyAmountRelative};
+    #[pymodule_export]
+    use super::ffi::{
+        PyCandidatePoolCharacter, PyCandidatePoolDeck, PyCandidatePoolDiscover,
+        PyCandidatePoolEventPickCard, PyCandidatePoolEventPickPotion, PyCandidatePoolHand,
+        PyCandidatePoolMonsters, PyCandidatePoolSource, PySelectionKindAll, PySelectionKindInput,
+        PySelectionKindRandom, PySelectionKindSingle,
+    };
+    #[pymodule_export]
+    use super::ffi::{
+        PyCardCostKindFixed, PyCardCostKindGrowsOnDamageInstanceTaken,
+        PyCardCostKindMinusDiscardsThisTurn, PyCardCostKindXCost,
+    };
+    #[pymodule_export]
+    use super::ffi::{
+        PyEffectAdventurerSearch, PyEffectBlockGain, PyEffectBonfireOffer,
+        PyEffectCalculatedGamble, PyEffectCardAddToDeck, PyEffectCardAddToHand,
+        PyEffectCardDiscard, PyEffectCardDiscoverPick, PyEffectCardDiscoverRoll, PyEffectCardDraw,
+        PyEffectCardDrawUpTo, PyEffectCardDuplicate, PyEffectCardNightmarePick, PyEffectCardPurge,
+        PyEffectCardRetain, PyEffectCardSetupPick, PyEffectCardTransform, PyEffectCardUpgrade,
+        PyEffectCombatStart, PyEffectDamageFinisher, PyEffectDamageFlechettes,
+        PyEffectDamageMindBlast, PyEffectDamagePhysical, PyEffectDamagePhysicalIfPoisoned,
+        PyEffectDistractionAdd, PyEffectEnergyGain, PyEffectEscapePlanCheck,
+        PyEffectEventAdvanceState, PyEffectEventConsume, PyEffectFaceTrade,
+        PyEffectGlassKnifeDecay, PyEffectGoldDelta, PyEffectHealthDelta, PyEffectHeelHookProc,
+        PyEffectMaxHealthDelta, PyEffectModifierGain, PyEffectModifierMultiply,
+        PyEffectModifierRemove, PyEffectMonsterSpawn, PyEffectPotionAddRandom,
+        PyEffectPotionDiscard, PyEffectRelicGrantRandom, PyEffectRelicGrantSpecific,
+        PyEffectRewardRollPotions, PyEffectScrapOozeReach, PyEffectSetCostOverride,
+        PyEffectShuffleDiscardPileIntoDrawPile, PyEffectSneakyStrikeProc, PyEffectStormOfSteelProc,
+        PyEffectUnloadDiscard, PyEffectWheelSpin,
+    };
+    #[pymodule_export]
+    use super::ffi::{
+        PyEventKindBigFish, PyEventKindBonfireSpirits, PyEventKindDeadAdventurer,
+        PyEventKindDuplicator, PyEventKindFaceTrader, PyEventKindGoldenIdol,
+        PyEventKindGoldenShrine, PyEventKindLivingWall, PyEventKindMushrooms,
+        PyEventKindOminousForge, PyEventKindPurifier, PyEventKindScrapOoze,
+        PyEventKindShiningLight, PyEventKindTheCleric, PyEventKindTheDivineFountain,
+        PyEventKindTheLab, PyEventKindTheSsssserpent, PyEventKindTheWomanInBlue,
+        PyEventKindTransmogrifier, PyEventKindUpgradeShrine, PyEventKindWeMeetAgain,
+        PyEventKindWheelOfChange, PyEventKindWingStatue, PyEventKindWorldOfGoop,
+    };
+    #[pymodule_export]
+    use super::ffi::{
+        PyModeChest, PyModeChestOpened, PyModeCombat, PyModeCombatEnded, PyModeEvent, PyModeMap,
+        PyModeRestSite, PyModeReward, PyModeShop,
+    };
 }
-
-define_stub_info_gatherer!(stub_info);
