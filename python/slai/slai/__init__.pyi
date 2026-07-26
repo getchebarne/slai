@@ -186,7 +186,7 @@ class Card:
     @property
     def display_name(self, /) -> str: ...
     @property
-    def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any]: ...
+    def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any |Any |Any |Any |Any |Any]: ...
     @property
     def ethereal(self, /) -> bool: ...
     @property
@@ -518,6 +518,8 @@ class EffectCardDiscoverRoll:
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __ne__(self, other: object) -> bool: ...
+    @property
+    def color(self, /) -> CardColor: ...
     @property
     def count(self, /) -> int: ...
     @property
@@ -1067,7 +1069,7 @@ class GameState:
     @property
     def mode(self, /) -> ModeMap |ModeRestSite |ModeChest |ModeChestOpened |ModeCombatEnded |ModeCombat |ModeReward |ModeShop |ModeEvent: ...
     @property
-    def pending(self, /) -> EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any |None: ...
+    def pending(self, /) -> EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any |Any |Any |Any |Any |Any |None: ...
     @property
     def potion_slots_max(self, /) -> int: ...
     @property
@@ -1155,7 +1157,7 @@ class ModeEvent:
     @property
     def kind(self, /) -> EventKindBigFish |EventKindTheCleric |EventKindDuplicator |EventKindGoldenShrine |EventKindWingStatue |EventKindWorldOfGoop |EventKindLivingWall |EventKindPurifier |EventKindShiningLight |EventKindTheSsssserpent |EventKindTransmogrifier |EventKindUpgradeShrine |EventKindTheDivineFountain |EventKindTheLab |EventKindTheWomanInBlue |EventKindWheelOfChange |EventKindBonfireSpirits |EventKindOminousForge |EventKindFaceTrader |EventKindMushrooms |EventKindGoldenIdol |EventKindScrapOoze |EventKindWeMeetAgain |EventKindDeadAdventurer: ...
     @property
-    def options(self, /) -> list[list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any]]: ...
+    def options(self, /) -> list[list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any |Any |Any |Any |Any |Any]]: ...
 
 @final
 class ModeMap: ...
@@ -1217,12 +1219,15 @@ class ModifierKind:
     Dexterity: Final[ModifierKind]
     DoubleDamage: Final[ModifierKind]
     DrawCardNextTurn: Final[ModifierKind]
+    Duplication: Final[ModifierKind]
     Enrage: Final[ModifierKind]
     Entangled: Final[ModifierKind]
     Envenom: Final[ModifierKind]
     Frail: Final[ModifierKind]
     InfiniteBlades: Final[ModifierKind]
     Intangible: Final[ModifierKind]
+    LoseDexterity: Final[ModifierKind]
+    LoseStrength: Final[ModifierKind]
     Magnetism: Final[ModifierKind]
     Mayhem: Final[ModifierKind]
     Metallicize: Final[ModifierKind]
@@ -1237,6 +1242,7 @@ class ModifierKind:
     Phantasmal: Final[ModifierKind]
     PlatedArmor: Final[ModifierKind]
     Poison: Final[ModifierKind]
+    Regen: Final[ModifierKind]
     Retain: Final[ModifierKind]
     Ritual: Final[ModifierKind]
     SadisticNature: Final[ModifierKind]
@@ -1358,7 +1364,7 @@ class Potion:
     @property
     def combat_only(self, /) -> bool: ...
     @property
-    def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any]: ...
+    def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any |Any |Any |Any |Any |Any]: ...
     @property
     def name(self, /) -> PotionName: ...
     @property
@@ -1368,17 +1374,36 @@ class Potion:
 
 @final
 class PotionName:
+    AncientPotion: Final[PotionName]
     AttackPotion: Final[PotionName]
+    BlessingOfTheForge: Final[PotionName]
     BlockPotion: Final[PotionName]
+    ColorlessPotion: Final[PotionName]
+    CultistPotion: Final[PotionName]
+    CunningPotion: Final[PotionName]
     DexterityPotion: Final[PotionName]
+    DistilledChaos: Final[PotionName]
+    DuplicationPotion: Final[PotionName]
     EnergyPotion: Final[PotionName]
+    EntropicBrew: Final[PotionName]
+    EssenceOfSteel: Final[PotionName]
     ExplosivePotion: Final[PotionName]
+    FairyPotion: Final[PotionName]
     FearPotion: Final[PotionName]
     FirePotion: Final[PotionName]
     FruitJuice: Final[PotionName]
+    GamblersBrew: Final[PotionName]
+    GhostInAJar: Final[PotionName]
+    LiquidBronze: Final[PotionName]
+    LiquidMemories: Final[PotionName]
     PoisonPotion: Final[PotionName]
     PowerPotion: Final[PotionName]
+    RegenPotion: Final[PotionName]
     SkillPotion: Final[PotionName]
+    SmokeBomb: Final[PotionName]
+    SneckoOil: Final[PotionName]
+    SpeedPotion: Final[PotionName]
+    SteroidPotion: Final[PotionName]
     StrengthPotion: Final[PotionName]
     SwiftPotion: Final[PotionName]
     WeakPotion: Final[PotionName]
@@ -1404,7 +1429,7 @@ class Relic:
     @property
     def counter(self, /) -> int: ...
     @property
-    def effects_on_combat_start(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any]: ...
+    def effects_on_combat_start(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectModifierRemove |EffectEnergyGain |EffectCardAddToHand |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectCalculatedGamble |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectFaceTrade |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardAddToDeck |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |Any |Any |Any |Any |Any |Any |Any |Any |Any |Any]: ...
     @property
     def name(self, /) -> RelicName: ...
     @property

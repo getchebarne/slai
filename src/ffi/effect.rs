@@ -509,6 +509,7 @@ pub struct PyEffectRewardRollPotions {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectCardDiscoverRoll {
     pub kind: Option<PyCardKind>,
+    pub color: PyCardColor,
     pub count: u8,
     pub target: Option<PyTarget>,
 }
@@ -859,6 +860,77 @@ pub struct PyEffectCardMoveToHand {
     pub target: Option<PyTarget>,
 }
 
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardPlayFromDrawTop",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardPlayFromDrawTop {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardCostRandomize",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardCostRandomize {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectGamblersBrewProc",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectGamblersBrewProc {
+    pub discards_before: Option<u8>,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectLiquidMemoriesPick",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectLiquidMemoriesPick {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCombatEscape",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCombatEscape {
+    pub target: Option<PyTarget>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyEffect {
     DamagePhysical(PyEffectDamagePhysical),
@@ -917,6 +989,11 @@ pub enum PyEffect {
     HandOfGreedProc(PyEffectHandOfGreedProc),
     CardExhaust(PyEffectCardExhaust),
     CardMoveToHand(PyEffectCardMoveToHand),
+    CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop),
+    CardCostRandomize(PyEffectCardCostRandomize),
+    GamblersBrewProc(PyEffectGamblersBrewProc),
+    LiquidMemoriesPick(PyEffectLiquidMemoriesPick),
+    CombatEscape(PyEffectCombatEscape),
 }
 
 variant_union!(PyEffect {
@@ -976,6 +1053,11 @@ variant_union!(PyEffect {
     HandOfGreedProc => PyEffectHandOfGreedProc,
     CardExhaust => PyEffectCardExhaust,
     CardMoveToHand => PyEffectCardMoveToHand,
+    CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop,
+    CardCostRandomize => PyEffectCardCostRandomize,
+    GamblersBrewProc => PyEffectGamblersBrewProc,
+    LiquidMemoriesPick => PyEffectLiquidMemoriesPick,
+    CombatEscape => PyEffectCombatEscape,
 });
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -1168,9 +1250,10 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::RewardRollPotions { count } => {
             PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count, target })
         }
-        EffectKind::CardDiscoverRoll { kind, count } => {
+        EffectKind::CardDiscoverRoll { kind, color, count } => {
             PyEffect::CardDiscoverRoll(PyEffectCardDiscoverRoll {
                 kind: kind.map(|k| k.into()),
+                color: color.into(),
                 count,
                 target,
             })
@@ -1205,6 +1288,22 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }
         EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target }),
         EffectKind::CardMoveToHand => PyEffect::CardMoveToHand(PyEffectCardMoveToHand { target }),
+        EffectKind::CardPlayFromDrawTop => {
+            PyEffect::CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop { target })
+        }
+        EffectKind::CardCostRandomize => {
+            PyEffect::CardCostRandomize(PyEffectCardCostRandomize { target })
+        }
+        EffectKind::GamblersBrewProc { discards_before } => {
+            PyEffect::GamblersBrewProc(PyEffectGamblersBrewProc {
+                discards_before,
+                target,
+            })
+        }
+        EffectKind::LiquidMemoriesPick => {
+            PyEffect::LiquidMemoriesPick(PyEffectLiquidMemoriesPick { target })
+        }
+        EffectKind::CombatEscape => PyEffect::CombatEscape(PyEffectCombatEscape { target }),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
             other

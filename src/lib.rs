@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+// type_hint_union! folds one CTFE frame per PyEffect variant; the default 128 overflows
+#![recursion_limit = "512"]
 
 use pyo3::prelude::*;
 

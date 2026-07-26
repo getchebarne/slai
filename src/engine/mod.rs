@@ -8,6 +8,7 @@ pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_add_to_discard;
 pub mod process_effect_card_add_to_hand;
 pub mod process_effect_card_adopt;
+pub mod process_effect_card_cost_randomize;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_roll;
@@ -30,6 +31,7 @@ pub mod process_effect_card_transform;
 pub mod process_effect_card_upgrade;
 pub mod process_effect_chest_open;
 pub mod process_effect_combat_end;
+pub mod process_effect_combat_escape;
 pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_finisher;
@@ -44,6 +46,7 @@ pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
 pub mod process_effect_face_trade;
+pub mod process_effect_gamblers_brew_proc;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -52,6 +55,7 @@ pub mod process_effect_health_delta;
 pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
+pub mod process_effect_liquid_memories_pick;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
@@ -106,7 +110,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::events::EventKind;
 use crate::game::GameState;
@@ -284,7 +287,6 @@ fn resolve_selection_kind(
             true
         }
         SelectionKind::Input { count } => (count as usize) >= effect_candidate_buf.len(),
-        // Never auto-resolves on a non-empty pool: the player may pick fewer, incl. zero
         SelectionKind::InputUpTo { count } => {
             if count == 0 {
                 effect_candidate_buf.clear();
@@ -616,6 +618,9 @@ fn dispatch_by_kind(
         EffectKind::CombatEnd => {
             process_effect_combat_end::process_effect_combat_end(state)
         }
+        EffectKind::CombatEscape => {
+            process_effect_combat_escape::process_effect_combat_escape(state)
+        }
         EffectKind::TurnStart => {
             process_effect_turn_start::process_effect_turn_start(id_target, state)
         }
@@ -707,13 +712,26 @@ fn dispatch_by_kind(
         EffectKind::PotionAdopt => {
             process_effect_potion_adopt::process_effect_potion_adopt(id_target, state)
         }
-        EffectKind::CardDiscoverRoll { kind, count } => {
+        EffectKind::CardDiscoverRoll { kind, color, count } => {
             process_effect_card_discover_roll::process_effect_card_discover_roll(
-                state,
-                kind,
-                CardColor::Green, // TODO: other characters
-                count,
+                state, kind, color, count,
             );
+        }
+        EffectKind::CardCostRandomize => {
+            process_effect_card_cost_randomize::process_effect_card_cost_randomize(
+                id_target, state,
+            )
+        }
+        EffectKind::GamblersBrewProc { discards_before } => {
+            process_effect_gamblers_brew_proc::process_effect_gamblers_brew_proc(
+                state,
+                discards_before,
+            )
+        }
+        EffectKind::LiquidMemoriesPick => {
+            process_effect_liquid_memories_pick::process_effect_liquid_memories_pick(
+                id_target, state,
+            )
         }
         EffectKind::RelicGrantRandom => {
             process_effect_relic_grant_random::process_effect_relic_grant_random(state)

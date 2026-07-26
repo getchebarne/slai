@@ -9,8 +9,10 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::potions::remove_potion;
 use crate::types::DeltaSign;
 use crate::types::Mode;
+use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
@@ -20,6 +22,21 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     // Character death: clear pending work, mark dead, signal game over.
     // Event damage can kill outside combat, so this path is mode-agnostic
     if id_target == state.id_character {
+        // Fairy in a Bottle: consumed to revive at 30% max HP; checked before Lizard Tail
+        if let Some(id_potion) = state
+            .id_potions
+            .iter()
+            .flatten()
+            .copied()
+            .find(|&id| state.entities[id].potion_name == PotionName::FairyPotion)
+        {
+            remove_potion(&mut state.id_potions, id_potion);
+            let vitals = &mut state.entities[state.id_character].vitals;
+            vitals.health = ((vitals.health_max as f32) * 0.30) as u16;
+            vitals.health = vitals.health.max(1);
+            return;
+        }
+
         // Lizard Tail: once per run, survive at half max HP instead
         if let Some(id_relic) = state.id_relics[RelicName::LizardTail as usize]
             && !state.entities[id_relic].relic_used_up

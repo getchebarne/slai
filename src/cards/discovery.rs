@@ -28,6 +28,7 @@ pub static DISCOVERY: Entity = make_entity_card(
         Effect {
             kind: EffectKind::CardDiscoverRoll {
                 kind: None,
+                color: CardColor::Green,
                 count: 3,
             },
             id_source: None,

@@ -1,14 +1,33 @@
+mod ancient_potion;
 mod attack_potion;
+mod blessing_of_the_forge;
 mod block_potion;
+mod colorless_potion;
+mod cultist_potion;
+mod cunning_potion;
 mod dexterity_potion;
+mod distilled_chaos;
+mod duplication_potion;
 mod energy_potion;
+mod entropic_brew;
+mod essence_of_steel;
 mod explosive_potion;
+mod fairy_potion;
 mod fear_potion;
 mod fire_potion;
 mod fruit_juice;
+mod gamblers_brew;
+mod ghost_in_a_jar;
+mod liquid_bronze;
+mod liquid_memories;
 mod poison_potion;
 mod power_potion;
+mod regen_potion;
 mod skill_potion;
+mod smoke_bomb;
+mod snecko_oil;
+mod speed_potion;
+mod steroid_potion;
 mod strength_potion;
 mod swift_potion;
 mod weak_potion;
@@ -54,6 +73,25 @@ pub fn get_potion(name: PotionName) -> Entity {
         PotionName::SkillPotion => skill_potion::SKILL_POTION,
         PotionName::PowerPotion => power_potion::POWER_POTION,
         PotionName::FruitJuice => fruit_juice::FRUIT_JUICE,
+        PotionName::AncientPotion => ancient_potion::ANCIENT_POTION,
+        PotionName::LiquidBronze => liquid_bronze::LIQUID_BRONZE,
+        PotionName::EssenceOfSteel => essence_of_steel::ESSENCE_OF_STEEL,
+        PotionName::GhostInAJar => ghost_in_a_jar::GHOST_IN_A_JAR,
+        PotionName::CultistPotion => cultist_potion::CULTIST_POTION,
+        PotionName::CunningPotion => cunning_potion::CUNNING_POTION,
+        PotionName::DistilledChaos => distilled_chaos::DISTILLED_CHAOS,
+        PotionName::BlessingOfTheForge => blessing_of_the_forge::BLESSING_OF_THE_FORGE,
+        PotionName::EntropicBrew => entropic_brew::ENTROPIC_BREW,
+        PotionName::RegenPotion => regen_potion::REGEN_POTION,
+        PotionName::SteroidPotion => steroid_potion::STEROID_POTION,
+        PotionName::SpeedPotion => speed_potion::SPEED_POTION,
+        PotionName::DuplicationPotion => duplication_potion::DUPLICATION_POTION,
+        PotionName::ColorlessPotion => colorless_potion::COLORLESS_POTION,
+        PotionName::GamblersBrew => gamblers_brew::GAMBLERS_BREW,
+        PotionName::LiquidMemories => liquid_memories::LIQUID_MEMORIES,
+        PotionName::SneckoOil => snecko_oil::SNECKO_OIL,
+        PotionName::FairyPotion => fairy_potion::FAIRY_POTION,
+        PotionName::SmokeBomb => smoke_bomb::SMOKE_BOMB,
     }
 }
 
@@ -72,6 +110,25 @@ pub const ALL_POTIONS: &[&'static Entity] = &[
     &skill_potion::SKILL_POTION,
     &power_potion::POWER_POTION,
     &fruit_juice::FRUIT_JUICE,
+    &ancient_potion::ANCIENT_POTION,
+    &liquid_bronze::LIQUID_BRONZE,
+    &essence_of_steel::ESSENCE_OF_STEEL,
+    &ghost_in_a_jar::GHOST_IN_A_JAR,
+    &cultist_potion::CULTIST_POTION,
+    &cunning_potion::CUNNING_POTION,
+    &distilled_chaos::DISTILLED_CHAOS,
+    &blessing_of_the_forge::BLESSING_OF_THE_FORGE,
+    &entropic_brew::ENTROPIC_BREW,
+    &regen_potion::REGEN_POTION,
+    &steroid_potion::STEROID_POTION,
+    &speed_potion::SPEED_POTION,
+    &duplication_potion::DUPLICATION_POTION,
+    &colorless_potion::COLORLESS_POTION,
+    &gamblers_brew::GAMBLERS_BREW,
+    &liquid_memories::LIQUID_MEMORIES,
+    &snecko_oil::SNECKO_OIL,
+    &fairy_potion::FAIRY_POTION,
+    &smoke_bomb::SMOKE_BOMB,
 ];
 // Assert all potions are included without duplicates
 const _: () = assert!(ALL_POTIONS.len() == PotionName::COUNT);

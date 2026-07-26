@@ -12,6 +12,7 @@ use crate::entity::is_play_restriction_satisfied;
 use crate::events::event_option_available;
 use crate::game::GameState;
 use crate::game::Location;
+use crate::map::get_active_room_kind;
 use crate::map::has_edge;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -20,8 +21,10 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::Mode;
+use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::types::RewardKind;
+use crate::types::RoomKind;
 use crate::utils::card_filter_matches;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
@@ -212,6 +215,20 @@ fn handle_card_move_to_hand_pick(state: &mut GameState, idx: usize) {
         .effect_pending
         .as_ref()
         .expect("draw-pile pick requires a pending effect");
+
+    // Liquid Memories picks from the discard pile instead
+    if matches!(pending.kind, EffectKind::LiquidMemoriesPick) {
+        let Mode::Combat {
+            id_pile_discard, ..
+        } = &state.mode
+        else {
+            unreachable!("discard-pile pick outside Combat mode")
+        };
+        let id_card = id_pile_discard[idx];
+        resolve_pending_pick(state, id_card);
+        return;
+    }
+
     let filter = pending_pile_filter(pending).expect("draw-pile pick has a PileDraw pool");
     let Mode::Combat { id_pile_draw, .. } = &state.mode else {
         unreachable!("draw-pile pick outside Combat mode")
@@ -623,6 +640,17 @@ fn fill_legal_actions_effect_pending(
                 }
             }
         }
+        EffectKind::LiquidMemoriesPick => {
+            let Mode::Combat {
+                id_pile_discard, ..
+            } = &state.mode
+            else {
+                unreachable!("Discard-pile pick outside Combat mode")
+            };
+            for i in 0..id_pile_discard.len() {
+                state.legal_actions.push(Action::CardMoveToHand { idx: i });
+            }
+        }
         EffectKind::CardSetupPick { .. } => {
             let Mode::Combat { id_hand, .. } = &state.mode else {
                 unreachable!("Hand pick outside Combat mode")
@@ -928,6 +956,20 @@ fn push_potion_actions(state: &mut GameState) {
             continue;
         };
         let potion = &state.entities[id_potion];
+        // Fairy in a Bottle is never drinkable; it procs from the death hook
+        if potion.potion_name == PotionName::FairyPotion {
+            state.legal_actions.push(Action::PotionDiscard { idx: s });
+            continue;
+        }
+        // Smoke Bomb: no escaping boss fights
+        if potion.potion_name == PotionName::SmokeBomb
+            && in_combat
+            && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+                == Some(RoomKind::CombatBoss)
+        {
+            state.legal_actions.push(Action::PotionDiscard { idx: s });
+            continue;
+        }
         let combat_only = potion.potion_combat_only;
         let requires_target = potion.requires_target;
         if combat_only && !in_combat {

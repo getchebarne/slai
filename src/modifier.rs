@@ -56,6 +56,10 @@ pub enum ModifierKind {
     SadisticNature,
     Mayhem,
     TheBomb,
+    Regen,
+    LoseStrength,
+    LoseDexterity,
+    Duplication,
 }
 
 pub const MODIFIER_COUNT: usize = ModifierKind::COUNT;
@@ -437,6 +441,34 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     // stacks = detonation damage; the 3-turn timer lives in GameState.bomb_countdown
     ModifierDef {
         kind: ModifierKind::TheBomb,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Regen,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::LoseStrength,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::LoseDexterity,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Duplication,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,

@@ -45,12 +45,14 @@ pub enum EffectKind {
         upgraded: bool,
     },
     CardAdopt,
+    CardCostRandomize,
     CardDiscard {
         source: DiscardSource,
     },
     CardDiscoverPick,
     CardDiscoverRoll {
         kind: Option<CardKind>,
+        color: CardColor,
         count: u8,
     },
     CardDraw {
@@ -81,6 +83,7 @@ pub enum EffectKind {
     CardUpgrade,
     ChestOpen,
     CombatEnd,
+    CombatEscape,
     CombatStart {
         event_gold: Option<Amount>,
         event_relic: Option<RelicName>,
@@ -118,6 +121,9 @@ pub enum EffectKind {
     },
     EventConsume,
     FaceTrade,
+    GamblersBrewProc {
+        discards_before: Option<u8>,
+    },
     GlassKnifeDecay {
         delta: i16,
     },
@@ -142,6 +148,7 @@ pub enum EffectKind {
     HexaghostBurnIncrease {
         count: u8,
     },
+    LiquidMemoriesPick,
     MaxHealthDelta {
         sign: DeltaSign,
         amount: Amount,
@@ -296,7 +303,6 @@ pub enum SelectionKind {
     Single,
     Random { count: u8 },
     Input { count: u16 },
-    // Like Input but optional: the player may stop early via PickSkip (never auto-resolves)
     InputUpTo { count: u16 },
 }
 

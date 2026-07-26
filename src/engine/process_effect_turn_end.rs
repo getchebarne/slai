@@ -209,6 +209,67 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
+    // Regen: heal `stacks`, then decrement by 1 (removed at 0)
+    if has_modifier(mods_char, ModifierKind::Regen) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::Regen);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(stacks.max(0) as u16),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Regen,
+                stacks: -1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
+    // Steroid Potion: the borrowed Strength leaves at turn end
+    if has_modifier(mods_char, ModifierKind::LoseStrength) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::LoseStrength);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks: -stacks,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::LoseStrength,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
+    // Speed Potion: the borrowed Dexterity leaves at turn end
+    if has_modifier(mods_char, ModifierKind::LoseDexterity) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::LoseDexterity);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Dexterity,
+                stacks: -stacks,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::LoseDexterity,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
     // Wraith Form: lose `stacks` Dexterity each turn end
     if has_modifier(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
