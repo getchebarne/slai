@@ -2,7 +2,9 @@ use rand::Rng;
 
 use crate::cards::ALL_CARDS;
 use crate::cards::get_card;
-use crate::entity::CostOverride;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::types::CardColor;
@@ -13,7 +15,6 @@ use crate::types::CostScope;
 use crate::utils::place_card;
 use crate::utils::push_entity;
 
-// Rolls like StS returnTrulyRandom*InCombat: reward rarities only, independent rolls (dupes allowed)
 pub fn process_effect_card_add_random(
     state: &mut GameState,
     color: CardColor,
@@ -35,24 +36,21 @@ pub fn process_effect_card_add_random(
         })
         .map(|c| &**c)
         .collect();
-    if pool.is_empty() {
-        return;
-    }
 
     for _ in 0..count {
         let name = pool[state.rng.random_range(0..pool.len())].card_name;
-        let mut card = get_card(name, upgraded);
-        match cost_zero {
-            // StS writes the base cost only when it is positive (Chrysalis/Metamorphosis)
-            Some(CostScope::Combat) => {
-                if card.card_cost > 0 {
-                    card.card_cost = 0;
-                }
-            }
-            Some(scope) => card.card_cost_override = Some(CostOverride { amount: 0, scope }),
-            None => {}
-        }
-        let id_card = push_entity(&mut state.entities, card);
+        let id_card = push_entity(&mut state.entities, get_card(name, upgraded));
         place_card(state, id_card, pile);
+        if let Some(scope) = cost_zero {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::SetCostOverride {
+                    amount: 0,
+                    only_reduce: false,
+                    scope,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
+        }
     }
 }

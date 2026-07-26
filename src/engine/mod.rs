@@ -279,7 +279,6 @@ fn resolve_selection_kind(
             true
         }
         SelectionKind::Input { count } => (count as usize) >= effect_candidate_buf.len(),
-        // Never auto-resolves on a non-empty pool: the player may pick fewer, incl. zero
         SelectionKind::InputUpTo { count } => {
             if count == 0 {
                 effect_candidate_buf.clear();

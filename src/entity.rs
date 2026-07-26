@@ -6,7 +6,6 @@ use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_MOVES_PER_MONSTER;
-use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
 use crate::modifier::Modifiers;
@@ -27,7 +26,6 @@ use crate::types::RoomKind;
 use crate::types::Vitals;
 use crate::types::ZERO_VITALS;
 use crate::utils::has_relic;
-use crate::utils::push_entity;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EntityKind {
@@ -424,21 +422,6 @@ pub fn get_card_effective_cost(
     }
 }
 
-// Used by Distraction, EndlessAgony copy spawning, and the CardDraw cap branch
-pub fn add_card_to_hand_or_discard(
-    entities: &mut Vec<Entity>,
-    id_hand: &mut Vec<usize>,
-    id_pile_discard: &mut Vec<usize>,
-    card: Entity,
-) -> usize {
-    let id_card = push_entity(entities, card);
-    if id_hand.len() < MAX_SIZE_HAND {
-        id_hand.push(id_card);
-    } else {
-        id_pile_discard.push(id_card);
-    }
-    id_card
-}
 
 // Evaluate a PlayRestriction against the relevant slice of game state
 pub fn is_play_restriction_satisfied(
