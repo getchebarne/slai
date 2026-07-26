@@ -21,8 +21,6 @@ const RELIC_REWARD: Effect = Effect {
 };
 
 // The picks and the gold ask resolve from the payload at execution time
-// (EventPickCard / EventPickPotion / EventGoldAsk); availability guards
-// unrolled or no-longer-owned picks, so resolution always finds them
 const OPTION_GIVE_POTION: &[Effect] = &[
     Effect {
         kind: EffectKind::PotionDiscard,

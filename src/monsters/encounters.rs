@@ -379,8 +379,7 @@ fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
     });
 }
 
-// Queues the encounter's spawns followed by `EffectKind::CombatStart` onto the
-// queue front; the event_* loot params ride on CombatStart (None for ordinary fights)
+// Queues the encounter's spawns followed by `EffectKind::CombatStart`
 pub fn spawn_encounter_monsters(
     state: &mut GameState,
     encounter: MonsterEncounter,

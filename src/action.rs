@@ -111,17 +111,17 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
     // Handlers push their effects into effect_buf; flush drains them to the queue front (reversed)
     state.effect_buf.clear();
     match action {
-        Action::CardDiscard { idx } => resolve_pending_hand_pick(state, idx),
+        Action::CardDiscard { idx } => handle_pending_hand_pick(state, idx),
         Action::CardDiscover { idx } => handle_card_discover(state, idx),
         Action::CardDuplicate { idx } => handle_card_duplicate(state, idx),
-        Action::CardNightmare { idx } => resolve_pending_hand_pick(state, idx),
+        Action::CardNightmare { idx } => handle_pending_hand_pick(state, idx),
         Action::CardPlay {
             idx_card,
             idx_monster,
         } => handle_card_play(state, idx_card, idx_monster),
         Action::CardPurge { idx } => handle_card_purge(state, idx),
-        Action::CardRetain { idx } => resolve_pending_hand_pick(state, idx),
-        Action::CardSetup { idx } => resolve_pending_hand_pick(state, idx),
+        Action::CardRetain { idx } => handle_pending_hand_pick(state, idx),
+        Action::CardSetup { idx } => handle_pending_hand_pick(state, idx),
         Action::CardTransform { idx } => handle_card_transform(state, idx),
         Action::CardUpgrade { idx } => handle_card_upgrade(state, idx),
         Action::ChestOpen => handle_chest_open(state),
@@ -176,7 +176,7 @@ pub fn recompute_legal_actions(state: &mut GameState) {
 }
 
 // Discard / retain / setup / nightmare picks all resolve a pending hand pick
-fn resolve_pending_hand_pick(state: &mut GameState, idx: usize) {
+fn handle_pending_hand_pick(state: &mut GameState, idx: usize) {
     let Mode::Combat { id_hand, .. } = &state.mode else {
         unreachable!("Hand pick outside Combat mode")
     };
@@ -301,8 +301,8 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
     };
     debug_assert!(!consumed, "option select on a consumed event");
     let id_option = id_options[idx];
-    let option = state.entities[id_option];
-    for effect in option.card_effects[..option.card_effects_len as usize].iter() {
+    let effects = state.entities[id_option].event_option_effects;
+    for effect in effects {
         state.effect_buf.push(Effect {
             id_source: Some(id_option),
             ..*effect

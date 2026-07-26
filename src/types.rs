@@ -23,8 +23,6 @@ pub enum DeltaSign {
 // while it is active; constructed whole at entry, destroyed by variant replacement
 #[derive(Debug, Clone)]
 pub enum Mode {
-    // Constructed empty at the first monster spawn; combat_start fills the
-    // piles and scalars, the turn-1 refill fills energy
     Combat {
         id_hand: Vec<usize>,
         id_pile_draw: Vec<usize>,
@@ -41,8 +39,8 @@ pub enum Mode {
         id_card_last_drawn: Option<usize>,
         id_card_nightmare: Option<usize>,
         id_discover: Vec<usize>,
-        // Event-spawned fights (Mushrooms / Dead Adventurer): stamped by
-        // CombatStart; the gold override doubles as the marker
+
+        // Event-spawned fights (Mushrooms / Dead Adventurer)
         event_gold: Option<Amount>,
         event_relic: Option<RelicName>,
         event_relic_roll: bool,

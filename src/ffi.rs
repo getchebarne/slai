@@ -21,7 +21,6 @@ use crate::entity::PlayRestriction;
 use crate::entity::get_card_effective_cost;
 use crate::entity::is_play_restriction_satisfied;
 use crate::events::EventKind;
-use crate::events::event_option_available;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::edge_indices;
@@ -39,7 +38,6 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 use crate::types::Mode;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
@@ -958,67 +956,6 @@ impl From<MonsterEncounter> for PyMonsterEncounter {
 }
 
 #[gen_stub_pyclass_enum]
-#[pyclass(eq, eq_int, frozen, name = "EventName", module = "slai.slai")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyEventName {
-    BigFish,
-    TheCleric,
-    Duplicator,
-    GoldenShrine,
-    GoldenIdol,
-    WingStatue,
-    WorldOfGoop,
-    LivingWall,
-    Purifier,
-    ScrapOoze,
-    ShiningLight,
-    TheSsssserpent,
-    Transmogrifier,
-    UpgradeShrine,
-    TheDivineFountain,
-    TheLab,
-    TheWomanInBlue,
-    WheelOfChange,
-    BonfireSpirits,
-    OminousForge,
-    FaceTrader,
-    WeMeetAgain,
-    Mushrooms,
-    DeadAdventurer,
-}
-
-impl From<EventName> for PyEventName {
-    fn from(name: EventName) -> Self {
-        match name {
-            EventName::BigFish => Self::BigFish,
-            EventName::TheCleric => Self::TheCleric,
-            EventName::Duplicator => Self::Duplicator,
-            EventName::GoldenShrine => Self::GoldenShrine,
-            EventName::GoldenIdol => Self::GoldenIdol,
-            EventName::WingStatue => Self::WingStatue,
-            EventName::WorldOfGoop => Self::WorldOfGoop,
-            EventName::LivingWall => Self::LivingWall,
-            EventName::Purifier => Self::Purifier,
-            EventName::ScrapOoze => Self::ScrapOoze,
-            EventName::ShiningLight => Self::ShiningLight,
-            EventName::TheSsssserpent => Self::TheSsssserpent,
-            EventName::Transmogrifier => Self::Transmogrifier,
-            EventName::UpgradeShrine => Self::UpgradeShrine,
-            EventName::TheDivineFountain => Self::TheDivineFountain,
-            EventName::TheLab => Self::TheLab,
-            EventName::TheWomanInBlue => Self::TheWomanInBlue,
-            EventName::WheelOfChange => Self::WheelOfChange,
-            EventName::BonfireSpirits => Self::BonfireSpirits,
-            EventName::OminousForge => Self::OminousForge,
-            EventName::FaceTrader => Self::FaceTrader,
-            EventName::WeMeetAgain => Self::WeMeetAgain,
-            EventName::Mushrooms => Self::Mushrooms,
-            EventName::DeadAdventurer => Self::DeadAdventurer,
-        }
-    }
-}
-
-#[gen_stub_pyclass_enum]
 #[pyclass(eq, eq_int, frozen, name = "RelicTier", module = "slai.slai")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PyRelicTier {
@@ -1225,35 +1162,6 @@ impl From<CandidatePoolMonstersFilter> for PyCandidatePoolMonstersFilter {
             CandidatePoolMonstersFilter::Other => Self::Other,
             CandidatePoolMonstersFilter::Picked => Self::Picked,
         }
-    }
-}
-
-#[gen_stub_pyclass_enum]
-#[pyclass(eq, eq_int, frozen, name = "Screen", module = "slai.slai")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyScreen {
-    Combat,
-    Reward,
-    Event,
-    Shop,
-    Map,
-    RestSite,
-    Chest,
-}
-
-// Projects the engine mode onto the 7-variant observation screen; transitional
-// modes never rest, so they collapse onto the screen the player effectively sees
-fn project_screen(mode: &Mode) -> PyScreen {
-    match mode {
-        Mode::Combat { .. } => PyScreen::Combat,
-        Mode::CombatEnded => PyScreen::Map,
-        Mode::Reward { .. } => PyScreen::Reward,
-        Mode::Event { .. } => PyScreen::Event,
-        Mode::Shop { .. } => PyScreen::Shop,
-        Mode::Map => PyScreen::Map,
-        Mode::RestSite => PyScreen::RestSite,
-        Mode::Chest => PyScreen::Chest,
-        Mode::ChestOpened => PyScreen::Reward,
     }
 }
 
@@ -2105,67 +2013,87 @@ impl PyPotion {
     }
 }
 
-#[gen_stub_pyclass]
-#[pyclass(frozen, get_all, name = "EventOption", module = "slai.slai")]
+#[gen_stub_pyclass_complex_enum]
+#[pyclass(frozen, name = "EventKind", module = "slai.slai")]
 #[derive(Debug, Clone)]
-pub struct PyEventOption {
-    pub label: String,
-    pub gated_out: bool,
-    pub effects: Vec<PyEffect>,
-}
-
-#[gen_stub_pymethods]
-#[pymethods]
-impl PyEventOption {
-    #[new]
-    fn new(label: String, gated_out: bool, effects: Vec<PyEffect>) -> Self {
-        Self {
-            label,
-            gated_out,
-            effects,
-        }
-    }
-}
-
-#[gen_stub_pyclass]
-#[pyclass(frozen, get_all, name = "Event", module = "slai.slai")]
-#[derive(Debug, Clone)]
-pub struct PyEvent {
-    pub name: PyEventName,
-    pub display_name: String,
-    pub options: Vec<PyEventOption>,
-    // Legacy flat progress counter (stage/attempts/searches); observation-shape parity
-    pub state: u8,
-    // Entry-rolled picks (We Meet Again etc.); referenced by EventPick* pools
-    pub pick_card: Option<PyCard>,
-    pub pick_potion: Option<PyPotion>,
-    // 0 = unrolled; observation-shape parity
-    pub gold_rolled: u16,
-}
-
-#[gen_stub_pymethods]
-#[pymethods]
-impl PyEvent {
-    #[new]
-    fn new(
-        name: PyEventName,
-        display_name: String,
-        options: Vec<PyEventOption>,
-        state: u8,
+pub enum PyEventKind {
+    BigFish {},
+    TheCleric {},
+    Duplicator {},
+    GoldenShrine {},
+    WingStatue {},
+    WorldOfGoop {},
+    LivingWall {},
+    Purifier {},
+    ShiningLight {},
+    TheSsssserpent {},
+    Transmogrifier {},
+    UpgradeShrine {},
+    TheDivineFountain {},
+    TheLab {},
+    TheWomanInBlue {},
+    WheelOfChange {},
+    BonfireSpirits {},
+    OminousForge {},
+    FaceTrader {},
+    Mushrooms {},
+    GoldenIdol {
+        stage: u8,
+    },
+    ScrapOoze {
+        attempts: u8,
+    },
+    WeMeetAgain {
         pick_card: Option<PyCard>,
         pick_potion: Option<PyPotion>,
-        gold_rolled: u16,
-    ) -> Self {
-        Self {
-            name,
-            display_name,
-            options,
-            state,
-            pick_card,
-            pick_potion,
-            gold_rolled,
-        }
-    }
+        gold_ask: Option<u16>,
+    },
+    DeadAdventurer {
+        found_gold: bool,
+        found_nothing: bool,
+        found_relic: bool,
+        searches: u8,
+    },
+}
+
+#[gen_stub_pyclass_complex_enum]
+#[pyclass(frozen, name = "Mode", module = "slai.slai")]
+#[derive(Debug, Clone)]
+pub enum PyMode {
+    Map {},
+    RestSite {},
+    Chest {},
+    ChestOpened {},
+    CombatEnded {},
+    Combat {
+        hand: Vec<PyCard>,
+        pile_draw: Vec<PyCard>,
+        pile_discard: Vec<PyCard>,
+        pile_exhaust: Vec<PyCard>,
+        energy: PyEnergy,
+        monsters: Vec<PyMonster>,
+        discover: Vec<PyCard>,
+    },
+    Reward {
+        cards: Vec<PyCard>,
+        relic: Option<PyRelic>,
+        potions: Vec<PyPotion>,
+        gold: Option<u16>,
+    },
+    Shop {
+        cards: Vec<PyCard>,
+        card_prices: Vec<u16>,
+        relics: Vec<PyRelic>,
+        relic_prices: Vec<u16>,
+        potions: Vec<PyPotion>,
+        potion_prices: Vec<u16>,
+        purge_cost: u16,
+    },
+    Event {
+        kind: PyEventKind,
+        options: Vec<Vec<PyEffect>>,
+        consumed: bool,
+    },
 }
 
 #[gen_stub_pyclass]
@@ -2380,94 +2308,18 @@ impl PyMap {
 #[pyclass(frozen, get_all, name = "GameState", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyGameState {
-    pub screen: PyScreen,
+    pub mode: PyMode,
     pub game_over: bool,
     pub ascension: u8,
     pub character: PyCharacter,
-    pub monsters: Vec<PyMonster>,
     pub deck: Vec<PyCard>,
-    pub hand: Vec<PyCard>,
-    pub pile_draw: Vec<PyCard>,
-    pub pile_discard: Vec<PyCard>,
-    pub pile_exhaust: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
     // Slot-indexed belt (length potion_slots_max); None at empty slots so positions stay valid
     pub potions: Vec<Option<PyPotion>>,
     pub potion_slots_max: u8,
-    pub energy: PyEnergy,
     pub map: PyMap,
-    pub reward: Option<PyReward>,
-    pub event: Option<PyEvent>,
+    // Halt-for-input is orthogonal to mode
     pub pending: Option<PyEffect>,
-    pub discover: Vec<PyCard>,
-    pub shop: Option<PyShop>,
-}
-
-#[gen_stub_pyclass]
-#[pyclass(frozen, get_all, name = "Reward", module = "slai.slai")]
-#[derive(Debug, Clone)]
-pub struct PyReward {
-    pub cards: Vec<PyCard>,
-    pub relic: Option<PyRelic>,
-    pub potions: Vec<PyPotion>,
-    pub gold: Option<u16>,
-}
-
-#[gen_stub_pymethods]
-#[pymethods]
-impl PyReward {
-    #[new]
-    fn new(
-        cards: Vec<PyCard>,
-        relic: Option<PyRelic>,
-        potions: Vec<PyPotion>,
-        gold: Option<u16>,
-    ) -> Self {
-        Self {
-            cards,
-            relic,
-            potions,
-            gold,
-        }
-    }
-}
-
-#[gen_stub_pyclass]
-#[pyclass(frozen, get_all, name = "Shop", module = "slai.slai")]
-#[derive(Debug, Clone)]
-pub struct PyShop {
-    pub cards: Vec<PyCard>,
-    pub card_prices: Vec<u16>,
-    pub relics: Vec<PyRelic>,
-    pub relic_prices: Vec<u16>,
-    pub potions: Vec<PyPotion>,
-    pub potion_prices: Vec<u16>,
-    pub purge_cost: u16,
-}
-
-#[gen_stub_pymethods]
-#[pymethods]
-impl PyShop {
-    #[new]
-    fn new(
-        cards: Vec<PyCard>,
-        card_prices: Vec<u16>,
-        relics: Vec<PyRelic>,
-        relic_prices: Vec<u16>,
-        potions: Vec<PyPotion>,
-        potion_prices: Vec<u16>,
-        purge_cost: u16,
-    ) -> Self {
-        Self {
-            cards,
-            card_prices,
-            relics,
-            relic_prices,
-            potions,
-            potion_prices,
-            purge_cost,
-        }
-    }
 }
 
 // Display-name lookups
@@ -2608,37 +2460,6 @@ impl MonsterName {
     }
 }
 
-impl EventName {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::BigFish => "Big Fish",
-            Self::TheCleric => "The Cleric",
-            Self::Duplicator => "Duplicator",
-            Self::GoldenShrine => "Golden Shrine",
-            Self::GoldenIdol => "Golden Idol",
-            Self::WingStatue => "Wing Statue",
-            Self::WorldOfGoop => "World of Goop",
-            Self::LivingWall => "Living Wall",
-            Self::Purifier => "Purifier",
-            Self::ScrapOoze => "Scrap Ooze",
-            Self::ShiningLight => "Shining Light",
-            Self::TheSsssserpent => "The Ssssserpent",
-            Self::Transmogrifier => "Transmogrifier",
-            Self::UpgradeShrine => "Upgrade Shrine",
-            Self::TheDivineFountain => "The Divine Fountain",
-            Self::TheLab => "The Lab",
-            Self::TheWomanInBlue => "The Woman in Blue",
-            Self::WheelOfChange => "Wheel of Change",
-            Self::BonfireSpirits => "Bonfire Spirits",
-            Self::OminousForge => "Ominous Forge",
-            Self::FaceTrader => "Face Trader",
-            Self::WeMeetAgain => "We Meet Again!",
-            Self::Mushrooms => "Hypnotizing Colored Mushrooms",
-            Self::DeadAdventurer => "Dead Adventurer",
-        }
-    }
-}
-
 impl MonsterEncounter {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -2669,61 +2490,74 @@ impl MonsterEncounter {
 
 // Snapshot builders
 pub fn snapshot_state(state: &GameState) -> PyGameState {
-    // Combat-only fields default to empty / 0 when not in Combat context
-    let (hand, pile_draw, pile_discard, pile_exhaust, energy, discover) = if let Mode::Combat {
-        id_hand,
-        id_pile_draw,
-        id_pile_discard,
-        id_pile_exhaust,
-        energy,
-        id_discover,
-        ..
-    } = &state.mode
-    {
-        (
-            id_hand.iter().map(|&id| snapshot_card(state, id)).collect(),
-            id_pile_draw
+    PyGameState {
+        mode: snapshot_mode(state),
+        game_over: state.game_over,
+        ascension: state.ascension,
+        character: snapshot_character(state),
+        deck: state
+            .id_deck
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
+        relics: iter_owned_relics(&state.id_relics)
+            .map(|(_name, id)| snapshot_relic(&state.entities[id]))
+            .collect(),
+        potions: state.id_potions[..state.potion_slots_max as usize]
+            .iter()
+            .map(|s| s.map(|id| snapshot_potion(&state.entities[id])))
+            .collect(),
+        potion_slots_max: state.potion_slots_max,
+        map: snapshot_map(state),
+        pending: state.effect_pending.as_ref().map(snapshot_effect),
+    }
+}
+
+fn snapshot_mode(state: &GameState) -> PyMode {
+    match &state.mode {
+        Mode::Map => PyMode::Map {},
+        Mode::RestSite => PyMode::RestSite {},
+        Mode::Chest => PyMode::Chest {},
+        Mode::ChestOpened => PyMode::ChestOpened {},
+        Mode::CombatEnded => PyMode::CombatEnded {},
+        Mode::Combat {
+            id_hand,
+            id_pile_draw,
+            id_pile_discard,
+            id_pile_exhaust,
+            energy,
+            id_discover,
+            ..
+        } => PyMode::Combat {
+            hand: id_hand.iter().map(|&id| snapshot_card(state, id)).collect(),
+            pile_draw: id_pile_draw
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            id_pile_discard
+            pile_discard: id_pile_discard
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            id_pile_exhaust
+            pile_exhaust: id_pile_exhaust
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            PyEnergy {
+            energy: PyEnergy {
                 energy_current: energy.energy_current,
                 energy_max: energy.energy_max,
             },
-            id_discover
+            monsters: snapshot_monsters(state),
+            discover: id_discover
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-        )
-    } else {
-        (
-            Vec::new(),
-            Vec::new(),
-            Vec::new(),
-            Vec::new(),
-            PyEnergy {
-                energy_current: 0,
-                energy_max: 0,
-            },
-            Vec::new(),
-        )
-    };
-    let pending = state.effect_pending.as_ref().map(snapshot_effect);
-    let reward = match &state.mode {
+        },
         Mode::Reward {
             reward_id_cards,
             reward_id_relic,
             reward_id_potions,
             reward_gold,
-        } => Some(PyReward {
+        } => PyMode::Reward {
             cards: reward_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
@@ -2734,25 +2568,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
                 .map(|&id| snapshot_potion(&state.entities[id]))
                 .collect(),
             gold: *reward_gold,
-        }),
-        // Eaten chest (N'loth): rests as an empty reward screen
-        Mode::ChestOpened => Some(PyReward {
-            cards: Vec::new(),
-            relic: None,
-            potions: Vec::new(),
-            gold: None,
-        }),
-        _ => None,
-    };
-    let event = match &state.mode {
-        Mode::Event {
-            kind,
-            consumed,
-            id_options,
-        } => Some(snapshot_event(state, *kind, *consumed, id_options)),
-        _ => None,
-    };
-    let shop = match &state.mode {
+        },
         Mode::Shop {
             shop_id_cards,
             shop_id_relics,
@@ -2761,7 +2577,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             shop_relic_prices,
             shop_potion_prices,
             shop_purge_cost,
-        } => Some(PyShop {
+        } => PyMode::Shop {
             cards: shop_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
@@ -2778,98 +2594,72 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
                 .collect(),
             potion_prices: shop_potion_prices.clone(),
             purge_cost: *shop_purge_cost,
-        }),
-        _ => None,
-    };
-    PyGameState {
-        character: snapshot_character(state),
-        monsters: snapshot_monsters(state),
-        deck: state
-            .id_deck
-            .iter()
-            .map(|&id| snapshot_card(state, id))
-            .collect(),
-        hand,
-        pile_draw,
-        pile_discard,
-        pile_exhaust,
-        relics: iter_owned_relics(&state.id_relics)
-            .map(|(_name, id)| snapshot_relic(&state.entities[id]))
-            .collect(),
-        potions: state.id_potions[..state.potion_slots_max as usize]
-            .iter()
-            .map(|s| s.map(|id| snapshot_potion(&state.entities[id])))
-            .collect(),
-        potion_slots_max: state.potion_slots_max,
-        energy,
-        map: snapshot_map(state),
-        screen: project_screen(&state.mode),
-        game_over: state.game_over,
-        ascension: state.ascension,
-        reward,
-        event,
-        pending,
-        discover,
-        shop,
+        },
+        Mode::Event {
+            kind,
+            consumed,
+            id_options,
+        } => PyMode::Event {
+            kind: snapshot_event_kind(state, *kind),
+            options: id_options
+                .iter()
+                .map(|&id| {
+                    state.entities[id]
+                        .event_option_effects
+                        .iter()
+                        .map(snapshot_effect)
+                        .collect()
+                })
+                .collect(),
+            consumed: *consumed,
+        },
     }
 }
 
-fn snapshot_event(
-    state: &GameState,
-    kind: EventKind,
-    consumed: bool,
-    id_options: &[usize],
-) -> PyEvent {
-    let name = kind.name();
-    let options: Vec<PyEventOption> = id_options
-        .iter()
-        .enumerate()
-        .map(|(idx, &id_option)| {
-            let option = &state.entities[id_option];
-            PyEventOption {
-                label: option.event_option_label.to_string(),
-                gated_out: !event_option_available(state, kind, idx),
-                effects: option.card_effects[..option.card_effects_len as usize]
-                    .iter()
-                    .map(snapshot_effect)
-                    .collect(),
-            }
-        })
-        .collect();
-
-    // Rolled picks disappear from the view once the event is consumed
-    let (pick_card, pick_potion, gold_rolled) = match kind {
+fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEventKind {
+    match kind {
+        EventKind::BigFish => PyEventKind::BigFish {},
+        EventKind::TheCleric => PyEventKind::TheCleric {},
+        EventKind::Duplicator => PyEventKind::Duplicator {},
+        EventKind::GoldenShrine => PyEventKind::GoldenShrine {},
+        EventKind::WingStatue => PyEventKind::WingStatue {},
+        EventKind::WorldOfGoop => PyEventKind::WorldOfGoop {},
+        EventKind::LivingWall => PyEventKind::LivingWall {},
+        EventKind::Purifier => PyEventKind::Purifier {},
+        EventKind::ShiningLight => PyEventKind::ShiningLight {},
+        EventKind::TheSsssserpent => PyEventKind::TheSsssserpent {},
+        EventKind::Transmogrifier => PyEventKind::Transmogrifier {},
+        EventKind::UpgradeShrine => PyEventKind::UpgradeShrine {},
+        EventKind::TheDivineFountain => PyEventKind::TheDivineFountain {},
+        EventKind::TheLab => PyEventKind::TheLab {},
+        EventKind::TheWomanInBlue => PyEventKind::TheWomanInBlue {},
+        EventKind::WheelOfChange => PyEventKind::WheelOfChange {},
+        EventKind::BonfireSpirits => PyEventKind::BonfireSpirits {},
+        EventKind::OminousForge => PyEventKind::OminousForge {},
+        EventKind::FaceTrader => PyEventKind::FaceTrader {},
+        EventKind::Mushrooms => PyEventKind::Mushrooms {},
+        EventKind::GoldenIdol { stage } => PyEventKind::GoldenIdol { stage },
+        EventKind::ScrapOoze { attempts } => PyEventKind::ScrapOoze { attempts },
         EventKind::WeMeetAgain {
             id_card,
             id_potion,
             gold_ask,
-        } => (
-            (!consumed)
-                .then_some(id_card)
-                .flatten()
-                .map(|id| snapshot_card(state, id)),
-            (!consumed)
-                .then_some(id_potion)
-                .flatten()
-                .map(|id| snapshot_potion(&state.entities[id])),
-            gold_ask.unwrap_or(0),
-        ),
-        _ => (None, None, 0),
-    };
-
-    PyEvent {
-        name: name.into(),
-        display_name: name.as_str().to_string(),
-        options,
-        state: match kind {
-            EventKind::GoldenIdol { stage } => stage,
-            EventKind::ScrapOoze { attempts } => attempts,
-            EventKind::DeadAdventurer { searches, .. } => searches,
-            _ => 0,
+        } => PyEventKind::WeMeetAgain {
+            pick_card: id_card.map(|id| snapshot_card(state, id)),
+            pick_potion: id_potion.map(|id| snapshot_potion(&state.entities[id])),
+            gold_ask,
         },
-        pick_card,
-        pick_potion,
-        gold_rolled,
+        EventKind::DeadAdventurer {
+            found_gold,
+            found_nothing,
+            found_relic,
+            searches,
+        } => PyEventKind::DeadAdventurer {
+            found_gold,
+            found_nothing,
+            found_relic,
+            searches,
+        },
     }
 }
 
@@ -3220,10 +3010,8 @@ impl_discriminant_hash!(
     PyCardName,
     PyMonsterName,
     PyMonsterEncounter,
-    PyEventName,
     PyRelicTier,
     PyCandidatePoolMonstersFilter,
-    PyScreen,
     PyCandidatePoolCardFilter,
     PyIntentKind,
 );

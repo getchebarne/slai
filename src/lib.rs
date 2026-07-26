@@ -135,17 +135,15 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyModifierKind>()?;
     module.add_class::<ffi::PyIntentKind>()?;
     module.add_class::<ffi::PyCandidatePool>()?;
+    module.add_class::<ffi::PyMode>()?;
+    module.add_class::<ffi::PyEventKind>()?;
     module.add_class::<ffi::PyRelicName>()?;
     module.add_class::<ffi::PyRelicTier>()?;
     module.add_class::<ffi::PyCardName>()?;
     module.add_class::<ffi::PyMonsterName>()?;
     module.add_class::<ffi::PyMonsterEncounter>()?;
-    module.add_class::<ffi::PyEventName>()?;
     module.add_class::<ffi::PyCandidatePoolCardFilter>()?;
     module.add_class::<ffi::PyCandidatePoolMonstersFilter>()?;
-    module.add_class::<ffi::PyScreen>()?;
-    module.add_class::<ffi::PyEvent>()?;
-    module.add_class::<ffi::PyEventOption>()?;
 
     // Complex enum mirrors
     module.add_class::<ffi::PySelectionKind>()?;
@@ -155,8 +153,6 @@ fn slai(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<ffi::PyAmount>()?;
 
     // Reward + Shop surface
-    module.add_class::<ffi::PyReward>()?;
-    module.add_class::<ffi::PyShop>()?;
     Ok(())
 }
 

@@ -180,8 +180,9 @@ pub struct Entity {
     pub potion_combat_only: bool,
     pub potion_effects: &'static [Effect],
 
-    // EventOption-only (effects reuse card_effects / card_effects_len)
+    // EventOption-only
     pub event_option_label: &'static str,
+    pub event_option_effects: &'static [Effect],
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots
@@ -239,6 +240,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     potion_combat_only: true,
     potion_effects: &[],
     event_option_label: "",
+    event_option_effects: &[],
 };
 
 // Constructors
@@ -383,22 +385,11 @@ pub const fn make_entity_potion(
     }
 }
 
-pub const fn make_entity_event_option(label: &'static str, effects: &[Effect]) -> Entity {
-    assert!(
-        effects.len() <= MAX_EFFECTS_PER_CARD,
-        "event option effect list exceeds MAX_EFFECTS_PER_CARD"
-    );
-    let mut card_effects = [ZERO_EFFECT; MAX_EFFECTS_PER_CARD];
-    let mut i = 0;
-    while i < effects.len() {
-        card_effects[i] = effects[i];
-        i += 1;
-    }
+pub const fn make_entity_event_option(label: &'static str, effects: &'static [Effect]) -> Entity {
     Entity {
         kind: EntityKind::EventOption,
         event_option_label: label,
-        card_effects,
-        card_effects_len: effects.len() as u8,
+        event_option_effects: effects,
         ..ZERO_ENTITY
     }
 }

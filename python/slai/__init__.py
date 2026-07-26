@@ -31,8 +31,6 @@ PotionName = _rs.PotionName
 PotionRarity = _rs.PotionRarity
 ModifierKind = _rs.ModifierKind
 IntentKind = _rs.IntentKind
-Screen = _rs.Screen
-EventName = _rs.EventName
 CandidatePoolMonstersFilter = _rs.CandidatePoolMonstersFilter
 CandidatePoolCardFilter = _rs.CandidatePoolCardFilter
 
@@ -96,17 +94,17 @@ def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
 
 
 # Per-slot description strings
-_HAND_POS = "position in state.hand (the current hand)"
+_HAND_POS = "position in state.mode.hand (the current hand)"
 _MONSTER_POS = "position in the alive-monster list at dispatch time"
-_REWARD_POS = "slot in state.rewards_card / state.rewards_relic"
+_REWARD_POS = "slot in state.mode.cards"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
 _SLOT_POS = "slot in state.potions"
-_REWARD_POTION_POS = "slot in state.reward.potions"
-_DISCOVER_POS = "position in state.picks_card (the discovery offer)"
-_SHOP_CARD_POS = "position in state.shop.cards"
-_SHOP_RELIC_POS = "position in state.shop.relics"
-_SHOP_POTION_POS = "position in state.shop.potions"
+_REWARD_POTION_POS = "slot in state.mode.potions"
+_DISCOVER_POS = "position in state.mode.discover (the discovery offer)"
+_SHOP_CARD_POS = "position in state.mode.cards"
+_SHOP_RELIC_POS = "position in state.mode.relics"
+_SHOP_POTION_POS = "position in state.mode.potions"
 
 
 # Action spec registry
@@ -124,7 +122,9 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.CardPurge, ArgSpec("idx", _DECK_POS)),
         create_action_spec(ActionType.CardTransform, ArgSpec("idx", _DECK_POS)),
         create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
-        create_action_spec(ActionType.EventOptionSelect, ArgSpec("idx", _HAND_POS)),
+        create_action_spec(
+            ActionType.EventOptionSelect, ArgSpec("idx", "position in state.mode.options")
+        ),
         # Hand-pick family (resolves a hand-pick halt)
         create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
@@ -171,10 +171,6 @@ Room = _rs.Room
 Modifier = _rs.Modifier
 Monster = _rs.Monster
 Relic = _rs.Relic
-Event = _rs.Event
-EventOption = _rs.EventOption
-Reward = _rs.Reward
-Shop = _rs.Shop
 Potion = _rs.Potion
 
 # Plain struct view
@@ -189,8 +185,39 @@ CandidatePool = _rs.CandidatePool
 SelectionKind = _rs.SelectionKind
 CardCostKind = _rs.CardCostKind
 Amount = _rs.Amount
+Mode = _rs.Mode
+EventKind = _rs.EventKind
 
 DeltaSign = _rs.DeltaSign
+
+# EventKind variants in engine declaration order — the stable event-identity
+# index for featurization (variant classes carry no discriminant of their own)
+EVENT_KIND_ORDER: tuple[type, ...] = (
+    EventKind.BigFish,
+    EventKind.TheCleric,
+    EventKind.Duplicator,
+    EventKind.GoldenShrine,
+    EventKind.WingStatue,
+    EventKind.WorldOfGoop,
+    EventKind.LivingWall,
+    EventKind.Purifier,
+    EventKind.ShiningLight,
+    EventKind.TheSsssserpent,
+    EventKind.Transmogrifier,
+    EventKind.UpgradeShrine,
+    EventKind.TheDivineFountain,
+    EventKind.TheLab,
+    EventKind.TheWomanInBlue,
+    EventKind.WheelOfChange,
+    EventKind.BonfireSpirits,
+    EventKind.OminousForge,
+    EventKind.FaceTrader,
+    EventKind.Mushrooms,
+    EventKind.GoldenIdol,
+    EventKind.ScrapOoze,
+    EventKind.WeMeetAgain,
+    EventKind.DeadAdventurer,
+)
 
 
 __all__ = [
@@ -214,8 +241,6 @@ __all__ = [
     "Modifier",
     "Monster",
     "Relic",
-    "Event",
-    "EventOption",
     # Unit enums (raw)
     "CardKind",
     "CardColor",
@@ -232,9 +257,7 @@ __all__ = [
     "CardName",
     "MonsterName",
     "MonsterEncounter",
-    "EventName",
     "CandidatePoolCardFilter",
-    "Screen",
     # Complex enums (raw nested-variant classes)
     "CandidatePool",
     "SelectionKind",
@@ -242,11 +265,10 @@ __all__ = [
     "Target",
     "Effect",
     "Amount",
+    "Mode",
+    "EventKind",
+    "EVENT_KIND_ORDER",
     "DeltaSign",
-    # Reward
-    "Reward",
-    # Shop
-    "Shop",
     # Potion
     "Potion",
 ]

@@ -119,38 +119,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
     (kind, id_options)
 }
 
-impl EventKind {
-    pub fn name(&self) -> EventName {
-        match self {
-            EventKind::BigFish => EventName::BigFish,
-            EventKind::TheCleric => EventName::TheCleric,
-            EventKind::Duplicator => EventName::Duplicator,
-            EventKind::GoldenShrine => EventName::GoldenShrine,
-            EventKind::WingStatue => EventName::WingStatue,
-            EventKind::WorldOfGoop => EventName::WorldOfGoop,
-            EventKind::LivingWall => EventName::LivingWall,
-            EventKind::Purifier => EventName::Purifier,
-            EventKind::ShiningLight => EventName::ShiningLight,
-            EventKind::TheSsssserpent => EventName::TheSsssserpent,
-            EventKind::Transmogrifier => EventName::Transmogrifier,
-            EventKind::UpgradeShrine => EventName::UpgradeShrine,
-            EventKind::TheDivineFountain => EventName::TheDivineFountain,
-            EventKind::TheLab => EventName::TheLab,
-            EventKind::TheWomanInBlue => EventName::TheWomanInBlue,
-            EventKind::WheelOfChange => EventName::WheelOfChange,
-            EventKind::BonfireSpirits => EventName::BonfireSpirits,
-            EventKind::OminousForge => EventName::OminousForge,
-            EventKind::FaceTrader => EventName::FaceTrader,
-            EventKind::Mushrooms => EventName::Mushrooms,
-            EventKind::GoldenIdol { .. } => EventName::GoldenIdol,
-            EventKind::ScrapOoze { .. } => EventName::ScrapOoze,
-            EventKind::WeMeetAgain { .. } => EventName::WeMeetAgain,
-            EventKind::DeadAdventurer { .. } => EventName::DeadAdventurer,
-        }
-    }
-}
-
-// One Entity per option, copied into the arena at spawn (the card-spawn idiom)
+// One Entity per option, copied into the arena at spawn
 pub fn bake_options(state: &mut GameState, options: &[Entity]) -> Vec<usize> {
     let mut id_options = Vec::with_capacity(options.len());
     for &option in options {
@@ -223,8 +192,6 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
         } => we_meet_again::option_available(state, id_card, id_potion, gold_ask, idx),
     }
 }
-
-// Shared deck-scan predicates
 
 pub fn deck_has_upgradable(state: &GameState) -> bool {
     state
