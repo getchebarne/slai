@@ -6,10 +6,19 @@ use crate::entity::add_card_to_hand_or_discard;
 use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::Mode;
 use rand::Rng;
 
 // Random Silent Skill (not Distraction) into hand, free-to-play-once
 pub fn process_effect_distraction_add(state: &mut GameState) {
+    let Mode::Combat {
+        id_hand,
+        id_pile_discard,
+        ..
+    } = &mut state.mode
+    else {
+        unreachable!("process_effect_distraction_add outside Combat mode")
+    };
     let mut buf = [CardName::Strike; 64];
     let mut n = 0;
     for pool in [
@@ -38,8 +47,8 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
 
     add_card_to_hand_or_discard(
         &mut state.entities,
-        &mut state.id_hand,
-        &mut state.id_pile_discard,
+        &mut *id_hand,
+        &mut *id_pile_discard,
         card,
     );
 }

@@ -9,25 +9,18 @@ use crate::action::handle_action;
 use crate::action::recompute_legal_actions;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
-use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_ELITE;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_NORMAL;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_CANDIDATES;
-use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_EFFECTS_PER_HANDLER;
 use crate::consts::MAX_ENTITIES;
-use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_DECK;
-use crate::consts::MAX_SIZE_HAND;
 use crate::consts::POTION_SLOTS_DEFAULT;
 use crate::consts::POTION_SLOTS_DEFAULT_A11;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::SHOP_PURGE_COST_BASE;
-use crate::consts::SHOP_SLOTS_CARD_TOTAL;
-use crate::consts::SHOP_SLOTS_POTION;
-use crate::consts::SHOP_SLOTS_RELIC;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
@@ -42,12 +35,6 @@ use crate::monsters::encounters::pick_act1_boss;
 use crate::relics::get_relic;
 use crate::types::*;
 use crate::utils::push_entity;
-
-#[derive(Debug, Clone, Copy)]
-pub struct Energy {
-    pub energy_current: u8,
-    pub energy_max: u8,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Location {
@@ -108,43 +95,8 @@ pub struct GameState {
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
-    pub screen: Screen,
+    pub mode: Mode,
     pub game_over: bool,
-
-    // Combat working memory; meaningful when active = Combat
-    pub id_hand: Vec<usize>,
-    pub id_pile_draw: Vec<usize>,
-    pub id_pile_discard: Vec<usize>,
-    pub id_pile_exhaust: Vec<usize>,
-    pub id_monsters: [Option<usize>; MAX_MONSTERS],
-    pub id_picked_monster: Option<usize>,
-    pub energy: Energy,
-    pub this_turn_discards: u8,
-    pub this_turn_attacks: u8,
-    pub this_turn_cards_played: u8,
-    pub this_combat_damage_instances_taken: u8,
-    pub this_combat_escaped: bool,
-    pub id_card_last_drawn: Option<usize>,
-    pub id_card_nightmare: Option<usize>,
-    pub id_discover: Vec<usize>,
-
-    // Reward working memory; meaningful when active = Reward
-    pub reward_id_cards: Vec<usize>,
-    pub reward_id_relic: Option<usize>,
-    pub reward_id_potions: Vec<usize>,
-    pub reward_gold: Option<u16>,
-
-    // Event working memory; meaningful when active = Event
-    pub id_event: Option<usize>,
-
-    // Shop working memory; meaningful when screen = Shop
-    pub shop_id_cards: Vec<usize>,
-    pub shop_id_relics: Vec<usize>,
-    pub shop_id_potions: Vec<usize>,
-    pub shop_card_prices: Vec<u16>,
-    pub shop_relic_prices: Vec<u16>,
-    pub shop_potion_prices: Vec<u16>,
-    pub shop_purge_cost: u16,
 
     // Removal cost for the whole run: 75 + 25 per purge, never reset
     pub shop_purge_cost_run: u16,
@@ -203,7 +155,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     );
     let encounter_boss = pick_act1_boss(&mut rng);
 
-    // Start unhalted on Screen::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
+    // Start unhalted on Mode::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
     let effect_queue = VecDeque::with_capacity(64);
 
     let mut state = GameState {
@@ -230,44 +182,14 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         pool_events: POOL_ACT1_EVENT.to_vec(),
         pool_event_special: POOL_ACT1_EVENT_SPECIAL.to_vec(),
         potion_drop_mod: 0,
-        screen: Screen::Map,
+        mode: Mode::Map,
         game_over: false,
-        id_hand: Vec::with_capacity(MAX_SIZE_HAND),
-        id_pile_draw: Vec::with_capacity(MAX_SIZE_DECK),
-        id_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
-        id_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
-        id_monsters: [None; MAX_MONSTERS],
-        id_picked_monster: None,
-        energy: Energy {
-            energy_current: 3,
-            energy_max: 3,
-        },
-        this_turn_discards: 0,
-        this_turn_attacks: 0,
-        this_turn_cards_played: 0,
-        this_combat_damage_instances_taken: 0,
-        this_combat_escaped: false,
-        id_card_last_drawn: None,
-        id_card_nightmare: None,
-        id_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
-        reward_id_cards: Vec::with_capacity(MAX_COMBAT_CARD_REWARD),
-        reward_id_relic: None,
-        reward_id_potions: Vec::new(),
-        reward_gold: None,
-        id_event: None,
-        shop_id_cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
-        shop_id_relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
-        shop_id_potions: Vec::with_capacity(SHOP_SLOTS_POTION),
-        shop_card_prices: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
-        shop_relic_prices: Vec::with_capacity(SHOP_SLOTS_RELIC),
-        shop_potion_prices: Vec::with_capacity(SHOP_SLOTS_POTION),
-        shop_purge_cost: 0,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,
         legal_actions: Vec::new(),
         fast_mode,
     };
 
-    // Settle on Screen::Map — enumerate the initial row-0 room picks
+    // Settle on Mode::Map — enumerate the initial row-0 room picks
     recompute_legal_actions(&mut state);
     state
 }

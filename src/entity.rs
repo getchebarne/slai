@@ -9,7 +9,6 @@ use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
-use crate::events::EventOption;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::CardColor;
@@ -17,7 +16,6 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::ChestKind;
-use crate::types::EventName;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::PotionName;
@@ -38,7 +36,7 @@ pub enum EntityKind {
     Room,
     Relic,
     Potion,
-    Event,
+    EventOption,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -182,11 +180,9 @@ pub struct Entity {
     pub potion_combat_only: bool,
     pub potion_effects: &'static [Effect],
 
-    // Event-only
-    pub event_name: EventName,
-    pub event_options: &'static [EventOption],
-    pub event_consumed: bool,
-    pub event_state: u8,
+    // EventOption-only
+    pub event_option_label: &'static str,
+    pub event_option_effects: &'static [Effect],
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots
@@ -243,10 +239,8 @@ pub const ZERO_ENTITY: Entity = Entity {
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,
     potion_effects: &[],
-    event_name: EventName::BigFish,
-    event_options: &[],
-    event_consumed: false,
-    event_state: 0,
+    event_option_label: "",
+    event_option_effects: &[],
 };
 
 // Constructors
@@ -391,11 +385,11 @@ pub const fn make_entity_potion(
     }
 }
 
-pub const fn make_entity_event(name: EventName, options: &'static [EventOption]) -> Entity {
+pub const fn make_entity_event_option(label: &'static str, effects: &'static [Effect]) -> Entity {
     Entity {
-        kind: EntityKind::Event,
-        event_name: name,
-        event_options: options,
+        kind: EntityKind::EventOption,
+        event_option_label: label,
+        event_option_effects: effects,
         ..ZERO_ENTITY
     }
 }

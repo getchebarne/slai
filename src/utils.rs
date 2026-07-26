@@ -11,6 +11,7 @@ use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
+use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
@@ -28,8 +29,8 @@ use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::types::Mode;
 use crate::types::RelicName;
-use crate::types::Screen;
 
 // Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
@@ -49,16 +50,6 @@ pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName)
     id_relics[name as usize].is_some()
 }
 
-pub fn clear_shop_state(state: &mut GameState) {
-    state.shop_id_cards.clear();
-    state.shop_id_relics.clear();
-    state.shop_id_potions.clear();
-    state.shop_card_prices.clear();
-    state.shop_relic_prices.clear();
-    state.shop_potion_prices.clear();
-    state.shop_purge_cost = 0;
-}
-
 pub fn card_is_upgradable(entity: &Entity) -> bool {
     if entity.kind != EntityKind::Card {
         return false;
@@ -67,6 +58,12 @@ pub fn card_is_upgradable(entity: &Entity) -> bool {
         return false;
     }
     !matches!(entity.card_kind, CardKind::Curse | CardKind::Status)
+}
+
+pub fn card_is_non_basic_non_curse(entity: &Entity) -> bool {
+    entity.kind == EntityKind::Card
+        && entity.card_rarity != CardRarity::Basic
+        && entity.card_kind != CardKind::Curse
 }
 
 pub fn card_is_purgeable(entity: &Entity) -> bool {
@@ -108,11 +105,19 @@ pub fn reshuffle_discard_into_draw(
 
 // Queue rest in Combat means the player is about to act; a drawable card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
+    let Mode::Combat {
+        id_hand,
+        id_pile_draw,
+        id_pile_discard,
+        ..
+    } = &state.mode
+    else {
+        return false;
+    };
     has_relic(&state.id_relics, RelicName::UnceasingTop)
-        && matches!(state.screen, Screen::Combat)
         && state.effect_pending.is_none()
-        && state.id_hand.is_empty()
-        && !(state.id_pile_draw.is_empty() && state.id_pile_discard.is_empty())
+        && id_hand.is_empty()
+        && !(id_pile_draw.is_empty() && id_pile_discard.is_empty())
         && !has_modifier(
             &state.entities[state.id_character].modifiers,
             ModifierKind::NoDraw,
@@ -128,17 +133,23 @@ pub fn weak_factor(is_weak: bool, paper_krane: bool) -> f32 {
     }
 }
 
+// Odd Mushroom softens Vulnerable on the character only
+pub fn vuln_factor(is_vulnerable: bool, odd_mushroom: bool) -> f32 {
+    match (is_vulnerable, odd_mushroom) {
+        (false, _) => 1.0,
+        (true, false) => FACTOR_VULN,
+        (true, true) => FACTOR_VULN_ODD_MUSHROOM,
+    }
+}
+
 // Shared by the live damage pipeline and the FFI intent view
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
     weak_factor: f32,
-    target_is_vulnerable: bool,
+    vuln_factor: f32,
 ) -> u16 {
-    let mut value = (base as f32 + source_str_stacks as f32) * weak_factor;
-    if target_is_vulnerable {
-        value *= FACTOR_VULN;
-    }
+    let value = (base as f32 + source_str_stacks as f32) * weak_factor * vuln_factor;
     value.max(0.0) as u16
 }
 

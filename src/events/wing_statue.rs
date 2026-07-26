@@ -6,12 +6,12 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
+use crate::events::deck_has_damage_card;
+use crate::events::deck_has_purgeable;
+use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
 // Pray
 const OPTION_PRAY: &[Effect] = &[
@@ -55,27 +55,20 @@ const OPTION_ATTACK: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Pray] Remove a card from your deck. Lose 7 HP.",
-        effects: OPTION_PRAY,
-        gate: EventGate::HasPurgeableInDeck,
-    },
-    EventOption {
-        label: "[Destroy] Receive 50-80 Gold.",
-        effects: OPTION_ATTACK,
-        gate: EventGate::HasDamageCardInDeck { min_base: 10 },
-    },
-    EventOption {
-        label: "[Leave] Nothing happens.",
-        effects: OPTION_LEAVE,
-        gate: EventGate::None,
-    },
+pub static OPTIONS: &[Entity] = &[
+    make_entity_event_option(
+        "[Pray] Remove a card from your deck. Lose 7 HP.",
+        OPTION_PRAY,
+    ),
+    make_entity_event_option("[Destroy] Receive 50-80 Gold.", OPTION_ATTACK),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-// Export event
-static EVENT_WING_STATUE: Entity = make_entity_event(EventName::WingStatue, OPTIONS_ALL);
-pub fn spawn_event_wing_statue() -> Entity {
-    EVENT_WING_STATUE
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    match idx {
+        0 => deck_has_purgeable(state),
+        1 => deck_has_damage_card(state, 10),
+        2 => true,
+        _ => unreachable!("Wing statue option out of range: {idx}"),
+    }
 }

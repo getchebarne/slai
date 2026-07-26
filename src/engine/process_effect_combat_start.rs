@@ -3,30 +3,57 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::game::Energy;
 use crate::game::GameState;
-use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
+use crate::types::Energy;
+use crate::types::Mode;
+use crate::types::MonsterKind;
 use crate::types::RelicName;
-use crate::types::RoomKind;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
-pub fn process_effect_combat_start(state: &mut GameState) {
+pub fn process_effect_combat_start(
+    state: &mut GameState,
+    event_gold: Option<Amount>,
+    event_relic: Option<RelicName>,
+    event_relic_roll: bool,
+) {
+    let Mode::Combat {
+        id_pile_draw,
+        id_monsters,
+        id_picked_monster,
+        energy,
+        this_turn_cards_played,
+        this_combat_damage_instances_taken,
+        this_combat_escaped,
+        event_gold: combat_event_gold,
+        event_relic: combat_event_relic,
+        event_relic_roll: combat_event_relic_roll,
+        ..
+    } = &mut state.mode
+    else {
+        unreachable!("process_effect_combat_start outside Combat mode")
+    };
+
+    // Stamp the event fight's reward parameters (None for ordinary fights)
+    *combat_event_gold = event_gold;
+    *combat_event_relic = event_relic;
+    *combat_event_relic_roll = event_relic_roll;
+
     // Energy starts empty; the turn-1 refill fills
-    state.energy = Energy {
+    *energy = Energy {
         energy_current: 0,
         energy_max: 3, // TODO: Max energy relics
     };
 
-    state.this_combat_damage_instances_taken = 0;
-    state.this_combat_escaped = false;
-    state.this_turn_cards_played = 0;
+    *this_combat_damage_instances_taken = 0;
+    *this_combat_escaped = false;
+    *this_turn_cards_played = 0;
 
     // Combat can end mid-turn, skipping the turn-end reset
     for &name in RELIC_COUNTERS_PER_TURN
@@ -59,15 +86,15 @@ pub fn process_effect_combat_start(state: &mut GameState) {
 
     shuffle(&mut other_ids[..other_n], &mut state.rng);
 
-    state.id_pile_draw.clear();
+    id_pile_draw.clear();
     for &id in &other_ids[..other_n] {
-        state.id_pile_draw.push(id);
+        id_pile_draw.push(id);
     }
     for &id in &innate_ids[..innate_n] {
-        state.id_pile_draw.push(id);
+        id_pile_draw.push(id);
     }
 
-    state.id_picked_monster = None;
+    *id_picked_monster = None;
 
     // Monster MoveUpdates already queued at MonsterSpawn; queue character TurnStart
     state.effect_queue.push_front(Effect {
@@ -109,14 +136,16 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         });
     }
 
+    // Elite fights are identified by the monsters, not the room: Dead Adventurer's
+    // elite returns inside an event room
+    let is_elite_fight = id_monsters
+        .iter()
+        .flatten()
+        .any(|&id| state.entities[id].monster_kind == MonsterKind::Elite);
+
     // Preserved Insect
-    if has_relic(&state.id_relics, RelicName::PreservedInsect)
-        && matches!(
-            get_active_room_kind(&state.id_rooms, state.location, &state.entities),
-            Some(RoomKind::CombatElite)
-        )
-    {
-        for id in state.id_monsters.iter().flatten().copied() {
+    if has_relic(&state.id_relics, RelicName::PreservedInsect) && is_elite_fight {
+        for id in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthSet {
                     amount: Amount::Relative {
@@ -151,12 +180,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Sling of Courage: Elite fights open with 2 Strength
-    if has_relic(&state.id_relics, RelicName::SlingOfCourage)
-        && matches!(
-            get_active_room_kind(&state.id_rooms, state.location, &state.entities),
-            Some(RoomKind::CombatElite)
-        )
-    {
+    if has_relic(&state.id_relics, RelicName::SlingOfCourage) && is_elite_fight {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,

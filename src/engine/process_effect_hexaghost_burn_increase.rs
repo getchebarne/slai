@@ -4,20 +4,30 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
+use crate::types::Mode;
 
-// Upgrade existing Burns in draw+discard, then add `count` upgraded Burns to discard
+// Upgrade existing Burns in the draw and discard piles, then add `count`
+// upgraded Burns to the discard pile
 pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) {
+    let Mode::Combat {
+        id_pile_draw,
+        id_pile_discard,
+        ..
+    } = &mut state.mode
+    else {
+        unreachable!("process_effect_hexaghost_burn_increase outside Combat mode")
+    };
     let burn_upgraded = get_card(CardName::Burn, true);
-    for i in 0..state.id_pile_draw.len() {
-        let id_card = state.id_pile_draw[i];
+    for i in 0..id_pile_draw.len() {
+        let id_card = id_pile_draw[i];
         if state.entities[id_card].card_name == CardName::Burn
             && !state.entities[id_card].card_upgraded
         {
             state.entities[id_card] = burn_upgraded;
         }
     }
-    for i in 0..state.id_pile_discard.len() {
-        let id_card = state.id_pile_discard[i];
+    for i in 0..id_pile_discard.len() {
+        let id_card = id_pile_discard[i];
         if state.entities[id_card].card_name == CardName::Burn
             && !state.entities[id_card].card_upgraded
         {

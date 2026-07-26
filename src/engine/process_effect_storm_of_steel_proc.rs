@@ -4,21 +4,29 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
+use crate::types::Mode;
 
 // Discard the entire hand, then add 1 Shiv per discarded card
 pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool) {
-    let n = state.id_hand.len() as u16;
+    let Mode::Combat { id_hand, .. } = &mut state.mode else {
+        unreachable!("process_effect_storm_of_steel_proc outside Combat mode")
+    };
+
+    // Add the Shivs
+    let count = id_hand.len() as u16;
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardAddToHand {
             card_name: CardName::Shiv,
-            count: n,
+            count,
             upgraded,
         },
         id_source: None,
         target: Target::Direct(None),
     });
-    for i in 0..state.id_hand.len() {
-        let id_card = state.id_hand[i];
+
+    // Discard the current cards
+    for i in 0..id_hand.len() {
+        let id_card = id_hand[i];
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::Explicit, // Triggers on-discard sinergies

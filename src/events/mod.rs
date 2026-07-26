@@ -1,10 +1,12 @@
 mod big_fish;
 mod bonfire_spirits;
+mod dead_adventurer;
 mod duplicator;
 mod face_trader;
 mod golden_idol;
 mod golden_shrine;
 mod living_wall;
+mod mushrooms;
 mod ominous_forge;
 mod purifier;
 mod scrap_ooze;
@@ -16,11 +18,10 @@ mod the_ssssserpent;
 mod the_woman_in_blue;
 mod transmogrifier;
 mod upgrade_shrine;
+mod we_meet_again;
 mod wheel_of_change;
 mod wing_statue;
 mod world_of_goop;
-
-use rand::Rng;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -28,12 +29,11 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
-use crate::types::CardKind;
-use crate::types::CardRarity;
 use crate::types::EventName;
-use crate::types::RelicName;
+use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
+use crate::utils::push_entity;
 
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
@@ -42,60 +42,183 @@ pub const EVENT_CONSUME_EFFECT: Effect = Effect {
 };
 
 #[derive(Debug, Clone, Copy)]
-pub struct EventOption {
-    pub label: &'static str,
-    pub effects: &'static [Effect],
-    pub gate: EventGate,
+pub enum EventKind {
+    BigFish,
+    TheCleric,
+    Duplicator,
+    GoldenShrine,
+    WingStatue,
+    WorldOfGoop,
+    LivingWall,
+    Purifier,
+    ShiningLight,
+    TheSsssserpent,
+    Transmogrifier,
+    UpgradeShrine,
+    TheDivineFountain,
+    TheLab,
+    TheWomanInBlue,
+    WheelOfChange,
+    BonfireSpirits,
+    OminousForge,
+    FaceTrader,
+    Mushrooms,
+    GoldenIdol {
+        stage: u8,
+    },
+    ScrapOoze {
+        attempts: u8,
+    },
+    WeMeetAgain {
+        id_card: Option<usize>,
+        id_potion: Option<usize>,
+        gold_ask: Option<u16>,
+    },
+    DeadAdventurer {
+        found_gold: bool,
+        found_nothing: bool,
+        found_relic: bool,
+        searches: u8,
+    },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EventGate {
-    None,
-    GoldAtLeast(u16),
-    HpAtLeast(u16),
-    HasUpgradableInDeck,
-    HasPurgeableInDeck,
-    HasNonBasicNonCurseInDeck,
-    HasDamageCardInDeck { min_base: u16 },
-    HasRelicOwned(RelicName),
-    PotionBeltHasAny,
-    EventStateEq(u8),
-    All(&'static [EventGate]),
+// Builds the event: entry rolls land in the kind, options bake into the arena
+pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<usize>) {
+    let kind = match name {
+        EventName::BigFish => EventKind::BigFish,
+        EventName::TheCleric => EventKind::TheCleric,
+        EventName::Duplicator => EventKind::Duplicator,
+        EventName::GoldenShrine => EventKind::GoldenShrine,
+        EventName::GoldenIdol => EventKind::GoldenIdol { stage: 0 },
+        EventName::WingStatue => EventKind::WingStatue,
+        EventName::WorldOfGoop => EventKind::WorldOfGoop,
+        EventName::LivingWall => EventKind::LivingWall,
+        EventName::Purifier => EventKind::Purifier,
+        EventName::ScrapOoze => EventKind::ScrapOoze { attempts: 0 },
+        EventName::ShiningLight => EventKind::ShiningLight,
+        EventName::TheSsssserpent => EventKind::TheSsssserpent,
+        EventName::Transmogrifier => EventKind::Transmogrifier,
+        EventName::UpgradeShrine => EventKind::UpgradeShrine,
+        EventName::TheDivineFountain => EventKind::TheDivineFountain,
+        EventName::TheLab => EventKind::TheLab,
+        EventName::TheWomanInBlue => EventKind::TheWomanInBlue,
+        EventName::WheelOfChange => EventKind::WheelOfChange,
+        EventName::BonfireSpirits => EventKind::BonfireSpirits,
+        EventName::OminousForge => EventKind::OminousForge,
+        EventName::FaceTrader => EventKind::FaceTrader,
+        EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(state),
+        EventName::Mushrooms => EventKind::Mushrooms,
+        EventName::DeadAdventurer => EventKind::DeadAdventurer {
+            found_gold: false,
+            found_nothing: false,
+            found_relic: false,
+            searches: 0,
+        },
+    };
+    let id_options = bake_event_options(state, kind);
+    (kind, id_options)
 }
 
-pub fn event_option_gate_satisfied(gate: EventGate, state: &GameState, id_event: usize) -> bool {
-    let character = &state.entities[state.id_character];
-    match gate {
-        EventGate::None => true,
-        EventGate::GoldAtLeast(amount) => character.character_gold >= amount,
-        EventGate::HpAtLeast(amount) => character.vitals.health >= amount,
-        EventGate::HasUpgradableInDeck => state
-            .id_deck
-            .iter()
-            .any(|&id| card_is_upgradable(&state.entities[id])),
-        EventGate::HasPurgeableInDeck => state
-            .id_deck
-            .iter()
-            .any(|&id| card_is_purgeable(&state.entities[id])),
-        EventGate::HasNonBasicNonCurseInDeck => state.id_deck.iter().any(|&id| {
-            let entity = &state.entities[id];
-            entity.card_rarity != CardRarity::Basic && entity.card_kind != CardKind::Curse
-        }),
-        EventGate::HasDamageCardInDeck { min_base } => state
-            .id_deck
-            .iter()
-            .any(|&id| card_has_damage_at_least(&state.entities[id], min_base)),
-        EventGate::HasRelicOwned(name) => state.id_relics[name as usize].is_some(),
-        EventGate::PotionBeltHasAny => state
-            .id_potions
-            .iter()
-            .take(state.potion_slots_max as usize)
-            .any(|slot| slot.is_some()),
-        EventGate::EventStateEq(value) => state.entities[id_event].event_state == value,
-        EventGate::All(gates) => gates
-            .iter()
-            .all(|g| event_option_gate_satisfied(*g, state, id_event)),
+// One Entity per option, copied into the arena at spawn
+pub fn bake_options(state: &mut GameState, options: &[Entity]) -> Vec<usize> {
+    let mut id_options = Vec::with_capacity(options.len());
+    for &option in options {
+        id_options.push(push_entity(&mut state.entities, option));
     }
+    id_options
+}
+
+// Option lists encode only spawn-time state; mid-event dynamism lives in processors
+fn bake_event_options(state: &mut GameState, kind: EventKind) -> Vec<usize> {
+    let ascension = state.ascension;
+    match kind {
+        EventKind::BigFish => bake_options(state, big_fish::OPTIONS),
+        EventKind::TheCleric => bake_options(state, the_cleric::options(ascension)),
+        EventKind::Duplicator => bake_options(state, duplicator::OPTIONS),
+        EventKind::GoldenShrine => bake_options(state, golden_shrine::options(ascension)),
+        EventKind::WingStatue => bake_options(state, wing_statue::OPTIONS),
+        EventKind::WorldOfGoop => bake_options(state, world_of_goop::options(ascension)),
+        EventKind::LivingWall => bake_options(state, living_wall::OPTIONS),
+        EventKind::Purifier => bake_options(state, purifier::OPTIONS),
+        EventKind::ShiningLight => bake_options(state, shining_light::options(ascension)),
+        EventKind::TheSsssserpent => bake_options(state, the_ssssserpent::options(ascension)),
+        EventKind::Transmogrifier => bake_options(state, transmogrifier::OPTIONS),
+        EventKind::UpgradeShrine => bake_options(state, upgrade_shrine::OPTIONS),
+        EventKind::TheDivineFountain => bake_options(state, the_divine_fountain::OPTIONS),
+        EventKind::TheLab => bake_options(state, the_lab::options(ascension)),
+        EventKind::TheWomanInBlue => bake_options(state, the_woman_in_blue::options(ascension)),
+        EventKind::WheelOfChange => bake_options(state, wheel_of_change::OPTIONS),
+        EventKind::BonfireSpirits => bake_options(state, bonfire_spirits::OPTIONS),
+        EventKind::OminousForge => bake_options(state, ominous_forge::OPTIONS),
+        EventKind::FaceTrader => bake_options(state, face_trader::options(ascension)),
+        EventKind::Mushrooms => bake_options(state, mushrooms::OPTIONS),
+        EventKind::GoldenIdol { .. } => bake_options(state, golden_idol::options(ascension)),
+        EventKind::ScrapOoze { .. } => bake_options(state, scrap_ooze::options(ascension)),
+        EventKind::WeMeetAgain { .. } => bake_options(state, we_meet_again::OPTIONS),
+        EventKind::DeadAdventurer { .. } => bake_options(state, dead_adventurer::OPTIONS),
+    }
+}
+
+// Per-event availability checks
+pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) -> bool {
+    match kind {
+        EventKind::BigFish
+        | EventKind::Duplicator
+        | EventKind::GoldenShrine
+        | EventKind::WorldOfGoop
+        | EventKind::TheSsssserpent
+        | EventKind::TheDivineFountain
+        | EventKind::TheLab
+        | EventKind::TheWomanInBlue
+        | EventKind::WheelOfChange
+        | EventKind::BonfireSpirits
+        | EventKind::FaceTrader
+        | EventKind::Mushrooms
+        | EventKind::DeadAdventurer { .. } => true,
+        EventKind::TheCleric => the_cleric::option_available(state, idx),
+        EventKind::WingStatue => wing_statue::option_available(state, idx),
+        EventKind::LivingWall => living_wall::option_available(state, idx),
+        EventKind::Purifier => purifier::option_available(state, idx),
+        EventKind::ShiningLight => shining_light::option_available(state, idx),
+        EventKind::Transmogrifier => transmogrifier::option_available(state, idx),
+        EventKind::UpgradeShrine => upgrade_shrine::option_available(state, idx),
+        EventKind::OminousForge => ominous_forge::option_available(state, idx),
+        EventKind::GoldenIdol { stage } => golden_idol::option_available(stage, idx),
+        EventKind::ScrapOoze { attempts } => scrap_ooze::option_available(attempts, idx),
+        EventKind::WeMeetAgain {
+            id_card,
+            id_potion,
+            gold_ask,
+        } => we_meet_again::option_available(state, id_card, id_potion, gold_ask, idx),
+    }
+}
+
+pub fn deck_has_upgradable(state: &GameState) -> bool {
+    state
+        .id_deck
+        .iter()
+        .any(|&id| card_is_upgradable(&state.entities[id]))
+}
+
+pub fn deck_has_purgeable(state: &GameState) -> bool {
+    state
+        .id_deck
+        .iter()
+        .any(|&id| card_is_purgeable(&state.entities[id]))
+}
+
+pub fn deck_has_non_basic_non_curse(state: &GameState) -> bool {
+    state
+        .id_deck
+        .iter()
+        .any(|&id| card_is_non_basic_non_curse(&state.entities[id]))
+}
+
+pub fn deck_has_damage_card(state: &GameState, min_base: u16) -> bool {
+    state
+        .id_deck
+        .iter()
+        .any(|&id| card_has_damage_at_least(&state.entities[id], min_base))
 }
 
 fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
@@ -115,38 +238,11 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     false
 }
 
-pub fn get_event(name: EventName, ascension: u8) -> Entity {
-    match name {
-        EventName::BigFish => big_fish::spawn_event_big_fish(),
-        EventName::TheCleric => the_cleric::spawn_event_the_cleric(ascension),
-        EventName::Duplicator => duplicator::spawn_event_duplicator(),
-        EventName::GoldenShrine => golden_shrine::spawn_event_golden_shrine(ascension),
-        EventName::GoldenIdol => golden_idol::spawn_event_golden_idol(ascension),
-        EventName::WingStatue => wing_statue::spawn_event_wing_statue(),
-        EventName::WorldOfGoop => world_of_goop::spawn_event_world_of_goop(ascension),
-        EventName::LivingWall => living_wall::spawn_event_living_wall(),
-        EventName::Purifier => purifier::spawn_event_purifier(),
-        EventName::ScrapOoze => scrap_ooze::spawn_event_scrap_ooze(ascension),
-        EventName::ShiningLight => shining_light::spawn_event_shining_light(ascension),
-        EventName::TheSsssserpent => the_ssssserpent::spawn_event_the_ssssserpent(ascension),
-        EventName::Transmogrifier => transmogrifier::spawn_event_transmogrifier(),
-        EventName::UpgradeShrine => upgrade_shrine::spawn_event_upgrade_shrine(),
-        EventName::TheDivineFountain => the_divine_fountain::spawn_event_the_divine_fountain(),
-        EventName::TheLab => the_lab::spawn_event_the_lab(ascension),
-        EventName::TheWomanInBlue => the_woman_in_blue::spawn_event_the_woman_in_blue(ascension),
-        EventName::WheelOfChange => wheel_of_change::spawn_event_wheel_of_change(),
-        EventName::BonfireSpirits => bonfire_spirits::spawn_event_bonfire_spirits(),
-        EventName::OminousForge => ominous_forge::spawn_event_ominous_forge(),
-        EventName::FaceTrader => face_trader::spawn_event_face_trader(ascension),
-    }
-}
-
-pub fn spawn_event(name: EventName, ascension: u8, _rng: &mut impl Rng) -> Entity {
-    get_event(name, ascension)
-}
-
+// Mushrooms and Dead Adventurer are draw-gated in `draw_event` (floor 7+)
 pub const POOL_ACT1_EVENT: &[EventName] = &[
     EventName::BigFish,
+    EventName::Mushrooms,
+    EventName::DeadAdventurer,
     EventName::TheCleric,
     EventName::GoldenIdol,
     EventName::WingStatue,
@@ -170,4 +266,5 @@ pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
     EventName::BonfireSpirits,
     EventName::OminousForge,
     EventName::FaceTrader,
+    EventName::WeMeetAgain,
 ];

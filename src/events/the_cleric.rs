@@ -6,19 +6,22 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
+use crate::events::deck_has_purgeable;
+use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::types::EventName;
+
+const COST_HEAL: u16 = 35;
+const COST_PURIFY_BASE: u16 = 50;
+const COST_PURIFY_A15: u16 = 75;
 
 // Heal
 const OPTION_HEAL: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Absolute(35),
+            amount: Amount::Absolute(COST_HEAL),
         },
         id_source: None,
         target: Target::Direct(None),
@@ -40,7 +43,7 @@ const OPTION_HEAL: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-// Purify
+// Purify: +25 gold cost at A15
 const fn purify(cost: u16) -> [Effect; 3] {
     [
         Effect {
@@ -64,58 +67,50 @@ const fn purify(cost: u16) -> [Effect; 3] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_PURIFY_BASE: [Effect; 3] = purify(50);
-static OPTION_PURIFY_A15: [Effect; 3] = purify(75); // +25 gold cost
-const OPTION_PURIFY_GATE_BASE: &[EventGate] =
-    &[EventGate::GoldAtLeast(50), EventGate::HasPurgeableInDeck];
-const OPTION_PURIFY_GATE_A15: &[EventGate] =
-    &[EventGate::GoldAtLeast(75), EventGate::HasPurgeableInDeck];
+const OPTION_PURIFY_BASE: [Effect; 3] = purify(COST_PURIFY_BASE);
+const OPTION_PURIFY_A15: [Effect; 3] = purify(COST_PURIFY_A15);
 
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const fn options(
-    purify_effects: &'static [Effect],
-    purify_label: &'static str,
-    purify_gate: &'static [EventGate],
-) -> [EventOption; 3] {
-    [
-        EventOption {
-            label: "[Heal] Pay 35 Gold. Heal 25% of your max HP.",
-            effects: OPTION_HEAL,
-            gate: EventGate::GoldAtLeast(35),
-        },
-        EventOption {
-            label: purify_label,
-            effects: purify_effects,
-            gate: EventGate::All(purify_gate),
-        },
-        EventOption {
-            label: "[Leave] Nothing happens.",
-            effects: OPTION_LEAVE,
-            gate: EventGate::None,
-        },
-    ]
-}
-static OPTIONS_ALL_BASE: [EventOption; 3] = options(
-    &OPTION_PURIFY_BASE,
-    "[Purify] Pay 50 Gold. Remove a card from your deck.",
-    OPTION_PURIFY_GATE_BASE,
-);
-static OPTIONS_ALL_A15: [EventOption; 3] = options(
-    &OPTION_PURIFY_A15,
-    "[Purify] Pay 75 Gold. Remove a card from your deck.",
-    OPTION_PURIFY_GATE_A15,
-);
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
+    make_entity_event_option(
+        "[Purify] Pay 50 Gold. Remove a card from your deck.",
+        &OPTION_PURIFY_BASE,
+    ),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+];
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
+    make_entity_event_option(
+        "[Purify] Pay 75 Gold. Remove a card from your deck.",
+        &OPTION_PURIFY_A15,
+    ),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+];
 
-// Export event
-static EVENT_THE_CLERIC_BASE: Entity = make_entity_event(EventName::TheCleric, &OPTIONS_ALL_BASE);
-static EVENT_THE_CLERIC_A15: Entity = make_entity_event(EventName::TheCleric, &OPTIONS_ALL_A15);
-pub fn spawn_event_the_cleric(ascension: u8) -> Entity {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
-        EVENT_THE_CLERIC_BASE
+        OPTIONS_BASE
     } else {
-        EVENT_THE_CLERIC_A15
+        OPTIONS_A15
+    }
+}
+
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    let gold = state.entities[state.id_character].character_gold;
+    match idx {
+        0 => gold >= COST_HEAL,
+        1 => {
+            let cost = if state.ascension < 15 {
+                COST_PURIFY_BASE
+            } else {
+                COST_PURIFY_A15
+            };
+            gold >= cost && deck_has_purgeable(state)
+        }
+        2 => true,
+        _ => unreachable!("The cleric option out of range: {idx}"),
     }
 }

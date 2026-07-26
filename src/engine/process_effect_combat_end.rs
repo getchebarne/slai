@@ -3,24 +3,44 @@ use rand::Rng;
 use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_GOLD;
-use crate::consts::MAX_MONSTERS;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
 use crate::types::DeltaSign;
+use crate::types::Mode;
 use crate::types::RelicName;
 use crate::types::RoomKind;
-use crate::types::Screen;
 use crate::utils::has_relic;
 
 pub fn process_effect_combat_end(state: &mut GameState) {
-    combat_reset(state);
+    // Capture provenance, then drop the combat: teardown is the variant swap
+    let Mode::Combat {
+        this_combat_escaped,
+        event_gold,
+        event_relic,
+        event_relic_roll,
+        ..
+    } = &state.mode
+    else {
+        unreachable!("CombatEnd outside Combat mode")
+    };
+    let escaped = *this_combat_escaped;
+    let event_gold = *event_gold;
+    let event_relic = *event_relic;
+    let event_relic_roll = *event_relic_roll;
+    state.mode = Mode::CombatEnded;
+
+    // Combat modifiers don't persist. Only the Character outlives the fight;
+    // monster corpses are unreachable once the roster drops with the variant
+    modifier_clear(&mut state.entities[state.id_character].modifiers);
+
+    // Replace pending combat work with the teardown chain queued below
+    state.effect_queue.clear();
 
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     match room_kind {
@@ -35,9 +55,15 @@ pub fn process_effect_combat_end(state: &mut GameState) {
             let gold = &mut state.entities[state.id_character].character_gold;
             *gold = gold.saturating_add(amount).min(MAX_GOLD);
         }
-        RoomKind::CombatMonster | RoomKind::CombatElite | RoomKind::Unknown => {
-            // A "?" room keeps its Unknown map marker; its combat is always a normal monster
-            let room_kind_reward = if room_kind == RoomKind::Unknown {
+        RoomKind::CombatMonster
+        | RoomKind::CombatElite
+        | RoomKind::Unknown
+        | RoomKind::EventRoom => {
+            // Stamped loot means an event started this fight (covers "?" rooms that
+            // resolved to an event); otherwise a "?" marker is a normal monster combat
+            let room_kind_reward = if event_gold.is_some() {
+                RoomKind::EventRoom
+            } else if room_kind == RoomKind::Unknown {
                 RoomKind::CombatMonster
             } else {
                 room_kind
@@ -45,13 +71,17 @@ pub fn process_effect_combat_end(state: &mut GameState) {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::RewardRollCombat {
                     room_kind: room_kind_reward,
+                    escaped,
+                    event_gold,
+                    event_relic,
+                    event_relic_roll,
                 },
                 id_source: None,
                 target: Target::Direct(None),
             });
         }
-        RoomKind::RestSite | RoomKind::Treasure | RoomKind::EventRoom | RoomKind::Shop => {
-            unreachable!("combat end in non-combat room: {:?}", room_kind)
+        RoomKind::RestSite | RoomKind::Treasure | RoomKind::Shop => {
+            unreachable!("Combat end in non-combat room: {:?}", room_kind)
         }
     }
 
@@ -82,34 +112,8 @@ pub fn process_effect_combat_end(state: &mut GameState) {
         }
     }
 
-    // Boss victory ends the run
+    // Boss victory ends the run; the mode rests on CombatEnded (projected as Map)
     if matches!(state.location, Location::BossRoom) {
-        state.screen = Screen::Map;
         state.game_over = true;
     }
-}
-
-fn combat_reset(state: &mut GameState) {
-    state.id_hand.clear();
-    state.id_pile_draw.clear();
-    state.id_pile_discard.clear();
-    state.id_pile_exhaust.clear();
-    state.id_discover.clear();
-    state.id_card_nightmare = None;
-    state.id_picked_monster = None;
-    state.id_monsters = [None; MAX_MONSTERS];
-    state.this_turn_discards = 0;
-    state.this_turn_attacks = 0;
-    state.this_combat_damage_instances_taken = 0;
-    state.this_combat_escaped = false;
-    state.id_card_last_drawn = None;
-
-    // Combat modifiers don't persist; card combat-state lives on the discarded copies
-    for entity in state.entities.iter_mut() {
-        if matches!(entity.kind, EntityKind::Monster | EntityKind::Character) {
-            modifier_clear(&mut entity.modifiers);
-        }
-    }
-
-    state.effect_queue.clear();
 }

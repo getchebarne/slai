@@ -4,6 +4,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::room_at_mut;
+use crate::types::Mode;
 use crate::types::RelicName;
 
 pub fn process_effect_chest_open(state: &mut GameState) {
@@ -18,6 +19,7 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         .expect("ChestOpen with no chest_kind on room");
 
     room.room_chest_opened = true;
+    state.mode = Mode::ChestOpened;
 
     // N'loth's Hungry Face: the next chest opened is empty (one-shot)
     if let Some(id) = state.id_relics[RelicName::NlothsHungryFace as usize]

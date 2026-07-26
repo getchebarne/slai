@@ -5,11 +5,12 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
-use crate::types::EventName;
+use crate::events::deck_has_non_basic_non_curse;
+use crate::events::deck_has_purgeable;
+use crate::events::deck_has_upgradable;
+use crate::game::GameState;
 
 // Forget
 const OPTION_FORGET: &[Effect] = &[
@@ -56,27 +57,17 @@ const OPTION_GROW: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Forget] Remove a card from your deck.",
-        effects: OPTION_FORGET,
-        gate: EventGate::HasPurgeableInDeck,
-    },
-    EventOption {
-        label: "[Change] Transform a card in your deck.",
-        effects: OPTION_CHANGE,
-        gate: EventGate::HasNonBasicNonCurseInDeck,
-    },
-    EventOption {
-        label: "[Grow] Upgrade a card in your deck.",
-        effects: OPTION_GROW,
-        gate: EventGate::HasUpgradableInDeck,
-    },
+pub static OPTIONS: &[Entity] = &[
+    make_entity_event_option("[Forget] Remove a card from your deck.", OPTION_FORGET),
+    make_entity_event_option("[Change] Transform a card in your deck.", OPTION_CHANGE),
+    make_entity_event_option("[Grow] Upgrade a card in your deck.", OPTION_GROW),
 ];
 
-// Export event
-static EVENT_LIVING_WALL: Entity = make_entity_event(EventName::LivingWall, OPTIONS_ALL);
-pub fn spawn_event_living_wall() -> Entity {
-    EVENT_LIVING_WALL
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    match idx {
+        0 => deck_has_purgeable(state),
+        1 => deck_has_non_basic_non_curse(state),
+        2 => deck_has_upgradable(state),
+        _ => unreachable!("Living wall option out of range: {idx}"),
+    }
 }

@@ -5,11 +5,8 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
-use crate::types::EventName;
 
 // Offer: pick a card to purge. An empty purgeable pool auto-resolves to nothing
 const OPTION_OFFER: &[Effect] = &[
@@ -26,14 +23,7 @@ const OPTION_OFFER: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-const OPTIONS_ALL: &[EventOption] = &[EventOption {
-    label: "[Offer] Remove a card; its rarity decides the spirits' blessing.",
-    effects: OPTION_OFFER,
-    gate: EventGate::None,
-}];
-
-// Export event
-static EVENT_BONFIRE_SPIRITS: Entity = make_entity_event(EventName::BonfireSpirits, OPTIONS_ALL);
-pub fn spawn_event_bonfire_spirits() -> Entity {
-    EVENT_BONFIRE_SPIRITS
-}
+pub static OPTIONS: &[Entity] = &[make_entity_event_option(
+    "[Offer] Remove a card; its rarity decides the spirits' blessing.",
+    OPTION_OFFER,
+)];

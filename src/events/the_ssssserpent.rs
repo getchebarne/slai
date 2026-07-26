@@ -3,15 +3,12 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
 use crate::types::CardName;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
-// Agree
+// Agree: -25 gold gain at A15
 const fn agree(gold: u16) -> [Effect; 3] {
     [
         Effect {
@@ -33,45 +30,31 @@ const fn agree(gold: u16) -> [Effect; 3] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_AGREE_BASE: [Effect; 3] = agree(175);
-static OPTION_AGREE_A15: [Effect; 3] = agree(150); // -25 gold gain
+const OPTION_AGREE_BASE: [Effect; 3] = agree(175);
+const OPTION_AGREE_A15: [Effect; 3] = agree(150);
 
 // Disagree
 const OPTION_DISAGREE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const fn options(agree_effects: &'static [Effect], agree_label: &'static str) -> [EventOption; 2] {
-    [
-        EventOption {
-            label: agree_label,
-            effects: agree_effects,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Disagree] Nothing happens.",
-            effects: OPTION_DISAGREE,
-            gate: EventGate::None,
-        },
-    ]
-}
-static OPTIONS_ALL_BASE: [EventOption; 2] = options(
-    &OPTION_AGREE_BASE,
-    "[Agree] Gain 175 Gold. Become Cursed - Doubt.",
-);
-static OPTIONS_ALL_A15: [EventOption; 2] = options(
-    &OPTION_AGREE_A15,
-    "[Agree] Gain 150 Gold. Become Cursed - Doubt.",
-);
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option(
+        "[Agree] Gain 175 Gold. Become Cursed - Doubt.",
+        &OPTION_AGREE_BASE,
+    ),
+    make_entity_event_option("[Disagree] Nothing happens.", OPTION_DISAGREE),
+];
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option(
+        "[Agree] Gain 150 Gold. Become Cursed - Doubt.",
+        &OPTION_AGREE_A15,
+    ),
+    make_entity_event_option("[Disagree] Nothing happens.", OPTION_DISAGREE),
+];
 
-// Export event
-static EVENT_THE_SSSSSERPENT_BASE: Entity =
-    make_entity_event(EventName::TheSsssserpent, &OPTIONS_ALL_BASE);
-static EVENT_THE_SSSSSERPENT_A15: Entity =
-    make_entity_event(EventName::TheSsssserpent, &OPTIONS_ALL_A15);
-pub fn spawn_event_the_ssssserpent(ascension: u8) -> Entity {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
-        EVENT_THE_SSSSSERPENT_BASE
+        OPTIONS_BASE
     } else {
-        EVENT_THE_SSSSSERPENT_A15
+        OPTIONS_A15
     }
 }

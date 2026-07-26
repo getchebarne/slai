@@ -10,13 +10,15 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::types::DeltaSign;
+use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("Death requires id_target");
 
-    // Character death: clear pending work, mark dead, signal game over
+    // Character death: clear pending work, mark dead, signal game over.
+    // Event damage can kill outside combat, so this path is mode-agnostic
     if id_target == state.id_character {
         // Lizard Tail: once per run, survive at half max HP instead
         if let Some(id_relic) = state.id_relics[RelicName::LizardTail as usize]
@@ -39,16 +41,19 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     // Monster-death path
+    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
+        unreachable!("Monster death outside Combat mode")
+    };
     let id_character = state.id_character;
 
     // Mark the corpse dead, drop it from the live roster, and check if combat continues
     state.entities[id_target].dead = true;
-    if let Some(slot) = state.id_monsters.iter().position(|s| *s == Some(id_target)) {
-        state.id_monsters[slot] = None; // Clear from `id_monsters` Vec
+    if let Some(slot) = id_monsters.iter().position(|s| *s == Some(id_target)) {
+        id_monsters[slot] = None; // Clear from `id_monsters` Vec
     }
 
     // Calculate if there're any monsters left alive
-    let any_alive = state.id_monsters.iter().any(|s| s.is_some());
+    let any_alive = id_monsters.iter().any(|s| s.is_some());
 
     // Return stolen gold. Only relevant for "Looter"s in practice
     let stolen_gold = state.entities[id_target].monster_stolen_gold;
@@ -138,7 +143,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         state.effect_queue.push_front(e);
     }
     if let Some(dmg) = corpse_explosion {
-        for slot in state.id_monsters.iter().rev() {
+        for slot in id_monsters.iter().rev() {
             if let Some(id) = *slot
                 && id != id_target
             {

@@ -5,12 +5,11 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
+use crate::events::deck_has_upgradable;
+use crate::game::GameState;
 use crate::types::CardName;
-use crate::types::EventName;
 use crate::types::RelicName;
 
 // Forge
@@ -52,27 +51,19 @@ const OPTION_RUMMAGE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const OPTIONS_ALL: &[EventOption] = &[
-    EventOption {
-        label: "[Forge] Upgrade a card.",
-        effects: OPTION_FORGE,
-        gate: EventGate::HasUpgradableInDeck,
-    },
-    EventOption {
-        label: "[Rummage] Obtain Warped Tongs. Become Cursed - Pain.",
-        effects: OPTION_RUMMAGE,
-        gate: EventGate::None,
-    },
-    EventOption {
-        label: "[Leave] Nothing happens.",
-        effects: OPTION_LEAVE,
-        gate: EventGate::None,
-    },
+pub static OPTIONS: &[Entity] = &[
+    make_entity_event_option("[Forge] Upgrade a card.", OPTION_FORGE),
+    make_entity_event_option(
+        "[Rummage] Obtain Warped Tongs. Become Cursed - Pain.",
+        OPTION_RUMMAGE,
+    ),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
 ];
 
-// Export event
-static EVENT_OMINOUS_FORGE: Entity = make_entity_event(EventName::OminousForge, OPTIONS_ALL);
-pub fn spawn_event_ominous_forge() -> Entity {
-    EVENT_OMINOUS_FORGE
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    match idx {
+        0 => deck_has_upgradable(state),
+        1 | 2 => true,
+        _ => unreachable!("Ominous forge option out of range: {idx}"),
+    }
 }

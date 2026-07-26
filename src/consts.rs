@@ -24,6 +24,7 @@ pub const MAX_COMBAT_CARD_REWARD: usize = 3;
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_WEAK_PAPER_KRANE: f32 = 0.60;
 pub const FACTOR_VULN: f32 = 1.50;
+pub const FACTOR_VULN_ODD_MUSHROOM: f32 = 1.25;
 pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
 pub const HEXAGHOST_DIVIDER_HITS: u8 = 6;

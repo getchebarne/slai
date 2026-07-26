@@ -4,11 +4,15 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardKind;
+use crate::types::Mode;
 
 // Discard every non-Attack card from hand
 pub fn process_effect_unload_discard(state: &mut GameState) {
-    for i in 0..state.id_hand.len() {
-        let id_card = state.id_hand[i];
+    let Mode::Combat { id_hand, .. } = &mut state.mode else {
+        unreachable!("process_effect_unload_discard outside Combat mode")
+    };
+    for i in 0..id_hand.len() {
+        let id_card = id_hand[i];
         if state.entities[id_card].card_kind != CardKind::Attack {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardDiscard {

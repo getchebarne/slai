@@ -1,5 +1,9 @@
 use strum::EnumCount;
 
+use crate::consts::MAX_MONSTERS;
+use crate::effect::Amount;
+use crate::events::EventKind;
+
 // Vitals: physical combat state. Shared by character and monsters
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
@@ -15,16 +19,64 @@ pub enum DeltaSign {
     Loss,
 }
 
-// Persistent screen; transient working memory lives in flat GameState fields
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Screen {
-    Combat,
-    Reward,
-    Event,
-    Shop,
+// The game's mode: each variant owns the working memory that is only meaningful
+// while it is active; constructed whole at entry, destroyed by variant replacement
+#[derive(Debug, Clone)]
+pub enum Mode {
+    Combat {
+        id_hand: Vec<usize>,
+        id_pile_draw: Vec<usize>,
+        id_pile_discard: Vec<usize>,
+        id_pile_exhaust: Vec<usize>,
+        id_monsters: [Option<usize>; MAX_MONSTERS],
+        id_picked_monster: Option<usize>,
+        energy: Energy,
+        this_turn_discards: u8,
+        this_turn_attacks: u8,
+        this_turn_cards_played: u8,
+        this_combat_damage_instances_taken: u8,
+        this_combat_escaped: bool,
+        id_card_last_drawn: Option<usize>,
+        id_card_nightmare: Option<usize>,
+        id_discover: Vec<usize>,
+
+        // Event-spawned fights (Mushrooms / Dead Adventurer)
+        event_gold: Option<Amount>,
+        event_relic: Option<RelicName>,
+        event_relic_roll: bool,
+    },
+    CombatEnded,
+    Reward {
+        reward_id_cards: Vec<usize>,
+        reward_id_relic: Option<usize>,
+        reward_id_potions: Vec<usize>,
+        reward_gold: Option<u16>,
+    },
+    Event {
+        kind: EventKind,
+        consumed: bool,
+        id_options: Vec<usize>,
+    },
+    // Price vecs parallel the id vecs; per-visit purge cost (run ramp lives on GameState)
+    Shop {
+        shop_id_cards: Vec<usize>,
+        shop_id_relics: Vec<usize>,
+        shop_id_potions: Vec<usize>,
+        shop_card_prices: Vec<u16>,
+        shop_relic_prices: Vec<u16>,
+        shop_potion_prices: Vec<u16>,
+        shop_purge_cost: u16,
+    },
     Map,
     RestSite,
     Chest,
+    ChestOpened,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Energy {
+    pub energy_current: u8,
+    pub energy_max: u8,
 }
 
 pub const ZERO_VITALS: Vitals = Vitals {
@@ -207,6 +259,7 @@ pub enum EncounterPool {
     Act1Hard,
     Act1Elite,
     Act1Boss,
+    Event,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
@@ -239,6 +292,9 @@ pub enum MonsterEncounter {
     TheGuardian,
     Hexaghost,
     SlimeBoss,
+
+    // Event-only (never pooled)
+    ThreeFungiBeasts,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -277,6 +333,9 @@ pub enum EventName {
     BonfireSpirits,
     OminousForge,
     FaceTrader,
+    WeMeetAgain,
+    Mushrooms,
+    DeadAdventurer,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -424,6 +483,7 @@ pub enum RelicName {
     FaceOfCleric,
     NlothsHungryFace,
     SsserpentHead,
+    OddMushroom,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

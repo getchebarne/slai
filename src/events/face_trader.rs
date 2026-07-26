@@ -5,14 +5,11 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event;
+use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventGate;
-use crate::events::EventOption;
 use crate::types::DeltaSign;
-use crate::types::EventName;
 
-// Touch: gold gain first, then health loss
+// Touch: gold gain first, then health loss; -25 gold gain at A15
 const fn touch(gold: u16) -> [Effect; 3] {
     [
         Effect {
@@ -40,8 +37,8 @@ const fn touch(gold: u16) -> [Effect; 3] {
         EVENT_CONSUME_EFFECT,
     ]
 }
-static OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
-static OPTION_TOUCH_A15: [Effect; 3] = touch(50); // -25 gold gain
+const OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
+const OPTION_TOUCH_A15: [Effect; 3] = touch(50);
 
 // Trade: gain random unowned face relic
 const OPTION_TRADE: &[Effect] = &[
@@ -56,42 +53,27 @@ const OPTION_TRADE: &[Effect] = &[
 // Leave
 const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-// All options
-const fn options(touch_effects: &'static [Effect], touch_label: &'static str) -> [EventOption; 3] {
-    [
-        EventOption {
-            label: touch_label,
-            effects: touch_effects,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Trade] Obtain a random face.",
-            effects: OPTION_TRADE,
-            gate: EventGate::None,
-        },
-        EventOption {
-            label: "[Leave] Nothing happens.",
-            effects: OPTION_LEAVE,
-            gate: EventGate::None,
-        },
-    ]
-}
-static OPTIONS_ALL_BASE: [EventOption; 3] = options(
-    &OPTION_TOUCH_BASE,
-    "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
-);
-static OPTIONS_ALL_A15: [EventOption; 3] = options(
-    &OPTION_TOUCH_A15,
-    "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
-);
+static OPTIONS_BASE: &[Entity] = &[
+    make_entity_event_option(
+        "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
+        &OPTION_TOUCH_BASE,
+    ),
+    make_entity_event_option("[Trade] Obtain a random face.", OPTION_TRADE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+];
+static OPTIONS_A15: &[Entity] = &[
+    make_entity_event_option(
+        "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
+        &OPTION_TOUCH_A15,
+    ),
+    make_entity_event_option("[Trade] Obtain a random face.", OPTION_TRADE),
+    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+];
 
-// Export event
-static EVENT_FACE_TRADER_BASE: Entity = make_entity_event(EventName::FaceTrader, &OPTIONS_ALL_BASE);
-static EVENT_FACE_TRADER_A15: Entity = make_entity_event(EventName::FaceTrader, &OPTIONS_ALL_A15);
-pub fn spawn_event_face_trader(ascension: u8) -> Entity {
+pub fn options(ascension: u8) -> &'static [Entity] {
     if ascension < 15 {
-        EVENT_FACE_TRADER_BASE
+        OPTIONS_BASE
     } else {
-        EVENT_FACE_TRADER_A15
+        OPTIONS_A15
     }
 }
