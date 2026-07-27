@@ -71,7 +71,6 @@ pub struct PyModeCombat {
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
     pub discover: Vec<PyCard>,
-    // The Bomb timer (turns until detonation; 0 = no bomb armed)
     pub bomb_countdown: u8,
 }
 
@@ -233,26 +232,32 @@ pub(crate) fn snapshot_mode(state: &GameState) -> PyMode {
             shop_id_cards,
             shop_id_relics,
             shop_id_potions,
-            shop_card_prices,
-            shop_relic_prices,
-            shop_potion_prices,
             shop_purge_cost,
         } => PyMode::Shop(PyModeShop {
             cards: shop_id_cards
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            card_prices: shop_card_prices.clone(),
+            card_prices: shop_id_cards
+                .iter()
+                .map(|&id| state.entities[id].price)
+                .collect(),
             relics: shop_id_relics
                 .iter()
                 .map(|&id| snapshot_relic(&state.entities[id]))
                 .collect(),
-            relic_prices: shop_relic_prices.clone(),
+            relic_prices: shop_id_relics
+                .iter()
+                .map(|&id| state.entities[id].price)
+                .collect(),
             potions: shop_id_potions
                 .iter()
                 .map(|&id| snapshot_potion(&state.entities[id]))
                 .collect(),
-            potion_prices: shop_potion_prices.clone(),
+            potion_prices: shop_id_potions
+                .iter()
+                .map(|&id| state.entities[id].price)
+                .collect(),
             purge_cost: *shop_purge_cost,
         }),
         Mode::Event {

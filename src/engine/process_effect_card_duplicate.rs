@@ -2,6 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::CardPile;
 
 pub fn process_effect_card_duplicate(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardDuplicate requires id_target");
@@ -9,8 +10,10 @@ pub fn process_effect_card_duplicate(id_target: Option<usize>, state: &mut GameS
     let card_name = card.card_name;
     let upgraded = card.card_upgraded;
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::CardAddToDeck {
+        kind: EffectKind::CardAdd {
             card_name,
+            pile: CardPile::Deck,
+            count: 1,
             upgraded,
         },
         id_source: None,

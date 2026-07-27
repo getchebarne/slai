@@ -39,8 +39,8 @@ pub static THINKING_AHEAD: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Hand {
-                filter: CandidatePoolCardFilter::Any,
-            },
+                    filter: CandidatePoolCardFilter::Any,
+                },
                 selection_kind: SelectionKind::Input { count: 1 },
             },
         },
@@ -52,6 +52,6 @@ pub static THINKING_AHEAD: Entity = make_entity_card(
 // Upgraded
 pub static THINKING_AHEAD_PLUS: Entity = Entity {
     card_upgraded: true,
-    card_exhaust: false, // Upgrade removes Exhaust
+    card_exhaust: false, // Doesn't exhaust
     ..THINKING_AHEAD
 };

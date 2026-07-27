@@ -6,6 +6,7 @@ use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::DeltaSign;
 
 // Pray: -50 gold gain at A15
@@ -36,8 +37,10 @@ const OPTION_DESECRATE: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::CardAddToDeck {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Regret,
+            pile: CardPile::Deck,
+            count: 1,
             upgraded: false,
         },
         id_source: None,

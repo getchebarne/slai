@@ -8,6 +8,7 @@ use crate::entity::make_entity_card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
 
 pub static BLADE_DANCE: Entity = make_entity_card(
@@ -23,8 +24,9 @@ pub static BLADE_DANCE: Entity = make_entity_card(
     false,
     false,
     &[Effect {
-        kind: EffectKind::CardAddToHand {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
+            pile: CardPile::Hand,
             count: 3,
             upgraded: false,
         },
@@ -40,8 +42,9 @@ pub static BLADE_DANCE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = BLADE_DANCE.card_effects;
-        a[0].kind = EffectKind::CardAddToHand {
+        a[0].kind = EffectKind::CardAdd {
             card_name: CardName::Shiv,
+            pile: CardPile::Hand,
             count: 4, // +1 shiv
             upgraded: false,
         };

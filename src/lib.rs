@@ -126,27 +126,33 @@ mod slai {
     };
     #[pymodule_export]
     use super::ffi::{
+        PyCandidatePoolPileDiscard, PyCandidatePoolPileDraw, PyCandidatePoolPileExhaust,
+        PyCardPile, PyCostScope, PySelectionKindInputUpTo,
+    };
+    #[pymodule_export]
+    use super::ffi::{
         PyCardCostKindFixed, PyCardCostKindGrowsOnDamageInstanceTaken,
         PyCardCostKindMinusDiscardsThisTurn, PyCardCostKindXCost,
     };
     #[pymodule_export]
     use super::ffi::{
         PyEffectAdventurerSearch, PyEffectBlockGain, PyEffectBonfireOffer,
-        PyEffectCalculatedGamble, PyEffectCardAddToDeck, PyEffectCardAddToHand,
-        PyEffectCardDiscard, PyEffectCardDiscoverPick, PyEffectCardDiscoverRoll, PyEffectCardDraw,
-        PyEffectCardDrawUpTo, PyEffectCardDuplicate, PyEffectCardNightmarePick, PyEffectCardPurge,
+        PyEffectCalculatedGamble, PyEffectCardAdd, PyEffectCardAddRandom, PyEffectCardDiscard,
+        PyEffectCardDiscoverPick, PyEffectCardDiscoverRoll, PyEffectCardDraw,
+        PyEffectCardDrawIfNoAttacks, PyEffectCardDrawUpTo, PyEffectCardDuplicate,
+        PyEffectCardExhaust, PyEffectCardMove, PyEffectCardNightmarePick, PyEffectCardPurge,
         PyEffectCardRetain, PyEffectCardSetupPick, PyEffectCardTransform, PyEffectCardUpgrade,
         PyEffectCombatStart, PyEffectDamageFinisher, PyEffectDamageFlechettes,
         PyEffectDamageMindBlast, PyEffectDamagePhysical, PyEffectDamagePhysicalIfPoisoned,
-        PyEffectDistractionAdd, PyEffectEnergyGain, PyEffectEscapePlanCheck,
+        PyEffectDistractionAdd, PyEffectEnergyDelta, PyEffectEscapePlanCheck,
         PyEffectEventAdvanceState, PyEffectEventConsume, PyEffectFaceTrade,
-        PyEffectGlassKnifeDecay, PyEffectGoldDelta, PyEffectHealthDelta, PyEffectHeelHookProc,
-        PyEffectMaxHealthDelta, PyEffectModifierGain, PyEffectModifierMultiply,
-        PyEffectModifierRemove, PyEffectMonsterSpawn, PyEffectPotionAddRandom,
-        PyEffectPotionDiscard, PyEffectRelicGrantRandom, PyEffectRelicGrantSpecific,
-        PyEffectRewardRollPotions, PyEffectScrapOozeReach, PyEffectSetCostOverride,
-        PyEffectShuffleDiscardPileIntoDrawPile, PyEffectSneakyStrikeProc, PyEffectStormOfSteelProc,
-        PyEffectUnloadDiscard, PyEffectWheelSpin,
+        PyEffectGlassKnifeDecay, PyEffectGoldDelta, PyEffectHandOfGreedProc, PyEffectHealthDelta,
+        PyEffectHeelHookProc, PyEffectMaxHealthDelta, PyEffectModifierGain,
+        PyEffectModifierMultiply, PyEffectModifierRemove, PyEffectMonsterSpawn,
+        PyEffectPotionAddRandom, PyEffectPotionDiscard, PyEffectRelicGrantRandom,
+        PyEffectRelicGrantSpecific, PyEffectRewardRollPotions, PyEffectScrapOozeReach,
+        PyEffectSetCostOverride, PyEffectShuffleDiscardPileIntoDrawPile, PyEffectSneakyStrikeProc,
+        PyEffectStormOfSteelProc, PyEffectUnloadDiscard, PyEffectWheelSpin,
     };
     #[pymodule_export]
     use super::ffi::{

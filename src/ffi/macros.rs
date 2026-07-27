@@ -4,7 +4,9 @@ use super::amount::PyDeltaSign;
 use super::card::PyCardColor;
 use super::card::PyCardKind;
 use super::card::PyCardName;
+use super::card::PyCardPile;
 use super::card::PyCardRarity;
+use super::card::PyCostScope;
 use super::card::PyPlayRestriction;
 use super::map::PyRoomKind;
 use super::monster::PyIntentKind;
@@ -70,6 +72,8 @@ impl_discriminant_hash!(
     PyRelicTier,
     PyCandidatePoolMonstersFilter,
     PyCandidatePoolCardFilter,
+    PyCardPile,
+    PyCostScope,
     PyIntentKind,
 );
 

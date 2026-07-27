@@ -12,6 +12,7 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::types::CostScope;
 
 pub static ENLIGHTENMENT: Entity = make_entity_card(
     CardName::Enlightenment,
@@ -29,7 +30,7 @@ pub static ENLIGHTENMENT: Entity = make_entity_card(
         kind: EffectKind::SetCostOverride {
             amount: 1,
             only_reduce: true,
-            permanent: false,
+            scope: CostScope::Turn,
         },
         id_source: None,
         target: Target::Resolve {
@@ -51,7 +52,7 @@ pub static ENLIGHTENMENT_PLUS: Entity = Entity {
         a[0].kind = EffectKind::SetCostOverride {
             amount: 1,
             only_reduce: true,
-            permanent: true, // Lasts the rest of combat
+            scope: CostScope::Combat, // Lasts the rest of combat
         };
         a
     },

@@ -165,6 +165,9 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
                 target.monster_name
             ),
         };
+        // Executes in reverse:
+        //     1. ModifierRemove Splittable
+        //     2. MoveUpdate (Split)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::MoveUpdate {
                 move_override: Some(idx_split),
@@ -190,6 +193,10 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
                 target.monster_name
             ),
         };
+        // Executes in reverse:
+        //     1. ModifierRemove Metallicize
+        //     2. ModifierRemove Asleep
+        //     3. MoveUpdate (stunned)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::MoveUpdate {
                 move_override: Some(idx_stunned),
@@ -221,6 +228,9 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(&mut target.modifiers, ModifierKind::ModeShift);
             if id_target != state.id_character {
+                // Executes in reverse:
+                //     1. BlockGain
+                //     2. MoveUpdate
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::MoveUpdate {
                         move_override: None,

@@ -4,6 +4,7 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
@@ -13,8 +14,9 @@ pub static CUNNING_POTION: Entity = make_entity_potion(
     false,
     true,
     &[Effect {
-        kind: EffectKind::CardAddToHand {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
+            pile: CardPile::Hand,
             count: 3,
             upgraded: true,
         },

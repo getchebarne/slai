@@ -9,6 +9,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::DeltaSign;
 
 pub fn process_effect_wheel_spin(state: &mut GameState) {
@@ -41,8 +42,10 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
             target: Target::Direct(Some(id_character)),
         },
         3 => Effect {
-            kind: EffectKind::CardAddToDeck {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Decay,
+                pile: CardPile::Deck,
+                count: 1,
                 upgraded: false,
             },
             id_source: None,

@@ -6,6 +6,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::CostOverride;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -13,6 +14,7 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
+use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
@@ -25,6 +27,9 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
 
     if has_modifier(modifiers, ModifierKind::Shackled) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
+        // Executes in reverse:
+        //     1. ModifierGain Strength
+        //     2. ModifierRemove Shackled
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Shackled,
@@ -105,7 +110,15 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
 
     // Clear per-turn card cost overrides
     for entity in state.entities.iter_mut() {
-        if matches!(entity.kind, EntityKind::Card) {
+        if matches!(entity.kind, EntityKind::Card)
+            && matches!(
+                entity.card_cost_override,
+                Some(CostOverride {
+                    scope: CostScope::Turn,
+                    ..
+                })
+            )
+        {
             entity.card_cost_override = None;
         }
     }
@@ -427,7 +440,6 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // The Bomb: lazily armed 3-turn timer, detonates for `stacks` on all enemies
-    // ponytail: one slot per kind — a second Bomb merges damage into the earliest timer
     if has_modifier(mods_char, ModifierKind::TheBomb) {
         if *bomb_countdown == 0 {
             *bomb_countdown = 3;

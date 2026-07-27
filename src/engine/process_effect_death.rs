@@ -129,6 +129,12 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
 
     // Mid-combat: push to front so on-death triggers fire before suspended chain
     // (corpse already left id_monsters, so Monsters{All} resolves to survivors only)
+    // Executes in reverse:
+    //     1. GoldDelta (stolen-gold return)
+    //     2. DamageDeal per survivor (Corpse Explosion)
+    //     3. ModifierGain Vulnerable (Spore Cloud)
+    //     4. EnergyDelta then CardDraw (Gremlin Horn)
+    //     5. ModifierGain Poison (The Specimen)
     if let Some(stacks) = specimen_poison {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
@@ -151,7 +157,10 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             target: Target::Direct(None),
         });
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::EnergyGain { amount: 1 },
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
+                amount: 1,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

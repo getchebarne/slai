@@ -438,7 +438,6 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_min: 1,
         stacks_max: 999,
     },
-    // stacks = detonation damage; the 3-turn timer lives in GameState.bomb_countdown
     ModifierDef {
         kind: ModifierKind::TheBomb,
         is_buff: true,

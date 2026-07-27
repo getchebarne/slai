@@ -8,9 +8,10 @@ use crate::entity::make_entity_card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
+use crate::types::CostScope;
 
-// X-cost: the reps multiplier in card_play repeats the single-spawn effect X times
 pub static TRANSMUTATION: Entity = make_entity_card(
     CardName::Transmutation,
     CardKind::Skill,
@@ -27,10 +28,9 @@ pub static TRANSMUTATION: Entity = make_entity_card(
         kind: EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
+            pile: CardPile::Hand,
             count: 1,
-            into_draw: false,
-            cost_zero_turn: true,
-            cost_zero_combat: false,
+            cost_zero: Some(CostScope::Turn),
             upgraded: false,
         },
         id_source: None,
@@ -48,11 +48,10 @@ pub static TRANSMUTATION_PLUS: Entity = Entity {
         a[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
+            pile: CardPile::Hand,
             count: 1,
-            into_draw: false,
-            cost_zero_turn: true,
-            cost_zero_combat: false,
-            upgraded: true, // Adds upgraded copies
+            cost_zero: Some(CostScope::Turn),
+            upgraded: true, // Added cards are upgraded
         };
         a
     },

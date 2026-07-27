@@ -12,6 +12,7 @@ use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -49,8 +50,9 @@ static MOVE_SEAR_BURN_1_NORMAL: Move = make_move(
             },
         },
         Effect {
-            kind: EffectKind::CardAddToDiscard {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Burn,
+                pile: CardPile::Discard,
                 count: 1,
                 upgraded: false,
             },
@@ -75,8 +77,9 @@ static MOVE_SEAR_BURN_1_UPGRADED: Move = make_move(
             },
         },
         Effect {
-            kind: EffectKind::CardAddToDiscard {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Burn,
+                pile: CardPile::Discard,
                 count: 1,
                 upgraded: true,
             },
@@ -101,8 +104,9 @@ static MOVE_SEAR_BURN_2_NORMAL: Move = make_move(
             },
         },
         Effect {
-            kind: EffectKind::CardAddToDiscard {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Burn,
+                pile: CardPile::Discard,
                 count: 2,
                 upgraded: false,
             },
@@ -127,8 +131,9 @@ static MOVE_SEAR_BURN_2_UPGRADED: Move = make_move(
             },
         },
         Effect {
-            kind: EffectKind::CardAddToDiscard {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Burn,
+                pile: CardPile::Discard,
                 count: 2,
                 upgraded: true,
             },

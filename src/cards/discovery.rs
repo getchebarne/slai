@@ -50,6 +50,6 @@ pub static DISCOVERY: Entity = make_entity_card(
 // Upgraded
 pub static DISCOVERY_PLUS: Entity = Entity {
     card_upgraded: true,
-    card_exhaust: false, // Upgrade removes Exhaust
+    card_exhaust: false, // Doesn't exhaust
     ..DISCOVERY
 };

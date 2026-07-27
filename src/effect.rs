@@ -2,7 +2,9 @@ use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::ChestKind;
+use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
@@ -21,27 +23,18 @@ pub enum EffectKind {
     },
     BonfireOffer,
     CalculatedGamble,
+    CardAdd {
+        card_name: CardName,
+        pile: CardPile,
+        count: u16,
+        upgraded: bool,
+    },
     CardAddRandom {
         color: CardColor,
         kind: Option<CardKind>,
+        pile: CardPile,
         count: u8,
-        into_draw: bool,
-        cost_zero_turn: bool,
-        cost_zero_combat: bool,
-        upgraded: bool,
-    },
-    CardAddToDeck {
-        card_name: CardName,
-        upgraded: bool,
-    },
-    CardAddToDiscard {
-        card_name: CardName,
-        count: u8,
-        upgraded: bool,
-    },
-    CardAddToHand {
-        card_name: CardName,
-        count: u16,
+        cost_zero: Option<CostScope>,
         upgraded: bool,
     },
     CardAdopt,
@@ -66,8 +59,10 @@ pub enum EffectKind {
     },
     CardDuplicate,
     CardExhaust,
-    CardMoveToDiscard,
-    CardMoveToHand,
+    // Relocate an existing combat card to `pile`; not a discard/draw (no triggers)
+    CardMove {
+        pile: CardPile,
+    },
     CardNightmarePick,
     CardNightmareSpawn,
     CardPlay,
@@ -107,11 +102,9 @@ pub enum EffectKind {
     },
     Death,
     DistractionAdd,
-    EnergyGain {
+    EnergyDelta {
+        sign: DeltaSign,
         amount: u16,
-    },
-    EnergyLoss {
-        amount: u8,
     },
     EscapePlanCheck {
         block: u16,
@@ -219,7 +212,7 @@ pub enum EffectKind {
     SetCostOverride {
         amount: u8,
         only_reduce: bool,
-        permanent: bool,
+        scope: CostScope,
     },
     ShopBuild,
     ShopBuyCard,
@@ -255,7 +248,9 @@ pub enum Amount {
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
+
     // We Meet Again's rolled ask, read from the event payload at execution time
+    // TODO: revisit, ugly
     EventGoldAsk,
 }
 
@@ -268,12 +263,13 @@ pub enum CandidatePool {
     Source,
     Discover,
     Deck { filter: CandidatePoolCardFilter },
-    // We Meet Again's rolled picks, read from the event payload at execution time
-    EventPickCard,
-    EventPickPotion,
     PileDraw { filter: CandidatePoolCardFilter },
     PileDiscard,
     PileExhaust,
+
+    // We Meet Again's rolled picks, read from the event payload at execution time
+    EventPickCard,
+    EventPickPotion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -283,10 +279,8 @@ pub enum CandidatePoolCardFilter {
     Any,
     Transformable,
     PurgeableCurse,
-    // Kind gates for draw-pile tutors (Secret Technique / Secret Weapon / Violence)
     Attack,
     Skill,
-    // Fixed base cost > 0 and not overridden to 0 (Madness pick pool)
     Costed,
 }
 

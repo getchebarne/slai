@@ -13,6 +13,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -51,8 +52,9 @@ static MOVE_BEAM_10: Move = make_move(
 static MOVE_BOLT_2: Move = make_move(
     "Bolt",
     &[Effect {
-        kind: EffectKind::CardAddToDiscard {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Dazed,
+            pile: CardPile::Discard,
             count: 2,
             upgraded: false,
         },
@@ -64,8 +66,9 @@ static MOVE_BOLT_2: Move = make_move(
 static MOVE_BOLT_3: Move = make_move(
     "Bolt",
     &[Effect {
-        kind: EffectKind::CardAddToDiscard {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Dazed,
+            pile: CardPile::Discard,
             count: 3,
             upgraded: false,
         },

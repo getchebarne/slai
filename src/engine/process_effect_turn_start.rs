@@ -14,6 +14,8 @@ use crate::modifier::modifier_stacks;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardColor;
 use crate::types::CardName;
+use crate::types::CardPile;
+use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -86,7 +88,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
     // Character's turn start
     if id_actor == state.id_character {
-        // Mayhem: autoplay the top card `stacks` times, before the turn's draw (StS atStartOfTurn)
+        // Mayhem: autoplay `stacks` cards off the top, before the turn's draw
         if has_modifier(modifiers, ModifierKind::Mayhem) {
             let stacks = modifier_stacks(modifiers, ModifierKind::Mayhem);
             for _ in 0..stacks.max(0) {
@@ -116,7 +118,8 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         // Energy refill
         state.effect_buf.push(Effect {
-            kind: EffectKind::EnergyGain {
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
                 amount: energy_gain as u16,
             },
             id_source: None,
@@ -221,7 +224,8 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         if has_modifier(modifiers, ModifierKind::NextTurnEnergy) {
             let stacks = modifier_stacks(modifiers, ModifierKind::NextTurnEnergy);
             state.effect_buf.push(Effect {
-                kind: EffectKind::EnergyGain {
+                kind: EffectKind::EnergyDelta {
+                    sign: DeltaSign::Gain,
                     amount: stacks.max(0) as u16,
                 },
                 id_source: None,
@@ -234,8 +238,9 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         if has_modifier(modifiers, ModifierKind::InfiniteBlades) {
             let stacks = modifier_stacks(modifiers, ModifierKind::InfiniteBlades);
             state.effect_buf.push(Effect {
-                kind: EffectKind::CardAddToHand {
+                kind: EffectKind::CardAdd {
                     card_name: CardName::Shiv,
+                    pile: CardPile::Hand,
                     count: stacks.max(0) as u16,
                     upgraded: false,
                 },
@@ -251,10 +256,9 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 kind: EffectKind::CardAddRandom {
                     color: CardColor::Colorless,
                     kind: None,
+                    pile: CardPile::Hand,
                     count: stacks.max(0) as u8,
-                    into_draw: false,
-                    cost_zero_turn: false,
-                    cost_zero_combat: false,
+                    cost_zero: None,
                     upgraded: false,
                 },
                 id_source: None,
@@ -271,7 +275,10 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             &mut state.entities,
         ) {
             state.effect_buf.push(Effect {
-                kind: EffectKind::EnergyGain { amount: 1 },
+                kind: EffectKind::EnergyDelta {
+                    sign: DeltaSign::Gain,
+                    amount: 1,
+                },
                 id_source: None,
                 target: Target::Direct(None),
             });

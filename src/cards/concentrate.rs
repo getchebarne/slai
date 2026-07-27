@@ -13,6 +13,7 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::types::DeltaSign;
 
 pub static CONCENTRATE: Entity = make_entity_card(
     CardName::Concentrate,
@@ -40,7 +41,10 @@ pub static CONCENTRATE: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::EnergyGain { amount: 2 },
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
+                amount: 2,
+            },
             id_source: None,
             target: Target::Direct(None),
         },

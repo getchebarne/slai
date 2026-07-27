@@ -54,6 +54,9 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     }
 
     if let Some(remaining) = shuffle_resume_remaining {
+        // Executes in reverse:
+        //     1. ShuffleDiscardPileIntoDrawPile
+        //     2. CardDraw (remaining)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDraw { count: remaining },
             id_source: None,

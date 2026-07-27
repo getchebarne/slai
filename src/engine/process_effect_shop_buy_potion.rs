@@ -12,7 +12,6 @@ pub fn process_effect_shop_buy_potion(id_target: Option<usize>, state: &mut Game
     let id_potion = id_target.expect("ShopBuyPotion requires id_target");
     let Mode::Shop {
         shop_id_potions,
-        shop_potion_prices,
         ..
     } = &mut state.mode
     else {
@@ -23,7 +22,7 @@ pub fn process_effect_shop_buy_potion(id_target: Option<usize>, state: &mut Game
         .position(|&id| id == id_potion)
         .expect("bought potion is a shop entry");
     shop_id_potions.remove(idx);
-    let price = shop_potion_prices.remove(idx);
+    let price = state.entities[id_potion].price;
 
     // Charge gold and slot the potion into the belt
     state.effect_buf.clear();

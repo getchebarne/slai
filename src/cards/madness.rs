@@ -12,6 +12,7 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::types::CostScope;
 
 pub static MADNESS: Entity = make_entity_card(
     CardName::Madness,
@@ -29,7 +30,7 @@ pub static MADNESS: Entity = make_entity_card(
         kind: EffectKind::SetCostOverride {
             amount: 0,
             only_reduce: false,
-            permanent: true, // Costs 0 for the rest of combat
+            scope: CostScope::Combat, // Costs 0 for the rest of combat
         },
         id_source: None,
         target: Target::Resolve {

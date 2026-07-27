@@ -1,5 +1,7 @@
 use crate::consts::MAX_SIZE_HAND;
+use crate::entity::CostOverride;
 use crate::game::GameState;
+use crate::types::CostScope;
 use crate::types::Mode;
 
 // Move the picked discard-pile card to hand at cost 0 this turn; full hand leaves it
@@ -20,5 +22,8 @@ pub fn process_effect_liquid_memories_pick(id_target: Option<usize>, state: &mut
         id_pile_discard.remove(pos);
     }
     id_hand.push(id_target);
-    state.entities[id_target].card_cost_override = Some(0);
+    state.entities[id_target].card_cost_override = Some(CostOverride {
+        amount: 0,
+        scope: CostScope::Turn,
+    });
 }

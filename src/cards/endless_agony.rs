@@ -11,6 +11,7 @@ use crate::entity::make_entity_card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
 
 pub static ENDLESS_AGONY: Entity = make_entity_card(
@@ -37,8 +38,9 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
     }],
     &[],
     &[Effect {
-        kind: EffectKind::CardAddToHand {
+        kind: EffectKind::CardAdd {
             card_name: CardName::EndlessAgony,
+            pile: CardPile::Hand,
             count: 1,
             upgraded: false,
         },
@@ -56,8 +58,9 @@ pub static ENDLESS_AGONY_PLUS: Entity = Entity {
         a
     },
     card_on_draw_effects: &[Effect {
-        kind: EffectKind::CardAddToHand {
+        kind: EffectKind::CardAdd {
             card_name: CardName::EndlessAgony,
+            pile: CardPile::Hand,
             count: 1,
             upgraded: true,
         },

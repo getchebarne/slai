@@ -13,6 +13,7 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::types::CostScope;
 
 pub static BULLET_TIME: Entity = make_entity_card(
     CardName::BulletTime,
@@ -31,7 +32,7 @@ pub static BULLET_TIME: Entity = make_entity_card(
             kind: EffectKind::SetCostOverride {
                 amount: 0,
                 only_reduce: false,
-                permanent: false,
+                scope: CostScope::Turn,
             },
             id_source: None,
             target: Target::Resolve {

@@ -1,4 +1,8 @@
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::CostScope;
 use crate::types::Mode;
 
 pub fn process_effect_card_setup_pick(
@@ -17,12 +21,20 @@ pub fn process_effect_card_setup_pick(
     };
     let id_target = id_target.expect("CardSetupPick requires id_target");
     if free {
-        state.entities[id_target].card_free_to_play_once = true;
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::SetCostOverride {
+                amount: 0,
+                only_reduce: false,
+                scope: CostScope::UntilPlayed,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
     }
     if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
         id_hand.remove(pos);
     }
-    // Top of the draw pile is the vec's end; bottom (Forethought) is index 0
+    // Top of the draw pile (Setup) is the vec's end; bottom (Forethought) is index 0
     if bottom {
         id_pile_draw.insert(0, id_target);
     } else {
