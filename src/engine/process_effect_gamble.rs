@@ -9,9 +9,14 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::Mode;
 
-// Two-phase: pick any number of hand cards to discard, then draw that many.
-// Phase 1 (None) snapshots the discard counter; phase 2 draws the delta
-pub fn process_effect_gamblers_brew_proc(state: &mut GameState, discards_before: Option<u8>) {
+// Two-phase discard-then-draw-that-many. Phase 1 (None) snapshots the discard
+// counter and queues the discards: player-chosen (Gambler's Brew) or the whole
+// hand (Calculated Gamble). Phase 2 draws the delta
+pub fn process_effect_gamble(
+    state: &mut GameState,
+    choose_discards: bool,
+    discards_before: Option<u8>,
+) {
     let Mode::Combat {
         id_hand,
         this_turn_discards,
@@ -28,7 +33,8 @@ pub fn process_effect_gamblers_brew_proc(state: &mut GameState, discards_before:
             let before = *this_turn_discards;
             // Draw phase runs after the picks; push_front reverses, so push it first
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::GamblersBrewProc {
+                kind: EffectKind::Gamble {
+                    choose_discards,
                     discards_before: Some(before),
                 },
                 id_source: None,
@@ -43,8 +49,12 @@ pub fn process_effect_gamblers_brew_proc(state: &mut GameState, discards_before:
                     candidate_pool: CandidatePool::Hand {
                         filter: CandidatePoolCardFilter::Any,
                     },
-                    selection_kind: SelectionKind::InputUpTo {
-                        count: MAX_SIZE_HAND as u16,
+                    selection_kind: if choose_discards {
+                        SelectionKind::InputUpTo {
+                            count: MAX_SIZE_HAND as u16,
+                        }
+                    } else {
+                        SelectionKind::All
                     },
                 },
             });

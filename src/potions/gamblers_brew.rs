@@ -12,7 +12,8 @@ pub static GAMBLERS_BREW: Entity = make_entity_potion(
     false,
     true,
     &[Effect {
-        kind: EffectKind::GamblersBrewProc {
+        kind: EffectKind::Gamble {
+            choose_discards: true,
             discards_before: None,
         },
         id_source: None,

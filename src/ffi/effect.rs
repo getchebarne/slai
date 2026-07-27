@@ -417,20 +417,6 @@ pub struct PyEffectShuffleDiscardPileIntoDrawPile {
     hash,
     frozen,
     get_all,
-    name = "EffectCalculatedGamble",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectCalculatedGamble {
-    pub target: Option<PyTarget>,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
     name = "EffectMaxHealthDelta",
     module = "slai.slai"
 )]
@@ -882,11 +868,12 @@ pub struct PyEffectCardCostRandomize {
     hash,
     frozen,
     get_all,
-    name = "EffectGamblersBrewProc",
+    name = "EffectGamble",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectGamblersBrewProc {
+pub struct PyEffectGamble {
+    pub choose_discards: bool,
     pub discards_before: Option<u8>,
     pub target: Option<PyTarget>,
 }
@@ -947,7 +934,6 @@ pub enum PyEffect {
     CardRetain(PyEffectCardRetain),
     DamageMindBlast(PyEffectDamageMindBlast),
     ShuffleDiscardPileIntoDrawPile(PyEffectShuffleDiscardPileIntoDrawPile),
-    CalculatedGamble(PyEffectCalculatedGamble),
     MaxHealthDelta(PyEffectMaxHealthDelta),
     HealthDelta(PyEffectHealthDelta),
     PotionAddRandom(PyEffectPotionAddRandom),
@@ -978,7 +964,7 @@ pub enum PyEffect {
     CardMove(PyEffectCardMove),
     CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop),
     CardCostRandomize(PyEffectCardCostRandomize),
-    GamblersBrewProc(PyEffectGamblersBrewProc),
+    Gamble(PyEffectGamble),
     LiquidMemoriesPick(PyEffectLiquidMemoriesPick),
     CombatEscape(PyEffectCombatEscape),
 }
@@ -1010,7 +996,6 @@ variant_union!(PyEffect {
     CardRetain => PyEffectCardRetain,
     DamageMindBlast => PyEffectDamageMindBlast,
     ShuffleDiscardPileIntoDrawPile => PyEffectShuffleDiscardPileIntoDrawPile,
-    CalculatedGamble => PyEffectCalculatedGamble,
     MaxHealthDelta => PyEffectMaxHealthDelta,
     HealthDelta => PyEffectHealthDelta,
     PotionAddRandom => PyEffectPotionAddRandom,
@@ -1041,7 +1026,7 @@ variant_union!(PyEffect {
     CardMove => PyEffectCardMove,
     CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop,
     CardCostRandomize => PyEffectCardCostRandomize,
-    GamblersBrewProc => PyEffectGamblersBrewProc,
+    Gamble => PyEffectGamble,
     LiquidMemoriesPick => PyEffectLiquidMemoriesPick,
     CombatEscape => PyEffectCombatEscape,
 });
@@ -1161,9 +1146,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
                 target,
             })
         }
-        EffectKind::CalculatedGamble => {
-            PyEffect::CalculatedGamble(PyEffectCalculatedGamble { target })
-        }
         EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta(PyEffectGoldDelta {
             sign: sign.into(),
             amount: amount.into(),
@@ -1281,12 +1263,14 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardCostRandomize => {
             PyEffect::CardCostRandomize(PyEffectCardCostRandomize { target })
         }
-        EffectKind::GamblersBrewProc { discards_before } => {
-            PyEffect::GamblersBrewProc(PyEffectGamblersBrewProc {
-                discards_before,
-                target,
-            })
-        }
+        EffectKind::Gamble {
+            choose_discards,
+            discards_before,
+        } => PyEffect::Gamble(PyEffectGamble {
+            choose_discards,
+            discards_before,
+            target,
+        }),
         EffectKind::LiquidMemoriesPick => {
             PyEffect::LiquidMemoriesPick(PyEffectLiquidMemoriesPick { target })
         }

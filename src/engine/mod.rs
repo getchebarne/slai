@@ -2,7 +2,6 @@ pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_bonfire_offer;
-pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
 pub mod process_effect_card_adopt;
@@ -42,7 +41,7 @@ pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
 pub mod process_effect_face_trade;
-pub mod process_effect_gamblers_brew_proc;
+pub mod process_effect_gamble;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -425,9 +424,6 @@ fn dispatch_by_kind(
         EffectKind::CardRemove => {
             process_effect_card_remove::process_effect_card_remove(id_target, state)
         }
-        EffectKind::CalculatedGamble => {
-            process_effect_calculated_gamble::process_effect_calculated_gamble(state)
-        }
         EffectKind::AdventurerSearch => {
             process_effect_adventurer_search::process_effect_adventurer_search(state)
         }
@@ -683,9 +679,13 @@ fn dispatch_by_kind(
                 id_target, state,
             )
         }
-        EffectKind::GamblersBrewProc { discards_before } => {
-            process_effect_gamblers_brew_proc::process_effect_gamblers_brew_proc(
+        EffectKind::Gamble {
+            choose_discards,
+            discards_before,
+        } => {
+            process_effect_gamble::process_effect_gamble(
                 state,
+                choose_discards,
                 discards_before,
             )
         }

@@ -217,7 +217,6 @@ EffectCardDiscard = _rs.EffectCardDiscard
 EffectCardRetain = _rs.EffectCardRetain
 EffectDamageMindBlast = _rs.EffectDamageMindBlast
 EffectShuffleDiscardPileIntoDrawPile = _rs.EffectShuffleDiscardPileIntoDrawPile
-EffectCalculatedGamble = _rs.EffectCalculatedGamble
 EffectMaxHealthDelta = _rs.EffectMaxHealthDelta
 EffectHealthDelta = _rs.EffectHealthDelta
 EffectPotionAddRandom = _rs.EffectPotionAddRandom
@@ -241,6 +240,11 @@ EffectCardPurge = _rs.EffectCardPurge
 EffectCardUpgrade = _rs.EffectCardUpgrade
 EffectCardDuplicate = _rs.EffectCardDuplicate
 EffectCardTransform = _rs.EffectCardTransform
+EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
+EffectCardCostRandomize = _rs.EffectCardCostRandomize
+EffectGamble = _rs.EffectGamble
+EffectLiquidMemoriesPick = _rs.EffectLiquidMemoriesPick
+EffectCombatEscape = _rs.EffectCombatEscape
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -273,7 +277,6 @@ Effect = (
     | EffectCardRetain
     | EffectDamageMindBlast
     | EffectShuffleDiscardPileIntoDrawPile
-    | EffectCalculatedGamble
     | EffectMaxHealthDelta
     | EffectHealthDelta
     | EffectPotionAddRandom
@@ -297,6 +300,11 @@ Effect = (
     | EffectCardUpgrade
     | EffectCardDuplicate
     | EffectCardTransform
+    | EffectCardPlayFromDrawTop
+    | EffectCardCostRandomize
+    | EffectGamble
+    | EffectLiquidMemoriesPick
+    | EffectCombatEscape
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -553,7 +561,6 @@ __all__ = [
     "EffectCardRetain",
     "EffectDamageMindBlast",
     "EffectShuffleDiscardPileIntoDrawPile",
-    "EffectCalculatedGamble",
     "EffectMaxHealthDelta",
     "EffectHealthDelta",
     "EffectPotionAddRandom",
@@ -577,6 +584,11 @@ __all__ = [
     "EffectCardUpgrade",
     "EffectCardDuplicate",
     "EffectCardTransform",
+    "EffectCardPlayFromDrawTop",
+    "EffectCardCostRandomize",
+    "EffectGamble",
+    "EffectLiquidMemoriesPick",
+    "EffectCombatEscape",
     "Amount",
     "AmountAbsolute",
     "AmountRelative",

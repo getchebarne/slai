@@ -22,7 +22,6 @@ pub enum EffectKind {
         amount: u16,
     },
     BonfireOffer,
-    CalculatedGamble,
     CardAdd {
         card_name: CardName,
         pile: CardPile,
@@ -114,7 +113,8 @@ pub enum EffectKind {
     },
     EventConsume,
     FaceTrade,
-    GamblersBrewProc {
+    Gamble {
+        choose_discards: bool,
         discards_before: Option<u8>,
     },
     GlassKnifeDecay {
