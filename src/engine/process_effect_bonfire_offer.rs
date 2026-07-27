@@ -47,6 +47,9 @@ pub fn process_effect_bonfire_offer(id_target: Option<usize>, state: &mut GameSt
         }),
         CardRarity::Uncommon => state.effect_queue.push_front(effect_heal_full),
         CardRarity::Rare => {
+            // Executes in reverse:
+            //     1. MaxHealthDelta
+            //     2. HealthDelta (full heal)
             state.effect_queue.push_front(effect_heal_full);
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::MaxHealthDelta {

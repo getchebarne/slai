@@ -24,8 +24,9 @@ pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
             return;
         }
 
-        // If it is, queue an effect to shuffle the discard into the draw pile and re-queue
-        // this effect
+        // Executes in reverse:
+        //     1. ShuffleDiscardPileIntoDrawPile
+        //     2. CardPlayFromDrawTop (re-queued)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardPlayFromDrawTop,
             id_source: None,

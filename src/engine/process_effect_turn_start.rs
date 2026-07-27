@@ -88,7 +88,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
     // Character's turn start
     if id_actor == state.id_character {
-        // Mayhem: autoplay the top card `stacks` times, before the turn's draw (StS atStartOfTurn)
+        // Mayhem: autoplay `stacks` cards off the top, before the turn's draw
         if has_modifier(modifiers, ModifierKind::Mayhem) {
             let stacks = modifier_stacks(modifiers, ModifierKind::Mayhem);
             for _ in 0..stacks.max(0) {

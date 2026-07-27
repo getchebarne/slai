@@ -5,13 +5,14 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
-// Queued right after the card's damage: the kill has fully resolved by the time this runs
 pub fn process_effect_hand_of_greed_proc(
     id_target: Option<usize>,
     state: &mut GameState,
     gold: u16,
 ) {
     let id_target = id_target.expect("HandOfGreedProc requires id_target");
+
+    // Queued right after the card's damage: the kill has fully resolved by the time this runs
     if state.entities[id_target].dead {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::GoldDelta {

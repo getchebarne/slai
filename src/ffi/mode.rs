@@ -71,7 +71,6 @@ pub struct PyModeCombat {
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
     pub discover: Vec<PyCard>,
-    // The Bomb timer (turns until detonation; 0 = no bomb armed)
     pub bomb_countdown: u8,
 }
 

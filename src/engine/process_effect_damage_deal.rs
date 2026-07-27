@@ -76,7 +76,10 @@ pub fn process_effect_damage_deal(
         });
     }
 
-    // Queue the heath loss effect, Envenom, and on-damage-taken effects
+    // Executes in reverse:
+    //     1. On-damage-taken triggers (CurlUp, Angry)
+    //     2. ModifierGain Poison (Envenom)
+    //     3. HealthDelta
     if damage_over_block > 0 {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {

@@ -12,7 +12,8 @@ pub fn process_effect_set_cost_override(
 ) {
     let id_target = id_target.expect("SetCostOverride requires id_target");
     let card = &mut state.entities[id_target];
-    // only_reduce (Enlightenment): skip X-cost and cards already at or below `amount`
+
+    // `only_reduce` guards against cost-increase (see Enlightment)
     if only_reduce {
         if matches!(card.card_cost_kind, CardCostKind::XCost { .. }) {
             return;

@@ -38,7 +38,9 @@ pub fn process_effect_card_transform(id_target: Option<usize>, state: &mut GameS
         .collect();
     let card_name = candidates[state.rng.random_range(0..candidates.len())];
 
-    // CardPurge pops first, then CardAddToDeck
+    // Executes in reverse:
+    //     1. CardPurge
+    //     2. CardAdd (into deck)
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardAdd {
             card_name,

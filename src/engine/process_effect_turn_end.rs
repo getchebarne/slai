@@ -27,6 +27,9 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
 
     if has_modifier(modifiers, ModifierKind::Shackled) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
+        // Executes in reverse:
+        //     1. ModifierGain Strength
+        //     2. ModifierRemove Shackled
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Shackled,
@@ -105,7 +108,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Clear per-turn card cost overrides; UntilPlayed survives until consumed
+    // Clear per-turn card cost overrides
     for entity in state.entities.iter_mut() {
         if matches!(entity.kind, EntityKind::Card)
             && matches!(
@@ -376,7 +379,6 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // The Bomb: lazily armed 3-turn timer, detonates for `stacks` on all enemies
-    // ponytail: one slot per kind — a second Bomb merges damage into the earliest timer
     if has_modifier(mods_char, ModifierKind::TheBomb) {
         if *bomb_countdown == 0 {
             *bomb_countdown = 3;

@@ -13,7 +13,9 @@ pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool)
         unreachable!("process_effect_storm_of_steel_proc outside Combat mode")
     };
 
-    // Add the Shivs
+    // Executes in reverse:
+    //     1. CardDiscard (whole hand)
+    //     2. CardAdd (Shivs)
     let count = id_hand.len() as u16;
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardAdd {

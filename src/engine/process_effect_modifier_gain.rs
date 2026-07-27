@@ -68,7 +68,6 @@ pub fn process_effect_modifier_gain(
     modifier_apply(modifiers, kind, stacks);
 
     // Sadistic Nature: player-applied debuffs landing on a monster proc THORNS-type damage
-    // Shackled is the buff-typed GainStrength half of Piercing Wail/Dark Shackles in StS
     if is_debuff_attempt
         && kind != ModifierKind::Shackled
         && state.entities[id_target].kind == EntityKind::Monster

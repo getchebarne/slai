@@ -12,6 +12,9 @@ pub fn process_effect_heel_hook_proc(id_target: Option<usize>, state: &mut GameS
     if !has_modifier(&state.entities[id_target].modifiers, ModifierKind::Weak) {
         return;
     }
+    // Executes in reverse:
+    //     1. EnergyDelta
+    //     2. CardDraw
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardDraw { count: 1 },
         id_source: None,
