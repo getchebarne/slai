@@ -196,7 +196,7 @@ pub enum CardName {
     Parasite,
     Normality,
 
-    // Colorless (appended: enum order above is checkpoint-frozen)
+    // Colorless
     Apparition,
     Bite,
     DarkShackles,

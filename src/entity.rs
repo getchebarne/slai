@@ -45,7 +45,6 @@ pub enum PlayRestriction {
     DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
 }
 
-// XCost.offset is consumed by the per-play multiplier in `process_effect_card_play`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CostOverride {
     pub amount: u8,
@@ -57,7 +56,7 @@ pub enum CardCostKind {
     Fixed,
     MinusDiscardsThisTurn,
     GrowsOnDamageInstanceTaken,
-    XCost { offset: i8 },
+    XCost { offset: i8 }, // offset is consumed by the per-play multiplier in `process_effect_card_play`
 }
 
 // TODO: revisit implementation. Could be flat-enum and `damage: u16` and `instances: u8`
@@ -421,7 +420,6 @@ pub fn get_card_effective_cost(
         CardCostKind::XCost { .. } => energy_current,
     }
 }
-
 
 // Evaluate a PlayRestriction against the relevant slice of game state
 pub fn is_play_restriction_satisfied(

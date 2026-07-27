@@ -23,14 +23,12 @@ pub enum EffectKind {
     },
     BonfireOffer,
     CalculatedGamble,
-    // Spawn `count` copies of a named card into `pile`
     CardAdd {
         card_name: CardName,
         pile: CardPile,
         count: u16,
         upgraded: bool,
     },
-    // Spawn `count` independently rolled cards (reward rarities) into `pile`
     CardAddRandom {
         color: CardColor,
         kind: Option<CardKind>,
@@ -243,7 +241,9 @@ pub enum Amount {
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
+
     // We Meet Again's rolled ask, read from the event payload at execution time
+    // TODO: revisit, ugly
     EventGoldAsk,
 }
 
@@ -256,12 +256,13 @@ pub enum CandidatePool {
     Source,
     Discover,
     Deck { filter: CandidatePoolCardFilter },
-    // We Meet Again's rolled picks, read from the event payload at execution time
-    EventPickCard,
-    EventPickPotion,
     PileDraw { filter: CandidatePoolCardFilter },
     PileDiscard,
     PileExhaust,
+
+    // We Meet Again's rolled picks, read from the event payload at execution time
+    EventPickCard,
+    EventPickPotion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -271,10 +272,8 @@ pub enum CandidatePoolCardFilter {
     Any,
     Transformable,
     PurgeableCurse,
-    // Kind gates for draw-pile tutors (Secret Technique / Secret Weapon / Violence)
     Attack,
     Skill,
-    // Fixed base cost > 0 and not overridden to 0 (Madness pick pool)
     Costed,
 }
 
