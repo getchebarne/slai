@@ -178,6 +178,7 @@ pub enum EffectKind {
         fallback_circlet: bool,
     },
     RestSiteConsume,
+    RewardRollCards,
     RewardRollChest {
         kind: ChestKind,
     },

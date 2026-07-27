@@ -1,7 +1,9 @@
+use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RewardKind;
 
@@ -58,9 +60,16 @@ pub fn process_effect_reward_take(
             });
         }
         RewardKind::Gold => {
+            // Routed through GoldDelta so the MAX_GOLD cap and Ectoplasm apply
             if let Some(amount) = reward_gold.take() {
-                let character = &mut state.entities[state.id_character];
-                character.character_gold = character.character_gold.saturating_add(amount);
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::GoldDelta {
+                        sign: DeltaSign::Gain,
+                        amount: Amount::Absolute(amount),
+                    },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
             }
         }
     }

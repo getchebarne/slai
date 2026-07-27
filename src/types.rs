@@ -539,6 +539,21 @@ pub enum RelicName {
     NlothsHungryFace,
     SsserpentHead,
     OddMushroom,
+    PhilosopherStone,
+    CoffeeDripper,
+    FusionHammer,
+    Sozu,
+    CursedKey,
+    BustedCrown,
+    SlaversCollar,
+    Ectoplasm,
+    VelvetChoker,
+    WristBlade,
+    HoveringKite,
+    DreamCatcher,
+    Cauldron,
+    MembershipCard,
+    TheCourier,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

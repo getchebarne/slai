@@ -291,20 +291,30 @@ pub fn pick_from_pool(
     }
 }
 
-// Roll MAX_COMBAT_CARD_REWARD distinct cards; pity-bumps reward_roll_offset toward rares
+// Busted Crown: combat card rewards offer 2 fewer cards
+pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize {
+    if has_relic(id_relics, RelicName::BustedCrown) {
+        MAX_COMBAT_CARD_REWARD - 2
+    } else {
+        MAX_COMBAT_CARD_REWARD
+    }
+}
+
+// Roll `count` distinct cards (count <= MAX_COMBAT_CARD_REWARD); pity-bumps reward_roll_offset toward rares
 pub fn roll_card_rewards(
     id_character: usize,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     out: &mut Vec<usize>,
     id_relics: &[Option<usize>; RelicName::COUNT],
+    count: usize,
 ) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut rolled_card_names: [CardName; MAX_COMBAT_CARD_REWARD] =
         [CardName::Strike; MAX_COMBAT_CARD_REWARD];
 
     out.clear();
-    for _ in 0..MAX_COMBAT_CARD_REWARD {
+    for _ in 0..count {
         let roll = rng.random_range(0i32..99) + character_reward_roll_offset as i32;
         let (pool, rarity) = roll_card_reward_pool_green(roll);
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)

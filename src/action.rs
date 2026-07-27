@@ -408,6 +408,15 @@ fn handle_rest(state: &mut GameState) {
         id_source: None,
         target: Target::Direct(Some(id_room)),
     });
+
+    // Dream Catcher: resting also offers a card reward (Rest only, not Smith)
+    if has_relic(&state.id_relics, RelicName::DreamCatcher) {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::RewardRollCards,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
 }
 
 fn handle_reward_take_card(state: &mut GameState, idx: usize) {
@@ -676,8 +685,11 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
         && id_hand
             .iter()
             .any(|&id| state.entities[id].card_name == CardName::Normality);
+    // Velvet Choker: no more than 6 cards per turn (increment is post-play, so exactly 6 land)
+    let choker_blocks =
+        *this_turn_cards_played >= 6 && has_relic(&state.id_relics, RelicName::VelvetChoker);
     for i in 0..id_hand.len() {
-        if normality_blocks {
+        if normality_blocks || choker_blocks {
             break;
         }
         let card = &state.entities[id_hand[i]];
@@ -804,8 +816,8 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
         }
     }
 
-    // Potions
-    if belt_has_room {
+    // Potions (Sozu: unobtainable, so unbuyable)
+    if belt_has_room && !has_relic(&state.id_relics, RelicName::Sozu) {
         for i in 0..shop_id_potions.len() {
             if gold >= state.entities[shop_id_potions[i]].price {
                 state.legal_actions.push(Action::ShopBuyPotion { idx: i });
@@ -833,12 +845,28 @@ fn fill_legal_actions_screen_rest_site(state: &mut GameState) {
     if state.entities[current_room_id(state)].room_rest_site_done {
         state.legal_actions.push(Action::RoomExit);
     } else {
-        state.legal_actions.push(Action::Rest);
-        // CardUpgrade idx is an absolute id_deck index; offer only upgradable cards
-        for i in 0..state.id_deck.len() {
-            if card_is_upgradable(&state.entities[state.id_deck[i]]) {
-                state.legal_actions.push(Action::CardUpgrade { idx: i });
+        let mut any_option = false;
+
+        // Coffee Dripper: Rest is unavailable
+        if !has_relic(&state.id_relics, RelicName::CoffeeDripper) {
+            state.legal_actions.push(Action::Rest);
+            any_option = true;
+        }
+
+        // Fusion Hammer: Smith is unavailable
+        if !has_relic(&state.id_relics, RelicName::FusionHammer) {
+            // CardUpgrade idx is an absolute id_deck index; offer only upgradable cards
+            for i in 0..state.id_deck.len() {
+                if card_is_upgradable(&state.entities[state.id_deck[i]]) {
+                    state.legal_actions.push(Action::CardUpgrade { idx: i });
+                    any_option = true;
+                }
             }
+        }
+
+        // Every option gated: allow leaving so the site can't soft-lock
+        if !any_option {
+            state.legal_actions.push(Action::RoomExit);
         }
     }
     push_potion_actions(state);

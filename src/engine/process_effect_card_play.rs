@@ -386,12 +386,23 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let burst =
         has_modifier(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
     let reps = if burst { 2 * mul } else { mul };
+
+    // Wrist Blade: attacks that cost 0 deal +4 per hit; X-cost never qualifies
+    let wrist_blade_bonus = effective_cost == 0
+        && card.card_kind == CardKind::Attack
+        && !matches!(card.card_cost_kind, CardCostKind::XCost { .. })
+        && has_relic(&state.id_relics, RelicName::WristBlade);
+
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
-            state.effect_buf.push(Effect {
+            let mut effect = Effect {
                 id_source: Some(id_card),
                 ..*e
-            });
+            };
+            if wrist_blade_bonus && let EffectKind::DamagePhysical { amount } = &mut effect.kind {
+                *amount += 4;
+            }
+            state.effect_buf.push(effect);
         }
     }
     if burst {

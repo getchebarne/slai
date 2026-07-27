@@ -21,6 +21,7 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::add_relic_reward_for_roll;
+use crate::utils::card_reward_count;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::roll_card_rewards;
@@ -71,6 +72,7 @@ pub fn process_effect_reward_roll_combat(
         &mut state.rng,
         &mut id_cards,
         &state.id_relics,
+        card_reward_count(&state.id_relics),
     );
 
     // Roll Relic (only for Elite combats)

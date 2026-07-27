@@ -6,6 +6,7 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -80,6 +81,20 @@ pub fn process_effect_card_discard(
                     kind: EffectKind::BlockGain { amount: 3 },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
+                });
+            }
+            // Hovering Kite: the first discard each turn grants 1 energy (counter resets per turn)
+            if let Some(id) = state.id_relics[RelicName::HoveringKite as usize]
+                && state.entities[id].relic_counter == 0
+            {
+                state.entities[id].relic_counter = 1;
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::EnergyDelta {
+                        sign: DeltaSign::Gain,
+                        amount: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(None),
                 });
             }
         }

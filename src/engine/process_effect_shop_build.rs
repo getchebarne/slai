@@ -86,11 +86,16 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         }
     }
 
+    // The Courier / Membership Card: 20% / 50% off everything
+    for &id in id_cards.iter().chain(&id_relics).chain(&id_potions) {
+        state.entities[id].price = apply_shop_discounts(state.entities[id].price, &state.id_relics);
+    }
+
     // Smiling Mask: the removal service is always 50 gold
     let purge_cost = if has_relic(&state.id_relics, RelicName::SmilingMask) {
         50
     } else {
-        state.shop_purge_cost_run
+        apply_shop_discounts(state.shop_purge_cost_run, &state.id_relics)
     };
 
     state.mode = Mode::Shop {
@@ -99,6 +104,81 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         shop_id_potions: id_potions,
         shop_purge_cost: purge_cost,
     };
+}
+
+// The Courier ×0.8 then Membership Card ×0.5; sequential round-half-up (Java shop-init order)
+pub(crate) fn apply_shop_discounts(
+    price: u16,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+) -> u16 {
+    let mut p = price as u32;
+    if has_relic(id_relics, RelicName::TheCourier) {
+        p = (p * 4 + 2) / 5;
+    }
+    if has_relic(id_relics, RelicName::MembershipCard) {
+        p = (p + 1) / 2;
+    }
+    p as u16
+}
+
+// The Courier: restock a bought card slot in place; colored kind is kept with a rerolled
+// rarity, colorless keeps its rarity. Discounted, but no A16 re-markup (Java parity)
+pub(crate) fn restock_card(
+    state: &mut GameState,
+    id_cards: &mut Vec<usize>,
+    idx: usize,
+    color: CardColor,
+    kind: CardKind,
+    rarity: CardRarity,
+) {
+    if color == CardColor::Colorless {
+        push_card_colorless(state, id_cards, rarity);
+    } else {
+        push_card_colored(state, id_cards, kind);
+    }
+    let id_new = id_cards.pop().expect("restock pushed a card");
+    state.entities[id_new].price =
+        apply_shop_discounts(state.entities[id_new].price, &state.id_relics);
+    id_cards.insert(idx, id_new);
+}
+
+// The Courier: restock a bought relic slot; rerolls the tier, and the gold-economy
+// relics never restock (Java blacklist)
+pub(crate) fn restock_relic(state: &mut GameState, id_relics_vec: &mut Vec<usize>, idx: usize) {
+    let roll = state.rng.random_range(0..100) as u8;
+    let (pool, base_price): (&[RelicName], u16) = if roll < SHOP_RELIC_TH_COMMON {
+        (POOL_COMMON_RELIC, SHOP_PRICE_RELIC_COMMON)
+    } else if roll < SHOP_RELIC_TH_UNCOMMON {
+        (POOL_UNCOMMON_RELIC, SHOP_PRICE_RELIC_UNCOMMON)
+    } else {
+        (POOL_RARE_RELIC, SHOP_PRICE_RELIC_RARE)
+    };
+
+    let mut taken = get_shop_taken_relic_names(state, id_relics_vec);
+    for name in [
+        RelicName::OldCoin,
+        RelicName::SmilingMask,
+        RelicName::MawBank,
+    ] {
+        taken[name as usize] = Some(usize::MAX);
+    }
+    let Some(name) = pick_from_pool(pool, &taken, &mut state.rng) else {
+        return;
+    };
+    push_relic_with_price(state, id_relics_vec, name, base_price);
+    let id_new = id_relics_vec.pop().expect("restock pushed a relic");
+    state.entities[id_new].price =
+        apply_shop_discounts(state.entities[id_new].price, &state.id_relics);
+    id_relics_vec.insert(idx, id_new);
+}
+
+// The Courier: restock a bought potion slot
+pub(crate) fn restock_potion(state: &mut GameState, id_potions: &mut Vec<usize>, idx: usize) {
+    push_potion(state, id_potions);
+    let id_new = id_potions.pop().expect("restock pushed a potion");
+    state.entities[id_new].price =
+        apply_shop_discounts(state.entities[id_new].price, &state.id_relics);
+    id_potions.insert(idx, id_new);
 }
 
 fn bump_price_a16(price: u16) -> u16 {
@@ -155,11 +235,7 @@ fn push_card(
     id_cards.push(id_card);
 }
 
-fn push_card_colored(
-    state: &mut GameState,
-    id_cards: &mut Vec<usize>,
-    kind: CardKind,
-) {
+fn push_card_colored(state: &mut GameState, id_cards: &mut Vec<usize>, kind: CardKind) {
     let mut rarity = roll_card_rarity(&mut state.rng);
 
     // No Common green Powers exist, so a Power slot can't be Common; bump it to Uncommon
@@ -192,6 +268,8 @@ fn get_shop_taken_relic_names(
     for &id in id_relics {
         taken[state.entities[id].relic_name as usize] = Some(id);
     }
+    // The Courier never appears in shop stock (Java canSpawn blocks it inside shops)
+    taken[RelicName::TheCourier as usize] = Some(usize::MAX);
     taken
 }
 

@@ -52,8 +52,11 @@ pub fn process_effect_combat_end(state: &mut GameState) {
             } else {
                 roll
             };
-            let gold = &mut state.entities[state.id_character].character_gold;
-            *gold = gold.saturating_add(amount).min(MAX_GOLD);
+            // Ectoplasm: no gold gain (roll still consumed for RNG parity)
+            if !has_relic(&state.id_relics, RelicName::Ectoplasm) {
+                let gold = &mut state.entities[state.id_character].character_gold;
+                *gold = gold.saturating_add(amount).min(MAX_GOLD);
+            }
         }
         RoomKind::CombatMonster
         | RoomKind::CombatElite

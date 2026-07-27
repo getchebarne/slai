@@ -1,0 +1,11 @@
+use crate::entity::Entity;
+use crate::entity::make_entity_relic;
+use crate::types::RelicName;
+use crate::types::RelicTier;
+
+// +1 energy; combat card rewards offer 2 fewer cards
+// See:
+//    - `process_effect_combat_start.rs`
+//    - `utils.rs`
+pub static BUSTED_CROWN: Entity =
+    make_entity_relic(RelicName::BustedCrown, RelicTier::Boss, 0, &[]);

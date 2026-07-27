@@ -123,6 +123,16 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 });
             }
         }
+        RelicName::Cauldron => {
+            // Brew 5 potions; overflow beyond belt space is lost (Java stages them as rewards)
+            for _ in 0..5 {
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::PotionAddRandom { limited: false },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
+        }
         _ => {}
     }
 }

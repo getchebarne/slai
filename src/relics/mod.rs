@@ -10,23 +10,30 @@ mod blood_vial;
 mod blue_candle;
 mod boot;
 mod bronze_scales;
+mod busted_crown;
 mod calipers;
 mod captains_wheel;
+mod cauldron;
 mod centennial_puzzle;
 mod ceramic_fish;
 mod chemical_x;
 mod circlet;
 mod clockwork_souvenir;
+mod coffee_dripper;
 mod cultist_headpiece;
+mod cursed_key;
 mod darkstone_periapt;
 mod dead_branch;
 mod dollys_mirror;
+mod dream_catcher;
 mod du_vu_doll;
+mod ectoplasm;
 mod empty_cage;
 mod eternal_feather;
 mod face_of_cleric;
 mod fossilized_helix;
 mod frozen_egg;
+mod fusion_hammer;
 mod ginger;
 mod golden_idol;
 mod gremlin_horn;
@@ -34,6 +41,7 @@ mod gremlin_visage;
 mod hand_drill;
 mod happy_flower;
 mod horn_cleat;
+mod hovering_kite;
 mod ice_cream;
 mod incense_burner;
 mod ink_bottle;
@@ -48,6 +56,7 @@ mod maw_bank;
 mod meal_ticket;
 mod meat_on_the_bone;
 mod medical_kit;
+mod membership_card;
 mod mercury_hourglass;
 mod molten_egg;
 mod mummified_hand;
@@ -66,16 +75,19 @@ mod pantograph;
 mod paper_krane;
 mod pear;
 mod pen_nib;
+mod philosopher_stone;
 mod pocketwatch;
 mod potion_belt;
 mod preserved_insect;
 mod red_mask;
 mod regal_pillow;
 mod shuriken;
+mod slavers_collar;
 mod sling_of_courage;
 mod smiling_mask;
 mod snake_ring;
 mod snecko_skull;
+mod sozu;
 mod spirit_poop;
 mod ssserpent_head;
 mod stone_calendar;
@@ -83,6 +95,7 @@ mod strange_spoon;
 mod strawberry;
 mod strike_dummy;
 mod sundial;
+mod the_courier;
 mod the_specimen;
 mod thread_and_needle;
 mod tingsha;
@@ -96,10 +109,12 @@ mod turnip;
 mod twisted_funnel;
 mod unceasing_top;
 mod vajra;
+mod velvet_choker;
 mod war_paint;
 mod warped_tongs;
 mod whetstone;
 mod white_beast_statue;
+mod wrist_blade;
 
 use strum::EnumCount;
 
@@ -213,6 +228,21 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::NlothsHungryFace => nloths_hungry_face::NLOTHS_HUNGRY_FACE,
         RelicName::SsserpentHead => ssserpent_head::SSSERPENT_HEAD,
         RelicName::OddMushroom => odd_mushroom::ODD_MUSHROOM,
+        RelicName::PhilosopherStone => philosopher_stone::PHILOSOPHER_STONE,
+        RelicName::CoffeeDripper => coffee_dripper::COFFEE_DRIPPER,
+        RelicName::FusionHammer => fusion_hammer::FUSION_HAMMER,
+        RelicName::Sozu => sozu::SOZU,
+        RelicName::CursedKey => cursed_key::CURSED_KEY,
+        RelicName::BustedCrown => busted_crown::BUSTED_CROWN,
+        RelicName::SlaversCollar => slavers_collar::SLAVERS_COLLAR,
+        RelicName::Ectoplasm => ectoplasm::ECTOPLASM,
+        RelicName::VelvetChoker => velvet_choker::VELVET_CHOKER,
+        RelicName::WristBlade => wrist_blade::WRIST_BLADE,
+        RelicName::HoveringKite => hovering_kite::HOVERING_KITE,
+        RelicName::DreamCatcher => dream_catcher::DREAM_CATCHER,
+        RelicName::Cauldron => cauldron::CAULDRON,
+        RelicName::MembershipCard => membership_card::MEMBERSHIP_CARD,
+        RelicName::TheCourier => the_courier::THE_COURIER,
     }
 }
 
@@ -259,6 +289,7 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::OrnamentalFan,
     RelicName::LetterOpener,
     RelicName::OrangePellets,
+    RelicName::HoveringKite,
 ];
 
 // Per-combat relic counters; reset at combat start only
@@ -381,6 +412,21 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &nloths_hungry_face::NLOTHS_HUNGRY_FACE,
     &ssserpent_head::SSSERPENT_HEAD,
     &odd_mushroom::ODD_MUSHROOM,
+    &philosopher_stone::PHILOSOPHER_STONE,
+    &coffee_dripper::COFFEE_DRIPPER,
+    &fusion_hammer::FUSION_HAMMER,
+    &sozu::SOZU,
+    &cursed_key::CURSED_KEY,
+    &busted_crown::BUSTED_CROWN,
+    &slavers_collar::SLAVERS_COLLAR,
+    &ectoplasm::ECTOPLASM,
+    &velvet_choker::VELVET_CHOKER,
+    &wrist_blade::WRIST_BLADE,
+    &hovering_kite::HOVERING_KITE,
+    &dream_catcher::DREAM_CATCHER,
+    &cauldron::CAULDRON,
+    &membership_card::MEMBERSHIP_CARD,
+    &the_courier::THE_COURIER,
 ];
 // Assert all relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);

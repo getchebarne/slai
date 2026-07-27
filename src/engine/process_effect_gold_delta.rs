@@ -7,6 +7,7 @@ use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
+use crate::utils::has_relic;
 
 pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount: Amount) {
     let amount = match amount {
@@ -26,6 +27,11 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
             unreachable!("GoldDelta only resolves Absolute, Range, or EventGoldAsk")
         }
     };
+
+    // Ectoplasm: gold can no longer be gained (after amount resolution, for RNG parity)
+    if sign == DeltaSign::Gain && has_relic(&state.id_relics, RelicName::Ectoplasm) {
+        return;
+    }
 
     // Maw Bank deactivates the first time gold is spent at a shop (event costs don't count)
     if sign == DeltaSign::Loss

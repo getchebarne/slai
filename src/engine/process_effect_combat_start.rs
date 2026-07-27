@@ -48,10 +48,41 @@ pub fn process_effect_combat_start(
     *combat_event_relic = event_relic;
     *combat_event_relic_roll = event_relic_roll;
 
+    // Elite fights are identified by the monsters, not the room: Dead Adventurer's
+    // elite returns inside an event room
+    let is_elite_fight = id_monsters
+        .iter()
+        .flatten()
+        .any(|&id| state.entities[id].monster_kind == MonsterKind::Elite);
+    let is_boss_fight = id_monsters
+        .iter()
+        .flatten()
+        .any(|&id| state.entities[id].monster_kind == MonsterKind::Boss);
+
+    // Base 3, +1 per owned energy relic; Slaver's Collar counts only in elite and boss fights
+    let mut energy_max = 3;
+    for name in [
+        RelicName::PhilosopherStone,
+        RelicName::CoffeeDripper,
+        RelicName::FusionHammer,
+        RelicName::Sozu,
+        RelicName::CursedKey,
+        RelicName::BustedCrown,
+        RelicName::Ectoplasm,
+        RelicName::VelvetChoker,
+    ] {
+        if has_relic(&state.id_relics, name) {
+            energy_max += 1;
+        }
+    }
+    if has_relic(&state.id_relics, RelicName::SlaversCollar) && (is_elite_fight || is_boss_fight) {
+        energy_max += 1;
+    }
+
     // Energy starts empty; the turn-1 refill fills
     *energy = Energy {
         energy_current: 0,
-        energy_max: 3, // TODO: Max energy relics
+        energy_max,
     };
 
     *this_combat_damage_instances_taken = 0;
@@ -143,13 +174,6 @@ pub fn process_effect_combat_start(
             target: Target::Direct(Some(state.id_character)),
         });
     }
-
-    // Elite fights are identified by the monsters, not the room: Dead Adventurer's
-    // elite returns inside an event room
-    let is_elite_fight = id_monsters
-        .iter()
-        .flatten()
-        .any(|&id| state.entities[id].monster_kind == MonsterKind::Elite);
 
     // Preserved Insect
     if has_relic(&state.id_relics, RelicName::PreservedInsect) && is_elite_fight {

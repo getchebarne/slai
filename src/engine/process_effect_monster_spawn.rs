@@ -6,10 +6,13 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
 use crate::monsters::spawn_monster;
 use crate::types::Energy;
 use crate::types::Mode;
 use crate::types::MonsterName;
+use crate::types::RelicName;
+use crate::utils::has_relic;
 use crate::utils::push_entity;
 
 pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
@@ -66,4 +69,16 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
         id_source: None,
         target: Target::Direct(Some(id_monster)),
     });
+
+    // Philosopher's Stone: every monster (including mid-combat spawns) gains 1 Strength
+    if has_relic(&state.id_relics, RelicName::PhilosopherStone) {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks: 1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
+        });
+    }
 }
