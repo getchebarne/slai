@@ -19,6 +19,14 @@ pub fn process_effect_block_gain(
         None => false,
     };
 
+    // No-Block (Panic Button): card-sourced block on the character is negated
+    if from_card
+        && id_target == state.id_character
+        && has_modifier(&state.entities[id_target].modifiers, ModifierKind::NoBlock)
+    {
+        return;
+    }
+
     let modifiers = &state.entities[id_target].modifiers;
     let final_block = if from_card {
         let dex = if has_modifier(modifiers, ModifierKind::Dexterity) {

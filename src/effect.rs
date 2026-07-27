@@ -1,7 +1,10 @@
 use crate::modifier::ModifierKind;
+use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::ChestKind;
+use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
@@ -20,18 +23,18 @@ pub enum EffectKind {
     },
     BonfireOffer,
     CalculatedGamble,
-    CardAddToDeck {
+    CardAdd {
         card_name: CardName,
-        upgraded: bool,
-    },
-    CardAddToDiscard {
-        card_name: CardName,
-        count: u8,
-        upgraded: bool,
-    },
-    CardAddToHand {
-        card_name: CardName,
+        pile: CardPile,
         count: u16,
+        upgraded: bool,
+    },
+    CardAddRandom {
+        color: CardColor,
+        kind: Option<CardKind>,
+        pile: CardPile,
+        count: u8,
+        cost_zero: Option<CostScope>,
         upgraded: bool,
     },
     CardAdopt,
@@ -40,10 +43,13 @@ pub enum EffectKind {
     },
     CardDiscoverPick,
     CardDiscoverRoll {
-        kind: CardKind,
+        kind: Option<CardKind>,
         count: u8,
     },
     CardDraw {
+        count: u16,
+    },
+    CardDrawIfNoAttacks {
         count: u16,
     },
     CardDrawUpTo {
@@ -51,14 +57,21 @@ pub enum EffectKind {
     },
     CardDuplicate,
     CardExhaust,
-    CardMoveToDiscard,
+    // Relocate an existing combat card to `pile`; not a discard/draw (no triggers)
+    CardMove {
+        pile: CardPile,
+    },
     CardNightmarePick,
     CardNightmareSpawn,
     CardPlay,
+    CardPlayFromDrawTop,
     CardPurge,
     CardRemove,
     CardRetain,
-    CardSetupPick,
+    CardSetupPick {
+        free: bool,
+        bottom: bool,
+    },
     CardTransform,
     CardUpgrade,
     ChestOpen,
@@ -86,11 +99,9 @@ pub enum EffectKind {
     },
     Death,
     DistractionAdd,
-    EnergyGain {
+    EnergyDelta {
+        sign: DeltaSign,
         amount: u16,
-    },
-    EnergyLoss {
-        amount: u8,
     },
     EscapePlanCheck {
         block: u16,
@@ -109,6 +120,9 @@ pub enum EffectKind {
     },
     GoldSteal {
         amount: u8,
+    },
+    HandOfGreedProc {
+        gold: u16,
     },
     HealthDelta {
         sign: DeltaSign,
@@ -190,6 +204,8 @@ pub enum EffectKind {
     },
     SetCostOverride {
         amount: u8,
+        only_reduce: bool,
+        scope: CostScope,
     },
     ShopBuild,
     ShopBuyCard,
@@ -225,7 +241,9 @@ pub enum Amount {
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
+
     // We Meet Again's rolled ask, read from the event payload at execution time
+    // TODO: revisit, ugly
     EventGoldAsk,
 }
 
@@ -238,6 +256,10 @@ pub enum CandidatePool {
     Source,
     Discover,
     Deck { filter: CandidatePoolCardFilter },
+    PileDraw { filter: CandidatePoolCardFilter },
+    PileDiscard,
+    PileExhaust,
+
     // We Meet Again's rolled picks, read from the event payload at execution time
     EventPickCard,
     EventPickPotion,
@@ -250,6 +272,9 @@ pub enum CandidatePoolCardFilter {
     Any,
     Transformable,
     PurgeableCurse,
+    Attack,
+    Skill,
+    Costed,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -265,6 +290,8 @@ pub enum SelectionKind {
     Single,
     Random { count: u8 },
     Input { count: u16 },
+    // Like Input but optional: the player may stop early via PickSkip (never auto-resolves)
+    InputUpTo { count: u16 },
 }
 
 // Target known at queue time (Direct) or resolved against live state at dequeue (Resolve)

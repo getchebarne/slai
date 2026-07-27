@@ -20,6 +20,8 @@ ActionType = _rs.ActionType
 CardKind = _rs.CardKind
 CardColor = _rs.CardColor
 CardRarity = _rs.CardRarity
+CardPile = _rs.CardPile
+CostScope = _rs.CostScope
 PlayRestriction = _rs.PlayRestriction
 RoomKind = _rs.RoomKind
 RelicTier = _rs.RelicTier
@@ -127,6 +129,11 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         ),
         # Hand-pick family (resolves a hand-pick halt)
         create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS)),
+        create_action_spec(ActionType.CardExhaust, ArgSpec("idx_hand", _HAND_POS)),
+        create_action_spec(
+            ActionType.CardMoveToHand, ArgSpec("idx", "position in state.pile_draw")
+        ),
+        create_action_spec(ActionType.PickSkip),
         create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
@@ -197,8 +204,13 @@ EffectBlockGain = _rs.EffectBlockGain
 EffectModifierGain = _rs.EffectModifierGain
 EffectModifierMultiply = _rs.EffectModifierMultiply
 EffectModifierRemove = _rs.EffectModifierRemove
-EffectEnergyGain = _rs.EffectEnergyGain
-EffectCardAddToHand = _rs.EffectCardAddToHand
+EffectEnergyDelta = _rs.EffectEnergyDelta
+EffectCardAdd = _rs.EffectCardAdd
+EffectCardAddRandom = _rs.EffectCardAddRandom
+EffectCardMove = _rs.EffectCardMove
+EffectCardExhaust = _rs.EffectCardExhaust
+EffectCardDrawIfNoAttacks = _rs.EffectCardDrawIfNoAttacks
+EffectHandOfGreedProc = _rs.EffectHandOfGreedProc
 EffectCardDraw = _rs.EffectCardDraw
 EffectCardDrawUpTo = _rs.EffectCardDrawUpTo
 EffectCardDiscard = _rs.EffectCardDiscard
@@ -225,7 +237,6 @@ EffectEventAdvanceState = _rs.EffectEventAdvanceState
 EffectScrapOozeReach = _rs.EffectScrapOozeReach
 EffectEventConsume = _rs.EffectEventConsume
 EffectCardDiscoverPick = _rs.EffectCardDiscoverPick
-EffectCardAddToDeck = _rs.EffectCardAddToDeck
 EffectCardPurge = _rs.EffectCardPurge
 EffectCardUpgrade = _rs.EffectCardUpgrade
 EffectCardDuplicate = _rs.EffectCardDuplicate
@@ -249,8 +260,13 @@ Effect = (
     | EffectModifierGain
     | EffectModifierMultiply
     | EffectModifierRemove
-    | EffectEnergyGain
-    | EffectCardAddToHand
+    | EffectEnergyDelta
+    | EffectCardAdd
+    | EffectCardAddRandom
+    | EffectCardMove
+    | EffectCardExhaust
+    | EffectCardDrawIfNoAttacks
+    | EffectHandOfGreedProc
     | EffectCardDraw
     | EffectCardDrawUpTo
     | EffectCardDiscard
@@ -277,7 +293,6 @@ Effect = (
     | EffectScrapOozeReach
     | EffectEventConsume
     | EffectCardDiscoverPick
-    | EffectCardAddToDeck
     | EffectCardPurge
     | EffectCardUpgrade
     | EffectCardDuplicate
@@ -291,6 +306,9 @@ CandidatePoolDiscover = _rs.CandidatePoolDiscover
 CandidatePoolDeck = _rs.CandidatePoolDeck
 CandidatePoolEventPickCard = _rs.CandidatePoolEventPickCard
 CandidatePoolEventPickPotion = _rs.CandidatePoolEventPickPotion
+CandidatePoolPileDraw = _rs.CandidatePoolPileDraw
+CandidatePoolPileDiscard = _rs.CandidatePoolPileDiscard
+CandidatePoolPileExhaust = _rs.CandidatePoolPileExhaust
 CandidatePool = (
     CandidatePoolHand
     | CandidatePoolCharacter
@@ -300,13 +318,21 @@ CandidatePool = (
     | CandidatePoolDeck
     | CandidatePoolEventPickCard
     | CandidatePoolEventPickPotion
+    | CandidatePoolPileDraw
+    | CandidatePoolPileDiscard
+    | CandidatePoolPileExhaust
 )
 SelectionKindAll = _rs.SelectionKindAll
 SelectionKindSingle = _rs.SelectionKindSingle
 SelectionKindRandom = _rs.SelectionKindRandom
 SelectionKindInput = _rs.SelectionKindInput
+SelectionKindInputUpTo = _rs.SelectionKindInputUpTo
 SelectionKind = (
-    SelectionKindAll | SelectionKindSingle | SelectionKindRandom | SelectionKindInput
+    SelectionKindAll
+    | SelectionKindSingle
+    | SelectionKindRandom
+    | SelectionKindInput
+    | SelectionKindInputUpTo
 )
 
 # Flat variant classes + PEP 604 union aliases. The union works as annotation,
@@ -455,6 +481,8 @@ __all__ = [
     "CardKind",
     "CardColor",
     "CardRarity",
+    "CardPile",
+    "CostScope",
     "PlayRestriction",
     "ModifierKind",
     "IntentKind",
@@ -476,6 +504,9 @@ __all__ = [
     "CandidatePoolSource",
     "CandidatePoolDiscover",
     "CandidatePoolDeck",
+    "CandidatePoolPileDraw",
+    "CandidatePoolPileDiscard",
+    "CandidatePoolPileExhaust",
     "CandidatePoolEventPickCard",
     "CandidatePoolEventPickPotion",
     "SelectionKind",
@@ -483,6 +514,7 @@ __all__ = [
     "SelectionKindSingle",
     "SelectionKindRandom",
     "SelectionKindInput",
+    "SelectionKindInputUpTo",
     "CardCostKind",
     "CardCostKindFixed",
     "CardCostKindMinusDiscardsThisTurn",
@@ -508,8 +540,13 @@ __all__ = [
     "EffectModifierGain",
     "EffectModifierMultiply",
     "EffectModifierRemove",
-    "EffectEnergyGain",
-    "EffectCardAddToHand",
+    "EffectEnergyDelta",
+    "EffectCardAdd",
+    "EffectCardAddRandom",
+    "EffectCardMove",
+    "EffectCardExhaust",
+    "EffectCardDrawIfNoAttacks",
+    "EffectHandOfGreedProc",
     "EffectCardDraw",
     "EffectCardDrawUpTo",
     "EffectCardDiscard",
@@ -536,7 +573,6 @@ __all__ = [
     "EffectScrapOozeReach",
     "EffectEventConsume",
     "EffectCardDiscoverPick",
-    "EffectCardAddToDeck",
     "EffectCardPurge",
     "EffectCardUpgrade",
     "EffectCardDuplicate",

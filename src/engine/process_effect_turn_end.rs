@@ -6,6 +6,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::CostOverride;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -13,6 +14,7 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
+use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
@@ -25,6 +27,9 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
 
     if has_modifier(modifiers, ModifierKind::Shackled) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
+        // Executes in reverse:
+        //     1. ModifierGain Strength
+        //     2. ModifierRemove Shackled
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Shackled,
@@ -89,6 +94,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         this_turn_discards,
         this_turn_attacks,
         this_turn_cards_played,
+        this_turn_panache,
+        bomb_countdown,
         ..
     } = &mut state.mode
     else {
@@ -103,7 +110,15 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
 
     // Clear per-turn card cost overrides
     for entity in state.entities.iter_mut() {
-        if matches!(entity.kind, EntityKind::Card) {
+        if matches!(entity.kind, EntityKind::Card)
+            && matches!(
+                entity.card_cost_override,
+                Some(CostOverride {
+                    scope: CostScope::Turn,
+                    ..
+                })
+            )
+        {
             entity.card_cost_override = None;
         }
     }
@@ -363,10 +378,38 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Reset per-turn trackers in `GameState`
+    // The Bomb: lazily armed 3-turn timer, detonates for `stacks` on all enemies
+    if has_modifier(mods_char, ModifierKind::TheBomb) {
+        if *bomb_countdown == 0 {
+            *bomb_countdown = 3;
+        }
+        *bomb_countdown -= 1;
+        if *bomb_countdown == 0 {
+            let stacks = modifier_stacks(mods_char, ModifierKind::TheBomb);
+            for id_monster in id_monsters.iter().flatten().copied() {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: stacks.max(0) as u16,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ModifierRemove {
+                    kind: ModifierKind::TheBomb,
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+        }
+    }
+
+    // Reset per-turn trackers
     *this_turn_discards = 0;
     *this_turn_attacks = 0;
     *this_turn_cards_played = 0;
+    *this_turn_panache = 0;
 
     flush_effects_from_buf_to_queue_front(state);
 }

@@ -30,15 +30,25 @@ pub enum Mode {
         id_pile_exhaust: Vec<usize>,
         id_monsters: [Option<usize>; MAX_MONSTERS],
         id_picked_monster: Option<usize>,
-        energy: Energy,
-        this_turn_discards: u8,
-        this_turn_attacks: u8,
-        this_turn_cards_played: u8,
-        this_combat_damage_instances_taken: u8,
-        this_combat_escaped: bool,
         id_card_last_drawn: Option<usize>,
         id_card_nightmare: Option<usize>,
         id_discover: Vec<usize>,
+
+        // Energy
+        energy: Energy,
+
+        // Per-turn counters
+        this_turn_discards: u8,
+        this_turn_attacks: u8,
+        this_turn_cards_played: u8,
+        this_turn_panache: u8,
+
+        // Per-combat counters
+        this_combat_damage_instances_taken: u8,
+        this_combat_escaped: bool,
+
+        // Bomb countdown
+        bomb_countdown: u8,
 
         // Event-spawned fights (Mushrooms / Dead Adventurer)
         event_gold: Option<Amount>,
@@ -57,14 +67,11 @@ pub enum Mode {
         consumed: bool,
         id_options: Vec<usize>,
     },
-    // Price vecs parallel the id vecs; per-visit purge cost (run ramp lives on GameState)
+    // Stock prices live on the entities; per-visit purge cost (run ramp lives on GameState)
     Shop {
         shop_id_cards: Vec<usize>,
         shop_id_relics: Vec<usize>,
         shop_id_potions: Vec<usize>,
-        shop_card_prices: Vec<u16>,
-        shop_relic_prices: Vec<u16>,
-        shop_potion_prices: Vec<u16>,
         shop_purge_cost: u16,
     },
     Map,
@@ -188,6 +195,54 @@ pub enum CardName {
     Writhe,
     Parasite,
     Normality,
+
+    // Colorless
+    Apparition,
+    Bite,
+    DarkShackles,
+    DramaticEntrance,
+    Jax,
+    Panacea,
+    Trip,
+    Apotheosis,
+    Chrysalis,
+    Discovery,
+    Enlightenment,
+    HandOfGreed,
+    Impatience,
+    JackOfAllTrades,
+    Madness,
+    Magnetism,
+    Metamorphosis,
+    Panache,
+    PanicButton,
+    SadisticNature,
+    ThinkingAhead,
+    Transmutation,
+    Forethought,
+    Mayhem,
+    Purity,
+    SecretTechnique,
+    SecretWeapon,
+    TheBomb,
+    Violence,
+}
+
+// Lifetime of a cost override; Combat writes the base cost and is never stored on the entity
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CostScope {
+    Turn,
+    Combat,
+    UntilPlayed,
+}
+
+// Destination for card spawns and moves
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CardPile {
+    Hand,
+    Draw,
+    Discard,
+    Deck,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -10,7 +10,9 @@ pub fn process_effect_calculated_gamble(state: &mut GameState) {
         unreachable!("process_effect_calculated_gamble outside Combat mode")
     };
     let num_cards = id_hand.len();
-    // Draw runs after discards; push_front reverses, so push it first
+    // Executes in reverse:
+    //     1. CardDiscard (whole hand)
+    //     2. CardDraw
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardDraw {
             count: num_cards as u16,

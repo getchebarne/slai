@@ -3,21 +3,22 @@ pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_bonfire_offer;
 pub mod process_effect_calculated_gamble;
-pub mod process_effect_card_add_to_deck;
-pub mod process_effect_card_add_to_discard;
-pub mod process_effect_card_add_to_hand;
+pub mod process_effect_card_add;
+pub mod process_effect_card_add_random;
 pub mod process_effect_card_adopt;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_roll;
 pub mod process_effect_card_draw;
+pub mod process_effect_card_draw_if_no_attacks;
 pub mod process_effect_card_draw_up_to;
 pub mod process_effect_card_duplicate;
 pub mod process_effect_card_exhaust;
-pub mod process_effect_card_move_to_discard;
+pub mod process_effect_card_move;
 pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_play;
+pub mod process_effect_card_play_from_draw_top;
 pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
 pub mod process_effect_card_retain;
@@ -34,8 +35,7 @@ pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_distraction_add;
-pub mod process_effect_energy_gain;
-pub mod process_effect_energy_loss;
+pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
@@ -43,6 +43,7 @@ pub mod process_effect_face_trade;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
+pub mod process_effect_hand_of_greed_proc;
 pub mod process_effect_health_delta;
 pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
@@ -151,6 +152,34 @@ fn fill_buf_candidates(
                 }
             }
         }
+        CandidatePool::PileDraw { filter } => {
+            let Mode::Combat { id_pile_draw, .. } = mode else {
+                unreachable!("PileDraw pool outside Combat mode")
+            };
+            for &id in id_pile_draw {
+                if card_filter_matches(filter, &entities[id]) {
+                    effect_candidate_buf.push(id);
+                }
+            }
+        }
+        CandidatePool::PileDiscard => {
+            let Mode::Combat {
+                id_pile_discard, ..
+            } = mode
+            else {
+                unreachable!("PileDiscard pool outside Combat mode")
+            };
+            effect_candidate_buf.extend_from_slice(id_pile_discard)
+        }
+        CandidatePool::PileExhaust => {
+            let Mode::Combat {
+                id_pile_exhaust, ..
+            } = mode
+            else {
+                unreachable!("PileExhaust pool outside Combat mode")
+            };
+            effect_candidate_buf.extend_from_slice(id_pile_exhaust)
+        }
         CandidatePool::Character => effect_candidate_buf.push(id_character),
         CandidatePool::Monsters { filter } => {
             let Mode::Combat {
@@ -250,6 +279,12 @@ fn resolve_selection_kind(
             true
         }
         SelectionKind::Input { count } => (count as usize) >= effect_candidate_buf.len(),
+        SelectionKind::InputUpTo { count } => {
+            if count == 0 {
+                effect_candidate_buf.clear();
+            }
+            count == 0 || effect_candidate_buf.is_empty()
+        }
     }
 }
 
@@ -318,28 +353,43 @@ fn dispatch_by_kind(
         EffectKind::CardDraw { count } => {
             process_effect_card_draw::process_effect_card_draw(state, count)
         }
+        EffectKind::CardDrawIfNoAttacks { count } => {
+            process_effect_card_draw_if_no_attacks::process_effect_card_draw_if_no_attacks(
+                state, count,
+            )
+        }
+        EffectKind::CardAddRandom {
+            color,
+            kind,
+            pile,
+            count,
+            cost_zero,
+            upgraded,
+        } => process_effect_card_add_random::process_effect_card_add_random(
+            state, color, kind, pile, count, cost_zero, upgraded,
+        ),
+        EffectKind::HandOfGreedProc { gold } => {
+            process_effect_hand_of_greed_proc::process_effect_hand_of_greed_proc(
+                id_target, state, gold,
+            )
+        }
         EffectKind::CardDrawUpTo { amount } => {
             process_effect_card_draw_up_to::process_effect_card_draw_up_to(state, amount)
         }
         EffectKind::CardPlay => {
             process_effect_card_play::process_effect_card_play(id_target, state)
         }
-        EffectKind::CardAddToDiscard {
+        EffectKind::CardAdd {
             card_name,
+            pile,
             count,
             upgraded,
-        } => {
-            process_effect_card_add_to_discard::process_effect_card_add_to_discard(
-                state, card_name, count, upgraded,
-            )
-        }
+        } => process_effect_card_add::process_effect_card_add(state, card_name, pile, count, upgraded),
         EffectKind::CardDiscard { source } => {
             process_effect_card_discard::process_effect_card_discard(id_target, state, source)
         }
-        EffectKind::CardMoveToDiscard => {
-            process_effect_card_move_to_discard::process_effect_card_move_to_discard(
-                id_target, state,
-            )
+        EffectKind::CardMove { pile } => {
+            process_effect_card_move::process_effect_card_move(id_target, state, pile)
         }
         EffectKind::DamageMindBlast => {
             process_effect_damage_mind_blast::process_effect_damage_mind_blast(
@@ -352,8 +402,10 @@ fn dispatch_by_kind(
         EffectKind::CardRetain => {
             process_effect_card_retain::process_effect_card_retain(id_target, state)
         }
-        EffectKind::CardSetupPick => {
-            process_effect_card_setup_pick::process_effect_card_setup_pick(id_target, state)
+        EffectKind::CardSetupPick { free, bottom } => {
+            process_effect_card_setup_pick::process_effect_card_setup_pick(
+                id_target, state, free, bottom,
+            )
         }
         EffectKind::CardNightmarePick => {
             process_effect_card_nightmare_pick::process_effect_card_nightmare_pick(id_target, state)
@@ -364,17 +416,11 @@ fn dispatch_by_kind(
         EffectKind::CardExhaust => {
             process_effect_card_exhaust::process_effect_card_exhaust(id_target, state)
         }
+        EffectKind::CardPlayFromDrawTop => {
+            process_effect_card_play_from_draw_top::process_effect_card_play_from_draw_top(state)
+        }
         EffectKind::CardRemove => {
             process_effect_card_remove::process_effect_card_remove(id_target, state)
-        }
-        EffectKind::CardAddToHand {
-            card_name,
-            count,
-            upgraded,
-        } => {
-            process_effect_card_add_to_hand::process_effect_card_add_to_hand(
-                state, card_name, count, upgraded,
-            )
         }
         EffectKind::CalculatedGamble => {
             process_effect_calculated_gamble::process_effect_calculated_gamble(state)
@@ -441,11 +487,17 @@ fn dispatch_by_kind(
         EffectKind::DistractionAdd => {
             process_effect_distraction_add::process_effect_distraction_add(state)
         }
-        EffectKind::SetCostOverride { amount } => {
-            process_effect_set_cost_override::process_effect_set_cost_override(
-                id_target, state, amount,
-            )
-        }
+        EffectKind::SetCostOverride {
+            amount,
+            only_reduce,
+            scope,
+        } => process_effect_set_cost_override::process_effect_set_cost_override(
+            id_target,
+            state,
+            amount,
+            only_reduce,
+            scope,
+        ),
         EffectKind::EscapePlanCheck { block } => {
             process_effect_escape_plan_check::process_effect_escape_plan_check(state, block)
         }
@@ -488,11 +540,8 @@ fn dispatch_by_kind(
         EffectKind::BlockSet { amount } => {
             process_effect_block_set::process_effect_block_set(id_target, state, amount)
         }
-        EffectKind::EnergyGain { amount } => {
-            process_effect_energy_gain::process_effect_energy_gain(state, amount)
-        }
-        EffectKind::EnergyLoss { amount } => {
-            process_effect_energy_loss::process_effect_energy_loss(state, amount)
+        EffectKind::EnergyDelta { sign, amount } => {
+            process_effect_energy_delta::process_effect_energy_delta(state, sign, amount)
         }
         EffectKind::ModifierGain { kind, stacks } => {
             process_effect_modifier_gain::process_effect_modifier_gain(
@@ -582,12 +631,6 @@ fn dispatch_by_kind(
         EffectKind::CardTransform => {
             process_effect_card_transform::process_effect_card_transform(id_target, state)
         }
-        EffectKind::CardAddToDeck {
-            card_name,
-            upgraded,
-        } => process_effect_card_add_to_deck::process_effect_card_add_to_deck(
-            state, card_name, upgraded,
-        ),
         EffectKind::CardAdopt => {
             process_effect_card_adopt::process_effect_card_adopt(id_target, state)
         }

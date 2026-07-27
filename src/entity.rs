@@ -6,7 +6,6 @@ use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_MOVES_PER_MONSTER;
-use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
 use crate::modifier::Modifiers;
@@ -16,6 +15,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::ChestKind;
+use crate::types::CostScope;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::PotionName;
@@ -26,7 +26,6 @@ use crate::types::RoomKind;
 use crate::types::Vitals;
 use crate::types::ZERO_VITALS;
 use crate::utils::has_relic;
-use crate::utils::push_entity;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EntityKind {
@@ -46,13 +45,18 @@ pub enum PlayRestriction {
     DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
 }
 
-// XCost.offset is consumed by the per-play multiplier in `process_effect_card_play`
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct CostOverride {
+    pub amount: u8,
+    pub scope: CostScope,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CardCostKind {
     Fixed,
     MinusDiscardsThisTurn,
     GrowsOnDamageInstanceTaken,
-    XCost { offset: i8 },
+    XCost { offset: i8 }, // offset is consumed by the per-play multiplier in `process_effect_card_play`
 }
 
 // TODO: revisit implementation. Could be flat-enum and `damage: u16` and `instances: u8`
@@ -149,9 +153,10 @@ pub struct Entity {
     pub card_innate: bool,
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
-    pub card_free_to_play_once: bool,
+
     pub card_cost_kind: CardCostKind,
-    pub card_cost_override: Option<u8>,
+    // Paired amount+lifetime; Turn clears at turn end, UntilPlayed clears on play
+    pub card_cost_override: Option<CostOverride>,
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
     pub card_on_discard_effects: &'static [Effect],
@@ -171,6 +176,9 @@ pub struct Entity {
     pub relic_name: RelicName,
     pub relic_tier: RelicTier,
     pub relic_counter: i16,
+
+    // Shop price while stocked; stale after purchase (nothing reads it outside Shop mode)
+    pub price: u16,
     pub relic_used_up: bool,
     pub relic_effects_on_combat_start: &'static [Effect],
 
@@ -215,7 +223,6 @@ pub const ZERO_ENTITY: Entity = Entity {
     requires_target: false,
     card_retain: false,
     card_play_restriction: PlayRestriction::Always,
-    card_free_to_play_once: false,
     card_cost_kind: CardCostKind::Fixed,
     card_cost_override: None,
     card_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_CARD],
@@ -233,6 +240,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     relic_name: RelicName::SnakeRing,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,
+    price: 0,
     relic_used_up: false,
     relic_effects_on_combat_start: &[],
     potion_name: PotionName::EnergyPotion,
@@ -400,11 +408,8 @@ pub fn get_card_effective_cost(
     this_combat_damage_instances_taken: u8,
     energy_current: u8,
 ) -> u8 {
-    if card.card_free_to_play_once {
-        return 0;
-    }
     if let Some(override_) = card.card_cost_override {
-        return override_;
+        return override_.amount;
     }
     match card.card_cost_kind {
         CardCostKind::Fixed => card.card_cost,
@@ -414,22 +419,6 @@ pub fn get_card_effective_cost(
             .saturating_add(this_combat_damage_instances_taken),
         CardCostKind::XCost { .. } => energy_current,
     }
-}
-
-// Used by Distraction, EndlessAgony copy spawning, and the CardDraw cap branch
-pub fn add_card_to_hand_or_discard(
-    entities: &mut Vec<Entity>,
-    id_hand: &mut Vec<usize>,
-    id_pile_discard: &mut Vec<usize>,
-    card: Entity,
-) -> usize {
-    let id_card = push_entity(entities, card);
-    if id_hand.len() < MAX_SIZE_HAND {
-        id_hand.push(id_card);
-    } else {
-        id_pile_discard.push(id_card);
-    }
-    id_card
 }
 
 // Evaluate a PlayRestriction against the relevant slice of game state

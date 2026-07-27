@@ -16,7 +16,9 @@ use crate::modifier::modifier_stacks;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
+use crate::types::CostScope;
 use crate::types::Mode;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
@@ -223,6 +225,58 @@ impl From<PlayRestriction> for PyPlayRestriction {
     eq,
     eq_int,
     frozen,
+    name = "CardPile",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyCardPile {
+    Hand,
+    Draw,
+    Discard,
+    Deck,
+}
+
+impl From<CardPile> for PyCardPile {
+    fn from(p: CardPile) -> Self {
+        match p {
+            CardPile::Hand => Self::Hand,
+            CardPile::Draw => Self::Draw,
+            CardPile::Discard => Self::Discard,
+            CardPile::Deck => Self::Deck,
+        }
+    }
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    eq_int,
+    frozen,
+    name = "CostScope",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PyCostScope {
+    Turn,
+    Combat,
+    UntilPlayed,
+}
+
+impl From<CostScope> for PyCostScope {
+    fn from(s: CostScope) -> Self {
+        match s {
+            CostScope::Turn => Self::Turn,
+            CostScope::Combat => Self::Combat,
+            CostScope::UntilPlayed => Self::UntilPlayed,
+        }
+    }
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    eq_int,
+    frozen,
     name = "CardName",
     module = "slai.slai"
 )]
@@ -326,6 +380,35 @@ pub enum PyCardName {
     Writhe,
     Parasite,
     Normality,
+    Apparition,
+    Bite,
+    DarkShackles,
+    DramaticEntrance,
+    Jax,
+    Panacea,
+    Trip,
+    Apotheosis,
+    Chrysalis,
+    Discovery,
+    Enlightenment,
+    HandOfGreed,
+    Impatience,
+    JackOfAllTrades,
+    Madness,
+    Magnetism,
+    Metamorphosis,
+    Panache,
+    PanicButton,
+    SadisticNature,
+    ThinkingAhead,
+    Transmutation,
+    Forethought,
+    Mayhem,
+    Purity,
+    SecretTechnique,
+    SecretWeapon,
+    TheBomb,
+    Violence,
 }
 
 impl From<CardName> for PyCardName {
@@ -430,6 +513,35 @@ impl From<CardName> for PyCardName {
             CardName::Writhe => Self::Writhe,
             CardName::Parasite => Self::Parasite,
             CardName::Normality => Self::Normality,
+            CardName::Apparition => Self::Apparition,
+            CardName::Bite => Self::Bite,
+            CardName::DarkShackles => Self::DarkShackles,
+            CardName::DramaticEntrance => Self::DramaticEntrance,
+            CardName::Jax => Self::Jax,
+            CardName::Panacea => Self::Panacea,
+            CardName::Trip => Self::Trip,
+            CardName::Apotheosis => Self::Apotheosis,
+            CardName::Chrysalis => Self::Chrysalis,
+            CardName::Discovery => Self::Discovery,
+            CardName::Enlightenment => Self::Enlightenment,
+            CardName::HandOfGreed => Self::HandOfGreed,
+            CardName::Impatience => Self::Impatience,
+            CardName::JackOfAllTrades => Self::JackOfAllTrades,
+            CardName::Madness => Self::Madness,
+            CardName::Magnetism => Self::Magnetism,
+            CardName::Metamorphosis => Self::Metamorphosis,
+            CardName::Panache => Self::Panache,
+            CardName::PanicButton => Self::PanicButton,
+            CardName::SadisticNature => Self::SadisticNature,
+            CardName::ThinkingAhead => Self::ThinkingAhead,
+            CardName::Transmutation => Self::Transmutation,
+            CardName::Forethought => Self::Forethought,
+            CardName::Mayhem => Self::Mayhem,
+            CardName::Purity => Self::Purity,
+            CardName::SecretTechnique => Self::SecretTechnique,
+            CardName::SecretWeapon => Self::SecretWeapon,
+            CardName::TheBomb => Self::TheBomb,
+            CardName::Violence => Self::Violence,
         }
     }
 }
@@ -450,8 +562,8 @@ pub struct PyCard {
     // Cost-related fields
     pub cost: u8,
     pub cost_base: u8,
-    pub cost_zero_once: bool,
     pub cost_override: Option<u8>,
+    pub cost_override_scope: Option<PyCostScope>,
     pub cost_kind: PyCardCostKind,
 
     // Categorical fields
@@ -583,6 +695,35 @@ impl CardName {
             Self::Writhe => "Writhe",
             Self::Parasite => "Parasite",
             Self::Normality => "Normality",
+            Self::Apparition => "Apparition",
+            Self::Bite => "Bite",
+            Self::DarkShackles => "Dark Shackles",
+            Self::DramaticEntrance => "Dramatic Entrance",
+            Self::Jax => "J.A.X.",
+            Self::Panacea => "Panacea",
+            Self::Trip => "Trip",
+            Self::Apotheosis => "Apotheosis",
+            Self::Chrysalis => "Chrysalis",
+            Self::Discovery => "Discovery",
+            Self::Enlightenment => "Enlightenment",
+            Self::HandOfGreed => "Hand of Greed",
+            Self::Impatience => "Impatience",
+            Self::JackOfAllTrades => "Jack of All Trades",
+            Self::Madness => "Madness",
+            Self::Magnetism => "Magnetism",
+            Self::Metamorphosis => "Metamorphosis",
+            Self::Panache => "Panache",
+            Self::PanicButton => "Panic Button",
+            Self::SadisticNature => "Sadistic Nature",
+            Self::ThinkingAhead => "Thinking Ahead",
+            Self::Transmutation => "Transmutation",
+            Self::Forethought => "Forethought",
+            Self::Mayhem => "Mayhem",
+            Self::Purity => "Purity",
+            Self::SecretTechnique => "Secret Technique",
+            Self::SecretWeapon => "Secret Weapon",
+            Self::TheBomb => "The Bomb",
+            Self::Violence => "Violence",
         }
     }
 }
@@ -680,8 +821,8 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         display_name,
         cost: get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
         cost_base: card.card_cost,
-        cost_zero_once: card.card_free_to_play_once,
-        cost_override: card.card_cost_override,
+        cost_override: card.card_cost_override.map(|o| o.amount),
+        cost_override_scope: card.card_cost_override.map(|o| o.scope.into()),
         cost_kind: card.card_cost_kind.into(),
         kind: card.card_kind.into(),
         color: card.card_color.into(),
@@ -715,7 +856,7 @@ fn card_identity_hash(card: &PyCard) -> u64 {
     card.cost_kind.hash(&mut h);
     card.cost.hash(&mut h);
     card.cost_base.hash(&mut h);
-    card.cost_zero_once.hash(&mut h);
+    card.cost_override_scope.hash(&mut h);
     card.cost_override.hash(&mut h);
     card.upgraded.hash(&mut h);
     card.exhaust.hash(&mut h);

@@ -9,7 +9,10 @@ use crate::effect::Target;
 
 use super::amount::PyAmount;
 use super::amount::PyDeltaSign;
+use super::card::PyCardColor;
 use super::card::PyCardKind;
+use super::card::PyCardPile;
+use super::card::PyCostScope;
 use super::macros::variant_union;
 use super::modifier::PyModifierKind;
 use super::monster::PyMonsterName;
@@ -102,6 +105,8 @@ pub struct PyEffectGlassKnifeDecay {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectCardSetupPick {
+    pub free: bool,
+    pub bottom: bool,
     pub target: Option<PyTarget>,
 }
 
@@ -145,6 +150,8 @@ pub struct PyEffectDistractionAdd {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectSetCostOverride {
     pub amount: u8,
+    pub only_reduce: bool,
+    pub scope: PyCostScope,
     pub target: Option<PyTarget>,
 }
 
@@ -290,11 +297,12 @@ pub struct PyEffectModifierRemove {
     hash,
     frozen,
     get_all,
-    name = "EffectEnergyGain",
+    name = "EffectEnergyDelta",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectEnergyGain {
+pub struct PyEffectEnergyDelta {
+    pub sign: PyDeltaSign,
     pub amount: u16,
     pub target: Option<PyTarget>,
 }
@@ -305,12 +313,13 @@ pub struct PyEffectEnergyGain {
     hash,
     frozen,
     get_all,
-    name = "EffectCardAddToHand",
+    name = "EffectCardAdd",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectCardAddToHand {
+pub struct PyEffectCardAdd {
     pub card_name: String,
+    pub pile: PyCardPile,
     pub count: u16,
     pub upgraded: bool,
     pub target: Option<PyTarget>,
@@ -503,7 +512,7 @@ pub struct PyEffectRewardRollPotions {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectCardDiscoverRoll {
-    pub kind: PyCardKind,
+    pub kind: Option<PyCardKind>,
     pub count: u8,
     pub target: Option<PyTarget>,
 }
@@ -708,22 +717,6 @@ pub struct PyEffectCardDiscoverPick {
     hash,
     frozen,
     get_all,
-    name = "EffectCardAddToDeck",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectCardAddToDeck {
-    pub card_name: String,
-    pub upgraded: bool,
-    pub target: Option<PyTarget>,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
     name = "EffectCardPurge",
     module = "slai.slai"
 )]
@@ -775,6 +768,85 @@ pub struct PyEffectCardTransform {
 }
 
 // NB: variant order matches the old complex enum — card_identity_hash depends on it
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardAddRandom",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardAddRandom {
+    pub color: PyCardColor,
+    pub kind: Option<PyCardKind>,
+    pub pile: PyCardPile,
+    pub count: u8,
+    pub cost_zero: Option<PyCostScope>,
+    pub upgraded: bool,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardDrawIfNoAttacks",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardDrawIfNoAttacks {
+    pub count: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectHandOfGreedProc",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectHandOfGreedProc {
+    pub gold: u16,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardExhaust",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardExhaust {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardMove",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardMove {
+    pub pile: PyCardPile,
+    pub target: Option<PyTarget>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyEffect {
     DamagePhysical(PyEffectDamagePhysical),
@@ -795,8 +867,8 @@ pub enum PyEffect {
     ModifierGain(PyEffectModifierGain),
     ModifierMultiply(PyEffectModifierMultiply),
     ModifierRemove(PyEffectModifierRemove),
-    EnergyGain(PyEffectEnergyGain),
-    CardAddToHand(PyEffectCardAddToHand),
+    EnergyDelta(PyEffectEnergyDelta),
+    CardAdd(PyEffectCardAdd),
     CardDraw(PyEffectCardDraw),
     CardDrawUpTo(PyEffectCardDrawUpTo),
     CardDiscard(PyEffectCardDiscard),
@@ -823,11 +895,15 @@ pub enum PyEffect {
     ScrapOozeReach(PyEffectScrapOozeReach),
     EventConsume(PyEffectEventConsume),
     CardDiscoverPick(PyEffectCardDiscoverPick),
-    CardAddToDeck(PyEffectCardAddToDeck),
     CardPurge(PyEffectCardPurge),
     CardUpgrade(PyEffectCardUpgrade),
     CardDuplicate(PyEffectCardDuplicate),
     CardTransform(PyEffectCardTransform),
+    CardAddRandom(PyEffectCardAddRandom),
+    CardDrawIfNoAttacks(PyEffectCardDrawIfNoAttacks),
+    HandOfGreedProc(PyEffectHandOfGreedProc),
+    CardExhaust(PyEffectCardExhaust),
+    CardMove(PyEffectCardMove),
 }
 
 variant_union!(PyEffect {
@@ -849,8 +925,8 @@ variant_union!(PyEffect {
     ModifierGain => PyEffectModifierGain,
     ModifierMultiply => PyEffectModifierMultiply,
     ModifierRemove => PyEffectModifierRemove,
-    EnergyGain => PyEffectEnergyGain,
-    CardAddToHand => PyEffectCardAddToHand,
+    EnergyDelta => PyEffectEnergyDelta,
+    CardAdd => PyEffectCardAdd,
     CardDraw => PyEffectCardDraw,
     CardDrawUpTo => PyEffectCardDrawUpTo,
     CardDiscard => PyEffectCardDiscard,
@@ -877,11 +953,15 @@ variant_union!(PyEffect {
     ScrapOozeReach => PyEffectScrapOozeReach,
     EventConsume => PyEffectEventConsume,
     CardDiscoverPick => PyEffectCardDiscoverPick,
-    CardAddToDeck => PyEffectCardAddToDeck,
     CardPurge => PyEffectCardPurge,
     CardUpgrade => PyEffectCardUpgrade,
     CardDuplicate => PyEffectCardDuplicate,
     CardTransform => PyEffectCardTransform,
+    CardAddRandom => PyEffectCardAddRandom,
+    CardDrawIfNoAttacks => PyEffectCardDrawIfNoAttacks,
+    HandOfGreedProc => PyEffectHandOfGreedProc,
+    CardExhaust => PyEffectCardExhaust,
+    CardMove => PyEffectCardMove,
 });
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -913,14 +993,27 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::GlassKnifeDecay { delta } => {
             PyEffect::GlassKnifeDecay(PyEffectGlassKnifeDecay { delta, target })
         }
-        EffectKind::CardSetupPick => PyEffect::CardSetupPick(PyEffectCardSetupPick { target }),
+        EffectKind::CardSetupPick { free, bottom } => {
+            PyEffect::CardSetupPick(PyEffectCardSetupPick {
+                free,
+                bottom,
+                target,
+            })
+        }
         EffectKind::CardNightmarePick => {
             PyEffect::CardNightmarePick(PyEffectCardNightmarePick { target })
         }
         EffectKind::DistractionAdd => PyEffect::DistractionAdd(PyEffectDistractionAdd { target }),
-        EffectKind::SetCostOverride { amount } => {
-            PyEffect::SetCostOverride(PyEffectSetCostOverride { amount, target })
-        }
+        EffectKind::SetCostOverride {
+            amount,
+            only_reduce,
+            scope,
+        } => PyEffect::SetCostOverride(PyEffectSetCostOverride {
+            amount,
+            only_reduce,
+            scope: scope.into(),
+            target,
+        }),
         EffectKind::DamageFinisher { damage } => {
             PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target })
         }
@@ -953,15 +1046,19 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             kind: kind.into(),
             target,
         }),
-        EffectKind::EnergyGain { amount } => {
-            PyEffect::EnergyGain(PyEffectEnergyGain { amount, target })
-        }
-        EffectKind::CardAddToHand {
+        EffectKind::EnergyDelta { sign, amount } => PyEffect::EnergyDelta(PyEffectEnergyDelta {
+            sign: sign.into(),
+            amount,
+            target,
+        }),
+        EffectKind::CardAdd {
             card_name,
+            pile,
             count,
             upgraded,
-        } => PyEffect::CardAddToHand(PyEffectCardAddToHand {
+        } => PyEffect::CardAdd(PyEffectCardAdd {
             card_name: card_name.as_str().to_string(),
+            pile: pile.into(),
             count,
             upgraded,
             target,
@@ -1050,14 +1147,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         }),
         EffectKind::EventConsume => PyEffect::EventConsume(PyEffectEventConsume { target }),
-        EffectKind::CardAddToDeck {
-            card_name,
-            upgraded,
-        } => PyEffect::CardAddToDeck(PyEffectCardAddToDeck {
-            card_name: card_name.as_str().to_string(),
-            upgraded,
-            target,
-        }),
         EffectKind::PotionAddRandom { limited } => {
             PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited, target })
         }
@@ -1067,7 +1156,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }
         EffectKind::CardDiscoverRoll { kind, count } => {
             PyEffect::CardDiscoverRoll(PyEffectCardDiscoverRoll {
-                kind: kind.into(),
+                kind: kind.map(|k| k.into()),
                 count,
                 target,
             })
@@ -1076,6 +1165,33 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardDiscoverPick => {
             PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick { target })
         }
+        EffectKind::CardAddRandom {
+            color,
+            kind,
+            pile,
+            count,
+            cost_zero,
+            upgraded,
+        } => PyEffect::CardAddRandom(PyEffectCardAddRandom {
+            color: color.into(),
+            kind: kind.map(|k| k.into()),
+            pile: pile.into(),
+            count,
+            cost_zero: cost_zero.map(|c| c.into()),
+            upgraded,
+            target,
+        }),
+        EffectKind::CardDrawIfNoAttacks { count } => {
+            PyEffect::CardDrawIfNoAttacks(PyEffectCardDrawIfNoAttacks { count, target })
+        }
+        EffectKind::HandOfGreedProc { gold } => {
+            PyEffect::HandOfGreedProc(PyEffectHandOfGreedProc { gold, target })
+        }
+        EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target }),
+        EffectKind::CardMove { pile } => PyEffect::CardMove(PyEffectCardMove {
+            pile: pile.into(),
+            target,
+        }),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
             other

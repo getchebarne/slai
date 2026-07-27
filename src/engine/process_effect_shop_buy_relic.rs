@@ -12,7 +12,6 @@ pub fn process_effect_shop_buy_relic(id_target: Option<usize>, state: &mut GameS
     let id_relic = id_target.expect("ShopBuyRelic requires id_target");
     let Mode::Shop {
         shop_id_relics,
-        shop_relic_prices,
         ..
     } = &mut state.mode
     else {
@@ -23,7 +22,7 @@ pub fn process_effect_shop_buy_relic(id_target: Option<usize>, state: &mut GameS
         .position(|&id| id == id_relic)
         .expect("bought relic is a shop entry");
     shop_id_relics.remove(idx);
-    let price = shop_relic_prices.remove(idx);
+    let price = state.entities[id_relic].price;
 
     // Charge gold and grant the relic
     state.effect_buf.clear();

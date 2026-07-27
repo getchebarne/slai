@@ -5,11 +5,14 @@ mod adrenaline;
 mod after_image;
 mod alchemize;
 mod all_out_attack;
+mod apotheosis;
+mod apparition;
 mod ascenders_bane;
 mod backflip;
 mod backstab;
 mod bandage_up;
 mod bane;
+mod bite;
 mod blade_dance;
 mod blind;
 mod blur;
@@ -21,12 +24,14 @@ mod calculated_gamble;
 mod caltrops;
 mod catalyst;
 mod choke;
+mod chrysalis;
 mod cloak_and_dagger;
 mod concentrate;
 mod corpse_explosion;
 mod crippling_poison;
 mod dagger_spray;
 mod dagger_throw;
+mod dark_shackles;
 mod dash;
 mod dazed;
 mod deadly_poison;
@@ -35,11 +40,14 @@ mod deep_breath;
 mod defend;
 mod deflect;
 mod die_die_die;
+mod discovery;
 mod distraction;
 mod dodge_and_roll;
 mod doppelganger;
 mod doubt;
+mod dramatic_entrance;
 mod endless_agony;
+mod enlightenment;
 mod envenom;
 mod escape_plan;
 mod eviscerate;
@@ -50,16 +58,25 @@ mod flash_of_steel;
 mod flechettes;
 mod flying_knee;
 mod footwork;
+mod forethought;
 mod glass_knife;
 mod good_instincts;
 mod grand_finale;
+mod hand_of_greed;
 mod heel_hook;
+mod impatience;
 mod infinite_blades;
 mod injury;
+mod jack_of_all_trades;
+mod jax;
 mod leg_sweep;
+mod madness;
+mod magnetism;
 mod malaise;
 mod master_of_strategy;
 mod masterful_stab;
+mod mayhem;
+mod metamorphosis;
 mod mind_blast;
 mod neutralize;
 mod nightmare;
@@ -67,16 +84,23 @@ mod normality;
 mod noxious_fumes;
 mod outmaneuver;
 mod pain;
+mod panacea;
+mod panache;
+mod panic_button;
 mod parasite;
 mod phantasmal_killer;
 mod piercing_wail;
 mod poisoned_stab;
 mod predator;
 mod prepared;
+mod purity;
 mod quick_slash;
 mod reflex;
 mod regret;
 mod riddle_with_holes;
+mod sadistic_nature;
+mod secret_technique;
+mod secret_weapon;
 mod setup;
 mod shame;
 mod shiv;
@@ -91,8 +115,13 @@ mod survivor;
 mod swift_strike;
 mod tactician;
 mod terror;
+mod the_bomb;
+mod thinking_ahead;
 mod tools_of_the_trade;
+mod transmutation;
+mod trip;
 mod unload;
+mod violence;
 mod well_laid_plans;
 mod wraith_form;
 mod writhe;
@@ -291,6 +320,64 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::Writhe, _) => writhe::WRITHE,
         (CardName::Parasite, _) => parasite::PARASITE,
         (CardName::Normality, _) => normality::NORMALITY,
+        (CardName::Apparition, false) => apparition::APPARITION,
+        (CardName::Apparition, true) => apparition::APPARITION_PLUS,
+        (CardName::Bite, false) => bite::BITE,
+        (CardName::Bite, true) => bite::BITE_PLUS,
+        (CardName::DarkShackles, false) => dark_shackles::DARK_SHACKLES,
+        (CardName::DarkShackles, true) => dark_shackles::DARK_SHACKLES_PLUS,
+        (CardName::DramaticEntrance, false) => dramatic_entrance::DRAMATIC_ENTRANCE,
+        (CardName::DramaticEntrance, true) => dramatic_entrance::DRAMATIC_ENTRANCE_PLUS,
+        (CardName::Jax, false) => jax::JAX,
+        (CardName::Jax, true) => jax::JAX_PLUS,
+        (CardName::Panacea, false) => panacea::PANACEA,
+        (CardName::Panacea, true) => panacea::PANACEA_PLUS,
+        (CardName::Trip, false) => trip::TRIP,
+        (CardName::Trip, true) => trip::TRIP_PLUS,
+        (CardName::Apotheosis, false) => apotheosis::APOTHEOSIS,
+        (CardName::Apotheosis, true) => apotheosis::APOTHEOSIS_PLUS,
+        (CardName::Chrysalis, false) => chrysalis::CHRYSALIS,
+        (CardName::Chrysalis, true) => chrysalis::CHRYSALIS_PLUS,
+        (CardName::Discovery, false) => discovery::DISCOVERY,
+        (CardName::Discovery, true) => discovery::DISCOVERY_PLUS,
+        (CardName::Enlightenment, false) => enlightenment::ENLIGHTENMENT,
+        (CardName::Enlightenment, true) => enlightenment::ENLIGHTENMENT_PLUS,
+        (CardName::HandOfGreed, false) => hand_of_greed::HAND_OF_GREED,
+        (CardName::HandOfGreed, true) => hand_of_greed::HAND_OF_GREED_PLUS,
+        (CardName::Impatience, false) => impatience::IMPATIENCE,
+        (CardName::Impatience, true) => impatience::IMPATIENCE_PLUS,
+        (CardName::JackOfAllTrades, false) => jack_of_all_trades::JACK_OF_ALL_TRADES,
+        (CardName::JackOfAllTrades, true) => jack_of_all_trades::JACK_OF_ALL_TRADES_PLUS,
+        (CardName::Madness, false) => madness::MADNESS,
+        (CardName::Madness, true) => madness::MADNESS_PLUS,
+        (CardName::Magnetism, false) => magnetism::MAGNETISM,
+        (CardName::Magnetism, true) => magnetism::MAGNETISM_PLUS,
+        (CardName::Metamorphosis, false) => metamorphosis::METAMORPHOSIS,
+        (CardName::Metamorphosis, true) => metamorphosis::METAMORPHOSIS_PLUS,
+        (CardName::Panache, false) => panache::PANACHE,
+        (CardName::Panache, true) => panache::PANACHE_PLUS,
+        (CardName::PanicButton, false) => panic_button::PANIC_BUTTON,
+        (CardName::PanicButton, true) => panic_button::PANIC_BUTTON_PLUS,
+        (CardName::SadisticNature, false) => sadistic_nature::SADISTIC_NATURE,
+        (CardName::SadisticNature, true) => sadistic_nature::SADISTIC_NATURE_PLUS,
+        (CardName::ThinkingAhead, false) => thinking_ahead::THINKING_AHEAD,
+        (CardName::ThinkingAhead, true) => thinking_ahead::THINKING_AHEAD_PLUS,
+        (CardName::Transmutation, false) => transmutation::TRANSMUTATION,
+        (CardName::Transmutation, true) => transmutation::TRANSMUTATION_PLUS,
+        (CardName::Forethought, false) => forethought::FORETHOUGHT,
+        (CardName::Forethought, true) => forethought::FORETHOUGHT_PLUS,
+        (CardName::Mayhem, false) => mayhem::MAYHEM,
+        (CardName::Mayhem, true) => mayhem::MAYHEM_PLUS,
+        (CardName::Purity, false) => purity::PURITY,
+        (CardName::Purity, true) => purity::PURITY_PLUS,
+        (CardName::SecretTechnique, false) => secret_technique::SECRET_TECHNIQUE,
+        (CardName::SecretTechnique, true) => secret_technique::SECRET_TECHNIQUE_PLUS,
+        (CardName::SecretWeapon, false) => secret_weapon::SECRET_WEAPON,
+        (CardName::SecretWeapon, true) => secret_weapon::SECRET_WEAPON_PLUS,
+        (CardName::TheBomb, false) => the_bomb::THE_BOMB,
+        (CardName::TheBomb, true) => the_bomb::THE_BOMB_PLUS,
+        (CardName::Violence, false) => violence::VIOLENCE,
+        (CardName::Violence, true) => violence::VIOLENCE_PLUS,
     }
 }
 
@@ -393,6 +480,35 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &writhe::WRITHE,
     &parasite::PARASITE,
     &normality::NORMALITY,
+    &apparition::APPARITION,
+    &bite::BITE,
+    &dark_shackles::DARK_SHACKLES,
+    &dramatic_entrance::DRAMATIC_ENTRANCE,
+    &jax::JAX,
+    &panacea::PANACEA,
+    &trip::TRIP,
+    &apotheosis::APOTHEOSIS,
+    &chrysalis::CHRYSALIS,
+    &discovery::DISCOVERY,
+    &enlightenment::ENLIGHTENMENT,
+    &hand_of_greed::HAND_OF_GREED,
+    &impatience::IMPATIENCE,
+    &jack_of_all_trades::JACK_OF_ALL_TRADES,
+    &madness::MADNESS,
+    &magnetism::MAGNETISM,
+    &metamorphosis::METAMORPHOSIS,
+    &panache::PANACHE,
+    &panic_button::PANIC_BUTTON,
+    &sadistic_nature::SADISTIC_NATURE,
+    &thinking_ahead::THINKING_AHEAD,
+    &transmutation::TRANSMUTATION,
+    &forethought::FORETHOUGHT,
+    &mayhem::MAYHEM,
+    &purity::PURITY,
+    &secret_technique::SECRET_TECHNIQUE,
+    &secret_weapon::SECRET_WEAPON,
+    &the_bomb::THE_BOMB,
+    &violence::VIOLENCE,
 ];
 // Assert all cards are included without duplicates
 const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);

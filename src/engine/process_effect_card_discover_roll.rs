@@ -7,7 +7,7 @@ use crate::utils::push_entity;
 
 pub fn process_effect_card_discover_roll(
     state: &mut GameState,
-    kind: CardKind,
+    kind: Option<CardKind>,
     color: CardColor,
     count: u8,
 ) {
@@ -16,7 +16,7 @@ pub fn process_effect_card_discover_roll(
     };
     id_discover.clear();
 
-    let card_picks = get_random_cards(color, Some(kind), None, &[], count as usize, &mut state.rng);
+    let card_picks = get_random_cards(color, kind, None, &[], count as usize, &mut state.rng);
     for card_pick in card_picks {
         let id = push_entity(&mut state.entities, card_pick);
         id_discover.push(id);

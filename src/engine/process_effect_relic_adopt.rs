@@ -45,6 +45,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             });
         }
         RelicName::LeesWaffle => {
+            // Executes in reverse:
+            //     1. MaxHealthDelta
+            //     2. HealthDelta (full heal)
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Gain,
@@ -126,6 +129,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
 
 // Max HP first so the heal lands under the new ceiling
 fn stat_pickup(state: &mut GameState, id_character: usize, amount: u16) {
+    // Executes in reverse:
+    //     1. MaxHealthDelta
+    //     2. HealthDelta
     state.effect_queue.push_front(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,

@@ -8,6 +8,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
+use crate::entity::CostOverride;
 use crate::entity::Entity;
 use crate::entity::get_card_effective_cost;
 use crate::game::GameState;
@@ -19,6 +20,8 @@ use crate::modifier::modifier_stacks;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
+use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
@@ -33,6 +36,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         this_turn_discards,
         this_turn_attacks,
         this_turn_cards_played,
+        this_turn_panache,
         this_combat_damage_instances_taken,
         ..
     } = &mut state.mode
@@ -105,7 +109,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             &mut state.entities,
         ) {
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::EnergyGain { amount: 1 },
+                kind: EffectKind::EnergyDelta {
+                    sign: DeltaSign::Gain,
+                    amount: 1,
+                },
                 id_source: None,
                 target: Target::Direct(None),
             });
@@ -213,9 +220,15 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         );
     }
 
-    // Clear `free_to_play_once` flag
-    if card.card_free_to_play_once {
-        state.entities[id_card].card_free_to_play_once = false;
+    // Until-played overrides are consumed by this play
+    if matches!(
+        card.card_cost_override,
+        Some(CostOverride {
+            scope: CostScope::UntilPlayed,
+            ..
+        })
+    ) {
+        state.entities[id_card].card_cost_override = None;
     }
 
     // Clear effect buffer — prepare it to be filled
@@ -229,8 +242,9 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         energy_current,
     );
     state.effect_buf.push(Effect {
-        kind: EffectKind::EnergyLoss {
-            amount: effective_cost,
+        kind: EffectKind::EnergyDelta {
+            sign: DeltaSign::Loss,
+            amount: (effective_cost) as u16,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -263,7 +277,9 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         let effect_kind = if has_relic(&state.id_relics, RelicName::StrangeSpoon)
             && state.rng.random_range(0..100) < 50
         {
-            EffectKind::CardMoveToDiscard
+            EffectKind::CardMove {
+                pile: CardPile::Discard,
+            }
         } else {
             EffectKind::CardExhaust
         };
@@ -281,7 +297,9 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     } else {
         // Not a real discard: skips this_turn_discards and on discard triggers
         state.effect_buf.push(Effect {
-            kind: EffectKind::CardMoveToDiscard,
+            kind: EffectKind::CardMove {
+                pile: CardPile::Discard,
+            },
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });
@@ -313,6 +331,24 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
             });
+        }
+    }
+
+    // Panache: every 5th card played while active hits all enemies for `stacks`
+    if has_modifier(char_modifiers, ModifierKind::Panache) {
+        *this_turn_panache += 1;
+        if *this_turn_panache == 5 {
+            *this_turn_panache = 0;
+            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
+            for id_monster in id_monsters.iter().flatten().copied() {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: stacks.max(0) as u16,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
         }
     }
 
@@ -472,7 +508,11 @@ fn free_random_costed_hand_card(
     if num > 0 {
         let id_pick = cards_valid[rng.random_range(0..num)];
         effect_queue.push_back(Effect {
-            kind: EffectKind::SetCostOverride { amount: 0 },
+            kind: EffectKind::SetCostOverride {
+                amount: 0,
+                only_reduce: false,
+                scope: CostScope::Turn,
+            },
             id_source: None,
             target: Target::Direct(Some(id_pick)),
         });

@@ -6,6 +6,7 @@ use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::DeltaSign;
 
 // Agree: -25 gold gain at A15
@@ -20,8 +21,10 @@ const fn agree(gold: u16) -> [Effect; 3] {
             target: Target::Direct(None),
         },
         Effect {
-            kind: EffectKind::CardAddToDeck {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Doubt,
+                pile: CardPile::Deck,
+                count: 1,
                 upgraded: false,
             },
             id_source: None,

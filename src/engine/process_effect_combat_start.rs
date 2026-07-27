@@ -9,6 +9,7 @@ use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
+use crate::types::DeltaSign;
 use crate::types::Energy;
 use crate::types::Mode;
 use crate::types::MonsterKind;
@@ -29,6 +30,8 @@ pub fn process_effect_combat_start(
         id_picked_monster,
         energy,
         this_turn_cards_played,
+        this_turn_panache,
+        bomb_countdown,
         this_combat_damage_instances_taken,
         this_combat_escaped,
         event_gold: combat_event_gold,
@@ -54,6 +57,8 @@ pub fn process_effect_combat_start(
     *this_combat_damage_instances_taken = 0;
     *this_combat_escaped = false;
     *this_turn_cards_played = 0;
+    *this_turn_panache = 0;
+    *bomb_countdown = 0;
 
     // Combat can end mid-turn, skipping the turn-end reset
     for &name in RELIC_COUNTERS_PER_TURN
@@ -115,7 +120,10 @@ pub fn process_effect_combat_start(
     {
         state.entities[id].relic_counter = 0;
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::EnergyGain { amount: 2 },
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
+                amount: 2,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

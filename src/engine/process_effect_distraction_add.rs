@@ -2,23 +2,20 @@ use crate::cards::POOL_COMMON_GREEN_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
-use crate::entity::add_card_to_hand_or_discard;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::CardName;
-use crate::types::Mode;
+use crate::types::CardPile;
+use crate::types::CostScope;
+use crate::utils::place_card;
+use crate::utils::push_entity;
 use rand::Rng;
 
 // Random Silent Skill (not Distraction) into hand, free-to-play-once
 pub fn process_effect_distraction_add(state: &mut GameState) {
-    let Mode::Combat {
-        id_hand,
-        id_pile_discard,
-        ..
-    } = &mut state.mode
-    else {
-        unreachable!("process_effect_distraction_add outside Combat mode")
-    };
     let mut buf = [CardName::Strike; 64];
     let mut n = 0;
     for pool in [
@@ -42,13 +39,17 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
     }
 
     let card_name = buf[state.rng.random_range(0..n)];
-    let mut card = get_card(card_name, false);
-    card.card_free_to_play_once = true;
+    let id_card = push_entity(&mut state.entities, get_card(card_name, false));
+    place_card(state, id_card, CardPile::Hand);
 
-    add_card_to_hand_or_discard(
-        &mut state.entities,
-        &mut *id_hand,
-        &mut *id_pile_discard,
-        card,
-    );
+    // Costs 0 this turn
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::SetCostOverride {
+            amount: 0,
+            only_reduce: false,
+            scope: CostScope::Turn,
+        },
+        id_source: None,
+        target: Target::Direct(Some(id_card)),
+    });
 }

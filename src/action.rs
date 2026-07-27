@@ -18,6 +18,7 @@ use crate::modifier::has_modifier;
 use crate::potions::find_free_slot;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
@@ -36,7 +37,13 @@ pub enum Action {
     CardDiscover {
         idx: usize,
     },
+    CardExhaust {
+        idx: usize,
+    },
     CardDuplicate {
+        idx: usize,
+    },
+    CardMoveToHand {
         idx: usize,
     },
     CardNightmare {
@@ -65,6 +72,7 @@ pub enum Action {
     EventOptionSelect {
         idx: usize,
     },
+    PickSkip,
     PotionDiscard {
         idx: usize,
     },
@@ -111,18 +119,21 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
     // Handlers push their effects into effect_buf; flush drains them to the queue front (reversed)
     state.effect_buf.clear();
     match action {
-        Action::CardDiscard { idx } => handle_pending_hand_pick(state, idx),
+        Action::CardDiscard { idx } => handle_pending_pick_hand(state, idx),
+        Action::CardExhaust { idx } => handle_pending_pick_hand(state, idx),
+        Action::CardMoveToHand { idx } => handle_card_move_to_hand_pick(state, idx),
+        Action::PickSkip => handle_pick_skip(state),
         Action::CardDiscover { idx } => handle_card_discover(state, idx),
-        Action::CardDuplicate { idx } => handle_card_duplicate(state, idx),
-        Action::CardNightmare { idx } => handle_pending_hand_pick(state, idx),
+        Action::CardDuplicate { idx } => resolve_pending_pick_deck(state, idx),
+        Action::CardNightmare { idx } => handle_pending_pick_hand(state, idx),
         Action::CardPlay {
             idx_card,
             idx_monster,
         } => handle_card_play(state, idx_card, idx_monster),
-        Action::CardPurge { idx } => handle_card_purge(state, idx),
-        Action::CardRetain { idx } => handle_pending_hand_pick(state, idx),
-        Action::CardSetup { idx } => handle_pending_hand_pick(state, idx),
-        Action::CardTransform { idx } => handle_card_transform(state, idx),
+        Action::CardPurge { idx } => resolve_pending_pick_deck(state, idx),
+        Action::CardRetain { idx } => handle_pending_pick_hand(state, idx),
+        Action::CardSetup { idx } => handle_pending_pick_hand(state, idx),
+        Action::CardTransform { idx } => resolve_pending_pick_deck(state, idx),
         Action::CardUpgrade { idx } => handle_card_upgrade(state, idx),
         Action::ChestOpen => handle_chest_open(state),
         Action::EventOptionSelect { idx } => handle_event_option_select(state, idx),
@@ -158,8 +169,18 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     if let Some(effect_pending) = state.effect_pending.as_ref() {
         // Copy out the halt's shape so the &mut dispatch below can't alias the borrow
         let effect_pending_kind = effect_pending.kind;
-        let deck_filter = pending_deck_filter(effect_pending);
-        fill_legal_actions_effect_pending(state, effect_pending_kind, deck_filter);
+        let filter = pending_card_filter(effect_pending);
+        let up_to = matches!(
+            effect_pending.target,
+            Target::Resolve {
+                selection_kind: SelectionKind::InputUpTo { .. },
+                ..
+            }
+        );
+        fill_legal_actions_effect_pending(state, effect_pending_kind, filter);
+        if up_to {
+            state.legal_actions.push(Action::PickSkip);
+        }
         return;
     }
     match state.mode {
@@ -176,12 +197,29 @@ pub fn recompute_legal_actions(state: &mut GameState) {
 }
 
 // Discard / retain / setup / nightmare picks all resolve a pending hand pick
-fn handle_pending_hand_pick(state: &mut GameState, idx: usize) {
+fn handle_pending_pick_hand(state: &mut GameState, idx: usize) {
     let Mode::Combat { id_hand, .. } = &state.mode else {
         unreachable!("Hand pick outside Combat mode")
     };
     let id_card = id_hand[idx];
     resolve_pending_pick(state, id_card);
+}
+
+// idx is an absolute id_pile_draw index
+fn handle_card_move_to_hand_pick(state: &mut GameState, idx: usize) {
+    let Mode::Combat { id_pile_draw, .. } = &state.mode else {
+        unreachable!("draw-pile pick outside Combat mode")
+    };
+    let id_card = id_pile_draw[idx];
+    resolve_pending_pick(state, id_card);
+}
+
+// Ends an InputUpTo halt early; remaining picks are forfeited
+fn handle_pick_skip(state: &mut GameState) {
+    state
+        .effect_pending
+        .take()
+        .expect("PickSkip requires a pending effect");
 }
 
 fn handle_card_discover(state: &mut GameState, idx: usize) {
@@ -198,10 +236,6 @@ fn handle_card_discover(state: &mut GameState, idx: usize) {
         id_source: pending.id_source,
         target: Target::Direct(Some(id_card)),
     });
-}
-
-fn handle_card_duplicate(state: &mut GameState, idx: usize) {
-    resolve_deck_pending(state, idx);
 }
 
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
@@ -249,26 +283,13 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
     }
 }
 
-fn handle_card_purge(state: &mut GameState, idx: usize) {
-    resolve_deck_pending(state, idx);
-}
-
-fn handle_card_transform(state: &mut GameState, idx: usize) {
-    resolve_deck_pending(state, idx);
-}
-
 fn handle_card_upgrade(state: &mut GameState, idx: usize) {
     // Dual-mode: a pending CardUpgrade resolves a deck pick; at a rest site it triggers a direct upgrade
     if state.effect_pending.is_some() {
-        resolve_deck_pending(state, idx);
+        resolve_pending_pick_deck(state, idx);
         return;
     }
-    // idx is an absolute id_deck index; membership guaranteed validity, assert upgradability
     let id_card = state.id_deck[idx];
-    assert!(
-        card_is_upgradable(&state.entities[id_card]),
-        "CardUpgrade idx {idx} targets a non-upgradable deck card"
-    );
     let id_room = current_room_id(state);
     state.effect_buf.push(Effect {
         kind: EffectKind::CardUpgrade,
@@ -291,15 +312,9 @@ fn handle_chest_open(state: &mut GameState) {
 }
 
 fn handle_event_option_select(state: &mut GameState, idx: usize) {
-    let Mode::Event {
-        id_options,
-        consumed,
-        ..
-    } = &state.mode
-    else {
+    let Mode::Event { id_options, .. } = &state.mode else {
         unreachable!("EventOptionSelect outside Event mode")
     };
-    debug_assert!(!consumed, "option select on a consumed event");
     let id_option = id_options[idx];
     let effects = state.entities[id_option].event_option_effects;
     for effect in effects {
@@ -312,7 +327,6 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
 
 fn handle_potion_discard(state: &mut GameState, idx: usize) {
     let id_potion = state.id_potions[idx].expect("enumerated potion slot is occupied");
-
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionDiscard,
         id_source: Some(id_potion),
@@ -534,7 +548,7 @@ fn handle_shop_purge(state: &mut GameState, idx: usize) {
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
     kind: EffectKind,
-    deck_filter: Option<CandidatePoolCardFilter>,
+    filter: Option<CandidatePoolCardFilter>,
 ) {
     match kind {
         // Discard/retain offer single-card picks; the handler re-raises the halt with a
@@ -555,7 +569,28 @@ fn fill_legal_actions_effect_pending(
                 state.legal_actions.push(Action::CardRetain { idx: i });
             }
         }
-        EffectKind::CardSetupPick => {
+        EffectKind::CardExhaust => {
+            let Mode::Combat { id_hand, .. } = &state.mode else {
+                unreachable!("Hand pick outside Combat mode")
+            };
+            for i in 0..id_hand.len() {
+                state.legal_actions.push(Action::CardExhaust { idx: i });
+            }
+        }
+        EffectKind::CardMove {
+            pile: CardPile::Hand,
+        } => {
+            let Mode::Combat { id_pile_draw, .. } = &state.mode else {
+                unreachable!("Draw-pile pick outside Combat mode")
+            };
+            let filter = filter.expect("draw-pile pick carries a card filter");
+            for i in 0..id_pile_draw.len() {
+                if card_filter_matches(filter, &state.entities[id_pile_draw[i]]) {
+                    state.legal_actions.push(Action::CardMoveToHand { idx: i });
+                }
+            }
+        }
+        EffectKind::CardSetupPick { .. } => {
             let Mode::Combat { id_hand, .. } = &state.mode else {
                 unreachable!("Hand pick outside Combat mode")
             };
@@ -581,7 +616,7 @@ fn fill_legal_actions_effect_pending(
         }
         // Bonfire's offer pick reuses `CardPurge` actions: same pool, same resolution shape
         EffectKind::CardPurge | EffectKind::BonfireOffer => {
-            let filter = deck_filter.expect("deck pick carries a Deck filter");
+            let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
                 if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardPurge { idx: i });
@@ -589,7 +624,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardUpgrade => {
-            let filter = deck_filter.expect("deck pick carries a Deck filter");
+            let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
                 if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardUpgrade { idx: i });
@@ -597,7 +632,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardDuplicate => {
-            let filter = deck_filter.expect("deck pick carries a Deck filter");
+            let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
                 if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardDuplicate { idx: i });
@@ -605,7 +640,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardTransform => {
-            let filter = deck_filter.expect("deck pick carries a Deck filter");
+            let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
                 if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardTransform { idx: i });
@@ -743,11 +778,10 @@ fn fill_legal_actions_screen_event(state: &mut GameState) {
 
 fn fill_legal_actions_screen_shop(state: &mut GameState) {
     let Mode::Shop {
-        shop_card_prices,
-        shop_relic_prices,
-        shop_potion_prices,
+        shop_id_cards,
+        shop_id_relics,
+        shop_id_potions,
         shop_purge_cost,
-        ..
     } = &state.mode
     else {
         unreachable!("Shop legality outside Shop mode")
@@ -757,23 +791,23 @@ fn fill_legal_actions_screen_shop(state: &mut GameState) {
     let belt_has_room = find_free_slot(&state.id_potions, state.potion_slots_max).is_some();
 
     // Cards
-    for i in 0..shop_card_prices.len() {
-        if gold >= shop_card_prices[i] {
+    for i in 0..shop_id_cards.len() {
+        if gold >= state.entities[shop_id_cards[i]].price {
             state.legal_actions.push(Action::ShopBuyCard { idx: i });
         }
     }
 
     // Relics
-    for i in 0..shop_relic_prices.len() {
-        if gold >= shop_relic_prices[i] {
+    for i in 0..shop_id_relics.len() {
+        if gold >= state.entities[shop_id_relics[i]].price {
             state.legal_actions.push(Action::ShopBuyRelic { idx: i });
         }
     }
 
     // Potions
     if belt_has_room {
-        for i in 0..shop_potion_prices.len() {
-            if gold >= shop_potion_prices[i] {
+        for i in 0..shop_id_potions.len() {
+            if gold >= state.entities[shop_id_potions[i]].price {
                 state.legal_actions.push(Action::ShopBuyPotion { idx: i });
             }
         }
@@ -904,49 +938,56 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
     });
 
     // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
-    let Target::Resolve {
-        candidate_pool,
-        selection_kind: SelectionKind::Input { count },
-    } = effect_pending.target
-    else {
-        panic!("pending pick carries an Input halt");
+    let (candidate_pool, selection_kind) = match effect_pending.target {
+        Target::Resolve {
+            candidate_pool,
+            selection_kind: SelectionKind::Input { count },
+        } => (
+            candidate_pool,
+            SelectionKind::Input {
+                count: count.saturating_sub(1),
+            },
+        ),
+        Target::Resolve {
+            candidate_pool,
+            selection_kind: SelectionKind::InputUpTo { count },
+        } => (
+            candidate_pool,
+            SelectionKind::InputUpTo {
+                count: count.saturating_sub(1),
+            },
+        ),
+        _ => panic!("pending pick carries an Input halt"),
     };
-    let remaining = count.saturating_sub(1);
+    let remaining = match selection_kind {
+        SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count,
+        _ => unreachable!(),
+    };
     if remaining > 0 {
         state.effect_buf.push(Effect {
             kind: effect_pending.kind,
             id_source: effect_pending.id_source,
             target: Target::Resolve {
                 candidate_pool,
-                selection_kind: SelectionKind::Input { count: remaining },
+                selection_kind,
             },
         });
     }
 }
 
-// Pops effect_pending and re-enqueues it as Direct for the resolved deck-card id
-// Extract the Deck filter from a pending deck-pick effect; None for non-deck halts
-fn pending_deck_filter(effect: &Effect) -> Option<CandidatePoolCardFilter> {
+// Extract the card filter from a pending deck / draw-pile pick; None for other halts
+fn pending_card_filter(effect: &Effect) -> Option<CandidatePoolCardFilter> {
     match effect.target {
         Target::Resolve {
-            candidate_pool: CandidatePool::Deck { filter },
+            candidate_pool: CandidatePool::Deck { filter } | CandidatePool::PileDraw { filter },
             ..
         } => Some(filter),
         _ => None,
     }
 }
 
-fn resolve_deck_pending(state: &mut GameState, idx: usize) {
-    let pending = state
-        .effect_pending
-        .as_ref()
-        .expect("deck pick requires a pending effect");
-    // idx is an absolute id_deck index; assert it still matches the pool's filter
-    let filter = pending_deck_filter(pending).expect("deck pick has a Deck pool");
+// Resolves a pending deck pick; idx is an absolute id_deck index
+fn resolve_pending_pick_deck(state: &mut GameState, idx: usize) {
     let id_card = state.id_deck[idx];
-    assert!(
-        card_filter_matches(filter, &state.entities[id_card]),
-        "deck pick idx {idx} targets a card the filter rejects"
-    );
     resolve_pending_pick(state, id_card);
 }

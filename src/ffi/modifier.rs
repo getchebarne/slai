@@ -62,6 +62,12 @@ pub enum PyModifierKind {
     WraithForm,
     Buffer,
     PenNib,
+    Magnetism,
+    NoBlock,
+    Panache,
+    SadisticNature,
+    Mayhem,
+    TheBomb,
 }
 
 #[pymethods]
@@ -125,6 +131,12 @@ impl From<ModifierKind> for PyModifierKind {
             ModifierKind::WraithForm => Self::WraithForm,
             ModifierKind::Buffer => Self::Buffer,
             ModifierKind::PenNib => Self::PenNib,
+            ModifierKind::Magnetism => Self::Magnetism,
+            ModifierKind::NoBlock => Self::NoBlock,
+            ModifierKind::Panache => Self::Panache,
+            ModifierKind::SadisticNature => Self::SadisticNature,
+            ModifierKind::Mayhem => Self::Mayhem,
+            ModifierKind::TheBomb => Self::TheBomb,
         }
     }
 }

@@ -111,6 +111,9 @@ pub fn process_effect_damage_physical(
         final_damage = 1;
     }
 
+    // Executes in reverse:
+    //     1. DamageDeal (attack)
+    //     2. DamageDeal (Thorns reflect)
     // Thorns: triggers per attack instance regardless of damage actually dealt
     if id_actor != id_target && has_modifier(mods_target, ModifierKind::Thorns) {
         let stacks = modifier_stacks(mods_target, ModifierKind::Thorns);

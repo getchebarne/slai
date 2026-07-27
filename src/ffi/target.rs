@@ -107,6 +107,42 @@ pub struct PyCandidatePoolEventPickCard;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyCandidatePoolEventPickPotion;
 
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "CandidatePoolPileDraw",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolPileDraw {
+    pub filter: PyCandidatePoolCardFilter,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    name = "CandidatePoolPileDiscard",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolPileDiscard;
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    name = "CandidatePoolPileExhaust",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyCandidatePoolPileExhaust;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyCandidatePool {
     Hand(PyCandidatePoolHand),
@@ -117,6 +153,9 @@ pub enum PyCandidatePool {
     Deck(PyCandidatePoolDeck),
     EventPickCard(PyCandidatePoolEventPickCard),
     EventPickPotion(PyCandidatePoolEventPickPotion),
+    PileDraw(PyCandidatePoolPileDraw),
+    PileDiscard(PyCandidatePoolPileDiscard),
+    PileExhaust(PyCandidatePoolPileExhaust),
 }
 
 variant_union!(PyCandidatePool {
@@ -128,6 +167,9 @@ variant_union!(PyCandidatePool {
     Deck => PyCandidatePoolDeck,
     EventPickCard => PyCandidatePoolEventPickCard,
     EventPickPotion => PyCandidatePoolEventPickPotion,
+    PileDraw => PyCandidatePoolPileDraw,
+    PileDiscard => PyCandidatePoolPileDiscard,
+    PileExhaust => PyCandidatePoolPileExhaust,
 });
 
 impl From<CandidatePool> for PyCandidatePool {
@@ -147,6 +189,11 @@ impl From<CandidatePool> for PyCandidatePool {
             }),
             CandidatePool::EventPickCard => Self::EventPickCard(PyCandidatePoolEventPickCard),
             CandidatePool::EventPickPotion => Self::EventPickPotion(PyCandidatePoolEventPickPotion),
+            CandidatePool::PileDraw { filter } => Self::PileDraw(PyCandidatePoolPileDraw {
+                filter: filter.into(),
+            }),
+            CandidatePool::PileDiscard => Self::PileDiscard(PyCandidatePoolPileDiscard),
+            CandidatePool::PileExhaust => Self::PileExhaust(PyCandidatePoolPileExhaust),
         }
     }
 }
@@ -191,6 +238,9 @@ pub enum PyCandidatePoolCardFilter {
     Any,
     Transformable,
     PurgeableCurse,
+    Attack,
+    Skill,
+    Costed,
 }
 
 impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
@@ -201,6 +251,9 @@ impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
             CandidatePoolCardFilter::Any => Self::Any,
             CandidatePoolCardFilter::Transformable => Self::Transformable,
             CandidatePoolCardFilter::PurgeableCurse => Self::PurgeableCurse,
+            CandidatePoolCardFilter::Attack => Self::Attack,
+            CandidatePoolCardFilter::Skill => Self::Skill,
+            CandidatePoolCardFilter::Costed => Self::Costed,
         }
     }
 }
@@ -255,12 +308,27 @@ pub struct PySelectionKindInput {
     pub count: u16,
 }
 
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "SelectionKindInputUpTo",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PySelectionKindInputUpTo {
+    pub count: u16,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PySelectionKind {
     All(PySelectionKindAll),
     Single(PySelectionKindSingle),
     Random(PySelectionKindRandom),
     Input(PySelectionKindInput),
+    InputUpTo(PySelectionKindInputUpTo),
 }
 
 variant_union!(PySelectionKind {
@@ -268,6 +336,7 @@ variant_union!(PySelectionKind {
     Single => PySelectionKindSingle,
     Random => PySelectionKindRandom,
     Input => PySelectionKindInput,
+    InputUpTo => PySelectionKindInputUpTo,
 });
 
 impl From<SelectionKind> for PySelectionKind {
@@ -277,6 +346,9 @@ impl From<SelectionKind> for PySelectionKind {
             SelectionKind::Single => Self::Single(PySelectionKindSingle),
             SelectionKind::Random { count } => Self::Random(PySelectionKindRandom { count }),
             SelectionKind::Input { count } => Self::Input(PySelectionKindInput { count }),
+            SelectionKind::InputUpTo { count } => {
+                Self::InputUpTo(PySelectionKindInputUpTo { count })
+            }
         }
     }
 }

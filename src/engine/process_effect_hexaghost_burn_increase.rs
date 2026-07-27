@@ -4,6 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::Mode;
 
 // Upgrade existing Burns in the draw and discard piles, then add `count`
@@ -37,9 +38,10 @@ pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) 
 
     if count > 0 {
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardAddToDiscard {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Burn,
-                count,
+                pile: CardPile::Discard,
+                count: count as u16,
                 upgraded: true,
             },
             id_source: None,

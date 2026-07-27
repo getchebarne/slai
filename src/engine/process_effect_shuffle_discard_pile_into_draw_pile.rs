@@ -3,6 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::relics::trigger_relic_counter;
+use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -31,7 +32,10 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
     // Persistent reshuffle counter; every 3rd fires
     if trigger_relic_counter(RelicName::Sundial, 3, &state.id_relics, &mut state.entities) {
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::EnergyGain { amount: 2 },
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
+                amount: 2,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

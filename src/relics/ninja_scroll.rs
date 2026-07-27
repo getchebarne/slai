@@ -4,6 +4,7 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_relic;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -14,8 +15,9 @@ pub static NINJA_SCROLL: Entity = make_entity_relic(
     RelicTier::Uncommon,
     0,
     &[Effect {
-        kind: EffectKind::CardAddToHand {
+        kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
+            pile: CardPile::Hand,
             count: 3,
             upgraded: false,
         },

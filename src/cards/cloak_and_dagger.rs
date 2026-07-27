@@ -10,6 +10,7 @@ use crate::entity::make_entity_card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
 
 pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
@@ -34,8 +35,9 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
             },
         },
         Effect {
-            kind: EffectKind::CardAddToHand {
+            kind: EffectKind::CardAdd {
                 card_name: CardName::Shiv,
+                pile: CardPile::Hand,
                 count: 1,
                 upgraded: false,
             },
@@ -52,8 +54,9 @@ pub static CLOAK_AND_DAGGER_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = CLOAK_AND_DAGGER.card_effects;
-        a[1].kind = EffectKind::CardAddToHand {
+        a[1].kind = EffectKind::CardAdd {
             card_name: CardName::Shiv,
+            pile: CardPile::Hand,
             count: 2, // +1 shiv
             upgraded: false,
         };
