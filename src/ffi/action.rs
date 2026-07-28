@@ -244,8 +244,8 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("RewardTakeCard expects [idx], got {n} idxs")),
         },
         PyActionType::RewardTakeRelic => match idxs.len() {
-            0 => Ok(Action::RewardTakeRelic),
-            n => Err(format!("RewardTakeRelic expects [], got {n} idxs")),
+            1 => Ok(Action::RewardTakeRelic { idx: idxs[0] }),
+            n => Err(format!("RewardTakeRelic expects [idx], got {n} idxs")),
         },
         PyActionType::RewardTakePotion => match idxs.len() {
             1 => Ok(Action::RewardTakePotion { idx: idxs[0] }),
@@ -315,7 +315,7 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::PotionDiscard { idx } => (PyActionType::PotionDiscard, vec![idx]),
         Action::CardDiscover { idx } => (PyActionType::CardDiscover, vec![idx]),
         Action::RewardTakeCard { idx } => (PyActionType::RewardTakeCard, vec![idx]),
-        Action::RewardTakeRelic => (PyActionType::RewardTakeRelic, vec![]),
+        Action::RewardTakeRelic { idx } => (PyActionType::RewardTakeRelic, vec![idx]),
         Action::RewardTakePotion { idx } => (PyActionType::RewardTakePotion, vec![idx]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
         Action::EventOptionSelect { idx } => (PyActionType::EventOptionSelect, vec![idx]),

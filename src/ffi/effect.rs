@@ -11,6 +11,7 @@ use super::amount::PyAmount;
 use super::amount::PyDeltaSign;
 use super::card::PyCardColor;
 use super::card::PyCardKind;
+use super::card::PyCardName;
 use super::card::PyCardPile;
 use super::card::PyCostScope;
 use super::macros::variant_union;
@@ -513,6 +514,8 @@ pub struct PyEffectRewardRollPotions {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectCardDiscoverRoll {
     pub kind: Option<PyCardKind>,
+    pub color: PyCardColor,
+    pub exclude: Vec<PyCardName>,
     pub count: u8,
     pub target: Option<PyTarget>,
 }
@@ -572,6 +575,35 @@ pub struct PyEffectWheelSpin {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectBonfireOffer {
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectGamblingChipProc",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectGamblingChipProc {
+    pub discards_before: Option<u8>,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectCardBottle",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectCardBottle {
     pub target: Option<PyTarget>,
 }
 
@@ -708,6 +740,7 @@ pub struct PyEffectEventConsume {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectCardDiscoverPick {
+    pub cost_zero: Option<PyCostScope>,
     pub target: Option<PyTarget>,
 }
 
@@ -764,6 +797,7 @@ pub struct PyEffectCardDuplicate {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectCardTransform {
+    pub upgraded: bool,
     pub target: Option<PyTarget>,
 }
 
@@ -887,6 +921,8 @@ pub enum PyEffect {
     WheelSpin(PyEffectWheelSpin),
     BonfireOffer(PyEffectBonfireOffer),
     FaceTrade(PyEffectFaceTrade),
+    GamblingChipProc(PyEffectGamblingChipProc),
+    CardBottle(PyEffectCardBottle),
     MonsterSpawn(PyEffectMonsterSpawn),
     CombatStart(PyEffectCombatStart),
     AdventurerSearch(PyEffectAdventurerSearch),
@@ -945,6 +981,8 @@ variant_union!(PyEffect {
     WheelSpin => PyEffectWheelSpin,
     BonfireOffer => PyEffectBonfireOffer,
     FaceTrade => PyEffectFaceTrade,
+    GamblingChipProc => PyEffectGamblingChipProc,
+    CardBottle => PyEffectCardBottle,
     MonsterSpawn => PyEffectMonsterSpawn,
     CombatStart => PyEffectCombatStart,
     AdventurerSearch => PyEffectAdventurerSearch,
@@ -1101,13 +1139,22 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }
         EffectKind::CardPurge => PyEffect::CardPurge(PyEffectCardPurge { target }),
         EffectKind::CardDuplicate => PyEffect::CardDuplicate(PyEffectCardDuplicate { target }),
-        EffectKind::CardTransform => PyEffect::CardTransform(PyEffectCardTransform { target }),
+        EffectKind::CardTransform { upgraded } => {
+            PyEffect::CardTransform(PyEffectCardTransform { upgraded, target })
+        }
         EffectKind::RelicGrantRandom => {
             PyEffect::RelicGrantRandom(PyEffectRelicGrantRandom { target })
         }
         EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin { target }),
         EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
         EffectKind::FaceTrade => PyEffect::FaceTrade(PyEffectFaceTrade { target }),
+        EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle { target }),
+        EffectKind::GamblingChipProc { discards_before } => {
+            PyEffect::GamblingChipProc(PyEffectGamblingChipProc {
+                discards_before,
+                target,
+            })
+        }
         EffectKind::MonsterSpawn { name } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
             name: name.into(),
             target,
@@ -1154,16 +1201,24 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::RewardRollPotions { count } => {
             PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count, target })
         }
-        EffectKind::CardDiscoverRoll { kind, count } => {
-            PyEffect::CardDiscoverRoll(PyEffectCardDiscoverRoll {
-                kind: kind.map(|k| k.into()),
-                count,
+        EffectKind::CardDiscoverRoll {
+            kind,
+            color,
+            exclude,
+            count,
+        } => PyEffect::CardDiscoverRoll(PyEffectCardDiscoverRoll {
+            kind: kind.map(|k| k.into()),
+            color: color.into(),
+            exclude: exclude.iter().map(|&n| n.into()).collect(),
+            count,
+            target,
+        }),
+        EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade { target }),
+        EffectKind::CardDiscoverPick { cost_zero } => {
+            PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
+                cost_zero: cost_zero.map(|c| c.into()),
                 target,
             })
-        }
-        EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade { target }),
-        EffectKind::CardDiscoverPick => {
-            PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick { target })
         }
         EffectKind::CardAddRandom {
             color,

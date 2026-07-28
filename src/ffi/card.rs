@@ -409,6 +409,7 @@ pub enum PyCardName {
     SecretWeapon,
     TheBomb,
     Violence,
+    CurseOfTheBell,
 }
 
 impl From<CardName> for PyCardName {
@@ -542,6 +543,7 @@ impl From<CardName> for PyCardName {
             CardName::SecretWeapon => Self::SecretWeapon,
             CardName::TheBomb => Self::TheBomb,
             CardName::Violence => Self::Violence,
+            CardName::CurseOfTheBell => Self::CurseOfTheBell,
         }
     }
 }
@@ -577,6 +579,7 @@ pub struct PyCard {
     pub exhaust: bool,
     pub ethereal: bool,
     pub innate: bool,
+    pub bottled: bool,
     pub requires_target: bool,
     pub retain: bool,
     // `playable` does NOT factor in energy cost; clients must also check `cost <= energy.energy_current`
@@ -724,6 +727,7 @@ impl CardName {
             Self::SecretWeapon => "Secret Weapon",
             Self::TheBomb => "The Bomb",
             Self::Violence => "Violence",
+            Self::CurseOfTheBell => "Curse of the Bell",
         }
     }
 }
@@ -832,6 +836,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         exhaust: card.card_exhaust,
         ethereal: card.card_ethereal,
         innate: card.card_innate,
+        bottled: card.card_bottled,
         requires_target: card.requires_target,
         retain: card.card_retain,
         playable: restriction_ok && !entangled_blocks,
@@ -861,6 +866,7 @@ fn card_identity_hash(card: &PyCard) -> u64 {
     card.upgraded.hash(&mut h);
     card.exhaust.hash(&mut h);
     card.innate.hash(&mut h);
+    card.bottled.hash(&mut h);
     card.ethereal.hash(&mut h);
     card.retain.hash(&mut h);
     card.requires_target.hash(&mut h);

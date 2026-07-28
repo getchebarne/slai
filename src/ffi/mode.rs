@@ -84,7 +84,7 @@ pub struct PyModeCombat {
 #[derive(Debug, Clone)]
 pub struct PyModeReward {
     pub cards: Vec<PyCard>,
-    pub relic: Option<PyRelic>,
+    pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
 }
@@ -213,7 +213,7 @@ pub(crate) fn snapshot_mode(state: &GameState) -> PyMode {
         }),
         Mode::Reward {
             reward_id_cards,
-            reward_id_relic,
+            reward_id_relics,
             reward_id_potions,
             reward_gold,
         } => PyMode::Reward(PyModeReward {
@@ -221,7 +221,10 @@ pub(crate) fn snapshot_mode(state: &GameState) -> PyMode {
                 .iter()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
-            relic: reward_id_relic.map(|id| snapshot_relic(&state.entities[id])),
+            relics: reward_id_relics
+                .iter()
+                .map(|&id| snapshot_relic(&state.entities[id]))
+                .collect(),
             potions: reward_id_potions
                 .iter()
                 .map(|&id| snapshot_potion(&state.entities[id]))

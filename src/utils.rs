@@ -73,7 +73,14 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
     if entity.kind != EntityKind::Card {
         return false;
     }
-    !matches!(entity.card_name, CardName::AscendersBane)
+    // Bottled cards can't be removed or transformed while bottled
+    if entity.card_bottled {
+        return false;
+    }
+    !matches!(
+        entity.card_name,
+        CardName::AscendersBane | CardName::CurseOfTheBell
+    )
 }
 use card_is_purgeable as card_is_transformable;
 
@@ -89,6 +96,7 @@ pub fn card_filter_matches(filter: CandidatePoolCardFilter, entity: &Entity) -> 
         }
         CandidatePoolCardFilter::Attack => entity.card_kind == CardKind::Attack,
         CandidatePoolCardFilter::Skill => entity.card_kind == CardKind::Skill,
+        CandidatePoolCardFilter::Power => entity.card_kind == CardKind::Power,
         CandidatePoolCardFilter::Costed => {
             !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
                 && entity.card_cost > 0

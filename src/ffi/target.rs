@@ -241,6 +241,7 @@ pub enum PyCandidatePoolCardFilter {
     Attack,
     Skill,
     Costed,
+    Power,
 }
 
 impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
@@ -254,6 +255,7 @@ impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
             CandidatePoolCardFilter::Attack => Self::Attack,
             CandidatePoolCardFilter::Skill => Self::Skill,
             CandidatePoolCardFilter::Costed => Self::Costed,
+            CandidatePoolCardFilter::Power => Self::Power,
         }
     }
 }

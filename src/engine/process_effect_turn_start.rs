@@ -100,11 +100,14 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             }
         }
 
-        // Organic card draw
+        // Organic card draw; Snecko Eye draws 2 more
+        let draw_count = if has_relic(&state.id_relics, RelicName::SneckoEye) {
+            CARDS_DRAWN_PER_TURN + 2
+        } else {
+            CARDS_DRAWN_PER_TURN
+        };
         state.effect_buf.push(Effect {
-            kind: EffectKind::CardDraw {
-                count: CARDS_DRAWN_PER_TURN,
-            },
+            kind: EffectKind::CardDraw { count: draw_count },
             id_source: None,
             target: Target::Direct(None),
         });

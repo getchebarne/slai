@@ -3,15 +3,21 @@ mod akabeko;
 mod anchor;
 mod ancient_tea_set;
 mod art_of_war;
+mod astrolabe;
 mod bag_of_marbles;
 mod bag_of_preparation;
 mod bird_faced_urn;
+mod black_star;
 mod blood_vial;
 mod blue_candle;
 mod boot;
+mod bottled_flame;
+mod bottled_lightning;
+mod bottled_tornado;
 mod bronze_scales;
 mod busted_crown;
 mod calipers;
+mod calling_bell;
 mod captains_wheel;
 mod cauldron;
 mod centennial_puzzle;
@@ -34,6 +40,7 @@ mod face_of_cleric;
 mod fossilized_helix;
 mod frozen_egg;
 mod fusion_hammer;
+mod gambling_chip;
 mod ginger;
 mod golden_idol;
 mod gremlin_horn;
@@ -52,6 +59,7 @@ mod lees_waffle;
 mod letter_opener;
 mod lizard_tail;
 mod mango;
+mod matryoshka;
 mod maw_bank;
 mod meal_ticket;
 mod meat_on_the_bone;
@@ -70,6 +78,7 @@ mod omamori;
 mod orange_pellets;
 mod orichalcum;
 mod ornamental_fan;
+mod orrery;
 mod pandoras_box;
 mod pantograph;
 mod paper_krane;
@@ -86,6 +95,7 @@ mod slavers_collar;
 mod sling_of_courage;
 mod smiling_mask;
 mod snake_ring;
+mod snecko_eye;
 mod snecko_skull;
 mod sozu;
 mod spirit_poop;
@@ -100,6 +110,8 @@ mod the_specimen;
 mod thread_and_needle;
 mod tingsha;
 mod tiny_chest;
+mod tiny_house;
+mod toolbox;
 mod torii;
 mod tough_bandages;
 mod toxic_egg;
@@ -243,6 +255,18 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::Cauldron => cauldron::CAULDRON,
         RelicName::MembershipCard => membership_card::MEMBERSHIP_CARD,
         RelicName::TheCourier => the_courier::THE_COURIER,
+        RelicName::GamblingChip => gambling_chip::GAMBLING_CHIP,
+        RelicName::BottledFlame => bottled_flame::BOTTLED_FLAME,
+        RelicName::BottledLightning => bottled_lightning::BOTTLED_LIGHTNING,
+        RelicName::BottledTornado => bottled_tornado::BOTTLED_TORNADO,
+        RelicName::Matryoshka => matryoshka::MATRYOSHKA,
+        RelicName::Orrery => orrery::ORRERY,
+        RelicName::Toolbox => toolbox::TOOLBOX,
+        RelicName::SneckoEye => snecko_eye::SNECKO_EYE,
+        RelicName::Astrolabe => astrolabe::ASTROLABE,
+        RelicName::CallingBell => calling_bell::CALLING_BELL,
+        RelicName::TinyHouse => tiny_house::TINY_HOUSE,
+        RelicName::BlackStar => black_star::BLACK_STAR,
     }
 }
 
@@ -427,6 +451,18 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &cauldron::CAULDRON,
     &membership_card::MEMBERSHIP_CARD,
     &the_courier::THE_COURIER,
+    &gambling_chip::GAMBLING_CHIP,
+    &bottled_flame::BOTTLED_FLAME,
+    &bottled_lightning::BOTTLED_LIGHTNING,
+    &bottled_tornado::BOTTLED_TORNADO,
+    &matryoshka::MATRYOSHKA,
+    &orrery::ORRERY,
+    &toolbox::TOOLBOX,
+    &snecko_eye::SNECKO_EYE,
+    &astrolabe::ASTROLABE,
+    &calling_bell::CALLING_BELL,
+    &tiny_house::TINY_HOUSE,
+    &black_star::BLACK_STAR,
 ];
 // Assert all relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);

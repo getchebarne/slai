@@ -22,7 +22,7 @@ pub fn process_effect_reward_roll_potions(state: &mut GameState, count: u8) {
 
     state.mode = Mode::Reward {
         reward_id_cards: Vec::new(),
-        reward_id_relic: None,
+        reward_id_relics: Vec::new(),
         reward_id_potions: id_potions,
         reward_gold: None,
     };

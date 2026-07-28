@@ -6,6 +6,7 @@ pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
 pub mod process_effect_card_adopt;
+pub mod process_effect_card_bottle;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_roll;
@@ -40,6 +41,7 @@ pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
 pub mod process_effect_face_trade;
+pub mod process_effect_gambling_chip_proc;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -109,7 +111,6 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at;
-use crate::types::CardColor;
 use crate::types::Mode;
 use crate::types::RoomKind;
 use crate::utils::card_filter_matches;
@@ -432,7 +433,16 @@ fn dispatch_by_kind(
         EffectKind::BonfireOffer => {
             process_effect_bonfire_offer::process_effect_bonfire_offer(id_target, state)
         }
+        EffectKind::CardBottle => {
+            process_effect_card_bottle::process_effect_card_bottle(id_target, state)
+        }
         EffectKind::FaceTrade => process_effect_face_trade::process_effect_face_trade(state),
+        EffectKind::GamblingChipProc { discards_before } => {
+            process_effect_gambling_chip_proc::process_effect_gambling_chip_proc(
+                state,
+                discards_before,
+            )
+        }
         EffectKind::WheelSpin => process_effect_wheel_spin::process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => {
             process_effect_card_upgrade::process_effect_card_upgrade(id_target, state)
@@ -632,8 +642,8 @@ fn dispatch_by_kind(
         EffectKind::CardDuplicate => {
             process_effect_card_duplicate::process_effect_card_duplicate(id_target, state)
         }
-        EffectKind::CardTransform => {
-            process_effect_card_transform::process_effect_card_transform(id_target, state)
+        EffectKind::CardTransform { upgraded } => {
+            process_effect_card_transform::process_effect_card_transform(id_target, state, upgraded)
         }
         EffectKind::CardAdopt => {
             process_effect_card_adopt::process_effect_card_adopt(id_target, state)
@@ -671,12 +681,14 @@ fn dispatch_by_kind(
         EffectKind::PotionAdopt => {
             process_effect_potion_adopt::process_effect_potion_adopt(id_target, state)
         }
-        EffectKind::CardDiscoverRoll { kind, count } => {
+        EffectKind::CardDiscoverRoll {
+            kind,
+            color,
+            exclude,
+            count,
+        } => {
             process_effect_card_discover_roll::process_effect_card_discover_roll(
-                state,
-                kind,
-                CardColor::Green, // TODO: other characters
-                count,
+                state, kind, color, exclude, count,
             );
         }
         EffectKind::RelicGrantRandom => {
@@ -709,8 +721,10 @@ fn dispatch_by_kind(
         EffectKind::EventConsume => {
             process_effect_event_consume::process_effect_event_consume(state)
         }
-        EffectKind::CardDiscoverPick => {
-            process_effect_card_discover_pick::process_effect_card_discover_pick(id_target, state)
+        EffectKind::CardDiscoverPick { cost_zero } => {
+            process_effect_card_discover_pick::process_effect_card_discover_pick(
+                id_target, state, cost_zero,
+            )
         }
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }
@@ -774,6 +788,8 @@ fn ensure_mode_validity(state: &GameState) {
                     | RoomKind::Unknown
             )
         ),
+        // Shop: Orrery bought mid-shop; RestSite: Dream Catcher's rest reward
+        // (the RestSite pairing predates Orrery — Dream Catcher already produced it)
         Mode::Reward { .. } => matches!(
             room_kind,
             Some(
@@ -781,6 +797,8 @@ fn ensure_mode_validity(state: &GameState) {
                     | RoomKind::CombatElite
                     | RoomKind::EventRoom
                     | RoomKind::Treasure
+                    | RoomKind::Shop
+                    | RoomKind::RestSite
                     | RoomKind::Unknown
             )
         ),

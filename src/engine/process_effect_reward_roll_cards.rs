@@ -17,7 +17,7 @@ pub fn process_effect_reward_roll_cards(state: &mut GameState) {
 
     state.mode = Mode::Reward {
         reward_id_cards: id_cards,
-        reward_id_relic: None,
+        reward_id_relics: Vec::new(),
         reward_id_potions: Vec::new(),
         reward_gold: None,
     };

@@ -1,14 +1,19 @@
+use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Amount;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
+use crate::types::CardColor;
 use crate::types::CardKind;
+use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::Energy;
 use crate::types::Mode;
@@ -101,7 +106,7 @@ pub fn process_effect_combat_start(
         }
     }
 
-    // Innate cards sit on top of the draw pile, ahead of the shuffled rest
+    // Innate and bottled cards sit on top of the draw pile, ahead of the shuffled rest
     let mut other_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
     let mut other_n: usize = 0;
     let mut innate_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
@@ -111,7 +116,7 @@ pub fn process_effect_combat_start(
         let id_card_src = state.id_deck[i];
         let card = state.entities[id_card_src];
         let id_card = push_entity(&mut state.entities, card);
-        if card.card_innate {
+        if card.card_innate || card.card_bottled {
             innate_ids[innate_n] = id_card;
             innate_n += 1;
         } else {
@@ -138,6 +143,30 @@ pub fn process_effect_combat_start(
         id_source: None,
         target: Target::Direct(Some(state.id_character)),
     });
+
+    // Toolbox: choose 1 of 3 colorless cards (Bandage Up mirrors the source's
+    // healing-tag exclusion) at printed cost, before the opening draw. Inline
+    // because relic_effects_on_combat_start drains post-draw
+    if has_relic(&state.id_relics, RelicName::Toolbox) {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardDiscoverPick { cost_zero: None },
+            id_source: None,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Discover,
+                selection_kind: SelectionKind::Input { count: 1 },
+            },
+        });
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardDiscoverRoll {
+                kind: None,
+                color: CardColor::Colorless,
+                exclude: &[CardName::BandageUp],
+                count: DISCOVER_PICK_COUNT,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
 
     for (_name, id_relic) in iter_owned_relics(&state.id_relics) {
         for &eff in state.entities[id_relic].relic_effects_on_combat_start {

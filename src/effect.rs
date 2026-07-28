@@ -38,12 +38,17 @@ pub enum EffectKind {
         upgraded: bool,
     },
     CardAdopt,
+    CardBottle,
     CardDiscard {
         source: DiscardSource,
     },
-    CardDiscoverPick,
+    CardDiscoverPick {
+        cost_zero: Option<CostScope>,
+    },
     CardDiscoverRoll {
         kind: Option<CardKind>,
+        color: CardColor,
+        exclude: &'static [CardName],
         count: u8,
     },
     CardDraw {
@@ -72,7 +77,9 @@ pub enum EffectKind {
         free: bool,
         bottom: bool,
     },
-    CardTransform,
+    CardTransform {
+        upgraded: bool,
+    },
     CardUpgrade,
     ChestOpen,
     CombatEnd,
@@ -111,6 +118,9 @@ pub enum EffectKind {
     },
     EventConsume,
     FaceTrade,
+    GamblingChipProc {
+        discards_before: Option<u8>,
+    },
     GlassKnifeDecay {
         delta: i16,
     },
@@ -276,6 +286,7 @@ pub enum CandidatePoolCardFilter {
     Attack,
     Skill,
     Costed,
+    Power,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

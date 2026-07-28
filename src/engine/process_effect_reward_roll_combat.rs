@@ -76,17 +76,35 @@ pub fn process_effect_reward_roll_combat(
     );
 
     // Roll Relic (only for Elite combats)
-    let mut id_relic = relic_thresholds.map(|(th_common, th_uncommon)| {
+    let mut id_relics_reward: Vec<usize> = Vec::new();
+    if let Some((th_common, th_uncommon)) = relic_thresholds {
         let roll = state.rng.random_range(0..100) as u8;
-        add_relic_reward_for_roll(
+        let id_first = add_relic_reward_for_roll(
             roll,
             th_common,
             th_uncommon,
             &state.id_relics,
             &mut state.entities,
             &mut state.rng,
-        )
-    });
+        );
+        id_relics_reward.push(id_first);
+
+        // Black Star: elites drop a second relic with an independent tier roll;
+        // exclude the first pick so the pair can't collide
+        if has_relic(&state.id_relics, RelicName::BlackStar) {
+            let mut taken = state.id_relics;
+            taken[state.entities[id_first].relic_name as usize] = Some(id_first);
+            let roll = state.rng.random_range(0..100) as u8;
+            id_relics_reward.push(add_relic_reward_for_roll(
+                roll,
+                th_common,
+                th_uncommon,
+                &taken,
+                &mut state.entities,
+                &mut state.rng,
+            ));
+        }
+    }
 
     // Event-injected relic; Circlet substitutes when it is already owned
     if let Some(name) = event_relic {
@@ -95,7 +113,7 @@ pub fn process_effect_reward_roll_combat(
         } else {
             name
         };
-        id_relic = Some(push_entity(&mut state.entities, get_relic(name)));
+        id_relics_reward.push(push_entity(&mut state.entities, get_relic(name)));
     }
 
     // Roll Potions
@@ -127,7 +145,7 @@ pub fn process_effect_reward_roll_combat(
 
     state.mode = Mode::Reward {
         reward_id_cards: id_cards,
-        reward_id_relic: id_relic,
+        reward_id_relics: id_relics_reward,
         reward_id_potions: id_potions,
         reward_gold: gold,
     };

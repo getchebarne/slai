@@ -151,6 +151,7 @@ pub struct Entity {
     pub card_exhaust: bool,
     pub card_ethereal: bool,
     pub card_innate: bool,
+    pub card_bottled: bool,
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
 
@@ -220,6 +221,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     card_exhaust: false,
     card_ethereal: false,
     card_innate: false,
+    card_bottled: false,
     requires_target: false,
     card_retain: false,
     card_play_restriction: PlayRestriction::Always,

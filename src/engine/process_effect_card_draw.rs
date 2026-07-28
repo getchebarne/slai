@@ -1,11 +1,18 @@
+use rand::Rng;
+
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::CardCostKind;
+use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
+use crate::types::CostScope;
 use crate::types::Mode;
+use crate::types::RelicName;
+use crate::utils::has_relic;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
@@ -67,6 +74,31 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             id_source: None,
             target: Target::Direct(None),
         });
+    }
+
+    // Snecko Eye: every drawn card's cost re-rolls to 0-3 (X-cost and unplayable skip);
+    // a Combat-scope override rewrites the combat copy's base, so redraws re-roll off it
+    if has_relic(&state.id_relics, RelicName::SneckoEye) {
+        for &id_card in &id_drawn[..id_drawn_n] {
+            let card = &state.entities[id_card];
+            if matches!(card.card_cost_kind, CardCostKind::XCost { .. })
+                || card.card_play_restriction == PlayRestriction::Never
+            {
+                continue;
+            }
+            let new_cost: u8 = state.rng.random_range(0..=3);
+            if new_cost != card.card_cost {
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::SetCostOverride {
+                        amount: new_cost,
+                        only_reduce: false,
+                        scope: CostScope::Combat,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_card)),
+                });
+            }
+        }
     }
 
     // Fire on-draw hooks in draw order; push reversed so front-of-queue resumes correctly

@@ -19,9 +19,11 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
         plus.card_cost
     };
     let over = card.card_cost_override;
+    let bottled = card.card_bottled;
     state.entities[id_target] = plus;
     state.entities[id_target].card_cost = cost;
     state.entities[id_target].card_cost_override = over;
+    state.entities[id_target].card_bottled = bottled;
 }
 
 #[cfg(test)]

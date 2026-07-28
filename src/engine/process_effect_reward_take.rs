@@ -16,7 +16,7 @@ pub fn process_effect_reward_take(
 ) {
     let Mode::Reward {
         reward_id_cards,
-        reward_id_relic,
+        reward_id_relics,
         reward_id_potions,
         reward_gold,
         ..
@@ -38,13 +38,17 @@ pub fn process_effect_reward_take(
             reward_id_cards.clear();
         }
         RewardKind::Relic => {
-            if let Some(id) = reward_id_relic.take() {
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::RelicAdopt,
-                    id_source: None,
-                    target: Target::Direct(Some(id)),
-                });
-            }
+            let id_relic = id_target.expect("RewardTake { Relic } requires id_target");
+            let pos = reward_id_relics
+                .iter()
+                .position(|&id| id == id_relic)
+                .expect("taken relic is a staged reward");
+            reward_id_relics.remove(pos);
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::RelicAdopt,
+                id_source: None,
+                target: Target::Direct(Some(id_relic)),
+            });
         }
         RewardKind::Potion => {
             let id_potion = id_target.expect("RewardTake { Potion } requires id_target");

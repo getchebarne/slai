@@ -58,7 +58,7 @@ pub enum Mode {
     CombatEnded,
     Reward {
         reward_id_cards: Vec<usize>,
-        reward_id_relic: Option<usize>,
+        reward_id_relics: Vec<usize>,
         reward_id_potions: Vec<usize>,
         reward_gold: Option<u16>,
     },
@@ -226,6 +226,7 @@ pub enum CardName {
     SecretWeapon,
     TheBomb,
     Violence,
+    CurseOfTheBell,
 }
 
 // Lifetime of a cost override; Combat writes the base cost and is never stored on the entity
@@ -554,6 +555,18 @@ pub enum RelicName {
     Cauldron,
     MembershipCard,
     TheCourier,
+    GamblingChip,
+    BottledFlame,
+    BottledLightning,
+    BottledTornado,
+    Matryoshka,
+    Orrery,
+    Toolbox,
+    SneckoEye,
+    Astrolabe,
+    CallingBell,
+    TinyHouse,
+    BlackStar,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

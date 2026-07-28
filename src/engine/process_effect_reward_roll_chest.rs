@@ -12,9 +12,12 @@ use crate::consts::CHEST_SMALL_GOLD_BASE;
 use crate::consts::CHEST_SMALL_GOLD_CHANCE;
 use crate::consts::CHEST_SMALL_TH_COMMON;
 use crate::consts::CHEST_SMALL_TH_UNCOMMON;
+use crate::consts::MATRYOSHKA_TH_COMMON;
+use crate::consts::MATRYOSHKA_TH_UNCOMMON;
 use crate::game::GameState;
 use crate::types::ChestKind;
 use crate::types::Mode;
+use crate::types::RelicName;
 use crate::utils::add_relic_reward_for_roll;
 
 #[derive(Debug, Clone, Copy)]
@@ -53,7 +56,28 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
     } else {
         None
     };
-    let id_relic = Some(add_relic_reward_for_roll(
+    let mut id_relics_reward: Vec<usize> = Vec::with_capacity(2);
+
+    // Matryoshka: the next 2 chests hold an extra relic (75% Common / 25% Uncommon),
+    // staged before the chest's own relic
+    if let Some(id) = state.id_relics[RelicName::Matryoshka as usize]
+        && state.entities[id].relic_counter > 0
+    {
+        let relic = &mut state.entities[id];
+        relic.relic_counter -= 1;
+        relic.relic_used_up = relic.relic_counter == 0;
+        let extra_roll = state.rng.random_range(0..100) as u8;
+        id_relics_reward.push(add_relic_reward_for_roll(
+            extra_roll,
+            MATRYOSHKA_TH_COMMON,
+            MATRYOSHKA_TH_UNCOMMON,
+            &state.id_relics,
+            &mut state.entities,
+            &mut state.rng,
+        ));
+    }
+
+    id_relics_reward.push(add_relic_reward_for_roll(
         roll,
         chest_params.th_common,
         chest_params.th_uncommon,
@@ -64,7 +88,7 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
 
     state.mode = Mode::Reward {
         reward_id_cards: Vec::new(),
-        reward_id_relic: id_relic,
+        reward_id_relics: id_relics_reward,
         reward_id_potions: Vec::new(),
         reward_gold: gold,
     };

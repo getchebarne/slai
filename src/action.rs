@@ -88,7 +88,9 @@ pub enum Action {
     RewardTakePotion {
         idx: usize,
     },
-    RewardTakeRelic,
+    RewardTakeRelic {
+        idx: usize,
+    },
     RoomExit,
     RoomSelect {
         idx: usize,
@@ -146,7 +148,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::RewardTakeCard { idx } => handle_reward_take_card(state, idx),
         Action::RewardTakeGold => handle_reward_take_gold(state),
         Action::RewardTakePotion { idx } => handle_reward_take_potion(state, idx),
-        Action::RewardTakeRelic => handle_reward_take_relic(state),
+        Action::RewardTakeRelic { idx } => handle_reward_take_relic(state, idx),
         Action::RoomExit => handle_room_exit(state),
         Action::RoomSelect { idx } => handle_room_select(state, idx),
         Action::ShopBuyCard { idx } => handle_shop_buy_card(state, idx),
@@ -227,15 +229,7 @@ fn handle_card_discover(state: &mut GameState, idx: usize) {
         unreachable!("handle_card_discover outside Combat mode")
     };
     let id_card = id_discover[idx];
-    let pending = state
-        .effect_pending
-        .take()
-        .expect("CardDiscover requires a pending effect");
-    state.effect_buf.push(Effect {
-        kind: EffectKind::CardDiscoverPick,
-        id_source: pending.id_source,
-        target: Target::Direct(Some(id_card)),
-    });
+    resolve_pending_pick(state, id_card);
 }
 
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
@@ -463,13 +457,20 @@ fn handle_reward_take_potion(state: &mut GameState, idx: usize) {
     });
 }
 
-fn handle_reward_take_relic(state: &mut GameState) {
+fn handle_reward_take_relic(state: &mut GameState, idx: usize) {
+    let Mode::Reward {
+        reward_id_relics, ..
+    } = &state.mode
+    else {
+        unreachable!("RewardTakeRelic outside Reward mode")
+    };
+    let id_relic = reward_id_relics[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake {
             kind: RewardKind::Relic,
         },
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Direct(Some(id_relic)),
     });
 }
 
@@ -615,7 +616,7 @@ fn fill_legal_actions_effect_pending(
                 state.legal_actions.push(Action::CardNightmare { idx: i });
             }
         }
-        EffectKind::CardDiscoverPick => {
+        EffectKind::CardDiscoverPick { .. } => {
             let Mode::Combat { id_discover, .. } = &state.mode else {
                 unreachable!("Discover pick outside Combat mode")
             };
@@ -623,8 +624,8 @@ fn fill_legal_actions_effect_pending(
                 state.legal_actions.push(Action::CardDiscover { idx: i });
             }
         }
-        // Bonfire's offer pick reuses `CardPurge` actions: same pool, same resolution shape
-        EffectKind::CardPurge | EffectKind::BonfireOffer => {
+        // Bonfire's offer and bottling reuse `CardPurge` actions: same pool, same resolution shape
+        EffectKind::CardPurge | EffectKind::BonfireOffer | EffectKind::CardBottle => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
                 if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
@@ -648,7 +649,7 @@ fn fill_legal_actions_effect_pending(
                 }
             }
         }
-        EffectKind::CardTransform => {
+        EffectKind::CardTransform { .. } => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
                 if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
@@ -734,7 +735,7 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
 fn fill_legal_actions_screen_reward(state: &mut GameState) {
     let Mode::Reward {
         reward_id_cards,
-        reward_id_relic,
+        reward_id_relics,
         reward_id_potions,
         reward_gold,
         ..
@@ -745,8 +746,8 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
     for i in 0..reward_id_cards.len() {
         state.legal_actions.push(Action::RewardTakeCard { idx: i });
     }
-    if reward_id_relic.is_some() {
-        state.legal_actions.push(Action::RewardTakeRelic);
+    for i in 0..reward_id_relics.len() {
+        state.legal_actions.push(Action::RewardTakeRelic { idx: i });
     }
     if find_free_slot(&state.id_potions, state.potion_slots_max).is_some() {
         for i in 0..reward_id_potions.len() {

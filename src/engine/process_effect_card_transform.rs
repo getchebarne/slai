@@ -14,20 +14,31 @@ use crate::types::CardColor;
 use crate::types::CardName;
 use crate::types::CardPile;
 
-pub fn process_effect_card_transform(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_transform(
+    id_target: Option<usize>,
+    state: &mut GameState,
+    upgraded: bool,
+) {
     let id_card = id_target.expect("CardTransform requires id_target");
     let source_name = state.entities[id_card].card_name;
 
     // The target keeps the source's color — Curses only become other Curses, etc.
-    let pools: &[&[CardName]] = match state.entities[id_card].card_color {
+    // Curse results are never upgradable, so Astrolabe's upgrade skips them
+    let (pools, upgradable): (&[&[CardName]], bool) = match state.entities[id_card].card_color {
         // Pools already exclude Basic, Special, and AscendersBane
-        CardColor::Green => &[
-            POOL_COMMON_GREEN_CARD,
-            POOL_UNCOMMON_GREEN_CARD,
-            POOL_RARE_GREEN_CARD,
-        ],
-        CardColor::Colorless => &[POOL_UNCOMMON_COLORLESS_CARD, POOL_RARE_COLORLESS_CARD],
-        CardColor::Curse => &[POOL_CURSE_CARD],
+        CardColor::Green => (
+            &[
+                POOL_COMMON_GREEN_CARD,
+                POOL_UNCOMMON_GREEN_CARD,
+                POOL_RARE_GREEN_CARD,
+            ],
+            true,
+        ),
+        CardColor::Colorless => (
+            &[POOL_UNCOMMON_COLORLESS_CARD, POOL_RARE_COLORLESS_CARD],
+            true,
+        ),
+        CardColor::Curse => (&[POOL_CURSE_CARD], false),
     };
 
     // Uniform across rarities (unlike card rewards), never into the same card
@@ -46,7 +57,7 @@ pub fn process_effect_card_transform(id_target: Option<usize>, state: &mut GameS
             card_name,
             pile: CardPile::Deck,
             count: 1,
-            upgraded: false,
+            upgraded: upgraded && upgradable,
         },
         id_source: None,
         target: Target::Direct(None),

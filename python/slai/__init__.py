@@ -99,6 +99,7 @@ def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
 _HAND_POS = "position in state.mode.hand (the current hand)"
 _MONSTER_POS = "position in the alive-monster list at dispatch time"
 _REWARD_POS = "slot in state.mode.cards"
+_REWARD_RELIC_POS = "slot in state.mode.relics"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
 _SLOT_POS = "slot in state.potions"
@@ -150,7 +151,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(
             ActionType.RewardTakePotion, ArgSpec("idx", _REWARD_POTION_POS)
         ),
-        create_action_spec(ActionType.RewardTakeRelic),
+        create_action_spec(ActionType.RewardTakeRelic, ArgSpec("idx", _REWARD_RELIC_POS)),
         create_action_spec(ActionType.RoomSelect, ArgSpec("idx", _MAP_COL)),
         create_action_spec(ActionType.RoomExit),
         # Shop
@@ -190,6 +191,8 @@ EffectDamagePhysical = _rs.EffectDamagePhysical
 EffectDamagePhysicalIfPoisoned = _rs.EffectDamagePhysicalIfPoisoned
 EffectHeelHookProc = _rs.EffectHeelHookProc
 EffectEscapePlanCheck = _rs.EffectEscapePlanCheck
+EffectGamblingChipProc = _rs.EffectGamblingChipProc
+EffectCardBottle = _rs.EffectCardBottle
 EffectGlassKnifeDecay = _rs.EffectGlassKnifeDecay
 EffectCardSetupPick = _rs.EffectCardSetupPick
 EffectCardNightmarePick = _rs.EffectCardNightmarePick
@@ -246,6 +249,8 @@ Effect = (
     | EffectDamagePhysicalIfPoisoned
     | EffectHeelHookProc
     | EffectEscapePlanCheck
+    | EffectGamblingChipProc
+    | EffectCardBottle
     | EffectGlassKnifeDecay
     | EffectCardSetupPick
     | EffectCardNightmarePick
@@ -526,6 +531,8 @@ __all__ = [
     "EffectDamagePhysicalIfPoisoned",
     "EffectHeelHookProc",
     "EffectEscapePlanCheck",
+    "EffectGamblingChipProc",
+    "EffectCardBottle",
     "EffectGlassKnifeDecay",
     "EffectCardSetupPick",
     "EffectCardNightmarePick",

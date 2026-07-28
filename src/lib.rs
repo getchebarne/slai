@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+// The Effect union's pyo3 type-hint introspection recurses once per variant
+#![recursion_limit = "512"]
 
 use pyo3::prelude::*;
 
@@ -135,8 +137,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::{
         PyEffectAdventurerSearch, PyEffectBlockGain, PyEffectBonfireOffer,
-        PyEffectCalculatedGamble, PyEffectCardAdd, PyEffectCardAddRandom, PyEffectCardDiscard,
-        PyEffectCardDiscoverPick, PyEffectCardDiscoverRoll, PyEffectCardDraw,
+        PyEffectCalculatedGamble, PyEffectCardAdd, PyEffectCardAddRandom, PyEffectCardBottle,
+        PyEffectCardDiscard, PyEffectCardDiscoverPick, PyEffectCardDiscoverRoll, PyEffectCardDraw,
         PyEffectCardDrawIfNoAttacks, PyEffectCardDrawUpTo, PyEffectCardDuplicate,
         PyEffectCardExhaust, PyEffectCardMove, PyEffectCardNightmarePick, PyEffectCardPurge,
         PyEffectCardRetain, PyEffectCardSetupPick, PyEffectCardTransform, PyEffectCardUpgrade,
@@ -144,13 +146,14 @@ mod slai {
         PyEffectDamageMindBlast, PyEffectDamagePhysical, PyEffectDamagePhysicalIfPoisoned,
         PyEffectDistractionAdd, PyEffectEnergyDelta, PyEffectEscapePlanCheck,
         PyEffectEventAdvanceState, PyEffectEventConsume, PyEffectFaceTrade,
-        PyEffectGlassKnifeDecay, PyEffectGoldDelta, PyEffectHandOfGreedProc, PyEffectHealthDelta,
-        PyEffectHeelHookProc, PyEffectMaxHealthDelta, PyEffectModifierGain,
-        PyEffectModifierMultiply, PyEffectModifierRemove, PyEffectMonsterSpawn,
-        PyEffectPotionAddRandom, PyEffectPotionDiscard, PyEffectRelicGrantRandom,
-        PyEffectRelicGrantSpecific, PyEffectRewardRollPotions, PyEffectScrapOozeReach,
-        PyEffectSetCostOverride, PyEffectShuffleDiscardPileIntoDrawPile, PyEffectSneakyStrikeProc,
-        PyEffectStormOfSteelProc, PyEffectUnloadDiscard, PyEffectWheelSpin,
+        PyEffectGamblingChipProc, PyEffectGlassKnifeDecay, PyEffectGoldDelta,
+        PyEffectHandOfGreedProc, PyEffectHealthDelta, PyEffectHeelHookProc, PyEffectMaxHealthDelta,
+        PyEffectModifierGain, PyEffectModifierMultiply, PyEffectModifierRemove,
+        PyEffectMonsterSpawn, PyEffectPotionAddRandom, PyEffectPotionDiscard,
+        PyEffectRelicGrantRandom, PyEffectRelicGrantSpecific, PyEffectRewardRollPotions,
+        PyEffectScrapOozeReach, PyEffectSetCostOverride, PyEffectShuffleDiscardPileIntoDrawPile,
+        PyEffectSneakyStrikeProc, PyEffectStormOfSteelProc, PyEffectUnloadDiscard,
+        PyEffectWheelSpin,
     };
     #[pymodule_export]
     use super::ffi::{

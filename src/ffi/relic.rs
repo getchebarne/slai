@@ -134,6 +134,18 @@ pub enum PyRelicName {
     Cauldron,
     MembershipCard,
     TheCourier,
+    GamblingChip,
+    BottledFlame,
+    BottledLightning,
+    BottledTornado,
+    Matryoshka,
+    Orrery,
+    Toolbox,
+    SneckoEye,
+    Astrolabe,
+    CallingBell,
+    TinyHouse,
+    BlackStar,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -256,6 +268,18 @@ impl From<RelicName> for PyRelicName {
             RelicName::Cauldron => Self::Cauldron,
             RelicName::MembershipCard => Self::MembershipCard,
             RelicName::TheCourier => Self::TheCourier,
+            RelicName::GamblingChip => Self::GamblingChip,
+            RelicName::BottledFlame => Self::BottledFlame,
+            RelicName::BottledLightning => Self::BottledLightning,
+            RelicName::BottledTornado => Self::BottledTornado,
+            RelicName::Matryoshka => Self::Matryoshka,
+            RelicName::Orrery => Self::Orrery,
+            RelicName::Toolbox => Self::Toolbox,
+            RelicName::SneckoEye => Self::SneckoEye,
+            RelicName::Astrolabe => Self::Astrolabe,
+            RelicName::CallingBell => Self::CallingBell,
+            RelicName::TinyHouse => Self::TinyHouse,
+            RelicName::BlackStar => Self::BlackStar,
         }
     }
 }
@@ -380,6 +404,18 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::Cauldron => Self::Cauldron,
             PyRelicName::MembershipCard => Self::MembershipCard,
             PyRelicName::TheCourier => Self::TheCourier,
+            PyRelicName::GamblingChip => Self::GamblingChip,
+            PyRelicName::BottledFlame => Self::BottledFlame,
+            PyRelicName::BottledLightning => Self::BottledLightning,
+            PyRelicName::BottledTornado => Self::BottledTornado,
+            PyRelicName::Matryoshka => Self::Matryoshka,
+            PyRelicName::Orrery => Self::Orrery,
+            PyRelicName::Toolbox => Self::Toolbox,
+            PyRelicName::SneckoEye => Self::SneckoEye,
+            PyRelicName::Astrolabe => Self::Astrolabe,
+            PyRelicName::CallingBell => Self::CallingBell,
+            PyRelicName::TinyHouse => Self::TinyHouse,
+            PyRelicName::BlackStar => Self::BlackStar,
         }
     }
 }

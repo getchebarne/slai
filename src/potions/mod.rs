@@ -25,12 +25,15 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
+use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
 // Follows a CardDiscover roll; halts until the player picks from `id_discover`
 pub const EFFECT_CARD_DISCOVER_PICK: Effect = Effect {
-    kind: EffectKind::CardDiscoverPick,
+    kind: EffectKind::CardDiscoverPick {
+        cost_zero: Some(CostScope::Turn),
+    },
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Discover,

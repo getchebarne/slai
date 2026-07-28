@@ -5,6 +5,7 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
 use crate::potions::EFFECT_CARD_DISCOVER_PICK;
+use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
@@ -18,6 +19,8 @@ pub static SKILL_POTION: Entity = make_entity_potion(
         Effect {
             kind: EffectKind::CardDiscoverRoll {
                 kind: Some(CardKind::Skill),
+                color: CardColor::Green,
+                exclude: &[],
                 count: DISCOVER_PICK_COUNT,
             },
             id_source: None,
