@@ -9,7 +9,7 @@ use crate::entity::make_entity_potion;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static BLESSING_OF_THE_FORGE: Entity = make_entity_potion(
+pub static POTION_BLESSING_OF_THE_FORGE: Entity = make_entity_potion(
     PotionName::BlessingOfTheForge,
     PotionRarity::Common,
     false,

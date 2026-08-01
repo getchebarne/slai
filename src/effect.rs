@@ -75,8 +75,9 @@ pub enum EffectKind {
     CardTransform,
     CardUpgrade,
     ChestOpen,
-    CombatEnd,
-    CombatEscape,
+    CombatEnd {
+        escaped_character: bool,
+    },
     CombatStart {
         event_gold: Option<Amount>,
         event_relic: Option<RelicName>,
@@ -140,7 +141,7 @@ pub enum EffectKind {
     HexaghostBurnIncrease {
         count: u8,
     },
-    LiquidMemoriesPick,
+    LiquidMemories,
     MaxHealthDelta {
         sign: DeltaSign,
         amount: Amount,

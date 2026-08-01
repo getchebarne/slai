@@ -94,7 +94,9 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             state.effect_queue.push_back(e);
         }
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::CombatEnd,
+            kind: EffectKind::CombatEnd {
+                escaped_character: false,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

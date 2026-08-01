@@ -1,27 +1,26 @@
 use crate::effect::CandidatePool;
+use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
-use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static DEXTERITY_POTION: Entity = make_entity_potion(
-    PotionName::DexterityPotion,
+pub static POTION_FIRE: Entity = make_entity_potion(
+    PotionName::FirePotion,
     PotionRarity::Common,
-    false,
+    true,
     true,
     &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Dexterity,
-            stacks: 2,
-        },
+        kind: EffectKind::DamagePhysical { amount: 20 },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
+            candidate_pool: CandidatePool::Monsters {
+                filter: CandidatePoolMonstersFilter::Picked,
+            },
             selection_kind: SelectionKind::Single,
         },
     }],

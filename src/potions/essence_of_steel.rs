@@ -9,7 +9,7 @@ use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static ESSENCE_OF_STEEL: Entity = make_entity_potion(
+pub static POTION_ESSENCE_OF_STEEL: Entity = make_entity_potion(
     PotionName::EssenceOfSteel,
     PotionRarity::Uncommon,
     false,

@@ -1,36 +1,36 @@
-mod ancient_potion;
-mod attack_potion;
+mod ancient;
+mod attack;
 mod blessing_of_the_forge;
-mod block_potion;
-mod colorless_potion;
-mod cultist_potion;
-mod cunning_potion;
-mod dexterity_potion;
+mod block;
+mod colorless;
+mod cultist;
+mod cunning;
+mod dexterity;
 mod distilled_chaos;
-mod duplication_potion;
-mod energy_potion;
+mod duplication;
+mod energy;
 mod entropic_brew;
 mod essence_of_steel;
-mod explosive_potion;
-mod fairy_potion;
-mod fear_potion;
-mod fire_potion;
+mod explosive;
+mod fairy;
+mod fear;
+mod fire;
 mod fruit_juice;
 mod gamblers_brew;
 mod ghost_in_a_jar;
 mod liquid_bronze;
 mod liquid_memories;
-mod poison_potion;
-mod power_potion;
-mod regen_potion;
-mod skill_potion;
+mod poison;
+mod power;
+mod regeneration;
+mod skill;
 mod smoke_bomb;
 mod snecko_oil;
-mod speed_potion;
-mod steroid_potion;
-mod strength_potion;
-mod swift_potion;
-mod weak_potion;
+mod speed;
+mod steroid;
+mod strength;
+mod swift;
+mod weak;
 
 use rand::Rng;
 use strum::EnumCount;
@@ -59,76 +59,76 @@ pub const EFFECT_CARD_DISCOVER_PICK: Effect = Effect {
 
 pub fn get_potion(name: PotionName) -> Entity {
     match name {
-        PotionName::EnergyPotion => energy_potion::ENERGY_POTION,
-        PotionName::BlockPotion => block_potion::BLOCK_POTION,
-        PotionName::StrengthPotion => strength_potion::STRENGTH_POTION,
-        PotionName::DexterityPotion => dexterity_potion::DEXTERITY_POTION,
-        PotionName::FirePotion => fire_potion::FIRE_POTION,
-        PotionName::ExplosivePotion => explosive_potion::EXPLOSIVE_POTION,
-        PotionName::WeakPotion => weak_potion::WEAK_POTION,
-        PotionName::FearPotion => fear_potion::FEAR_POTION,
-        PotionName::PoisonPotion => poison_potion::POISON_POTION,
-        PotionName::SwiftPotion => swift_potion::SWIFT_POTION,
-        PotionName::AttackPotion => attack_potion::ATTACK_POTION,
-        PotionName::SkillPotion => skill_potion::SKILL_POTION,
-        PotionName::PowerPotion => power_potion::POWER_POTION,
-        PotionName::FruitJuice => fruit_juice::FRUIT_JUICE,
-        PotionName::AncientPotion => ancient_potion::ANCIENT_POTION,
-        PotionName::LiquidBronze => liquid_bronze::LIQUID_BRONZE,
-        PotionName::EssenceOfSteel => essence_of_steel::ESSENCE_OF_STEEL,
-        PotionName::GhostInAJar => ghost_in_a_jar::GHOST_IN_A_JAR,
-        PotionName::CultistPotion => cultist_potion::CULTIST_POTION,
-        PotionName::CunningPotion => cunning_potion::CUNNING_POTION,
-        PotionName::DistilledChaos => distilled_chaos::DISTILLED_CHAOS,
-        PotionName::BlessingOfTheForge => blessing_of_the_forge::BLESSING_OF_THE_FORGE,
-        PotionName::EntropicBrew => entropic_brew::ENTROPIC_BREW,
-        PotionName::RegenPotion => regen_potion::REGEN_POTION,
-        PotionName::SteroidPotion => steroid_potion::STEROID_POTION,
-        PotionName::SpeedPotion => speed_potion::SPEED_POTION,
-        PotionName::DuplicationPotion => duplication_potion::DUPLICATION_POTION,
-        PotionName::ColorlessPotion => colorless_potion::COLORLESS_POTION,
-        PotionName::GamblersBrew => gamblers_brew::GAMBLERS_BREW,
-        PotionName::LiquidMemories => liquid_memories::LIQUID_MEMORIES,
-        PotionName::SneckoOil => snecko_oil::SNECKO_OIL,
-        PotionName::FairyPotion => fairy_potion::FAIRY_POTION,
-        PotionName::SmokeBomb => smoke_bomb::SMOKE_BOMB,
+        PotionName::EnergyPotion => energy::POTION_ENERGY,
+        PotionName::BlockPotion => block::POTION_BLOCK,
+        PotionName::StrengthPotion => strength::POTION_STRENGTH,
+        PotionName::DexterityPotion => dexterity::POTION_DEXTERITY,
+        PotionName::FirePotion => fire::POTION_FIRE,
+        PotionName::ExplosivePotion => explosive::POTION_EXPLOSIVE,
+        PotionName::WeakPotion => weak::POTION_WEAK,
+        PotionName::FearPotion => fear::POTION_FEAR,
+        PotionName::PoisonPotion => poison::POTION_POISON,
+        PotionName::SwiftPotion => swift::POTION_SWIFT,
+        PotionName::AttackPotion => attack::POTION_ATTACK,
+        PotionName::SkillPotion => skill::POTION_SKILL,
+        PotionName::PowerPotion => power::POTION_POWER,
+        PotionName::FruitJuice => fruit_juice::POTION_FRUIT_JUICE,
+        PotionName::AncientPotion => ancient::POTION_ANCIENT,
+        PotionName::LiquidBronze => liquid_bronze::POTION_LIQUID_BRONZE,
+        PotionName::EssenceOfSteel => essence_of_steel::POTION_ESSENCE_OF_STEEL,
+        PotionName::GhostInAJar => ghost_in_a_jar::POTION_GHOST_IN_A_JAR,
+        PotionName::CultistPotion => cultist::POTION_CULTIST,
+        PotionName::CunningPotion => cunning::POTION_CUNNING,
+        PotionName::DistilledChaos => distilled_chaos::POTION_DISTILLED_CHAOS,
+        PotionName::BlessingOfTheForge => blessing_of_the_forge::POTION_BLESSING_OF_THE_FORGE,
+        PotionName::EntropicBrew => entropic_brew::POTION_ENTROPIC_BREW,
+        PotionName::RegenerationPotion => regeneration::POTION_REGENERATION,
+        PotionName::SteroidPotion => steroid::POTION_STEROID,
+        PotionName::SpeedPotion => speed::POTION_SPEED,
+        PotionName::DuplicateNextCardPlayPotion => duplication::POTION_DUPLICATION,
+        PotionName::ColorlessPotion => colorless::POTION_COLORLESS,
+        PotionName::GamblersBrew => gamblers_brew::POTION_GAMBLERS_BREW,
+        PotionName::LiquidMemories => liquid_memories::POTION_LIQUID_MEMORIES,
+        PotionName::SneckoOil => snecko_oil::POTION_SNECKO_OIL,
+        PotionName::FairyPotion => fairy::POTION_FAIRY,
+        PotionName::SmokeBomb => smoke_bomb::POTION_SMOKE_BOMB,
     }
 }
 
 pub const ALL_POTIONS: &[&'static Entity] = &[
-    &energy_potion::ENERGY_POTION,
-    &block_potion::BLOCK_POTION,
-    &strength_potion::STRENGTH_POTION,
-    &dexterity_potion::DEXTERITY_POTION,
-    &fire_potion::FIRE_POTION,
-    &explosive_potion::EXPLOSIVE_POTION,
-    &weak_potion::WEAK_POTION,
-    &fear_potion::FEAR_POTION,
-    &poison_potion::POISON_POTION,
-    &swift_potion::SWIFT_POTION,
-    &attack_potion::ATTACK_POTION,
-    &skill_potion::SKILL_POTION,
-    &power_potion::POWER_POTION,
-    &fruit_juice::FRUIT_JUICE,
-    &ancient_potion::ANCIENT_POTION,
-    &liquid_bronze::LIQUID_BRONZE,
-    &essence_of_steel::ESSENCE_OF_STEEL,
-    &ghost_in_a_jar::GHOST_IN_A_JAR,
-    &cultist_potion::CULTIST_POTION,
-    &cunning_potion::CUNNING_POTION,
-    &distilled_chaos::DISTILLED_CHAOS,
-    &blessing_of_the_forge::BLESSING_OF_THE_FORGE,
-    &entropic_brew::ENTROPIC_BREW,
-    &regen_potion::REGEN_POTION,
-    &steroid_potion::STEROID_POTION,
-    &speed_potion::SPEED_POTION,
-    &duplication_potion::DUPLICATION_POTION,
-    &colorless_potion::COLORLESS_POTION,
-    &gamblers_brew::GAMBLERS_BREW,
-    &liquid_memories::LIQUID_MEMORIES,
-    &snecko_oil::SNECKO_OIL,
-    &fairy_potion::FAIRY_POTION,
-    &smoke_bomb::SMOKE_BOMB,
+    &energy::POTION_ENERGY,
+    &block::POTION_BLOCK,
+    &strength::POTION_STRENGTH,
+    &dexterity::POTION_DEXTERITY,
+    &fire::POTION_FIRE,
+    &explosive::POTION_EXPLOSIVE,
+    &weak::POTION_WEAK,
+    &fear::POTION_FEAR,
+    &poison::POTION_POISON,
+    &swift::POTION_SWIFT,
+    &attack::POTION_ATTACK,
+    &skill::POTION_SKILL,
+    &power::POTION_POWER,
+    &fruit_juice::POTION_FRUIT_JUICE,
+    &ancient::POTION_ANCIENT,
+    &liquid_bronze::POTION_LIQUID_BRONZE,
+    &essence_of_steel::POTION_ESSENCE_OF_STEEL,
+    &ghost_in_a_jar::POTION_GHOST_IN_A_JAR,
+    &cultist::POTION_CULTIST,
+    &cunning::POTION_CUNNING,
+    &distilled_chaos::POTION_DISTILLED_CHAOS,
+    &blessing_of_the_forge::POTION_BLESSING_OF_THE_FORGE,
+    &entropic_brew::POTION_ENTROPIC_BREW,
+    &regeneration::POTION_REGENERATION,
+    &steroid::POTION_STEROID,
+    &speed::POTION_SPEED,
+    &duplication::POTION_DUPLICATION,
+    &colorless::POTION_COLORLESS,
+    &gamblers_brew::POTION_GAMBLERS_BREW,
+    &liquid_memories::POTION_LIQUID_MEMORIES,
+    &snecko_oil::POTION_SNECKO_OIL,
+    &fairy::POTION_FAIRY,
+    &smoke_bomb::POTION_SMOKE_BOMB,
 ];
 // Assert all potions are included without duplicates
 const _: () = assert!(ALL_POTIONS.len() == PotionName::COUNT);

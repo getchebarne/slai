@@ -6,22 +6,26 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
+use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static EXPLOSIVE_POTION: Entity = make_entity_potion(
-    PotionName::ExplosivePotion,
+pub static POTION_POISON: Entity = make_entity_potion(
+    PotionName::PoisonPotion,
     PotionRarity::Common,
-    false,
+    true,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 10 },
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Poison,
+            stacks: 6,
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Monsters {
-                filter: CandidatePoolMonstersFilter::All,
+                filter: CandidatePoolMonstersFilter::Picked,
             },
-            selection_kind: SelectionKind::All,
+            selection_kind: SelectionKind::Single,
         },
     }],
 );

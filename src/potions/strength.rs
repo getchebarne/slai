@@ -9,15 +9,15 @@ use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static CULTIST_POTION: Entity = make_entity_potion(
-    PotionName::CultistPotion,
-    PotionRarity::Rare,
+pub static POTION_STRENGTH: Entity = make_entity_potion(
+    PotionName::StrengthPotion,
+    PotionRarity::Common,
     false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Ritual,
-            stacks: 1,
+            kind: ModifierKind::Strength,
+            stacks: 2,
         },
         id_source: None,
         target: Target::Resolve {

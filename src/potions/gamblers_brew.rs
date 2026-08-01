@@ -6,7 +6,7 @@ use crate::entity::make_entity_potion;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static GAMBLERS_BREW: Entity = make_entity_potion(
+pub static POTION_GAMBLERS_BREW: Entity = make_entity_potion(
     PotionName::GamblersBrew,
     PotionRarity::Uncommon,
     false,

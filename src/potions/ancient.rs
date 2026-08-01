@@ -9,15 +9,15 @@ use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static REGEN_POTION: Entity = make_entity_potion(
-    PotionName::RegenPotion,
+pub static POTION_ANCIENT: Entity = make_entity_potion(
+    PotionName::AncientPotion,
     PotionRarity::Uncommon,
     false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Regen,
-            stacks: 5,
+            kind: ModifierKind::Artifact,
+            stacks: 1,
         },
         id_source: None,
         target: Target::Resolve {

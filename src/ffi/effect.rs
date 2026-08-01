@@ -871,11 +871,11 @@ pub struct PyEffectGamble {
     hash,
     frozen,
     get_all,
-    name = "EffectLiquidMemoriesPick",
+    name = "EffectLiquidMemories",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectLiquidMemoriesPick {
+pub struct PyEffectLiquidMemories {
     pub target: Option<PyTarget>,
 }
 
@@ -885,11 +885,12 @@ pub struct PyEffectLiquidMemoriesPick {
     hash,
     frozen,
     get_all,
-    name = "EffectCombatEscape",
+    name = "EffectCombatEnd",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectCombatEscape {
+pub struct PyEffectCombatEnd {
+    pub escaped_character: bool,
     pub target: Option<PyTarget>,
 }
 
@@ -951,8 +952,8 @@ pub enum PyEffect {
     CardMove(PyEffectCardMove),
     CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop),
     Gamble(PyEffectGamble),
-    LiquidMemoriesPick(PyEffectLiquidMemoriesPick),
-    CombatEscape(PyEffectCombatEscape),
+    LiquidMemories(PyEffectLiquidMemories),
+    CombatEnd(PyEffectCombatEnd),
 }
 
 variant_union!(PyEffect {
@@ -1012,8 +1013,8 @@ variant_union!(PyEffect {
     CardMove => PyEffectCardMove,
     CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop,
     Gamble => PyEffectGamble,
-    LiquidMemoriesPick => PyEffectLiquidMemoriesPick,
-    CombatEscape => PyEffectCombatEscape,
+    LiquidMemories => PyEffectLiquidMemories,
+    CombatEnd => PyEffectCombatEnd,
 });
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -1255,10 +1256,15 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             discards_before,
             target,
         }),
-        EffectKind::LiquidMemoriesPick => {
-            PyEffect::LiquidMemoriesPick(PyEffectLiquidMemoriesPick { target })
+        EffectKind::LiquidMemories => {
+            PyEffect::LiquidMemories(PyEffectLiquidMemories { target })
         }
-        EffectKind::CombatEscape => PyEffect::CombatEscape(PyEffectCombatEscape { target }),
+        EffectKind::CombatEnd { escaped_character } => {
+            PyEffect::CombatEnd(PyEffectCombatEnd {
+                escaped_character,
+                target,
+            })
+        }
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
             other

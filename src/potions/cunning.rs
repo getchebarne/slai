@@ -3,19 +3,22 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
-use crate::types::DeltaSign;
+use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static ENERGY_POTION: Entity = make_entity_potion(
-    PotionName::EnergyPotion,
-    PotionRarity::Common,
+pub static POTION_CUNNING: Entity = make_entity_potion(
+    PotionName::CunningPotion,
+    PotionRarity::Uncommon,
     false,
     true,
     &[Effect {
-        kind: EffectKind::EnergyDelta {
-            sign: DeltaSign::Gain,
-            amount: 2,
+        kind: EffectKind::CardAdd {
+            card_name: CardName::Shiv,
+            pile: CardPile::Hand,
+            count: 3,
+            upgraded: true,
         },
         id_source: None,
         target: Target::Direct(None),

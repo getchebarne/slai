@@ -9,15 +9,15 @@ use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static DUPLICATION_POTION: Entity = make_entity_potion(
-    PotionName::DuplicationPotion,
-    PotionRarity::Uncommon,
+pub static POTION_DEXTERITY: Entity = make_entity_potion(
+    PotionName::DexterityPotion,
+    PotionRarity::Common,
     false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Duplication,
-            stacks: 1,
+            kind: ModifierKind::Dexterity,
+            stacks: 2,
         },
         id_source: None,
         target: Target::Resolve {

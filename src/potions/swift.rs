@@ -6,7 +6,7 @@ use crate::entity::make_entity_potion;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static SWIFT_POTION: Entity = make_entity_potion(
+pub static POTION_SWIFT: Entity = make_entity_potion(
     PotionName::SwiftPotion,
     PotionRarity::Common,
     false,

@@ -26,7 +26,6 @@ pub mod process_effect_card_transform;
 pub mod process_effect_card_upgrade;
 pub mod process_effect_chest_open;
 pub mod process_effect_combat_end;
-pub mod process_effect_combat_escape;
 pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_finisher;
@@ -578,11 +577,8 @@ fn dispatch_by_kind(
             event_relic,
             event_relic_roll,
         ),
-        EffectKind::CombatEnd => {
-            process_effect_combat_end::process_effect_combat_end(state)
-        }
-        EffectKind::CombatEscape => {
-            process_effect_combat_escape::process_effect_combat_escape(state)
+        EffectKind::CombatEnd { escaped_character } => {
+            process_effect_combat_end::process_effect_combat_end(state, escaped_character)
         }
         EffectKind::TurnStart => {
             process_effect_turn_start::process_effect_turn_start(id_target, state)
@@ -684,7 +680,7 @@ fn dispatch_by_kind(
                 discards_before,
             )
         }
-        EffectKind::LiquidMemoriesPick => {
+        EffectKind::LiquidMemories => {
             process_effect_liquid_memories_pick::process_effect_liquid_memories_pick(
                 id_target, state,
             )

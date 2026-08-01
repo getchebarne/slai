@@ -1,5 +1,7 @@
 use crate::consts::MAX_SIZE_HAND;
-use crate::entity::CostOverride;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CostScope;
 use crate::types::Mode;
@@ -14,16 +16,30 @@ pub fn process_effect_liquid_memories_pick(id_target: Option<usize>, state: &mut
     else {
         unreachable!("process_effect_liquid_memories_pick outside Combat mode")
     };
-    let id_target = id_target.expect("LiquidMemoriesPick requires id_target");
+    let id_target = id_target.expect("LiquidMemories requires id_target");
+
+    // If the hand is full, return without side effects
     if id_hand.len() >= MAX_SIZE_HAND {
         return;
     }
+
+    // Remove target card from discard pile
     if let Some(pos) = id_pile_discard.iter().position(|&v| v == id_target) {
         id_pile_discard.remove(pos);
     }
+
+    // Push it to the hand
     id_hand.push(id_target);
-    state.entities[id_target].card_cost_override = Some(CostOverride {
-        amount: 0,
-        scope: CostScope::Turn,
+
+    // Costs 0 this turn
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::SetCostOverride {
+            amount: 0,
+            only_reduce: false,
+            random: false,
+            scope: CostScope::Turn,
+        },
+        id_source: None,
+        target: Target::Direct(Some(id_target)),
     });
 }

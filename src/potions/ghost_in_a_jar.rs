@@ -9,7 +9,7 @@ use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static GHOST_IN_A_JAR: Entity = make_entity_potion(
+pub static POTION_GHOST_IN_A_JAR: Entity = make_entity_potion(
     PotionName::GhostInAJar,
     PotionRarity::Rare,
     false,

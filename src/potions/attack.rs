@@ -10,7 +10,7 @@ use crate::types::CardKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static ATTACK_POTION: Entity = make_entity_potion(
+pub static POTION_ATTACK: Entity = make_entity_potion(
     PotionName::AttackPotion,
     PotionRarity::Common,
     false,

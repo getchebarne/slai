@@ -385,9 +385,14 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     };
     let burst =
         has_modifier(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
-    // Duplication replays any card kind; additive with Burst (skill + both = 3 plays)
-    let duplication = has_modifier(char_modifiers, ModifierKind::Duplication);
+
+    // DuplicateNextCardPlay replays any card kind; additive with Burst
+    let duplication = has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
+
+    // Total amount of card-play repetitions
     let reps = (1 + burst as usize + duplication as usize) * mul;
+
+    // Push the card's on-play effects once for each rep
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
             state.effect_buf.push(Effect {
@@ -396,6 +401,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             });
         }
     }
+
+    // Consume 1 Burst and DuplicateNextCardPlay stack
     if burst {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
@@ -409,7 +416,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     if duplication {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Duplication,
+                kind: ModifierKind::DuplicateNextCardPlay,
                 stacks: -1,
             },
             id_source: Some(id_character),

@@ -68,10 +68,10 @@ pub enum PyModifierKind {
     SadisticNature,
     Mayhem,
     TheBomb,
-    Regen,
+    Regeneration,
     LoseStrength,
     LoseDexterity,
-    Duplication,
+    DuplicateNextCardPlay,
 }
 
 #[pymethods]
@@ -141,10 +141,10 @@ impl From<ModifierKind> for PyModifierKind {
             ModifierKind::SadisticNature => Self::SadisticNature,
             ModifierKind::Mayhem => Self::Mayhem,
             ModifierKind::TheBomb => Self::TheBomb,
-            ModifierKind::Regen => Self::Regen,
+            ModifierKind::Regeneration => Self::Regeneration,
             ModifierKind::LoseStrength => Self::LoseStrength,
             ModifierKind::LoseDexterity => Self::LoseDexterity,
-            ModifierKind::Duplication => Self::Duplication,
+            ModifierKind::DuplicateNextCardPlay => Self::DuplicateNextCardPlay,
         }
     }
 }

@@ -10,7 +10,7 @@ use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static SNECKO_OIL: Entity = make_entity_potion(
+pub static POTION_SNECKO_OIL: Entity = make_entity_potion(
     PotionName::SneckoOil,
     PotionRarity::Rare,
     false,

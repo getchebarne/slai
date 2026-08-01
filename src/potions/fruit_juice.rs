@@ -11,7 +11,7 @@ use crate::types::PotionName;
 use crate::types::PotionRarity;
 
 // Matches StS `increaseMaxHp(5, true)` which raises the cap AND heals
-pub static FRUIT_JUICE: Entity = make_entity_potion(
+pub static POTION_FRUIT_JUICE: Entity = make_entity_potion(
     PotionName::FruitJuice,
     PotionRarity::Rare,
     false,

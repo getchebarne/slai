@@ -5,16 +5,20 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
+use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static BLOCK_POTION: Entity = make_entity_potion(
-    PotionName::BlockPotion,
-    PotionRarity::Common,
+pub static POTION_DUPLICATION: Entity = make_entity_potion(
+    PotionName::DuplicateNextCardPlayPotion,
+    PotionRarity::Uncommon,
     false,
     true,
     &[Effect {
-        kind: EffectKind::BlockGain { amount: 12 },
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::DuplicateNextCardPlay,
+            stacks: 1,
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,

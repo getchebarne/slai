@@ -6,15 +6,14 @@ use crate::entity::make_entity_potion;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-static PLAY_TOP: Effect = Effect {
-    kind: EffectKind::CardPlayFromDrawTop,
-    id_source: None,
-    target: Target::Direct(None),
-};
-pub static DISTILLED_CHAOS: Entity = make_entity_potion(
+pub static POTION_DISTILLED_CHAOS: Entity = make_entity_potion(
     PotionName::DistilledChaos,
     PotionRarity::Uncommon,
     false,
     true,
-    &[PLAY_TOP; 3],
+    &[Effect {
+        kind: EffectKind::CardPlayFromDrawTop,
+        id_source: None,
+        target: Target::Direct(None),
+    }; 3],
 );

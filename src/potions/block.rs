@@ -1,5 +1,4 @@
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -9,18 +8,16 @@ use crate::entity::make_entity_potion;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static FIRE_POTION: Entity = make_entity_potion(
-    PotionName::FirePotion,
+pub static POTION_BLOCK: Entity = make_entity_potion(
+    PotionName::BlockPotion,
     PotionRarity::Common,
-    true,
+    false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 20 },
+        kind: EffectKind::BlockGain { amount: 12 },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters {
-                filter: CandidatePoolMonstersFilter::Picked,
-            },
+            candidate_pool: CandidatePool::Character,
             selection_kind: SelectionKind::Single,
         },
     }],

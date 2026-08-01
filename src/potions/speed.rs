@@ -9,8 +9,7 @@ use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-// +5 now; the paired debuff takes it back at turn end
-pub static SPEED_POTION: Entity = make_entity_potion(
+pub static POTION_SPEED: Entity = make_entity_potion(
     PotionName::SpeedPotion,
     PotionRarity::Common,
     false,
