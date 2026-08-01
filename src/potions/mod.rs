@@ -38,6 +38,7 @@ use strum::EnumCount;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -53,6 +54,7 @@ pub const EFFECT_CARD_DISCOVER_PICK: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Discover,
+        filter: CandidateFilter::Any,
         selection_kind: SelectionKind::Input { count: 1 },
     },
 };

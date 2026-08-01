@@ -1,6 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -32,9 +31,8 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Monsters {
-                    filter: CandidatePoolMonstersFilter::All,
-                },
+                candidate_pool: CandidatePool::Monsters,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::All,
             },
         },
@@ -44,9 +42,8 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
             },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand {
-                    filter: CandidatePoolCardFilter::Any,
-                },
+                candidate_pool: CandidatePool::Hand,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Random { count: 1 },
             },
         },

@@ -33,8 +33,7 @@ PotionName = _rs.PotionName
 PotionRarity = _rs.PotionRarity
 ModifierKind = _rs.ModifierKind
 IntentKind = _rs.IntentKind
-CandidatePoolMonstersFilter = _rs.CandidatePoolMonstersFilter
-CandidatePoolCardFilter = _rs.CandidatePoolCardFilter
+CandidateFilter = _rs.CandidateFilter
 
 
 # Action schema types
@@ -492,7 +491,7 @@ __all__ = [
     "PlayRestriction",
     "ModifierKind",
     "IntentKind",
-    "CandidatePoolMonstersFilter",
+    "CandidateFilter",
     "RoomKind",
     "RelicName",
     "RelicTier",
@@ -501,7 +500,6 @@ __all__ = [
     "CardName",
     "MonsterName",
     "MonsterEncounter",
-    "CandidatePoolCardFilter",
     # Sum types (flat variant classes + union aliases)
     "CandidatePool",
     "CandidatePoolHand",

@@ -1,3 +1,4 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -24,6 +25,7 @@ pub static FOSSILIZED_HELIX: Entity = make_entity_relic(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],

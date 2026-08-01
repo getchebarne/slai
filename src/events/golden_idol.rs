@@ -1,4 +1,5 @@
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -61,6 +62,7 @@ const fn smash(numerator: u8, denominator: u8) -> [Effect; 2] {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -84,6 +86,7 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },

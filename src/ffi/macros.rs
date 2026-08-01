@@ -16,8 +16,7 @@ use super::potion::PyPotionName;
 use super::potion::PyPotionRarity;
 use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
-use super::target::PyCandidatePoolCardFilter;
-use super::target::PyCandidatePoolMonstersFilter;
+use super::target::PyCandidateFilter;
 
 // Complex enums are exposed as one flat pyclass per variant. The Rust enum
 // survives for composition; variant_union! gives it IntoPyObject dispatch plus
@@ -70,8 +69,7 @@ impl_discriminant_hash!(
     PyMonsterName,
     PyMonsterEncounter,
     PyRelicTier,
-    PyCandidatePoolMonstersFilter,
-    PyCandidatePoolCardFilter,
+    PyCandidateFilter,
     PyCardPile,
     PyCostScope,
     PyIntentKind,

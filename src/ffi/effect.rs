@@ -1021,9 +1021,11 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
     let target = match effect.target {
         Target::Resolve {
             candidate_pool,
+            filter,
             selection_kind,
         } => Some(PyTarget {
             candidate_pool: candidate_pool.into(),
+            filter: filter.into(),
             selection_kind: selection_kind.into(),
         }),
         Target::Direct(None) => None,
@@ -1256,15 +1258,11 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             discards_before,
             target,
         }),
-        EffectKind::LiquidMemories => {
-            PyEffect::LiquidMemories(PyEffectLiquidMemories { target })
-        }
-        EffectKind::CombatEnd { escaped_character } => {
-            PyEffect::CombatEnd(PyEffectCombatEnd {
-                escaped_character,
-                target,
-            })
-        }
+        EffectKind::LiquidMemories => PyEffect::LiquidMemories(PyEffectLiquidMemories { target }),
+        EffectKind::CombatEnd { escaped_character } => PyEffect::CombatEnd(PyEffectCombatEnd {
+            escaped_character,
+            target,
+        }),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
             other

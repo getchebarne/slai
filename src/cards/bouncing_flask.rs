@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -21,9 +21,8 @@ const BOUNCE: Effect = Effect {
     },
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::Monsters {
-            filter: CandidatePoolMonstersFilter::All,
-        },
+        candidate_pool: CandidatePool::Monsters,
+        filter: CandidateFilter::Any,
         selection_kind: SelectionKind::Random { count: 1 },
     },
 };

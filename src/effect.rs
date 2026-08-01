@@ -258,13 +258,13 @@ pub enum Amount {
 // Source pool for a Resolve effect
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
-    Hand { filter: CandidatePoolCardFilter },
+    Hand,
     Character,
-    Monsters { filter: CandidatePoolMonstersFilter },
+    Monsters,
     Source,
     Discover,
-    Deck { filter: CandidatePoolCardFilter },
-    PileDraw { filter: CandidatePoolCardFilter },
+    Deck,
+    PileDraw,
     PileDiscard,
     PileExhaust,
 
@@ -274,22 +274,20 @@ pub enum CandidatePool {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CandidatePoolCardFilter {
+pub enum CandidateFilter {
+    // Compare against `Entity` fields
+    Any,
     Purgeable,
     Upgradeable,
-    Any,
     Transformable,
     PurgeableCurse,
-    Attack,
-    Skill,
+    KindAttack,
+    KindSkill,
     Costed,
-}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CandidatePoolMonstersFilter {
-    All,
-    Other,
+    // Compare against the `Target::Resolve` context
     Picked,
+    NotSource,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -310,6 +308,7 @@ pub enum Target {
     // Resolved against live state at dequeue via `resolve_selection_kind`.
     Resolve {
         candidate_pool: CandidatePool,
+        filter: CandidateFilter,
         selection_kind: SelectionKind,
     },
 }

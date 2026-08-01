@@ -1,4 +1,5 @@
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -36,6 +37,7 @@ pub static JAX: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -47,6 +49,7 @@ pub static JAX: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },

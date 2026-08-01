@@ -1,3 +1,4 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -18,6 +19,7 @@ pub static POTION_LIQUID_MEMORIES: Entity = make_entity_potion(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::PileDiscard,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],

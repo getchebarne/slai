@@ -10,11 +10,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 pub fn process_effect_shop_buy_relic(id_target: Option<usize>, state: &mut GameState) {
     // Find and remove the shop entry
     let id_relic = id_target.expect("ShopBuyRelic requires id_target");
-    let Mode::Shop {
-        shop_id_relics,
-        ..
-    } = &mut state.mode
-    else {
+    let Mode::Shop { shop_id_relics, .. } = &mut state.mode else {
         unreachable!("ShopBuyRelic outside Shop mode")
     };
     let idx = shop_id_relics

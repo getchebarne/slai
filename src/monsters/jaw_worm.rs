@@ -1,3 +1,4 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -22,6 +23,7 @@ static MOVE_CHOMP_11: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -37,6 +39,7 @@ static MOVE_CHOMP_12: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -53,6 +56,7 @@ static MOVE_THRASH: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -61,6 +65,7 @@ static MOVE_THRASH: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -81,6 +86,7 @@ static MOVE_BELLOW_3_6: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -89,6 +95,7 @@ static MOVE_BELLOW_3_6: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -106,6 +113,7 @@ static MOVE_BELLOW_4_6: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -114,6 +122,7 @@ static MOVE_BELLOW_4_6: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -131,6 +140,7 @@ static MOVE_BELLOW_5_9: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -139,6 +149,7 @@ static MOVE_BELLOW_5_9: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },

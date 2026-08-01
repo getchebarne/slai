@@ -1,8 +1,8 @@
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -26,7 +26,7 @@ use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::types::RewardKind;
 use crate::types::RoomKind;
-use crate::utils::card_filter_matches;
+use crate::utils::candidate_matches;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -554,7 +554,7 @@ fn handle_shop_purge(state: &mut GameState, idx: usize) {
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
     kind: EffectKind,
-    filter: Option<CandidatePoolCardFilter>,
+    filter: Option<CandidateFilter>,
     pool: Option<CandidatePool>,
 ) {
     match kind {
@@ -591,7 +591,9 @@ fn fill_legal_actions_effect_pending(
             let pool = pool.expect("pile pick carries a Resolve pool");
             let pile = pile_for_pool(&state.mode, pool);
             for i in 0..pile.len() {
-                if filter.is_none_or(|f| card_filter_matches(f, &state.entities[pile[i]])) {
+                if filter.is_none_or(|f| {
+                    candidate_matches(f, pile[i], &state.entities[pile[i]], None, None)
+                }) {
                     state.legal_actions.push(Action::CardMoveToHand { idx: i });
                 }
             }
@@ -624,7 +626,13 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardPurge | EffectKind::BonfireOffer => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
-                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
                     state.legal_actions.push(Action::CardPurge { idx: i });
                 }
             }
@@ -632,7 +640,13 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardUpgrade => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
-                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
                     state.legal_actions.push(Action::CardUpgrade { idx: i });
                 }
             }
@@ -640,7 +654,13 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardDuplicate => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
-                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
                     state.legal_actions.push(Action::CardDuplicate { idx: i });
                 }
             }
@@ -648,7 +668,13 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardTransform => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
-                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
                     state.legal_actions.push(Action::CardTransform { idx: i });
                 }
             }
@@ -962,21 +988,25 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
     });
 
     // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
-    let (candidate_pool, selection_kind) = match effect_pending.target {
+    let (candidate_pool, filter, selection_kind) = match effect_pending.target {
         Target::Resolve {
             candidate_pool,
+            filter,
             selection_kind: SelectionKind::Input { count },
         } => (
             candidate_pool,
+            filter,
             SelectionKind::Input {
                 count: count.saturating_sub(1),
             },
         ),
         Target::Resolve {
             candidate_pool,
+            filter,
             selection_kind: SelectionKind::InputUpTo { count },
         } => (
             candidate_pool,
+            filter,
             SelectionKind::InputUpTo {
                 count: count.saturating_sub(1),
             },
@@ -993,6 +1023,7 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
             id_source: effect_pending.id_source,
             target: Target::Resolve {
                 candidate_pool,
+                filter,
                 selection_kind,
             },
         });
@@ -1000,12 +1031,9 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
 }
 
 // Extract the card filter from a pending deck / draw-pile pick; None for other halts
-fn pending_card_filter(effect: &Effect) -> Option<CandidatePoolCardFilter> {
+fn pending_card_filter(effect: &Effect) -> Option<CandidateFilter> {
     match effect.target {
-        Target::Resolve {
-            candidate_pool: CandidatePool::Deck { filter } | CandidatePool::PileDraw { filter },
-            ..
-        } => Some(filter),
+        Target::Resolve { filter, .. } => Some(filter),
         _ => None,
     }
 }

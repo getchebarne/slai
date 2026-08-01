@@ -1,6 +1,6 @@
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -27,6 +27,7 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -34,9 +35,8 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
             kind: EffectKind::CardUpgrade,
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck {
-                    filter: CandidatePoolCardFilter::Upgradeable,
-                },
+                candidate_pool: CandidatePool::Deck,
+                filter: CandidateFilter::Upgradeable,
                 selection_kind: SelectionKind::Random { count: 2 },
             },
         },

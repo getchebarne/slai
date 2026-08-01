@@ -1,3 +1,4 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -25,6 +26,7 @@ static MOVE_BELLOW_2: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Source,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -40,6 +42,7 @@ static MOVE_BELLOW_3: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Source,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -52,6 +55,7 @@ static MOVE_BULL_RUSH_14: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -67,6 +71,7 @@ static MOVE_BULL_RUSH_16: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -83,6 +88,7 @@ static MOVE_SKULL_BASH_6: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -94,6 +100,7 @@ static MOVE_SKULL_BASH_6: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -111,6 +118,7 @@ static MOVE_SKULL_BASH_8: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -122,6 +130,7 @@ static MOVE_SKULL_BASH_8: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },

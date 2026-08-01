@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -14,9 +14,8 @@ const OPTION_OFFER: &[Effect] = &[
         kind: EffectKind::BonfireOffer,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck {
-                filter: CandidatePoolCardFilter::Purgeable,
-            },
+            candidate_pool: CandidatePool::Deck,
+            filter: CandidateFilter::Purgeable,
             selection_kind: SelectionKind::Input { count: 1 },
         },
     },

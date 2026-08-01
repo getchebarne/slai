@@ -3,8 +3,8 @@ use rand::Rng;
 use crate::consts::MAX_SIZE_DECK;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -37,9 +37,8 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 kind: EffectKind::CardDuplicate,
                 id_source: None,
                 target: Target::Resolve {
-                    candidate_pool: CandidatePool::Deck {
-                        filter: CandidatePoolCardFilter::Any,
-                    },
+                    candidate_pool: CandidatePool::Deck,
+                    filter: CandidateFilter::Any,
                     selection_kind: SelectionKind::Input { count: 1 },
                 },
             });
@@ -94,9 +93,8 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                     kind: EffectKind::CardPurge,
                     id_source: None,
                     target: Target::Resolve {
-                        candidate_pool: CandidatePool::Deck {
-                            filter: CandidatePoolCardFilter::Purgeable,
-                        },
+                        candidate_pool: CandidatePool::Deck,
+                        filter: CandidateFilter::Purgeable,
                         selection_kind: SelectionKind::Input { count: 1 },
                     },
                 });

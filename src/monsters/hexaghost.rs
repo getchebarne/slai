@@ -1,4 +1,5 @@
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -26,6 +27,7 @@ static DIVIDER_HIT: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Character,
+        filter: CandidateFilter::Any,
         selection_kind: SelectionKind::Single,
     },
 };
@@ -46,6 +48,7 @@ static MOVE_SEAR_BURN_1_NORMAL: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -73,6 +76,7 @@ static MOVE_SEAR_BURN_1_UPGRADED: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -100,6 +104,7 @@ static MOVE_SEAR_BURN_2_NORMAL: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -127,6 +132,7 @@ static MOVE_SEAR_BURN_2_UPGRADED: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -155,6 +161,7 @@ static MOVE_TACKLE_5: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -163,6 +170,7 @@ static MOVE_TACKLE_5: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -180,6 +188,7 @@ static MOVE_TACKLE_6: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -188,6 +197,7 @@ static MOVE_TACKLE_6: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -206,6 +216,7 @@ static MOVE_INFLAME_2: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -217,6 +228,7 @@ static MOVE_INFLAME_2: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -231,6 +243,7 @@ static MOVE_INFLAME_3: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -242,6 +255,7 @@ static MOVE_INFLAME_3: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -258,6 +272,7 @@ static MOVE_INFERNO_2: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -266,6 +281,7 @@ static MOVE_INFERNO_2: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -274,6 +290,7 @@ static MOVE_INFERNO_2: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -282,6 +299,7 @@ static MOVE_INFERNO_2: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -290,6 +308,7 @@ static MOVE_INFERNO_2: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -298,6 +317,7 @@ static MOVE_INFERNO_2: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -320,6 +340,7 @@ static MOVE_INFERNO_3: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -328,6 +349,7 @@ static MOVE_INFERNO_3: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -336,6 +358,7 @@ static MOVE_INFERNO_3: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -344,6 +367,7 @@ static MOVE_INFERNO_3: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -352,6 +376,7 @@ static MOVE_INFERNO_3: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -360,6 +385,7 @@ static MOVE_INFERNO_3: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },

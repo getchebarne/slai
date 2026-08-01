@@ -13,8 +13,8 @@ pub static POTION_SMOKE_BOMB: Entity = make_entity_potion(
     true,
     &[Effect {
         kind: EffectKind::CombatEnd {
-                escaped_character: true,
-            },
+            escaped_character: true,
+        },
         id_source: None,
         target: Target::Direct(None),
     }],

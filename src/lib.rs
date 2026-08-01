@@ -129,9 +129,8 @@ mod slai {
     use super::ffi::PyTarget;
     // Unit enums
     #[pymodule_export]
-    use super::ffi::PyCandidatePoolCardFilter;
+    use super::ffi::PyCandidateFilter;
     #[pymodule_export]
-    use super::ffi::PyCandidatePoolMonstersFilter;
     #[pymodule_export]
     use super::ffi::PyCardColor;
     #[pymodule_export]

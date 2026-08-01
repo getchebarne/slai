@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -29,9 +29,8 @@ pub static PURITY: Entity = make_entity_card(
         kind: EffectKind::CardExhaust,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Hand {
-                filter: CandidatePoolCardFilter::Any,
-            },
+            candidate_pool: CandidatePool::Hand,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::InputUpTo { count: 3 },
         },
     }],
@@ -45,9 +44,8 @@ pub static PURITY_PLUS: Entity = Entity {
     card_effects: {
         let mut a = PURITY.card_effects;
         a[0].target = Target::Resolve {
-            candidate_pool: CandidatePool::Hand {
-                filter: CandidatePoolCardFilter::Any,
-            },
+            candidate_pool: CandidatePool::Hand,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::InputUpTo { count: 5 }, // +2 cards
         };
         a

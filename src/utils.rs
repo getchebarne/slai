@@ -16,7 +16,7 @@ use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_SIZE_HAND;
-use crate::effect::CandidatePoolCardFilter;
+use crate::effect::CandidateFilter;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
@@ -78,18 +78,26 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
 use card_is_purgeable as card_is_transformable;
 
 // Single source of truth for which cards a CandidatePoolCardFilter admits (deck or hand pools)
-pub fn card_filter_matches(filter: CandidatePoolCardFilter, entity: &Entity) -> bool {
+// One filter for every Resolve. Entity predicates are total over the fat Entity;
+// Picked / NotSource compare `id` against the resolve context instead
+pub fn candidate_matches(
+    filter: CandidateFilter,
+    id: usize,
+    entity: &Entity,
+    id_source: Option<usize>,
+    id_picked_monster: Option<usize>,
+) -> bool {
     match filter {
-        CandidatePoolCardFilter::Purgeable => card_is_purgeable(entity),
-        CandidatePoolCardFilter::Upgradeable => card_is_upgradable(entity),
-        CandidatePoolCardFilter::Any => entity.kind == EntityKind::Card,
-        CandidatePoolCardFilter::Transformable => card_is_transformable(entity),
-        CandidatePoolCardFilter::PurgeableCurse => {
+        CandidateFilter::Any => true,
+        CandidateFilter::Purgeable => card_is_purgeable(entity),
+        CandidateFilter::Upgradeable => card_is_upgradable(entity),
+        CandidateFilter::Transformable => card_is_transformable(entity),
+        CandidateFilter::PurgeableCurse => {
             entity.card_kind == CardKind::Curse && card_is_purgeable(entity)
         }
-        CandidatePoolCardFilter::Attack => entity.card_kind == CardKind::Attack,
-        CandidatePoolCardFilter::Skill => entity.card_kind == CardKind::Skill,
-        CandidatePoolCardFilter::Costed => {
+        CandidateFilter::KindAttack => entity.card_kind == CardKind::Attack,
+        CandidateFilter::KindSkill => entity.card_kind == CardKind::Skill,
+        CandidateFilter::Costed => {
             !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
                 && entity.card_cost > 0
                 && entity
@@ -97,6 +105,8 @@ pub fn card_filter_matches(filter: CandidatePoolCardFilter, entity: &Entity) -> 
                     .map_or(entity.card_cost, |o| o.amount)
                     > 0
         }
+        CandidateFilter::Picked => Some(id) == id_picked_monster,
+        CandidateFilter::NotSource => Some(id) != id_source,
     }
 }
 

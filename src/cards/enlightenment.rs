@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -35,9 +35,8 @@ pub static ENLIGHTENMENT: Entity = make_entity_card(
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Hand {
-                filter: CandidatePoolCardFilter::Any,
-            },
+            candidate_pool: CandidatePool::Hand,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::All,
         },
     }],

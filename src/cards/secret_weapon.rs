@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -32,9 +32,8 @@ pub static SECRET_WEAPON: Entity = make_entity_card(
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::PileDraw {
-                filter: CandidatePoolCardFilter::Attack,
-            },
+            candidate_pool: CandidatePool::PileDraw,
+            filter: CandidateFilter::KindAttack,
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
