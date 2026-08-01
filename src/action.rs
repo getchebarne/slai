@@ -1,3 +1,4 @@
+use crate::consts::GIRYA_LIFT_MAX;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
@@ -81,6 +82,10 @@ pub enum Action {
         idx_monster: Option<usize>,
     },
     Rest,
+    RestDig,
+    RestLift,
+    RestToke,
+    RewardSingingBowl,
     RewardTakeCard {
         idx: usize,
     },
@@ -145,6 +150,10 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
             idx_monster,
         } => handle_potion_use(state, idx_potion, idx_monster),
         Action::Rest => handle_rest(state),
+        Action::RestDig => handle_rest_dig(state),
+        Action::RestLift => handle_rest_lift(state),
+        Action::RestToke => handle_rest_toke(state),
+        Action::RewardSingingBowl => handle_reward_singing_bowl(state),
         Action::RewardTakeCard { idx } => handle_reward_take_card(state, idx),
         Action::RewardTakeGold => handle_reward_take_gold(state),
         Action::RewardTakePotion { idx } => handle_reward_take_potion(state, idx),
@@ -284,17 +293,12 @@ fn handle_card_upgrade(state: &mut GameState, idx: usize) {
         return;
     }
     let id_card = state.id_deck[idx];
-    let id_room = current_room_id(state);
     state.effect_buf.push(Effect {
         kind: EffectKind::CardUpgrade,
         id_source: None,
         target: Target::Direct(Some(id_card)),
     });
-    state.effect_buf.push(Effect {
-        kind: EffectKind::RestSiteConsume,
-        id_source: None,
-        target: Target::Direct(Some(id_room)),
-    });
+    push_rest_site_consume(state);
 }
 
 fn handle_chest_open(state: &mut GameState) {
@@ -368,10 +372,19 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
     }
 }
 
+// Marks the site used; every rest-site option ends with this
+fn push_rest_site_consume(state: &mut GameState) {
+    let id_room = current_room_id(state);
+    state.effect_buf.push(Effect {
+        kind: EffectKind::RestSiteConsume,
+        id_source: None,
+        target: Target::Direct(Some(id_room)),
+    });
+}
+
 // TODO: add `EffectKind::Rest`
 fn handle_rest(state: &mut GameState) {
     let id_character = state.id_character;
-    let id_room = current_room_id(state);
 
     // Heal, then RestSiteConsume marks the site used; the explicit RoomExit leaves it
     state.effect_buf.push(Effect {
@@ -397,11 +410,7 @@ fn handle_rest(state: &mut GameState) {
             target: Target::Direct(Some(id_character)),
         });
     }
-    state.effect_buf.push(Effect {
-        kind: EffectKind::RestSiteConsume,
-        id_source: None,
-        target: Target::Direct(Some(id_room)),
-    });
+    push_rest_site_consume(state);
 
     // Dream Catcher: resting also offers a card reward (Rest only, not Smith)
     if has_relic(&state.id_relics, RelicName::DreamCatcher) {
@@ -411,6 +420,50 @@ fn handle_rest(state: &mut GameState) {
             target: Target::Direct(None),
         });
     }
+}
+
+// Girya: spend the rest on +1 combat-start Strength
+fn handle_rest_lift(state: &mut GameState) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::GiryaLift,
+        id_source: None,
+        target: Target::Direct(None),
+    });
+    push_rest_site_consume(state);
+}
+
+// Peace Pipe: spend the rest on purging a card (halting deck pick)
+fn handle_rest_toke(state: &mut GameState) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::CardPurge,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Deck {
+                filter: CandidatePoolCardFilter::Purgeable,
+            },
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
+    });
+    push_rest_site_consume(state);
+}
+
+// Shovel: spend the rest on a random relic (granted directly, not staged)
+fn handle_rest_dig(state: &mut GameState) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::RelicGrantRandom,
+        id_source: None,
+        target: Target::Direct(None),
+    });
+    push_rest_site_consume(state);
+}
+
+// Singing Bowl: forfeit the card reward for +2 max HP
+fn handle_reward_singing_bowl(state: &mut GameState) {
+    state.effect_buf.push(Effect {
+        kind: EffectKind::SingingBowlProc,
+        id_source: None,
+        target: Target::Direct(None),
+    });
 }
 
 fn handle_reward_take_card(state: &mut GameState, idx: usize) {
@@ -746,10 +799,17 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
     for i in 0..reward_id_cards.len() {
         state.legal_actions.push(Action::RewardTakeCard { idx: i });
     }
+    // Singing Bowl: the card reward can be forfeited for +2 max HP
+    if !reward_id_cards.is_empty() && has_relic(&state.id_relics, RelicName::SingingBowl) {
+        state.legal_actions.push(Action::RewardSingingBowl);
+    }
     for i in 0..reward_id_relics.len() {
         state.legal_actions.push(Action::RewardTakeRelic { idx: i });
     }
-    if find_free_slot(&state.id_potions, state.potion_slots_max).is_some() {
+    // Sozu: potion rewards can't be taken (mirrors the shop gate)
+    if find_free_slot(&state.id_potions, state.potion_slots_max).is_some()
+        && !has_relic(&state.id_relics, RelicName::Sozu)
+    {
         for i in 0..reward_id_potions.len() {
             state
                 .legal_actions
@@ -865,6 +925,31 @@ fn fill_legal_actions_screen_rest_site(state: &mut GameState) {
             }
         }
 
+        // Girya: Lift for +1 combat-start Strength (max 3)
+        if let Some(id) = state.id_relics[RelicName::Girya as usize]
+            && state.entities[id].relic_counter < GIRYA_LIFT_MAX
+        {
+            state.legal_actions.push(Action::RestLift);
+            any_option = true;
+        }
+
+        // Peace Pipe: Toke to purge a card
+        if has_relic(&state.id_relics, RelicName::PeacePipe)
+            && state
+                .id_deck
+                .iter()
+                .any(|&id| card_is_purgeable(&state.entities[id]))
+        {
+            state.legal_actions.push(Action::RestToke);
+            any_option = true;
+        }
+
+        // Shovel: Dig for a random relic
+        if has_relic(&state.id_relics, RelicName::Shovel) {
+            state.legal_actions.push(Action::RestDig);
+            any_option = true;
+        }
+
         // Every option gated: allow leaving so the site can't soft-lock
         if !any_option {
             state.legal_actions.push(Action::RoomExit);
@@ -901,8 +986,11 @@ fn push_room_select_actions(state: &mut GameState) {
             }
             if let Some(id_current) = state.id_rooms[y][x] {
                 let edges = state.entities[id_current].room_edges;
+                // Wing Boots: with charges left, any next-row room is reachable
+                let winged = state.id_relics[RelicName::WingBoots as usize]
+                    .is_some_and(|id| state.entities[id].relic_counter > 0);
                 for c in 0..MAP_WIDTH {
-                    if has_edge(edges, c) && state.id_rooms[y_next][c].is_some() {
+                    if (winged || has_edge(edges, c)) && state.id_rooms[y_next][c].is_some() {
                         state.legal_actions.push(Action::RoomSelect { idx: c });
                     }
                 }

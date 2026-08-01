@@ -42,6 +42,7 @@ mod frozen_egg;
 mod fusion_hammer;
 mod gambling_chip;
 mod ginger;
+mod girya;
 mod golden_idol;
 mod gremlin_horn;
 mod gremlin_visage;
@@ -82,15 +83,23 @@ mod orrery;
 mod pandoras_box;
 mod pantograph;
 mod paper_krane;
+mod peace_pipe;
 mod pear;
 mod pen_nib;
 mod philosopher_stone;
 mod pocketwatch;
 mod potion_belt;
+mod prayer_wheel;
 mod preserved_insect;
+mod question_card;
 mod red_mask;
 mod regal_pillow;
+mod ring_of_the_serpent;
+mod runic_pyramid;
+mod sacred_bark;
+mod shovel;
 mod shuriken;
+mod singing_bowl;
 mod slavers_collar;
 mod sling_of_courage;
 mod smiling_mask;
@@ -126,6 +135,7 @@ mod war_paint;
 mod warped_tongs;
 mod whetstone;
 mod white_beast_statue;
+mod wing_boots;
 mod wrist_blade;
 
 use strum::EnumCount;
@@ -267,6 +277,16 @@ pub fn get_relic(name: RelicName) -> Entity {
         RelicName::CallingBell => calling_bell::CALLING_BELL,
         RelicName::TinyHouse => tiny_house::TINY_HOUSE,
         RelicName::BlackStar => black_star::BLACK_STAR,
+        RelicName::Girya => girya::GIRYA,
+        RelicName::PeacePipe => peace_pipe::PEACE_PIPE,
+        RelicName::Shovel => shovel::SHOVEL,
+        RelicName::WingBoots => wing_boots::WING_BOOTS,
+        RelicName::QuestionCard => question_card::QUESTION_CARD,
+        RelicName::SingingBowl => singing_bowl::SINGING_BOWL,
+        RelicName::PrayerWheel => prayer_wheel::PRAYER_WHEEL,
+        RelicName::RunicPyramid => runic_pyramid::RUNIC_PYRAMID,
+        RelicName::RingOfTheSerpent => ring_of_the_serpent::RING_OF_THE_SERPENT,
+        RelicName::SacredBark => sacred_bark::SACRED_BARK,
     }
 }
 
@@ -463,6 +483,16 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &calling_bell::CALLING_BELL,
     &tiny_house::TINY_HOUSE,
     &black_star::BLACK_STAR,
+    &girya::GIRYA,
+    &peace_pipe::PEACE_PIPE,
+    &shovel::SHOVEL,
+    &wing_boots::WING_BOOTS,
+    &question_card::QUESTION_CARD,
+    &singing_bowl::SINGING_BOWL,
+    &prayer_wheel::PRAYER_WHEEL,
+    &runic_pyramid::RUNIC_PYRAMID,
+    &ring_of_the_serpent::RING_OF_THE_SERPENT,
+    &sacred_bark::SACRED_BARK,
 ];
 // Assert all relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);

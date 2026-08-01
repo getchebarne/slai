@@ -567,6 +567,16 @@ pub enum RelicName {
     CallingBell,
     TinyHouse,
     BlackStar,
+    Girya,
+    PeacePipe,
+    Shovel,
+    WingBoots,
+    QuestionCard,
+    SingingBowl,
+    PrayerWheel,
+    RunicPyramid,
+    RingOfTheSerpent,
+    SacredBark,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

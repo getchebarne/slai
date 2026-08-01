@@ -42,6 +42,10 @@ pub enum PyActionType {
     CardExhaust,
     CardMoveToHand,
     PickSkip,
+    RestDig,
+    RestLift,
+    RestToke,
+    RewardSingingBowl,
 }
 
 #[pymethods]
@@ -90,6 +94,10 @@ impl PyActionType {
             26 => Ok(Self::CardExhaust),
             27 => Ok(Self::CardMoveToHand),
             28 => Ok(Self::PickSkip),
+            29 => Ok(Self::RestDig),
+            30 => Ok(Self::RestLift),
+            31 => Ok(Self::RestToke),
+            32 => Ok(Self::RewardSingingBowl),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -210,6 +218,22 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::Rest),
             n => Err(format!("Rest expects [], got {n} idxs")),
         },
+        PyActionType::RestDig => match idxs.len() {
+            0 => Ok(Action::RestDig),
+            n => Err(format!("RestDig expects [], got {n} idxs")),
+        },
+        PyActionType::RestLift => match idxs.len() {
+            0 => Ok(Action::RestLift),
+            n => Err(format!("RestLift expects [], got {n} idxs")),
+        },
+        PyActionType::RestToke => match idxs.len() {
+            0 => Ok(Action::RestToke),
+            n => Err(format!("RestToke expects [], got {n} idxs")),
+        },
+        PyActionType::RewardSingingBowl => match idxs.len() {
+            0 => Ok(Action::RewardSingingBowl),
+            n => Err(format!("RewardSingingBowl expects [], got {n} idxs")),
+        },
         PyActionType::RoomExit => match idxs.len() {
             0 => Ok(Action::RoomExit),
             n => Err(format!("RoomExit expects [], got {n} idxs")),
@@ -298,6 +322,10 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::CardNightmare { idx } => (PyActionType::CardNightmare, vec![idx]),
         Action::RoomSelect { idx } => (PyActionType::RoomSelect, vec![idx]),
         Action::Rest => (PyActionType::Rest, vec![]),
+        Action::RestDig => (PyActionType::RestDig, vec![]),
+        Action::RestLift => (PyActionType::RestLift, vec![]),
+        Action::RestToke => (PyActionType::RestToke, vec![]),
+        Action::RewardSingingBowl => (PyActionType::RewardSingingBowl, vec![]),
         Action::RoomExit => (PyActionType::RoomExit, vec![]),
         Action::ShopBuyCard { idx } => (PyActionType::ShopBuyCard, vec![idx]),
         Action::ShopBuyPotion { idx } => (PyActionType::ShopBuyPotion, vec![idx]),

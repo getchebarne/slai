@@ -145,7 +145,11 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.Rest),
+        create_action_spec(ActionType.RestDig),
+        create_action_spec(ActionType.RestLift),
+        create_action_spec(ActionType.RestToke),
         # Reward pickup family
+        create_action_spec(ActionType.RewardSingingBowl),
         create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx", _REWARD_POS)),
         create_action_spec(ActionType.RewardTakeGold),
         create_action_spec(

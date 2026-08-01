@@ -146,6 +146,16 @@ pub enum PyRelicName {
     CallingBell,
     TinyHouse,
     BlackStar,
+    Girya,
+    PeacePipe,
+    Shovel,
+    WingBoots,
+    QuestionCard,
+    SingingBowl,
+    PrayerWheel,
+    RunicPyramid,
+    RingOfTheSerpent,
+    SacredBark,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -280,6 +290,16 @@ impl From<RelicName> for PyRelicName {
             RelicName::CallingBell => Self::CallingBell,
             RelicName::TinyHouse => Self::TinyHouse,
             RelicName::BlackStar => Self::BlackStar,
+            RelicName::Girya => Self::Girya,
+            RelicName::PeacePipe => Self::PeacePipe,
+            RelicName::Shovel => Self::Shovel,
+            RelicName::WingBoots => Self::WingBoots,
+            RelicName::QuestionCard => Self::QuestionCard,
+            RelicName::SingingBowl => Self::SingingBowl,
+            RelicName::PrayerWheel => Self::PrayerWheel,
+            RelicName::RunicPyramid => Self::RunicPyramid,
+            RelicName::RingOfTheSerpent => Self::RingOfTheSerpent,
+            RelicName::SacredBark => Self::SacredBark,
         }
     }
 }
@@ -416,6 +436,16 @@ impl From<PyRelicName> for RelicName {
             PyRelicName::CallingBell => Self::CallingBell,
             PyRelicName::TinyHouse => Self::TinyHouse,
             PyRelicName::BlackStar => Self::BlackStar,
+            PyRelicName::Girya => Self::Girya,
+            PyRelicName::PeacePipe => Self::PeacePipe,
+            PyRelicName::Shovel => Self::Shovel,
+            PyRelicName::WingBoots => Self::WingBoots,
+            PyRelicName::QuestionCard => Self::QuestionCard,
+            PyRelicName::SingingBowl => Self::SingingBowl,
+            PyRelicName::PrayerWheel => Self::PrayerWheel,
+            PyRelicName::RunicPyramid => Self::RunicPyramid,
+            PyRelicName::RingOfTheSerpent => Self::RingOfTheSerpent,
+            PyRelicName::SacredBark => Self::SacredBark,
         }
     }
 }

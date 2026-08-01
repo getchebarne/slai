@@ -40,7 +40,10 @@ pub fn process_effect_shop_buy_relic(id_target: Option<usize>, state: &mut GameS
             let price = &mut state.entities[id].price;
             *price = ((*price as u32 + 1) / 2) as u16;
         }
-        *shop_purge_cost = (*shop_purge_cost + 1) / 2;
+        // Smiling Mask: the fixed purge cost is exempt from discounts
+        if !has_relic(&state.id_relics, RelicName::SmilingMask) {
+            *shop_purge_cost = (*shop_purge_cost + 1) / 2;
+        }
     }
 
     // The Courier: the emptied slot restocks (buying The Courier restocks its own slot)

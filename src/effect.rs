@@ -121,6 +121,7 @@ pub enum EffectKind {
     GamblingChipProc {
         discards_before: Option<u8>,
     },
+    GiryaLift,
     GlassKnifeDecay {
         delta: i16,
     },
@@ -224,6 +225,7 @@ pub enum EffectKind {
     ShopBuyRelic,
     ShopPurge,
     ShuffleDiscardPileIntoDrawPile,
+    SingingBowlProc,
     SneakyStrikeProc {
         energy: u8,
     },

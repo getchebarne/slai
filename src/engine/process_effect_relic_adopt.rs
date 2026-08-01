@@ -187,6 +187,10 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             stat_pickup(state, id_character, 5);
             upgrade_random_cards(state, 1, None);
         }
+        RelicName::RingOfTheSerpent => {
+            // The boss upgrade replaces the starter; its combat-start draw is lost
+            state.id_relics[RelicName::SnakeRing as usize] = None;
+        }
         RelicName::Orrery => {
             // First of 4 card rewards; relic_counter drives the rest (room_exit chains them)
             state.effect_queue.push_front(Effect {

@@ -34,6 +34,13 @@ pub fn process_effect_reward_roll_combat(
     event_relic: Option<RelicName>,
     event_relic_roll: bool,
 ) {
+    // Prayer Wheel: normal fights chain a second card reward (room_exit consumes it)
+    if room_kind == RoomKind::CombatMonster
+        && let Some(id) = state.id_relics[RelicName::PrayerWheel as usize]
+    {
+        state.entities[id].relic_counter = 1;
+    }
+
     // Select roll parameters according to `RoomKind`; event combats inject their
     // event-specific extras
     let (gold_amount, relic_thresholds, event_relic) = match room_kind {
@@ -118,8 +125,10 @@ pub fn process_effect_reward_roll_combat(
 
     // Roll Potions
     // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
-    let potion_drops = has_relic(&state.id_relics, RelicName::WhiteBeastStatue)
-        || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod);
+    // Sozu: no potion drops at all (skips the roll and its chance drift)
+    let potion_drops = !has_relic(&state.id_relics, RelicName::Sozu)
+        && (has_relic(&state.id_relics, RelicName::WhiteBeastStatue)
+            || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod));
     let mut id_potions: Vec<usize> = Vec::with_capacity(1);
     if potion_drops {
         let name = get_random_potion_name(&mut state.rng, false);

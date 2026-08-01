@@ -178,8 +178,12 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Retain: pick up to `stacks` cards to keep through the end-of-turn discard
+    // (redundant under Runic Pyramid, which keeps the whole hand)
     let mods_char = &state.entities[state.id_character].modifiers;
-    if has_modifier(mods_char, ModifierKind::Retain) && !id_hand.is_empty() {
+    if has_modifier(mods_char, ModifierKind::Retain)
+        && !id_hand.is_empty()
+        && !has_relic(&state.id_relics, RelicName::RunicPyramid)
+    {
         let stacks = modifier_stacks(mods_char, ModifierKind::Retain);
         state.effect_buf.push(Effect {
             kind: EffectKind::CardRetain,

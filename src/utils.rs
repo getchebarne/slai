@@ -5,6 +5,7 @@ use crate::cards::POOL_COMMON_GREEN_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
+use crate::consts::CARD_REWARD_BASE_COUNT;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
@@ -299,13 +300,16 @@ pub fn pick_from_pool(
     }
 }
 
-// Busted Crown: combat card rewards offer 2 fewer cards
+// Question Card +1 and Busted Crown -2 fold over the base of 3 (Java's additive chain)
 pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize {
-    if has_relic(id_relics, RelicName::BustedCrown) {
-        MAX_COMBAT_CARD_REWARD - 2
-    } else {
-        MAX_COMBAT_CARD_REWARD
+    let mut count = CARD_REWARD_BASE_COUNT;
+    if has_relic(id_relics, RelicName::QuestionCard) {
+        count += 1;
     }
+    if has_relic(id_relics, RelicName::BustedCrown) {
+        count = count.saturating_sub(2);
+    }
+    count
 }
 
 // Roll `count` distinct cards (count <= MAX_COMBAT_CARD_REWARD); pity-bumps reward_roll_offset toward rares

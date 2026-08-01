@@ -41,6 +41,10 @@ pub fn process_effect_card_discard(
                 });
                 return;
             }
+            // Runic Pyramid: unplayed cards stay in hand at end of turn
+            if has_relic(&state.id_relics, RelicName::RunicPyramid) {
+                return;
+            }
             if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
                 id_hand.remove(pos);
             }

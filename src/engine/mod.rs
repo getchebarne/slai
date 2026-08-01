@@ -42,6 +42,7 @@ pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
 pub mod process_effect_face_trade;
 pub mod process_effect_gambling_chip_proc;
+pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -86,6 +87,7 @@ pub mod process_effect_shop_buy_potion;
 pub mod process_effect_shop_buy_relic;
 pub mod process_effect_shop_purge;
 pub mod process_effect_shuffle_discard_pile_into_draw_pile;
+pub mod process_effect_singing_bowl_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_target_clear;
@@ -437,6 +439,10 @@ fn dispatch_by_kind(
             process_effect_card_bottle::process_effect_card_bottle(id_target, state)
         }
         EffectKind::FaceTrade => process_effect_face_trade::process_effect_face_trade(state),
+        EffectKind::GiryaLift => process_effect_girya_lift::process_effect_girya_lift(state),
+        EffectKind::SingingBowlProc => {
+            process_effect_singing_bowl_proc::process_effect_singing_bowl_proc(state)
+        }
         EffectKind::GamblingChipProc { discards_before } => {
             process_effect_gambling_chip_proc::process_effect_gambling_chip_proc(
                 state,

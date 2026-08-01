@@ -20,7 +20,10 @@ pub const MAX_SIZE_HAND: usize = 10;
 pub const MAX_SIZE_DECK: usize = 99;
 pub const MAX_ENTITIES: usize = 1024;
 pub const CARDS_DRAWN_PER_TURN: u16 = 5;
-pub const MAX_COMBAT_CARD_REWARD: usize = 3;
+// Capacity: base 3 plus Question Card's +1; the roll base is CARD_REWARD_BASE_COUNT
+pub const MAX_COMBAT_CARD_REWARD: usize = 4;
+pub const CARD_REWARD_BASE_COUNT: usize = 3;
+const _: () = assert!(CARD_REWARD_BASE_COUNT + 1 <= MAX_COMBAT_CARD_REWARD);
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_WEAK_PAPER_KRANE: f32 = 0.60;
 pub const FACTOR_VULN: f32 = 1.50;
@@ -29,6 +32,8 @@ pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
 pub const HEXAGHOST_DIVIDER_HITS: u8 = 6;
 pub const MAX_MONSTERS: usize = 5;
+// Girya: maximum rest-site lifts
+pub const GIRYA_LIFT_MAX: i16 = 3;
 // Matryoshka's extra chest relic: 75% Common / 25% Uncommon
 pub const MATRYOSHKA_TH_COMMON: u8 = 75;
 pub const MATRYOSHKA_TH_UNCOMMON: u8 = 100;

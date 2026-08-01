@@ -220,6 +220,20 @@ pub fn process_effect_combat_start(
         }
     }
 
+    // Girya: combats open with Strength equal to lifts
+    if let Some(id) = state.id_relics[RelicName::Girya as usize]
+        && state.entities[id].relic_counter > 0
+    {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks: state.entities[id].relic_counter,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
     // Du-Vu Doll
     if has_relic(&state.id_relics, RelicName::DuVuDoll) {
         let num_curses = state
