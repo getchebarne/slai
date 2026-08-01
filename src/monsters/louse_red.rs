@@ -1,3 +1,4 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -23,6 +24,7 @@ static MOVE_BITE_5: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -38,6 +40,7 @@ static MOVE_BITE_6: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -53,6 +56,7 @@ static MOVE_BITE_7: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -68,6 +72,7 @@ static MOVE_BITE_8: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -86,6 +91,7 @@ static MOVE_STRENGTHEN_3: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Source,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -101,6 +107,7 @@ static MOVE_STRENGTHEN_4: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Source,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],

@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -30,9 +30,8 @@ pub static HAND_OF_GREED: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 20 },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Monsters {
-                    filter: CandidatePoolMonstersFilter::Picked,
-                },
+                candidate_pool: CandidatePool::Monsters,
+                filter: CandidateFilter::Picked,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -40,9 +39,8 @@ pub static HAND_OF_GREED: Entity = make_entity_card(
             kind: EffectKind::HandOfGreedProc { gold: 20 },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Monsters {
-                    filter: CandidatePoolMonstersFilter::Picked,
-                },
+                candidate_pool: CandidatePool::Monsters,
+                filter: CandidateFilter::Picked,
                 selection_kind: SelectionKind::Single,
             },
         },

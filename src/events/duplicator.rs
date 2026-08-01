@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -14,9 +14,8 @@ const OPTION_PRAY: &[Effect] = &[
         kind: EffectKind::CardDuplicate,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck {
-                filter: CandidatePoolCardFilter::Any,
-            },
+            candidate_pool: CandidatePool::Deck,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Input { count: 1 },
         },
     },

@@ -1,3 +1,4 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -29,6 +30,7 @@ static MOVE_CHARGING_UP: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Source,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -41,6 +43,7 @@ static MOVE_FIERCE_BASH_32: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -56,6 +59,7 @@ static MOVE_FIERCE_BASH_36: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -75,6 +79,7 @@ static MOVE_VENT_STEAM: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -86,6 +91,7 @@ static MOVE_VENT_STEAM: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -100,6 +106,7 @@ static MOVE_WHIRLWIND: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -108,6 +115,7 @@ static MOVE_WHIRLWIND: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -116,6 +124,7 @@ static MOVE_WHIRLWIND: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -124,6 +133,7 @@ static MOVE_WHIRLWIND: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -143,6 +153,7 @@ static MOVE_DEFENSIVE_MODE_3: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Source,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -158,6 +169,7 @@ static MOVE_DEFENSIVE_MODE_4: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Source,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -170,6 +182,7 @@ static MOVE_ROLL_ATTACK_9: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -185,6 +198,7 @@ static MOVE_ROLL_ATTACK_10: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -201,6 +215,7 @@ static MOVE_TWIN_SLAM_30: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -209,6 +224,7 @@ static MOVE_TWIN_SLAM_30: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -220,6 +236,7 @@ static MOVE_TWIN_SLAM_30: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -230,6 +247,7 @@ static MOVE_TWIN_SLAM_30: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -247,6 +265,7 @@ static MOVE_TWIN_SLAM_35: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -255,6 +274,7 @@ static MOVE_TWIN_SLAM_35: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -266,6 +286,7 @@ static MOVE_TWIN_SLAM_35: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -276,6 +297,7 @@ static MOVE_TWIN_SLAM_35: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -293,6 +315,7 @@ static MOVE_TWIN_SLAM_40: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -301,6 +324,7 @@ static MOVE_TWIN_SLAM_40: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -312,6 +336,7 @@ static MOVE_TWIN_SLAM_40: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -322,6 +347,7 @@ static MOVE_TWIN_SLAM_40: Move = make_move(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Source,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },

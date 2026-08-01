@@ -23,7 +23,10 @@ pub static CALCULATED_GAMBLE: Entity = make_entity_card(
     false,
     false,
     &[Effect {
-        kind: EffectKind::CalculatedGamble,
+        kind: EffectKind::Gamble {
+            choose_discards: false,
+            discards_before: None,
+        },
         id_source: None,
         target: Target::Direct(None),
     }],

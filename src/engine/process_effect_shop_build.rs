@@ -155,11 +155,7 @@ fn push_card(
     id_cards.push(id_card);
 }
 
-fn push_card_colored(
-    state: &mut GameState,
-    id_cards: &mut Vec<usize>,
-    kind: CardKind,
-) {
+fn push_card_colored(state: &mut GameState, id_cards: &mut Vec<usize>, kind: CardKind) {
     let mut rarity = roll_card_rarity(&mut state.rng);
 
     // No Common green Powers exist, so a Power slot can't be Common; bump it to Uncommon

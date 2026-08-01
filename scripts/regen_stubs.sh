@@ -1,5 +1,5 @@
 #!/bin/sh
-# Regenerate python/slai/slai/__init__.pyi from Rust via pyo3 experimental-inspect.
+# Regenerationerate python/slai/slai/__init__.pyi from Rust via pyo3 experimental-inspect.
 # Run after any FFI change, then: python tests/test_stub_conformance.py
 set -e
 cd "$(dirname "$0")/.."

@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -17,9 +17,8 @@ const HIT: Effect = Effect {
     kind: EffectKind::DamagePhysical { amount: 3 },
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::Monsters {
-            filter: CandidatePoolMonstersFilter::Picked,
-        },
+        candidate_pool: CandidatePool::Monsters,
+        filter: CandidateFilter::Picked,
         selection_kind: SelectionKind::Single,
     },
 };
@@ -27,9 +26,8 @@ const HIT_PLUS: Effect = Effect {
     kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage
     id_source: None,
     target: Target::Resolve {
-        candidate_pool: CandidatePool::Monsters {
-            filter: CandidatePoolMonstersFilter::Picked,
-        },
+        candidate_pool: CandidatePool::Monsters,
+        filter: CandidateFilter::Picked,
         selection_kind: SelectionKind::Single,
     },
 };

@@ -46,6 +46,7 @@ pub fn process_effect_card_add_random(
                 kind: EffectKind::SetCostOverride {
                     amount: 0,
                     only_reduce: false,
+                    random: false,
                     scope,
                 },
                 id_source: None,

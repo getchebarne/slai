@@ -1,8 +1,8 @@
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -12,6 +12,7 @@ use crate::entity::is_play_restriction_satisfied;
 use crate::events::event_option_available;
 use crate::game::GameState;
 use crate::game::Location;
+use crate::map::get_active_room_kind;
 use crate::map::has_edge;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -21,9 +22,11 @@ use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
 use crate::types::Mode;
+use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::types::RewardKind;
-use crate::utils::card_filter_matches;
+use crate::types::RoomKind;
+use crate::utils::candidate_matches;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -177,7 +180,8 @@ pub fn recompute_legal_actions(state: &mut GameState) {
                 ..
             }
         );
-        fill_legal_actions_effect_pending(state, effect_pending_kind, filter);
+        let pool = pending_candidate_pool(effect_pending);
+        fill_legal_actions_effect_pending(state, effect_pending_kind, filter, pool);
         if up_to {
             state.legal_actions.push(Action::PickSkip);
         }
@@ -205,12 +209,14 @@ fn handle_pending_pick_hand(state: &mut GameState, idx: usize) {
     resolve_pending_pick(state, id_card);
 }
 
-// idx is an absolute id_pile_draw index
+// idx indexes the pile named by the pending effect's candidate pool
 fn handle_card_move_to_hand_pick(state: &mut GameState, idx: usize) {
-    let Mode::Combat { id_pile_draw, .. } = &state.mode else {
-        unreachable!("draw-pile pick outside Combat mode")
-    };
-    let id_card = id_pile_draw[idx];
+    let pending = state
+        .effect_pending
+        .as_ref()
+        .expect("pile pick requires a pending effect");
+    let pool = pending_candidate_pool(pending).expect("pile pick carries a Resolve pool");
+    let id_card = pile_for_pool(&state.mode, pool)[idx];
     resolve_pending_pick(state, id_card);
 }
 
@@ -548,7 +554,8 @@ fn handle_shop_purge(state: &mut GameState, idx: usize) {
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
     kind: EffectKind,
-    filter: Option<CandidatePoolCardFilter>,
+    filter: Option<CandidateFilter>,
+    pool: Option<CandidatePool>,
 ) {
     match kind {
         // Discard/retain offer single-card picks; the handler re-raises the halt with a
@@ -579,13 +586,14 @@ fn fill_legal_actions_effect_pending(
         }
         EffectKind::CardMove {
             pile: CardPile::Hand,
-        } => {
-            let Mode::Combat { id_pile_draw, .. } = &state.mode else {
-                unreachable!("Draw-pile pick outside Combat mode")
-            };
-            let filter = filter.expect("draw-pile pick carries a card filter");
-            for i in 0..id_pile_draw.len() {
-                if card_filter_matches(filter, &state.entities[id_pile_draw[i]]) {
+        }
+        | EffectKind::LiquidMemories => {
+            let pool = pool.expect("pile pick carries a Resolve pool");
+            let pile = pile_for_pool(&state.mode, pool);
+            for i in 0..pile.len() {
+                if filter.is_none_or(|f| {
+                    candidate_matches(f, pile[i], &state.entities[pile[i]], None, None)
+                }) {
                     state.legal_actions.push(Action::CardMoveToHand { idx: i });
                 }
             }
@@ -618,7 +626,13 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardPurge | EffectKind::BonfireOffer => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
-                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
                     state.legal_actions.push(Action::CardPurge { idx: i });
                 }
             }
@@ -626,7 +640,13 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardUpgrade => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
-                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
                     state.legal_actions.push(Action::CardUpgrade { idx: i });
                 }
             }
@@ -634,7 +654,13 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardDuplicate => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
-                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
                     state.legal_actions.push(Action::CardDuplicate { idx: i });
                 }
             }
@@ -642,7 +668,13 @@ fn fill_legal_actions_effect_pending(
         EffectKind::CardTransform => {
             let filter = filter.expect("deck pick carries a card filter");
             for i in 0..state.id_deck.len() {
-                if card_filter_matches(filter, &state.entities[state.id_deck[i]]) {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
                     state.legal_actions.push(Action::CardTransform { idx: i });
                 }
             }
@@ -894,13 +926,31 @@ fn push_potion_actions(state: &mut GameState) {
             continue;
         };
         let potion = &state.entities[id_potion];
-        let combat_only = potion.potion_combat_only;
-        let requires_target = potion.requires_target;
-        if combat_only && !in_combat {
+
+        // Fairy in a Bottle is never drinkable; it procs from the death hook
+        if potion.potion_name == PotionName::FairyPotion {
             state.legal_actions.push(Action::PotionDiscard { idx: s });
             continue;
         }
-        if requires_target {
+
+        // Smoke Bomb: can't escape from Boss fights
+        if potion.potion_name == PotionName::SmokeBomb
+            && in_combat
+            && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+                == Some(RoomKind::CombatBoss)
+        {
+            state.legal_actions.push(Action::PotionDiscard { idx: s });
+            continue;
+        }
+
+        // Combat-only potions
+        if potion.potion_combat_only && !in_combat {
+            state.legal_actions.push(Action::PotionDiscard { idx: s });
+            continue;
+        }
+
+        // Target-requiring potions
+        if potion.requires_target {
             if in_combat {
                 for m in 0..alive_count {
                     state.legal_actions.push(Action::PotionUse {
@@ -938,21 +988,25 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
     });
 
     // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
-    let (candidate_pool, selection_kind) = match effect_pending.target {
+    let (candidate_pool, filter, selection_kind) = match effect_pending.target {
         Target::Resolve {
             candidate_pool,
+            filter,
             selection_kind: SelectionKind::Input { count },
         } => (
             candidate_pool,
+            filter,
             SelectionKind::Input {
                 count: count.saturating_sub(1),
             },
         ),
         Target::Resolve {
             candidate_pool,
+            filter,
             selection_kind: SelectionKind::InputUpTo { count },
         } => (
             candidate_pool,
+            filter,
             SelectionKind::InputUpTo {
                 count: count.saturating_sub(1),
             },
@@ -969,6 +1023,7 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
             id_source: effect_pending.id_source,
             target: Target::Resolve {
                 candidate_pool,
+                filter,
                 selection_kind,
             },
         });
@@ -976,13 +1031,36 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
 }
 
 // Extract the card filter from a pending deck / draw-pile pick; None for other halts
-fn pending_card_filter(effect: &Effect) -> Option<CandidatePoolCardFilter> {
+fn pending_card_filter(effect: &Effect) -> Option<CandidateFilter> {
     match effect.target {
-        Target::Resolve {
-            candidate_pool: CandidatePool::Deck { filter } | CandidatePool::PileDraw { filter },
-            ..
-        } => Some(filter),
+        Target::Resolve { filter, .. } => Some(filter),
         _ => None,
+    }
+}
+
+fn pending_candidate_pool(effect: &Effect) -> Option<CandidatePool> {
+    match effect.target {
+        Target::Resolve { candidate_pool, .. } => Some(candidate_pool),
+        _ => None,
+    }
+}
+
+// The pool names the pile a pending pick indexes into; the kind only names the action
+fn pile_for_pool(mode: &Mode, pool: CandidatePool) -> &Vec<usize> {
+    let Mode::Combat {
+        id_pile_draw,
+        id_pile_discard,
+        id_pile_exhaust,
+        ..
+    } = mode
+    else {
+        unreachable!("pile pick outside Combat mode")
+    };
+    match pool {
+        CandidatePool::PileDraw { .. } => id_pile_draw,
+        CandidatePool::PileDiscard => id_pile_discard,
+        CandidatePool::PileExhaust => id_pile_exhaust,
+        other => unreachable!("pile pick with non-pile pool: {:?}", other),
     }
 }
 

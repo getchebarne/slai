@@ -2,7 +2,6 @@ pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_bonfire_offer;
-pub mod process_effect_calculated_gamble;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
 pub mod process_effect_card_adopt;
@@ -40,6 +39,7 @@ pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
 pub mod process_effect_face_trade;
+pub mod process_effect_gamble;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -48,6 +48,7 @@ pub mod process_effect_health_delta;
 pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
+pub mod process_effect_liquid_memories_pick;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
@@ -96,22 +97,20 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EventKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at;
-use crate::types::CardColor;
 use crate::types::Mode;
 use crate::types::RoomKind;
-use crate::utils::card_filter_matches;
+use crate::utils::candidate_matches;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -137,30 +136,21 @@ fn fill_buf_candidates(
     id_source: Option<usize>,
     id_character: usize,
     mode: &Mode,
-    entities: &[Entity],
     id_deck: &[usize],
 ) {
     // Combat-scoped pools demand the combat context; Character/Source/Deck don't
     match candidate_pool {
-        CandidatePool::Hand { filter } => {
+        CandidatePool::Hand => {
             let Mode::Combat { id_hand, .. } = mode else {
                 unreachable!("Hand pool outside Combat mode")
             };
-            for &id in id_hand {
-                if card_filter_matches(filter, &entities[id]) {
-                    effect_candidate_buf.push(id);
-                }
-            }
+            effect_candidate_buf.extend_from_slice(id_hand)
         }
-        CandidatePool::PileDraw { filter } => {
+        CandidatePool::PileDraw => {
             let Mode::Combat { id_pile_draw, .. } = mode else {
                 unreachable!("PileDraw pool outside Combat mode")
             };
-            for &id in id_pile_draw {
-                if card_filter_matches(filter, &entities[id]) {
-                    effect_candidate_buf.push(id);
-                }
-            }
+            effect_candidate_buf.extend_from_slice(id_pile_draw)
         }
         CandidatePool::PileDiscard => {
             let Mode::Combat {
@@ -181,38 +171,11 @@ fn fill_buf_candidates(
             effect_candidate_buf.extend_from_slice(id_pile_exhaust)
         }
         CandidatePool::Character => effect_candidate_buf.push(id_character),
-        CandidatePool::Monsters { filter } => {
-            let Mode::Combat {
-                id_monsters,
-                id_picked_monster,
-                ..
-            } = mode
-            else {
+        CandidatePool::Monsters => {
+            let Mode::Combat { id_monsters, .. } = mode else {
                 unreachable!("Monsters pool outside Combat mode")
             };
-            match filter {
-                CandidatePoolMonstersFilter::All => {
-                    effect_candidate_buf.extend(id_monsters.iter().flatten().copied())
-                }
-                CandidatePoolMonstersFilter::Other => {
-                    let id_source =
-                        id_source.expect("CandidatePool::Monsters{Other} requires id_source");
-                    // Iterate all monsters skipping the one that sourced the effect
-                    for id_monster in id_monsters.iter().flatten().copied() {
-                        if id_monster != id_source {
-                            effect_candidate_buf.push(id_monster);
-                        }
-                    }
-                    // Last monster standing falls back to targeting itself
-                    if effect_candidate_buf.is_empty() {
-                        effect_candidate_buf.push(id_source);
-                    }
-                }
-                CandidatePoolMonstersFilter::Picked => effect_candidate_buf.push(
-                    id_picked_monster
-                        .expect("CandidatePool::Monsters{Picked} requires id_picked_monster"),
-                ),
-            }
+            effect_candidate_buf.extend(id_monsters.iter().flatten().copied())
         }
         CandidatePool::Source => {
             let id_source = id_source
@@ -226,13 +189,7 @@ fn fill_buf_candidates(
             };
             effect_candidate_buf.extend_from_slice(id_discover)
         }
-        CandidatePool::Deck { filter } => {
-            for &id in id_deck {
-                if card_filter_matches(filter, &entities[id]) {
-                    effect_candidate_buf.push(id);
-                }
-            }
-        }
+        CandidatePool::Deck => effect_candidate_buf.extend_from_slice(id_deck),
         CandidatePool::EventPickCard => {
             let Mode::Event {
                 kind: EventKind::WeMeetAgain { id_card, .. },
@@ -294,9 +251,16 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
         Target::Direct(id_target) => id_target,
         Target::Resolve {
             candidate_pool,
+            filter,
             selection_kind,
         } => {
-            let resolved = resolve_or_halt(state, effect.id_source, candidate_pool, selection_kind);
+            let resolved = resolve_or_halt(
+                state,
+                effect.id_source,
+                candidate_pool,
+                filter,
+                selection_kind,
+            );
             if resolved {
                 // Targets are in `effect_candidate_buf`
                 enqueue_direct_targets(
@@ -321,9 +285,10 @@ fn resolve_or_halt(
     state: &mut GameState,
     id_source: Option<usize>,
     candidate_pool: CandidatePool,
+    filter: CandidateFilter,
     selection_kind: SelectionKind,
 ) -> bool {
-    // Clear candidate buffer and re-fill it
+    // Stage 1: the pool enumerates
     state.effect_candidate_buf.clear();
     fill_buf_candidates(
         &mut state.effect_candidate_buf,
@@ -331,11 +296,35 @@ fn resolve_or_halt(
         id_source,
         state.id_character,
         &state.mode,
-        &state.entities,
         &state.id_deck,
     );
 
-    // Resolve `SelectionKind`. Returns `true` if the effect's targets were resolved
+    // Stage 2: the filter retains
+    let id_picked_monster = match &state.mode {
+        Mode::Combat {
+            id_picked_monster, ..
+        } => *id_picked_monster,
+        _ => None,
+    };
+    let entities = &state.entities;
+    state
+        .effect_candidate_buf
+        .retain(|&id| candidate_matches(filter, id, &entities[id], id_source, id_picked_monster));
+
+    // NotSource: the last monster standing falls back to targeting itself
+    if filter == CandidateFilter::NotSource
+        && state.effect_candidate_buf.is_empty()
+        && let Some(id_source) = id_source
+    {
+        state.effect_candidate_buf.push(id_source);
+    }
+
+    // Nothing survived: the effect resolves to no targets (guards Single's assert)
+    if state.effect_candidate_buf.is_empty() {
+        return true;
+    }
+
+    // Stage 3: the selection picks. Returns `true` if the targets were resolved
     resolve_selection_kind(
         &mut state.effect_candidate_buf,
         selection_kind,
@@ -422,9 +411,6 @@ fn dispatch_by_kind(
         EffectKind::CardRemove => {
             process_effect_card_remove::process_effect_card_remove(id_target, state)
         }
-        EffectKind::CalculatedGamble => {
-            process_effect_calculated_gamble::process_effect_calculated_gamble(state)
-        }
         EffectKind::AdventurerSearch => {
             process_effect_adventurer_search::process_effect_adventurer_search(state)
         }
@@ -490,12 +476,13 @@ fn dispatch_by_kind(
         EffectKind::SetCostOverride {
             amount,
             only_reduce,
+            random,
             scope,
         } => process_effect_set_cost_override::process_effect_set_cost_override(
             id_target,
             state,
             amount,
-            only_reduce,
+            only_reduce, random,
             scope,
         ),
         EffectKind::EscapePlanCheck { block } => {
@@ -579,8 +566,8 @@ fn dispatch_by_kind(
             event_relic,
             event_relic_roll,
         ),
-        EffectKind::CombatEnd => {
-            process_effect_combat_end::process_effect_combat_end(state)
+        EffectKind::CombatEnd { escaped_character } => {
+            process_effect_combat_end::process_effect_combat_end(state, escaped_character)
         }
         EffectKind::TurnStart => {
             process_effect_turn_start::process_effect_turn_start(id_target, state)
@@ -667,13 +654,25 @@ fn dispatch_by_kind(
         EffectKind::PotionAdopt => {
             process_effect_potion_adopt::process_effect_potion_adopt(id_target, state)
         }
-        EffectKind::CardDiscoverRoll { kind, count } => {
+        EffectKind::CardDiscoverRoll { kind, color, count } => {
             process_effect_card_discover_roll::process_effect_card_discover_roll(
-                state,
-                kind,
-                CardColor::Green, // TODO: other characters
-                count,
+                state, kind, color, count,
             );
+        }
+        EffectKind::Gamble {
+            choose_discards,
+            discards_before,
+        } => {
+            process_effect_gamble::process_effect_gamble(
+                state,
+                choose_discards,
+                discards_before,
+            )
+        }
+        EffectKind::LiquidMemories => {
+            process_effect_liquid_memories_pick::process_effect_liquid_memories_pick(
+                id_target, state,
+            )
         }
         EffectKind::RelicGrantRandom => {
             process_effect_relic_grant_random::process_effect_relic_grant_random(state)

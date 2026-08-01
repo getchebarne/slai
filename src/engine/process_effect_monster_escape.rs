@@ -25,7 +25,9 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
     if !any_alive {
         state.effect_queue.clear();
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::CombatEnd,
+            kind: EffectKind::CombatEnd {
+                escaped_character: false,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -21,9 +21,8 @@ static MOVE_PROTECT_7: Move = make_move(
         kind: EffectKind::BlockGain { amount: 7 },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters {
-                filter: CandidatePoolMonstersFilter::Other,
-            },
+            candidate_pool: CandidatePool::Monsters,
+            filter: CandidateFilter::NotSource,
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
@@ -35,9 +34,8 @@ static MOVE_PROTECT_8: Move = make_move(
         kind: EffectKind::BlockGain { amount: 8 },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters {
-                filter: CandidatePoolMonstersFilter::Other,
-            },
+            candidate_pool: CandidatePool::Monsters,
+            filter: CandidateFilter::NotSource,
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
@@ -49,9 +47,8 @@ static MOVE_PROTECT_11: Move = make_move(
         kind: EffectKind::BlockGain { amount: 11 },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters {
-                filter: CandidatePoolMonstersFilter::Other,
-            },
+            candidate_pool: CandidatePool::Monsters,
+            filter: CandidateFilter::NotSource,
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],
@@ -64,6 +61,7 @@ static MOVE_BASH_6: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],
@@ -79,6 +77,7 @@ static MOVE_BASH_8: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Character,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     }],

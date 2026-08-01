@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -62,9 +62,8 @@ pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
         kind: EffectKind::TargetSet,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters {
-                filter: CandidatePoolMonstersFilter::All,
-            },
+            candidate_pool: CandidatePool::Monsters,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Random { count: 1 }, // Select target randomly
         },
     });
@@ -72,6 +71,7 @@ pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
         kind: EffectKind::SetCostOverride {
             amount: 0,
             only_reduce: false,
+            random: false,
             scope: CostScope::UntilPlayed,
         },
         id_source: None,

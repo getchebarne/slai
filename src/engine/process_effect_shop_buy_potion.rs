@@ -11,8 +11,7 @@ pub fn process_effect_shop_buy_potion(id_target: Option<usize>, state: &mut Game
     // Find and remove the shop entry
     let id_potion = id_target.expect("ShopBuyPotion requires id_target");
     let Mode::Shop {
-        shop_id_potions,
-        ..
+        shop_id_potions, ..
     } = &mut state.mode
     else {
         unreachable!("ShopBuyPotion outside Shop mode")

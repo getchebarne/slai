@@ -3,9 +3,8 @@ use pyo3::prelude::*;
 use pyo3::type_hint_union;
 use pyo3::type_object::PyTypeInfo;
 
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::SelectionKind;
 
 use super::macros::variant_union;
@@ -15,14 +14,11 @@ use super::macros::variant_union;
     eq,
     hash,
     frozen,
-    get_all,
     name = "CandidatePoolHand",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolHand {
-    pub filter: PyCandidatePoolCardFilter,
-}
+pub struct PyCandidatePoolHand;
 
 #[pyclass(
     skip_from_py_object,
@@ -40,14 +36,11 @@ pub struct PyCandidatePoolCharacter;
     eq,
     hash,
     frozen,
-    get_all,
     name = "CandidatePoolMonsters",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolMonsters {
-    pub filter: PyCandidatePoolMonstersFilter,
-}
+pub struct PyCandidatePoolMonsters;
 
 #[pyclass(
     skip_from_py_object,
@@ -76,14 +69,11 @@ pub struct PyCandidatePoolDiscover;
     eq,
     hash,
     frozen,
-    get_all,
     name = "CandidatePoolDeck",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolDeck {
-    pub filter: PyCandidatePoolCardFilter,
-}
+pub struct PyCandidatePoolDeck;
 
 #[pyclass(
     skip_from_py_object,
@@ -112,14 +102,11 @@ pub struct PyCandidatePoolEventPickPotion;
     eq,
     hash,
     frozen,
-    get_all,
     name = "CandidatePoolPileDraw",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolPileDraw {
-    pub filter: PyCandidatePoolCardFilter,
-}
+pub struct PyCandidatePoolPileDraw;
 
 #[pyclass(
     skip_from_py_object,
@@ -175,23 +162,15 @@ variant_union!(PyCandidatePool {
 impl From<CandidatePool> for PyCandidatePool {
     fn from(pool: CandidatePool) -> Self {
         match pool {
-            CandidatePool::Hand { filter } => Self::Hand(PyCandidatePoolHand {
-                filter: filter.into(),
-            }),
+            CandidatePool::Hand => Self::Hand(PyCandidatePoolHand),
             CandidatePool::Character => Self::Character(PyCandidatePoolCharacter),
-            CandidatePool::Monsters { filter } => Self::Monsters(PyCandidatePoolMonsters {
-                filter: filter.into(),
-            }),
+            CandidatePool::Monsters => Self::Monsters(PyCandidatePoolMonsters),
             CandidatePool::Source => Self::Source(PyCandidatePoolSource),
             CandidatePool::Discover => Self::Discover(PyCandidatePoolDiscover),
-            CandidatePool::Deck { filter } => Self::Deck(PyCandidatePoolDeck {
-                filter: filter.into(),
-            }),
+            CandidatePool::Deck => Self::Deck(PyCandidatePoolDeck),
             CandidatePool::EventPickCard => Self::EventPickCard(PyCandidatePoolEventPickCard),
             CandidatePool::EventPickPotion => Self::EventPickPotion(PyCandidatePoolEventPickPotion),
-            CandidatePool::PileDraw { filter } => Self::PileDraw(PyCandidatePoolPileDraw {
-                filter: filter.into(),
-            }),
+            CandidatePool::PileDraw => Self::PileDraw(PyCandidatePoolPileDraw),
             CandidatePool::PileDiscard => Self::PileDiscard(PyCandidatePoolPileDiscard),
             CandidatePool::PileExhaust => Self::PileExhaust(PyCandidatePoolPileExhaust),
         }
@@ -203,57 +182,36 @@ impl From<CandidatePool> for PyCandidatePool {
     eq,
     eq_int,
     frozen,
-    name = "CandidatePoolMonstersFilter",
+    name = "CandidateFilter",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCandidatePoolMonstersFilter {
-    All,
-    Other,
-    Picked,
-}
-
-impl From<CandidatePoolMonstersFilter> for PyCandidatePoolMonstersFilter {
-    fn from(f: CandidatePoolMonstersFilter) -> Self {
-        match f {
-            CandidatePoolMonstersFilter::All => Self::All,
-            CandidatePoolMonstersFilter::Other => Self::Other,
-            CandidatePoolMonstersFilter::Picked => Self::Picked,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "CandidatePoolCardFilter",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCandidatePoolCardFilter {
+pub enum PyCandidateFilter {
+    Any,
     Purgeable,
     Upgradeable,
-    Any,
     Transformable,
     PurgeableCurse,
-    Attack,
-    Skill,
+    KindAttack,
+    KindSkill,
     Costed,
+    Picked,
+    NotSource,
 }
 
-impl From<CandidatePoolCardFilter> for PyCandidatePoolCardFilter {
-    fn from(f: CandidatePoolCardFilter) -> Self {
+impl From<CandidateFilter> for PyCandidateFilter {
+    fn from(f: CandidateFilter) -> Self {
         match f {
-            CandidatePoolCardFilter::Purgeable => Self::Purgeable,
-            CandidatePoolCardFilter::Upgradeable => Self::Upgradeable,
-            CandidatePoolCardFilter::Any => Self::Any,
-            CandidatePoolCardFilter::Transformable => Self::Transformable,
-            CandidatePoolCardFilter::PurgeableCurse => Self::PurgeableCurse,
-            CandidatePoolCardFilter::Attack => Self::Attack,
-            CandidatePoolCardFilter::Skill => Self::Skill,
-            CandidatePoolCardFilter::Costed => Self::Costed,
+            CandidateFilter::Any => Self::Any,
+            CandidateFilter::Purgeable => Self::Purgeable,
+            CandidateFilter::Upgradeable => Self::Upgradeable,
+            CandidateFilter::Transformable => Self::Transformable,
+            CandidateFilter::PurgeableCurse => Self::PurgeableCurse,
+            CandidateFilter::KindAttack => Self::KindAttack,
+            CandidateFilter::KindSkill => Self::KindSkill,
+            CandidateFilter::Costed => Self::Costed,
+            CandidateFilter::Picked => Self::Picked,
+            CandidateFilter::NotSource => Self::NotSource,
         }
     }
 }
@@ -365,5 +323,6 @@ impl From<SelectionKind> for PySelectionKind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyTarget {
     pub candidate_pool: PyCandidatePool,
+    pub filter: PyCandidateFilter,
     pub selection_kind: PySelectionKind,
 }

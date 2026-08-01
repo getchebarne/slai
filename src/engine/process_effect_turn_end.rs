@@ -1,6 +1,6 @@
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -185,9 +185,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
             kind: EffectKind::CardRetain,
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand {
-                    filter: CandidatePoolCardFilter::Any,
-                },
+                candidate_pool: CandidatePool::Hand,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Input {
                     count: stacks.max(0) as u16,
                 },
@@ -218,6 +217,67 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
                 amount: stacks as u16,
             },
             id_source: Some(state.id_character),
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
+    // Regeneration: heal `stacks`, then decrement by 1 (removed at 0)
+    if has_modifier(mods_char, ModifierKind::Regeneration) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::Regeneration);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(stacks.max(0) as u16),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Regeneration,
+                stacks: -1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
+    // LoseStrength: the borrowed Strength leaves at turn end
+    if has_modifier(mods_char, ModifierKind::LoseStrength) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::LoseStrength);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks: -stacks,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::LoseStrength,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
+    // LoseDexterity: the borrowed Dexterity leaves at turn end
+    if has_modifier(mods_char, ModifierKind::LoseDexterity) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::LoseDexterity);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Dexterity,
+                stacks: -stacks,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::LoseDexterity,
+            },
+            id_source: None,
             target: Target::Direct(Some(state.id_character)),
         });
     }

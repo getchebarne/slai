@@ -1,3 +1,4 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -8,17 +9,18 @@ use crate::entity::make_entity_potion;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static BLOCK_POTION: Entity = make_entity_potion(
-    PotionName::BlockPotion,
-    PotionRarity::Common,
+pub static POTION_LIQUID_MEMORIES: Entity = make_entity_potion(
+    PotionName::LiquidMemories,
+    PotionRarity::Uncommon,
     false,
     true,
     &[Effect {
-        kind: EffectKind::BlockGain { amount: 12 },
+        kind: EffectKind::LiquidMemories,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            selection_kind: SelectionKind::Single,
+            candidate_pool: CandidatePool::PileDiscard,
+            filter: CandidateFilter::Any,
+            selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
 );

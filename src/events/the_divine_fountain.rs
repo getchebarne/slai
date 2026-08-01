@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -14,9 +14,8 @@ const OPTION_DRINK: &[Effect] = &[
         kind: EffectKind::CardPurge,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck {
-                filter: CandidatePoolCardFilter::PurgeableCurse,
-            },
+            candidate_pool: CandidatePool::Deck,
+            filter: CandidateFilter::PurgeableCurse,
             selection_kind: SelectionKind::All,
         },
     },
