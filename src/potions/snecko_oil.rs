@@ -6,6 +6,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
+use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
@@ -21,7 +22,12 @@ pub static SNECKO_OIL: Entity = make_entity_potion(
             target: Target::Direct(None),
         },
         Effect {
-            kind: EffectKind::CardCostRandomize,
+            kind: EffectKind::SetCostOverride {
+                amount: 3,
+                only_reduce: false,
+                random: true,
+                scope: CostScope::Combat,
+            },
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Hand {

@@ -241,7 +241,6 @@ EffectCardUpgrade = _rs.EffectCardUpgrade
 EffectCardDuplicate = _rs.EffectCardDuplicate
 EffectCardTransform = _rs.EffectCardTransform
 EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
-EffectCardCostRandomize = _rs.EffectCardCostRandomize
 EffectGamble = _rs.EffectGamble
 EffectLiquidMemoriesPick = _rs.EffectLiquidMemoriesPick
 EffectCombatEscape = _rs.EffectCombatEscape
@@ -301,7 +300,6 @@ Effect = (
     | EffectCardDuplicate
     | EffectCardTransform
     | EffectCardPlayFromDrawTop
-    | EffectCardCostRandomize
     | EffectGamble
     | EffectLiquidMemoriesPick
     | EffectCombatEscape
@@ -585,7 +583,6 @@ __all__ = [
     "EffectCardDuplicate",
     "EffectCardTransform",
     "EffectCardPlayFromDrawTop",
-    "EffectCardCostRandomize",
     "EffectGamble",
     "EffectLiquidMemoriesPick",
     "EffectCombatEscape",

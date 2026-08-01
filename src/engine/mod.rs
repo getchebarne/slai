@@ -5,7 +5,6 @@ pub mod process_effect_bonfire_offer;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
 pub mod process_effect_card_adopt;
-pub mod process_effect_card_cost_randomize;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_roll;
@@ -489,12 +488,13 @@ fn dispatch_by_kind(
         EffectKind::SetCostOverride {
             amount,
             only_reduce,
+            random,
             scope,
         } => process_effect_set_cost_override::process_effect_set_cost_override(
             id_target,
             state,
             amount,
-            only_reduce,
+            only_reduce, random,
             scope,
         ),
         EffectKind::EscapePlanCheck { block } => {
@@ -673,11 +673,6 @@ fn dispatch_by_kind(
             process_effect_card_discover_roll::process_effect_card_discover_roll(
                 state, kind, color, count,
             );
-        }
-        EffectKind::CardCostRandomize => {
-            process_effect_card_cost_randomize::process_effect_card_cost_randomize(
-                id_target, state,
-            )
         }
         EffectKind::Gamble {
             choose_discards,

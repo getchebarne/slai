@@ -19,6 +19,7 @@ pub fn process_effect_card_discover_pick(id_target: Option<usize>, state: &mut G
         kind: EffectKind::SetCostOverride {
             amount: 0,
             only_reduce: false,
+            random: false,
             scope: CostScope::Turn,
         },
         id_source: None,

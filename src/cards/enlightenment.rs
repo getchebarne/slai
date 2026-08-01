@@ -30,6 +30,7 @@ pub static ENLIGHTENMENT: Entity = make_entity_card(
         kind: EffectKind::SetCostOverride {
             amount: 1,
             only_reduce: true,
+            random: false,
             scope: CostScope::Turn,
         },
         id_source: None,
@@ -52,6 +53,7 @@ pub static ENLIGHTENMENT_PLUS: Entity = Entity {
         a[0].kind = EffectKind::SetCostOverride {
             amount: 1,
             only_reduce: true,
+            random: false,
             scope: CostScope::Combat, // Lasts the rest of combat
         };
         a

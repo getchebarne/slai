@@ -30,6 +30,7 @@ pub static MADNESS: Entity = make_entity_card(
         kind: EffectKind::SetCostOverride {
             amount: 0,
             only_reduce: false,
+            random: false,
             scope: CostScope::Combat, // Costs 0 for the rest of combat
         },
         id_source: None,

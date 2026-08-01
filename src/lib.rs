@@ -137,7 +137,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::{
         PyEffectAdventurerSearch, PyEffectBlockGain, PyEffectBonfireOffer,
-        PyEffectCardAdd, PyEffectCardAddRandom, PyEffectCardCostRandomize, PyEffectCardDiscard,
+        PyEffectCardAdd, PyEffectCardAddRandom, PyEffectCardDiscard,
         PyEffectCardDiscoverPick, PyEffectCardDiscoverRoll, PyEffectCardDraw,
         PyEffectCardDrawIfNoAttacks, PyEffectCardDrawUpTo, PyEffectCardDuplicate,
         PyEffectCardExhaust, PyEffectCardMove, PyEffectCardNightmarePick, PyEffectCardPlayFromDrawTop, PyEffectCardPurge,

@@ -37,7 +37,6 @@ pub enum EffectKind {
         upgraded: bool,
     },
     CardAdopt,
-    CardCostRandomize,
     CardDiscard {
         source: DiscardSource,
     },
@@ -212,6 +211,7 @@ pub enum EffectKind {
     SetCostOverride {
         amount: u8,
         only_reduce: bool,
+        random: bool,
         scope: CostScope,
     },
     ShopBuild,

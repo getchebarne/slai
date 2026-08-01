@@ -523,6 +523,7 @@ fn free_random_costed_hand_card(
             kind: EffectKind::SetCostOverride {
                 amount: 0,
                 only_reduce: false,
+                random: false,
                 scope: CostScope::Turn,
             },
             id_source: None,

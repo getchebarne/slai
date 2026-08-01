@@ -151,6 +151,7 @@ pub struct PyEffectDistractionAdd {
 pub struct PyEffectSetCostOverride {
     pub amount: u8,
     pub only_reduce: bool,
+    pub random: bool,
     pub scope: PyCostScope,
     pub target: Option<PyTarget>,
 }
@@ -854,20 +855,6 @@ pub struct PyEffectCardPlayFromDrawTop {
     hash,
     frozen,
     get_all,
-    name = "EffectCardCostRandomize",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectCardCostRandomize {
-    pub target: Option<PyTarget>,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
     name = "EffectGamble",
     module = "slai.slai"
 )]
@@ -963,7 +950,6 @@ pub enum PyEffect {
     CardExhaust(PyEffectCardExhaust),
     CardMove(PyEffectCardMove),
     CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop),
-    CardCostRandomize(PyEffectCardCostRandomize),
     Gamble(PyEffectGamble),
     LiquidMemoriesPick(PyEffectLiquidMemoriesPick),
     CombatEscape(PyEffectCombatEscape),
@@ -1025,7 +1011,6 @@ variant_union!(PyEffect {
     CardExhaust => PyEffectCardExhaust,
     CardMove => PyEffectCardMove,
     CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop,
-    CardCostRandomize => PyEffectCardCostRandomize,
     Gamble => PyEffectGamble,
     LiquidMemoriesPick => PyEffectLiquidMemoriesPick,
     CombatEscape => PyEffectCombatEscape,
@@ -1074,10 +1059,12 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::SetCostOverride {
             amount,
             only_reduce,
+            random,
             scope,
         } => PyEffect::SetCostOverride(PyEffectSetCostOverride {
             amount,
             only_reduce,
+            random,
             scope: scope.into(),
             target,
         }),
@@ -1259,9 +1246,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }),
         EffectKind::CardPlayFromDrawTop => {
             PyEffect::CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop { target })
-        }
-        EffectKind::CardCostRandomize => {
-            PyEffect::CardCostRandomize(PyEffectCardCostRandomize { target })
         }
         EffectKind::Gamble {
             choose_discards,
