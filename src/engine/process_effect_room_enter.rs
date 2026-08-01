@@ -7,7 +7,7 @@ use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Amount;
-use crate::effect::CandidatePoolCardFilter;
+use crate::effect::CandidateFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -23,7 +23,7 @@ use crate::types::EventName;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::types::RoomKind;
-use crate::utils::card_filter_matches;
+use crate::utils::candidate_matches;
 use crate::utils::has_relic;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
@@ -274,7 +274,13 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
 
     // Calculate if there's any removable curses in the deck. This gates "The Divine Fountain"
     let has_removable_curse = state.id_deck.iter().any(|&id| {
-        card_filter_matches(CandidatePoolCardFilter::PurgeableCurse, &state.entities[id])
+        candidate_matches(
+            CandidateFilter::PurgeableCurse,
+            id,
+            &state.entities[id],
+            None,
+            None,
+        )
     });
 
     // Calculate eligible specials

@@ -10,15 +10,15 @@ use crate::types::CardKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static SKILL_POTION: Entity = make_entity_potion(
-    PotionName::SkillPotion,
+pub static POTION_ATTACK: Entity = make_entity_potion(
+    PotionName::AttackPotion,
     PotionRarity::Common,
     false,
     true,
     &[
         Effect {
             kind: EffectKind::CardDiscoverRoll {
-                kind: Some(CardKind::Skill),
+                kind: Some(CardKind::Attack),
                 color: CardColor::Green,
                 exclude: &[],
                 count: DISCOVER_PICK_COUNT,

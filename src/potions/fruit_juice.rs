@@ -1,4 +1,5 @@
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -11,7 +12,7 @@ use crate::types::PotionName;
 use crate::types::PotionRarity;
 
 // Matches StS `increaseMaxHp(5, true)` which raises the cap AND heals
-pub static FRUIT_JUICE: Entity = make_entity_potion(
+pub static POTION_FRUIT_JUICE: Entity = make_entity_potion(
     PotionName::FruitJuice,
     PotionRarity::Rare,
     false,
@@ -25,6 +26,7 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -36,6 +38,7 @@ pub static FRUIT_JUICE: Entity = make_entity_potion(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },

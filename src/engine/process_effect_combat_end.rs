@@ -17,7 +17,7 @@ use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::has_relic;
 
-pub fn process_effect_combat_end(state: &mut GameState) {
+pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool) {
     // Capture provenance, then drop the combat: teardown is the variant swap
     let Mode::Combat {
         this_combat_escaped,
@@ -29,7 +29,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
     else {
         unreachable!("CombatEnd outside Combat mode")
     };
-    let escaped = *this_combat_escaped;
+    let escaped_monster = *this_combat_escaped;
     let event_gold = *event_gold;
     let event_relic = *event_relic;
     let event_relic_roll = *event_relic_roll;
@@ -38,6 +38,17 @@ pub fn process_effect_combat_end(state: &mut GameState) {
     // Combat modifiers don't persist. Only the Character outlives the fight;
     // monster corpses are unreachable once the roster drops with the variant
     modifier_clear(&mut state.entities[state.id_character].modifiers);
+
+    // Smoke Bomb: no rewards, no victory hooks; straight back to the map. Return
+    // before the clear so already-queued effects (Toy Ornithopter heal) still land
+    if escaped_character {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::RoomExit,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        return;
+    }
 
     // Replace pending combat work with the teardown chain queued below
     state.effect_queue.clear();
@@ -74,7 +85,7 @@ pub fn process_effect_combat_end(state: &mut GameState) {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::RewardRollCombat {
                     room_kind: room_kind_reward,
-                    escaped,
+                    escaped: escaped_monster,
                     event_gold,
                     event_relic,
                     event_relic_roll,

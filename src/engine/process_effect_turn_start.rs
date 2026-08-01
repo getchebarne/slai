@@ -1,6 +1,6 @@
 use crate::consts::CARDS_DRAWN_PER_TURN;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -215,9 +215,8 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 },
                 id_source: None,
                 target: Target::Resolve {
-                    candidate_pool: CandidatePool::Hand {
-                        filter: CandidatePoolCardFilter::Any,
-                    },
+                    candidate_pool: CandidatePool::Hand,
+                    filter: CandidateFilter::Any,
                     selection_kind: SelectionKind::Input {
                         count: stacks.max(0) as u16,
                     },
@@ -348,9 +347,8 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 kind: EffectKind::CardUpgrade,
                 id_source: None,
                 target: Target::Resolve {
-                    candidate_pool: CandidatePool::Hand {
-                        filter: CandidatePoolCardFilter::Upgradeable,
-                    },
+                    candidate_pool: CandidatePool::Hand,
+                    filter: CandidateFilter::Upgradeable,
                     selection_kind: SelectionKind::Random { count: 1 },
                 },
             });

@@ -9,13 +9,14 @@ use crate::types::RelicTier;
 // At combat start, discard any number of cards, then draw that many
 // (combat-start effects drain after the turn-1 chain, matching the source's post-draw timing)
 // See:
-//    - `process_effect_gambling_chip_proc.rs`
+//    - `process_effect_gamble.rs`
 pub static GAMBLING_CHIP: Entity = make_entity_relic(
     RelicName::GamblingChip,
     RelicTier::Rare,
     0,
     &[Effect {
-        kind: EffectKind::GamblingChipProc {
+        kind: EffectKind::Gamble {
+            choose_discards: true,
             discards_before: None,
         },
         id_source: None,

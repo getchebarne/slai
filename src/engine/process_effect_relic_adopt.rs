@@ -3,8 +3,8 @@ use rand::Rng;
 use crate::consts::MAX_SIZE_DECK;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -45,9 +45,8 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 kind: EffectKind::CardDuplicate,
                 id_source: None,
                 target: Target::Resolve {
-                    candidate_pool: CandidatePool::Deck {
-                        filter: CandidatePoolCardFilter::Any,
-                    },
+                    candidate_pool: CandidatePool::Deck,
+                    filter: CandidateFilter::Any,
                     selection_kind: SelectionKind::Input { count: 1 },
                 },
             });
@@ -102,9 +101,8 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                     kind: EffectKind::CardPurge,
                     id_source: None,
                     target: Target::Resolve {
-                        candidate_pool: CandidatePool::Deck {
-                            filter: CandidatePoolCardFilter::Purgeable,
-                        },
+                        candidate_pool: CandidatePool::Deck,
+                        filter: CandidateFilter::Purgeable,
                         selection_kind: SelectionKind::Input { count: 1 },
                     },
                 });
@@ -137,9 +135,8 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 kind: EffectKind::CardTransform { upgraded: true },
                 id_source: None,
                 target: Target::Resolve {
-                    candidate_pool: CandidatePool::Deck {
-                        filter: CandidatePoolCardFilter::Transformable,
-                    },
+                    candidate_pool: CandidatePool::Deck,
+                    filter: CandidateFilter::Transformable,
                     selection_kind: SelectionKind::Input { count: 3 },
                 },
             });
@@ -199,9 +196,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 target: Target::Direct(None),
             });
         }
-        RelicName::BottledFlame => queue_bottle_pick(state, CandidatePoolCardFilter::Attack),
-        RelicName::BottledLightning => queue_bottle_pick(state, CandidatePoolCardFilter::Skill),
-        RelicName::BottledTornado => queue_bottle_pick(state, CandidatePoolCardFilter::Power),
+        RelicName::BottledFlame => queue_bottle_pick(state, CandidateFilter::KindAttack),
+        RelicName::BottledLightning => queue_bottle_pick(state, CandidateFilter::KindSkill),
+        RelicName::BottledTornado => queue_bottle_pick(state, CandidateFilter::KindPower),
         RelicName::Cauldron => {
             // Brew 5 potions; overflow beyond belt space is lost (Java stages them as rewards)
             for _ in 0..5 {
@@ -217,12 +214,13 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
 }
 
 // Bottle a deck card of the given kind; an empty pool auto-resolves to no pick (relic inert)
-fn queue_bottle_pick(state: &mut GameState, filter: CandidatePoolCardFilter) {
+fn queue_bottle_pick(state: &mut GameState, filter: CandidateFilter) {
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardBottle,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck { filter },
+            candidate_pool: CandidatePool::Deck,
+            filter,
             selection_kind: SelectionKind::Input { count: 1 },
         },
     });

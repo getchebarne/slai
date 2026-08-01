@@ -1,3 +1,4 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -9,19 +10,20 @@ use crate::modifier::ModifierKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static STRENGTH_POTION: Entity = make_entity_potion(
-    PotionName::StrengthPotion,
+pub static POTION_FEAR: Entity = make_entity_potion(
+    PotionName::FearPotion,
     PotionRarity::Common,
-    false,
+    true,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Strength,
-            stacks: 2,
+            kind: ModifierKind::Vulnerable,
+            stacks: 3,
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
+            candidate_pool: CandidatePool::Monsters,
+            filter: CandidateFilter::Picked,
             selection_kind: SelectionKind::Single,
         },
     }],

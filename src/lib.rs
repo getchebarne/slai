@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-// The Effect union's pyo3 type-hint introspection recurses once per variant
+// type_hint_union! folds one CTFE frame per PyEffect variant; the default 128 overflows
 #![recursion_limit = "512"]
 
 use pyo3::prelude::*;
@@ -99,76 +99,303 @@ mod slai {
     use super::GameEnv;
     // Action layer
     #[pymodule_export]
-    use super::ffi::{PyAction, PyActionType};
+    use super::ffi::PyAction;
+    #[pymodule_export]
+    use super::ffi::PyActionType;
     // Snapshot views
     #[pymodule_export]
-    use super::ffi::{
-        PyCard, PyCharacter, PyEnergy, PyGameState, PyIntent, PyMap, PyModifier, PyMonster,
-        PyPotion, PyRelic, PyRoom, PyTarget,
-    };
+    use super::ffi::PyCard;
+    #[pymodule_export]
+    use super::ffi::PyCharacter;
+    #[pymodule_export]
+    use super::ffi::PyEnergy;
+    #[pymodule_export]
+    use super::ffi::PyGameState;
+    #[pymodule_export]
+    use super::ffi::PyIntent;
+    #[pymodule_export]
+    use super::ffi::PyMap;
+    #[pymodule_export]
+    use super::ffi::PyModifier;
+    #[pymodule_export]
+    use super::ffi::PyMonster;
+    #[pymodule_export]
+    use super::ffi::PyPotion;
+    #[pymodule_export]
+    use super::ffi::PyRelic;
+    #[pymodule_export]
+    use super::ffi::PyRoom;
+    #[pymodule_export]
+    use super::ffi::PyTarget;
     // Unit enums
     #[pymodule_export]
-    use super::ffi::{
-        PyCandidatePoolCardFilter, PyCandidatePoolMonstersFilter, PyCardColor, PyCardKind,
-        PyCardName, PyCardRarity, PyDeltaSign, PyIntentKind, PyModifierKind, PyMonsterEncounter,
-        PyMonsterName, PyPlayRestriction, PyPotionName, PyPotionRarity, PyRelicName, PyRelicTier,
-        PyRoomKind,
-    };
+    use super::ffi::PyCandidateFilter;
+    #[pymodule_export]
+    #[pymodule_export]
+    use super::ffi::PyCardColor;
+    #[pymodule_export]
+    use super::ffi::PyCardKind;
+    #[pymodule_export]
+    use super::ffi::PyCardName;
+    #[pymodule_export]
+    use super::ffi::PyCardRarity;
+    #[pymodule_export]
+    use super::ffi::PyDeltaSign;
+    #[pymodule_export]
+    use super::ffi::PyIntentKind;
+    #[pymodule_export]
+    use super::ffi::PyModifierKind;
+    #[pymodule_export]
+    use super::ffi::PyMonsterEncounter;
+    #[pymodule_export]
+    use super::ffi::PyMonsterName;
+    #[pymodule_export]
+    use super::ffi::PyPlayRestriction;
+    #[pymodule_export]
+    use super::ffi::PyPotionName;
+    #[pymodule_export]
+    use super::ffi::PyPotionRarity;
+    #[pymodule_export]
+    use super::ffi::PyRelicName;
+    #[pymodule_export]
+    use super::ffi::PyRelicTier;
+    #[pymodule_export]
+    use super::ffi::PyRoomKind;
     // Flat variant classes (Python-side union aliases live in python/slai/__init__.py)
     #[pymodule_export]
-    use super::ffi::{PyAmountAbsolute, PyAmountEventGoldAsk, PyAmountRange, PyAmountRelative};
+    use super::ffi::PyAmountAbsolute;
     #[pymodule_export]
-    use super::ffi::{
-        PyCandidatePoolCharacter, PyCandidatePoolDeck, PyCandidatePoolDiscover,
-        PyCandidatePoolEventPickCard, PyCandidatePoolEventPickPotion, PyCandidatePoolHand,
-        PyCandidatePoolMonsters, PyCandidatePoolSource, PySelectionKindAll, PySelectionKindInput,
-        PySelectionKindRandom, PySelectionKindSingle,
-    };
+    use super::ffi::PyAmountEventGoldAsk;
     #[pymodule_export]
-    use super::ffi::{
-        PyCandidatePoolPileDiscard, PyCandidatePoolPileDraw, PyCandidatePoolPileExhaust,
-        PyCardPile, PyCostScope, PySelectionKindInputUpTo,
-    };
+    use super::ffi::PyAmountRange;
     #[pymodule_export]
-    use super::ffi::{
-        PyCardCostKindFixed, PyCardCostKindGrowsOnDamageInstanceTaken,
-        PyCardCostKindMinusDiscardsThisTurn, PyCardCostKindXCost,
-    };
+    use super::ffi::PyAmountRelative;
     #[pymodule_export]
-    use super::ffi::{
-        PyEffectAdventurerSearch, PyEffectBlockGain, PyEffectBonfireOffer,
-        PyEffectCalculatedGamble, PyEffectCardAdd, PyEffectCardAddRandom, PyEffectCardBottle,
-        PyEffectCardDiscard, PyEffectCardDiscoverPick, PyEffectCardDiscoverRoll, PyEffectCardDraw,
-        PyEffectCardDrawIfNoAttacks, PyEffectCardDrawUpTo, PyEffectCardDuplicate,
-        PyEffectCardExhaust, PyEffectCardMove, PyEffectCardNightmarePick, PyEffectCardPurge,
-        PyEffectCardRetain, PyEffectCardSetupPick, PyEffectCardTransform, PyEffectCardUpgrade,
-        PyEffectCombatStart, PyEffectDamageFinisher, PyEffectDamageFlechettes,
-        PyEffectDamageMindBlast, PyEffectDamagePhysical, PyEffectDamagePhysicalIfPoisoned,
-        PyEffectDistractionAdd, PyEffectEnergyDelta, PyEffectEscapePlanCheck,
-        PyEffectEventAdvanceState, PyEffectEventConsume, PyEffectFaceTrade,
-        PyEffectGamblingChipProc, PyEffectGlassKnifeDecay, PyEffectGoldDelta,
-        PyEffectHandOfGreedProc, PyEffectHealthDelta, PyEffectHeelHookProc, PyEffectMaxHealthDelta,
-        PyEffectModifierGain, PyEffectModifierMultiply, PyEffectModifierRemove,
-        PyEffectMonsterSpawn, PyEffectPotionAddRandom, PyEffectPotionDiscard,
-        PyEffectRelicGrantRandom, PyEffectRelicGrantSpecific, PyEffectRewardRollPotions,
-        PyEffectScrapOozeReach, PyEffectSetCostOverride, PyEffectShuffleDiscardPileIntoDrawPile,
-        PyEffectSneakyStrikeProc, PyEffectStormOfSteelProc, PyEffectUnloadDiscard,
-        PyEffectWheelSpin,
-    };
+    use super::ffi::PyCandidatePoolCharacter;
     #[pymodule_export]
-    use super::ffi::{
-        PyEventKindBigFish, PyEventKindBonfireSpirits, PyEventKindDeadAdventurer,
-        PyEventKindDuplicator, PyEventKindFaceTrader, PyEventKindGoldenIdol,
-        PyEventKindGoldenShrine, PyEventKindLivingWall, PyEventKindMushrooms,
-        PyEventKindOminousForge, PyEventKindPurifier, PyEventKindScrapOoze,
-        PyEventKindShiningLight, PyEventKindTheCleric, PyEventKindTheDivineFountain,
-        PyEventKindTheLab, PyEventKindTheSsssserpent, PyEventKindTheWomanInBlue,
-        PyEventKindTransmogrifier, PyEventKindUpgradeShrine, PyEventKindWeMeetAgain,
-        PyEventKindWheelOfChange, PyEventKindWingStatue, PyEventKindWorldOfGoop,
-    };
+    use super::ffi::PyCandidatePoolDeck;
     #[pymodule_export]
-    use super::ffi::{
-        PyModeChest, PyModeChestOpened, PyModeCombat, PyModeCombatEnded, PyModeEvent, PyModeMap,
-        PyModeRestSite, PyModeReward, PyModeShop,
-    };
+    use super::ffi::PyCandidatePoolDiscover;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolEventPickCard;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolEventPickPotion;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolHand;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolMonsters;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolPileDiscard;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolPileDraw;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolPileExhaust;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolSource;
+    #[pymodule_export]
+    use super::ffi::PyCardCostKindFixed;
+    #[pymodule_export]
+    use super::ffi::PyCardCostKindGrowsOnDamageInstanceTaken;
+    #[pymodule_export]
+    use super::ffi::PyCardCostKindMinusDiscardsThisTurn;
+    #[pymodule_export]
+    use super::ffi::PyCardCostKindXCost;
+    #[pymodule_export]
+    use super::ffi::PyCardPile;
+    #[pymodule_export]
+    use super::ffi::PyCostScope;
+    #[pymodule_export]
+    use super::ffi::PyEffectAdventurerSearch;
+    #[pymodule_export]
+    use super::ffi::PyEffectBlockGain;
+    #[pymodule_export]
+    use super::ffi::PyEffectBonfireOffer;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardAdd;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardAddRandom;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardBottle;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardDiscard;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardDiscoverPick;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardDiscoverRoll;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardDraw;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardDrawIfNoAttacks;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardDrawUpTo;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardDuplicate;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardExhaust;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardMove;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardNightmarePick;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardPlayFromDrawTop;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardPurge;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardRetain;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardSetupPick;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardTransform;
+    #[pymodule_export]
+    use super::ffi::PyEffectCardUpgrade;
+    #[pymodule_export]
+    use super::ffi::PyEffectCombatEnd;
+    #[pymodule_export]
+    use super::ffi::PyEffectCombatStart;
+    #[pymodule_export]
+    use super::ffi::PyEffectDamageFinisher;
+    #[pymodule_export]
+    use super::ffi::PyEffectDamageFlechettes;
+    #[pymodule_export]
+    use super::ffi::PyEffectDamageMindBlast;
+    #[pymodule_export]
+    use super::ffi::PyEffectDamagePhysical;
+    #[pymodule_export]
+    use super::ffi::PyEffectDamagePhysicalIfPoisoned;
+    #[pymodule_export]
+    use super::ffi::PyEffectDistractionAdd;
+    #[pymodule_export]
+    use super::ffi::PyEffectEnergyDelta;
+    #[pymodule_export]
+    use super::ffi::PyEffectEscapePlanCheck;
+    #[pymodule_export]
+    use super::ffi::PyEffectEventAdvanceState;
+    #[pymodule_export]
+    use super::ffi::PyEffectEventConsume;
+    #[pymodule_export]
+    use super::ffi::PyEffectFaceTrade;
+    #[pymodule_export]
+    use super::ffi::PyEffectGamble;
+    #[pymodule_export]
+    use super::ffi::PyEffectGlassKnifeDecay;
+    #[pymodule_export]
+    use super::ffi::PyEffectGoldDelta;
+    #[pymodule_export]
+    use super::ffi::PyEffectHandOfGreedProc;
+    #[pymodule_export]
+    use super::ffi::PyEffectHealthDelta;
+    #[pymodule_export]
+    use super::ffi::PyEffectHeelHookProc;
+    #[pymodule_export]
+    use super::ffi::PyEffectLiquidMemories;
+    #[pymodule_export]
+    use super::ffi::PyEffectMaxHealthDelta;
+    #[pymodule_export]
+    use super::ffi::PyEffectModifierGain;
+    #[pymodule_export]
+    use super::ffi::PyEffectModifierMultiply;
+    #[pymodule_export]
+    use super::ffi::PyEffectModifierRemove;
+    #[pymodule_export]
+    use super::ffi::PyEffectMonsterSpawn;
+    #[pymodule_export]
+    use super::ffi::PyEffectPotionAddRandom;
+    #[pymodule_export]
+    use super::ffi::PyEffectPotionDiscard;
+    #[pymodule_export]
+    use super::ffi::PyEffectRelicGrantRandom;
+    #[pymodule_export]
+    use super::ffi::PyEffectRelicGrantSpecific;
+    #[pymodule_export]
+    use super::ffi::PyEffectRewardRollPotions;
+    #[pymodule_export]
+    use super::ffi::PyEffectScrapOozeReach;
+    #[pymodule_export]
+    use super::ffi::PyEffectSetCostOverride;
+    #[pymodule_export]
+    use super::ffi::PyEffectShuffleDiscardPileIntoDrawPile;
+    #[pymodule_export]
+    use super::ffi::PyEffectSneakyStrikeProc;
+    #[pymodule_export]
+    use super::ffi::PyEffectStormOfSteelProc;
+    #[pymodule_export]
+    use super::ffi::PyEffectUnloadDiscard;
+    #[pymodule_export]
+    use super::ffi::PyEffectWheelSpin;
+    #[pymodule_export]
+    use super::ffi::PyEventKindBigFish;
+    #[pymodule_export]
+    use super::ffi::PyEventKindBonfireSpirits;
+    #[pymodule_export]
+    use super::ffi::PyEventKindDeadAdventurer;
+    #[pymodule_export]
+    use super::ffi::PyEventKindDuplicator;
+    #[pymodule_export]
+    use super::ffi::PyEventKindFaceTrader;
+    #[pymodule_export]
+    use super::ffi::PyEventKindGoldenIdol;
+    #[pymodule_export]
+    use super::ffi::PyEventKindGoldenShrine;
+    #[pymodule_export]
+    use super::ffi::PyEventKindLivingWall;
+    #[pymodule_export]
+    use super::ffi::PyEventKindMushrooms;
+    #[pymodule_export]
+    use super::ffi::PyEventKindOminousForge;
+    #[pymodule_export]
+    use super::ffi::PyEventKindPurifier;
+    #[pymodule_export]
+    use super::ffi::PyEventKindScrapOoze;
+    #[pymodule_export]
+    use super::ffi::PyEventKindShiningLight;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheCleric;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheDivineFountain;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheLab;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheSsssserpent;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheWomanInBlue;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTransmogrifier;
+    #[pymodule_export]
+    use super::ffi::PyEventKindUpgradeShrine;
+    #[pymodule_export]
+    use super::ffi::PyEventKindWeMeetAgain;
+    #[pymodule_export]
+    use super::ffi::PyEventKindWheelOfChange;
+    #[pymodule_export]
+    use super::ffi::PyEventKindWingStatue;
+    #[pymodule_export]
+    use super::ffi::PyEventKindWorldOfGoop;
+    #[pymodule_export]
+    use super::ffi::PyModeChest;
+    #[pymodule_export]
+    use super::ffi::PyModeChestOpened;
+    #[pymodule_export]
+    use super::ffi::PyModeCombat;
+    #[pymodule_export]
+    use super::ffi::PyModeCombatEnded;
+    #[pymodule_export]
+    use super::ffi::PyModeEvent;
+    #[pymodule_export]
+    use super::ffi::PyModeMap;
+    #[pymodule_export]
+    use super::ffi::PyModeRestSite;
+    #[pymodule_export]
+    use super::ffi::PyModeReward;
+    #[pymodule_export]
+    use super::ffi::PyModeShop;
+    #[pymodule_export]
+    use super::ffi::PySelectionKindAll;
+    #[pymodule_export]
+    use super::ffi::PySelectionKindInput;
+    #[pymodule_export]
+    use super::ffi::PySelectionKindInputUpTo;
+    #[pymodule_export]
+    use super::ffi::PySelectionKindRandom;
+    #[pymodule_export]
+    use super::ffi::PySelectionKindSingle;
 }

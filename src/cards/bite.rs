@@ -1,6 +1,6 @@
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolMonstersFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -32,9 +32,8 @@ pub static BITE: Entity = make_entity_card(
             kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
             target: Target::Resolve {
-                candidate_pool: CandidatePool::Monsters {
-                    filter: CandidatePoolMonstersFilter::Picked,
-                },
+                candidate_pool: CandidatePool::Monsters,
+                filter: CandidateFilter::Picked,
                 selection_kind: SelectionKind::Single,
             },
         },
@@ -46,6 +45,7 @@ pub static BITE: Entity = make_entity_card(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Character,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Single,
             },
         },

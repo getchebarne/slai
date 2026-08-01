@@ -56,6 +56,10 @@ pub enum ModifierKind {
     SadisticNature,
     Mayhem,
     TheBomb,
+    Regeneration,
+    LoseStrength,
+    LoseDexterity,
+    DuplicateNextCardPlay,
 }
 
 pub const MODIFIER_COUNT: usize = ModifierKind::COUNT;
@@ -436,6 +440,34 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::TheBomb,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Regeneration,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::LoseStrength,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::LoseDexterity,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::DuplicateNextCardPlay,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,

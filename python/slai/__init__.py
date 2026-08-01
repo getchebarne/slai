@@ -33,8 +33,7 @@ PotionName = _rs.PotionName
 PotionRarity = _rs.PotionRarity
 ModifierKind = _rs.ModifierKind
 IntentKind = _rs.IntentKind
-CandidatePoolMonstersFilter = _rs.CandidatePoolMonstersFilter
-CandidatePoolCardFilter = _rs.CandidatePoolCardFilter
+CandidateFilter = _rs.CandidateFilter
 
 
 # Action schema types
@@ -195,7 +194,6 @@ EffectDamagePhysical = _rs.EffectDamagePhysical
 EffectDamagePhysicalIfPoisoned = _rs.EffectDamagePhysicalIfPoisoned
 EffectHeelHookProc = _rs.EffectHeelHookProc
 EffectEscapePlanCheck = _rs.EffectEscapePlanCheck
-EffectGamblingChipProc = _rs.EffectGamblingChipProc
 EffectCardBottle = _rs.EffectCardBottle
 EffectGlassKnifeDecay = _rs.EffectGlassKnifeDecay
 EffectCardSetupPick = _rs.EffectCardSetupPick
@@ -224,7 +222,6 @@ EffectCardDiscard = _rs.EffectCardDiscard
 EffectCardRetain = _rs.EffectCardRetain
 EffectDamageMindBlast = _rs.EffectDamageMindBlast
 EffectShuffleDiscardPileIntoDrawPile = _rs.EffectShuffleDiscardPileIntoDrawPile
-EffectCalculatedGamble = _rs.EffectCalculatedGamble
 EffectMaxHealthDelta = _rs.EffectMaxHealthDelta
 EffectHealthDelta = _rs.EffectHealthDelta
 EffectPotionAddRandom = _rs.EffectPotionAddRandom
@@ -248,12 +245,15 @@ EffectCardPurge = _rs.EffectCardPurge
 EffectCardUpgrade = _rs.EffectCardUpgrade
 EffectCardDuplicate = _rs.EffectCardDuplicate
 EffectCardTransform = _rs.EffectCardTransform
+EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
+EffectGamble = _rs.EffectGamble
+EffectLiquidMemories = _rs.EffectLiquidMemories
+EffectCombatEnd = _rs.EffectCombatEnd
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
     | EffectHeelHookProc
     | EffectEscapePlanCheck
-    | EffectGamblingChipProc
     | EffectCardBottle
     | EffectGlassKnifeDecay
     | EffectCardSetupPick
@@ -282,7 +282,6 @@ Effect = (
     | EffectCardRetain
     | EffectDamageMindBlast
     | EffectShuffleDiscardPileIntoDrawPile
-    | EffectCalculatedGamble
     | EffectMaxHealthDelta
     | EffectHealthDelta
     | EffectPotionAddRandom
@@ -306,6 +305,10 @@ Effect = (
     | EffectCardUpgrade
     | EffectCardDuplicate
     | EffectCardTransform
+    | EffectCardPlayFromDrawTop
+    | EffectGamble
+    | EffectLiquidMemories
+    | EffectCombatEnd
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -495,7 +498,7 @@ __all__ = [
     "PlayRestriction",
     "ModifierKind",
     "IntentKind",
-    "CandidatePoolMonstersFilter",
+    "CandidateFilter",
     "RoomKind",
     "RelicName",
     "RelicTier",
@@ -504,7 +507,6 @@ __all__ = [
     "CardName",
     "MonsterName",
     "MonsterEncounter",
-    "CandidatePoolCardFilter",
     # Sum types (flat variant classes + union aliases)
     "CandidatePool",
     "CandidatePoolHand",
@@ -535,7 +537,6 @@ __all__ = [
     "EffectDamagePhysicalIfPoisoned",
     "EffectHeelHookProc",
     "EffectEscapePlanCheck",
-    "EffectGamblingChipProc",
     "EffectCardBottle",
     "EffectGlassKnifeDecay",
     "EffectCardSetupPick",
@@ -564,7 +565,6 @@ __all__ = [
     "EffectCardRetain",
     "EffectDamageMindBlast",
     "EffectShuffleDiscardPileIntoDrawPile",
-    "EffectCalculatedGamble",
     "EffectMaxHealthDelta",
     "EffectHealthDelta",
     "EffectPotionAddRandom",
@@ -588,6 +588,10 @@ __all__ = [
     "EffectCardUpgrade",
     "EffectCardDuplicate",
     "EffectCardTransform",
+    "EffectCardPlayFromDrawTop",
+    "EffectGamble",
+    "EffectLiquidMemories",
+    "EffectCombatEnd",
     "Amount",
     "AmountAbsolute",
     "AmountRelative",

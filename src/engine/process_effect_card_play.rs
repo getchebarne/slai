@@ -385,7 +385,12 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     };
     let burst =
         has_modifier(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
-    let reps = if burst { 2 * mul } else { mul };
+
+    // DuplicateNextCardPlay replays any card kind; additive with Burst
+    let duplication = has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
+
+    // Total amount of card-play repetitions
+    let reps = (1 + burst as usize + duplication as usize) * mul;
 
     // Wrist Blade: attacks that cost 0 deal +4 per hit; X-cost never qualifies
     let wrist_blade_bonus = effective_cost == 0
@@ -393,6 +398,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         && !matches!(card.card_cost_kind, CardCostKind::XCost { .. })
         && has_relic(&state.id_relics, RelicName::WristBlade);
 
+    // Push the card's on-play effects once for each rep
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
             let mut effect = Effect {
@@ -405,10 +411,22 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.effect_buf.push(effect);
         }
     }
+
+    // Consume 1 Burst and DuplicateNextCardPlay stack
     if burst {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Burst,
+                stacks: -1,
+            },
+            id_source: Some(id_character),
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+    if duplication {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::DuplicateNextCardPlay,
                 stacks: -1,
             },
             id_source: Some(id_character),
@@ -522,6 +540,7 @@ fn free_random_costed_hand_card(
             kind: EffectKind::SetCostOverride {
                 amount: 0,
                 only_reduce: false,
+                random: false,
                 scope: CostScope::Turn,
             },
             id_source: None,

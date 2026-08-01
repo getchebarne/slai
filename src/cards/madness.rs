@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -30,13 +30,13 @@ pub static MADNESS: Entity = make_entity_card(
         kind: EffectKind::SetCostOverride {
             amount: 0,
             only_reduce: false,
+            random: false,
             scope: CostScope::Combat, // Costs 0 for the rest of combat
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Hand {
-                filter: CandidatePoolCardFilter::Costed,
-            },
+            candidate_pool: CandidatePool::Hand,
+            filter: CandidateFilter::Costed,
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],

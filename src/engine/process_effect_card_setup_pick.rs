@@ -25,6 +25,7 @@ pub fn process_effect_card_setup_pick(
             kind: EffectKind::SetCostOverride {
                 amount: 0,
                 only_reduce: false,
+                random: false,
                 scope: CostScope::UntilPlayed,
             },
             id_source: None,

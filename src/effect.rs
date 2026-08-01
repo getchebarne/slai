@@ -22,7 +22,6 @@ pub enum EffectKind {
         amount: u16,
     },
     BonfireOffer,
-    CalculatedGamble,
     CardAdd {
         card_name: CardName,
         pile: CardPile,
@@ -82,7 +81,9 @@ pub enum EffectKind {
     },
     CardUpgrade,
     ChestOpen,
-    CombatEnd,
+    CombatEnd {
+        escaped_character: bool,
+    },
     CombatStart {
         event_gold: Option<Amount>,
         event_relic: Option<RelicName>,
@@ -118,7 +119,8 @@ pub enum EffectKind {
     },
     EventConsume,
     FaceTrade,
-    GamblingChipProc {
+    Gamble {
+        choose_discards: bool,
         discards_before: Option<u8>,
     },
     GiryaLift,
@@ -146,6 +148,7 @@ pub enum EffectKind {
     HexaghostBurnIncrease {
         count: u8,
     },
+    LiquidMemories,
     MaxHealthDelta {
         sign: DeltaSign,
         amount: Amount,
@@ -217,6 +220,7 @@ pub enum EffectKind {
     SetCostOverride {
         amount: u8,
         only_reduce: bool,
+        random: bool,
         scope: CostScope,
     },
     ShopBuild,
@@ -263,13 +267,13 @@ pub enum Amount {
 // Source pool for a Resolve effect
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CandidatePool {
-    Hand { filter: CandidatePoolCardFilter },
+    Hand,
     Character,
-    Monsters { filter: CandidatePoolMonstersFilter },
+    Monsters,
     Source,
     Discover,
-    Deck { filter: CandidatePoolCardFilter },
-    PileDraw { filter: CandidatePoolCardFilter },
+    Deck,
+    PileDraw,
     PileDiscard,
     PileExhaust,
 
@@ -279,23 +283,21 @@ pub enum CandidatePool {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CandidatePoolCardFilter {
+pub enum CandidateFilter {
+    // Compare against `Entity` fields
+    Any,
     Purgeable,
     Upgradeable,
-    Any,
     Transformable,
     PurgeableCurse,
-    Attack,
-    Skill,
+    KindAttack,
+    KindSkill,
+    KindPower,
     Costed,
-    Power,
-}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum CandidatePoolMonstersFilter {
-    All,
-    Other,
+    // Compare against the `Target::Resolve` context
     Picked,
+    NotSource,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -304,7 +306,6 @@ pub enum SelectionKind {
     Single,
     Random { count: u8 },
     Input { count: u16 },
-    // Like Input but optional: the player may stop early via PickSkip (never auto-resolves)
     InputUpTo { count: u16 },
 }
 
@@ -317,6 +318,7 @@ pub enum Target {
     // Resolved against live state at dequeue via `resolve_selection_kind`.
     Resolve {
         candidate_pool: CandidatePool,
+        filter: CandidateFilter,
         selection_kind: SelectionKind,
     },
 }

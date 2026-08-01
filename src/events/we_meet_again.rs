@@ -1,6 +1,7 @@
 use rand::Rng;
 
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -27,6 +28,7 @@ const OPTION_GIVE_POTION: &[Effect] = &[
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::EventPickPotion,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     },
@@ -53,6 +55,7 @@ const OPTION_GIVE_CARD: &[Effect] = &[
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::EventPickCard,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
     },

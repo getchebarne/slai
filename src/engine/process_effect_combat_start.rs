@@ -1,6 +1,7 @@
 use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -153,6 +154,7 @@ pub fn process_effect_combat_start(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Discover,
+                filter: CandidateFilter::Any,
                 selection_kind: SelectionKind::Input { count: 1 },
             },
         });

@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -32,9 +32,8 @@ pub static VIOLENCE: Entity = make_entity_card(
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::PileDraw {
-                filter: CandidatePoolCardFilter::Attack,
-            },
+            candidate_pool: CandidatePool::PileDraw,
+            filter: CandidateFilter::KindAttack,
             selection_kind: SelectionKind::Random { count: 3 },
         },
     }],
@@ -48,9 +47,8 @@ pub static VIOLENCE_PLUS: Entity = Entity {
     card_effects: {
         let mut a = VIOLENCE.card_effects;
         a[0].target = Target::Resolve {
-            candidate_pool: CandidatePool::PileDraw {
-                filter: CandidatePoolCardFilter::Attack,
-            },
+            candidate_pool: CandidatePool::PileDraw,
+            filter: CandidateFilter::KindAttack,
             selection_kind: SelectionKind::Random { count: 4 }, // +1 card
         };
         a

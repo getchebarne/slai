@@ -1,5 +1,5 @@
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -19,6 +19,7 @@ const fn upgrade_all(pool: CandidatePool) -> Effect {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: pool,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::All,
         },
     }
@@ -37,12 +38,8 @@ pub static APOTHEOSIS: Entity = make_entity_card(
     false,
     false,
     &[
-        upgrade_all(CandidatePool::Hand {
-            filter: CandidatePoolCardFilter::Any,
-        }),
-        upgrade_all(CandidatePool::PileDraw {
-            filter: CandidatePoolCardFilter::Any,
-        }),
+        upgrade_all(CandidatePool::Hand),
+        upgrade_all(CandidatePool::PileDraw),
         upgrade_all(CandidatePool::PileDiscard),
         upgrade_all(CandidatePool::PileExhaust),
     ],

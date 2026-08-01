@@ -1,6 +1,6 @@
 use crate::consts::MAX_SIZE_HAND;
+use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::CandidatePoolCardFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -33,9 +33,8 @@ pub static FORETHOUGHT: Entity = make_entity_card(
         },
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::Hand {
-                filter: CandidatePoolCardFilter::Any,
-            },
+            candidate_pool: CandidatePool::Hand,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
@@ -49,9 +48,8 @@ pub static FORETHOUGHT_PLUS: Entity = Entity {
     card_effects: {
         let mut a = FORETHOUGHT.card_effects;
         a[0].target = Target::Resolve {
-            candidate_pool: CandidatePool::Hand {
-                filter: CandidatePoolCardFilter::Any,
-            },
+            candidate_pool: CandidatePool::Hand,
+            filter: CandidateFilter::Any,
             selection_kind: SelectionKind::InputUpTo {
                 count: MAX_SIZE_HAND as u16,
             },

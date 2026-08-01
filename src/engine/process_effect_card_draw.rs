@@ -92,6 +92,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
                     kind: EffectKind::SetCostOverride {
                         amount: new_cost,
                         only_reduce: false,
+                        random: false,
                         scope: CostScope::Combat,
                     },
                     id_source: None,
