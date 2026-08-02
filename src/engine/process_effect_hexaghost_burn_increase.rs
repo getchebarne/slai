@@ -6,6 +6,7 @@ use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
 // Upgrade existing Burns in the draw and discard piles, then add `count`
 // upgraded Burns to the discard pile
@@ -14,7 +15,7 @@ pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) 
         id_pile_draw,
         id_pile_discard,
         ..
-    } = &mut state.mode
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_hexaghost_burn_increase outside Combat mode")
     };

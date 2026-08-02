@@ -6,6 +6,8 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
+use crate::types::CardPile;
+use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
@@ -15,7 +17,10 @@ pub static POTION_LIQUID_MEMORIES: Entity = make_entity_potion(
     false,
     true,
     &[Effect {
-        kind: EffectKind::LiquidMemories,
+        kind: EffectKind::CardMove {
+            pile: CardPile::Hand,
+            cost_zero: Some(CostScope::Turn),
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::PileDiscard,

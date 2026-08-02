@@ -4,24 +4,27 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
-use crate::types::Mode;
+use crate::map::get_active_room_kind;
+use crate::types::RoomKind;
 
 pub fn process_effect_room_exit(state: &mut GameState) {
-    match state.mode {
-        // final-row rest site enters the boss instead of returning to the map
-        Mode::RestSite if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1) =>
-        {
-            state.location = Location::BossRoom;
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::RoomEnter,
-                id_source: None,
-                target: Target::Direct(None),
-            });
-            return;
-        }
-        // Reward and Shop memory die with the variant swap below; Event,
-        // RestSite (non-final), Chest need no per-mode cleanup
-        _ => {}
+    // Pop the room frame; Map (or a suspended frame) resumes underneath
+    assert!(
+        state.mode_stack.len() > 1,
+        "RoomExit with no room frame to pop"
+    );
+    state.mode_stack.pop();
+
+    // Final-row rest room enters the boss instead of returning to the map
+    if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1)
+        && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+            == Some(RoomKind::RestSite)
+    {
+        state.location = Location::BossRoom;
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::RoomEnter,
+            id_source: None,
+            target: Target::Direct(None),
+        });
     }
-    state.mode = Mode::Map;
 }

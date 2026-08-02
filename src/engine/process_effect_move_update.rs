@@ -8,13 +8,14 @@ use crate::monsters::hexaghost;
 use crate::monsters::is_cycle_boundary;
 use crate::types::Mode;
 use crate::types::MonsterName;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_move_update(
     id_target: Option<usize>,
     state: &mut GameState,
     move_override: Option<usize>,
 ) {
-    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
+    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("process_effect_move_update outside Combat mode")
     };
     let id_target = id_target.expect("MoveUpdate requires id_target");

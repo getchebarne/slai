@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// An enemy death mid-combat grants 1 energy and draws 1 card
+// An enemy death mid-combat grants 1 energy and draws 1 Card
 // See:
 //    - `process_effect_death.rs`
 pub static GREMLIN_HORN: Entity =

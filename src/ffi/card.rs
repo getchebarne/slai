@@ -20,6 +20,7 @@ use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
 use crate::types::Mode;
+use crate::utils::mode_top;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
 use crate::utils::vuln_factor;
@@ -409,6 +410,7 @@ pub enum PyCardName {
     SecretWeapon,
     TheBomb,
     Violence,
+    CurseOfTheBell,
 }
 
 impl From<CardName> for PyCardName {
@@ -542,6 +544,7 @@ impl From<CardName> for PyCardName {
             CardName::SecretWeapon => Self::SecretWeapon,
             CardName::TheBomb => Self::TheBomb,
             CardName::Violence => Self::Violence,
+            CardName::CurseOfTheBell => Self::CurseOfTheBell,
         }
     }
 }
@@ -577,6 +580,7 @@ pub struct PyCard {
     pub exhaust: bool,
     pub ethereal: bool,
     pub innate: bool,
+    pub bottled: bool,
     pub requires_target: bool,
     pub retain: bool,
     // `playable` does NOT factor in energy cost; clients must also check `cost <= energy.energy_current`
@@ -589,7 +593,7 @@ pub struct PyCard {
 
     // Fingerprint over every snapshot field above except display_name (derived from
     // name+upgraded): one u64 getter replaces a per-field FFI walk for clients that
-    // key caches/dedup on card identity. Deterministic across processes.
+    // key caches/dedup on Card identity. Deterministic across processes.
     pub identity_hash: u64,
 }
 
@@ -724,11 +728,12 @@ impl CardName {
             Self::SecretWeapon => "Secret Weapon",
             Self::TheBomb => "The Bomb",
             Self::Violence => "Violence",
+            Self::CurseOfTheBell => "Curse of the Bell",
         }
     }
 }
 
-// Snapshot a card's effects with the current player modifiers folded into the DamagePhysical /
+// Snapshot a Card's effects with the current player modifiers folded into the DamagePhysical /
 // BlockGain amounts (target-agnostic — Vulnerable/Intangible depend on the L3 target chosen later),
 // via the same scaling utils as the live pipeline. Other effect kinds pass through unchanged.
 pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffect> {
@@ -785,7 +790,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         &state.entities[state.id_character].modifiers,
         ModifierKind::Entangled,
     );
-    // Combat-only; outside combat defaults are permissive (cards not played)
+    // Combat-only; outside combat defaults are permissive (Cards not played)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
         if let Mode::Combat {
             id_pile_draw,
@@ -793,7 +798,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
             this_turn_discards,
             this_combat_damage_instances_taken,
             ..
-        } = &state.mode
+        } = mode_top(&state.mode_stack)
         {
             (
                 is_play_restriction_satisfied(
@@ -832,6 +837,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         exhaust: card.card_exhaust,
         ethereal: card.card_ethereal,
         innate: card.card_innate,
+        bottled: card.card_bottled,
         requires_target: card.requires_target,
         retain: card.card_retain,
         playable: restriction_ok && !entangled_blocks,
@@ -861,6 +867,7 @@ fn card_identity_hash(card: &PyCard) -> u64 {
     card.upgraded.hash(&mut h);
     card.exhaust.hash(&mut h);
     card.innate.hash(&mut h);
+    card.bottled.hash(&mut h);
     card.ethereal.hash(&mut h);
     card.retain.hash(&mut h);
     card.requires_target.hash(&mut h);

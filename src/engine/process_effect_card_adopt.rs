@@ -11,7 +11,7 @@ pub fn process_effect_card_adopt(id_target: Option<usize>, state: &mut GameState
     let id_card = id_target.expect("CardAdopt requires id_target");
     state.id_deck.push(id_card);
 
-    // Ceramic Fish: 9 gold per card that actually joins the deck
+    // Ceramic Fish: 9 gold per Card that actually joins the deck
     if has_relic(&state.id_relics, RelicName::CeramicFish) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::GoldDelta {

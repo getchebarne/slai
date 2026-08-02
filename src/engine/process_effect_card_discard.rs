@@ -6,9 +6,11 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 // Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain/ethereal
 pub fn process_effect_card_discard(
@@ -21,17 +23,20 @@ pub fn process_effect_card_discard(
         id_pile_discard,
         this_turn_discards,
         ..
-    } = &mut state.mode
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_card_discard outside Combat mode")
     };
     let id_target = id_target.expect("CardDiscard requires id_target");
     match source {
         DiscardSource::EndOfTurn => {
+            // Clear retain flags
             if state.entities[id_target].card_retain {
                 state.entities[id_target].card_retain = false;
                 return;
             }
+
+            // Exhaust ethereal Cards
             if state.entities[id_target].card_ethereal {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::CardExhaust,
@@ -40,6 +45,13 @@ pub fn process_effect_card_discard(
                 });
                 return;
             }
+
+            // Runic Pyramid: unplayed Cards stay in hand at end of turn
+            if has_relic(&state.id_relics, RelicName::RunicPyramid) {
+                return;
+            }
+
+            // Move from hand to discard
             if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
                 id_hand.remove(pos);
             }
@@ -61,7 +73,7 @@ pub fn process_effect_card_discard(
                 });
             }
 
-            // Thorns-type: unscaled, no Envenom
+            // Tingsha: each discard deals 3 thorns-type damage (unscaled, no Envenom)
             if has_relic(&state.id_relics, RelicName::Tingsha) {
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::DamageDeal { amount: 3 },
@@ -73,12 +85,29 @@ pub fn process_effect_card_discard(
                     },
                 });
             }
+
+            // Tough Bandages: each discard grants 3 block
             // Relic-sourced block: id_source None skips Dex/Frail scaling
             if has_relic(&state.id_relics, RelicName::ToughBandages) {
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::BlockGain { amount: 3 },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
+                });
+            }
+
+            // Hovering Kite: the first discard each turn grants 1 energy (counter resets per turn)
+            if let Some(id) = state.id_relics[RelicName::HoveringKite as usize]
+                && state.entities[id].relic_counter == 0
+            {
+                state.entities[id].relic_counter = 1;
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::EnergyDelta {
+                        sign: DeltaSign::Gain,
+                        amount: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(None),
                 });
             }
         }

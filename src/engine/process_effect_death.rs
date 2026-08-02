@@ -15,6 +15,7 @@ use crate::types::Mode;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("Death requires id_target");
@@ -58,7 +59,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     // Monster-death path
-    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
+    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("Monster death outside Combat mode")
     };
     let id_character = state.id_character;
@@ -151,6 +152,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             },
         });
     }
+    // Gremlin Horn: a monster's death grants 1 energy and draws 1
     if has_relic(&state.id_relics, RelicName::GremlinHorn) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDraw { count: 1 },

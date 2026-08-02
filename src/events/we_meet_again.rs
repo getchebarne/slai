@@ -82,7 +82,7 @@ pub static OPTIONS: &[Entity] = &[
 ];
 
 pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventKind {
-    // Card offer: uniform among non-Basic, non-Curse deck cards
+    // Card offer: uniform among non-Basic, non-Curse deck Cards
     let eligible: Vec<usize> = state
         .id_deck
         .iter()

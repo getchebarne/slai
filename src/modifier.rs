@@ -65,7 +65,7 @@ pub enum ModifierKind {
 pub const MODIFIER_COUNT: usize = ModifierKind::COUNT;
 
 pub fn modifier_kind_from_u8(v: u8) -> ModifierKind {
-    assert!((v as usize) < MODIFIER_COUNT, "invalid ModifierKind: {v}");
+    assert!((v as usize) < MODIFIER_COUNT, "Invalid ModifierKind: {v}");
     // SAFETY: repr(u8) and we validated the range
     unsafe { std::mem::transmute(v) }
 }

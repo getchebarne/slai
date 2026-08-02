@@ -12,6 +12,7 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::types::CostScope;
 
 pub static DISCOVERY: Entity = make_entity_card(
     CardName::Discovery,
@@ -30,13 +31,16 @@ pub static DISCOVERY: Entity = make_entity_card(
             kind: EffectKind::CardDiscoverRoll {
                 kind: None,
                 color: CardColor::Green,
+                exclude: &[],
                 count: 3,
             },
             id_source: None,
             target: Target::Direct(None),
         },
         Effect {
-            kind: EffectKind::CardDiscoverPick,
+            kind: EffectKind::CardDiscoverPick {
+                cost_zero: Some(CostScope::Turn),
+            },
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Discover,

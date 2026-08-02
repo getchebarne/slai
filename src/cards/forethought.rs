@@ -53,7 +53,7 @@ pub static FORETHOUGHT_PLUS: Entity = Entity {
             selection_kind: SelectionKind::InputUpTo {
                 count: MAX_SIZE_HAND as u16,
             },
-        }; // Any number of cards
+        }; // Any number of Cards
         a
     },
     ..FORETHOUGHT

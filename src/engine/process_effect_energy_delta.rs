@@ -1,9 +1,10 @@
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_energy_delta(state: &mut GameState, sign: DeltaSign, amount: u16) {
-    let Mode::Combat { energy, .. } = &mut state.mode else {
+    let Mode::Combat { energy, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("process_effect_energy_delta outside Combat mode")
     };
     match sign {

@@ -20,6 +20,7 @@ pub static POTION_SKILL: Entity = make_entity_potion(
             kind: EffectKind::CardDiscoverRoll {
                 kind: Some(CardKind::Skill),
                 color: CardColor::Green,
+                exclude: &[],
                 count: DISCOVER_PICK_COUNT,
             },
             id_source: None,

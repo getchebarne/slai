@@ -48,7 +48,7 @@ pub static JACK_OF_ALL_TRADES_PLUS: Entity = Entity {
             color: CardColor::Colorless,
             kind: None,
             pile: CardPile::Hand,
-            count: 2, // +1 card
+            count: 2, // +1 Card
             cost_zero: None,
             upgraded: false,
         };

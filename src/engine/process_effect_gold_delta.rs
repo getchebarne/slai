@@ -7,6 +7,8 @@ use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
+use crate::utils::has_relic;
+use crate::utils::mode_top;
 
 pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount: Amount) {
     let amount = match amount {
@@ -16,7 +18,7 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
             let Mode::Event {
                 kind: EventKind::WeMeetAgain { gold_ask, .. },
                 ..
-            } = &state.mode
+            } = mode_top(&state.mode_stack)
             else {
                 unreachable!("EventGoldAsk outside We Meet Again")
             };
@@ -27,10 +29,15 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
         }
     };
 
+    // Ectoplasm: gold can no longer be gained (after resolution, for RNG parity with the source game)
+    if sign == DeltaSign::Gain && has_relic(&state.id_relics, RelicName::Ectoplasm) {
+        return;
+    }
+
     // Maw Bank deactivates the first time gold is spent at a shop (event costs don't count)
     if sign == DeltaSign::Loss
         && amount > 0
-        && matches!(state.mode, Mode::Shop { .. })
+        && matches!(mode_top(&state.mode_stack), Mode::Shop { .. })
         && let Some(id) = state.id_relics[RelicName::MawBank as usize]
     {
         state.entities[id].relic_used_up = true;

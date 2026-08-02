@@ -20,6 +20,7 @@ pub static POTION_ATTACK: Entity = make_entity_potion(
             kind: EffectKind::CardDiscoverRoll {
                 kind: Some(CardKind::Attack),
                 color: CardColor::Green,
+                exclude: &[],
                 count: DISCOVER_PICK_COUNT,
             },
             id_source: None,

@@ -95,22 +95,29 @@ def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
 
 
 # Per-slot description strings
-_HAND_POS = "position in state.mode.hand (the current hand)"
+_HAND_POS = "position in state.mode_stack[-1].hand (the current hand)"
 _MONSTER_POS = "position in the alive-monster list at dispatch time"
-_REWARD_POS = "slot in state.mode.cards"
+_REWARD_BUNDLE_POS = "bundle in state.mode_stack[-1].cards"
+_REWARD_POS = "card within the bundle"
+_REWARD_RELIC_POS = "slot in state.mode_stack[-1].relics"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
 _SLOT_POS = "slot in state.potions"
-_REWARD_POTION_POS = "slot in state.mode.potions"
-_DISCOVER_POS = "position in state.mode.discover (the discovery offer)"
-_SHOP_CARD_POS = "position in state.mode.cards"
-_SHOP_RELIC_POS = "position in state.mode.relics"
-_SHOP_POTION_POS = "position in state.mode.potions"
+_REWARD_POTION_POS = "slot in state.mode_stack[-1].potions"
+_DISCOVER_POS = "position in state.mode_stack[-1].discover (the discovery offer)"
+_SHOP_CARD_POS = "position in state.mode_stack[-1].cards"
+_SHOP_RELIC_POS = "position in state.mode_stack[-1].relics"
+_SHOP_POTION_POS = "position in state.mode_stack[-1].potions"
 
 
 # Action spec registry
 ACTION_SPEC_REGISTRY = ActionSpecRegistry(
     [
+        create_action_spec(
+            ActionType.CardBottle,
+            ArgSpec("idx_kind", "CardKind discriminant of the pending bottle"),
+            ArgSpec("idx_card", _DECK_POS),
+        ),
         create_action_spec(ActionType.CardDiscover, ArgSpec("idx", _DISCOVER_POS)),
         create_action_spec(
             ActionType.CardPlay,
@@ -124,7 +131,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.CardTransform, ArgSpec("idx", _DECK_POS)),
         create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
         create_action_spec(
-            ActionType.EventOptionSelect, ArgSpec("idx", "position in state.mode.options")
+            ActionType.EventOptionSelect, ArgSpec("idx", "position in state.mode_stack[-1].options")
         ),
         # Hand-pick family (resolves a hand-pick halt)
         create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS)),
@@ -143,13 +150,23 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.Rest),
+        create_action_spec(ActionType.RestDig),
+        create_action_spec(ActionType.RestLift),
+        create_action_spec(ActionType.RestToke),
         # Reward pickup family
-        create_action_spec(ActionType.RewardTakeCard, ArgSpec("idx", _REWARD_POS)),
+        create_action_spec(
+            ActionType.RewardSingingBowl, ArgSpec("idx_bundle", _REWARD_BUNDLE_POS)
+        ),
+        create_action_spec(
+            ActionType.RewardTakeCard,
+            ArgSpec("idx_bundle", _REWARD_BUNDLE_POS),
+            ArgSpec("idx_card", _REWARD_POS),
+        ),
         create_action_spec(ActionType.RewardTakeGold),
         create_action_spec(
             ActionType.RewardTakePotion, ArgSpec("idx", _REWARD_POTION_POS)
         ),
-        create_action_spec(ActionType.RewardTakeRelic),
+        create_action_spec(ActionType.RewardTakeRelic, ArgSpec("idx", _REWARD_RELIC_POS)),
         create_action_spec(ActionType.RoomSelect, ArgSpec("idx", _MAP_COL)),
         create_action_spec(ActionType.RoomExit),
         # Shop
@@ -189,6 +206,7 @@ EffectDamagePhysical = _rs.EffectDamagePhysical
 EffectDamagePhysicalIfPoisoned = _rs.EffectDamagePhysicalIfPoisoned
 EffectHeelHookProc = _rs.EffectHeelHookProc
 EffectEscapePlanCheck = _rs.EffectEscapePlanCheck
+EffectCardBottle = _rs.EffectCardBottle
 EffectGlassKnifeDecay = _rs.EffectGlassKnifeDecay
 EffectCardSetupPick = _rs.EffectCardSetupPick
 EffectCardNightmarePick = _rs.EffectCardNightmarePick
@@ -241,13 +259,13 @@ EffectCardDuplicate = _rs.EffectCardDuplicate
 EffectCardTransform = _rs.EffectCardTransform
 EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
 EffectGamble = _rs.EffectGamble
-EffectLiquidMemories = _rs.EffectLiquidMemories
 EffectCombatEnd = _rs.EffectCombatEnd
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
     | EffectHeelHookProc
     | EffectEscapePlanCheck
+    | EffectCardBottle
     | EffectGlassKnifeDecay
     | EffectCardSetupPick
     | EffectCardNightmarePick
@@ -300,7 +318,6 @@ Effect = (
     | EffectCardTransform
     | EffectCardPlayFromDrawTop
     | EffectGamble
-    | EffectLiquidMemories
     | EffectCombatEnd
 )
 CandidatePoolHand = _rs.CandidatePoolHand
@@ -530,6 +547,7 @@ __all__ = [
     "EffectDamagePhysicalIfPoisoned",
     "EffectHeelHookProc",
     "EffectEscapePlanCheck",
+    "EffectCardBottle",
     "EffectGlassKnifeDecay",
     "EffectCardSetupPick",
     "EffectCardNightmarePick",
@@ -582,7 +600,6 @@ __all__ = [
     "EffectCardTransform",
     "EffectCardPlayFromDrawTop",
     "EffectGamble",
-    "EffectLiquidMemories",
     "EffectCombatEnd",
     "Amount",
     "AmountAbsolute",

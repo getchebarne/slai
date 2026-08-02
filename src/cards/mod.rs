@@ -29,6 +29,7 @@ mod cloak_and_dagger;
 mod concentrate;
 mod corpse_explosion;
 mod crippling_poison;
+mod curse_of_the_bell;
 mod dagger_spray;
 mod dagger_throw;
 mod dark_shackles;
@@ -311,6 +312,7 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         (CardName::WraithForm, false) => wraith_form::WRAITH_FORM,
         (CardName::WraithForm, true) => wraith_form::WRAITH_FORM_PLUS,
         (CardName::AscendersBane, _) => ascenders_bane::ASCENDERS_BANE,
+        (CardName::CurseOfTheBell, _) => curse_of_the_bell::CURSE_OF_THE_BELL,
         (CardName::Regret, _) => regret::REGRET,
         (CardName::Pain, _) => pain::PAIN,
         (CardName::Doubt, _) => doubt::DOUBT,
@@ -509,8 +511,9 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &secret_weapon::SECRET_WEAPON,
     &the_bomb::THE_BOMB,
     &violence::VIOLENCE,
+    &curse_of_the_bell::CURSE_OF_THE_BELL,
 ];
-// Assert all cards are included without duplicates
+// Assert all Cards are included without duplicates
 const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);
 const _: () = {
     let mut seen = [false; CardName::COUNT];
@@ -562,7 +565,10 @@ const fn count_pool(rarity: CardRarity, color: CardColor) -> usize {
         {
             // AscendersBane is Curse-rarity but Neow-only; skip
             if matches!(rarity, CardRarity::Curse)
-                && matches!(card.card_name, CardName::AscendersBane)
+                && matches!(
+                    card.card_name,
+                    CardName::AscendersBane | CardName::CurseOfTheBell
+                )
             {
                 idx += 1;
                 continue;
@@ -585,7 +591,10 @@ const fn build_pool<const N: usize>(rarity: CardRarity, color: CardColor) -> [Ca
             && (matches!(rarity, CardRarity::Curse) || is_rewardable_kind(card.card_kind))
         {
             // AscendersBane is Curse-rarity but Neow-only; skip
-            if matches!(card.card_name, CardName::AscendersBane) {
+            if matches!(
+                card.card_name,
+                CardName::AscendersBane | CardName::CurseOfTheBell
+            ) {
                 idx_all += 1;
                 continue;
             }
@@ -627,7 +636,7 @@ pub const POOL_RARE_COLORLESS_CARD: &[CardName] =
 pub const POOL_CURSE_CARD: &[CardName] =
     &build_pool::<NUM_CURSE>(CardRarity::Curse, CardColor::Curse);
 
-// Pick `count` distinct cards from the full set, filtered by color and (when given) kind/rarity
+// Pick `count` distinct Cards from the full set, filtered by color and (when given) kind/rarity
 pub fn get_random_cards(
     color: CardColor,
     kind: Option<CardKind>,

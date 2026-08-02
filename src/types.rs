@@ -57,8 +57,8 @@ pub enum Mode {
     },
     CombatEnded,
     Reward {
-        reward_id_cards: Vec<usize>,
-        reward_id_relic: Option<usize>,
+        reward_id_cards: Vec<Vec<usize>>,
+        reward_id_relics: Vec<usize>,
         reward_id_potions: Vec<usize>,
         reward_gold: Option<u16>,
     },
@@ -67,7 +67,6 @@ pub enum Mode {
         consumed: bool,
         id_options: Vec<usize>,
     },
-    // Stock prices live on the entities; per-visit purge cost (run ramp lives on GameState)
     Shop {
         shop_id_cards: Vec<usize>,
         shop_id_relics: Vec<usize>,
@@ -226,6 +225,7 @@ pub enum CardName {
     SecretWeapon,
     TheBomb,
     Violence,
+    CurseOfTheBell,
 }
 
 // Lifetime of a cost override; Combat writes the base cost and is never stored on the entity
@@ -236,7 +236,7 @@ pub enum CostScope {
     UntilPlayed,
 }
 
-// Destination for card spawns and moves
+// Destination for Card spawns and moves
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CardPile {
     Hand,
@@ -558,10 +558,47 @@ pub enum RelicName {
     NlothsHungryFace,
     SsserpentHead,
     OddMushroom,
+    PhilosopherStone,
+    CoffeeDripper,
+    FusionHammer,
+    Sozu,
+    CursedKey,
+    BustedCrown,
+    SlaversCollar,
+    Ectoplasm,
+    VelvetChoker,
+    WristBlade,
+    HoveringKite,
+    DreamCatcher,
+    Cauldron,
+    MembershipCard,
+    TheCourier,
+    GamblingChip,
+    BottledFlame,
+    BottledLightning,
+    BottledTornado,
+    Matryoshka,
+    Orrery,
+    Toolbox,
+    SneckoEye,
+    Astrolabe,
+    CallingBell,
+    TinyHouse,
+    BlackStar,
+    Girya,
+    PeacePipe,
+    Shovel,
+    WingBoots,
+    QuestionCard,
+    SingingBowl,
+    PrayerWheel,
+    RunicPyramid,
+    RingOfTheSerpent,
+    SacredBark,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {
-    assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
+    assert!((v as usize) < RelicName::COUNT, "Invalid RelicName: {v}");
     // SAFETY: repr(u8) and we validated the range
     unsafe { std::mem::transmute(v) }
 }

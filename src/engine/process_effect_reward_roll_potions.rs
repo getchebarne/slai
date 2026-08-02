@@ -2,13 +2,15 @@ use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
 use crate::types::Mode;
+use crate::utils::mode_replace;
+use crate::utils::mode_top;
 use crate::utils::push_entity;
 
-// Stage `count` rolled potions on the reward screen (The Lab, The Woman in Blue)
+// Stage `count` rolled Potions on the reward screen (The Lab, The Woman in Blue)
 pub fn process_effect_reward_roll_potions(state: &mut GameState, count: u8) {
     // Reward memory dies with its mode; nothing may be staged here
     assert!(
-        !matches!(state.mode, Mode::Reward { .. }),
+        !matches!(mode_top(&state.mode_stack), Mode::Reward { .. }),
         "RewardRollPotions with rewards already staged"
     );
 
@@ -20,10 +22,13 @@ pub fn process_effect_reward_roll_potions(state: &mut GameState, count: u8) {
         id_potions.push(id);
     }
 
-    state.mode = Mode::Reward {
-        reward_id_cards: Vec::new(),
-        reward_id_relic: None,
-        reward_id_potions: id_potions,
-        reward_gold: None,
-    };
+    mode_replace(
+        &mut state.mode_stack,
+        Mode::Reward {
+            reward_id_cards: Vec::new(),
+            reward_id_relics: Vec::new(),
+            reward_id_potions: id_potions,
+            reward_gold: None,
+        },
+    );
 }

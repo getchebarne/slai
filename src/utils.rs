@@ -5,6 +5,7 @@ use crate::cards::POOL_COMMON_GREEN_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
+use crate::consts::CARD_REWARD_BASE_COUNT;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
@@ -16,7 +17,11 @@ use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_SIZE_HAND;
+use crate::effect::Amount;
 use crate::effect::CandidateFilter;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
@@ -32,6 +37,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
+use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
 
@@ -40,6 +46,43 @@ pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
     while let Some(e) = state.effect_buf.pop() {
         state.effect_queue.push_front(e);
     }
+}
+
+// The stack is never empty: `Mode::Map` is the permanent bottom frame
+pub fn mode_top(mode_stack: &[Mode]) -> &Mode {
+    mode_stack.last().expect("Mode stack never empty")
+}
+
+pub fn mode_top_mut(mode_stack: &mut [Mode]) -> &mut Mode {
+    mode_stack.last_mut().expect("Mode stack never empty")
+}
+
+// Swap the active frame for a new one; its memory dies with it
+pub fn mode_replace(mode_stack: &mut [Mode], mode: Mode) {
+    *mode_top_mut(mode_stack) = mode;
+}
+
+// Max HP first so the heal lands under the new ceiling
+pub fn increase_max_hp(state: &mut GameState, id_character: usize, amount: u16) {
+    // Executes in reverse:
+    //     1. MaxHealthDelta
+    //     2. HealthDelta
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::HealthDelta {
+            sign: DeltaSign::Gain,
+            amount: Amount::Absolute(amount),
+        },
+        id_source: None,
+        target: Target::Direct(Some(id_character)),
+    });
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::MaxHealthDelta {
+            sign: DeltaSign::Gain,
+            amount: Amount::Absolute(amount),
+        },
+        id_source: None,
+        target: Target::Direct(Some(id_character)),
+    });
 }
 
 // Append an Entity to the arena; returns the assigned id
@@ -73,11 +116,18 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
     if entity.kind != EntityKind::Card {
         return false;
     }
-    !matches!(entity.card_name, CardName::AscendersBane)
+    // Bottled Cards can't be removed or transformed while bottled
+    if entity.card_bottled {
+        return false;
+    }
+    !matches!(
+        entity.card_name,
+        CardName::AscendersBane | CardName::CurseOfTheBell
+    )
 }
 use card_is_purgeable as card_is_transformable;
 
-// Single source of truth for which cards a CandidatePoolCardFilter admits (deck or hand pools)
+// Single source of truth for which Cards a CandidatePoolCardFilter admits (deck or hand pools)
 // One filter for every Resolve. Entity predicates are total over the fat Entity;
 // Picked / NotSource compare `id` against the resolve context instead
 pub fn candidate_matches(
@@ -97,6 +147,7 @@ pub fn candidate_matches(
         }
         CandidateFilter::KindAttack => entity.card_kind == CardKind::Attack,
         CandidateFilter::KindSkill => entity.card_kind == CardKind::Skill,
+        CandidateFilter::KindPower => entity.card_kind == CardKind::Power,
         CandidateFilter::Costed => {
             !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
                 && entity.card_cost > 0
@@ -111,19 +162,20 @@ pub fn candidate_matches(
 }
 
 // Insert an entity id into `pile`; Hand overflows to discard, Draw inserts at a random position
-pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) {
+// Returns false when a full hand rerouted the Card to the discard pile
+pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool {
     if pile == CardPile::Deck {
         state.id_deck.push(id_card);
-        return;
+        return true;
     }
     let Mode::Combat {
         id_hand,
         id_pile_draw,
         id_pile_discard,
         ..
-    } = &mut state.mode
+    } = mode_top_mut(&mut state.mode_stack)
     else {
-        unreachable!("combat pile placement outside Combat mode")
+        unreachable!("Combat pile placement outside Combat mode")
     };
     match pile {
         CardPile::Hand => {
@@ -131,6 +183,7 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) {
                 id_hand.push(id_card);
             } else {
                 id_pile_discard.push(id_card);
+                return false;
             }
         }
         CardPile::Draw => {
@@ -140,9 +193,10 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) {
         CardPile::Discard => id_pile_discard.push(id_card),
         CardPile::Deck => unreachable!(),
     }
+    true
 }
 
-// Remove the id from whichever combat pile holds it; played cards are pile-less (no-op)
+// Remove the id from whichever combat pile holds it; played Cards are pile-less (no-op)
 pub fn detach_card(mode: &mut Mode, id_card: usize) {
     let Mode::Combat {
         id_hand,
@@ -177,14 +231,14 @@ pub fn reshuffle_discard_into_draw(
     shuffle(&mut id_pile_draw[..], rng);
 }
 
-// Queue rest in Combat means the player is about to act; a drawable card ends the loop
+// Unceasing Top: queue rest in Combat means the player is about to act; a drawable Card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
     let Mode::Combat {
         id_hand,
         id_pile_draw,
         id_pile_discard,
         ..
-    } = &state.mode
+    } = mode_top(&state.mode_stack)
     else {
         return false;
     };
@@ -227,7 +281,7 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
-// Shared by the live block pipeline and the FFI card preview
+// Shared by the live block pipeline and the FFI Card preview
 pub fn scale_block_gain(base: u16, dex_stacks: i16, frail: bool) -> u16 {
     let mut value = base as f32 + dex_stacks as f32;
     if frail {
@@ -255,16 +309,16 @@ pub fn pick_relic_by_roll(
     rng: &mut impl Rng,
 ) -> RelicName {
     if roll < th_common {
-        pick_from_pool(POOL_COMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
-            .or_else(|| pick_from_pool(POOL_RARE_RELIC, id_relics, rng))
+        pick_relic_from_pool(POOL_COMMON_RELIC, id_relics, rng)
+            .or_else(|| pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
+            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
             .unwrap_or(RelicName::Circlet)
     } else if roll < th_uncommon {
-        pick_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_from_pool(POOL_RARE_RELIC, id_relics, rng))
+        pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng)
+            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
             .unwrap_or(RelicName::Circlet)
     } else {
-        pick_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
     }
 }
 
@@ -281,42 +335,56 @@ pub fn add_relic_reward_for_roll(
     push_entity(entities, get_relic(name))
 }
 
-pub fn pick_from_pool(
+pub fn pick_relic_from_pool(
     pool: &[RelicName],
     id_relics: &[Option<usize>; RelicName::COUNT],
     rng: &mut impl Rng,
 ) -> Option<RelicName> {
     let mut candidates = [RelicName::SnakeRing; RelicName::COUNT];
-    let mut n = 0;
+    let mut num = 0;
     for &name in pool {
         if id_relics[name as usize].is_none() {
-            candidates[n] = name;
-            n += 1;
+            candidates[num] = name;
+            num += 1;
         }
     }
-    if n == 0 {
+    if num == 0 {
         None
     } else {
-        Some(candidates[rng.random_range(0..n)])
+        Some(candidates[rng.random_range(0..num)])
     }
 }
 
-// Roll MAX_COMBAT_CARD_REWARD distinct cards; pity-bumps reward_roll_offset toward rares
+// Question Card +1 and Busted Crown -2 fold over the base of 3
+pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize {
+    let mut count = CARD_REWARD_BASE_COUNT;
+    if has_relic(id_relics, RelicName::QuestionCard) {
+        count += 1;
+    }
+    if has_relic(id_relics, RelicName::BustedCrown) {
+        count = count.saturating_sub(2);
+    }
+    count
+}
+
+// Roll `count` distinct Cards (count <= MAX_COMBAT_CARD_REWARD); pity-bumps reward_roll_offset toward rares
 pub fn roll_card_rewards(
     id_character: usize,
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     out: &mut Vec<usize>,
     id_relics: &[Option<usize>; RelicName::COUNT],
+    count: usize,
 ) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut rolled_card_names: [CardName; MAX_COMBAT_CARD_REWARD] =
         [CardName::Strike; MAX_COMBAT_CARD_REWARD];
 
     out.clear();
-    for _ in 0..MAX_COMBAT_CARD_REWARD {
+    for _ in 0..count {
         let roll = rng.random_range(0i32..99) + character_reward_roll_offset as i32;
         let (pool, rarity) = roll_card_reward_pool_green(roll);
+
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
         match rarity {
             CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,

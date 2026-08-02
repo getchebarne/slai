@@ -6,10 +6,11 @@ use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
-// Discard the entire hand, then add 1 Shiv per discarded card
+// Discard the entire hand, then add 1 Shiv per discarded Card
 pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool) {
-    let Mode::Combat { id_hand, .. } = &mut state.mode else {
+    let Mode::Combat { id_hand, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("process_effect_storm_of_steel_proc outside Combat mode")
     };
 
@@ -28,7 +29,7 @@ pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool)
         target: Target::Direct(None),
     });
 
-    // Discard the current cards
+    // Discard the current Cards
     for i in 0..id_hand.len() {
         let id_card = id_hand[i];
         state.effect_queue.push_front(Effect {

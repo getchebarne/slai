@@ -5,6 +5,7 @@ pub mod process_effect_bonfire_offer;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
 pub mod process_effect_card_adopt;
+pub mod process_effect_card_bottle;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_roll;
@@ -40,6 +41,7 @@ pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
 pub mod process_effect_face_trade;
 pub mod process_effect_gamble;
+pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
@@ -48,7 +50,6 @@ pub mod process_effect_health_delta;
 pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
-pub mod process_effect_liquid_memories_pick;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
@@ -69,6 +70,7 @@ pub mod process_effect_relic_adopt;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
 pub mod process_effect_rest_site_consume;
+pub mod process_effect_reward_roll_cards;
 pub mod process_effect_reward_roll_chest;
 pub mod process_effect_reward_roll_combat;
 pub mod process_effect_reward_roll_potions;
@@ -84,6 +86,7 @@ pub mod process_effect_shop_buy_potion;
 pub mod process_effect_shop_buy_relic;
 pub mod process_effect_shop_purge;
 pub mod process_effect_shuffle_discard_pile_into_draw_pile;
+pub mod process_effect_singing_bowl_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_target_clear;
@@ -92,6 +95,9 @@ pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
+
+// Shared shop-stock machinery (not a processor)
+mod shop;
 
 use std::collections::VecDeque;
 
@@ -111,6 +117,7 @@ use crate::map::room_at;
 use crate::types::Mode;
 use crate::types::RoomKind;
 use crate::utils::candidate_matches;
+use crate::utils::mode_top;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -290,17 +297,18 @@ fn resolve_or_halt(
 ) -> bool {
     // Stage 1: the pool enumerates
     state.effect_candidate_buf.clear();
+    let mode = mode_top(&state.mode_stack);
     fill_buf_candidates(
         &mut state.effect_candidate_buf,
         candidate_pool,
         id_source,
         state.id_character,
-        &state.mode,
+        mode,
         &state.id_deck,
     );
 
     // Stage 2: the filter retains
-    let id_picked_monster = match &state.mode {
+    let id_picked_monster = match mode {
         Mode::Combat {
             id_picked_monster, ..
         } => *id_picked_monster,
@@ -377,8 +385,8 @@ fn dispatch_by_kind(
         EffectKind::CardDiscard { source } => {
             process_effect_card_discard::process_effect_card_discard(id_target, state, source)
         }
-        EffectKind::CardMove { pile } => {
-            process_effect_card_move::process_effect_card_move(id_target, state, pile)
+        EffectKind::CardMove { pile, cost_zero } => {
+            process_effect_card_move::process_effect_card_move(id_target, state, pile, cost_zero)
         }
         EffectKind::DamageMindBlast => {
             process_effect_damage_mind_blast::process_effect_damage_mind_blast(
@@ -417,7 +425,14 @@ fn dispatch_by_kind(
         EffectKind::BonfireOffer => {
             process_effect_bonfire_offer::process_effect_bonfire_offer(id_target, state)
         }
+        EffectKind::CardBottle => {
+            process_effect_card_bottle::process_effect_card_bottle(id_target, state)
+        }
         EffectKind::FaceTrade => process_effect_face_trade::process_effect_face_trade(state),
+        EffectKind::GiryaLift => process_effect_girya_lift::process_effect_girya_lift(state),
+        EffectKind::SingingBowlProc { idx_bundle } => {
+            process_effect_singing_bowl_proc::process_effect_singing_bowl_proc(state, idx_bundle)
+        }
         EffectKind::WheelSpin => process_effect_wheel_spin::process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => {
             process_effect_card_upgrade::process_effect_card_upgrade(id_target, state)
@@ -438,6 +453,9 @@ fn dispatch_by_kind(
         ),
         EffectKind::RewardRollPotions { count } => {
             process_effect_reward_roll_potions::process_effect_reward_roll_potions(state, count)
+        }
+        EffectKind::RewardRollCards => {
+            process_effect_reward_roll_cards::process_effect_reward_roll_cards(state)
         }
         EffectKind::RewardRollChest { kind } => {
             process_effect_reward_roll_chest::process_effect_reward_roll_chest(state, kind);
@@ -615,8 +633,8 @@ fn dispatch_by_kind(
         EffectKind::CardDuplicate => {
             process_effect_card_duplicate::process_effect_card_duplicate(id_target, state)
         }
-        EffectKind::CardTransform => {
-            process_effect_card_transform::process_effect_card_transform(id_target, state)
+        EffectKind::CardTransform { upgraded } => {
+            process_effect_card_transform::process_effect_card_transform(id_target, state, upgraded)
         }
         EffectKind::CardAdopt => {
             process_effect_card_adopt::process_effect_card_adopt(id_target, state)
@@ -654,9 +672,14 @@ fn dispatch_by_kind(
         EffectKind::PotionAdopt => {
             process_effect_potion_adopt::process_effect_potion_adopt(id_target, state)
         }
-        EffectKind::CardDiscoverRoll { kind, color, count } => {
+        EffectKind::CardDiscoverRoll {
+            kind,
+            color,
+            exclude,
+            count,
+        } => {
             process_effect_card_discover_roll::process_effect_card_discover_roll(
-                state, kind, color, count,
+                state, kind, color, exclude, count,
             );
         }
         EffectKind::Gamble {
@@ -667,11 +690,6 @@ fn dispatch_by_kind(
                 state,
                 choose_discards,
                 discards_before,
-            )
-        }
-        EffectKind::LiquidMemories => {
-            process_effect_liquid_memories_pick::process_effect_liquid_memories_pick(
-                id_target, state,
             )
         }
         EffectKind::RelicGrantRandom => {
@@ -704,8 +722,10 @@ fn dispatch_by_kind(
         EffectKind::EventConsume => {
             process_effect_event_consume::process_effect_event_consume(state)
         }
-        EffectKind::CardDiscoverPick => {
-            process_effect_card_discover_pick::process_effect_card_discover_pick(id_target, state)
+        EffectKind::CardDiscoverPick { cost_zero } => {
+            process_effect_card_discover_pick::process_effect_card_discover_pick(
+                id_target, state, cost_zero,
+            )
         }
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }
@@ -744,7 +764,36 @@ fn ensure_mode_validity(state: &GameState) {
         Location::Overworld { y, x } => room_at(&state.id_rooms, &state.entities, y, x),
         _ => None,
     };
-    let ok = match &state.mode {
+    // Stack shape: Map is the permanent bottom frame; the only 3-frame stack is
+    // Orrery's Reward suspended over its Shop
+    let stack = &state.mode_stack;
+    assert!(
+        !stack.is_empty() && matches!(stack[0], Mode::Map),
+        "Mode stack must rest on Map: {:?}",
+        stack
+    );
+    assert!(
+        !stack[1..].iter().any(|mode| matches!(mode, Mode::Map)),
+        "Map may only be the bottom frame: {:?}",
+        stack
+    );
+    assert!(
+        stack.len() <= 3,
+        "Mode stack deeper than Orrery-over-Shop: {:?}",
+        stack
+    );
+    if stack.len() == 3 {
+        assert!(
+            matches!(stack[1], Mode::Shop { .. }) && matches!(stack[2], Mode::Reward { .. }),
+            "3-frame stack must be [Map, Shop, Reward]: {:?}",
+            stack
+        );
+    }
+
+    // The room-owning frame answers to the room; overlays above it (Orrery's
+    // Reward over Shop) answer to the shape rows instead
+    let frame_room = &stack[(stack.len() - 1).min(1)];
+    let ok = match frame_room {
         // Map doubles as the between-rooms state; nothing to cross-check
         Mode::Map => true,
         Mode::RestSite => room_kind == Some(RoomKind::RestSite),
@@ -769,6 +818,7 @@ fn ensure_mode_validity(state: &GameState) {
                     | RoomKind::Unknown
             )
         ),
+        // RestSite: Dream Catcher's rest reward
         Mode::Reward { .. } => matches!(
             room_kind,
             Some(
@@ -776,13 +826,14 @@ fn ensure_mode_validity(state: &GameState) {
                     | RoomKind::CombatElite
                     | RoomKind::EventRoom
                     | RoomKind::Treasure
+                    | RoomKind::RestSite
                     | RoomKind::Unknown
             )
         ),
     };
     assert!(
         ok,
-        "mode {:?} inconsistent with room kind {:?} at {:?}",
-        state.mode, room_kind, state.location
+        "Mode {:?} inconsistent with room kind {:?} at {:?}",
+        frame_room, room_kind, state.location
     );
 }

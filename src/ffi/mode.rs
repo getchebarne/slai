@@ -83,8 +83,8 @@ pub struct PyModeCombat {
 )]
 #[derive(Debug, Clone)]
 pub struct PyModeReward {
-    pub cards: Vec<PyCard>,
-    pub relic: Option<PyRelic>,
+    pub cards: Vec<Vec<PyCard>>,
+    pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
 }
@@ -170,8 +170,8 @@ impl PyEnergy {
     }
 }
 
-pub(crate) fn snapshot_mode(state: &GameState) -> PyMode {
-    match &state.mode {
+pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {
+    match mode {
         Mode::Map => PyMode::Map(PyModeMap),
         Mode::RestSite => PyMode::RestSite(PyModeRestSite),
         Mode::Chest => PyMode::Chest(PyModeChest),
@@ -213,15 +213,18 @@ pub(crate) fn snapshot_mode(state: &GameState) -> PyMode {
         }),
         Mode::Reward {
             reward_id_cards,
-            reward_id_relic,
+            reward_id_relics,
             reward_id_potions,
             reward_gold,
         } => PyMode::Reward(PyModeReward {
             cards: reward_id_cards
                 .iter()
-                .map(|&id| snapshot_card(state, id))
+                .map(|bundle| bundle.iter().map(|&id| snapshot_card(state, id)).collect())
                 .collect(),
-            relic: reward_id_relic.map(|id| snapshot_relic(&state.entities[id])),
+            relics: reward_id_relics
+                .iter()
+                .map(|&id| snapshot_relic(&state.entities[id]))
+                .collect(),
             potions: reward_id_potions
                 .iter()
                 .map(|&id| snapshot_potion(&state.entities[id]))

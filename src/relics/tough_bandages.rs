@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Manually discarding a card grants 3 block
+// Manually discarding a Card grants 3 block
 // See:
 //    - `process_effect_card_discard.rs`
 pub static TOUGH_BANDAGES: Entity =

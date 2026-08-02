@@ -13,7 +13,7 @@ use crate::game::GameState;
 // Pray
 const OPTION_PRAY: &[Effect] = &[
     Effect {
-        kind: EffectKind::CardTransform,
+        kind: EffectKind::CardTransform { upgraded: false },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,

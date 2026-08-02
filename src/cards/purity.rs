@@ -46,7 +46,7 @@ pub static PURITY_PLUS: Entity = Entity {
         a[0].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,
             filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::InputUpTo { count: 5 }, // +2 cards
+            selection_kind: SelectionKind::InputUpTo { count: 5 }, // +2 Cards
         };
         a
     },

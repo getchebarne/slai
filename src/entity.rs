@@ -40,7 +40,7 @@ pub enum EntityKind {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlayRestriction {
-    Always,        // Standard cards. Playable iff the energy cost is met
+    Always,        // Standard Cards. Playable iff the energy cost is met
     Never,         // Permanently unplayable (curses, statuses, Reflex, Tactician, etc.)
     DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
 }
@@ -96,7 +96,7 @@ pub const ZERO_MOVE: Move = Move {
 pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
     assert!(
         effects.len() <= MAX_EFFECTS_PER_MOVE,
-        "move effects exceeds MAX_EFFECTS_PER_MOVE",
+        "Move effects exceeds MAX_EFFECTS_PER_MOVE",
     );
     let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
     let mut i = 0;
@@ -117,7 +117,7 @@ pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -
 pub struct Entity {
     pub kind: EntityKind,
 
-    // Combatant — Character, Monster
+    // Combatant: Character or Monster
     pub vitals: Vitals,
     pub modifiers: Modifiers,
     pub dead: bool,
@@ -151,11 +151,10 @@ pub struct Entity {
     pub card_exhaust: bool,
     pub card_ethereal: bool,
     pub card_innate: bool,
+    pub card_bottled: bool,
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
-
     pub card_cost_kind: CardCostKind,
-    // Paired amount+lifetime; Turn clears at turn end, UntilPlayed clears on play
     pub card_cost_override: Option<CostOverride>,
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
@@ -220,6 +219,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     card_exhaust: false,
     card_ethereal: false,
     card_innate: false,
+    card_bottled: false,
     requires_target: false,
     card_retain: false,
     card_play_restriction: PlayRestriction::Always,

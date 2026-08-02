@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// The shop card-removal service always costs 50 gold
+// The shop Card-removal service always costs 50 gold
 // See:
 //    - `process_effect_shop_build.rs`
 pub static SMILING_MASK: Entity =

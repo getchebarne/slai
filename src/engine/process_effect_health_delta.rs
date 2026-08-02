@@ -18,6 +18,8 @@ use crate::types::Mode;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_health_delta(
     id_target: Option<usize>,
@@ -100,7 +102,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     // Centennial Puzzle: the first actual HP loss each combat draws 3
     if id_target == state.id_character
         && amount > 0
-        && matches!(state.mode, Mode::Combat { .. })
+        && matches!(mode_top(&state.mode_stack), Mode::Combat { .. })
         && let Some(id_relic) = state.id_relics[RelicName::CentennialPuzzle as usize]
         && state.entities[id_relic].relic_counter == 0
     {
@@ -118,7 +120,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         && let Mode::Combat {
             this_combat_damage_instances_taken,
             ..
-        } = &mut state.mode
+        } = mode_top_mut(&mut state.mode_stack)
     {
         *this_combat_damage_instances_taken = this_combat_damage_instances_taken.saturating_add(1);
     }

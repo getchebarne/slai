@@ -19,6 +19,7 @@ pub static POTION_COLORLESS: Entity = make_entity_potion(
             kind: EffectKind::CardDiscoverRoll {
                 kind: None,
                 color: CardColor::Colorless,
+                exclude: &[],
                 count: DISCOVER_PICK_COUNT,
             },
             id_source: None,

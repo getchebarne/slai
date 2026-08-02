@@ -16,16 +16,18 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool) {
     // Capture provenance, then drop the combat: teardown is the variant swap
+    let mode = mode_top_mut(&mut state.mode_stack);
     let Mode::Combat {
         this_combat_escaped,
         event_gold,
         event_relic,
         event_relic_roll,
         ..
-    } = &state.mode
+    } = &*mode
     else {
         unreachable!("CombatEnd outside Combat mode")
     };
@@ -33,7 +35,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     let event_gold = *event_gold;
     let event_relic = *event_relic;
     let event_relic_roll = *event_relic_roll;
-    state.mode = Mode::CombatEnded;
+    *mode = Mode::CombatEnded;
 
     // Combat modifiers don't persist. Only the Character outlives the fight;
     // monster corpses are unreachable once the roster drops with the variant
@@ -59,12 +61,16 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             // Granted directly: game_over halts the queue before a GoldDelta would run
             let roll = state.rng.random_range(GOLD_BOSS_MIN..=GOLD_BOSS_MAX);
             let amount = if state.ascension >= 13 {
-                (roll * 3 + 2) / 4 // ×0.75 rounded half-up
+                (roll * 3 + 2) / 4 // x0.75 rounded half-up
             } else {
                 roll
             };
-            let gold = &mut state.entities[state.id_character].character_gold;
-            *gold = gold.saturating_add(amount).min(MAX_GOLD);
+
+            // Ectoplasm: no gold gain (roll still consumed for RNG parity with the source game)
+            if !has_relic(&state.id_relics, RelicName::Ectoplasm) {
+                let gold = &mut state.entities[state.id_character].character_gold;
+                *gold = gold.saturating_add(amount).min(MAX_GOLD);
+            }
         }
         RoomKind::CombatMonster
         | RoomKind::CombatElite

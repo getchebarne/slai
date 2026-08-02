@@ -10,6 +10,7 @@ use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top;
 use crate::utils::scale_attack_damage;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
@@ -315,7 +316,7 @@ impl MonsterEncounter {
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
-    let Mode::Combat { id_monsters, .. } = &state.mode else {
+    let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack) else {
         return Vec::new();
     };
     let character = &state.entities[state.id_character];

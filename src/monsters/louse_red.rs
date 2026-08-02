@@ -114,7 +114,7 @@ static MOVE_STRENGTHEN_4: Move = make_move(
     Intent::Buff,
 );
 
-// 9 move tables: 3 asc brackets × 3 bite values (5/6/7 at Asc 0-1, 6/7/8 at Asc 2+)
+// 9 move tables: 3 asc brackets x 3 bite values (5/6/7 at Asc 0-1, 6/7/8 at Asc 2+)
 static MOVES_ASC0_BITE5: [Move; 2] = [MOVE_BITE_5, MOVE_STRENGTHEN_3];
 static MOVES_ASC0_BITE6: [Move; 2] = [MOVE_BITE_6, MOVE_STRENGTHEN_3];
 static MOVES_ASC0_BITE7: [Move; 2] = [MOVE_BITE_7, MOVE_STRENGTHEN_3];

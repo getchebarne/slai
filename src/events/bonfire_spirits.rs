@@ -8,7 +8,7 @@ use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 
-// Offer: pick a card to purge. An empty purgeable pool auto-resolves to nothing
+// Offer: pick a Card to purge. An empty purgeable pool auto-resolves to nothing
 const OPTION_OFFER: &[Effect] = &[
     Effect {
         kind: EffectKind::BonfireOffer,

@@ -2,13 +2,14 @@ use crate::consts::NIGHTMARE_COPIES;
 use crate::game::GameState;
 use crate::types::CardPile;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 use crate::utils::place_card;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_nightmare_spawn(state: &mut GameState) {
     let Mode::Combat {
         id_card_nightmare, ..
-    } = &mut state.mode
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_card_nightmare_spawn outside Combat mode")
     };

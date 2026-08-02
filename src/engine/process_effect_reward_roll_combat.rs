@@ -21,7 +21,9 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::add_relic_reward_for_roll;
+use crate::utils::card_reward_count;
 use crate::utils::has_relic;
+use crate::utils::mode_replace;
 use crate::utils::push_entity;
 use crate::utils::roll_card_rewards;
 
@@ -53,7 +55,7 @@ pub fn process_effect_reward_roll_combat(
             None,
         ),
         RoomKind::EventRoom => (
-            Some(event_gold.expect("event fight without stamped loot")),
+            Some(event_gold.expect("Event fight without stamped loot")),
             event_relic_roll.then_some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
             event_relic,
         ),
@@ -63,45 +65,80 @@ pub fn process_effect_reward_roll_combat(
         ),
     };
 
+    // Prayer Wheel: adds a second bundle on normal fights
+    let bundle_count = if room_kind == RoomKind::CombatMonster
+        && has_relic(&state.id_relics, RelicName::PrayerWheel)
+    {
+        2
+    } else {
+        1
+    };
+
     // Roll Cards
-    let mut id_cards: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
-    roll_card_rewards(
-        state.id_character,
-        &mut state.entities,
-        &mut state.rng,
-        &mut id_cards,
-        &state.id_relics,
-    );
+    let cards_per_bundle = card_reward_count(&state.id_relics);
+    let mut id_card_bundles: Vec<Vec<usize>> = Vec::with_capacity(bundle_count);
+    for _ in 0..bundle_count {
+        let mut id_cards: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
+        roll_card_rewards(
+            state.id_character,
+            &mut state.entities,
+            &mut state.rng,
+            &mut id_cards,
+            &state.id_relics,
+            cards_per_bundle,
+        );
+        id_card_bundles.push(id_cards);
+    }
 
     // Roll Relic (only for Elite combats)
-    let mut id_relic = relic_thresholds.map(|(th_common, th_uncommon)| {
-        let roll = state.rng.random_range(0..100) as u8;
-        add_relic_reward_for_roll(
-            roll,
+    let mut id_relics_reward: Vec<usize> = Vec::new();
+    if let Some((th_common, th_uncommon)) = relic_thresholds {
+        let id_relic_1 = add_relic_reward_for_roll(
+            state.rng.random_range(0..100) as u8,
             th_common,
             th_uncommon,
             &state.id_relics,
             &mut state.entities,
             &mut state.rng,
-        )
-    });
+        );
+        id_relics_reward.push(id_relic_1);
 
-    // Event-injected relic; Circlet substitutes when it is already owned
+        // Black Star: elites drop a second Relic with an independent tier roll
+        if has_relic(&state.id_relics, RelicName::BlackStar) {
+            // Snapshot currently-owned Relics
+            let mut id_relic_aux = state.id_relics;
+
+            // Set first rolled Relic as if owned
+            id_relic_aux[state.entities[id_relic_1].relic_name as usize] = Some(id_relic_1);
+
+            // Roll second Relic using the auxiliary snapshot that already includes the first roll
+            id_relics_reward.push(add_relic_reward_for_roll(
+                state.rng.random_range(0..100) as u8,
+                th_common,
+                th_uncommon,
+                &id_relic_aux,
+                &mut state.entities,
+                &mut state.rng,
+            ));
+        }
+    }
+
+    // Event-injected Relic; Circlet substitutes when it is already owned
     if let Some(name) = event_relic {
         let name = if has_relic(&state.id_relics, name) {
             RelicName::Circlet
         } else {
             name
         };
-        id_relic = Some(push_entity(&mut state.entities, get_relic(name)));
+        id_relics_reward.push(push_entity(&mut state.entities, get_relic(name)));
     }
 
-    // Roll Potions
     // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
-    let potion_drops = has_relic(&state.id_relics, RelicName::WhiteBeastStatue)
-        || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod);
+    let has_white_beast_statue = has_relic(&state.id_relics, RelicName::WhiteBeastStatue);
+
+    // Roll Potions (Sozu doesn't stop the roll: the staged Potion adopts to nothing)
     let mut id_potions: Vec<usize> = Vec::with_capacity(1);
-    if potion_drops {
+    if has_white_beast_statue || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod) {
         let name = get_random_potion_name(&mut state.rng, false);
         let id = push_entity(&mut state.entities, get_potion(name));
         id_potions.push(id);
@@ -123,12 +160,15 @@ pub fn process_effect_reward_roll_combat(
         None
     };
 
-    state.mode = Mode::Reward {
-        reward_id_cards: id_cards,
-        reward_id_relic: id_relic,
-        reward_id_potions: id_potions,
-        reward_gold: gold,
-    };
+    mode_replace(
+        &mut state.mode_stack,
+        Mode::Reward {
+            reward_id_cards: id_card_bundles,
+            reward_id_relics: id_relics_reward,
+            reward_id_potions: id_potions,
+            reward_gold: gold,
+        },
+    );
 }
 
 // +10 on miss, -10 on hit; clamps to [-30, +60] ([10%, 100%])

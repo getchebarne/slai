@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Attack cards are obtained upgraded
+// Attack Cards are obtained upgraded
 // See:
 //    - `process_effect_card_add_to_deck.rs`
 //    - `utils.rs`

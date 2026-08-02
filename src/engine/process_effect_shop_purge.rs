@@ -8,13 +8,14 @@ use crate::game::Location;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::mode_top;
 
 pub fn process_effect_shop_purge(id_target: Option<usize>, state: &mut GameState) {
-    // Charge gold and purge the picked card
+    // Charge gold and purge the picked Card
     let id_card = id_target.expect("ShopPurge requires id_target");
     let Mode::Shop {
         shop_purge_cost, ..
-    } = &state.mode
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("ShopPurge outside Shop mode")
     };
@@ -39,7 +40,7 @@ pub fn process_effect_shop_purge(id_target: Option<usize>, state: &mut GameState
     // Ramps for the rest of the run; the next shop build reads the new value
     state.shop_purge_cost_run += SHOP_PURGE_COST_INCREMENT;
 
-    // A shop's card removal can be used once per visit
+    // A shop's Card removal can be used once per visit
     if let Location::Overworld { y, x } = state.location
         && let Some(id_room) = state.id_rooms[y][x]
     {

@@ -37,13 +37,17 @@ pub enum EffectKind {
         upgraded: bool,
     },
     CardAdopt,
+    CardBottle,
     CardDiscard {
         source: DiscardSource,
     },
-    CardDiscoverPick,
+    CardDiscoverPick {
+        cost_zero: Option<CostScope>,
+    },
     CardDiscoverRoll {
         kind: Option<CardKind>,
         color: CardColor,
+        exclude: &'static [CardName],
         count: u8,
     },
     CardDraw {
@@ -57,9 +61,9 @@ pub enum EffectKind {
     },
     CardDuplicate,
     CardExhaust,
-    // Relocate an existing combat card to `pile`; not a discard/draw (no triggers)
     CardMove {
         pile: CardPile,
+        cost_zero: Option<CostScope>,
     },
     CardNightmarePick,
     CardNightmareSpawn,
@@ -72,7 +76,9 @@ pub enum EffectKind {
         free: bool,
         bottom: bool,
     },
-    CardTransform,
+    CardTransform {
+        upgraded: bool,
+    },
     CardUpgrade,
     ChestOpen,
     CombatEnd {
@@ -117,6 +123,7 @@ pub enum EffectKind {
         choose_discards: bool,
         discards_before: Option<u8>,
     },
+    GiryaLift,
     GlassKnifeDecay {
         delta: i16,
     },
@@ -141,7 +148,6 @@ pub enum EffectKind {
     HexaghostBurnIncrease {
         count: u8,
     },
-    LiquidMemories,
     MaxHealthDelta {
         sign: DeltaSign,
         amount: Amount,
@@ -185,6 +191,7 @@ pub enum EffectKind {
         fallback_circlet: bool,
     },
     RestSiteConsume,
+    RewardRollCards,
     RewardRollChest {
         kind: ChestKind,
     },
@@ -221,6 +228,9 @@ pub enum EffectKind {
     ShopBuyRelic,
     ShopPurge,
     ShuffleDiscardPileIntoDrawPile,
+    SingingBowlProc {
+        idx_bundle: u8,
+    },
     SneakyStrikeProc {
         energy: u8,
     },
@@ -283,6 +293,7 @@ pub enum CandidateFilter {
     PurgeableCurse,
     KindAttack,
     KindSkill,
+    KindPower,
     Costed,
 
     // Compare against the `Target::Resolve` context

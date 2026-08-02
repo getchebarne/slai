@@ -15,6 +15,7 @@ use crate::monsters::lagavulin;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::MonsterEncounter;
+use crate::utils::mode_top_mut;
 
 // Dead Adventurer search: escalating chance an elite returns
 pub fn process_effect_adventurer_search(state: &mut GameState) {
@@ -27,7 +28,7 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
                 searches,
             },
         ..
-    } = &mut state.mode
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("AdventurerSearch outside a Dead Adventurer event")
     };

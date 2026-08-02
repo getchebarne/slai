@@ -6,7 +6,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::types::DeltaSign;
 
-// Weak on target -> +1 energy +1 card (fires even on dead targets)
+// Weak on target -> +1 energy +1 Card (fires even on dead targets)
 pub fn process_effect_heel_hook_proc(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("HeelHookProc requires id_target");
     if !has_modifier(&state.entities[id_target].modifiers, ModifierKind::Weak) {

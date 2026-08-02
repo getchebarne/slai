@@ -95,7 +95,8 @@ pub struct GameState {
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
-    pub mode: Mode,
+    // Stacked contexts: [0] is always Map (the resting frame), last() is current
+    pub mode_stack: Vec<Mode>,
     pub game_over: bool,
 
     // Removal cost for the whole run: 75 + 25 per purge, never reset
@@ -119,7 +120,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     let character = spawn_silent(ascension);
     push_entity(&mut entities, character);
 
-    // Innate start relic
+    // Innate start Relic
     let id_snake_ring = push_entity(&mut entities, get_relic(RelicName::SnakeRing));
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
     id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
@@ -182,7 +183,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         pool_events: POOL_ACT1_EVENT.to_vec(),
         pool_event_special: POOL_ACT1_EVENT_SPECIAL.to_vec(),
         potion_drop_mod: 0,
-        mode: Mode::Map,
+        mode_stack: vec![Mode::Map],
         game_over: false,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,
         legal_actions: Vec::new(),
@@ -224,7 +225,7 @@ fn auto_advance(state: &mut GameState) {
         let action = state.legal_actions[0].clone();
 
         // Keep processing the queue until there's more than one legal action to take
-        handle_action(state, action).expect("cached single legal action must be valid");
+        handle_action(state, action).expect("Cached single legal action must be valid");
         process_effect_queue(state);
         recompute_legal_actions(state);
     }

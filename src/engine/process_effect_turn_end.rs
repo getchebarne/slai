@@ -20,6 +20,7 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut GameState) {
     let id_actor = id_target.expect("TurnEnd (monster) requires id_target");
@@ -97,18 +98,18 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         this_turn_panache,
         bomb_countdown,
         ..
-    } = &mut state.mode
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_turn_end_character outside Combat mode")
     };
-    // Reset per-turn relic counters
+    // Reset per-turn Relic counters
     for &name in RELIC_COUNTERS_PER_TURN {
         if let Some(id) = state.id_relics[name as usize] {
             state.entities[id].relic_counter = 0;
         }
     }
 
-    // Clear per-turn card cost overrides
+    // Clear per-turn Card cost overrides
     for entity in state.entities.iter_mut() {
         if matches!(entity.kind, EntityKind::Card)
             && matches!(
@@ -139,7 +140,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Pocketwatch: draw 3 extra cards next turn if 3 or fewer were played this turn
+    // Pocketwatch: draw 3 extra Cards next turn if 3 or fewer were played this turn
     if *this_turn_cards_played <= 3 && has_relic(&state.id_relics, RelicName::Pocketwatch) {
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
@@ -177,9 +178,13 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Retain: pick up to `stacks` cards to keep through the end-of-turn discard
+    // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
     let mods_char = &state.entities[state.id_character].modifiers;
-    if has_modifier(mods_char, ModifierKind::Retain) && !id_hand.is_empty() {
+    if has_modifier(mods_char, ModifierKind::Retain)
+        && !id_hand.is_empty()
+        // Runic Pyramid: keeps the whole hand
+        && !has_relic(&state.id_relics, RelicName::RunicPyramid)
+    {
         let stacks = modifier_stacks(mods_char, ModifierKind::Retain);
         state.effect_buf.push(Effect {
             kind: EffectKind::CardRetain,

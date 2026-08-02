@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 use crate::action::Action;
+use crate::types::CardKind;
 
 // `PyActionType` is the discriminant for the flat `PyAction` struct below
 #[pyclass(
@@ -42,6 +43,11 @@ pub enum PyActionType {
     CardExhaust,
     CardMoveToHand,
     PickSkip,
+    RestDig,
+    RestLift,
+    RestToke,
+    RewardSingingBowl,
+    CardBottle,
 }
 
 #[pymethods]
@@ -90,6 +96,11 @@ impl PyActionType {
             26 => Ok(Self::CardExhaust),
             27 => Ok(Self::CardMoveToHand),
             28 => Ok(Self::PickSkip),
+            29 => Ok(Self::RestDig),
+            30 => Ok(Self::RestLift),
+            31 => Ok(Self::RestToke),
+            32 => Ok(Self::RewardSingingBowl),
+            33 => Ok(Self::CardBottle),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -133,6 +144,18 @@ impl PyAction {
             ),
             None => format!("PyAction({:?}, {:?})", self.action_type, self.idxs),
         }
+    }
+}
+
+// CardKind by discriminant, for CardBottle's idx_kind argument
+fn card_kind_from_idx(v: usize) -> Result<CardKind, String> {
+    match v {
+        0 => Ok(CardKind::Attack),
+        1 => Ok(CardKind::Curse),
+        2 => Ok(CardKind::Power),
+        3 => Ok(CardKind::Skill),
+        4 => Ok(CardKind::Status),
+        _ => Err(format!("Invalid CardKind discriminant: {v}")),
     }
 }
 
@@ -210,6 +233,35 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             0 => Ok(Action::Rest),
             n => Err(format!("Rest expects [], got {n} idxs")),
         },
+        PyActionType::RestDig => match idxs.len() {
+            0 => Ok(Action::RestDig),
+            n => Err(format!("RestDig expects [], got {n} idxs")),
+        },
+        PyActionType::RestLift => match idxs.len() {
+            0 => Ok(Action::RestLift),
+            n => Err(format!("RestLift expects [], got {n} idxs")),
+        },
+        PyActionType::RestToke => match idxs.len() {
+            0 => Ok(Action::RestToke),
+            n => Err(format!("RestToke expects [], got {n} idxs")),
+        },
+        PyActionType::CardBottle => match idxs.len() {
+            2 => Ok(Action::CardBottle {
+                kind: card_kind_from_idx(idxs[0])?,
+                idx: idxs[1],
+            }),
+            n => Err(format!(
+                "CardBottle expects [idx_kind, idx_card], got {n} idxs"
+            )),
+        },
+        PyActionType::RewardSingingBowl => match idxs.len() {
+            1 => Ok(Action::RewardSingingBowl {
+                idx_bundle: idxs[0],
+            }),
+            n => Err(format!(
+                "RewardSingingBowl expects [idx_bundle], got {n} idxs"
+            )),
+        },
         PyActionType::RoomExit => match idxs.len() {
             0 => Ok(Action::RoomExit),
             n => Err(format!("RoomExit expects [], got {n} idxs")),
@@ -240,12 +292,17 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("CardDiscover expects [idx], got {n} idxs")),
         },
         PyActionType::RewardTakeCard => match idxs.len() {
-            1 => Ok(Action::RewardTakeCard { idx: idxs[0] }),
-            n => Err(format!("RewardTakeCard expects [idx], got {n} idxs")),
+            2 => Ok(Action::RewardTakeCard {
+                idx_bundle: idxs[0],
+                idx_card: idxs[1],
+            }),
+            n => Err(format!(
+                "RewardTakeCard expects [idx_bundle, idx_card], got {n} idxs"
+            )),
         },
         PyActionType::RewardTakeRelic => match idxs.len() {
-            0 => Ok(Action::RewardTakeRelic),
-            n => Err(format!("RewardTakeRelic expects [], got {n} idxs")),
+            1 => Ok(Action::RewardTakeRelic { idx: idxs[0] }),
+            n => Err(format!("RewardTakeRelic expects [idx], got {n} idxs")),
         },
         PyActionType::RewardTakePotion => match idxs.len() {
             1 => Ok(Action::RewardTakePotion { idx: idxs[0] }),
@@ -292,12 +349,19 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::CardDiscard { idx } => (PyActionType::CardDiscard, vec![idx]),
         Action::CardExhaust { idx } => (PyActionType::CardExhaust, vec![idx]),
         Action::CardMoveToHand { idx } => (PyActionType::CardMoveToHand, vec![idx]),
+        Action::CardBottle { kind, idx } => (PyActionType::CardBottle, vec![kind as usize, idx]),
         Action::PickSkip => (PyActionType::PickSkip, vec![]),
         Action::CardRetain { idx } => (PyActionType::CardRetain, vec![idx]),
         Action::CardSetup { idx } => (PyActionType::CardSetup, vec![idx]),
         Action::CardNightmare { idx } => (PyActionType::CardNightmare, vec![idx]),
         Action::RoomSelect { idx } => (PyActionType::RoomSelect, vec![idx]),
         Action::Rest => (PyActionType::Rest, vec![]),
+        Action::RestDig => (PyActionType::RestDig, vec![]),
+        Action::RestLift => (PyActionType::RestLift, vec![]),
+        Action::RestToke => (PyActionType::RestToke, vec![]),
+        Action::RewardSingingBowl { idx_bundle } => {
+            (PyActionType::RewardSingingBowl, vec![idx_bundle])
+        }
         Action::RoomExit => (PyActionType::RoomExit, vec![]),
         Action::ShopBuyCard { idx } => (PyActionType::ShopBuyCard, vec![idx]),
         Action::ShopBuyPotion { idx } => (PyActionType::ShopBuyPotion, vec![idx]),
@@ -314,8 +378,11 @@ pub fn from_internal_action(action: Action) -> PyAction {
         } => (PyActionType::PotionUse, vec![idx_potion, m]),
         Action::PotionDiscard { idx } => (PyActionType::PotionDiscard, vec![idx]),
         Action::CardDiscover { idx } => (PyActionType::CardDiscover, vec![idx]),
-        Action::RewardTakeCard { idx } => (PyActionType::RewardTakeCard, vec![idx]),
-        Action::RewardTakeRelic => (PyActionType::RewardTakeRelic, vec![]),
+        Action::RewardTakeCard {
+            idx_bundle,
+            idx_card,
+        } => (PyActionType::RewardTakeCard, vec![idx_bundle, idx_card]),
+        Action::RewardTakeRelic { idx } => (PyActionType::RewardTakeRelic, vec![idx]),
         Action::RewardTakePotion { idx } => (PyActionType::RewardTakePotion, vec![idx]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
         Action::EventOptionSelect { idx } => (PyActionType::EventOptionSelect, vec![idx]),
