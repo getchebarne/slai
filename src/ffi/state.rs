@@ -27,7 +27,8 @@ use super::relic::snapshot_relic;
 )]
 #[derive(Debug, Clone)]
 pub struct PyGameState {
-    pub mode: PyMode,
+    // Full context stack, bottom (Map) first; the last entry is the active mode
+    pub mode_stack: Vec<PyMode>,
     pub game_over: bool,
     pub ascension: u8,
     pub character: PyCharacter,
@@ -44,7 +45,11 @@ pub struct PyGameState {
 // Snapshot builders
 pub fn snapshot_state(state: &GameState) -> PyGameState {
     PyGameState {
-        mode: snapshot_mode(state),
+        mode_stack: state
+            .mode_stack
+            .iter()
+            .map(|mode| snapshot_mode(state, mode))
+            .collect(),
         game_over: state.game_over,
         ascension: state.ascension,
         character: snapshot_character(state),

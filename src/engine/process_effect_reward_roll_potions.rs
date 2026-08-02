@@ -8,7 +8,7 @@ use crate::utils::push_entity;
 pub fn process_effect_reward_roll_potions(state: &mut GameState, count: u8) {
     // Reward memory dies with its mode; nothing may be staged here
     assert!(
-        !matches!(state.mode, Mode::Reward { .. }),
+        !matches!(state.mode_stack.last(), Some(Mode::Reward { .. })),
         "RewardRollPotions with rewards already staged"
     );
 
@@ -20,7 +20,7 @@ pub fn process_effect_reward_roll_potions(state: &mut GameState, count: u8) {
         id_potions.push(id);
     }
 
-    state.mode = Mode::Reward {
+    *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::Reward {
         reward_id_cards: Vec::new(),
         reward_id_relics: Vec::new(),
         reward_id_potions: id_potions,

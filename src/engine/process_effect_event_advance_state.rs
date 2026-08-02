@@ -3,7 +3,7 @@ use crate::game::GameState;
 use crate::types::Mode;
 
 pub fn process_effect_event_advance_state(state: &mut GameState, delta: i8) {
-    let Mode::Event { kind, .. } = &mut state.mode else {
+    let Some(Mode::Event { kind, .. }) = state.mode_stack.last_mut() else {
         unreachable!("EventAdvanceState outside Event mode")
     };
     let value = match kind {

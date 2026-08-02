@@ -89,7 +89,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             spawn_encounter_monsters(state, encounter, None, None, false);
         }
         RoomKind::RestSite => {
-            state.mode = Mode::RestSite;
+            state.mode_stack.push(Mode::RestSite);
 
             // Eternal Feather: 3 HP per 5 deck cards on arrival
             if has_relic(&state.id_relics, RelicName::EternalFeather) {
@@ -110,7 +110,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             }
         }
         RoomKind::Treasure => {
-            state.mode = Mode::Chest;
+            state.mode_stack.push(Mode::Chest);
 
             let Location::Overworld { y, x } = state.location else {
                 unreachable!("RoomEnter on Treasure outside Overworld");
@@ -131,11 +131,11 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::EventRoom => {
             let name = draw_random_event(state).expect("Event room with no drawable event");
             let (kind, id_options) = spawn_event(state, name);
-            state.mode = Mode::Event {
+            state.mode_stack.push(Mode::Event {
                 kind,
                 consumed: false,
                 id_options,
-            };
+            });
         }
         // ShopBuild constructs Mode::Shop; until it runs the mode stays Map
         RoomKind::Shop => {

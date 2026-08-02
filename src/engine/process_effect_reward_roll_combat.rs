@@ -34,13 +34,6 @@ pub fn process_effect_reward_roll_combat(
     event_relic: Option<RelicName>,
     event_relic_roll: bool,
 ) {
-    // Prayer Wheel: normal fights chain a second card reward (room_exit consumes it)
-    if room_kind == RoomKind::CombatMonster
-        && let Some(id) = state.id_relics[RelicName::PrayerWheel as usize]
-    {
-        state.entities[id].relic_counter = 1;
-    }
-
     // Select roll parameters according to `RoomKind`; event combats inject their
     // event-specific extras
     let (gold_amount, relic_thresholds, event_relic) = match room_kind {
@@ -71,16 +64,28 @@ pub fn process_effect_reward_roll_combat(
         ),
     };
 
-    // Roll Cards
-    let mut id_cards: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
-    roll_card_rewards(
-        state.id_character,
-        &mut state.entities,
-        &mut state.rng,
-        &mut id_cards,
-        &state.id_relics,
-        card_reward_count(&state.id_relics),
-    );
+    // Roll Cards; Prayer Wheel adds a second bundle on normal fights
+    let bundle_count = if room_kind == RoomKind::CombatMonster
+        && has_relic(&state.id_relics, RelicName::PrayerWheel)
+    {
+        2
+    } else {
+        1
+    };
+    let cards_per_bundle = card_reward_count(&state.id_relics);
+    let mut id_card_bundles: Vec<Vec<usize>> = Vec::with_capacity(bundle_count);
+    for _ in 0..bundle_count {
+        let mut id_cards: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
+        roll_card_rewards(
+            state.id_character,
+            &mut state.entities,
+            &mut state.rng,
+            &mut id_cards,
+            &state.id_relics,
+            cards_per_bundle,
+        );
+        id_card_bundles.push(id_cards);
+    }
 
     // Roll Relic (only for Elite combats)
     let mut id_relics_reward: Vec<usize> = Vec::new();
@@ -152,8 +157,8 @@ pub fn process_effect_reward_roll_combat(
         None
     };
 
-    state.mode = Mode::Reward {
-        reward_id_cards: id_cards,
+    *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::Reward {
+        reward_id_cards: id_card_bundles,
         reward_id_relics: id_relics_reward,
         reward_id_potions: id_potions,
         reward_gold: gold,

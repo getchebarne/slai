@@ -22,12 +22,12 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
 pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_monsters,
         energy,
         id_card_nightmare,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_turn_start outside Combat mode")
     };

@@ -3,9 +3,9 @@ use crate::types::Mode;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_card_nightmare, ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_card_nightmare_pick outside Combat mode")
     };

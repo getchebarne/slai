@@ -15,8 +15,8 @@ pub fn process_effect_reward_roll_cards(state: &mut GameState) {
         card_reward_count(&state.id_relics),
     );
 
-    state.mode = Mode::Reward {
-        reward_id_cards: id_cards,
+    *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::Reward {
+        reward_id_cards: vec![id_cards],
         reward_id_relics: Vec::new(),
         reward_id_potions: Vec::new(),
         reward_gold: None,

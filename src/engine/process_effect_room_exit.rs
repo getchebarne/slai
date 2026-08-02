@@ -4,47 +4,28 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
-use crate::types::Mode;
-use crate::types::RelicName;
+use crate::map::get_active_room_kind;
+use crate::types::RoomKind;
 
 pub fn process_effect_room_exit(state: &mut GameState) {
-    match state.mode {
-        // final-row rest site enters the boss instead of returning to the map
-        Mode::RestSite if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1) =>
-        {
-            state.location = Location::BossRoom;
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::RoomEnter,
-                id_source: None,
-                target: Target::Direct(None),
-            });
-            return;
-        }
-        // Reward and Shop memory die with the variant swap below; Event,
-        // RestSite (non-final), Chest need no per-mode cleanup
-        _ => {}
-    }
-    // Orrery / Prayer Wheel: chain a pending card reward before leaving the screen
-    if matches!(state.mode, Mode::Reward { .. }) {
-        for name in [RelicName::Orrery, RelicName::PrayerWheel] {
-            if let Some(id) = state.id_relics[name as usize]
-                && state.entities[id].relic_counter > 0
-            {
-                let relic = &mut state.entities[id];
-                relic.relic_counter -= 1;
-                // Orrery burns out; Prayer Wheel re-arms every normal fight
-                if name == RelicName::Orrery {
-                    relic.relic_used_up = relic.relic_counter == 0;
-                }
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::RewardRollCards,
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
-                return;
-            }
-        }
-    }
+    // Pop the room frame; Map (or a suspended frame) resumes underneath
+    assert!(
+        state.mode_stack.len() > 1,
+        "RoomExit with no room frame to pop"
+    );
+    state.mode_stack.pop();
 
-    state.mode = Mode::Map;
+    // final-row rest room enters the boss instead of returning to the map; keyed on
+    // the room, not the popped frame (Dream Catcher's reward replaces RestSite)
+    if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1)
+        && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+            == Some(RoomKind::RestSite)
+    {
+        state.location = Location::BossRoom;
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::RoomEnter,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
 }

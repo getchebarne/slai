@@ -11,11 +11,11 @@ pub fn process_effect_card_setup_pick(
     free: bool,
     bottom: bool,
 ) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_hand,
         id_pile_draw,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_card_setup_pick outside Combat mode")
     };

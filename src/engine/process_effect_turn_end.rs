@@ -88,7 +88,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
 }
 
 pub fn process_effect_turn_end_character(state: &mut GameState) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_hand,
         id_monsters,
         this_turn_discards,
@@ -97,7 +97,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         this_turn_panache,
         bomb_countdown,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_turn_end_character outside Combat mode")
     };

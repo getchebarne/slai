@@ -11,9 +11,9 @@ pub fn process_effect_damage_finisher(
     state: &mut GameState,
     damage: u16,
 ) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         this_turn_attacks, ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_damage_finisher outside Combat mode")
     };

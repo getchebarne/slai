@@ -100,7 +100,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     // Centennial Puzzle: the first actual HP loss each combat draws 3
     if id_target == state.id_character
         && amount > 0
-        && matches!(state.mode, Mode::Combat { .. })
+        && matches!(state.mode_stack.last(), Some(Mode::Combat { .. }))
         && let Some(id_relic) = state.id_relics[RelicName::CentennialPuzzle as usize]
         && state.entities[id_relic].relic_counter == 0
     {
@@ -115,10 +115,10 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     // Bump number of damage instances taken this combat
     if id_target == state.id_character
         && amount > 0
-        && let Mode::Combat {
+        && let Some(Mode::Combat {
             this_combat_damage_instances_taken,
             ..
-        } = &mut state.mode
+        }) = state.mode_stack.last_mut()
     {
         *this_combat_damage_instances_taken = this_combat_damage_instances_taken.saturating_add(1);
     }

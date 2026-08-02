@@ -12,7 +12,7 @@ pub fn process_effect_monster_split(
     state: &mut GameState,
     name: MonsterName,
 ) {
-    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_monster_split outside Combat mode")
     };
     let id_source = id_source.expect("MonsterSplit requires id_source");

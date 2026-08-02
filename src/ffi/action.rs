@@ -231,8 +231,12 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("RestToke expects [], got {n} idxs")),
         },
         PyActionType::RewardSingingBowl => match idxs.len() {
-            0 => Ok(Action::RewardSingingBowl),
-            n => Err(format!("RewardSingingBowl expects [], got {n} idxs")),
+            1 => Ok(Action::RewardSingingBowl {
+                idx_bundle: idxs[0],
+            }),
+            n => Err(format!(
+                "RewardSingingBowl expects [idx_bundle], got {n} idxs"
+            )),
         },
         PyActionType::RoomExit => match idxs.len() {
             0 => Ok(Action::RoomExit),
@@ -264,8 +268,13 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
             n => Err(format!("CardDiscover expects [idx], got {n} idxs")),
         },
         PyActionType::RewardTakeCard => match idxs.len() {
-            1 => Ok(Action::RewardTakeCard { idx: idxs[0] }),
-            n => Err(format!("RewardTakeCard expects [idx], got {n} idxs")),
+            2 => Ok(Action::RewardTakeCard {
+                idx_bundle: idxs[0],
+                idx_card: idxs[1],
+            }),
+            n => Err(format!(
+                "RewardTakeCard expects [idx_bundle, idx_card], got {n} idxs"
+            )),
         },
         PyActionType::RewardTakeRelic => match idxs.len() {
             1 => Ok(Action::RewardTakeRelic { idx: idxs[0] }),
@@ -325,7 +334,9 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::RestDig => (PyActionType::RestDig, vec![]),
         Action::RestLift => (PyActionType::RestLift, vec![]),
         Action::RestToke => (PyActionType::RestToke, vec![]),
-        Action::RewardSingingBowl => (PyActionType::RewardSingingBowl, vec![]),
+        Action::RewardSingingBowl { idx_bundle } => {
+            (PyActionType::RewardSingingBowl, vec![idx_bundle])
+        }
         Action::RoomExit => (PyActionType::RoomExit, vec![]),
         Action::ShopBuyCard { idx } => (PyActionType::ShopBuyCard, vec![idx]),
         Action::ShopBuyPotion { idx } => (PyActionType::ShopBuyPotion, vec![idx]),
@@ -342,7 +353,10 @@ pub fn from_internal_action(action: Action) -> PyAction {
         } => (PyActionType::PotionUse, vec![idx_potion, m]),
         Action::PotionDiscard { idx } => (PyActionType::PotionDiscard, vec![idx]),
         Action::CardDiscover { idx } => (PyActionType::CardDiscover, vec![idx]),
-        Action::RewardTakeCard { idx } => (PyActionType::RewardTakeCard, vec![idx]),
+        Action::RewardTakeCard {
+            idx_bundle,
+            idx_card,
+        } => (PyActionType::RewardTakeCard, vec![idx_bundle, idx_card]),
         Action::RewardTakeRelic { idx } => (PyActionType::RewardTakeRelic, vec![idx]),
         Action::RewardTakePotion { idx } => (PyActionType::RewardTakePotion, vec![idx]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),

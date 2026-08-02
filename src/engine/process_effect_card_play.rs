@@ -29,7 +29,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_hand,
         id_monsters,
         energy,
@@ -39,7 +39,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         this_turn_panache,
         this_combat_damage_instances_taken,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_card_play outside Combat mode")
     };
@@ -58,7 +58,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         // Increase this-turn-played-attacks counter
         *this_turn_attacks = this_turn_attacks.saturating_add(1);
 
-        // Kunai
+        // Kunai: every 3 Attacks played grants 1 Dexterity
         if trigger_relic_counter(RelicName::Kunai, 3, &state.id_relics, &mut state.entities) {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::ModifierGain {
@@ -70,7 +70,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             });
         }
 
-        // Shuriken
+        // Shuriken: every 3 Attacks played grants 1 Strength
         if trigger_relic_counter(
             RelicName::Shuriken,
             3,
@@ -101,7 +101,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             });
         }
 
-        // Nunchaku
+        // Nunchaku: every 10 Attacks played grants 1 energy
         if trigger_relic_counter(
             RelicName::Nunchaku,
             10,
@@ -118,7 +118,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             });
         }
 
-        // Pen Nib
+        // Pen Nib: every 10th Attack is doubled; 9 primes the charge, 10 consumes it
         if let Some(id_pen_nib) = state.id_relics[RelicName::PenNib as usize] {
             let counter = &mut state.entities[id_pen_nib].relic_counter;
             *counter += 1;
@@ -149,7 +149,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    // Letter Opener
+    // Letter Opener: every 3 Skills played deals 5 damage to all Monsters
     if card.card_kind == CardKind::Skill
         && trigger_relic_counter(
             RelicName::LetterOpener,
@@ -169,7 +169,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     // On-power play triggers
     if card.card_kind == CardKind::Power {
-        // Bird-Faced Urn
+        // Bird-Faced Urn: playing a Power heals 2
         if has_relic(&state.id_relics, RelicName::BirdFacedUrn) {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthDelta {
@@ -394,22 +394,26 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     // Total amount of card-play repetitions
     let reps = (1 + burst as usize + duplication as usize) * mul;
 
-    // Wrist Blade: attacks that cost 0 deal +4 per hit; X-cost never qualifies
+    // Wrist Blade: attacks that cost 0 deal +4 per hit
     let wrist_blade_bonus = effective_cost == 0
         && card.card_kind == CardKind::Attack
-        && !matches!(card.card_cost_kind, CardCostKind::XCost { .. })
+        && !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) // X-cost never qualifies
         && has_relic(&state.id_relics, RelicName::WristBlade);
 
-    // Push the card's on-play effects once for each rep
+    // Push the Card's on-play effects once for each rep
     for _ in 0..reps {
         for e in card.card_effects[..card.card_effects_len as usize].iter() {
             let mut effect = Effect {
-                id_source: Some(id_card),
+                id_source: Some(id_card), // Stamp the Card's ID
                 ..*e
             };
+
+            // Add Wrist Blade bonus
             if wrist_blade_bonus && let EffectKind::DamagePhysical { amount } = &mut effect.kind {
                 *amount += 4;
             }
+
+            // Push
             state.effect_buf.push(effect);
         }
     }

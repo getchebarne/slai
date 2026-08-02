@@ -98,12 +98,12 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         apply_shop_discounts(state.shop_purge_cost_run, &state.id_relics)
     };
 
-    state.mode = Mode::Shop {
+    state.mode_stack.push(Mode::Shop {
         shop_id_cards: id_cards,
         shop_id_relics: id_relics,
         shop_id_potions: id_potions,
         shop_purge_cost: purge_cost,
-    };
+    });
 }
 
 // The Courier ×0.8 then Membership Card ×0.5; sequential round-half-up (Java shop-init order)

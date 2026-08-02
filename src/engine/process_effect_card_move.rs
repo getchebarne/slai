@@ -15,10 +15,17 @@ pub fn process_effect_card_move(
 ) {
     // Relocation only — no discard / draw triggers fire
     let id_target = id_target.expect("CardMove requires id_target");
-    detach_card(&mut state.mode, id_target);
+
+    // Remove from current pile
+    detach_card(
+        state.mode_stack.last_mut().expect("mode stack never empty"),
+        id_target,
+    );
+
+    // Place in new one
     let placed = place_card(state, id_target, pile);
 
-    // A full hand reroutes to discard without the cost break (source parity)
+    // A full hand reroutes to discard without the cost break (source game parity)
     if placed && let Some(scope) = cost_zero {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::SetCostOverride {

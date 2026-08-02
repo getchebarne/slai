@@ -10,7 +10,7 @@ pub fn process_effect_damage_mind_blast(
     id_target: Option<usize>,
     state: &mut GameState,
 ) {
-    let Mode::Combat { id_pile_draw, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_pile_draw, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_damage_mind_blast outside Combat mode")
     };
     let id_target = id_target.expect("DamageMindBlast requires id_target");

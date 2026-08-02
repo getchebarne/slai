@@ -86,7 +86,7 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
         &mut state.rng,
     ));
 
-    state.mode = Mode::Reward {
+    *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::Reward {
         reward_id_cards: Vec::new(),
         reward_id_relics: id_relics_reward,
         reward_id_potions: Vec::new(),

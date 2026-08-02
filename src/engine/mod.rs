@@ -293,17 +293,18 @@ fn resolve_or_halt(
 ) -> bool {
     // Stage 1: the pool enumerates
     state.effect_candidate_buf.clear();
+    let mode = state.mode_stack.last().expect("mode stack never empty");
     fill_buf_candidates(
         &mut state.effect_candidate_buf,
         candidate_pool,
         id_source,
         state.id_character,
-        &state.mode,
+        mode,
         &state.id_deck,
     );
 
     // Stage 2: the filter retains
-    let id_picked_monster = match &state.mode {
+    let id_picked_monster = match mode {
         Mode::Combat {
             id_picked_monster, ..
         } => *id_picked_monster,
@@ -425,8 +426,8 @@ fn dispatch_by_kind(
         }
         EffectKind::FaceTrade => process_effect_face_trade::process_effect_face_trade(state),
         EffectKind::GiryaLift => process_effect_girya_lift::process_effect_girya_lift(state),
-        EffectKind::SingingBowlProc => {
-            process_effect_singing_bowl_proc::process_effect_singing_bowl_proc(state)
+        EffectKind::SingingBowlProc { idx_bundle } => {
+            process_effect_singing_bowl_proc::process_effect_singing_bowl_proc(state, idx_bundle)
         }
         EffectKind::WheelSpin => process_effect_wheel_spin::process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => {
@@ -759,7 +760,36 @@ fn ensure_mode_validity(state: &GameState) {
         Location::Overworld { y, x } => room_at(&state.id_rooms, &state.entities, y, x),
         _ => None,
     };
-    let ok = match &state.mode {
+    // Stack shape: Map is the permanent bottom frame; the only 3-frame stack is
+    // Orrery's Reward suspended over its Shop
+    let stack = &state.mode_stack;
+    assert!(
+        !stack.is_empty() && matches!(stack[0], Mode::Map),
+        "mode stack must rest on Map: {:?}",
+        stack
+    );
+    assert!(
+        !stack[1..].iter().any(|mode| matches!(mode, Mode::Map)),
+        "Map may only be the bottom frame: {:?}",
+        stack
+    );
+    assert!(
+        stack.len() <= 3,
+        "mode stack deeper than Orrery-over-Shop: {:?}",
+        stack
+    );
+    if stack.len() == 3 {
+        assert!(
+            matches!(stack[1], Mode::Shop { .. }) && matches!(stack[2], Mode::Reward { .. }),
+            "3-frame stack must be [Map, Shop, Reward]: {:?}",
+            stack
+        );
+    }
+
+    // The room-owning frame answers to the room; overlays above it (Orrery's
+    // Reward over Shop) answer to the shape rows instead
+    let frame_room = &stack[(stack.len() - 1).min(1)];
+    let ok = match frame_room {
         // Map doubles as the between-rooms state; nothing to cross-check
         Mode::Map => true,
         Mode::RestSite => room_kind == Some(RoomKind::RestSite),
@@ -784,8 +814,7 @@ fn ensure_mode_validity(state: &GameState) {
                     | RoomKind::Unknown
             )
         ),
-        // Shop: Orrery bought mid-shop; RestSite: Dream Catcher's rest reward
-        // (the RestSite pairing predates Orrery — Dream Catcher already produced it)
+        // RestSite: Dream Catcher's rest reward
         Mode::Reward { .. } => matches!(
             room_kind,
             Some(
@@ -793,7 +822,6 @@ fn ensure_mode_validity(state: &GameState) {
                     | RoomKind::CombatElite
                     | RoomKind::EventRoom
                     | RoomKind::Treasure
-                    | RoomKind::Shop
                     | RoomKind::RestSite
                     | RoomKind::Unknown
             )
@@ -802,6 +830,6 @@ fn ensure_mode_validity(state: &GameState) {
     assert!(
         ok,
         "mode {:?} inconsistent with room kind {:?} at {:?}",
-        state.mode, room_kind, state.location
+        frame_room, room_kind, state.location
     );
 }

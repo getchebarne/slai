@@ -117,7 +117,7 @@ pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -
 pub struct Entity {
     pub kind: EntityKind,
 
-    // Combatant — Character, Monster
+    // Combatant: Character or Monster
     pub vitals: Vitals,
     pub modifiers: Modifiers,
     pub dead: bool,
@@ -154,9 +154,7 @@ pub struct Entity {
     pub card_bottled: bool,
     pub card_retain: bool,
     pub card_play_restriction: PlayRestriction,
-
     pub card_cost_kind: CardCostKind,
-    // Paired amount+lifetime; Turn clears at turn end, UntilPlayed clears on play
     pub card_cost_override: Option<CostOverride>,
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,

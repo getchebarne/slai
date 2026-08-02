@@ -14,10 +14,10 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
         Amount::Absolute(a) => a,
         Amount::Range { min, max } => state.rng.random_range(min..=max),
         Amount::EventGoldAsk => {
-            let Mode::Event {
+            let Some(Mode::Event {
                 kind: EventKind::WeMeetAgain { gold_ask, .. },
                 ..
-            } = &state.mode
+            }) = state.mode_stack.last()
             else {
                 unreachable!("EventGoldAsk outside We Meet Again")
             };
@@ -28,7 +28,7 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
         }
     };
 
-    // Ectoplasm: gold can no longer be gained (after amount resolution, for RNG parity)
+    // Ectoplasm: gold can no longer be gained (after resolution, for RNG parity with the source game)
     if sign == DeltaSign::Gain && has_relic(&state.id_relics, RelicName::Ectoplasm) {
         return;
     }
@@ -36,7 +36,7 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
     // Maw Bank deactivates the first time gold is spent at a shop (event costs don't count)
     if sign == DeltaSign::Loss
         && amount > 0
-        && matches!(state.mode, Mode::Shop { .. })
+        && matches!(state.mode_stack.last(), Some(Mode::Shop { .. }))
         && let Some(id) = state.id_relics[RelicName::MawBank as usize]
     {
         state.entities[id].relic_used_up = true;

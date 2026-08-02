@@ -8,7 +8,7 @@ use crate::types::Mode;
 
 // Discard every non-Attack card from hand
 pub fn process_effect_unload_discard(state: &mut GameState) {
-    let Mode::Combat { id_hand, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_unload_discard outside Combat mode")
     };
     for i in 0..id_hand.len() {

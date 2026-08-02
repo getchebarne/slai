@@ -230,7 +230,9 @@ pub enum EffectKind {
     ShopBuyRelic,
     ShopPurge,
     ShuffleDiscardPileIntoDrawPile,
-    SingingBowlProc,
+    SingingBowlProc {
+        idx_bundle: u8,
+    },
     SneakyStrikeProc {
         energy: u8,
     },

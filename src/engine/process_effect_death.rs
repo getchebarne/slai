@@ -58,7 +58,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     // Monster-death path
-    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last_mut() else {
         unreachable!("Monster death outside Combat mode")
     };
     let id_character = state.id_character;
@@ -151,6 +151,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             },
         });
     }
+    // Gremlin Horn: a monster's death grants 1 energy and draws 1
     if has_relic(&state.id_relics, RelicName::GremlinHorn) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDraw { count: 1 },

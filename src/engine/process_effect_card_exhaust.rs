@@ -10,11 +10,11 @@ use crate::types::RelicName;
 use crate::utils::has_relic;
 
 pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_hand,
         id_pile_exhaust,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_card_exhaust outside Combat mode")
     };

@@ -2,7 +2,7 @@ use crate::game::GameState;
 use crate::types::Mode;
 
 pub fn process_effect_card_remove(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat { id_hand, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_card_remove outside Combat mode")
     };
     let id_card = id_target.expect("CardRemove requires id_target");

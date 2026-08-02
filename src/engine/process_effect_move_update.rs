@@ -14,7 +14,7 @@ pub fn process_effect_move_update(
     state: &mut GameState,
     move_override: Option<usize>,
 ) {
-    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_move_update outside Combat mode")
     };
     let id_target = id_target.expect("MoveUpdate requires id_target");

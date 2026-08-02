@@ -17,8 +17,9 @@ use crate::utils::push_entity;
 
 pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
     // A monster spawning implies a combat: the first spawn of a fight constructs it
-    if !matches!(state.mode, Mode::Combat { .. }) {
-        state.mode = Mode::Combat {
+    if !matches!(state.mode_stack.last(), Some(Mode::Combat { .. })) {
+        // Event fights replace the consumed Event frame; room fights push over Map
+        let combat = Mode::Combat {
             id_hand: Vec::with_capacity(MAX_SIZE_HAND),
             id_pile_draw: Vec::with_capacity(MAX_SIZE_DECK),
             id_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
@@ -43,8 +44,12 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
             event_relic: None,
             event_relic_roll: false,
         };
+        if matches!(state.mode_stack.last(), Some(Mode::Event { .. })) {
+            state.mode_stack.pop();
+        }
+        state.mode_stack.push(combat);
     }
-    let Mode::Combat { id_monsters, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last_mut() else {
         unreachable!("Constructed above")
     };
 

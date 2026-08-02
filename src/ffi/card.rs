@@ -791,13 +791,13 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     );
     // Combat-only; outside combat defaults are permissive (cards not played)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        if let Mode::Combat {
+        if let Some(Mode::Combat {
             id_pile_draw,
             energy,
             this_turn_discards,
             this_combat_damage_instances_taken,
             ..
-        } = &state.mode
+        }) = state.mode_stack.last()
         {
             (
                 is_play_restriction_satisfied(

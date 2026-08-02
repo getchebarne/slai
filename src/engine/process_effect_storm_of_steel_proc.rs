@@ -9,7 +9,7 @@ use crate::types::Mode;
 
 // Discard the entire hand, then add 1 Shiv per discarded card
 pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool) {
-    let Mode::Combat { id_hand, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_storm_of_steel_proc outside Combat mode")
     };
 

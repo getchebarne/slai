@@ -13,12 +13,13 @@ use crate::utils::has_relic;
 pub fn process_effect_shop_buy_relic(id_target: Option<usize>, state: &mut GameState) {
     // Find and remove the shop entry
     let id_relic = id_target.expect("ShopBuyRelic requires id_target");
-    let Mode::Shop {
+    let Some(Mode::Shop {
         shop_id_cards,
         shop_id_relics,
         shop_id_potions,
         shop_purge_cost,
-    } = &mut state.mode
+        ..
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("ShopBuyRelic outside Shop mode")
     };
@@ -48,9 +49,12 @@ pub fn process_effect_shop_buy_relic(id_target: Option<usize>, state: &mut GameS
 
     // The Courier: the emptied slot restocks (buying The Courier restocks its own slot)
     if bought_name == RelicName::TheCourier || has_relic(&state.id_relics, RelicName::TheCourier) {
+        // Settle the sale now so the restock prices with the bought relic's discounts
+        // and can't re-offer it; the queued RelicAdopt re-registers identically
+        state.id_relics[bought_name as usize] = Some(id_relic);
         let mut id_relics_vec = std::mem::take(shop_id_relics);
         restock_relic(state, &mut id_relics_vec, idx);
-        let Mode::Shop { shop_id_relics, .. } = &mut state.mode else {
+        let Some(Mode::Shop { shop_id_relics, .. }) = state.mode_stack.last_mut() else {
             unreachable!("ShopBuyRelic outside Shop mode")
         };
         *shop_id_relics = id_relics_vec;

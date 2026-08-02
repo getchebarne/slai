@@ -315,7 +315,7 @@ impl MonsterEncounter {
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
-    let Mode::Combat { id_monsters, .. } = &state.mode else {
+    let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last() else {
         return Vec::new();
     };
     let character = &state.entities[state.id_character];

@@ -18,9 +18,9 @@ pub fn process_effect_shop_buy_potion(id_target: Option<usize>, state: &mut Game
 
     // Find and remove the shop entry
     let id_potion = id_target.expect("ShopBuyPotion requires id_target");
-    let Mode::Shop {
+    let Some(Mode::Shop {
         shop_id_potions, ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("ShopBuyPotion outside Shop mode")
     };
@@ -35,9 +35,9 @@ pub fn process_effect_shop_buy_potion(id_target: Option<usize>, state: &mut Game
     if has_relic(&state.id_relics, RelicName::TheCourier) {
         let mut id_potions_vec = std::mem::take(shop_id_potions);
         restock_potion(state, &mut id_potions_vec, idx);
-        let Mode::Shop {
+        let Some(Mode::Shop {
             shop_id_potions, ..
-        } = &mut state.mode
+        }) = state.mode_stack.last_mut()
         else {
             unreachable!("ShopBuyPotion outside Shop mode")
         };

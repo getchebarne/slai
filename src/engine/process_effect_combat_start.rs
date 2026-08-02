@@ -1,4 +1,5 @@
 use crate::consts::DISCOVER_PICK_COUNT;
+use crate::consts::ENERGY_MAX_BASE;
 use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
@@ -30,7 +31,7 @@ pub fn process_effect_combat_start(
     event_relic: Option<RelicName>,
     event_relic_roll: bool,
 ) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_pile_draw,
         id_monsters,
         id_picked_monster,
@@ -44,7 +45,7 @@ pub fn process_effect_combat_start(
         event_relic: combat_event_relic,
         event_relic_roll: combat_event_relic_roll,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_combat_start outside Combat mode")
     };
@@ -54,19 +55,18 @@ pub fn process_effect_combat_start(
     *combat_event_relic = event_relic;
     *combat_event_relic_roll = event_relic_roll;
 
-    // Elite fights are identified by the monsters, not the room: Dead Adventurer's
-    // elite returns inside an event room
-    let is_elite_fight = id_monsters
+    // Elite fights are identified by the monsters, not the room (see Dead Aventurer Event)
+    let is_fight_elite = id_monsters
         .iter()
         .flatten()
         .any(|&id| state.entities[id].monster_kind == MonsterKind::Elite);
-    let is_boss_fight = id_monsters
+    let is_fight_boss = id_monsters
         .iter()
         .flatten()
         .any(|&id| state.entities[id].monster_kind == MonsterKind::Boss);
 
-    // Base 3, +1 per owned energy relic; Slaver's Collar counts only in elite and boss fights
-    let mut energy_max = 3;
+    // Energy relics: +1 for each owned one
+    let mut energy_max = ENERGY_MAX_BASE;
     for name in [
         RelicName::PhilosopherStone,
         RelicName::CoffeeDripper,
@@ -81,11 +81,13 @@ pub fn process_effect_combat_start(
             energy_max += 1;
         }
     }
-    if has_relic(&state.id_relics, RelicName::SlaversCollar) && (is_elite_fight || is_boss_fight) {
+
+    // Slaver's Collar: +1 max energy in elite and boss fights only
+    if has_relic(&state.id_relics, RelicName::SlaversCollar) && (is_fight_elite || is_fight_boss) {
         energy_max += 1;
     }
 
-    // Energy starts empty; the turn-1 refill fills
+    // Energy starts empty; the turn-1 refill fills it
     *energy = Energy {
         energy_current: 0,
         energy_max,
@@ -145,9 +147,7 @@ pub fn process_effect_combat_start(
         target: Target::Direct(Some(state.id_character)),
     });
 
-    // Toolbox: choose 1 of 3 colorless cards (Bandage Up mirrors the source's
-    // healing-tag exclusion) at printed cost, before the opening draw. Inline
-    // because relic_effects_on_combat_start drains post-draw
+    // Toolbox: choose 1 of 3 colorless cards
     if has_relic(&state.id_relics, RelicName::Toolbox) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscoverPick { cost_zero: None },
@@ -162,7 +162,7 @@ pub fn process_effect_combat_start(
             kind: EffectKind::CardDiscoverRoll {
                 kind: None,
                 color: CardColor::Colorless,
-                exclude: &[CardName::BandageUp],
+                exclude: &[CardName::BandageUp], // Can't heal
                 count: DISCOVER_PICK_COUNT,
             },
             id_source: None,
@@ -170,13 +170,14 @@ pub fn process_effect_combat_start(
         });
     }
 
+    // Combat-start Relic effects
     for (_name, id_relic) in iter_owned_relics(&state.id_relics) {
         for &eff in state.entities[id_relic].relic_effects_on_combat_start {
             state.effect_queue.push_back(eff);
         }
     }
 
-    // Ancient Tea Set
+    // Ancient Tea Set: primed by the last rest site (counter 1), spends it for 2 energy
     if let Some(id) = state.id_relics[RelicName::AncientTeaSet as usize]
         && state.entities[id].relic_counter == 1
     {
@@ -206,8 +207,8 @@ pub fn process_effect_combat_start(
         });
     }
 
-    // Preserved Insect
-    if has_relic(&state.id_relics, RelicName::PreservedInsect) && is_elite_fight {
+    // Preserved Insect: elite Monsters start at 3/4 HP
+    if has_relic(&state.id_relics, RelicName::PreservedInsect) && is_fight_elite {
         for id in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthSet {
@@ -236,7 +237,7 @@ pub fn process_effect_combat_start(
         });
     }
 
-    // Du-Vu Doll
+    // Du-Vu Doll: combat starts with 1 Strength per Curse in the deck
     if has_relic(&state.id_relics, RelicName::DuVuDoll) {
         let num_curses = state
             .id_deck
@@ -257,7 +258,7 @@ pub fn process_effect_combat_start(
     }
 
     // Sling of Courage: Elite fights open with 2 Strength
-    if has_relic(&state.id_relics, RelicName::SlingOfCourage) && is_elite_fight {
+    if has_relic(&state.id_relics, RelicName::SlingOfCourage) && is_fight_elite {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,

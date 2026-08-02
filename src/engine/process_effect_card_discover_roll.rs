@@ -13,7 +13,7 @@ pub fn process_effect_card_discover_roll(
     exclude: &[CardName],
     count: u8,
 ) {
-    let Mode::Combat { id_discover, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_discover, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_card_discover_roll outside Combat mode")
     };
     id_discover.clear();

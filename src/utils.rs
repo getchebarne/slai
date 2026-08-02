@@ -126,12 +126,12 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
         state.id_deck.push(id_card);
         return true;
     }
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_hand,
         id_pile_draw,
         id_pile_discard,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("combat pile placement outside Combat mode")
     };
@@ -189,14 +189,14 @@ pub fn reshuffle_discard_into_draw(
     shuffle(&mut id_pile_draw[..], rng);
 }
 
-// Queue rest in Combat means the player is about to act; a drawable card ends the loop
+// Unceasing Top: queue rest in Combat means the player is about to act; a drawable card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_hand,
         id_pile_draw,
         id_pile_discard,
         ..
-    } = &state.mode
+    }) = state.mode_stack.last()
     else {
         return false;
     };

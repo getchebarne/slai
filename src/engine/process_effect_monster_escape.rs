@@ -6,11 +6,11 @@ use crate::types::Mode;
 
 // Mark dead WITHOUT firing the on-death hook chain
 pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_monsters,
         this_combat_escaped,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_monster_escape outside Combat mode")
     };

@@ -18,7 +18,7 @@ use crate::types::MonsterEncounter;
 
 // Dead Adventurer search: escalating chance an elite returns
 pub fn process_effect_adventurer_search(state: &mut GameState) {
-    let Mode::Event {
+    let Some(Mode::Event {
         kind:
             EventKind::DeadAdventurer {
                 found_gold,
@@ -27,7 +27,7 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
                 searches,
             },
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("AdventurerSearch outside a Dead Adventurer event")
     };

@@ -95,7 +95,8 @@ pub struct GameState {
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
-    pub mode: Mode,
+    // Stacked contexts: [0] is always Map (the resting frame), last() is current
+    pub mode_stack: Vec<Mode>,
     pub game_over: bool,
 
     // Removal cost for the whole run: 75 + 25 per purge, never reset
@@ -182,7 +183,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         pool_events: POOL_ACT1_EVENT.to_vec(),
         pool_event_special: POOL_ACT1_EVENT_SPECIAL.to_vec(),
         potion_drop_mod: 0,
-        mode: Mode::Map,
+        mode_stack: vec![Mode::Map],
         game_over: false,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,
         legal_actions: Vec::new(),

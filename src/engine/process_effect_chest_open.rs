@@ -22,10 +22,9 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         .expect("ChestOpen with no chest_kind on room");
 
     room.room_chest_opened = true;
-    state.mode = Mode::ChestOpened;
+    *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::ChestOpened;
 
-    // Cursed Key: opening a chest adds a random Curse to the deck (fires even if
-    // N'loth's Hungry Face eats the contents)
+    // Cursed Key: opening a chest adds a random Curse to the deck
     if has_relic(&state.id_relics, RelicName::CursedKey) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAddRandom {

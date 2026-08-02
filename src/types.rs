@@ -57,7 +57,7 @@ pub enum Mode {
     },
     CombatEnded,
     Reward {
-        reward_id_cards: Vec<usize>,
+        reward_id_cards: Vec<Vec<usize>>,
         reward_id_relics: Vec<usize>,
         reward_id_potions: Vec<usize>,
         reward_gold: Option<u16>,
@@ -67,7 +67,6 @@ pub enum Mode {
         consumed: bool,
         id_options: Vec<usize>,
     },
-    // Stock prices live on the entities; per-visit purge cost (run ramp lives on GameState)
     Shop {
         shop_id_cards: Vec<usize>,
         shop_id_relics: Vec<usize>,

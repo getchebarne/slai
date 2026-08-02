@@ -17,11 +17,11 @@ pub fn process_effect_gamble(
     choose_discards: bool,
     discards_before: Option<u8>,
 ) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_hand,
         this_turn_discards,
         ..
-    } = &state.mode
+    }) = state.mode_stack.last()
     else {
         unreachable!("process_effect_gamblers_brew_proc outside Combat mode")
     };

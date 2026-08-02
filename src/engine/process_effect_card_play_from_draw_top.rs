@@ -9,11 +9,11 @@ use crate::types::CostScope;
 use crate::types::Mode;
 
 pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
-    let Mode::Combat {
+    let Some(Mode::Combat {
         id_pile_draw,
         id_pile_discard,
         ..
-    } = &mut state.mode
+    }) = state.mode_stack.last_mut()
     else {
         unreachable!("process_effect_card_play_from_draw_top outside Combat mode")
     };

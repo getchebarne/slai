@@ -12,7 +12,7 @@ pub fn process_effect_damage_flechettes(
     state: &mut GameState,
     damage: u16,
 ) {
-    let Mode::Combat { id_hand, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_damage_flechettes outside Combat mode")
     };
     let id_target = id_target.expect("DamageFlechettes requires id_target");

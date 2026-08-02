@@ -13,7 +13,7 @@ use crate::utils::has_relic;
 pub fn process_effect_shop_buy_card(id_target: Option<usize>, state: &mut GameState) {
     // Find and remove the shop entry
     let id_card = id_target.expect("ShopBuyCard requires id_target");
-    let Mode::Shop { shop_id_cards, .. } = &mut state.mode else {
+    let Some(Mode::Shop { shop_id_cards, .. }) = state.mode_stack.last_mut() else {
         unreachable!("ShopBuyCard outside Shop mode")
     };
     let idx = shop_id_cards
@@ -29,7 +29,7 @@ pub fn process_effect_shop_buy_card(id_target: Option<usize>, state: &mut GameSt
         let (color, kind, rarity) = (bought.card_color, bought.card_kind, bought.card_rarity);
         let mut id_cards = std::mem::take(shop_id_cards);
         restock_card(state, &mut id_cards, idx, color, kind, rarity);
-        let Mode::Shop { shop_id_cards, .. } = &mut state.mode else {
+        let Some(Mode::Shop { shop_id_cards, .. }) = state.mode_stack.last_mut() else {
             unreachable!("ShopBuyCard outside Shop mode")
         };
         *shop_id_cards = id_cards;

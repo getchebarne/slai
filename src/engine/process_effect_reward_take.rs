@@ -14,30 +14,37 @@ pub fn process_effect_reward_take(
     state: &mut GameState,
     kind: RewardKind,
 ) {
-    let Mode::Reward {
-        reward_id_cards,
-        reward_id_relics,
-        reward_id_potions,
-        reward_gold,
-        ..
-    } = &mut state.mode
-    else {
-        unreachable!("RewardTake outside Reward mode")
-    };
     match kind {
         RewardKind::Card => {
             let id_card = id_target.expect("RewardTake { Card } requires id_target");
+            let Some(Mode::Reward {
+                reward_id_cards: bundles,
+                ..
+            }) = state.mode_stack.last_mut()
+            else {
+                unreachable!("RewardTake {{ Card }} outside Reward mode")
+            };
+
+            // Taking a card consumes its whole bundle; the others stay claimable
+            let pos = bundles
+                .iter()
+                .position(|bundle| bundle.contains(&id_card))
+                .expect("taken card is a staged bundle");
+            bundles.remove(pos);
 
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardAdopt,
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             });
-
-            // Clear the rest of the cards
-            reward_id_cards.clear();
         }
         RewardKind::Relic => {
+            let Some(Mode::Reward {
+                reward_id_relics, ..
+            }) = state.mode_stack.last_mut()
+            else {
+                unreachable!("RewardTake {{ Relic }} outside Reward mode")
+            };
             let id_relic = id_target.expect("RewardTake { Relic } requires id_target");
             let pos = reward_id_relics
                 .iter()
@@ -51,6 +58,12 @@ pub fn process_effect_reward_take(
             });
         }
         RewardKind::Potion => {
+            let Some(Mode::Reward {
+                reward_id_potions, ..
+            }) = state.mode_stack.last_mut()
+            else {
+                unreachable!("RewardTake {{ Potion }} outside Reward mode")
+            };
             let id_potion = id_target.expect("RewardTake { Potion } requires id_target");
             let pos = reward_id_potions
                 .iter()
@@ -64,6 +77,9 @@ pub fn process_effect_reward_take(
             });
         }
         RewardKind::Gold => {
+            let Some(Mode::Reward { reward_gold, .. }) = state.mode_stack.last_mut() else {
+                unreachable!("RewardTake {{ Gold }} outside Reward mode")
+            };
             // Routed through GoldDelta so the MAX_GOLD cap and Ectoplasm apply
             if let Some(amount) = reward_gold.take() {
                 state.effect_queue.push_front(Effect {

@@ -12,13 +12,15 @@ pub fn process_effect_card_discover_pick(
     state: &mut GameState,
     cost_zero: Option<CostScope>,
 ) {
-    let Mode::Combat { id_discover, .. } = &mut state.mode else {
+    let Some(Mode::Combat { id_discover, .. }) = state.mode_stack.last_mut() else {
         unreachable!("process_effect_card_discover_pick outside Combat mode")
     };
     let id_card = id_target.expect("CardDiscoverPick Direct form must have target");
+
+    // Clear discovered cards
     id_discover.clear();
 
-    // Discovery grants cost 0 this turn; Toolbox keeps the printed cost
+    // Discovery (Card) grants cost 0 this turn; Toolbox (Relic) keeps the printed cost
     if let Some(scope) = cost_zero {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::SetCostOverride {

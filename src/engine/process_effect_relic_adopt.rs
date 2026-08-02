@@ -1,6 +1,7 @@
 use rand::Rng;
 
 use crate::consts::MAX_SIZE_DECK;
+use crate::consts::ORRERY_BUNDLE_COUNT;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
@@ -18,10 +19,13 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
+use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::card_is_upgradable;
+use crate::utils::card_reward_count;
 use crate::utils::pick_from_pool;
 use crate::utils::push_entity;
+use crate::utils::roll_card_rewards;
 
 pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameState) {
     let id_relic = id_target.expect("RelicAdopt requires id_target");
@@ -40,6 +44,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
     let id_character = state.id_character;
 
     match name {
+        // Dolly's Mirror: choose a deck card and obtain a copy of it
         RelicName::DollysMirror => {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardDuplicate,
@@ -51,10 +56,10 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 },
             });
         }
+
+        // Lee's Waffle: gain 7 max HP and heal to full
         RelicName::LeesWaffle => {
-            // Executes in reverse:
-            //     1. MaxHealthDelta
-            //     2. HealthDelta (full heal)
+            // Executes in reverse: MaxHealthDelta, then HealthDelta (full heal)
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Gain,
@@ -76,9 +81,13 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 target: Target::Direct(Some(id_character)),
             });
         }
-        RelicName::Strawberry => stat_pickup(state, id_character, 7),
-        RelicName::Pear => stat_pickup(state, id_character, 10),
-        RelicName::Mango => stat_pickup(state, id_character, 14),
+
+        // Strawberry / Pear / Mango: gain max HP (healed)
+        RelicName::Strawberry => increase_max_hp(state, id_character, 7),
+        RelicName::Pear => increase_max_hp(state, id_character, 10),
+        RelicName::Mango => increase_max_hp(state, id_character, 14),
+
+        // Old Coin: gain 300 gold
         RelicName::OldCoin => {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::GoldDelta {
@@ -89,13 +98,18 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 target: Target::Direct(Some(id_character)),
             });
         }
+
+        // Potion Belt: gain 2 potion slots
         RelicName::PotionBelt => {
             state.potion_slots_max = (state.potion_slots_max + 2).min(POTION_SLOTS_MAX as u8);
         }
+
+        // War Paint / Whetstone: upgrade 2 random Skills / Attacks
         RelicName::WarPaint => upgrade_random_cards(state, 2, Some(CardKind::Skill)),
         RelicName::Whetstone => upgrade_random_cards(state, 2, Some(CardKind::Attack)),
+
+        // Empty Cage: remove 2 cards from the deck
         RelicName::EmptyCage => {
-            // Two sequential halting picks; auto-resolve covers small decks
             for _ in 0..2 {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::CardPurge,
@@ -108,20 +122,21 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 });
             }
         }
+
+        // Pandora's Box: every starter Strike / Defend becomes a random card
         RelicName::PandorasBox => {
-            // Every starter Strike/Defend becomes a random card (no player choice)
-            let mut starters = [0usize; MAX_SIZE_DECK];
-            let mut num = 0;
+            let mut id_starter = [0usize; MAX_SIZE_DECK];
+            let mut id_starter_num = 0;
             for &id in &state.id_deck {
                 if matches!(
                     state.entities[id].card_name,
                     CardName::Strike | CardName::Defend
                 ) {
-                    starters[num] = id;
-                    num += 1;
+                    id_starter[id_starter_num] = id;
+                    id_starter_num += 1;
                 }
             }
-            for &id in &starters[..num] {
+            for &id in &id_starter[..id_starter_num] {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::CardTransform { upgraded: false },
                     id_source: None,
@@ -129,8 +144,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 });
             }
         }
+
+        // Astrolabe: choose 3 cards to transform; the results are upgraded
         RelicName::Astrolabe => {
-            // Choose 3 to transform and upgrade; <=3 transformable auto-resolves
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardTransform { upgraded: true },
                 id_source: None,
@@ -141,20 +157,28 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 },
             });
         }
+
+        // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare relic
         RelicName::CallingBell => {
-            // Curse of the Bell, then one Common, Uncommon, and Rare relic. A granted
-            // Bottle's halting pick suspends the chain and resumes cleanly, so the
-            // source's screenless-relic exclusion is unnecessary
-            for pool in [POOL_RARE_RELIC, POOL_UNCOMMON_RELIC, POOL_COMMON_RELIC] {
+            // The bell arrives from a reward screen; its three staged relics replace it
+            assert!(
+                matches!(state.mode_stack.last(), Some(Mode::Reward { .. })),
+                "Calling Bell adopts from a reward screen"
+            );
+            // The curse is obtained before the relics are offered; both land in this
+            // same drain, so the reward screen the player sees already has it
+            let mut reward_id_relics = Vec::with_capacity(3);
+            for pool in [POOL_COMMON_RELIC, POOL_UNCOMMON_RELIC, POOL_RARE_RELIC] {
                 if let Some(name) = pick_from_pool(pool, &state.id_relics, &mut state.rng) {
-                    let id = push_entity(&mut state.entities, get_relic(name));
-                    state.effect_queue.push_front(Effect {
-                        kind: EffectKind::RelicAdopt,
-                        id_source: None,
-                        target: Target::Direct(Some(id)),
-                    });
+                    reward_id_relics.push(push_entity(&mut state.entities, get_relic(name)));
                 }
             }
+            *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::Reward {
+                reward_id_cards: Vec::new(),
+                reward_id_relics,
+                reward_id_potions: Vec::new(),
+                reward_gold: None,
+            };
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardAdd {
                     card_name: CardName::CurseOfTheBell,
@@ -166,8 +190,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 target: Target::Direct(None),
             });
         }
+
+        // Tiny House: upgrade 1 random card, +5 max HP (healed), 50 gold, 1 random potion
         RelicName::TinyHouse => {
-            // Upgrade 1 random card, +5 max HP (healed), 50 gold, 1 random potion
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::PotionAddRandom { limited: false },
                 id_source: None,
@@ -181,26 +206,50 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 id_source: None,
                 target: Target::Direct(Some(id_character)),
             });
-            stat_pickup(state, id_character, 5);
+            increase_max_hp(state, id_character, 5);
             upgrade_random_cards(state, 1, None);
         }
+
+        // Ring of the Serpent: replaces the starter; SnakeRing's combat-start draw is lost
         RelicName::RingOfTheSerpent => {
-            // The boss upgrade replaces the starter; its combat-start draw is lost
             state.id_relics[RelicName::SnakeRing as usize] = None;
         }
+
+        // Orrery: a 5-bundle Reward frame pushed over the shop; the stock resumes on exit
         RelicName::Orrery => {
-            // First of 4 card rewards; relic_counter drives the rest (room_exit chains them)
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::RewardRollCards,
-                id_source: None,
-                target: Target::Direct(None),
+            let cards_per_bundle = card_reward_count(&state.id_relics);
+            let mut bundles: Vec<Vec<usize>> = Vec::with_capacity(ORRERY_BUNDLE_COUNT);
+            for _ in 0..ORRERY_BUNDLE_COUNT {
+                let mut id_cards: Vec<usize> = Vec::new();
+                roll_card_rewards(
+                    state.id_character,
+                    &mut state.entities,
+                    &mut state.rng,
+                    &mut id_cards,
+                    &state.id_relics,
+                    cards_per_bundle,
+                );
+                bundles.push(id_cards);
+            }
+            assert!(
+                matches!(state.mode_stack.last(), Some(Mode::Shop { .. })),
+                "Orrery is shop-only; adopt outside Shop mode"
+            );
+            state.mode_stack.push(Mode::Reward {
+                reward_id_cards: bundles,
+                reward_id_relics: Vec::new(),
+                reward_id_potions: Vec::new(),
+                reward_gold: None,
             });
         }
+
+        // Bottled Flame / Lightning / Tornado: bottle a card of the kind
         RelicName::BottledFlame => queue_bottle_pick(state, CandidateFilter::KindAttack),
         RelicName::BottledLightning => queue_bottle_pick(state, CandidateFilter::KindSkill),
         RelicName::BottledTornado => queue_bottle_pick(state, CandidateFilter::KindPower),
+
+        // Cauldron: gain 5 random potions (overflow beyond belt space is lost)
         RelicName::Cauldron => {
-            // Brew 5 potions; overflow beyond belt space is lost (Java stages them as rewards)
             for _ in 0..5 {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::PotionAddRandom { limited: false },
@@ -227,7 +276,7 @@ fn queue_bottle_pick(state: &mut GameState, filter: CandidateFilter) {
 }
 
 // Max HP first so the heal lands under the new ceiling
-fn stat_pickup(state: &mut GameState, id_character: usize, amount: u16) {
+fn increase_max_hp(state: &mut GameState, id_character: usize, amount: u16) {
     // Executes in reverse:
     //     1. MaxHealthDelta
     //     2. HealthDelta

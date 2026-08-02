@@ -12,9 +12,9 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 pub fn process_effect_shop_purge(id_target: Option<usize>, state: &mut GameState) {
     // Charge gold and purge the picked card
     let id_card = id_target.expect("ShopPurge requires id_target");
-    let Mode::Shop {
+    let Some(Mode::Shop {
         shop_purge_cost, ..
-    } = &state.mode
+    }) = state.mode_stack.last()
     else {
         unreachable!("ShopPurge outside Shop mode")
     };

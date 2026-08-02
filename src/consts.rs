@@ -20,9 +20,14 @@ pub const MAX_SIZE_HAND: usize = 10;
 pub const MAX_SIZE_DECK: usize = 99;
 pub const MAX_ENTITIES: usize = 1024;
 pub const CARDS_DRAWN_PER_TURN: u16 = 5;
+pub const ENERGY_MAX_BASE: u8 = 3;
 // Capacity: base 3 plus Question Card's +1; the roll base is CARD_REWARD_BASE_COUNT
 pub const MAX_COMBAT_CARD_REWARD: usize = 4;
 pub const CARD_REWARD_BASE_COUNT: usize = 3;
+// Most bundles a Reward frame can hold: Orrery's five (combat holds at most
+// the roll + Prayer Wheel's second)
+pub const ORRERY_BUNDLE_COUNT: usize = 5;
+pub const MAX_REWARD_CARD_BUNDLES: usize = ORRERY_BUNDLE_COUNT;
 const _: () = assert!(CARD_REWARD_BASE_COUNT + 1 <= MAX_COMBAT_CARD_REWARD);
 pub const FACTOR_WEAK: f32 = 0.75;
 pub const FACTOR_WEAK_PAPER_KRANE: f32 = 0.60;
