@@ -29,6 +29,7 @@ pub static SECRET_TECHNIQUE: Entity = make_entity_card(
     &[Effect {
         kind: EffectKind::CardMove {
             pile: CardPile::Hand,
+            cost_zero: None,
         },
         id_source: None,
         target: Target::Resolve {

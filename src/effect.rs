@@ -61,9 +61,11 @@ pub enum EffectKind {
     },
     CardDuplicate,
     CardExhaust,
-    // Relocate an existing combat card to `pile`; not a discard/draw (no triggers)
+    // Relocate an existing combat card to `pile`; not a discard/draw (no triggers).
+    // cost_zero applies only if the card actually lands in the requested pile
     CardMove {
         pile: CardPile,
+        cost_zero: Option<CostScope>,
     },
     CardNightmarePick,
     CardNightmareSpawn,
@@ -148,7 +150,6 @@ pub enum EffectKind {
     HexaghostBurnIncrease {
         count: u8,
     },
-    LiquidMemories,
     MaxHealthDelta {
         sign: DeltaSign,
         amount: Amount,

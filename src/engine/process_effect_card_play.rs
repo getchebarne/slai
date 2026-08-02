@@ -279,6 +279,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         {
             EffectKind::CardMove {
                 pile: CardPile::Discard,
+                cost_zero: None,
             }
         } else {
             EffectKind::CardExhaust
@@ -299,6 +300,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         state.effect_buf.push(Effect {
             kind: EffectKind::CardMove {
                 pile: CardPile::Discard,
+                cost_zero: None,
             },
             id_source: None,
             target: Target::Direct(Some(id_card)),

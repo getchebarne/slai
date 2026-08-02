@@ -287,8 +287,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectHeelHookProc;
     #[pymodule_export]
-    use super::ffi::PyEffectLiquidMemories;
-    #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;
     #[pymodule_export]
     use super::ffi::PyEffectModifierGain;

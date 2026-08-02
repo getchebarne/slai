@@ -247,7 +247,6 @@ EffectCardDuplicate = _rs.EffectCardDuplicate
 EffectCardTransform = _rs.EffectCardTransform
 EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
 EffectGamble = _rs.EffectGamble
-EffectLiquidMemories = _rs.EffectLiquidMemories
 EffectCombatEnd = _rs.EffectCombatEnd
 Effect = (
     EffectDamagePhysical
@@ -307,7 +306,6 @@ Effect = (
     | EffectCardTransform
     | EffectCardPlayFromDrawTop
     | EffectGamble
-    | EffectLiquidMemories
     | EffectCombatEnd
 )
 CandidatePoolHand = _rs.CandidatePoolHand
@@ -590,7 +588,6 @@ __all__ = [
     "EffectCardTransform",
     "EffectCardPlayFromDrawTop",
     "EffectGamble",
-    "EffectLiquidMemories",
     "EffectCombatEnd",
     "Amount",
     "AmountAbsolute",

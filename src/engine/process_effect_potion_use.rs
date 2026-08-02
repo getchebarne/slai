@@ -1,6 +1,7 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::potions::remove_potion;
@@ -31,6 +32,16 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
                 | EffectKind::MaxHealthDelta { amount, .. } => {
                     if let Amount::Absolute(a) = amount {
                         *a *= 2;
+                    }
+                }
+                // Liquid Memories: potency doubles to two picks
+                EffectKind::CardMove { .. } => {
+                    if let Target::Resolve {
+                        selection_kind: SelectionKind::Input { count },
+                        ..
+                    } = &mut effect.target
+                    {
+                        *count *= 2;
                     }
                 }
                 _ => {}

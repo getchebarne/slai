@@ -50,7 +50,6 @@ pub mod process_effect_health_delta;
 pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
-pub mod process_effect_liquid_memories_pick;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
@@ -381,8 +380,8 @@ fn dispatch_by_kind(
         EffectKind::CardDiscard { source } => {
             process_effect_card_discard::process_effect_card_discard(id_target, state, source)
         }
-        EffectKind::CardMove { pile } => {
-            process_effect_card_move::process_effect_card_move(id_target, state, pile)
+        EffectKind::CardMove { pile, cost_zero } => {
+            process_effect_card_move::process_effect_card_move(id_target, state, pile, cost_zero)
         }
         EffectKind::DamageMindBlast => {
             process_effect_damage_mind_blast::process_effect_damage_mind_blast(
@@ -686,11 +685,6 @@ fn dispatch_by_kind(
                 state,
                 choose_discards,
                 discards_before,
-            )
-        }
-        EffectKind::LiquidMemories => {
-            process_effect_liquid_memories_pick::process_effect_liquid_memories_pick(
-                id_target, state,
             )
         }
         EffectKind::RelicGrantRandom => {

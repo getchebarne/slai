@@ -850,6 +850,7 @@ pub struct PyEffectCardExhaust {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectCardMove {
     pub pile: PyCardPile,
+    pub cost_zero: Option<PyCostScope>,
     pub target: Option<PyTarget>,
 }
 
@@ -880,20 +881,6 @@ pub struct PyEffectCardPlayFromDrawTop {
 pub struct PyEffectGamble {
     pub choose_discards: bool,
     pub discards_before: Option<u8>,
-    pub target: Option<PyTarget>,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "EffectLiquidMemories",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyEffectLiquidMemories {
     pub target: Option<PyTarget>,
 }
 
@@ -971,7 +958,6 @@ pub enum PyEffect {
     CardMove(PyEffectCardMove),
     CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop),
     Gamble(PyEffectGamble),
-    LiquidMemories(PyEffectLiquidMemories),
     CombatEnd(PyEffectCombatEnd),
 }
 
@@ -1033,7 +1019,6 @@ variant_union!(PyEffect {
     CardMove => PyEffectCardMove,
     CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop,
     Gamble => PyEffectGamble,
-    LiquidMemories => PyEffectLiquidMemories,
     CombatEnd => PyEffectCombatEnd,
 });
 
@@ -1273,8 +1258,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::HandOfGreedProc(PyEffectHandOfGreedProc { gold, target })
         }
         EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target }),
-        EffectKind::CardMove { pile } => PyEffect::CardMove(PyEffectCardMove {
+        EffectKind::CardMove { pile, cost_zero } => PyEffect::CardMove(PyEffectCardMove {
             pile: pile.into(),
+            cost_zero: cost_zero.map(|c| c.into()),
             target,
         }),
         EffectKind::CardPlayFromDrawTop => {
@@ -1288,7 +1274,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             discards_before,
             target,
         }),
-        EffectKind::LiquidMemories => PyEffect::LiquidMemories(PyEffectLiquidMemories { target }),
         EffectKind::CombatEnd { escaped_character } => PyEffect::CombatEnd(PyEffectCombatEnd {
             escaped_character,
             target,

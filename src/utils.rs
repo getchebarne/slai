@@ -120,10 +120,11 @@ pub fn candidate_matches(
 }
 
 // Insert an entity id into `pile`; Hand overflows to discard, Draw inserts at a random position
-pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) {
+// Returns false when a full hand rerouted the card to the discard pile
+pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool {
     if pile == CardPile::Deck {
         state.id_deck.push(id_card);
-        return;
+        return true;
     }
     let Mode::Combat {
         id_hand,
@@ -140,6 +141,7 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) {
                 id_hand.push(id_card);
             } else {
                 id_pile_discard.push(id_card);
+                return false;
             }
         }
         CardPile::Draw => {
@@ -149,6 +151,7 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) {
         CardPile::Discard => id_pile_discard.push(id_card),
         CardPile::Deck => unreachable!(),
     }
+    true
 }
 
 // Remove the id from whichever combat pile holds it; played cards are pile-less (no-op)

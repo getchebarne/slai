@@ -648,8 +648,8 @@ fn fill_legal_actions_effect_pending(
         }
         EffectKind::CardMove {
             pile: CardPile::Hand,
-        }
-        | EffectKind::LiquidMemories => {
+            ..
+        } => {
             let pool = pool.expect("pile pick carries a Resolve pool");
             let pile = pile_for_pool(&state.mode, pool);
             for i in 0..pile.len() {
