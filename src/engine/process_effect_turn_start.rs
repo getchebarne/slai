@@ -20,14 +20,15 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_monsters,
         energy,
         id_card_nightmare,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_turn_start outside Combat mode")
     };
@@ -88,7 +89,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
     // Character's turn start
     if id_actor == state.id_character {
-        // Mayhem: autoplay `stacks` cards off the top, before the turn's draw
+        // Mayhem: autoplay `stacks` Cards off the top, before the turn's draw
         if has_modifier(modifiers, ModifierKind::Mayhem) {
             let stacks = modifier_stacks(modifiers, ModifierKind::Mayhem);
             for _ in 0..stacks.max(0) {
@@ -100,11 +101,15 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             }
         }
 
-        // Organic card draw; Snecko Eye draws 2 more, Ring of the Serpent 1 more
+        // Organic Card draw
         let mut draw_count = CARDS_DRAWN_PER_TURN;
+
+        // Snecko Eye: draw 2 additional Cards
         if has_relic(&state.id_relics, RelicName::SneckoEye) {
             draw_count += 2;
         }
+
+        // Ring of the Serpent: draw 1 additional Card
         if has_relic(&state.id_relics, RelicName::RingOfTheSerpent) {
             draw_count += 1;
         }
@@ -180,7 +185,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Draw cards next turn (Predator, Pocketwatch): apply and clear
+        // Draw Cards next turn (Predator, Pocketwatch): apply and clear
         if has_modifier(modifiers, ModifierKind::DrawCardNextTurn) {
             let stacks = modifier_stacks(modifiers, ModifierKind::DrawCardNextTurn);
             state.effect_buf.push(Effect {
@@ -253,7 +258,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Magnetism: add `stacks` random colorless cards
+        // Magnetism: add `stacks` random colorless Cards
         if has_modifier(modifiers, ModifierKind::Magnetism) {
             let stacks = modifier_stacks(modifiers, ModifierKind::Magnetism);
             state.effect_buf.push(Effect {

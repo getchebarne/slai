@@ -15,10 +15,11 @@ use crate::monsters::lagavulin;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::MonsterEncounter;
+use crate::utils::mode_top_mut;
 
 // Dead Adventurer search: escalating chance an elite returns
 pub fn process_effect_adventurer_search(state: &mut GameState) {
-    let Some(Mode::Event {
+    let Mode::Event {
         kind:
             EventKind::DeadAdventurer {
                 found_gold,
@@ -27,7 +28,7 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
                 searches,
             },
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("AdventurerSearch outside a Dead Adventurer event")
     };

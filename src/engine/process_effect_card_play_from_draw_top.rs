@@ -7,13 +7,14 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CostScope;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_pile_draw,
         id_pile_discard,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_card_play_from_draw_top outside Combat mode")
     };

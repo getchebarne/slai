@@ -20,7 +20,7 @@ use super::monster::PyMonsterName;
 use super::relic::PyRelicName;
 use super::target::PyTarget;
 
-// Mirrors only EffectKind variants reachable from static card/monster defs; snapshot_effect panics on runtime-only variants
+// Mirrors only EffectKind variants reachable from static Card/monster defs; snapshot_effect panics on runtime-only variants
 #[pyclass(
     skip_from_py_object,
     eq,
@@ -1035,7 +1035,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }),
         Target::Direct(None) => None,
         Target::Direct(Some(_)) => panic!(
-            "snapshot_effect: unexpected Direct(Some) on static card effect: {:?}",
+            "snapshot_effect: unexpected Direct(Some) on static Card effect: {:?}",
             effect,
         ),
     };
@@ -1279,7 +1279,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         }),
         other => unreachable!(
-            "snapshot_effect: unexpected EffectKind on static card effect: {:?}",
+            "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other
         ),
     }

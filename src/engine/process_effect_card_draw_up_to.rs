@@ -3,9 +3,10 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_draw_up_to(state: &mut GameState, amount: u8) {
-    let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last_mut() else {
+    let Mode::Combat { id_hand, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("process_effect_card_draw_up_to outside Combat mode")
     };
     let num_cards_to_draw = (amount as u16).saturating_sub(id_hand.len() as u16);

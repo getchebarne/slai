@@ -39,7 +39,7 @@ pub fn process_effect_damage_deal(
     let mut damage_over_block = amount.saturating_sub(block_prev);
     target.vitals.block = block_prev.saturating_sub(amount);
 
-    // Boot: the player's card hits leaving a 1-4 remainder land 5 instead
+    // Boot: the player's Card hits leaving a 1-4 remainder land 5 instead
     if from_card
         && target.kind == EntityKind::Monster
         && 1 <= damage_over_block
@@ -90,7 +90,7 @@ pub fn process_effect_damage_deal(
             target: Target::Direct(Some(id_target)),
         });
 
-        // Envenom: card-played unblocked damage applies Poison; modifier-damage excluded
+        // Envenom: Card-played unblocked damage applies Poison; modifier-damage excluded
         let mods_char = state.entities[state.id_character].modifiers;
         if from_card && has_modifier(&mods_char, ModifierKind::Envenom) {
             let stacks = modifier_stacks(&mods_char, ModifierKind::Envenom);

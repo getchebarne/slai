@@ -17,6 +17,7 @@ class Action:
 
 @final
 class ActionType:
+    CardBottle: Final[ActionType]
     CardDiscard: Final[ActionType]
     CardDiscover: Final[ActionType]
     CardDuplicate: Final[ActionType]

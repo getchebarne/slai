@@ -6,6 +6,7 @@ use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RewardKind;
+use crate::utils::mode_top_mut;
 
 // Claims hand the staged reward entity to the matching Adopt effect, which owns
 // registration and any on-pickup behavior
@@ -15,72 +16,87 @@ pub fn process_effect_reward_take(
     kind: RewardKind,
 ) {
     match kind {
+        // Card: taking one consumes its whole bundle; sibling bundles stay claimable
         RewardKind::Card => {
             let id_card = id_target.expect("RewardTake { Card } requires id_target");
-            let Some(Mode::Reward {
+            let Mode::Reward {
                 reward_id_cards: bundles,
                 ..
-            }) = state.mode_stack.last_mut()
+            } = mode_top_mut(&mut state.mode_stack)
             else {
                 unreachable!("RewardTake {{ Card }} outside Reward mode")
             };
 
-            // Taking a card consumes its whole bundle; the others stay claimable
-            let pos = bundles
+            // Remove Card's associated bundle
+            let idx = bundles
                 .iter()
                 .position(|bundle| bundle.contains(&id_card))
-                .expect("taken card is a staged bundle");
-            bundles.remove(pos);
+                .expect("Taken Card is a staged bundle");
+            bundles.remove(idx);
 
+            // Push adoption effect
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardAdopt,
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             });
         }
+
+        // Relic: unstage the pick; RelicAdopt owns registration and pickup effects
         RewardKind::Relic => {
-            let Some(Mode::Reward {
+            let Mode::Reward {
                 reward_id_relics, ..
-            }) = state.mode_stack.last_mut()
+            } = mode_top_mut(&mut state.mode_stack)
             else {
                 unreachable!("RewardTake {{ Relic }} outside Reward mode")
             };
             let id_relic = id_target.expect("RewardTake { Relic } requires id_target");
-            let pos = reward_id_relics
+
+            // Take Relic
+            let idx = reward_id_relics
                 .iter()
                 .position(|&id| id == id_relic)
-                .expect("taken relic is a staged reward");
-            reward_id_relics.remove(pos);
+                .expect("Taken Relic is a staged reward");
+            reward_id_relics.remove(idx);
+
+            // Push adoption effect
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::RelicAdopt,
                 id_source: None,
                 target: Target::Direct(Some(id_relic)),
             });
         }
+
+        // Potion: unstage the pick; PotionAdopt owns the belt slot (and the Sozu guard)
         RewardKind::Potion => {
-            let Some(Mode::Reward {
+            let Mode::Reward {
                 reward_id_potions, ..
-            }) = state.mode_stack.last_mut()
+            } = mode_top_mut(&mut state.mode_stack)
             else {
                 unreachable!("RewardTake {{ Potion }} outside Reward mode")
             };
             let id_potion = id_target.expect("RewardTake { Potion } requires id_target");
-            let pos = reward_id_potions
+
+            // Take Potion
+            let idx = reward_id_potions
                 .iter()
                 .position(|&id| id == id_potion)
-                .expect("taken potion is a staged reward");
-            reward_id_potions.remove(pos);
+                .expect("Taken Potion is a staged reward");
+            reward_id_potions.remove(idx);
+
+            // Push adoption effect
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::PotionAdopt,
                 id_source: None,
                 target: Target::Direct(Some(id_potion)),
             });
         }
+
+        // Gold: routed through GoldDelta so the MAX_GOLD cap and Ectoplasm apply
         RewardKind::Gold => {
-            let Some(Mode::Reward { reward_gold, .. }) = state.mode_stack.last_mut() else {
+            let Mode::Reward { reward_gold, .. } = mode_top_mut(&mut state.mode_stack) else {
                 unreachable!("RewardTake {{ Gold }} outside Reward mode")
             };
-            // Routed through GoldDelta so the MAX_GOLD cap and Ectoplasm apply
             if let Some(amount) = reward_gold.take() {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::GoldDelta {

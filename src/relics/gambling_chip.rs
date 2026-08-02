@@ -6,8 +6,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// At combat start, discard any number of cards, then draw that many
-// (combat-start effects drain after the turn-1 chain, matching the source's post-draw timing)
+// At combat start, discard any number of Cards, then draw that many
 // See:
 //    - `process_effect_gamble.rs`
 pub static GAMBLING_CHIP: Entity = make_entity_relic(

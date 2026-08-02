@@ -51,7 +51,7 @@ pub static TRANSMUTATION_PLUS: Entity = Entity {
             pile: CardPile::Hand,
             count: 1,
             cost_zero: Some(CostScope::Turn),
-            upgraded: true, // Added cards are upgraded
+            upgraded: true, // Added Cards are upgraded
         };
         a
     },

@@ -96,6 +96,9 @@ pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
+// Shared shop-stock machinery (not a processor)
+mod shop;
+
 use std::collections::VecDeque;
 
 use rand::Rng;
@@ -114,6 +117,7 @@ use crate::map::room_at;
 use crate::types::Mode;
 use crate::types::RoomKind;
 use crate::utils::candidate_matches;
+use crate::utils::mode_top;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -293,7 +297,7 @@ fn resolve_or_halt(
 ) -> bool {
     // Stage 1: the pool enumerates
     state.effect_candidate_buf.clear();
-    let mode = state.mode_stack.last().expect("mode stack never empty");
+    let mode = mode_top(&state.mode_stack);
     fill_buf_candidates(
         &mut state.effect_candidate_buf,
         candidate_pool,
@@ -765,7 +769,7 @@ fn ensure_mode_validity(state: &GameState) {
     let stack = &state.mode_stack;
     assert!(
         !stack.is_empty() && matches!(stack[0], Mode::Map),
-        "mode stack must rest on Map: {:?}",
+        "Mode stack must rest on Map: {:?}",
         stack
     );
     assert!(
@@ -775,7 +779,7 @@ fn ensure_mode_validity(state: &GameState) {
     );
     assert!(
         stack.len() <= 3,
-        "mode stack deeper than Orrery-over-Shop: {:?}",
+        "Mode stack deeper than Orrery-over-Shop: {:?}",
         stack
     );
     if stack.len() == 3 {
@@ -829,7 +833,7 @@ fn ensure_mode_validity(state: &GameState) {
     };
     assert!(
         ok,
-        "mode {:?} inconsistent with room kind {:?} at {:?}",
+        "Mode {:?} inconsistent with room kind {:?} at {:?}",
         frame_room, room_kind, state.location
     );
 }

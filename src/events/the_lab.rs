@@ -5,7 +5,7 @@ use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 
-// Search: the rolled potions land on the reward screen, where the belt is
+// Search: the rolled Potions land on the reward screen, where the belt is
 // interactive (discard-to-swap), matching the source's combatRewardScreen
 const fn search(count: u8) -> [Effect; 2] {
     [

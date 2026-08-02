@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 use crate::action::Action;
+use crate::types::CardKind;
 
 // `PyActionType` is the discriminant for the flat `PyAction` struct below
 #[pyclass(
@@ -46,6 +47,7 @@ pub enum PyActionType {
     RestLift,
     RestToke,
     RewardSingingBowl,
+    CardBottle,
 }
 
 #[pymethods]
@@ -98,6 +100,7 @@ impl PyActionType {
             30 => Ok(Self::RestLift),
             31 => Ok(Self::RestToke),
             32 => Ok(Self::RewardSingingBowl),
+            33 => Ok(Self::CardBottle),
             _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
         }
     }
@@ -141,6 +144,18 @@ impl PyAction {
             ),
             None => format!("PyAction({:?}, {:?})", self.action_type, self.idxs),
         }
+    }
+}
+
+// CardKind by discriminant, for CardBottle's idx_kind argument
+fn card_kind_from_idx(v: usize) -> Result<CardKind, String> {
+    match v {
+        0 => Ok(CardKind::Attack),
+        1 => Ok(CardKind::Curse),
+        2 => Ok(CardKind::Power),
+        3 => Ok(CardKind::Skill),
+        4 => Ok(CardKind::Status),
+        _ => Err(format!("Invalid CardKind discriminant: {v}")),
     }
 }
 
@@ -229,6 +244,15 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
         PyActionType::RestToke => match idxs.len() {
             0 => Ok(Action::RestToke),
             n => Err(format!("RestToke expects [], got {n} idxs")),
+        },
+        PyActionType::CardBottle => match idxs.len() {
+            2 => Ok(Action::CardBottle {
+                kind: card_kind_from_idx(idxs[0])?,
+                idx: idxs[1],
+            }),
+            n => Err(format!(
+                "CardBottle expects [idx_kind, idx_card], got {n} idxs"
+            )),
         },
         PyActionType::RewardSingingBowl => match idxs.len() {
             1 => Ok(Action::RewardSingingBowl {
@@ -325,6 +349,7 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::CardDiscard { idx } => (PyActionType::CardDiscard, vec![idx]),
         Action::CardExhaust { idx } => (PyActionType::CardExhaust, vec![idx]),
         Action::CardMoveToHand { idx } => (PyActionType::CardMoveToHand, vec![idx]),
+        Action::CardBottle { kind, idx } => (PyActionType::CardBottle, vec![kind as usize, idx]),
         Action::PickSkip => (PyActionType::PickSkip, vec![]),
         Action::CardRetain { idx } => (PyActionType::CardRetain, vec![idx]),
         Action::CardSetup { idx } => (PyActionType::CardSetup, vec![idx]),

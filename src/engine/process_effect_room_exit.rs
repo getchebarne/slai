@@ -15,8 +15,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
     );
     state.mode_stack.pop();
 
-    // final-row rest room enters the boss instead of returning to the map; keyed on
-    // the room, not the popped frame (Dream Catcher's reward replaces RestSite)
+    // Final-row rest room enters the boss instead of returning to the map
     if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1)
         && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
             == Some(RoomKind::RestSite)

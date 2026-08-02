@@ -15,7 +15,7 @@ use crate::types::DeltaSign;
 pub fn process_effect_wheel_spin(state: &mut GameState) {
     let id_character = state.id_character;
 
-    // Uniform 1/6 across gold / relic / full heal / decay / purge / health loss
+    // Uniform 1/6 across gold / Relic / full heal / decay / purge / health loss
     let effect = match state.rng.random_range(0..6) {
         0 => Effect {
             kind: EffectKind::GoldDelta {

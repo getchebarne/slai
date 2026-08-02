@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// +1 energy; combat card rewards offer 2 fewer cards
+// +1 energy; combat Card rewards offer 2 fewer Cards
 // See:
 //    - `process_effect_combat_start.rs`
 //    - `utils.rs`

@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Status cards are playable and exhaust when played
+// Status Cards are playable and exhaust when played
 // See:
 //    - `entity.rs`
 //    - `process_effect_card_play.rs`

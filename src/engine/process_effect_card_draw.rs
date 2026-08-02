@@ -13,16 +13,17 @@ use crate::types::CostScope;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_hand,
         id_pile_draw,
         id_pile_discard,
         id_card_last_drawn,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_card_draw outside Combat mode")
     };
@@ -33,12 +34,12 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         return;
     }
 
-    // Initialize variables to track IDs and count of drawn cards, and wether reshuffle is needed
+    // Initialize variables to track IDs and count of drawn Cards, and wether reshuffle is needed
     let mut id_drawn = [0usize; 32];
     let mut id_drawn_num = 0;
     let mut shuffle_resume_remaining: Option<u16> = None;
 
-    // Try to draw all cards
+    // Try to draw all Cards
     for i in 0..count {
         if id_pile_draw.is_empty() {
             if id_pile_discard.is_empty() {
@@ -51,7 +52,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             break;
         }
 
-        // Remove card from draw pile
+        // Remove Card from draw pile
         let id_card = id_pile_draw.pop().unwrap();
 
         // Place it in the hand if there's room, discard pile otherwise
@@ -86,7 +87,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         });
     }
 
-    // Snecko Eye: every drawn card's cost re-rolls to [0, 3]
+    // Snecko Eye: every drawn Card's cost re-rolls to [0, 3]
     if has_relic(&state.id_relics, RelicName::SneckoEye) {
         for &id_card in &id_drawn[..id_drawn_num] {
             let card = &state.entities[id_card];

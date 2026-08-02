@@ -8,13 +8,14 @@ use crate::types::CardPile;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameState) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_hand,
         id_pile_exhaust,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_card_exhaust outside Combat mode")
     };
@@ -24,8 +25,8 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
     }
     id_pile_exhaust.push(id_card);
 
-    // Dead Branch: every exhaust conjures a random Silent card into the hand
-    // (all green cards are rewardable, so no kind/rarity filter is needed)
+    // Dead Branch: every exhaust conjures a random Silent Card into the hand
+    // (all green Cards are rewardable, so no kind/rarity filter is needed)
     if has_relic(&state.id_relics, RelicName::DeadBranch) {
         let card_name =
             get_random_cards(CardColor::Green, None, None, &[], 1, &mut state.rng)[0].card_name;

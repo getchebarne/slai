@@ -21,7 +21,7 @@ use crate::types::Vitals;
 // First move: essentially a no-op
 static MOVE_ACTIVATE: Move = make_move("Activate", &[], Intent::Unknown);
 
-// Divider true damage (HP/12+1 × 6); amounts and intent locked in at move selection
+// Divider true damage (HP/12+1 x 6); amounts and intent locked in at move selection
 static DIVIDER_HIT: Effect = Effect {
     kind: EffectKind::DamagePhysical { amount: 0 },
     id_source: None,

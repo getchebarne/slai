@@ -14,7 +14,7 @@ use crate::utils::scale_attack_damage;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
-// Source -> actor: cards delegate to character; monsters/character self
+// Source -> actor: Cards delegate to character; monsters/character self
 fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
     if entities[id_source].kind == EntityKind::Card {
         id_character
@@ -23,7 +23,7 @@ fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> u
     }
 }
 
-// Physical damage: if_poisoned bails unless target Poisoned; Str+Vigor+Weak/Vuln scale, ×2 DoubleDmg, Intangible clamp, Thorns reflect
+// Physical damage: if_poisoned bails unless target Poisoned; Str+Vigor+Weak/Vuln scale, x2 DoubleDmg, Intangible clamp, Thorns reflect
 pub fn process_effect_damage_physical(
     id_source: Option<usize>,
     id_target: Option<usize>,
@@ -43,7 +43,7 @@ pub fn process_effect_damage_physical(
     // Intialize variable to accumulate base damage
     let mut base_damage = amount as i16;
 
-    // Strike Dummy: Strike-tagged cards get +3 base, before Strength/Weak/Vuln scaling
+    // Strike Dummy: Strike-tagged Cards get +3 base, before Strength/Weak/Vuln scaling
     let source = &state.entities[id_source];
     if source.kind == EntityKind::Card
         && matches!(

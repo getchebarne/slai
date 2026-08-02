@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// On pickup, choose 3 cards to transform; the results are upgraded
+// On pickup, choose 3 Cards to transform; the results are upgraded
 // See:
 //    - `process_effect_relic_adopt.rs`
 //    - `process_effect_astrolabe_transform.rs`

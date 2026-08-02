@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Replaces Ring of the Snake; draw 1 additional card each turn
+// Replaces Ring of the Snake; draw 1 additional Card each turn
 // See:
 //    - `process_effect_relic_adopt.rs`
 //    - `process_effect_turn_start.rs`

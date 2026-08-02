@@ -13,11 +13,13 @@ use crate::types::Mode;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top;
+use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
 pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
     // A monster spawning implies a combat: the first spawn of a fight constructs it
-    if !matches!(state.mode_stack.last(), Some(Mode::Combat { .. })) {
+    if !matches!(mode_top(&state.mode_stack), Mode::Combat { .. }) {
         // Event fights replace the consumed Event frame; room fights push over Map
         let combat = Mode::Combat {
             id_hand: Vec::with_capacity(MAX_SIZE_HAND),
@@ -44,12 +46,12 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
             event_relic: None,
             event_relic_roll: false,
         };
-        if matches!(state.mode_stack.last(), Some(Mode::Event { .. })) {
+        if matches!(mode_top(&state.mode_stack), Mode::Event { .. }) {
             state.mode_stack.pop();
         }
         state.mode_stack.push(combat);
     }
-    let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last_mut() else {
+    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("Constructed above")
     };
 

@@ -4,6 +4,7 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_discover_roll(
@@ -13,7 +14,7 @@ pub fn process_effect_card_discover_roll(
     exclude: &[CardName],
     count: u8,
 ) {
-    let Some(Mode::Combat { id_discover, .. }) = state.mode_stack.last_mut() else {
+    let Mode::Combat { id_discover, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("process_effect_card_discover_roll outside Combat mode")
     };
     id_discover.clear();

@@ -290,7 +290,7 @@ pub fn get_relic(name: RelicName) -> Entity {
     }
 }
 
-// Bump a relic's counter if owned; at `threshold` reset it to 0 and report the fire
+// Bump a Relic's counter if owned; at `threshold` reset it to 0 and report the fire
 pub fn trigger_relic_counter(
     name: RelicName,
     threshold: i16,
@@ -298,7 +298,7 @@ pub fn trigger_relic_counter(
     entities: &mut [Entity],
 ) -> bool {
     let Some(id) = id_relics[name as usize] else {
-        // If the relic is not owned, return
+        // If the Relic is not owned, return
         return false;
     };
 
@@ -314,7 +314,7 @@ pub fn trigger_relic_counter(
     false
 }
 
-// Frozen / Molten / Toxic Egg: cards of the matching kind are obtained upgraded
+// Frozen / Molten / Toxic Egg: Cards of the matching kind are obtained upgraded
 pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::COUNT]) -> bool {
     let egg = match kind {
         CardKind::Power => RelicName::FrozenEgg,
@@ -325,7 +325,7 @@ pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::
     id_relics[egg as usize].is_some()
 }
 
-// Per-turn relic counters; reset at character turn end and at combat start
+// Per-turn Relic counters; reset at character turn end and at combat start
 // (combat can end mid-turn, so turn-end resets alone leak into the next combat)
 pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::Kunai,
@@ -336,7 +336,7 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::HoveringKite,
 ];
 
-// Per-combat relic counters; reset at combat start only
+// Per-combat Relic counters; reset at combat start only
 pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
     RelicName::StoneCalendar,
     RelicName::HornCleat,
@@ -494,7 +494,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &ring_of_the_serpent::RING_OF_THE_SERPENT,
     &sacred_bark::SACRED_BARK,
 ];
-// Assert all relics are included without duplicates
+// Assert all Relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);
 const _: () = {
     let mut seen = [false; RelicName::COUNT];
@@ -547,7 +547,7 @@ const fn build_pool<const N: usize>(tier: RelicTier) -> [RelicName; N] {
     buf
 }
 
-// Get number of potions per tier-pool
+// Get number of Potions per tier-pool
 const NUM_COMMON: usize = count_pool(RelicTier::Common);
 const NUM_UNCOMMON: usize = count_pool(RelicTier::Uncommon);
 const NUM_RARE: usize = count_pool(RelicTier::Rare);

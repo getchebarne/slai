@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// The first card discarded each turn grants 1 energy
+// The first Card discarded each turn grants 1 energy
 // See:
 //    - `process_effect_card_discard.rs`
 pub static HOVERING_KITE: Entity =

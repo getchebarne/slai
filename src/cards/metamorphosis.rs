@@ -49,7 +49,7 @@ pub static METAMORPHOSIS_PLUS: Entity = Entity {
             color: CardColor::Green,
             kind: Some(CardKind::Attack),
             pile: CardPile::Draw,
-            count: 5, // +2 cards
+            count: 5, // +2 Cards
             cost_zero: Some(CostScope::Combat),
             upgraded: false,
         };

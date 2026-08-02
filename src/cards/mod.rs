@@ -513,7 +513,7 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &violence::VIOLENCE,
     &curse_of_the_bell::CURSE_OF_THE_BELL,
 ];
-// Assert all cards are included without duplicates
+// Assert all Cards are included without duplicates
 const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);
 const _: () = {
     let mut seen = [false; CardName::COUNT];
@@ -636,7 +636,7 @@ pub const POOL_RARE_COLORLESS_CARD: &[CardName] =
 pub const POOL_CURSE_CARD: &[CardName] =
     &build_pool::<NUM_CURSE>(CardRarity::Curse, CardColor::Curse);
 
-// Pick `count` distinct cards from the full set, filtered by color and (when given) kind/rarity
+// Pick `count` distinct Cards from the full set, filtered by color and (when given) kind/rarity
 pub fn get_random_cards(
     color: CardColor,
     kind: Option<CardKind>,

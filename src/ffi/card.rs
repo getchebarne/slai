@@ -20,6 +20,7 @@ use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
 use crate::types::Mode;
+use crate::utils::mode_top;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
 use crate::utils::vuln_factor;
@@ -592,7 +593,7 @@ pub struct PyCard {
 
     // Fingerprint over every snapshot field above except display_name (derived from
     // name+upgraded): one u64 getter replaces a per-field FFI walk for clients that
-    // key caches/dedup on card identity. Deterministic across processes.
+    // key caches/dedup on Card identity. Deterministic across processes.
     pub identity_hash: u64,
 }
 
@@ -732,7 +733,7 @@ impl CardName {
     }
 }
 
-// Snapshot a card's effects with the current player modifiers folded into the DamagePhysical /
+// Snapshot a Card's effects with the current player modifiers folded into the DamagePhysical /
 // BlockGain amounts (target-agnostic — Vulnerable/Intangible depend on the L3 target chosen later),
 // via the same scaling utils as the live pipeline. Other effect kinds pass through unchanged.
 pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffect> {
@@ -789,15 +790,15 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         &state.entities[state.id_character].modifiers,
         ModifierKind::Entangled,
     );
-    // Combat-only; outside combat defaults are permissive (cards not played)
+    // Combat-only; outside combat defaults are permissive (Cards not played)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        if let Some(Mode::Combat {
+        if let Mode::Combat {
             id_pile_draw,
             energy,
             this_turn_discards,
             this_combat_damage_instances_taken,
             ..
-        }) = state.mode_stack.last()
+        } = mode_top(&state.mode_stack)
         {
             (
                 is_play_restriction_satisfied(

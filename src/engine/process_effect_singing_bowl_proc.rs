@@ -5,17 +5,21 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
-// Singing Bowl: forfeit one card bundle for +2 max HP (no heal)
 pub fn process_effect_singing_bowl_proc(state: &mut GameState, idx_bundle: u8) {
-    let Some(Mode::Reward {
+    let Mode::Reward {
         reward_id_cards: bundles,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("SingingBowlProc outside Reward mode")
     };
+
+    // Remove bundle
     bundles.remove(idx_bundle as usize);
+
+    // Push effect for max health gain
     state.effect_queue.push_front(Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: DeltaSign::Gain,

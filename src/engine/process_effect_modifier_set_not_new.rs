@@ -1,9 +1,10 @@
 use crate::game::GameState;
 use crate::modifier::modifier_set_not_new;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_modifier_set_not_new(state: &mut GameState) {
-    let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last_mut() else {
+    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("process_effect_modifier_set_not_new outside Combat mode")
     };
     let id_character = state.id_character;

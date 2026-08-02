@@ -120,7 +120,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
     let character = spawn_silent(ascension);
     push_entity(&mut entities, character);
 
-    // Innate start relic
+    // Innate start Relic
     let id_snake_ring = push_entity(&mut entities, get_relic(RelicName::SnakeRing));
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
     id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
@@ -225,7 +225,7 @@ fn auto_advance(state: &mut GameState) {
         let action = state.legal_actions[0].clone();
 
         // Keep processing the queue until there's more than one legal action to take
-        handle_action(state, action).expect("cached single legal action must be valid");
+        handle_action(state, action).expect("Cached single legal action must be valid");
         process_effect_queue(state);
         recompute_legal_actions(state);
     }

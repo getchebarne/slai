@@ -15,6 +15,7 @@ use crate::types::Mode;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("Death requires id_target");
@@ -58,7 +59,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     // Monster-death path
-    let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last_mut() else {
+    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("Monster death outside Combat mode")
     };
     let id_character = state.id_character;

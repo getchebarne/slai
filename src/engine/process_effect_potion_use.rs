@@ -12,7 +12,7 @@ use crate::utils::has_relic;
 pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState) {
     let id_potion = id_target.expect("PotionUse requires id_target");
 
-    // Consume the potion from its belt slot before its effects run
+    // Consume the Potion from its belt slot before its effects run
     remove_potion(&mut state.id_potions, id_potion);
     let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
     let potion = &state.entities[id_potion];
@@ -24,7 +24,7 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
             ..*effect
         };
 
-        // Sacred Bark: potion effects double
+        // Sacred Bark: Potion effects double
         let mut repeat = false;
         if sacred_bark {
             match &mut effect.kind {
@@ -72,7 +72,7 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
         }
     }
 
-    // Toy Ornithopter: any potion use heals 5, in or out of combat
+    // Toy Ornithopter: any Potion use heals 5, in or out of combat
     if has_relic(&state.id_relics, RelicName::ToyOrnithopter) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::HealthDelta {

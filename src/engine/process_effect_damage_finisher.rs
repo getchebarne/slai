@@ -3,6 +3,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
 // Subtract 1 because card_play increments the counter before this effect fires
 pub fn process_effect_damage_finisher(
@@ -11,9 +12,9 @@ pub fn process_effect_damage_finisher(
     state: &mut GameState,
     damage: u16,
 ) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         this_turn_attacks, ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_damage_finisher outside Combat mode")
     };

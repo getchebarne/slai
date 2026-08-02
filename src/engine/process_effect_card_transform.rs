@@ -41,7 +41,7 @@ pub fn process_effect_card_transform(
         CardColor::Curse => (&[POOL_CURSE_CARD], false),
     };
 
-    // Uniform across rarities (unlike card rewards), never into the same card
+    // Uniform across rarities (unlike Card rewards), never into the same Card
     let candidates: Vec<CardName> = pools
         .iter()
         .flat_map(|pool| pool.iter().copied())

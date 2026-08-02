@@ -42,7 +42,7 @@ const fn touch(gold: u16) -> [Effect; 3] {
 const OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
 const OPTION_TOUCH_A15: [Effect; 3] = touch(50);
 
-// Trade: gain random unowned face relic
+// Trade: gain random unowned face Relic
 const OPTION_TRADE: &[Effect] = &[
     Effect {
         kind: EffectKind::FaceTrade,

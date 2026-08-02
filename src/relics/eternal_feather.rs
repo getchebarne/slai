@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Entering a rest site heals 3 HP per 5 deck cards
+// Entering a rest site heals 3 HP per 5 deck Cards
 // See:
 //    - `process_effect_room_enter.rs`
 pub static ETERNAL_FEATHER: Entity =

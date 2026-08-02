@@ -40,7 +40,7 @@ pub enum EntityKind {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlayRestriction {
-    Always,        // Standard cards. Playable iff the energy cost is met
+    Always,        // Standard Cards. Playable iff the energy cost is met
     Never,         // Permanently unplayable (curses, statuses, Reflex, Tactician, etc.)
     DrawPileEmpty, // Playable iff the draw pile is empty (Grand Finale only)
 }
@@ -96,7 +96,7 @@ pub const ZERO_MOVE: Move = Move {
 pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
     assert!(
         effects.len() <= MAX_EFFECTS_PER_MOVE,
-        "move effects exceeds MAX_EFFECTS_PER_MOVE",
+        "Move effects exceeds MAX_EFFECTS_PER_MOVE",
     );
     let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
     let mut i = 0;

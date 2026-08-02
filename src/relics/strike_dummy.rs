@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Strike-tagged cards deal 3 more damage
+// Strike-tagged Cards deal 3 more damage
 // See:
 //    - `process_effect_damage_physical.rs`
 pub static STRIKE_DUMMY: Entity =

@@ -16,12 +16,11 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool) {
     // Capture provenance, then drop the combat: teardown is the variant swap
-    let Some(mode) = state.mode_stack.last_mut() else {
-        unreachable!("mode stack never empty")
-    };
+    let mode = mode_top_mut(&mut state.mode_stack);
     let Mode::Combat {
         this_combat_escaped,
         event_gold,
@@ -62,7 +61,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             // Granted directly: game_over halts the queue before a GoldDelta would run
             let roll = state.rng.random_range(GOLD_BOSS_MIN..=GOLD_BOSS_MAX);
             let amount = if state.ascension >= 13 {
-                (roll * 3 + 2) / 4 // ×0.75 rounded half-up
+                (roll * 3 + 2) / 4 // x0.75 rounded half-up
             } else {
                 roll
             };

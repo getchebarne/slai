@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Combat card rewards offer 1 additional card
+// Combat Card rewards offer 1 additional Card
 // See:
 //    - `utils.rs`
 pub static QUESTION_CARD: Entity =

@@ -7,7 +7,7 @@ use crate::types::CardRarity;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 
-// Bonfire Spirits: purge the offered card, reward keyed on its rarity
+// Bonfire Spirits: purge the offered Card, reward keyed on its rarity
 pub fn process_effect_bonfire_offer(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("BonfireOffer requires id_target");
     let id_character = state.id_character;

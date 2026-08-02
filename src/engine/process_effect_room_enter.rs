@@ -91,7 +91,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::RestSite => {
             state.mode_stack.push(Mode::RestSite);
 
-            // Eternal Feather: 3 HP per 5 deck cards on arrival
+            // Eternal Feather: 3 HP per 5 deck Cards on arrival
             if has_relic(&state.id_relics, RelicName::EternalFeather) {
                 let heal = (state.id_deck.len() / 5) * 3;
                 state.effect_queue.push_back(Effect {

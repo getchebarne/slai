@@ -27,9 +27,10 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_hand,
         id_monsters,
         energy,
@@ -39,7 +40,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         this_turn_panache,
         this_combat_damage_instances_taken,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_card_play outside Combat mode")
     };
@@ -51,7 +52,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let energy_current = energy.energy_current;
     let card = state.entities[id_card];
 
-    // Increase this-turn-played-cards counter
+    // Increase this-turn-played-Cards counter
     *this_turn_cards_played = this_turn_cards_played.saturating_add(1);
 
     if card.card_kind == CardKind::Attack {
@@ -180,7 +181,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                 target: Target::Direct(Some(id_character)),
             });
         }
-        // Mummified Hand: make a random still-costed hand card free this turn
+        // Mummified Hand: make a random still-costed hand Card free this turn
         if has_relic(&state.id_relics, RelicName::MummifiedHand) {
             free_random_costed_hand_card(
                 &*id_hand,
@@ -195,7 +196,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    // Ink Bottle: Counts every card played; counter persists across turns and combats
+    // Ink Bottle: Counts every Card played; counter persists across turns and combats
     if trigger_relic_counter(
         RelicName::InkBottle,
         10,
@@ -250,7 +251,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         target: Target::Direct(None),
     });
 
-    // Blue Candle / Medical Kit: relic-enabled plays exhaust; the candle also costs 1 HP
+    // Blue Candle / Medical Kit: Relic-enabled plays exhaust; the candle also costs 1 HP
     let relic_exhaust = if card.card_kind == CardKind::Curse
         && has_relic(&state.id_relics, RelicName::BlueCandle)
     {
@@ -271,7 +272,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         false
     };
 
-    // Relocate the card to the appropriate pile
+    // Relocate the Card to the appropriate pile
     if card.card_exhaust || relic_exhaust {
         // Strange Spoon: on-play exhausts have a 50% chance to discard instead
         let effect_kind = if has_relic(&state.id_relics, RelicName::StrangeSpoon)
@@ -336,7 +337,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    // Panache: every 5th card played while active hits all enemies for `stacks`
+    // Panache: every 5th Card played while active hits all enemies for `stacks`
     if has_modifier(char_modifiers, ModifierKind::Panache) {
         *this_turn_panache += 1;
         if *this_turn_panache == 5 {
@@ -388,10 +389,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let burst =
         has_modifier(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
 
-    // DuplicateNextCardPlay replays any card kind; additive with Burst
+    // DuplicateNextCardPlay replays any Card kind; additive with Burst
     let duplication = has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
 
-    // Total amount of card-play repetitions
+    // Total amount of Card-play repetitions
     let reps = (1 + burst as usize + duplication as usize) * mul;
 
     // Wrist Blade: attacks that cost 0 deal +4 per hit
@@ -451,7 +452,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         });
     }
 
-    // Choke (enemy): pushed after card_effects so the played card resolves first
+    // Choke (enemy): pushed after card_effects so the played Card resolves first
     for id_monster in id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;
         if has_modifier(mods_monster, ModifierKind::Choke) {
@@ -485,7 +486,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    // Pain: each copy in hand bleeds 1 HP on any other card play; HealthDelta ignores block
+    // Pain: each copy in hand bleeds 1 HP on any other Card play; HealthDelta ignores block
     for i in 0..id_hand.len() {
         if state.entities[id_hand[i]].card_name == CardName::Pain {
             state.effect_buf.push(Effect {
@@ -502,7 +503,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     flush_effects_from_buf_to_queue_front(state);
 }
 
-// Zeroes the cost of one random hand card that still costs energy this turn
+// Zeroes the cost of one random hand Card that still costs energy this turn
 fn free_random_costed_hand_card(
     id_hand: &[usize],
     entities: &[Entity],
@@ -516,7 +517,7 @@ fn free_random_costed_hand_card(
     let mut cards_valid = [0usize; MAX_SIZE_HAND];
     let mut num = 0;
     for &id_card in id_hand.iter() {
-        // Exclude just-played card
+        // Exclude just-played Card
         if id_card == id_card_played {
             continue;
         }
@@ -556,7 +557,7 @@ fn free_random_costed_hand_card(
 }
 
 // Tracks the played kind in a seen-kinds bitmask (Attack=1, Skill=2, Power=4) on the
-// relic counter; once all three are seen in a turn, clears the character's debuffs and resets
+// Relic counter; once all three are seen in a turn, clears the character's debuffs and resets
 fn orange_pellets_track_and_sweep(
     entities: &mut [Entity],
     effect_queue: &mut VecDeque<Effect>,

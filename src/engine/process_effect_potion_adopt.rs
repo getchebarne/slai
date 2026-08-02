@@ -6,7 +6,7 @@ use crate::utils::has_relic;
 pub fn process_effect_potion_adopt(id_target: Option<usize>, state: &mut GameState) {
     let id_potion = id_target.expect("PotionAdopt requires id_target");
 
-    // Sozu: potions can no longer be obtained
+    // Sozu: the claim consumes but nothing is obtained (source: flash, no Potion)
     if has_relic(&state.id_relics, RelicName::Sozu) {
         return;
     }

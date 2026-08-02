@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// +1 energy; potions can no longer be obtained
+// +1 energy; Potions can no longer be obtained
 // See:
 //    - `process_effect_combat_start.rs`
 //    - `process_effect_potion_adopt.rs`

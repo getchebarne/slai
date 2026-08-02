@@ -22,6 +22,7 @@ use crate::types::Mode;
 use crate::types::MonsterKind;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
@@ -31,7 +32,7 @@ pub fn process_effect_combat_start(
     event_relic: Option<RelicName>,
     event_relic_roll: bool,
 ) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_pile_draw,
         id_monsters,
         id_picked_monster,
@@ -45,7 +46,7 @@ pub fn process_effect_combat_start(
         event_relic: combat_event_relic,
         event_relic_roll: combat_event_relic_roll,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_combat_start outside Combat mode")
     };
@@ -65,7 +66,7 @@ pub fn process_effect_combat_start(
         .flatten()
         .any(|&id| state.entities[id].monster_kind == MonsterKind::Boss);
 
-    // Energy relics: +1 for each owned one
+    // Energy Relics: +1 for each owned one
     let mut energy_max = ENERGY_MAX_BASE;
     for name in [
         RelicName::PhilosopherStone,
@@ -109,7 +110,7 @@ pub fn process_effect_combat_start(
         }
     }
 
-    // Innate and bottled cards sit on top of the draw pile, ahead of the shuffled rest
+    // Innate and bottled Cards sit on top of the draw pile, ahead of the shuffled rest
     let mut other_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
     let mut other_n: usize = 0;
     let mut innate_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
@@ -147,7 +148,7 @@ pub fn process_effect_combat_start(
         target: Target::Direct(Some(state.id_character)),
     });
 
-    // Toolbox: choose 1 of 3 colorless cards
+    // Toolbox: choose 1 of 3 colorless Cards
     if has_relic(&state.id_relics, RelicName::Toolbox) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscoverPick { cost_zero: None },

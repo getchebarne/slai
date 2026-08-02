@@ -19,7 +19,7 @@ pub fn process_effect_relic_grant_random(state: &mut GameState) {
         &state.id_relics,
         &mut state.rng,
     );
-    // The roll excludes owned relics but can fall back to an owned Circlet
+    // The roll excludes owned Relics but can fall back to an owned Circlet
     if state.id_relics[name as usize].is_some() {
         return;
     }

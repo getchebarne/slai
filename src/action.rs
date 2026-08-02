@@ -32,9 +32,14 @@ use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::mode_top;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
+    CardBottle {
+        kind: CardKind,
+        idx: usize,
+    },
     CardDiscard {
         idx: usize,
     },
@@ -136,6 +141,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::CardExhaust { idx } => handle_pending_pick_hand(state, idx),
         Action::CardMoveToHand { idx } => handle_card_move_to_hand_pick(state, idx),
         Action::PickSkip => handle_pick_skip(state),
+        Action::CardBottle { kind, idx } => handle_card_bottle(state, kind, idx),
         Action::CardDiscover { idx } => handle_card_discover(state, idx),
         Action::CardDuplicate { idx } => resolve_pending_pick_deck(state, idx),
         Action::CardNightmare { idx } => handle_pending_pick_hand(state, idx),
@@ -204,7 +210,7 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         }
         return;
     }
-    match state.mode_stack.last().expect("mode stack never empty") {
+    match mode_top(&state.mode_stack) {
         Mode::Combat { .. } => fill_legal_actions_screen_combat(state),
         Mode::CombatEnded => unreachable!("CombatEnded rests only at game_over"),
         Mode::Reward { .. } => fill_legal_actions_screen_reward(state),
@@ -219,7 +225,7 @@ pub fn recompute_legal_actions(state: &mut GameState) {
 
 // Discard / retain / setup / nightmare picks all resolve a pending hand pick
 fn handle_pending_pick_hand(state: &mut GameState, idx: usize) {
-    let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last() else {
+    let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
         unreachable!("Hand pick outside Combat mode")
     };
     let id_card = id_hand[idx];
@@ -231,12 +237,9 @@ fn handle_card_move_to_hand_pick(state: &mut GameState, idx: usize) {
     let pending = state
         .effect_pending
         .as_ref()
-        .expect("pile pick requires a pending effect");
-    let pool = pending_candidate_pool(pending).expect("pile pick carries a Resolve pool");
-    let id_card = pile_for_pool(
-        state.mode_stack.last().expect("mode stack never empty"),
-        pool,
-    )[idx];
+        .expect("Pile pick requires a pending effect");
+    let pool = pending_candidate_pool(pending).expect("Pile pick carries a Resolve pool");
+    let id_card = pile_for_pool(mode_top(&state.mode_stack), pool)[idx];
     resolve_pending_pick(state, id_card);
 }
 
@@ -249,7 +252,7 @@ fn handle_pick_skip(state: &mut GameState) {
 }
 
 fn handle_card_discover(state: &mut GameState, idx: usize) {
-    let Some(Mode::Combat { id_discover, .. }) = state.mode_stack.last() else {
+    let Mode::Combat { id_discover, .. } = mode_top(&state.mode_stack) else {
         unreachable!("handle_card_discover outside Combat mode")
     };
     let id_card = id_discover[idx];
@@ -257,11 +260,11 @@ fn handle_card_discover(state: &mut GameState, idx: usize) {
 }
 
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_hand,
         id_monsters,
         ..
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("handle_card_play outside Combat mode")
     };
@@ -274,7 +277,7 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
             .flatten()
             .copied()
             .nth(idx_monster)
-            .expect("enumerated monster idx is valid");
+            .expect("Enumerated monster idx is valid");
 
         // TargetSet -> CardPlay -> TargetClear
         state.effect_buf.push(Effect {
@@ -325,7 +328,7 @@ fn handle_chest_open(state: &mut GameState) {
 }
 
 fn handle_event_option_select(state: &mut GameState, idx: usize) {
-    let Some(Mode::Event { id_options, .. }) = state.mode_stack.last() else {
+    let Mode::Event { id_options, .. } = mode_top(&state.mode_stack) else {
         unreachable!("EventOptionSelect outside Event mode")
     };
     let id_option = id_options[idx];
@@ -339,7 +342,7 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
 }
 
 fn handle_potion_discard(state: &mut GameState, idx: usize) {
-    let id_potion = state.id_potions[idx].expect("enumerated potion slot is occupied");
+    let id_potion = state.id_potions[idx].expect("Enumerated Potion slot is occupied");
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionDiscard,
         id_source: Some(id_potion),
@@ -348,10 +351,10 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
 }
 
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
-    let id_potion = state.id_potions[idx_potion].expect("enumerated potion slot is occupied");
+    let id_potion = state.id_potions[idx_potion].expect("Enumerated Potion slot is occupied");
     if state.entities[id_potion].requires_target {
-        let Some(Mode::Combat { id_monsters, .. }) = state.mode_stack.last() else {
-            unreachable!("Targeted potion use outside Combat mode")
+        let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack) else {
+            unreachable!("Targeted Potion use outside Combat mode")
         };
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
@@ -360,7 +363,7 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
             .flatten()
             .copied()
             .nth(idx_monster)
-            .expect("enumerated monster idx is valid");
+            .expect("Enumerated monster idx is valid");
 
         // TargetSet -> PotionUse -> TargetClear
         state.effect_buf.push(Effect {
@@ -427,7 +430,7 @@ fn handle_rest(state: &mut GameState) {
     }
     push_rest_site_consume(state);
 
-    // Dream Catcher: resting also offers a card reward (Rest only, not Smith)
+    // Dream Catcher: resting also offers a Card reward (Rest only, not Smith)
     if has_relic(&state.id_relics, RelicName::DreamCatcher) {
         state.effect_buf.push(Effect {
             kind: EffectKind::RewardRollCards,
@@ -447,7 +450,7 @@ fn handle_rest_lift(state: &mut GameState) {
     push_rest_site_consume(state);
 }
 
-// Peace Pipe: spend the rest on purging a card (halting deck pick)
+// Peace Pipe: spend the rest on purging a Card (halting deck pick)
 fn handle_rest_toke(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::CardPurge,
@@ -461,7 +464,7 @@ fn handle_rest_toke(state: &mut GameState) {
     push_rest_site_consume(state);
 }
 
-// Shovel: spend the rest on a random relic (granted directly, not staged)
+// Shovel: spend the rest on a random Relic (granted directly, not staged)
 fn handle_rest_dig(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::RelicGrantRandom,
@@ -471,7 +474,7 @@ fn handle_rest_dig(state: &mut GameState) {
     push_rest_site_consume(state);
 }
 
-// Singing Bowl: forfeit one card bundle for +2 max HP
+// Singing Bowl: forfeit one Card bundle for +2 max HP
 fn handle_reward_singing_bowl(state: &mut GameState, idx_bundle: usize) {
     state.effect_buf.push(Effect {
         kind: EffectKind::SingingBowlProc {
@@ -483,9 +486,9 @@ fn handle_reward_singing_bowl(state: &mut GameState, idx_bundle: usize) {
 }
 
 fn handle_reward_take_card(state: &mut GameState, idx_bundle: usize, idx_card: usize) {
-    let Some(Mode::Reward {
+    let Mode::Reward {
         reward_id_cards, ..
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("RewardTakeCard outside Reward mode")
     };
@@ -510,9 +513,9 @@ fn handle_reward_take_gold(state: &mut GameState) {
 }
 
 fn handle_reward_take_potion(state: &mut GameState, idx: usize) {
-    let Some(Mode::Reward {
+    let Mode::Reward {
         reward_id_potions, ..
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("RewardTakePotion outside Reward mode")
     };
@@ -527,9 +530,9 @@ fn handle_reward_take_potion(state: &mut GameState, idx: usize) {
 }
 
 fn handle_reward_take_relic(state: &mut GameState, idx: usize) {
-    let Some(Mode::Reward {
+    let Mode::Reward {
         reward_id_relics, ..
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("RewardTakeRelic outside Reward mode")
     };
@@ -559,7 +562,7 @@ fn handle_room_select(state: &mut GameState, idx: usize) {
         Location::Overworld { y, .. } => y + 1,
         Location::BossRoom => unreachable!("RoomSelect not enumerated from the boss room"),
     };
-    let id_room = state.id_rooms[y_next][idx].expect("enumerated room exists");
+    let id_room = state.id_rooms[y_next][idx].expect("Enumerated room exists");
     state.effect_buf.push(Effect {
         kind: EffectKind::RoomSelect,
         id_source: None,
@@ -577,7 +580,7 @@ fn handle_turn_end(state: &mut GameState) {
 }
 
 fn handle_shop_buy_card(state: &mut GameState, idx: usize) {
-    let Some(Mode::Shop { shop_id_cards, .. }) = state.mode_stack.last() else {
+    let Mode::Shop { shop_id_cards, .. } = mode_top(&state.mode_stack) else {
         unreachable!("ShopBuyCard outside Shop mode")
     };
     let id_card = shop_id_cards[idx];
@@ -589,9 +592,9 @@ fn handle_shop_buy_card(state: &mut GameState, idx: usize) {
 }
 
 fn handle_shop_buy_potion(state: &mut GameState, idx: usize) {
-    let Some(Mode::Shop {
+    let Mode::Shop {
         shop_id_potions, ..
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("ShopBuyPotion outside Shop mode")
     };
@@ -604,7 +607,7 @@ fn handle_shop_buy_potion(state: &mut GameState, idx: usize) {
 }
 
 fn handle_shop_buy_relic(state: &mut GameState, idx: usize) {
-    let Some(Mode::Shop { shop_id_relics, .. }) = state.mode_stack.last() else {
+    let Mode::Shop { shop_id_relics, .. } = mode_top(&state.mode_stack) else {
         unreachable!("ShopBuyRelic outside Shop mode")
     };
     let id_relic = shop_id_relics[idx];
@@ -631,10 +634,10 @@ fn fill_legal_actions_effect_pending(
     pool: Option<CandidatePool>,
 ) {
     match kind {
-        // Discard/retain offer single-card picks; the handler re-raises the halt with a
+        // Discard/retain offer single-Card picks; the handler re-raises the halt with a
         // decremented count, so discard-N becomes N single picks (see resolve_hand_pending)
         EffectKind::CardDiscard { .. } => {
-            let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last() else {
+            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
                 unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
@@ -642,7 +645,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardRetain => {
-            let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last() else {
+            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
                 unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
@@ -650,7 +653,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardExhaust => {
-            let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last() else {
+            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
                 unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
@@ -661,11 +664,8 @@ fn fill_legal_actions_effect_pending(
             pile: CardPile::Hand,
             ..
         } => {
-            let pool = pool.expect("pile pick carries a Resolve pool");
-            let pile = pile_for_pool(
-                state.mode_stack.last().expect("mode stack never empty"),
-                pool,
-            );
+            let pool = pool.expect("Pile pick carries a Resolve pool");
+            let pile = pile_for_pool(mode_top(&state.mode_stack), pool);
             for i in 0..pile.len() {
                 if filter.is_none_or(|f| {
                     candidate_matches(f, pile[i], &state.entities[pile[i]], None, None)
@@ -675,7 +675,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardSetupPick { .. } => {
-            let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last() else {
+            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
                 unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
@@ -683,7 +683,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardNightmarePick => {
-            let Some(Mode::Combat { id_hand, .. }) = state.mode_stack.last() else {
+            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
                 unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
@@ -691,16 +691,16 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardDiscoverPick { .. } => {
-            let Some(Mode::Combat { id_discover, .. }) = state.mode_stack.last() else {
+            let Mode::Combat { id_discover, .. } = mode_top(&state.mode_stack) else {
                 unreachable!("Discover pick outside Combat mode")
             };
             for i in 0..id_discover.len() {
                 state.legal_actions.push(Action::CardDiscover { idx: i });
             }
         }
-        // Bonfire's offer and bottling reuse `CardPurge` actions: same pool, same resolution shape
-        EffectKind::CardPurge | EffectKind::BonfireOffer | EffectKind::CardBottle => {
-            let filter = filter.expect("deck pick carries a card filter");
+        EffectKind::CardPurge | EffectKind::BonfireOffer => {
+            // Bonfire's offer reuses `CardPurge` actions: removal is its semantics
+            let filter = filter.expect("Deck pick carries a Card filter");
             for i in 0..state.id_deck.len() {
                 if candidate_matches(
                     filter,
@@ -713,8 +713,25 @@ fn fill_legal_actions_effect_pending(
                 }
             }
         }
+        EffectKind::CardBottle => {
+            let filter = filter.expect("Deck pick carries a Card filter");
+            let kind = bottle_kind_for_filter(filter);
+            for i in 0..state.id_deck.len() {
+                if candidate_matches(
+                    filter,
+                    state.id_deck[i],
+                    &state.entities[state.id_deck[i]],
+                    None,
+                    None,
+                ) {
+                    state
+                        .legal_actions
+                        .push(Action::CardBottle { kind, idx: i });
+                }
+            }
+        }
         EffectKind::CardUpgrade => {
-            let filter = filter.expect("deck pick carries a card filter");
+            let filter = filter.expect("Deck pick carries a Card filter");
             for i in 0..state.id_deck.len() {
                 if candidate_matches(
                     filter,
@@ -728,7 +745,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardDuplicate => {
-            let filter = filter.expect("deck pick carries a card filter");
+            let filter = filter.expect("Deck pick carries a Card filter");
             for i in 0..state.id_deck.len() {
                 if candidate_matches(
                     filter,
@@ -742,7 +759,7 @@ fn fill_legal_actions_effect_pending(
             }
         }
         EffectKind::CardTransform { .. } => {
-            let filter = filter.expect("deck pick carries a card filter");
+            let filter = filter.expect("Deck pick carries a Card filter");
             for i in 0..state.id_deck.len() {
                 if candidate_matches(
                     filter,
@@ -760,7 +777,7 @@ fn fill_legal_actions_effect_pending(
 }
 
 fn fill_legal_actions_screen_combat(state: &mut GameState) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_hand,
         id_pile_draw,
         id_monsters,
@@ -769,22 +786,25 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
         this_turn_cards_played,
         this_combat_damage_instances_taken,
         ..
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("Combat legality outside Combat mode")
     };
     let id_character = state.id_character;
+
+    // Entangled: can't play `CardKind::Attack` cards
     let entangled = has_modifier(
         &state.entities[id_character].modifiers,
         ModifierKind::Entangled,
     );
-    let alive_count = id_monsters.iter().flatten().count();
+
     // Normality in hand caps the turn at 3 plays; blocks ANY further CardPlay
     let normality_blocks = *this_turn_cards_played >= 3
         && id_hand
             .iter()
             .any(|&id| state.entities[id].card_name == CardName::Normality);
-    // Velvet Choker: no more than 6 cards per turn (increment is post-play, so exactly 6 land)
+
+    // Velvet Choker: no more than 6 Cards per turn (increment is post-play, so exactly 6 land)
     let choker_blocks =
         *this_turn_cards_played >= 6 && has_relic(&state.id_relics, RelicName::VelvetChoker);
     for i in 0..id_hand.len() {
@@ -812,6 +832,7 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
             continue;
         }
         let requires_target = card.requires_target;
+        let alive_count = id_monsters.iter().flatten().count();
         if requires_target {
             for m in 0..alive_count {
                 state.legal_actions.push(Action::CardPlay {
@@ -831,17 +852,18 @@ fn fill_legal_actions_screen_combat(state: &mut GameState) {
 }
 
 fn fill_legal_actions_screen_reward(state: &mut GameState) {
-    let Some(Mode::Reward {
+    let Mode::Reward {
         reward_id_cards,
         reward_id_relics,
         reward_id_potions,
         reward_gold,
         ..
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("Reward legality outside Reward mode")
     };
-    // Take actions for every card in every bundle; Singing Bowl forfeits per bundle
+
+    // Take actions for every Card in every bundle; Singing Bowl forfeits per bundle
     let singing_bowl = has_relic(&state.id_relics, RelicName::SingingBowl);
     for (idx_bundle, bundle) in reward_id_cards.iter().enumerate() {
         for idx_card in 0..bundle.len() {
@@ -859,7 +881,8 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
     for i in 0..reward_id_relics.len() {
         state.legal_actions.push(Action::RewardTakeRelic { idx: i });
     }
-    // Sozu: potion rewards can't be taken (mirrors the shop gate)
+
+    // Sozu: Potion rewards can't be taken (mirrors the shop gate)
     if find_free_slot(&state.id_potions, state.potion_slots_max).is_some()
         && !has_relic(&state.id_relics, RelicName::Sozu)
     {
@@ -877,12 +900,12 @@ fn fill_legal_actions_screen_reward(state: &mut GameState) {
 }
 
 fn fill_legal_actions_screen_event(state: &mut GameState) {
-    let Some(Mode::Event {
+    let Mode::Event {
         kind,
         consumed,
         id_options,
         ..
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("Event legality outside Event mode")
     };
@@ -903,12 +926,12 @@ fn fill_legal_actions_screen_event(state: &mut GameState) {
 }
 
 fn fill_legal_actions_screen_shop(state: &mut GameState) {
-    let Some(Mode::Shop {
+    let Mode::Shop {
         shop_id_cards,
         shop_id_relics,
         shop_id_potions,
         shop_purge_cost,
-    }) = state.mode_stack.last()
+    } = mode_top(&state.mode_stack)
     else {
         unreachable!("Shop legality outside Shop mode")
     };
@@ -969,7 +992,7 @@ fn fill_legal_actions_screen_rest_site(state: &mut GameState) {
 
         // Fusion Hammer: Smith is unavailable
         if !has_relic(&state.id_relics, RelicName::FusionHammer) {
-            // CardUpgrade idx is an absolute id_deck index; offer only upgradable cards
+            // CardUpgrade idx is an absolute id_deck index; offer only upgradable Cards
             for i in 0..state.id_deck.len() {
                 if card_is_upgradable(&state.entities[state.id_deck[i]]) {
                     state.legal_actions.push(Action::CardUpgrade { idx: i });
@@ -986,7 +1009,7 @@ fn fill_legal_actions_screen_rest_site(state: &mut GameState) {
             any_option = true;
         }
 
-        // Peace Pipe: Toke to purge a card
+        // Peace Pipe: Toke to purge a Card
         if has_relic(&state.id_relics, RelicName::PeacePipe)
             && state
                 .id_deck
@@ -997,7 +1020,7 @@ fn fill_legal_actions_screen_rest_site(state: &mut GameState) {
             any_option = true;
         }
 
-        // Shovel: Dig for a random relic
+        // Shovel: Dig for a random Relic
         if has_relic(&state.id_relics, RelicName::Shovel) {
             state.legal_actions.push(Action::RestDig);
             any_option = true;
@@ -1039,6 +1062,7 @@ fn push_room_select_actions(state: &mut GameState) {
             }
             if let Some(id_current) = state.id_rooms[y][x] {
                 let edges = state.entities[id_current].room_edges;
+
                 // Wing Boots: with charges left, any next-row room is reachable
                 let winged = state.id_relics[RelicName::WingBoots as usize]
                     .is_some_and(|id| state.entities[id].relic_counter > 0);
@@ -1054,8 +1078,8 @@ fn push_room_select_actions(state: &mut GameState) {
 }
 
 fn push_potion_actions(state: &mut GameState) {
-    let (in_combat, alive_count) = match state.mode_stack.last() {
-        Some(Mode::Combat { id_monsters, .. }) => (true, id_monsters.iter().flatten().count()),
+    let (in_combat, alive_count) = match mode_top(&state.mode_stack) {
+        Mode::Combat { id_monsters, .. } => (true, id_monsters.iter().flatten().count()),
         _ => (false, 0),
     };
     let slots_max = state.potion_slots_max as usize;
@@ -1081,13 +1105,13 @@ fn push_potion_actions(state: &mut GameState) {
             continue;
         }
 
-        // Combat-only potions
+        // Combat-only Potions
         if potion.potion_combat_only && !in_combat {
             state.legal_actions.push(Action::PotionDiscard { idx: s });
             continue;
         }
 
-        // Target-requiring potions
+        // Target-requiring Potions
         if potion.requires_target {
             if in_combat {
                 for m in 0..alive_count {
@@ -1109,8 +1133,8 @@ fn push_potion_actions(state: &mut GameState) {
 
 fn current_room_id(state: &GameState) -> usize {
     match state.location {
-        Location::Overworld { y, x } => state.id_rooms[y][x].expect("current room must exist"),
-        Location::Start | Location::BossRoom => panic!("no current room outside the overworld"),
+        Location::Overworld { y, x } => state.id_rooms[y][x].expect("Current room must exist"),
+        Location::Start | Location::BossRoom => panic!("No current room outside the overworld"),
     }
 }
 
@@ -1149,7 +1173,7 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
                 count: count.saturating_sub(1),
             },
         ),
-        _ => panic!("pending pick carries an Input halt"),
+        _ => panic!("Pending pick carries an Input halt"),
     };
     let remaining = match selection_kind {
         SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count,
@@ -1168,7 +1192,7 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
     }
 }
 
-// Extract the card filter from a pending deck / draw-pile pick; None for other halts
+// Extract the Card filter from a pending deck / draw-pile pick; None for other halts
 fn pending_card_filter(effect: &Effect) -> Option<CandidateFilter> {
     match effect.target {
         Target::Resolve { filter, .. } => Some(filter),
@@ -1192,17 +1216,44 @@ fn pile_for_pool(mode: &Mode, pool: CandidatePool) -> &Vec<usize> {
         ..
     } = mode
     else {
-        unreachable!("pile pick outside Combat mode")
+        unreachable!("Pile pick outside Combat mode")
     };
     match pool {
         CandidatePool::PileDraw { .. } => id_pile_draw,
         CandidatePool::PileDiscard => id_pile_discard,
         CandidatePool::PileExhaust => id_pile_exhaust,
-        other => unreachable!("pile pick with non-pile pool: {:?}", other),
+        other => unreachable!("Pile pick with non-pile pool: {:?}", other),
     }
 }
 
 // Resolves a pending deck pick; idx is an absolute id_deck index
+// The pick's `kind` restates the pending bottle's filter; the pending effect bottles
+fn handle_card_bottle(state: &mut GameState, kind: CardKind, idx: usize) {
+    let Some(Effect {
+        kind: EffectKind::CardBottle,
+        target: Target::Resolve { filter, .. },
+        ..
+    }) = state.effect_pending
+    else {
+        unreachable!("CardBottle action without a pending bottle pick")
+    };
+    assert!(
+        bottle_kind_for_filter(filter) == kind,
+        "CardBottle kind must match the pending filter"
+    );
+    resolve_pending_pick_deck(state, idx);
+}
+
+// The three bottles filter by Card kind; no other filter reaches a bottle pick
+fn bottle_kind_for_filter(filter: CandidateFilter) -> CardKind {
+    match filter {
+        CandidateFilter::KindAttack => CardKind::Attack,
+        CandidateFilter::KindSkill => CardKind::Skill,
+        CandidateFilter::KindPower => CardKind::Power,
+        _ => unreachable!("Bottle pick with a non-kind filter: {filter:?}"),
+    }
+}
+
 fn resolve_pending_pick_deck(state: &mut GameState, idx: usize) {
     let id_card = state.id_deck[idx];
     resolve_pending_pick(state, id_card);

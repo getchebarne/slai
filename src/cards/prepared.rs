@@ -53,11 +53,11 @@ pub static PREPARED_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = PREPARED.card_effects;
-        a[0].kind = EffectKind::CardDraw { count: 2 }; // +1 card
+        a[0].kind = EffectKind::CardDraw { count: 2 }; // +1 Card
         a[1].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,
             filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Input { count: 2 }, // +1 card
+            selection_kind: SelectionKind::Input { count: 2 }, // +1 Card
         };
         a
     },

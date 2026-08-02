@@ -4,6 +4,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CostScope;
 use crate::types::Mode;
+use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_setup_pick(
     id_target: Option<usize>,
@@ -11,11 +12,11 @@ pub fn process_effect_card_setup_pick(
     free: bool,
     bottom: bool,
 ) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_hand,
         id_pile_draw,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_card_setup_pick outside Combat mode")
     };

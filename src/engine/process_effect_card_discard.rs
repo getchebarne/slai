@@ -10,6 +10,7 @@ use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_top_mut;
 
 // Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain/ethereal
 pub fn process_effect_card_discard(
@@ -17,12 +18,12 @@ pub fn process_effect_card_discard(
     state: &mut GameState,
     source: DiscardSource,
 ) {
-    let Some(Mode::Combat {
+    let Mode::Combat {
         id_hand,
         id_pile_discard,
         this_turn_discards,
         ..
-    }) = state.mode_stack.last_mut()
+    } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("process_effect_card_discard outside Combat mode")
     };
@@ -35,7 +36,7 @@ pub fn process_effect_card_discard(
                 return;
             }
 
-            // Exhaust ethereal cards
+            // Exhaust ethereal Cards
             if state.entities[id_target].card_ethereal {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::CardExhaust,
@@ -45,7 +46,7 @@ pub fn process_effect_card_discard(
                 return;
             }
 
-            // Runic Pyramid: unplayed cards stay in hand at end of turn
+            // Runic Pyramid: unplayed Cards stay in hand at end of turn
             if has_relic(&state.id_relics, RelicName::RunicPyramid) {
                 return;
             }

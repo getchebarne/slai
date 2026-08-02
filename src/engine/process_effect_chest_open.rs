@@ -9,6 +9,7 @@ use crate::types::CardPile;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
+use crate::utils::mode_replace;
 
 pub fn process_effect_chest_open(state: &mut GameState) {
     let Location::Overworld { y, x } = state.location else {
@@ -22,7 +23,7 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         .expect("ChestOpen with no chest_kind on room");
 
     room.room_chest_opened = true;
-    *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::ChestOpened;
+    mode_replace(&mut state.mode_stack, Mode::ChestOpened);
 
     // Cursed Key: opening a chest adds a random Curse to the deck
     if has_relic(&state.id_relics, RelicName::CursedKey) {

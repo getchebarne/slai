@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::consts::CAULDRON_POTION_COUNT;
 use crate::consts::MAX_SIZE_DECK;
 use crate::consts::ORRERY_BUNDLE_COUNT;
 use crate::consts::POTION_SLOTS_MAX;
@@ -11,6 +12,8 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::potions::get_potion;
+use crate::potions::get_random_potion_name;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
@@ -23,7 +26,10 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::card_is_upgradable;
 use crate::utils::card_reward_count;
-use crate::utils::pick_from_pool;
+use crate::utils::increase_max_hp;
+use crate::utils::mode_replace;
+use crate::utils::mode_top;
+use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
 use crate::utils::roll_card_rewards;
 
@@ -44,7 +50,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
     let id_character = state.id_character;
 
     match name {
-        // Dolly's Mirror: choose a deck card and obtain a copy of it
+        // Dolly's Mirror: choose a deck Card and obtain a copy of it
         RelicName::DollysMirror => {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardDuplicate,
@@ -99,7 +105,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             });
         }
 
-        // Potion Belt: gain 2 potion slots
+        // Potion Belt: gain 2 Potion slots
         RelicName::PotionBelt => {
             state.potion_slots_max = (state.potion_slots_max + 2).min(POTION_SLOTS_MAX as u8);
         }
@@ -108,7 +114,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
         RelicName::WarPaint => upgrade_random_cards(state, 2, Some(CardKind::Skill)),
         RelicName::Whetstone => upgrade_random_cards(state, 2, Some(CardKind::Attack)),
 
-        // Empty Cage: remove 2 cards from the deck
+        // Empty Cage: remove 2 Cards from the deck
         RelicName::EmptyCage => {
             for _ in 0..2 {
                 state.effect_queue.push_front(Effect {
@@ -123,7 +129,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             }
         }
 
-        // Pandora's Box: every starter Strike / Defend becomes a random card
+        // Pandora's Box: every starter Strike / Defend becomes a random Card
         RelicName::PandorasBox => {
             let mut id_starter = [0usize; MAX_SIZE_DECK];
             let mut id_starter_num = 0;
@@ -145,7 +151,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             }
         }
 
-        // Astrolabe: choose 3 cards to transform; the results are upgraded
+        // Astrolabe: choose 3 Cards to transform; the results are upgraded
         RelicName::Astrolabe => {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardTransform { upgraded: true },
@@ -158,27 +164,32 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             });
         }
 
-        // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare relic
+        // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare Relic
         RelicName::CallingBell => {
-            // The bell arrives from a reward screen; its three staged relics replace it
+            // The bell arrives from a reward screen; its three staged Relics replace it
             assert!(
-                matches!(state.mode_stack.last(), Some(Mode::Reward { .. })),
+                matches!(mode_top(&state.mode_stack), Mode::Reward { .. }),
                 "Calling Bell adopts from a reward screen"
             );
-            // The curse is obtained before the relics are offered; both land in this
-            // same drain, so the reward screen the player sees already has it
+
+            // Roll one Relic for each rarity
             let mut reward_id_relics = Vec::with_capacity(3);
             for pool in [POOL_COMMON_RELIC, POOL_UNCOMMON_RELIC, POOL_RARE_RELIC] {
-                if let Some(name) = pick_from_pool(pool, &state.id_relics, &mut state.rng) {
+                if let Some(name) = pick_relic_from_pool(pool, &state.id_relics, &mut state.rng) {
                     reward_id_relics.push(push_entity(&mut state.entities, get_relic(name)));
                 }
             }
-            *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::Reward {
-                reward_id_cards: Vec::new(),
-                reward_id_relics,
-                reward_id_potions: Vec::new(),
-                reward_gold: None,
-            };
+
+            // Set `Mode::Reward`
+            mode_replace(
+                &mut state.mode_stack,
+                Mode::Reward {
+                    reward_id_cards: Vec::new(),
+                    reward_id_relics,
+                    reward_id_potions: Vec::new(),
+                    reward_gold: None,
+                },
+            );
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardAdd {
                     card_name: CardName::CurseOfTheBell,
@@ -191,7 +202,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             });
         }
 
-        // Tiny House: upgrade 1 random card, +5 max HP (healed), 50 gold, 1 random potion
+        // Tiny House: upgrade 1 random Card, +5 max HP (healed), 50 gold, 1 random Potion
         RelicName::TinyHouse => {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::PotionAddRandom { limited: false },
@@ -218,7 +229,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
         // Orrery: a 5-bundle Reward frame pushed over the shop; the stock resumes on exit
         RelicName::Orrery => {
             let cards_per_bundle = card_reward_count(&state.id_relics);
-            let mut bundles: Vec<Vec<usize>> = Vec::with_capacity(ORRERY_BUNDLE_COUNT);
+
+            // Roll `ORRERY_BUNDLE_COUNT` Card-reward bundles
+            let mut reward_id_cards: Vec<Vec<usize>> = Vec::with_capacity(ORRERY_BUNDLE_COUNT);
             for _ in 0..ORRERY_BUNDLE_COUNT {
                 let mut id_cards: Vec<usize> = Vec::new();
                 roll_card_rewards(
@@ -229,40 +242,45 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                     &state.id_relics,
                     cards_per_bundle,
                 );
-                bundles.push(id_cards);
+                reward_id_cards.push(id_cards);
             }
-            assert!(
-                matches!(state.mode_stack.last(), Some(Mode::Shop { .. })),
-                "Orrery is shop-only; adopt outside Shop mode"
-            );
+
+            // Push `Mode::Reward`
             state.mode_stack.push(Mode::Reward {
-                reward_id_cards: bundles,
+                reward_id_cards: reward_id_cards,
                 reward_id_relics: Vec::new(),
                 reward_id_potions: Vec::new(),
                 reward_gold: None,
             });
         }
 
-        // Bottled Flame / Lightning / Tornado: bottle a card of the kind
+        // Bottled Flame / Lightning / Tornado: bottle a Card of the kind
         RelicName::BottledFlame => queue_bottle_pick(state, CandidateFilter::KindAttack),
         RelicName::BottledLightning => queue_bottle_pick(state, CandidateFilter::KindSkill),
         RelicName::BottledTornado => queue_bottle_pick(state, CandidateFilter::KindPower),
 
-        // Cauldron: gain 5 random potions (overflow beyond belt space is lost)
+        // Cauldron: brews 5 Potions, staged as a Reward frame over the shop
         RelicName::Cauldron => {
-            for _ in 0..5 {
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::PotionAddRandom { limited: false },
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
+            // Roll `CAULDRON_POTION_COUNT` Card-reward bundles
+            let mut reward_id_potions = Vec::with_capacity(CAULDRON_POTION_COUNT);
+            for _ in 0..CAULDRON_POTION_COUNT {
+                let potion_name = get_random_potion_name(&mut state.rng, false);
+                reward_id_potions.push(push_entity(&mut state.entities, get_potion(potion_name)));
             }
+
+            // Push `Mode::Reward`
+            state.mode_stack.push(Mode::Reward {
+                reward_id_cards: Vec::new(),
+                reward_id_relics: Vec::new(),
+                reward_id_potions,
+                reward_gold: None,
+            });
         }
         _ => {}
     }
 }
 
-// Bottle a deck card of the given kind; an empty pool auto-resolves to no pick (relic inert)
+// Bottle a deck Card of the given kind; an empty pool auto-resolves to no pick (Relic inert)
 fn queue_bottle_pick(state: &mut GameState, filter: CandidateFilter) {
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardBottle,
@@ -275,30 +293,7 @@ fn queue_bottle_pick(state: &mut GameState, filter: CandidateFilter) {
     });
 }
 
-// Max HP first so the heal lands under the new ceiling
-fn increase_max_hp(state: &mut GameState, id_character: usize, amount: u16) {
-    // Executes in reverse:
-    //     1. MaxHealthDelta
-    //     2. HealthDelta
-    state.effect_queue.push_front(Effect {
-        kind: EffectKind::HealthDelta {
-            sign: DeltaSign::Gain,
-            amount: Amount::Absolute(amount),
-        },
-        id_source: None,
-        target: Target::Direct(Some(id_character)),
-    });
-    state.effect_queue.push_front(Effect {
-        kind: EffectKind::MaxHealthDelta {
-            sign: DeltaSign::Gain,
-            amount: Amount::Absolute(amount),
-        },
-        id_source: None,
-        target: Target::Direct(Some(id_character)),
-    });
-}
-
-// Upgrade `count` random upgradable cards, optionally kind-filtered; without replacement
+// Upgrade `count` random upgradable Cards, optionally kind-filtered; without replacement
 fn upgrade_random_cards(state: &mut GameState, count: usize, kind: Option<CardKind>) {
     let mut ids_valid = [0usize; MAX_SIZE_DECK];
     let mut num = 0;

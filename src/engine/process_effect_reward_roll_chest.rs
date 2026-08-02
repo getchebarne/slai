@@ -19,6 +19,7 @@ use crate::types::ChestKind;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::add_relic_reward_for_roll;
+use crate::utils::mode_replace;
 
 #[derive(Debug, Clone, Copy)]
 struct ChestParams {
@@ -58,17 +59,20 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
     };
     let mut id_relics_reward: Vec<usize> = Vec::with_capacity(2);
 
-    // Matryoshka: the next 2 chests hold an extra relic (75% Common / 25% Uncommon),
-    // staged before the chest's own relic
+    // Matryoshka: the next 2 chests hold an extra Relic (75% Common / 25% Uncommon)
     if let Some(id) = state.id_relics[RelicName::Matryoshka as usize]
         && state.entities[id].relic_counter > 0
     {
+        // Grab mutable Matryoshka reference
         let relic = &mut state.entities[id];
+
+        // Decrease counter, set `relic_used_up` if appropriate
         relic.relic_counter -= 1;
         relic.relic_used_up = relic.relic_counter == 0;
-        let extra_roll = state.rng.random_range(0..100) as u8;
+
+        // Push extra Relic
         id_relics_reward.push(add_relic_reward_for_roll(
-            extra_roll,
+            state.rng.random_range(0..100) as u8,
             MATRYOSHKA_TH_COMMON,
             MATRYOSHKA_TH_UNCOMMON,
             &state.id_relics,
@@ -77,6 +81,7 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
         ));
     }
 
+    // Push Relic
     id_relics_reward.push(add_relic_reward_for_roll(
         roll,
         chest_params.th_common,
@@ -86,12 +91,15 @@ pub fn process_effect_reward_roll_chest(state: &mut GameState, chest_kind: Chest
         &mut state.rng,
     ));
 
-    *state.mode_stack.last_mut().expect("mode stack never empty") = Mode::Reward {
-        reward_id_cards: Vec::new(),
-        reward_id_relics: id_relics_reward,
-        reward_id_potions: Vec::new(),
-        reward_gold: gold,
-    };
+    mode_replace(
+        &mut state.mode_stack,
+        Mode::Reward {
+            reward_id_cards: Vec::new(),
+            reward_id_relics: id_relics_reward,
+            reward_id_potions: Vec::new(),
+            reward_gold: gold,
+        },
+    );
 }
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {

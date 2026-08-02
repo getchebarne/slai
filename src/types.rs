@@ -236,7 +236,7 @@ pub enum CostScope {
     UntilPlayed,
 }
 
-// Destination for card spawns and moves
+// Destination for Card spawns and moves
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CardPile {
     Hand,
@@ -598,7 +598,7 @@ pub enum RelicName {
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {
-    assert!((v as usize) < RelicName::COUNT, "invalid RelicName: {v}");
+    assert!((v as usize) < RelicName::COUNT, "Invalid RelicName: {v}");
     // SAFETY: repr(u8) and we validated the range
     unsafe { std::mem::transmute(v) }
 }

@@ -50,7 +50,7 @@ pub static VIOLENCE_PLUS: Entity = Entity {
         a[0].target = Target::Resolve {
             candidate_pool: CandidatePool::PileDraw,
             filter: CandidateFilter::KindAttack,
-            selection_kind: SelectionKind::Random { count: 4 }, // +1 card
+            selection_kind: SelectionKind::Random { count: 4 }, // +1 Card
         };
         a
     },

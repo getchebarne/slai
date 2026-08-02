@@ -3,7 +3,7 @@ use crate::entity::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// A card reward may be skipped for +2 max HP (no heal)
+// A Card reward may be skipped for +2 max HP (no heal)
 // See:
 //    - `action.rs`
 //    - `process_effect_singing_bowl_proc.rs`

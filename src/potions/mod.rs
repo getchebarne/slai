@@ -135,7 +135,7 @@ pub const ALL_POTIONS: &[&'static Entity] = &[
     &fairy::POTION_FAIRY,
     &smoke_bomb::POTION_SMOKE_BOMB,
 ];
-// Assert all potions are included without duplicates
+// Assert all Potions are included without duplicates
 const _: () = assert!(ALL_POTIONS.len() == PotionName::COUNT);
 const _: () = {
     let mut seen = [false; PotionName::COUNT];
@@ -184,7 +184,7 @@ const fn build_pool<const N: usize>(rarity: PotionRarity) -> [PotionName; N] {
     buf
 }
 
-// Get number of potions per rarity-pool
+// Get number of Potions per rarity-pool
 const NUM_COMMON: usize = count_pool(PotionRarity::Common);
 const NUM_UNCOMMON: usize = count_pool(PotionRarity::Uncommon);
 const NUM_RARE: usize = count_pool(PotionRarity::Rare);
