@@ -1,19 +1,19 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_CHARACTER;
+use crate::effect::TARGET_SOURCE;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_apply;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move;
+use crate::monsters::make_move_attack;
+use crate::monsters::make_move_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -23,51 +23,55 @@ const MODE_SHIFT_STACKS_35: i16 = 35;
 const MODE_SHIFT_STACKS_40: i16 = 40;
 pub const DEFENSIVE_MODE_BLOCK: u16 = 20;
 
+// Twin Slam: two hits, ModeShift refresh, SharpHide drop
+const fn make_move_twin_slam(mode_shift_stacks: i16) -> Move {
+    make_move(
+        "Twin Slam",
+        &[
+            Effect {
+                kind: EffectKind::DamagePhysical { amount: 8 },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
+                kind: EffectKind::DamagePhysical { amount: 8 },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::ModeShift,
+                    stacks: mode_shift_stacks,
+                },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::ModifierRemove {
+                    kind: ModifierKind::SharpHide,
+                },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+        ],
+        Intent::AttackBuff {
+            damage: 8,
+            instances: 2,
+        },
+    )
+}
+
 static MOVE_CHARGING_UP: Move = make_move(
     "Charging Up",
     &[Effect {
         kind: EffectKind::BlockGain { amount: 9 },
         id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
+        target: TARGET_SOURCE,
     }],
     Intent::Block,
 );
-static MOVE_FIERCE_BASH_32: Move = make_move(
-    "Fierce Bash",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 32 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 32,
-        instances: 1,
-    },
-);
-static MOVE_FIERCE_BASH_36: Move = make_move(
-    "Fierce Bash",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 36 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 36,
-        instances: 1,
-    },
-);
+static MOVE_FIERCE_BASH_32: Move = make_move_attack("Fierce Bash", 32, 1);
+static MOVE_FIERCE_BASH_36: Move = make_move_attack("Fierce Bash", 36, 1);
 static MOVE_VENT_STEAM: Move = make_move(
     "Vent Steam",
     &[
@@ -77,11 +81,7 @@ static MOVE_VENT_STEAM: Move = make_move(
                 stacks: 2,
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::ModifierGain {
@@ -89,11 +89,7 @@ static MOVE_VENT_STEAM: Move = make_move(
                 stacks: 2,
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
     ],
     Intent::DebuffPowerful,
@@ -104,38 +100,22 @@ static MOVE_WHIRLWIND: Move = make_move(
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
     ],
     Intent::Attack {
@@ -143,220 +123,13 @@ static MOVE_WHIRLWIND: Move = make_move(
         instances: 4,
     },
 );
-static MOVE_DEFENSIVE_MODE_3: Move = make_move(
-    "Defensive Mode",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::SharpHide,
-            stacks: 3,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
-static MOVE_DEFENSIVE_MODE_4: Move = make_move(
-    "Defensive Mode",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::SharpHide,
-            stacks: 4,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
-static MOVE_ROLL_ATTACK_9: Move = make_move(
-    "Roll Attack",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 9 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 9,
-        instances: 1,
-    },
-);
-static MOVE_ROLL_ATTACK_10: Move = make_move(
-    "Roll Attack",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 10 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 10,
-        instances: 1,
-    },
-);
-static MOVE_TWIN_SLAM_30: Move = make_move(
-    "Twin Slam",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::ModeShift,
-                stacks: MODE_SHIFT_STACKS_30,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::SharpHide,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackBuff {
-        damage: 8,
-        instances: 2,
-    },
-);
-static MOVE_TWIN_SLAM_35: Move = make_move(
-    "Twin Slam",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::ModeShift,
-                stacks: MODE_SHIFT_STACKS_35,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::SharpHide,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackBuff {
-        damage: 8,
-        instances: 2,
-    },
-);
-static MOVE_TWIN_SLAM_40: Move = make_move(
-    "Twin Slam",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::ModeShift,
-                stacks: MODE_SHIFT_STACKS_40,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::SharpHide,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackBuff {
-        damage: 8,
-        instances: 2,
-    },
-);
+static MOVE_DEFENSIVE_MODE_3: Move = make_move_buff("Defensive Mode", ModifierKind::SharpHide, 3);
+static MOVE_DEFENSIVE_MODE_4: Move = make_move_buff("Defensive Mode", ModifierKind::SharpHide, 4);
+static MOVE_ROLL_ATTACK_9: Move = make_move_attack("Roll Attack", 9, 1);
+static MOVE_ROLL_ATTACK_10: Move = make_move_attack("Roll Attack", 10, 1);
+static MOVE_TWIN_SLAM_30: Move = make_move_twin_slam(MODE_SHIFT_STACKS_30);
+static MOVE_TWIN_SLAM_35: Move = make_move_twin_slam(MODE_SHIFT_STACKS_35);
+static MOVE_TWIN_SLAM_40: Move = make_move_twin_slam(MODE_SHIFT_STACKS_40);
 static MOVES_ASC0: [Move; 7] = [
     MOVE_CHARGING_UP,
     MOVE_FIERCE_BASH_32,

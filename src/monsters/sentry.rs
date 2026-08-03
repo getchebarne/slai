@@ -1,18 +1,16 @@
 use crate::consts::MAX_MONSTERS;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move;
+use crate::monsters::make_move_attack;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::MonsterKind;
@@ -20,38 +18,8 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BEAM_9: Move = make_move(
-    "Beam",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 9 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 9,
-        instances: 1,
-    },
-);
-static MOVE_BEAM_10: Move = make_move(
-    "Beam",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 10 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 10,
-        instances: 1,
-    },
-);
+static MOVE_BEAM_9: Move = make_move_attack("Beam", 9, 1);
+static MOVE_BEAM_10: Move = make_move_attack("Beam", 10, 1);
 static MOVE_BOLT_2: Move = make_move(
     "Bolt",
     &[Effect {

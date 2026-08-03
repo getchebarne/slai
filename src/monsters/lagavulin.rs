@@ -1,23 +1,48 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_CHARACTER;
+use crate::effect::TARGET_SOURCE;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_apply;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move;
+use crate::monsters::make_move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
+
+// Siphon Soul: equal Strength and Dexterity drain
+const fn make_move_siphon_soul(stacks: i16) -> Move {
+    make_move(
+        "Siphon Soul",
+        &[
+            Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Strength,
+                    stacks,
+                },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Dexterity,
+                    stacks,
+                },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+        ],
+        Intent::DebuffPowerful,
+    )
+}
 
 static MOVE_SLEEP: Move = make_move("Sleep", &[], Intent::Sleep);
 static MOVE_WAKE_UP: Move = make_move(
@@ -28,119 +53,23 @@ static MOVE_WAKE_UP: Move = make_move(
                 kind: ModifierKind::Asleep,
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_SOURCE,
         },
         Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Metallicize,
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_SOURCE,
         },
     ],
     Intent::Sleep,
 );
 static MOVE_STUNNED: Move = make_move("Stunned", &[], Intent::Stunned);
-static MOVE_ATTACK_18: Move = make_move(
-    "Attack",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 18 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 18,
-        instances: 1,
-    },
-);
-static MOVE_ATTACK_20: Move = make_move(
-    "Attack",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 20 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 20,
-        instances: 1,
-    },
-);
-static MOVE_SIPHON_SOUL_1: Move = make_move(
-    "Siphon Soul",
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Strength,
-                stacks: -1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Dexterity,
-                stacks: -1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::DebuffPowerful,
-);
-static MOVE_SIPHON_SOUL_2: Move = make_move(
-    "Siphon Soul",
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Strength,
-                stacks: -2,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Dexterity,
-                stacks: -2,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::DebuffPowerful,
-);
+static MOVE_ATTACK_18: Move = make_move_attack("Attack", 18, 1);
+static MOVE_ATTACK_20: Move = make_move_attack("Attack", 20, 1);
+static MOVE_SIPHON_SOUL_1: Move = make_move_siphon_soul(-1);
+static MOVE_SIPHON_SOUL_2: Move = make_move_siphon_soul(-2);
 
 static MOVES_ASC0: [Move; 5] = [
     MOVE_SLEEP,

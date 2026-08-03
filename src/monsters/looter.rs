@@ -1,96 +1,30 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_SOURCE;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move;
+use crate::monsters::make_move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_MUG_10: Move = make_move(
-    "Mug",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 10 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 10,
-        instances: 1,
-    },
-);
-static MOVE_MUG_11: Move = make_move(
-    "Mug",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 11 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 11,
-        instances: 1,
-    },
-);
-static MOVE_LUNGE_12: Move = make_move(
-    "Lunge",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 12 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 12,
-        instances: 1,
-    },
-);
-static MOVE_LUNGE_14: Move = make_move(
-    "Lunge",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 14 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 14,
-        instances: 1,
-    },
-);
+static MOVE_MUG_10: Move = make_move_attack("Mug", 10, 1);
+static MOVE_MUG_11: Move = make_move_attack("Mug", 11, 1);
+static MOVE_LUNGE_12: Move = make_move_attack("Lunge", 12, 1);
+static MOVE_LUNGE_14: Move = make_move_attack("Lunge", 14, 1);
 static MOVE_SMOKE_BOMB: Move = make_move(
     "Smoke Bomb",
     &[Effect {
         kind: EffectKind::BlockGain { amount: 6 },
         id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
+        target: TARGET_SOURCE,
     }],
     Intent::Block,
 );
@@ -99,11 +33,7 @@ static MOVE_ESCAPE: Move = make_move(
     &[Effect {
         kind: EffectKind::MonsterEscape,
         id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
+        target: TARGET_SOURCE,
     }],
     Intent::Escape,
 );

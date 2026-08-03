@@ -338,3 +338,28 @@ pub const ZERO_EFFECT: Effect = Effect {
     id_source: None,
     target: Target::Direct(None),
 };
+
+// The Resolve shapes static defs use almost everywhere
+pub const TARGET_CHARACTER: Target = Target::Resolve {
+    candidate_pool: CandidatePool::Character,
+    filter: CandidateFilter::Any,
+    selection_kind: SelectionKind::Single,
+};
+
+pub const TARGET_MONSTER_PICKED: Target = Target::Resolve {
+    candidate_pool: CandidatePool::Monsters,
+    filter: CandidateFilter::Picked,
+    selection_kind: SelectionKind::Single,
+};
+
+pub const TARGET_SOURCE: Target = Target::Resolve {
+    candidate_pool: CandidatePool::Source,
+    filter: CandidateFilter::Any,
+    selection_kind: SelectionKind::Single,
+};
+
+pub const TARGET_MONSTERS_ALL: Target = Target::Resolve {
+    candidate_pool: CandidatePool::Monsters,
+    filter: CandidateFilter::Any,
+    selection_kind: SelectionKind::All,
+};

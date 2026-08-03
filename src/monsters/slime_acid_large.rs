@@ -1,164 +1,31 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move_attack;
+use crate::monsters::make_move_attack_card_add;
+use crate::monsters::make_move_debuff;
+use crate::monsters::make_move_split;
 use crate::types::CardName;
-use crate::types::CardPile;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_SLIME_TACKLE_11: Move = make_move(
-    "Corrosive Spit",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 11 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::CardAdd {
-                card_name: CardName::Slimed,
-                pile: CardPile::Discard,
-                count: 2,
-                upgraded: false,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 11,
-        instances: 1,
-    },
-);
-static MOVE_SLIME_TACKLE_12: Move = make_move(
-    "Corrosive Spit",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 12 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::CardAdd {
-                card_name: CardName::Slimed,
-                pile: CardPile::Discard,
-                count: 2,
-                upgraded: false,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 12,
-        instances: 1,
-    },
-);
-static MOVE_HEAVY_TACKLE_16: Move = make_move(
-    "Tackle",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 16 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 16,
-        instances: 1,
-    },
-);
-static MOVE_HEAVY_TACKLE_18: Move = make_move(
-    "Tackle",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 18 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 18,
-        instances: 1,
-    },
-);
-static MOVE_LICK: Move = make_move(
-    "Lick",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Weak,
-            stacks: 2,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Debuff,
-);
-static MOVE_SPLIT: Move = make_move(
+static MOVE_SLIME_TACKLE_11: Move =
+    make_move_attack_card_add("Corrosive Spit", 11, CardName::Slimed, 2, false);
+static MOVE_SLIME_TACKLE_12: Move =
+    make_move_attack_card_add("Corrosive Spit", 12, CardName::Slimed, 2, false);
+static MOVE_HEAVY_TACKLE_16: Move = make_move_attack("Tackle", 16, 1);
+static MOVE_HEAVY_TACKLE_18: Move = make_move_attack("Tackle", 18, 1);
+static MOVE_LICK: Move = make_move_debuff("Lick", ModifierKind::Weak, 2, Intent::Debuff);
+static MOVE_SPLIT: Move = make_move_split(
     "Split",
-    &[
-        Effect {
-            kind: EffectKind::MonsterSplit {
-                name: MonsterName::SlimeAcidMedium,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::MonsterSplit {
-                name: MonsterName::SlimeAcidMedium,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::MonsterEscape,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::Unknown,
+    MonsterName::SlimeAcidMedium,
+    MonsterName::SlimeAcidMedium,
 );
 
 static MOVES_ASC0: [Move; 4] = [

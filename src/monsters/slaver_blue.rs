@@ -1,143 +1,20 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move_attack;
+use crate::monsters::make_move_attack_debuff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_STAB_12: Move = make_move(
-    "Stab",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 12 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 12,
-        instances: 1,
-    },
-);
-static MOVE_STAB_13: Move = make_move(
-    "Stab",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 13 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 13,
-        instances: 1,
-    },
-);
-static MOVE_RAKE_7_W1: Move = make_move(
-    "Rake",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Weak,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 7,
-        instances: 1,
-    },
-);
-static MOVE_RAKE_8_W1: Move = make_move(
-    "Rake",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Weak,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 8,
-        instances: 1,
-    },
-);
-static MOVE_RAKE_8_W2: Move = make_move(
-    "Rake",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Weak,
-                stacks: 2,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 8,
-        instances: 1,
-    },
-);
+static MOVE_STAB_12: Move = make_move_attack("Stab", 12, 1);
+static MOVE_STAB_13: Move = make_move_attack("Stab", 13, 1);
+static MOVE_RAKE_7_W1: Move = make_move_attack_debuff("Rake", 7, ModifierKind::Weak, 1);
+static MOVE_RAKE_8_W1: Move = make_move_attack_debuff("Rake", 8, ModifierKind::Weak, 1);
+static MOVE_RAKE_8_W2: Move = make_move_attack_debuff("Rake", 8, ModifierKind::Weak, 2);
 static MOVES_ASC0: [Move; 2] = [MOVE_STAB_12, MOVE_RAKE_7_W1];
 static MOVES_ASC2: [Move; 2] = [MOVE_STAB_13, MOVE_RAKE_8_W1];
 static MOVES_ASC17: [Move; 2] = [MOVE_STAB_13, MOVE_RAKE_8_W2];

@@ -23,11 +23,15 @@ mod wheel_of_change;
 mod wing_statue;
 mod world_of_goop;
 
+use crate::effect::CandidateFilter;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
+use crate::entity::ZERO_ENTITY;
 use crate::game::GameState;
 use crate::types::EventName;
 use crate::utils::card_is_non_basic_non_curse;
@@ -39,6 +43,40 @@ pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
     id_source: None,
     target: Target::Direct(None),
+};
+
+// The leave option and the three deck-pick effects every shrine-shaped event repeats
+pub const OPTION_LEAVE: Entity =
+    make_entity_event_option("[Leave] Nothing happens.", &[EVENT_CONSUME_EFFECT]);
+
+pub const EFFECT_DECK_PURGE_PICK: Effect = Effect {
+    kind: EffectKind::CardPurge,
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Deck,
+        filter: CandidateFilter::Purgeable,
+        selection_kind: SelectionKind::Input { count: 1 },
+    },
+};
+
+pub const EFFECT_DECK_UPGRADE_PICK: Effect = Effect {
+    kind: EffectKind::CardUpgrade,
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Deck,
+        filter: CandidateFilter::Upgradeable,
+        selection_kind: SelectionKind::Input { count: 1 },
+    },
+};
+
+pub const EFFECT_DECK_TRANSFORM_PICK: Effect = Effect {
+    kind: EffectKind::CardTransform { upgraded: false },
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Deck,
+        filter: CandidateFilter::Transformable,
+        selection_kind: SelectionKind::Input { count: 1 },
+    },
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -268,3 +306,12 @@ pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
     EventName::FaceTrader,
     EventName::WeMeetAgain,
 ];
+
+pub const fn make_entity_event_option(label: &'static str, effects: &'static [Effect]) -> Entity {
+    Entity {
+        kind: EntityKind::EventOption,
+        event_option_label: label,
+        event_option_effects: effects,
+        ..ZERO_ENTITY
+    }
+}

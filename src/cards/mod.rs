@@ -127,7 +127,14 @@ mod well_laid_plans;
 mod wraith_form;
 mod writhe;
 
+use crate::consts::MAX_EFFECTS_PER_CARD;
+use crate::effect::Effect;
+use crate::effect::ZERO_EFFECT;
+use crate::entity::CardCostKind;
 use crate::entity::Entity;
+use crate::entity::EntityKind;
+use crate::entity::PlayRestriction;
+use crate::entity::ZERO_ENTITY;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -657,4 +664,54 @@ pub fn get_random_cards(
     shuffle(&mut pool, rng);
     pool.truncate(count);
     pool
+}
+
+#[allow(clippy::too_many_arguments)]
+pub const fn make_entity_card(
+    name: CardName,
+    kind: CardKind,
+    color: CardColor,
+    rarity: CardRarity,
+    cost: u8,
+    cost_kind: CardCostKind,
+    upgraded: bool,
+    exhaust: bool,
+    ethereal: bool,
+    innate: bool,
+    requires_target: bool,
+    effects: &[Effect],
+    on_discard_effects: &'static [Effect],
+    on_draw_effects: &'static [Effect],
+    play_restriction: PlayRestriction,
+) -> Entity {
+    assert!(
+        effects.len() <= MAX_EFFECTS_PER_CARD,
+        "card_effects exceeds MAX_EFFECTS_PER_CARD",
+    );
+    let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_CARD];
+    let mut i = 0;
+    while i < effects.len() {
+        arr[i] = effects[i];
+        i += 1;
+    }
+    Entity {
+        kind: EntityKind::Card,
+        card_name: name,
+        card_kind: kind,
+        card_color: color,
+        card_rarity: rarity,
+        card_cost: cost,
+        card_cost_kind: cost_kind,
+        card_upgraded: upgraded,
+        card_exhaust: exhaust,
+        card_ethereal: ethereal,
+        card_innate: innate,
+        requires_target,
+        card_play_restriction: play_restriction,
+        card_effects: arr,
+        card_effects_len: effects.len() as u8,
+        card_on_discard_effects: on_discard_effects,
+        card_on_draw_effects: on_draw_effects,
+        ..ZERO_ENTITY
+    }
 }

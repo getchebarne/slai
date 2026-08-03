@@ -1,3 +1,4 @@
+use crate::cards::make_entity_card;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -8,7 +9,6 @@ use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
-use crate::entity::make_entity_card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;

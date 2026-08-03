@@ -140,7 +140,10 @@ mod wrist_blade;
 
 use strum::EnumCount;
 
+use crate::effect::Effect;
 use crate::entity::Entity;
+use crate::entity::EntityKind;
+use crate::entity::ZERO_ENTITY;
 use crate::types::CardKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -558,3 +561,20 @@ pub const POOL_COMMON_RELIC: &[RelicName] = &build_pool::<NUM_COMMON>(RelicTier:
 pub const POOL_UNCOMMON_RELIC: &[RelicName] = &build_pool::<NUM_UNCOMMON>(RelicTier::Uncommon);
 pub const POOL_RARE_RELIC: &[RelicName] = &build_pool::<NUM_RARE>(RelicTier::Rare);
 pub const POOL_SHOP_RELIC: &[RelicName] = &build_pool::<NUM_SHOP>(RelicTier::Shop);
+
+pub const fn make_entity_relic(
+    name: RelicName,
+    tier: RelicTier,
+    counter_init: i16,
+    effects_on_combat_start: &'static [Effect],
+) -> Entity {
+    Entity {
+        kind: EntityKind::Relic,
+        relic_name: name,
+        relic_tier: tier,
+        relic_counter: counter_init,
+        relic_used_up: false,
+        relic_effects_on_combat_start: effects_on_combat_start,
+        ..ZERO_ENTITY
+    }
+}

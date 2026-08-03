@@ -45,6 +45,8 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
+use crate::entity::EntityKind;
+use crate::entity::ZERO_ENTITY;
 use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
@@ -229,5 +231,23 @@ pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_poti
             *slot = None;
             return;
         }
+    }
+}
+
+pub const fn make_entity_potion(
+    name: PotionName,
+    rarity: PotionRarity,
+    requires_target: bool,
+    combat_only: bool,
+    effects: &'static [Effect],
+) -> Entity {
+    Entity {
+        kind: EntityKind::Potion,
+        potion_name: name,
+        potion_rarity: rarity,
+        requires_target: requires_target,
+        potion_combat_only: combat_only,
+        potion_effects: effects,
+        ..ZERO_ENTITY
     }
 }

@@ -1,14 +1,15 @@
+use crate::cards::make_entity_card;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
-use crate::entity::make_entity_card;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -30,11 +31,7 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
         Effect {
             kind: EffectKind::DamagePhysical { amount: 10 },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Monsters,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::All,
-            },
+            target: TARGET_MONSTERS_ALL,
         },
         Effect {
             kind: EffectKind::CardDiscard {

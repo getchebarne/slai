@@ -1,118 +1,22 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move_attack;
+use crate::monsters::make_move_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BITE_5: Move = make_move(
-    "Bite",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 5 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 5,
-        instances: 1,
-    },
-);
-static MOVE_BITE_6: Move = make_move(
-    "Bite",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 6 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 6,
-        instances: 1,
-    },
-);
-static MOVE_BITE_7: Move = make_move(
-    "Bite",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 7 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 7,
-        instances: 1,
-    },
-);
-static MOVE_BITE_8: Move = make_move(
-    "Bite",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 8 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 8,
-        instances: 1,
-    },
-);
-static MOVE_STRENGTHEN_3: Move = make_move(
-    "Grow",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Strength,
-            stacks: 3,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
-static MOVE_STRENGTHEN_4: Move = make_move(
-    "Grow",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Strength,
-            stacks: 4,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
+static MOVE_BITE_5: Move = make_move_attack("Bite", 5, 1);
+static MOVE_BITE_6: Move = make_move_attack("Bite", 6, 1);
+static MOVE_BITE_7: Move = make_move_attack("Bite", 7, 1);
+static MOVE_BITE_8: Move = make_move_attack("Bite", 8, 1);
+static MOVE_STRENGTHEN_3: Move = make_move_buff("Grow", ModifierKind::Strength, 3);
+static MOVE_STRENGTHEN_4: Move = make_move_buff("Grow", ModifierKind::Strength, 4);
 
 // 9 move tables: 3 asc brackets x 3 bite values (5/6/7 at Asc 0-1, 6/7/8 at Asc 2+)
 static MOVES_ASC0_BITE5: [Move; 2] = [MOVE_BITE_5, MOVE_STRENGTHEN_3];

@@ -1,13 +1,11 @@
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::make_entity_event_option;
 use crate::types::DeltaSign;
 
 const fn buy(cost: u16, count: u8) -> [Effect; 3] {
@@ -47,11 +45,7 @@ const OPTION_LEAVE_A15: &[Effect] = &[
             },
         },
         id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
+        target: TARGET_CHARACTER,
     },
     EVENT_CONSUME_EFFECT,
 ];

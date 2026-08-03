@@ -1,12 +1,9 @@
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_CHARACTER;
 use crate::entity::Entity;
-use crate::entity::make_entity_relic;
+use crate::relics::make_entity_relic;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -23,10 +20,6 @@ pub static BLOOD_VIAL: Entity = make_entity_relic(
             amount: Amount::Absolute(2),
         },
         id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
+        target: TARGET_CHARACTER,
     }],
 );

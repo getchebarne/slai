@@ -2,8 +2,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event_option;
-use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::OPTION_LEAVE;
+use crate::events::make_entity_event_option;
 
 // Reach in; +1 HP and +10% per miss until the 105% rung, which cannot fail
 const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 1] {
@@ -43,8 +43,6 @@ const OPTIONS_REACH_A15: [[Effect; 1]; 9] = [
 ];
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
-
 static OPTIONS_BASE: &[Entity] = &[
     make_entity_event_option(
         "[Reach Inside] Lose 3 HP. 25% chance for a Relic.",
@@ -82,7 +80,7 @@ static OPTIONS_BASE: &[Entity] = &[
         "[Reach Inside] Lose 11 HP. 105% chance for a Relic.",
         &OPTIONS_REACH_BASE[8],
     ),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
 ];
 static OPTIONS_A15: &[Entity] = &[
     make_entity_event_option(
@@ -122,7 +120,7 @@ static OPTIONS_A15: &[Entity] = &[
         "[Reach Inside] Lose 13 HP. 105% chance for a Relic.",
         &OPTIONS_REACH_A15[8],
     ),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
 ];
 
 pub fn options(ascension: u8) -> &'static [Entity] {

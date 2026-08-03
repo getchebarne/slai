@@ -1,145 +1,24 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move_attack;
+use crate::monsters::make_move_attack_debuff;
+use crate::monsters::make_move_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BELLOW_2: Move = make_move(
-    "Bellow",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Enrage,
-            stacks: 2,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
-static MOVE_BELLOW_3: Move = make_move(
-    "Bellow",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Enrage,
-            stacks: 3,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
-static MOVE_BULL_RUSH_14: Move = make_move(
-    "Bull Rush",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 14 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 14,
-        instances: 1,
-    },
-);
-static MOVE_BULL_RUSH_16: Move = make_move(
-    "Bull Rush",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 16 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 16,
-        instances: 1,
-    },
-);
-static MOVE_SKULL_BASH_6: Move = make_move(
-    "Skull Bash",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Vulnerable,
-                stacks: 2,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 6,
-        instances: 1,
-    },
-);
-static MOVE_SKULL_BASH_8: Move = make_move(
-    "Skull Bash",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Vulnerable,
-                stacks: 2,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 8,
-        instances: 1,
-    },
-);
+static MOVE_BELLOW_2: Move = make_move_buff("Bellow", ModifierKind::Enrage, 2);
+static MOVE_BELLOW_3: Move = make_move_buff("Bellow", ModifierKind::Enrage, 3);
+static MOVE_BULL_RUSH_14: Move = make_move_attack("Bull Rush", 14, 1);
+static MOVE_BULL_RUSH_16: Move = make_move_attack("Bull Rush", 16, 1);
+static MOVE_SKULL_BASH_6: Move =
+    make_move_attack_debuff("Skull Bash", 6, ModifierKind::Vulnerable, 2);
+static MOVE_SKULL_BASH_8: Move =
+    make_move_attack_debuff("Skull Bash", 8, ModifierKind::Vulnerable, 2);
 
 static MOVES_ASC0: [Move; 3] = [MOVE_BELLOW_2, MOVE_BULL_RUSH_14, MOVE_SKULL_BASH_6];
 static MOVES_ASC3: [Move; 3] = [MOVE_BELLOW_2, MOVE_BULL_RUSH_16, MOVE_SKULL_BASH_8];
