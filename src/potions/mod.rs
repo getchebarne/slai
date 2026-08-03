@@ -64,42 +64,21 @@ pub const EFFECT_CARD_DISCOVER_PICK: Effect = Effect {
     },
 };
 
-pub fn get_potion(name: PotionName) -> Entity {
-    match name {
-        PotionName::EnergyPotion => energy::POTION_ENERGY,
-        PotionName::BlockPotion => block::POTION_BLOCK,
-        PotionName::StrengthPotion => strength::POTION_STRENGTH,
-        PotionName::DexterityPotion => dexterity::POTION_DEXTERITY,
-        PotionName::FirePotion => fire::POTION_FIRE,
-        PotionName::ExplosivePotion => explosive::POTION_EXPLOSIVE,
-        PotionName::WeakPotion => weak::POTION_WEAK,
-        PotionName::FearPotion => fear::POTION_FEAR,
-        PotionName::PoisonPotion => poison::POTION_POISON,
-        PotionName::SwiftPotion => swift::POTION_SWIFT,
-        PotionName::AttackPotion => attack::POTION_ATTACK,
-        PotionName::SkillPotion => skill::POTION_SKILL,
-        PotionName::PowerPotion => power::POTION_POWER,
-        PotionName::FruitJuice => fruit_juice::POTION_FRUIT_JUICE,
-        PotionName::AncientPotion => ancient::POTION_ANCIENT,
-        PotionName::LiquidBronze => liquid_bronze::POTION_LIQUID_BRONZE,
-        PotionName::EssenceOfSteel => essence_of_steel::POTION_ESSENCE_OF_STEEL,
-        PotionName::GhostInAJar => ghost_in_a_jar::POTION_GHOST_IN_A_JAR,
-        PotionName::CultistPotion => cultist::POTION_CULTIST,
-        PotionName::CunningPotion => cunning::POTION_CUNNING,
-        PotionName::DistilledChaos => distilled_chaos::POTION_DISTILLED_CHAOS,
-        PotionName::BlessingOfTheForge => blessing_of_the_forge::POTION_BLESSING_OF_THE_FORGE,
-        PotionName::EntropicBrew => entropic_brew::POTION_ENTROPIC_BREW,
-        PotionName::RegenerationPotion => regeneration::POTION_REGENERATION,
-        PotionName::SteroidPotion => steroid::POTION_STEROID,
-        PotionName::SpeedPotion => speed::POTION_SPEED,
-        PotionName::DuplicateNextCardPlayPotion => duplication::POTION_DUPLICATION,
-        PotionName::ColorlessPotion => colorless::POTION_COLORLESS,
-        PotionName::GamblersBrew => gamblers_brew::POTION_GAMBLERS_BREW,
-        PotionName::LiquidMemories => liquid_memories::POTION_LIQUID_MEMORIES,
-        PotionName::SneckoOil => snecko_oil::POTION_SNECKO_OIL,
-        PotionName::FairyPotion => fairy::POTION_FAIRY,
-        PotionName::SmokeBomb => smoke_bomb::POTION_SMOKE_BOMB,
+// Totality relies on the len == COUNT and no-duplicate asserts below
+const fn build_potion_by_name() -> [&'static Entity; PotionName::COUNT] {
+    let mut buf = [ALL_POTIONS[0]; PotionName::COUNT];
+    let mut i = 0;
+    while i < ALL_POTIONS.len() {
+        buf[ALL_POTIONS[i].potion_name as usize] = ALL_POTIONS[i];
+        i += 1;
     }
+    buf
+}
+
+static POTION_BY_NAME: [&'static Entity; PotionName::COUNT] = build_potion_by_name();
+
+pub fn get_potion(name: PotionName) -> Entity {
+    *POTION_BY_NAME[name as usize]
 }
 
 pub const ALL_POTIONS: &[&'static Entity] = &[
@@ -151,12 +130,7 @@ const _: () = {
 };
 
 const fn potion_rarity_eq(lhs: PotionRarity, rhs: PotionRarity) -> bool {
-    matches!(
-        (lhs, rhs),
-        (PotionRarity::Common, PotionRarity::Common)
-            | (PotionRarity::Uncommon, PotionRarity::Uncommon)
-            | (PotionRarity::Rare, PotionRarity::Rare)
-    )
+    lhs as u8 == rhs as u8
 }
 
 const fn count_pool(rarity: PotionRarity) -> usize {
