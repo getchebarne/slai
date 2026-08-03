@@ -5,6 +5,7 @@ use pyo3::type_object::PyTypeInfo;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardSource;
 use crate::effect::Target;
 
 use super::amount::PyAmount;
@@ -1213,9 +1214,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited, target })
         }
         EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard { target }),
-        EffectKind::RewardRollPotions { count } => {
-            PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count, target })
-        }
+        EffectKind::RewardRoll {
+            source: RewardSource::Potions { count },
+        } => PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count, target }),
         EffectKind::CardDiscoverRoll {
             kind,
             color,

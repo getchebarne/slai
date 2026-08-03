@@ -54,10 +54,18 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         id_cards.push(id_card);
     }
 
-    // Relics: 2 random-tier, 1 shop-tier
-    push_relic_random(state, &mut id_relics);
-    push_relic_random(state, &mut id_relics);
-    push_relic_shop(state, &mut id_relics);
+    // Relics: 2 random-tier, 1 shop-tier. The tier roll stays per-slot: rolling both
+    // up front would reorder the RNG stream
+    for _ in 0..2 {
+        let (pool, base_price) = roll_relic_tier(&mut state.rng);
+        push_relic(state, &mut id_relics, pool, base_price);
+    }
+    push_relic(
+        state,
+        &mut id_relics,
+        POOL_SHOP_RELIC,
+        SHOP_PRICE_RELIC_SHOP,
+    );
 
     // Potions: 3 (rarity rolled by get_random_potion_name)
     for _ in 0..SHOP_SLOTS_POTION {
@@ -65,10 +73,8 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     }
 
     // Sale tag: one random colored Card 50% off, before the A16 markup
-    if !id_cards.is_empty() {
-        let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
-        state.entities[id_cards[idx]].price /= 2;
-    }
+    let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
+    state.entities[id_cards[idx]].price /= 2;
 
     // A16+ price bumps; the purge cost is exempt
     if state.ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
@@ -103,36 +109,27 @@ fn bump_price_a16(price: u16) -> u16 {
         / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
 }
 
-fn push_relic_random(state: &mut GameState, id_relics: &mut Vec<usize>) {
-    // Roll tier pool and its base price
-    let roll = state.rng.random_range(0..100) as u8;
-    let (pool, base_price): (&[RelicName], u16) = if roll < SHOP_RELIC_TH_COMMON {
+fn roll_relic_tier(rng: &mut impl Rng) -> (&'static [RelicName], u16) {
+    let roll = rng.random_range(0..100) as u8;
+    if roll < SHOP_RELIC_TH_COMMON {
         (POOL_COMMON_RELIC, SHOP_PRICE_RELIC_COMMON)
     } else if roll < SHOP_RELIC_TH_UNCOMMON {
         (POOL_UNCOMMON_RELIC, SHOP_PRICE_RELIC_UNCOMMON)
     } else {
         (POOL_RARE_RELIC, SHOP_PRICE_RELIC_RARE)
-    };
+    }
+}
 
-    // Sample Relic and push it
+fn push_relic(
+    state: &mut GameState,
+    id_relics: &mut Vec<usize>,
+    pool: &[RelicName],
+    base_price: u16,
+) {
     let id_taken = get_shop_taken_relic_names(&state.id_relics, &state.entities, id_relics);
     let Some(name) = pick_relic_from_pool(pool, &id_taken, &mut state.rng) else {
         return;
     };
     let id_relic = make_relic_with_price(&mut state.entities, &mut state.rng, name, base_price);
-    id_relics.push(id_relic);
-}
-
-fn push_relic_shop(state: &mut GameState, id_relics: &mut Vec<usize>) {
-    let id_taken = get_shop_taken_relic_names(&state.id_relics, &state.entities, id_relics);
-    let Some(name) = pick_relic_from_pool(POOL_SHOP_RELIC, &id_taken, &mut state.rng) else {
-        return;
-    };
-    let id_relic = make_relic_with_price(
-        &mut state.entities,
-        &mut state.rng,
-        name,
-        SHOP_PRICE_RELIC_SHOP,
-    );
     id_relics.push(id_relic);
 }

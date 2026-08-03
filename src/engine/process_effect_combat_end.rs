@@ -6,6 +6,7 @@ use crate::consts::MAX_GOLD;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardSource;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
@@ -86,12 +87,14 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 room_kind
             };
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::RewardRollCombat {
-                    room_kind: room_kind_reward,
-                    escaped: escaped_monster,
-                    event_gold,
-                    event_relic,
-                    event_relic_roll,
+                kind: EffectKind::RewardRoll {
+                    source: RewardSource::Combat {
+                        room_kind: room_kind_reward,
+                        escaped: escaped_monster,
+                        event_gold,
+                        event_relic,
+                        event_relic_roll,
+                    },
                 },
                 id_source: None,
                 target: Target::Direct(None),

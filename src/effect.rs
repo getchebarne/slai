@@ -10,6 +10,7 @@ use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RewardKind;
 use crate::types::RoomKind;
+use crate::types::ShopSlot;
 
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -191,19 +192,8 @@ pub enum EffectKind {
         fallback_circlet: bool,
     },
     RestSiteConsume,
-    RewardRollCards,
-    RewardRollChest {
-        kind: ChestKind,
-    },
-    RewardRollCombat {
-        room_kind: RoomKind,
-        escaped: bool,
-        event_gold: Option<Amount>,
-        event_relic: Option<RelicName>,
-        event_relic_roll: bool,
-    },
-    RewardRollPotions {
-        count: u8,
+    RewardRoll {
+        source: RewardSource,
     },
     RewardTake {
         kind: RewardKind,
@@ -223,9 +213,9 @@ pub enum EffectKind {
         scope: CostScope,
     },
     ShopBuild,
-    ShopBuyCard,
-    ShopBuyPotion,
-    ShopBuyRelic,
+    ShopBuy {
+        slot: ShopSlot,
+    },
     ShopPurge,
     ShuffleDiscardPileIntoDrawPile,
     SingingBowlProc {
@@ -243,6 +233,27 @@ pub enum EffectKind {
     TurnStart,
     UnloadDiscard,
     WheelSpin,
+}
+
+// What a reward roll is rolling for; the handler branches on it
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum RewardSource {
+    Cards {
+        bundles: usize,
+    },
+    Chest {
+        kind: ChestKind,
+    },
+    Combat {
+        room_kind: RoomKind,
+        escaped: bool,
+        event_gold: Option<Amount>,
+        event_relic: Option<RelicName>,
+        event_relic_roll: bool,
+    },
+    Potions {
+        count: u8,
+    },
 }
 
 // Origin tag the CardDiscard handler branches on

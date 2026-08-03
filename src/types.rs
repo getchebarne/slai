@@ -408,6 +408,13 @@ pub enum RewardKind {
     Gold,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ShopSlot {
+    Card,
+    Relic,
+    Potion,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
 pub enum PotionName {
