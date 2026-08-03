@@ -1,3 +1,4 @@
+use crate::cards::make_entity_card;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTER_PICKED;
@@ -5,7 +6,6 @@ use crate::effect::TARGET_MONSTERS_ALL;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
-use crate::entity::make_entity_card;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;

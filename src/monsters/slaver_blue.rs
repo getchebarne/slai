@@ -1,10 +1,10 @@
 use crate::entity::Entity;
 use crate::entity::Move;
-use crate::entity::make_entity_monster;
-use crate::entity::make_move_attack;
-use crate::entity::make_move_attack_debuff;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
+use crate::monsters::make_entity_monster;
+use crate::monsters::make_move_attack;
+use crate::monsters::make_move_attack_debuff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;

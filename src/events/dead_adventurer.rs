@@ -2,8 +2,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::make_entity_event_option;
 
 // Search: escalating elite-return chance; the AdventurerSearch processor draws
 // the loot, advances the search count, and consumes after the third find

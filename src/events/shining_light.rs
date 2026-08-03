@@ -7,10 +7,10 @@ use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_upgradable;
+use crate::events::make_entity_event_option;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 

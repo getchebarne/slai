@@ -4,9 +4,9 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::OPTION_LEAVE;
+use crate::events::make_entity_event_option;
 use crate::types::DeltaSign;
 
 // Touch: gold gain first, then health loss; -25 gold gain at A15

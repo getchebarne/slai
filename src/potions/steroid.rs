@@ -2,8 +2,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::entity::Entity;
-use crate::entity::make_entity_potion;
 use crate::modifier::ModifierKind;
+use crate::potions::make_entity_potion;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 

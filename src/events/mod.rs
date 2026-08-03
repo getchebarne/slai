@@ -31,7 +31,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
-use crate::entity::make_entity_event_option;
+use crate::entity::ZERO_ENTITY;
 use crate::game::GameState;
 use crate::types::EventName;
 use crate::utils::card_is_non_basic_non_curse;
@@ -306,3 +306,12 @@ pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
     EventName::FaceTrader,
     EventName::WeMeetAgain,
 ];
+
+pub const fn make_entity_event_option(label: &'static str, effects: &'static [Effect]) -> Entity {
+    Entity {
+        kind: EntityKind::EventOption,
+        event_option_label: label,
+        event_option_effects: effects,
+        ..ZERO_ENTITY
+    }
+}

@@ -1,5 +1,5 @@
 use crate::entity::Entity;
-use crate::entity::make_entity_relic;
+use crate::relics::make_entity_relic;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 

@@ -1,5 +1,5 @@
 use crate::entity::Entity;
-use crate::entity::make_entity_potion;
+use crate::potions::make_entity_potion;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 

@@ -25,10 +25,29 @@ pub mod slime_spike_medium;
 pub mod slime_spike_small;
 pub mod the_guardian;
 
+use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTERS;
+use crate::consts::MAX_MOVES_PER_MONSTER;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::TARGET_CHARACTER;
+use crate::effect::TARGET_SOURCE;
+use crate::effect::Target;
+use crate::effect::ZERO_EFFECT;
 use crate::entity::Entity;
+use crate::entity::EntityKind;
+use crate::entity::Intent;
+use crate::entity::Move;
+use crate::entity::ZERO_ENTITY;
+use crate::entity::ZERO_MOVE;
 use crate::entity::get_move_history_slice;
+use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
+use crate::types::CardName;
+use crate::types::CardPile;
+use crate::types::MonsterKind;
 use crate::types::MonsterName;
+use crate::types::Vitals;
 use rand::Rng;
 
 pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut impl Rng) -> Entity {
@@ -185,5 +204,208 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
+    }
+}
+
+// The repeated monster move shapes; each spells out one Effect array longhand
+pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
+    let mut effects = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
+    let mut i = 0;
+    while i < instances as usize {
+        effects[i] = Effect {
+            kind: EffectKind::DamagePhysical { amount: damage },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        };
+        i += 1;
+    }
+    Move {
+        name,
+        effects,
+        effects_len: instances,
+        intent: Intent::Attack { damage, instances },
+    }
+}
+
+pub const fn make_move_buff(name: &'static str, kind: ModifierKind, stacks: i16) -> Move {
+    make_move(
+        name,
+        &[Effect {
+            kind: EffectKind::ModifierGain { kind, stacks },
+            id_source: None,
+            target: TARGET_SOURCE,
+        }],
+        Intent::Buff,
+    )
+}
+
+pub const fn make_move_debuff(
+    name: &'static str,
+    kind: ModifierKind,
+    stacks: i16,
+    intent: Intent,
+) -> Move {
+    make_move(
+        name,
+        &[Effect {
+            kind: EffectKind::ModifierGain { kind, stacks },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        }],
+        intent,
+    )
+}
+
+pub const fn make_move_attack_debuff(
+    name: &'static str,
+    damage: u16,
+    kind: ModifierKind,
+    stacks: i16,
+) -> Move {
+    make_move(
+        name,
+        &[
+            Effect {
+                kind: EffectKind::DamagePhysical { amount: damage },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
+                kind: EffectKind::ModifierGain { kind, stacks },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+        ],
+        Intent::AttackDebuff {
+            damage,
+            instances: 1,
+        },
+    )
+}
+
+pub const fn make_move_attack_card_add(
+    name: &'static str,
+    damage: u16,
+    card_name: CardName,
+    count: u16,
+    upgraded: bool,
+) -> Move {
+    make_move(
+        name,
+        &[
+            Effect {
+                kind: EffectKind::DamagePhysical { amount: damage },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
+                kind: EffectKind::CardAdd {
+                    card_name,
+                    pile: CardPile::Discard,
+                    count,
+                    upgraded,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            },
+        ],
+        Intent::AttackDebuff {
+            damage,
+            instances: 1,
+        },
+    )
+}
+
+// Self-buff then block; the order matches the jaw_worm sites this serves
+pub const fn make_move_block_buff(name: &'static str, block: u16, strength: i16) -> Move {
+    make_move(
+        name,
+        &[
+            Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Strength,
+                    stacks: strength,
+                },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::BlockGain { amount: block },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+        ],
+        Intent::BlockBuff,
+    )
+}
+
+pub const fn make_move_split(name: &'static str, first: MonsterName, second: MonsterName) -> Move {
+    make_move(
+        name,
+        &[
+            Effect {
+                kind: EffectKind::MonsterSplit { name: first },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::MonsterSplit { name: second },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::MonsterEscape,
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+        ],
+        Intent::Unknown,
+    )
+}
+
+pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
+    assert!(
+        effects.len() <= MAX_EFFECTS_PER_MOVE,
+        "Move effects exceeds MAX_EFFECTS_PER_MOVE",
+    );
+    let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
+    let mut i = 0;
+    while i < effects.len() {
+        arr[i] = effects[i];
+        i += 1;
+    }
+    Move {
+        name,
+        effects: arr,
+        effects_len: effects.len() as u8,
+        intent,
+    }
+}
+
+pub const fn make_entity_monster(
+    name: MonsterName,
+    monster_kind: MonsterKind,
+    vitals: Vitals,
+    modifiers: Modifiers,
+    moves: &[Move],
+) -> Entity {
+    assert!(
+        moves.len() <= MAX_MOVES_PER_MONSTER,
+        "monster_moves exceeds MAX_MOVES_PER_MONSTER",
+    );
+    let mut arr = [ZERO_MOVE; MAX_MOVES_PER_MONSTER];
+    let mut i = 0;
+    while i < moves.len() {
+        arr[i] = moves[i];
+        i += 1;
+    }
+    Entity {
+        kind: EntityKind::Monster,
+        vitals,
+        modifiers,
+        monster_name: name,
+        monster_kind,
+        monster_moves: arr,
+        ..ZERO_ENTITY
     }
 }

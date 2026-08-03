@@ -1,6 +1,5 @@
 use crate::effect::Effect;
 use crate::entity::Entity;
-use crate::entity::make_entity_event_option;
 use crate::events::EFFECT_DECK_PURGE_PICK;
 use crate::events::EFFECT_DECK_TRANSFORM_PICK;
 use crate::events::EFFECT_DECK_UPGRADE_PICK;
@@ -8,6 +7,7 @@ use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_non_basic_non_curse;
 use crate::events::deck_has_purgeable;
 use crate::events::deck_has_upgradable;
+use crate::events::make_entity_event_option;
 use crate::game::GameState;
 
 // Forget

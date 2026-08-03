@@ -11,7 +11,8 @@ use crate::consts::MAP_ROW_TREASURE;
 use crate::consts::MAP_WIDTH;
 use crate::consts::PATH_DENSITY;
 use crate::entity::Entity;
-use crate::entity::make_entity_room;
+use crate::entity::EntityKind;
+use crate::entity::ZERO_ENTITY;
 use crate::game::Location;
 use crate::types::RoomKind;
 use crate::utils::push_entity;
@@ -400,5 +401,16 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
         if let Some(n) = node {
             n.room_kind = RoomKind::RestSite;
         }
+    }
+}
+
+pub const fn make_entity_room(y: usize, x: usize, room_kind: RoomKind, room_edges: u8) -> Entity {
+    Entity {
+        kind: EntityKind::Room,
+        room_y: y,
+        room_x: x,
+        room_kind,
+        room_edges,
+        ..ZERO_ENTITY
     }
 }

@@ -2,8 +2,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::make_entity_event_option;
 use crate::events::OPTION_LEAVE;
+use crate::events::make_entity_event_option;
 
 // Reach in; +1 HP and +10% per miss until the 105% rung, which cannot fail
 const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 1] {
