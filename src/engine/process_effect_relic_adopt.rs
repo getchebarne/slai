@@ -9,11 +9,10 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardSource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::potions::get_potion;
-use crate::potions::get_random_potion_name;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
@@ -25,13 +24,11 @@ use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::card_is_upgradable;
-use crate::utils::card_reward_count;
 use crate::utils::increase_max_hp;
 use crate::utils::mode_replace;
 use crate::utils::mode_top;
 use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
-use crate::utils::roll_card_rewards;
 
 pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameState) {
     let id_relic = id_target.expect("RelicAdopt requires id_target");
@@ -227,32 +224,12 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
         }
 
         // Orrery: a 5-bundle Reward frame pushed over the shop; the stock resumes on exit
-        RelicName::Orrery => {
-            let cards_per_bundle = card_reward_count(&state.id_relics);
-
-            // Roll `ORRERY_BUNDLE_COUNT` Card-reward bundles
-            let mut reward_id_cards: Vec<Vec<usize>> = Vec::with_capacity(ORRERY_BUNDLE_COUNT);
-            for _ in 0..ORRERY_BUNDLE_COUNT {
-                let mut id_cards: Vec<usize> = Vec::new();
-                roll_card_rewards(
-                    state.id_character,
-                    &mut state.entities,
-                    &mut state.rng,
-                    &mut id_cards,
-                    &state.id_relics,
-                    cards_per_bundle,
-                );
-                reward_id_cards.push(id_cards);
-            }
-
-            // Push `Mode::Reward`
-            state.mode_stack.push(Mode::Reward {
-                reward_id_cards: reward_id_cards,
-                reward_id_relics: Vec::new(),
-                reward_id_potions: Vec::new(),
-                reward_gold: None,
-            });
-        }
+        RelicName::Orrery => queue_reward_roll(
+            state,
+            RewardSource::Cards {
+                bundles: ORRERY_BUNDLE_COUNT,
+            },
+        ),
 
         // Bottled Flame / Lightning / Tornado: bottle a Card of the kind
         RelicName::BottledFlame => queue_bottle_pick(state, CandidateFilter::KindAttack),
@@ -260,22 +237,12 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
         RelicName::BottledTornado => queue_bottle_pick(state, CandidateFilter::KindPower),
 
         // Cauldron: brews 5 Potions, staged as a Reward frame over the shop
-        RelicName::Cauldron => {
-            // Roll `CAULDRON_POTION_COUNT` Card-reward bundles
-            let mut reward_id_potions = Vec::with_capacity(CAULDRON_POTION_COUNT);
-            for _ in 0..CAULDRON_POTION_COUNT {
-                let potion_name = get_random_potion_name(&mut state.rng, false);
-                reward_id_potions.push(push_entity(&mut state.entities, get_potion(potion_name)));
-            }
-
-            // Push `Mode::Reward`
-            state.mode_stack.push(Mode::Reward {
-                reward_id_cards: Vec::new(),
-                reward_id_relics: Vec::new(),
-                reward_id_potions,
-                reward_gold: None,
-            });
-        }
+        RelicName::Cauldron => queue_reward_roll(
+            state,
+            RewardSource::Potions {
+                count: CAULDRON_POTION_COUNT as u8,
+            },
+        ),
         _ => {}
     }
 }
@@ -317,4 +284,13 @@ fn upgrade_random_cards(state: &mut GameState, count: usize, kind: Option<CardKi
         ids_valid[idx] = ids_valid[num - 1];
         num -= 1;
     }
+}
+
+// Shop relics stage their roll as a Reward frame over the stock
+fn queue_reward_roll(state: &mut GameState, source: RewardSource) {
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::RewardRoll { source },
+        id_source: None,
+        target: Target::Direct(None),
+    });
 }

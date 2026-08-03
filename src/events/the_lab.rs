@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardSource;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
@@ -12,7 +13,9 @@ const fn search(count: u8) -> [Effect; 2] {
         // Consume first: RewardRollPotions replaces this event with Mode::Reward
         EVENT_CONSUME_EFFECT,
         Effect {
-            kind: EffectKind::RewardRollPotions { count },
+            kind: EffectKind::RewardRoll {
+                source: RewardSource::Potions { count },
+            },
             id_source: None,
             target: Target::Direct(None),
         },

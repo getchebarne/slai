@@ -1,6 +1,7 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardSource;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -23,7 +24,9 @@ const fn buy(cost: u16, count: u8) -> [Effect; 3] {
         // (discard-to-swap), matching the source's combatRewardScreen
         EVENT_CONSUME_EFFECT,
         Effect {
-            kind: EffectKind::RewardRollPotions { count },
+            kind: EffectKind::RewardRoll {
+                source: RewardSource::Potions { count },
+            },
             id_source: None,
             target: Target::Direct(None),
         },

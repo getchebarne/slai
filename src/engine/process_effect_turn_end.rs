@@ -64,27 +64,17 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
     }
 
     let modifiers = &state.entities[id_actor].modifiers;
-    if has_modifier(modifiers, ModifierKind::Metallicize) {
-        let stacks = modifier_stacks(modifiers, ModifierKind::Metallicize);
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::BlockGain {
-                amount: stacks as u16,
-            },
-            id_source: Some(id_actor),
-            target: Target::Direct(Some(id_actor)),
-        });
-    }
-
-    let modifiers = &state.entities[id_actor].modifiers;
-    if has_modifier(modifiers, ModifierKind::PlatedArmor) {
-        let stacks = modifier_stacks(modifiers, ModifierKind::PlatedArmor);
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::BlockGain {
-                amount: stacks as u16,
-            },
-            id_source: Some(id_actor),
-            target: Target::Direct(Some(id_actor)),
-        });
+    for kind in [ModifierKind::Metallicize, ModifierKind::PlatedArmor] {
+        if has_modifier(modifiers, kind) {
+            let stacks = modifier_stacks(modifiers, kind);
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::BlockGain {
+                    amount: stacks as u16,
+                },
+                id_source: Some(id_actor),
+                target: Target::Direct(Some(id_actor)),
+            });
+        }
     }
 }
 
@@ -247,44 +237,27 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // LoseStrength: the borrowed Strength leaves at turn end
-    if has_modifier(mods_char, ModifierKind::LoseStrength) {
-        let stacks = modifier_stacks(mods_char, ModifierKind::LoseStrength);
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Strength,
-                stacks: -stacks,
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::LoseStrength,
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    // LoseDexterity: the borrowed Dexterity leaves at turn end
-    if has_modifier(mods_char, ModifierKind::LoseDexterity) {
-        let stacks = modifier_stacks(mods_char, ModifierKind::LoseDexterity);
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Dexterity,
-                stacks: -stacks,
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::LoseDexterity,
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
+    // Lose{Strength,Dexterity}: the borrowed stacks leave at turn end
+    for (lose, gain) in [
+        (ModifierKind::LoseStrength, ModifierKind::Strength),
+        (ModifierKind::LoseDexterity, ModifierKind::Dexterity),
+    ] {
+        if has_modifier(mods_char, lose) {
+            let stacks = modifier_stacks(mods_char, lose);
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: gain,
+                    stacks: -stacks,
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ModifierRemove { kind: lose },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+        }
     }
 
     // Wraith Form: lose `stacks` Dexterity each turn end
@@ -413,34 +386,18 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
     });
 
     // Queue `EffectKind::ModifierRemove`s for Modifiers that clear at end of turn
-    if has_modifier(mods_char, ModifierKind::Burst) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::Burst,
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    if has_modifier(mods_char, ModifierKind::NoDraw) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::NoDraw,
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    if has_modifier(mods_char, ModifierKind::Entangled) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::Entangled,
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
+    for kind in [
+        ModifierKind::Burst,
+        ModifierKind::NoDraw,
+        ModifierKind::Entangled,
+    ] {
+        if has_modifier(mods_char, kind) {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ModifierRemove { kind },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+        }
     }
 
     // The Bomb: lazily armed 3-turn timer, detonates for `stacks` on all enemies
