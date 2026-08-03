@@ -287,34 +287,6 @@ impl MonsterName {
     }
 }
 
-impl MonsterEncounter {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Cultist => "Cultist",
-            Self::JawWorm => "Jaw Worm",
-            Self::TwoLouse => "2 Louse",
-            Self::SmallSlimes => "Small Slimes",
-            Self::BlueSlaver => "Blue Slaver",
-            Self::RedSlaver => "Red Slaver",
-            Self::Looter => "Looter",
-            Self::TwoFungiBeasts => "2 Fungi Beasts",
-            Self::ThreeFungiBeasts => "3 Fungi Beasts",
-            Self::ThreeLouse => "3 Louse",
-            Self::LargeSlime => "Large Slime",
-            Self::LotsOfSlimes => "Lots of Slimes",
-            Self::GremlinGang => "Gremlin Gang",
-            Self::ExordiumThugs => "Exordium Thugs",
-            Self::ExordiumWildlife => "Exordium Wildlife",
-            Self::GremlinNob => "Gremlin Nob",
-            Self::Lagavulin => "Lagavulin",
-            Self::ThreeSentries => "3 Sentries",
-            Self::TheGuardian => "The Guardian",
-            Self::Hexaghost => "Hexaghost",
-            Self::SlimeBoss => "Slime Boss",
-        }
-    }
-}
-
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
     let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack) else {
         return Vec::new();

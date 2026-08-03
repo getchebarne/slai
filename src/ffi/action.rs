@@ -64,48 +64,6 @@ impl PyActionType {
     }
 }
 
-impl PyActionType {
-    fn from_discriminant(discriminant: u8) -> Result<Self, String> {
-        match discriminant {
-            0 => Ok(Self::CardDiscard),
-            1 => Ok(Self::CardDiscover),
-            2 => Ok(Self::CardDuplicate),
-            3 => Ok(Self::CardNightmare),
-            4 => Ok(Self::CardPlay),
-            5 => Ok(Self::CardPurge),
-            6 => Ok(Self::CardRetain),
-            7 => Ok(Self::CardSetup),
-            8 => Ok(Self::CardTransform),
-            9 => Ok(Self::CardUpgrade),
-            10 => Ok(Self::ChestOpen),
-            11 => Ok(Self::EventOptionSelect),
-            12 => Ok(Self::PotionDiscard),
-            13 => Ok(Self::PotionUse),
-            14 => Ok(Self::Rest),
-            15 => Ok(Self::RewardTakeCard),
-            16 => Ok(Self::RewardTakeGold),
-            17 => Ok(Self::RewardTakePotion),
-            18 => Ok(Self::RewardTakeRelic),
-            19 => Ok(Self::RoomExit),
-            20 => Ok(Self::RoomSelect),
-            21 => Ok(Self::ShopBuyCard),
-            22 => Ok(Self::ShopBuyPotion),
-            23 => Ok(Self::ShopBuyRelic),
-            24 => Ok(Self::ShopPurge),
-            25 => Ok(Self::TurnEnd),
-            26 => Ok(Self::CardExhaust),
-            27 => Ok(Self::CardMoveToHand),
-            28 => Ok(Self::PickSkip),
-            29 => Ok(Self::RestDig),
-            30 => Ok(Self::RestLift),
-            31 => Ok(Self::RestToke),
-            32 => Ok(Self::RewardSingingBowl),
-            33 => Ok(Self::CardBottle),
-            _ => Err(format!("PyActionType: invalid discriminant {discriminant}")),
-        }
-    }
-}
-
 #[pyclass(
     from_py_object,
     eq,
@@ -120,30 +78,18 @@ pub struct PyAction {
     pub action_type: PyActionType,
     #[pyo3(get)]
     pub idxs: Vec<usize>,
-    #[pyo3(get)]
-    pub kind: Option<u8>,
 }
 
 #[pymethods]
 impl PyAction {
     #[new]
-    #[pyo3(signature = (action_type, idxs, kind=None))]
-    fn new(action_type: PyActionType, idxs: Vec<usize>, kind: Option<u8>) -> Self {
-        Self {
-            action_type,
-            idxs,
-            kind,
-        }
+    #[pyo3(signature = (action_type, idxs))]
+    fn new(action_type: PyActionType, idxs: Vec<usize>) -> Self {
+        Self { action_type, idxs }
     }
 
     fn __repr__(&self) -> String {
-        match self.kind {
-            Some(k) => format!(
-                "PyAction({:?}, {:?}, kind={})",
-                self.action_type, self.idxs, k
-            ),
-            None => format!("PyAction({:?}, {:?})", self.action_type, self.idxs),
-        }
+        format!("PyAction({:?}, {:?})", self.action_type, self.idxs)
     }
 }
 
@@ -391,9 +337,5 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::CardDuplicate { idx } => (PyActionType::CardDuplicate, vec![idx]),
         Action::CardTransform { idx } => (PyActionType::CardTransform, vec![idx]),
     };
-    PyAction {
-        action_type,
-        idxs,
-        kind: None,
-    }
+    PyAction { action_type, idxs }
 }

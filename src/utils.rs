@@ -222,15 +222,6 @@ pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
     }
 }
 
-pub fn reshuffle_discard_into_draw(
-    id_pile_draw: &mut Vec<usize>,
-    id_pile_discard: &mut Vec<usize>,
-    rng: &mut impl Rng,
-) {
-    id_pile_draw.append(id_pile_discard);
-    shuffle(&mut id_pile_draw[..], rng);
-}
-
 // Unceasing Top: queue rest in Combat means the player is about to act; a drawable Card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
     let Mode::Combat {
@@ -288,16 +279,6 @@ pub fn scale_block_gain(base: u16, dex_stacks: i16, frail: bool) -> u16 {
         value *= FACTOR_FRAIL;
     }
     value.max(0.0) as u16
-}
-
-pub fn roll_card_reward_pool_green(roll: i32) -> (&'static [CardName], CardRarity) {
-    if roll < CARD_REWARD_ROLL_CHANCE_RARE {
-        (POOL_RARE_GREEN_CARD, CardRarity::Rare)
-    } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
-        (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
-    } else {
-        (POOL_COMMON_GREEN_CARD, CardRarity::Common)
-    }
 }
 
 // Tier-by-roll with cascade to higher tiers when the rolled pool is exhausted
@@ -383,7 +364,13 @@ pub fn roll_card_rewards(
     out.clear();
     for _ in 0..count {
         let roll = rng.random_range(0i32..99) + character_reward_roll_offset as i32;
-        let (pool, rarity) = roll_card_reward_pool_green(roll);
+        let (pool, rarity) = if roll < CARD_REWARD_ROLL_CHANCE_RARE {
+            (POOL_RARE_GREEN_CARD, CardRarity::Rare)
+        } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
+            (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
+        } else {
+            (POOL_COMMON_GREEN_CARD, CardRarity::Common)
+        };
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
         match rarity {
