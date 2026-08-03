@@ -128,13 +128,7 @@ pub const fn get_encounter_weight(encounter: MonsterEncounter) -> f32 {
 }
 
 const fn pool_eq(lhs: EncounterPool, rhs: EncounterPool) -> bool {
-    matches!(
-        (lhs, rhs),
-        (EncounterPool::Act1Easy, EncounterPool::Act1Easy)
-            | (EncounterPool::Act1Hard, EncounterPool::Act1Hard)
-            | (EncounterPool::Act1Elite, EncounterPool::Act1Elite)
-            | (EncounterPool::Act1Boss, EncounterPool::Act1Boss)
-    )
+    lhs as u8 == rhs as u8
 }
 
 const fn count_pool(pool: EncounterPool) -> usize {

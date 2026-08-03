@@ -142,251 +142,153 @@ use crate::types::CardRarity;
 use crate::utils::shuffle;
 use strum::EnumCount;
 
+// Totality relies on the len == COUNT and no-duplicate asserts below
+const fn build_card_by_name() -> [&'static Entity; CardName::COUNT] {
+    let mut buf = [ALL_CARDS[0]; CardName::COUNT];
+    let mut i = 0;
+    while i < ALL_CARDS.len() {
+        buf[ALL_CARDS[i].card_name as usize] = ALL_CARDS[i];
+        i += 1;
+    }
+    buf
+}
+
+static CARD_BY_NAME: [&'static Entity; CardName::COUNT] = build_card_by_name();
+
 pub fn get_card(name: CardName, upgraded: bool) -> Entity {
-    match (name, upgraded) {
-        (CardName::AThousandCuts, false) => a_thousand_cuts::A_THOUSAND_CUTS,
-        (CardName::AThousandCuts, true) => a_thousand_cuts::A_THOUSAND_CUTS_PLUS,
-        (CardName::Accuracy, false) => accuracy::ACCURACY,
-        (CardName::Accuracy, true) => accuracy::ACCURACY_PLUS,
-        (CardName::Acrobatics, false) => acrobatics::ACROBATICS,
-        (CardName::Acrobatics, true) => acrobatics::ACROBATICS_PLUS,
-        (CardName::Adrenaline, false) => adrenaline::ADRENALINE,
-        (CardName::Adrenaline, true) => adrenaline::ADRENALINE_PLUS,
-        (CardName::AfterImage, false) => after_image::AFTER_IMAGE,
-        (CardName::AfterImage, true) => after_image::AFTER_IMAGE_PLUS,
-        (CardName::Alchemize, false) => alchemize::ALCHEMIZE,
-        (CardName::Alchemize, true) => alchemize::ALCHEMIZE_PLUS,
-        (CardName::AllOutAttack, false) => all_out_attack::ALL_OUT_ATTACK,
-        (CardName::AllOutAttack, true) => all_out_attack::ALL_OUT_ATTACK_PLUS,
-        (CardName::Backflip, false) => backflip::BACKFLIP,
-        (CardName::Backflip, true) => backflip::BACKFLIP_PLUS,
-        (CardName::Backstab, false) => backstab::BACKSTAB,
-        (CardName::Backstab, true) => backstab::BACKSTAB_PLUS,
-        (CardName::BandageUp, false) => bandage_up::BANDAGE_UP,
-        (CardName::BandageUp, true) => bandage_up::BANDAGE_UP_PLUS,
-        (CardName::Bane, false) => bane::BANE,
-        (CardName::Bane, true) => bane::BANE_PLUS,
-        (CardName::BladeDance, false) => blade_dance::BLADE_DANCE,
-        (CardName::BladeDance, true) => blade_dance::BLADE_DANCE_PLUS,
-        (CardName::Blind, false) => blind::BLIND,
-        (CardName::Blind, true) => blind::BLIND_PLUS,
-        (CardName::Blur, false) => blur::BLUR,
-        (CardName::Blur, true) => blur::BLUR_PLUS,
-        (CardName::BouncingFlask, false) => bouncing_flask::BOUNCING_FLASK,
-        (CardName::BouncingFlask, true) => bouncing_flask::BOUNCING_FLASK_PLUS,
-        (CardName::BulletTime, false) => bullet_time::BULLET_TIME,
-        (CardName::BulletTime, true) => bullet_time::BULLET_TIME_PLUS,
-        (CardName::Burn, false) => burn::BURN,
-        (CardName::Burn, true) => burn::BURN_UPGRADED,
-        (CardName::Burst, false) => burst::BURST,
-        (CardName::Burst, true) => burst::BURST_PLUS,
-        (CardName::CalculatedGamble, false) => calculated_gamble::CALCULATED_GAMBLE,
-        (CardName::CalculatedGamble, true) => calculated_gamble::CALCULATED_GAMBLE_PLUS,
-        (CardName::Caltrops, false) => caltrops::CALTROPS,
-        (CardName::Caltrops, true) => caltrops::CALTROPS_PLUS,
-        (CardName::Catalyst, false) => catalyst::CATALYST,
-        (CardName::Catalyst, true) => catalyst::CATALYST_PLUS,
-        (CardName::Choke, false) => choke::CHOKE,
-        (CardName::Choke, true) => choke::CHOKE_PLUS,
-        (CardName::CloakAndDagger, false) => cloak_and_dagger::CLOAK_AND_DAGGER,
-        (CardName::CloakAndDagger, true) => cloak_and_dagger::CLOAK_AND_DAGGER_PLUS,
-        (CardName::Concentrate, false) => concentrate::CONCENTRATE,
-        (CardName::Concentrate, true) => concentrate::CONCENTRATE_PLUS,
-        (CardName::CorpseExplosion, false) => corpse_explosion::CORPSE_EXPLOSION,
-        (CardName::CorpseExplosion, true) => corpse_explosion::CORPSE_EXPLOSION_PLUS,
-        (CardName::CripplingPoison, false) => crippling_poison::CRIPPLING_POISON,
-        (CardName::CripplingPoison, true) => crippling_poison::CRIPPLING_POISON_PLUS,
-        (CardName::DaggerSpray, false) => dagger_spray::DAGGER_SPRAY,
-        (CardName::DaggerSpray, true) => dagger_spray::DAGGER_SPRAY_PLUS,
-        (CardName::DaggerThrow, false) => dagger_throw::DAGGER_THROW,
-        (CardName::DaggerThrow, true) => dagger_throw::DAGGER_THROW_PLUS,
-        (CardName::Dash, false) => dash::DASH,
-        (CardName::Dash, true) => dash::DASH_PLUS,
-        (CardName::Dazed, _) => dazed::DAZED, // No upgraded variant
-        (CardName::DeadlyPoison, false) => deadly_poison::DEADLY_POISON,
-        (CardName::DeadlyPoison, true) => deadly_poison::DEADLY_POISON_PLUS,
-        (CardName::DeepBreath, false) => deep_breath::DEEP_BREATH,
-        (CardName::DeepBreath, true) => deep_breath::DEEP_BREATH_PLUS,
-        (CardName::Defend, false) => defend::DEFEND,
-        (CardName::Defend, true) => defend::DEFEND_PLUS,
-        (CardName::Deflect, false) => deflect::DEFLECT,
-        (CardName::Deflect, true) => deflect::DEFLECT_PLUS,
-        (CardName::DieDieDie, false) => die_die_die::DIE_DIE_DIE,
-        (CardName::DieDieDie, true) => die_die_die::DIE_DIE_DIE_PLUS,
-        (CardName::Distraction, false) => distraction::DISTRACTION,
-        (CardName::Distraction, true) => distraction::DISTRACTION_PLUS,
-        (CardName::DodgeAndRoll, false) => dodge_and_roll::DODGE_AND_ROLL,
-        (CardName::DodgeAndRoll, true) => dodge_and_roll::DODGE_AND_ROLL_PLUS,
-        (CardName::Doppelganger, false) => doppelganger::DOPPELGANGER,
-        (CardName::Doppelganger, true) => doppelganger::DOPPELGANGER_PLUS,
-        (CardName::EndlessAgony, false) => endless_agony::ENDLESS_AGONY,
-        (CardName::EndlessAgony, true) => endless_agony::ENDLESS_AGONY_PLUS,
-        (CardName::Envenom, false) => envenom::ENVENOM,
-        (CardName::Envenom, true) => envenom::ENVENOM_PLUS,
-        (CardName::EscapePlan, false) => escape_plan::ESCAPE_PLAN,
-        (CardName::EscapePlan, true) => escape_plan::ESCAPE_PLAN_PLUS,
-        (CardName::Eviscerate, false) => eviscerate::EVISCERATE,
-        (CardName::Eviscerate, true) => eviscerate::EVISCERATE_PLUS,
-        (CardName::Expertise, false) => expertise::EXPERTISE,
-        (CardName::Expertise, true) => expertise::EXPERTISE_PLUS,
-        (CardName::Finesse, false) => finesse::FINESSE,
-        (CardName::Finesse, true) => finesse::FINESSE_PLUS,
-        (CardName::Finisher, false) => finisher::FINISHER,
-        (CardName::Finisher, true) => finisher::FINISHER_PLUS,
-        (CardName::FlashOfSteel, false) => flash_of_steel::FLASH_OF_STEEL,
-        (CardName::FlashOfSteel, true) => flash_of_steel::FLASH_OF_STEEL_PLUS,
-        (CardName::Flechettes, false) => flechettes::FLECHETTES,
-        (CardName::Flechettes, true) => flechettes::FLECHETTES_PLUS,
-        (CardName::FlyingKnee, false) => flying_knee::FLYING_KNEE,
-        (CardName::FlyingKnee, true) => flying_knee::FLYING_KNEE_PLUS,
-        (CardName::Footwork, false) => footwork::FOOTWORK,
-        (CardName::Footwork, true) => footwork::FOOTWORK_PLUS,
-        (CardName::GlassKnife, false) => glass_knife::GLASS_KNIFE,
-        (CardName::GlassKnife, true) => glass_knife::GLASS_KNIFE_PLUS,
-        (CardName::GoodInstincts, false) => good_instincts::GOOD_INSTINCTS,
-        (CardName::GoodInstincts, true) => good_instincts::GOOD_INSTINCTS_PLUS,
-        (CardName::GrandFinale, false) => grand_finale::GRAND_FINALE,
-        (CardName::GrandFinale, true) => grand_finale::GRAND_FINALE_PLUS,
-        (CardName::HeelHook, false) => heel_hook::HEEL_HOOK,
-        (CardName::HeelHook, true) => heel_hook::HEEL_HOOK_PLUS,
-        (CardName::InfiniteBlades, false) => infinite_blades::INFINITE_BLADES,
-        (CardName::InfiniteBlades, true) => infinite_blades::INFINITE_BLADES_PLUS,
-        (CardName::LegSweep, false) => leg_sweep::LEG_SWEEP,
-        (CardName::LegSweep, true) => leg_sweep::LEG_SWEEP_PLUS,
-        (CardName::Malaise, false) => malaise::MALAISE,
-        (CardName::Malaise, true) => malaise::MALAISE_PLUS,
-        (CardName::MasterOfStrategy, false) => master_of_strategy::MASTER_OF_STRATEGY,
-        (CardName::MasterOfStrategy, true) => master_of_strategy::MASTER_OF_STRATEGY_PLUS,
-        (CardName::MasterfulStab, false) => masterful_stab::MASTERFUL_STAB,
-        (CardName::MasterfulStab, true) => masterful_stab::MASTERFUL_STAB_PLUS,
-        (CardName::MindBlast, false) => mind_blast::MIND_BLAST,
-        (CardName::MindBlast, true) => mind_blast::MIND_BLAST_PLUS,
-        (CardName::Neutralize, false) => neutralize::NEUTRALIZE,
-        (CardName::Neutralize, true) => neutralize::NEUTRALIZE_PLUS,
-        (CardName::Nightmare, false) => nightmare::NIGHTMARE,
-        (CardName::Nightmare, true) => nightmare::NIGHTMARE_PLUS,
-        (CardName::NoxiousFumes, false) => noxious_fumes::NOXIOUS_FUMES,
-        (CardName::NoxiousFumes, true) => noxious_fumes::NOXIOUS_FUMES_PLUS,
-        (CardName::Outmaneuver, false) => outmaneuver::OUTMANEUVER,
-        (CardName::Outmaneuver, true) => outmaneuver::OUTMANEUVER_PLUS,
-        (CardName::PhantasmalKiller, false) => phantasmal_killer::PHANTASMAL_KILLER,
-        (CardName::PhantasmalKiller, true) => phantasmal_killer::PHANTASMAL_KILLER_PLUS,
-        (CardName::PiercingWail, false) => piercing_wail::PIERCING_WAIL,
-        (CardName::PiercingWail, true) => piercing_wail::PIERCING_WAIL_PLUS,
-        (CardName::PoisonedStab, false) => poisoned_stab::POISONED_STAB,
-        (CardName::PoisonedStab, true) => poisoned_stab::POISONED_STAB_PLUS,
-        (CardName::Predator, false) => predator::PREDATOR,
-        (CardName::Predator, true) => predator::PREDATOR_PLUS,
-        (CardName::Prepared, false) => prepared::PREPARED,
-        (CardName::Prepared, true) => prepared::PREPARED_PLUS,
-        (CardName::QuickSlash, false) => quick_slash::QUICK_SLASH,
-        (CardName::QuickSlash, true) => quick_slash::QUICK_SLASH_PLUS,
-        (CardName::Reflex, false) => reflex::REFLEX,
-        (CardName::Reflex, true) => reflex::REFLEX_PLUS,
-        (CardName::RiddleWithHoles, false) => riddle_with_holes::RIDDLE_WITH_HOLES,
-        (CardName::RiddleWithHoles, true) => riddle_with_holes::RIDDLE_WITH_HOLES_PLUS,
-        (CardName::Setup, false) => setup::SETUP,
-        (CardName::Setup, true) => setup::SETUP_PLUS,
-        (CardName::Shiv, false) => shiv::SHIV,
-        (CardName::Shiv, true) => shiv::SHIV_PLUS,
-        (CardName::Skewer, false) => skewer::SKEWER,
-        (CardName::Skewer, true) => skewer::SKEWER_PLUS,
-        (CardName::Slice, false) => slice::SLICE,
-        (CardName::Slice, true) => slice::SLICE_PLUS,
-        (CardName::Slimed, _) => slimed::SLIMED, // No upgraded variant
-        (CardName::SneakyStrike, false) => sneaky_strike::SNEAKY_STRIKE,
-        (CardName::SneakyStrike, true) => sneaky_strike::SNEAKY_STRIKE_PLUS,
-        (CardName::StormOfSteel, false) => storm_of_steel::STORM_OF_STEEL,
-        (CardName::StormOfSteel, true) => storm_of_steel::STORM_OF_STEEL_PLUS,
-        (CardName::Strike, false) => strike::STRIKE,
-        (CardName::Strike, true) => strike::STRIKE_PLUS,
-        (CardName::SuckerPunch, false) => sucker_punch::SUCKER_PUNCH,
-        (CardName::SuckerPunch, true) => sucker_punch::SUCKER_PUNCH_PLUS,
-        (CardName::Survivor, false) => survivor::SURVIVOR,
-        (CardName::Survivor, true) => survivor::SURVIVOR_PLUS,
-        (CardName::SwiftStrike, false) => swift_strike::SWIFT_STRIKE,
-        (CardName::SwiftStrike, true) => swift_strike::SWIFT_STRIKE_PLUS,
-        (CardName::Tactician, false) => tactician::TACTICIAN,
-        (CardName::Tactician, true) => tactician::TACTICIAN_PLUS,
-        (CardName::Terror, false) => terror::TERROR,
-        (CardName::Terror, true) => terror::TERROR_PLUS,
-        (CardName::ToolsOfTheTrade, false) => tools_of_the_trade::TOOLS_OF_THE_TRADE,
-        (CardName::ToolsOfTheTrade, true) => tools_of_the_trade::TOOLS_OF_THE_TRADE_PLUS,
-        (CardName::Unload, false) => unload::UNLOAD,
-        (CardName::Unload, true) => unload::UNLOAD_PLUS,
-        (CardName::WellLaidPlans, false) => well_laid_plans::WELL_LAID_PLANS,
-        (CardName::WellLaidPlans, true) => well_laid_plans::WELL_LAID_PLANS_PLUS,
-        (CardName::WraithForm, false) => wraith_form::WRAITH_FORM,
-        (CardName::WraithForm, true) => wraith_form::WRAITH_FORM_PLUS,
-        (CardName::AscendersBane, _) => ascenders_bane::ASCENDERS_BANE,
-        (CardName::CurseOfTheBell, _) => curse_of_the_bell::CURSE_OF_THE_BELL,
-        (CardName::Regret, _) => regret::REGRET,
-        (CardName::Pain, _) => pain::PAIN,
-        (CardName::Doubt, _) => doubt::DOUBT,
-        (CardName::Decay, _) => decay::DECAY,
-        (CardName::Injury, _) => injury::INJURY,
-        (CardName::Shame, _) => shame::SHAME,
-        (CardName::Writhe, _) => writhe::WRITHE,
-        (CardName::Parasite, _) => parasite::PARASITE,
-        (CardName::Normality, _) => normality::NORMALITY,
-        (CardName::Apparition, false) => apparition::APPARITION,
-        (CardName::Apparition, true) => apparition::APPARITION_PLUS,
-        (CardName::Bite, false) => bite::BITE,
-        (CardName::Bite, true) => bite::BITE_PLUS,
-        (CardName::DarkShackles, false) => dark_shackles::DARK_SHACKLES,
-        (CardName::DarkShackles, true) => dark_shackles::DARK_SHACKLES_PLUS,
-        (CardName::DramaticEntrance, false) => dramatic_entrance::DRAMATIC_ENTRANCE,
-        (CardName::DramaticEntrance, true) => dramatic_entrance::DRAMATIC_ENTRANCE_PLUS,
-        (CardName::Jax, false) => jax::JAX,
-        (CardName::Jax, true) => jax::JAX_PLUS,
-        (CardName::Panacea, false) => panacea::PANACEA,
-        (CardName::Panacea, true) => panacea::PANACEA_PLUS,
-        (CardName::Trip, false) => trip::TRIP,
-        (CardName::Trip, true) => trip::TRIP_PLUS,
-        (CardName::Apotheosis, false) => apotheosis::APOTHEOSIS,
-        (CardName::Apotheosis, true) => apotheosis::APOTHEOSIS_PLUS,
-        (CardName::Chrysalis, false) => chrysalis::CHRYSALIS,
-        (CardName::Chrysalis, true) => chrysalis::CHRYSALIS_PLUS,
-        (CardName::Discovery, false) => discovery::DISCOVERY,
-        (CardName::Discovery, true) => discovery::DISCOVERY_PLUS,
-        (CardName::Enlightenment, false) => enlightenment::ENLIGHTENMENT,
-        (CardName::Enlightenment, true) => enlightenment::ENLIGHTENMENT_PLUS,
-        (CardName::HandOfGreed, false) => hand_of_greed::HAND_OF_GREED,
-        (CardName::HandOfGreed, true) => hand_of_greed::HAND_OF_GREED_PLUS,
-        (CardName::Impatience, false) => impatience::IMPATIENCE,
-        (CardName::Impatience, true) => impatience::IMPATIENCE_PLUS,
-        (CardName::JackOfAllTrades, false) => jack_of_all_trades::JACK_OF_ALL_TRADES,
-        (CardName::JackOfAllTrades, true) => jack_of_all_trades::JACK_OF_ALL_TRADES_PLUS,
-        (CardName::Madness, false) => madness::MADNESS,
-        (CardName::Madness, true) => madness::MADNESS_PLUS,
-        (CardName::Magnetism, false) => magnetism::MAGNETISM,
-        (CardName::Magnetism, true) => magnetism::MAGNETISM_PLUS,
-        (CardName::Metamorphosis, false) => metamorphosis::METAMORPHOSIS,
-        (CardName::Metamorphosis, true) => metamorphosis::METAMORPHOSIS_PLUS,
-        (CardName::Panache, false) => panache::PANACHE,
-        (CardName::Panache, true) => panache::PANACHE_PLUS,
-        (CardName::PanicButton, false) => panic_button::PANIC_BUTTON,
-        (CardName::PanicButton, true) => panic_button::PANIC_BUTTON_PLUS,
-        (CardName::SadisticNature, false) => sadistic_nature::SADISTIC_NATURE,
-        (CardName::SadisticNature, true) => sadistic_nature::SADISTIC_NATURE_PLUS,
-        (CardName::ThinkingAhead, false) => thinking_ahead::THINKING_AHEAD,
-        (CardName::ThinkingAhead, true) => thinking_ahead::THINKING_AHEAD_PLUS,
-        (CardName::Transmutation, false) => transmutation::TRANSMUTATION,
-        (CardName::Transmutation, true) => transmutation::TRANSMUTATION_PLUS,
-        (CardName::Forethought, false) => forethought::FORETHOUGHT,
-        (CardName::Forethought, true) => forethought::FORETHOUGHT_PLUS,
-        (CardName::Mayhem, false) => mayhem::MAYHEM,
-        (CardName::Mayhem, true) => mayhem::MAYHEM_PLUS,
-        (CardName::Purity, false) => purity::PURITY,
-        (CardName::Purity, true) => purity::PURITY_PLUS,
-        (CardName::SecretTechnique, false) => secret_technique::SECRET_TECHNIQUE,
-        (CardName::SecretTechnique, true) => secret_technique::SECRET_TECHNIQUE_PLUS,
-        (CardName::SecretWeapon, false) => secret_weapon::SECRET_WEAPON,
-        (CardName::SecretWeapon, true) => secret_weapon::SECRET_WEAPON_PLUS,
-        (CardName::TheBomb, false) => the_bomb::THE_BOMB,
-        (CardName::TheBomb, true) => the_bomb::THE_BOMB_PLUS,
-        (CardName::Violence, false) => violence::VIOLENCE,
-        (CardName::Violence, true) => violence::VIOLENCE_PLUS,
+    if !upgraded {
+        return *CARD_BY_NAME[name as usize];
+    }
+    // Named, not `_`, so a new CardName missing its _PLUS arm stays a compile error
+    match name {
+        CardName::AThousandCuts => a_thousand_cuts::A_THOUSAND_CUTS_PLUS,
+        CardName::Accuracy => accuracy::ACCURACY_PLUS,
+        CardName::Acrobatics => acrobatics::ACROBATICS_PLUS,
+        CardName::Adrenaline => adrenaline::ADRENALINE_PLUS,
+        CardName::AfterImage => after_image::AFTER_IMAGE_PLUS,
+        CardName::Alchemize => alchemize::ALCHEMIZE_PLUS,
+        CardName::AllOutAttack => all_out_attack::ALL_OUT_ATTACK_PLUS,
+        CardName::Backflip => backflip::BACKFLIP_PLUS,
+        CardName::Backstab => backstab::BACKSTAB_PLUS,
+        CardName::BandageUp => bandage_up::BANDAGE_UP_PLUS,
+        CardName::Bane => bane::BANE_PLUS,
+        CardName::BladeDance => blade_dance::BLADE_DANCE_PLUS,
+        CardName::Blind => blind::BLIND_PLUS,
+        CardName::Blur => blur::BLUR_PLUS,
+        CardName::BouncingFlask => bouncing_flask::BOUNCING_FLASK_PLUS,
+        CardName::BulletTime => bullet_time::BULLET_TIME_PLUS,
+        CardName::Burn => burn::BURN_UPGRADED,
+        CardName::Burst => burst::BURST_PLUS,
+        CardName::CalculatedGamble => calculated_gamble::CALCULATED_GAMBLE_PLUS,
+        CardName::Caltrops => caltrops::CALTROPS_PLUS,
+        CardName::Catalyst => catalyst::CATALYST_PLUS,
+        CardName::Choke => choke::CHOKE_PLUS,
+        CardName::CloakAndDagger => cloak_and_dagger::CLOAK_AND_DAGGER_PLUS,
+        CardName::Concentrate => concentrate::CONCENTRATE_PLUS,
+        CardName::CorpseExplosion => corpse_explosion::CORPSE_EXPLOSION_PLUS,
+        CardName::CripplingPoison => crippling_poison::CRIPPLING_POISON_PLUS,
+        CardName::DaggerSpray => dagger_spray::DAGGER_SPRAY_PLUS,
+        CardName::DaggerThrow => dagger_throw::DAGGER_THROW_PLUS,
+        CardName::Dash => dash::DASH_PLUS,
+        CardName::DeadlyPoison => deadly_poison::DEADLY_POISON_PLUS,
+        CardName::DeepBreath => deep_breath::DEEP_BREATH_PLUS,
+        CardName::Defend => defend::DEFEND_PLUS,
+        CardName::Deflect => deflect::DEFLECT_PLUS,
+        CardName::DieDieDie => die_die_die::DIE_DIE_DIE_PLUS,
+        CardName::Distraction => distraction::DISTRACTION_PLUS,
+        CardName::DodgeAndRoll => dodge_and_roll::DODGE_AND_ROLL_PLUS,
+        CardName::Doppelganger => doppelganger::DOPPELGANGER_PLUS,
+        CardName::EndlessAgony => endless_agony::ENDLESS_AGONY_PLUS,
+        CardName::Envenom => envenom::ENVENOM_PLUS,
+        CardName::EscapePlan => escape_plan::ESCAPE_PLAN_PLUS,
+        CardName::Eviscerate => eviscerate::EVISCERATE_PLUS,
+        CardName::Expertise => expertise::EXPERTISE_PLUS,
+        CardName::Finesse => finesse::FINESSE_PLUS,
+        CardName::Finisher => finisher::FINISHER_PLUS,
+        CardName::FlashOfSteel => flash_of_steel::FLASH_OF_STEEL_PLUS,
+        CardName::Flechettes => flechettes::FLECHETTES_PLUS,
+        CardName::FlyingKnee => flying_knee::FLYING_KNEE_PLUS,
+        CardName::Footwork => footwork::FOOTWORK_PLUS,
+        CardName::GlassKnife => glass_knife::GLASS_KNIFE_PLUS,
+        CardName::GoodInstincts => good_instincts::GOOD_INSTINCTS_PLUS,
+        CardName::GrandFinale => grand_finale::GRAND_FINALE_PLUS,
+        CardName::HeelHook => heel_hook::HEEL_HOOK_PLUS,
+        CardName::InfiniteBlades => infinite_blades::INFINITE_BLADES_PLUS,
+        CardName::LegSweep => leg_sweep::LEG_SWEEP_PLUS,
+        CardName::Malaise => malaise::MALAISE_PLUS,
+        CardName::MasterOfStrategy => master_of_strategy::MASTER_OF_STRATEGY_PLUS,
+        CardName::MasterfulStab => masterful_stab::MASTERFUL_STAB_PLUS,
+        CardName::MindBlast => mind_blast::MIND_BLAST_PLUS,
+        CardName::Neutralize => neutralize::NEUTRALIZE_PLUS,
+        CardName::Nightmare => nightmare::NIGHTMARE_PLUS,
+        CardName::NoxiousFumes => noxious_fumes::NOXIOUS_FUMES_PLUS,
+        CardName::Outmaneuver => outmaneuver::OUTMANEUVER_PLUS,
+        CardName::PhantasmalKiller => phantasmal_killer::PHANTASMAL_KILLER_PLUS,
+        CardName::PiercingWail => piercing_wail::PIERCING_WAIL_PLUS,
+        CardName::PoisonedStab => poisoned_stab::POISONED_STAB_PLUS,
+        CardName::Predator => predator::PREDATOR_PLUS,
+        CardName::Prepared => prepared::PREPARED_PLUS,
+        CardName::QuickSlash => quick_slash::QUICK_SLASH_PLUS,
+        CardName::Reflex => reflex::REFLEX_PLUS,
+        CardName::RiddleWithHoles => riddle_with_holes::RIDDLE_WITH_HOLES_PLUS,
+        CardName::Setup => setup::SETUP_PLUS,
+        CardName::Shiv => shiv::SHIV_PLUS,
+        CardName::Skewer => skewer::SKEWER_PLUS,
+        CardName::Slice => slice::SLICE_PLUS,
+        CardName::SneakyStrike => sneaky_strike::SNEAKY_STRIKE_PLUS,
+        CardName::StormOfSteel => storm_of_steel::STORM_OF_STEEL_PLUS,
+        CardName::Strike => strike::STRIKE_PLUS,
+        CardName::SuckerPunch => sucker_punch::SUCKER_PUNCH_PLUS,
+        CardName::Survivor => survivor::SURVIVOR_PLUS,
+        CardName::SwiftStrike => swift_strike::SWIFT_STRIKE_PLUS,
+        CardName::Tactician => tactician::TACTICIAN_PLUS,
+        CardName::Terror => terror::TERROR_PLUS,
+        CardName::ToolsOfTheTrade => tools_of_the_trade::TOOLS_OF_THE_TRADE_PLUS,
+        CardName::Unload => unload::UNLOAD_PLUS,
+        CardName::WellLaidPlans => well_laid_plans::WELL_LAID_PLANS_PLUS,
+        CardName::WraithForm => wraith_form::WRAITH_FORM_PLUS,
+        CardName::Apparition => apparition::APPARITION_PLUS,
+        CardName::Bite => bite::BITE_PLUS,
+        CardName::DarkShackles => dark_shackles::DARK_SHACKLES_PLUS,
+        CardName::DramaticEntrance => dramatic_entrance::DRAMATIC_ENTRANCE_PLUS,
+        CardName::Jax => jax::JAX_PLUS,
+        CardName::Panacea => panacea::PANACEA_PLUS,
+        CardName::Trip => trip::TRIP_PLUS,
+        CardName::Apotheosis => apotheosis::APOTHEOSIS_PLUS,
+        CardName::Chrysalis => chrysalis::CHRYSALIS_PLUS,
+        CardName::Discovery => discovery::DISCOVERY_PLUS,
+        CardName::Enlightenment => enlightenment::ENLIGHTENMENT_PLUS,
+        CardName::HandOfGreed => hand_of_greed::HAND_OF_GREED_PLUS,
+        CardName::Impatience => impatience::IMPATIENCE_PLUS,
+        CardName::JackOfAllTrades => jack_of_all_trades::JACK_OF_ALL_TRADES_PLUS,
+        CardName::Madness => madness::MADNESS_PLUS,
+        CardName::Magnetism => magnetism::MAGNETISM_PLUS,
+        CardName::Metamorphosis => metamorphosis::METAMORPHOSIS_PLUS,
+        CardName::Panache => panache::PANACHE_PLUS,
+        CardName::PanicButton => panic_button::PANIC_BUTTON_PLUS,
+        CardName::SadisticNature => sadistic_nature::SADISTIC_NATURE_PLUS,
+        CardName::ThinkingAhead => thinking_ahead::THINKING_AHEAD_PLUS,
+        CardName::Transmutation => transmutation::TRANSMUTATION_PLUS,
+        CardName::Forethought => forethought::FORETHOUGHT_PLUS,
+        CardName::Mayhem => mayhem::MAYHEM_PLUS,
+        CardName::Purity => purity::PURITY_PLUS,
+        CardName::SecretTechnique => secret_technique::SECRET_TECHNIQUE_PLUS,
+        CardName::SecretWeapon => secret_weapon::SECRET_WEAPON_PLUS,
+        CardName::TheBomb => the_bomb::THE_BOMB_PLUS,
+        CardName::Violence => violence::VIOLENCE_PLUS,
+        CardName::Dazed
+        | CardName::Slimed
+        | CardName::AscendersBane
+        | CardName::CurseOfTheBell
+        | CardName::Regret
+        | CardName::Pain
+        | CardName::Doubt
+        | CardName::Decay
+        | CardName::Injury
+        | CardName::Shame
+        | CardName::Writhe
+        | CardName::Parasite
+        | CardName::Normality => *CARD_BY_NAME[name as usize],
     }
 }
 
@@ -534,52 +436,32 @@ const _: () = {
 };
 
 const fn card_rarity_eq(lhs: CardRarity, rhs: CardRarity) -> bool {
-    matches!(
-        (lhs, rhs),
-        (CardRarity::Basic, CardRarity::Basic)
-            | (CardRarity::Common, CardRarity::Common)
-            | (CardRarity::Uncommon, CardRarity::Uncommon)
-            | (CardRarity::Rare, CardRarity::Rare)
-            | (CardRarity::Special, CardRarity::Special)
-            | (CardRarity::Curse, CardRarity::Curse)
-    )
+    lhs as u8 == rhs as u8
 }
 
 const fn card_color_eq(lhs: CardColor, rhs: CardColor) -> bool {
-    matches!(
-        (lhs, rhs),
-        (CardColor::Green, CardColor::Green)
-            | (CardColor::Colorless, CardColor::Colorless)
-            | (CardColor::Curse, CardColor::Curse)
-    )
+    lhs as u8 == rhs as u8
 }
 
-const fn is_rewardable_kind(kind: CardKind) -> bool {
-    matches!(
-        kind,
-        CardKind::Attack | CardKind::Skill | CardKind::Power | CardKind::Curse
-    )
+// Reward pools: rewardable kind, minus the two Curse cards that are Neow/event-only
+const fn in_pool(card: &Entity, rarity: CardRarity, color: CardColor) -> bool {
+    card_rarity_eq(card.card_rarity, rarity)
+        && card_color_eq(card.card_color, color)
+        && matches!(
+            card.card_kind,
+            CardKind::Attack | CardKind::Skill | CardKind::Power | CardKind::Curse
+        )
+        && !matches!(
+            card.card_name,
+            CardName::AscendersBane | CardName::CurseOfTheBell
+        )
 }
 
 const fn count_pool(rarity: CardRarity, color: CardColor) -> usize {
     let mut count = 0;
     let mut idx = 0;
     while idx < ALL_CARDS.len() {
-        let card = ALL_CARDS[idx];
-        if card_rarity_eq(card.card_rarity, rarity)
-            && card_color_eq(card.card_color, color)
-            && is_rewardable_kind(card.card_kind)
-        {
-            // AscendersBane is Curse-rarity but Neow-only; skip
-            if matches!(rarity, CardRarity::Curse)
-                && matches!(
-                    card.card_name,
-                    CardName::AscendersBane | CardName::CurseOfTheBell
-                )
-            {
-                idx += 1;
-                continue;
-            }
+        if in_pool(ALL_CARDS[idx], rarity, color) {
             count += 1;
         }
         idx += 1;
@@ -592,20 +474,8 @@ const fn build_pool<const N: usize>(rarity: CardRarity, color: CardColor) -> [Ca
     let mut idx_pool = 0;
     let mut idx_all = 0;
     while idx_all < ALL_CARDS.len() {
-        let card = ALL_CARDS[idx_all];
-        if card_rarity_eq(card.card_rarity, rarity)
-            && card_color_eq(card.card_color, color)
-            && (matches!(rarity, CardRarity::Curse) || is_rewardable_kind(card.card_kind))
-        {
-            // AscendersBane is Curse-rarity but Neow-only; skip
-            if matches!(
-                card.card_name,
-                CardName::AscendersBane | CardName::CurseOfTheBell
-            ) {
-                idx_all += 1;
-                continue;
-            }
-            buf[idx_pool] = card.card_name;
+        if in_pool(ALL_CARDS[idx_all], rarity, color) {
+            buf[idx_pool] = ALL_CARDS[idx_all].card_name;
             idx_pool += 1;
         }
         idx_all += 1;
