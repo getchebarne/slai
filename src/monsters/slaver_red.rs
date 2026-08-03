@@ -1,14 +1,10 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
+use crate::entity::make_move_attack;
+use crate::entity::make_move_attack_debuff;
+use crate::entity::make_move_debuff;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -16,144 +12,20 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_STAB_13: Move = make_move(
-    "Stab",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 13 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 13,
-        instances: 1,
-    },
-);
-static MOVE_STAB_14: Move = make_move(
-    "Stab",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 14 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 14,
-        instances: 1,
-    },
-);
-static MOVE_ENTANGLE: Move = make_move(
+static MOVE_STAB_13: Move = make_move_attack("Stab", 13, 1);
+static MOVE_STAB_14: Move = make_move_attack("Stab", 14, 1);
+static MOVE_ENTANGLE: Move = make_move_debuff(
     "Entangle",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Entangled,
-            stacks: 1,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
+    ModifierKind::Entangled,
+    1,
     Intent::DebuffPowerful,
 );
-static MOVE_SCRAPE_8_VULN_1: Move = make_move(
-    "Scrape",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Vulnerable,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 8,
-        instances: 1,
-    },
-);
-static MOVE_SCRAPE_9_VULN_1: Move = make_move(
-    "Scrape",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Vulnerable,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 9,
-        instances: 1,
-    },
-);
-static MOVE_SCRAPE_9_VULN_2: Move = make_move(
-    "Scrape",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 9 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Vulnerable,
-                stacks: 2,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 9,
-        instances: 1,
-    },
-);
+static MOVE_SCRAPE_8_VULN_1: Move =
+    make_move_attack_debuff("Scrape", 8, ModifierKind::Vulnerable, 1);
+static MOVE_SCRAPE_9_VULN_1: Move =
+    make_move_attack_debuff("Scrape", 9, ModifierKind::Vulnerable, 1);
+static MOVE_SCRAPE_9_VULN_2: Move =
+    make_move_attack_debuff("Scrape", 9, ModifierKind::Vulnerable, 2);
 
 static MOVES_ASC0: [Move; 3] = [MOVE_STAB_13, MOVE_ENTANGLE, MOVE_SCRAPE_8_VULN_1];
 static MOVES_ASC2: [Move; 3] = [MOVE_STAB_14, MOVE_ENTANGLE, MOVE_SCRAPE_9_VULN_1];

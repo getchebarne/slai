@@ -4,10 +4,12 @@ use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_upgradable;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -25,11 +27,7 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
                 },
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::CardUpgrade,
@@ -47,21 +45,19 @@ const OPTION_ENTER_BASE: [Effect; 3] = enter(1, 5);
 const OPTION_ENTER_A15: [Effect; 3] = enter(3, 10);
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
-
 static OPTIONS_BASE: &[Entity] = &[
     make_entity_event_option(
         "[Enter] Upgrade 2 random cards. Lose 20% of your max HP.",
         &OPTION_ENTER_BASE,
     ),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
 ];
 static OPTIONS_A15: &[Entity] = &[
     make_entity_event_option(
         "[Enter] Upgrade 2 random cards. Lose 30% of your max HP.",
         &OPTION_ENTER_A15,
     ),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
 ];
 
 pub fn options(ascension: u8) -> &'static [Entity] {

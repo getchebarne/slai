@@ -1,9 +1,6 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_CHARACTER;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
@@ -33,11 +30,7 @@ pub static DOPPELGANGER: Entity = make_entity_card(
                 stacks: 1,
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::ModifierGain {
@@ -45,11 +38,7 @@ pub static DOPPELGANGER: Entity = make_entity_card(
                 stacks: 1,
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
     ],
     &[],

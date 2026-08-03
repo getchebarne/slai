@@ -98,6 +98,11 @@ pub fn get_next_move(
 ) -> usize {
     let history = get_move_history_slice(entity);
     match entity.monster_name {
+        // Single-move monsters
+        MonsterName::SlimeSpikeSmall
+        | MonsterName::GremlinFat
+        | MonsterName::GremlinThief
+        | MonsterName::GremlinWarrior => 0,
         MonsterName::Cultist => cultist::get_next_move_cultist(entity.monster_move_current),
         MonsterName::JawWorm => {
             jaw_worm::get_next_move_jaw_worm(entity.monster_move_current, history, rng)
@@ -117,12 +122,9 @@ pub fn get_next_move(
             ascension_level,
             rng,
         ),
-        MonsterName::SlimeSpikeSmall => slime_spike_small::get_next_move_slime_spike_small(),
-        MonsterName::GremlinFat => gremlin_fat::get_next_move_gremlin_fat(),
         MonsterName::GremlinNob => {
             gremlin_nob::get_next_move_gremlin_nob(history, ascension_level, rng)
         }
-        MonsterName::GremlinThief => gremlin_thief::get_next_move_gremlin_thief(),
         MonsterName::GremlinWizard => gremlin_wizard::get_next_move_gremlin_wizard(
             entity.monster_move_current,
             history,
@@ -142,7 +144,6 @@ pub fn get_next_move(
                 other_alive_count,
             )
         }
-        MonsterName::GremlinWarrior => gremlin_warrior::get_next_move_gremlin_warrior(),
         MonsterName::Lagavulin => lagavulin::get_next_move_lagavulin(
             entity.monster_move_current,
             history,
@@ -179,10 +180,10 @@ pub fn get_next_move(
             slime_boss::get_next_move_slime_boss(entity.monster_move_current, history)
         }
         MonsterName::SlimeSpikeLarge => {
-            slime_spike_large::get_next_move_slime_spike_large(history, ascension_level, rng)
+            slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
         MonsterName::SlimeSpikeMedium => {
-            slime_spike_medium::get_next_move_slime_spike_medium(history, ascension_level, rng)
+            slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
     }
 }

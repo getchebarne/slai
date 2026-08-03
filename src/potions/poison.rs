@@ -1,9 +1,6 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_MONSTER_PICKED;
 use crate::entity::Entity;
 use crate::entity::make_entity_potion;
 use crate::modifier::ModifierKind;
@@ -21,10 +18,6 @@ pub static POTION_POISON: Entity = make_entity_potion(
             stacks: 6,
         },
         id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters,
-            filter: CandidateFilter::Picked,
-            selection_kind: SelectionKind::Single,
-        },
+        target: TARGET_MONSTER_PICKED,
     }],
 );

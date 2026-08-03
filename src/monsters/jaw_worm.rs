@@ -1,73 +1,34 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_CHARACTER;
+use crate::effect::TARGET_SOURCE;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
 use crate::entity::make_move;
-use crate::modifier::ModifierKind;
+use crate::entity::make_move_attack;
+use crate::entity::make_move_block_buff;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_CHOMP_11: Move = make_move(
-    "Chomp",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 11 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 11,
-        instances: 1,
-    },
-);
-static MOVE_CHOMP_12: Move = make_move(
-    "Chomp",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 12 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 12,
-        instances: 1,
-    },
-);
+static MOVE_CHOMP_11: Move = make_move_attack("Chomp", 11, 1);
+static MOVE_CHOMP_12: Move = make_move_attack("Chomp", 12, 1);
 static MOVE_THRASH: Move = make_move(
     "Thrash",
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 7 },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_SOURCE,
         },
     ],
     Intent::AttackBlock {
@@ -75,87 +36,9 @@ static MOVE_THRASH: Move = make_move(
         instances: 1,
     },
 );
-static MOVE_BELLOW_3_6: Move = make_move(
-    "Bellow",
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Strength,
-                stacks: 3,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::BlockBuff,
-);
-static MOVE_BELLOW_4_6: Move = make_move(
-    "Bellow",
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Strength,
-                stacks: 4,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::BlockGain { amount: 6 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::BlockBuff,
-);
-static MOVE_BELLOW_5_9: Move = make_move(
-    "Bellow",
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Strength,
-                stacks: 5,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::BlockGain { amount: 9 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::BlockBuff,
-);
+static MOVE_BELLOW_3_6: Move = make_move_block_buff("Bellow", 6, 3);
+static MOVE_BELLOW_4_6: Move = make_move_block_buff("Bellow", 6, 4);
+static MOVE_BELLOW_5_9: Move = make_move_block_buff("Bellow", 9, 5);
 static MOVES_ASC0: [Move; 3] = [MOVE_CHOMP_11, MOVE_BELLOW_3_6, MOVE_THRASH];
 static MOVES_ASC2: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_4_6, MOVE_THRASH];
 static MOVES_ASC17: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_5_9, MOVE_THRASH];

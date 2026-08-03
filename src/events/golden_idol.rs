@@ -1,13 +1,12 @@
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::OPTION_LEAVE;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -31,8 +30,6 @@ const OPTION_TAKE: &[Effect] = &[
 ];
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
-
 // Outrun
 const OPTION_OUTRUN: &[Effect] = &[
     Effect {
@@ -60,11 +57,7 @@ const fn smash(numerator: u8, denominator: u8) -> [Effect; 2] {
                 },
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         EVENT_CONSUME_EFFECT,
     ]
@@ -84,11 +77,7 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
                 },
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         EVENT_CONSUME_EFFECT,
     ]
@@ -98,7 +87,7 @@ const OPTION_HIDE_A15: [Effect; 2] = hide(10, 100);
 
 static OPTIONS_BASE: &[Entity] = &[
     make_entity_event_option("[Take] Obtain Golden Idol.", OPTION_TAKE),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
     make_entity_event_option("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
     make_entity_event_option(
         "[Smash] Take 25% of your max HP as damage.",
@@ -108,7 +97,7 @@ static OPTIONS_BASE: &[Entity] = &[
 ];
 static OPTIONS_A15: &[Entity] = &[
     make_entity_event_option("[Take] Obtain Golden Idol.", OPTION_TAKE),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
     make_entity_event_option("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
     make_entity_event_option(
         "[Smash] Take 35% of your max HP as damage.",

@@ -9,83 +9,35 @@ use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
 use crate::entity::make_move;
+use crate::entity::make_move_attack;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_PROTECT_7: Move = make_move(
-    "Protect",
-    &[Effect {
-        kind: EffectKind::BlockGain { amount: 7 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters,
-            filter: CandidateFilter::NotSource,
-            selection_kind: SelectionKind::Random { count: 1 },
-        },
-    }],
-    Intent::Block,
-);
-static MOVE_PROTECT_8: Move = make_move(
-    "Protect",
-    &[Effect {
-        kind: EffectKind::BlockGain { amount: 8 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters,
-            filter: CandidateFilter::NotSource,
-            selection_kind: SelectionKind::Random { count: 1 },
-        },
-    }],
-    Intent::Block,
-);
-static MOVE_PROTECT_11: Move = make_move(
-    "Protect",
-    &[Effect {
-        kind: EffectKind::BlockGain { amount: 11 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Monsters,
-            filter: CandidateFilter::NotSource,
-            selection_kind: SelectionKind::Random { count: 1 },
-        },
-    }],
-    Intent::Block,
-);
-static MOVE_BASH_6: Move = make_move(
-    "Shield Bash",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 6 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 6,
-        instances: 1,
-    },
-);
-static MOVE_BASH_8: Move = make_move(
-    "Shield Bash",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 8 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 8,
-        instances: 1,
-    },
-);
+// Protect: block onto a random other Monster
+const fn make_move_protect(block: u16) -> Move {
+    make_move(
+        "Protect",
+        &[Effect {
+            kind: EffectKind::BlockGain { amount: block },
+            id_source: None,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Monsters,
+                filter: CandidateFilter::NotSource,
+                selection_kind: SelectionKind::Random { count: 1 },
+            },
+        }],
+        Intent::Block,
+    )
+}
+
+static MOVE_PROTECT_7: Move = make_move_protect(7);
+static MOVE_PROTECT_8: Move = make_move_protect(8);
+static MOVE_PROTECT_11: Move = make_move_protect(11);
+static MOVE_BASH_6: Move = make_move_attack("Shield Bash", 6, 1);
+static MOVE_BASH_8: Move = make_move_attack("Shield Bash", 8, 1);
 
 static MOVES_ASC0: [Move; 2] = [MOVE_PROTECT_7, MOVE_BASH_6];
 static MOVES_ASC2: [Move; 2] = [MOVE_PROTECT_7, MOVE_BASH_8];

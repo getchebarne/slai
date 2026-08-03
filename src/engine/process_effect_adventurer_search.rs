@@ -1,11 +1,9 @@
 use rand::Rng;
 
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::events::EventKind;
 use crate::game::GameState;
@@ -64,11 +62,7 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
 
         // The event Lagavulin spawns awake: no sleep kit, opens with Siphon Soul
         if encounter == MonsterEncounter::Lagavulin {
-            let target = Target::Resolve {
-                candidate_pool: CandidatePool::Monsters,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::All,
-            };
+            let target = TARGET_MONSTERS_ALL;
             for kind in [
                 EffectKind::ModifierRemove {
                     kind: ModifierKind::Asleep,

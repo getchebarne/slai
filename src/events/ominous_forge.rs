@@ -1,12 +1,11 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
+use crate::events::EFFECT_DECK_UPGRADE_PICK;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_upgradable;
 use crate::game::GameState;
 use crate::types::CardName;
@@ -14,18 +13,7 @@ use crate::types::CardPile;
 use crate::types::RelicName;
 
 // Forge
-const OPTION_FORGE: &[Effect] = &[
-    Effect {
-        kind: EffectKind::CardUpgrade,
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::Upgradeable,
-            selection_kind: SelectionKind::Input { count: 1 },
-        },
-    },
-    EVENT_CONSUME_EFFECT,
-];
+const OPTION_FORGE: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK, EVENT_CONSUME_EFFECT];
 
 // Rummage
 const OPTION_RUMMAGE: &[Effect] = &[
@@ -51,15 +39,13 @@ const OPTION_RUMMAGE: &[Effect] = &[
 ];
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
-
 pub static OPTIONS: &[Entity] = &[
     make_entity_event_option("[Forge] Upgrade a card.", OPTION_FORGE),
     make_entity_event_option(
         "[Rummage] Obtain Warped Tongs. Become Cursed - Pain.",
         OPTION_RUMMAGE,
     ),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
 ];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {

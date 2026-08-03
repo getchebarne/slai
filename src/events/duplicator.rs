@@ -7,6 +7,7 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::OPTION_LEAVE;
 
 // Pray
 const OPTION_PRAY: &[Effect] = &[
@@ -23,12 +24,10 @@ const OPTION_PRAY: &[Effect] = &[
 ];
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
-
 pub static OPTIONS: &[Entity] = &[
     make_entity_event_option(
         "[Pray] Choose a card. Add a copy of it to your deck.",
         OPTION_PRAY,
     ),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
 ];

@@ -1,9 +1,6 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
@@ -16,20 +13,12 @@ use crate::types::CardRarity;
 const HIT: Effect = Effect {
     kind: EffectKind::DamagePhysical { amount: 4 },
     id_source: None,
-    target: Target::Resolve {
-        candidate_pool: CandidatePool::Monsters,
-        filter: CandidateFilter::Any,
-        selection_kind: SelectionKind::All,
-    },
+    target: TARGET_MONSTERS_ALL,
 };
 const HIT_PLUS: Effect = Effect {
     kind: EffectKind::DamagePhysical { amount: 6 }, // +2 damage
     id_source: None,
-    target: Target::Resolve {
-        candidate_pool: CandidatePool::Monsters,
-        filter: CandidateFilter::Any,
-        selection_kind: SelectionKind::All,
-    },
+    target: TARGET_MONSTERS_ALL,
 };
 
 pub static DAGGER_SPRAY: Entity = make_entity_card(

@@ -1,9 +1,7 @@
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
@@ -50,11 +48,7 @@ const OPTION_EAT: &[Effect] = &[
             },
         },
         id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
+        target: TARGET_CHARACTER,
     },
     Effect {
         kind: EffectKind::CardAdd {

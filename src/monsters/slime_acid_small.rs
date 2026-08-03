@@ -1,14 +1,9 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
+use crate::entity::make_move_attack;
+use crate::entity::make_move_debuff;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -16,54 +11,9 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_TACKLE_3: Move = make_move(
-    "Tackle",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 3 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 3,
-        instances: 1,
-    },
-);
-static MOVE_TACKLE_4: Move = make_move(
-    "Tackle",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 4 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 4,
-        instances: 1,
-    },
-);
-static MOVE_LICK: Move = make_move(
-    "Lick",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Weak,
-            stacks: 1,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Debuff,
-);
+static MOVE_TACKLE_3: Move = make_move_attack("Tackle", 3, 1);
+static MOVE_TACKLE_4: Move = make_move_attack("Tackle", 4, 1);
+static MOVE_LICK: Move = make_move_debuff("Lick", ModifierKind::Weak, 1, Intent::Debuff);
 static MOVES_ASC0: [Move; 2] = [MOVE_TACKLE_3, MOVE_LICK];
 static MOVES_ASC2: [Move; 2] = [MOVE_TACKLE_4, MOVE_LICK];
 static MOVES_ASC17: [Move; 2] = [MOVE_TACKLE_4, MOVE_LICK];

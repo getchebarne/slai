@@ -1,14 +1,8 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
 use crate::entity::Entity;
-use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
-use crate::entity::make_move;
+use crate::entity::make_move_attack;
+use crate::entity::make_move_buff;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -16,70 +10,10 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_DARK_STRIKE: Move = make_move(
-    "Dark Strike",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 6 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 6,
-        instances: 1,
-    },
-);
-static MOVE_INCANTATION_3: Move = make_move(
-    "Incantation",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Ritual,
-            stacks: 3,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
-static MOVE_INCANTATION_4: Move = make_move(
-    "Incantation",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Ritual,
-            stacks: 4,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
-static MOVE_INCANTATION_5: Move = make_move(
-    "Incantation",
-    &[Effect {
-        kind: EffectKind::ModifierGain {
-            kind: ModifierKind::Ritual,
-            stacks: 5,
-        },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Source,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Buff,
-);
+static MOVE_DARK_STRIKE: Move = make_move_attack("Dark Strike", 6, 1);
+static MOVE_INCANTATION_3: Move = make_move_buff("Incantation", ModifierKind::Ritual, 3);
+static MOVE_INCANTATION_4: Move = make_move_buff("Incantation", ModifierKind::Ritual, 4);
+static MOVE_INCANTATION_5: Move = make_move_buff("Incantation", ModifierKind::Ritual, 5);
 static MOVES_ASC0: [Move; 2] = [MOVE_INCANTATION_3, MOVE_DARK_STRIKE];
 static MOVES_ASC2: [Move; 2] = [MOVE_INCANTATION_4, MOVE_DARK_STRIKE];
 static MOVES_ASC17: [Move; 2] = [MOVE_INCANTATION_5, MOVE_DARK_STRIKE];

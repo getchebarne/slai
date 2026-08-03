@@ -7,12 +7,18 @@ use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::TARGET_CHARACTER;
+use crate::effect::TARGET_SOURCE;
+use crate::effect::Target;
 use crate::effect::ZERO_EFFECT;
+use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::ChestKind;
 use crate::types::CostScope;
@@ -92,6 +98,162 @@ pub const ZERO_MOVE: Move = Move {
     effects_len: 0,
     intent: Intent::Unknown,
 };
+
+// The repeated monster move shapes; each spells out one Effect array longhand
+pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
+    let mut effects = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
+    let mut i = 0;
+    while i < instances as usize {
+        effects[i] = Effect {
+            kind: EffectKind::DamagePhysical { amount: damage },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        };
+        i += 1;
+    }
+    Move {
+        name,
+        effects,
+        effects_len: instances,
+        intent: Intent::Attack { damage, instances },
+    }
+}
+
+pub const fn make_move_buff(name: &'static str, kind: ModifierKind, stacks: i16) -> Move {
+    make_move(
+        name,
+        &[Effect {
+            kind: EffectKind::ModifierGain { kind, stacks },
+            id_source: None,
+            target: TARGET_SOURCE,
+        }],
+        Intent::Buff,
+    )
+}
+
+pub const fn make_move_debuff(
+    name: &'static str,
+    kind: ModifierKind,
+    stacks: i16,
+    intent: Intent,
+) -> Move {
+    make_move(
+        name,
+        &[Effect {
+            kind: EffectKind::ModifierGain { kind, stacks },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        }],
+        intent,
+    )
+}
+
+pub const fn make_move_attack_debuff(
+    name: &'static str,
+    damage: u16,
+    kind: ModifierKind,
+    stacks: i16,
+) -> Move {
+    make_move(
+        name,
+        &[
+            Effect {
+                kind: EffectKind::DamagePhysical { amount: damage },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
+                kind: EffectKind::ModifierGain { kind, stacks },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+        ],
+        Intent::AttackDebuff {
+            damage,
+            instances: 1,
+        },
+    )
+}
+
+pub const fn make_move_attack_card_add(
+    name: &'static str,
+    damage: u16,
+    card_name: CardName,
+    count: u16,
+    upgraded: bool,
+) -> Move {
+    make_move(
+        name,
+        &[
+            Effect {
+                kind: EffectKind::DamagePhysical { amount: damage },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
+                kind: EffectKind::CardAdd {
+                    card_name,
+                    pile: CardPile::Discard,
+                    count,
+                    upgraded,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            },
+        ],
+        Intent::AttackDebuff {
+            damage,
+            instances: 1,
+        },
+    )
+}
+
+// Self-buff then block; the order matches the jaw_worm sites this serves
+pub const fn make_move_block_buff(name: &'static str, block: u16, strength: i16) -> Move {
+    make_move(
+        name,
+        &[
+            Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Strength,
+                    stacks: strength,
+                },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::BlockGain { amount: block },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+        ],
+        Intent::BlockBuff,
+    )
+}
+
+pub const fn make_move_split(name: &'static str, first: MonsterName, second: MonsterName) -> Move {
+    make_move(
+        name,
+        &[
+            Effect {
+                kind: EffectKind::MonsterSplit { name: first },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::MonsterSplit { name: second },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::MonsterEscape,
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+        ],
+        Intent::Unknown,
+    )
+}
 
 pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
     assert!(

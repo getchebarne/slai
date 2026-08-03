@@ -1,14 +1,12 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::TARGET_CHARACTER;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
 use crate::entity::make_move;
+use crate::entity::make_move_attack_debuff;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::types::MonsterKind;
@@ -16,77 +14,15 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_SMASH_4_W1: Move = make_move(
-    "Smash",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 4 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Weak,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 4,
-        instances: 1,
-    },
-);
-static MOVE_SMASH_5_W1: Move = make_move(
-    "Smash",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Weak,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::AttackDebuff {
-        damage: 5,
-        instances: 1,
-    },
-);
+static MOVE_SMASH_4_W1: Move = make_move_attack_debuff("Smash", 4, ModifierKind::Weak, 1);
+static MOVE_SMASH_5_W1: Move = make_move_attack_debuff("Smash", 5, ModifierKind::Weak, 1);
 static MOVE_SMASH_5_W1_F1: Move = make_move(
     "Smash",
     &[
         Effect {
             kind: EffectKind::DamagePhysical { amount: 5 },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::ModifierGain {
@@ -94,11 +30,7 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
                 stacks: 1,
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
         Effect {
             kind: EffectKind::ModifierGain {
@@ -106,11 +38,7 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
                 stacks: 1,
             },
             id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Character,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
+            target: TARGET_CHARACTER,
         },
     ],
     Intent::AttackDebuff {
@@ -121,8 +49,6 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
 static MOVES_ASC0: [Move; 1] = [MOVE_SMASH_4_W1];
 static MOVES_ASC2: [Move; 1] = [MOVE_SMASH_5_W1];
 static MOVES_ASC17: [Move; 1] = [MOVE_SMASH_5_W1_F1];
-
-const IDX_MOVE_SMASH: usize = 0;
 
 pub fn spawn_monster_gremlin_fat(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
@@ -151,8 +77,4 @@ pub fn spawn_monster_gremlin_fat(ascension_level: u8, rng: &mut impl Rng) -> Ent
         ZERO_MODIFIERS,
         moves,
     )
-}
-
-pub fn get_next_move_gremlin_fat() -> usize {
-    IDX_MOVE_SMASH
 }

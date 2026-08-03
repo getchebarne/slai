@@ -1,13 +1,13 @@
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::make_entity_event_option;
+use crate::events::EFFECT_DECK_PURGE_PICK;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_purgeable;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -35,11 +35,7 @@ const OPTION_HEAL: &[Effect] = &[
             },
         },
         id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
+        target: TARGET_CHARACTER,
     },
     EVENT_CONSUME_EFFECT,
 ];
@@ -55,15 +51,7 @@ const fn purify(cost: u16) -> [Effect; 3] {
             id_source: None,
             target: Target::Direct(None),
         },
-        Effect {
-            kind: EffectKind::CardPurge,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck,
-                filter: CandidateFilter::Purgeable,
-                selection_kind: SelectionKind::Input { count: 1 },
-            },
-        },
+        EFFECT_DECK_PURGE_PICK,
         EVENT_CONSUME_EFFECT,
     ]
 }
@@ -71,15 +59,13 @@ const OPTION_PURIFY_BASE: [Effect; 3] = purify(COST_PURIFY_BASE);
 const OPTION_PURIFY_A15: [Effect; 3] = purify(COST_PURIFY_A15);
 
 // Leave
-const OPTION_LEAVE: &[Effect] = &[EVENT_CONSUME_EFFECT];
-
 static OPTIONS_BASE: &[Entity] = &[
     make_entity_event_option("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
     make_entity_event_option(
         "[Purify] Pay 50 Gold. Remove a card from your deck.",
         &OPTION_PURIFY_BASE,
     ),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
 ];
 static OPTIONS_A15: &[Entity] = &[
     make_entity_event_option("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
@@ -87,7 +73,7 @@ static OPTIONS_A15: &[Entity] = &[
         "[Purify] Pay 75 Gold. Remove a card from your deck.",
         &OPTION_PURIFY_A15,
     ),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE),
+    OPTION_LEAVE,
 ];
 
 pub fn options(ascension: u8) -> &'static [Entity] {

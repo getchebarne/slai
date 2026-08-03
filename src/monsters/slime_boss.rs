@@ -1,14 +1,13 @@
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::make_entity_monster;
 use crate::entity::make_move;
+use crate::entity::make_move_attack;
+use crate::entity::make_move_split;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
@@ -47,74 +46,12 @@ static MOVE_GOOP_SPRAY_5: Move = make_move(
     Intent::DebuffPowerful,
 );
 static MOVE_PREPARING: Move = make_move("Preparing", &[], Intent::Unknown);
-static MOVE_SLAM_35: Move = make_move(
-    "Slam",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 35 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 35,
-        instances: 1,
-    },
-);
-static MOVE_SLAM_38: Move = make_move(
-    "Slam",
-    &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 38 },
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Character,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    }],
-    Intent::Attack {
-        damage: 38,
-        instances: 1,
-    },
-);
-static MOVE_SPLIT: Move = make_move(
+static MOVE_SLAM_35: Move = make_move_attack("Slam", 35, 1);
+static MOVE_SLAM_38: Move = make_move_attack("Slam", 38, 1);
+static MOVE_SPLIT: Move = make_move_split(
     "Split",
-    &[
-        Effect {
-            kind: EffectKind::MonsterSplit {
-                name: MonsterName::SlimeSpikeLarge,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::MonsterSplit {
-                name: MonsterName::SlimeAcidLarge,
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        Effect {
-            kind: EffectKind::MonsterEscape,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Source,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-    ],
-    Intent::Unknown,
+    MonsterName::SlimeSpikeLarge,
+    MonsterName::SlimeAcidLarge,
 );
 
 static MOVES_ASC0: [Move; 4] = [MOVE_GOOP_SPRAY_3, MOVE_PREPARING, MOVE_SLAM_35, MOVE_SPLIT];
