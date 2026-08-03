@@ -492,10 +492,6 @@ pub const ZERO_MODIFIERS: Modifiers = Modifiers {
     active: 0,
 };
 
-pub fn modifiers_new() -> Modifiers {
-    ZERO_MODIFIERS
-}
-
 pub fn modifier_stacks(mods: &Modifiers, kind: ModifierKind) -> i16 {
     mods.stacks[kind as usize]
 }

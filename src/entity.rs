@@ -85,7 +85,7 @@ pub struct Move {
     pub intent: Intent,
 }
 
-// Zero-fill sentinel; pads slots past effects_len / monster_moves_len
+// Zero-fill sentinel; pads slots past effects_len
 pub const ZERO_MOVE: Move = Move {
     name: "",
     effects: [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE],
@@ -134,7 +134,6 @@ pub struct Entity {
     pub monster_name: MonsterName,
     pub monster_kind: MonsterKind,
     pub monster_moves: [Move; MAX_MOVES_PER_MONSTER],
-    pub monster_moves_len: u8,
     pub monster_move_current: Option<usize>,
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_len: u8,
@@ -204,7 +203,6 @@ pub const ZERO_ENTITY: Entity = Entity {
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
     monster_moves: [ZERO_MOVE; MAX_MOVES_PER_MONSTER],
-    monster_moves_len: 0,
     monster_move_current: None,
     monster_move_history: [0; MAX_MOVE_HISTORY],
     monster_move_history_len: 0,
@@ -292,7 +290,6 @@ pub const fn make_entity_monster(
         monster_name: name,
         monster_kind,
         monster_moves: arr,
-        monster_moves_len: moves.len() as u8,
         ..ZERO_ENTITY
     }
 }

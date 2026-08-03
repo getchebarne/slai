@@ -32,16 +32,11 @@ pub fn process_effect_combat_start(
     event_relic: Option<RelicName>,
     event_relic_roll: bool,
 ) {
+    // MonsterSpawn constructs the frame zeroed; only what CombatStart computes is written here
     let Mode::Combat {
         id_pile_draw,
         id_monsters,
-        id_picked_monster,
         energy,
-        this_turn_cards_played,
-        this_turn_panache,
-        bomb_countdown,
-        this_combat_damage_instances_taken,
-        this_combat_escaped,
         event_gold: combat_event_gold,
         event_relic: combat_event_relic,
         event_relic_roll: combat_event_relic_roll,
@@ -94,12 +89,6 @@ pub fn process_effect_combat_start(
         energy_max,
     };
 
-    *this_combat_damage_instances_taken = 0;
-    *this_combat_escaped = false;
-    *this_turn_cards_played = 0;
-    *this_turn_panache = 0;
-    *bomb_countdown = 0;
-
     // Combat can end mid-turn, skipping the turn-end reset
     for &name in RELIC_COUNTERS_PER_TURN
         .iter()
@@ -131,15 +120,12 @@ pub fn process_effect_combat_start(
 
     shuffle(&mut other_ids[..other_n], &mut state.rng);
 
-    id_pile_draw.clear();
     for &id in &other_ids[..other_n] {
         id_pile_draw.push(id);
     }
     for &id in &innate_ids[..innate_n] {
         id_pile_draw.push(id);
     }
-
-    *id_picked_monster = None;
 
     // Monster MoveUpdates already queued at MonsterSpawn; queue character TurnStart
     state.effect_queue.push_front(Effect {

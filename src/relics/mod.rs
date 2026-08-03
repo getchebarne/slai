@@ -552,13 +552,9 @@ const NUM_COMMON: usize = count_pool(RelicTier::Common);
 const NUM_UNCOMMON: usize = count_pool(RelicTier::Uncommon);
 const NUM_RARE: usize = count_pool(RelicTier::Rare);
 const NUM_SHOP: usize = count_pool(RelicTier::Shop);
-const NUM_BOSS: usize = count_pool(RelicTier::Boss);
 
 // Compute tier-pools
 pub const POOL_COMMON_RELIC: &[RelicName] = &build_pool::<NUM_COMMON>(RelicTier::Common);
 pub const POOL_UNCOMMON_RELIC: &[RelicName] = &build_pool::<NUM_UNCOMMON>(RelicTier::Uncommon);
 pub const POOL_RARE_RELIC: &[RelicName] = &build_pool::<NUM_RARE>(RelicTier::Rare);
-#[allow(dead_code)]
 pub const POOL_SHOP_RELIC: &[RelicName] = &build_pool::<NUM_SHOP>(RelicTier::Shop);
-#[allow(dead_code)]
-pub const POOL_BOSS_RELIC: &[RelicName] = &build_pool::<NUM_BOSS>(RelicTier::Boss);

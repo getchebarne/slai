@@ -170,13 +170,11 @@ const fn build_pool<const N: usize>(pool: EncounterPool) -> [MonsterEncounter; N
 const NUM_EASY: usize = count_pool(EncounterPool::Act1Easy);
 const NUM_HARD: usize = count_pool(EncounterPool::Act1Hard);
 const NUM_ELITE: usize = count_pool(EncounterPool::Act1Elite);
-const NUM_BOSS: usize = count_pool(EncounterPool::Act1Boss);
 
 // Encounter arrays per pool
 const ENC_POOL_EASY: [MonsterEncounter; NUM_EASY] = build_pool(EncounterPool::Act1Easy);
 const ENC_POOL_HARD: [MonsterEncounter; NUM_HARD] = build_pool(EncounterPool::Act1Hard);
 const ENC_POOL_ELITE: [MonsterEncounter; NUM_ELITE] = build_pool(EncounterPool::Act1Elite);
-const ENC_POOL_BOSS: [MonsterEncounter; NUM_BOSS] = build_pool(EncounterPool::Act1Boss);
 
 // Sort ascending by weight (stable for ties), normalize to sum 1.0
 fn normalize_weights(pool: &[MonsterEncounter]) -> Vec<(MonsterEncounter, f32)> {

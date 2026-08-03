@@ -8,7 +8,7 @@ use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::mode_top_mut;
-use crate::utils::reshuffle_discard_into_draw;
+use crate::utils::shuffle;
 
 pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState) {
     let Mode::Combat {
@@ -19,7 +19,8 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
     else {
         unreachable!("process_effect_shuffle_discard_pile_into_draw_pile outside Combat mode")
     };
-    reshuffle_discard_into_draw(&mut *id_pile_draw, &mut *id_pile_discard, &mut state.rng);
+    id_pile_draw.append(id_pile_discard);
+    shuffle(&mut id_pile_draw[..], &mut state.rng);
 
     // Abacus: reshuffling the discard pile grants 6 block
     // Relic-sourced block: id_source None skips Dex / Frail scaling
