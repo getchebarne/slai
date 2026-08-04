@@ -56,31 +56,6 @@ pub(super) fn apply_shop_discounts(
     price_snap as u16
 }
 
-// The Courier: restock a bought Card slot in place
-pub(super) fn restock_card(
-    entities: &mut Vec<Entity>,
-    rng: &mut impl Rng,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    id_cards: &mut Vec<usize>,
-    idx: usize,
-    color: CardColor,
-    kind: CardKind,
-    rarity: CardRarity,
-) {
-    // Sample Card matching the bought slot's shape
-    let id_card_new = if color == CardColor::Colorless {
-        make_card_colorless(entities, rng, id_cards, rarity)
-    } else {
-        make_card_colored(entities, rng, id_cards, kind)
-    };
-
-    // Apply discounts
-    entities[id_card_new].price = apply_shop_discounts(entities[id_card_new].price, id_relics);
-
-    // Insert it
-    id_cards.insert(idx, id_card_new);
-}
-
 // The Courier: restock a bought Relic slot; rerolls the tier
 pub(super) fn restock_relic(
     entities: &mut Vec<Entity>,
@@ -121,24 +96,6 @@ pub(super) fn restock_relic(
 
     // Insert it
     id_relics_vec.insert(idx, id_relic_new);
-}
-
-// The Courier: restock a bought Potion slot
-pub(super) fn restock_potion(
-    entities: &mut Vec<Entity>,
-    rng: &mut impl Rng,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    id_potions: &mut Vec<usize>,
-    idx: usize,
-) {
-    // Sample Potion
-    let id_potion_new = make_potion(entities, rng);
-
-    // Apply discounts
-    entities[id_potion_new].price = apply_shop_discounts(entities[id_potion_new].price, id_relics);
-
-    // Insert it
-    id_potions.insert(idx, id_potion_new);
 }
 
 fn roll_var_card(rng: &mut impl Rng) -> f32 {

@@ -6,6 +6,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardSource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::get_card_effective_cost;
@@ -27,6 +28,7 @@ use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::types::RewardKind;
 use crate::types::RoomKind;
+use crate::types::ShopSlot;
 use crate::utils::candidate_matches;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
@@ -169,15 +171,15 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::RewardTakeCard {
             idx_bundle,
             idx_card,
-        } => handle_reward_take_card(state, idx_bundle, idx_card),
-        Action::RewardTakeGold => handle_reward_take_gold(state),
-        Action::RewardTakePotion { idx } => handle_reward_take_potion(state, idx),
-        Action::RewardTakeRelic { idx } => handle_reward_take_relic(state, idx),
+        } => handle_reward_take(state, RewardKind::Card, idx_bundle, idx_card),
+        Action::RewardTakeGold => handle_reward_take(state, RewardKind::Gold, 0, 0),
+        Action::RewardTakePotion { idx } => handle_reward_take(state, RewardKind::Potion, 0, idx),
+        Action::RewardTakeRelic { idx } => handle_reward_take(state, RewardKind::Relic, 0, idx),
         Action::RoomExit => handle_room_exit(state),
         Action::RoomSelect { idx } => handle_room_select(state, idx),
-        Action::ShopBuyCard { idx } => handle_shop_buy_card(state, idx),
-        Action::ShopBuyPotion { idx } => handle_shop_buy_potion(state, idx),
-        Action::ShopBuyRelic { idx } => handle_shop_buy_relic(state, idx),
+        Action::ShopBuyCard { idx } => handle_shop_buy(state, ShopSlot::Card, idx),
+        Action::ShopBuyPotion { idx } => handle_shop_buy(state, ShopSlot::Potion, idx),
+        Action::ShopBuyRelic { idx } => handle_shop_buy(state, ShopSlot::Relic, idx),
         Action::ShopPurge { idx } => handle_shop_purge(state, idx),
         Action::TurnEnd => handle_turn_end(state),
     }
@@ -192,20 +194,18 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     }
 
     // `state.effect_pending` takes precedence over the mode stack
-    if let Some(effect_pending) = state.effect_pending.as_ref() {
-        // Copy out the halt's shape so the &mut dispatch below can't alias the borrow
-        let effect_pending_kind = effect_pending.kind;
-        let filter = pending_card_filter(effect_pending);
-        let up_to = matches!(
-            effect_pending.target,
-            Target::Resolve {
-                selection_kind: SelectionKind::InputUpTo { .. },
-                ..
-            }
-        );
-        let pool = pending_candidate_pool(effect_pending);
-        fill_legal_actions_effect_pending(state, effect_pending_kind, filter, pool);
-        if up_to {
+    if let Some(effect_pending) = state.effect_pending {
+        // effect_pending is written only on the Target::Resolve halt path
+        let Target::Resolve {
+            candidate_pool,
+            filter,
+            selection_kind,
+        } = effect_pending.target
+        else {
+            unreachable!("effect_pending carries a Resolve target")
+        };
+        fill_legal_actions_effect_pending(state, effect_pending.kind, filter, candidate_pool);
+        if matches!(selection_kind, SelectionKind::InputUpTo { .. }) {
             state.legal_actions.push(Action::PickSkip);
         }
         return;
@@ -236,10 +236,11 @@ fn handle_pending_pick_hand(state: &mut GameState, idx: usize) {
 fn handle_card_move_to_hand_pick(state: &mut GameState, idx: usize) {
     let pending = state
         .effect_pending
-        .as_ref()
         .expect("Pile pick requires a pending effect");
-    let pool = pending_candidate_pool(pending).expect("Pile pick carries a Resolve pool");
-    let id_card = pile_for_pool(mode_top(&state.mode_stack), pool)[idx];
+    let Target::Resolve { candidate_pool, .. } = pending.target else {
+        unreachable!("Pile pick carries a Resolve target")
+    };
+    let id_card = pile_for_pool(mode_top(&state.mode_stack), candidate_pool)[idx];
     resolve_pending_pick(state, id_card);
 }
 
@@ -433,7 +434,9 @@ fn handle_rest(state: &mut GameState) {
     // Dream Catcher: resting also offers a Card reward (Rest only, not Smith)
     if has_relic(&state.id_relics, RelicName::DreamCatcher) {
         state.effect_buf.push(Effect {
-            kind: EffectKind::RewardRollCards,
+            kind: EffectKind::RewardRoll {
+                source: RewardSource::Cards { bundles: 1 },
+            },
             id_source: None,
             target: Target::Direct(None),
         });
@@ -485,64 +488,27 @@ fn handle_reward_singing_bowl(state: &mut GameState, idx_bundle: usize) {
     });
 }
 
-fn handle_reward_take_card(state: &mut GameState, idx_bundle: usize, idx_card: usize) {
+// One processor handles all four kinds; the action layer only resolves idx -> id
+fn handle_reward_take(state: &mut GameState, kind: RewardKind, idx_bundle: usize, idx: usize) {
     let Mode::Reward {
-        reward_id_cards, ..
+        reward_id_cards,
+        reward_id_relics,
+        reward_id_potions,
+        ..
     } = mode_top(&state.mode_stack)
     else {
-        unreachable!("RewardTakeCard outside Reward mode")
+        unreachable!("RewardTake outside Reward mode")
     };
-    let id_card = reward_id_cards[idx_bundle][idx_card];
-    state.effect_buf.push(Effect {
-        kind: EffectKind::RewardTake {
-            kind: RewardKind::Card,
-        },
-        id_source: None,
-        target: Target::Direct(Some(id_card)),
-    });
-}
-
-fn handle_reward_take_gold(state: &mut GameState) {
-    state.effect_buf.push(Effect {
-        kind: EffectKind::RewardTake {
-            kind: RewardKind::Gold,
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    });
-}
-
-fn handle_reward_take_potion(state: &mut GameState, idx: usize) {
-    let Mode::Reward {
-        reward_id_potions, ..
-    } = mode_top(&state.mode_stack)
-    else {
-        unreachable!("RewardTakePotion outside Reward mode")
+    let id_taken = match kind {
+        RewardKind::Card => Some(reward_id_cards[idx_bundle][idx]),
+        RewardKind::Relic => Some(reward_id_relics[idx]),
+        RewardKind::Potion => Some(reward_id_potions[idx]),
+        RewardKind::Gold => None,
     };
-    let id_potion = reward_id_potions[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::RewardTake {
-            kind: RewardKind::Potion,
-        },
+        kind: EffectKind::RewardTake { kind },
         id_source: None,
-        target: Target::Direct(Some(id_potion)),
-    });
-}
-
-fn handle_reward_take_relic(state: &mut GameState, idx: usize) {
-    let Mode::Reward {
-        reward_id_relics, ..
-    } = mode_top(&state.mode_stack)
-    else {
-        unreachable!("RewardTakeRelic outside Reward mode")
-    };
-    let id_relic = reward_id_relics[idx];
-    state.effect_buf.push(Effect {
-        kind: EffectKind::RewardTake {
-            kind: RewardKind::Relic,
-        },
-        id_source: None,
-        target: Target::Direct(Some(id_relic)),
+        target: Target::Direct(id_taken),
     });
 }
 
@@ -579,42 +545,25 @@ fn handle_turn_end(state: &mut GameState) {
     });
 }
 
-fn handle_shop_buy_card(state: &mut GameState, idx: usize) {
-    let Mode::Shop { shop_id_cards, .. } = mode_top(&state.mode_stack) else {
-        unreachable!("ShopBuyCard outside Shop mode")
-    };
-    let id_card = shop_id_cards[idx];
-    state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyCard,
-        id_source: None,
-        target: Target::Direct(Some(id_card)),
-    });
-}
-
-fn handle_shop_buy_potion(state: &mut GameState, idx: usize) {
+fn handle_shop_buy(state: &mut GameState, slot: ShopSlot, idx: usize) {
     let Mode::Shop {
-        shop_id_potions, ..
+        shop_id_cards,
+        shop_id_relics,
+        shop_id_potions,
+        ..
     } = mode_top(&state.mode_stack)
     else {
-        unreachable!("ShopBuyPotion outside Shop mode")
+        unreachable!("ShopBuy outside Shop mode")
     };
-    let id_potion = shop_id_potions[idx];
-    state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyPotion,
-        id_source: None,
-        target: Target::Direct(Some(id_potion)),
-    });
-}
-
-fn handle_shop_buy_relic(state: &mut GameState, idx: usize) {
-    let Mode::Shop { shop_id_relics, .. } = mode_top(&state.mode_stack) else {
-        unreachable!("ShopBuyRelic outside Shop mode")
+    let id_bought = match slot {
+        ShopSlot::Card => shop_id_cards[idx],
+        ShopSlot::Relic => shop_id_relics[idx],
+        ShopSlot::Potion => shop_id_potions[idx],
     };
-    let id_relic = shop_id_relics[idx];
     state.effect_buf.push(Effect {
-        kind: EffectKind::ShopBuyRelic,
+        kind: EffectKind::ShopBuy { slot },
         id_source: None,
-        target: Target::Direct(Some(id_relic)),
+        target: Target::Direct(Some(id_bought)),
     });
 }
 
@@ -630,64 +579,41 @@ fn handle_shop_purge(state: &mut GameState, idx: usize) {
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
     kind: EffectKind,
-    filter: Option<CandidateFilter>,
-    pool: Option<CandidatePool>,
+    filter: CandidateFilter,
+    pool: CandidatePool,
 ) {
     match kind {
-        // Discard/retain offer single-Card picks; the handler re-raises the halt with a
-        // decremented count, so discard-N becomes N single picks (see resolve_hand_pending)
-        EffectKind::CardDiscard { .. } => {
+        // Single-Card hand picks; the handler re-raises the halt with a decremented count,
+        // so discard-N becomes N single picks (see resolve_hand_pending)
+        EffectKind::CardDiscard { .. }
+        | EffectKind::CardRetain
+        | EffectKind::CardExhaust
+        | EffectKind::CardSetupPick { .. }
+        | EffectKind::CardNightmarePick => {
             let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
                 unreachable!("Hand pick outside Combat mode")
             };
             for i in 0..id_hand.len() {
-                state.legal_actions.push(Action::CardDiscard { idx: i });
-            }
-        }
-        EffectKind::CardRetain => {
-            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
-                unreachable!("Hand pick outside Combat mode")
-            };
-            for i in 0..id_hand.len() {
-                state.legal_actions.push(Action::CardRetain { idx: i });
-            }
-        }
-        EffectKind::CardExhaust => {
-            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
-                unreachable!("Hand pick outside Combat mode")
-            };
-            for i in 0..id_hand.len() {
-                state.legal_actions.push(Action::CardExhaust { idx: i });
+                let action = match kind {
+                    EffectKind::CardDiscard { .. } => Action::CardDiscard { idx: i },
+                    EffectKind::CardRetain => Action::CardRetain { idx: i },
+                    EffectKind::CardExhaust => Action::CardExhaust { idx: i },
+                    EffectKind::CardSetupPick { .. } => Action::CardSetup { idx: i },
+                    EffectKind::CardNightmarePick => Action::CardNightmare { idx: i },
+                    _ => unreachable!("hand pick with non-hand kind"),
+                };
+                state.legal_actions.push(action);
             }
         }
         EffectKind::CardMove {
             pile: CardPile::Hand,
             ..
         } => {
-            let pool = pool.expect("Pile pick carries a Resolve pool");
             let pile = pile_for_pool(mode_top(&state.mode_stack), pool);
             for i in 0..pile.len() {
-                if filter.is_none_or(|f| {
-                    candidate_matches(f, pile[i], &state.entities[pile[i]], None, None)
-                }) {
+                if candidate_matches(filter, pile[i], &state.entities[pile[i]], None, None) {
                     state.legal_actions.push(Action::CardMoveToHand { idx: i });
                 }
-            }
-        }
-        EffectKind::CardSetupPick { .. } => {
-            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
-                unreachable!("Hand pick outside Combat mode")
-            };
-            for i in 0..id_hand.len() {
-                state.legal_actions.push(Action::CardSetup { idx: i });
-            }
-        }
-        EffectKind::CardNightmarePick => {
-            let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
-                unreachable!("Hand pick outside Combat mode")
-            };
-            for i in 0..id_hand.len() {
-                state.legal_actions.push(Action::CardNightmare { idx: i });
             }
         }
         EffectKind::CardDiscoverPick { .. } => {
@@ -698,78 +624,32 @@ fn fill_legal_actions_effect_pending(
                 state.legal_actions.push(Action::CardDiscover { idx: i });
             }
         }
-        EffectKind::CardPurge | EffectKind::BonfireOffer => {
+        EffectKind::CardPurge
+        | EffectKind::BonfireOffer
+        | EffectKind::CardBottle
+        | EffectKind::CardUpgrade
+        | EffectKind::CardDuplicate
+        | EffectKind::CardTransform { .. } => {
             // Bonfire's offer reuses `CardPurge` actions: removal is its semantics
-            let filter = filter.expect("Deck pick carries a Card filter");
             for i in 0..state.id_deck.len() {
-                if candidate_matches(
-                    filter,
-                    state.id_deck[i],
-                    &state.entities[state.id_deck[i]],
-                    None,
-                    None,
-                ) {
-                    state.legal_actions.push(Action::CardPurge { idx: i });
+                let id = state.id_deck[i];
+                if !candidate_matches(filter, id, &state.entities[id], None, None) {
+                    continue;
                 }
-            }
-        }
-        EffectKind::CardBottle => {
-            let filter = filter.expect("Deck pick carries a Card filter");
-            let kind = bottle_kind_for_filter(filter);
-            for i in 0..state.id_deck.len() {
-                if candidate_matches(
-                    filter,
-                    state.id_deck[i],
-                    &state.entities[state.id_deck[i]],
-                    None,
-                    None,
-                ) {
-                    state
-                        .legal_actions
-                        .push(Action::CardBottle { kind, idx: i });
-                }
-            }
-        }
-        EffectKind::CardUpgrade => {
-            let filter = filter.expect("Deck pick carries a Card filter");
-            for i in 0..state.id_deck.len() {
-                if candidate_matches(
-                    filter,
-                    state.id_deck[i],
-                    &state.entities[state.id_deck[i]],
-                    None,
-                    None,
-                ) {
-                    state.legal_actions.push(Action::CardUpgrade { idx: i });
-                }
-            }
-        }
-        EffectKind::CardDuplicate => {
-            let filter = filter.expect("Deck pick carries a Card filter");
-            for i in 0..state.id_deck.len() {
-                if candidate_matches(
-                    filter,
-                    state.id_deck[i],
-                    &state.entities[state.id_deck[i]],
-                    None,
-                    None,
-                ) {
-                    state.legal_actions.push(Action::CardDuplicate { idx: i });
-                }
-            }
-        }
-        EffectKind::CardTransform { .. } => {
-            let filter = filter.expect("Deck pick carries a Card filter");
-            for i in 0..state.id_deck.len() {
-                if candidate_matches(
-                    filter,
-                    state.id_deck[i],
-                    &state.entities[state.id_deck[i]],
-                    None,
-                    None,
-                ) {
-                    state.legal_actions.push(Action::CardTransform { idx: i });
-                }
+                let action = match kind {
+                    EffectKind::CardPurge | EffectKind::BonfireOffer => {
+                        Action::CardPurge { idx: i }
+                    }
+                    EffectKind::CardBottle => Action::CardBottle {
+                        kind: bottle_kind_for_filter(filter),
+                        idx: i,
+                    },
+                    EffectKind::CardUpgrade => Action::CardUpgrade { idx: i },
+                    EffectKind::CardDuplicate => Action::CardDuplicate { idx: i },
+                    EffectKind::CardTransform { .. } => Action::CardTransform { idx: i },
+                    _ => unreachable!("deck pick with non-deck kind"),
+                };
+                state.legal_actions.push(action);
             }
         }
         _ => unreachable!("effect_pending with non-halting kind: {:?}", kind),
@@ -1150,36 +1030,25 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
     });
 
     // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
-    let (candidate_pool, filter, selection_kind) = match effect_pending.target {
-        Target::Resolve {
-            candidate_pool,
-            filter,
-            selection_kind: SelectionKind::Input { count },
-        } => (
-            candidate_pool,
-            filter,
-            SelectionKind::Input {
-                count: count.saturating_sub(1),
-            },
-        ),
-        Target::Resolve {
-            candidate_pool,
-            filter,
-            selection_kind: SelectionKind::InputUpTo { count },
-        } => (
-            candidate_pool,
-            filter,
-            SelectionKind::InputUpTo {
-                count: count.saturating_sub(1),
-            },
-        ),
-        _ => panic!("Pending pick carries an Input halt"),
+    let Target::Resolve {
+        candidate_pool,
+        filter,
+        selection_kind,
+    } = effect_pending.target
+    else {
+        unreachable!("Pending pick carries a Resolve target")
     };
     let remaining = match selection_kind {
-        SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count,
-        _ => unreachable!(),
+        SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => {
+            count.saturating_sub(1)
+        }
+        _ => panic!("Pending pick carries an Input halt"),
     };
     if remaining > 0 {
+        let selection_kind = match selection_kind {
+            SelectionKind::Input { .. } => SelectionKind::Input { count: remaining },
+            _ => SelectionKind::InputUpTo { count: remaining },
+        };
         state.effect_buf.push(Effect {
             kind: effect_pending.kind,
             id_source: effect_pending.id_source,
@@ -1189,21 +1058,6 @@ fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
                 selection_kind,
             },
         });
-    }
-}
-
-// Extract the Card filter from a pending deck / draw-pile pick; None for other halts
-fn pending_card_filter(effect: &Effect) -> Option<CandidateFilter> {
-    match effect.target {
-        Target::Resolve { filter, .. } => Some(filter),
-        _ => None,
-    }
-}
-
-fn pending_candidate_pool(effect: &Effect) -> Option<CandidatePool> {
-    match effect.target {
-        Target::Resolve { candidate_pool, .. } => Some(candidate_pool),
-        _ => None,
     }
 }
 

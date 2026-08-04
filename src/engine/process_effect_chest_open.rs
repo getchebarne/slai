@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardSource;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
@@ -50,7 +51,9 @@ pub fn process_effect_chest_open(state: &mut GameState) {
     }
 
     state.effect_queue.push_back(Effect {
-        kind: EffectKind::RewardRollChest { kind: chest_kind },
+        kind: EffectKind::RewardRoll {
+            source: RewardSource::Chest { kind: chest_kind },
+        },
         id_source: None,
         target: Target::Direct(None),
     });
