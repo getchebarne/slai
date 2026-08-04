@@ -12,7 +12,7 @@ use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 use super::event::PyEventKind;
 use super::event::snapshot_event_kind;
-use super::macros::variant_union;
+use super::macros::flat_variants;
 use super::monster::PyMonster;
 use super::monster::snapshot_monsters;
 use super::potion::PyPotion;
@@ -20,130 +20,16 @@ use super::potion::snapshot_potion;
 use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
-#[pyclass(skip_from_py_object, frozen, name = "ModeMap", module = "slai.slai")]
-#[derive(Debug, Clone)]
-pub struct PyModeMap;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "ModeRestSite",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyModeRestSite;
-
-#[pyclass(skip_from_py_object, frozen, name = "ModeChest", module = "slai.slai")]
-#[derive(Debug, Clone)]
-pub struct PyModeChest;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "ModeChestOpened",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyModeChestOpened;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "ModeCombatEnded",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyModeCombatEnded;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "ModeCombat",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyModeCombat {
-    pub hand: Vec<PyCard>,
-    pub pile_draw: Vec<PyCard>,
-    pub pile_discard: Vec<PyCard>,
-    pub pile_exhaust: Vec<PyCard>,
-    pub energy: PyEnergy,
-    pub monsters: Vec<PyMonster>,
-    pub discover: Vec<PyCard>,
-    pub bomb_countdown: u8,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "ModeReward",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyModeReward {
-    pub cards: Vec<Vec<PyCard>>,
-    pub relics: Vec<PyRelic>,
-    pub potions: Vec<PyPotion>,
-    pub gold: Option<u16>,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "ModeShop",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyModeShop {
-    pub cards: Vec<PyCard>,
-    pub card_prices: Vec<u16>,
-    pub relics: Vec<PyRelic>,
-    pub relic_prices: Vec<u16>,
-    pub potions: Vec<PyPotion>,
-    pub potion_prices: Vec<u16>,
-    pub purge_cost: u16,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "ModeEvent",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyModeEvent {
-    pub kind: PyEventKind,
-    pub options: Vec<Vec<PyEffect>>,
-    pub consumed: bool,
-}
-
-#[derive(Debug, Clone)]
-pub enum PyMode {
-    Map(PyModeMap),
-    RestSite(PyModeRestSite),
-    Chest(PyModeChest),
-    ChestOpened(PyModeChestOpened),
-    CombatEnded(PyModeCombatEnded),
-    Combat(PyModeCombat),
-    Reward(PyModeReward),
-    Shop(PyModeShop),
-    Event(PyModeEvent),
-}
-
-variant_union!(PyMode {
-    Map => PyModeMap,
-    RestSite => PyModeRestSite,
-    Chest => PyModeChest,
-    ChestOpened => PyModeChestOpened,
-    CombatEnded => PyModeCombatEnded,
-    Combat => PyModeCombat,
-    Reward => PyModeReward,
-    Shop => PyModeShop,
-    Event => PyModeEvent,
+flat_variants!(plain PyMode {
+    Map => PyModeMap as "ModeMap",
+    RestSite => PyModeRestSite as "ModeRestSite",
+    Chest => PyModeChest as "ModeChest",
+    ChestOpened => PyModeChestOpened as "ModeChestOpened",
+    CombatEnded => PyModeCombatEnded as "ModeCombatEnded",
+    Combat => PyModeCombat as "ModeCombat" { hand: Vec<PyCard>, pile_draw: Vec<PyCard>, pile_discard: Vec<PyCard>, pile_exhaust: Vec<PyCard>, energy: PyEnergy, monsters: Vec<PyMonster>, discover: Vec<PyCard>, bomb_countdown: u8 },
+    Reward => PyModeReward as "ModeReward" { cards: Vec<Vec<PyCard>>, relics: Vec<PyRelic>, potions: Vec<PyPotion>, gold: Option<u16> },
+    Shop => PyModeShop as "ModeShop" { cards: Vec<PyCard>, card_prices: Vec<u16>, relics: Vec<PyRelic>, relic_prices: Vec<u16>, potions: Vec<PyPotion>, potion_prices: Vec<u16>, purge_cost: u16 },
+    Event => PyModeEvent as "ModeEvent" { kind: PyEventKind, options: Vec<Vec<PyEffect>>, consumed: bool },
 });
 
 #[pyclass(
@@ -157,17 +43,6 @@ variant_union!(PyMode {
 pub struct PyEnergy {
     pub energy_current: u8,
     pub energy_max: u8,
-}
-
-#[pymethods]
-impl PyEnergy {
-    #[new]
-    fn new(energy_current: u8, energy_max: u8) -> Self {
-        Self {
-            energy_current,
-            energy_max,
-        }
-    }
 }
 
 pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {

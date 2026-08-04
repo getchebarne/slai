@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
 
+use super::macros::mirror_enum;
+
 use crate::entity::Entity;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
@@ -7,115 +9,18 @@ use crate::types::PotionRarity;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "PotionName",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyPotionName {
-    EnergyPotion,
-    BlockPotion,
-    StrengthPotion,
-    DexterityPotion,
-    FirePotion,
-    ExplosivePotion,
-    WeakPotion,
-    FearPotion,
-    PoisonPotion,
-    SwiftPotion,
-    AttackPotion,
-    SkillPotion,
-    PowerPotion,
-    FruitJuice,
-    AncientPotion,
-    LiquidBronze,
-    EssenceOfSteel,
-    GhostInAJar,
-    CultistPotion,
-    CunningPotion,
-    DistilledChaos,
-    BlessingOfTheForge,
-    EntropicBrew,
-    RegenerationPotion,
-    SteroidPotion,
-    SpeedPotion,
-    DuplicateNextCardPlayPotion,
-    ColorlessPotion,
-    GamblersBrew,
-    LiquidMemories,
-    SneckoOil,
-    FairyPotion,
-    SmokeBomb,
-}
+mirror_enum!(PyPotionName from PotionName, "PotionName", skip_from_py_object, {
+    EnergyPotion, BlockPotion, StrengthPotion, DexterityPotion, FirePotion, ExplosivePotion,
+    WeakPotion, FearPotion, PoisonPotion, SwiftPotion, AttackPotion, SkillPotion, PowerPotion,
+    FruitJuice, AncientPotion, LiquidBronze, EssenceOfSteel, GhostInAJar, CultistPotion,
+    CunningPotion, DistilledChaos, BlessingOfTheForge, EntropicBrew, RegenerationPotion,
+    SteroidPotion, SpeedPotion, DuplicateNextCardPlayPotion, ColorlessPotion, GamblersBrew,
+    LiquidMemories, SneckoOil, FairyPotion, SmokeBomb,
+});
 
-impl From<PotionName> for PyPotionName {
-    fn from(name: PotionName) -> Self {
-        match name {
-            PotionName::EnergyPotion => Self::EnergyPotion,
-            PotionName::BlockPotion => Self::BlockPotion,
-            PotionName::StrengthPotion => Self::StrengthPotion,
-            PotionName::DexterityPotion => Self::DexterityPotion,
-            PotionName::FirePotion => Self::FirePotion,
-            PotionName::ExplosivePotion => Self::ExplosivePotion,
-            PotionName::WeakPotion => Self::WeakPotion,
-            PotionName::FearPotion => Self::FearPotion,
-            PotionName::PoisonPotion => Self::PoisonPotion,
-            PotionName::SwiftPotion => Self::SwiftPotion,
-            PotionName::AttackPotion => Self::AttackPotion,
-            PotionName::SkillPotion => Self::SkillPotion,
-            PotionName::PowerPotion => Self::PowerPotion,
-            PotionName::FruitJuice => Self::FruitJuice,
-            PotionName::AncientPotion => Self::AncientPotion,
-            PotionName::LiquidBronze => Self::LiquidBronze,
-            PotionName::EssenceOfSteel => Self::EssenceOfSteel,
-            PotionName::GhostInAJar => Self::GhostInAJar,
-            PotionName::CultistPotion => Self::CultistPotion,
-            PotionName::CunningPotion => Self::CunningPotion,
-            PotionName::DistilledChaos => Self::DistilledChaos,
-            PotionName::BlessingOfTheForge => Self::BlessingOfTheForge,
-            PotionName::EntropicBrew => Self::EntropicBrew,
-            PotionName::RegenerationPotion => Self::RegenerationPotion,
-            PotionName::SteroidPotion => Self::SteroidPotion,
-            PotionName::SpeedPotion => Self::SpeedPotion,
-            PotionName::DuplicateNextCardPlayPotion => Self::DuplicateNextCardPlayPotion,
-            PotionName::ColorlessPotion => Self::ColorlessPotion,
-            PotionName::GamblersBrew => Self::GamblersBrew,
-            PotionName::LiquidMemories => Self::LiquidMemories,
-            PotionName::SneckoOil => Self::SneckoOil,
-            PotionName::FairyPotion => Self::FairyPotion,
-            PotionName::SmokeBomb => Self::SmokeBomb,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "PotionRarity",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyPotionRarity {
-    Common,
-    Uncommon,
-    Rare,
-}
-
-impl From<PotionRarity> for PyPotionRarity {
-    fn from(rarity: PotionRarity) -> Self {
-        match rarity {
-            PotionRarity::Common => Self::Common,
-            PotionRarity::Uncommon => Self::Uncommon,
-            PotionRarity::Rare => Self::Rare,
-        }
-    }
-}
+mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", skip_from_py_object, {
+    Common, Uncommon, Rare,
+});
 
 #[pyclass(
     skip_from_py_object,

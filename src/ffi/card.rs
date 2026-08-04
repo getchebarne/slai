@@ -30,157 +30,30 @@ use super::effect::PyEffect;
 use super::effect::PyEffectBlockGain;
 use super::effect::PyEffectDamagePhysical;
 use super::effect::snapshot_effect;
-use super::macros::variant_union;
+use super::macros::flat_variants;
+use super::macros::mirror_enum;
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "CardKind",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCardKind {
-    Attack,
-    Skill,
-    Power,
-    Curse,
-    Status,
-}
+mirror_enum!(PyCardKind from CardKind, "CardKind", skip_from_py_object, {
+    Attack, Skill, Power, Curse, Status,
+});
 
-impl From<CardKind> for PyCardKind {
-    fn from(kind: CardKind) -> Self {
-        match kind {
-            CardKind::Attack => Self::Attack,
-            CardKind::Skill => Self::Skill,
-            CardKind::Power => Self::Power,
-            CardKind::Curse => Self::Curse,
-            CardKind::Status => Self::Status,
-        }
-    }
-}
+mirror_enum!(PyCardColor from CardColor, "CardColor", skip_from_py_object, {
+    Green, Colorless, Curse,
+});
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "CardColor",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCardColor {
-    Green,
-    Colorless,
-    Curse,
-}
+mirror_enum!(PyCardRarity from CardRarity, "CardRarity", skip_from_py_object, {
+    Basic, Common, Uncommon, Rare, Special, Curse,
+});
 
-impl From<CardColor> for PyCardColor {
-    fn from(color: CardColor) -> Self {
-        match color {
-            CardColor::Green => Self::Green,
-            CardColor::Colorless => Self::Colorless,
-            CardColor::Curse => Self::Curse,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "CardRarity",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCardRarity {
-    Basic,
-    Common,
-    Uncommon,
-    Rare,
-    Special,
-    Curse,
-}
-
-impl From<CardRarity> for PyCardRarity {
-    fn from(rarity: CardRarity) -> Self {
-        match rarity {
-            CardRarity::Basic => Self::Basic,
-            CardRarity::Common => Self::Common,
-            CardRarity::Uncommon => Self::Uncommon,
-            CardRarity::Rare => Self::Rare,
-            CardRarity::Special => Self::Special,
-            CardRarity::Curse => Self::Curse,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CardCostKindFixed",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCardCostKindFixed;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CardCostKindMinusDiscardsThisTurn",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCardCostKindMinusDiscardsThisTurn;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CardCostKindGrowsOnDamageInstanceTaken",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCardCostKindGrowsOnDamageInstanceTaken;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "CardCostKindXCost",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCardCostKindXCost {
-    pub offset: i8,
-}
+flat_variants!(hash PyCardCostKind {
+    Fixed => PyCardCostKindFixed as "CardCostKindFixed",
+    MinusDiscardsThisTurn => PyCardCostKindMinusDiscardsThisTurn as "CardCostKindMinusDiscardsThisTurn",
+    GrowsOnDamageInstanceTaken => PyCardCostKindGrowsOnDamageInstanceTaken as "CardCostKindGrowsOnDamageInstanceTaken",
+    XCost => PyCardCostKindXCost as "CardCostKindXCost" { offset: i8 },
+});
 
 // NB: variant order and field order must stay byte-identical to the internal
 // enum — card_identity_hash feeds this through derived Hash
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyCardCostKind {
-    Fixed(PyCardCostKindFixed),
-    MinusDiscardsThisTurn(PyCardCostKindMinusDiscardsThisTurn),
-    GrowsOnDamageInstanceTaken(PyCardCostKindGrowsOnDamageInstanceTaken),
-    XCost(PyCardCostKindXCost),
-}
-
-variant_union!(PyCardCostKind {
-    Fixed => PyCardCostKindFixed,
-    MinusDiscardsThisTurn => PyCardCostKindMinusDiscardsThisTurn,
-    GrowsOnDamageInstanceTaken => PyCardCostKindGrowsOnDamageInstanceTaken,
-    XCost => PyCardCostKindXCost,
-});
-
 impl From<CardCostKind> for PyCardCostKind {
     fn from(kind: CardCostKind) -> Self {
         match kind {
@@ -196,358 +69,37 @@ impl From<CardCostKind> for PyCardCostKind {
     }
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "PlayRestriction",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyPlayRestriction {
-    Always,
-    Never,
-    DrawPileEmpty,
-}
+mirror_enum!(PyPlayRestriction from PlayRestriction, "PlayRestriction", skip_from_py_object, {
+    Always, Never, DrawPileEmpty,
+});
 
-impl From<PlayRestriction> for PyPlayRestriction {
-    fn from(restriction: PlayRestriction) -> Self {
-        match restriction {
-            PlayRestriction::Always => Self::Always,
-            PlayRestriction::Never => Self::Never,
-            PlayRestriction::DrawPileEmpty => Self::DrawPileEmpty,
-        }
-    }
-}
+mirror_enum!(PyCardPile from CardPile, "CardPile", skip_from_py_object, {
+    Hand, Draw, Discard, Deck,
+});
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "CardPile",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCardPile {
-    Hand,
-    Draw,
-    Discard,
-    Deck,
-}
+mirror_enum!(PyCostScope from CostScope, "CostScope", skip_from_py_object, {
+    Turn, Combat, UntilPlayed,
+});
 
-impl From<CardPile> for PyCardPile {
-    fn from(p: CardPile) -> Self {
-        match p {
-            CardPile::Hand => Self::Hand,
-            CardPile::Draw => Self::Draw,
-            CardPile::Discard => Self::Discard,
-            CardPile::Deck => Self::Deck,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "CostScope",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCostScope {
-    Turn,
-    Combat,
-    UntilPlayed,
-}
-
-impl From<CostScope> for PyCostScope {
-    fn from(s: CostScope) -> Self {
-        match s {
-            CostScope::Turn => Self::Turn,
-            CostScope::Combat => Self::Combat,
-            CostScope::UntilPlayed => Self::UntilPlayed,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "CardName",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCardName {
-    AThousandCuts,
-    Accuracy,
-    Acrobatics,
-    Adrenaline,
-    AfterImage,
-    Alchemize,
-    AllOutAttack,
-    Backflip,
-    Backstab,
-    BandageUp,
-    Bane,
-    BladeDance,
-    Blind,
-    Blur,
-    BouncingFlask,
-    BulletTime,
-    Burn,
-    Burst,
-    CalculatedGamble,
-    Caltrops,
-    Catalyst,
-    Choke,
-    CloakAndDagger,
-    Concentrate,
-    CorpseExplosion,
-    CripplingPoison,
-    DaggerSpray,
-    DaggerThrow,
-    Dash,
-    Dazed,
-    DeadlyPoison,
-    DeepBreath,
-    Defend,
-    Deflect,
-    DieDieDie,
-    Distraction,
-    DodgeAndRoll,
-    Doppelganger,
-    EndlessAgony,
-    Envenom,
-    EscapePlan,
-    Eviscerate,
-    Expertise,
-    Finesse,
-    Finisher,
-    FlashOfSteel,
-    Flechettes,
-    FlyingKnee,
-    Footwork,
-    GlassKnife,
-    GoodInstincts,
-    GrandFinale,
-    HeelHook,
-    InfiniteBlades,
-    LegSweep,
-    Malaise,
-    MasterOfStrategy,
-    MasterfulStab,
-    MindBlast,
-    Neutralize,
-    Nightmare,
-    NoxiousFumes,
-    Outmaneuver,
-    PhantasmalKiller,
-    PiercingWail,
-    PoisonedStab,
-    Predator,
-    Prepared,
-    QuickSlash,
-    Reflex,
-    RiddleWithHoles,
-    Setup,
-    Shiv,
-    Skewer,
-    Slice,
-    Slimed,
-    SneakyStrike,
-    StormOfSteel,
-    Strike,
-    SuckerPunch,
-    Survivor,
-    SwiftStrike,
-    Tactician,
-    Terror,
-    ToolsOfTheTrade,
-    Unload,
-    WellLaidPlans,
-    WraithForm,
-    AscendersBane,
-    Regret,
-    Pain,
-    Doubt,
-    Decay,
-    Injury,
-    Shame,
-    Writhe,
-    Parasite,
-    Normality,
-    Apparition,
-    Bite,
-    DarkShackles,
-    DramaticEntrance,
-    Jax,
-    Panacea,
-    Trip,
-    Apotheosis,
-    Chrysalis,
-    Discovery,
-    Enlightenment,
-    HandOfGreed,
-    Impatience,
-    JackOfAllTrades,
-    Madness,
-    Magnetism,
-    Metamorphosis,
-    Panache,
-    PanicButton,
-    SadisticNature,
-    ThinkingAhead,
-    Transmutation,
-    Forethought,
-    Mayhem,
-    Purity,
-    SecretTechnique,
-    SecretWeapon,
-    TheBomb,
-    Violence,
-    CurseOfTheBell,
-}
-
-impl From<CardName> for PyCardName {
-    // 1:1 by name; explicit match (not transmute) catches drift if either enum changes
-    fn from(name: CardName) -> Self {
-        match name {
-            CardName::AThousandCuts => Self::AThousandCuts,
-            CardName::Accuracy => Self::Accuracy,
-            CardName::Acrobatics => Self::Acrobatics,
-            CardName::Adrenaline => Self::Adrenaline,
-            CardName::AfterImage => Self::AfterImage,
-            CardName::Alchemize => Self::Alchemize,
-            CardName::AllOutAttack => Self::AllOutAttack,
-            CardName::Backflip => Self::Backflip,
-            CardName::Backstab => Self::Backstab,
-            CardName::BandageUp => Self::BandageUp,
-            CardName::Bane => Self::Bane,
-            CardName::BladeDance => Self::BladeDance,
-            CardName::Blind => Self::Blind,
-            CardName::Blur => Self::Blur,
-            CardName::BouncingFlask => Self::BouncingFlask,
-            CardName::BulletTime => Self::BulletTime,
-            CardName::Burn => Self::Burn,
-            CardName::Burst => Self::Burst,
-            CardName::CalculatedGamble => Self::CalculatedGamble,
-            CardName::Caltrops => Self::Caltrops,
-            CardName::Catalyst => Self::Catalyst,
-            CardName::Choke => Self::Choke,
-            CardName::CloakAndDagger => Self::CloakAndDagger,
-            CardName::Concentrate => Self::Concentrate,
-            CardName::CorpseExplosion => Self::CorpseExplosion,
-            CardName::CripplingPoison => Self::CripplingPoison,
-            CardName::DaggerSpray => Self::DaggerSpray,
-            CardName::DaggerThrow => Self::DaggerThrow,
-            CardName::Dash => Self::Dash,
-            CardName::Dazed => Self::Dazed,
-            CardName::DeadlyPoison => Self::DeadlyPoison,
-            CardName::DeepBreath => Self::DeepBreath,
-            CardName::Defend => Self::Defend,
-            CardName::Deflect => Self::Deflect,
-            CardName::DieDieDie => Self::DieDieDie,
-            CardName::Distraction => Self::Distraction,
-            CardName::DodgeAndRoll => Self::DodgeAndRoll,
-            CardName::Doppelganger => Self::Doppelganger,
-            CardName::EndlessAgony => Self::EndlessAgony,
-            CardName::Envenom => Self::Envenom,
-            CardName::EscapePlan => Self::EscapePlan,
-            CardName::Eviscerate => Self::Eviscerate,
-            CardName::Expertise => Self::Expertise,
-            CardName::Finesse => Self::Finesse,
-            CardName::Finisher => Self::Finisher,
-            CardName::FlashOfSteel => Self::FlashOfSteel,
-            CardName::Flechettes => Self::Flechettes,
-            CardName::FlyingKnee => Self::FlyingKnee,
-            CardName::Footwork => Self::Footwork,
-            CardName::GlassKnife => Self::GlassKnife,
-            CardName::GoodInstincts => Self::GoodInstincts,
-            CardName::GrandFinale => Self::GrandFinale,
-            CardName::HeelHook => Self::HeelHook,
-            CardName::InfiniteBlades => Self::InfiniteBlades,
-            CardName::LegSweep => Self::LegSweep,
-            CardName::Malaise => Self::Malaise,
-            CardName::MasterOfStrategy => Self::MasterOfStrategy,
-            CardName::MasterfulStab => Self::MasterfulStab,
-            CardName::MindBlast => Self::MindBlast,
-            CardName::Neutralize => Self::Neutralize,
-            CardName::Nightmare => Self::Nightmare,
-            CardName::NoxiousFumes => Self::NoxiousFumes,
-            CardName::Outmaneuver => Self::Outmaneuver,
-            CardName::PhantasmalKiller => Self::PhantasmalKiller,
-            CardName::PiercingWail => Self::PiercingWail,
-            CardName::PoisonedStab => Self::PoisonedStab,
-            CardName::Predator => Self::Predator,
-            CardName::Prepared => Self::Prepared,
-            CardName::QuickSlash => Self::QuickSlash,
-            CardName::Reflex => Self::Reflex,
-            CardName::RiddleWithHoles => Self::RiddleWithHoles,
-            CardName::Setup => Self::Setup,
-            CardName::Shiv => Self::Shiv,
-            CardName::Skewer => Self::Skewer,
-            CardName::Slice => Self::Slice,
-            CardName::Slimed => Self::Slimed,
-            CardName::SneakyStrike => Self::SneakyStrike,
-            CardName::StormOfSteel => Self::StormOfSteel,
-            CardName::Strike => Self::Strike,
-            CardName::SuckerPunch => Self::SuckerPunch,
-            CardName::Survivor => Self::Survivor,
-            CardName::SwiftStrike => Self::SwiftStrike,
-            CardName::Tactician => Self::Tactician,
-            CardName::Terror => Self::Terror,
-            CardName::ToolsOfTheTrade => Self::ToolsOfTheTrade,
-            CardName::Unload => Self::Unload,
-            CardName::WellLaidPlans => Self::WellLaidPlans,
-            CardName::WraithForm => Self::WraithForm,
-            CardName::AscendersBane => Self::AscendersBane,
-            CardName::Regret => Self::Regret,
-            CardName::Pain => Self::Pain,
-            CardName::Doubt => Self::Doubt,
-            CardName::Decay => Self::Decay,
-            CardName::Injury => Self::Injury,
-            CardName::Shame => Self::Shame,
-            CardName::Writhe => Self::Writhe,
-            CardName::Parasite => Self::Parasite,
-            CardName::Normality => Self::Normality,
-            CardName::Apparition => Self::Apparition,
-            CardName::Bite => Self::Bite,
-            CardName::DarkShackles => Self::DarkShackles,
-            CardName::DramaticEntrance => Self::DramaticEntrance,
-            CardName::Jax => Self::Jax,
-            CardName::Panacea => Self::Panacea,
-            CardName::Trip => Self::Trip,
-            CardName::Apotheosis => Self::Apotheosis,
-            CardName::Chrysalis => Self::Chrysalis,
-            CardName::Discovery => Self::Discovery,
-            CardName::Enlightenment => Self::Enlightenment,
-            CardName::HandOfGreed => Self::HandOfGreed,
-            CardName::Impatience => Self::Impatience,
-            CardName::JackOfAllTrades => Self::JackOfAllTrades,
-            CardName::Madness => Self::Madness,
-            CardName::Magnetism => Self::Magnetism,
-            CardName::Metamorphosis => Self::Metamorphosis,
-            CardName::Panache => Self::Panache,
-            CardName::PanicButton => Self::PanicButton,
-            CardName::SadisticNature => Self::SadisticNature,
-            CardName::ThinkingAhead => Self::ThinkingAhead,
-            CardName::Transmutation => Self::Transmutation,
-            CardName::Forethought => Self::Forethought,
-            CardName::Mayhem => Self::Mayhem,
-            CardName::Purity => Self::Purity,
-            CardName::SecretTechnique => Self::SecretTechnique,
-            CardName::SecretWeapon => Self::SecretWeapon,
-            CardName::TheBomb => Self::TheBomb,
-            CardName::Violence => Self::Violence,
-            CardName::CurseOfTheBell => Self::CurseOfTheBell,
-        }
-    }
-}
+mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
+    AThousandCuts, Accuracy, Acrobatics, Adrenaline, AfterImage, Alchemize, AllOutAttack,
+    Backflip, Backstab, BandageUp, Bane, BladeDance, Blind, Blur, BouncingFlask, BulletTime,
+    Burn, Burst, CalculatedGamble, Caltrops, Catalyst, Choke, CloakAndDagger, Concentrate,
+    CorpseExplosion, CripplingPoison, DaggerSpray, DaggerThrow, Dash, Dazed, DeadlyPoison,
+    DeepBreath, Defend, Deflect, DieDieDie, Distraction, DodgeAndRoll, Doppelganger,
+    EndlessAgony, Envenom, EscapePlan, Eviscerate, Expertise, Finesse, Finisher, FlashOfSteel,
+    Flechettes, FlyingKnee, Footwork, GlassKnife, GoodInstincts, GrandFinale, HeelHook,
+    InfiniteBlades, LegSweep, Malaise, MasterOfStrategy, MasterfulStab, MindBlast, Neutralize,
+    Nightmare, NoxiousFumes, Outmaneuver, PhantasmalKiller, PiercingWail, PoisonedStab,
+    Predator, Prepared, QuickSlash, Reflex, RiddleWithHoles, Setup, Shiv, Skewer, Slice,
+    Slimed, SneakyStrike, StormOfSteel, Strike, SuckerPunch, Survivor, SwiftStrike, Tactician,
+    Terror, ToolsOfTheTrade, Unload, WellLaidPlans, WraithForm, AscendersBane, Regret, Pain,
+    Doubt, Decay, Injury, Shame, Writhe, Parasite, Normality, Apparition, Bite, DarkShackles,
+    DramaticEntrance, Jax, Panacea, Trip, Apotheosis, Chrysalis, Discovery, Enlightenment,
+    HandOfGreed, Impatience, JackOfAllTrades, Madness, Magnetism, Metamorphosis, Panache,
+    PanicButton, SadisticNature, ThinkingAhead, Transmutation, Forethought, Mayhem, Purity,
+    SecretTechnique, SecretWeapon, TheBomb, Violence, CurseOfTheBell,
+});
 
 // Exposed structs
 #[pyclass(

@@ -1,7 +1,6 @@
 use pyo3::prelude::*;
 
 use crate::action::Action;
-use crate::types::CardKind;
 
 // `PyActionType` is the discriminant for the flat `PyAction` struct below
 #[pyclass(
@@ -93,192 +92,64 @@ impl PyAction {
     }
 }
 
-// CardKind by discriminant, for CardBottle's idx_kind argument
-fn card_kind_from_idx(v: usize) -> Result<CardKind, String> {
-    match v {
-        0 => Ok(CardKind::Attack),
-        1 => Ok(CardKind::Curse),
-        2 => Ok(CardKind::Power),
-        3 => Ok(CardKind::Skill),
-        4 => Ok(CardKind::Status),
-        _ => Err(format!("Invalid CardKind discriminant: {v}")),
-    }
-}
-
 pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
     let idxs = &action.idxs;
-    match action.action_type {
-        PyActionType::CardPlay => match idxs.len() {
-            1 => Ok(Action::CardPlay {
-                idx_card: idxs[0],
-                idx_monster: None,
-            }),
-            2 => Ok(Action::CardPlay {
-                idx_card: idxs[0],
-                idx_monster: Some(idxs[1]),
-            }),
-            n => Err(format!(
-                "CardPlay expects [idx_card] or [idx_card, idx_monster], got {n} idxs"
-            )),
+    let i0 = idxs.first().copied().unwrap_or(0);
+    let i1 = idxs.get(1).copied().unwrap_or(0);
+    let internal = match action.action_type {
+        PyActionType::CardPlay => Action::CardPlay {
+            idx_card: i0,
+            idx_monster: idxs.get(1).copied(),
         },
-        PyActionType::TurnEnd => match idxs.len() {
-            0 => Ok(Action::TurnEnd),
-            n => Err(format!("TurnEnd expects [], got {n} idxs")),
+        PyActionType::TurnEnd => Action::TurnEnd,
+        PyActionType::CardDiscard => Action::CardDiscard { idx: i0 },
+        PyActionType::CardExhaust => Action::CardExhaust { idx: i0 },
+        PyActionType::CardMoveToHand => Action::CardMoveToHand { idx: i0 },
+        PyActionType::PickSkip => Action::PickSkip,
+        PyActionType::CardRetain => Action::CardRetain { idx: i0 },
+        PyActionType::CardSetup => Action::CardSetup { idx: i0 },
+        PyActionType::CardNightmare => Action::CardNightmare { idx: i0 },
+        PyActionType::RoomSelect => Action::RoomSelect { idx: i0 },
+        PyActionType::ShopBuyCard => Action::ShopBuyCard { idx: i0 },
+        PyActionType::ShopBuyPotion => Action::ShopBuyPotion { idx: i0 },
+        PyActionType::ShopBuyRelic => Action::ShopBuyRelic { idx: i0 },
+        PyActionType::ShopPurge => Action::ShopPurge { idx: i0 },
+        PyActionType::Rest => Action::Rest,
+        PyActionType::RestDig => Action::RestDig,
+        PyActionType::RestLift => Action::RestLift,
+        PyActionType::RestToke => Action::RestToke,
+        PyActionType::CardBottle => Action::CardBottle { idx: i0 },
+        PyActionType::RewardSingingBowl => Action::RewardSingingBowl { idx_bundle: i0 },
+        PyActionType::RoomExit => Action::RoomExit,
+        PyActionType::ChestOpen => Action::ChestOpen,
+        PyActionType::PotionUse => Action::PotionUse {
+            idx_potion: i0,
+            idx_monster: idxs.get(1).copied(),
         },
-        PyActionType::CardDiscard => match idxs.len() {
-            1 => Ok(Action::CardDiscard { idx: idxs[0] }),
-            n => Err(format!("CardDiscard expects [idx_hand], got {n} idxs")),
+        PyActionType::PotionDiscard => Action::PotionDiscard { idx: i0 },
+        PyActionType::CardDiscover => Action::CardDiscover { idx: i0 },
+        PyActionType::RewardTakeCard => Action::RewardTakeCard {
+            idx_bundle: i0,
+            idx_card: i1,
         },
-        PyActionType::CardExhaust => match idxs.len() {
-            1 => Ok(Action::CardExhaust { idx: idxs[0] }),
-            n => Err(format!("CardExhaust expects [idx_hand], got {n} idxs")),
-        },
-        PyActionType::CardMoveToHand => match idxs.len() {
-            1 => Ok(Action::CardMoveToHand { idx: idxs[0] }),
-            n => Err(format!(
-                "CardMoveToHand expects [idx_pile_draw], got {n} idxs"
-            )),
-        },
-        PyActionType::PickSkip => match idxs.len() {
-            0 => Ok(Action::PickSkip),
-            n => Err(format!("PickSkip expects [], got {n} idxs")),
-        },
-        PyActionType::CardRetain => match idxs.len() {
-            1 => Ok(Action::CardRetain { idx: idxs[0] }),
-            n => Err(format!("CardRetain expects [idx_hand], got {n} idxs")),
-        },
-        PyActionType::CardSetup => match idxs.len() {
-            1 => Ok(Action::CardSetup { idx: idxs[0] }),
-            n => Err(format!("CardSetup expects [idx_hand], got {n} idxs")),
-        },
-        PyActionType::CardNightmare => match idxs.len() {
-            1 => Ok(Action::CardNightmare { idx: idxs[0] }),
-            n => Err(format!("CardNightmare expects [idx_hand], got {n} idxs")),
-        },
-        PyActionType::RoomSelect => match idxs.len() {
-            1 => Ok(Action::RoomSelect { idx: idxs[0] }),
-            n => Err(format!("RoomSelect expects [idx], got {n} idxs")),
-        },
-        PyActionType::ShopBuyCard => match idxs.len() {
-            1 => Ok(Action::ShopBuyCard { idx: idxs[0] }),
-            n => Err(format!("ShopBuyCard expects [idx], got {n} idxs")),
-        },
-        PyActionType::ShopBuyPotion => match idxs.len() {
-            1 => Ok(Action::ShopBuyPotion { idx: idxs[0] }),
-            n => Err(format!("ShopBuyPotion expects [idx], got {n} idxs")),
-        },
-        PyActionType::ShopBuyRelic => match idxs.len() {
-            1 => Ok(Action::ShopBuyRelic { idx: idxs[0] }),
-            n => Err(format!("ShopBuyRelic expects [idx], got {n} idxs")),
-        },
-        PyActionType::ShopPurge => match idxs.len() {
-            1 => Ok(Action::ShopPurge { idx: idxs[0] }),
-            n => Err(format!("ShopPurge expects [idx], got {n} idxs")),
-        },
-        PyActionType::Rest => match idxs.len() {
-            0 => Ok(Action::Rest),
-            n => Err(format!("Rest expects [], got {n} idxs")),
-        },
-        PyActionType::RestDig => match idxs.len() {
-            0 => Ok(Action::RestDig),
-            n => Err(format!("RestDig expects [], got {n} idxs")),
-        },
-        PyActionType::RestLift => match idxs.len() {
-            0 => Ok(Action::RestLift),
-            n => Err(format!("RestLift expects [], got {n} idxs")),
-        },
-        PyActionType::RestToke => match idxs.len() {
-            0 => Ok(Action::RestToke),
-            n => Err(format!("RestToke expects [], got {n} idxs")),
-        },
-        PyActionType::CardBottle => match idxs.len() {
-            2 => Ok(Action::CardBottle {
-                kind: card_kind_from_idx(idxs[0])?,
-                idx: idxs[1],
-            }),
-            n => Err(format!(
-                "CardBottle expects [idx_kind, idx_card], got {n} idxs"
-            )),
-        },
-        PyActionType::RewardSingingBowl => match idxs.len() {
-            1 => Ok(Action::RewardSingingBowl {
-                idx_bundle: idxs[0],
-            }),
-            n => Err(format!(
-                "RewardSingingBowl expects [idx_bundle], got {n} idxs"
-            )),
-        },
-        PyActionType::RoomExit => match idxs.len() {
-            0 => Ok(Action::RoomExit),
-            n => Err(format!("RoomExit expects [], got {n} idxs")),
-        },
-        PyActionType::ChestOpen => match idxs.len() {
-            0 => Ok(Action::ChestOpen),
-            n => Err(format!("ChestOpen expects [], got {n} idxs")),
-        },
-        PyActionType::PotionUse => match idxs.len() {
-            1 => Ok(Action::PotionUse {
-                idx_potion: idxs[0],
-                idx_monster: None,
-            }),
-            2 => Ok(Action::PotionUse {
-                idx_potion: idxs[0],
-                idx_monster: Some(idxs[1]),
-            }),
-            n => Err(format!(
-                "PotionUse expects [idx_potion] or [idx_potion, idx_monster], got {n} idxs"
-            )),
-        },
-        PyActionType::PotionDiscard => match idxs.len() {
-            1 => Ok(Action::PotionDiscard { idx: idxs[0] }),
-            n => Err(format!("PotionDiscard expects [idx_slot], got {n} idxs")),
-        },
-        PyActionType::CardDiscover => match idxs.len() {
-            1 => Ok(Action::CardDiscover { idx: idxs[0] }),
-            n => Err(format!("CardDiscover expects [idx], got {n} idxs")),
-        },
-        PyActionType::RewardTakeCard => match idxs.len() {
-            2 => Ok(Action::RewardTakeCard {
-                idx_bundle: idxs[0],
-                idx_card: idxs[1],
-            }),
-            n => Err(format!(
-                "RewardTakeCard expects [idx_bundle, idx_card], got {n} idxs"
-            )),
-        },
-        PyActionType::RewardTakeRelic => match idxs.len() {
-            1 => Ok(Action::RewardTakeRelic { idx: idxs[0] }),
-            n => Err(format!("RewardTakeRelic expects [idx], got {n} idxs")),
-        },
-        PyActionType::RewardTakePotion => match idxs.len() {
-            1 => Ok(Action::RewardTakePotion { idx: idxs[0] }),
-            n => Err(format!("RewardTakePotion expects [idx], got {n} idxs")),
-        },
-        PyActionType::RewardTakeGold => match idxs.len() {
-            0 => Ok(Action::RewardTakeGold),
-            n => Err(format!("RewardTakeGold expects [], got {n} idxs")),
-        },
-        PyActionType::EventOptionSelect => match idxs.len() {
-            1 => Ok(Action::EventOptionSelect { idx: idxs[0] }),
-            n => Err(format!("EventOptionSelect expects [idx], got {n} idxs")),
-        },
-        PyActionType::CardPurge => match idxs.len() {
-            1 => Ok(Action::CardPurge { idx: idxs[0] }),
-            n => Err(format!("CardPurge expects [idx], got {n} idxs")),
-        },
-        PyActionType::CardUpgrade => match idxs.len() {
-            1 => Ok(Action::CardUpgrade { idx: idxs[0] }),
-            n => Err(format!("CardUpgrade expects [idx], got {n} idxs")),
-        },
-        PyActionType::CardDuplicate => match idxs.len() {
-            1 => Ok(Action::CardDuplicate { idx: idxs[0] }),
-            n => Err(format!("CardDuplicate expects [idx], got {n} idxs")),
-        },
-        PyActionType::CardTransform => match idxs.len() {
-            1 => Ok(Action::CardTransform { idx: idxs[0] }),
-            n => Err(format!("CardTransform expects [idx], got {n} idxs")),
-        },
+        PyActionType::RewardTakeRelic => Action::RewardTakeRelic { idx: i0 },
+        PyActionType::RewardTakePotion => Action::RewardTakePotion { idx: i0 },
+        PyActionType::RewardTakeGold => Action::RewardTakeGold,
+        PyActionType::EventOptionSelect => Action::EventOptionSelect { idx: i0 },
+        PyActionType::CardPurge => Action::CardPurge { idx: i0 },
+        PyActionType::CardUpgrade => Action::CardUpgrade { idx: i0 },
+        PyActionType::CardDuplicate => Action::CardDuplicate { idx: i0 },
+        PyActionType::CardTransform => Action::CardTransform { idx: i0 },
+    };
+
+    // Round-trip is the arity gate: a wrong-length idxs list cannot rebuild itself
+    if from_internal_action(internal.clone()).idxs != *idxs {
+        return Err(format!(
+            "{:?} got malformed idxs {idxs:?}",
+            action.action_type
+        ));
     }
+    Ok(internal)
 }
 
 pub fn from_internal_action(action: Action) -> PyAction {
@@ -295,7 +166,7 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::CardDiscard { idx } => (PyActionType::CardDiscard, vec![idx]),
         Action::CardExhaust { idx } => (PyActionType::CardExhaust, vec![idx]),
         Action::CardMoveToHand { idx } => (PyActionType::CardMoveToHand, vec![idx]),
-        Action::CardBottle { kind, idx } => (PyActionType::CardBottle, vec![kind as usize, idx]),
+        Action::CardBottle { idx } => (PyActionType::CardBottle, vec![idx]),
         Action::PickSkip => (PyActionType::PickSkip, vec![]),
         Action::CardRetain { idx } => (PyActionType::CardRetain, vec![idx]),
         Action::CardSetup { idx } => (PyActionType::CardSetup, vec![idx]),

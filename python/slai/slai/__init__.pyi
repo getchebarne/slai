@@ -435,7 +435,6 @@ class CardRarity:
 
 @final
 class Character:
-    def __new__(cls, /, name: str, health: int, health_max: int, block: int, modifiers: Sequence[Modifier], gold: int) -> Character: ...
     @property
     def block(self, /) -> int: ...
     @property
@@ -1066,7 +1065,6 @@ class EffectWheelSpin:
 
 @final
 class Energy:
-    def __new__(cls, /, energy_current: int, energy_max: int) -> Energy: ...
     @property
     def energy_current(self, /) -> int: ...
     @property
@@ -1204,7 +1202,6 @@ class GameState:
 
 @final
 class Intent:
-    def __new__(cls, /, kind: IntentKind, damage: int |None, instances: int |None) -> Intent: ...
     @property
     def damage(self, /) -> int |None: ...
     @property
@@ -1235,7 +1232,6 @@ class IntentKind:
 
 @final
 class Map:
-    def __new__(cls, /, rooms: Sequence[Sequence[Room |None]], y_current: int |None, x_current: int |None, boss: MonsterEncounter, identity_hash: int) -> Map: ...
     @property
     def boss(self, /) -> MonsterEncounter: ...
     @property
@@ -1320,7 +1316,6 @@ class ModeShop:
 
 @final
 class Modifier:
-    def __new__(cls, /, kind: ModifierKind, stacks: int, stacks_max: int) -> Modifier: ...
     @property
     def kind(self, /) -> ModifierKind: ...
     @property
@@ -1395,7 +1390,6 @@ class ModifierKind:
 
 @final
 class Monster:
-    def __new__(cls, /, name: MonsterName, display_name: str, health: int, health_max: int, block: int, modifiers: Sequence[Modifier], intent: Intent) -> Monster: ...
     @property
     def block(self, /) -> int: ...
     @property
@@ -1726,7 +1720,6 @@ class RelicTier:
 
 @final
 class Room:
-    def __new__(cls, /, room_kind: RoomKind, edges: Sequence[int], chest_opened: bool) -> Room: ...
     @property
     def chest_opened(self, /) -> bool: ...
     @property

@@ -6,99 +6,18 @@ use pyo3::type_object::PyTypeInfo;
 use crate::effect::Amount;
 use crate::types::DeltaSign;
 
-use super::macros::variant_union;
+use super::macros::flat_variants;
+use super::macros::mirror_enum;
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "DeltaSign",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyDeltaSign {
-    Gain,
-    Loss,
-}
+mirror_enum!(PyDeltaSign from DeltaSign, "DeltaSign", skip_from_py_object, {
+    Gain, Loss,
+});
 
-impl From<DeltaSign> for PyDeltaSign {
-    fn from(sign: DeltaSign) -> Self {
-        match sign {
-            DeltaSign::Gain => Self::Gain,
-            DeltaSign::Loss => Self::Loss,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "AmountAbsolute",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyAmountAbsolute {
-    pub amount: u16,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "AmountRelative",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyAmountRelative {
-    pub numerator: u8,
-    pub denominator: u8,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "AmountRange",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyAmountRange {
-    pub min: u16,
-    pub max: u16,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "AmountEventGoldAsk",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyAmountEventGoldAsk;
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyAmount {
-    Absolute(PyAmountAbsolute),
-    Relative(PyAmountRelative),
-    Range(PyAmountRange),
-    EventGoldAsk(PyAmountEventGoldAsk),
-}
-
-variant_union!(PyAmount {
-    Absolute => PyAmountAbsolute,
-    Relative => PyAmountRelative,
-    Range => PyAmountRange,
-    EventGoldAsk => PyAmountEventGoldAsk,
+flat_variants!(hash PyAmount {
+    Absolute => PyAmountAbsolute as "AmountAbsolute" { amount: u16 },
+    Relative => PyAmountRelative as "AmountRelative" { numerator: u8, denominator: u8 },
+    Range => PyAmountRange as "AmountRange" { min: u16, max: u16 },
+    EventGoldAsk => PyAmountEventGoldAsk as "AmountEventGoldAsk",
 });
 
 impl From<Amount> for PyAmount {
