@@ -144,8 +144,7 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
             event_relic,
             event_relic_roll,
         } => {
-            // Select roll parameters according to `RoomKind`; event combats inject their
-            // event-specific extras
+            // Select roll parameters according to `RoomKind`
             let (gold_amount, relic_thresholds, event_relic) = match room_kind {
                 RoomKind::CombatMonster => (
                     (!escaped).then_some(Amount::Range {
@@ -164,6 +163,7 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                     None,
                 ),
                 RoomKind::EventRoom => (
+                    // Event combats inject their event-specific extras
                     Some(event_gold.expect("Event fight without stamped loot")),
                     event_relic_roll.then_some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
                     event_relic,

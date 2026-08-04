@@ -54,8 +54,7 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         id_cards.push(id_card);
     }
 
-    // Relics: 2 random-tier, 1 shop-tier. The tier roll stays per-slot: rolling both
-    // up front would reorder the RNG stream
+    // Relics: 2 random-tier, 1 shop-tier. The tier roll stays per-slot for source parity
     for _ in 0..2 {
         let (pool, base_price) = roll_relic_tier(&mut state.rng);
         push_relic(state, &mut id_relics, pool, base_price);
