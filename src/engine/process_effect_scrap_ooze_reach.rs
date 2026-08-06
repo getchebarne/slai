@@ -29,7 +29,7 @@ pub fn process_effect_scrap_ooze_reach(
     let roll = state.rng.random_range(0..100) as u8;
     if roll as u16 + chance as u16 >= 99 {
         state.effect_buf.push(Effect {
-            kind: EffectKind::RelicGrantRandom,
+            kind: EffectKind::RelicGrantRandom { tier: None },
             id_source: None,
             target: Target::Direct(None),
         });

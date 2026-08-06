@@ -269,6 +269,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                     count: stacks.max(0) as u8,
                     cost_zero: None,
                     upgraded: false,
+                    rarity: None,
                 },
                 id_source: None,
                 target: Target::Direct(None),

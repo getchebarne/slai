@@ -7,6 +7,7 @@ mod golden_idol;
 mod golden_shrine;
 mod living_wall;
 mod mushrooms;
+mod neow;
 mod ominous_forge;
 mod purifier;
 mod scrap_ooze;
@@ -23,12 +24,14 @@ mod wheel_of_change;
 mod wing_statue;
 mod world_of_goop;
 
+use crate::consts::MAX_EFFECTS_PER_EVENT_OPTION;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::ZERO_EFFECT;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::ZERO_ENTITY;
@@ -118,11 +121,14 @@ pub enum EventKind {
         found_relic: bool,
         searches: u8,
     },
+    Neow,
 }
 
 // Builds the event: entry rolls land in the kind, options bake into the arena
 pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<usize>) {
     let kind = match name {
+        // Neow rolls and bakes its own options
+        EventName::Neow => return neow::spawn_event_neow(state),
         EventName::BigFish => EventKind::BigFish,
         EventName::TheCleric => EventKind::TheCleric,
         EventName::Duplicator => EventKind::Duplicator,
@@ -158,7 +164,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
 }
 
 // One Entity per option, copied into the arena at spawn
-pub fn bake_options(state: &mut GameState, options: &[Entity]) -> Vec<usize> {
+fn bake_options(state: &mut GameState, options: &[Entity]) -> Vec<usize> {
     let mut id_options = Vec::with_capacity(options.len());
     for &option in options {
         id_options.push(push_entity(&mut state.entities, option));
@@ -194,6 +200,7 @@ fn bake_event_options(state: &mut GameState, kind: EventKind) -> Vec<usize> {
         EventKind::ScrapOoze { .. } => bake_options(state, scrap_ooze::options(ascension)),
         EventKind::WeMeetAgain { .. } => bake_options(state, we_meet_again::OPTIONS),
         EventKind::DeadAdventurer { .. } => bake_options(state, dead_adventurer::OPTIONS),
+        EventKind::Neow => unreachable!("Neow bakes its options at spawn"),
     }
 }
 
@@ -212,6 +219,7 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
         | EventKind::BonfireSpirits
         | EventKind::FaceTrader
         | EventKind::Mushrooms
+        | EventKind::Neow
         | EventKind::DeadAdventurer { .. } => true,
         EventKind::TheCleric => the_cleric::option_available(state, idx),
         EventKind::WingStatue => wing_statue::option_available(state, idx),
@@ -277,7 +285,7 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
 }
 
 // Mushrooms and Dead Adventurer are draw-gated in `draw_event` (floor 7+)
-pub const POOL_ACT1_EVENT: &[EventName] = &[
+pub const POOL_EVENT_ACT1: &[EventName] = &[
     EventName::BigFish,
     EventName::Mushrooms,
     EventName::DeadAdventurer,
@@ -292,7 +300,7 @@ pub const POOL_ACT1_EVENT: &[EventName] = &[
 ];
 
 // Shrines and one-time specials roll together at EVENT_SPECIAL_CHANCE
-pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
+pub const POOL_EVENT_ACT1_SPECIAL: &[EventName] = &[
     EventName::GoldenShrine,
     EventName::Purifier,
     EventName::Transmogrifier,
@@ -307,11 +315,20 @@ pub const POOL_ACT1_EVENT_SPECIAL: &[EventName] = &[
     EventName::WeMeetAgain,
 ];
 
-pub const fn make_entity_event_option(label: &'static str, effects: &'static [Effect]) -> Entity {
+// Copies into the owned array; static defs overflowing the cap fail at const eval
+pub const fn make_entity_event_option(label: &'static str, effects: &[Effect]) -> Entity {
+    assert!(effects.len() <= MAX_EFFECTS_PER_EVENT_OPTION);
+    let mut effects_owned = [ZERO_EFFECT; MAX_EFFECTS_PER_EVENT_OPTION];
+    let mut i = 0;
+    while i < effects.len() {
+        effects_owned[i] = effects[i];
+        i += 1;
+    }
     Entity {
         kind: EntityKind::EventOption,
         event_option_label: label,
-        event_option_effects: effects,
+        event_option_effects: effects_owned,
+        event_option_effects_len: effects.len() as u8,
         ..ZERO_ENTITY
     }
 }

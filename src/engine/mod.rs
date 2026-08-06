@@ -69,6 +69,7 @@ pub mod process_effect_potion_use;
 pub mod process_effect_relic_adopt;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
+pub mod process_effect_relic_lose;
 pub mod process_effect_rest_site_consume;
 pub mod process_effect_reward_roll;
 pub mod process_effect_reward_take;
@@ -162,6 +163,7 @@ use self::process_effect_potion_use::process_effect_potion_use;
 use self::process_effect_relic_adopt::process_effect_relic_adopt;
 use self::process_effect_relic_grant_random::process_effect_relic_grant_random;
 use self::process_effect_relic_grant_specific::process_effect_relic_grant_specific;
+use self::process_effect_relic_lose::process_effect_relic_lose;
 use self::process_effect_rest_site_consume::process_effect_rest_site_consume;
 use self::process_effect_reward_roll::process_effect_reward_roll;
 use self::process_effect_reward_take::process_effect_reward_take;
@@ -447,7 +449,10 @@ fn dispatch_by_kind(
             count,
             cost_zero,
             upgraded,
-        } => process_effect_card_add_random(state, color, kind, pile, count, cost_zero, upgraded),
+            rarity,
+        } => process_effect_card_add_random(
+            state, color, kind, pile, count, cost_zero, upgraded, rarity,
+        ),
         EffectKind::HandOfGreedProc { gold } => {
             process_effect_hand_of_greed_proc(id_target, state, gold)
         }
@@ -612,11 +617,12 @@ fn dispatch_by_kind(
             choose_discards,
             discards_before,
         } => process_effect_gamble(state, choose_discards, discards_before),
-        EffectKind::RelicGrantRandom => process_effect_relic_grant_random(state),
+        EffectKind::RelicGrantRandom { tier } => process_effect_relic_grant_random(state, tier),
         EffectKind::RelicGrantSpecific {
             name,
             fallback_circlet,
         } => process_effect_relic_grant_specific(state, name, fallback_circlet),
+        EffectKind::RelicLose { name } => process_effect_relic_lose(state, name),
         EffectKind::RelicAdopt => process_effect_relic_adopt(id_target, state),
         EffectKind::EventAdvanceState { delta } => process_effect_event_advance_state(state, delta),
         EffectKind::ScrapOozeReach {
@@ -706,6 +712,11 @@ fn ensure_mode_validity(state: &GameState) {
             matches!(room_kind, Some(RoomKind::Treasure | RoomKind::Unknown))
                 && room.is_some_and(|room| room.room_chest_opened)
         }
+        // Neow rests over Location::Start, before any room exists
+        Mode::Event {
+            kind: EventKind::Neow,
+            ..
+        } => state.location == Location::Start,
         Mode::Event { .. } => matches!(room_kind, Some(RoomKind::EventRoom | RoomKind::Unknown)),
         // "?" rooms keep RoomKind::Unknown on the map after resolving
         Mode::Shop { .. } => matches!(room_kind, Some(RoomKind::Shop | RoomKind::Unknown)),
@@ -719,18 +730,20 @@ fn ensure_mode_validity(state: &GameState) {
                     | RoomKind::Unknown
             )
         ),
-        // RestSite: Dream Catcher's rest reward
-        Mode::Reward { .. } => matches!(
-            room_kind,
-            Some(
-                RoomKind::CombatMonster
-                    | RoomKind::CombatElite
-                    | RoomKind::EventRoom
-                    | RoomKind::Treasure
-                    | RoomKind::RestSite
-                    | RoomKind::Unknown
-            )
-        ),
+        // RestSite: Dream Catcher's rest reward; Location::Start: Neow's staged offers
+        Mode::Reward { .. } => {
+            matches!(
+                room_kind,
+                Some(
+                    RoomKind::CombatMonster
+                        | RoomKind::CombatElite
+                        | RoomKind::EventRoom
+                        | RoomKind::Treasure
+                        | RoomKind::RestSite
+                        | RoomKind::Unknown
+                )
+            ) || state.location == Location::Start
+        }
     };
     assert!(
         ok,

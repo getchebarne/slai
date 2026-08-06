@@ -111,7 +111,7 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
     if !*found_relic && idx == 0 {
         *found_relic = true;
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::RelicGrantRandom,
+            kind: EffectKind::RelicGrantRandom { tier: None },
             id_source: None,
             target: Target::Direct(None),
         });

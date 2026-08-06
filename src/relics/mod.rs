@@ -69,6 +69,7 @@ mod membership_card;
 mod mercury_hourglass;
 mod molten_egg;
 mod mummified_hand;
+mod neows_lament;
 mod ninja_scroll;
 mod nloths_hungry_face;
 mod nunchaku;
@@ -369,6 +370,7 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &runic_pyramid::RUNIC_PYRAMID,
     &ring_of_the_serpent::RING_OF_THE_SERPENT,
     &sacred_bark::SACRED_BARK,
+    &neows_lament::NEOWS_LAMENT,
 ];
 // Assert all Relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);
@@ -418,12 +420,14 @@ const fn build_pool<const N: usize>(tier: RelicTier) -> [RelicName; N] {
 const NUM_COMMON: usize = count_pool(RelicTier::Common);
 const NUM_UNCOMMON: usize = count_pool(RelicTier::Uncommon);
 const NUM_RARE: usize = count_pool(RelicTier::Rare);
+const NUM_BOSS: usize = count_pool(RelicTier::Boss);
 const NUM_SHOP: usize = count_pool(RelicTier::Shop);
 
 // Compute tier-pools
 pub const POOL_COMMON_RELIC: &[RelicName] = &build_pool::<NUM_COMMON>(RelicTier::Common);
 pub const POOL_UNCOMMON_RELIC: &[RelicName] = &build_pool::<NUM_UNCOMMON>(RelicTier::Uncommon);
 pub const POOL_RARE_RELIC: &[RelicName] = &build_pool::<NUM_RARE>(RelicTier::Rare);
+pub const POOL_BOSS_RELIC: &[RelicName] = &build_pool::<NUM_BOSS>(RelicTier::Boss);
 pub const POOL_SHOP_RELIC: &[RelicName] = &build_pool::<NUM_SHOP>(RelicTier::Shop);
 
 pub const fn make_entity_relic(

@@ -14,11 +14,13 @@ use super::card::PyCardColor;
 use super::card::PyCardKind;
 use super::card::PyCardName;
 use super::card::PyCardPile;
+use super::card::PyCardRarity;
 use super::card::PyCostScope;
 use super::macros::variant_union;
 use super::modifier::PyModifierKind;
 use super::monster::PyMonsterName;
 use super::relic::PyRelicName;
+use super::relic::PyRelicTier;
 use super::target::PyTarget;
 
 // Mirrors only EffectKind variants reachable from static Card/monster defs; snapshot_effect panics on runtime-only variants
@@ -487,6 +489,7 @@ pub struct PyEffectPotionDiscard {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectRewardRollPotions {
     pub count: u8,
+    pub uniform: bool,
     pub target: Option<PyTarget>,
 }
 
@@ -535,6 +538,38 @@ pub struct PyEffectGoldDelta {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEffectRelicGrantRandom {
+    pub tier: Option<PyRelicTier>,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectRelicLose",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectRelicLose {
+    pub name: PyRelicName,
+    pub target: Option<PyTarget>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EffectRewardRollNeowCards",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEffectRewardRollNeowCards {
+    pub colorless: bool,
+    pub rare_only: bool,
     pub target: Option<PyTarget>,
 }
 
@@ -792,6 +827,7 @@ pub struct PyEffectCardAddRandom {
     pub count: u8,
     pub cost_zero: Option<PyCostScope>,
     pub upgraded: bool,
+    pub rarity: Option<PyCardRarity>,
     pub target: Option<PyTarget>,
 }
 
@@ -960,6 +996,8 @@ pub enum PyEffect {
     CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop),
     Gamble(PyEffectGamble),
     CombatEnd(PyEffectCombatEnd),
+    RelicLose(PyEffectRelicLose),
+    RewardRollNeowCards(PyEffectRewardRollNeowCards),
 }
 
 variant_union!(PyEffect {
@@ -1021,6 +1059,8 @@ variant_union!(PyEffect {
     CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop,
     Gamble => PyEffectGamble,
     CombatEnd => PyEffectCombatEnd,
+    RelicLose => PyEffectRelicLose,
+    RewardRollNeowCards => PyEffectRewardRollNeowCards,
 });
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -1164,9 +1204,16 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardTransform { upgraded } => {
             PyEffect::CardTransform(PyEffectCardTransform { upgraded, target })
         }
-        EffectKind::RelicGrantRandom => {
-            PyEffect::RelicGrantRandom(PyEffectRelicGrantRandom { target })
+        EffectKind::RelicGrantRandom { tier } => {
+            PyEffect::RelicGrantRandom(PyEffectRelicGrantRandom {
+                tier: tier.map(Into::into),
+                target,
+            })
         }
+        EffectKind::RelicLose { name } => PyEffect::RelicLose(PyEffectRelicLose {
+            name: name.into(),
+            target,
+        }),
         EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin { target }),
         EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
         EffectKind::FaceTrade => PyEffect::FaceTrade(PyEffectFaceTrade { target }),
@@ -1215,8 +1262,23 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }
         EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard { target }),
         EffectKind::RewardRoll {
-            source: RewardSource::Potions { count },
-        } => PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count, target }),
+            source: RewardSource::Potions { count, uniform },
+        } => PyEffect::RewardRollPotions(PyEffectRewardRollPotions {
+            count,
+            uniform,
+            target,
+        }),
+        EffectKind::RewardRoll {
+            source:
+                RewardSource::NeowCards {
+                    colorless,
+                    rare_only,
+                },
+        } => PyEffect::RewardRollNeowCards(PyEffectRewardRollNeowCards {
+            colorless,
+            rare_only,
+            target,
+        }),
         EffectKind::CardDiscoverRoll {
             kind,
             color,
@@ -1243,6 +1305,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             count,
             cost_zero,
             upgraded,
+            rarity,
         } => PyEffect::CardAddRandom(PyEffectCardAddRandom {
             color: color.into(),
             kind: kind.map(|k| k.into()),
@@ -1250,6 +1313,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             count,
             cost_zero: cost_zero.map(|c| c.into()),
             upgraded,
+            rarity: rarity.map(Into::into),
             target,
         }),
         EffectKind::CardDrawIfNoAttacks { count } => {

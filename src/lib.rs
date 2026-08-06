@@ -62,10 +62,10 @@ impl GameEnv {
     const MAP_WIDTH: usize = consts::MAP_WIDTH;
 
     #[new]
-    #[pyo3(signature = (ascension=0, fast_mode=false))]
-    fn new(ascension: u8, fast_mode: bool) -> Self {
+    #[pyo3(signature = (ascension=0, fast_mode=false, neow=false))]
+    fn new(ascension: u8, fast_mode: bool, neow: bool) -> Self {
         // Placeholder seed; consumers must call `reset(seed=...)` before stepping (gymnasium convention)
-        let state = create_game_state(ascension, 0, fast_mode);
+        let state = create_game_state(ascension, 0, fast_mode, neow);
         GameEnv { state }
     }
 
@@ -73,7 +73,7 @@ impl GameEnv {
     #[pyo3(signature = (seed=42))]
     fn reset(&mut self, seed: u64) -> PyGameState {
         let asc = self.state.ascension;
-        self.state = create_game_state(asc, seed, self.state.fast_mode);
+        self.state = create_game_state(asc, seed, self.state.fast_mode, self.state.neow);
         snapshot_state(&self.state)
     }
 
@@ -309,6 +309,10 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRelicGrantSpecific;
     #[pymodule_export]
+    use super::ffi::PyEffectRelicLose;
+    #[pymodule_export]
+    use super::ffi::PyEffectRewardRollNeowCards;
+    #[pymodule_export]
     use super::ffi::PyEffectRewardRollPotions;
     #[pymodule_export]
     use super::ffi::PyEffectScrapOozeReach;
@@ -342,6 +346,8 @@ mod slai {
     use super::ffi::PyEventKindLivingWall;
     #[pymodule_export]
     use super::ffi::PyEventKindMushrooms;
+    #[pymodule_export]
+    use super::ffi::PyEventKindNeow;
     #[pymodule_export]
     use super::ffi::PyEventKindOminousForge;
     #[pymodule_export]

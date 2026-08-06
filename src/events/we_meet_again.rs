@@ -16,7 +16,7 @@ use crate::types::DeltaSign;
 use crate::utils::card_is_non_basic_non_curse;
 
 const RELIC_REWARD: Effect = Effect {
-    kind: EffectKind::RelicGrantRandom,
+    kind: EffectKind::RelicGrantRandom { tier: None },
     id_source: None,
     target: Target::Direct(None),
 };

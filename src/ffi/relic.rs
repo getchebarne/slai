@@ -156,6 +156,7 @@ pub enum PyRelicName {
     RunicPyramid,
     RingOfTheSerpent,
     SacredBark,
+    NeowsLament,
 }
 
 impl From<RelicName> for PyRelicName {
@@ -300,6 +301,7 @@ impl From<RelicName> for PyRelicName {
             RelicName::RunicPyramid => Self::RunicPyramid,
             RelicName::RingOfTheSerpent => Self::RingOfTheSerpent,
             RelicName::SacredBark => Self::SacredBark,
+            RelicName::NeowsLament => Self::NeowsLament,
         }
     }
 }

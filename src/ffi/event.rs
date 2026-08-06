@@ -245,6 +245,15 @@ pub struct PyEventKindDeadAdventurer {
     pub searches: u8,
 }
 
+#[pyclass(
+    skip_from_py_object,
+    frozen,
+    name = "EventKindNeow",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone)]
+pub struct PyEventKindNeow;
+
 #[derive(Debug, Clone)]
 pub enum PyEventKind {
     BigFish(PyEventKindBigFish),
@@ -271,6 +280,7 @@ pub enum PyEventKind {
     ScrapOoze(PyEventKindScrapOoze),
     WeMeetAgain(PyEventKindWeMeetAgain),
     DeadAdventurer(PyEventKindDeadAdventurer),
+    Neow(PyEventKindNeow),
 }
 
 variant_union!(PyEventKind {
@@ -298,6 +308,7 @@ variant_union!(PyEventKind {
     ScrapOoze => PyEventKindScrapOoze,
     WeMeetAgain => PyEventKindWeMeetAgain,
     DeadAdventurer => PyEventKindDeadAdventurer,
+    Neow => PyEventKindNeow,
 });
 
 pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEventKind {
@@ -348,5 +359,6 @@ pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEvent
             found_relic,
             searches,
         }),
+        EventKind::Neow => PyEventKind::Neow(PyEventKindNeow),
     }
 }

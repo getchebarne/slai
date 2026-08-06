@@ -3,11 +3,13 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
+use crate::types::CardRarity;
 use crate::types::ChestKind;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
+use crate::types::RelicTier;
 use crate::types::RewardKind;
 use crate::types::RoomKind;
 use crate::types::ShopSlot;
@@ -36,6 +38,7 @@ pub enum EffectKind {
         count: u8,
         cost_zero: Option<CostScope>,
         upgraded: bool,
+        rarity: Option<CardRarity>,
     },
     CardAdopt,
     CardBottle,
@@ -186,10 +189,16 @@ pub enum EffectKind {
     PotionDiscard,
     PotionUse,
     RelicAdopt,
-    RelicGrantRandom,
+    RelicGrantRandom {
+        // None keeps the 50/33/17 tier roll; Some pins the tier (uniform in-pool pick)
+        tier: Option<RelicTier>,
+    },
     RelicGrantSpecific {
         name: RelicName,
         fallback_circlet: bool,
+    },
+    RelicLose {
+        name: RelicName,
     },
     RestSiteConsume,
     RewardRoll {
@@ -251,8 +260,15 @@ pub enum RewardSource {
         event_relic: Option<RelicName>,
         event_relic_roll: bool,
     },
+
+    // Neow's card offers: always 3, Neow-specific rarity rules
+    NeowCards {
+        colorless: bool,
+        rare_only: bool,
+    },
     Potions {
         count: u8,
+        uniform: bool,
     },
 }
 

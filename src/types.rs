@@ -391,6 +391,7 @@ pub enum EventName {
     WeMeetAgain,
     Mushrooms,
     DeadAdventurer,
+    Neow,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -602,6 +603,7 @@ pub enum RelicName {
     RunicPyramid,
     RingOfTheSerpent,
     SacredBark,
+    NeowsLament,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

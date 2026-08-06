@@ -193,6 +193,11 @@ pub fn get_random_potion_name(rng: &mut impl Rng, limited: bool) -> PotionName {
     name
 }
 
+// Uniform over every Potion, ignoring rarity (Neow's potion offer)
+pub fn get_random_potion_name_uniform(rng: &mut impl Rng) -> PotionName {
+    ALL_POTIONS[rng.random_range(0..ALL_POTIONS.len())].potion_name
+}
+
 pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) -> Option<usize> {
     let cap = (slots_max as usize).min(POTION_SLOTS_MAX);
     slots[..cap].iter().position(|s| s.is_none())

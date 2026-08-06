@@ -32,6 +32,7 @@ pub static TRANSMUTATION: Entity = make_entity_card(
             count: 1,
             cost_zero: Some(CostScope::Turn),
             upgraded: false,
+            rarity: None,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -52,6 +53,7 @@ pub static TRANSMUTATION_PLUS: Entity = Entity {
             count: 1,
             cost_zero: Some(CostScope::Turn),
             upgraded: true, // Added Cards are upgraded
+            rarity: None,
         };
         a
     },

@@ -16,9 +16,17 @@ use crate::consts::GOLD_ELITE_MAX;
 use crate::consts::GOLD_ELITE_MIN;
 use crate::consts::GOLD_MONSTER_MAX;
 use crate::consts::GOLD_MONSTER_MIN;
+use crate::cards::POOL_COMMON_GREEN_CARD;
+use crate::cards::POOL_RARE_COLORLESS_CARD;
+use crate::cards::POOL_RARE_GREEN_CARD;
+use crate::cards::POOL_UNCOMMON_COLORLESS_CARD;
+use crate::cards::POOL_UNCOMMON_GREEN_CARD;
+use crate::cards::get_card;
 use crate::consts::MATRYOSHKA_TH_COMMON;
 use crate::consts::MATRYOSHKA_TH_UNCOMMON;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::consts::NEOW_CARD_COUNT;
+use crate::consts::NEOW_UNCOMMON_CHANCE;
 use crate::consts::POTION_DROP_CHANCE_BASE;
 use crate::consts::POTION_DROP_CHANCE_MOD_HIT;
 use crate::consts::POTION_DROP_CHANCE_MOD_MAX;
@@ -31,7 +39,9 @@ use crate::effect::RewardSource;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
+use crate::potions::get_random_potion_name_uniform;
 use crate::relics::get_relic;
+use crate::types::CardName;
 use crate::types::ChestKind;
 use crate::types::Mode;
 use crate::types::RelicName;
@@ -267,10 +277,46 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
             }
         }
 
+        // Neow's card offers: 33% Uncommon else Common, never Rare unless forced;
+        // colorless picks are Uncommon (the source upgrades Common rolls)
+        RewardSource::NeowCards {
+            colorless,
+            rare_only,
+        } => {
+            let mut id_cards: Vec<usize> = Vec::with_capacity(NEOW_CARD_COUNT);
+            let mut rolled_card_names: [CardName; NEOW_CARD_COUNT] =
+                [CardName::Strike; NEOW_CARD_COUNT];
+            for idx in 0..NEOW_CARD_COUNT {
+                let pool: &[CardName] = match (colorless, rare_only) {
+                    (true, true) => POOL_RARE_COLORLESS_CARD,
+                    (true, false) => POOL_UNCOMMON_COLORLESS_CARD,
+                    (false, true) => POOL_RARE_GREEN_CARD,
+                    (false, false) => {
+                        if state.rng.random_bool(NEOW_UNCOMMON_CHANCE) {
+                            POOL_UNCOMMON_GREEN_CARD
+                        } else {
+                            POOL_COMMON_GREEN_CARD
+                        }
+                    }
+                };
+                let mut name = pool[state.rng.random_range(0..pool.len())];
+                while rolled_card_names[..idx].contains(&name) {
+                    name = pool[state.rng.random_range(0..pool.len())];
+                }
+                rolled_card_names[idx] = name;
+                id_cards.push(push_entity(&mut state.entities, get_card(name, false)));
+            }
+            id_card_bundles.push(id_cards);
+        }
+
         // Stage `count` rolled Potions on the reward screen (The Lab, The Woman in Blue)
-        RewardSource::Potions { count } => {
+        RewardSource::Potions { count, uniform } => {
             for _ in 0..count {
-                let potion_name = get_random_potion_name(&mut state.rng, false);
+                let potion_name = if uniform {
+                    get_random_potion_name_uniform(&mut state.rng)
+                } else {
+                    get_random_potion_name(&mut state.rng, false)
+                };
                 let id = push_entity(&mut state.entities, get_potion(potion_name));
                 id_potions.push(id);
             }

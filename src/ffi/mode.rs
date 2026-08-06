@@ -272,8 +272,8 @@ pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {
             options: id_options
                 .iter()
                 .map(|&id| {
-                    state.entities[id]
-                        .event_option_effects
+                    let option = &state.entities[id];
+                    option.event_option_effects[..option.event_option_effects_len as usize]
                         .iter()
                         .map(snapshot_effect)
                         .collect()

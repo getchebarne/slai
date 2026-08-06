@@ -28,8 +28,10 @@ use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
+use crate::relics::POOL_BOSS_RELIC;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
+use crate::relics::POOL_SHOP_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::egg_upgrades_kind;
 use crate::relics::get_relic;
@@ -40,6 +42,7 @@ use crate::types::CardRarity;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
+use crate::types::RelicTier;
 
 // Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
@@ -300,6 +303,35 @@ pub fn pick_relic_by_roll(
             .unwrap_or(RelicName::Circlet)
     } else {
         pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+    }
+}
+
+// Fixed-tier uniform pick, cascading like pick_relic_by_roll when the pool is owned out
+pub fn pick_relic_by_tier(
+    tier: RelicTier,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    rng: &mut impl Rng,
+) -> RelicName {
+    match tier {
+        RelicTier::Common => pick_relic_from_pool(POOL_COMMON_RELIC, id_relics, rng)
+            .or_else(|| pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
+            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
+            .unwrap_or(RelicName::Circlet),
+        RelicTier::Uncommon => pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng)
+            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
+            .unwrap_or(RelicName::Circlet),
+        RelicTier::Rare => {
+            pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        }
+        RelicTier::Boss => {
+            pick_relic_from_pool(POOL_BOSS_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        }
+        RelicTier::Shop => {
+            pick_relic_from_pool(POOL_SHOP_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        }
+        RelicTier::Starter | RelicTier::Special => {
+            unreachable!("No random grants from tier {:?}", tier)
+        }
     }
 }
 
