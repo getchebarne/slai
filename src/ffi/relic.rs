@@ -39,12 +39,14 @@ mirror_enum!(PyRelicTier from RelicTier, "RelicTier", skip_from_py_object, {
 
 #[pyclass(
     skip_from_py_object,
+    eq,
+    hash,
     frozen,
     get_all,
     name = "Relic",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyRelic {
     pub name: PyRelicName,
     pub tier: PyRelicTier,

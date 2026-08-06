@@ -13,7 +13,7 @@ mirror_enum!(PyDeltaSign from DeltaSign, "DeltaSign", skip_from_py_object, {
     Gain, Loss,
 });
 
-flat_variants!(hash PyAmount {
+flat_variants!(PyAmount {
     Absolute => PyAmountAbsolute as "AmountAbsolute" { amount: u16 },
     Relative => PyAmountRelative as "AmountRelative" { numerator: u8, denominator: u8 },
     Range => PyAmountRange as "AmountRange" { min: u16, max: u16 },

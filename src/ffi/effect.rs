@@ -22,7 +22,7 @@ use super::relic::PyRelicName;
 use super::target::PyTarget;
 
 // Mirrors only EffectKind variants reachable from static Card/monster defs; snapshot_effect panics on runtime-only variants
-flat_variants!(hash PyEffect {
+flat_variants!(PyEffect {
     DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, target: Option<PyTarget> },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: Option<PyTarget> },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { target: Option<PyTarget> },
@@ -83,7 +83,6 @@ flat_variants!(hash PyEffect {
     CombatEnd => PyEffectCombatEnd as "EffectCombatEnd" { escaped_character: bool, target: Option<PyTarget> },
 });
 
-// NB: variant order matches the old complex enum — card_identity_hash depends on it
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
     let target = match effect.target {
         Target::Resolve {

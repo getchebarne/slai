@@ -20,7 +20,7 @@ use super::potion::snapshot_potion;
 use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
-flat_variants!(plain PyMode {
+flat_variants!(PyMode {
     Map => PyModeMap as "ModeMap",
     RestSite => PyModeRestSite as "ModeRestSite",
     Chest => PyModeChest as "ModeChest",
@@ -34,12 +34,14 @@ flat_variants!(plain PyMode {
 
 #[pyclass(
     skip_from_py_object,
+    eq,
+    hash,
     frozen,
     get_all,
     name = "Energy",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEnergy {
     pub energy_current: u8,
     pub energy_max: u8,

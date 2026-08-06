@@ -23,10 +23,11 @@ use super::target::PyCandidateFilter;
 // survives for composition, and its IntoPyObject dispatch — whose union OUTPUT_TYPE makes
 // generated stubs type fields as `VariantA | VariantB | ...`
 //
-// `hash` families derive Eq/Hash (their pyclasses are hashable); `plain` families hold PyCard
-// and cannot. `get_all` follows from whether the variant carries fields.
+// Every variant class is frozen with value semantics (eq + hash); `get_all` follows from
+// whether the variant carries fields.
 macro_rules! flat_variants {
-    (@cls hash $cls:ident, $name:literal { $($f:ident : $t:ty),+ $(,)? }) => {
+    // @cls PyAmountAbsolute, "AmountAbsolute" { amount: u16 }
+    (@cls $cls:ident, $name:literal { $($f:ident : $t:ty),+ $(,)? }) => {
         #[pyclass(
             skip_from_py_object,
             eq,
@@ -39,39 +40,20 @@ macro_rules! flat_variants {
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct $cls { $(pub $f: $t,)+ }
     };
-    (@cls hash $cls:ident, $name:literal) => {
+    // @cls PyAmountEventGoldAsk, "AmountEventGoldAsk"
+    (@cls $cls:ident, $name:literal) => {
         #[pyclass(skip_from_py_object, eq, hash, frozen, name = $name, module = "slai.slai")]
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub struct $cls;
     };
-    (@cls plain $cls:ident, $name:literal { $($f:ident : $t:ty),+ $(,)? }) => {
-        #[pyclass(
-            skip_from_py_object,
-            frozen,
-            get_all,
-            name = $name,
-            module = "slai.slai"
-        )]
-        #[derive(Debug, Clone)]
-        pub struct $cls { $(pub $f: $t,)+ }
-    };
-    (@cls plain $cls:ident, $name:literal) => {
-        #[pyclass(skip_from_py_object, frozen, name = $name, module = "slai.slai")]
-        #[derive(Debug, Clone)]
-        pub struct $cls;
-    };
-
-    (@enum hash $enum:ident { $($variant:ident => $cls:ident),+ }) => {
+    // @enum PyAmount { Absolute => PyAmountAbsolute, Range => PyAmountRange }
+    (@enum $enum:ident { $($variant:ident => $cls:ident),+ }) => {
         #[derive(Debug, Clone, PartialEq, Eq, Hash)]
         pub enum $enum { $($variant($cls),)+ }
         flat_variants!(@into $enum { $($variant => $cls),+ });
     };
-    (@enum plain $enum:ident { $($variant:ident => $cls:ident),+ }) => {
-        #[derive(Debug, Clone)]
-        pub enum $enum { $($variant($cls),)+ }
-        flat_variants!(@into $enum { $($variant => $cls),+ });
-    };
 
+    // @into PyAmount { Absolute => PyAmountAbsolute, Range => PyAmountRange }
     (@into $enum:ident { $($variant:ident => $cls:ident),+ }) => {
         impl<'py> IntoPyObject<'py> for $enum {
             type Target = PyAny;
@@ -87,11 +69,11 @@ macro_rules! flat_variants {
         }
     };
 
-    ($mode:tt $enum:ident {
+    ($enum:ident {
         $($variant:ident => $cls:ident as $name:literal $({ $($f:ident : $t:ty),+ $(,)? })?),+ $(,)?
     }) => {
-        $( flat_variants!(@cls $mode $cls, $name $({ $($f: $t),+ })?); )+
-        flat_variants!(@enum $mode $enum { $($variant => $cls),+ });
+        $( flat_variants!(@cls $cls, $name $({ $($f: $t),+ })?); )+
+        flat_variants!(@enum $enum { $($variant => $cls),+ });
     };
 }
 
@@ -117,7 +99,8 @@ macro_rules! mirror_enum {
 // pyo3's derived `hash` runs the discriminant through a hasher, so hash(enum) != hash(int)
 // even though `eq_int` makes enum == int. That violates Python's eq/hash contract and makes
 // these enums silently un-findable in int/IntEnum-keyed dicts. Hash by the raw discriminant
-// so eq and hash agree.
+// so eq and hash agree
+// TODO: revisit if this is necessary
 macro_rules! impl_discriminant_hash {
     ($($ty:ty),+ $(,)?) => {
         $(

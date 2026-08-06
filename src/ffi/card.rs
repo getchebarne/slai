@@ -45,15 +45,13 @@ mirror_enum!(PyCardRarity from CardRarity, "CardRarity", skip_from_py_object, {
     Basic, Common, Uncommon, Rare, Special, Curse,
 });
 
-flat_variants!(hash PyCardCostKind {
+flat_variants!(PyCardCostKind {
     Fixed => PyCardCostKindFixed as "CardCostKindFixed",
     MinusDiscardsThisTurn => PyCardCostKindMinusDiscardsThisTurn as "CardCostKindMinusDiscardsThisTurn",
     GrowsOnDamageInstanceTaken => PyCardCostKindGrowsOnDamageInstanceTaken as "CardCostKindGrowsOnDamageInstanceTaken",
     XCost => PyCardCostKindXCost as "CardCostKindXCost" { offset: i8 },
 });
 
-// NB: variant order and field order must stay byte-identical to the internal
-// enum — card_identity_hash feeds this through derived Hash
 impl From<CardCostKind> for PyCardCostKind {
     fn from(kind: CardCostKind) -> Self {
         match kind {
@@ -104,12 +102,14 @@ mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
 // Exposed structs
 #[pyclass(
     skip_from_py_object,
+    eq,
+    hash,
     frozen,
     get_all,
     name = "Card",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyCard {
     pub name: PyCardName,
     pub display_name: String,
@@ -140,13 +140,8 @@ pub struct PyCard {
 
     // Effects. Snapshot copy: DamagePhysical / BlockGain amounts carry the current player-modifier
     // adjustment (Str/Vigor/Weak/DoubleDamage, Dex/Frail), target-agnostic, so clients read finished
-    // combat values. This makes identity_hash (which hashes effects) vary with combat modifiers.
+    // combat values. This makes hash(card) (which hashes effects) vary with combat modifiers.
     pub effects: Vec<PyEffect>,
-
-    // Fingerprint over every snapshot field above except display_name (derived from
-    // name+upgraded): one u64 getter replaces a per-field FFI walk for clients that
-    // key caches/dedup on Card identity. Deterministic across processes.
-    pub identity_hash: u64,
 }
 
 // Display-name lookups
@@ -373,7 +368,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     } else {
         base.to_string()
     };
-    let mut py_card = PyCard {
+    let py_card = PyCard {
         name: card.card_name.into(),
         display_name,
         cost: get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
@@ -394,36 +389,6 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         retain: card.card_retain,
         playable: restriction_ok && !entangled_blocks,
         effects: snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers),
-        identity_hash: 0,
     };
-    py_card.identity_hash = card_identity_hash(&py_card);
     py_card
-}
-
-// Fingerprint over the snapshot fields clients key identity on. DefaultHasher::new()
-// uses fixed keys, so the value is deterministic across processes.
-fn card_identity_hash(card: &PyCard) -> u64 {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::Hash;
-    use std::hash::Hasher;
-    let mut h = DefaultHasher::new();
-    card.name.hash(&mut h);
-    card.kind.hash(&mut h);
-    card.color.hash(&mut h);
-    card.rarity.hash(&mut h);
-    card.cost_kind.hash(&mut h);
-    card.cost.hash(&mut h);
-    card.cost_base.hash(&mut h);
-    card.cost_override_scope.hash(&mut h);
-    card.cost_override.hash(&mut h);
-    card.upgraded.hash(&mut h);
-    card.exhaust.hash(&mut h);
-    card.innate.hash(&mut h);
-    card.bottled.hash(&mut h);
-    card.ethereal.hash(&mut h);
-    card.retain.hash(&mut h);
-    card.requires_target.hash(&mut h);
-    card.playable.hash(&mut h);
-    card.effects.hash(&mut h);
-    h.finish()
 }

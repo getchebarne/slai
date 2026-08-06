@@ -10,7 +10,7 @@ use crate::effect::SelectionKind;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
-flat_variants!(hash PyCandidatePool {
+flat_variants!(PyCandidatePool {
     Hand => PyCandidatePoolHand as "CandidatePoolHand",
     Character => PyCandidatePoolCharacter as "CandidatePoolCharacter",
     Monsters => PyCandidatePoolMonsters as "CandidatePoolMonsters",
@@ -47,7 +47,7 @@ mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", skip_fro
     KindPower, Costed, Picked, NotSource,
 });
 
-flat_variants!(hash PySelectionKind {
+flat_variants!(PySelectionKind {
     All => PySelectionKindAll as "SelectionKindAll",
     Single => PySelectionKindSingle as "SelectionKindSingle",
     Random => PySelectionKindRandom as "SelectionKindRandom" { count: u8 },

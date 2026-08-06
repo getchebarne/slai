@@ -12,7 +12,7 @@ use super::macros::flat_variants;
 use super::potion::PyPotion;
 use super::potion::snapshot_potion;
 
-flat_variants!(plain PyEventKind {
+flat_variants!(PyEventKind {
     BigFish => PyEventKindBigFish as "EventKindBigFish",
     TheCleric => PyEventKindTheCleric as "EventKindTheCleric",
     Duplicator => PyEventKindDuplicator as "EventKindDuplicator",

@@ -34,12 +34,14 @@ impl PyModifierKind {
 
 #[pyclass(
     skip_from_py_object,
+    eq,
+    hash,
     frozen,
     get_all,
     name = "Modifier",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyModifier {
     pub kind: PyModifierKind,
     pub stacks: i16,

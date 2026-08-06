@@ -80,12 +80,14 @@ impl From<Intent> for PyIntentKind {
 
 #[pyclass(
     skip_from_py_object,
+    eq,
+    hash,
     frozen,
     get_all,
     name = "Intent",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyIntent {
     pub kind: PyIntentKind,
     pub damage: Option<u16>,
@@ -94,12 +96,14 @@ pub struct PyIntent {
 
 #[pyclass(
     skip_from_py_object,
+    eq,
+    hash,
     frozen,
     get_all,
     name = "Monster",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyMonster {
     pub name: PyMonsterName,
     pub display_name: String,
