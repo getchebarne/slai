@@ -52,7 +52,7 @@ const OPTION_BOX: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::RelicGrantRandom,
+        kind: EffectKind::RelicGrantRandom { tier: None },
         id_source: None,
         target: Target::Direct(None),
     },

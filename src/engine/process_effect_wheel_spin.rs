@@ -26,7 +26,7 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
             target: Target::Direct(None),
         },
         1 => Effect {
-            kind: EffectKind::RelicGrantRandom,
+            kind: EffectKind::RelicGrantRandom { tier: None },
             id_source: None,
             target: Target::Direct(None),
         },

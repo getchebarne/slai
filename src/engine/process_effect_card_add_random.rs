@@ -9,12 +9,14 @@ use crate::entity::Entity;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;
+use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
 use crate::utils::place_card;
 use crate::utils::push_entity;
 
+#[allow(clippy::too_many_arguments)]
 pub fn process_effect_card_add_random(
     state: &mut GameState,
     color: CardColor,
@@ -23,15 +25,26 @@ pub fn process_effect_card_add_random(
     count: u8,
     cost_zero: Option<CostScope>,
     upgraded: bool,
+    rarity: Option<CardRarity>,
 ) {
     let pool: Vec<&Entity> = ALL_CARDS
         .iter()
         .filter(|c| c.card_color == color)
         .filter(|c| kind.is_none_or(|k| c.card_kind == k))
         .filter(|c| {
-            matches!(
-                c.card_rarity,
-                CardRarity::Common | CardRarity::Uncommon | CardRarity::Rare
+            rarity.map_or(
+                matches!(
+                    c.card_rarity,
+                    CardRarity::Common | CardRarity::Uncommon | CardRarity::Rare
+                ),
+                |r| c.card_rarity == r,
+            )
+        })
+        // Neow/event-only Curses stay out of random adds, mirroring in_pool
+        .filter(|c| {
+            !matches!(
+                c.card_name,
+                CardName::AscendersBane | CardName::CurseOfTheBell
             )
         })
         .map(|c| &**c)

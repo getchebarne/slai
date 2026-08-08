@@ -31,6 +31,7 @@ pub static JACK_OF_ALL_TRADES: Entity = make_entity_card(
             count: 1,
             cost_zero: None,
             upgraded: false,
+            rarity: None,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -51,6 +52,7 @@ pub static JACK_OF_ALL_TRADES_PLUS: Entity = Entity {
             count: 2, // +1 Card
             cost_zero: None,
             upgraded: false,
+            rarity: None,
         };
         a
     },

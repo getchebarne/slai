@@ -27,8 +27,9 @@ use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
-use crate::events::POOL_ACT1_EVENT;
-use crate::events::POOL_ACT1_EVENT_SPECIAL;
+use crate::events::POOL_EVENT_ACT1;
+use crate::events::POOL_EVENT_ACT1_SPECIAL;
+use crate::events::spawn_event;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act1_monsters;
 use crate::monsters::encounters::pick_act1_boss;
@@ -107,10 +108,13 @@ pub struct GameState {
 
     // When set, step auto-applies any forced move (exactly one legal action) until a real choice appears
     pub fast_mode: bool,
+
+    // When set, the run opens on Neow's blessing before the first map pick
+    pub neow: bool,
 }
 
 // Create and initialize
-pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState {
+pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) -> GameState {
     let mut rng = SmallRng::seed_from_u64(seed);
 
     // Initialize empty entities arena
@@ -180,17 +184,28 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool) -> GameState
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
-        pool_events: POOL_ACT1_EVENT.to_vec(),
-        pool_event_special: POOL_ACT1_EVENT_SPECIAL.to_vec(),
+        pool_events: POOL_EVENT_ACT1.to_vec(),
+        pool_event_special: POOL_EVENT_ACT1_SPECIAL.to_vec(),
         potion_drop_mod: 0,
         mode_stack: vec![Mode::Map],
         game_over: false,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,
         legal_actions: Vec::new(),
         fast_mode,
+        neow,
     };
 
-    // Settle on Mode::Map — enumerate the initial row-0 room picks
+    // Neow's blessing rests over the Map frame at Location::Start
+    if neow {
+        let (kind, id_options) = spawn_event(&mut state, EventName::Neow);
+        state.mode_stack.push(Mode::Event {
+            kind,
+            consumed: false,
+            id_options,
+        });
+    }
+
+    // Settle on the resting frame — Neow's options, or the initial row-0 room picks
     recompute_legal_actions(&mut state);
     state
 }

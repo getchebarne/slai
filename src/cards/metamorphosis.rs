@@ -32,6 +32,7 @@ pub static METAMORPHOSIS: Entity = make_entity_card(
             count: 3,
             cost_zero: Some(CostScope::Combat),
             upgraded: false,
+            rarity: None,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -52,6 +53,7 @@ pub static METAMORPHOSIS_PLUS: Entity = Entity {
             count: 5, // +2 Cards
             cost_zero: Some(CostScope::Combat),
             upgraded: false,
+            rarity: None,
         };
         a
     },

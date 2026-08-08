@@ -3,6 +3,7 @@
 use strum::EnumCount;
 
 use crate::consts::MAX_EFFECTS_PER_CARD;
+use crate::consts::MAX_EFFECTS_PER_EVENT_OPTION;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::consts::MAX_MOVES_PER_MONSTER;
@@ -169,7 +170,8 @@ pub struct Entity {
 
     // EventOption-only
     pub event_option_label: &'static str,
-    pub event_option_effects: &'static [Effect],
+    pub event_option_effects: [Effect; MAX_EFFECTS_PER_EVENT_OPTION],
+    pub event_option_effects_len: u8,
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots
@@ -227,7 +229,8 @@ pub const ZERO_ENTITY: Entity = Entity {
     potion_combat_only: true,
     potion_effects: &[],
     event_option_label: "",
-    event_option_effects: &[],
+    event_option_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_EVENT_OPTION],
+    event_option_effects_len: 0,
 };
 
 pub fn get_card_effective_cost(

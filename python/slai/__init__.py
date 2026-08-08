@@ -256,6 +256,8 @@ EffectCardTransform = _rs.EffectCardTransform
 EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
 EffectGamble = _rs.EffectGamble
 EffectCombatEnd = _rs.EffectCombatEnd
+EffectRelicLose = _rs.EffectRelicLose
+EffectRewardRollNeowCards = _rs.EffectRewardRollNeowCards
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -315,6 +317,8 @@ Effect = (
     | EffectCardPlayFromDrawTop
     | EffectGamble
     | EffectCombatEnd
+    | EffectRelicLose
+    | EffectRewardRollNeowCards
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -415,6 +419,7 @@ EventKindGoldenIdol = _rs.EventKindGoldenIdol
 EventKindScrapOoze = _rs.EventKindScrapOoze
 EventKindWeMeetAgain = _rs.EventKindWeMeetAgain
 EventKindDeadAdventurer = _rs.EventKindDeadAdventurer
+EventKindNeow = _rs.EventKindNeow
 EventKind = (
     EventKindBigFish
     | EventKindTheCleric
@@ -440,6 +445,7 @@ EventKind = (
     | EventKindScrapOoze
     | EventKindWeMeetAgain
     | EventKindDeadAdventurer
+    | EventKindNeow
 )
 
 DeltaSign = _rs.DeltaSign
@@ -471,6 +477,7 @@ EVENT_KIND_ORDER: tuple[type, ...] = (
     EventKindScrapOoze,
     EventKindWeMeetAgain,
     EventKindDeadAdventurer,
+    EventKindNeow,
 )
 
 
@@ -597,6 +604,8 @@ __all__ = [
     "EffectCardPlayFromDrawTop",
     "EffectGamble",
     "EffectCombatEnd",
+    "EffectRelicLose",
+    "EffectRewardRollNeowCards",
     "Amount",
     "AmountAbsolute",
     "AmountRelative",
@@ -637,6 +646,7 @@ __all__ = [
     "EventKindScrapOoze",
     "EventKindWeMeetAgain",
     "EventKindDeadAdventurer",
+    "EventKindNeow",
     "EVENT_KIND_ORDER",
     "DeltaSign",
     # Potion

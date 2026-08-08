@@ -14,7 +14,10 @@ const fn search(count: u8) -> [Effect; 2] {
         EVENT_CONSUME_EFFECT,
         Effect {
             kind: EffectKind::RewardRoll {
-                source: RewardSource::Potions { count },
+                source: RewardSource::Potions {
+                    count,
+                    uniform: false,
+                },
             },
             id_source: None,
             target: Target::Direct(None),

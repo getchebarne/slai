@@ -6,6 +6,9 @@ pub const MAX_EFFECTS_PER_CARD: usize = 8;
 // Per-move effect array cap; Hexaghost's Inferno is the 7-effect maximum
 pub const MAX_EFFECTS_PER_MOVE: usize = 7;
 
+// Per-event-option effect array cap; Mushrooms' Stomp is the 5-effect maximum
+pub const MAX_EFFECTS_PER_EVENT_OPTION: usize = 5;
+
 // Per-monster move array cap; Hexaghost and The Guardian have 7
 pub const MAX_MOVES_PER_MONSTER: usize = 7;
 pub const STARTING_GOLD: u16 = 99;
@@ -120,6 +123,14 @@ pub const POTION_TH_UNCOMMON: u8 = 90;
 
 // Discovery: number of Card options offered
 pub const DISCOVER_PICK_COUNT: u8 = 3;
+
+// Neow: cards per offer, 33% Uncommon-else-Common roll, gold amounts, Lament charge count
+pub const NEOW_CARD_COUNT: usize = 3;
+pub const NEOW_POTION_COUNT: u8 = 3;
+pub const NEOW_UNCOMMON_CHANCE: f64 = 0.33;
+pub const NEOW_GOLD_SMALL: u16 = 100;
+pub const NEOW_GOLD_LARGE: u16 = 250;
+pub const NEOW_LAMENT_COMBATS: i16 = 3;
 
 // Shop pricing — Cards: base x U[0.9, 1.1], colorless x 1.2
 pub const SHOP_PRICE_CARD_COMMON: u16 = 50;

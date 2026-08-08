@@ -37,6 +37,7 @@ flat_variants!(PyEventKind {
     ScrapOoze => PyEventKindScrapOoze as "EventKindScrapOoze" { attempts: u8 },
     WeMeetAgain => PyEventKindWeMeetAgain as "EventKindWeMeetAgain" { pick_card: Option<PyCard>, pick_potion: Option<PyPotion>, gold_ask: Option<u16> },
     DeadAdventurer => PyEventKindDeadAdventurer as "EventKindDeadAdventurer" { found_gold: bool, found_nothing: bool, found_relic: bool, searches: u8 },
+    Neow => PyEventKindNeow as "EventKindNeow",
 });
 
 pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEventKind {
@@ -87,5 +88,6 @@ pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEvent
             found_relic,
             searches,
         }),
+        EventKind::Neow => PyEventKind::Neow(PyEventKindNeow),
     }
 }

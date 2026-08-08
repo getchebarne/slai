@@ -7,6 +7,7 @@ use crate::game::Location;
 use crate::map::room_at_mut;
 use crate::types::CardColor;
 use crate::types::CardPile;
+use crate::types::CardRarity;
 use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -36,6 +37,7 @@ pub fn process_effect_chest_open(state: &mut GameState) {
                 count: 1,
                 cost_zero: None,
                 upgraded: false,
+                rarity: Some(CardRarity::Curse),
             },
             id_source: None,
             target: Target::Direct(None),

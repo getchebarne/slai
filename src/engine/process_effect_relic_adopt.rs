@@ -12,6 +12,7 @@ use crate::effect::EffectKind;
 use crate::effect::RewardSource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::events::EventKind;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
@@ -163,10 +164,19 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
 
         // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare Relic
         RelicName::CallingBell => {
-            // The bell arrives from a reward screen; its three staged Relics replace it
+            // The bell arrives from a reward screen or Neow's consumed blessing; its
+            // three staged Relics replace that frame
             assert!(
-                matches!(mode_top(&state.mode_stack), Mode::Reward { .. }),
-                "Calling Bell adopts from a reward screen"
+                matches!(
+                    mode_top(&state.mode_stack),
+                    Mode::Reward { .. }
+                        | Mode::Event {
+                            kind: EventKind::Neow,
+                            consumed: true,
+                            ..
+                        }
+                ),
+                "Calling Bell adopts from a reward screen or Neow"
             );
 
             // Roll one Relic for each rarity
@@ -241,6 +251,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             state,
             RewardSource::Potions {
                 count: CAULDRON_POTION_COUNT as u8,
+                uniform: false,
             },
         ),
         _ => {}

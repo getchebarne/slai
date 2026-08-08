@@ -333,7 +333,8 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
     };
     let id_option = id_options[idx];
     let effects = state.entities[id_option].event_option_effects;
-    for effect in effects {
+    let effects_len = state.entities[id_option].event_option_effects_len as usize;
+    for effect in &effects[..effects_len] {
         state.effect_buf.push(Effect {
             id_source: Some(id_option),
             ..*effect
@@ -469,7 +470,7 @@ fn handle_rest_toke(state: &mut GameState) {
 // Shovel: spend the rest on a random Relic (granted directly, not staged)
 fn handle_rest_dig(state: &mut GameState) {
     state.effect_buf.push(Effect {
-        kind: EffectKind::RelicGrantRandom,
+        kind: EffectKind::RelicGrantRandom { tier: None },
         id_source: None,
         target: Target::Direct(None),
     });
