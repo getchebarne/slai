@@ -8,296 +8,35 @@ use crate::game::GameState;
 
 use super::card::PyCard;
 use super::card::snapshot_card;
-use super::macros::variant_union;
+use super::macros::flat_variants;
 use super::potion::PyPotion;
 use super::potion::snapshot_potion;
 
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindBigFish",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindBigFish;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindTheCleric",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindTheCleric;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindDuplicator",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindDuplicator;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindGoldenShrine",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindGoldenShrine;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindWingStatue",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindWingStatue;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindWorldOfGoop",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindWorldOfGoop;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindLivingWall",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindLivingWall;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindPurifier",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindPurifier;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindShiningLight",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindShiningLight;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindTheSsssserpent",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindTheSsssserpent;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindTransmogrifier",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindTransmogrifier;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindUpgradeShrine",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindUpgradeShrine;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindTheDivineFountain",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindTheDivineFountain;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindTheLab",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindTheLab;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindTheWomanInBlue",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindTheWomanInBlue;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindWheelOfChange",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindWheelOfChange;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindBonfireSpirits",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindBonfireSpirits;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindOminousForge",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindOminousForge;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindFaceTrader",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindFaceTrader;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    name = "EventKindMushrooms",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindMushrooms;
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "EventKindGoldenIdol",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindGoldenIdol {
-    pub stage: u8,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "EventKindScrapOoze",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindScrapOoze {
-    pub attempts: u8,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "EventKindWeMeetAgain",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindWeMeetAgain {
-    pub pick_card: Option<PyCard>,
-    pub pick_potion: Option<PyPotion>,
-    pub gold_ask: Option<u16>,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    frozen,
-    get_all,
-    name = "EventKindDeadAdventurer",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone)]
-pub struct PyEventKindDeadAdventurer {
-    pub found_gold: bool,
-    pub found_nothing: bool,
-    pub found_relic: bool,
-    pub searches: u8,
-}
-
-#[derive(Debug, Clone)]
-pub enum PyEventKind {
-    BigFish(PyEventKindBigFish),
-    TheCleric(PyEventKindTheCleric),
-    Duplicator(PyEventKindDuplicator),
-    GoldenShrine(PyEventKindGoldenShrine),
-    WingStatue(PyEventKindWingStatue),
-    WorldOfGoop(PyEventKindWorldOfGoop),
-    LivingWall(PyEventKindLivingWall),
-    Purifier(PyEventKindPurifier),
-    ShiningLight(PyEventKindShiningLight),
-    TheSsssserpent(PyEventKindTheSsssserpent),
-    Transmogrifier(PyEventKindTransmogrifier),
-    UpgradeShrine(PyEventKindUpgradeShrine),
-    TheDivineFountain(PyEventKindTheDivineFountain),
-    TheLab(PyEventKindTheLab),
-    TheWomanInBlue(PyEventKindTheWomanInBlue),
-    WheelOfChange(PyEventKindWheelOfChange),
-    BonfireSpirits(PyEventKindBonfireSpirits),
-    OminousForge(PyEventKindOminousForge),
-    FaceTrader(PyEventKindFaceTrader),
-    Mushrooms(PyEventKindMushrooms),
-    GoldenIdol(PyEventKindGoldenIdol),
-    ScrapOoze(PyEventKindScrapOoze),
-    WeMeetAgain(PyEventKindWeMeetAgain),
-    DeadAdventurer(PyEventKindDeadAdventurer),
-}
-
-variant_union!(PyEventKind {
-    BigFish => PyEventKindBigFish,
-    TheCleric => PyEventKindTheCleric,
-    Duplicator => PyEventKindDuplicator,
-    GoldenShrine => PyEventKindGoldenShrine,
-    WingStatue => PyEventKindWingStatue,
-    WorldOfGoop => PyEventKindWorldOfGoop,
-    LivingWall => PyEventKindLivingWall,
-    Purifier => PyEventKindPurifier,
-    ShiningLight => PyEventKindShiningLight,
-    TheSsssserpent => PyEventKindTheSsssserpent,
-    Transmogrifier => PyEventKindTransmogrifier,
-    UpgradeShrine => PyEventKindUpgradeShrine,
-    TheDivineFountain => PyEventKindTheDivineFountain,
-    TheLab => PyEventKindTheLab,
-    TheWomanInBlue => PyEventKindTheWomanInBlue,
-    WheelOfChange => PyEventKindWheelOfChange,
-    BonfireSpirits => PyEventKindBonfireSpirits,
-    OminousForge => PyEventKindOminousForge,
-    FaceTrader => PyEventKindFaceTrader,
-    Mushrooms => PyEventKindMushrooms,
-    GoldenIdol => PyEventKindGoldenIdol,
-    ScrapOoze => PyEventKindScrapOoze,
-    WeMeetAgain => PyEventKindWeMeetAgain,
-    DeadAdventurer => PyEventKindDeadAdventurer,
+flat_variants!(PyEventKind {
+    BigFish => PyEventKindBigFish as "EventKindBigFish",
+    TheCleric => PyEventKindTheCleric as "EventKindTheCleric",
+    Duplicator => PyEventKindDuplicator as "EventKindDuplicator",
+    GoldenShrine => PyEventKindGoldenShrine as "EventKindGoldenShrine",
+    WingStatue => PyEventKindWingStatue as "EventKindWingStatue",
+    WorldOfGoop => PyEventKindWorldOfGoop as "EventKindWorldOfGoop",
+    LivingWall => PyEventKindLivingWall as "EventKindLivingWall",
+    Purifier => PyEventKindPurifier as "EventKindPurifier",
+    ShiningLight => PyEventKindShiningLight as "EventKindShiningLight",
+    TheSsssserpent => PyEventKindTheSsssserpent as "EventKindTheSsssserpent",
+    Transmogrifier => PyEventKindTransmogrifier as "EventKindTransmogrifier",
+    UpgradeShrine => PyEventKindUpgradeShrine as "EventKindUpgradeShrine",
+    TheDivineFountain => PyEventKindTheDivineFountain as "EventKindTheDivineFountain",
+    TheLab => PyEventKindTheLab as "EventKindTheLab",
+    TheWomanInBlue => PyEventKindTheWomanInBlue as "EventKindTheWomanInBlue",
+    WheelOfChange => PyEventKindWheelOfChange as "EventKindWheelOfChange",
+    BonfireSpirits => PyEventKindBonfireSpirits as "EventKindBonfireSpirits",
+    OminousForge => PyEventKindOminousForge as "EventKindOminousForge",
+    FaceTrader => PyEventKindFaceTrader as "EventKindFaceTrader",
+    Mushrooms => PyEventKindMushrooms as "EventKindMushrooms",
+    GoldenIdol => PyEventKindGoldenIdol as "EventKindGoldenIdol" { stage: u8 },
+    ScrapOoze => PyEventKindScrapOoze as "EventKindScrapOoze" { attempts: u8 },
+    WeMeetAgain => PyEventKindWeMeetAgain as "EventKindWeMeetAgain" { pick_card: Option<PyCard>, pick_potion: Option<PyPotion>, gold_ask: Option<u16> },
+    DeadAdventurer => PyEventKindDeadAdventurer as "EventKindDeadAdventurer" { found_gold: bool, found_nothing: bool, found_relic: bool, searches: u8 },
 });
 
 pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEventKind {

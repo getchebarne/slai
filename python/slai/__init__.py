@@ -113,11 +113,7 @@ _SHOP_POTION_POS = "position in state.mode_stack[-1].potions"
 # Action spec registry
 ACTION_SPEC_REGISTRY = ActionSpecRegistry(
     [
-        create_action_spec(
-            ActionType.CardBottle,
-            ArgSpec("idx_kind", "CardKind discriminant of the pending bottle"),
-            ArgSpec("idx_card", _DECK_POS),
-        ),
+        create_action_spec(ActionType.CardBottle, ArgSpec("idx_card", _DECK_POS)),
         create_action_spec(ActionType.CardDiscover, ArgSpec("idx", _DISCOVER_POS)),
         create_action_spec(
             ActionType.CardPlay,

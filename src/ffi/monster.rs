@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
 
+use super::macros::mirror_enum;
+
 use crate::entity::Intent;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -18,135 +20,18 @@ use crate::utils::weak_factor;
 use super::modifier::PyModifier;
 use super::modifier::snapshot_modifiers;
 
-#[pyclass(
-    from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "MonsterName",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyMonsterName {
-    Cultist,
-    FungiBeast,
-    GremlinFat,
-    GremlinNob,
-    GremlinThief,
-    GremlinTsundere,
-    GremlinWarrior,
-    GremlinWizard,
-    Hexaghost,
-    JawWorm,
-    Lagavulin,
-    Looter,
-    LouseDefensive,
-    LouseNormal,
-    Sentry,
-    SlaverBlue,
-    SlaverRed,
-    SlimeAcidLarge,
-    SlimeAcidMedium,
-    SlimeAcidSmall,
-    SlimeBoss,
-    SlimeSpikeLarge,
-    SlimeSpikeMedium,
-    SlimeSpikeSmall,
-    TheGuardian,
-}
+mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
+    Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
+    GremlinWizard, Hexaghost, JawWorm, Lagavulin, Looter, LouseDefensive, LouseNormal, Sentry,
+    SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
+    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian,
+});
 
-impl From<MonsterName> for PyMonsterName {
-    fn from(name: MonsterName) -> Self {
-        match name {
-            MonsterName::Cultist => Self::Cultist,
-            MonsterName::FungiBeast => Self::FungiBeast,
-            MonsterName::GremlinFat => Self::GremlinFat,
-            MonsterName::GremlinNob => Self::GremlinNob,
-            MonsterName::GremlinThief => Self::GremlinThief,
-            MonsterName::GremlinTsundere => Self::GremlinTsundere,
-            MonsterName::GremlinWarrior => Self::GremlinWarrior,
-            MonsterName::GremlinWizard => Self::GremlinWizard,
-            MonsterName::Hexaghost => Self::Hexaghost,
-            MonsterName::JawWorm => Self::JawWorm,
-            MonsterName::Lagavulin => Self::Lagavulin,
-            MonsterName::Looter => Self::Looter,
-            MonsterName::LouseDefensive => Self::LouseDefensive,
-            MonsterName::LouseNormal => Self::LouseNormal,
-            MonsterName::Sentry => Self::Sentry,
-            MonsterName::SlaverBlue => Self::SlaverBlue,
-            MonsterName::SlaverRed => Self::SlaverRed,
-            MonsterName::SlimeAcidLarge => Self::SlimeAcidLarge,
-            MonsterName::SlimeAcidMedium => Self::SlimeAcidMedium,
-            MonsterName::SlimeAcidSmall => Self::SlimeAcidSmall,
-            MonsterName::SlimeBoss => Self::SlimeBoss,
-            MonsterName::SlimeSpikeLarge => Self::SlimeSpikeLarge,
-            MonsterName::SlimeSpikeMedium => Self::SlimeSpikeMedium,
-            MonsterName::SlimeSpikeSmall => Self::SlimeSpikeSmall,
-            MonsterName::TheGuardian => Self::TheGuardian,
-        }
-    }
-}
-
-#[pyclass(
-    from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "MonsterEncounter",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyMonsterEncounter {
-    Cultist,
-    JawWorm,
-    TwoLouse,
-    SmallSlimes,
-    BlueSlaver,
-    RedSlaver,
-    Looter,
-    TwoFungiBeasts,
-    ThreeLouse,
-    LargeSlime,
-    LotsOfSlimes,
-    GremlinGang,
-    ExordiumThugs,
-    ExordiumWildlife,
-    GremlinNob,
-    Lagavulin,
-    ThreeSentries,
-    TheGuardian,
-    Hexaghost,
-    SlimeBoss,
-    ThreeFungiBeasts,
-}
-
-impl From<MonsterEncounter> for PyMonsterEncounter {
-    fn from(e: MonsterEncounter) -> Self {
-        match e {
-            MonsterEncounter::Cultist => Self::Cultist,
-            MonsterEncounter::JawWorm => Self::JawWorm,
-            MonsterEncounter::TwoLouse => Self::TwoLouse,
-            MonsterEncounter::SmallSlimes => Self::SmallSlimes,
-            MonsterEncounter::BlueSlaver => Self::BlueSlaver,
-            MonsterEncounter::RedSlaver => Self::RedSlaver,
-            MonsterEncounter::Looter => Self::Looter,
-            MonsterEncounter::TwoFungiBeasts => Self::TwoFungiBeasts,
-            MonsterEncounter::ThreeLouse => Self::ThreeLouse,
-            MonsterEncounter::LargeSlime => Self::LargeSlime,
-            MonsterEncounter::LotsOfSlimes => Self::LotsOfSlimes,
-            MonsterEncounter::GremlinGang => Self::GremlinGang,
-            MonsterEncounter::ExordiumThugs => Self::ExordiumThugs,
-            MonsterEncounter::ExordiumWildlife => Self::ExordiumWildlife,
-            MonsterEncounter::GremlinNob => Self::GremlinNob,
-            MonsterEncounter::Lagavulin => Self::Lagavulin,
-            MonsterEncounter::ThreeSentries => Self::ThreeSentries,
-            MonsterEncounter::TheGuardian => Self::TheGuardian,
-            MonsterEncounter::Hexaghost => Self::Hexaghost,
-            MonsterEncounter::SlimeBoss => Self::SlimeBoss,
-            MonsterEncounter::ThreeFungiBeasts => Self::ThreeFungiBeasts,
-        }
-    }
-}
+mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_py_object, {
+    Cultist, JawWorm, TwoLouse, SmallSlimes, BlueSlaver, RedSlaver, Looter, TwoFungiBeasts,
+    ThreeLouse, LargeSlime, LotsOfSlimes, GremlinGang, ExordiumThugs, ExordiumWildlife,
+    GremlinNob, Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts,
+});
 
 #[pyclass(
     from_py_object,
@@ -193,34 +78,32 @@ impl From<Intent> for PyIntentKind {
     }
 }
 
-#[pyclass(from_py_object, frozen, get_all, name = "Intent", module = "slai.slai")]
-#[derive(Debug, Clone)]
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "Intent",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyIntent {
     pub kind: PyIntentKind,
     pub damage: Option<u16>,
     pub instances: Option<u8>,
 }
 
-#[pymethods]
-impl PyIntent {
-    #[new]
-    fn new(kind: PyIntentKind, damage: Option<u16>, instances: Option<u8>) -> Self {
-        Self {
-            kind,
-            damage,
-            instances,
-        }
-    }
-}
-
 #[pyclass(
     skip_from_py_object,
+    eq,
+    hash,
     frozen,
     get_all,
     name = "Monster",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyMonster {
     pub name: PyMonsterName,
     pub display_name: String,
@@ -229,30 +112,6 @@ pub struct PyMonster {
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
     pub intent: PyIntent,
-}
-
-#[pymethods]
-impl PyMonster {
-    #[new]
-    fn new(
-        name: PyMonsterName,
-        display_name: String,
-        health: u16,
-        health_max: u16,
-        block: u16,
-        modifiers: Vec<PyModifier>,
-        intent: PyIntent,
-    ) -> Self {
-        Self {
-            name,
-            display_name,
-            health,
-            health_max,
-            block,
-            modifiers,
-            intent,
-        }
-    }
 }
 
 impl MonsterName {
