@@ -85,6 +85,7 @@ pub mod process_effect_shuffle_discard_pile_into_draw_pile;
 pub mod process_effect_singing_bowl_proc;
 pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_storm_of_steel_proc;
+pub mod process_effect_strength_lose_temp;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
@@ -179,6 +180,7 @@ use self::process_effect_shuffle_discard_pile_into_draw_pile::process_effect_shu
 use self::process_effect_singing_bowl_proc::process_effect_singing_bowl_proc;
 use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
+use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
 use self::process_effect_target_clear::process_effect_target_clear;
 use self::process_effect_target_set::process_effect_target_set;
 use self::process_effect_turn_end::process_effect_turn_end_character;
@@ -527,6 +529,9 @@ fn dispatch_by_kind(
         EffectKind::StormOfSteelProc { upgraded } => {
             process_effect_storm_of_steel_proc(state, upgraded)
         }
+        EffectKind::StrengthLoseTemp { stacks } => {
+            process_effect_strength_lose_temp(id_target, state, stacks)
+        }
         EffectKind::UnloadDiscard => process_effect_unload_discard(state),
         EffectKind::DamageDeal { amount } => {
             process_effect_damage_deal(id_source, id_target, state, amount)
@@ -712,12 +717,14 @@ fn ensure_mode_validity(state: &GameState) {
             matches!(room_kind, Some(RoomKind::Treasure | RoomKind::Unknown))
                 && room.is_some_and(|room| room.room_chest_opened)
         }
+
         // Neow rests over Location::Start, before any room exists
         Mode::Event {
             kind: EventKind::Neow,
             ..
         } => state.location == Location::Start,
         Mode::Event { .. } => matches!(room_kind, Some(RoomKind::EventRoom | RoomKind::Unknown)),
+
         // "?" rooms keep RoomKind::Unknown on the map after resolving
         Mode::Shop { .. } => matches!(room_kind, Some(RoomKind::Shop | RoomKind::Unknown)),
         Mode::Combat { .. } | Mode::CombatEnded => matches!(
@@ -730,6 +737,7 @@ fn ensure_mode_validity(state: &GameState) {
                     | RoomKind::Unknown
             )
         ),
+
         // RestSite: Dream Catcher's rest reward; Location::Start: Neow's staged offers
         Mode::Reward { .. } => {
             matches!(

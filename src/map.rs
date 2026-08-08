@@ -16,6 +16,7 @@ use crate::entity::ZERO_ENTITY;
 use crate::game::Location;
 use crate::types::RoomKind;
 use crate::utils::push_entity;
+use crate::utils::shuffle;
 
 // Intermediate grid-cell; converted to Entity via entitize_map after finalization
 #[derive(Debug, Clone, Copy)]
@@ -130,8 +131,18 @@ fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
         }
     }
 
+    // Pre-trim row-0 edges define parenthood for row 1: the source keeps stale
+    // parent links after redundant-edge removal, and their surviving children
+    // still count as siblings during room-kind assignment
+    let mut edges_row0_pretrim = [0u8; MAP_WIDTH];
+    for (x, node) in nodes[0].iter().enumerate() {
+        if let Some(node) = node {
+            edges_row0_pretrim[x] = node.edges;
+        }
+    }
+
     trim_redundant_first_row_edges(&mut nodes);
-    assign_room_kinds(&mut nodes, rng, ascension);
+    assign_room_kinds(&mut nodes, rng, ascension, &edges_row0_pretrim);
 
     nodes
 }
@@ -274,7 +285,46 @@ fn trim_redundant_first_row_edges(nodes: &mut Grid) {
     }
 }
 
-fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
+const ELITE_MIN_Y: usize = 5;
+const REST_MIN_Y: usize = 5;
+const REST_MAX_Y_EXCL: usize = 13;
+
+fn rule_row_ok(kind: RoomKind, y: usize) -> bool {
+    match kind {
+        RoomKind::CombatElite => y >= ELITE_MIN_Y,
+        RoomKind::RestSite => y >= REST_MIN_Y && y < REST_MAX_Y_EXCL,
+        _ => true,
+    }
+}
+
+// Vanilla parent-rule kinds (Treasure is listed too but never drawable)
+fn rule_parent_applies(kind: RoomKind) -> bool {
+    matches!(
+        kind,
+        RoomKind::RestSite | RoomKind::Shop | RoomKind::CombatElite
+    )
+}
+
+fn rule_sibling_applies(kind: RoomKind) -> bool {
+    matches!(
+        kind,
+        RoomKind::RestSite
+            | RoomKind::CombatMonster
+            | RoomKind::Unknown
+            | RoomKind::CombatElite
+            | RoomKind::Shop
+    )
+}
+
+// Mirrors the source's RoomTypeAssigner: forced rows stamped first, then each
+// node takes the first drawn kind passing the row/parent/sibling rules; nodes
+// with no passing kind stay CombatMonster and never block later siblings
+fn assign_room_kinds(
+    nodes: &mut Grid,
+    rng: &mut impl Rng,
+    ascension: u8,
+    edges_row0_pretrim: &[u8; MAP_WIDTH],
+) {
     // Ratio denominator counts every node except row 13; forced rows
     // (0=Monster, 8=Treasure, 14=Rest) count but never receive a drawn kind
     let mut positions: Vec<(usize, usize)> = Vec::new();
@@ -314,82 +364,12 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
         types[offset..offset + count].fill(kind);
         offset += count;
     }
+    shuffle(&mut types, rng);
 
-    for i in (1..types.len()).rev() {
-        let j = rng.random_range(0..=i);
-        types.swap(i, j);
-    }
-
-    for (i, &(y, x)) in positions.iter().enumerate() {
-        if let Some(node) = &mut nodes[y][x] {
-            node.room_kind = types[i];
-        }
-    }
-
-    // Row gating
-    const ELITE_MIN_Y: usize = 5;
-    const REST_MIN_Y: usize = 5;
-    const REST_MAX_Y_EXCL: usize = 13;
-
-    for y in 0..MAP_HEIGHT - 1 {
-        for x in 0..MAP_WIDTH {
-            let kind = match &nodes[y][x] {
-                Some(n) => n.room_kind,
-                None => continue,
-            };
-            let needs_swap = match kind {
-                RoomKind::CombatElite => y < ELITE_MIN_Y,
-                RoomKind::RestSite => y < REST_MIN_Y || y >= REST_MAX_Y_EXCL,
-                _ => false,
-            };
-            if !needs_swap {
-                continue;
-            }
-            // Find a CombatMonster at a row that CAN host this kind
-            let mut swapped = false;
-            'swap: for y2 in 0..MAP_HEIGHT - 1 {
-                // Forced rows never host a relocated kind
-                if y2 == 0 || y2 == MAP_ROW_TREASURE {
-                    continue;
-                }
-                let row_ok = match kind {
-                    RoomKind::CombatElite => y2 >= ELITE_MIN_Y,
-                    RoomKind::RestSite => y2 >= REST_MIN_Y && y2 < REST_MAX_Y_EXCL,
-                    _ => true,
-                };
-                if !row_ok {
-                    continue;
-                }
-                for x2 in 0..MAP_WIDTH {
-                    if (y2, x2) == (y, x) {
-                        continue;
-                    }
-                    if let Some(other) = &nodes[y2][x2] {
-                        if matches!(other.room_kind, RoomKind::CombatMonster) {
-                            if let Some(n) = &mut nodes[y][x] {
-                                n.room_kind = RoomKind::CombatMonster;
-                            }
-                            if let Some(other) = &mut nodes[y2][x2] {
-                                other.room_kind = kind;
-                            }
-                            swapped = true;
-                            break 'swap;
-                        }
-                    }
-                }
-            }
-            if !swapped {
-                // No free CombatMonster host row -> downgrade this node rather than violate rule
-                if let Some(n) = &mut nodes[y][x] {
-                    n.room_kind = RoomKind::CombatMonster;
-                }
-            }
-        }
-    }
-
-    for node in &mut nodes[MAP_ROW_TREASURE] {
+    // Forced rows are assigned up front so the rules see them
+    for node in &mut nodes[MAP_HEIGHT - 1] {
         if let Some(n) = node {
-            n.room_kind = RoomKind::Treasure;
+            n.room_kind = RoomKind::RestSite;
         }
     }
     for node in &mut nodes[0] {
@@ -397,9 +377,60 @@ fn assign_room_kinds(nodes: &mut Grid, rng: &mut impl Rng, ascension: u8) {
             n.room_kind = RoomKind::CombatMonster;
         }
     }
-    for node in &mut nodes[MAP_HEIGHT - 1] {
+    for node in &mut nodes[MAP_ROW_TREASURE] {
         if let Some(n) = node {
-            n.room_kind = RoomKind::RestSite;
+            n.room_kind = RoomKind::Treasure;
+        }
+    }
+    let mut assigned = [[false; MAP_WIDTH]; MAP_HEIGHT];
+    for y in [0, MAP_ROW_TREASURE, MAP_HEIGHT - 1] {
+        for x in 0..MAP_WIDTH {
+            assigned[y][x] = nodes[y][x].is_some();
+        }
+    }
+
+    for &(y, x) in &positions {
+        // Row 1 derives parenthood from pre-trim edges; deeper rows are untrimmed
+        let parents: Vec<(usize, usize)> = if y == 1 {
+            (0..MAP_WIDTH)
+                .filter(|&px| has_edge(edges_row0_pretrim[px], x))
+                .map(|px| (0, px))
+                .collect()
+        } else {
+            get_room_parents(y, x, nodes)
+        };
+
+        // Kind bitmasks of assigned parents and assigned same-parent siblings
+        let mut mask_parents: u8 = 0;
+        let mut mask_siblings: u8 = 0;
+        for &(py, px) in &parents {
+            let Some(parent) = &nodes[py][px] else {
+                continue;
+            };
+            if assigned[py][px] {
+                mask_parents |= 1 << parent.room_kind as u8;
+            }
+            for cx in edge_indices(parent.edges) {
+                if cx == x {
+                    continue;
+                }
+                if nodes[y][cx].is_some() && assigned[y][cx] {
+                    mask_siblings |= 1 << nodes[y][cx].unwrap().room_kind as u8;
+                }
+            }
+        }
+
+        let pick = types.iter().position(|&kind| {
+            rule_row_ok(kind, y)
+                && !(rule_parent_applies(kind) && mask_parents & (1 << kind as u8) != 0)
+                && !(rule_sibling_applies(kind) && mask_siblings & (1 << kind as u8) != 0)
+        });
+        if let Some(i) = pick {
+            let kind = types.remove(i);
+            if let Some(n) = &mut nodes[y][x] {
+                n.room_kind = kind;
+            }
+            assigned[y][x] = true;
         }
     }
 }

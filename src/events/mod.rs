@@ -315,15 +315,18 @@ pub const POOL_EVENT_ACT1_SPECIAL: &[EventName] = &[
     EventName::WeMeetAgain,
 ];
 
-// Copies into the owned array; static defs overflowing the cap fail at const eval
 pub const fn make_entity_event_option(label: &'static str, effects: &[Effect]) -> Entity {
     assert!(effects.len() <= MAX_EFFECTS_PER_EVENT_OPTION);
+
+    // Push Effects
     let mut effects_owned = [ZERO_EFFECT; MAX_EFFECTS_PER_EVENT_OPTION];
-    let mut i = 0;
-    while i < effects.len() {
-        effects_owned[i] = effects[i];
-        i += 1;
+    let mut idx = 0;
+    while idx < effects.len() {
+        effects_owned[idx] = effects[idx];
+        idx += 1;
     }
+
+    // Make Entity
     Entity {
         kind: EntityKind::EventOption,
         event_option_label: label,

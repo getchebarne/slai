@@ -258,6 +258,7 @@ EffectGamble = _rs.EffectGamble
 EffectCombatEnd = _rs.EffectCombatEnd
 EffectRelicLose = _rs.EffectRelicLose
 EffectRewardRollNeowCards = _rs.EffectRewardRollNeowCards
+EffectStrengthLoseTemp = _rs.EffectStrengthLoseTemp
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -319,6 +320,7 @@ Effect = (
     | EffectCombatEnd
     | EffectRelicLose
     | EffectRewardRollNeowCards
+    | EffectStrengthLoseTemp
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -606,6 +608,7 @@ __all__ = [
     "EffectCombatEnd",
     "EffectRelicLose",
     "EffectRewardRollNeowCards",
+    "EffectStrengthLoseTemp",
     "Amount",
     "AmountAbsolute",
     "AmountRelative",

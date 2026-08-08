@@ -8,28 +8,18 @@ use crate::types::DeltaSign;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-// Matches StS `increaseMaxHp(5, true)` which raises the cap AND heals
+// The MaxHealthDelta handler heals too, matching StS `increaseMaxHp(5, true)`
 pub static POTION_FRUIT_JUICE: Entity = make_entity_potion(
     PotionName::FruitJuice,
     PotionRarity::Rare,
     false,
     false,
-    &[
-        Effect {
-            kind: EffectKind::MaxHealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(5),
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
+    &[Effect {
+        kind: EffectKind::MaxHealthDelta {
+            sign: DeltaSign::Gain,
+            amount: Amount::Absolute(5),
         },
-        Effect {
-            kind: EffectKind::HealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(5),
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-    ],
+        id_source: None,
+        target: TARGET_CHARACTER,
+    }],
 );

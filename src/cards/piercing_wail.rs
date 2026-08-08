@@ -5,7 +5,6 @@ use crate::effect::TARGET_MONSTERS_ALL;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
-use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -23,24 +22,11 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
     false,
     false,
     false,
-    &[
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Strength,
-                stacks: -6,
-            },
-            id_source: None,
-            target: TARGET_MONSTERS_ALL,
-        },
-        Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Shackled,
-                stacks: 6,
-            },
-            id_source: None,
-            target: TARGET_MONSTERS_ALL,
-        },
-    ],
+    &[Effect {
+        kind: EffectKind::StrengthLoseTemp { stacks: 6 },
+        id_source: None,
+        target: TARGET_MONSTERS_ALL,
+    }],
     &[],
     &[],
     PlayRestriction::Always,
@@ -50,14 +36,7 @@ pub static PIERCING_WAIL_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = PIERCING_WAIL.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
-            kind: ModifierKind::Strength,
-            stacks: -8, // -2 strength
-        };
-        a[1].kind = EffectKind::ModifierGain {
-            kind: ModifierKind::Shackled,
-            stacks: 8, // +2 strength
-        };
+        a[0].kind = EffectKind::StrengthLoseTemp { stacks: 8 };
         a
     },
     ..PIERCING_WAIL

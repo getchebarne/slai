@@ -164,8 +164,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
 
         // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare Relic
         RelicName::CallingBell => {
-            // The bell arrives from a reward screen or Neow's consumed blessing; its
-            // three staged Relics replace that frame
+            // The bell arrives from a reward screen or Neow's consumed blessing
             assert!(
                 matches!(
                     mode_top(&state.mode_stack),

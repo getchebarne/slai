@@ -193,7 +193,7 @@ pub fn get_random_potion_name(rng: &mut impl Rng, limited: bool) -> PotionName {
     name
 }
 
-// Uniform over every Potion, ignoring rarity (Neow's potion offer)
+// Uniform over every Potion, ignoring rarity (Neow's Potions offer)
 pub fn get_random_potion_name_uniform(rng: &mut impl Rng) -> PotionName {
     ALL_POTIONS[rng.random_range(0..ALL_POTIONS.len())].potion_name
 }

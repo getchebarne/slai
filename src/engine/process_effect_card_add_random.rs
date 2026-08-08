@@ -40,7 +40,6 @@ pub fn process_effect_card_add_random(
                 |r| c.card_rarity == r,
             )
         })
-        // Neow/event-only Curses stay out of random adds, mirroring in_pool
         .filter(|c| {
             !matches!(
                 c.card_name,

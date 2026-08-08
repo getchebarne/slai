@@ -313,6 +313,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollNeowCards;
     #[pymodule_export]
+    use super::ffi::PyEffectStrengthLoseTemp;
+    #[pymodule_export]
     use super::ffi::PyEffectRewardRollPotions;
     #[pymodule_export]
     use super::ffi::PyEffectScrapOozeReach;
