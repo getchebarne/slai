@@ -136,8 +136,8 @@ fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
     // still count as siblings during room-kind assignment
     let mut edges_row0_pretrim = [0u8; MAP_WIDTH];
     for (x, node) in nodes[0].iter().enumerate() {
-        if let Some(n) = node {
-            edges_row0_pretrim[x] = n.edges;
+        if let Some(node) = node {
+            edges_row0_pretrim[x] = node.edges;
         }
     }
 

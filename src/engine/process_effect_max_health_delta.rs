@@ -38,7 +38,8 @@ pub fn process_effect_max_health_delta(
         DeltaSign::Gain => {
             let vitals = &mut state.entities[id_target].vitals;
             vitals.health_max = vitals.health_max.saturating_add(amount);
-            // The source's increaseMaxHp also heals by the same amount
+
+            // Also heal by the same amount
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Gain,
