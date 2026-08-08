@@ -24,7 +24,6 @@ impl From<Amount> for PyAmount {
     fn from(amount: Amount) -> Self {
         match amount {
             Amount::Absolute(amount) => Self::Absolute(PyAmountAbsolute { amount }),
-            // Rounding mode is engine-internal; the view keeps one Relative shape
             Amount::Relative {
                 numerator,
                 denominator,
