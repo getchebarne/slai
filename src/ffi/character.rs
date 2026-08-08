@@ -22,28 +22,6 @@ pub struct PyCharacter {
     pub gold: u16,
 }
 
-#[pymethods]
-impl PyCharacter {
-    #[new]
-    fn new(
-        name: String,
-        health: u16,
-        health_max: u16,
-        block: u16,
-        modifiers: Vec<PyModifier>,
-        gold: u16,
-    ) -> Self {
-        Self {
-            name,
-            health,
-            health_max,
-            block,
-            modifiers,
-            gold,
-        }
-    }
-}
-
 pub(crate) fn snapshot_character(state: &GameState) -> PyCharacter {
     let character = &state.entities[state.id_character];
     PyCharacter {

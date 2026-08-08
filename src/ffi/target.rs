@@ -7,156 +7,21 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::SelectionKind;
 
-use super::macros::variant_union;
+use super::macros::flat_variants;
+use super::macros::mirror_enum;
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolHand",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolHand;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolCharacter",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolCharacter;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolMonsters",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolMonsters;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolSource",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolSource;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolDiscover",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolDiscover;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolDeck",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolDeck;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolEventPickCard",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolEventPickCard;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolEventPickPotion",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolEventPickPotion;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolPileDraw",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolPileDraw;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolPileDiscard",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolPileDiscard;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "CandidatePoolPileExhaust",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PyCandidatePoolPileExhaust;
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyCandidatePool {
-    Hand(PyCandidatePoolHand),
-    Character(PyCandidatePoolCharacter),
-    Monsters(PyCandidatePoolMonsters),
-    Source(PyCandidatePoolSource),
-    Discover(PyCandidatePoolDiscover),
-    Deck(PyCandidatePoolDeck),
-    EventPickCard(PyCandidatePoolEventPickCard),
-    EventPickPotion(PyCandidatePoolEventPickPotion),
-    PileDraw(PyCandidatePoolPileDraw),
-    PileDiscard(PyCandidatePoolPileDiscard),
-    PileExhaust(PyCandidatePoolPileExhaust),
-}
-
-variant_union!(PyCandidatePool {
-    Hand => PyCandidatePoolHand,
-    Character => PyCandidatePoolCharacter,
-    Monsters => PyCandidatePoolMonsters,
-    Source => PyCandidatePoolSource,
-    Discover => PyCandidatePoolDiscover,
-    Deck => PyCandidatePoolDeck,
-    EventPickCard => PyCandidatePoolEventPickCard,
-    EventPickPotion => PyCandidatePoolEventPickPotion,
-    PileDraw => PyCandidatePoolPileDraw,
-    PileDiscard => PyCandidatePoolPileDiscard,
-    PileExhaust => PyCandidatePoolPileExhaust,
+flat_variants!(PyCandidatePool {
+    Hand => PyCandidatePoolHand as "CandidatePoolHand",
+    Character => PyCandidatePoolCharacter as "CandidatePoolCharacter",
+    Monsters => PyCandidatePoolMonsters as "CandidatePoolMonsters",
+    Source => PyCandidatePoolSource as "CandidatePoolSource",
+    Discover => PyCandidatePoolDiscover as "CandidatePoolDiscover",
+    Deck => PyCandidatePoolDeck as "CandidatePoolDeck",
+    EventPickCard => PyCandidatePoolEventPickCard as "CandidatePoolEventPickCard",
+    EventPickPotion => PyCandidatePoolEventPickPotion as "CandidatePoolEventPickPotion",
+    PileDraw => PyCandidatePoolPileDraw as "CandidatePoolPileDraw",
+    PileDiscard => PyCandidatePoolPileDiscard as "CandidatePoolPileDiscard",
+    PileExhaust => PyCandidatePoolPileExhaust as "CandidatePoolPileExhaust",
 });
 
 impl From<CandidatePool> for PyCandidatePool {
@@ -177,126 +42,17 @@ impl From<CandidatePool> for PyCandidatePool {
     }
 }
 
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    eq_int,
-    frozen,
-    name = "CandidateFilter",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyCandidateFilter {
-    Any,
-    Purgeable,
-    Upgradeable,
-    Transformable,
-    PurgeableCurse,
-    KindAttack,
-    KindSkill,
-    KindPower,
-    Costed,
-    Picked,
-    NotSource,
-}
+mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", skip_from_py_object, {
+    Any, Purgeable, Upgradeable, Transformable, PurgeableCurse, KindAttack, KindSkill,
+    KindPower, Costed, Picked, NotSource,
+});
 
-impl From<CandidateFilter> for PyCandidateFilter {
-    fn from(f: CandidateFilter) -> Self {
-        match f {
-            CandidateFilter::Any => Self::Any,
-            CandidateFilter::Purgeable => Self::Purgeable,
-            CandidateFilter::Upgradeable => Self::Upgradeable,
-            CandidateFilter::Transformable => Self::Transformable,
-            CandidateFilter::PurgeableCurse => Self::PurgeableCurse,
-            CandidateFilter::KindAttack => Self::KindAttack,
-            CandidateFilter::KindSkill => Self::KindSkill,
-            CandidateFilter::KindPower => Self::KindPower,
-            CandidateFilter::Costed => Self::Costed,
-            CandidateFilter::Picked => Self::Picked,
-            CandidateFilter::NotSource => Self::NotSource,
-        }
-    }
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "SelectionKindAll",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PySelectionKindAll;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    name = "SelectionKindSingle",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PySelectionKindSingle;
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "SelectionKindRandom",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PySelectionKindRandom {
-    pub count: u8,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "SelectionKindInput",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PySelectionKindInput {
-    pub count: u16,
-}
-
-#[pyclass(
-    skip_from_py_object,
-    eq,
-    hash,
-    frozen,
-    get_all,
-    name = "SelectionKindInputUpTo",
-    module = "slai.slai"
-)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct PySelectionKindInputUpTo {
-    pub count: u16,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PySelectionKind {
-    All(PySelectionKindAll),
-    Single(PySelectionKindSingle),
-    Random(PySelectionKindRandom),
-    Input(PySelectionKindInput),
-    InputUpTo(PySelectionKindInputUpTo),
-}
-
-variant_union!(PySelectionKind {
-    All => PySelectionKindAll,
-    Single => PySelectionKindSingle,
-    Random => PySelectionKindRandom,
-    Input => PySelectionKindInput,
-    InputUpTo => PySelectionKindInputUpTo,
+flat_variants!(PySelectionKind {
+    All => PySelectionKindAll as "SelectionKindAll",
+    Single => PySelectionKindSingle as "SelectionKindSingle",
+    Random => PySelectionKindRandom as "SelectionKindRandom" { count: u8 },
+    Input => PySelectionKindInput as "SelectionKindInput" { count: u16 },
+    InputUpTo => PySelectionKindInputUpTo as "SelectionKindInputUpTo" { count: u16 },
 });
 
 impl From<SelectionKind> for PySelectionKind {

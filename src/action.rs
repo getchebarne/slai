@@ -39,7 +39,6 @@ use crate::utils::mode_top;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
     CardBottle {
-        kind: CardKind,
         idx: usize,
     },
     CardDiscard {
@@ -143,7 +142,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::CardExhaust { idx } => handle_pending_pick_hand(state, idx),
         Action::CardMoveToHand { idx } => handle_card_move_to_hand_pick(state, idx),
         Action::PickSkip => handle_pick_skip(state),
-        Action::CardBottle { kind, idx } => handle_card_bottle(state, kind, idx),
+        Action::CardBottle { idx } => resolve_pending_pick_deck(state, idx),
         Action::CardDiscover { idx } => handle_card_discover(state, idx),
         Action::CardDuplicate { idx } => resolve_pending_pick_deck(state, idx),
         Action::CardNightmare { idx } => handle_pending_pick_hand(state, idx),
@@ -641,10 +640,7 @@ fn fill_legal_actions_effect_pending(
                     EffectKind::CardPurge | EffectKind::BonfireOffer => {
                         Action::CardPurge { idx: i }
                     }
-                    EffectKind::CardBottle => Action::CardBottle {
-                        kind: bottle_kind_for_filter(filter),
-                        idx: i,
-                    },
+                    EffectKind::CardBottle => Action::CardBottle { idx: i },
                     EffectKind::CardUpgrade => Action::CardUpgrade { idx: i },
                     EffectKind::CardDuplicate => Action::CardDuplicate { idx: i },
                     EffectKind::CardTransform { .. } => Action::CardTransform { idx: i },
@@ -1083,32 +1079,6 @@ fn pile_for_pool(mode: &Mode, pool: CandidatePool) -> &Vec<usize> {
 
 // Resolves a pending deck pick; idx is an absolute id_deck index
 // The pick's `kind` restates the pending bottle's filter; the pending effect bottles
-fn handle_card_bottle(state: &mut GameState, kind: CardKind, idx: usize) {
-    let Some(Effect {
-        kind: EffectKind::CardBottle,
-        target: Target::Resolve { filter, .. },
-        ..
-    }) = state.effect_pending
-    else {
-        unreachable!("CardBottle action without a pending bottle pick")
-    };
-    assert!(
-        bottle_kind_for_filter(filter) == kind,
-        "CardBottle kind must match the pending filter"
-    );
-    resolve_pending_pick_deck(state, idx);
-}
-
-// The three bottles filter by Card kind; no other filter reaches a bottle pick
-fn bottle_kind_for_filter(filter: CandidateFilter) -> CardKind {
-    match filter {
-        CandidateFilter::KindAttack => CardKind::Attack,
-        CandidateFilter::KindSkill => CardKind::Skill,
-        CandidateFilter::KindPower => CardKind::Power,
-        _ => unreachable!("Bottle pick with a non-kind filter: {filter:?}"),
-    }
-}
-
 fn resolve_pending_pick_deck(state: &mut GameState, idx: usize) {
     let id_card = state.id_deck[idx];
     resolve_pending_pick(state, id_card);

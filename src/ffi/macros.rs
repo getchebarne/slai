@@ -18,11 +18,52 @@ use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
 use super::target::PyCandidateFilter;
 
-// Complex enums are exposed as one flat pyclass per variant. The Rust enum
-// survives for composition; variant_union! gives it IntoPyObject dispatch plus
-// a union OUTPUT_TYPE so generated stubs type fields as `VariantA | VariantB | ...`
-macro_rules! variant_union {
-    ($enum:ident { $($variant:ident => $cls:ident),+ $(,)? }) => {
+/// Complex enums exposed as one flat pyclass per variant, driven by one table per family.
+///
+/// flat_variants!(PyFamily {
+///     Variant => PyFamilyVariant as "FamilyVariant" { field: Type },  // fielded class
+///     Variant => PyFamilyVariant as "FamilyVariant",                  // unit class
+/// });
+///
+/// Each row emits a frozen value-semantic `#[pyclass]` struct (eq + hash; `get_all` iff
+/// fielded). The table then emits the Rust enum — one tuple variant per row, table order =
+/// declaration order, golden-gated by tests/test_enum_order.py — and its IntoPyObject
+/// dispatch, whose union OUTPUT_TYPE makes generated stubs type fields as
+/// `VariantA | VariantB | ...`. The table IS the declaration: grep a class name to find its row.
+///
+/// Call sites must have `use pyo3::prelude::*` in scope (the expansion resolves pyclass,
+/// PyTypeInfo, Bound and type_hint_union! at the invocation site). rustfmt does not format
+/// invocation bodies — keep one row per variant. Ground truth: `cargo expand ffi::amount`.
+macro_rules! flat_variants {
+    // @cls PyAmountAbsolute, "AmountAbsolute" { amount: u16 }
+    (@cls $cls:ident, $name:literal { $($f:ident : $t:ty),+ $(,)? }) => {
+        #[pyclass(
+            skip_from_py_object,
+            eq,
+            hash,
+            frozen,
+            get_all,
+            name = $name,
+            module = "slai.slai"
+        )]
+        #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+        pub struct $cls { $(pub $f: $t,)+ }
+    };
+    // @cls PyAmountEventGoldAsk, "AmountEventGoldAsk"
+    (@cls $cls:ident, $name:literal) => {
+        #[pyclass(skip_from_py_object, eq, hash, frozen, name = $name, module = "slai.slai")]
+        #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+        pub struct $cls;
+    };
+    // @enum PyAmount { Absolute => PyAmountAbsolute, Range => PyAmountRange }
+    (@enum $enum:ident { $($variant:ident => $cls:ident),+ }) => {
+        #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+        pub enum $enum { $($variant($cls),)+ }
+        flat_variants!(@into $enum { $($variant => $cls),+ });
+    };
+
+    // @into PyAmount { Absolute => PyAmountAbsolute, Range => PyAmountRange }
+    (@into $enum:ident { $($variant:ident => $cls:ident),+ }) => {
         impl<'py> IntoPyObject<'py> for $enum {
             type Target = PyAny;
             type Output = Bound<'py, PyAny>;
@@ -36,12 +77,53 @@ macro_rules! variant_union {
             }
         }
     };
+
+    ($enum:ident {
+        $($variant:ident => $cls:ident as $name:literal $({ $($f:ident : $t:ty),+ $(,)? })?),+ $(,)?
+    }) => {
+        $( flat_variants!(@cls $cls, $name $({ $($f: $t),+ })?); )+
+        flat_variants!(@enum $enum { $($variant => $cls),+ });
+    };
 }
 
-// pyo3's derived `hash` runs the discriminant through a hasher, so hash(enum) != hash(int)
-// even though `eq_int` makes enum == int. That violates Python's eq/hash contract and makes
-// these enums silently un-findable in int/IntEnum-keyed dicts. Hash by the raw discriminant
-// so eq and hash agree.
+/// A unit pyclass enum mirroring an internal enum 1:1, plus its `From` impl, from one table.
+///
+/// ```ignore
+/// mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
+///     AThousandCuts, Accuracy, /* one ident per variant, internal declaration order */
+/// });
+/// ```
+///
+/// Table order = declaration order = int discriminant, golden-gated by
+/// tests/test_enum_order.py. The generated match is exhaustive, so a rename on either side
+/// stays a compile error. `$conv` is the pyo3 conversion token: `from_py_object` or
+/// `skip_from_py_object`. Call sites must have `use pyo3::prelude::*` in scope.
+macro_rules! mirror_enum {
+    ($py:ident from $internal:ident, $name:literal, $conv:tt, { $($v:ident),+ $(,)? }) => {
+        #[pyclass($conv, eq, eq_int, frozen, name = $name, module = "slai.slai")]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        pub enum $py { $($v,)+ }
+
+        impl From<$internal> for $py {
+            fn from(v: $internal) -> Self {
+                match v {
+                    $($internal::$v => Self::$v,)+
+                }
+            }
+        }
+    };
+}
+
+/// `__hash__` by raw discriminant for the mirror enums, so `eq_int` and hash agree.
+///
+/// pyo3's derived `hash` runs the discriminant through a hasher, so hash(enum) != hash(int)
+/// even though `eq_int` makes enum == int — violating Python's eq/hash contract and making
+/// these enums silently un-findable in int-keyed dicts. Removing this outright is worse:
+/// Python nulls `__hash__` on any type defining `__eq__` without it, leaving all 17 enums
+/// unhashable (test_stub_conformance fails with one error per enum). PyModifierKind and
+/// PyActionType are absent here because each carries its own inline `__hash__` — pyo3
+/// rejects two `#[pymethods]` blocks without the multiple-pymethods feature.
+// TODO: revisit if this is necessary
 macro_rules! impl_discriminant_hash {
     ($($ty:ty),+ $(,)?) => {
         $(
@@ -75,4 +157,5 @@ impl_discriminant_hash!(
     PyIntentKind,
 );
 
-pub(crate) use variant_union;
+pub(crate) use flat_variants;
+pub(crate) use mirror_enum;

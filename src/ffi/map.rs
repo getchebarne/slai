@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
 
+use super::macros::mirror_enum;
+
 use crate::consts::MAP_HEIGHT;
 use crate::game::GameState;
 use crate::game::Location;
@@ -8,59 +10,22 @@ use crate::types::RoomKind;
 
 use super::monster::PyMonsterEncounter;
 
+mirror_enum!(PyRoomKind from RoomKind, "RoomKind", from_py_object, {
+    CombatMonster, CombatElite, CombatBoss, RestSite, Treasure, EventRoom, Shop, Unknown,
+});
+
 #[pyclass(
-    from_py_object,
-    eq,
-    eq_int,
+    skip_from_py_object,
     frozen,
-    name = "RoomKind",
+    get_all,
+    name = "Room",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum PyRoomKind {
-    CombatMonster,
-    CombatElite,
-    CombatBoss,
-    RestSite,
-    Treasure,
-    EventRoom,
-    Shop,
-    Unknown,
-}
-
-impl From<RoomKind> for PyRoomKind {
-    fn from(kind: RoomKind) -> Self {
-        match kind {
-            RoomKind::CombatMonster => Self::CombatMonster,
-            RoomKind::CombatElite => Self::CombatElite,
-            RoomKind::CombatBoss => Self::CombatBoss,
-            RoomKind::RestSite => Self::RestSite,
-            RoomKind::Treasure => Self::Treasure,
-            RoomKind::EventRoom => Self::EventRoom,
-            RoomKind::Shop => Self::Shop,
-            RoomKind::Unknown => Self::Unknown,
-        }
-    }
-}
-
-#[pyclass(from_py_object, frozen, get_all, name = "Room", module = "slai.slai")]
 #[derive(Debug, Clone)]
 pub struct PyRoom {
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
     pub chest_opened: bool,
-}
-
-#[pymethods]
-impl PyRoom {
-    #[new]
-    fn new(room_kind: PyRoomKind, edges: Vec<usize>, chest_opened: bool) -> Self {
-        Self {
-            room_kind,
-            edges,
-            chest_opened,
-        }
-    }
 }
 
 #[pyclass(
@@ -77,26 +42,6 @@ pub struct PyMap {
     pub x_current: Option<usize>,
     pub boss: PyMonsterEncounter,
     pub identity_hash: u64,
-}
-
-#[pymethods]
-impl PyMap {
-    #[new]
-    fn new(
-        rooms: Vec<Vec<Option<PyRoom>>>,
-        y_current: Option<usize>,
-        x_current: Option<usize>,
-        boss: PyMonsterEncounter,
-        identity_hash: u64,
-    ) -> Self {
-        Self {
-            rooms,
-            y_current,
-            x_current,
-            boss,
-            identity_hash,
-        }
-    }
 }
 
 // Position-independent hash of the room topology (kinds + edges) — a stable map identity for the
