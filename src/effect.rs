@@ -190,7 +190,6 @@ pub enum EffectKind {
     PotionUse,
     RelicAdopt,
     RelicGrantRandom {
-        // None keeps the 50/33/17 tier roll; Some pins the tier (uniform in-pool pick)
         tier: Option<RelicTier>,
     },
     RelicGrantSpecific {
@@ -235,6 +234,9 @@ pub enum EffectKind {
     },
     StormOfSteelProc {
         upgraded: bool,
+    },
+    StrengthLoseTemp {
+        stacks: i16,
     },
     TargetClear,
     TargetSet,

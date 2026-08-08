@@ -210,14 +210,17 @@ pub fn process_effect_combat_start(
         }
     }
 
-    // Neow's Lament: spend a charge to set every spawned Monster to 1 HP (after
-    // Preserved Insect, so the 1 wins); mid-combat spawns are untouched
+    // Neow's Lament: spend a charge to set every spawned Monster to 1 HP (after Preserved Insect)
     if let Some(id) = state.id_relics[RelicName::NeowsLament as usize]
         && state.entities[id].relic_counter > 0
     {
         let relic = &mut state.entities[id];
+
+        // Decrease counter
         relic.relic_counter -= 1;
         relic.relic_used_up = relic.relic_counter == 0;
+
+        // One effect for every spawned Monster
         for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthSet {

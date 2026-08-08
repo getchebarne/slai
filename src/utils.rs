@@ -65,19 +65,8 @@ pub fn mode_replace(mode_stack: &mut [Mode], mode: Mode) {
     *mode_top_mut(mode_stack) = mode;
 }
 
-// Max HP first so the heal lands under the new ceiling
+// The MaxHealthDelta handler queues the matching heal itself
 pub fn increase_max_hp(state: &mut GameState, id_character: usize, amount: u16) {
-    // Executes in reverse:
-    //     1. MaxHealthDelta
-    //     2. HealthDelta
-    state.effect_queue.push_front(Effect {
-        kind: EffectKind::HealthDelta {
-            sign: DeltaSign::Gain,
-            amount: Amount::Absolute(amount),
-        },
-        id_source: None,
-        target: Target::Direct(Some(id_character)),
-    });
     state.effect_queue.push_front(Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: DeltaSign::Gain,
@@ -390,7 +379,7 @@ pub fn roll_card_rewards(
     count: usize,
 ) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
-    let mut rolled_card_names: [CardName; MAX_COMBAT_CARD_REWARD] =
+    let mut card_names_rolled: [CardName; MAX_COMBAT_CARD_REWARD] =
         [CardName::Strike; MAX_COMBAT_CARD_REWARD];
 
     out.clear();
@@ -415,11 +404,11 @@ pub fn roll_card_rewards(
         }
 
         let mut name = pool[rng.random_range(0..pool.len())];
-        while rolled_card_names[..out.len()].contains(&name) {
+        while card_names_rolled[..out.len()].contains(&name) {
             name = pool[rng.random_range(0..pool.len())];
         }
 
-        rolled_card_names[out.len()] = name;
+        card_names_rolled[out.len()] = name;
         let card = get_card(
             name,
             // Eggs upgrade matching rewards at roll time, so the preview shows the truth

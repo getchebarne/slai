@@ -13,8 +13,6 @@ use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::events::EFFECT_DECK_PURGE_PICK;
-use crate::events::EFFECT_DECK_TRANSFORM_PICK;
 use crate::events::EFFECT_DECK_UPGRADE_PICK;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventKind;
@@ -31,92 +29,108 @@ use crate::types::RelicTier;
 // Rolled option tags; identity lives in the baked effect lists, so these stay file-local
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum NeowBonus {
-    ThreeCards,
+    Cards { colorless: bool, rare_only: bool },
     OneRandomRareCard,
-    RemoveCard,
+    Remove { count: u16 },
     UpgradeCard,
-    TransformCard,
-    RandomColorless,
+    Transform { count: u16 },
     ThreeSmallPotions,
-    RandomCommonRelic,
-    TenPercentHpBonus,
+    Relic { tier: RelicTier },
+    HpBonus { mult: u16 },
     ThreeEnemyKill,
-    HundredGold,
-    RandomColorlessRare,
-    RemoveTwo,
-    OneRareRelic,
-    ThreeRareCards,
-    TwoFiftyGold,
-    TransformTwoCards,
-    TwentyPercentHpBonus,
+    GoldGain { amount: u16 },
     BossRelic,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum NeowDrawback {
     TenPercentHpLoss,
-    NoGold,
+    GoldLoss,
     Curse,
     PercentDamage,
 }
 
 // Category tables in source order
-const CAT0: [NeowBonus; 6] = [
-    NeowBonus::ThreeCards,
+const BONUSES_CAT_0: [NeowBonus; 6] = [
+    NeowBonus::Cards {
+        colorless: false,
+        rare_only: false,
+    },
     NeowBonus::OneRandomRareCard,
-    NeowBonus::RemoveCard,
+    NeowBonus::Remove { count: 1 },
     NeowBonus::UpgradeCard,
-    NeowBonus::TransformCard,
-    NeowBonus::RandomColorless,
+    NeowBonus::Transform { count: 1 },
+    NeowBonus::Cards {
+        colorless: true,
+        rare_only: false,
+    },
 ];
-const CAT1: [NeowBonus; 5] = [
+const BONUSES_CAT_1: [NeowBonus; 5] = [
     NeowBonus::ThreeSmallPotions,
-    NeowBonus::RandomCommonRelic,
-    NeowBonus::TenPercentHpBonus,
+    NeowBonus::Relic {
+        tier: RelicTier::Common,
+    },
+    NeowBonus::HpBonus { mult: 1 },
     NeowBonus::ThreeEnemyKill,
-    NeowBonus::HundredGold,
+    NeowBonus::GoldGain {
+        amount: NEOW_GOLD_SMALL,
+    },
 ];
 const DRAWBACKS: [NeowDrawback; 4] = [
     NeowDrawback::TenPercentHpLoss,
-    NeowDrawback::NoGold,
+    NeowDrawback::GoldLoss,
     NeowDrawback::Curse,
     NeowDrawback::PercentDamage,
 ];
 
-// The 4-option full blessing; per-run amounts bake into the option lists at spawn
 pub fn spawn_event_neow(state: &mut GameState) -> (EventKind, Vec<usize>) {
-    let vitals = state.entities[state.id_character].vitals;
-    let gold = state.entities[state.id_character].character_gold;
-
-    // Source truncation: hp_bonus once at roll time (Twenty = 2x it), damage = (hp/10)*3
-    let hp_bonus = vitals.health_max / 10;
-    let damage = (vitals.health / 10) * 3;
-
-    let bonus_cat0 = CAT0[state.rng.random_range(0..CAT0.len())];
-    let bonus_cat1 = CAT1[state.rng.random_range(0..CAT1.len())];
+    // Roll Category-1 and Category-2 bonuses
+    let bonus_cat_0 = BONUSES_CAT_0[state.rng.random_range(0..BONUSES_CAT_0.len())];
+    let bonus_cat_1 = BONUSES_CAT_1[state.rng.random_range(0..BONUSES_CAT_1.len())];
 
     // Drawback rolls first; its thematic pairing drops out of the reward list (source order)
-    let drawback = DRAWBACKS[state.rng.random_range(0..DRAWBACKS.len())];
-    let mut rewards_cat2: Vec<NeowBonus> = Vec::with_capacity(7);
-    rewards_cat2.push(NeowBonus::RandomColorlessRare);
-    if drawback != NeowDrawback::Curse {
-        rewards_cat2.push(NeowBonus::RemoveTwo);
-    }
-    rewards_cat2.push(NeowBonus::OneRareRelic);
-    rewards_cat2.push(NeowBonus::ThreeRareCards);
-    if drawback != NeowDrawback::NoGold {
-        rewards_cat2.push(NeowBonus::TwoFiftyGold);
-    }
-    rewards_cat2.push(NeowBonus::TransformTwoCards);
-    if drawback != NeowDrawback::TenPercentHpLoss {
-        rewards_cat2.push(NeowBonus::TwentyPercentHpBonus);
-    }
-    let bonus_cat2 = rewards_cat2[state.rng.random_range(0..rewards_cat2.len())];
+    // Category-2 bonuses are dybamic depending on the rolled drawback
+    let mut bonuses_cat_2: Vec<NeowBonus> = Vec::with_capacity(7);
 
+    // Roll drawback
+    let drawback = DRAWBACKS[state.rng.random_range(0..DRAWBACKS.len())];
+
+    // Push bonuses TODO: can I simplify order?
+    bonuses_cat_2.push(NeowBonus::Cards {
+        colorless: true,
+        rare_only: true,
+    });
+    if drawback != NeowDrawback::Curse {
+        bonuses_cat_2.push(NeowBonus::Remove { count: 2 });
+    }
+    bonuses_cat_2.push(NeowBonus::Relic {
+        tier: RelicTier::Rare,
+    });
+    bonuses_cat_2.push(NeowBonus::Cards {
+        colorless: false,
+        rare_only: true,
+    });
+    if drawback != NeowDrawback::GoldLoss {
+        bonuses_cat_2.push(NeowBonus::GoldGain {
+            amount: NEOW_GOLD_LARGE,
+        });
+    }
+    bonuses_cat_2.push(NeowBonus::Transform { count: 2 });
+    if drawback != NeowDrawback::TenPercentHpLoss {
+        bonuses_cat_2.push(NeowBonus::HpBonus { mult: 2 });
+    }
+
+    // Roll Category-2 bonus
+    let bonus_cat_2 = bonuses_cat_2[state.rng.random_range(0..bonuses_cat_2.len())];
+
+    // Build options
+    let gold = state.entities[state.id_character].character_gold;
+    let hp_bonus = state.entities[state.id_character].vitals.health_max / 10;
+    let damage = (state.entities[state.id_character].vitals.health / 10) * 3;
     let options = [
-        option_for(bonus_cat0, None, hp_bonus, damage, gold),
-        option_for(bonus_cat1, None, hp_bonus, damage, gold),
-        option_for(bonus_cat2, Some(drawback), hp_bonus, damage, gold),
+        option_for(bonus_cat_0, None, hp_bonus, damage, gold),
+        option_for(bonus_cat_1, None, hp_bonus, damage, gold),
+        option_for(bonus_cat_2, Some(drawback), hp_bonus, damage, gold),
         option_for(NeowBonus::BossRelic, None, hp_bonus, damage, gold),
     ];
     let id_options = bake_options(state, &options);
@@ -133,13 +147,25 @@ fn option_for(
     gold: u16,
 ) -> Entity {
     let mut effects: Vec<Effect> = vec![EVENT_CONSUME_EFFECT];
+
+    // Push drawback
     if let Some(drawback) = drawback {
-        effects.push(drawback_effect(drawback, hp_bonus, damage, gold));
+        effects.push(effect_drawback(drawback, hp_bonus, damage, gold));
     }
+
+    // Push bonuses and generate option labels
     let label = match bonus {
-        NeowBonus::ThreeCards => {
-            effects.push(neow_cards(false, false));
-            "[Cards] Choose 1 of 3 Cards."
+        NeowBonus::Cards {
+            colorless,
+            rare_only,
+        } => {
+            effects.push(effect_neow_cards(colorless, rare_only));
+            match (colorless, rare_only) {
+                (false, false) => "[Cards] Choose 1 of 3 Cards.",
+                (false, true) => "[Cards] Choose 1 of 3 Rare Cards.",
+                (true, false) => "[Colorless] Choose 1 of 3 Uncommon colorless Cards.",
+                (true, true) => "[Colorless] Choose 1 of 3 Rare colorless Cards.",
+            }
         }
         NeowBonus::OneRandomRareCard => {
             effects.push(Effect {
@@ -157,21 +183,33 @@ fn option_for(
             });
             "[Rare Card] Obtain a random Rare Card."
         }
-        NeowBonus::RemoveCard => {
-            effects.push(EFFECT_DECK_PURGE_PICK);
-            "[Remove] Remove a Card from your deck."
+        NeowBonus::Remove { count } => {
+            effects.push(deck_pick(
+                EffectKind::CardPurge,
+                CandidateFilter::Purgeable,
+                count,
+            ));
+            if count == 1 {
+                "[Remove] Remove a Card from your deck."
+            } else {
+                "[Remove] Remove 2 Cards from your deck."
+            }
         }
         NeowBonus::UpgradeCard => {
             effects.push(EFFECT_DECK_UPGRADE_PICK);
             "[Upgrade] Upgrade a Card."
         }
-        NeowBonus::TransformCard => {
-            effects.push(EFFECT_DECK_TRANSFORM_PICK);
-            "[Transform] Transform a Card."
-        }
-        NeowBonus::RandomColorless => {
-            effects.push(neow_cards(true, false));
-            "[Colorless] Choose 1 of 3 Uncommon colorless Cards."
+        NeowBonus::Transform { count } => {
+            effects.push(deck_pick(
+                EffectKind::CardTransform { upgraded: false },
+                CandidateFilter::Transformable,
+                count,
+            ));
+            if count == 1 {
+                "[Transform] Transform a Card."
+            } else {
+                "[Transform] Transform 2 Cards."
+            }
         }
         NeowBonus::ThreeSmallPotions => {
             effects.push(Effect {
@@ -186,13 +224,21 @@ fn option_for(
             });
             "[Potions] Obtain 3 random Potions."
         }
-        NeowBonus::RandomCommonRelic => {
-            effects.push(relic_grant(RelicTier::Common));
-            "[Relic] Obtain a random Common Relic."
+        NeowBonus::Relic { tier } => {
+            effects.push(effect_relic_grant(tier));
+            if tier == RelicTier::Common {
+                "[Relic] Obtain a random Common Relic."
+            } else {
+                "[Relic] Obtain a random Rare Relic."
+            }
         }
-        NeowBonus::TenPercentHpBonus => {
-            effects.extend(max_hp_gain(hp_bonus));
-            "[Max HP] Gain 10% Max HP."
+        NeowBonus::HpBonus { mult } => {
+            effects.push(effect_max_hp_gain(hp_bonus * mult));
+            if mult == 1 {
+                "[Max HP] Gain 10% Max HP."
+            } else {
+                "[Max HP] Gain 20% Max HP."
+            }
         }
         NeowBonus::ThreeEnemyKill => {
             effects.push(Effect {
@@ -205,45 +251,13 @@ fn option_for(
             });
             "[Neow's Lament] Enemies in your next 3 combats have 1 HP."
         }
-        NeowBonus::HundredGold => {
-            effects.push(gold_delta(DeltaSign::Gain, NEOW_GOLD_SMALL));
-            "[Gold] Gain 100 gold."
-        }
-        NeowBonus::RandomColorlessRare => {
-            effects.push(neow_cards(true, true));
-            "[Colorless] Choose 1 of 3 Rare colorless Cards."
-        }
-        NeowBonus::RemoveTwo => {
-            effects.push(deck_pick(
-                EffectKind::CardPurge,
-                CandidateFilter::Purgeable,
-                2,
-            ));
-            "[Remove] Remove 2 Cards from your deck."
-        }
-        NeowBonus::OneRareRelic => {
-            effects.push(relic_grant(RelicTier::Rare));
-            "[Relic] Obtain a random Rare Relic."
-        }
-        NeowBonus::ThreeRareCards => {
-            effects.push(neow_cards(false, true));
-            "[Cards] Choose 1 of 3 Rare Cards."
-        }
-        NeowBonus::TwoFiftyGold => {
-            effects.push(gold_delta(DeltaSign::Gain, NEOW_GOLD_LARGE));
-            "[Gold] Gain 250 gold."
-        }
-        NeowBonus::TransformTwoCards => {
-            effects.push(deck_pick(
-                EffectKind::CardTransform { upgraded: false },
-                CandidateFilter::Transformable,
-                2,
-            ));
-            "[Transform] Transform 2 Cards."
-        }
-        NeowBonus::TwentyPercentHpBonus => {
-            effects.extend(max_hp_gain(hp_bonus * 2));
-            "[Max HP] Gain 20% Max HP."
+        NeowBonus::GoldGain { amount } => {
+            effects.push(effect_gold_delta(DeltaSign::Gain, amount));
+            if amount == NEOW_GOLD_SMALL {
+                "[Gold] Gain 100 gold."
+            } else {
+                "[Gold] Gain 250 gold."
+            }
         }
         NeowBonus::BossRelic => {
             effects.push(Effect {
@@ -253,7 +267,7 @@ fn option_for(
                 id_source: None,
                 target: Target::Direct(None),
             });
-            effects.push(relic_grant(RelicTier::Boss));
+            effects.push(effect_relic_grant(RelicTier::Boss));
             "[Boss Swap] Lose Snake Ring. Obtain a random Boss Relic."
         }
     };
@@ -261,7 +275,7 @@ fn option_for(
 }
 
 // Applied before the reward, mirroring the source's activate() order
-fn drawback_effect(drawback: NeowDrawback, hp_bonus: u16, damage: u16, gold: u16) -> Effect {
+fn effect_drawback(drawback: NeowDrawback, hp_bonus: u16, damage: u16, gold: u16) -> Effect {
     match drawback {
         NeowDrawback::TenPercentHpLoss => Effect {
             kind: EffectKind::MaxHealthDelta {
@@ -271,7 +285,7 @@ fn drawback_effect(drawback: NeowDrawback, hp_bonus: u16, damage: u16, gold: u16
             id_source: None,
             target: TARGET_CHARACTER,
         },
-        NeowDrawback::NoGold => gold_delta(DeltaSign::Loss, gold),
+        NeowDrawback::GoldLoss => effect_gold_delta(DeltaSign::Loss, gold),
         NeowDrawback::Curse => Effect {
             kind: EffectKind::CardAddRandom {
                 color: CardColor::Curse,
@@ -296,7 +310,7 @@ fn drawback_effect(drawback: NeowDrawback, hp_bonus: u16, damage: u16, gold: u16
     }
 }
 
-fn neow_cards(colorless: bool, rare_only: bool) -> Effect {
+fn effect_neow_cards(colorless: bool, rare_only: bool) -> Effect {
     Effect {
         kind: EffectKind::RewardRoll {
             source: RewardSource::NeowCards {
@@ -309,7 +323,7 @@ fn neow_cards(colorless: bool, rare_only: bool) -> Effect {
     }
 }
 
-fn relic_grant(tier: RelicTier) -> Effect {
+fn effect_relic_grant(tier: RelicTier) -> Effect {
     Effect {
         kind: EffectKind::RelicGrantRandom { tier: Some(tier) },
         id_source: None,
@@ -317,7 +331,7 @@ fn relic_grant(tier: RelicTier) -> Effect {
     }
 }
 
-fn gold_delta(sign: DeltaSign, amount: u16) -> Effect {
+fn effect_gold_delta(sign: DeltaSign, amount: u16) -> Effect {
     Effect {
         kind: EffectKind::GoldDelta {
             sign,
@@ -328,26 +342,15 @@ fn gold_delta(sign: DeltaSign, amount: u16) -> Effect {
     }
 }
 
-// Max first, then the matching heal — the source's increaseMaxHp does both
-fn max_hp_gain(amount: u16) -> [Effect; 2] {
-    [
-        Effect {
-            kind: EffectKind::MaxHealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(amount),
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
+fn effect_max_hp_gain(amount: u16) -> Effect {
+    Effect {
+        kind: EffectKind::MaxHealthDelta {
+            sign: DeltaSign::Gain,
+            amount: Amount::Absolute(amount),
         },
-        Effect {
-            kind: EffectKind::HealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(amount),
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-    ]
+        id_source: None,
+        target: TARGET_CHARACTER,
+    }
 }
 
 fn deck_pick(kind: EffectKind, filter: CandidateFilter, count: u16) -> Effect {

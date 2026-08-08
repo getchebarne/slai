@@ -1,5 +1,11 @@
 use rand::Rng;
 
+use crate::cards::POOL_COMMON_GREEN_CARD;
+use crate::cards::POOL_RARE_COLORLESS_CARD;
+use crate::cards::POOL_RARE_GREEN_CARD;
+use crate::cards::POOL_UNCOMMON_COLORLESS_CARD;
+use crate::cards::POOL_UNCOMMON_GREEN_CARD;
+use crate::cards::get_card;
 use crate::consts::CHEST_LARGE_GOLD_BASE;
 use crate::consts::CHEST_LARGE_GOLD_CHANCE;
 use crate::consts::CHEST_LARGE_TH_COMMON;
@@ -16,12 +22,6 @@ use crate::consts::GOLD_ELITE_MAX;
 use crate::consts::GOLD_ELITE_MIN;
 use crate::consts::GOLD_MONSTER_MAX;
 use crate::consts::GOLD_MONSTER_MIN;
-use crate::cards::POOL_COMMON_GREEN_CARD;
-use crate::cards::POOL_RARE_COLORLESS_CARD;
-use crate::cards::POOL_RARE_GREEN_CARD;
-use crate::cards::POOL_UNCOMMON_COLORLESS_CARD;
-use crate::cards::POOL_UNCOMMON_GREEN_CARD;
-use crate::cards::get_card;
 use crate::consts::MATRYOSHKA_TH_COMMON;
 use crate::consts::MATRYOSHKA_TH_UNCOMMON;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
@@ -277,17 +277,19 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
             }
         }
 
-        // Neow's card offers: 33% Uncommon else Common, never Rare unless forced;
-        // colorless picks are Uncommon (the source upgrades Common rolls)
+        // Neow's card offers: 33% Uncommon else Common, never Rare unless forced
         RewardSource::NeowCards {
             colorless,
             rare_only,
         } => {
+            // Initialize containers
             let mut id_cards: Vec<usize> = Vec::with_capacity(NEOW_CARD_COUNT);
-            let mut rolled_card_names: [CardName; NEOW_CARD_COUNT] =
+            let mut card_names_rolled: [CardName; NEOW_CARD_COUNT] =
                 [CardName::Strike; NEOW_CARD_COUNT];
+
             for idx in 0..NEOW_CARD_COUNT {
-                let pool: &[CardName] = match (colorless, rare_only) {
+                // Pick pool
+                let card_pool: &[CardName] = match (colorless, rare_only) {
                     (true, true) => POOL_RARE_COLORLESS_CARD,
                     (true, false) => POOL_UNCOMMON_COLORLESS_CARD,
                     (false, true) => POOL_RARE_GREEN_CARD,
@@ -299,12 +301,16 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                         }
                     }
                 };
-                let mut name = pool[state.rng.random_range(0..pool.len())];
-                while rolled_card_names[..idx].contains(&name) {
-                    name = pool[state.rng.random_range(0..pool.len())];
+
+                // Roll the Card's name — loops until the rolled card hasn't been rolled already
+                let mut card_name = card_pool[state.rng.random_range(0..card_pool.len())];
+                while card_names_rolled[..idx].contains(&card_name) {
+                    card_name = card_pool[state.rng.random_range(0..card_pool.len())];
                 }
-                rolled_card_names[idx] = name;
-                id_cards.push(push_entity(&mut state.entities, get_card(name, false)));
+
+                // Store the rolled Card's name and push its Entity to the `id_cards` collection
+                card_names_rolled[idx] = card_name;
+                id_cards.push(push_entity(&mut state.entities, get_card(card_name, false)));
             }
             id_card_bundles.push(id_cards);
         }
@@ -317,8 +323,7 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                 } else {
                     get_random_potion_name(&mut state.rng, false)
                 };
-                let id = push_entity(&mut state.entities, get_potion(potion_name));
-                id_potions.push(id);
+                id_potions.push(push_entity(&mut state.entities, get_potion(potion_name)));
             }
         }
     }
