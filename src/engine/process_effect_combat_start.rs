@@ -12,7 +12,6 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
-use crate::relics::iter_owned_relics;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -157,8 +156,9 @@ pub fn process_effect_combat_start(
         });
     }
 
-    // Combat-start Relic effects
-    for (_name, id_relic) in iter_owned_relics(&state.id_relics) {
+    // Combat-start Relic effects, in acquisition order as in the source
+    for idx in 0..state.id_relics_order.len() {
+        let id_relic = state.id_relics_order[idx];
         for &eff in state.entities[id_relic].relic_effects_on_combat_start {
             state.effect_queue.push_back(eff);
         }

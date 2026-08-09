@@ -11,6 +11,10 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameState) {
     let id_monster = id_target.expect("MoveExecute requires id_target");
     let entity = &state.entities[id_monster];
+    // Corpses don't act: a mid-phase death leaves this queued effect dangling
+    if entity.dead {
+        return;
+    }
     let Some(move_idx) = entity.monster_move_current else {
         return;
     };

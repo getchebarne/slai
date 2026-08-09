@@ -25,11 +25,18 @@ use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::RelicName;
+use crate::utils::detach_card;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
+    let id_card = id_target.expect("CardPlay requires id_target");
+
+    // The source detaches the played Card up front; it stays pile-less until
+    // the relocation effect parks it after its own effects resolve
+    detach_card(mode_top_mut(&mut state.mode_stack), id_card);
+
     let Mode::Combat {
         id_hand,
         id_monsters,
@@ -44,7 +51,6 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     else {
         unreachable!("process_effect_card_play outside Combat mode")
     };
-    let id_card = id_target.expect("CardPlay requires id_target");
     let id_character = state.id_character;
     // Read-only here: copied out so the body below can borrow the whole state
     let this_turn_discards = *this_turn_discards;
@@ -272,10 +278,61 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         false
     };
 
-    // Relocate the Card to the appropriate pile
+    let char_modifiers = &state.entities[id_character].modifiers;
+
+    // Burst (skill-only) doubles; X-cost multiplies by X; the two stack multiplicatively
+    // X-cost reads raw energy_current so Setup-flagged X-cost still scales
+    let mul = match card.card_cost_kind {
+        CardCostKind::XCost { offset } => {
+            let x = (energy_current as i16 + offset as i16).max(0) as usize;
+            // Chemical X: X+2 on effect reps; energy paid is unchanged
+            if has_relic(&state.id_relics, RelicName::ChemicalX) {
+                x + 2
+            } else {
+                x
+            }
+        }
+        _ => 1,
+    };
+    let burst =
+        has_modifier(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
+
+    // DuplicateNextCardPlay replays any Card kind; additive with Burst
+    let duplication = has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
+
+    // Total amount of Card-play repetitions
+    let reps = (1 + burst as usize + duplication as usize) * mul;
+
+    // Wrist Blade: attacks that cost 0 deal +4 per hit
+    let wrist_blade_bonus = effective_cost == 0
+        && card.card_kind == CardKind::Attack
+        && !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) // X-cost never qualifies
+        && has_relic(&state.id_relics, RelicName::WristBlade);
+
+    // Push the Card's on-play effects once for each rep
+    for _ in 0..reps {
+        for e in card.card_effects[..card.card_effects_len as usize].iter() {
+            let mut effect = Effect {
+                id_source: Some(id_card), // Stamp the Card's ID
+                ..*e
+            };
+
+            // Add Wrist Blade bonus
+            if wrist_blade_bonus && let EffectKind::DamagePhysical { amount } = &mut effect.kind {
+                *amount += 4;
+            }
+
+            // Push
+            state.effect_buf.push(effect);
+        }
+    }
+
+    // Relocation and on-play triggers land after the Card's own effects, as in
+    // the source (use -> UseCardAction -> onUseCard payloads)
     if card.card_exhaust || relic_exhaust {
-        // Strange Spoon: on-play exhausts have a 50% chance to discard instead
-        let effect_kind = if has_relic(&state.id_relics, RelicName::StrangeSpoon)
+        // Strange Spoon: on-play exhausts have a 50% chance to discard instead; Powers exempt
+        let effect_kind = if card.card_kind != CardKind::Power
+            && has_relic(&state.id_relics, RelicName::StrangeSpoon)
             && state.rng.random_range(0..100) < 50
         {
             EffectKind::CardMove {
@@ -307,9 +364,6 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             target: Target::Direct(Some(id_card)),
         });
     }
-
-    // Modifier triggers
-    let char_modifiers = &state.entities[id_character].modifiers;
 
     // After Image
     if has_modifier(char_modifiers, ModifierKind::AfterImage) {
@@ -369,53 +423,6 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                     target: Target::Direct(Some(id_character)),
                 });
             }
-        }
-    }
-
-    // Burst (skill-only) doubles; X-cost multiplies by X; the two stack multiplicatively
-    // X-cost reads raw energy_current so Setup-flagged X-cost still scales
-    let mul = match card.card_cost_kind {
-        CardCostKind::XCost { offset } => {
-            let x = (energy_current as i16 + offset as i16).max(0) as usize;
-            // Chemical X: X+2 on effect reps; energy paid is unchanged
-            if has_relic(&state.id_relics, RelicName::ChemicalX) {
-                x + 2
-            } else {
-                x
-            }
-        }
-        _ => 1,
-    };
-    let burst =
-        has_modifier(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
-
-    // DuplicateNextCardPlay replays any Card kind; additive with Burst
-    let duplication = has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
-
-    // Total amount of Card-play repetitions
-    let reps = (1 + burst as usize + duplication as usize) * mul;
-
-    // Wrist Blade: attacks that cost 0 deal +4 per hit
-    let wrist_blade_bonus = effective_cost == 0
-        && card.card_kind == CardKind::Attack
-        && !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) // X-cost never qualifies
-        && has_relic(&state.id_relics, RelicName::WristBlade);
-
-    // Push the Card's on-play effects once for each rep
-    for _ in 0..reps {
-        for e in card.card_effects[..card.card_effects_len as usize].iter() {
-            let mut effect = Effect {
-                id_source: Some(id_card), // Stamp the Card's ID
-                ..*e
-            };
-
-            // Add Wrist Blade bonus
-            if wrist_blade_bonus && let EffectKind::DamagePhysical { amount } = &mut effect.kind {
-                *amount += 4;
-            }
-
-            // Push
-            state.effect_buf.push(effect);
         }
     }
 

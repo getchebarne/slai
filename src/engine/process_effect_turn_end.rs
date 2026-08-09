@@ -24,6 +24,10 @@ use crate::utils::mode_top_mut;
 
 pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut GameState) {
     let id_actor = id_target.expect("TurnEnd (monster) requires id_target");
+    // Corpses don't unwind Shackled or gain Metallicize block
+    if state.entities[id_actor].dead {
+        return;
+    }
     let modifiers = &state.entities[id_actor].modifiers;
 
     if has_modifier(modifiers, ModifierKind::Shackled) {
@@ -352,13 +356,16 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Queue Monsters' turns
+    // Monster phase in the source's three batches: every monster's turn start
+    // (block reset, Poison), then every monster acts and rolls, then every turn end
     for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_buf.push(Effect {
             kind: EffectKind::TurnStart,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
+    }
+    for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_buf.push(Effect {
             kind: EffectKind::MoveExecute,
             id_source: None,
@@ -371,6 +378,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
+    }
+    for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_buf.push(Effect {
             kind: EffectKind::TurnEnd,
             id_source: None,

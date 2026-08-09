@@ -34,6 +34,9 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         return;
     }
 
+    // Overdraw never happens: the excess stays on the draw pile, as in the source
+    let count = count.min(MAX_SIZE_HAND.saturating_sub(id_hand.len()) as u16);
+
     // Initialize variables to track IDs and count of drawn Cards, and wether reshuffle is needed
     let mut id_drawn = [0usize; 32];
     let mut id_drawn_num = 0;
@@ -54,19 +57,24 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
 
         // Remove Card from draw pile
         let id_card = id_pile_draw.pop().unwrap();
-
-        // Place it in the hand if there's room, discard pile otherwise
-        if id_hand.len() < MAX_SIZE_HAND {
-            id_hand.push(id_card);
-            *id_card_last_drawn = Some(id_card);
-        } else {
-            id_pile_discard.push(id_card);
-        }
+        id_hand.push(id_card);
+        *id_card_last_drawn = Some(id_card);
 
         // Update drawn IDs and count
         if id_drawn_num < id_drawn.len() {
             id_drawn[id_drawn_num] = id_card;
             id_drawn_num += 1;
+        }
+    }
+
+    // Fire on-draw hooks in draw order; pushed first so they resolve after the resumed draw
+    for &id_card in id_drawn[..id_drawn_num].iter().rev() {
+        let effects_on_draw = state.entities[id_card].card_on_draw_effects;
+        for effect in effects_on_draw.iter().rev() {
+            state.effect_queue.push_front(Effect {
+                id_source: Some(id_card),
+                ..*effect
+            });
         }
     }
 
@@ -118,14 +126,4 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         }
     }
 
-    // Fire on-draw hooks in draw order; push reversed so front-of-queue resumes correctly
-    for &id_card in id_drawn[..id_drawn_num].iter().rev() {
-        let effects_on_draw = state.entities[id_card].card_on_draw_effects;
-        for effect in effects_on_draw.iter().rev() {
-            state.effect_queue.push_front(Effect {
-                id_source: Some(id_card),
-                ..*effect
-            });
-        }
-    }
 }

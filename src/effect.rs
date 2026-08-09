@@ -40,7 +40,7 @@ pub enum EffectKind {
         upgraded: bool,
         rarity: Option<CardRarity>,
     },
-    CardAdopt,
+    CardAddToDeck,
     CardBottle,
     CardDiscard {
         source: DiscardSource,

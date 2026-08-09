@@ -52,7 +52,16 @@ pub fn process_effect_card_add_random(
     for _ in 0..count {
         let name = pool[state.rng.random_range(0..pool.len())].card_name;
         let id_card = push_entity(&mut state.entities, get_card(name, upgraded));
-        place_card(state, id_card, pile);
+        // Deck additions route through the obtain hook
+        if pile == CardPile::Deck {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardAddToDeck,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
+        } else {
+            place_card(state, id_card, pile);
+        }
         if let Some(scope) = cost_zero {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::SetCostOverride {

@@ -80,6 +80,9 @@ pub struct GameState {
     // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
     pub id_relics: [Option<usize>; RelicName::COUNT],
 
+    // Acquisition order; the source iterates relic hooks in pickup order
+    pub id_relics_order: Vec<usize>,
+
     // Slot-indexed belt; `id_potions[slot]` is `Some(entity_id)` iff occupied (duplicates allowed)
     pub id_potions: [Option<usize>; POTION_SLOTS_MAX],
     pub potion_slots_max: u8,
@@ -128,6 +131,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     let id_snake_ring = push_entity(&mut entities, get_relic(RelicName::SnakeRing));
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
     id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
+    let id_relics_order = vec![id_snake_ring];
 
     // Belt capacity is a run-level rule (3, or 2 at ascension 11+); slots start empty
     let id_potions: [Option<usize>; POTION_SLOTS_MAX] = [None; POTION_SLOTS_MAX];
@@ -170,6 +174,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         id_character: 0,
         id_deck,
         id_relics,
+        id_relics_order,
         id_potions,
         potion_slots_max,
         id_rooms,

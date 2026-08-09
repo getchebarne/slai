@@ -153,13 +153,10 @@ pub fn candidate_matches(
     }
 }
 
-// Insert an entity id into `pile`; Hand overflows to discard, Draw inserts at a random position
+// Insert an entity id into a combat `pile`; Hand overflows to discard, Draw
+// inserts at a random position. Deck entry goes through CardAddToDeck instead
 // Returns false when a full hand rerouted the Card to the discard pile
 pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool {
-    if pile == CardPile::Deck {
-        state.id_deck.push(id_card);
-        return true;
-    }
     let Mode::Combat {
         id_hand,
         id_pile_draw,
@@ -384,7 +381,7 @@ pub fn roll_card_rewards(
 
     out.clear();
     for _ in 0..count {
-        let roll = rng.random_range(0i32..99) + character_reward_roll_offset as i32;
+        let roll = rng.random_range(0i32..=99) + character_reward_roll_offset as i32;
         let (pool, rarity) = if roll < CARD_REWARD_ROLL_CHANCE_RARE {
             (POOL_RARE_GREEN_CARD, CardRarity::Rare)
         } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {

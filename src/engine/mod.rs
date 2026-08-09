@@ -4,7 +4,7 @@ pub mod process_effect_block_set;
 pub mod process_effect_bonfire_offer;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
-pub mod process_effect_card_adopt;
+pub mod process_effect_card_add_to_deck;
 pub mod process_effect_card_bottle;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
@@ -99,7 +99,7 @@ use self::process_effect_block_set::process_effect_block_set;
 use self::process_effect_bonfire_offer::process_effect_bonfire_offer;
 use self::process_effect_card_add::process_effect_card_add;
 use self::process_effect_card_add_random::process_effect_card_add_random;
-use self::process_effect_card_adopt::process_effect_card_adopt;
+use self::process_effect_card_add_to_deck::process_effect_card_add_to_deck;
 use self::process_effect_card_bottle::process_effect_card_bottle;
 use self::process_effect_card_discard::process_effect_card_discard;
 use self::process_effect_card_discover_pick::process_effect_card_discover_pick;
@@ -598,7 +598,7 @@ fn dispatch_by_kind(
         EffectKind::CardTransform { upgraded } => {
             process_effect_card_transform(id_target, state, upgraded)
         }
-        EffectKind::CardAdopt => process_effect_card_adopt(id_target, state),
+        EffectKind::CardAddToDeck => process_effect_card_add_to_deck(id_target, state),
         EffectKind::MaxHealthDelta { sign, amount } => {
             process_effect_max_health_delta(id_target, state, sign, amount)
         }

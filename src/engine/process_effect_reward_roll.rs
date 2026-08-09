@@ -253,13 +253,19 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
             // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
             let has_white_beast_statue = has_relic(&state.id_relics, RelicName::WhiteBeastStatue);
 
+            // Escaped normal fights roll chance 0 in the source: no potion, but the miss drift lands
+            let potion_eligible = !(room_kind == RoomKind::CombatMonster && escaped);
+
             // Roll Potions (Sozu doesn't stop the roll: the staged Potion adopts to nothing)
             if has_white_beast_statue
-                || roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod)
+                || (potion_eligible && roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod))
             {
                 let name = get_random_potion_name(&mut state.rng, false);
                 let id = push_entity(&mut state.entities, get_potion(name));
                 id_potions.push(id);
+            } else if !potion_eligible {
+                state.potion_drop_mod = (state.potion_drop_mod + POTION_DROP_CHANCE_MOD_MISS)
+                    .clamp(POTION_DROP_CHANCE_MOD_MIN, POTION_DROP_CHANCE_MOD_MAX);
             }
 
             // Roll gold

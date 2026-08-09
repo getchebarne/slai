@@ -76,6 +76,11 @@ fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
 }
 
 fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
+    // Corpses take no losses: a re-queued Death would double the on-death triggers
+    if state.entities[id_target].dead {
+        return;
+    }
+
     // Buffer: absorb one HP-loss instance outright, before anything reacts to it
     if amount > 0 {
         let modifiers = &mut state.entities[id_target].modifiers;
