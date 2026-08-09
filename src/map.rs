@@ -316,7 +316,7 @@ fn rule_sibling_applies(kind: RoomKind) -> bool {
     )
 }
 
-// Mirrors the source's RoomTypeAssigner: forced rows stamped first, then each
+// Forced rows stamped first, then each
 // node takes the first drawn kind passing the row/parent/sibling rules; nodes
 // with no passing kind stay CombatMonster and never block later siblings
 fn assign_room_kinds(

@@ -11,8 +11,6 @@ use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::increase_max_hp;
 
-// The single master-deck entry point (reward claims, shop buys, event and curse
-// adds), mirroring the source's ShowCardAndObtainEffect obtain hooks
 pub fn process_effect_card_add_to_deck(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardAddToDeck requires id_target");
     let card = state.entities[id_card];
@@ -28,12 +26,13 @@ pub fn process_effect_card_add_to_deck(id_target: Option<usize>, state: &mut Gam
         return;
     }
 
+    // Push card
+    state.id_deck.push(id_card);
+
     // Frozen / Molten / Toxic Egg: matching kinds join the deck upgraded
     if !card.card_upgraded && egg_upgrades_kind(card.card_kind, &state.id_relics) {
         state.entities[id_card] = get_card(card.card_name, true);
     }
-
-    state.id_deck.push(id_card);
 
     // Ceramic Fish: 9 gold per Card that actually joins the deck
     if has_relic(&state.id_relics, RelicName::CeramicFish) {
@@ -48,8 +47,7 @@ pub fn process_effect_card_add_to_deck(id_target: Option<usize>, state: &mut Gam
     }
 
     // Darkstone Periapt: obtaining a Curse raises max HP by 6 (healed)
-    if card.card_kind == CardKind::Curse
-        && has_relic(&state.id_relics, RelicName::DarkstonePeriapt)
+    if card.card_kind == CardKind::Curse && has_relic(&state.id_relics, RelicName::DarkstonePeriapt)
     {
         increase_max_hp(state, state.id_character, 6);
     }

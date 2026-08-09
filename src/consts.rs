@@ -62,6 +62,9 @@ pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
 pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON: i32 = 40;
 
+// Acts, 1-based; the run ends at the ACT_FINAL boss
+pub const ACT_FINAL: u8 = 2;
+
 // Map
 pub const MAP_HEIGHT: usize = 15;
 pub const MAP_WIDTH: usize = 7;
@@ -99,10 +102,10 @@ pub const RELIC_TIER_TH_COMMON: u8 = 50;
 pub const RELIC_TIER_TH_UNCOMMON: u8 = 83;
 
 // Encounter sequence sizes
-pub const NUM_ENCOUNTERS_WEAK: usize = 3;
-pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_WEAK;
+pub const NUM_ENCOUNTERS_EASY: usize = 3;
+pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_EASY;
 pub const NUM_ENCOUNTERS_ELITE: usize = 10;
-pub const ENCOUNTER_POOL_CAPACITY_NORMAL: usize = NUM_ENCOUNTERS_WEAK + 1 + NUM_ENCOUNTERS_HARD;
+pub const ENCOUNTER_POOL_CAPACITY_NORMAL: usize = NUM_ENCOUNTERS_EASY + 1 + NUM_ENCOUNTERS_HARD;
 pub const ENCOUNTER_POOL_CAPACITY_ELITE: usize = NUM_ENCOUNTERS_ELITE;
 
 // Potions

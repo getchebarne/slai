@@ -17,6 +17,7 @@ mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", from_py_object, {
     Splittable, SporeCloud, Strength, Thievery, Thorns, ThousandCuts, ToolsOfTheTrade, Vigor,
     Vulnerable, Weak, WraithForm, Buffer, PenNib, Magnetism, NoBlock, Panache, SadisticNature,
     Mayhem, TheBomb, Regeneration, LoseStrength, LoseDexterity, DuplicateNextCardPlay,
+    Flight, Malleable, Barricade, Hex, Confusion, PainfulStabs, Minion,
 });
 
 #[pymethods]

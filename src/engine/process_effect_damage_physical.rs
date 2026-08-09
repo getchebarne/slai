@@ -58,7 +58,7 @@ pub fn process_effect_damage_physical(
     // Get the source _actor_ id (Character or Monster)
     let id_actor = get_id_actor(&state.entities, state.id_character, id_source);
 
-    // A dying attacker's remaining hits are cancelled, as in the source
+    // A dying attacker's remaining hits are cancelled
     if state.entities[id_actor].dead {
         return;
     }

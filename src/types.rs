@@ -314,6 +314,10 @@ pub enum EncounterPool {
     Act1Hard,
     Act1Elite,
     Act1Boss,
+    Act2Easy,
+    Act2Hard,
+    Act2Elite,
+    Act2Boss,
     Event,
 }
 
