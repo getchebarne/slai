@@ -64,6 +64,7 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
         if encounter == MonsterEncounter::Lagavulin {
             let target = TARGET_MONSTERS_ALL;
             for kind in [
+                EffectKind::BlockSet { amount: 0 },
                 EffectKind::ModifierRemove {
                     kind: ModifierKind::Asleep,
                 },

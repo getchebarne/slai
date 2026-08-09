@@ -20,6 +20,11 @@ use crate::utils::mode_top_mut;
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("Death requires id_target");
 
+    // Death is not re-entrant: a second pass would re-fire the on-death triggers
+    if state.entities[id_target].dead {
+        return;
+    }
+
     // Character death: clear pending work, mark dead, signal game over.
     // Event damage can kill outside combat, so this path is mode-agnostic
     if id_target == state.id_character {
@@ -32,8 +37,14 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             .find(|&id| state.entities[id].potion_name == PotionName::FairyPotion)
         {
             remove_potion(&mut state.id_potions, id_potion);
+            // Sacred Bark doubles the revive potency, like every other potion
+            let factor = if has_relic(&state.id_relics, RelicName::SacredBark) {
+                0.60
+            } else {
+                0.30
+            };
             let vitals = &mut state.entities[state.id_character].vitals;
-            vitals.health = ((vitals.health_max as f32) * 0.30) as u16;
+            vitals.health = ((vitals.health_max as f32) * factor) as u16;
             vitals.health = vitals.health.max(1);
             return;
         }
@@ -73,8 +84,9 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     // Calculate if there're any monsters left alive
     let any_alive = id_monsters.iter().any(|s| s.is_some());
 
-    // Return stolen gold. Only relevant for "Looter"s in practice
+    // Return stolen gold, once. Only relevant for "Looter"s in practice
     let stolen_gold = state.entities[id_target].monster_stolen_gold;
+    state.entities[id_target].monster_stolen_gold = 0;
     let gold_return = if stolen_gold > 0 {
         Some(Effect {
             kind: EffectKind::GoldDelta {

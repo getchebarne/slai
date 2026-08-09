@@ -23,6 +23,11 @@ pub fn process_effect_damage_deal(
 ) {
     let id_target = id_target.expect("DamageDeal requires id_target");
 
+    // Corpses absorb nothing: pre-resolved Direct hits can outlive their target
+    if state.entities[id_target].dead {
+        return;
+    }
+
     // Get source entity type
     let from_card = match id_source {
         Some(id) => state.entities[id].kind == EntityKind::Card,
@@ -104,7 +109,9 @@ pub fn process_effect_damage_deal(
             });
         }
 
-        if id_source != Some(id_target) {
+        // On-attacked triggers respond to attack damage only (source NORMAL type);
+        // chip sources (Thousand Cuts, Letter Opener, Mercury, Thorns) push id_source None
+        if (from_card || from_monster) && id_source != Some(id_target) {
             let target = &mut state.entities[id_target];
             fire_on_damage_taken(target, id_target, &mut state.effect_queue);
         }

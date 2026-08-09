@@ -19,6 +19,10 @@ pub fn process_effect_move_update(
         unreachable!("process_effect_move_update outside Combat mode")
     };
     let id_target = id_target.expect("MoveUpdate requires id_target");
+    // Corpses don't roll: a mid-phase death leaves this queued effect dangling
+    if state.entities[id_target].dead {
+        return;
+    }
     let ascension_level = state.ascension;
     let id_monsters = id_monsters;
     let character_health = state.entities[state.id_character].vitals.health;
