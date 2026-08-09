@@ -86,6 +86,7 @@ flat_variants!(PyEffect {
     RelicLose => PyEffectRelicLose as "EffectRelicLose" { name: PyRelicName, target: Option<PyTarget> },
     RewardRollNeowCards => PyEffectRewardRollNeowCards as "EffectRewardRollNeowCards" { colorless: bool, rare_only: bool, target: Option<PyTarget> },
     StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: Option<PyTarget> },
+    DamageLifesteal => PyEffectDamageLifesteal as "EffectDamageLifesteal" { amount: u16, target: Option<PyTarget> },
 });
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -370,6 +371,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }),
         EffectKind::StrengthLoseTemp { stacks } => {
             PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp { stacks, target })
+        }
+        EffectKind::DamageLifesteal { amount } => {
+            PyEffect::DamageLifesteal(PyEffectDamageLifesteal { amount, target })
         }
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",

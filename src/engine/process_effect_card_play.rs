@@ -492,6 +492,21 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
+    // Hex: playing a non-Attack shuffles Dazed into the draw pile
+    if card.card_kind != CardKind::Attack && has_modifier(char_modifiers, ModifierKind::Hex) {
+        let stacks = modifier_stacks(char_modifiers, ModifierKind::Hex);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardAdd {
+                card_name: CardName::Dazed,
+                pile: CardPile::Draw,
+                count: stacks.max(0) as u16,
+                upgraded: false,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
+
     // Pain: each copy in hand bleeds 1 HP on any other Card play; HealthDelta ignores block
     for i in 0..id_hand.len() {
         if state.entities[id_hand[i]].card_name == CardName::Pain {

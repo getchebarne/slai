@@ -11,6 +11,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::monsters::byrd;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardColor;
 use crate::types::CardName;
@@ -62,6 +63,11 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         new_block = new_block.max(vitals.block.saturating_sub(15));
     }
 
+    // Barricade: block never expires
+    if has_modifier(modifiers, ModifierKind::Barricade) {
+        new_block = new_block.max(vitals.block);
+    }
+
     // Next turn block (Dodge and Roll)
     if has_modifier(modifiers, ModifierKind::NextTurnBlock) {
         new_block += modifier_stacks(modifiers, ModifierKind::NextTurnBlock) as u16;
@@ -85,6 +91,11 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             id_source: None,
             target: Target::Direct(Some(id_actor)),
         });
+    }
+
+    // Flight: stacks refresh to the spawn value at the owner's turn start
+    if has_modifier(modifiers, ModifierKind::Flight) {
+        modifiers.stacks[ModifierKind::Flight as usize] = byrd::flight_stacks(state.ascension);
     }
 
     // Character's turn start

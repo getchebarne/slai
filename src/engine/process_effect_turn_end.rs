@@ -12,6 +12,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::monsters::snake_plant;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
 use crate::types::CostScope;
@@ -88,6 +89,12 @@ fn process_effect_turn_end_monster(id_actor: usize, state: &mut GameState) {
                 target: Target::Direct(Some(id_actor)),
             });
         }
+    }
+
+    // Malleable: per-hit escalation resets to base at the owner's turn end
+    let modifiers = &mut state.entities[id_actor].modifiers;
+    if has_modifier(modifiers, ModifierKind::Malleable) {
+        modifiers.stacks[ModifierKind::Malleable as usize] = snake_plant::MALLEABLE_BASE;
     }
 }
 

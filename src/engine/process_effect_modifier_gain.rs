@@ -11,6 +11,8 @@ use crate::modifier::modifier_apply;
 use crate::modifier::modifier_def;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::monsters::shelled_parasite;
+use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
@@ -66,6 +68,21 @@ pub fn process_effect_modifier_gain(
     }
 
     modifier_apply(modifiers, kind, stacks);
+
+    // Shelled Parasite: stripping the last Plated Armor stack breaks the shell and stuns
+    if kind == ModifierKind::PlatedArmor
+        && stacks < 0
+        && !has_modifier(modifiers, ModifierKind::PlatedArmor)
+        && state.entities[id_target].monster_name == MonsterName::ShelledParasite
+    {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::MoveUpdate {
+                move_override: Some(shelled_parasite::IDX_MOVE_STUNNED),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
+    }
 
     // Sadistic Nature: player-applied debuffs landing on a monster proc THORNS-type damage
     if is_debuff_attempt

@@ -501,10 +501,13 @@ fn dispatch_by_kind(
         EffectKind::TargetSet => process_effect_target_set(id_target, state),
         EffectKind::TargetClear => process_effect_target_clear(state),
         EffectKind::DamagePhysical { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, false)
+            process_effect_damage_physical(id_source, id_target, state, amount, false, false)
         }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, true)
+            process_effect_damage_physical(id_source, id_target, state, amount, true, false)
+        }
+        EffectKind::DamageLifesteal { amount } => {
+            process_effect_damage_physical(id_source, id_target, state, amount, false, true)
         }
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay(id_target, state, delta)
@@ -533,7 +536,10 @@ fn dispatch_by_kind(
         }
         EffectKind::UnloadDiscard => process_effect_unload_discard(state),
         EffectKind::DamageDeal { amount } => {
-            process_effect_damage_deal(id_source, id_target, state, amount)
+            process_effect_damage_deal(id_source, id_target, state, amount, false)
+        }
+        EffectKind::DamageDealLifesteal { amount } => {
+            process_effect_damage_deal(id_source, id_target, state, amount, true)
         }
         EffectKind::HealthDelta { sign, amount } => {
             process_effect_health_delta(id_target, state, sign, amount)

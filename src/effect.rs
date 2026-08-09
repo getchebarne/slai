@@ -96,11 +96,17 @@ pub enum EffectKind {
     DamageDeal {
         amount: u16,
     },
+    DamageDealLifesteal {
+        amount: u16,
+    },
     DamageFinisher {
         damage: u16,
     },
     DamageFlechettes {
         damage: u16,
+    },
+    DamageLifesteal {
+        amount: u16,
     },
     DamageMindBlast,
     DamagePhysical {

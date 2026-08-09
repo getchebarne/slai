@@ -1,3 +1,6 @@
+pub mod byrd;
+pub mod centurion;
+pub mod chosen;
 pub mod cultist;
 pub mod encounters;
 pub mod fungi_beast;
@@ -7,13 +10,16 @@ pub mod gremlin_thief;
 pub mod gremlin_tsundere;
 pub mod gremlin_warrior;
 pub mod gremlin_wizard;
+pub mod healer;
 pub mod hexaghost;
 pub mod jaw_worm;
 pub mod lagavulin;
 pub mod looter;
 pub mod louse_green;
 pub mod louse_red;
+pub mod mugger;
 pub mod sentry;
+pub mod shelled_parasite;
 pub mod slaver_blue;
 pub mod slaver_red;
 pub mod slime_acid_large;
@@ -23,6 +29,9 @@ pub mod slime_boss;
 pub mod slime_spike_large;
 pub mod slime_spike_medium;
 pub mod slime_spike_small;
+pub mod snake_plant;
+pub mod snecko;
+pub mod spheric_guardian;
 pub mod the_guardian;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
@@ -96,6 +105,19 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         }
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::spawn_monster_slime_spike_medium(ascension_level, rng)
+        }
+        MonsterName::Byrd => byrd::spawn_monster_byrd(ascension_level, rng),
+        MonsterName::Centurion => centurion::spawn_monster_centurion(ascension_level, rng),
+        MonsterName::Chosen => chosen::spawn_monster_chosen(ascension_level, rng),
+        MonsterName::Healer => healer::spawn_monster_healer(ascension_level, rng),
+        MonsterName::Mugger => mugger::spawn_monster_mugger(ascension_level, rng),
+        MonsterName::ShelledParasite => {
+            shelled_parasite::spawn_monster_shelled_parasite(ascension_level, rng)
+        }
+        MonsterName::SnakePlant => snake_plant::spawn_monster_snake_plant(ascension_level, rng),
+        MonsterName::Snecko => snecko::spawn_monster_snecko(ascension_level, rng),
+        MonsterName::SphericGuardian => {
+            spheric_guardian::spawn_monster_spheric_guardian(ascension_level, rng)
         }
     }
 }
@@ -206,6 +228,36 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
+        MonsterName::Byrd => byrd::get_next_move_byrd(
+            entity.monster_move_current,
+            history,
+            &entity.modifiers,
+            rng,
+        ),
+        MonsterName::Centurion => {
+            centurion::get_next_move_centurion(history, entity_id, id_monsters, rng)
+        }
+        MonsterName::Chosen => chosen::get_next_move_chosen(history, ascension_level, rng),
+        MonsterName::Healer => {
+            healer::get_next_move_healer(history, entities, id_monsters, ascension_level, rng)
+        }
+        // Same script as the Looter; move indices line up one-to-one
+        MonsterName::Mugger => {
+            looter::get_next_move_looter(entity.monster_move_current, history, rng)
+        }
+        MonsterName::ShelledParasite => shelled_parasite::get_next_move_shelled_parasite(
+            entity.monster_move_current,
+            history,
+            ascension_level,
+            rng,
+        ),
+        MonsterName::SnakePlant => {
+            snake_plant::get_next_move_snake_plant(history, ascension_level, rng)
+        }
+        MonsterName::Snecko => {
+            snecko::get_next_move_snecko(entity.monster_move_current, history, rng)
+        }
+        MonsterName::SphericGuardian => spheric_guardian::get_next_move_spheric_guardian(history),
     }
 }
 
@@ -318,6 +370,18 @@ pub const fn make_move_attack_card_add(
     )
 }
 
+pub const fn make_move_block(name: &'static str, block: u16) -> Move {
+    make_move(
+        name,
+        &[Effect {
+            kind: EffectKind::BlockGain { amount: block },
+            id_source: None,
+            target: TARGET_SOURCE,
+        }],
+        Intent::Block,
+    )
+}
+
 // Self-buff then block; the order matches the jaw_worm sites this serves
 pub const fn make_move_block_buff(name: &'static str, block: u16, strength: i16) -> Move {
     make_move(
@@ -409,5 +473,48 @@ pub const fn make_entity_monster(
         monster_kind,
         monster_moves: arr,
         ..ZERO_ENTITY
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::entity::push_move_history;
+    use rand::SeedableRng;
+    use rand::rngs::SmallRng;
+
+    // Act-2 normals are unreachable in-game until the act seam lands; this guards
+    // their spawn tables and AI against panics and out-of-range move indices
+    #[test]
+    fn act2_normal_ai_smoke() {
+        let names = [
+            MonsterName::Byrd,
+            MonsterName::Centurion,
+            MonsterName::Chosen,
+            MonsterName::Healer,
+            MonsterName::Mugger,
+            MonsterName::ShelledParasite,
+            MonsterName::SnakePlant,
+            MonsterName::Snecko,
+            MonsterName::SphericGuardian,
+        ];
+        let mut rng = SmallRng::seed_from_u64(7);
+        for ascension in [0, 2, 7, 17, 18, 20] {
+            for name in names {
+                let mut entities = vec![spawn_monster(name, ascension, &mut rng)];
+                let mut id_monsters = [None; MAX_MONSTERS];
+                id_monsters[0] = Some(0);
+                for _ in 0..50 {
+                    let idx = get_next_move(&entities, 0, &id_monsters, ascension, &mut rng);
+                    assert!(
+                        idx < MAX_MOVES_PER_MONSTER
+                            && !entities[0].monster_moves[idx].name.is_empty(),
+                        "{name:?} rolled invalid move idx {idx}"
+                    );
+                    entities[0].monster_move_current = Some(idx);
+                    push_move_history(&mut entities[0], idx as u8);
+                }
+            }
+        }
     }
 }
