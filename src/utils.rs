@@ -153,9 +153,6 @@ pub fn candidate_matches(
     }
 }
 
-// Insert an entity id into a combat `pile`; Hand overflows to discard, Draw
-// inserts at a random position. Deck entry goes through CardAddToDeck instead
-// Returns false when a full hand rerouted the Card to the discard pile
 pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool {
     let Mode::Combat {
         id_hand,
@@ -166,7 +163,9 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
     else {
         unreachable!("Combat pile placement outside Combat mode")
     };
+
     match pile {
+        // Hand overflows to discard
         CardPile::Hand => {
             if id_hand.len() < MAX_SIZE_HAND {
                 id_hand.push(id_card);
@@ -175,11 +174,17 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
                 return false;
             }
         }
+
+        // Draw inserts at a random position
         CardPile::Draw => {
             let idx = state.rng.random_range(0..=id_pile_draw.len());
             id_pile_draw.insert(idx, id_card);
         }
+
+        // Discard just goes to discard
         CardPile::Discard => id_pile_discard.push(id_card),
+
+        // Deck entry goes through CardAddToDeck instead
         CardPile::Deck => unreachable!(),
     }
     true

@@ -60,6 +60,13 @@ pub enum ModifierKind {
     LoseStrength,
     LoseDexterity,
     DuplicateNextCardPlay,
+    Flight,
+    Malleable,
+    Barricade,
+    Hex,
+    Confusion,
+    PainfulStabs,
+    Minion,
 }
 
 pub const MODIFIER_COUNT: usize = ModifierKind::COUNT;
@@ -473,13 +480,62 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         stacks_min: 1,
         stacks_max: 999,
     },
+    ModifierDef {
+        kind: ModifierKind::Flight,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Malleable,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Barricade,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
+    },
+    ModifierDef {
+        kind: ModifierKind::Hex,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 999,
+    },
+    ModifierDef {
+        kind: ModifierKind::Confusion,
+        is_buff: false,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
+    },
+    ModifierDef {
+        kind: ModifierKind::PainfulStabs,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
+    },
+    ModifierDef {
+        kind: ModifierKind::Minion,
+        is_buff: true,
+        stacks_duration: false,
+        stacks_min: 1,
+        stacks_max: 1,
+    },
 ];
 
 #[derive(Debug, Clone, Copy)]
 pub struct Modifiers {
     pub stacks: [i16; MODIFIER_COUNT],
     pub is_new: [bool; MODIFIER_COUNT],
-    pub active: u64, // bitmask
+    pub active: u128, // bitmask
 }
 
 pub fn modifier_def(kind: ModifierKind) -> &'static ModifierDef {
@@ -502,7 +558,7 @@ pub fn has_modifier(mods: &Modifiers, kind: ModifierKind) -> bool {
 
 // Iterate the ModifierKinds set in an `active` bitmask. Takes the mask by value (a
 // snapshot), so the source Modifiers may be mutated while iterating
-pub fn active_modifier_kinds(active: u64) -> impl Iterator<Item = ModifierKind> {
+pub fn active_modifier_kinds(active: u128) -> impl Iterator<Item = ModifierKind> {
     let mut bits = active;
     std::iter::from_fn(move || {
         if bits == 0 {

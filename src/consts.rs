@@ -62,6 +62,9 @@ pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
 pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON: i32 = 40;
 
+// Acts, 1-based; the run ends at the ACT_FINAL boss
+pub const ACT_FINAL: u8 = 2;
+
 // Map
 pub const MAP_HEIGHT: usize = 15;
 pub const MAP_WIDTH: usize = 7;

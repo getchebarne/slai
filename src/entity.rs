@@ -140,7 +140,7 @@ pub struct Entity {
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
     pub card_on_discard_effects: &'static [Effect],
-    pub card_on_draw_effects: &'static [Effect],
+    pub card_effects_on_draw: &'static [Effect],
 
     // Room-only
     pub room_y: usize,
@@ -160,6 +160,8 @@ pub struct Entity {
     // Shop price while stocked; stale after purchase (nothing reads it outside Shop mode)
     pub price: u16,
     pub relic_used_up: bool,
+    // Acquisition stamp; combat-start hooks iterate owned relics in this order
+    pub relic_seq: u16,
     pub relic_effects_on_combat_start: &'static [Effect],
 
     // Potion-only
@@ -209,7 +211,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     card_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_CARD],
     card_effects_len: 0,
     card_on_discard_effects: &[],
-    card_on_draw_effects: &[],
+    card_effects_on_draw: &[],
     room_y: 0,
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
@@ -223,6 +225,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     relic_counter: 0,
     price: 0,
     relic_used_up: false,
+    relic_seq: 0,
     relic_effects_on_combat_start: &[],
     potion_name: PotionName::EnergyPotion,
     potion_rarity: PotionRarity::Common,

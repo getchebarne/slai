@@ -183,8 +183,7 @@ use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
 use self::process_effect_target_clear::process_effect_target_clear;
 use self::process_effect_target_set::process_effect_target_set;
-use self::process_effect_turn_end::process_effect_turn_end_character;
-use self::process_effect_turn_end::process_effect_turn_end_monster;
+use self::process_effect_turn_end::process_effect_turn_end;
 use self::process_effect_turn_start::process_effect_turn_start;
 use self::process_effect_unload_discard::process_effect_unload_discard;
 use self::process_effect_wheel_spin::process_effect_wheel_spin;
@@ -572,13 +571,7 @@ fn dispatch_by_kind(
             process_effect_combat_end(state, escaped_character)
         }
         EffectKind::TurnStart => process_effect_turn_start(id_target, state),
-        EffectKind::TurnEnd => {
-            if id_target == Some(state.id_character) {
-                process_effect_turn_end_character(state)
-            } else {
-                process_effect_turn_end_monster(id_target, state)
-            }
-        }
+        EffectKind::TurnEnd => process_effect_turn_end(id_target, state),
         EffectKind::MoveUpdate { move_override } => {
             process_effect_move_update(id_target, state, move_override)
         }
