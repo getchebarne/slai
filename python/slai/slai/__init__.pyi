@@ -400,6 +400,7 @@ class CardName:
     Unload: Final[CardName]
     Violence: Final[CardName]
     WellLaidPlans: Final[CardName]
+    Wound: Final[CardName]
     WraithForm: Final[CardName]
     Writhe: Final[CardName]
     def __eq__(self, other: object) -> bool: ...
@@ -1583,6 +1584,7 @@ class Monster:
 @final
 class MonsterEncounter:
     BlueSlaver: Final[MonsterEncounter]
+    BookOfStabbing: Final[MonsterEncounter]
     CenturionAndHealer: Final[MonsterEncounter]
     Chosen: Final[MonsterEncounter]
     ChosenAndByrds: Final[MonsterEncounter]
@@ -1591,6 +1593,7 @@ class MonsterEncounter:
     ExordiumThugs: Final[MonsterEncounter]
     ExordiumWildlife: Final[MonsterEncounter]
     GremlinGang: Final[MonsterEncounter]
+    GremlinLeader: Final[MonsterEncounter]
     GremlinNob: Final[MonsterEncounter]
     Hexaghost: Final[MonsterEncounter]
     JawWorm: Final[MonsterEncounter]
@@ -1602,6 +1605,7 @@ class MonsterEncounter:
     SentryAndSphere: Final[MonsterEncounter]
     ShelledParasite: Final[MonsterEncounter]
     ShelledParasiteAndFungi: Final[MonsterEncounter]
+    Slavers: Final[MonsterEncounter]
     SlimeBoss: Final[MonsterEncounter]
     SmallSlimes: Final[MonsterEncounter]
     SnakePlant: Final[MonsterEncounter]
@@ -1624,12 +1628,14 @@ class MonsterEncounter:
 
 @final
 class MonsterName:
+    BookOfStabbing: Final[MonsterName]
     Byrd: Final[MonsterName]
     Centurion: Final[MonsterName]
     Chosen: Final[MonsterName]
     Cultist: Final[MonsterName]
     FungiBeast: Final[MonsterName]
     GremlinFat: Final[MonsterName]
+    GremlinLeader: Final[MonsterName]
     GremlinNob: Final[MonsterName]
     GremlinThief: Final[MonsterName]
     GremlinTsundere: Final[MonsterName]
@@ -1657,6 +1663,7 @@ class MonsterName:
     SnakePlant: Final[MonsterName]
     Snecko: Final[MonsterName]
     SphericGuardian: Final[MonsterName]
+    Taskmaster: Final[MonsterName]
     TheGuardian: Final[MonsterName]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...

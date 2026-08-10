@@ -45,6 +45,7 @@ pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
 pub mod process_effect_gold_delta;
 pub mod process_effect_gold_steal;
+pub mod process_effect_gremlin_summon;
 pub mod process_effect_hand_of_greed_proc;
 pub mod process_effect_health_delta;
 pub mod process_effect_health_set;
@@ -140,6 +141,7 @@ use self::process_effect_girya_lift::process_effect_girya_lift;
 use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
 use self::process_effect_gold_delta::process_effect_gold_delta;
 use self::process_effect_gold_steal::process_effect_gold_steal;
+use self::process_effect_gremlin_summon::process_effect_gremlin_summon;
 use self::process_effect_hand_of_greed_proc::process_effect_hand_of_greed_proc;
 use self::process_effect_health_delta::process_effect_health_delta;
 use self::process_effect_health_set::process_effect_health_set;
@@ -587,6 +589,7 @@ fn dispatch_by_kind(
         EffectKind::MonsterSplit { name } => process_effect_monster_split(id_source, state, name),
         EffectKind::MonsterEscape => process_effect_monster_escape(id_target, state),
         EffectKind::GoldSteal { amount } => process_effect_gold_steal(id_source, state, amount),
+        EffectKind::GremlinSummon => process_effect_gremlin_summon(state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
         }

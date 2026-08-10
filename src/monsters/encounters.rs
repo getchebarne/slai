@@ -4,11 +4,13 @@ use strum::EnumCount;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
 use crate::consts::NUM_ENCOUNTERS_WEAK;
+use crate::consts::NUM_ENCOUNTERS_WEAK_ACT2;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::monsters::GREMLIN_POOL;
 use crate::types::EncounterPool;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
@@ -51,6 +53,9 @@ pub const ALL_ENCOUNTERS: &[MonsterEncounter] = &[
     MonsterEncounter::ShelledParasiteAndFungi,
     MonsterEncounter::ChosenAndByrds,
     MonsterEncounter::SentryAndSphere,
+    MonsterEncounter::GremlinLeader,
+    MonsterEncounter::Slavers,
+    MonsterEncounter::BookOfStabbing,
 ];
 // Assert that all `MonsterEncounter` members are covered
 const _: () = assert!(ALL_ENCOUNTERS.len() == MonsterEncounter::COUNT);
@@ -117,6 +122,11 @@ pub const fn get_encounter_pool(encounter: MonsterEncounter) -> EncounterPool {
         | MonsterEncounter::ChosenAndByrds
         | MonsterEncounter::SentryAndSphere => EncounterPool::Act2Hard,
 
+        // Act 2 elite
+        MonsterEncounter::GremlinLeader
+        | MonsterEncounter::Slavers
+        | MonsterEncounter::BookOfStabbing => EncounterPool::Act2Elite,
+
         // Event-only
         MonsterEncounter::ThreeFungiBeasts => EncounterPool::Event,
     }
@@ -169,6 +179,11 @@ pub const fn get_encounter_weight(encounter: MonsterEncounter) -> f32 {
         MonsterEncounter::ChosenAndByrds => 2.0,
         MonsterEncounter::SentryAndSphere => 2.0,
 
+        // Act 2 elite
+        MonsterEncounter::GremlinLeader => 1.0,
+        MonsterEncounter::Slavers => 1.0,
+        MonsterEncounter::BookOfStabbing => 1.0,
+
         // Event-only, never rolled from a pool
         MonsterEncounter::ThreeFungiBeasts => 1.0,
     }
@@ -211,11 +226,17 @@ const fn build_pool<const N: usize>(pool: EncounterPool) -> [MonsterEncounter; N
 const NUM_EASY: usize = count_pool(EncounterPool::Act1Easy);
 const NUM_HARD: usize = count_pool(EncounterPool::Act1Hard);
 const NUM_ELITE: usize = count_pool(EncounterPool::Act1Elite);
+const NUM_EASY2: usize = count_pool(EncounterPool::Act2Easy);
+const NUM_HARD2: usize = count_pool(EncounterPool::Act2Hard);
+const NUM_ELITE2: usize = count_pool(EncounterPool::Act2Elite);
 
 // Encounter arrays per pool
 const ENC_POOL_EASY: [MonsterEncounter; NUM_EASY] = build_pool(EncounterPool::Act1Easy);
 const ENC_POOL_HARD: [MonsterEncounter; NUM_HARD] = build_pool(EncounterPool::Act1Hard);
 const ENC_POOL_ELITE: [MonsterEncounter; NUM_ELITE] = build_pool(EncounterPool::Act1Elite);
+const ENC_POOL_EASY2: [MonsterEncounter; NUM_EASY2] = build_pool(EncounterPool::Act2Easy);
+const ENC_POOL_HARD2: [MonsterEncounter; NUM_HARD2] = build_pool(EncounterPool::Act2Hard);
+const ENC_POOL_ELITE2: [MonsterEncounter; NUM_ELITE2] = build_pool(EncounterPool::Act2Elite);
 
 // Sort ascending by weight (stable for ties), normalize to sum 1.0
 fn normalize_weights(pool: &[MonsterEncounter]) -> Vec<(MonsterEncounter, f32)> {
@@ -334,6 +355,12 @@ pub fn generate_act_monsters(
             &ENC_POOL_HARD,
             &ENC_POOL_ELITE,
             NUM_ENCOUNTERS_WEAK,
+        ),
+        2 => (
+            &ENC_POOL_EASY2,
+            &ENC_POOL_HARD2,
+            &ENC_POOL_ELITE2,
+            NUM_ENCOUNTERS_WEAK_ACT2,
         ),
         _ => unreachable!("no encounter pools for act {act}"),
     };
@@ -503,16 +530,7 @@ pub fn spawn_encounter_monsters(
             }
         }
         MonsterEncounter::GremlinGang => {
-            let mut pool = [
-                MonsterName::GremlinWarrior,
-                MonsterName::GremlinWarrior,
-                MonsterName::GremlinThief,
-                MonsterName::GremlinThief,
-                MonsterName::GremlinFat,
-                MonsterName::GremlinFat,
-                MonsterName::GremlinTsundere,
-                MonsterName::GremlinWizard,
-            ];
+            let mut pool = GREMLIN_POOL;
             shuffle(&mut pool, rng);
             for &name in &pool[..4] {
                 push_monster_spawn(effects, name);
@@ -583,6 +601,25 @@ pub fn spawn_encounter_monsters(
         MonsterEncounter::SentryAndSphere => {
             push_monster_spawn(effects, MonsterName::Sentry);
             push_monster_spawn(effects, MonsterName::SphericGuardian);
+        }
+        MonsterEncounter::GremlinLeader => {
+            // Two weighted gremlins spawn as Minions, then the leader
+            for _ in 0..2 {
+                effects.push(Effect {
+                    kind: EffectKind::GremlinSummon,
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
+            push_monster_spawn(effects, MonsterName::GremlinLeader);
+        }
+        MonsterEncounter::Slavers => {
+            push_monster_spawn(effects, MonsterName::SlaverBlue);
+            push_monster_spawn(effects, MonsterName::Taskmaster);
+            push_monster_spawn(effects, MonsterName::SlaverRed);
+        }
+        MonsterEncounter::BookOfStabbing => {
+            push_monster_spawn(effects, MonsterName::BookOfStabbing)
         }
     }
 

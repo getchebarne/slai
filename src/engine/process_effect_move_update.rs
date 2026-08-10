@@ -1,8 +1,11 @@
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
+use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::effect::EffectKind;
 use crate::entity::Intent;
+use crate::entity::get_move_history_slice;
 use crate::entity::push_move_history;
 use crate::game::GameState;
+use crate::monsters::book_of_stabbing;
 use crate::monsters::get_next_move;
 use crate::monsters::hexaghost;
 use crate::monsters::is_cycle_boundary;
@@ -53,6 +56,30 @@ pub fn process_effect_move_update(
         move_divider.intent = Intent::Attack {
             damage,
             instances: HEXAGHOST_DIVIDER_HITS,
+        };
+    }
+
+    // Multi-Stab hit count escalates over the fight; history excludes the current pick
+    if entity.monster_name == MonsterName::BookOfStabbing
+        && move_next == book_of_stabbing::IDX_MOVE_MULTI_STAB
+    {
+        let turns_taken = get_move_history_slice(entity).len();
+        let move_stab = &mut entity.monster_moves[book_of_stabbing::IDX_MOVE_MULTI_STAB];
+        let prev_len = move_stab.effects_len as usize;
+        // The fixed-size effect array caps the escalation
+        let hits = book_of_stabbing::multi_stab_hits(prev_len, turns_taken, state.ascension)
+            .min(MAX_EFFECTS_PER_MOVE);
+        let stab = move_stab.effects[0];
+        let EffectKind::DamagePhysical { amount: damage } = stab.kind else {
+            unreachable!("Multi-Stab leads with DamagePhysical")
+        };
+        for effect in move_stab.effects[prev_len..hits].iter_mut() {
+            *effect = stab;
+        }
+        move_stab.effects_len = hits as u8;
+        move_stab.intent = Intent::Attack {
+            damage,
+            instances: hits as u8,
         };
     }
 

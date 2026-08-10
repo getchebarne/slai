@@ -12,6 +12,7 @@ use crate::modifier::modifier_stacks;
 use crate::potions::remove_potion;
 use crate::types::DeltaSign;
 use crate::types::Mode;
+use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -116,6 +117,30 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     let target = &state.entities[id_target];
+
+    // A leader's death drains its minions: survivors that are all Minions escape
+    // (Gremlin Leader) or die; the queued effects recurse through this handler
+    if !has_modifier(&target.modifiers, ModifierKind::Minion)
+        && id_monsters
+            .iter()
+            .flatten()
+            .all(|&id| has_modifier(&state.entities[id].modifiers, ModifierKind::Minion))
+    {
+        let kind = if target.monster_name == MonsterName::GremlinLeader {
+            EffectKind::MonsterEscape
+        } else {
+            EffectKind::Death
+        };
+        for slot in id_monsters.iter() {
+            if let Some(id) = *slot {
+                state.effect_queue.push_front(Effect {
+                    kind,
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                });
+            }
+        }
+    }
 
     // Spore Cloud: Character gains 2 stacks of Vulnerable
     let spore_effect = if has_modifier(&target.modifiers, ModifierKind::SporeCloud) {

@@ -144,6 +144,7 @@ pub enum EffectKind {
     GoldSteal {
         amount: u8,
     },
+    GremlinSummon,
     HandOfGreedProc {
         gold: u16,
     },

@@ -1,3 +1,4 @@
+pub mod book_of_stabbing;
 pub mod byrd;
 pub mod centurion;
 pub mod chosen;
@@ -5,6 +6,7 @@ pub mod cultist;
 pub mod encounters;
 pub mod fungi_beast;
 pub mod gremlin_fat;
+pub mod gremlin_leader;
 pub mod gremlin_nob;
 pub mod gremlin_thief;
 pub mod gremlin_tsundere;
@@ -32,6 +34,7 @@ pub mod slime_spike_small;
 pub mod snake_plant;
 pub mod snecko;
 pub mod spheric_guardian;
+pub mod taskmaster;
 pub mod the_guardian;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
@@ -119,7 +122,31 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         MonsterName::SphericGuardian => {
             spheric_guardian::spawn_monster_spheric_guardian(ascension_level, rng)
         }
+        MonsterName::BookOfStabbing => {
+            book_of_stabbing::spawn_monster_book_of_stabbing(ascension_level, rng)
+        }
+        MonsterName::GremlinLeader => {
+            gremlin_leader::spawn_monster_gremlin_leader(ascension_level, rng)
+        }
+        MonsterName::Taskmaster => taskmaster::spawn_monster_taskmaster(ascension_level, rng),
     }
+}
+
+// Weighted gremlin pool: Warrior/Thief/Fat twice, Tsundere/Wizard once.
+// Shared by GremlinGang (shuffles a copy) and Rally summons (draws one)
+pub const GREMLIN_POOL: [MonsterName; 8] = [
+    MonsterName::GremlinWarrior,
+    MonsterName::GremlinWarrior,
+    MonsterName::GremlinThief,
+    MonsterName::GremlinThief,
+    MonsterName::GremlinFat,
+    MonsterName::GremlinFat,
+    MonsterName::GremlinTsundere,
+    MonsterName::GremlinWizard,
+];
+
+pub fn pick_gremlin(rng: &mut impl Rng) -> MonsterName {
+    GREMLIN_POOL[rng.random_range(0..GREMLIN_POOL.len())]
 }
 
 // True if `move_idx` ends a cycle; callers bump monster_cycle_count
@@ -258,6 +285,13 @@ pub fn get_next_move(
             snecko::get_next_move_snecko(entity.monster_move_current, history, rng)
         }
         MonsterName::SphericGuardian => spheric_guardian::get_next_move_spheric_guardian(history),
+        MonsterName::BookOfStabbing => {
+            book_of_stabbing::get_next_move_book_of_stabbing(history, rng)
+        }
+        MonsterName::GremlinLeader => {
+            gremlin_leader::get_next_move_gremlin_leader(history, entity_id, id_monsters, rng)
+        }
+        MonsterName::Taskmaster => 0,
     }
 }
 
@@ -483,6 +517,39 @@ mod tests {
     use rand::SeedableRng;
     use rand::rngs::SmallRng;
 
+    // Act-2 rolls are unreachable in-game until the act seam lands; this guards
+    // the pool tables and sequence rules
+    #[test]
+    fn act2_encounter_generation() {
+        use crate::monsters::encounters::generate_act_monsters;
+        use crate::monsters::encounters::get_encounter_pool;
+        use crate::types::EncounterPool;
+
+        let mut rng = SmallRng::seed_from_u64(11);
+        for _ in 0..50 {
+            let mut normal = Vec::new();
+            let mut elite = Vec::new();
+            generate_act_monsters(2, &mut normal, &mut elite, &mut rng);
+            assert_eq!(normal.len(), 2 + 1 + 12);
+            assert_eq!(elite.len(), 10);
+            assert!(
+                normal[..2]
+                    .iter()
+                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Easy)
+            );
+            assert!(
+                normal[2..]
+                    .iter()
+                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Hard)
+            );
+            assert!(
+                elite
+                    .iter()
+                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Elite)
+            );
+        }
+    }
+
     // Act-2 normals are unreachable in-game until the act seam lands; this guards
     // their spawn tables and AI against panics and out-of-range move indices
     #[test]
@@ -497,6 +564,9 @@ mod tests {
             MonsterName::SnakePlant,
             MonsterName::Snecko,
             MonsterName::SphericGuardian,
+            MonsterName::BookOfStabbing,
+            MonsterName::GremlinLeader,
+            MonsterName::Taskmaster,
         ];
         let mut rng = SmallRng::seed_from_u64(7);
         for ascension in [0, 2, 7, 17, 18, 20] {

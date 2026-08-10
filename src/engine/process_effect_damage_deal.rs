@@ -13,6 +13,8 @@ use crate::modifier::modifier_apply;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
+use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
@@ -125,6 +127,27 @@ pub fn process_effect_damage_deal(
                 },
                 id_source: Some(id_character),
                 target: Target::Direct(Some(id_target)),
+            });
+        }
+
+        // Painful Stabs: each unblocked hit from the owner adds a Wound to the discard pile
+        if from_monster
+            && id_target == id_character
+            && let Some(id_src) = id_source
+            && has_modifier(
+                &state.entities[id_src].modifiers,
+                ModifierKind::PainfulStabs,
+            )
+        {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardAdd {
+                    card_name: CardName::Wound,
+                    pile: CardPile::Discard,
+                    count: 1,
+                    upgraded: false,
+                },
+                id_source: None,
+                target: Target::Direct(None),
             });
         }
 

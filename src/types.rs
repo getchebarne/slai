@@ -226,6 +226,7 @@ pub enum CardName {
     TheBomb,
     Violence,
     CurseOfTheBell,
+    Wound,
 }
 
 // Lifetime of a cost override; Combat writes the base cost and is never stored on the entity
@@ -308,6 +309,9 @@ pub enum MonsterName {
     SnakePlant,
     Snecko,
     SphericGuardian,
+    BookOfStabbing,
+    GremlinLeader,
+    Taskmaster,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -380,6 +384,11 @@ pub enum MonsterEncounter {
     ShelledParasiteAndFungi,
     ChosenAndByrds,
     SentryAndSphere,
+
+    // Act 2 elite
+    GremlinLeader,
+    Slavers,
+    BookOfStabbing,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

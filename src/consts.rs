@@ -103,6 +103,7 @@ pub const RELIC_TIER_TH_UNCOMMON: u8 = 83;
 
 // Encounter sequence sizes
 pub const NUM_ENCOUNTERS_WEAK: usize = 3;
+pub const NUM_ENCOUNTERS_WEAK_ACT2: usize = 2;
 pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_WEAK;
 pub const NUM_ENCOUNTERS_ELITE: usize = 10;
 pub const ENCOUNTER_POOL_CAPACITY_NORMAL: usize = NUM_ENCOUNTERS_WEAK + 1 + NUM_ENCOUNTERS_HARD;
