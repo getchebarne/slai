@@ -46,7 +46,7 @@ pub fn process_effect_move_update(
         let damage = character_health / 12 + 1;
         let move_divider = &mut entity.monster_moves[hexaghost::IDX_MOVE_DIVIDER];
         for effect in move_divider.effects[..move_divider.effects_len as usize].iter_mut() {
-            if let EffectKind::DamagePhysical { amount } = &mut effect.kind {
+            if let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
                 *amount = damage;
             }
         }

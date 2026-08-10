@@ -273,7 +273,7 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     }
     for effect in entity.card_effects[..entity.card_effects_len as usize].iter() {
         let amount = match effect.kind {
-            EffectKind::DamagePhysical { amount } => amount,
+            EffectKind::DamagePhysical { amount, .. } => amount,
             EffectKind::DamagePhysicalIfPoisoned { amount } => amount,
             _ => 0,
         };

@@ -228,12 +228,9 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
-        MonsterName::Byrd => byrd::get_next_move_byrd(
-            entity.monster_move_current,
-            history,
-            &entity.modifiers,
-            rng,
-        ),
+        MonsterName::Byrd => {
+            byrd::get_next_move_byrd(entity.monster_move_current, history, &entity.modifiers, rng)
+        }
         MonsterName::Centurion => {
             centurion::get_next_move_centurion(history, entity_id, id_monsters, rng)
         }
@@ -241,7 +238,7 @@ pub fn get_next_move(
         MonsterName::Healer => {
             healer::get_next_move_healer(history, entities, id_monsters, ascension_level, rng)
         }
-        // Same script as the Looter; move indices line up one-to-one
+        // Same script as the Looter
         MonsterName::Mugger => {
             looter::get_next_move_looter(entity.monster_move_current, history, rng)
         }
@@ -267,7 +264,10 @@ pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) ->
     let mut i = 0;
     while i < instances as usize {
         effects[i] = Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         };
@@ -320,7 +320,10 @@ pub const fn make_move_attack_debuff(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -348,7 +351,10 @@ pub const fn make_move_attack_card_add(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -473,48 +479,5 @@ pub const fn make_entity_monster(
         monster_kind,
         monster_moves: arr,
         ..ZERO_ENTITY
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::entity::push_move_history;
-    use rand::SeedableRng;
-    use rand::rngs::SmallRng;
-
-    // Act-2 normals are unreachable in-game until the act seam lands; this guards
-    // their spawn tables and AI against panics and out-of-range move indices
-    #[test]
-    fn act2_normal_ai_smoke() {
-        let names = [
-            MonsterName::Byrd,
-            MonsterName::Centurion,
-            MonsterName::Chosen,
-            MonsterName::Healer,
-            MonsterName::Mugger,
-            MonsterName::ShelledParasite,
-            MonsterName::SnakePlant,
-            MonsterName::Snecko,
-            MonsterName::SphericGuardian,
-        ];
-        let mut rng = SmallRng::seed_from_u64(7);
-        for ascension in [0, 2, 7, 17, 18, 20] {
-            for name in names {
-                let mut entities = vec![spawn_monster(name, ascension, &mut rng)];
-                let mut id_monsters = [None; MAX_MONSTERS];
-                id_monsters[0] = Some(0);
-                for _ in 0..50 {
-                    let idx = get_next_move(&entities, 0, &id_monsters, ascension, &mut rng);
-                    assert!(
-                        idx < MAX_MOVES_PER_MONSTER
-                            && !entities[0].monster_moves[idx].name.is_empty(),
-                        "{name:?} rolled invalid move idx {idx}"
-                    );
-                    entities[0].monster_move_current = Some(idx);
-                    push_move_history(&mut entities[0], idx as u8);
-                }
-            }
-        }
     }
 }

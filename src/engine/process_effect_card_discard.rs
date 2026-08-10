@@ -76,7 +76,10 @@ pub fn process_effect_card_discard(
             // Tingsha: each discard deals 3 thorns-type damage (unscaled, no Envenom)
             if has_relic(&state.id_relics, RelicName::Tingsha) {
                 state.effect_queue.push_back(Effect {
-                    kind: EffectKind::DamageDeal { amount: 3 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 3,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Resolve {
                         candidate_pool: CandidatePool::Monsters,

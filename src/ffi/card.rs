@@ -307,7 +307,11 @@ pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) ->
         .iter()
         .map(snapshot_effect)
         .map(|effect| match effect {
-            PyEffect::DamagePhysical(PyEffectDamagePhysical { amount, target }) => {
+            PyEffect::DamagePhysical(PyEffectDamagePhysical {
+                amount,
+                lifesteal,
+                target,
+            }) => {
                 // Player attacker: Paper Krane never applies
                 let mut d = scale_attack_damage(
                     amount.saturating_add(vigor),
@@ -318,7 +322,11 @@ pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) ->
                 if double {
                     d = d.saturating_mul(2);
                 }
-                PyEffect::DamagePhysical(PyEffectDamagePhysical { amount: d, target })
+                PyEffect::DamagePhysical(PyEffectDamagePhysical {
+                    amount: d,
+                    lifesteal,
+                    target,
+                })
             }
             PyEffect::BlockGain(PyEffectBlockGain { amount, target }) => {
                 PyEffect::BlockGain(PyEffectBlockGain {

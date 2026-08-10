@@ -28,7 +28,10 @@ const fn make_move_inferno(damage: u16) -> Move {
     let mut i = 0;
     while i < INFERNO_HITS {
         effects[i] = Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         };
@@ -54,7 +57,10 @@ static MOVE_ACTIVATE: Move = make_move("Activate", &[], Intent::Unknown);
 
 // Divider true damage (HP/12+1 x 6); amounts and intent locked in at move selection
 static DIVIDER_HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 0 },
+    kind: EffectKind::DamagePhysical {
+        amount: 0,
+        lifesteal: false,
+    },
     id_source: None,
     target: TARGET_CHARACTER,
 };
@@ -80,12 +86,18 @@ static MOVE_TACKLE_5: Move = make_move(
     "Tackle",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
@@ -99,12 +111,18 @@ static MOVE_TACKLE_6: Move = make_move(
     "Tackle",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
