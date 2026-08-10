@@ -26,7 +26,7 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
     SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
     SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion, Chosen,
     Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
-    GremlinLeader, Taskmaster,
+    GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_py_object, {
@@ -35,7 +35,8 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_
     GremlinNob, Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts,
     SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
-    ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing,
+    ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing, BronzeAutomaton,
+    TheCollector, Champ,
 });
 
 #[pyclass(
@@ -159,6 +160,11 @@ impl MonsterName {
             Self::BookOfStabbing => "Book of Stabbing",
             Self::GremlinLeader => "Gremlin Leader",
             Self::Taskmaster => "Taskmaster",
+            Self::BronzeAutomaton => "Bronze Automaton",
+            Self::BronzeOrb => "Bronze Orb",
+            Self::Champ => "The Champ",
+            Self::TheCollector => "The Collector",
+            Self::TorchHead => "Torch Head",
         }
     }
 }

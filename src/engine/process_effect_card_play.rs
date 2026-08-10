@@ -13,9 +13,7 @@ use crate::entity::Entity;
 use crate::entity::get_card_effective_cost;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::active_modifier_kinds;
 use crate::modifier::has_modifier;
-use crate::modifier::modifier_is_buff;
 use crate::modifier::modifier_stacks;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardKind;
@@ -603,20 +601,11 @@ fn orange_pellets_track_and_sweep(
         return;
     }
 
-    // Else, reset the counter and queue the debuff-clearing effects
+    // Else, reset the counter and queue the debuff sweep
     *counter = 0;
-    let char_mods = &entities[id_character].modifiers;
-    for kind in active_modifier_kinds(char_mods.active) {
-        if !modifier_is_buff(kind)
-            // Negative Strength / Dexterity count as debuffs despite `is_buff` flag
-            || matches!(kind, ModifierKind::Strength | ModifierKind::Dexterity)
-                && char_mods.stacks[kind as usize] < 0
-        {
-            effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierRemove { kind },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
-        }
-    }
+    effect_queue.push_back(Effect {
+        kind: EffectKind::DebuffsClear,
+        id_source: None,
+        target: Target::Direct(Some(id_character)),
+    });
 }

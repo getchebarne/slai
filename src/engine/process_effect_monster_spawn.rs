@@ -17,7 +17,8 @@ use crate::utils::mode_top;
 use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
-pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
+// Returns the spawned entity id; None when a full roster fizzles the spawn
+pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) -> Option<usize> {
     // A monster spawning implies a combat: the first spawn of a fight constructs it
     if !matches!(mode_top(&state.mode_stack), Mode::Combat { .. }) {
         // Event fights replace the consumed Event frame; room fights push over Map
@@ -27,6 +28,7 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
             id_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
             id_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
             id_monsters: [None; MAX_MONSTERS],
+            id_stasis_cards: [None; MAX_MONSTERS],
             id_picked_monster: None,
             id_card_last_drawn: None,
             id_card_nightmare: None,
@@ -55,17 +57,14 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
         unreachable!("Constructed above")
     };
 
-    // Create the monster `Entity`
+    // A full roster fizzles the spawn (Collector revive, mid-combat summons)
+    let Some(idx) = id_monsters.iter().position(|s| s.is_none()) else {
+        return None;
+    };
+
+    // Create the monster `Entity` and place it in the first empty slot
     let monster = spawn_monster(name, state.ascension, &mut state.rng);
-
-    // Push it
     let id_monster = push_entity(&mut state.entities, monster);
-
-    // Place it in the first empty monster slot
-    let idx = id_monsters
-        .iter()
-        .position(|s| s.is_none())
-        .expect("MonsterSpawn would overflow id_monsters: no empty idx");
     id_monsters[idx] = Some(id_monster);
 
     // Queue an effect to update its move
@@ -88,4 +87,6 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
             target: Target::Direct(Some(id_monster)),
         });
     }
+
+    Some(id_monster)
 }

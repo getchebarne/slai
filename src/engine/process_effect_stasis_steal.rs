@@ -1,0 +1,60 @@
+use crate::game::GameState;
+use crate::types::CardRarity;
+use crate::types::Mode;
+use crate::utils::mode_top_mut;
+use rand::Rng;
+
+// Bronze Orb's Stasis: exile a card from the draw pile (discard as fallback) until
+// the orb dies. Prefers the highest rarity present; random among ties
+pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameState) {
+    let id_orb = id_source.expect("StasisSteal requires id_source");
+
+    let Mode::Combat {
+        id_monsters,
+        id_stasis_cards,
+        id_pile_draw,
+        id_pile_discard,
+        ..
+    } = mode_top_mut(&mut state.mode_stack)
+    else {
+        unreachable!("process_effect_stasis_steal outside Combat mode")
+    };
+    let slot_orb = id_monsters
+        .iter()
+        .position(|s| *s == Some(id_orb))
+        .expect("StasisSteal source is not on the roster");
+    let pile: &mut Vec<usize> = if !id_pile_draw.is_empty() {
+        id_pile_draw
+    } else if !id_pile_discard.is_empty() {
+        id_pile_discard
+    } else {
+        return;
+    };
+
+    // Highest rarity tier present wins; Special/Basic cards are the last resort
+    let mut best_idx = 0;
+    let mut best_rank = -1i8;
+    let mut ties: u16 = 0;
+    for (idx, &id_card) in pile.iter().enumerate() {
+        let rank = match state.entities[id_card].card_rarity {
+            CardRarity::Rare => 3,
+            CardRarity::Uncommon => 2,
+            CardRarity::Common => 1,
+            _ => 0,
+        };
+        if rank > best_rank {
+            best_rank = rank;
+            best_idx = idx;
+            ties = 1;
+        } else if rank == best_rank {
+            // Reservoir-sample among equals for a uniform pick
+            ties += 1;
+            if state.rng.random_range(0..ties) == 0 {
+                best_idx = idx;
+            }
+        }
+    }
+
+    let id_card = pile.remove(best_idx);
+    id_stasis_cards[slot_orb] = Some(id_card);
+}

@@ -116,6 +116,7 @@ pub enum EffectKind {
         amount: u16,
     },
     Death,
+    DebuffsClear,
     DistractionAdd,
     EnergyDelta {
         sign: DeltaSign,
@@ -239,6 +240,7 @@ pub enum EffectKind {
     SneakyStrikeProc {
         energy: u8,
     },
+    StasisSteal,
     StormOfSteelProc {
         upgraded: bool,
     },
@@ -247,6 +249,7 @@ pub enum EffectKind {
     },
     TargetClear,
     TargetSet,
+    TorchHeadSpawn,
     TurnEnd,
     TurnStart,
     UnloadDiscard,
@@ -335,6 +338,7 @@ pub enum CandidateFilter {
     // Compare against the `Target::Resolve` context
     Picked,
     NotSource,
+    NotMinion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

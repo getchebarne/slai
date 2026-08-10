@@ -10,6 +10,7 @@ use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
+use crate::consts::MAX_MONSTERS;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
@@ -150,6 +151,23 @@ pub fn candidate_matches(
         }
         CandidateFilter::Picked => Some(id) == id_picked_monster,
         CandidateFilter::NotSource => Some(id) != id_source,
+        CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
+    }
+}
+
+// Vacating a roster slot frees its Stasis hostage; mirrors place_card's hand-overflow rule
+pub fn release_stasis_card(
+    slot: usize,
+    id_stasis_cards: &mut [Option<usize>; MAX_MONSTERS],
+    id_hand: &mut Vec<usize>,
+    id_pile_discard: &mut Vec<usize>,
+) {
+    if let Some(id_card) = id_stasis_cards[slot].take() {
+        if id_hand.len() < MAX_SIZE_HAND {
+            id_hand.push(id_card);
+        } else {
+            id_pile_discard.push(id_card);
+        }
     }
 }
 

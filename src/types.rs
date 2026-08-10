@@ -29,6 +29,8 @@ pub enum Mode {
         id_pile_discard: Vec<usize>,
         id_pile_exhaust: Vec<usize>,
         id_monsters: [Option<usize>; MAX_MONSTERS],
+        // Slot-parallel to id_monsters: the Stasis hostage held by the monster in that slot
+        id_stasis_cards: [Option<usize>; MAX_MONSTERS],
         id_picked_monster: Option<usize>,
         id_card_last_drawn: Option<usize>,
         id_card_nightmare: Option<usize>,
@@ -312,6 +314,11 @@ pub enum MonsterName {
     BookOfStabbing,
     GremlinLeader,
     Taskmaster,
+    BronzeAutomaton,
+    BronzeOrb,
+    Champ,
+    TheCollector,
+    TorchHead,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -389,6 +396,11 @@ pub enum MonsterEncounter {
     GremlinLeader,
     Slavers,
     BookOfStabbing,
+
+    // Act 2 boss
+    BronzeAutomaton,
+    TheCollector,
+    Champ,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

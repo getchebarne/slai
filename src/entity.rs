@@ -120,7 +120,7 @@ pub struct Entity {
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_len: u8,
     pub monster_cycle_count: u8,  // Only used by "The Guardian"
-    pub monster_stolen_gold: u16, // Only used by "Looter"
+    pub monster_stolen_gold: u16, // Only used by "Looter" and "Mugger"
 
     // Card-only
     pub card_name: CardName,

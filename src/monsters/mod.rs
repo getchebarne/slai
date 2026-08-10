@@ -1,6 +1,9 @@
 pub mod book_of_stabbing;
+pub mod bronze_automaton;
+pub mod bronze_orb;
 pub mod byrd;
 pub mod centurion;
+pub mod champ;
 pub mod chosen;
 pub mod cultist;
 pub mod encounters;
@@ -35,7 +38,9 @@ pub mod snake_plant;
 pub mod snecko;
 pub mod spheric_guardian;
 pub mod taskmaster;
+pub mod the_collector;
 pub mod the_guardian;
+pub mod torch_head;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTERS;
@@ -129,6 +134,13 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
             gremlin_leader::spawn_monster_gremlin_leader(ascension_level, rng)
         }
         MonsterName::Taskmaster => taskmaster::spawn_monster_taskmaster(ascension_level, rng),
+        MonsterName::BronzeAutomaton => {
+            bronze_automaton::spawn_monster_bronze_automaton(ascension_level)
+        }
+        MonsterName::BronzeOrb => bronze_orb::spawn_monster_bronze_orb(ascension_level, rng),
+        MonsterName::Champ => champ::spawn_monster_champ(ascension_level),
+        MonsterName::TheCollector => the_collector::spawn_monster_the_collector(ascension_level),
+        MonsterName::TorchHead => torch_head::spawn_monster_torch_head(ascension_level, rng),
     }
 }
 
@@ -147,6 +159,18 @@ pub const GREMLIN_POOL: [MonsterName; 8] = [
 
 pub fn pick_gremlin(rng: &mut impl Rng) -> MonsterName {
     GREMLIN_POOL[rng.random_range(0..GREMLIN_POOL.len())]
+}
+
+pub fn count_monsters_named(
+    entities: &[Entity],
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
+    name: MonsterName,
+) -> usize {
+    id_monsters
+        .iter()
+        .flatten()
+        .filter(|&&id| entities[id].monster_name == name)
+        .count()
 }
 
 // True if `move_idx` ends a cycle; callers bump monster_cycle_count
@@ -292,6 +316,23 @@ pub fn get_next_move(
             gremlin_leader::get_next_move_gremlin_leader(history, entity_id, id_monsters, rng)
         }
         MonsterName::Taskmaster => 0,
+        MonsterName::BronzeAutomaton => {
+            bronze_automaton::get_next_move_bronze_automaton(history, ascension_level)
+        }
+        MonsterName::BronzeOrb => bronze_orb::get_next_move_bronze_orb(history, rng),
+        MonsterName::Champ => champ::get_next_move_champ(
+            history,
+            entity.vitals.health,
+            entity.vitals.health_max,
+            ascension_level,
+            rng,
+        ),
+        MonsterName::TheCollector => {
+            let torch_heads_alive =
+                count_monsters_named(entities, id_monsters, MonsterName::TorchHead);
+            the_collector::get_next_move_the_collector(history, torch_heads_alive, rng)
+        }
+        MonsterName::TorchHead => 0,
     }
 }
 
@@ -567,6 +608,11 @@ mod tests {
             MonsterName::BookOfStabbing,
             MonsterName::GremlinLeader,
             MonsterName::Taskmaster,
+            MonsterName::BronzeAutomaton,
+            MonsterName::BronzeOrb,
+            MonsterName::Champ,
+            MonsterName::TheCollector,
+            MonsterName::TorchHead,
         ];
         let mut rng = SmallRng::seed_from_u64(7);
         for ascension in [0, 2, 7, 17, 18, 20] {

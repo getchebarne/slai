@@ -5,6 +5,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
+use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -59,6 +60,9 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
             None,
             relic_roll,
         );
+
+        // Consume-then-fight protocol: the consume lands ahead of the spawn chain
+        state.effect_queue.push_front(EVENT_CONSUME_EFFECT);
 
         // The event Lagavulin spawns awake: no sleep kit, opens with Siphon Soul
         if encounter == MonsterEncounter::Lagavulin {

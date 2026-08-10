@@ -98,6 +98,7 @@ class CandidateFilter:
     KindAttack: Final[CandidateFilter]
     KindPower: Final[CandidateFilter]
     KindSkill: Final[CandidateFilter]
+    NotMinion: Final[CandidateFilter]
     NotSource: Final[CandidateFilter]
     Picked: Final[CandidateFilter]
     Purgeable: Final[CandidateFilter]
@@ -1412,6 +1413,8 @@ class ModeCombat:
     def pile_draw(self, /) -> list[Card]: ...
     @property
     def pile_exhaust(self, /) -> list[Card]: ...
+    @property
+    def pile_stasis(self, /) -> list[Card]: ...
 
 @final
 class ModeCombatEnded:
@@ -1585,7 +1588,9 @@ class Monster:
 class MonsterEncounter:
     BlueSlaver: Final[MonsterEncounter]
     BookOfStabbing: Final[MonsterEncounter]
+    BronzeAutomaton: Final[MonsterEncounter]
     CenturionAndHealer: Final[MonsterEncounter]
+    Champ: Final[MonsterEncounter]
     Chosen: Final[MonsterEncounter]
     ChosenAndByrds: Final[MonsterEncounter]
     Cultist: Final[MonsterEncounter]
@@ -1611,6 +1616,7 @@ class MonsterEncounter:
     SnakePlant: Final[MonsterEncounter]
     Snecko: Final[MonsterEncounter]
     SphericGuardian: Final[MonsterEncounter]
+    TheCollector: Final[MonsterEncounter]
     TheGuardian: Final[MonsterEncounter]
     ThreeByrds: Final[MonsterEncounter]
     ThreeCultists: Final[MonsterEncounter]
@@ -1629,8 +1635,11 @@ class MonsterEncounter:
 @final
 class MonsterName:
     BookOfStabbing: Final[MonsterName]
+    BronzeAutomaton: Final[MonsterName]
+    BronzeOrb: Final[MonsterName]
     Byrd: Final[MonsterName]
     Centurion: Final[MonsterName]
+    Champ: Final[MonsterName]
     Chosen: Final[MonsterName]
     Cultist: Final[MonsterName]
     FungiBeast: Final[MonsterName]
@@ -1664,7 +1673,9 @@ class MonsterName:
     Snecko: Final[MonsterName]
     SphericGuardian: Final[MonsterName]
     Taskmaster: Final[MonsterName]
+    TheCollector: Final[MonsterName]
     TheGuardian: Final[MonsterName]
+    TorchHead: Final[MonsterName]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __int__(self, /) -> int: ...
