@@ -6,7 +6,6 @@ use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_EFFECTS_PER_EVENT_OPTION;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MOVE_HISTORY;
-use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::effect::Effect;
 use crate::effect::ZERO_EFFECT;
 use crate::modifier::Modifiers;
@@ -86,14 +85,6 @@ pub struct Move {
     pub intent: Intent,
 }
 
-// Zero-fill sentinel; pads slots past effects_len
-pub const ZERO_MOVE: Move = Move {
-    name: "",
-    effects: [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE],
-    effects_len: 0,
-    intent: Intent::Unknown,
-};
-
 // Fat Entity
 #[derive(Debug, Clone, Copy)]
 pub struct Entity {
@@ -115,7 +106,8 @@ pub struct Entity {
     // Monster-only
     pub monster_name: MonsterName,
     pub monster_kind: MonsterKind,
-    pub monster_moves: [Move; MAX_MOVES_PER_MONSTER],
+    pub monster_moves: &'static [Move],
+    pub monster_move_damage_override: Option<u16>, // Only used by "Hexaghost"
     pub monster_move_current: Option<usize>,
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_len: u8,
@@ -186,7 +178,8 @@ pub const ZERO_ENTITY: Entity = Entity {
     monster_stolen_gold: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
-    monster_moves: [ZERO_MOVE; MAX_MOVES_PER_MONSTER],
+    monster_moves: &[],
+    monster_move_damage_override: None,
     monster_move_current: None,
     monster_move_history: [0; MAX_MOVE_HISTORY],
     monster_move_history_len: 0,

@@ -39,7 +39,6 @@ pub mod the_guardian;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTERS;
-use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
@@ -51,7 +50,6 @@ use crate::entity::EntityKind;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::ZERO_ENTITY;
-use crate::entity::ZERO_MOVE;
 use crate::entity::get_move_history_slice;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
@@ -492,25 +490,15 @@ pub const fn make_entity_monster(
     monster_kind: MonsterKind,
     vitals: Vitals,
     modifiers: Modifiers,
-    moves: &[Move],
+    moves: &'static [Move],
 ) -> Entity {
-    assert!(
-        moves.len() <= MAX_MOVES_PER_MONSTER,
-        "monster_moves exceeds MAX_MOVES_PER_MONSTER",
-    );
-    let mut arr = [ZERO_MOVE; MAX_MOVES_PER_MONSTER];
-    let mut i = 0;
-    while i < moves.len() {
-        arr[i] = moves[i];
-        i += 1;
-    }
     Entity {
         kind: EntityKind::Monster,
         vitals,
         modifiers,
         monster_name: name,
         monster_kind,
-        monster_moves: arr,
+        monster_moves: moves,
         ..ZERO_ENTITY
     }
 }

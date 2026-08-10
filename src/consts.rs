@@ -9,8 +9,6 @@ pub const MAX_EFFECTS_PER_MOVE: usize = 20;
 // Per-event-option effect array cap; Mushrooms' Stomp is the 5-effect maximum
 pub const MAX_EFFECTS_PER_EVENT_OPTION: usize = 5;
 
-// Per-monster move array cap; Book of Stabbing's stab ladder is the maximum
-pub const MAX_MOVES_PER_MONSTER: usize = 20;
 pub const STARTING_GOLD: u16 = 99;
 pub const MAX_GOLD: u16 = 9999;
 pub const GOLD_MONSTER_MIN: u16 = 10;
