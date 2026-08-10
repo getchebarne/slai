@@ -30,6 +30,7 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) ->
             id_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
             id_monsters: [None; MAX_MONSTERS],
             id_stasis_cards: [None; MAX_MONSTERS],
+            id_card_origins: Vec::new(),
             id_picked_monster: None,
             id_card_last_drawn: None,
             id_card_nightmare: None,

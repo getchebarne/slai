@@ -9,6 +9,7 @@ mod bag_of_preparation;
 mod bird_faced_urn;
 mod black_star;
 mod blood_vial;
+mod bloody_idol;
 mod blue_candle;
 mod boot;
 mod bottled_flame;
@@ -35,6 +36,7 @@ mod dream_catcher;
 mod du_vu_doll;
 mod ectoplasm;
 mod empty_cage;
+mod enchiridion;
 mod eternal_feather;
 mod face_of_cleric;
 mod fossilized_helix;
@@ -69,8 +71,12 @@ mod membership_card;
 mod mercury_hourglass;
 mod molten_egg;
 mod mummified_hand;
+mod mutagenic_strength;
+mod necronomicon;
 mod neows_lament;
+mod nilrys_codex;
 mod ninja_scroll;
+mod nloths_gift;
 mod nloths_hungry_face;
 mod nunchaku;
 mod odd_mushroom;
@@ -211,6 +217,7 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::LetterOpener,
     RelicName::OrangePellets,
     RelicName::HoveringKite,
+    RelicName::Necronomicon,
 ];
 
 // Per-combat Relic counters; reset at combat start only
@@ -371,6 +378,12 @@ pub const ALL_RELICS: &[&'static Entity] = &[
     &ring_of_the_serpent::RING_OF_THE_SERPENT,
     &sacred_bark::SACRED_BARK,
     &neows_lament::NEOWS_LAMENT,
+    &necronomicon::NECRONOMICON,
+    &enchiridion::ENCHIRIDION,
+    &nilrys_codex::NILRYS_CODEX,
+    &mutagenic_strength::MUTAGENIC_STRENGTH,
+    &nloths_gift::NLOTHS_GIFT,
+    &bloody_idol::BLOODY_IDOL,
 ];
 // Assert all Relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);

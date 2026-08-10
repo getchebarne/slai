@@ -41,7 +41,6 @@ pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
-pub mod process_effect_face_trade;
 pub mod process_effect_gamble;
 pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
@@ -74,6 +73,7 @@ pub mod process_effect_potion_adopt;
 pub mod process_effect_potion_discard;
 pub mod process_effect_potion_use;
 pub mod process_effect_relic_adopt;
+pub mod process_effect_relic_grant_pool;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
 pub mod process_effect_relic_lose;
@@ -145,7 +145,6 @@ use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
 use self::process_effect_event_consume::process_effect_event_consume;
-use self::process_effect_face_trade::process_effect_face_trade;
 use self::process_effect_gamble::process_effect_gamble;
 use self::process_effect_girya_lift::process_effect_girya_lift;
 use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
@@ -178,6 +177,7 @@ use self::process_effect_potion_adopt::process_effect_potion_adopt;
 use self::process_effect_potion_discard::process_effect_potion_discard;
 use self::process_effect_potion_use::process_effect_potion_use;
 use self::process_effect_relic_adopt::process_effect_relic_adopt;
+use self::process_effect_relic_grant_pool::process_effect_relic_grant_pool;
 use self::process_effect_relic_grant_random::process_effect_relic_grant_random;
 use self::process_effect_relic_grant_specific::process_effect_relic_grant_specific;
 use self::process_effect_relic_lose::process_effect_relic_lose;
@@ -506,7 +506,6 @@ fn dispatch_by_kind(
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
         EffectKind::BonfireOffer => process_effect_bonfire_offer(id_target, state),
         EffectKind::CardBottle => process_effect_card_bottle(id_target, state),
-        EffectKind::FaceTrade => process_effect_face_trade(state),
         EffectKind::GiryaLift => process_effect_girya_lift(state),
         EffectKind::SingingBowlProc { idx_bundle } => {
             process_effect_singing_bowl_proc(state, idx_bundle)
@@ -561,7 +560,7 @@ fn dispatch_by_kind(
             process_effect_damage_deal(id_source, id_target, state, amount, true)
         }
         EffectKind::HealthDelta { sign, amount } => {
-            process_effect_health_delta(id_target, state, sign, amount)
+            process_effect_health_delta(id_source, id_target, state, sign, amount)
         }
         EffectKind::HealthSet { amount } => process_effect_health_set(id_target, state, amount),
         EffectKind::BlockGain { amount } => {
@@ -585,7 +584,7 @@ fn dispatch_by_kind(
         EffectKind::ModifierSetNotNew => process_effect_modifier_set_not_new(state),
         EffectKind::Death => {
             // Character can die outside Combat; empty monster slots make iter a no-op
-            process_effect_death(id_target, state)
+            process_effect_death(id_source, id_target, state)
         }
         EffectKind::CombatStart { loot } => process_effect_combat_start(state, loot),
         EffectKind::CombatEnd { escaped_character } => {
@@ -646,6 +645,7 @@ fn dispatch_by_kind(
             choose_discards,
             discards_before,
         } => process_effect_gamble(state, choose_discards, discards_before),
+        EffectKind::RelicGrantPool { pool } => process_effect_relic_grant_pool(state, pool),
         EffectKind::RelicGrantRandom { tier } => process_effect_relic_grant_random(state, tier),
         EffectKind::RelicGrantSpecific {
             name,
@@ -660,8 +660,8 @@ fn dispatch_by_kind(
             advance_on_miss,
         } => process_effect_scrap_ooze_reach(state, dmg, chance, advance_on_miss),
         EffectKind::EventConsume => process_effect_event_consume(state),
-        EffectKind::CardDiscoverPick { cost_zero } => {
-            process_effect_card_discover_pick(id_target, state, cost_zero)
+        EffectKind::CardDiscoverPick { cost_zero, pile } => {
+            process_effect_card_discover_pick(id_target, state, cost_zero, pile)
         }
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }
@@ -799,9 +799,13 @@ mod tests {
     use crate::consts::ACT_FINAL;
     use crate::consts::BOSS_RELIC_REWARD_COUNT;
     use crate::effect::EventLoot;
+    use crate::events::spawn_event;
     use crate::game::create_game_state;
+    use crate::map::room_at_mut;
     use crate::monsters::encounters::spawn_encounter_monsters;
+    use crate::types::EventName;
     use crate::types::RelicTier;
+    use crate::types::RoomKind;
 
     // Kill every rostered monster outright and settle
     fn kill_roster(state: &mut GameState) {
@@ -843,34 +847,33 @@ mod tests {
         process_effect_queue(state);
     }
 
+    // Repaint a row-0 room into an event room, stand on it, spawn and enter the event
+    fn enter_event(state: &mut GameState, name: EventName) -> Vec<usize> {
+        let x = (0..state.id_rooms[0].len())
+            .find(|&x| state.id_rooms[0][x].is_some())
+            .unwrap();
+        state.location = Location::Overworld { y: 0, x };
+        room_at_mut(&state.id_rooms, &mut state.entities, 0, x)
+            .unwrap()
+            .room_kind = RoomKind::EventRoom;
+        let (kind, id_options) = spawn_event(state, name);
+        state.mode_stack.push(Mode::Event {
+            kind,
+            consumed: false,
+            id_options: id_options.clone(),
+        });
+        id_options
+    }
+
     // The Colosseum suspends beneath its first bout and resumes with no reward;
     // the second bout pays out 100 gold plus a rare and an uncommon relic
     #[test]
     fn colosseum_round_trip() {
-        use crate::events::spawn_event;
-        use crate::map::room_at_mut;
-        use crate::types::EventName;
         use crate::types::RelicTier;
-        use crate::types::RoomKind;
 
         for seed in 0..10 {
             let mut state = create_game_state(0, seed, false, false);
-
-            // Repaint a row-0 room into an event room and stand on it
-            let x = (0..state.id_rooms[0].len())
-                .find(|&x| state.id_rooms[0][x].is_some())
-                .unwrap();
-            state.location = Location::Overworld { y: 0, x };
-            room_at_mut(&state.id_rooms, &mut state.entities, 0, x)
-                .unwrap()
-                .room_kind = RoomKind::EventRoom;
-
-            let (kind, id_options) = spawn_event(&mut state, EventName::Colosseum);
-            state.mode_stack.push(Mode::Event {
-                kind,
-                consumed: false,
-                id_options: id_options.clone(),
-            });
+            let id_options = enter_event(&mut state, EventName::Colosseum);
 
             // First bout: fight over the suspended event, then pop back to it
             fire_option(&mut state, id_options[0]);
@@ -915,6 +918,79 @@ mod tests {
                 .map(|&id| state.entities[id].relic_tier)
                 .collect();
             assert_eq!(tiers, [RelicTier::Rare, RelicTier::Uncommon]);
+        }
+    }
+
+    // Reading to the end costs 16 HP total and grants one of the three books;
+    // Necronomicon arrives bound to its curse
+    #[test]
+    fn cursed_tome_grants_a_book() {
+        use crate::events::BOOK_POOL;
+        use crate::types::CardName;
+        use crate::types::RelicName;
+
+        for seed in 0..10 {
+            let mut state = create_game_state(0, seed, false, false);
+            let hp_before = state.entities[state.id_character].vitals.health;
+            let id_options = enter_event(&mut state, EventName::CursedTome);
+
+            for idx in 0..=4 {
+                fire_option(&mut state, id_options[idx]);
+            }
+            assert_eq!(
+                state.entities[state.id_character].vitals.health,
+                hp_before - 16
+            );
+            assert!(matches!(
+                state.mode_stack[..],
+                [Mode::Map, Mode::Event { consumed: true, .. }]
+            ));
+
+            let owned = BOOK_POOL
+                .iter()
+                .filter(|&&n| state.id_relics[n as usize].is_some())
+                .count();
+            assert_eq!(owned, 1);
+            let has_curse = state
+                .id_deck
+                .iter()
+                .any(|&id| state.entities[id].card_name == CardName::Necronomicurse);
+            assert_eq!(
+                state.id_relics[RelicName::Necronomicon as usize].is_some(),
+                has_curse
+            );
+        }
+    }
+
+    // Trading hands over the rolled Relic and grants N'loth's Gift
+    #[test]
+    fn nloth_trade_swaps_relic() {
+        use crate::events::EventKind;
+        use crate::relics::get_relic;
+        use crate::types::RelicName;
+        use crate::utils::push_entity;
+
+        for seed in 0..10 {
+            let mut state = create_game_state(0, seed, false, false);
+            let id = push_entity(&mut state.entities, get_relic(RelicName::Akabeko));
+            state.id_relics[RelicName::Akabeko as usize] = Some(id);
+
+            let id_options = enter_event(&mut state, EventName::Nloth);
+            let Mode::Event {
+                kind: EventKind::Nloth { relic_first, .. },
+                ..
+            } = *mode_top(&state.mode_stack)
+            else {
+                panic!("wrong kind");
+            };
+
+            fire_option(&mut state, id_options[0]);
+            assert!(state.id_relics[relic_first as usize].is_none());
+            assert!(state.id_relics[RelicName::NlothsGift as usize].is_some());
+            assert!(matches!(
+                state.mode_stack[..],
+                [Mode::Map, Mode::Event { consumed: true, .. }]
+            ));
         }
     }
 

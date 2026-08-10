@@ -1,16 +1,15 @@
 use crate::cards::make_entity_card;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::effect_discover_pick;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
 
@@ -37,17 +36,7 @@ pub static DISCOVERY: Entity = make_entity_card(
             id_source: None,
             target: Target::Direct(None),
         },
-        Effect {
-            kind: EffectKind::CardDiscoverPick {
-                cost_zero: Some(CostScope::Turn),
-            },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Discover,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Input { count: 1 },
-            },
-        },
+        effect_discover_pick(Some(CostScope::Turn), CardPile::Hand),
     ],
     &[],
     &[],

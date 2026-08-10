@@ -35,6 +35,8 @@ pub enum Mode {
         id_card_last_drawn: Option<usize>,
         id_card_nightmare: Option<usize>,
         id_discover: Vec<usize>,
+        // (combat copy, deck original) pairs; mid-combat spawns have no entry
+        id_card_origins: Vec<(usize, usize)>,
 
         // Energy
         energy: Energy,
@@ -229,6 +231,8 @@ pub enum CardName {
     Violence,
     CurseOfTheBell,
     Wound,
+    RitualDagger,
+    Necronomicurse,
 }
 
 // Lifetime of a cost override; Combat writes the base cost and is never stored on the entity
@@ -459,6 +463,11 @@ pub enum EventName {
     TheLibrary,
     TheMausoleum,
     Vampires,
+    Nest,
+    CursedTome,
+    DrugDealer,
+    ForgottenAltar,
+    Nloth,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -671,6 +680,12 @@ pub enum RelicName {
     RingOfTheSerpent,
     SacredBark,
     NeowsLament,
+    Necronomicon,
+    Enchiridion,
+    NilrysCodex,
+    MutagenicStrength,
+    NlothsGift,
+    BloodyIdol,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

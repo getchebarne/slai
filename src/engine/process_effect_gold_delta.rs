@@ -2,6 +2,9 @@ use rand::Rng;
 
 use crate::consts::MAX_GOLD;
 use crate::effect::Amount;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::events::EventKind;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -40,6 +43,18 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
     // Ectoplasm: gold can no longer be gained (after resolution, for RNG parity with the source game)
     if sign == DeltaSign::Gain && has_relic(&state.id_relics, RelicName::Ectoplasm) {
         return;
+    }
+
+    // Bloody Idol: any actual gold gain heals 5; Ectoplasm-blocked gains don't reach here
+    if sign == DeltaSign::Gain && amount > 0 && has_relic(&state.id_relics, RelicName::BloodyIdol) {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(5),
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
     }
 
     // Maw Bank deactivates the first time gold is spent at a shop (event costs don't count)

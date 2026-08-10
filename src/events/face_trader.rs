@@ -8,6 +8,7 @@ use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::OPTION_LEAVE;
 use crate::events::make_entity_event_option;
 use crate::types::DeltaSign;
+use crate::types::RelicName;
 
 // Touch: gold gain first, then health loss; -25 gold gain at A15
 const fn touch(gold: u16) -> [Effect; 3] {
@@ -37,10 +38,18 @@ const fn touch(gold: u16) -> [Effect; 3] {
 const OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
 const OPTION_TOUCH_A15: [Effect; 3] = touch(50);
 
-// Trade: gain random unowned face Relic
+// Trade: gain a random unowned face Relic
+const FACE_POOL: &[RelicName] = &[
+    RelicName::CultistHeadpiece,
+    RelicName::FaceOfCleric,
+    RelicName::GremlinVisage,
+    RelicName::NlothsHungryFace,
+    RelicName::SsserpentHead,
+];
+
 const OPTION_TRADE: &[Effect] = &[
     Effect {
-        kind: EffectKind::FaceTrade,
+        kind: EffectKind::RelicGrantPool { pool: FACE_POOL },
         id_source: None,
         target: Target::Direct(None),
     },

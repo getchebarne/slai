@@ -107,12 +107,13 @@ pub fn process_effect_damage_deal(
             });
         }
 
+        // The killer's id rides along so Death knows it (Ritual Dagger)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
                 amount: Amount::Absolute(damage_over_block),
             },
-            id_source: None,
+            id_source,
             target: Target::Direct(Some(id_target)),
         });
 

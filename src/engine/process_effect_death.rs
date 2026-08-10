@@ -5,21 +5,28 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::potions::remove_potion;
+use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::Mode;
 use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
+use crate::utils::card_damage_delta;
 use crate::utils::has_relic;
 use crate::utils::mode_top_mut;
 use crate::utils::release_stasis_card;
 
-pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_death(
+    id_source: Option<usize>,
+    id_target: Option<usize>,
+    state: &mut GameState,
+) {
     let id_target = id_target.expect("Death requires id_target");
 
     // Death is not re-entrant: a second pass would re-fire the on-death triggers
@@ -76,12 +83,30 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         id_stasis_cards,
         id_hand,
         id_pile_discard,
+        id_card_origins,
         ..
     } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("Monster death outside Combat mode")
     };
     let id_character = state.id_character;
+
+    // Ritual Dagger: a fatal blow permanently grows this copy and its deck original
+    if let Some(id_src) = id_source
+        && state.entities[id_src].kind == EntityKind::Card
+        && state.entities[id_src].card_name == CardName::RitualDagger
+        && !has_modifier(&state.entities[id_target].modifiers, ModifierKind::Minion)
+    {
+        let bump = if state.entities[id_src].card_upgraded {
+            5
+        } else {
+            3
+        };
+        card_damage_delta(&mut state.entities[id_src], bump);
+        if let Some(&(_, id_origin)) = id_card_origins.iter().find(|&&(id, _)| id == id_src) {
+            card_damage_delta(&mut state.entities[id_origin], bump);
+        }
+    }
 
     // Mark the corpse dead, drop it from the live roster, and check if combat continues
     state.entities[id_target].dead = true;

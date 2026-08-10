@@ -23,6 +23,7 @@ use crate::utils::mode_top_mut;
 use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_health_delta(
+    id_source: Option<usize>,
     id_target: Option<usize>,
     state: &mut GameState,
     sign: DeltaSign,
@@ -36,7 +37,7 @@ pub fn process_effect_health_delta(
     // Apply amount
     match sign {
         DeltaSign::Gain => apply_gain(id_target, state, amount),
-        DeltaSign::Loss => apply_loss(id_target, state, amount),
+        DeltaSign::Loss => apply_loss(id_source, id_target, state, amount),
     }
 }
 
@@ -45,7 +46,7 @@ fn apply_gain(id_target: usize, state: &mut GameState, amount: u16) {
     vitals.health = (vitals.health + amount).min(vitals.health_max);
 }
 
-fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
+fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState, amount: u16) {
     // Corpses take no losses: a re-queued Death would double the on-death triggers
     if state.entities[id_target].dead {
         return;
@@ -121,9 +122,10 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
 
     // Check if the target's dead. If so, queue death effect and return early
     if target.vitals.health == 0 {
+        // Forward the killer's id (Ritual Dagger reads it in Death)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::Death,
-            id_source: None,
+            id_source,
             target: Target::Direct(Some(id_target)),
         });
         return;

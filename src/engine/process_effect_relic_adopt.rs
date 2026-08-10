@@ -50,6 +50,20 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
     let id_character = state.id_character;
 
     match name {
+        // Necronomicon arrives bound to its curse
+        RelicName::Necronomicon => {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardAdd {
+                    card_name: CardName::Necronomicurse,
+                    pile: CardPile::Deck,
+                    count: 1,
+                    upgraded: false,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
+
         // Dolly's Mirror: choose a deck Card and obtain a copy of it
         RelicName::DollysMirror => {
             state.effect_queue.push_front(Effect {

@@ -4,10 +4,13 @@ mod beggar;
 mod big_fish;
 mod bonfire_spirits;
 mod colosseum;
+mod cursed_tome;
 mod dead_adventurer;
 mod designer;
+mod drug_dealer;
 mod duplicator;
 mod face_trader;
+mod forgotten_altar;
 mod ghosts;
 mod golden_idol;
 mod golden_shrine;
@@ -17,6 +20,8 @@ mod living_wall;
 mod masked_bandits;
 mod mushrooms;
 mod neow;
+mod nest;
+mod nloth;
 mod ominous_forge;
 mod purifier;
 mod scrap_ooze;
@@ -52,12 +57,16 @@ use crate::entity::ZERO_ENTITY;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::EventName;
+use crate::types::RelicName;
 use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
+use crate::utils::card_is_transformable;
 use crate::utils::card_is_upgradable;
 use crate::utils::push_entity;
 use rand::Rng;
 
+#[cfg(test)]
+pub use cursed_tome::BOOK_POOL;
 use knowing_skull::KNOWING_SKULL_COST_START;
 pub use knowing_skull::KNOWING_SKULL_GOLD;
 pub use the_joust::JOUST_OWNER_WIN_CHANCE;
@@ -67,6 +76,12 @@ pub use the_joust::JOUST_STAKE;
 
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
+    id_source: None,
+    target: Target::Direct(None),
+};
+
+pub const EVENT_ADVANCE_EFFECT: Effect = Effect {
+    kind: EffectKind::EventAdvanceState { delta: 1 },
     id_source: None,
     target: Target::Direct(None),
 };
@@ -184,6 +199,16 @@ pub enum EventKind {
         revealed: u16,
         attempts: u8,
     },
+    Nest,
+    CursedTome {
+        stage: u8,
+    },
+    DrugDealer,
+    ForgottenAltar,
+    Nloth {
+        relic_first: RelicName,
+        relic_second: RelicName,
+    },
 }
 
 // Builds the event: entry rolls land in the kind, options bake into the arena
@@ -240,6 +265,11 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
             found_relic: false,
             searches: 0,
         },
+        EventName::Nest => EventKind::Nest,
+        EventName::CursedTome => EventKind::CursedTome { stage: 0 },
+        EventName::DrugDealer => EventKind::DrugDealer,
+        EventName::ForgottenAltar => EventKind::ForgottenAltar,
+        EventName::Nloth => nloth::spawn_event_nloth(state),
     };
     let id_options = bake_event_options(state, kind);
     (kind, id_options)
@@ -295,6 +325,14 @@ fn bake_event_options(state: &mut GameState, kind: EventKind) -> Vec<usize> {
         EventKind::Designer { .. } => bake_options(state, designer::options(ascension)),
         EventKind::KnowingSkull { .. } => bake_options(state, knowing_skull::OPTIONS),
         EventKind::GremlinMatchGame { .. } => bake_options(state, gremlin_match_game::OPTIONS),
+        EventKind::Nest => bake_options(state, nest::options(ascension)),
+        EventKind::CursedTome { .. } => bake_options(state, cursed_tome::options(ascension)),
+        EventKind::DrugDealer => bake_options(state, drug_dealer::OPTIONS),
+        EventKind::ForgottenAltar => bake_options(state, forgotten_altar::options(ascension)),
+        EventKind::Nloth {
+            relic_first,
+            relic_second,
+        } => bake_options(state, &nloth::bake(relic_first, relic_second)),
         EventKind::Neow => unreachable!("Neow bakes its options at spawn"),
     }
 }
@@ -321,8 +359,13 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
         | EventKind::TheLibrary
         | EventKind::TheMausoleum
         | EventKind::KnowingSkull { .. }
+        | EventKind::Nest
+        | EventKind::Nloth { .. }
         | EventKind::DeadAdventurer { .. } => true,
         EventKind::Addict => addict::option_available(state, idx),
+        EventKind::DrugDealer => drug_dealer::option_available(state, idx),
+        EventKind::ForgottenAltar => forgotten_altar::option_available(state, idx),
+        EventKind::CursedTome { stage } => cursed_tome::option_available(stage, idx),
         EventKind::Beggar => beggar::option_available(state, idx),
         EventKind::BackToBasics => back_to_basics::option_available(state, idx),
         EventKind::Vampires => vampires::option_available(state, idx),
@@ -364,6 +407,15 @@ pub fn deck_has_purgeable(state: &GameState) -> bool {
         .id_deck
         .iter()
         .any(|&id| card_is_purgeable(&state.entities[id]))
+}
+
+pub fn deck_has_two_transformable(state: &GameState) -> bool {
+    state
+        .id_deck
+        .iter()
+        .filter(|&&id| card_is_transformable(&state.entities[id]))
+        .nth(1)
+        .is_some()
 }
 
 pub fn deck_has_non_basic_non_curse(state: &GameState) -> bool {
@@ -435,8 +487,12 @@ pub const POOL_EVENT_ACT2: &[EventName] = &[
     EventName::BackToBasics,
     EventName::Beggar,
     EventName::Colosseum,
+    EventName::CursedTome,
+    EventName::DrugDealer,
+    EventName::ForgottenAltar,
     EventName::Ghosts,
     EventName::MaskedBandits,
+    EventName::Nest,
     EventName::TheLibrary,
     EventName::TheMausoleum,
     EventName::Vampires,
@@ -457,6 +513,7 @@ pub const POOL_EVENT_ACT2_SPECIAL: &[EventName] = &[
     EventName::Designer,
     EventName::Duplicator,
     EventName::KnowingSkull,
+    EventName::Nloth,
     EventName::TheJoust,
 ];
 

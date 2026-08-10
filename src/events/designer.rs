@@ -11,11 +11,11 @@ use crate::events::EFFECT_DECK_TRANSFORM_PICK_TWO;
 use crate::events::EFFECT_DECK_UPGRADE_PICK;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_purgeable;
+use crate::events::deck_has_two_transformable;
 use crate::events::deck_has_upgradable;
 use crate::events::make_entity_event_option;
 use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::utils::card_is_transformable;
 
 pub const DESIGNER_COST_ADJUST: u16 = 40;
 pub const DESIGNER_COST_ADJUST_A15: u16 = 50;
@@ -163,16 +163,7 @@ pub fn option_available(
         0 => adjust_upgrades_one && gold >= adjust_cost && deck_has_upgradable(state),
         1 => !adjust_upgrades_one && gold >= adjust_cost && deck_has_upgradable(state),
         2 => cleanup_removes && gold >= cleanup_cost && deck_has_purgeable(state),
-        3 => {
-            !cleanup_removes
-                && gold >= cleanup_cost
-                && state
-                    .id_deck
-                    .iter()
-                    .filter(|&&id| card_is_transformable(&state.entities[id]))
-                    .nth(1)
-                    .is_some()
-        }
+        3 => !cleanup_removes && gold >= cleanup_cost && deck_has_two_transformable(state),
         4 => gold >= full_cost && deck_has_purgeable(state),
         _ => true,
     }

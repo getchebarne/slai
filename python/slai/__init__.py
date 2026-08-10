@@ -240,7 +240,6 @@ EffectGoldDelta = _rs.EffectGoldDelta
 EffectRelicGrantRandom = _rs.EffectRelicGrantRandom
 EffectWheelSpin = _rs.EffectWheelSpin
 EffectBonfireOffer = _rs.EffectBonfireOffer
-EffectFaceTrade = _rs.EffectFaceTrade
 EffectMonsterSpawn = _rs.EffectMonsterSpawn
 EffectCombatStart = _rs.EffectCombatStart
 EffectAdventurerSearch = _rs.EffectAdventurerSearch
@@ -265,6 +264,7 @@ EffectKnowingSkullAsk = _rs.EffectKnowingSkullAsk
 EffectJoustBet = _rs.EffectJoustBet
 EffectMatchGameFlip = _rs.EffectMatchGameFlip
 EffectRewardRollLibraryCards = _rs.EffectRewardRollLibraryCards
+EffectRelicGrantPool = _rs.EffectRelicGrantPool
 KnowingSkullWish = _rs.KnowingSkullWish
 Effect = (
     EffectDamagePhysical
@@ -309,7 +309,6 @@ Effect = (
     | EffectRelicGrantRandom
     | EffectWheelSpin
     | EffectBonfireOffer
-    | EffectFaceTrade
     | EffectMonsterSpawn
     | EffectCombatStart
     | EffectAdventurerSearch
@@ -334,6 +333,7 @@ Effect = (
     | EffectJoustBet
     | EffectMatchGameFlip
     | EffectRewardRollLibraryCards
+    | EffectRelicGrantPool
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -448,6 +448,11 @@ EventKindColosseum = _rs.EventKindColosseum
 EventKindDesigner = _rs.EventKindDesigner
 EventKindKnowingSkull = _rs.EventKindKnowingSkull
 EventKindGremlinMatchGame = _rs.EventKindGremlinMatchGame
+EventKindNest = _rs.EventKindNest
+EventKindCursedTome = _rs.EventKindCursedTome
+EventKindDrugDealer = _rs.EventKindDrugDealer
+EventKindForgottenAltar = _rs.EventKindForgottenAltar
+EventKindNloth = _rs.EventKindNloth
 EventKind = (
     EventKindBigFish
     | EventKindTheCleric
@@ -487,6 +492,11 @@ EventKind = (
     | EventKindDesigner
     | EventKindKnowingSkull
     | EventKindGremlinMatchGame
+    | EventKindNest
+    | EventKindCursedTome
+    | EventKindDrugDealer
+    | EventKindForgottenAltar
+    | EventKindNloth
 )
 
 DeltaSign = _rs.DeltaSign
@@ -629,7 +639,6 @@ __all__ = [
     "EffectRelicGrantRandom",
     "EffectWheelSpin",
     "EffectBonfireOffer",
-    "EffectFaceTrade",
     "EffectMonsterSpawn",
     "EffectCombatStart",
     "EffectAdventurerSearch",
@@ -654,6 +663,7 @@ __all__ = [
     "EffectJoustBet",
     "EffectMatchGameFlip",
     "EffectRewardRollLibraryCards",
+    "EffectRelicGrantPool",
     "KnowingSkullWish",
     "Amount",
     "AmountAbsolute",
@@ -709,6 +719,11 @@ __all__ = [
     "EventKindDesigner",
     "EventKindKnowingSkull",
     "EventKindGremlinMatchGame",
+    "EventKindNest",
+    "EventKindCursedTome",
+    "EventKindDrugDealer",
+    "EventKindForgottenAltar",
+    "EventKindNloth",
     "EVENT_KIND_ORDER",
     "DeltaSign",
     # Potion

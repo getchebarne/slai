@@ -1,3 +1,4 @@
+use crate::consts::DISCOVER_PICK_COUNT;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -6,6 +7,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::effect_discover_pick;
 use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -13,7 +15,9 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::monsters::snake_plant;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
+use crate::types::CardColor;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::Mode;
@@ -195,6 +199,23 @@ fn process_effect_turn_end_character(state: &mut GameState) {
                 });
             }
         }
+    }
+
+    // Nilry's Codex: discover a Card, shuffled into a random draw-pile spot
+    if has_relic(&state.id_relics, RelicName::NilrysCodex) {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardDiscoverRoll {
+                kind: None,
+                color: CardColor::Green,
+                exclude: &[],
+                count: DISCOVER_PICK_COUNT,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        state
+            .effect_buf
+            .push(effect_discover_pick(None, CardPile::Draw));
     }
 
     // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard

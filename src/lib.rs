@@ -278,8 +278,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectEventConsume;
     #[pymodule_export]
-    use super::ffi::PyEffectFaceTrade;
-    #[pymodule_export]
     use super::ffi::PyEffectGamble;
     #[pymodule_export]
     use super::ffi::PyEffectGlassKnifeDecay;
@@ -313,6 +311,8 @@ mod slai {
     use super::ffi::PyEffectPotionAddRandom;
     #[pymodule_export]
     use super::ffi::PyEffectPotionDiscard;
+    #[pymodule_export]
+    use super::ffi::PyEffectRelicGrantPool;
     #[pymodule_export]
     use super::ffi::PyEffectRelicGrantRandom;
     #[pymodule_export]
@@ -354,13 +354,19 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindColosseum;
     #[pymodule_export]
+    use super::ffi::PyEventKindCursedTome;
+    #[pymodule_export]
     use super::ffi::PyEventKindDeadAdventurer;
     #[pymodule_export]
     use super::ffi::PyEventKindDesigner;
     #[pymodule_export]
+    use super::ffi::PyEventKindDrugDealer;
+    #[pymodule_export]
     use super::ffi::PyEventKindDuplicator;
     #[pymodule_export]
     use super::ffi::PyEventKindFaceTrader;
+    #[pymodule_export]
+    use super::ffi::PyEventKindForgottenAltar;
     #[pymodule_export]
     use super::ffi::PyEventKindGhosts;
     #[pymodule_export]
@@ -379,6 +385,10 @@ mod slai {
     use super::ffi::PyEventKindMushrooms;
     #[pymodule_export]
     use super::ffi::PyEventKindNeow;
+    #[pymodule_export]
+    use super::ffi::PyEventKindNest;
+    #[pymodule_export]
+    use super::ffi::PyEventKindNloth;
     #[pymodule_export]
     use super::ffi::PyEventKindOminousForge;
     #[pymodule_export]

@@ -107,6 +107,24 @@ pub fn card_is_non_basic_non_curse(entity: &Entity) -> bool {
         && entity.card_kind != CardKind::Curse
 }
 
+// Shift every DamagePhysical amount on the Card, clamped at 0 (Glass Knife, Ritual Dagger)
+pub fn card_damage_delta(card: &mut Entity, delta: i16) {
+    let num_effects = card.card_effects_len as usize;
+    for effect in card.card_effects[..num_effects].iter_mut() {
+        if let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
+            *amount = (*amount as i32 + delta as i32).clamp(0, u16::MAX as i32) as u16;
+        }
+    }
+}
+
+// Bound curses: never randomly obtainable, removable, or transformable
+pub const fn card_name_never_obtainable(name: CardName) -> bool {
+    matches!(
+        name,
+        CardName::AscendersBane | CardName::CurseOfTheBell | CardName::Necronomicurse
+    )
+}
+
 pub fn card_is_purgeable(entity: &Entity) -> bool {
     if entity.kind != EntityKind::Card {
         return false;
@@ -115,10 +133,7 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
     if entity.card_bottled {
         return false;
     }
-    !matches!(
-        entity.card_name,
-        CardName::AscendersBane | CardName::CurseOfTheBell
-    )
+    !card_name_never_obtainable(entity.card_name)
 }
 pub use card_is_purgeable as card_is_transformable;
 
@@ -454,15 +469,24 @@ pub fn roll_card_rewards(
     let mut card_names_rolled: [CardName; MAX_CARD_REWARD_ROLL] =
         [CardName::Strike; MAX_CARD_REWARD_ROLL];
 
+    // N'loth's Gift: Rares roll three times as often; the Uncommon band keeps its width
+    let chance_rare = if has_relic(id_relics, RelicName::NlothsGift) {
+        CARD_REWARD_ROLL_CHANCE_RARE * 3
+    } else {
+        CARD_REWARD_ROLL_CHANCE_RARE
+    };
+    let chance_uncommon =
+        chance_rare + (CARD_REWARD_ROLL_CHANCE_UNCOMMON - CARD_REWARD_ROLL_CHANCE_RARE);
+
     out.clear();
     for _ in 0..count {
         let (pool, rarity) = if rare_only {
             (POOL_RARE_GREEN_CARD, CardRarity::Rare)
         } else {
             let roll = rng.random_range(0i32..=99) + character_reward_roll_offset as i32;
-            if roll < CARD_REWARD_ROLL_CHANCE_RARE {
+            if roll < chance_rare {
                 (POOL_RARE_GREEN_CARD, CardRarity::Rare)
-            } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
+            } else if roll < chance_uncommon {
                 (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
             } else {
                 (POOL_COMMON_GREEN_CARD, CardRarity::Common)

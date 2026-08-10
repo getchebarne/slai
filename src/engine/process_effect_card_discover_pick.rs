@@ -12,6 +12,7 @@ pub fn process_effect_card_discover_pick(
     id_target: Option<usize>,
     state: &mut GameState,
     cost_zero: Option<CostScope>,
+    pile: CardPile,
 ) {
     let Mode::Combat { id_discover, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("process_effect_card_discover_pick outside Combat mode")
@@ -34,5 +35,5 @@ pub fn process_effect_card_discover_pick(
             target: Target::Direct(Some(id_card)),
         });
     }
-    place_card(state, id_card, CardPile::Hand);
+    place_card(state, id_card, pile);
 }

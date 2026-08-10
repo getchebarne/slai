@@ -67,7 +67,6 @@ flat_variants!(PyEffect {
     RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, target: Option<PyTarget> },
     WheelSpin => PyEffectWheelSpin as "EffectWheelSpin" { target: Option<PyTarget> },
     BonfireOffer => PyEffectBonfireOffer as "EffectBonfireOffer" { target: Option<PyTarget> },
-    FaceTrade => PyEffectFaceTrade as "EffectFaceTrade" { target: Option<PyTarget> },
     CardBottle => PyEffectCardBottle as "EffectCardBottle" { target: Option<PyTarget> },
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName, target: Option<PyTarget> },
     CombatStart => PyEffectCombatStart as "EffectCombatStart" { event_gold: Option<PyAmount>, event_relic: Option<PyRelicName>, event_relic_roll: bool, event_relic_tiers: Vec<PyRelicTier>, target: Option<PyTarget> },
@@ -76,7 +75,7 @@ flat_variants!(PyEffect {
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8, target: Option<PyTarget> },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { dmg: u16, chance: u8, advance_on_miss: bool, target: Option<PyTarget> },
     EventConsume => PyEffectEventConsume as "EffectEventConsume" { target: Option<PyTarget> },
-    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, target: Option<PyTarget> },
+    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, target: Option<PyTarget> },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: Option<PyTarget> },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: Option<PyTarget> },
     CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { target: Option<PyTarget> },
@@ -98,6 +97,7 @@ flat_variants!(PyEffect {
     JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool, target: Option<PyTarget> },
     MatchGameFlip => PyEffectMatchGameFlip as "EffectMatchGameFlip" { target: Option<PyTarget> },
     RewardRollLibraryCards => PyEffectRewardRollLibraryCards as "EffectRewardRollLibraryCards" { target: Option<PyTarget> },
+    RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName>, target: Option<PyTarget> },
 });
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -253,7 +253,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }),
         EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin { target }),
         EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
-        EffectKind::FaceTrade => PyEffect::FaceTrade(PyEffectFaceTrade { target }),
         EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle { target }),
         EffectKind::MonsterSpawn { name } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
             name: name.into(),
@@ -331,8 +330,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         }),
         EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade { target }),
-        EffectKind::CardDiscoverPick { cost_zero } => {
+        EffectKind::CardDiscoverPick { cost_zero, pile } => {
             PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
+                pile: pile.into(),
                 cost_zero: cost_zero.map(|c| c.into()),
                 target,
             })
@@ -398,6 +398,10 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::JoustBet { on_owner } => {
             PyEffect::JoustBet(PyEffectJoustBet { on_owner, target })
         }
+        EffectKind::RelicGrantPool { pool } => PyEffect::RelicGrantPool(PyEffectRelicGrantPool {
+            pool: pool.iter().map(|&n| n.into()).collect(),
+            target,
+        }),
         EffectKind::MatchGameFlip => PyEffect::MatchGameFlip(PyEffectMatchGameFlip { target }),
         EffectKind::RewardRoll {
             source: RewardSource::LibraryCards,

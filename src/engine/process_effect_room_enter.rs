@@ -18,6 +18,7 @@ use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::map::room_at_mut;
 use crate::monsters::encounters::spawn_encounter_monsters;
+use crate::relics::iter_owned_relics;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
@@ -298,6 +299,8 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
             EventName::TheWomanInBlue => gold >= 50,
             EventName::TheJoust => gold >= 50,
             EventName::Designer => gold >= 75,
+            // N'loth wants a choice of two owned Relics
+            EventName::Nloth => iter_owned_relics(&state.id_relics).nth(1).is_some(),
             // The skull only talks to the living-enough
             EventName::KnowingSkull => state.entities[state.id_character].vitals.health > 12,
             _ => true,
