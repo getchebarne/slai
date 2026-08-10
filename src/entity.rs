@@ -156,11 +156,7 @@ pub struct Entity {
     pub relic_name: RelicName,
     pub relic_tier: RelicTier,
     pub relic_counter: i16,
-
-    // Shop price while stocked; stale after purchase (nothing reads it outside Shop mode)
-    pub price: u16,
     pub relic_used_up: bool,
-    // Acquisition stamp; combat-start hooks iterate owned relics in this order
     pub relic_seq: u16,
     pub relic_effects_on_combat_start: &'static [Effect],
 
@@ -174,6 +170,9 @@ pub struct Entity {
     pub event_option_label: &'static str,
     pub event_option_effects: [Effect; MAX_EFFECTS_PER_EVENT_OPTION],
     pub event_option_effects_len: u8,
+
+    // Shop price while stocked; stale after purchase (nothing reads it outside Shop mode)
+    pub price: u16,
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots

@@ -1,9 +1,9 @@
 use rand::Rng;
 use strum::EnumCount;
 
+use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
-use crate::consts::NUM_ENCOUNTERS_WEAK;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -299,9 +299,12 @@ fn populate_first_hard_encounter(
     }
 }
 
-// First-hard exclusions, keyed on the act and its last weak entry
-fn get_act_exclusions(act: u8, encounter_last_weak: MonsterEncounter) -> &'static [MonsterEncounter] {
-    match (act, encounter_last_weak) {
+// First-hard exclusions, keyed on the act and its last easy entry
+fn get_act_exclusions(
+    act: u8,
+    encounter_last_easy: MonsterEncounter,
+) -> &'static [MonsterEncounter] {
+    match (act, encounter_last_easy) {
         (1, MonsterEncounter::TwoLouse) => &[MonsterEncounter::ThreeLouse],
         (1, MonsterEncounter::SmallSlimes) => {
             &[MonsterEncounter::LargeSlime, MonsterEncounter::LotsOfSlimes]
@@ -322,8 +325,8 @@ pub fn generate_act_monsters(
     elite_list: &mut Vec<MonsterEncounter>,
     rng: &mut impl Rng,
 ) {
-    // Per-act pools and weak-fight count
-    let (pool_easy, pool_hard, pool_elite, num_weak): (
+    // Per-act pools and easy-fight count
+    let (pool_easy, pool_hard, pool_elite, num_easy_enc): (
         &[MonsterEncounter],
         &[MonsterEncounter],
         &[MonsterEncounter],
@@ -333,7 +336,7 @@ pub fn generate_act_monsters(
             &ENC_POOL_EASY,
             &ENC_POOL_HARD,
             &ENC_POOL_ELITE,
-            NUM_ENCOUNTERS_WEAK,
+            NUM_ENCOUNTERS_EASY,
         ),
         _ => unreachable!("no encounter pools for act {act}"),
     };
@@ -344,7 +347,13 @@ pub fn generate_act_monsters(
     let encounter_table_elite = normalize_weights(pool_elite);
 
     // Sample easy encounters
-    populate_encounter_list(encounter_list, &encounter_table_easy, num_weak, false, rng);
+    populate_encounter_list(
+        encounter_list,
+        &encounter_table_easy,
+        num_easy_enc,
+        false,
+        rng,
+    );
 
     // Get exclusions based on last easy encounter
     let encounter_exclusions = get_act_exclusions(act, *encounter_list.last().unwrap());
