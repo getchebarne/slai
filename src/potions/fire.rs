@@ -12,7 +12,10 @@ pub static POTION_FIRE: Entity = make_entity_potion(
     true,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 20 },
+        kind: EffectKind::DamagePhysical {
+            amount: 20,
+            lifesteal: false,
+        },
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],

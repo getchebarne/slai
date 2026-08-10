@@ -1,9 +1,9 @@
 use rand::Rng;
 use strum::EnumCount;
 
+use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
-use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -38,6 +38,19 @@ pub const ALL_ENCOUNTERS: &[MonsterEncounter] = &[
     MonsterEncounter::ThreeSentries,
     MonsterEncounter::TwoFungiBeasts,
     MonsterEncounter::TwoLouse,
+    MonsterEncounter::SphericGuardian,
+    MonsterEncounter::Chosen,
+    MonsterEncounter::ShelledParasite,
+    MonsterEncounter::ThreeByrds,
+    MonsterEncounter::TwoThieves,
+    MonsterEncounter::SnakePlant,
+    MonsterEncounter::CenturionAndHealer,
+    MonsterEncounter::Snecko,
+    MonsterEncounter::CultistAndChosen,
+    MonsterEncounter::ThreeCultists,
+    MonsterEncounter::ShelledParasiteAndFungi,
+    MonsterEncounter::ChosenAndByrds,
+    MonsterEncounter::SentryAndSphere,
 ];
 // Assert that all `MonsterEncounter` members are covered
 const _: () = assert!(ALL_ENCOUNTERS.len() == MonsterEncounter::COUNT);
@@ -87,6 +100,23 @@ pub const fn get_encounter_pool(encounter: MonsterEncounter) -> EncounterPool {
         | MonsterEncounter::Hexaghost
         | MonsterEncounter::SlimeBoss => EncounterPool::Act1Boss,
 
+        // Act 2 easy
+        MonsterEncounter::SphericGuardian
+        | MonsterEncounter::Chosen
+        | MonsterEncounter::ShelledParasite
+        | MonsterEncounter::ThreeByrds
+        | MonsterEncounter::TwoThieves => EncounterPool::Act2Easy,
+
+        // Act 2 hard
+        MonsterEncounter::SnakePlant
+        | MonsterEncounter::CenturionAndHealer
+        | MonsterEncounter::Snecko
+        | MonsterEncounter::CultistAndChosen
+        | MonsterEncounter::ThreeCultists
+        | MonsterEncounter::ShelledParasiteAndFungi
+        | MonsterEncounter::ChosenAndByrds
+        | MonsterEncounter::SentryAndSphere => EncounterPool::Act2Hard,
+
         // Event-only
         MonsterEncounter::ThreeFungiBeasts => EncounterPool::Event,
     }
@@ -121,6 +151,23 @@ pub const fn get_encounter_weight(encounter: MonsterEncounter) -> f32 {
         MonsterEncounter::TheGuardian => 1.0,
         MonsterEncounter::Hexaghost => 1.0,
         MonsterEncounter::SlimeBoss => 1.0,
+
+        // Act 2 easy
+        MonsterEncounter::SphericGuardian => 2.0,
+        MonsterEncounter::Chosen => 2.0,
+        MonsterEncounter::ShelledParasite => 2.0,
+        MonsterEncounter::ThreeByrds => 2.0,
+        MonsterEncounter::TwoThieves => 2.0,
+
+        // Act 2 hard
+        MonsterEncounter::SnakePlant => 6.0,
+        MonsterEncounter::CenturionAndHealer => 6.0,
+        MonsterEncounter::Snecko => 4.0,
+        MonsterEncounter::CultistAndChosen => 3.0,
+        MonsterEncounter::ThreeCultists => 3.0,
+        MonsterEncounter::ShelledParasiteAndFungi => 3.0,
+        MonsterEncounter::ChosenAndByrds => 2.0,
+        MonsterEncounter::SentryAndSphere => 2.0,
 
         // Event-only, never rolled from a pool
         MonsterEncounter::ThreeFungiBeasts => 1.0,
@@ -262,6 +309,12 @@ fn get_act_exclusions(
         (1, MonsterEncounter::SmallSlimes) => {
             &[MonsterEncounter::LargeSlime, MonsterEncounter::LotsOfSlimes]
         }
+        (2, MonsterEncounter::SphericGuardian) => &[MonsterEncounter::SentryAndSphere],
+        (2, MonsterEncounter::ThreeByrds) => &[MonsterEncounter::ChosenAndByrds],
+        (2, MonsterEncounter::Chosen) => &[
+            MonsterEncounter::ChosenAndByrds,
+            MonsterEncounter::CultistAndChosen,
+        ],
         _ => &[],
     }
 }
@@ -496,6 +549,49 @@ pub fn spawn_encounter_monsters(
             for _ in 0..3 {
                 push_monster_spawn(effects, MonsterName::FungiBeast);
             }
+        }
+        MonsterEncounter::SphericGuardian => {
+            push_monster_spawn(effects, MonsterName::SphericGuardian)
+        }
+        MonsterEncounter::Chosen => push_monster_spawn(effects, MonsterName::Chosen),
+        MonsterEncounter::ShelledParasite => {
+            push_monster_spawn(effects, MonsterName::ShelledParasite)
+        }
+        MonsterEncounter::ThreeByrds => {
+            for _ in 0..3 {
+                push_monster_spawn(effects, MonsterName::Byrd);
+            }
+        }
+        MonsterEncounter::TwoThieves => {
+            push_monster_spawn(effects, MonsterName::Looter);
+            push_monster_spawn(effects, MonsterName::Mugger);
+        }
+        MonsterEncounter::SnakePlant => push_monster_spawn(effects, MonsterName::SnakePlant),
+        MonsterEncounter::CenturionAndHealer => {
+            push_monster_spawn(effects, MonsterName::Centurion);
+            push_monster_spawn(effects, MonsterName::Healer);
+        }
+        MonsterEncounter::Snecko => push_monster_spawn(effects, MonsterName::Snecko),
+        MonsterEncounter::CultistAndChosen => {
+            push_monster_spawn(effects, MonsterName::Cultist);
+            push_monster_spawn(effects, MonsterName::Chosen);
+        }
+        MonsterEncounter::ThreeCultists => {
+            for _ in 0..3 {
+                push_monster_spawn(effects, MonsterName::Cultist);
+            }
+        }
+        MonsterEncounter::ShelledParasiteAndFungi => {
+            push_monster_spawn(effects, MonsterName::ShelledParasite);
+            push_monster_spawn(effects, MonsterName::FungiBeast);
+        }
+        MonsterEncounter::ChosenAndByrds => {
+            push_monster_spawn(effects, MonsterName::Byrd);
+            push_monster_spawn(effects, MonsterName::Chosen);
+        }
+        MonsterEncounter::SentryAndSphere => {
+            push_monster_spawn(effects, MonsterName::Sentry);
+            push_monster_spawn(effects, MonsterName::SphericGuardian);
         }
     }
 

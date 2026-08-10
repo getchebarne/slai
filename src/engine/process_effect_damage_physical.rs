@@ -30,6 +30,7 @@ pub fn process_effect_damage_physical(
     state: &mut GameState,
     amount: u16,
     if_poisoned: bool, // Bane
+    lifesteal: bool,   // Life Suck
 ) {
     let id_source = id_source.expect("DamagePhysical requires id_source");
     let id_target = id_target.expect("DamagePhysical requires id_target");
@@ -111,6 +112,11 @@ pub fn process_effect_damage_physical(
         final_damage = final_damage.saturating_mul(2);
     }
 
+    // Flight (target): attack damage halved while airborne
+    if has_modifier(mods_target, ModifierKind::Flight) {
+        final_damage /= 2;
+    }
+
     // Intangible (target)
     if has_modifier(mods_target, ModifierKind::Intangible) {
         final_damage = 1;
@@ -125,6 +131,7 @@ pub fn process_effect_damage_physical(
         state.effect_queue.push_front(Effect {
             kind: EffectKind::DamageDeal {
                 amount: stacks as u16,
+                lifesteal: false,
             },
             id_source: None,
             target: Target::Direct(Some(id_actor)),
@@ -136,6 +143,7 @@ pub fn process_effect_damage_physical(
         state.effect_queue.push_front(Effect {
             kind: EffectKind::DamageDeal {
                 amount: final_damage,
+                lifesteal,
             },
             id_source: Some(id_source),
             target: Target::Direct(Some(id_target)),

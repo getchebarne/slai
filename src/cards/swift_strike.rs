@@ -23,7 +23,10 @@ pub static SWIFT_STRIKE: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 7 },
+        kind: EffectKind::DamagePhysical {
+            amount: 7,
+            lifesteal: false,
+        },
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
@@ -36,7 +39,10 @@ pub static SWIFT_STRIKE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = SWIFT_STRIKE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 10 }; // +3 damage
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 10,
+            lifesteal: false,
+        }; // +3 damage
         a
     },
     ..SWIFT_STRIKE

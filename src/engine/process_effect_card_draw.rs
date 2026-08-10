@@ -95,8 +95,13 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         });
     }
 
-    // Snecko Eye: every drawn Card's cost re-rolls to [0, 3]
-    if has_relic(&state.id_relics, RelicName::SneckoEye) {
+    // Snecko Eye / Confusion (Snecko's Glare): every drawn Card's cost re-rolls to [0, 3]
+    if has_relic(&state.id_relics, RelicName::SneckoEye)
+        || has_modifier(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::Confusion,
+        )
+    {
         for &id_card in &id_drawn[..id_drawn_num] {
             let card = &state.entities[id_card];
 

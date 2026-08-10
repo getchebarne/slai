@@ -9,9 +9,12 @@ use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
+use crate::modifier::modifier_apply;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::monsters::byrd;
 use crate::types::DeltaSign;
+use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
@@ -20,6 +23,7 @@ pub fn process_effect_damage_deal(
     id_target: Option<usize>,
     state: &mut GameState,
     amount: u16,
+    lifesteal: bool, // Life Suck
 ) {
     let id_target = id_target.expect("DamageDeal requires id_target");
 
@@ -41,6 +45,7 @@ pub fn process_effect_damage_deal(
     // Substract block and calculate damage over it
     let target = &mut state.entities[id_target];
     let block_prev = target.vitals.block;
+    let health_prev = target.vitals.health;
     let mut damage_over_block = amount.saturating_sub(block_prev);
     target.vitals.block = block_prev.saturating_sub(amount);
 
@@ -82,10 +87,24 @@ pub fn process_effect_damage_deal(
     }
 
     // Executes in reverse:
-    //     1. On-damage-taken triggers (CurlUp, Angry)
+    //     1. On-damage-taken triggers (CurlUp, Angry, Flight, Malleable)
     //     2. ModifierGain Poison (Envenom)
     //     3. HealthDelta
+    //     4. HealthDelta Gain (lifesteal)
     if damage_over_block > 0 {
+        // Life Suck: the source drinks the HP the target actually loses
+        if lifesteal && let Some(id_src) = id_source {
+            let heal = damage_over_block.min(health_prev);
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::HealthDelta {
+                    sign: DeltaSign::Gain,
+                    amount: Amount::Absolute(heal),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_src)),
+            });
+        }
+
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
@@ -144,6 +163,37 @@ fn fire_on_damage_taken(
                 stacks,
             },
             id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
+    }
+
+    // Flight: each landing hit removes a stack; at zero the flier is grounded and stunned
+    if has_modifier(&target.modifiers, ModifierKind::Flight) {
+        modifier_apply(&mut target.modifiers, ModifierKind::Flight, -1);
+        if !has_modifier(&target.modifiers, ModifierKind::Flight) {
+            let idx_stunned = match target.monster_name {
+                MonsterName::Byrd => byrd::IDX_MOVE_STUNNED,
+                _ => panic!("Flight on unexpected monster: {:?}", target.monster_name),
+            };
+            effect_queue.push_front(Effect {
+                kind: EffectKind::MoveUpdate {
+                    move_override: Some(idx_stunned),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_target)),
+            });
+        }
+    }
+
+    // Malleable: gain `stacks` block per hit taken, then escalate by one
+    if has_modifier(&target.modifiers, ModifierKind::Malleable) {
+        let stacks = modifier_stacks(&target.modifiers, ModifierKind::Malleable);
+        modifier_apply(&mut target.modifiers, ModifierKind::Malleable, 1);
+        effect_queue.push_front(Effect {
+            kind: EffectKind::BlockGain {
+                amount: stacks as u16,
+            },
+            id_source: Some(id_target),
             target: Target::Direct(Some(id_target)),
         });
     }

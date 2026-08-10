@@ -299,6 +299,15 @@ pub enum MonsterName {
     SlimeSpikeMedium,
     SlimeSpikeSmall,
     TheGuardian,
+    Byrd,
+    Centurion,
+    Chosen,
+    Healer,
+    Mugger,
+    ShelledParasite,
+    SnakePlant,
+    Snecko,
+    SphericGuardian,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -324,7 +333,7 @@ pub enum EncounterPool {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
 #[repr(u8)]
 pub enum MonsterEncounter {
-    // Easy
+    // Act 1 easy
     Cultist,
     JawWorm,
     TwoLouse,
@@ -354,6 +363,23 @@ pub enum MonsterEncounter {
 
     // Event-only (never pooled)
     ThreeFungiBeasts,
+
+    // Act 2 easy
+    SphericGuardian,
+    Chosen,
+    ShelledParasite,
+    ThreeByrds,
+    TwoThieves,
+
+    // Act 2 hard
+    SnakePlant,
+    CenturionAndHealer,
+    Snecko,
+    CultistAndChosen,
+    ThreeCultists,
+    ShelledParasiteAndFungi,
+    ChosenAndByrds,
+    SentryAndSphere,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

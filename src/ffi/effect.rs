@@ -25,7 +25,7 @@ use super::target::PyTarget;
 
 // Mirrors only EffectKind variants reachable from static Card/monster defs; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
-    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, target: Option<PyTarget> },
+    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, lifesteal: bool, target: Option<PyTarget> },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: Option<PyTarget> },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { target: Option<PyTarget> },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: Option<PyTarget> },
@@ -106,8 +106,12 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         ),
     };
     match effect.kind {
-        EffectKind::DamagePhysical { amount } => {
-            PyEffect::DamagePhysical(PyEffectDamagePhysical { amount, target })
+        EffectKind::DamagePhysical { amount, lifesteal } => {
+            PyEffect::DamagePhysical(PyEffectDamagePhysical {
+                amount,
+                lifesteal,
+                target,
+            })
         }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
             PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned { amount, target })

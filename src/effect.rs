@@ -95,6 +95,7 @@ pub enum EffectKind {
     },
     DamageDeal {
         amount: u16,
+        lifesteal: bool, // Life Suck
     },
     DamageFinisher {
         damage: u16,
@@ -105,6 +106,7 @@ pub enum EffectKind {
     DamageMindBlast,
     DamagePhysical {
         amount: u16,
+        lifesteal: bool, // Life Suck
     },
     DamagePhysicalIfPoisoned {
         amount: u16,

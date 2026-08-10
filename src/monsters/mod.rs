@@ -1,3 +1,6 @@
+pub mod byrd;
+pub mod centurion;
+pub mod chosen;
 pub mod cultist;
 pub mod encounters;
 pub mod fungi_beast;
@@ -7,13 +10,16 @@ pub mod gremlin_thief;
 pub mod gremlin_tsundere;
 pub mod gremlin_warrior;
 pub mod gremlin_wizard;
+pub mod healer;
 pub mod hexaghost;
 pub mod jaw_worm;
 pub mod lagavulin;
 pub mod looter;
 pub mod louse_green;
 pub mod louse_red;
+pub mod mugger;
 pub mod sentry;
+pub mod shelled_parasite;
 pub mod slaver_blue;
 pub mod slaver_red;
 pub mod slime_acid_large;
@@ -23,6 +29,9 @@ pub mod slime_boss;
 pub mod slime_spike_large;
 pub mod slime_spike_medium;
 pub mod slime_spike_small;
+pub mod snake_plant;
+pub mod snecko;
+pub mod spheric_guardian;
 pub mod the_guardian;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
@@ -96,6 +105,19 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         }
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::spawn_monster_slime_spike_medium(ascension_level, rng)
+        }
+        MonsterName::Byrd => byrd::spawn_monster_byrd(ascension_level, rng),
+        MonsterName::Centurion => centurion::spawn_monster_centurion(ascension_level, rng),
+        MonsterName::Chosen => chosen::spawn_monster_chosen(ascension_level, rng),
+        MonsterName::Healer => healer::spawn_monster_healer(ascension_level, rng),
+        MonsterName::Mugger => mugger::spawn_monster_mugger(ascension_level, rng),
+        MonsterName::ShelledParasite => {
+            shelled_parasite::spawn_monster_shelled_parasite(ascension_level, rng)
+        }
+        MonsterName::SnakePlant => snake_plant::spawn_monster_snake_plant(ascension_level, rng),
+        MonsterName::Snecko => snecko::spawn_monster_snecko(ascension_level, rng),
+        MonsterName::SphericGuardian => {
+            spheric_guardian::spawn_monster_spheric_guardian(ascension_level, rng)
         }
     }
 }
@@ -206,6 +228,33 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
+        MonsterName::Byrd => {
+            byrd::get_next_move_byrd(entity.monster_move_current, history, &entity.modifiers, rng)
+        }
+        MonsterName::Centurion => {
+            centurion::get_next_move_centurion(history, entity_id, id_monsters, rng)
+        }
+        MonsterName::Chosen => chosen::get_next_move_chosen(history, ascension_level, rng),
+        MonsterName::Healer => {
+            healer::get_next_move_healer(history, entities, id_monsters, ascension_level, rng)
+        }
+        // Same script as the Looter
+        MonsterName::Mugger => {
+            looter::get_next_move_looter(entity.monster_move_current, history, rng)
+        }
+        MonsterName::ShelledParasite => shelled_parasite::get_next_move_shelled_parasite(
+            entity.monster_move_current,
+            history,
+            ascension_level,
+            rng,
+        ),
+        MonsterName::SnakePlant => {
+            snake_plant::get_next_move_snake_plant(history, ascension_level, rng)
+        }
+        MonsterName::Snecko => {
+            snecko::get_next_move_snecko(entity.monster_move_current, history, rng)
+        }
+        MonsterName::SphericGuardian => spheric_guardian::get_next_move_spheric_guardian(history),
     }
 }
 
@@ -215,7 +264,10 @@ pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) ->
     let mut i = 0;
     while i < instances as usize {
         effects[i] = Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         };
@@ -268,7 +320,10 @@ pub const fn make_move_attack_debuff(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -296,7 +351,10 @@ pub const fn make_move_attack_card_add(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -315,6 +373,18 @@ pub const fn make_move_attack_card_add(
             damage,
             instances: 1,
         },
+    )
+}
+
+pub const fn make_move_block(name: &'static str, block: u16) -> Move {
+    make_move(
+        name,
+        &[Effect {
+            kind: EffectKind::BlockGain { amount: block },
+            id_source: None,
+            target: TARGET_SOURCE,
+        }],
+        Intent::Block,
     )
 }
 

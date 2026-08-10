@@ -23,7 +23,10 @@ pub static SLICE: Entity = make_entity_card(
     false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 6 },
+        kind: EffectKind::DamagePhysical {
+            amount: 6,
+            lifesteal: false,
+        },
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
@@ -36,7 +39,10 @@ pub static SLICE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = SLICE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 9 }; // +3 damage
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 9,
+            lifesteal: false,
+        }; // +3 damage
         a
     },
     ..SLICE

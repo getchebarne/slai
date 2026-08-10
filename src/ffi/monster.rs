@@ -24,13 +24,17 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
     Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
     GremlinWizard, Hexaghost, JawWorm, Lagavulin, Looter, LouseDefensive, LouseNormal, Sentry,
     SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
-    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian,
+    SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion, Chosen,
+    Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_py_object, {
     Cultist, JawWorm, TwoLouse, SmallSlimes, BlueSlaver, RedSlaver, Looter, TwoFungiBeasts,
     ThreeLouse, LargeSlime, LotsOfSlimes, GremlinGang, ExordiumThugs, ExordiumWildlife,
     GremlinNob, Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts,
+    SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
+    CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
+    ChosenAndByrds, SentryAndSphere,
 });
 
 #[pyclass(
@@ -142,6 +146,15 @@ impl MonsterName {
             Self::SlimeSpikeMedium => "Spike Slime (M)",
             Self::SlimeSpikeSmall => "Spike Slime (S)",
             Self::TheGuardian => "The Guardian",
+            Self::Byrd => "Byrd",
+            Self::Centurion => "Centurion",
+            Self::Chosen => "Chosen",
+            Self::Healer => "Mystic",
+            Self::Mugger => "Mugger",
+            Self::ShelledParasite => "Shelled Parasite",
+            Self::SnakePlant => "Snake Plant",
+            Self::Snecko => "Snecko",
+            Self::SphericGuardian => "Spheric Guardian",
         }
     }
 }

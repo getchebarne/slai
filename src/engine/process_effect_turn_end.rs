@@ -12,6 +12,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::monsters::snake_plant;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
 use crate::types::CostScope;
@@ -88,6 +89,12 @@ fn process_effect_turn_end_monster(id_actor: usize, state: &mut GameState) {
                 target: Target::Direct(Some(id_actor)),
             });
         }
+    }
+
+    // Malleable: per-hit escalation resets to base at the owner's turn end
+    let modifiers = &mut state.entities[id_actor].modifiers;
+    if has_modifier(modifiers, ModifierKind::Malleable) {
+        modifiers.stacks[ModifierKind::Malleable as usize] = snake_plant::MALLEABLE_BASE;
     }
 }
 
@@ -173,7 +180,10 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         if *counter == 7 {
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 52 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 52,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
                 });
@@ -293,14 +303,20 @@ fn process_effect_turn_end_character(state: &mut GameState) {
             CardName::Burn => {
                 let dmg_burn: u16 = if card.card_upgraded { 4 } else { 2 };
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: dmg_burn },
+                    kind: EffectKind::DamageDeal {
+                        amount: dmg_burn,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
                 });
             }
             CardName::Decay => {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 2 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 2,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
                 });
@@ -429,6 +445,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks.max(0) as u16,
+                        lifesteal: false,
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
