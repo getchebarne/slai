@@ -1,6 +1,7 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::EventLoot;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -28,9 +29,12 @@ const OPTION_STOMP: &[Effect] = &[
     SPAWN_FUNGI,
     Effect {
         kind: EffectKind::CombatStart {
-            event_gold: Some(Amount::Range { min: 20, max: 30 }),
-            event_relic: Some(RelicName::OddMushroom),
-            event_relic_roll: false,
+            loot: EventLoot {
+                gold: Some(Amount::Range { min: 20, max: 30 }),
+                relic: Some(RelicName::OddMushroom),
+                relic_roll: false,
+                relic_tiers: [None, None],
+            },
         },
         id_source: None,
         target: Target::Direct(None),

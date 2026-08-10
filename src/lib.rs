@@ -292,6 +292,14 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectHeelHookProc;
     #[pymodule_export]
+    use super::ffi::PyEffectJoustBet;
+    #[pymodule_export]
+    use super::ffi::PyEffectKnowingSkullAsk;
+    #[pymodule_export]
+    use super::ffi::PyEffectMatchGameFlip;
+    #[pymodule_export]
+    use super::ffi::PyEffectMausoleumOpen;
+    #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;
     #[pymodule_export]
     use super::ffi::PyEffectModifierGain;
@@ -311,6 +319,8 @@ mod slai {
     use super::ffi::PyEffectRelicGrantSpecific;
     #[pymodule_export]
     use super::ffi::PyEffectRelicLose;
+    #[pymodule_export]
+    use super::ffi::PyEffectRewardRollLibraryCards;
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollNeowCards;
     #[pymodule_export]
@@ -334,13 +344,19 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindAddict;
     #[pymodule_export]
+    use super::ffi::PyEventKindBackToBasics;
+    #[pymodule_export]
     use super::ffi::PyEventKindBeggar;
     #[pymodule_export]
     use super::ffi::PyEventKindBigFish;
     #[pymodule_export]
     use super::ffi::PyEventKindBonfireSpirits;
     #[pymodule_export]
+    use super::ffi::PyEventKindColosseum;
+    #[pymodule_export]
     use super::ffi::PyEventKindDeadAdventurer;
+    #[pymodule_export]
+    use super::ffi::PyEventKindDesigner;
     #[pymodule_export]
     use super::ffi::PyEventKindDuplicator;
     #[pymodule_export]
@@ -352,7 +368,13 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindGoldenShrine;
     #[pymodule_export]
+    use super::ffi::PyEventKindGremlinMatchGame;
+    #[pymodule_export]
+    use super::ffi::PyEventKindKnowingSkull;
+    #[pymodule_export]
     use super::ffi::PyEventKindLivingWall;
+    #[pymodule_export]
+    use super::ffi::PyEventKindMaskedBandits;
     #[pymodule_export]
     use super::ffi::PyEventKindMushrooms;
     #[pymodule_export]
@@ -370,7 +392,13 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindTheDivineFountain;
     #[pymodule_export]
+    use super::ffi::PyEventKindTheJoust;
+    #[pymodule_export]
     use super::ffi::PyEventKindTheLab;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheLibrary;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheMausoleum;
     #[pymodule_export]
     use super::ffi::PyEventKindTheSsssserpent;
     #[pymodule_export]
@@ -380,6 +408,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindUpgradeShrine;
     #[pymodule_export]
+    use super::ffi::PyEventKindVampires;
+    #[pymodule_export]
     use super::ffi::PyEventKindWeMeetAgain;
     #[pymodule_export]
     use super::ffi::PyEventKindWheelOfChange;
@@ -387,6 +417,8 @@ mod slai {
     use super::ffi::PyEventKindWingStatue;
     #[pymodule_export]
     use super::ffi::PyEventKindWorldOfGoop;
+    #[pymodule_export]
+    use super::ffi::PyKnowingSkullWish;
     #[pymodule_export]
     use super::ffi::PyModeChest;
     #[pymodule_export]

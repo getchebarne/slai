@@ -1,7 +1,7 @@
 use strum::EnumCount;
 
 use crate::consts::MAX_MONSTERS;
-use crate::effect::Amount;
+use crate::effect::EventLoot;
 use crate::events::EventKind;
 
 // Vitals: physical combat state. Shared by character and monsters
@@ -52,10 +52,8 @@ pub enum Mode {
         // Bomb countdown
         bomb_countdown: u8,
 
-        // Event-spawned fights (Mushrooms / Dead Adventurer)
-        event_gold: Option<Amount>,
-        event_relic: Option<RelicName>,
-        event_relic_roll: bool,
+        // Loot staked by the event that started this fight (Mushrooms, Colosseum)
+        event_loot: EventLoot,
     },
     CombatEnded,
     Reward {
@@ -321,6 +319,9 @@ pub enum MonsterName {
     Champ,
     TheCollector,
     TorchHead,
+    BanditBear,
+    BanditLeader,
+    BanditPointy,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -448,6 +449,16 @@ pub enum EventName {
     Addict,
     Beggar,
     Ghosts,
+    BackToBasics,
+    Colosseum,
+    Designer,
+    GremlinMatchGame,
+    KnowingSkull,
+    MaskedBandits,
+    TheJoust,
+    TheLibrary,
+    TheMausoleum,
+    Vampires,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

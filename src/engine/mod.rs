@@ -53,6 +53,10 @@ pub mod process_effect_health_delta;
 pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
+pub mod process_effect_joust_bet;
+pub mod process_effect_knowing_skull_ask;
+pub mod process_effect_match_game_flip;
+pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
@@ -153,6 +157,10 @@ use self::process_effect_health_delta::process_effect_health_delta;
 use self::process_effect_health_set::process_effect_health_set;
 use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
+use self::process_effect_joust_bet::process_effect_joust_bet;
+use self::process_effect_knowing_skull_ask::process_effect_knowing_skull_ask;
+use self::process_effect_match_game_flip::process_effect_match_game_flip;
+use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_modifier_gain::process_effect_modifier_gain;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
@@ -579,11 +587,7 @@ fn dispatch_by_kind(
             // Character can die outside Combat; empty monster slots make iter a no-op
             process_effect_death(id_target, state)
         }
-        EffectKind::CombatStart {
-            event_gold,
-            event_relic,
-            event_relic_roll,
-        } => process_effect_combat_start(state, event_gold, event_relic, event_relic_roll),
+        EffectKind::CombatStart { loot } => process_effect_combat_start(state, loot),
         EffectKind::CombatEnd { escaped_character } => {
             process_effect_combat_end(state, escaped_character)
         }
@@ -604,6 +608,10 @@ fn dispatch_by_kind(
         EffectKind::DebuffsClear => process_effect_debuffs_clear(id_target, state),
         EffectKind::StasisSteal => process_effect_stasis_steal(id_source, state),
         EffectKind::TorchHeadSpawn => process_effect_torch_head_spawn(state),
+        EffectKind::JoustBet { on_owner } => process_effect_joust_bet(state, on_owner),
+        EffectKind::KnowingSkullAsk { wish } => process_effect_knowing_skull_ask(state, wish),
+        EffectKind::MatchGameFlip => process_effect_match_game_flip(id_source, state),
+        EffectKind::MausoleumOpen => process_effect_mausoleum_open(state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
         }
@@ -711,9 +719,17 @@ fn ensure_mode_validity(state: &GameState) {
         stack
     );
     if stack.len() == 3 {
+        // Orrery's Reward over its Shop, or an event's suspended fight (Colosseum)
         assert!(
-            matches!(stack[1], Mode::Shop { .. }) && matches!(stack[2], Mode::Reward { .. }),
-            "3-frame stack must be [Map, Shop, Reward]: {:?}",
+            matches!(stack[1], Mode::Shop { .. }) && matches!(stack[2], Mode::Reward { .. })
+                || matches!(
+                    stack[1],
+                    Mode::Event {
+                        consumed: false,
+                        ..
+                    }
+                ) && matches!(stack[2], Mode::Combat { .. }),
+            "3-frame stack must be [Map, Shop, Reward] or [Map, Event, Combat]: {:?}",
             stack
         );
     }
@@ -782,19 +798,15 @@ mod tests {
     use super::*;
     use crate::consts::ACT_FINAL;
     use crate::consts::BOSS_RELIC_REWARD_COUNT;
+    use crate::effect::EventLoot;
     use crate::game::create_game_state;
     use crate::monsters::encounters::spawn_encounter_monsters;
     use crate::types::RelicTier;
 
-    // Fabricate the pending boss fight at the current location and kill it outright
-    fn beat_boss(state: &mut GameState) {
-        state.location = Location::BossRoom;
-        let boss = state.encounter_boss;
-        spawn_encounter_monsters(state, boss, None, None, false);
-        process_effect_queue(state);
-
+    // Kill every rostered monster outright and settle
+    fn kill_roster(state: &mut GameState) {
         let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack) else {
-            panic!("boss fight did not start");
+            panic!("no fight to win: {:?}", state.mode_stack);
         };
         let ids: Vec<usize> = id_monsters.iter().flatten().copied().collect();
         for id in ids {
@@ -805,6 +817,105 @@ mod tests {
             });
         }
         process_effect_queue(state);
+    }
+
+    // Fabricate the pending boss fight at the current location and kill it outright
+    fn beat_boss(state: &mut GameState) {
+        state.location = Location::BossRoom;
+        let boss = state.encounter_boss;
+        spawn_encounter_monsters(state, boss, EventLoot::NONE);
+        process_effect_queue(state);
+        kill_roster(state);
+    }
+
+    // Fire one baked event option the way handle_event_option_select does
+    fn fire_option(state: &mut GameState, id_option: usize) {
+        let option = state.entities[id_option];
+        for effect in option.event_option_effects[..option.event_option_effects_len as usize]
+            .iter()
+            .rev()
+        {
+            state.effect_queue.push_front(Effect {
+                id_source: Some(id_option),
+                ..*effect
+            });
+        }
+        process_effect_queue(state);
+    }
+
+    // The Colosseum suspends beneath its first bout and resumes with no reward;
+    // the second bout pays out 100 gold plus a rare and an uncommon relic
+    #[test]
+    fn colosseum_round_trip() {
+        use crate::events::spawn_event;
+        use crate::map::room_at_mut;
+        use crate::types::EventName;
+        use crate::types::RelicTier;
+        use crate::types::RoomKind;
+
+        for seed in 0..10 {
+            let mut state = create_game_state(0, seed, false, false);
+
+            // Repaint a row-0 room into an event room and stand on it
+            let x = (0..state.id_rooms[0].len())
+                .find(|&x| state.id_rooms[0][x].is_some())
+                .unwrap();
+            state.location = Location::Overworld { y: 0, x };
+            room_at_mut(&state.id_rooms, &mut state.entities, 0, x)
+                .unwrap()
+                .room_kind = RoomKind::EventRoom;
+
+            let (kind, id_options) = spawn_event(&mut state, EventName::Colosseum);
+            state.mode_stack.push(Mode::Event {
+                kind,
+                consumed: false,
+                id_options: id_options.clone(),
+            });
+
+            // First bout: fight over the suspended event, then pop back to it
+            fire_option(&mut state, id_options[0]);
+            assert!(matches!(
+                state.mode_stack[..],
+                [
+                    Mode::Map,
+                    Mode::Event {
+                        consumed: false,
+                        ..
+                    },
+                    Mode::Combat { .. }
+                ]
+            ));
+            kill_roster(&mut state);
+            let Mode::Event {
+                kind: EventKind::Colosseum { stage: 1 },
+                consumed: false,
+                ..
+            } = mode_top(&state.mode_stack)
+            else {
+                panic!(
+                    "first bout did not resume the event: {:?}",
+                    state.mode_stack
+                );
+            };
+
+            // Second bout: consumed, fought over Map, rewarded in full
+            fire_option(&mut state, id_options[1]);
+            kill_roster(&mut state);
+            let Mode::Reward {
+                reward_gold,
+                reward_id_relics,
+                ..
+            } = mode_top(&state.mode_stack)
+            else {
+                panic!("second bout did not stage a reward: {:?}", state.mode_stack);
+            };
+            assert_eq!(*reward_gold, Some(100));
+            let tiers: Vec<RelicTier> = reward_id_relics
+                .iter()
+                .map(|&id| state.entities[id].relic_tier)
+                .collect();
+            assert_eq!(tiers, [RelicTier::Rare, RelicTier::Uncommon]);
+        }
     }
 
     // Skip the staged boss loot; RoomExit fires the act transition

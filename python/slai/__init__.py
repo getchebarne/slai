@@ -260,6 +260,12 @@ EffectRelicLose = _rs.EffectRelicLose
 EffectRewardRollNeowCards = _rs.EffectRewardRollNeowCards
 EffectStrengthLoseTemp = _rs.EffectStrengthLoseTemp
 EffectDamageLifesteal = _rs.EffectDamageLifesteal
+EffectMausoleumOpen = _rs.EffectMausoleumOpen
+EffectKnowingSkullAsk = _rs.EffectKnowingSkullAsk
+EffectJoustBet = _rs.EffectJoustBet
+EffectMatchGameFlip = _rs.EffectMatchGameFlip
+EffectRewardRollLibraryCards = _rs.EffectRewardRollLibraryCards
+KnowingSkullWish = _rs.KnowingSkullWish
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -323,6 +329,11 @@ Effect = (
     | EffectRewardRollNeowCards
     | EffectStrengthLoseTemp
     | EffectDamageLifesteal
+    | EffectMausoleumOpen
+    | EffectKnowingSkullAsk
+    | EffectJoustBet
+    | EffectMatchGameFlip
+    | EffectRewardRollLibraryCards
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -427,6 +438,16 @@ EventKindNeow = _rs.EventKindNeow
 EventKindAddict = _rs.EventKindAddict
 EventKindBeggar = _rs.EventKindBeggar
 EventKindGhosts = _rs.EventKindGhosts
+EventKindBackToBasics = _rs.EventKindBackToBasics
+EventKindMaskedBandits = _rs.EventKindMaskedBandits
+EventKindTheJoust = _rs.EventKindTheJoust
+EventKindTheLibrary = _rs.EventKindTheLibrary
+EventKindTheMausoleum = _rs.EventKindTheMausoleum
+EventKindVampires = _rs.EventKindVampires
+EventKindColosseum = _rs.EventKindColosseum
+EventKindDesigner = _rs.EventKindDesigner
+EventKindKnowingSkull = _rs.EventKindKnowingSkull
+EventKindGremlinMatchGame = _rs.EventKindGremlinMatchGame
 EventKind = (
     EventKindBigFish
     | EventKindTheCleric
@@ -456,6 +477,16 @@ EventKind = (
     | EventKindAddict
     | EventKindBeggar
     | EventKindGhosts
+    | EventKindBackToBasics
+    | EventKindMaskedBandits
+    | EventKindTheJoust
+    | EventKindTheLibrary
+    | EventKindTheMausoleum
+    | EventKindVampires
+    | EventKindColosseum
+    | EventKindDesigner
+    | EventKindKnowingSkull
+    | EventKindGremlinMatchGame
 )
 
 DeltaSign = _rs.DeltaSign
@@ -618,6 +649,12 @@ __all__ = [
     "EffectRewardRollNeowCards",
     "EffectStrengthLoseTemp",
     "EffectDamageLifesteal",
+    "EffectMausoleumOpen",
+    "EffectKnowingSkullAsk",
+    "EffectJoustBet",
+    "EffectMatchGameFlip",
+    "EffectRewardRollLibraryCards",
+    "KnowingSkullWish",
     "Amount",
     "AmountAbsolute",
     "AmountRelative",
@@ -662,6 +699,16 @@ __all__ = [
     "EventKindAddict",
     "EventKindBeggar",
     "EventKindGhosts",
+    "EventKindBackToBasics",
+    "EventKindMaskedBandits",
+    "EventKindTheJoust",
+    "EventKindTheLibrary",
+    "EventKindTheMausoleum",
+    "EventKindVampires",
+    "EventKindColosseum",
+    "EventKindDesigner",
+    "EventKindKnowingSkull",
+    "EventKindGremlinMatchGame",
     "EVENT_KIND_ORDER",
     "DeltaSign",
     # Potion

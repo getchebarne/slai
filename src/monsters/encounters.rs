@@ -5,16 +5,15 @@ use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
 use crate::consts::NUM_ENCOUNTERS_WEAK;
 use crate::consts::NUM_ENCOUNTERS_WEAK_ACT2;
-use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::EventLoot;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::monsters::GREMLIN_POOL;
 use crate::types::EncounterPool;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
-use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::shuffle;
 
@@ -494,9 +493,7 @@ fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
 pub fn spawn_encounter_monsters(
     state: &mut GameState,
     encounter: MonsterEncounter,
-    event_gold: Option<Amount>,
-    event_relic: Option<RelicName>,
-    event_relic_roll: bool,
+    loot: EventLoot,
 ) {
     state.effect_buf.clear();
     let effects = &mut state.effect_buf;
@@ -651,11 +648,7 @@ pub fn spawn_encounter_monsters(
     }
 
     effects.push(Effect {
-        kind: EffectKind::CombatStart {
-            event_gold,
-            event_relic,
-            event_relic_roll,
-        },
+        kind: EffectKind::CombatStart { loot },
         id_source: None,
         target: Target::Direct(None),
     });

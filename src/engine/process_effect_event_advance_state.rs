@@ -9,6 +9,7 @@ pub fn process_effect_event_advance_state(state: &mut GameState, delta: i8) {
     };
     let value = match kind {
         EventKind::GoldenIdol { stage } => stage,
+        EventKind::Colosseum { stage } => stage,
         EventKind::ScrapOoze { attempts } => attempts,
         kind => unreachable!("EventAdvanceState on stateless event: {kind:?}"),
     };

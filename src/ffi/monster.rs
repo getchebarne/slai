@@ -27,6 +27,7 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
     SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion, Chosen,
     Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
     GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
+    BanditBear, BanditLeader, BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_py_object, {
@@ -165,6 +166,9 @@ impl MonsterName {
             Self::Champ => "The Champ",
             Self::TheCollector => "The Collector",
             Self::TorchHead => "Torch Head",
+            Self::BanditBear => "Bear",
+            Self::BanditLeader => "Romeo",
+            Self::BanditPointy => "Pointy",
         }
     }
 }

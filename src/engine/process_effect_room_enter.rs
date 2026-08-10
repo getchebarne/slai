@@ -10,6 +10,7 @@ use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::EventLoot;
 use crate::effect::Target;
 use crate::events::spawn_event;
 use crate::game::GameState;
@@ -64,7 +65,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::CombatBoss => {
             // Spawn boss
             let encounter = state.encounter_boss;
-            spawn_encounter_monsters(state, encounter, None, None, false);
+            spawn_encounter_monsters(state, encounter, EventLoot::NONE);
 
             // Pantograph: boss fights open with a 25 HP heal
             if has_relic(&state.id_relics, RelicName::Pantograph) {
@@ -81,12 +82,12 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::CombatMonster => {
             // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_normal.remove(0);
-            spawn_encounter_monsters(state, encounter, None, None, false);
+            spawn_encounter_monsters(state, encounter, EventLoot::NONE);
         }
         RoomKind::CombatElite => {
             // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_elite.remove(0);
-            spawn_encounter_monsters(state, encounter, None, None, false);
+            spawn_encounter_monsters(state, encounter, EventLoot::NONE);
         }
         RoomKind::RestSite => {
             state.mode_stack.push(Mode::RestSite);
@@ -254,6 +255,8 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
             EventName::TheCleric => gold >= 35,
             // The Beggar only spawns with the gold to pay it
             EventName::Beggar => gold >= 75,
+            // The Colosseum waits for the map's upper half
+            EventName::Colosseum => floor > 8,
             EventName::Mushrooms | EventName::DeadAdventurer => floor > 6,
             _ => true,
         })
@@ -293,6 +296,10 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
         .filter(|&(_, &name)| match name {
             EventName::TheDivineFountain => has_removable_curse,
             EventName::TheWomanInBlue => gold >= 50,
+            EventName::TheJoust => gold >= 50,
+            EventName::Designer => gold >= 75,
+            // The skull only talks to the living-enough
+            EventName::KnowingSkull => state.entities[state.id_character].vitals.health > 12,
             _ => true,
         })
         .map(|(i, _)| i)

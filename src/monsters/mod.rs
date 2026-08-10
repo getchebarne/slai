@@ -1,3 +1,6 @@
+pub mod bandit_bear;
+pub mod bandit_leader;
+pub mod bandit_pointy;
 pub mod book_of_stabbing;
 pub mod bronze_automaton;
 pub mod bronze_orb;
@@ -141,6 +144,11 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         MonsterName::Champ => champ::spawn_monster_champ(ascension_level),
         MonsterName::TheCollector => the_collector::spawn_monster_the_collector(ascension_level),
         MonsterName::TorchHead => torch_head::spawn_monster_torch_head(ascension_level, rng),
+        MonsterName::BanditBear => bandit_bear::spawn_monster_bandit_bear(ascension_level, rng),
+        MonsterName::BanditLeader => {
+            bandit_leader::spawn_monster_bandit_leader(ascension_level, rng)
+        }
+        MonsterName::BanditPointy => bandit_pointy::spawn_monster_bandit_pointy(ascension_level),
     }
 }
 
@@ -330,6 +338,15 @@ pub fn get_next_move(
             the_collector::get_next_move_the_collector(history, torch_heads_alive, rng)
         }
         MonsterName::TorchHead => 0,
+        MonsterName::BanditBear => {
+            bandit_bear::get_next_move_bandit_bear(entity.monster_move_current, history)
+        }
+        MonsterName::BanditLeader => bandit_leader::get_next_move_bandit_leader(
+            entity.monster_move_current,
+            history,
+            ascension_level,
+        ),
+        MonsterName::BanditPointy => 0,
     }
 }
 
@@ -610,6 +627,9 @@ mod tests {
             MonsterName::Champ,
             MonsterName::TheCollector,
             MonsterName::TorchHead,
+            MonsterName::BanditBear,
+            MonsterName::BanditLeader,
+            MonsterName::BanditPointy,
         ];
         let mut rng = SmallRng::seed_from_u64(7);
         for ascension in [0, 2, 7, 17, 18, 20] {

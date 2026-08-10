@@ -4,6 +4,7 @@ use crate::consts::MAX_SIZE_DECK;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::EventLoot;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -44,11 +45,14 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) ->
             this_combat_damage_instances_taken: 0,
             this_combat_escaped: false,
             bomb_countdown: 0,
-            event_gold: None,
-            event_relic: None,
-            event_relic_roll: false,
+            event_loot: EventLoot::NONE,
         };
-        if matches!(mode_top(&state.mode_stack), Mode::Event { .. }) {
+        // A consumed event is replaced by its fight; an unconsumed one (Colosseum)
+        // stays suspended beneath and resumes when the combat pops
+        if matches!(
+            mode_top(&state.mode_stack),
+            Mode::Event { consumed: true, .. }
+        ) {
             state.mode_stack.pop();
         }
         state.mode_stack.push(combat);

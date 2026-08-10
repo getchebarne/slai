@@ -3,6 +3,7 @@ use rand::Rng;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::EventLoot;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
@@ -53,12 +54,15 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
         spawn_encounter_monsters(
             state,
             encounter,
-            Some(Amount::Range {
-                min: 25 + gold_extra,
-                max: 35 + gold_extra,
-            }),
-            None,
-            relic_roll,
+            EventLoot {
+                gold: Some(Amount::Range {
+                    min: 25 + gold_extra,
+                    max: 35 + gold_extra,
+                }),
+                relic: None,
+                relic_roll,
+                relic_tiers: [None, None],
+            },
         );
 
         // Consume-then-fight protocol: the consume lands ahead of the spawn chain

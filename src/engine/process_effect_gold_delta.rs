@@ -14,6 +14,14 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
     let amount = match amount {
         Amount::Absolute(a) => a,
         Amount::Range { min, max } => state.rng.random_range(min..=max),
+        // Fraction of the character's current gold (Masked Bandits' pay-everything)
+        Amount::Relative {
+            numerator,
+            denominator,
+        } => {
+            let gold = state.entities[state.id_character].character_gold;
+            (gold as u32 * numerator as u32 / denominator as u32) as u16
+        }
         Amount::EventGoldAsk => {
             let Mode::Event {
                 kind: EventKind::WeMeetAgain { gold_ask, .. },

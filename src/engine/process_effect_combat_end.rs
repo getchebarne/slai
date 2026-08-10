@@ -22,18 +22,14 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     let mode = mode_top_mut(&mut state.mode_stack);
     let Mode::Combat {
         this_combat_escaped,
-        event_gold,
-        event_relic,
-        event_relic_roll,
+        event_loot,
         ..
     } = &*mode
     else {
         unreachable!("CombatEnd outside Combat mode")
     };
     let escaped_monster = *this_combat_escaped;
-    let event_gold = *event_gold;
-    let event_relic = *event_relic;
-    let event_relic_roll = *event_relic_roll;
+    let event_loot = *event_loot;
     *mode = Mode::CombatEnded;
 
     // Combat modifiers don't persist. Only the Character outlives the fight;
@@ -54,49 +50,60 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     // Replace pending combat work with the teardown chain queued below
     state.effect_queue.clear();
 
-    let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
-    match room_kind {
-        // Final boss: gold granted directly, game_over halts the queue before
-        // a GoldDelta would run
-        RoomKind::CombatBoss if state.act >= ACT_FINAL => {
-            let amount = roll_boss_gold(&mut state.rng, state.ascension);
+    // A fight inside a live event belongs to the event (Colosseum's first bout):
+    // pop back to it with no rewards; the post-combat relic hooks below still land
+    if matches!(
+        state.mode_stack.iter().rev().nth(1),
+        Some(Mode::Event {
+            consumed: false,
+            ..
+        })
+    ) {
+        state.mode_stack.pop();
+    } else {
+        let room_kind =
+            get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
+        match room_kind {
+            // Final boss: gold granted directly, game_over halts the queue before
+            // a GoldDelta would run
+            RoomKind::CombatBoss if state.act >= ACT_FINAL => {
+                let amount = roll_boss_gold(&mut state.rng, state.ascension);
 
-            // Ectoplasm: no gold gain (roll still consumed for RNG parity with the source)
-            if !has_relic(&state.id_relics, RelicName::Ectoplasm) {
-                let gold = &mut state.entities[state.id_character].character_gold;
-                *gold = gold.saturating_add(amount).min(MAX_GOLD);
+                // Ectoplasm: no gold gain (roll still consumed for RNG parity with the source)
+                if !has_relic(&state.id_relics, RelicName::Ectoplasm) {
+                    let gold = &mut state.entities[state.id_character].character_gold;
+                    *gold = gold.saturating_add(amount).min(MAX_GOLD);
+                }
             }
-        }
-        RoomKind::CombatBoss
-        | RoomKind::CombatMonster
-        | RoomKind::CombatElite
-        | RoomKind::Unknown
-        | RoomKind::EventRoom => {
-            // Stamped loot means an event started this fight (covers "?" rooms that
-            // resolved to an event); otherwise a "?" marker is a normal monster combat
-            let room_kind_reward = if event_gold.is_some() {
-                RoomKind::EventRoom
-            } else if room_kind == RoomKind::Unknown {
-                RoomKind::CombatMonster
-            } else {
-                room_kind
-            };
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::RewardRoll {
-                    source: RewardSource::Combat {
-                        room_kind: room_kind_reward,
-                        escaped: escaped_monster,
-                        event_gold,
-                        event_relic,
-                        event_relic_roll,
+            RoomKind::CombatBoss
+            | RoomKind::CombatMonster
+            | RoomKind::CombatElite
+            | RoomKind::Unknown
+            | RoomKind::EventRoom => {
+                // Stamped loot means an event started this fight (covers "?" rooms that
+                // resolved to an event); otherwise a "?" marker is a normal monster combat
+                let room_kind_reward = if event_loot.gold.is_some() {
+                    RoomKind::EventRoom
+                } else if room_kind == RoomKind::Unknown {
+                    RoomKind::CombatMonster
+                } else {
+                    room_kind
+                };
+                state.effect_queue.push_back(Effect {
+                    kind: EffectKind::RewardRoll {
+                        source: RewardSource::Combat {
+                            room_kind: room_kind_reward,
+                            escaped: escaped_monster,
+                            loot: event_loot,
+                        },
                     },
-                },
-                id_source: None,
-                target: Target::Direct(None),
-            });
-        }
-        RoomKind::RestSite | RoomKind::Treasure | RoomKind::Shop => {
-            unreachable!("Combat end in non-combat room: {:?}", room_kind)
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
+            RoomKind::RestSite | RoomKind::Treasure | RoomKind::Shop => {
+                unreachable!("Combat end in non-combat room: {:?}", room_kind)
+            }
         }
     }
 

@@ -1,14 +1,20 @@
 mod addict;
+mod back_to_basics;
 mod beggar;
 mod big_fish;
 mod bonfire_spirits;
+mod colosseum;
 mod dead_adventurer;
+mod designer;
 mod duplicator;
 mod face_trader;
 mod ghosts;
 mod golden_idol;
 mod golden_shrine;
+mod gremlin_match_game;
+mod knowing_skull;
 mod living_wall;
+mod masked_bandits;
 mod mushrooms;
 mod neow;
 mod ominous_forge;
@@ -17,16 +23,21 @@ mod scrap_ooze;
 mod shining_light;
 mod the_cleric;
 mod the_divine_fountain;
+mod the_joust;
 mod the_lab;
+mod the_library;
+mod the_mausoleum;
 mod the_ssssserpent;
 mod the_woman_in_blue;
 mod transmogrifier;
 mod upgrade_shrine;
+mod vampires;
 mod we_meet_again;
 mod wheel_of_change;
 mod wing_statue;
 mod world_of_goop;
 
+use crate::consts::MATCH_GAME_CARDS;
 use crate::consts::MAX_EFFECTS_PER_EVENT_OPTION;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -39,11 +50,20 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::ZERO_ENTITY;
 use crate::game::GameState;
+use crate::types::CardName;
 use crate::types::EventName;
 use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::push_entity;
+use rand::Rng;
+
+use knowing_skull::KNOWING_SKULL_COST_START;
+pub use knowing_skull::KNOWING_SKULL_GOLD;
+pub use the_joust::JOUST_OWNER_WIN_CHANCE;
+pub use the_joust::JOUST_PAYOUT_MURDERER;
+pub use the_joust::JOUST_PAYOUT_OWNER;
+pub use the_joust::JOUST_STAKE;
 
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
@@ -82,6 +102,17 @@ pub const EFFECT_DECK_TRANSFORM_PICK: Effect = Effect {
         candidate_pool: CandidatePool::Deck,
         filter: CandidateFilter::Transformable,
         selection_kind: SelectionKind::Input { count: 1 },
+    },
+};
+
+// Transform two chosen cards (Designer's Clean Up, Drug Dealer)
+pub const EFFECT_DECK_TRANSFORM_PICK_TWO: Effect = Effect {
+    kind: EffectKind::CardTransform { upgraded: false },
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Deck,
+        filter: CandidateFilter::Transformable,
+        selection_kind: SelectionKind::Input { count: 2 },
     },
 };
 
@@ -128,6 +159,31 @@ pub enum EventKind {
     Addict,
     Beggar,
     Ghosts,
+    BackToBasics,
+    MaskedBandits,
+    TheJoust,
+    TheLibrary,
+    TheMausoleum,
+    Vampires,
+    Colosseum {
+        stage: u8,
+    },
+    Designer {
+        adjust_upgrades_one: bool,
+        cleanup_removes: bool,
+    },
+    KnowingSkull {
+        potion_cost: u8,
+        gold_cost: u8,
+        card_cost: u8,
+    },
+    GremlinMatchGame {
+        board: [CardName; MATCH_GAME_CARDS],
+        matched: u16,
+        // One set bit = the attempt's first flip; two = last attempt's miss, face up
+        revealed: u16,
+        attempts: u8,
+    },
 }
 
 // Builds the event: entry rolls land in the kind, options bake into the arena
@@ -160,6 +216,23 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
         EventName::Addict => EventKind::Addict,
         EventName::Beggar => EventKind::Beggar,
         EventName::Ghosts => EventKind::Ghosts,
+        EventName::BackToBasics => EventKind::BackToBasics,
+        EventName::MaskedBandits => EventKind::MaskedBandits,
+        EventName::TheJoust => EventKind::TheJoust,
+        EventName::TheLibrary => EventKind::TheLibrary,
+        EventName::TheMausoleum => EventKind::TheMausoleum,
+        EventName::Vampires => EventKind::Vampires,
+        EventName::Colosseum => EventKind::Colosseum { stage: 0 },
+        EventName::Designer => EventKind::Designer {
+            adjust_upgrades_one: state.rng.random_bool(0.5),
+            cleanup_removes: state.rng.random_bool(0.5),
+        },
+        EventName::KnowingSkull => EventKind::KnowingSkull {
+            potion_cost: KNOWING_SKULL_COST_START,
+            gold_cost: KNOWING_SKULL_COST_START,
+            card_cost: KNOWING_SKULL_COST_START,
+        },
+        EventName::GremlinMatchGame => gremlin_match_game::spawn_event_gremlin_match_game(state),
         EventName::Mushrooms => EventKind::Mushrooms,
         EventName::DeadAdventurer => EventKind::DeadAdventurer {
             found_gold: false,
@@ -212,6 +285,16 @@ fn bake_event_options(state: &mut GameState, kind: EventKind) -> Vec<usize> {
         EventKind::Addict => bake_options(state, addict::OPTIONS),
         EventKind::Beggar => bake_options(state, beggar::OPTIONS),
         EventKind::Ghosts => bake_options(state, ghosts::options(ascension)),
+        EventKind::BackToBasics => bake_options(state, back_to_basics::OPTIONS),
+        EventKind::MaskedBandits => bake_options(state, masked_bandits::OPTIONS),
+        EventKind::TheJoust => bake_options(state, the_joust::OPTIONS),
+        EventKind::TheLibrary => bake_options(state, the_library::options(ascension)),
+        EventKind::TheMausoleum => bake_options(state, the_mausoleum::OPTIONS),
+        EventKind::Vampires => bake_options(state, vampires::OPTIONS),
+        EventKind::Colosseum { .. } => bake_options(state, colosseum::OPTIONS),
+        EventKind::Designer { .. } => bake_options(state, designer::options(ascension)),
+        EventKind::KnowingSkull { .. } => bake_options(state, knowing_skull::OPTIONS),
+        EventKind::GremlinMatchGame { .. } => bake_options(state, gremlin_match_game::OPTIONS),
         EventKind::Neow => unreachable!("Neow bakes its options at spawn"),
     }
 }
@@ -233,9 +316,24 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
         | EventKind::Mushrooms
         | EventKind::Neow
         | EventKind::Ghosts
+        | EventKind::MaskedBandits
+        | EventKind::TheJoust
+        | EventKind::TheLibrary
+        | EventKind::TheMausoleum
+        | EventKind::KnowingSkull { .. }
         | EventKind::DeadAdventurer { .. } => true,
         EventKind::Addict => addict::option_available(state, idx),
         EventKind::Beggar => beggar::option_available(state, idx),
+        EventKind::BackToBasics => back_to_basics::option_available(state, idx),
+        EventKind::Vampires => vampires::option_available(state, idx),
+        EventKind::Colosseum { stage } => colosseum::option_available(stage, idx),
+        EventKind::Designer {
+            adjust_upgrades_one,
+            cleanup_removes,
+        } => designer::option_available(state, adjust_upgrades_one, cleanup_removes, idx),
+        EventKind::GremlinMatchGame {
+            matched, revealed, ..
+        } => gremlin_match_game::option_available(matched, revealed, idx),
         EventKind::TheCleric => the_cleric::option_available(state, idx),
         EventKind::WingStatue => wing_statue::option_available(state, idx),
         EventKind::LivingWall => living_wall::option_available(state, idx),
@@ -317,6 +415,7 @@ pub const POOL_EVENT_ACT1: &[EventName] = &[
 // Shrines and one-time specials roll together at EVENT_SPECIAL_CHANCE
 pub const POOL_EVENT_ACT1_SPECIAL: &[EventName] = &[
     EventName::GoldenShrine,
+    EventName::GremlinMatchGame,
     EventName::Purifier,
     EventName::Transmogrifier,
     EventName::UpgradeShrine,
@@ -331,12 +430,22 @@ pub const POOL_EVENT_ACT1_SPECIAL: &[EventName] = &[
 ];
 
 // Beggar is draw-gated in `draw_event` (gold 75+)
-pub const POOL_EVENT_ACT2: &[EventName] =
-    &[EventName::Addict, EventName::Beggar, EventName::Ghosts];
+pub const POOL_EVENT_ACT2: &[EventName] = &[
+    EventName::Addict,
+    EventName::BackToBasics,
+    EventName::Beggar,
+    EventName::Colosseum,
+    EventName::Ghosts,
+    EventName::MaskedBandits,
+    EventName::TheLibrary,
+    EventName::TheMausoleum,
+    EventName::Vampires,
+];
 
 // Per-act shrines: dropped from the special pool and re-added fresh each act
 pub const POOL_EVENT_SHRINES: &[EventName] = &[
     EventName::GoldenShrine,
+    EventName::GremlinMatchGame,
     EventName::Purifier,
     EventName::Transmogrifier,
     EventName::UpgradeShrine,
@@ -344,7 +453,12 @@ pub const POOL_EVENT_SHRINES: &[EventName] = &[
 ];
 
 // One-time specials first reachable in act 2
-pub const POOL_EVENT_ACT2_SPECIAL: &[EventName] = &[EventName::Duplicator];
+pub const POOL_EVENT_ACT2_SPECIAL: &[EventName] = &[
+    EventName::Designer,
+    EventName::Duplicator,
+    EventName::KnowingSkull,
+    EventName::TheJoust,
+];
 
 // Every per-act shrine must sit in the act-1 special pool: the act transition's
 // retain-then-re-add link depends on it

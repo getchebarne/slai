@@ -17,7 +17,7 @@ use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
 use crate::consts::GOLD_BOSS_MAX;
 use crate::consts::GOLD_BOSS_MIN;
-use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::consts::MAX_CARD_REWARD_ROLL;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Amount;
@@ -120,7 +120,7 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
         CardName::AscendersBane | CardName::CurseOfTheBell
     )
 }
-use card_is_purgeable as card_is_transformable;
+pub use card_is_purgeable as card_is_transformable;
 
 // Single source of truth for which Cards a CandidatePoolCardFilter admits (deck or hand pools)
 // One filter for every Resolve. Entity predicates are total over the fat Entity;
@@ -154,6 +154,11 @@ pub fn candidate_matches(
         CandidateFilter::Picked => Some(id) == id_picked_monster,
         CandidateFilter::NotSource => Some(id) != id_source,
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
+        CandidateFilter::StarterStrike => entity.card_name == CardName::Strike,
+        CandidateFilter::StarterUpgradeable => {
+            matches!(entity.card_name, CardName::Strike | CardName::Defend)
+                && card_is_upgradable(entity)
+        }
     }
 }
 
@@ -434,7 +439,7 @@ pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize
     count
 }
 
-// Roll `count` distinct Cards (count <= MAX_COMBAT_CARD_REWARD); pity-bumps reward_roll_offset
+// Roll `count` distinct Cards (count <= MAX_CARD_REWARD_ROLL); pity-bumps reward_roll_offset
 // toward rares. Boss rewards force the rare pool without touching the pity state
 pub fn roll_card_rewards(
     id_character: usize,
@@ -446,8 +451,8 @@ pub fn roll_card_rewards(
     rare_only: bool,
 ) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
-    let mut card_names_rolled: [CardName; MAX_COMBAT_CARD_REWARD] =
-        [CardName::Strike; MAX_COMBAT_CARD_REWARD];
+    let mut card_names_rolled: [CardName; MAX_CARD_REWARD_ROLL] =
+        [CardName::Strike; MAX_CARD_REWARD_ROLL];
 
     out.clear();
     for _ in 0..count {
