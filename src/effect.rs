@@ -175,6 +175,7 @@ pub enum EffectKind {
     MonsterEscape,
     MonsterSpawn {
         name: MonsterName,
+        minion: bool, // Gremlin Leader's summons
     },
     MonsterSplit {
         name: MonsterName,

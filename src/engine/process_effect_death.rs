@@ -118,8 +118,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
 
     let target = &state.entities[id_target];
 
-    // A leader's death drains its minions: survivors that are all Minions escape
-    // (Gremlin Leader) or die; the queued effects recurse through this handler
+    // A leader's death drains its minions: survivors that are all Minions escape or die
     if !has_modifier(&target.modifiers, ModifierKind::Minion)
         && id_monsters
             .iter()
@@ -127,12 +126,13 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             .all(|&id| has_modifier(&state.entities[id].modifiers, ModifierKind::Minion))
     {
         let kind = if target.monster_name == MonsterName::GremlinLeader {
+            // Minions escaping here don't skip rewards because of `RoomKind::CombatElite`
             EffectKind::MonsterEscape
         } else {
             EffectKind::Death
         };
-        for slot in id_monsters.iter() {
-            if let Some(id) = *slot {
+        for id_monster in id_monsters.iter() {
+            if let Some(id) = *id_monster {
                 state.effect_queue.push_front(Effect {
                     kind,
                     id_source: None,
@@ -188,6 +188,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             },
         });
     }
+
     // Gremlin Horn: a monster's death grants 1 energy and draws 1
     if has_relic(&state.id_relics, RelicName::GremlinHorn) {
         state.effect_queue.push_front(Effect {
@@ -204,12 +205,16 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             target: Target::Direct(None),
         });
     }
+
+    // Spore Cloud: ...
     if let Some(e) = spore_effect {
         state.effect_queue.push_front(e);
     }
+
+    // Corpse Explosion: ...
     if let Some(dmg) = corpse_explosion {
-        for slot in id_monsters.iter().rev() {
-            if let Some(id) = *slot
+        for id_monster in id_monsters.iter().rev() {
+            if let Some(id) = *id_monster
                 && id != id_target
             {
                 state.effect_queue.push_front(Effect {
@@ -223,6 +228,8 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             }
         }
     }
+
+    // Return sotlen gold
     if let Some(e) = gold_return {
         state.effect_queue.push_front(e);
     }

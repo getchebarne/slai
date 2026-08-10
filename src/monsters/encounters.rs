@@ -471,7 +471,10 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
 
 fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
     effects.push(Effect {
-        kind: EffectKind::MonsterSpawn { name },
+        kind: EffectKind::MonsterSpawn {
+            name,
+            minion: false,
+        },
         id_source: None,
         target: Target::Direct(None),
     });
