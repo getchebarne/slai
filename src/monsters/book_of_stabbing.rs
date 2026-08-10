@@ -1,3 +1,4 @@
+use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::entity::Entity;
 use crate::modifier::ModifierKind;
 use crate::modifier::ZERO_MODIFIERS;
@@ -10,25 +11,25 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-// Multi-Stab occupies 0..=5, one template per hit count; Single Stab closes the table
-const fn move_table(multi_damage: u16, single_damage: u16) -> [Move; 7] {
-    [
-        make_move_attack("Multi-Stab", multi_damage, 2),
-        make_move_attack("Multi-Stab", multi_damage, 3),
-        make_move_attack("Multi-Stab", multi_damage, 4),
-        make_move_attack("Multi-Stab", multi_damage, 5),
-        make_move_attack("Multi-Stab", multi_damage, 6),
-        make_move_attack("Multi-Stab", multi_damage, 7),
-        make_move_attack("Single Stab", single_damage, 1),
-    ]
+// One Multi-Stab template per hit count (hits = idx + 2, up to the effect cap);
+// Single Stab closes the table
+const NUM_MULTI_STAB_MOVES: usize = MAX_EFFECTS_PER_MOVE - 1;
+
+const fn move_table(multi_damage: u16, single_damage: u16) -> [Move; NUM_MULTI_STAB_MOVES + 1] {
+    let mut table = [make_move_attack("Single Stab", single_damage, 1); NUM_MULTI_STAB_MOVES + 1];
+    let mut i = 0;
+    while i < NUM_MULTI_STAB_MOVES {
+        table[i] = make_move_attack("Multi-Stab", multi_damage, (i + 2) as u8);
+        i += 1;
+    }
+    table
 }
 
-static MOVES_ASC0: [Move; 7] = move_table(6, 21);
-static MOVES_ASC3: [Move; 7] = move_table(7, 24);
+static MOVES_ASC0: [Move; NUM_MULTI_STAB_MOVES + 1] = move_table(6, 21);
+static MOVES_ASC3: [Move; NUM_MULTI_STAB_MOVES + 1] = move_table(7, 24);
 
-// hits = idx + 2
-const IDX_MOVE_MULTI_STAB_LAST: usize = 5;
-const IDX_MOVE_SINGLE_STAB: usize = 6;
+const IDX_MOVE_MULTI_STAB_LAST: usize = NUM_MULTI_STAB_MOVES - 1;
+const IDX_MOVE_SINGLE_STAB: usize = NUM_MULTI_STAB_MOVES;
 
 const fn is_multi_stab(idx: usize) -> bool {
     idx <= IDX_MOVE_MULTI_STAB_LAST

@@ -3,14 +3,14 @@ pub const MAX_MOVE_HISTORY: usize = 64;
 // Per-Card effect array cap; bump if any Card legitimately exceeds 8
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
 
-// Per-move effect array cap; Hexaghost's Inferno is the 7-effect maximum
-pub const MAX_EFFECTS_PER_MOVE: usize = 7;
+// Per-move effect array cap; sized for Book of Stabbing's Multi-Stab growth
+pub const MAX_EFFECTS_PER_MOVE: usize = 20;
 
 // Per-event-option effect array cap; Mushrooms' Stomp is the 5-effect maximum
 pub const MAX_EFFECTS_PER_EVENT_OPTION: usize = 5;
 
-// Per-monster move array cap; Hexaghost and The Guardian have 7
-pub const MAX_MOVES_PER_MONSTER: usize = 7;
+// Per-monster move array cap; Book of Stabbing's stab ladder is the maximum
+pub const MAX_MOVES_PER_MONSTER: usize = 20;
 pub const STARTING_GOLD: u16 = 99;
 pub const MAX_GOLD: u16 = 9999;
 pub const GOLD_MONSTER_MIN: u16 = 10;

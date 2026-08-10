@@ -92,3 +92,5 @@ pub fn spawn_monster_taskmaster(ascension_level: u8, rng: &mut impl Rng) -> Enti
         moves,
     )
 }
+
+// Doesn't have an AI: always uses Scouring Whip
