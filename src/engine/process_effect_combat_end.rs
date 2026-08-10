@@ -1,7 +1,4 @@
-use rand::Rng;
-
-use crate::consts::GOLD_BOSS_MAX;
-use crate::consts::GOLD_BOSS_MIN;
+use crate::consts::ACT_FINAL;
 use crate::consts::MAX_GOLD;
 use crate::effect::Amount;
 use crate::effect::Effect;
@@ -18,6 +15,7 @@ use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::has_relic;
 use crate::utils::mode_top_mut;
+use crate::utils::roll_boss_gold;
 
 pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool) {
     // Capture provenance, then drop the combat: teardown is the variant swap
@@ -58,22 +56,19 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     match room_kind {
-        RoomKind::CombatBoss => {
-            // Granted directly: game_over halts the queue before a GoldDelta would run
-            let roll = state.rng.random_range(GOLD_BOSS_MIN..=GOLD_BOSS_MAX);
-            let amount = if state.ascension >= 13 {
-                (roll * 3 + 2) / 4 // x0.75 rounded half-up
-            } else {
-                roll
-            };
+        // Final boss: gold granted directly, game_over halts the queue before
+        // a GoldDelta would run
+        RoomKind::CombatBoss if state.act >= ACT_FINAL => {
+            let amount = roll_boss_gold(&mut state.rng, state.ascension);
 
-            // Ectoplasm: no gold gain (roll still consumed for RNG parity with the source game)
+            // Ectoplasm: no gold gain (roll still consumed for RNG parity with the source)
             if !has_relic(&state.id_relics, RelicName::Ectoplasm) {
                 let gold = &mut state.entities[state.id_character].character_gold;
                 *gold = gold.saturating_add(amount).min(MAX_GOLD);
             }
         }
-        RoomKind::CombatMonster
+        RoomKind::CombatBoss
+        | RoomKind::CombatMonster
         | RoomKind::CombatElite
         | RoomKind::Unknown
         | RoomKind::EventRoom => {
@@ -132,8 +127,8 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
     }
 
-    // Boss victory ends the run; the mode rests on CombatEnded (projected as Map)
-    if matches!(state.location, Location::BossRoom) {
+    // Final-act boss victory ends the run; the mode rests on CombatEnded (projected as Map)
+    if matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL {
         state.game_over = true;
     }
 }

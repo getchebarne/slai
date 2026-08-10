@@ -279,12 +279,9 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
-        MonsterName::Byrd => byrd::get_next_move_byrd(
-            entity.monster_move_current,
-            history,
-            &entity.modifiers,
-            rng,
-        ),
+        MonsterName::Byrd => {
+            byrd::get_next_move_byrd(entity.monster_move_current, history, &entity.modifiers, rng)
+        }
         MonsterName::Centurion => {
             centurion::get_next_move_centurion(history, entity_id, id_monsters, rng)
         }

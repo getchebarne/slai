@@ -252,6 +252,8 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
         .filter(|&(_, &name)| match name {
             // The Cleric only spawns with gold for its cheapest option
             EventName::TheCleric => gold >= 35,
+            // The Beggar only spawns with the gold to pay it
+            EventName::Beggar => gold >= 75,
             EventName::Mushrooms | EventName::DeadAdventurer => floor > 6,
             _ => true,
         })

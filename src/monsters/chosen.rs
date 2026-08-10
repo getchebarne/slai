@@ -99,11 +99,7 @@ pub fn spawn_monster_chosen(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     )
 }
 
-pub fn get_next_move_chosen(
-    move_history: &[u8],
-    ascension_level: u8,
-    rng: &mut impl Rng,
-) -> usize {
+pub fn get_next_move_chosen(move_history: &[u8], ascension_level: u8, rng: &mut impl Rng) -> usize {
     // Openers: Hex on turn 1 at A17+; Poke then Hex below
     let turns_taken = move_history.len();
     if turns_taken == 0 {

@@ -74,7 +74,11 @@ pub fn spawn_monster_shelled_parasite(ascension_level: u8, rng: &mut impl Rng) -
     };
 
     let mut modifiers = ZERO_MODIFIERS;
-    modifier_apply(&mut modifiers, ModifierKind::PlatedArmor, PLATED_ARMOR_START);
+    modifier_apply(
+        &mut modifiers,
+        ModifierKind::PlatedArmor,
+        PLATED_ARMOR_START,
+    );
 
     make_entity_monster(
         MonsterName::ShelledParasite,

@@ -20,6 +20,7 @@ pub fn process_effect_reward_take(
         reward_id_relics,
         reward_id_potions,
         reward_gold,
+        reward_relics_exclusive,
     } = mode_top_mut(&mut state.mode_stack)
     else {
         unreachable!("RewardTake outside Reward mode")
@@ -46,6 +47,11 @@ pub fn process_effect_reward_take(
                 .position(|&id| id == id_relic)
                 .expect("Taken Relic is a staged reward");
             reward_id_relics.remove(idx);
+
+            // Pick-one-of-N offer (boss relics): taking one drops the rest
+            if *reward_relics_exclusive {
+                reward_id_relics.clear();
+            }
             (id_relic, EffectKind::RelicAdopt)
         }
 

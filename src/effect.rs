@@ -17,6 +17,7 @@ use crate::types::ShopSlot;
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
+    ActTransition,
     AdventurerSearch,
     BlockGain {
         amount: u16,

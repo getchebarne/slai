@@ -196,6 +196,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                     reward_id_relics,
                     reward_id_potions: Vec::new(),
                     reward_gold: None,
+                    reward_relics_exclusive: false,
                 },
             );
             state.effect_queue.push_front(Effect {

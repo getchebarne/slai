@@ -38,6 +38,9 @@ flat_variants!(PyEventKind {
     WeMeetAgain => PyEventKindWeMeetAgain as "EventKindWeMeetAgain" { pick_card: Option<PyCard>, pick_potion: Option<PyPotion>, gold_ask: Option<u16> },
     DeadAdventurer => PyEventKindDeadAdventurer as "EventKindDeadAdventurer" { found_gold: bool, found_nothing: bool, found_relic: bool, searches: u8 },
     Neow => PyEventKindNeow as "EventKindNeow",
+    Addict => PyEventKindAddict as "EventKindAddict",
+    Beggar => PyEventKindBeggar as "EventKindBeggar",
+    Ghosts => PyEventKindGhosts as "EventKindGhosts",
 });
 
 pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEventKind {
@@ -89,5 +92,8 @@ pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEvent
             searches,
         }),
         EventKind::Neow => PyEventKind::Neow(PyEventKindNeow),
+        EventKind::Addict => PyEventKind::Addict(PyEventKindAddict),
+        EventKind::Beggar => PyEventKind::Beggar(PyEventKindBeggar),
+        EventKind::Ghosts => PyEventKind::Ghosts(PyEventKindGhosts),
     }
 }

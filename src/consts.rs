@@ -19,6 +19,7 @@ pub const GOLD_ELITE_MIN: u16 = 25;
 pub const GOLD_ELITE_MAX: u16 = 35;
 pub const GOLD_BOSS_MIN: u16 = 95;
 pub const GOLD_BOSS_MAX: u16 = 105;
+pub const BOSS_RELIC_REWARD_COUNT: usize = 3;
 
 // Combat
 pub const MAX_SIZE_HAND: usize = 10;

@@ -135,7 +135,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyCandidateFilter;
     #[pymodule_export]
-    #[pymodule_export]
     use super::ffi::PyCardColor;
     #[pymodule_export]
     use super::ffi::PyCardKind;
@@ -261,9 +260,9 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectDamageFlechettes;
     #[pymodule_export]
-    use super::ffi::PyEffectDamageMindBlast;
-    #[pymodule_export]
     use super::ffi::PyEffectDamageLifesteal;
+    #[pymodule_export]
+    use super::ffi::PyEffectDamageMindBlast;
     #[pymodule_export]
     use super::ffi::PyEffectDamagePhysical;
     #[pymodule_export]
@@ -315,8 +314,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollNeowCards;
     #[pymodule_export]
-    use super::ffi::PyEffectStrengthLoseTemp;
-    #[pymodule_export]
     use super::ffi::PyEffectRewardRollPotions;
     #[pymodule_export]
     use super::ffi::PyEffectScrapOozeReach;
@@ -329,9 +326,15 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectStormOfSteelProc;
     #[pymodule_export]
+    use super::ffi::PyEffectStrengthLoseTemp;
+    #[pymodule_export]
     use super::ffi::PyEffectUnloadDiscard;
     #[pymodule_export]
     use super::ffi::PyEffectWheelSpin;
+    #[pymodule_export]
+    use super::ffi::PyEventKindAddict;
+    #[pymodule_export]
+    use super::ffi::PyEventKindBeggar;
     #[pymodule_export]
     use super::ffi::PyEventKindBigFish;
     #[pymodule_export]
@@ -342,6 +345,8 @@ mod slai {
     use super::ffi::PyEventKindDuplicator;
     #[pymodule_export]
     use super::ffi::PyEventKindFaceTrader;
+    #[pymodule_export]
+    use super::ffi::PyEventKindGhosts;
     #[pymodule_export]
     use super::ffi::PyEventKindGoldenIdol;
     #[pymodule_export]

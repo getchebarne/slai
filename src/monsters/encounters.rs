@@ -334,7 +334,10 @@ fn populate_first_hard_encounter(
 }
 
 // First-hard exclusions, keyed on the act and its last weak entry
-fn get_act_exclusions(act: u8, encounter_last_weak: MonsterEncounter) -> &'static [MonsterEncounter] {
+fn get_act_exclusions(
+    act: u8,
+    encounter_last_weak: MonsterEncounter,
+) -> &'static [MonsterEncounter] {
     match (act, encounter_last_weak) {
         (1, MonsterEncounter::TwoLouse) => &[MonsterEncounter::ThreeLouse],
         (1, MonsterEncounter::SmallSlimes) => {

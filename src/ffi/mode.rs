@@ -99,6 +99,7 @@ pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {
             reward_id_relics,
             reward_id_potions,
             reward_gold,
+            ..
         } => PyMode::Reward(PyModeReward {
             cards: reward_id_cards
                 .iter()

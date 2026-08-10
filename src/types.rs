@@ -63,6 +63,8 @@ pub enum Mode {
         reward_id_relics: Vec<usize>,
         reward_id_potions: Vec<usize>,
         reward_gold: Option<u16>,
+        // Pick-one-of-N relic offer (boss relics): taking one drops the rest
+        reward_relics_exclusive: bool,
     },
     Event {
         kind: EventKind,
@@ -443,6 +445,9 @@ pub enum EventName {
     Mushrooms,
     DeadAdventurer,
     Neow,
+    Addict,
+    Beggar,
+    Ghosts,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

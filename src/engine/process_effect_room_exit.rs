@@ -1,3 +1,4 @@
+use crate::consts::ACT_FINAL;
 use crate::consts::MAP_HEIGHT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -14,6 +15,16 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         "RoomExit with no room frame to pop"
     );
     state.mode_stack.pop();
+
+    // Leaving a mid-run boss room starts the next act
+    if matches!(state.location, Location::BossRoom) && state.act < ACT_FINAL {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ActTransition,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        return;
+    }
 
     // Final-row rest room enters the boss instead of returning to the map
     if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1)

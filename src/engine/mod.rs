@@ -1,3 +1,4 @@
+pub mod process_effect_act_transition;
 pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
@@ -97,6 +98,7 @@ pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
+use self::process_effect_act_transition::process_effect_act_transition;
 use self::process_effect_adventurer_search::process_effect_adventurer_search;
 use self::process_effect_block_gain::process_effect_block_gain;
 use self::process_effect_block_set::process_effect_block_set;
@@ -492,6 +494,7 @@ fn dispatch_by_kind(
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
         EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(state),
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),
+        EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
         EffectKind::BonfireOffer => process_effect_bonfire_offer(id_target, state),
         EffectKind::CardBottle => process_effect_card_bottle(id_target, state),
@@ -758,6 +761,7 @@ fn ensure_mode_validity(state: &GameState) {
                 Some(
                     RoomKind::CombatMonster
                         | RoomKind::CombatElite
+                        | RoomKind::CombatBoss
                         | RoomKind::EventRoom
                         | RoomKind::Treasure
                         | RoomKind::RestSite
@@ -771,4 +775,122 @@ fn ensure_mode_validity(state: &GameState) {
         "Mode {:?} inconsistent with room kind {:?} at {:?}",
         frame_room, room_kind, state.location
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::consts::ACT_FINAL;
+    use crate::consts::BOSS_RELIC_REWARD_COUNT;
+    use crate::game::create_game_state;
+    use crate::monsters::encounters::spawn_encounter_monsters;
+    use crate::types::RelicTier;
+
+    // Fabricate the pending boss fight at the current location and kill it outright
+    fn beat_boss(state: &mut GameState) {
+        state.location = Location::BossRoom;
+        let boss = state.encounter_boss;
+        spawn_encounter_monsters(state, boss, None, None, false);
+        process_effect_queue(state);
+
+        let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack) else {
+            panic!("boss fight did not start");
+        };
+        let ids: Vec<usize> = id_monsters.iter().flatten().copied().collect();
+        for id in ids {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::Death,
+                id_source: None,
+                target: Target::Direct(Some(id)),
+            });
+        }
+        process_effect_queue(state);
+    }
+
+    // Skip the staged boss loot; RoomExit fires the act transition
+    fn skip_reward_and_transition(state: &mut GameState) {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::RoomExit,
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        process_effect_queue(state);
+        assert_eq!(state.act, 2);
+    }
+
+    // Random walks rarely survive to the boss; drive the act seam directly
+    #[test]
+    fn act_transition_smoke() {
+        for seed in 0..20 {
+            let mut state = create_game_state(0, seed, false, false);
+            beat_boss(&mut state);
+
+            // Mid-run boss rests on a full reward: gold, rare cards, 3 Boss relics
+            let Mode::Reward {
+                reward_id_relics,
+                reward_gold,
+                ..
+            } = mode_top(&state.mode_stack)
+            else {
+                panic!(
+                    "boss victory did not stage a reward: {:?}",
+                    state.mode_stack
+                );
+            };
+            assert!(reward_gold.is_some());
+            assert_eq!(reward_id_relics.len(), BOSS_RELIC_REWARD_COUNT);
+            assert!(
+                reward_id_relics
+                    .iter()
+                    .all(|&id| state.entities[id].relic_tier == RelicTier::Boss)
+            );
+
+            skip_reward_and_transition(&mut state);
+
+            // The exact pool shapes are covered by monsters::tests::act2_encounter_generation
+            assert_eq!(state.location, Location::Start);
+            assert!(matches!(state.mode_stack[..], [Mode::Map]));
+            assert!(!state.encounter_pool_normal.is_empty());
+            assert!(!state.encounter_pool_elite.is_empty());
+            assert!(!state.pool_events.is_empty());
+
+            // The act-2 boss ends the run with no further transition
+            beat_boss(&mut state);
+            assert_eq!(state.act, ACT_FINAL);
+            assert!(state.game_over);
+        }
+    }
+
+    // Random-walk act 2 itself: the Python fuzzer's agents rarely survive act 1,
+    // so the city content gets its end-to-end coverage here
+    #[test]
+    fn act2_random_walk() {
+        use crate::action::recompute_legal_actions;
+        use crate::game::step;
+        use rand::Rng;
+        use rand::SeedableRng;
+        use rand::rngs::SmallRng;
+
+        for seed in 0..50 {
+            let mut state = create_game_state(0, seed, false, false);
+            beat_boss(&mut state);
+            skip_reward_and_transition(&mut state);
+
+            let mut rng = SmallRng::seed_from_u64(seed ^ 0xA2);
+            recompute_legal_actions(&mut state);
+            for _ in 0..2000 {
+                if state.game_over {
+                    break;
+                }
+                assert!(
+                    !state.legal_actions.is_empty(),
+                    "stuck with no legal actions: {:?}",
+                    state.mode_stack
+                );
+                let action =
+                    state.legal_actions[rng.random_range(0..state.legal_actions.len())].clone();
+                step(&mut state, action).expect("legal action must apply");
+            }
+        }
+    }
 }

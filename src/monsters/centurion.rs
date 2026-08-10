@@ -86,7 +86,11 @@ pub fn get_next_move_centurion(
 ) -> usize {
     // Fury only ever fires once the Centurion stands alone
     let alone = !id_monsters.iter().flatten().any(|&id| id != entity_id);
-    let defend_or_fury = if alone { IDX_MOVE_FURY } else { IDX_MOVE_DEFEND };
+    let defend_or_fury = if alone {
+        IDX_MOVE_FURY
+    } else {
+        IDX_MOVE_DEFEND
+    };
 
     let roll = rng.random_range(0..=99);
     if (roll >= 65

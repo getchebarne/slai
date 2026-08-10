@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
@@ -10,7 +11,6 @@ use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
 use crate::monsters::make_move_attack;
 use crate::monsters::make_move_block_buff;
-use crate::effect::Target;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
@@ -113,9 +113,7 @@ pub fn get_next_move_bronze_automaton(move_history: &[u8], ascension_level: u8) 
     let segment_start = move_history
         .iter()
         .rposition(|&m| m as usize == IDX_MOVE_HYPER_BEAM)
-        .map_or(0, |p| {
-            if ascension_level >= 19 { p + 2 } else { p + 1 }
-        });
+        .map_or(0, |p| if ascension_level >= 19 { p + 2 } else { p + 1 });
     let num_turns = move_history
         .iter()
         .skip(segment_start)

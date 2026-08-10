@@ -27,8 +27,7 @@ use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
-use crate::events::POOL_EVENT_ACT1;
-use crate::events::POOL_EVENT_ACT1_SPECIAL;
+use crate::events::pools_for_act;
 use crate::events::spawn_event;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act_monsters;
@@ -167,6 +166,9 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     );
     let encounter_boss = pick_boss(1, &mut rng);
 
+    // Act-1 event pools
+    let (pool_events, pool_event_special) = pools_for_act(1);
+
     // Start unhalted on Mode::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
     let effect_queue = VecDeque::with_capacity(64);
 
@@ -193,8 +195,8 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
-        pool_events: POOL_EVENT_ACT1.to_vec(),
-        pool_event_special: POOL_EVENT_ACT1_SPECIAL.to_vec(),
+        pool_events: pool_events.to_vec(),
+        pool_event_special: pool_event_special.to_vec(),
         potion_drop_mod: 0,
         mode_stack: vec![Mode::Map],
         game_over: false,
