@@ -124,6 +124,7 @@ mod trip;
 mod unload;
 mod violence;
 mod well_laid_plans;
+mod wound;
 mod wraith_form;
 mod writhe;
 
@@ -277,6 +278,7 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         CardName::TheBomb => the_bomb::THE_BOMB_PLUS,
         CardName::Violence => violence::VIOLENCE_PLUS,
         CardName::Dazed
+        | CardName::Wound
         | CardName::Slimed
         | CardName::AscendersBane
         | CardName::CurseOfTheBell
@@ -421,6 +423,7 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &the_bomb::THE_BOMB,
     &violence::VIOLENCE,
     &curse_of_the_bell::CURSE_OF_THE_BELL,
+    &wound::WOUND,
 ];
 // Assert all Cards are included without duplicates
 const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);

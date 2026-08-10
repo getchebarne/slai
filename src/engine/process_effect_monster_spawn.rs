@@ -7,6 +7,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::modifier_apply;
 use crate::monsters::spawn_monster;
 use crate::types::Energy;
 use crate::types::Mode;
@@ -17,7 +18,7 @@ use crate::utils::mode_top;
 use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
-pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
+pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName, minion: bool) {
     // A monster spawning implies a combat: the first spawn of a fight constructs it
     if !matches!(mode_top(&state.mode_stack), Mode::Combat { .. }) {
         // Event fights replace the consumed Event frame; room fights push over Map
@@ -55,8 +56,11 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) {
         unreachable!("Constructed above")
     };
 
-    // Create the monster `Entity`
-    let monster = spawn_monster(name, state.ascension, &mut state.rng);
+    // Create the monster `Entity`; summons carry Minion from birth
+    let mut monster = spawn_monster(name, state.ascension, &mut state.rng);
+    if minion {
+        modifier_apply(&mut monster.modifiers, ModifierKind::Minion, 1);
+    }
 
     // Push it
     let id_monster = push_entity(&mut state.entities, monster);

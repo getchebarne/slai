@@ -15,6 +15,7 @@ use crate::types::RelicName;
 const SPAWN_FUNGI: Effect = Effect {
     kind: EffectKind::MonsterSpawn {
         name: MonsterName::FungiBeast,
+        minion: false,
     },
     id_source: None,
     target: Target::Direct(None),

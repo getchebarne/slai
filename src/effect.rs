@@ -140,6 +140,7 @@ pub enum EffectKind {
     GoldSteal {
         amount: u8,
     },
+    GremlinSummon,
     HandOfGreedProc {
         gold: u16,
     },
@@ -174,6 +175,7 @@ pub enum EffectKind {
     MonsterEscape,
     MonsterSpawn {
         name: MonsterName,
+        minion: bool, // Gremlin Leader's summons
     },
     MonsterSplit {
         name: MonsterName,

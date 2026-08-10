@@ -247,7 +247,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
         EffectKind::FaceTrade => PyEffect::FaceTrade(PyEffectFaceTrade { target }),
         EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle { target }),
-        EffectKind::MonsterSpawn { name } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
+        EffectKind::MonsterSpawn { name, .. } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
             name: name.into(),
             target,
         }),

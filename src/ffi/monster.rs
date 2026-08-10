@@ -25,7 +25,8 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
     GremlinWizard, Hexaghost, JawWorm, Lagavulin, Looter, LouseDefensive, LouseNormal, Sentry,
     SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
     SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion, Chosen,
-    Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian,
+    Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
+    GremlinLeader, Taskmaster,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_py_object, {
@@ -34,7 +35,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_
     GremlinNob, Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts,
     SphericGuardian, Chosen, ShelledParasite, ThreeByrds, TwoThieves, SnakePlant,
     CenturionAndHealer, Snecko, CultistAndChosen, ThreeCultists, ShelledParasiteAndFungi,
-    ChosenAndByrds, SentryAndSphere,
+    ChosenAndByrds, SentryAndSphere, GremlinLeader, Slavers, BookOfStabbing,
 });
 
 #[pyclass(
@@ -155,6 +156,9 @@ impl MonsterName {
             Self::SnakePlant => "Snake Plant",
             Self::Snecko => "Snecko",
             Self::SphericGuardian => "Spheric Guardian",
+            Self::BookOfStabbing => "Book of Stabbing",
+            Self::GremlinLeader => "Gremlin Leader",
+            Self::Taskmaster => "Taskmaster",
         }
     }
 }
@@ -190,6 +194,8 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
+                // Divider-style locked damage replaces the template before scaling
+                let base_damage = base_damage.map(|d| m.monster_move_damage_override.unwrap_or(d));
                 let damage = base_damage.map(|d| {
                     let str_stacks = if has_modifier(&m.modifiers, ModifierKind::Strength) {
                         modifier_stacks(&m.modifiers, ModifierKind::Strength)

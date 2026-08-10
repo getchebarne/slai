@@ -1,3 +1,4 @@
+pub mod book_of_stabbing;
 pub mod byrd;
 pub mod centurion;
 pub mod chosen;
@@ -5,6 +6,7 @@ pub mod cultist;
 pub mod encounters;
 pub mod fungi_beast;
 pub mod gremlin_fat;
+pub mod gremlin_leader;
 pub mod gremlin_nob;
 pub mod gremlin_thief;
 pub mod gremlin_tsundere;
@@ -32,11 +34,11 @@ pub mod slime_spike_small;
 pub mod snake_plant;
 pub mod snecko;
 pub mod spheric_guardian;
+pub mod taskmaster;
 pub mod the_guardian;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTERS;
-use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
@@ -48,7 +50,6 @@ use crate::entity::EntityKind;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::ZERO_ENTITY;
-use crate::entity::ZERO_MOVE;
 use crate::entity::get_move_history_slice;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
@@ -119,7 +120,30 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
         MonsterName::SphericGuardian => {
             spheric_guardian::spawn_monster_spheric_guardian(ascension_level, rng)
         }
+        MonsterName::BookOfStabbing => {
+            book_of_stabbing::spawn_monster_book_of_stabbing(ascension_level, rng)
+        }
+        MonsterName::GremlinLeader => {
+            gremlin_leader::spawn_monster_gremlin_leader(ascension_level, rng)
+        }
+        MonsterName::Taskmaster => taskmaster::spawn_monster_taskmaster(ascension_level, rng),
     }
+}
+
+// Weighted gremlin pool: Warrior/Thief/Fat twice, Tsundere/Wizard once
+pub const GREMLIN_POOL: [MonsterName; 8] = [
+    MonsterName::GremlinWarrior,
+    MonsterName::GremlinWarrior,
+    MonsterName::GremlinThief,
+    MonsterName::GremlinThief,
+    MonsterName::GremlinFat,
+    MonsterName::GremlinFat,
+    MonsterName::GremlinTsundere,
+    MonsterName::GremlinWizard,
+];
+
+pub fn pick_gremlin(rng: &mut impl Rng) -> MonsterName {
+    GREMLIN_POOL[rng.random_range(0..GREMLIN_POOL.len())]
 }
 
 // True if `move_idx` ends a cycle; callers bump monster_cycle_count
@@ -255,6 +279,13 @@ pub fn get_next_move(
             snecko::get_next_move_snecko(entity.monster_move_current, history, rng)
         }
         MonsterName::SphericGuardian => spheric_guardian::get_next_move_spheric_guardian(history),
+        MonsterName::BookOfStabbing => {
+            book_of_stabbing::get_next_move_book_of_stabbing(history, ascension_level, rng)
+        }
+        MonsterName::GremlinLeader => {
+            gremlin_leader::get_next_move_gremlin_leader(history, entity_id, id_monsters, rng)
+        }
+        MonsterName::Taskmaster => 0,
     }
 }
 
@@ -459,25 +490,15 @@ pub const fn make_entity_monster(
     monster_kind: MonsterKind,
     vitals: Vitals,
     modifiers: Modifiers,
-    moves: &[Move],
+    moves: &'static [Move],
 ) -> Entity {
-    assert!(
-        moves.len() <= MAX_MOVES_PER_MONSTER,
-        "monster_moves exceeds MAX_MOVES_PER_MONSTER",
-    );
-    let mut arr = [ZERO_MOVE; MAX_MOVES_PER_MONSTER];
-    let mut i = 0;
-    while i < moves.len() {
-        arr[i] = moves[i];
-        i += 1;
-    }
     Entity {
         kind: EntityKind::Monster,
         vitals,
         modifiers,
         monster_name: name,
         monster_kind,
-        monster_moves: arr,
+        monster_moves: moves,
         ..ZERO_ENTITY
     }
 }
