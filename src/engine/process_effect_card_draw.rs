@@ -69,7 +69,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
 
     // Fire on-draw hooks in draw order; pushed first so they resolve after the resumed draw
     for &id_card in id_drawn[..id_drawn_num].iter().rev() {
-        let effects_on_draw = state.entities[id_card].card_on_draw_effects;
+        let effects_on_draw = state.entities[id_card].card_effects_on_draw;
         for effect in effects_on_draw.iter().rev() {
             state.effect_queue.push_front(Effect {
                 id_source: Some(id_card),
@@ -125,5 +125,4 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             }
         }
     }
-
 }

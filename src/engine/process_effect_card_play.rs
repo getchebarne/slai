@@ -33,8 +33,7 @@ use crate::utils::mode_top_mut;
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardPlay requires id_target");
 
-    // The source detaches the played Card up front; it stays pile-less until
-    // the relocation effect parks it after its own effects resolve
+    // Detach the played Card up front; it stays pile-less until its effects resolve
     detach_card(mode_top_mut(&mut state.mode_stack), id_card);
 
     let Mode::Combat {
@@ -51,8 +50,9 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     else {
         unreachable!("process_effect_card_play outside Combat mode")
     };
-    let id_character = state.id_character;
+
     // Read-only here: copied out so the body below can borrow the whole state
+    let id_character = state.id_character;
     let this_turn_discards = *this_turn_discards;
     let this_combat_damage_instances_taken = *this_combat_damage_instances_taken;
     let energy_current = energy.energy_current;
@@ -280,7 +280,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     let char_modifiers = &state.entities[id_character].modifiers;
 
-    // Burst (skill-only) doubles; X-cost multiplies by X; the two stack multiplicatively
+    // Burst (skill-only) doubles; X-cost multiplies by X; they stack multiplicatively
     // X-cost reads raw energy_current so Setup-flagged X-cost still scales
     let mul = match card.card_cost_kind {
         CardCostKind::XCost { offset } => {
@@ -327,8 +327,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    // Relocation and on-play triggers land after the Card's own effects, as in
-    // the source (use -> UseCardAction -> onUseCard payloads)
+    // Relocation and on-play triggers land after the Card's own effects
     if card.card_exhaust || relic_exhaust {
         // Strange Spoon: on-play exhausts have a 50% chance to discard instead; Powers exempt
         let effect_kind = if card.card_kind != CardKind::Power

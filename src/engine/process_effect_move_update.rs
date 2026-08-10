@@ -19,27 +19,26 @@ pub fn process_effect_move_update(
         unreachable!("process_effect_move_update outside Combat mode")
     };
     let id_target = id_target.expect("MoveUpdate requires id_target");
+
     // Corpses don't roll: a mid-phase death leaves this queued effect dangling
     if state.entities[id_target].dead {
         return;
     }
-    let ascension_level = state.ascension;
-    let id_monsters = id_monsters;
     let character_health = state.entities[state.id_character].vitals.health;
 
-    let entity = &mut state.entities[id_target];
     // A forced move (Split, wake-up) skips the AI and its RNG draw
     let move_next = match move_override {
         Some(idx) => idx,
         None => get_next_move(
-            entity,
+            &state.entities,
             id_target,
             &id_monsters,
-            ascension_level,
+            state.ascension,
             &mut state.rng,
         ),
     };
 
+    let entity = &mut state.entities[id_target];
     entity.monster_move_current = Some(move_next);
 
     // Divider damage locks in at selection; later HP changes don't move it

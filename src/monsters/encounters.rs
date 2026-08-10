@@ -3,7 +3,7 @@ use strum::EnumCount;
 
 use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
-use crate::consts::NUM_ENCOUNTERS_WEAK;
+use crate::consts::NUM_ENCOUNTERS_EASY;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -252,38 +252,58 @@ fn populate_first_hard_encounter(
     }
 }
 
-// Keyed on the last weak entry
-fn get_act1_exclusions(encounter_last_weak: MonsterEncounter) -> &'static [MonsterEncounter] {
-    match encounter_last_weak {
-        MonsterEncounter::TwoLouse => &[MonsterEncounter::ThreeLouse],
-        MonsterEncounter::SmallSlimes => {
+// First-hard exclusions, keyed on the act and its last easy entry
+fn get_act_exclusions(
+    act: u8,
+    encounter_last_easy: MonsterEncounter,
+) -> &'static [MonsterEncounter] {
+    match (act, encounter_last_easy) {
+        (1, MonsterEncounter::TwoLouse) => &[MonsterEncounter::ThreeLouse],
+        (1, MonsterEncounter::SmallSlimes) => {
             &[MonsterEncounter::LargeSlime, MonsterEncounter::LotsOfSlimes]
         }
         _ => &[],
     }
 }
 
-pub fn generate_act1_monsters(
+pub fn generate_act_monsters(
+    act: u8,
     encounter_list: &mut Vec<MonsterEncounter>,
     elite_list: &mut Vec<MonsterEncounter>,
     rng: &mut impl Rng,
 ) {
+    // Per-act pools and easy-fight count
+    let (pool_easy, pool_hard, pool_elite, num_easy_enc): (
+        &[MonsterEncounter],
+        &[MonsterEncounter],
+        &[MonsterEncounter],
+        usize,
+    ) = match act {
+        1 => (
+            &ENC_POOL_EASY,
+            &ENC_POOL_HARD,
+            &ENC_POOL_ELITE,
+            NUM_ENCOUNTERS_EASY,
+        ),
+        _ => unreachable!("no encounter pools for act {act}"),
+    };
+
     // Get normalized encounter tables for each pool
-    let encounter_table_easy = normalize_weights(&ENC_POOL_EASY);
-    let encounter_table_hard = normalize_weights(&ENC_POOL_HARD);
-    let encounter_table_elite = normalize_weights(&ENC_POOL_ELITE);
+    let encounter_table_easy = normalize_weights(pool_easy);
+    let encounter_table_hard = normalize_weights(pool_hard);
+    let encounter_table_elite = normalize_weights(pool_elite);
 
     // Sample easy encounters
     populate_encounter_list(
         encounter_list,
         &encounter_table_easy,
-        NUM_ENCOUNTERS_WEAK,
+        num_easy_enc,
         false,
         rng,
     );
 
     // Get exclusions based on last easy encounter
-    let encounter_exclusions = get_act1_exclusions(*encounter_list.last().unwrap());
+    let encounter_exclusions = get_act_exclusions(act, *encounter_list.last().unwrap());
 
     // Populate the first hard encounter
     populate_first_hard_encounter(
@@ -312,13 +332,19 @@ pub fn generate_act1_monsters(
     );
 }
 
-pub fn pick_act1_boss(rng: &mut impl Rng) -> MonsterEncounter {
-    const BOSSES: [MonsterEncounter; 3] = [
+// Boss arrays stay hand-ordered per act: deriving them from ALL_ENCOUNTERS would
+// reorder the draw and shift the RNG stream
+pub fn pick_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
+    const BOSSES_ACT1: [MonsterEncounter; 3] = [
         MonsterEncounter::TheGuardian,
         MonsterEncounter::Hexaghost,
         MonsterEncounter::SlimeBoss,
     ];
-    BOSSES[rng.random_range(0..3)]
+    let pool: &[MonsterEncounter] = match act {
+        1 => &BOSSES_ACT1,
+        _ => unreachable!("no bosses for act {act}"),
+    };
+    pool[rng.random_range(0..pool.len())]
 }
 
 fn pick_louse(rng: &mut impl Rng) -> MonsterName {

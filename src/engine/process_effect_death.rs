@@ -25,8 +25,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         return;
     }
 
-    // Character death: clear pending work, mark dead, signal game over.
-    // Event damage can kill outside combat, so this path is mode-agnostic
+    // Character death: clear pending work, mark dead, signal game over
     if id_target == state.id_character {
         // Fairy in a Bottle: consumed to revive at 30% max HP; checked before Lizard Tail
         if let Some(id_potion) = state
@@ -84,7 +83,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     // Calculate if there're any monsters left alive
     let any_alive = id_monsters.iter().any(|s| s.is_some());
 
-    // Return stolen gold, once. Only relevant for "Looter"s in practice
+    // Return stolen gold, once. Only relevant for Looters in practice
     let stolen_gold = state.entities[id_target].monster_stolen_gold;
     state.entities[id_target].monster_stolen_gold = 0;
     let gold_return = if stolen_gold > 0 {

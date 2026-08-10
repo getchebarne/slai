@@ -581,7 +581,7 @@ pub const fn make_entity_card(
         card_effects: arr,
         card_effects_len: effects.len() as u8,
         card_on_discard_effects: on_discard_effects,
-        card_on_draw_effects: on_draw_effects,
+        card_effects_on_draw: on_draw_effects,
         ..ZERO_ENTITY
     }
 }

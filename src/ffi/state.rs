@@ -31,6 +31,7 @@ pub struct PyGameState {
     pub mode_stack: Vec<PyMode>,
     pub game_over: bool,
     pub ascension: u8,
+    pub act: u8,
     pub character: PyCharacter,
     pub deck: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
@@ -52,6 +53,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         game_over: state.game_over,
         ascension: state.ascension,
+        act: state.act,
         character: snapshot_character(state),
         deck: state
             .id_deck

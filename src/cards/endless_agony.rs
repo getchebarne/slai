@@ -50,7 +50,7 @@ pub static ENDLESS_AGONY_PLUS: Entity = Entity {
         a[0].kind = EffectKind::DamagePhysical { amount: 6 }; // +2 damage
         a
     },
-    card_on_draw_effects: &[Effect {
+    card_effects_on_draw: &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::EndlessAgony,
             pile: CardPile::Hand,

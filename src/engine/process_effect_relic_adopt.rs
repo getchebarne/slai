@@ -34,13 +34,11 @@ use crate::utils::push_entity;
 pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameState) {
     let id_relic = id_target.expect("RelicAdopt requires id_target");
 
-    // Flag Relic as owned; a re-grant (Circlet) drops the stale order entry
+    // Flag Relic as owned and stamp its acquisition order
     let name = state.entities[id_relic].relic_name;
-    if let Some(id_old) = state.id_relics[name as usize] {
-        state.id_relics_order.retain(|&id| id != id_old);
-    }
     state.id_relics[name as usize] = Some(id_relic);
-    state.id_relics_order.push(id_relic);
+    state.entities[id_relic].relic_seq = state.relic_seq_next;
+    state.relic_seq_next += 1;
 
     // Queue the Relic's pickup effects
     queue_pickup_effects(state, name);
@@ -233,9 +231,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
 
         // Ring of the Serpent: replaces the starter; SnakeRing's combat-start draw is lost
         RelicName::RingOfTheSerpent => {
-            if let Some(id) = state.id_relics[RelicName::SnakeRing as usize].take() {
-                state.id_relics_order.retain(|&i| i != id);
-            }
+            state.id_relics[RelicName::SnakeRing as usize] = None;
         }
 
         // Orrery: a 5-bundle Reward frame pushed over the shop; the stock resumes on exit

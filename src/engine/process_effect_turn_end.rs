@@ -22,8 +22,17 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::mode_top_mut;
 
-pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut GameState) {
-    let id_actor = id_target.expect("TurnEnd (monster) requires id_target");
+// The character's turn end tears down the turn; monsters unwind their per-turn kit
+pub fn process_effect_turn_end(id_target: Option<usize>, state: &mut GameState) {
+    let id_actor = id_target.expect("TurnEnd requires id_target");
+    if id_actor == state.id_character {
+        process_effect_turn_end_character(state);
+    } else {
+        process_effect_turn_end_monster(id_actor, state);
+    }
+}
+
+fn process_effect_turn_end_monster(id_actor: usize, state: &mut GameState) {
     // Corpses don't unwind Shackled or gain Metallicize block
     if state.entities[id_actor].dead {
         return;
@@ -82,7 +91,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
     }
 }
 
-pub fn process_effect_turn_end_character(state: &mut GameState) {
+fn process_effect_turn_end_character(state: &mut GameState) {
     let Mode::Combat {
         id_hand,
         id_monsters,
@@ -356,8 +365,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Monster phase in the source's three batches: every monster's turn start
-    // (block reset, Poison), then every monster acts and rolls, then every turn end
+    // Every monster's turn start, then every monster acts and rolls, then every turn end
     for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_buf.push(Effect {
             kind: EffectKind::TurnStart,

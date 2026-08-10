@@ -1300,6 +1300,8 @@ class GameEnv:
 @final
 class GameState:
     @property
+    def act(self, /) -> int: ...
+    @property
     def ascension(self, /) -> int: ...
     @property
     def character(self, /) -> Character: ...
@@ -1483,10 +1485,12 @@ class ModifierKind:
     Angry: Final[ModifierKind]
     Artifact: Final[ModifierKind]
     Asleep: Final[ModifierKind]
+    Barricade: Final[ModifierKind]
     Blur: Final[ModifierKind]
     Buffer: Final[ModifierKind]
     Burst: Final[ModifierKind]
     Choke: Final[ModifierKind]
+    Confusion: Final[ModifierKind]
     CorpseExplosion: Final[ModifierKind]
     CurlUp: Final[ModifierKind]
     Dexterity: Final[ModifierKind]
@@ -1496,20 +1500,25 @@ class ModifierKind:
     Enrage: Final[ModifierKind]
     Entangled: Final[ModifierKind]
     Envenom: Final[ModifierKind]
+    Flight: Final[ModifierKind]
     Frail: Final[ModifierKind]
+    Hex: Final[ModifierKind]
     InfiniteBlades: Final[ModifierKind]
     Intangible: Final[ModifierKind]
     LoseDexterity: Final[ModifierKind]
     LoseStrength: Final[ModifierKind]
     Magnetism: Final[ModifierKind]
+    Malleable: Final[ModifierKind]
     Mayhem: Final[ModifierKind]
     Metallicize: Final[ModifierKind]
+    Minion: Final[ModifierKind]
     ModeShift: Final[ModifierKind]
     NextTurnBlock: Final[ModifierKind]
     NextTurnEnergy: Final[ModifierKind]
     NoBlock: Final[ModifierKind]
     NoDraw: Final[ModifierKind]
     NoxiousFumes: Final[ModifierKind]
+    PainfulStabs: Final[ModifierKind]
     Panache: Final[ModifierKind]
     PenNib: Final[ModifierKind]
     Phantasmal: Final[ModifierKind]

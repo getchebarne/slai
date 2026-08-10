@@ -108,13 +108,15 @@ pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
     }
 }
 
+// Takes the whole arena: some AIs read other monsters' state (ally counts, party HP)
 pub fn get_next_move(
-    entity: &Entity,
+    entities: &[Entity],
     entity_id: usize,
     id_monsters: &[Option<usize>; MAX_MONSTERS],
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
+    let entity = &entities[entity_id];
     let history = get_move_history_slice(entity);
     match entity.monster_name {
         // Single-move monsters
