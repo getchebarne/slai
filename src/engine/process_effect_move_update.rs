@@ -49,7 +49,7 @@ pub fn process_effect_move_update(
         let damage = character_health / 12 + 1;
         let move_divider = &mut entity.monster_moves[hexaghost::IDX_MOVE_DIVIDER];
         for effect in move_divider.effects[..move_divider.effects_len as usize].iter_mut() {
-            if let EffectKind::DamagePhysical { amount } = &mut effect.kind {
+            if let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
                 *amount = damage;
             }
         }
@@ -70,7 +70,7 @@ pub fn process_effect_move_update(
         let hits = book_of_stabbing::multi_stab_hits(prev_len, turns_taken, state.ascension)
             .min(MAX_EFFECTS_PER_MOVE);
         let stab = move_stab.effects[0];
-        let EffectKind::DamagePhysical { amount: damage } = stab.kind else {
+        let EffectKind::DamagePhysical { amount: damage, .. } = stab.kind else {
             unreachable!("Multi-Stab leads with DamagePhysical")
         };
         for effect in move_stab.effects[prev_len..hits].iter_mut() {

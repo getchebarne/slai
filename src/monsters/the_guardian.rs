@@ -29,12 +29,18 @@ const fn make_move_twin_slam(mode_shift_stacks: i16) -> Move {
         "Twin Slam",
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: 8 },
+                kind: EffectKind::DamagePhysical {
+                    amount: 8,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::DamagePhysical { amount: 8 },
+                kind: EffectKind::DamagePhysical {
+                    amount: 8,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -98,22 +104,34 @@ static MOVE_WHIRLWIND: Move = make_move(
     "Whirlwind",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },

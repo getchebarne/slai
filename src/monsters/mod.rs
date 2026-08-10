@@ -255,12 +255,9 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
-        MonsterName::Byrd => byrd::get_next_move_byrd(
-            entity.monster_move_current,
-            history,
-            &entity.modifiers,
-            rng,
-        ),
+        MonsterName::Byrd => {
+            byrd::get_next_move_byrd(entity.monster_move_current, history, &entity.modifiers, rng)
+        }
         MonsterName::Centurion => {
             centurion::get_next_move_centurion(history, entity_id, id_monsters, rng)
         }
@@ -268,7 +265,7 @@ pub fn get_next_move(
         MonsterName::Healer => {
             healer::get_next_move_healer(history, entities, id_monsters, ascension_level, rng)
         }
-        // Same script as the Looter; move indices line up one-to-one
+        // Same script as the Looter
         MonsterName::Mugger => {
             looter::get_next_move_looter(entity.monster_move_current, history, rng)
         }
@@ -301,7 +298,10 @@ pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) ->
     let mut i = 0;
     while i < instances as usize {
         effects[i] = Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         };
@@ -354,7 +354,10 @@ pub const fn make_move_attack_debuff(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -382,7 +385,10 @@ pub const fn make_move_attack_card_add(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },

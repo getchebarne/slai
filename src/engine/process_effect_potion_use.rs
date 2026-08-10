@@ -36,7 +36,7 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
 
                 // Intensity (Block, Fire, Explosive, Energy)
                 EffectKind::BlockGain { amount }
-                | EffectKind::DamagePhysical { amount }
+                | EffectKind::DamagePhysical { amount, .. }
                 | EffectKind::EnergyDelta { amount, .. } => *amount *= 2,
 
                 // Health (Fruit Juice); Relative amounts have no potency to scale

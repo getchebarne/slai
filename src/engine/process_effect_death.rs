@@ -213,7 +213,10 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
                 && id != id_target
             {
                 state.effect_queue.push_front(Effect {
-                    kind: EffectKind::DamageDeal { amount: dmg },
+                    kind: EffectKind::DamageDeal {
+                        amount: dmg,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(id)),
                 });

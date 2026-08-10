@@ -25,7 +25,10 @@ pub static CHOKE: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 12 },
+            kind: EffectKind::DamagePhysical {
+                amount: 12,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },

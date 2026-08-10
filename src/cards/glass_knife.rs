@@ -25,12 +25,18 @@ pub static GLASS_KNIFE: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
+            kind: EffectKind::DamagePhysical {
+                amount: 8,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
+            kind: EffectKind::DamagePhysical {
+                amount: 8,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
@@ -49,7 +55,10 @@ pub static GLASS_KNIFE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = GLASS_KNIFE.card_effects;
-        let upgraded_kind = EffectKind::DamagePhysical { amount: 12 }; // +4 damage
+        let upgraded_kind = EffectKind::DamagePhysical {
+            amount: 12,
+            lifesteal: false,
+        }; // +4 damage
         a[0].kind = upgraded_kind;
         a[1].kind = upgraded_kind;
         a

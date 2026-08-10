@@ -22,11 +22,14 @@ const fn make_move_suck(damage: u16) -> Move {
     make_move(
         "Suck",
         &[Effect {
-            kind: EffectKind::DamageLifesteal { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: true,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         }],
-        Intent::Attack {
+        Intent::AttackBuff {
             damage,
             instances: 1,
         },
@@ -74,7 +77,11 @@ pub fn spawn_monster_shelled_parasite(ascension_level: u8, rng: &mut impl Rng) -
     };
 
     let mut modifiers = ZERO_MODIFIERS;
-    modifier_apply(&mut modifiers, ModifierKind::PlatedArmor, PLATED_ARMOR_START);
+    modifier_apply(
+        &mut modifiers,
+        ModifierKind::PlatedArmor,
+        PLATED_ARMOR_START,
+    );
 
     make_entity_monster(
         MonsterName::ShelledParasite,

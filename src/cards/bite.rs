@@ -27,7 +27,10 @@ pub static BITE: Entity = make_entity_card(
     true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
@@ -49,7 +52,10 @@ pub static BITE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = BITE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 8 }; // +1 damage
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 8,
+            lifesteal: false,
+        }; // +1 damage
         a[1].kind = EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
             amount: Amount::Absolute(3),
