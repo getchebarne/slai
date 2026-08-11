@@ -56,6 +56,9 @@ pub const ALL_ENCOUNTERS: &[MonsterEncounter] = &[
     MonsterEncounter::GremlinLeader,
     MonsterEncounter::Slavers,
     MonsterEncounter::BookOfStabbing,
+    MonsterEncounter::BronzeAutomaton,
+    MonsterEncounter::TheCollector,
+    MonsterEncounter::Champ,
 ];
 // Assert that all `MonsterEncounter` members are covered
 const _: () = assert!(ALL_ENCOUNTERS.len() == MonsterEncounter::COUNT);
@@ -127,6 +130,11 @@ pub const fn get_encounter_pool(encounter: MonsterEncounter) -> EncounterPool {
         | MonsterEncounter::Slavers
         | MonsterEncounter::BookOfStabbing => EncounterPool::Act2Elite,
 
+        // Act 2 boss
+        MonsterEncounter::BronzeAutomaton
+        | MonsterEncounter::TheCollector
+        | MonsterEncounter::Champ => EncounterPool::Act2Boss,
+
         // Event-only
         MonsterEncounter::ThreeFungiBeasts => EncounterPool::Event,
     }
@@ -183,6 +191,11 @@ pub const fn get_encounter_weight(encounter: MonsterEncounter) -> f32 {
         MonsterEncounter::GremlinLeader => 1.0,
         MonsterEncounter::Slavers => 1.0,
         MonsterEncounter::BookOfStabbing => 1.0,
+
+        // Act 2 boss
+        MonsterEncounter::BronzeAutomaton => 1.0,
+        MonsterEncounter::TheCollector => 1.0,
+        MonsterEncounter::Champ => 1.0,
 
         // Event-only, never rolled from a pool
         MonsterEncounter::ThreeFungiBeasts => 1.0,
@@ -420,8 +433,14 @@ pub fn pick_boss(act: u8, rng: &mut impl Rng) -> MonsterEncounter {
         MonsterEncounter::Hexaghost,
         MonsterEncounter::SlimeBoss,
     ];
+    const BOSSES_ACT2: [MonsterEncounter; 3] = [
+        MonsterEncounter::BronzeAutomaton,
+        MonsterEncounter::TheCollector,
+        MonsterEncounter::Champ,
+    ];
     let pool: &[MonsterEncounter] = match act {
         1 => &BOSSES_ACT1,
+        2 => &BOSSES_ACT2,
         _ => unreachable!("no bosses for act {act}"),
     };
     pool[rng.random_range(0..pool.len())]
@@ -474,6 +493,7 @@ fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
         kind: EffectKind::MonsterSpawn {
             name,
             minion: false,
+            cap: None,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -633,6 +653,11 @@ pub fn spawn_encounter_monsters(
         MonsterEncounter::BookOfStabbing => {
             push_monster_spawn(effects, MonsterName::BookOfStabbing)
         }
+        MonsterEncounter::BronzeAutomaton => {
+            push_monster_spawn(effects, MonsterName::BronzeAutomaton)
+        }
+        MonsterEncounter::TheCollector => push_monster_spawn(effects, MonsterName::TheCollector),
+        MonsterEncounter::Champ => push_monster_spawn(effects, MonsterName::Champ),
     }
 
     effects.push(Effect {

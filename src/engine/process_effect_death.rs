@@ -17,6 +17,7 @@ use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::mode_top_mut;
+use crate::utils::release_stasis_card;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("Death requires id_target");
@@ -70,7 +71,14 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     // Monster-death path
-    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
+    let Mode::Combat {
+        id_monsters,
+        id_stasis_cards,
+        id_hand,
+        id_pile_discard,
+        ..
+    } = mode_top_mut(&mut state.mode_stack)
+    else {
         unreachable!("Monster death outside Combat mode")
     };
     let id_character = state.id_character;
@@ -79,6 +87,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     state.entities[id_target].dead = true;
     if let Some(slot) = id_monsters.iter().position(|s| *s == Some(id_target)) {
         id_monsters[slot] = None; // Clear from `id_monsters` Vec
+        release_stasis_card(slot, id_stasis_cards, id_hand, id_pile_discard);
     }
 
     // Calculate if there're any monsters left alive

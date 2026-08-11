@@ -26,7 +26,7 @@ flat_variants!(PyMode {
     Chest => PyModeChest as "ModeChest",
     ChestOpened => PyModeChestOpened as "ModeChestOpened",
     CombatEnded => PyModeCombatEnded as "ModeCombatEnded",
-    Combat => PyModeCombat as "ModeCombat" { hand: Vec<PyCard>, pile_draw: Vec<PyCard>, pile_discard: Vec<PyCard>, pile_exhaust: Vec<PyCard>, energy: PyEnergy, monsters: Vec<PyMonster>, discover: Vec<PyCard>, bomb_countdown: u8 },
+    Combat => PyModeCombat as "ModeCombat" { hand: Vec<PyCard>, pile_draw: Vec<PyCard>, pile_discard: Vec<PyCard>, pile_exhaust: Vec<PyCard>, pile_stasis: Vec<PyCard>, energy: PyEnergy, monsters: Vec<PyMonster>, discover: Vec<PyCard>, bomb_countdown: u8 },
     Reward => PyModeReward as "ModeReward" { cards: Vec<Vec<PyCard>>, relics: Vec<PyRelic>, potions: Vec<PyPotion>, gold: Option<u16> },
     Shop => PyModeShop as "ModeShop" { cards: Vec<PyCard>, card_prices: Vec<u16>, relics: Vec<PyRelic>, relic_prices: Vec<u16>, potions: Vec<PyPotion>, potion_prices: Vec<u16>, purge_cost: u16 },
     Event => PyModeEvent as "ModeEvent" { kind: PyEventKind, options: Vec<Vec<PyEffect>>, consumed: bool },
@@ -59,6 +59,7 @@ pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {
             id_pile_draw,
             id_pile_discard,
             id_pile_exhaust,
+            id_stasis_cards,
             energy,
             id_discover,
             bomb_countdown,
@@ -75,6 +76,11 @@ pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {
                 .collect(),
             pile_exhaust: id_pile_exhaust
                 .iter()
+                .map(|&id| snapshot_card(state, id))
+                .collect(),
+            pile_stasis: id_stasis_cards
+                .iter()
+                .flatten()
                 .map(|&id| snapshot_card(state, id))
                 .collect(),
             energy: PyEnergy {

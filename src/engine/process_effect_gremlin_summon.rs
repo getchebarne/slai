@@ -19,6 +19,7 @@ pub fn process_effect_gremlin_summon(state: &mut GameState) {
         kind: EffectKind::MonsterSpawn {
             name: pick_gremlin(&mut state.rng),
             minion: true,
+            cap: None,
         },
         id_source: None,
         target: Target::Direct(None),

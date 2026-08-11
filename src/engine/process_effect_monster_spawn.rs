@@ -8,6 +8,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_apply;
+use crate::monsters::count_monsters_named;
 use crate::monsters::spawn_monster;
 use crate::types::Energy;
 use crate::types::Mode;
@@ -18,7 +19,12 @@ use crate::utils::mode_top;
 use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
-pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName, minion: bool) {
+pub fn process_effect_monster_spawn(
+    state: &mut GameState,
+    name: MonsterName,
+    minion: bool,
+    cap: Option<u8>,
+) {
     // A monster spawning implies a combat: the first spawn of a fight constructs it
     if !matches!(mode_top(&state.mode_stack), Mode::Combat { .. }) {
         // Event fights replace the consumed Event frame; room fights push over Map
@@ -28,6 +34,7 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName, mi
             id_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
             id_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
             id_monsters: [None; MAX_MONSTERS],
+            id_stasis_cards: [None; MAX_MONSTERS],
             id_picked_monster: None,
             id_card_last_drawn: None,
             id_card_nightmare: None,
@@ -56,20 +63,24 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName, mi
         unreachable!("Constructed above")
     };
 
+    // Capped spawns top the roster up (Collector's Torch Heads): skip at the cap
+    if let Some(cap) = cap
+        && count_monsters_named(&state.entities, id_monsters, name) >= cap as usize
+    {
+        return;
+    }
+
+    // A full roster fizzles the spawn (Collector revive, mid-combat summons)
+    let Some(idx) = id_monsters.iter().position(|s| s.is_none()) else {
+        return;
+    };
+
     // Create the monster `Entity`; summons carry Minion from birth
     let mut monster = spawn_monster(name, state.ascension, &mut state.rng);
     if minion {
         modifier_apply(&mut monster.modifiers, ModifierKind::Minion, 1);
     }
-
-    // Push it
     let id_monster = push_entity(&mut state.entities, monster);
-
-    // Place it in the first empty monster slot
-    let idx = id_monsters
-        .iter()
-        .position(|s| s.is_none())
-        .expect("MonsterSpawn would overflow id_monsters: no empty idx");
     id_monsters[idx] = Some(id_monster);
 
     // Queue an effect to update its move
