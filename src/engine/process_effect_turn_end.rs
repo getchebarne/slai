@@ -122,16 +122,15 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Clear per-turn Card cost overrides; only cards in the combat piles can carry
-    // one, so the walk stays off the (act-growing) entity arena
-    for id in id_hand
+    // Clear per-turn Card cost overrides
+    for id_card in id_hand
         .iter()
         .chain(id_pile_draw.iter())
         .chain(id_pile_discard.iter())
         .chain(id_pile_exhaust.iter())
         .chain(id_stasis_cards.iter().flatten())
     {
-        let entity = &mut state.entities[*id];
+        let entity = &mut state.entities[*id_card];
         if matches!(
             entity.card_cost_override,
             Some(CostOverride {

@@ -16,7 +16,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
     );
     state.mode_stack.pop();
 
-    // Leaving a mid-run boss room starts the next act
+    // Exiting a mid-run Boss room starts the next act
     if matches!(state.location, Location::BossRoom) && state.act < ACT_FINAL {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ActTransition,

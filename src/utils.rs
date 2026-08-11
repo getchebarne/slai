@@ -356,8 +356,7 @@ pub fn roll_boss_gold(rng: &mut impl Rng, ascension: u8) -> u16 {
     }
 }
 
-// Fraction-of-max resolution shared by HealthDelta and MaxHealthDelta; f32 mirrors
-// the source's (int)(maxHP * fraction) float truncation
+// Fraction-of-max resolution shared by HealthDelta and MaxHealthDelta
 pub fn resolve_health_fraction(health_max: u16, amount: Amount, sign: DeltaSign) -> u16 {
     match amount {
         Amount::Absolute(a) => a,
@@ -434,8 +433,7 @@ pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize
     count
 }
 
-// Roll `count` distinct Cards (count <= MAX_COMBAT_CARD_REWARD); pity-bumps reward_roll_offset
-// toward rares. Boss rewards force the rare pool without touching the pity state
+// Roll `count` distinct Card; pity-bumps reward_roll_offset toward rares
 pub fn roll_card_rewards(
     id_character: usize,
     entities: &mut Vec<Entity>,
@@ -451,6 +449,7 @@ pub fn roll_card_rewards(
 
     out.clear();
     for _ in 0..count {
+        // Roll rarity
         let (pool, rarity) = if rare_only {
             (POOL_RARE_GREEN_CARD, CardRarity::Rare)
         } else {
@@ -476,12 +475,14 @@ pub fn roll_card_rewards(
             }
         }
 
+        // Roll Cards. Loop until it's unique
         let mut name = pool[rng.random_range(0..pool.len())];
         while card_names_rolled[..out.len()].contains(&name) {
             name = pool[rng.random_range(0..pool.len())];
         }
-
         card_names_rolled[out.len()] = name;
+
+        // Push the rolled Card.
         let card = get_card(
             name,
             // Eggs upgrade matching rewards at roll time, so the preview shows the truth

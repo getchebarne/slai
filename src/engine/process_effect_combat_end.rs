@@ -56,8 +56,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     match room_kind {
-        // Final boss: gold granted directly, game_over halts the queue before
-        // a GoldDelta would run
+        // Final boss: gold granted directly, game_over halts the queue before a GoldDelta would run
         RoomKind::CombatBoss if state.act >= ACT_FINAL => {
             let amount = roll_boss_gold(&mut state.rng, state.ascension);
 

@@ -45,6 +45,8 @@ use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::push_entity;
 
+pub use beggar::BEGGAR_COST_PURGE;
+
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
     id_source: None,
@@ -334,7 +336,7 @@ pub const POOL_EVENT_ACT1_SPECIAL: &[EventName] = &[
 pub const POOL_EVENT_ACT2: &[EventName] =
     &[EventName::Addict, EventName::Beggar, EventName::Ghosts];
 
-// Per-act shrines: dropped from the special pool and re-added fresh each act
+// Per-act shrines: dropped from the special pool and re-added fresh each Act
 pub const POOL_EVENT_SHRINES: &[EventName] = &[
     EventName::GoldenShrine,
     EventName::Purifier,
@@ -343,24 +345,24 @@ pub const POOL_EVENT_SHRINES: &[EventName] = &[
     EventName::WheelOfChange,
 ];
 
-// One-time specials first reachable in act 2
+// One-time specials first reachable in Act 2
 pub const POOL_EVENT_ACT2_SPECIAL: &[EventName] = &[EventName::Duplicator];
 
-// Every per-act shrine must sit in the act-1 special pool: the act transition's
+// Every per-act shrine must sit in the Act-1 special pool: the Act transition's
 // retain-then-re-add link depends on it
 const _: () = {
-    let mut i = 0;
-    while i < POOL_EVENT_SHRINES.len() {
+    let mut idx = 0;
+    while idx < POOL_EVENT_SHRINES.len() {
         let mut found = false;
-        let mut j = 0;
-        while j < POOL_EVENT_ACT1_SPECIAL.len() {
-            if POOL_EVENT_SHRINES[i] as u8 == POOL_EVENT_ACT1_SPECIAL[j] as u8 {
+        let mut jdx = 0;
+        while jdx < POOL_EVENT_ACT1_SPECIAL.len() {
+            if POOL_EVENT_SHRINES[idx] as u8 == POOL_EVENT_ACT1_SPECIAL[jdx] as u8 {
                 found = true;
             }
-            j += 1;
+            jdx += 1;
         }
         assert!(found, "shrine missing from POOL_EVENT_ACT1_SPECIAL");
-        i += 1;
+        idx += 1;
     }
 };
 

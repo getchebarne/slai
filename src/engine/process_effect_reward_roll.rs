@@ -177,7 +177,7 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                     Some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
                     None,
                 ),
-                // Boss gold rolls here so Golden Idol scales it below, as in the source
+                // Boss gold rolls here so Golden Idol scales it below
                 RoomKind::CombatBoss => (
                     Some(Amount::Absolute(roll_boss_gold(
                         &mut state.rng,

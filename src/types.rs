@@ -62,8 +62,7 @@ pub enum Mode {
         reward_id_relics: Vec<usize>,
         reward_id_potions: Vec<usize>,
         reward_gold: Option<u16>,
-        // Pick-one-of-N relic offer (boss relics): taking one drops the rest
-        reward_relics_exclusive: bool,
+        reward_relics_exclusive: bool, // Wether taking a Relic clears the rest (Boss rewards)
     },
     Event {
         kind: EventKind,
