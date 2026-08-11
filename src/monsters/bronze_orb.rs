@@ -76,9 +76,7 @@ pub fn spawn_monster_bronze_orb(ascension_level: u8, rng: &mut impl Rng) -> Enti
 }
 
 pub fn get_next_move_bronze_orb(move_history: &[u8], rng: &mut impl Rng) -> usize {
-    let used_stasis = move_history
-        .iter()
-        .any(|&m| m as usize == IDX_MOVE_STASIS);
+    let used_stasis = move_history.iter().any(|&m| m as usize == IDX_MOVE_STASIS);
     let roll = rng.random_range(0..=99);
 
     if !used_stasis && roll >= 25 {

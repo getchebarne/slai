@@ -1,4 +1,6 @@
-use crate::engine::process_effect_monster_spawn::process_effect_monster_spawn;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
 use crate::monsters::count_monsters_named;
 use crate::monsters::the_collector::TORCH_HEAD_COUNT;
@@ -13,6 +15,13 @@ pub fn process_effect_torch_head_spawn(state: &mut GameState) {
     };
     let alive = count_monsters_named(&state.entities, id_monsters, MonsterName::TorchHead);
     for _ in alive..TORCH_HEAD_COUNT {
-        process_effect_monster_spawn(state, MonsterName::TorchHead);
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::MonsterSpawn {
+                name: MonsterName::TorchHead,
+                minion: false,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
     }
 }

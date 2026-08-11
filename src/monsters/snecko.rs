@@ -21,7 +21,10 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
     "Tail Whip",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 10 },
+            kind: EffectKind::DamagePhysical {
+                amount: 10,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
@@ -48,8 +51,12 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
     },
 );
 
-static MOVE_GLARE: Move =
-    make_move_debuff("Perplexing Glare", ModifierKind::Confusion, 1, Intent::DebuffPowerful);
+static MOVE_GLARE: Move = make_move_debuff(
+    "Perplexing Glare",
+    ModifierKind::Confusion,
+    1,
+    Intent::DebuffPowerful,
+);
 static MOVE_BITE_15: Move = make_move_attack("Bite", 15, 1);
 static MOVE_BITE_18: Move = make_move_attack("Bite", 18, 1);
 static MOVE_TAIL_WHIP_8: Move =

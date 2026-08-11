@@ -51,8 +51,6 @@ static MOVES_ASC17: [Move; 4] = [
     MOVE_ESCAPE,
 ];
 
-// Move order matches the Looter's; the dispatch arm reuses its AI script verbatim
-
 pub fn spawn_monster_mugger(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (48, 52)
@@ -85,3 +83,5 @@ pub fn spawn_monster_mugger(ascension_level: u8, rng: &mut impl Rng) -> Entity {
         moves,
     )
 }
+
+// Move order matches the Looter's; the dispatch arm reuses its AI script verbatim

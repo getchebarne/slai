@@ -11,12 +11,18 @@ use crate::types::CardName;
 use crate::types::CardRarity;
 
 const HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 3 },
+    kind: EffectKind::DamagePhysical {
+        amount: 3,
+        lifesteal: false,
+    },
     id_source: None,
     target: TARGET_MONSTER_PICKED,
 };
 const HIT_PLUS: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage
+    kind: EffectKind::DamagePhysical {
+        amount: 4,
+        lifesteal: false,
+    }, // +1 damage
     id_source: None,
     target: TARGET_MONSTER_PICKED,
 };

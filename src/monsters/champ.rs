@@ -45,7 +45,10 @@ const fn make_move_face_slap(damage: u16) -> Move {
         "Face Slap",
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -202,9 +205,7 @@ pub fn get_next_move_champ(
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
-    let threshold_reached = move_history
-        .iter()
-        .any(|&m| m as usize == IDX_MOVE_ANGER);
+    let threshold_reached = move_history.iter().any(|&m| m as usize == IDX_MOVE_ANGER);
 
     // Below half HP the Champ rages once, then Executes every chance it gets
     if health < health_max / 2 && !threshold_reached {
@@ -239,9 +240,7 @@ pub fn get_next_move_champ(
 
     if last != Some(IDX_MOVE_DEFENSIVE_STANCE) && forge_times < 2 && roll <= forge_roll_max {
         IDX_MOVE_DEFENSIVE_STANCE
-    } else if last != Some(IDX_MOVE_GLOAT)
-        && last != Some(IDX_MOVE_DEFENSIVE_STANCE)
-        && roll <= 30
+    } else if last != Some(IDX_MOVE_GLOAT) && last != Some(IDX_MOVE_DEFENSIVE_STANCE) && roll <= 30
     {
         IDX_MOVE_GLOAT
     } else if last != Some(IDX_MOVE_FACE_SLAP) && roll <= 55 {

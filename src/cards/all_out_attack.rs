@@ -29,7 +29,10 @@ pub static ALL_OUT_ATTACK: Entity = make_entity_card(
     false,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 10 },
+            kind: EffectKind::DamagePhysical {
+                amount: 10,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTERS_ALL,
         },
@@ -54,7 +57,10 @@ pub static ALL_OUT_ATTACK_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = ALL_OUT_ATTACK.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 14 }; // +4 damage
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 14,
+            lifesteal: false,
+        }; // +4 damage
         a
     },
     ..ALL_OUT_ATTACK

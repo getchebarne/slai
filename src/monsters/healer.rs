@@ -47,10 +47,8 @@ const fn make_move_buff_all(strength: i16) -> Move {
     )
 }
 
-static MOVE_STAFF_BASH_8: Move =
-    make_move_attack_debuff("Staff Bash", 8, ModifierKind::Frail, 2);
-static MOVE_STAFF_BASH_9: Move =
-    make_move_attack_debuff("Staff Bash", 9, ModifierKind::Frail, 2);
+static MOVE_STAFF_BASH_8: Move = make_move_attack_debuff("Staff Bash", 8, ModifierKind::Frail, 2);
+static MOVE_STAFF_BASH_9: Move = make_move_attack_debuff("Staff Bash", 9, ModifierKind::Frail, 2);
 static MOVE_HEAL_16: Move = make_move_heal(16);
 static MOVE_HEAL_20: Move = make_move_heal(20);
 static MOVE_BUFF_2: Move = make_move_buff_all(2);

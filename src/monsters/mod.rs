@@ -44,7 +44,6 @@ pub mod torch_head;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTERS;
-use crate::consts::MAX_MOVES_PER_MONSTER;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
@@ -56,7 +55,6 @@ use crate::entity::EntityKind;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::entity::ZERO_ENTITY;
-use crate::entity::ZERO_MOVE;
 use crate::entity::get_move_history_slice;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
@@ -144,8 +142,7 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
     }
 }
 
-// Weighted gremlin pool: Warrior/Thief/Fat twice, Tsundere/Wizard once.
-// Shared by GremlinGang (shuffles a copy) and Rally summons (draws one)
+// Weighted gremlin pool: Warrior/Thief/Fat twice, Tsundere/Wizard once
 pub const GREMLIN_POOL: [MonsterName; 8] = [
     MonsterName::GremlinWarrior,
     MonsterName::GremlinWarrior,
@@ -279,12 +276,9 @@ pub fn get_next_move(
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
         }
-        MonsterName::Byrd => byrd::get_next_move_byrd(
-            entity.monster_move_current,
-            history,
-            &entity.modifiers,
-            rng,
-        ),
+        MonsterName::Byrd => {
+            byrd::get_next_move_byrd(entity.monster_move_current, history, &entity.modifiers, rng)
+        }
         MonsterName::Centurion => {
             centurion::get_next_move_centurion(history, entity_id, id_monsters, rng)
         }
@@ -292,7 +286,7 @@ pub fn get_next_move(
         MonsterName::Healer => {
             healer::get_next_move_healer(history, entities, id_monsters, ascension_level, rng)
         }
-        // Same script as the Looter; move indices line up one-to-one
+        // Same script as the Looter
         MonsterName::Mugger => {
             looter::get_next_move_looter(entity.monster_move_current, history, rng)
         }
@@ -310,7 +304,7 @@ pub fn get_next_move(
         }
         MonsterName::SphericGuardian => spheric_guardian::get_next_move_spheric_guardian(history),
         MonsterName::BookOfStabbing => {
-            book_of_stabbing::get_next_move_book_of_stabbing(history, rng)
+            book_of_stabbing::get_next_move_book_of_stabbing(history, ascension_level, rng)
         }
         MonsterName::GremlinLeader => {
             gremlin_leader::get_next_move_gremlin_leader(history, entity_id, id_monsters, rng)
@@ -342,7 +336,10 @@ pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) ->
     let mut i = 0;
     while i < instances as usize {
         effects[i] = Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         };
@@ -395,7 +392,10 @@ pub const fn make_move_attack_debuff(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -423,7 +423,10 @@ pub const fn make_move_attack_card_add(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -528,25 +531,15 @@ pub const fn make_entity_monster(
     monster_kind: MonsterKind,
     vitals: Vitals,
     modifiers: Modifiers,
-    moves: &[Move],
+    moves: &'static [Move],
 ) -> Entity {
-    assert!(
-        moves.len() <= MAX_MOVES_PER_MONSTER,
-        "monster_moves exceeds MAX_MOVES_PER_MONSTER",
-    );
-    let mut arr = [ZERO_MOVE; MAX_MOVES_PER_MONSTER];
-    let mut i = 0;
-    while i < moves.len() {
-        arr[i] = moves[i];
-        i += 1;
-    }
     Entity {
         kind: EntityKind::Monster,
         vitals,
         modifiers,
         monster_name: name,
         monster_kind,
-        monster_moves: arr,
+        monster_moves: moves,
         ..ZERO_ENTITY
     }
 }
@@ -623,8 +616,7 @@ mod tests {
                 for _ in 0..50 {
                     let idx = get_next_move(&entities, 0, &id_monsters, ascension, &mut rng);
                     assert!(
-                        idx < MAX_MOVES_PER_MONSTER
-                            && !entities[0].monster_moves[idx].name.is_empty(),
+                        idx < entities[0].monster_moves.len(),
                         "{name:?} rolled invalid move idx {idx}"
                     );
                     entities[0].monster_move_current = Some(idx);

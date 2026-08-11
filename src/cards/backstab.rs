@@ -23,7 +23,10 @@ pub static BACKSTAB: Entity = make_entity_card(
     true,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 11 },
+        kind: EffectKind::DamagePhysical {
+            amount: 11,
+            lifesteal: false,
+        },
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
@@ -36,7 +39,10 @@ pub static BACKSTAB_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
         let mut a = BACKSTAB.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 15 }; // +4 damage
+        a[0].kind = EffectKind::DamagePhysical {
+            amount: 15,
+            lifesteal: false,
+        }; // +4 damage
         a
     },
     ..BACKSTAB

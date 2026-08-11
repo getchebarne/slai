@@ -326,7 +326,10 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         if has_relic(&state.id_relics, RelicName::MercuryHourglass) {
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 3 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 3,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
                 });

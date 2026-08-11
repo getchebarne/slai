@@ -204,10 +204,10 @@ pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) 
 }
 
 // Clear whichever belt slot holds id_potion; no-op if absent
-pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_potion: usize) {
-    for slot in id_potions.iter_mut() {
-        if *slot == Some(id_potion) {
-            *slot = None;
+pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_potion_target: usize) {
+    for id_potion in id_potions.iter_mut() {
+        if *id_potion == Some(id_potion_target) {
+            *id_potion = None;
             return;
         }
     }

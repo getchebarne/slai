@@ -508,14 +508,11 @@ fn dispatch_by_kind(
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(id_target, state),
         EffectKind::TargetSet => process_effect_target_set(id_target, state),
         EffectKind::TargetClear => process_effect_target_clear(state),
-        EffectKind::DamagePhysical { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, false, false)
+        EffectKind::DamagePhysical { amount, lifesteal } => {
+            process_effect_damage_physical(id_source, id_target, state, amount, false, lifesteal)
         }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
             process_effect_damage_physical(id_source, id_target, state, amount, true, false)
-        }
-        EffectKind::DamageLifesteal { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, false, true)
         }
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay(id_target, state, delta)
@@ -543,11 +540,8 @@ fn dispatch_by_kind(
             process_effect_strength_lose_temp(id_target, state, stacks)
         }
         EffectKind::UnloadDiscard => process_effect_unload_discard(state),
-        EffectKind::DamageDeal { amount } => {
-            process_effect_damage_deal(id_source, id_target, state, amount, false)
-        }
-        EffectKind::DamageDealLifesteal { amount } => {
-            process_effect_damage_deal(id_source, id_target, state, amount, true)
+        EffectKind::DamageDeal { amount, lifesteal } => {
+            process_effect_damage_deal(id_source, id_target, state, amount, lifesteal)
         }
         EffectKind::HealthDelta { sign, amount } => {
             process_effect_health_delta(id_target, state, sign, amount)
@@ -591,8 +585,8 @@ fn dispatch_by_kind(
         }
         EffectKind::MoveExecute => process_effect_move_execute(id_target, state),
         EffectKind::RoomEnter => process_effect_room_enter(state),
-        EffectKind::MonsterSpawn { name } => {
-            process_effect_monster_spawn(state, name);
+        EffectKind::MonsterSpawn { name, minion } => {
+            process_effect_monster_spawn(state, name, minion)
         }
         EffectKind::MonsterSplit { name } => process_effect_monster_split(id_source, state, name),
         EffectKind::MonsterEscape => process_effect_monster_escape(id_target, state),
