@@ -15,6 +15,8 @@ use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
 use crate::consts::FACTOR_WEAK;
 use crate::consts::FACTOR_WEAK_PAPER_KRANE;
+use crate::consts::GOLD_BOSS_MAX;
+use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_HAND;
@@ -344,6 +346,48 @@ pub fn pick_relic_by_tier(
     }
 }
 
+// Boss gold, shared by the mid-run reward roll and the final-boss direct grant
+pub fn roll_boss_gold(rng: &mut impl Rng, ascension: u8) -> u16 {
+    let roll = rng.random_range(GOLD_BOSS_MIN..=GOLD_BOSS_MAX);
+    if ascension >= 13 {
+        (roll * 3 + 2) / 4 // x0.75 rounded half-up
+    } else {
+        roll
+    }
+}
+
+// Fraction-of-max resolution shared by HealthDelta and MaxHealthDelta
+pub fn resolve_health_fraction(health_max: u16, amount: Amount, sign: DeltaSign) -> u16 {
+    match amount {
+        Amount::Absolute(a) => a,
+        Amount::Relative {
+            numerator,
+            denominator,
+        }
+        | Amount::RelativeRounded {
+            numerator,
+            denominator,
+        }
+        | Amount::RelativeCeil {
+            numerator,
+            denominator,
+        } => {
+            let mut raw = health_max as f32 * (numerator as f32 / denominator as f32);
+            match amount {
+                Amount::RelativeRounded { .. } => raw += 0.5,
+                Amount::RelativeCeil { .. } => raw = raw.ceil(),
+                _ => {}
+            }
+            let raw = raw as u32;
+            match sign {
+                DeltaSign::Loss => raw.max(1) as u16,
+                DeltaSign::Gain => raw as u16,
+            }
+        }
+        _ => unreachable!("health amounts resolve Absolute or Relative forms"),
+    }
+}
+
 // Used by both elite combat-end and chest opening
 pub fn add_relic_reward_for_roll(
     roll: u8,
@@ -389,7 +433,7 @@ pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize
     count
 }
 
-// Roll `count` distinct Cards (count <= MAX_COMBAT_CARD_REWARD); pity-bumps reward_roll_offset toward rares
+// Roll `count` distinct Card; pity-bumps reward_roll_offset toward rares
 pub fn roll_card_rewards(
     id_character: usize,
     entities: &mut Vec<Entity>,
@@ -397,6 +441,7 @@ pub fn roll_card_rewards(
     out: &mut Vec<usize>,
     id_relics: &[Option<usize>; RelicName::COUNT],
     count: usize,
+    rare_only: bool,
 ) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut card_names_rolled: [CardName; MAX_COMBAT_CARD_REWARD] =
@@ -404,31 +449,40 @@ pub fn roll_card_rewards(
 
     out.clear();
     for _ in 0..count {
-        let roll = rng.random_range(0i32..=99) + character_reward_roll_offset as i32;
-        let (pool, rarity) = if roll < CARD_REWARD_ROLL_CHANCE_RARE {
+        // Roll rarity
+        let (pool, rarity) = if rare_only {
             (POOL_RARE_GREEN_CARD, CardRarity::Rare)
-        } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
-            (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
         } else {
-            (POOL_COMMON_GREEN_CARD, CardRarity::Common)
+            let roll = rng.random_range(0i32..=99) + character_reward_roll_offset as i32;
+            if roll < CARD_REWARD_ROLL_CHANCE_RARE {
+                (POOL_RARE_GREEN_CARD, CardRarity::Rare)
+            } else if roll < CARD_REWARD_ROLL_CHANCE_UNCOMMON {
+                (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
+            } else {
+                (POOL_COMMON_GREEN_CARD, CardRarity::Common)
+            }
         };
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
-        match rarity {
-            CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,
-            CardRarity::Common => {
-                character_reward_roll_offset =
-                    (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
+        if !rare_only {
+            match rarity {
+                CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,
+                CardRarity::Common => {
+                    character_reward_roll_offset =
+                        (character_reward_roll_offset - 1).max(CARD_REWARD_ROLL_OFFSET_MIN);
+                }
+                _ => {}
             }
-            _ => {}
         }
 
+        // Roll Cards. Loop until it's unique
         let mut name = pool[rng.random_range(0..pool.len())];
         while card_names_rolled[..out.len()].contains(&name) {
             name = pool[rng.random_range(0..pool.len())];
         }
-
         card_names_rolled[out.len()] = name;
+
+        // Push the rolled Card.
         let card = get_card(
             name,
             // Eggs upgrade matching rewards at roll time, so the preview shows the truth

@@ -422,6 +422,9 @@ EventKindScrapOoze = _rs.EventKindScrapOoze
 EventKindWeMeetAgain = _rs.EventKindWeMeetAgain
 EventKindDeadAdventurer = _rs.EventKindDeadAdventurer
 EventKindNeow = _rs.EventKindNeow
+EventKindAddict = _rs.EventKindAddict
+EventKindBeggar = _rs.EventKindBeggar
+EventKindGhosts = _rs.EventKindGhosts
 EventKind = (
     EventKindBigFish
     | EventKindTheCleric
@@ -448,6 +451,9 @@ EventKind = (
     | EventKindWeMeetAgain
     | EventKindDeadAdventurer
     | EventKindNeow
+    | EventKindAddict
+    | EventKindBeggar
+    | EventKindGhosts
 )
 
 DeltaSign = _rs.DeltaSign
@@ -650,6 +656,9 @@ __all__ = [
     "EventKindWeMeetAgain",
     "EventKindDeadAdventurer",
     "EventKindNeow",
+    "EventKindAddict",
+    "EventKindBeggar",
+    "EventKindGhosts",
     "EVENT_KIND_ORDER",
     "DeltaSign",
     # Potion

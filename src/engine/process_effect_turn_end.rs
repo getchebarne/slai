@@ -7,7 +7,6 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CostOverride;
-use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -101,6 +100,10 @@ fn process_effect_turn_end_monster(id_actor: usize, state: &mut GameState) {
 fn process_effect_turn_end_character(state: &mut GameState) {
     let Mode::Combat {
         id_hand,
+        id_pile_draw,
+        id_pile_discard,
+        id_pile_exhaust,
+        id_stasis_cards,
         id_monsters,
         this_turn_discards,
         this_turn_attacks,
@@ -120,16 +123,21 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Clear per-turn Card cost overrides
-    for entity in state.entities.iter_mut() {
-        if matches!(entity.kind, EntityKind::Card)
-            && matches!(
-                entity.card_cost_override,
-                Some(CostOverride {
-                    scope: CostScope::Turn,
-                    ..
-                })
-            )
-        {
+    for id_card in id_hand
+        .iter()
+        .chain(id_pile_draw.iter())
+        .chain(id_pile_discard.iter())
+        .chain(id_pile_exhaust.iter())
+        .chain(id_stasis_cards.iter().flatten())
+    {
+        let entity = &mut state.entities[*id_card];
+        if matches!(
+            entity.card_cost_override,
+            Some(CostOverride {
+                scope: CostScope::Turn,
+                ..
+            })
+        ) {
             entity.card_cost_override = None;
         }
     }

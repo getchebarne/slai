@@ -1,8 +1,11 @@
+mod addict;
+mod beggar;
 mod big_fish;
 mod bonfire_spirits;
 mod dead_adventurer;
 mod duplicator;
 mod face_trader;
+mod ghosts;
 mod golden_idol;
 mod golden_shrine;
 mod living_wall;
@@ -41,6 +44,8 @@ use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::push_entity;
+
+pub use beggar::BEGGAR_COST_PURGE;
 
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
@@ -122,6 +127,9 @@ pub enum EventKind {
         searches: u8,
     },
     Neow,
+    Addict,
+    Beggar,
+    Ghosts,
 }
 
 // Builds the event: entry rolls land in the kind, options bake into the arena
@@ -151,6 +159,9 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
         EventName::OminousForge => EventKind::OminousForge,
         EventName::FaceTrader => EventKind::FaceTrader,
         EventName::WeMeetAgain => we_meet_again::spawn_event_we_meet_again(state),
+        EventName::Addict => EventKind::Addict,
+        EventName::Beggar => EventKind::Beggar,
+        EventName::Ghosts => EventKind::Ghosts,
         EventName::Mushrooms => EventKind::Mushrooms,
         EventName::DeadAdventurer => EventKind::DeadAdventurer {
             found_gold: false,
@@ -200,6 +211,9 @@ fn bake_event_options(state: &mut GameState, kind: EventKind) -> Vec<usize> {
         EventKind::ScrapOoze { .. } => bake_options(state, scrap_ooze::options(ascension)),
         EventKind::WeMeetAgain { .. } => bake_options(state, we_meet_again::OPTIONS),
         EventKind::DeadAdventurer { .. } => bake_options(state, dead_adventurer::OPTIONS),
+        EventKind::Addict => bake_options(state, addict::OPTIONS),
+        EventKind::Beggar => bake_options(state, beggar::OPTIONS),
+        EventKind::Ghosts => bake_options(state, ghosts::options(ascension)),
         EventKind::Neow => unreachable!("Neow bakes its options at spawn"),
     }
 }
@@ -220,7 +234,10 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
         | EventKind::FaceTrader
         | EventKind::Mushrooms
         | EventKind::Neow
+        | EventKind::Ghosts
         | EventKind::DeadAdventurer { .. } => true,
+        EventKind::Addict => addict::option_available(state, idx),
+        EventKind::Beggar => beggar::option_available(state, idx),
         EventKind::TheCleric => the_cleric::option_available(state, idx),
         EventKind::WingStatue => wing_statue::option_available(state, idx),
         EventKind::LivingWall => living_wall::option_available(state, idx),
@@ -314,6 +331,49 @@ pub const POOL_EVENT_ACT1_SPECIAL: &[EventName] = &[
     EventName::FaceTrader,
     EventName::WeMeetAgain,
 ];
+
+// Beggar is draw-gated in `draw_event` (gold 75+)
+pub const POOL_EVENT_ACT2: &[EventName] =
+    &[EventName::Addict, EventName::Beggar, EventName::Ghosts];
+
+// Per-act shrines: dropped from the special pool and re-added fresh each Act
+pub const POOL_EVENT_SHRINES: &[EventName] = &[
+    EventName::GoldenShrine,
+    EventName::Purifier,
+    EventName::Transmogrifier,
+    EventName::UpgradeShrine,
+    EventName::WheelOfChange,
+];
+
+// One-time specials first reachable in Act 2
+pub const POOL_EVENT_ACT2_SPECIAL: &[EventName] = &[EventName::Duplicator];
+
+// Every per-act shrine must sit in the Act-1 special pool: the Act transition's
+// retain-then-re-add link depends on it
+const _: () = {
+    let mut idx = 0;
+    while idx < POOL_EVENT_SHRINES.len() {
+        let mut found = false;
+        let mut jdx = 0;
+        while jdx < POOL_EVENT_ACT1_SPECIAL.len() {
+            if POOL_EVENT_SHRINES[idx] as u8 == POOL_EVENT_ACT1_SPECIAL[jdx] as u8 {
+                found = true;
+            }
+            jdx += 1;
+        }
+        assert!(found, "shrine missing from POOL_EVENT_ACT1_SPECIAL");
+        idx += 1;
+    }
+};
+
+// Per-act event pools: (act list, special-pool additions)
+pub fn pools_for_act(act: u8) -> (&'static [EventName], &'static [EventName]) {
+    match act {
+        1 => (POOL_EVENT_ACT1, POOL_EVENT_ACT1_SPECIAL),
+        2 => (POOL_EVENT_ACT2, POOL_EVENT_ACT2_SPECIAL),
+        _ => unreachable!("no event pools for act {act}"),
+    }
+}
 
 pub const fn make_entity_event_option(label: &'static str, effects: &[Effect]) -> Entity {
     assert!(effects.len() <= MAX_EFFECTS_PER_EVENT_OPTION);

@@ -62,6 +62,7 @@ pub enum Mode {
         reward_id_relics: Vec<usize>,
         reward_id_potions: Vec<usize>,
         reward_gold: Option<u16>,
+        reward_relics_exclusive: bool, // Wether taking a Relic clears the rest (Boss rewards)
     },
     Event {
         kind: EventKind,
@@ -442,6 +443,9 @@ pub enum EventName {
     Mushrooms,
     DeadAdventurer,
     Neow,
+    Addict,
+    Beggar,
+    Ghosts,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

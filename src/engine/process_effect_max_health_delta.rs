@@ -4,6 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
+use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_max_health_delta(
     id_target: Option<usize>,
@@ -14,24 +15,7 @@ pub fn process_effect_max_health_delta(
     let id_target = id_target.expect("MaxHealthDelta requires id_target");
 
     // Resolve amount
-    let amount = match amount {
-        Amount::Absolute(a) => a,
-        Amount::Relative {
-            numerator,
-            denominator,
-        } => {
-            let health_max = state.entities[id_target].vitals.health_max;
-            // f32 mirrors the source's (int)(maxHP * fraction) float truncation
-            let raw = (health_max as f32 * (numerator as f32 / denominator as f32)) as u32;
-            match sign {
-                DeltaSign::Loss => raw.max(1) as u16,
-                DeltaSign::Gain => raw as u16,
-            }
-        }
-        _ => {
-            unreachable!("MaxHealthDelta only resolves Absolute or Relative")
-        }
-    };
+    let amount = resolve_health_fraction(state.entities[id_target].vitals.health_max, amount, sign);
 
     // Apply amount
     match sign {

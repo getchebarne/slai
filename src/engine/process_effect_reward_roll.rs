@@ -6,6 +6,7 @@ use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_COLORLESS_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
+use crate::consts::BOSS_RELIC_REWARD_COUNT;
 use crate::consts::CHEST_LARGE_GOLD_BASE;
 use crate::consts::CHEST_LARGE_GOLD_CHANCE;
 use crate::consts::CHEST_LARGE_TH_COMMON;
@@ -40,6 +41,7 @@ use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
 use crate::potions::get_random_potion_name_uniform;
+use crate::relics::POOL_BOSS_RELIC;
 use crate::relics::get_relic;
 use crate::types::CardName;
 use crate::types::ChestKind;
@@ -51,7 +53,9 @@ use crate::utils::card_reward_count;
 use crate::utils::has_relic;
 use crate::utils::mode_replace;
 use crate::utils::mode_top;
+use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
+use crate::utils::roll_boss_gold;
 use crate::utils::roll_card_rewards;
 
 #[derive(Debug, Clone, Copy)]
@@ -82,6 +86,7 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                     &mut id_cards,
                     &state.id_relics,
                     cards_per_bundle,
+                    false,
                 );
                 id_card_bundles.push(id_cards);
             }
@@ -172,6 +177,15 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                     Some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
                     None,
                 ),
+                // Boss gold rolls here so Golden Idol scales it below
+                RoomKind::CombatBoss => (
+                    Some(Amount::Absolute(roll_boss_gold(
+                        &mut state.rng,
+                        state.ascension,
+                    ))),
+                    None,
+                    None,
+                ),
                 RoomKind::EventRoom => (
                     // Event combats inject their event-specific extras
                     Some(event_gold.expect("Event fight without stamped loot")),
@@ -193,7 +207,7 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                 1
             };
 
-            // Roll Cards
+            // Roll Cards; boss rewards draw from the rare pool only
             let cards_per_bundle = card_reward_count(&state.id_relics);
             for _ in 0..bundle_count {
                 let mut id_cards: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
@@ -204,8 +218,23 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                     &mut id_cards,
                     &state.id_relics,
                     cards_per_bundle,
+                    room_kind == RoomKind::CombatBoss,
                 );
                 id_card_bundles.push(id_cards);
+            }
+
+            // The boss offers three unique unowned Boss relics; RewardTake keeps only one
+            if room_kind == RoomKind::CombatBoss {
+                let mut id_relic_aux = state.id_relics;
+                for _ in 0..BOSS_RELIC_REWARD_COUNT {
+                    if let Some(name) =
+                        pick_relic_from_pool(POOL_BOSS_RELIC, &id_relic_aux, &mut state.rng)
+                    {
+                        let id = push_entity(&mut state.entities, get_relic(name));
+                        id_relic_aux[name as usize] = Some(id);
+                        id_relics_reward.push(id);
+                    }
+                }
             }
 
             // Roll Relic (only for Elite combats)
@@ -339,6 +368,13 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
         reward_id_relics: id_relics_reward,
         reward_id_potions: id_potions,
         reward_gold: gold,
+        reward_relics_exclusive: matches!(
+            source,
+            RewardSource::Combat {
+                room_kind: RoomKind::CombatBoss,
+                ..
+            }
+        ),
     };
 
     // Shop rolls (Orrery, Cauldron) overlay the stock; every other source replaces its own frame

@@ -20,6 +20,7 @@ use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::mode_top;
 use crate::utils::mode_top_mut;
+use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_health_delta(
     id_target: Option<usize>,
@@ -30,38 +31,7 @@ pub fn process_effect_health_delta(
     let id_target = id_target.expect("HealthDelta requires id_target");
 
     // Resolve amount
-    let amount = match amount {
-        Amount::Absolute(a) => a,
-        Amount::Relative {
-            numerator,
-            denominator,
-        }
-        | Amount::RelativeRounded {
-            numerator,
-            denominator,
-        }
-        | Amount::RelativeCeil {
-            numerator,
-            denominator,
-        } => {
-            let health_max = state.entities[id_target].vitals.health_max;
-            // f32 mirrors the source's (int)(maxHP * fraction) float truncation
-            let mut raw = health_max as f32 * (numerator as f32 / denominator as f32);
-            match amount {
-                Amount::RelativeRounded { .. } => raw += 0.5,
-                Amount::RelativeCeil { .. } => raw = raw.ceil(),
-                _ => {}
-            }
-            let raw = raw as u32;
-            match sign {
-                DeltaSign::Loss => raw.max(1) as u16,
-                DeltaSign::Gain => raw as u16,
-            }
-        }
-        _ => {
-            unreachable!("HealthDelta resolves only Absolute or Relative amounts")
-        }
-    };
+    let amount = resolve_health_fraction(state.entities[id_target].vitals.health_max, amount, sign);
 
     // Apply amount
     match sign {

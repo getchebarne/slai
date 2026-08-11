@@ -1,3 +1,4 @@
+pub mod process_effect_act_transition;
 pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
@@ -96,6 +97,7 @@ pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
+use self::process_effect_act_transition::process_effect_act_transition;
 use self::process_effect_adventurer_search::process_effect_adventurer_search;
 use self::process_effect_block_gain::process_effect_block_gain;
 use self::process_effect_block_set::process_effect_block_set;
@@ -490,6 +492,7 @@ fn dispatch_by_kind(
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
         EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(state),
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),
+        EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
         EffectKind::BonfireOffer => process_effect_bonfire_offer(id_target, state),
         EffectKind::CardBottle => process_effect_card_bottle(id_target, state),
@@ -749,6 +752,7 @@ fn ensure_mode_validity(state: &GameState) {
                 Some(
                     RoomKind::CombatMonster
                         | RoomKind::CombatElite
+                        | RoomKind::CombatBoss
                         | RoomKind::EventRoom
                         | RoomKind::Treasure
                         | RoomKind::RestSite

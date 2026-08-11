@@ -11,6 +11,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::events::BEGGAR_COST_PURGE;
 use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
@@ -250,8 +251,8 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
         .iter()
         .enumerate()
         .filter(|&(_, &name)| match name {
-            // The Cleric only spawns with gold for its cheapest option
             EventName::TheCleric => gold >= 35,
+            EventName::Beggar => gold >= BEGGAR_COST_PURGE,
             EventName::Mushrooms | EventName::DeadAdventurer => floor > 6,
             _ => true,
         })
