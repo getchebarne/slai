@@ -131,6 +131,7 @@ pub fn process_effect_damage_physical(
         state.effect_queue.push_front(Effect {
             kind: EffectKind::DamageDeal {
                 amount: stacks as u16,
+                lifesteal: false,
             },
             id_source: None,
             target: Target::Direct(Some(id_actor)),
@@ -139,17 +140,11 @@ pub fn process_effect_damage_physical(
 
     // Queue final damage effect
     if final_damage > 0 {
-        let kind = if lifesteal {
-            EffectKind::DamageDealLifesteal {
-                amount: final_damage,
-            }
-        } else {
-            EffectKind::DamageDeal {
-                amount: final_damage,
-            }
-        };
         state.effect_queue.push_front(Effect {
-            kind,
+            kind: EffectKind::DamageDeal {
+                amount: final_damage,
+                lifesteal,
+            },
             id_source: Some(id_source),
             target: Target::Direct(Some(id_target)),
         });

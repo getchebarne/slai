@@ -23,7 +23,10 @@ static MOVE_SCOURING_WHIP_A18: Move = make_move(
     "Scouring Whip",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
@@ -89,3 +92,5 @@ pub fn spawn_monster_taskmaster(ascension_level: u8, rng: &mut impl Rng) -> Enti
         moves,
     )
 }
+
+// Doesn't have an AI: always uses Scouring Whip

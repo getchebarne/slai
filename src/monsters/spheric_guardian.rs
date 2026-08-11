@@ -31,7 +31,10 @@ const fn make_move_harden(damage: u16) -> Move {
                 target: TARGET_SOURCE,
             },
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },

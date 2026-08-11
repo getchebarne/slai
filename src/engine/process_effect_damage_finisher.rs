@@ -22,7 +22,10 @@ pub fn process_effect_damage_finisher(
     let num_attacks = this_turn_attacks.saturating_sub(1);
     for _ in 0..num_attacks {
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source,
             target: Target::Direct(Some(id_target)),
         });

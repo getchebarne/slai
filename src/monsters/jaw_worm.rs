@@ -21,7 +21,10 @@ static MOVE_THRASH: Move = make_move(
     "Thrash",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },

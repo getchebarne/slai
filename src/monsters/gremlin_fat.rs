@@ -20,7 +20,10 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
     "Smash",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },

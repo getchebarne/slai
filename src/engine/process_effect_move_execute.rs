@@ -31,12 +31,19 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
 
     // Copy the Move out so effect_buf/queue mutations below don't hold `entities` borrowed
     let move_current = state.entities[id_monster].monster_moves[move_idx];
+    let damage_override = state.entities[id_monster].monster_move_damage_override;
     state.effect_buf.clear();
     for effect in move_current.effects[..move_current.effects_len as usize].iter() {
-        state.effect_buf.push(Effect {
+        let mut effect = Effect {
             id_source: Some(id_monster),
             ..*effect
-        });
+        };
+        if let Some(damage) = damage_override
+            && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
+        {
+            *amount = damage;
+        }
+        state.effect_buf.push(effect);
         if let Some(amount) = stacks_thievery
             && matches!(effect.kind, EffectKind::DamagePhysical { .. })
         {

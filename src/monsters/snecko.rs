@@ -21,7 +21,10 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
     "Tail Whip",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 10 },
+            kind: EffectKind::DamagePhysical {
+                amount: 10,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },

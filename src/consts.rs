@@ -3,14 +3,12 @@ pub const MAX_MOVE_HISTORY: usize = 64;
 // Per-Card effect array cap; bump if any Card legitimately exceeds 8
 pub const MAX_EFFECTS_PER_CARD: usize = 8;
 
-// Per-move effect array cap; Hexaghost's Inferno is the 7-effect maximum
-pub const MAX_EFFECTS_PER_MOVE: usize = 7;
+// Per-move effect array cap; sized for Book of Stabbing's Multi-Stab growth
+pub const MAX_EFFECTS_PER_MOVE: usize = 20;
 
 // Per-event-option effect array cap; Mushrooms' Stomp is the 5-effect maximum
 pub const MAX_EFFECTS_PER_EVENT_OPTION: usize = 5;
 
-// Per-monster move array cap; Hexaghost and The Guardian have 7
-pub const MAX_MOVES_PER_MONSTER: usize = 7;
 pub const STARTING_GOLD: u16 = 99;
 pub const MAX_GOLD: u16 = 9999;
 pub const GOLD_MONSTER_MIN: u16 = 10;
@@ -103,11 +101,11 @@ pub const RELIC_TIER_TH_COMMON: u8 = 50;
 pub const RELIC_TIER_TH_UNCOMMON: u8 = 83;
 
 // Encounter sequence sizes
-pub const NUM_ENCOUNTERS_WEAK: usize = 3;
-pub const NUM_ENCOUNTERS_WEAK_ACT2: usize = 2;
-pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_WEAK;
+pub const NUM_ENCOUNTERS_EASY: usize = 3;
+pub const NUM_ENCOUNTERS_EASY_ACT2: usize = 2;
+pub const NUM_ENCOUNTERS_HARD: usize = MAP_HEIGHT - NUM_ENCOUNTERS_EASY;
 pub const NUM_ENCOUNTERS_ELITE: usize = 10;
-pub const ENCOUNTER_POOL_CAPACITY_NORMAL: usize = NUM_ENCOUNTERS_WEAK + 1 + NUM_ENCOUNTERS_HARD;
+pub const ENCOUNTER_POOL_CAPACITY_NORMAL: usize = NUM_ENCOUNTERS_EASY + 1 + NUM_ENCOUNTERS_HARD;
 pub const ENCOUNTER_POOL_CAPACITY_ELITE: usize = NUM_ENCOUNTERS_ELITE;
 
 // Potions

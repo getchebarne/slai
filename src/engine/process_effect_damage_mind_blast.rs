@@ -18,6 +18,7 @@ pub fn process_effect_damage_mind_blast(
     state.effect_queue.push_front(Effect {
         kind: EffectKind::DamagePhysical {
             amount: id_pile_draw.len() as u16,
+            lifesteal: false,
         },
         id_source,
         target: Target::Direct(Some(id_target)),

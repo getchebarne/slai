@@ -165,7 +165,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     {
         for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::DamageDeal { amount: 5 },
+                kind: EffectKind::DamageDeal {
+                    amount: 5,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
             });
@@ -316,7 +319,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             };
 
             // Add Wrist Blade bonus
-            if wrist_blade_bonus && let EffectKind::DamagePhysical { amount } = &mut effect.kind {
+            if wrist_blade_bonus && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
+            {
                 *amount += 4;
             }
 
@@ -381,6 +385,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.effect_buf.push(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: stacks as u16,
+                    lifesteal: false,
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
@@ -398,6 +403,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks.max(0) as u16,
+                        lifesteal: false,
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
@@ -415,6 +421,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks as u16,
+                        lifesteal: false,
                     },
                     id_source: Some(id_monster),
                     target: Target::Direct(Some(id_character)),

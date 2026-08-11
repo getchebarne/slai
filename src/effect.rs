@@ -96,9 +96,7 @@ pub enum EffectKind {
     },
     DamageDeal {
         amount: u16,
-    },
-    DamageDealLifesteal {
-        amount: u16,
+        lifesteal: bool, // Life Suck
     },
     DamageFinisher {
         damage: u16,
@@ -106,12 +104,10 @@ pub enum EffectKind {
     DamageFlechettes {
         damage: u16,
     },
-    DamageLifesteal {
-        amount: u16,
-    },
     DamageMindBlast,
     DamagePhysical {
         amount: u16,
+        lifesteal: bool, // Life Suck
     },
     DamagePhysicalIfPoisoned {
         amount: u16,
@@ -181,6 +177,9 @@ pub enum EffectKind {
     MonsterEscape,
     MonsterSpawn {
         name: MonsterName,
+        minion: bool, // Gremlin Leader's summons
+        // Skip the spawn when `cap` of this name are already rostered (Torch Heads)
+        cap: Option<u8>,
     },
     MonsterSplit {
         name: MonsterName,
@@ -250,7 +249,6 @@ pub enum EffectKind {
     },
     TargetClear,
     TargetSet,
-    TorchHeadSpawn,
     TurnEnd,
     TurnStart,
     UnloadDiscard,

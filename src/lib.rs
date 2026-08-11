@@ -260,8 +260,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectDamageFlechettes;
     #[pymodule_export]
-    use super::ffi::PyEffectDamageLifesteal;
-    #[pymodule_export]
     use super::ffi::PyEffectDamageMindBlast;
     #[pymodule_export]
     use super::ffi::PyEffectDamagePhysical;

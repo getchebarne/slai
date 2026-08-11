@@ -67,6 +67,7 @@ pub fn process_effect_modifier_gain(
         return;
     }
 
+    // Apply the delta
     modifier_apply(modifiers, kind, stacks);
 
     // Shelled Parasite: stripping the last Plated Armor stack breaks the shell and stuns
@@ -95,6 +96,7 @@ pub fn process_effect_modifier_gain(
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: dmg.max(0) as u16,
+                    lifesteal: false,
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_target)),
