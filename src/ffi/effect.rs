@@ -31,7 +31,7 @@ mirror_enum!(PyKnowingSkullWish from KnowingSkullWish, "KnowingSkullWish", skip_
 
 // Mirrors only EffectKind variants reachable from static Card/monster defs; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
-    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, target: Option<PyTarget> },
+    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, lifesteal: bool, target: Option<PyTarget> },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: Option<PyTarget> },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { target: Option<PyTarget> },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: Option<PyTarget> },
@@ -92,7 +92,6 @@ flat_variants!(PyEffect {
     RelicLose => PyEffectRelicLose as "EffectRelicLose" { name: PyRelicName, target: Option<PyTarget> },
     RewardRollNeowCards => PyEffectRewardRollNeowCards as "EffectRewardRollNeowCards" { colorless: bool, rare_only: bool, target: Option<PyTarget> },
     StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: Option<PyTarget> },
-    DamageLifesteal => PyEffectDamageLifesteal as "EffectDamageLifesteal" { amount: u16, target: Option<PyTarget> },
     MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen" { target: Option<PyTarget> },
     KnowingSkullAsk => PyEffectKnowingSkullAsk as "EffectKnowingSkullAsk" { wish: PyKnowingSkullWish, target: Option<PyTarget> },
     JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool, target: Option<PyTarget> },
@@ -118,8 +117,12 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         ),
     };
     match effect.kind {
-        EffectKind::DamagePhysical { amount } => {
-            PyEffect::DamagePhysical(PyEffectDamagePhysical { amount, target })
+        EffectKind::DamagePhysical { amount, lifesteal } => {
+            PyEffect::DamagePhysical(PyEffectDamagePhysical {
+                amount,
+                lifesteal,
+                target,
+            })
         }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
             PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned { amount, target })
@@ -255,7 +258,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
         EffectKind::FaceTrade => PyEffect::FaceTrade(PyEffectFaceTrade { target }),
         EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle { target }),
-        EffectKind::MonsterSpawn { name } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
+        EffectKind::MonsterSpawn { name, .. } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
             name: name.into(),
             target,
         }),
@@ -384,9 +387,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }),
         EffectKind::StrengthLoseTemp { stacks } => {
             PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp { stacks, target })
-        }
-        EffectKind::DamageLifesteal { amount } => {
-            PyEffect::DamageLifesteal(PyEffectDamageLifesteal { amount, target })
         }
         EffectKind::MausoleumOpen => PyEffect::MausoleumOpen(PyEffectMausoleumOpen { target }),
         EffectKind::KnowingSkullAsk { wish } => {

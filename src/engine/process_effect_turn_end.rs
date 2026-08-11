@@ -122,16 +122,15 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Clear per-turn Card cost overrides; only cards in the combat piles can carry
-    // one, so the walk stays off the (act-growing) entity arena
-    for id in id_hand
+    // Clear per-turn Card cost overrides
+    for id_card in id_hand
         .iter()
         .chain(id_pile_draw.iter())
         .chain(id_pile_discard.iter())
         .chain(id_pile_exhaust.iter())
         .chain(id_stasis_cards.iter().flatten())
     {
-        let entity = &mut state.entities[*id];
+        let entity = &mut state.entities[*id_card];
         if matches!(
             entity.card_cost_override,
             Some(CostOverride {
@@ -189,7 +188,10 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         if *counter == 7 {
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 52 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 52,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
                 });
@@ -309,14 +311,20 @@ fn process_effect_turn_end_character(state: &mut GameState) {
             CardName::Burn => {
                 let dmg_burn: u16 = if card.card_upgraded { 4 } else { 2 };
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: dmg_burn },
+                    kind: EffectKind::DamageDeal {
+                        amount: dmg_burn,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
                 });
             }
             CardName::Decay => {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 2 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 2,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
                 });
@@ -445,6 +453,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks.max(0) as u16,
+                        lifesteal: false,
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),

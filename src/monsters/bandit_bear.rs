@@ -22,7 +22,10 @@ const fn make_move_lunge(damage: u16) -> Move {
         "Lunge",
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },

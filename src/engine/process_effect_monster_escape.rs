@@ -23,6 +23,7 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
     state.entities[id_target].dead = true;
     if let Some(slot) = id_monsters.iter().position(|s| *s == Some(id_target)) {
         id_monsters[slot] = None;
+
         // An escaping Stasis holder relinquishes its hostage (unreachable today)
         release_stasis_card(slot, id_stasis_cards, id_hand, id_pile_discard);
     }

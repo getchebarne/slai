@@ -12,6 +12,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::EventLoot;
 use crate::effect::Target;
+use crate::events::BEGGAR_COST_PURGE;
 use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
@@ -251,10 +252,9 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
         .iter()
         .enumerate()
         .filter(|&(_, &name)| match name {
-            // The Cleric only spawns with gold for its cheapest option
             EventName::TheCleric => gold >= 35,
             // The Beggar only spawns with the gold to pay it
-            EventName::Beggar => gold >= 75,
+            EventName::Beggar => gold >= BEGGAR_COST_PURGE,
             // The Colosseum waits for the map's upper half
             EventName::Colosseum => floor > 8,
             EventName::Mushrooms | EventName::DeadAdventurer => floor > 6,

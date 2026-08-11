@@ -42,7 +42,6 @@ static MOVE_SUPPORT_BEAM: Move = make_move(
     }],
     Intent::Block,
 );
-
 static MOVE_BEAM: Move = make_move_attack("Beam", 8, 1);
 
 static MOVES: [Move; 3] = [MOVE_STASIS, MOVE_BEAM, MOVE_SUPPORT_BEAM];

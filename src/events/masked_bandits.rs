@@ -12,7 +12,11 @@ use crate::types::RelicName;
 
 const fn spawn(name: MonsterName) -> Effect {
     Effect {
-        kind: EffectKind::MonsterSpawn { name },
+        kind: EffectKind::MonsterSpawn {
+            name,
+            minion: false,
+            cap: None,
+        },
         id_source: None,
         target: Target::Direct(None),
     }

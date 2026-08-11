@@ -204,6 +204,8 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     | Intent::Unknown => (None, None),
                 };
 
+                // Divider-style locked damage replaces the template before scaling
+                let base_damage = base_damage.map(|d| m.monster_move_damage_override.unwrap_or(d));
                 let damage = base_damage.map(|d| {
                     let str_stacks = if has_modifier(&m.modifiers, ModifierKind::Strength) {
                         modifier_stacks(&m.modifiers, ModifierKind::Strength)

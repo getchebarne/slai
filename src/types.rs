@@ -29,8 +29,7 @@ pub enum Mode {
         id_pile_discard: Vec<usize>,
         id_pile_exhaust: Vec<usize>,
         id_monsters: [Option<usize>; MAX_MONSTERS],
-        // Slot-parallel to id_monsters: the Stasis hostage held by the monster in that slot
-        id_stasis_cards: [Option<usize>; MAX_MONSTERS],
+        id_stasis_cards: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
         id_picked_monster: Option<usize>,
         id_card_last_drawn: Option<usize>,
         id_card_nightmare: Option<usize>,
@@ -61,8 +60,7 @@ pub enum Mode {
         reward_id_relics: Vec<usize>,
         reward_id_potions: Vec<usize>,
         reward_gold: Option<u16>,
-        // Pick-one-of-N relic offer (boss relics): taking one drops the rest
-        reward_relics_exclusive: bool,
+        reward_relics_exclusive: bool, // Wether taking a Relic clears the rest (Boss rewards)
     },
     Event {
         kind: EventKind,

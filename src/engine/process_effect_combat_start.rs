@@ -149,7 +149,7 @@ pub fn process_effect_combat_start(state: &mut GameState, loot: EventLoot) {
         });
     }
 
-    // Combat-start Relic effects, in acquisition order as in the source
+    // Combat-start Relic effects, in acquisition order
     let mut id_owned: Vec<usize> = iter_owned_relics(&state.id_relics)
         .map(|(_, id)| id)
         .collect();

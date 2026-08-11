@@ -259,7 +259,6 @@ EffectCombatEnd = _rs.EffectCombatEnd
 EffectRelicLose = _rs.EffectRelicLose
 EffectRewardRollNeowCards = _rs.EffectRewardRollNeowCards
 EffectStrengthLoseTemp = _rs.EffectStrengthLoseTemp
-EffectDamageLifesteal = _rs.EffectDamageLifesteal
 EffectMausoleumOpen = _rs.EffectMausoleumOpen
 EffectKnowingSkullAsk = _rs.EffectKnowingSkullAsk
 EffectJoustBet = _rs.EffectJoustBet
@@ -328,7 +327,6 @@ Effect = (
     | EffectRelicLose
     | EffectRewardRollNeowCards
     | EffectStrengthLoseTemp
-    | EffectDamageLifesteal
     | EffectMausoleumOpen
     | EffectKnowingSkullAsk
     | EffectJoustBet
@@ -648,7 +646,6 @@ __all__ = [
     "EffectRelicLose",
     "EffectRewardRollNeowCards",
     "EffectStrengthLoseTemp",
-    "EffectDamageLifesteal",
     "EffectMausoleumOpen",
     "EffectKnowingSkullAsk",
     "EffectJoustBet",

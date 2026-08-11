@@ -23,7 +23,10 @@ pub fn process_effect_damage_flechettes(
         .count();
     for _ in 0..num_skills_in_hand {
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source,
             target: Target::Direct(Some(id_target)),
         });

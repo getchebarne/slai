@@ -65,6 +65,8 @@ pub use the_joust::JOUST_PAYOUT_MURDERER;
 pub use the_joust::JOUST_PAYOUT_OWNER;
 pub use the_joust::JOUST_STAKE;
 
+pub use beggar::BEGGAR_COST_PURGE;
+
 pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     kind: EffectKind::EventConsume,
     id_source: None,
@@ -386,7 +388,7 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     }
     for effect in entity.card_effects[..entity.card_effects_len as usize].iter() {
         let amount = match effect.kind {
-            EffectKind::DamagePhysical { amount } => amount,
+            EffectKind::DamagePhysical { amount, .. } => amount,
             EffectKind::DamagePhysicalIfPoisoned { amount } => amount,
             _ => 0,
         };
@@ -442,7 +444,7 @@ pub const POOL_EVENT_ACT2: &[EventName] = &[
     EventName::Vampires,
 ];
 
-// Per-act shrines: dropped from the special pool and re-added fresh each act
+// Per-act shrines: dropped from the special pool and re-added fresh each Act
 pub const POOL_EVENT_SHRINES: &[EventName] = &[
     EventName::GoldenShrine,
     EventName::GremlinMatchGame,
@@ -460,21 +462,21 @@ pub const POOL_EVENT_ACT2_SPECIAL: &[EventName] = &[
     EventName::TheJoust,
 ];
 
-// Every per-act shrine must sit in the act-1 special pool: the act transition's
+// Every per-act shrine must sit in the Act-1 special pool: the Act transition's
 // retain-then-re-add link depends on it
 const _: () = {
-    let mut i = 0;
-    while i < POOL_EVENT_SHRINES.len() {
+    let mut idx = 0;
+    while idx < POOL_EVENT_SHRINES.len() {
         let mut found = false;
-        let mut j = 0;
-        while j < POOL_EVENT_ACT1_SPECIAL.len() {
-            if POOL_EVENT_SHRINES[i] as u8 == POOL_EVENT_ACT1_SPECIAL[j] as u8 {
+        let mut jdx = 0;
+        while jdx < POOL_EVENT_ACT1_SPECIAL.len() {
+            if POOL_EVENT_SHRINES[idx] as u8 == POOL_EVENT_ACT1_SPECIAL[jdx] as u8 {
                 found = true;
             }
-            j += 1;
+            jdx += 1;
         }
         assert!(found, "shrine missing from POOL_EVENT_ACT1_SPECIAL");
-        i += 1;
+        idx += 1;
     }
 };
 

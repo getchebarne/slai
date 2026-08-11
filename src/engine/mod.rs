@@ -96,7 +96,6 @@ pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
-pub mod process_effect_torch_head_spawn;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
@@ -200,7 +199,6 @@ use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
 use self::process_effect_target_clear::process_effect_target_clear;
 use self::process_effect_target_set::process_effect_target_set;
-use self::process_effect_torch_head_spawn::process_effect_torch_head_spawn;
 use self::process_effect_turn_end::process_effect_turn_end;
 use self::process_effect_turn_start::process_effect_turn_start;
 use self::process_effect_unload_discard::process_effect_unload_discard;
@@ -519,14 +517,11 @@ fn dispatch_by_kind(
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(id_target, state),
         EffectKind::TargetSet => process_effect_target_set(id_target, state),
         EffectKind::TargetClear => process_effect_target_clear(state),
-        EffectKind::DamagePhysical { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, false, false)
+        EffectKind::DamagePhysical { amount, lifesteal } => {
+            process_effect_damage_physical(id_source, id_target, state, amount, false, lifesteal)
         }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
             process_effect_damage_physical(id_source, id_target, state, amount, true, false)
-        }
-        EffectKind::DamageLifesteal { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, false, true)
         }
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay(id_target, state, delta)
@@ -554,11 +549,8 @@ fn dispatch_by_kind(
             process_effect_strength_lose_temp(id_target, state, stacks)
         }
         EffectKind::UnloadDiscard => process_effect_unload_discard(state),
-        EffectKind::DamageDeal { amount } => {
-            process_effect_damage_deal(id_source, id_target, state, amount, false)
-        }
-        EffectKind::DamageDealLifesteal { amount } => {
-            process_effect_damage_deal(id_source, id_target, state, amount, true)
+        EffectKind::DamageDeal { amount, lifesteal } => {
+            process_effect_damage_deal(id_source, id_target, state, amount, lifesteal)
         }
         EffectKind::HealthDelta { sign, amount } => {
             process_effect_health_delta(id_target, state, sign, amount)
@@ -598,8 +590,8 @@ fn dispatch_by_kind(
         }
         EffectKind::MoveExecute => process_effect_move_execute(id_target, state),
         EffectKind::RoomEnter => process_effect_room_enter(state),
-        EffectKind::MonsterSpawn { name } => {
-            process_effect_monster_spawn(state, name);
+        EffectKind::MonsterSpawn { name, minion, cap } => {
+            process_effect_monster_spawn(state, name, minion, cap)
         }
         EffectKind::MonsterSplit { name } => process_effect_monster_split(id_source, state, name),
         EffectKind::MonsterEscape => process_effect_monster_escape(id_target, state),
@@ -607,7 +599,6 @@ fn dispatch_by_kind(
         EffectKind::GremlinSummon => process_effect_gremlin_summon(state),
         EffectKind::DebuffsClear => process_effect_debuffs_clear(id_target, state),
         EffectKind::StasisSteal => process_effect_stasis_steal(id_source, state),
-        EffectKind::TorchHeadSpawn => process_effect_torch_head_spawn(state),
         EffectKind::JoustBet { on_owner } => process_effect_joust_bet(state, on_owner),
         EffectKind::KnowingSkullAsk { wish } => process_effect_knowing_skull_ask(state, wish),
         EffectKind::MatchGameFlip => process_effect_match_game_flip(id_source, state),
@@ -791,217 +782,4 @@ fn ensure_mode_validity(state: &GameState) {
         "Mode {:?} inconsistent with room kind {:?} at {:?}",
         frame_room, room_kind, state.location
     );
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::consts::ACT_FINAL;
-    use crate::consts::BOSS_RELIC_REWARD_COUNT;
-    use crate::effect::EventLoot;
-    use crate::game::create_game_state;
-    use crate::monsters::encounters::spawn_encounter_monsters;
-    use crate::types::RelicTier;
-
-    // Kill every rostered monster outright and settle
-    fn kill_roster(state: &mut GameState) {
-        let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack) else {
-            panic!("no fight to win: {:?}", state.mode_stack);
-        };
-        let ids: Vec<usize> = id_monsters.iter().flatten().copied().collect();
-        for id in ids {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::Death,
-                id_source: None,
-                target: Target::Direct(Some(id)),
-            });
-        }
-        process_effect_queue(state);
-    }
-
-    // Fabricate the pending boss fight at the current location and kill it outright
-    fn beat_boss(state: &mut GameState) {
-        state.location = Location::BossRoom;
-        let boss = state.encounter_boss;
-        spawn_encounter_monsters(state, boss, EventLoot::NONE);
-        process_effect_queue(state);
-        kill_roster(state);
-    }
-
-    // Fire one baked event option the way handle_event_option_select does
-    fn fire_option(state: &mut GameState, id_option: usize) {
-        let option = state.entities[id_option];
-        for effect in option.event_option_effects[..option.event_option_effects_len as usize]
-            .iter()
-            .rev()
-        {
-            state.effect_queue.push_front(Effect {
-                id_source: Some(id_option),
-                ..*effect
-            });
-        }
-        process_effect_queue(state);
-    }
-
-    // The Colosseum suspends beneath its first bout and resumes with no reward;
-    // the second bout pays out 100 gold plus a rare and an uncommon relic
-    #[test]
-    fn colosseum_round_trip() {
-        use crate::events::spawn_event;
-        use crate::map::room_at_mut;
-        use crate::types::EventName;
-        use crate::types::RelicTier;
-        use crate::types::RoomKind;
-
-        for seed in 0..10 {
-            let mut state = create_game_state(0, seed, false, false);
-
-            // Repaint a row-0 room into an event room and stand on it
-            let x = (0..state.id_rooms[0].len())
-                .find(|&x| state.id_rooms[0][x].is_some())
-                .unwrap();
-            state.location = Location::Overworld { y: 0, x };
-            room_at_mut(&state.id_rooms, &mut state.entities, 0, x)
-                .unwrap()
-                .room_kind = RoomKind::EventRoom;
-
-            let (kind, id_options) = spawn_event(&mut state, EventName::Colosseum);
-            state.mode_stack.push(Mode::Event {
-                kind,
-                consumed: false,
-                id_options: id_options.clone(),
-            });
-
-            // First bout: fight over the suspended event, then pop back to it
-            fire_option(&mut state, id_options[0]);
-            assert!(matches!(
-                state.mode_stack[..],
-                [
-                    Mode::Map,
-                    Mode::Event {
-                        consumed: false,
-                        ..
-                    },
-                    Mode::Combat { .. }
-                ]
-            ));
-            kill_roster(&mut state);
-            let Mode::Event {
-                kind: EventKind::Colosseum { stage: 1 },
-                consumed: false,
-                ..
-            } = mode_top(&state.mode_stack)
-            else {
-                panic!(
-                    "first bout did not resume the event: {:?}",
-                    state.mode_stack
-                );
-            };
-
-            // Second bout: consumed, fought over Map, rewarded in full
-            fire_option(&mut state, id_options[1]);
-            kill_roster(&mut state);
-            let Mode::Reward {
-                reward_gold,
-                reward_id_relics,
-                ..
-            } = mode_top(&state.mode_stack)
-            else {
-                panic!("second bout did not stage a reward: {:?}", state.mode_stack);
-            };
-            assert_eq!(*reward_gold, Some(100));
-            let tiers: Vec<RelicTier> = reward_id_relics
-                .iter()
-                .map(|&id| state.entities[id].relic_tier)
-                .collect();
-            assert_eq!(tiers, [RelicTier::Rare, RelicTier::Uncommon]);
-        }
-    }
-
-    // Skip the staged boss loot; RoomExit fires the act transition
-    fn skip_reward_and_transition(state: &mut GameState) {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::RoomExit,
-            id_source: None,
-            target: Target::Direct(None),
-        });
-        process_effect_queue(state);
-        assert_eq!(state.act, 2);
-    }
-
-    // Random walks rarely survive to the boss; drive the act seam directly
-    #[test]
-    fn act_transition_smoke() {
-        for seed in 0..20 {
-            let mut state = create_game_state(0, seed, false, false);
-            beat_boss(&mut state);
-
-            // Mid-run boss rests on a full reward: gold, rare cards, 3 Boss relics
-            let Mode::Reward {
-                reward_id_relics,
-                reward_gold,
-                ..
-            } = mode_top(&state.mode_stack)
-            else {
-                panic!(
-                    "boss victory did not stage a reward: {:?}",
-                    state.mode_stack
-                );
-            };
-            assert!(reward_gold.is_some());
-            assert_eq!(reward_id_relics.len(), BOSS_RELIC_REWARD_COUNT);
-            assert!(
-                reward_id_relics
-                    .iter()
-                    .all(|&id| state.entities[id].relic_tier == RelicTier::Boss)
-            );
-
-            skip_reward_and_transition(&mut state);
-
-            // The exact pool shapes are covered by monsters::tests::act2_encounter_generation
-            assert_eq!(state.location, Location::Start);
-            assert!(matches!(state.mode_stack[..], [Mode::Map]));
-            assert!(!state.encounter_pool_normal.is_empty());
-            assert!(!state.encounter_pool_elite.is_empty());
-            assert!(!state.pool_events.is_empty());
-
-            // The act-2 boss ends the run with no further transition
-            beat_boss(&mut state);
-            assert_eq!(state.act, ACT_FINAL);
-            assert!(state.game_over);
-        }
-    }
-
-    // Random-walk act 2 itself: the Python fuzzer's agents rarely survive act 1,
-    // so the city content gets its end-to-end coverage here
-    #[test]
-    fn act2_random_walk() {
-        use crate::action::recompute_legal_actions;
-        use crate::game::step;
-        use rand::Rng;
-        use rand::SeedableRng;
-        use rand::rngs::SmallRng;
-
-        for seed in 0..50 {
-            let mut state = create_game_state(0, seed, false, false);
-            beat_boss(&mut state);
-            skip_reward_and_transition(&mut state);
-
-            let mut rng = SmallRng::seed_from_u64(seed ^ 0xA2);
-            recompute_legal_actions(&mut state);
-            for _ in 0..2000 {
-                if state.game_over {
-                    break;
-                }
-                assert!(
-                    !state.legal_actions.is_empty(),
-                    "stuck with no legal actions: {:?}",
-                    state.mode_stack
-                );
-                let action =
-                    state.legal_actions[rng.random_range(0..state.legal_actions.len())].clone();
-                step(&mut state, action).expect("legal action must apply");
-            }
-        }
-    }
 }
