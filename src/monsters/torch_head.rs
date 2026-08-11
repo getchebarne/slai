@@ -35,3 +35,5 @@ pub fn spawn_monster_torch_head(ascension_level: u8, rng: &mut impl Rng) -> Enti
         &MOVES,
     )
 }
+
+// Deterministic: always uses Tackle

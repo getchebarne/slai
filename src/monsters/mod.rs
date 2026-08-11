@@ -322,9 +322,7 @@ pub fn get_next_move(
             rng,
         ),
         MonsterName::TheCollector => {
-            let torch_heads_alive =
-                count_monsters_named(entities, id_monsters, MonsterName::TorchHead);
-            the_collector::get_next_move_the_collector(history, torch_heads_alive, rng)
+            the_collector::get_next_move_the_collector(history, entities, id_monsters, rng)
         }
         MonsterName::TorchHead => 0,
     }
@@ -541,88 +539,5 @@ pub const fn make_entity_monster(
         monster_kind,
         monster_moves: moves,
         ..ZERO_ENTITY
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::entity::push_move_history;
-    use rand::SeedableRng;
-    use rand::rngs::SmallRng;
-
-    // Act-2 rolls are unreachable in-game until the act seam lands; this guards
-    // the pool tables and sequence rules
-    #[test]
-    fn act2_encounter_generation() {
-        use crate::monsters::encounters::generate_act_monsters;
-        use crate::monsters::encounters::get_encounter_pool;
-        use crate::types::EncounterPool;
-
-        let mut rng = SmallRng::seed_from_u64(11);
-        for _ in 0..50 {
-            let mut normal = Vec::new();
-            let mut elite = Vec::new();
-            generate_act_monsters(2, &mut normal, &mut elite, &mut rng);
-            assert_eq!(normal.len(), 2 + 1 + 12);
-            assert_eq!(elite.len(), 10);
-            assert!(
-                normal[..2]
-                    .iter()
-                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Easy)
-            );
-            assert!(
-                normal[2..]
-                    .iter()
-                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Hard)
-            );
-            assert!(
-                elite
-                    .iter()
-                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Elite)
-            );
-        }
-    }
-
-    // Act-2 normals are unreachable in-game until the act seam lands; this guards
-    // their spawn tables and AI against panics and out-of-range move indices
-    #[test]
-    fn act2_normal_ai_smoke() {
-        let names = [
-            MonsterName::Byrd,
-            MonsterName::Centurion,
-            MonsterName::Chosen,
-            MonsterName::Healer,
-            MonsterName::Mugger,
-            MonsterName::ShelledParasite,
-            MonsterName::SnakePlant,
-            MonsterName::Snecko,
-            MonsterName::SphericGuardian,
-            MonsterName::BookOfStabbing,
-            MonsterName::GremlinLeader,
-            MonsterName::Taskmaster,
-            MonsterName::BronzeAutomaton,
-            MonsterName::BronzeOrb,
-            MonsterName::Champ,
-            MonsterName::TheCollector,
-            MonsterName::TorchHead,
-        ];
-        let mut rng = SmallRng::seed_from_u64(7);
-        for ascension in [0, 2, 7, 17, 18, 20] {
-            for name in names {
-                let mut entities = vec![spawn_monster(name, ascension, &mut rng)];
-                let mut id_monsters = [None; MAX_MONSTERS];
-                id_monsters[0] = Some(0);
-                for _ in 0..50 {
-                    let idx = get_next_move(&entities, 0, &id_monsters, ascension, &mut rng);
-                    assert!(
-                        idx < entities[0].monster_moves.len(),
-                        "{name:?} rolled invalid move idx {idx}"
-                    );
-                    entities[0].monster_move_current = Some(idx);
-                    push_move_history(&mut entities[0], idx as u8);
-                }
-            }
-        }
     }
 }

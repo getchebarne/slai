@@ -605,13 +605,13 @@ pub fn modifier_remove(mods: &mut Modifiers, kind: ModifierKind) {
 }
 
 pub fn modifier_tick(mods: &mut Modifiers) {
-    for kind in active_modifier_kinds(mods.active) {
-        let idx = kind as usize;
-        let mod_def = modifier_def(kind);
-        if mod_def.stacks_duration && !mods.is_new[idx] {
-            mods.stacks[idx] -= 1;
-            if mods.stacks[idx] < mod_def.stacks_min {
-                modifier_remove(mods, kind);
+    for mod_kind in active_modifier_kinds(mods.active) {
+        let mod_idx = mod_kind as usize;
+        let mod_def = modifier_def(mod_kind);
+        if mod_def.stacks_duration && !mods.is_new[mod_idx] {
+            mods.stacks[mod_idx] -= 1;
+            if mods.stacks[mod_idx] < mod_def.stacks_min {
+                modifier_remove(mods, mod_kind);
             }
         }
     }

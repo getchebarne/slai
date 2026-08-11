@@ -493,6 +493,7 @@ fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
         kind: EffectKind::MonsterSpawn {
             name,
             minion: false,
+            cap: None,
         },
         id_source: None,
         target: Target::Direct(None),

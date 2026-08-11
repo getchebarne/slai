@@ -8,6 +8,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_apply;
+use crate::monsters::count_monsters_named;
 use crate::monsters::spawn_monster;
 use crate::types::Energy;
 use crate::types::Mode;
@@ -18,7 +19,12 @@ use crate::utils::mode_top;
 use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
-pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName, minion: bool) {
+pub fn process_effect_monster_spawn(
+    state: &mut GameState,
+    name: MonsterName,
+    minion: bool,
+    cap: Option<u8>,
+) {
     // A monster spawning implies a combat: the first spawn of a fight constructs it
     if !matches!(mode_top(&state.mode_stack), Mode::Combat { .. }) {
         // Event fights replace the consumed Event frame; room fights push over Map
@@ -56,6 +62,13 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName, mi
     let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
         unreachable!("Constructed above")
     };
+
+    // Capped spawns top the roster up (Collector's Torch Heads): skip at the cap
+    if let Some(cap) = cap
+        && count_monsters_named(&state.entities, id_monsters, name) >= cap as usize
+    {
+        return;
+    }
 
     // A full roster fizzles the spawn (Collector revive, mid-combat summons)
     let Some(idx) = id_monsters.iter().position(|s| s.is_none()) else {

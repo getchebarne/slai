@@ -177,6 +177,8 @@ pub enum EffectKind {
     MonsterSpawn {
         name: MonsterName,
         minion: bool, // Gremlin Leader's summons
+        // Skip the spawn when `cap` of this name are already rostered (Torch Heads)
+        cap: Option<u8>,
     },
     MonsterSplit {
         name: MonsterName,
@@ -246,7 +248,6 @@ pub enum EffectKind {
     },
     TargetClear,
     TargetSet,
-    TorchHeadSpawn,
     TurnEnd,
     TurnStart,
     UnloadDiscard,

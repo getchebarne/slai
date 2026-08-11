@@ -91,7 +91,6 @@ pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
-pub mod process_effect_torch_head_spawn;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
@@ -190,7 +189,6 @@ use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
 use self::process_effect_target_clear::process_effect_target_clear;
 use self::process_effect_target_set::process_effect_target_set;
-use self::process_effect_torch_head_spawn::process_effect_torch_head_spawn;
 use self::process_effect_turn_end::process_effect_turn_end;
 use self::process_effect_turn_start::process_effect_turn_start;
 use self::process_effect_unload_discard::process_effect_unload_discard;
@@ -585,8 +583,8 @@ fn dispatch_by_kind(
         }
         EffectKind::MoveExecute => process_effect_move_execute(id_target, state),
         EffectKind::RoomEnter => process_effect_room_enter(state),
-        EffectKind::MonsterSpawn { name, minion } => {
-            process_effect_monster_spawn(state, name, minion)
+        EffectKind::MonsterSpawn { name, minion, cap } => {
+            process_effect_monster_spawn(state, name, minion, cap)
         }
         EffectKind::MonsterSplit { name } => process_effect_monster_split(id_source, state, name),
         EffectKind::MonsterEscape => process_effect_monster_escape(id_target, state),
@@ -594,7 +592,6 @@ fn dispatch_by_kind(
         EffectKind::GremlinSummon => process_effect_gremlin_summon(state),
         EffectKind::DebuffsClear => process_effect_debuffs_clear(id_target, state),
         EffectKind::StasisSteal => process_effect_stasis_steal(id_source, state),
-        EffectKind::TorchHeadSpawn => process_effect_torch_head_spawn(state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
         }
