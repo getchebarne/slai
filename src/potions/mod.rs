@@ -44,9 +44,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
-use crate::entity::ZERO_ENTITY;
 use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
@@ -227,6 +227,6 @@ pub const fn make_entity_potion(
         requires_target: requires_target,
         potion_combat_only: combat_only,
         potion_effects: effects,
-        ..ZERO_ENTITY
+        ..ENTITY_ZERO
     }
 }

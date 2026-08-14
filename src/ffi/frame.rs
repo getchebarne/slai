@@ -4,7 +4,8 @@ use pyo3::type_hint_union;
 use pyo3::type_object::PyTypeInfo;
 
 use crate::game::GameState;
-use crate::types::Mode;
+use crate::types::ChestKind;
+use crate::types::Frame;
 
 use super::card::PyCard;
 use super::card::snapshot_card;
@@ -13,6 +14,7 @@ use super::effect::snapshot_effect;
 use super::event::PyEventKind;
 use super::event::snapshot_event_kind;
 use super::macros::flat_variants;
+use super::macros::mirror_enum;
 use super::monster::PyMonster;
 use super::monster::snapshot_monsters;
 use super::potion::PyPotion;
@@ -20,16 +22,18 @@ use super::potion::snapshot_potion;
 use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
-flat_variants!(PyMode {
-    Map => PyModeMap as "ModeMap",
-    RestSite => PyModeRestSite as "ModeRestSite",
-    Chest => PyModeChest as "ModeChest",
-    ChestOpened => PyModeChestOpened as "ModeChestOpened",
-    CombatEnded => PyModeCombatEnded as "ModeCombatEnded",
-    Combat => PyModeCombat as "ModeCombat" { hand: Vec<PyCard>, pile_draw: Vec<PyCard>, pile_discard: Vec<PyCard>, pile_exhaust: Vec<PyCard>, pile_stasis: Vec<PyCard>, energy: PyEnergy, monsters: Vec<PyMonster>, discover: Vec<PyCard>, bomb_countdown: u8 },
-    Reward => PyModeReward as "ModeReward" { cards: Vec<Vec<PyCard>>, relics: Vec<PyRelic>, potions: Vec<PyPotion>, gold: Option<u16> },
-    Shop => PyModeShop as "ModeShop" { cards: Vec<PyCard>, card_prices: Vec<u16>, relics: Vec<PyRelic>, relic_prices: Vec<u16>, potions: Vec<PyPotion>, potion_prices: Vec<u16>, purge_cost: u16 },
-    Event => PyModeEvent as "ModeEvent" { kind: PyEventKind, options: Vec<Vec<PyEffect>>, consumed: bool },
+mirror_enum!(PyChestKind from ChestKind, "ChestKind", skip_from_py_object, {
+    Small, Medium, Large,
+});
+
+flat_variants!(PyFrame {
+    Map => PyFrameMap as "FrameMap",
+    RestSite => PyFrameRestSite as "FrameRestSite" { done: bool },
+    Chest => PyFrameChest as "FrameChest" { kind: PyChestKind, opened: bool },
+    Combat => PyFrameCombat as "FrameCombat" { hand: Vec<PyCard>, pile_draw: Vec<PyCard>, pile_discard: Vec<PyCard>, pile_exhaust: Vec<PyCard>, pile_stasis: Vec<PyCard>, energy: PyEnergy, monsters: Vec<PyMonster>, discover: Vec<PyCard>, bomb_countdown: u8 },
+    Reward => PyFrameReward as "FrameReward" { cards: Vec<Vec<PyCard>>, relics: Vec<PyRelic>, potions: Vec<PyPotion>, gold: Option<u16> },
+    Shop => PyFrameShop as "FrameShop" { cards: Vec<PyCard>, card_prices: Vec<u16>, relics: Vec<PyRelic>, relic_prices: Vec<u16>, potions: Vec<PyPotion>, potion_prices: Vec<u16>, purge_cost: u16, purged: bool },
+    Event => PyFrameEvent as "FrameEvent" { kind: PyEventKind, options: Vec<Vec<PyEffect>>, consumed: bool },
 });
 
 #[pyclass(
@@ -47,14 +51,18 @@ pub struct PyEnergy {
     pub energy_max: u8,
 }
 
-pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {
-    match mode {
-        Mode::Map => PyMode::Map(PyModeMap),
-        Mode::RestSite => PyMode::RestSite(PyModeRestSite),
-        Mode::Chest => PyMode::Chest(PyModeChest),
-        Mode::ChestOpened => PyMode::ChestOpened(PyModeChestOpened),
-        Mode::CombatEnded => PyMode::CombatEnded(PyModeCombatEnded),
-        Mode::Combat {
+pub(crate) fn snapshot_frame(state: &GameState, frame: &Frame) -> PyFrame {
+    match frame {
+        Frame::Map => PyFrame::Map(PyFrameMap),
+        Frame::RestSite { consumed } => PyFrame::RestSite(PyFrameRestSite { done: *consumed }),
+        Frame::Chest {
+            chest_kind,
+            chest_opened,
+        } => PyFrame::Chest(PyFrameChest {
+            kind: (*chest_kind).into(),
+            opened: *chest_opened,
+        }),
+        Frame::Combat {
             id_hand,
             id_pile_draw,
             id_pile_discard,
@@ -64,7 +72,7 @@ pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {
             id_discover,
             bomb_countdown,
             ..
-        } => PyMode::Combat(PyModeCombat {
+        } => PyFrame::Combat(PyFrameCombat {
             hand: id_hand.iter().map(|&id| snapshot_card(state, id)).collect(),
             pile_draw: id_pile_draw
                 .iter()
@@ -94,64 +102,57 @@ pub(crate) fn snapshot_mode(state: &GameState, mode: &Mode) -> PyMode {
                 .collect(),
             bomb_countdown: *bomb_countdown,
         }),
-        Mode::Reward {
-            reward_id_cards,
-            reward_id_relics,
-            reward_id_potions,
-            reward_gold,
+        Frame::Reward {
+            id_cards,
+            id_relics,
+            id_potions,
+            gold,
             ..
-        } => PyMode::Reward(PyModeReward {
-            cards: reward_id_cards
+        } => PyFrame::Reward(PyFrameReward {
+            cards: id_cards
                 .iter()
                 .map(|bundle| bundle.iter().map(|&id| snapshot_card(state, id)).collect())
                 .collect(),
-            relics: reward_id_relics
+            relics: id_relics
                 .iter()
                 .map(|&id| snapshot_relic(&state.entities[id]))
                 .collect(),
-            potions: reward_id_potions
+            potions: id_potions
                 .iter()
                 .map(|&id| snapshot_potion(&state.entities[id]))
                 .collect(),
-            gold: *reward_gold,
+            gold: *gold,
         }),
-        Mode::Shop {
-            shop_id_cards,
-            shop_id_relics,
-            shop_id_potions,
-            shop_purge_cost,
-        } => PyMode::Shop(PyModeShop {
-            cards: shop_id_cards
+        Frame::Shop {
+            cards,
+            relics,
+            potions,
+            purge_cost,
+            purged,
+        } => PyFrame::Shop(PyFrameShop {
+            cards: cards
                 .iter()
-                .map(|&id| snapshot_card(state, id))
+                .map(|&(id, _)| snapshot_card(state, id))
                 .collect(),
-            card_prices: shop_id_cards
+            card_prices: cards.iter().map(|&(_, price)| price).collect(),
+            relics: relics
                 .iter()
-                .map(|&id| state.entities[id].price)
+                .map(|&(id, _)| snapshot_relic(&state.entities[id]))
                 .collect(),
-            relics: shop_id_relics
+            relic_prices: relics.iter().map(|&(_, price)| price).collect(),
+            potions: potions
                 .iter()
-                .map(|&id| snapshot_relic(&state.entities[id]))
+                .map(|&(id, _)| snapshot_potion(&state.entities[id]))
                 .collect(),
-            relic_prices: shop_id_relics
-                .iter()
-                .map(|&id| state.entities[id].price)
-                .collect(),
-            potions: shop_id_potions
-                .iter()
-                .map(|&id| snapshot_potion(&state.entities[id]))
-                .collect(),
-            potion_prices: shop_id_potions
-                .iter()
-                .map(|&id| state.entities[id].price)
-                .collect(),
-            purge_cost: *shop_purge_cost,
+            potion_prices: potions.iter().map(|&(_, price)| price).collect(),
+            purge_cost: *purge_cost,
+            purged: *purged,
         }),
-        Mode::Event {
+        Frame::Event {
             kind,
             consumed,
             id_options,
-        } => PyMode::Event(PyModeEvent {
+        } => PyFrame::Event(PyFrameEvent {
             kind: snapshot_event_kind(state, *kind),
             options: id_options
                 .iter()

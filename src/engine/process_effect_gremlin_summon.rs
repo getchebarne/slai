@@ -3,12 +3,12 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::monsters::pick_gremlin;
-use crate::types::Mode;
-use crate::utils::mode_top;
+use crate::types::Frame;
+use crate::utils::frame_top;
 
 pub fn process_effect_gremlin_summon(state: &mut GameState) {
     // A full roster fizzles the summon before the pool roll
-    if let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack)
+    if let Frame::Combat { id_monsters, .. } = frame_top(&state.frame_stack)
         && id_monsters.iter().all(|s| s.is_some())
     {
         return;

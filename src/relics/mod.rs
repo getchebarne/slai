@@ -142,9 +142,9 @@ mod wrist_blade;
 use strum::EnumCount;
 
 use crate::effect::Effect;
+use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
-use crate::entity::ZERO_ENTITY;
 use crate::types::CardKind;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -443,6 +443,6 @@ pub const fn make_entity_relic(
         relic_counter: counter_init,
         relic_used_up: false,
         relic_effects_on_combat_start: effects_on_combat_start,
-        ..ZERO_ENTITY
+        ..ENTITY_ZERO
     }
 }

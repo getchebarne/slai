@@ -41,7 +41,7 @@ pub enum EffectKind {
         upgraded: bool,
         rarity: Option<CardRarity>,
     },
-    CardAddToDeck,
+    CardAdopt,
     CardBottle,
     CardDiscard {
         source: DiscardSource,
@@ -89,9 +89,7 @@ pub enum EffectKind {
     CombatEnd {
         escaped_character: bool,
     },
-    CombatStart {
-        loot: EventLoot,
-    },
+    CombatStart,
     DamageDeal {
         amount: u16,
         lifesteal: bool, // Life Suck
@@ -161,7 +159,6 @@ pub enum EffectKind {
     KnowingSkullAsk {
         wish: KnowingSkullWish,
     },
-    MatchGameFlip,
     MausoleumOpen,
     MaxHealthDelta {
         sign: DeltaSign,
@@ -270,14 +267,12 @@ pub struct EventLoot {
     pub relic_tiers: [Option<RelicTier>; 2],
 }
 
-impl EventLoot {
-    pub const NONE: EventLoot = EventLoot {
-        gold: None,
-        relic: None,
-        relic_roll: false,
-        relic_tiers: [None, None],
-    };
-}
+pub const EVENT_LOOT_ZERO: EventLoot = EventLoot {
+    gold: None,
+    relic: None,
+    relic_roll: false,
+    relic_tiers: [None, None],
+};
 
 // Knowing Skull's escalating asks
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -408,7 +403,7 @@ pub struct Effect {
 }
 
 // Filler for slots past `card_effects_len` in Entity.card_effects
-pub const ZERO_EFFECT: Effect = Effect {
+pub const EFFECT_ZERO: Effect = Effect {
     kind: EffectKind::NoOp,
     id_source: None,
     target: Target::Direct(None),

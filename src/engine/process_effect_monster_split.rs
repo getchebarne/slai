@@ -3,9 +3,9 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::monsters::spawn_monster;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::MonsterName;
-use crate::utils::mode_top_mut;
+use crate::utils::frame_top_mut;
 use crate::utils::push_entity;
 
 pub fn process_effect_monster_split(
@@ -13,8 +13,8 @@ pub fn process_effect_monster_split(
     state: &mut GameState,
     name: MonsterName,
 ) {
-    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("process_effect_monster_split outside Combat mode")
+    let Frame::Combat { id_monsters, .. } = frame_top_mut(&mut state.frame_stack) else {
+        unreachable!("process_effect_monster_split outside the Combat frame")
     };
     let id_source = id_source.expect("MonsterSplit requires id_source");
 

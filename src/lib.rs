@@ -206,6 +206,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyCardPile;
     #[pymodule_export]
+    use super::ffi::PyChestKind;
+    #[pymodule_export]
     use super::ffi::PyCostScope;
     #[pymodule_export]
     use super::ffi::PyEffectAdventurerSearch;
@@ -294,8 +296,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectKnowingSkullAsk;
     #[pymodule_export]
-    use super::ffi::PyEffectMatchGameFlip;
-    #[pymodule_export]
     use super::ffi::PyEffectMausoleumOpen;
     #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;
@@ -366,8 +366,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindGoldenShrine;
     #[pymodule_export]
-    use super::ffi::PyEventKindGremlinMatchGame;
-    #[pymodule_export]
     use super::ffi::PyEventKindKnowingSkull;
     #[pymodule_export]
     use super::ffi::PyEventKindLivingWall;
@@ -416,25 +414,21 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindWorldOfGoop;
     #[pymodule_export]
+    use super::ffi::PyFrameChest;
+    #[pymodule_export]
+    use super::ffi::PyFrameCombat;
+    #[pymodule_export]
+    use super::ffi::PyFrameEvent;
+    #[pymodule_export]
+    use super::ffi::PyFrameMap;
+    #[pymodule_export]
+    use super::ffi::PyFrameRestSite;
+    #[pymodule_export]
+    use super::ffi::PyFrameReward;
+    #[pymodule_export]
+    use super::ffi::PyFrameShop;
+    #[pymodule_export]
     use super::ffi::PyKnowingSkullWish;
-    #[pymodule_export]
-    use super::ffi::PyModeChest;
-    #[pymodule_export]
-    use super::ffi::PyModeChestOpened;
-    #[pymodule_export]
-    use super::ffi::PyModeCombat;
-    #[pymodule_export]
-    use super::ffi::PyModeCombatEnded;
-    #[pymodule_export]
-    use super::ffi::PyModeEvent;
-    #[pymodule_export]
-    use super::ffi::PyModeMap;
-    #[pymodule_export]
-    use super::ffi::PyModeRestSite;
-    #[pymodule_export]
-    use super::ffi::PyModeReward;
-    #[pymodule_export]
-    use super::ffi::PyModeShop;
     #[pymodule_export]
     use super::ffi::PySelectionKindAll;
     #[pymodule_export]

@@ -16,11 +16,11 @@ use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 
 // The character's turn end tears down the turn; monsters unwind their per-turn kit
 pub fn process_effect_turn_end(id_target: Option<usize>, state: &mut GameState) {
@@ -98,7 +98,7 @@ fn process_effect_turn_end_monster(id_actor: usize, state: &mut GameState) {
 }
 
 fn process_effect_turn_end_character(state: &mut GameState) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_hand,
         id_pile_draw,
         id_pile_discard,
@@ -111,9 +111,9 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         this_turn_panache,
         bomb_countdown,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_turn_end_character outside Combat mode")
+        unreachable!("process_effect_turn_end_character outside the Combat frame")
     };
     // Reset per-turn Relic counters
     for &name in RELIC_COUNTERS_PER_TURN {

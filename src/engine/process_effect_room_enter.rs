@@ -10,19 +10,17 @@ use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::EventLoot;
 use crate::effect::Target;
 use crate::events::BEGGAR_COST_PURGE;
 use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
-use crate::map::room_at_mut;
 use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::candidate_matches;
@@ -66,7 +64,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::CombatBoss => {
             // Spawn boss
             let encounter = state.encounter_boss;
-            spawn_encounter_monsters(state, encounter, EventLoot::NONE);
+            spawn_encounter_monsters(state, encounter);
 
             // Pantograph: boss fights open with a 25 HP heal
             if has_relic(&state.id_relics, RelicName::Pantograph) {
@@ -83,15 +81,15 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::CombatMonster => {
             // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_normal.remove(0);
-            spawn_encounter_monsters(state, encounter, EventLoot::NONE);
+            spawn_encounter_monsters(state, encounter);
         }
         RoomKind::CombatElite => {
             // Pop an encounter and spawn its monsters
             let encounter = state.encounter_pool_elite.remove(0);
-            spawn_encounter_monsters(state, encounter, EventLoot::NONE);
+            spawn_encounter_monsters(state, encounter);
         }
         RoomKind::RestSite => {
-            state.mode_stack.push(Mode::RestSite);
+            state.frame_stack.push(Frame::RestSite { consumed: false });
 
             // Eternal Feather: 3 HP per 5 deck Cards on arrival
             if has_relic(&state.id_relics, RelicName::EternalFeather) {
@@ -112,34 +110,29 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             }
         }
         RoomKind::Treasure => {
-            state.mode_stack.push(Mode::Chest);
-
-            let Location::Overworld { y, x } = state.location else {
-                unreachable!("RoomEnter on Treasure outside Overworld");
-            };
-            let room = room_at_mut(&state.id_rooms, &mut state.entities, y, x)
-                .expect("Treasure room missing");
-
-            // Roll chest kind and set it in the `Entity`
+            // Roll the chest kind into the frame
             let roll = state.rng.random_range(0..100) as u8;
-            room.room_chest_kind = Some(if roll < CHEST_SMALL_PCT {
-                ChestKind::Small
-            } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
-                ChestKind::Medium
-            } else {
-                ChestKind::Large
+            state.frame_stack.push(Frame::Chest {
+                chest_kind: if roll < CHEST_SMALL_PCT {
+                    ChestKind::Small
+                } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
+                    ChestKind::Medium
+                } else {
+                    ChestKind::Large
+                },
+                chest_opened: false,
             });
         }
         RoomKind::EventRoom => {
             let name = draw_random_event(state).expect("Event room with no drawable event");
             let (kind, id_options) = spawn_event(state, name);
-            state.mode_stack.push(Mode::Event {
+            state.frame_stack.push(Frame::Event {
                 kind,
                 consumed: false,
                 id_options,
             });
         }
-        // ShopBuild constructs Mode::Shop; until it runs the mode stays Map
+        // ShopBuild constructs Frame::Shop; until it runs the frame stays Map
         RoomKind::Shop => {
             // Meal Ticket: Heal 15 on shop enter
             if has_relic(&state.id_relics, RelicName::MealTicket) {
@@ -253,9 +246,7 @@ fn draw_event(state: &mut GameState) -> Option<EventName> {
         .enumerate()
         .filter(|&(_, &name)| match name {
             EventName::TheCleric => gold >= 35,
-            // The Beggar only spawns with the gold to pay it
             EventName::Beggar => gold >= BEGGAR_COST_PURGE,
-            // The Colosseum waits for the map's upper half
             EventName::Colosseum => floor > 8,
             EventName::Mushrooms | EventName::DeadAdventurer => floor > 6,
             _ => true,
@@ -298,7 +289,6 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
             EventName::TheWomanInBlue => gold >= 50,
             EventName::TheJoust => gold >= 50,
             EventName::Designer => gold >= 75,
-            // The skull only talks to the living-enough
             EventName::KnowingSkull => state.entities[state.id_character].vitals.health > 12,
             _ => true,
         })

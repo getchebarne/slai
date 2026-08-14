@@ -25,23 +25,23 @@ const SPAWN_FUNGI: Effect = Effect {
 
 // Stomp: fight 3 Fungi Beasts — the reward roll gives gold and an Odd Mushroom
 const OPTION_STOMP: &[Effect] = &[
-    EVENT_CONSUME_EFFECT,
     SPAWN_FUNGI,
     SPAWN_FUNGI,
     SPAWN_FUNGI,
     Effect {
-        kind: EffectKind::CombatStart {
-            loot: EventLoot {
-                gold: Some(Amount::Range { min: 20, max: 30 }),
-                relic: Some(RelicName::OddMushroom),
-                relic_roll: false,
-                relic_tiers: [None, None],
-            },
-        },
+        kind: EffectKind::CombatStart,
         id_source: None,
         target: Target::Direct(None),
     },
 ];
+
+// Staked on the Stomp fight; paid out by `fight_loot` when the combat ends
+pub const FIGHT_LOOT: EventLoot = EventLoot {
+    gold: Some(Amount::Range { min: 20, max: 30 }),
+    relic: Some(RelicName::OddMushroom),
+    relic_roll: false,
+    relic_tiers: [None, None],
+};
 
 // Eat: heal 25% max HP and become Cursed w/ Parasite
 const OPTION_EAT: &[Effect] = &[

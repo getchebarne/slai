@@ -5,19 +5,19 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 
 // Upgrade existing Burns in the draw and discard piles, then add `count`
 // upgraded Burns to the discard pile
 pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_pile_draw,
         id_pile_discard,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_hexaghost_burn_increase outside Combat mode")
+        unreachable!("process_effect_hexaghost_burn_increase outside the Combat frame")
     };
     let burn_upgraded = get_card(CardName::Burn, true);
     for i in 0..id_pile_draw.len() {

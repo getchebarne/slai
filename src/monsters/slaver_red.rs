@@ -1,8 +1,8 @@
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move_attack;
 use crate::monsters::make_move_attack_debuff;
@@ -59,7 +59,7 @@ pub fn spawn_monster_slaver_red(ascension_level: u8, rng: &mut impl Rng) -> Enti
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }

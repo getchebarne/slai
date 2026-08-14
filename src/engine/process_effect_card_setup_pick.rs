@@ -3,8 +3,8 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CostScope;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 
 pub fn process_effect_card_setup_pick(
     id_target: Option<usize>,
@@ -12,13 +12,13 @@ pub fn process_effect_card_setup_pick(
     free: bool,
     bottom: bool,
 ) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_hand,
         id_pile_draw,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_card_setup_pick outside Combat mode")
+        unreachable!("process_effect_card_setup_pick outside the Combat frame")
     };
     let id_target = id_target.expect("CardSetupPick requires id_target");
     if free {

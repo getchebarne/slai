@@ -6,13 +6,9 @@ use crate::types::CardName;
 use crate::types::CardPile;
 use rand::Rng;
 
-// The Mausoleum's coffin: a random relic, with a 50% (A15+: certain) Writhe rider
 pub fn process_effect_mausoleum_open(state: &mut GameState) {
-    // The roll is consumed at every ascension, as in the source
-    let cursed = state.rng.random_bool(0.5) || state.ascension >= 15;
-
     // Executes in reverse: relic first, then the curse
-    if cursed {
+    if state.rng.random_bool(0.5) || state.ascension >= 15 {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardAdd {
                 card_name: CardName::Writhe,

@@ -40,23 +40,23 @@ const OPTION_PAY: &[Effect] = &[
 
 // Fight: the whole gang, with the Red Mask and their pocket gold on the line
 const OPTION_FIGHT: &[Effect] = &[
-    EVENT_CONSUME_EFFECT,
     spawn(MonsterName::BanditPointy),
     spawn(MonsterName::BanditLeader),
     spawn(MonsterName::BanditBear),
     Effect {
-        kind: EffectKind::CombatStart {
-            loot: EventLoot {
-                gold: Some(Amount::Range { min: 25, max: 35 }),
-                relic: Some(RelicName::RedMask),
-                relic_roll: false,
-                relic_tiers: [None, None],
-            },
-        },
+        kind: EffectKind::CombatStart,
         id_source: None,
         target: Target::Direct(None),
     },
 ];
+
+// The gang's pocket gold and the Red Mask, paid out by `fight_loot`
+pub const FIGHT_LOOT: EventLoot = EventLoot {
+    gold: Some(Amount::Range { min: 25, max: 35 }),
+    relic: Some(RelicName::RedMask),
+    relic_roll: false,
+    relic_tiers: [None, None],
+};
 
 pub static OPTIONS: &[Entity] = &[
     make_entity_event_option("[Pay] Lose ALL your Gold.", OPTION_PAY),

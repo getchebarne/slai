@@ -3,8 +3,8 @@ use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_discover_roll(
@@ -14,8 +14,8 @@ pub fn process_effect_card_discover_roll(
     exclude: &[CardName],
     count: u8,
 ) {
-    let Mode::Combat { id_discover, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("process_effect_card_discover_roll outside Combat mode")
+    let Frame::Combat { id_discover, .. } = frame_top_mut(&mut state.frame_stack) else {
+        unreachable!("process_effect_card_discover_roll outside the Combat frame")
     };
     id_discover.clear();
 

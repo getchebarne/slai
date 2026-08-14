@@ -1,16 +1,16 @@
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
+use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::effect::ZERO_EFFECT;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
 use crate::monsters::make_move_attack_card_add;
@@ -24,7 +24,7 @@ const INFERNO_HITS: usize = 6;
 
 // Inferno: six hits then the burn upgrade; fills all MAX_EFFECTS_PER_MOVE slots
 const fn make_move_inferno(damage: u16) -> Move {
-    let mut effects = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
+    let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut i = 0;
     while i < INFERNO_HITS {
         effects[i] = Effect {
@@ -234,7 +234,7 @@ pub fn spawn_monster_hexaghost(ascension_level: u8) -> Entity {
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }

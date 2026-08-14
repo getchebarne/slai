@@ -129,13 +129,13 @@ mod wraith_form;
 mod writhe;
 
 use crate::consts::MAX_EFFECTS_PER_CARD;
+use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
-use crate::effect::ZERO_EFFECT;
 use crate::entity::CardCostKind;
+use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
-use crate::entity::ZERO_ENTITY;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -561,7 +561,7 @@ pub const fn make_entity_card(
         effects.len() <= MAX_EFFECTS_PER_CARD,
         "card_effects exceeds MAX_EFFECTS_PER_CARD",
     );
-    let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_CARD];
+    let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_CARD];
     let mut i = 0;
     while i < effects.len() {
         arr[i] = effects[i];
@@ -585,6 +585,6 @@ pub const fn make_entity_card(
         card_effects_len: effects.len() as u8,
         card_on_discard_effects: on_discard_effects,
         card_effects_on_draw: on_draw_effects,
-        ..ZERO_ENTITY
+        ..ENTITY_ZERO
     }
 }

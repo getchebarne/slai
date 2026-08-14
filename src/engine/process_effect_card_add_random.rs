@@ -56,7 +56,7 @@ pub fn process_effect_card_add_random(
         // Deck additions route through the obtain hook
         if pile == CardPile::Deck {
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardAddToDeck,
+                kind: EffectKind::CardAdopt,
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             });

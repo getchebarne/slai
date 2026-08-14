@@ -7,7 +7,6 @@ use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::EventLoot;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::monsters::GREMLIN_POOL;
@@ -500,11 +499,7 @@ fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
 }
 
 // Queues the encounter's spawns followed by `EffectKind::CombatStart`
-pub fn spawn_encounter_monsters(
-    state: &mut GameState,
-    encounter: MonsterEncounter,
-    loot: EventLoot,
-) {
+pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncounter) {
     state.effect_buf.clear();
     let effects = &mut state.effect_buf;
     let rng = &mut state.rng;
@@ -658,7 +653,7 @@ pub fn spawn_encounter_monsters(
     }
 
     effects.push(Effect {
-        kind: EffectKind::CombatStart { loot },
+        kind: EffectKind::CombatStart,
         id_source: None,
         target: Target::Direct(None),
     });

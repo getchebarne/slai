@@ -10,22 +10,22 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::types::CostScope;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
+use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_hand,
         id_pile_draw,
         id_pile_discard,
         id_card_last_drawn,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_card_draw outside Combat mode")
+        unreachable!("process_effect_card_draw outside the Combat frame")
     };
     if has_modifier(
         &state.entities[state.id_character].modifiers,

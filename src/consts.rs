@@ -23,8 +23,6 @@ pub const LIBRARY_CARD_COUNT: usize = 20;
 // Largest single card-reward roll (The Library's 20)
 pub const MAX_CARD_REWARD_ROLL: usize = 20;
 const _: () = assert!(LIBRARY_CARD_COUNT <= MAX_CARD_REWARD_ROLL);
-pub const MATCH_GAME_CARDS: usize = 12;
-pub const MATCH_GAME_ATTEMPTS: u8 = 5;
 
 // Combat
 pub const MAX_SIZE_HAND: usize = 10;

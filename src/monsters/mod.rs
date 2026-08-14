@@ -47,18 +47,18 @@ pub mod torch_head;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTERS;
+use crate::consts::MAX_MOVE_HISTORY;
+use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::effect::ZERO_EFFECT;
+use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::ZERO_ENTITY;
-use crate::entity::get_move_history_slice;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::types::CardName;
@@ -164,6 +164,22 @@ pub const GREMLIN_POOL: [MonsterName; 8] = [
 
 pub fn pick_gremlin(rng: &mut impl Rng) -> MonsterName {
     GREMLIN_POOL[rng.random_range(0..GREMLIN_POOL.len())]
+}
+
+pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
+    let len = entity.monster_move_history_len as usize;
+    if len < MAX_MOVE_HISTORY {
+        entity.monster_move_history[len] = move_idx;
+        entity.monster_move_history_len += 1;
+    } else {
+        // Marathon combat: drop the oldest, keep the last `MAX_MOVE_HISTORY` moves
+        entity.monster_move_history.copy_within(1.., 0);
+        entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
+    }
+}
+
+pub fn get_move_history_slice(entity: &Entity) -> &[u8] {
+    &entity.monster_move_history[..entity.monster_move_history_len as usize]
 }
 
 pub fn count_monsters_named(
@@ -347,7 +363,7 @@ pub fn get_next_move(
 
 // The repeated monster move shapes; each spells out one Effect array longhand
 pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
-    let mut effects = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
+    let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut i = 0;
     while i < instances as usize {
         effects[i] = Effect {
@@ -527,7 +543,7 @@ pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -
         effects.len() <= MAX_EFFECTS_PER_MOVE,
         "Move effects exceeds MAX_EFFECTS_PER_MOVE",
     );
-    let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
+    let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut i = 0;
     while i < effects.len() {
         arr[i] = effects[i];
@@ -555,6 +571,6 @@ pub const fn make_entity_monster(
         monster_name: name,
         monster_kind,
         monster_moves: moves,
-        ..ZERO_ENTITY
+        ..ENTITY_ZERO
     }
 }

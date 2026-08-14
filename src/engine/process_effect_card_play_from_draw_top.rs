@@ -6,17 +6,17 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CostScope;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 
 pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_pile_draw,
         id_pile_discard,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_card_play_from_draw_top outside Combat mode")
+        unreachable!("process_effect_card_play_from_draw_top outside the Combat frame")
     };
 
     // Check if the draw pile is empty

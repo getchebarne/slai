@@ -49,15 +49,13 @@ use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
 use crate::types::CardName;
 use crate::types::ChestKind;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::utils::add_relic_reward_for_roll;
 use crate::utils::card_reward_count;
 use crate::utils::has_relic;
-use crate::utils::mode_replace;
-use crate::utils::mode_top;
 use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
 use crate::utils::roll_boss_gold;
@@ -400,12 +398,12 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
         }
     }
 
-    let mode_reward = Mode::Reward {
-        reward_id_cards: id_card_bundles,
-        reward_id_relics: id_relics_reward,
-        reward_id_potions: id_potions,
-        reward_gold: gold,
-        reward_relics_exclusive: matches!(
+    let mode_reward = Frame::Reward {
+        id_cards: id_card_bundles,
+        id_relics: id_relics_reward,
+        id_potions: id_potions,
+        gold: gold,
+        relics_exclusive: matches!(
             source,
             RewardSource::Combat {
                 room_kind: RoomKind::CombatBoss,
@@ -414,12 +412,9 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
         ),
     };
 
-    // Shop rolls (Orrery, Cauldron) overlay the stock; every other source replaces its own frame
-    if matches!(mode_top(&state.mode_stack), Mode::Shop { .. }) {
-        state.mode_stack.push(mode_reward);
-    } else {
-        mode_replace(&mut state.mode_stack, mode_reward);
-    }
+    // A Reward always overlays: the frame beneath survives by its own lifecycle
+    // (Shop keeps trading; spent Chest/RestSite and consumed Events await RoomExit)
+    state.frame_stack.push(mode_reward);
 }
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {

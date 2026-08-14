@@ -31,9 +31,7 @@ const OPTION_FIGHT: &[Effect] = &[
     spawn(MonsterName::SlaverBlue),
     spawn(MonsterName::SlaverRed),
     Effect {
-        kind: EffectKind::CombatStart {
-            loot: EventLoot::NONE,
-        },
+        kind: EffectKind::CombatStart,
         id_source: None,
         target: Target::Direct(None),
     },
@@ -41,22 +39,22 @@ const OPTION_FIGHT: &[Effect] = &[
 
 // Second bout: an elite pair with a rare+uncommon relic purse and 100 gold
 const OPTION_FIGHT_NOBS: &[Effect] = &[
-    EVENT_CONSUME_EFFECT,
     spawn(MonsterName::Taskmaster),
     spawn(MonsterName::GremlinNob),
     Effect {
-        kind: EffectKind::CombatStart {
-            loot: EventLoot {
-                gold: Some(Amount::Absolute(100)),
-                relic: None,
-                relic_roll: false,
-                relic_tiers: [Some(RelicTier::Rare), Some(RelicTier::Uncommon)],
-            },
-        },
+        kind: EffectKind::CombatStart,
         id_source: None,
         target: Target::Direct(None),
     },
 ];
+
+// The Nobs purse: 100 gold plus a rare and an uncommon Relic, paid by `fight_loot`
+pub const FIGHT_LOOT_NOBS: EventLoot = EventLoot {
+    gold: Some(Amount::Absolute(100)),
+    relic: None,
+    relic_roll: false,
+    relic_tiers: [Some(RelicTier::Rare), Some(RelicTier::Uncommon)],
+};
 
 pub static OPTIONS: &[Entity] = &[
     make_entity_event_option("[Fight] Face the first round.", OPTION_FIGHT),

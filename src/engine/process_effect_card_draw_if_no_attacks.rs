@@ -3,12 +3,12 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardKind;
-use crate::types::Mode;
-use crate::utils::mode_top;
+use crate::types::Frame;
+use crate::utils::frame_top;
 
 pub fn process_effect_card_draw_if_no_attacks(state: &mut GameState, count: u16) {
-    let Mode::Combat { id_hand, .. } = mode_top(&state.mode_stack) else {
-        unreachable!("process_effect_card_draw_if_no_attacks outside Combat mode")
+    let Frame::Combat { id_hand, .. } = frame_top(&state.frame_stack) else {
+        unreachable!("process_effect_card_draw_if_no_attacks outside the Combat frame")
     };
     let any_attack = id_hand
         .iter()

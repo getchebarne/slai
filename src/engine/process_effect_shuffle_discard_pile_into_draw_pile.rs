@@ -4,20 +4,20 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::relics::trigger_relic_counter;
 use crate::types::DeltaSign;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
+use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 use crate::utils::shuffle;
 
 pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_pile_draw,
         id_pile_discard,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_shuffle_discard_pile_into_draw_pile outside Combat mode")
+        unreachable!("process_effect_shuffle_discard_pile_into_draw_pile outside the Combat frame")
     };
     id_pile_draw.append(id_pile_discard);
     shuffle(&mut id_pile_draw[..], &mut state.rng);

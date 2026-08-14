@@ -4,8 +4,8 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardPile;
 use crate::types::CostScope;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 use crate::utils::place_card;
 
 pub fn process_effect_card_discover_pick(
@@ -13,8 +13,8 @@ pub fn process_effect_card_discover_pick(
     state: &mut GameState,
     cost_zero: Option<CostScope>,
 ) {
-    let Mode::Combat { id_discover, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("process_effect_card_discover_pick outside Combat mode")
+    let Frame::Combat { id_discover, .. } = frame_top_mut(&mut state.frame_stack) else {
+        unreachable!("process_effect_card_discover_pick outside the Combat frame")
     };
     let id_card = id_target.expect("CardDiscoverPick Direct form must have target");
 

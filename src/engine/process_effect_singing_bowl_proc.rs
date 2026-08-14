@@ -4,16 +4,15 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 
 pub fn process_effect_singing_bowl_proc(state: &mut GameState, idx_bundle: u8) {
-    let Mode::Reward {
-        reward_id_cards: bundles,
-        ..
-    } = mode_top_mut(&mut state.mode_stack)
+    let Frame::Reward {
+        id_cards: bundles, ..
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("SingingBowlProc outside Reward mode")
+        unreachable!("SingingBowlProc outside the Reward frame")
     };
 
     // Remove bundle

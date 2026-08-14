@@ -1,5 +1,3 @@
-// Modifier system
-
 use strum::EnumCount;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
@@ -542,7 +540,7 @@ pub fn modifier_def(kind: ModifierKind) -> &'static ModifierDef {
     &MODIFIER_DEFS[kind as usize]
 }
 
-pub const ZERO_MODIFIERS: Modifiers = Modifiers {
+pub const MODIFIERS_ZERO: Modifiers = Modifiers {
     stacks: [0; MODIFIER_COUNT],
     is_new: [false; MODIFIER_COUNT],
     active: 0,

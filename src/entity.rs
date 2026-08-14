@@ -1,20 +1,15 @@
-// Fat Entity + EntityKind tag; each domain's mod.rs owns its `make_entity_*` constructor
-
-use strum::EnumCount;
-
 use crate::consts::MAX_EFFECTS_PER_CARD;
 use crate::consts::MAX_EFFECTS_PER_EVENT_OPTION;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MOVE_HISTORY;
+use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
-use crate::effect::ZERO_EFFECT;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::Modifiers;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
-use crate::types::ChestKind;
 use crate::types::CostScope;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -23,9 +18,8 @@ use crate::types::PotionRarity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RoomKind;
+use crate::types::VITALS_ZERO;
 use crate::types::Vitals;
-use crate::types::ZERO_VITALS;
-use crate::utils::has_relic;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EntityKind {
@@ -139,10 +133,6 @@ pub struct Entity {
     pub room_x: usize,
     pub room_kind: RoomKind,
     pub room_edges: u8,
-    pub room_chest_kind: Option<ChestKind>,
-    pub room_chest_opened: bool,
-    pub room_rest_site_done: bool,
-    pub room_shop_purged: bool,
 
     // Relic-only
     pub relic_name: RelicName,
@@ -162,16 +152,13 @@ pub struct Entity {
     pub event_option_label: &'static str,
     pub event_option_effects: [Effect; MAX_EFFECTS_PER_EVENT_OPTION],
     pub event_option_effects_len: u8,
-
-    // Shop price while stocked; stale after purchase (nothing reads it outside Shop mode)
-    pub price: u16,
 }
 
 // Zero-fill sentinel; used by const constructors and unused arena slots
-pub const ZERO_ENTITY: Entity = Entity {
+pub const ENTITY_ZERO: Entity = Entity {
     kind: EntityKind::Character,
-    vitals: ZERO_VITALS,
-    modifiers: ZERO_MODIFIERS,
+    vitals: VITALS_ZERO,
+    modifiers: MODIFIERS_ZERO,
     character_name: "",
     character_reward_roll_offset: 0,
     character_gold: 0,
@@ -200,7 +187,7 @@ pub const ZERO_ENTITY: Entity = Entity {
     card_play_restriction: PlayRestriction::Always,
     card_cost_kind: CardCostKind::Fixed,
     card_cost_override: None,
-    card_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_CARD],
+    card_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_CARD],
     card_effects_len: 0,
     card_on_discard_effects: &[],
     card_effects_on_draw: &[],
@@ -208,14 +195,9 @@ pub const ZERO_ENTITY: Entity = Entity {
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
     room_edges: 0,
-    room_chest_kind: None,
-    room_chest_opened: false,
-    room_rest_site_done: false,
-    room_shop_purged: false,
     relic_name: RelicName::SnakeRing,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,
-    price: 0,
     relic_used_up: false,
     relic_seq: 0,
     relic_effects_on_combat_start: &[],
@@ -224,59 +206,6 @@ pub const ZERO_ENTITY: Entity = Entity {
     potion_combat_only: true,
     potion_effects: &[],
     event_option_label: "",
-    event_option_effects: [ZERO_EFFECT; MAX_EFFECTS_PER_EVENT_OPTION],
+    event_option_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_EVENT_OPTION],
     event_option_effects_len: 0,
 };
-
-pub fn get_card_effective_cost(
-    card: &Entity,
-    this_turn_discards: u8,
-    this_combat_damage_instances_taken: u8,
-    energy_current: u8,
-) -> u8 {
-    if let Some(override_) = card.card_cost_override {
-        return override_.amount;
-    }
-    match card.card_cost_kind {
-        CardCostKind::Fixed => card.card_cost,
-        CardCostKind::MinusDiscardsThisTurn => card.card_cost.saturating_sub(this_turn_discards),
-        CardCostKind::GrowsOnDamageInstanceTaken => card
-            .card_cost
-            .saturating_add(this_combat_damage_instances_taken),
-        CardCostKind::XCost { .. } => energy_current,
-    }
-}
-
-// Evaluate a PlayRestriction against the relevant slice of game state
-pub fn is_play_restriction_satisfied(
-    restriction: PlayRestriction,
-    card_kind: CardKind,
-    id_pile_draw: &[usize],
-    id_relics: &[Option<usize>; RelicName::COUNT],
-) -> bool {
-    match restriction {
-        PlayRestriction::Always => true,
-        PlayRestriction::Never => match card_kind {
-            CardKind::Curse => has_relic(id_relics, RelicName::BlueCandle),
-            CardKind::Status => has_relic(id_relics, RelicName::MedicalKit),
-            _ => false,
-        },
-        PlayRestriction::DrawPileEmpty => id_pile_draw.is_empty(),
-    }
-}
-
-pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
-    let len = entity.monster_move_history_len as usize;
-    if len < MAX_MOVE_HISTORY {
-        entity.monster_move_history[len] = move_idx;
-        entity.monster_move_history_len += 1;
-    } else {
-        // Marathon combat: drop the oldest, keep the last MAX_MOVE_HISTORY moves
-        entity.monster_move_history.copy_within(1.., 0);
-        entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
-    }
-}
-
-pub fn get_move_history_slice(entity: &Entity) -> &[u8] {
-    &entity.monster_move_history[..entity.monster_move_history_len as usize]
-}

@@ -70,7 +70,7 @@ flat_variants!(PyEffect {
     FaceTrade => PyEffectFaceTrade as "EffectFaceTrade" { target: Option<PyTarget> },
     CardBottle => PyEffectCardBottle as "EffectCardBottle" { target: Option<PyTarget> },
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName, target: Option<PyTarget> },
-    CombatStart => PyEffectCombatStart as "EffectCombatStart" { event_gold: Option<PyAmount>, event_relic: Option<PyRelicName>, event_relic_roll: bool, event_relic_tiers: Vec<PyRelicTier>, target: Option<PyTarget> },
+    CombatStart => PyEffectCombatStart as "EffectCombatStart" { target: Option<PyTarget> },
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch" { target: Option<PyTarget> },
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName, fallback_circlet: bool, target: Option<PyTarget> },
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8, target: Option<PyTarget> },
@@ -95,7 +95,6 @@ flat_variants!(PyEffect {
     MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen" { target: Option<PyTarget> },
     KnowingSkullAsk => PyEffectKnowingSkullAsk as "EffectKnowingSkullAsk" { wish: PyKnowingSkullWish, target: Option<PyTarget> },
     JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool, target: Option<PyTarget> },
-    MatchGameFlip => PyEffectMatchGameFlip as "EffectMatchGameFlip" { target: Option<PyTarget> },
     RewardRollLibraryCards => PyEffectRewardRollLibraryCards as "EffectRewardRollLibraryCards" { target: Option<PyTarget> },
 });
 
@@ -262,18 +261,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             name: name.into(),
             target,
         }),
-        EffectKind::CombatStart { loot } => PyEffect::CombatStart(PyEffectCombatStart {
-            event_gold: loot.gold.map(Into::into),
-            event_relic: loot.relic.map(Into::into),
-            event_relic_roll: loot.relic_roll,
-            event_relic_tiers: loot
-                .relic_tiers
-                .iter()
-                .flatten()
-                .map(|&t| t.into())
-                .collect(),
-            target,
-        }),
+        EffectKind::CombatStart => PyEffect::CombatStart(PyEffectCombatStart { target }),
         EffectKind::AdventurerSearch => {
             PyEffect::AdventurerSearch(PyEffectAdventurerSearch { target })
         }
@@ -398,7 +386,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::JoustBet { on_owner } => {
             PyEffect::JoustBet(PyEffectJoustBet { on_owner, target })
         }
-        EffectKind::MatchGameFlip => PyEffect::MatchGameFlip(PyEffectMatchGameFlip { target }),
         EffectKind::RewardRoll {
             source: RewardSource::LibraryCards,
         } => PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards { target }),

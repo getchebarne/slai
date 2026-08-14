@@ -22,12 +22,12 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
 use crate::utils::card_is_upgradable;
+use crate::utils::frame_replace;
+use crate::utils::frame_top;
 use crate::utils::increase_max_hp;
-use crate::utils::mode_replace;
-use crate::utils::mode_top;
 use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
 
@@ -169,9 +169,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             // The bell arrives from a reward screen or Neow's consumed blessing
             assert!(
                 matches!(
-                    mode_top(&state.mode_stack),
-                    Mode::Reward { .. }
-                        | Mode::Event {
+                    frame_top(&state.frame_stack),
+                    Frame::Reward { .. }
+                        | Frame::Event {
                             kind: EventKind::Neow,
                             consumed: true,
                             ..
@@ -181,22 +181,22 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             );
 
             // Roll one Relic for each rarity
-            let mut reward_id_relics = Vec::with_capacity(3);
+            let mut id_relics = Vec::with_capacity(3);
             for pool in [POOL_COMMON_RELIC, POOL_UNCOMMON_RELIC, POOL_RARE_RELIC] {
                 if let Some(name) = pick_relic_from_pool(pool, &state.id_relics, &mut state.rng) {
-                    reward_id_relics.push(push_entity(&mut state.entities, get_relic(name)));
+                    id_relics.push(push_entity(&mut state.entities, get_relic(name)));
                 }
             }
 
-            // Set `Mode::Reward`
-            mode_replace(
-                &mut state.mode_stack,
-                Mode::Reward {
-                    reward_id_cards: Vec::new(),
-                    reward_id_relics,
-                    reward_id_potions: Vec::new(),
-                    reward_gold: None,
-                    reward_relics_exclusive: false,
+            // Set `Frame::Reward`
+            frame_replace(
+                &mut state.frame_stack,
+                Frame::Reward {
+                    id_cards: Vec::new(),
+                    id_relics,
+                    id_potions: Vec::new(),
+                    gold: None,
+                    relics_exclusive: false,
                 },
             );
             state.effect_queue.push_front(Effect {
