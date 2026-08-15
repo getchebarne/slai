@@ -1,21 +1,21 @@
 use crate::game::GameState;
 use crate::types::CardRarity;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 use rand::Rng;
 
 // Bronze Orb's Stasis: exile a card from the draw pile (discard as fallback) until
 // the orb dies. Prefers the highest rarity present; random among ties
 pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameState) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_monsters,
         id_stasis_cards,
         id_pile_draw,
         id_pile_discard,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_stasis_steal outside Combat mode")
+        unreachable!("process_effect_stasis_steal outside the Combat frame")
     };
     let id_source = id_source.expect("StasisSteal requires id_source");
 

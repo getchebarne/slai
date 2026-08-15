@@ -5,13 +5,13 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 
 // Discard the entire hand, then add 1 Shiv per discarded Card
 pub fn process_effect_storm_of_steel_proc(state: &mut GameState, upgraded: bool) {
-    let Mode::Combat { id_hand, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("process_effect_storm_of_steel_proc outside Combat mode")
+    let Frame::Combat { id_hand, .. } = frame_top_mut(&mut state.frame_stack) else {
+        unreachable!("process_effect_storm_of_steel_proc outside the Combat frame")
     };
 
     // Executes in reverse:

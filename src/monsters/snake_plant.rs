@@ -4,8 +4,8 @@ use crate::effect::TARGET_CHARACTER;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
@@ -64,7 +64,7 @@ pub fn spawn_monster_snake_plant(ascension_level: u8, rng: &mut impl Rng) -> Ent
         &MOVES_ASC2
     };
 
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::Malleable, MALLEABLE_BASE);
 
     make_entity_monster(

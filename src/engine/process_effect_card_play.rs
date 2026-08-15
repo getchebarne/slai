@@ -10,7 +10,6 @@ use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
 use crate::entity::Entity;
-use crate::entity::get_card_effective_cost;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -21,20 +20,21 @@ use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
 use crate::utils::detach_card;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::frame_top_mut;
+use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardPlay requires id_target");
 
     // Detach the played Card up front; it stays pile-less until its effects resolve
-    detach_card(mode_top_mut(&mut state.mode_stack), id_card);
+    detach_card(frame_top_mut(&mut state.frame_stack), id_card);
 
-    let Mode::Combat {
+    let Frame::Combat {
         id_hand,
         id_monsters,
         energy,
@@ -44,9 +44,9 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         this_turn_panache,
         this_combat_damage_instances_taken,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_card_play outside Combat mode")
+        unreachable!("process_effect_card_play outside the Combat frame")
     };
 
     // Read-only here: copied out so the body below can borrow the whole state

@@ -5,7 +5,7 @@ use crate::types::RelicTier;
 
 // Power Cards are obtained upgraded
 // See:
-//    - `process_effect_card_add_to_deck.rs`
+//    - `process_effect_card_adopt.rs`
 //    - `utils.rs`
 pub static FROZEN_EGG: Entity =
     make_entity_relic(RelicName::FrozenEgg, RelicTier::Uncommon, 0, &[]);

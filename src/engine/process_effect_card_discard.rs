@@ -7,10 +7,10 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
+use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 
 // Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain/ethereal
 pub fn process_effect_card_discard(
@@ -18,14 +18,14 @@ pub fn process_effect_card_discard(
     state: &mut GameState,
     source: DiscardSource,
 ) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_hand,
         id_pile_discard,
         this_turn_discards,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_card_discard outside Combat mode")
+        unreachable!("process_effect_card_discard outside the Combat frame")
     };
     let id_target = id_target.expect("CardDiscard requires id_target");
     match source {

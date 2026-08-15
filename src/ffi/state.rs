@@ -9,10 +9,10 @@ use super::character::PyCharacter;
 use super::character::snapshot_character;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
+use super::frame::PyFrame;
+use super::frame::snapshot_frame;
 use super::map::PyMap;
 use super::map::snapshot_map;
-use super::mode::PyMode;
-use super::mode::snapshot_mode;
 use super::potion::PyPotion;
 use super::potion::snapshot_potion;
 use super::relic::PyRelic;
@@ -27,8 +27,8 @@ use super::relic::snapshot_relic;
 )]
 #[derive(Debug, Clone)]
 pub struct PyGameState {
-    // Full context stack, bottom (Map) first; the last entry is the active mode
-    pub mode_stack: Vec<PyMode>,
+    // Full context stack, bottom (Map) first; the last entry is the active frame
+    pub frame_stack: Vec<PyFrame>,
     pub game_over: bool,
     pub ascension: u8,
     pub act: u8,
@@ -39,17 +39,17 @@ pub struct PyGameState {
     pub potions: Vec<Option<PyPotion>>,
     pub potion_slots_max: u8,
     pub map: PyMap,
-    // Halt-for-input is orthogonal to mode
+    // Halt-for-input is orthogonal to the frame stack
     pub pending: Option<PyEffect>,
 }
 
 // Snapshot builders
 pub fn snapshot_state(state: &GameState) -> PyGameState {
     PyGameState {
-        mode_stack: state
-            .mode_stack
+        frame_stack: state
+            .frame_stack
             .iter()
-            .map(|mode| snapshot_mode(state, mode))
+            .map(|frame| snapshot_frame(state, frame))
             .collect(),
         game_over: state.game_over,
         ascension: state.ascension,

@@ -25,7 +25,6 @@ mirror_enum!(PyRoomKind from RoomKind, "RoomKind", from_py_object, {
 pub struct PyRoom {
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
-    pub chest_opened: bool,
 }
 
 #[pyclass(
@@ -73,7 +72,6 @@ pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
                         PyRoom {
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.room_edges).collect(),
-                            chest_opened: room.room_chest_opened,
                         }
                     })
                 })

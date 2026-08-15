@@ -1,7 +1,6 @@
 use strum::EnumCount;
 
 use crate::consts::MAX_MONSTERS;
-use crate::effect::Amount;
 use crate::events::EventKind;
 
 // Vitals: physical combat state. Shared by character and monsters
@@ -19,10 +18,10 @@ pub enum DeltaSign {
     Loss,
 }
 
-// The game's mode: each variant owns the working memory that is only meaningful
+// A context frame: each variant owns the working memory that is only meaningful
 // while it is active; constructed whole at entry, destroyed by variant replacement
 #[derive(Debug, Clone)]
-pub enum Mode {
+pub enum Frame {
     Combat {
         id_hand: Vec<usize>,
         id_pile_draw: Vec<usize>,
@@ -50,19 +49,13 @@ pub enum Mode {
 
         // Bomb countdown
         bomb_countdown: u8,
-
-        // Event-spawned fights (Mushrooms / Dead Adventurer)
-        event_gold: Option<Amount>,
-        event_relic: Option<RelicName>,
-        event_relic_roll: bool,
     },
-    CombatEnded,
     Reward {
-        reward_id_cards: Vec<Vec<usize>>,
-        reward_id_relics: Vec<usize>,
-        reward_id_potions: Vec<usize>,
-        reward_gold: Option<u16>,
-        reward_relics_exclusive: bool, // Wether taking a Relic clears the rest (Boss rewards)
+        id_cards: Vec<Vec<usize>>,
+        id_relics: Vec<usize>,
+        id_potions: Vec<usize>,
+        gold: Option<u16>,
+        relics_exclusive: bool, // Wether taking a Relic clears the rest (Boss rewards)
     },
     Event {
         kind: EventKind,
@@ -70,15 +63,21 @@ pub enum Mode {
         id_options: Vec<usize>,
     },
     Shop {
-        shop_id_cards: Vec<usize>,
-        shop_id_relics: Vec<usize>,
-        shop_id_potions: Vec<usize>,
-        shop_purge_cost: u16,
+        // The stock as offers: (entity id, price for this visit)
+        cards: Vec<(usize, u16)>,
+        relics: Vec<(usize, u16)>,
+        potions: Vec<(usize, u16)>,
+        purge_cost: u16,
+        purged: bool,
     },
     Map,
-    RestSite,
-    Chest,
-    ChestOpened,
+    RestSite {
+        consumed: bool,
+    },
+    Chest {
+        chest_kind: ChestKind,
+        chest_opened: bool,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -87,7 +86,7 @@ pub struct Energy {
     pub energy_max: u8,
 }
 
-pub const ZERO_VITALS: Vitals = Vitals {
+pub const VITALS_ZERO: Vitals = Vitals {
     health: 0,
     health_max: 0,
     block: 0,
@@ -319,6 +318,9 @@ pub enum MonsterName {
     Champ,
     TheCollector,
     TorchHead,
+    BanditBear,
+    BanditLeader,
+    BanditPointy,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -446,6 +448,15 @@ pub enum EventName {
     Addict,
     Beggar,
     Ghosts,
+    BackToBasics,
+    Colosseum,
+    Designer,
+    KnowingSkull,
+    MaskedBandits,
+    TheJoust,
+    TheLibrary,
+    TheMausoleum,
+    Vampires,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

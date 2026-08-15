@@ -1,6 +1,10 @@
 use crate::game::GameState;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 
-pub fn process_effect_rest_site_consume(id_target: Option<usize>, state: &mut GameState) {
-    let id_room = id_target.expect("RestSiteConsume requires id_target");
-    state.entities[id_room].room_rest_site_done = true;
+pub fn process_effect_rest_site_consume(state: &mut GameState) {
+    let Frame::RestSite { consumed } = frame_top_mut(&mut state.frame_stack) else {
+        unreachable!("RestSiteConsume outside the RestSite frame")
+    };
+    *consumed = true;
 }

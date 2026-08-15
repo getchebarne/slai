@@ -4,13 +4,13 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardKind;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 
 // Discard every non-Attack Card from hand
 pub fn process_effect_unload_discard(state: &mut GameState) {
-    let Mode::Combat { id_hand, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("process_effect_unload_discard outside Combat mode")
+    let Frame::Combat { id_hand, .. } = frame_top_mut(&mut state.frame_stack) else {
+        unreachable!("process_effect_unload_discard outside the Combat frame")
     };
     for i in 0..id_hand.len() {
         let id_card = id_hand[i];

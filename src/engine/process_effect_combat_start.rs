@@ -18,38 +18,25 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::DeltaSign;
 use crate::types::Energy;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::MonsterKind;
 use crate::types::RelicName;
+use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
-pub fn process_effect_combat_start(
-    state: &mut GameState,
-    event_gold: Option<Amount>,
-    event_relic: Option<RelicName>,
-    event_relic_roll: bool,
-) {
+pub fn process_effect_combat_start(state: &mut GameState) {
     // MonsterSpawn constructs the frame zeroed; only what CombatStart computes is written here
-    let Mode::Combat {
+    let Frame::Combat {
         id_pile_draw,
         id_monsters,
         energy,
-        event_gold: combat_event_gold,
-        event_relic: combat_event_relic,
-        event_relic_roll: combat_event_relic_roll,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_combat_start outside Combat mode")
+        unreachable!("process_effect_combat_start outside the Combat frame")
     };
-
-    // Stamp the event fight's reward parameters (None for ordinary fights)
-    *combat_event_gold = event_gold;
-    *combat_event_relic = event_relic;
-    *combat_event_relic_roll = event_relic_roll;
 
     // Elite fights are identified by the monsters, not the room (see Dead Aventurer Event)
     let is_fight_elite = id_monsters

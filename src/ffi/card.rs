@@ -6,8 +6,6 @@ use pyo3::type_object::PyTypeInfo;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::PlayRestriction;
-use crate::entity::get_card_effective_cost;
-use crate::entity::is_play_restriction_satisfied;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
@@ -19,8 +17,10 @@ use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
-use crate::types::Mode;
-use crate::utils::mode_top;
+use crate::types::Frame;
+use crate::utils::frame_top;
+use crate::utils::get_card_effective_cost;
+use crate::utils::is_play_restriction_satisfied;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
 use crate::utils::vuln_factor;
@@ -348,13 +348,13 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     );
     // Combat-only; outside combat defaults are permissive (Cards not played)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        if let Mode::Combat {
+        if let Frame::Combat {
             id_pile_draw,
             energy,
             this_turn_discards,
             this_combat_damage_instances_taken,
             ..
-        } = mode_top(&state.mode_stack)
+        } = frame_top(&state.frame_stack)
         {
             (
                 is_play_restriction_satisfied(

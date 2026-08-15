@@ -23,6 +23,7 @@ use crate::consts::GOLD_ELITE_MAX;
 use crate::consts::GOLD_ELITE_MIN;
 use crate::consts::GOLD_MONSTER_MAX;
 use crate::consts::GOLD_MONSTER_MIN;
+use crate::consts::LIBRARY_CARD_COUNT;
 use crate::consts::MATRYOSHKA_TH_COMMON;
 use crate::consts::MATRYOSHKA_TH_UNCOMMON;
 use crate::consts::MAX_COMBAT_CARD_REWARD;
@@ -42,17 +43,19 @@ use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
 use crate::potions::get_random_potion_name_uniform;
 use crate::relics::POOL_BOSS_RELIC;
+use crate::relics::POOL_COMMON_RELIC;
+use crate::relics::POOL_RARE_RELIC;
+use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
 use crate::types::CardName;
 use crate::types::ChestKind;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
+use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::utils::add_relic_reward_for_roll;
 use crate::utils::card_reward_count;
 use crate::utils::has_relic;
-use crate::utils::mode_replace;
-use crate::utils::mode_top;
 use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
 use crate::utils::roll_boss_gold;
@@ -90,6 +93,21 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                 );
                 id_card_bundles.push(id_cards);
             }
+        }
+
+        // The Library: one pick-a-card bundle of 20 unique rarity-rolled cards
+        RewardSource::LibraryCards => {
+            let mut id_cards: Vec<usize> = Vec::with_capacity(LIBRARY_CARD_COUNT);
+            roll_card_rewards(
+                state.id_character,
+                &mut state.entities,
+                &mut state.rng,
+                &mut id_cards,
+                &state.id_relics,
+                LIBRARY_CARD_COUNT,
+                false,
+            );
+            id_card_bundles.push(id_cards);
         }
 
         RewardSource::Chest { kind } => {
@@ -155,9 +173,7 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
         RewardSource::Combat {
             room_kind,
             escaped,
-            event_gold,
-            event_relic,
-            event_relic_roll,
+            loot,
         } => {
             // Select roll parameters according to `RoomKind`
             let (gold_amount, relic_thresholds, event_relic) = match room_kind {
@@ -188,9 +204,10 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                 ),
                 RoomKind::EventRoom => (
                     // Event combats inject their event-specific extras
-                    Some(event_gold.expect("Event fight without stamped loot")),
-                    event_relic_roll.then_some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
-                    event_relic,
+                    Some(loot.gold.expect("Event fight without stamped loot")),
+                    loot.relic_roll
+                        .then_some((RELIC_TIER_TH_COMMON, RELIC_TIER_TH_UNCOMMON)),
+                    loot.relic,
                 ),
                 _ => unreachable!(
                     "RewardRoll Combat with non-combat room_kind: {:?}",
@@ -279,6 +296,24 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
                 id_relics_reward.push(push_entity(&mut state.entities, get_relic(name)));
             }
 
+            // Event-injected fixed-tier Relics (Colosseum): one unowned draw per entry
+            if loot.relic_tiers.iter().any(Option::is_some) {
+                let mut id_relic_aux = state.id_relics;
+                for tier in loot.relic_tiers.iter().flatten().copied() {
+                    let pool = match tier {
+                        RelicTier::Common => POOL_COMMON_RELIC,
+                        RelicTier::Uncommon => POOL_UNCOMMON_RELIC,
+                        RelicTier::Rare => POOL_RARE_RELIC,
+                        _ => unreachable!("event relic tiers roll Common/Uncommon/Rare"),
+                    };
+                    if let Some(name) = pick_relic_from_pool(pool, &id_relic_aux, &mut state.rng) {
+                        let id = push_entity(&mut state.entities, get_relic(name));
+                        id_relic_aux[name as usize] = Some(id);
+                        id_relics_reward.push(id);
+                    }
+                }
+            }
+
             // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
             let has_white_beast_statue = has_relic(&state.id_relics, RelicName::WhiteBeastStatue);
 
@@ -363,12 +398,12 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
         }
     }
 
-    let mode_reward = Mode::Reward {
-        reward_id_cards: id_card_bundles,
-        reward_id_relics: id_relics_reward,
-        reward_id_potions: id_potions,
-        reward_gold: gold,
-        reward_relics_exclusive: matches!(
+    let mode_reward = Frame::Reward {
+        id_cards: id_card_bundles,
+        id_relics: id_relics_reward,
+        id_potions: id_potions,
+        gold: gold,
+        relics_exclusive: matches!(
             source,
             RewardSource::Combat {
                 room_kind: RoomKind::CombatBoss,
@@ -377,12 +412,9 @@ pub fn process_effect_reward_roll(state: &mut GameState, source: RewardSource) {
         ),
     };
 
-    // Shop rolls (Orrery, Cauldron) overlay the stock; every other source replaces its own frame
-    if matches!(mode_top(&state.mode_stack), Mode::Shop { .. }) {
-        state.mode_stack.push(mode_reward);
-    } else {
-        mode_replace(&mut state.mode_stack, mode_reward);
-    }
+    // A Reward always overlays: the frame beneath survives by its own lifecycle
+    // (Shop keeps trading; spent Chest/RestSite and consumed Events await RoomExit)
+    state.frame_stack.push(mode_reward);
 }
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {

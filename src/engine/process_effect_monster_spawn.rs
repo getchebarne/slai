@@ -11,12 +11,12 @@ use crate::modifier::modifier_apply;
 use crate::monsters::count_monsters_named;
 use crate::monsters::spawn_monster;
 use crate::types::Energy;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::MonsterName;
 use crate::types::RelicName;
+use crate::utils::frame_top;
+use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
-use crate::utils::mode_top;
-use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
 pub fn process_effect_monster_spawn(
@@ -26,9 +26,9 @@ pub fn process_effect_monster_spawn(
     cap: Option<u8>,
 ) {
     // A monster spawning implies a combat: the first spawn of a fight constructs it
-    if !matches!(mode_top(&state.mode_stack), Mode::Combat { .. }) {
+    if !matches!(frame_top(&state.frame_stack), Frame::Combat { .. }) {
         // Event fights replace the consumed Event frame; room fights push over Map
-        let combat = Mode::Combat {
+        let combat = Frame::Combat {
             id_hand: Vec::with_capacity(MAX_SIZE_HAND),
             id_pile_draw: Vec::with_capacity(MAX_SIZE_DECK),
             id_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
@@ -50,16 +50,12 @@ pub fn process_effect_monster_spawn(
             this_combat_damage_instances_taken: 0,
             this_combat_escaped: false,
             bomb_countdown: 0,
-            event_gold: None,
-            event_relic: None,
-            event_relic_roll: false,
         };
-        if matches!(mode_top(&state.mode_stack), Mode::Event { .. }) {
-            state.mode_stack.pop();
-        }
-        state.mode_stack.push(combat);
+        // A consumed event is replaced by its fight; an unconsumed one (Colosseum)
+        // stays suspended beneath and resumes when the combat pops
+        state.frame_stack.push(combat);
     }
-    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
+    let Frame::Combat { id_monsters, .. } = frame_top_mut(&mut state.frame_stack) else {
         unreachable!("Constructed above")
     };
 

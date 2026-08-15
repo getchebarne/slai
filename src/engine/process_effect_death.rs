@@ -11,12 +11,12 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::potions::remove_potion;
 use crate::types::DeltaSign;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
+use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 use crate::utils::release_stasis_card;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
@@ -71,15 +71,15 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     // Monster-death path
-    let Mode::Combat {
+    let Frame::Combat {
         id_monsters,
         id_stasis_cards,
         id_hand,
         id_pile_discard,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("Monster death outside Combat mode")
+        unreachable!("Monster death outside the Combat frame")
     };
     let id_character = state.id_character;
 

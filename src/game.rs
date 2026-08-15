@@ -102,7 +102,7 @@ pub struct GameState {
     pub potion_drop_mod: i8,
 
     // Stacked contexts: [0] is always Map (the resting frame), last() is current
-    pub mode_stack: Vec<Mode>,
+    pub frame_stack: Vec<Frame>,
     pub game_over: bool,
 
     // Removal cost for the whole run: 75 + 25 per purge, never reset
@@ -169,7 +169,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Act-1 event pools
     let (pool_events, pool_event_special) = pools_for_act(1);
 
-    // Start unhalted on Mode::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
+    // Start unhalted on Frame::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
     let effect_queue = VecDeque::with_capacity(64);
 
     let mut state = GameState {
@@ -198,7 +198,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         pool_events: pool_events.to_vec(),
         pool_event_special: pool_event_special.to_vec(),
         potion_drop_mod: 0,
-        mode_stack: vec![Mode::Map],
+        frame_stack: vec![Frame::Map],
         game_over: false,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,
         legal_actions: Vec::new(),
@@ -209,7 +209,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Neow's blessing rests over the Map frame at Location::Start
     if neow {
         let (kind, id_options) = spawn_event(&mut state, EventName::Neow);
-        state.mode_stack.push(Mode::Event {
+        state.frame_stack.push(Frame::Event {
             kind,
             consumed: false,
             id_options,
@@ -231,7 +231,7 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     // Recompute legal actions
     recompute_legal_actions(state);
 
-    // If fast mode is enabled, auto advance  the game until there's more than one legal action
+    // If fast frame is enabled, auto advance  the game until there's more than one legal action
     if state.fast_mode {
         auto_advance(state);
     }

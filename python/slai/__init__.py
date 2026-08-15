@@ -259,6 +259,11 @@ EffectCombatEnd = _rs.EffectCombatEnd
 EffectRelicLose = _rs.EffectRelicLose
 EffectRewardRollNeowCards = _rs.EffectRewardRollNeowCards
 EffectStrengthLoseTemp = _rs.EffectStrengthLoseTemp
+EffectMausoleumOpen = _rs.EffectMausoleumOpen
+EffectKnowingSkullAsk = _rs.EffectKnowingSkullAsk
+EffectJoustBet = _rs.EffectJoustBet
+EffectRewardRollLibraryCards = _rs.EffectRewardRollLibraryCards
+KnowingSkullWish = _rs.KnowingSkullWish
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -321,6 +326,10 @@ Effect = (
     | EffectRelicLose
     | EffectRewardRollNeowCards
     | EffectStrengthLoseTemp
+    | EffectMausoleumOpen
+    | EffectKnowingSkullAsk
+    | EffectJoustBet
+    | EffectRewardRollLibraryCards
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -377,25 +386,22 @@ AmountRelative = _rs.AmountRelative
 AmountRange = _rs.AmountRange
 AmountEventGoldAsk = _rs.AmountEventGoldAsk
 Amount = AmountAbsolute | AmountRelative | AmountRange | AmountEventGoldAsk
-ModeMap = _rs.ModeMap
-ModeRestSite = _rs.ModeRestSite
-ModeChest = _rs.ModeChest
-ModeChestOpened = _rs.ModeChestOpened
-ModeCombatEnded = _rs.ModeCombatEnded
-ModeCombat = _rs.ModeCombat
-ModeReward = _rs.ModeReward
-ModeShop = _rs.ModeShop
-ModeEvent = _rs.ModeEvent
-Mode = (
-    ModeMap
-    | ModeRestSite
-    | ModeChest
-    | ModeChestOpened
-    | ModeCombatEnded
-    | ModeCombat
-    | ModeReward
-    | ModeShop
-    | ModeEvent
+FrameMap = _rs.FrameMap
+FrameRestSite = _rs.FrameRestSite
+FrameChest = _rs.FrameChest
+ChestKind = _rs.ChestKind
+FrameCombat = _rs.FrameCombat
+FrameReward = _rs.FrameReward
+FrameShop = _rs.FrameShop
+FrameEvent = _rs.FrameEvent
+Frame = (
+    FrameMap
+    | FrameRestSite
+    | FrameChest
+    | FrameCombat
+    | FrameReward
+    | FrameShop
+    | FrameEvent
 )
 EventKindBigFish = _rs.EventKindBigFish
 EventKindTheCleric = _rs.EventKindTheCleric
@@ -425,6 +431,15 @@ EventKindNeow = _rs.EventKindNeow
 EventKindAddict = _rs.EventKindAddict
 EventKindBeggar = _rs.EventKindBeggar
 EventKindGhosts = _rs.EventKindGhosts
+EventKindBackToBasics = _rs.EventKindBackToBasics
+EventKindMaskedBandits = _rs.EventKindMaskedBandits
+EventKindTheJoust = _rs.EventKindTheJoust
+EventKindTheLibrary = _rs.EventKindTheLibrary
+EventKindTheMausoleum = _rs.EventKindTheMausoleum
+EventKindVampires = _rs.EventKindVampires
+EventKindColosseum = _rs.EventKindColosseum
+EventKindDesigner = _rs.EventKindDesigner
+EventKindKnowingSkull = _rs.EventKindKnowingSkull
 EventKind = (
     EventKindBigFish
     | EventKindTheCleric
@@ -454,6 +469,15 @@ EventKind = (
     | EventKindAddict
     | EventKindBeggar
     | EventKindGhosts
+    | EventKindBackToBasics
+    | EventKindMaskedBandits
+    | EventKindTheJoust
+    | EventKindTheLibrary
+    | EventKindTheMausoleum
+    | EventKindVampires
+    | EventKindColosseum
+    | EventKindDesigner
+    | EventKindKnowingSkull
 )
 
 DeltaSign = _rs.DeltaSign
@@ -615,21 +639,25 @@ __all__ = [
     "EffectRelicLose",
     "EffectRewardRollNeowCards",
     "EffectStrengthLoseTemp",
+    "EffectMausoleumOpen",
+    "EffectKnowingSkullAsk",
+    "EffectJoustBet",
+    "EffectRewardRollLibraryCards",
+    "KnowingSkullWish",
     "Amount",
     "AmountAbsolute",
     "AmountRelative",
     "AmountRange",
     "AmountEventGoldAsk",
-    "Mode",
-    "ModeMap",
-    "ModeRestSite",
-    "ModeChest",
-    "ModeChestOpened",
-    "ModeCombatEnded",
-    "ModeCombat",
-    "ModeReward",
-    "ModeShop",
-    "ModeEvent",
+    "Frame",
+    "FrameMap",
+    "FrameRestSite",
+    "FrameChest",
+    "ChestKind",
+    "FrameCombat",
+    "FrameReward",
+    "FrameShop",
+    "FrameEvent",
     "EventKind",
     "EventKindBigFish",
     "EventKindTheCleric",
@@ -659,6 +687,15 @@ __all__ = [
     "EventKindAddict",
     "EventKindBeggar",
     "EventKindGhosts",
+    "EventKindBackToBasics",
+    "EventKindMaskedBandits",
+    "EventKindTheJoust",
+    "EventKindTheLibrary",
+    "EventKindTheMausoleum",
+    "EventKindVampires",
+    "EventKindColosseum",
+    "EventKindDesigner",
+    "EventKindKnowingSkull",
     "EVENT_KIND_ORDER",
     "DeltaSign",
     # Potion

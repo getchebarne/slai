@@ -10,7 +10,7 @@ use crate::events::make_entity_event_option;
 // interactive (discard-to-swap), matching the source's combatRewardScreen
 const fn search(count: u8) -> [Effect; 2] {
     [
-        // Consume first: RewardRollPotions replaces this event with Mode::Reward
+        // Consume first: the rolled Reward overlays this frame until RoomExit
         EVENT_CONSUME_EFFECT,
         Effect {
             kind: EffectKind::RewardRoll {

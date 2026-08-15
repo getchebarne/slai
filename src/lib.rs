@@ -206,6 +206,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyCardPile;
     #[pymodule_export]
+    use super::ffi::PyChestKind;
+    #[pymodule_export]
     use super::ffi::PyCostScope;
     #[pymodule_export]
     use super::ffi::PyEffectAdventurerSearch;
@@ -290,6 +292,12 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectHeelHookProc;
     #[pymodule_export]
+    use super::ffi::PyEffectJoustBet;
+    #[pymodule_export]
+    use super::ffi::PyEffectKnowingSkullAsk;
+    #[pymodule_export]
+    use super::ffi::PyEffectMausoleumOpen;
+    #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;
     #[pymodule_export]
     use super::ffi::PyEffectModifierGain;
@@ -309,6 +317,8 @@ mod slai {
     use super::ffi::PyEffectRelicGrantSpecific;
     #[pymodule_export]
     use super::ffi::PyEffectRelicLose;
+    #[pymodule_export]
+    use super::ffi::PyEffectRewardRollLibraryCards;
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollNeowCards;
     #[pymodule_export]
@@ -332,13 +342,19 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindAddict;
     #[pymodule_export]
+    use super::ffi::PyEventKindBackToBasics;
+    #[pymodule_export]
     use super::ffi::PyEventKindBeggar;
     #[pymodule_export]
     use super::ffi::PyEventKindBigFish;
     #[pymodule_export]
     use super::ffi::PyEventKindBonfireSpirits;
     #[pymodule_export]
+    use super::ffi::PyEventKindColosseum;
+    #[pymodule_export]
     use super::ffi::PyEventKindDeadAdventurer;
+    #[pymodule_export]
+    use super::ffi::PyEventKindDesigner;
     #[pymodule_export]
     use super::ffi::PyEventKindDuplicator;
     #[pymodule_export]
@@ -350,7 +366,11 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindGoldenShrine;
     #[pymodule_export]
+    use super::ffi::PyEventKindKnowingSkull;
+    #[pymodule_export]
     use super::ffi::PyEventKindLivingWall;
+    #[pymodule_export]
+    use super::ffi::PyEventKindMaskedBandits;
     #[pymodule_export]
     use super::ffi::PyEventKindMushrooms;
     #[pymodule_export]
@@ -368,7 +388,13 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindTheDivineFountain;
     #[pymodule_export]
+    use super::ffi::PyEventKindTheJoust;
+    #[pymodule_export]
     use super::ffi::PyEventKindTheLab;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheLibrary;
+    #[pymodule_export]
+    use super::ffi::PyEventKindTheMausoleum;
     #[pymodule_export]
     use super::ffi::PyEventKindTheSsssserpent;
     #[pymodule_export]
@@ -378,6 +404,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindUpgradeShrine;
     #[pymodule_export]
+    use super::ffi::PyEventKindVampires;
+    #[pymodule_export]
     use super::ffi::PyEventKindWeMeetAgain;
     #[pymodule_export]
     use super::ffi::PyEventKindWheelOfChange;
@@ -386,23 +414,21 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindWorldOfGoop;
     #[pymodule_export]
-    use super::ffi::PyModeChest;
+    use super::ffi::PyFrameChest;
     #[pymodule_export]
-    use super::ffi::PyModeChestOpened;
+    use super::ffi::PyFrameCombat;
     #[pymodule_export]
-    use super::ffi::PyModeCombat;
+    use super::ffi::PyFrameEvent;
     #[pymodule_export]
-    use super::ffi::PyModeCombatEnded;
+    use super::ffi::PyFrameMap;
     #[pymodule_export]
-    use super::ffi::PyModeEvent;
+    use super::ffi::PyFrameRestSite;
     #[pymodule_export]
-    use super::ffi::PyModeMap;
+    use super::ffi::PyFrameReward;
     #[pymodule_export]
-    use super::ffi::PyModeRestSite;
+    use super::ffi::PyFrameShop;
     #[pymodule_export]
-    use super::ffi::PyModeReward;
-    #[pymodule_export]
-    use super::ffi::PyModeShop;
+    use super::ffi::PyKnowingSkullWish;
     #[pymodule_export]
     use super::ffi::PySelectionKindAll;
     #[pymodule_export]

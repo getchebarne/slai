@@ -2,22 +2,22 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Frame;
+use crate::utils::frame_top_mut;
 use crate::utils::release_stasis_card;
 
 // Mark dead WITHOUT firing the on-death hook chain
 pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat {
+    let Frame::Combat {
         id_monsters,
         id_stasis_cards,
         id_hand,
         id_pile_discard,
         this_combat_escaped,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
+    } = frame_top_mut(&mut state.frame_stack)
     else {
-        unreachable!("process_effect_monster_escape outside Combat mode")
+        unreachable!("process_effect_monster_escape outside the Combat frame")
     };
     let id_target = id_target.expect("MonsterEscape requires id_target");
     state.entities[id_target].dead = true;

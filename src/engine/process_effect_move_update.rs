@@ -1,19 +1,19 @@
-use crate::entity::push_move_history;
 use crate::game::GameState;
 use crate::monsters::get_next_move;
 use crate::monsters::hexaghost;
 use crate::monsters::is_cycle_boundary;
-use crate::types::Mode;
+use crate::monsters::push_move_history;
+use crate::types::Frame;
 use crate::types::MonsterName;
-use crate::utils::mode_top_mut;
+use crate::utils::frame_top_mut;
 
 pub fn process_effect_move_update(
     id_target: Option<usize>,
     state: &mut GameState,
     move_override: Option<usize>,
 ) {
-    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("process_effect_move_update outside Combat mode")
+    let Frame::Combat { id_monsters, .. } = frame_top_mut(&mut state.frame_stack) else {
+        unreachable!("process_effect_move_update outside the Combat frame")
     };
     let id_target = id_target.expect("MoveUpdate requires id_target");
 

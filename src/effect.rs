@@ -41,7 +41,7 @@ pub enum EffectKind {
         upgraded: bool,
         rarity: Option<CardRarity>,
     },
-    CardAddToDeck,
+    CardAdopt,
     CardBottle,
     CardDiscard {
         source: DiscardSource,
@@ -89,11 +89,7 @@ pub enum EffectKind {
     CombatEnd {
         escaped_character: bool,
     },
-    CombatStart {
-        event_gold: Option<Amount>,
-        event_relic: Option<RelicName>,
-        event_relic_roll: bool,
-    },
+    CombatStart,
     DamageDeal {
         amount: u16,
         lifesteal: bool, // Life Suck
@@ -157,6 +153,13 @@ pub enum EffectKind {
     HexaghostBurnIncrease {
         count: u8,
     },
+    JoustBet {
+        on_owner: bool,
+    },
+    KnowingSkullAsk {
+        wish: KnowingSkullWish,
+    },
+    MausoleumOpen,
     MaxHealthDelta {
         sign: DeltaSign,
         amount: Amount,
@@ -255,21 +258,45 @@ pub enum EffectKind {
     WheelSpin,
 }
 
+// Loot an event stakes on a fight it starts, resolved by the combat's reward roll
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EventLoot {
+    pub gold: Option<Amount>,
+    pub relic: Option<RelicName>,
+    pub relic_roll: bool,
+    pub relic_tiers: [Option<RelicTier>; 2],
+}
+
+pub const EVENT_LOOT_ZERO: EventLoot = EventLoot {
+    gold: None,
+    relic: None,
+    relic_roll: false,
+    relic_tiers: [None, None],
+};
+
+// Knowing Skull's escalating asks
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum KnowingSkullWish {
+    Potion,
+    Gold,
+    Card,
+}
+
 // What a reward roll is rolling for; the handler branches on it
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RewardSource {
     Cards {
         bundles: usize,
     },
+    // The Library: one pick-a-card bundle of 20 unique rarity-rolled cards
+    LibraryCards,
     Chest {
         kind: ChestKind,
     },
     Combat {
         room_kind: RoomKind,
         escaped: bool,
-        event_gold: Option<Amount>,
-        event_relic: Option<RelicName>,
-        event_relic_roll: bool,
+        loot: EventLoot,
     },
 
     // Neow's card offers: always 3, Neow-specific rarity rules
@@ -338,6 +365,10 @@ pub enum CandidateFilter {
     Picked,
     NotSource,
     NotMinion,
+
+    // Starter-card predicates (Vampires, Back to Basics)
+    StarterStrike,
+    StarterUpgradeable,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -372,7 +403,7 @@ pub struct Effect {
 }
 
 // Filler for slots past `card_effects_len` in Entity.card_effects
-pub const ZERO_EFFECT: Effect = Effect {
+pub const EFFECT_ZERO: Effect = Effect {
     kind: EffectKind::NoOp,
     id_source: None,
     target: Target::Direct(None),

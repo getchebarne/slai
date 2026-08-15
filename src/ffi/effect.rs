@@ -5,6 +5,7 @@ use pyo3::type_object::PyTypeInfo;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::KnowingSkullWish;
 use crate::effect::RewardSource;
 use crate::effect::Target;
 
@@ -17,11 +18,16 @@ use super::card::PyCardPile;
 use super::card::PyCardRarity;
 use super::card::PyCostScope;
 use super::macros::flat_variants;
+use super::macros::mirror_enum;
 use super::modifier::PyModifierKind;
 use super::monster::PyMonsterName;
 use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
 use super::target::PyTarget;
+
+mirror_enum!(PyKnowingSkullWish from KnowingSkullWish, "KnowingSkullWish", skip_from_py_object, {
+    Potion, Gold, Card,
+});
 
 // Mirrors only EffectKind variants reachable from static Card/monster defs; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
@@ -64,7 +70,7 @@ flat_variants!(PyEffect {
     FaceTrade => PyEffectFaceTrade as "EffectFaceTrade" { target: Option<PyTarget> },
     CardBottle => PyEffectCardBottle as "EffectCardBottle" { target: Option<PyTarget> },
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName, target: Option<PyTarget> },
-    CombatStart => PyEffectCombatStart as "EffectCombatStart" { event_gold: Option<PyAmount>, event_relic: Option<PyRelicName>, event_relic_roll: bool, target: Option<PyTarget> },
+    CombatStart => PyEffectCombatStart as "EffectCombatStart" { target: Option<PyTarget> },
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch" { target: Option<PyTarget> },
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName, fallback_circlet: bool, target: Option<PyTarget> },
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8, target: Option<PyTarget> },
@@ -86,6 +92,10 @@ flat_variants!(PyEffect {
     RelicLose => PyEffectRelicLose as "EffectRelicLose" { name: PyRelicName, target: Option<PyTarget> },
     RewardRollNeowCards => PyEffectRewardRollNeowCards as "EffectRewardRollNeowCards" { colorless: bool, rare_only: bool, target: Option<PyTarget> },
     StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: Option<PyTarget> },
+    MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen" { target: Option<PyTarget> },
+    KnowingSkullAsk => PyEffectKnowingSkullAsk as "EffectKnowingSkullAsk" { wish: PyKnowingSkullWish, target: Option<PyTarget> },
+    JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool, target: Option<PyTarget> },
+    RewardRollLibraryCards => PyEffectRewardRollLibraryCards as "EffectRewardRollLibraryCards" { target: Option<PyTarget> },
 });
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -251,16 +261,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             name: name.into(),
             target,
         }),
-        EffectKind::CombatStart {
-            event_gold,
-            event_relic,
-            event_relic_roll,
-        } => PyEffect::CombatStart(PyEffectCombatStart {
-            event_gold: event_gold.map(Into::into),
-            event_relic: event_relic.map(Into::into),
-            event_relic_roll,
-            target,
-        }),
+        EffectKind::CombatStart => PyEffect::CombatStart(PyEffectCombatStart { target }),
         EffectKind::AdventurerSearch => {
             PyEffect::AdventurerSearch(PyEffectAdventurerSearch { target })
         }
@@ -375,6 +376,19 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::StrengthLoseTemp { stacks } => {
             PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp { stacks, target })
         }
+        EffectKind::MausoleumOpen => PyEffect::MausoleumOpen(PyEffectMausoleumOpen { target }),
+        EffectKind::KnowingSkullAsk { wish } => {
+            PyEffect::KnowingSkullAsk(PyEffectKnowingSkullAsk {
+                wish: wish.into(),
+                target,
+            })
+        }
+        EffectKind::JoustBet { on_owner } => {
+            PyEffect::JoustBet(PyEffectJoustBet { on_owner, target })
+        }
+        EffectKind::RewardRoll {
+            source: RewardSource::LibraryCards,
+        } => PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards { target }),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

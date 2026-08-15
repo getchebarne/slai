@@ -1,7 +1,7 @@
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::entity::Entity;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::monsters::Move;
 use crate::monsters::make_entity_monster;
@@ -49,7 +49,7 @@ pub fn spawn_monster_book_of_stabbing(ascension_level: u8, rng: &mut impl Rng) -
         &MOVES_ASC3
     };
 
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::PainfulStabs, 1);
 
     make_entity_monster(

@@ -21,7 +21,7 @@ pub fn process_effect_card_add(
             let card = get_card(card_name, upgraded);
             let id_card = push_entity(&mut state.entities, card);
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardAddToDeck,
+                kind: EffectKind::CardAdopt,
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             });

@@ -1,9 +1,9 @@
 use crate::cards::get_card;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::STARTING_GOLD;
+use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
-use crate::entity::ZERO_ENTITY;
 use crate::types::CardName;
 use crate::types::Vitals;
 
@@ -70,6 +70,6 @@ pub const fn make_entity_character(
         character_name: name,
         character_reward_roll_offset,
         character_gold,
-        ..ZERO_ENTITY
+        ..ENTITY_ZERO
     }
 }

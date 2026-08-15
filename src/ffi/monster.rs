@@ -7,12 +7,12 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::RelicName;
+use crate::utils::frame_top;
 use crate::utils::has_relic;
-use crate::utils::mode_top;
 use crate::utils::scale_attack_damage;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
@@ -27,6 +27,7 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
     SlimeSpikeLarge, SlimeSpikeMedium, SlimeSpikeSmall, TheGuardian, Byrd, Centurion, Chosen,
     Healer, Mugger, ShelledParasite, SnakePlant, Snecko, SphericGuardian, BookOfStabbing,
     GremlinLeader, Taskmaster, BronzeAutomaton, BronzeOrb, Champ, TheCollector, TorchHead,
+    BanditBear, BanditLeader, BanditPointy,
 });
 
 mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_py_object, {
@@ -165,12 +166,15 @@ impl MonsterName {
             Self::Champ => "The Champ",
             Self::TheCollector => "The Collector",
             Self::TorchHead => "Torch Head",
+            Self::BanditBear => "Bear",
+            Self::BanditLeader => "Romeo",
+            Self::BanditPointy => "Pointy",
         }
     }
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
-    let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack) else {
+    let Frame::Combat { id_monsters, .. } = frame_top(&state.frame_stack) else {
         return Vec::new();
     };
     let character = &state.entities[state.id_character];

@@ -26,15 +26,15 @@ use crate::relics::POOL_SHOP_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::types::CardKind;
 use crate::types::CardRarity;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::pick_relic_from_pool;
 
 pub fn process_effect_shop_build(state: &mut GameState) {
-    let mut id_cards: Vec<usize> = Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL);
-    let mut id_relics: Vec<usize> = Vec::with_capacity(SHOP_SLOTS_RELIC);
-    let mut id_potions: Vec<usize> = Vec::with_capacity(SHOP_SLOTS_POTION);
+    let mut cards: Vec<(usize, u16)> = Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL);
+    let mut relics: Vec<(usize, u16)> = Vec::with_capacity(SHOP_SLOTS_RELIC);
+    let mut potions: Vec<(usize, u16)> = Vec::with_capacity(SHOP_SLOTS_POTION);
 
     // Colored: 2 Attack + 2 Skill + 1 Power
     for kind in [
@@ -44,47 +44,42 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         CardKind::Skill,
         CardKind::Power,
     ] {
-        let id_card = make_card_colored(&mut state.entities, &mut state.rng, &id_cards, kind);
-        id_cards.push(id_card);
+        let offer = make_card_colored(&mut state.entities, &mut state.rng, &cards, kind);
+        cards.push(offer);
     }
 
     // Colorless: 1 Uncommon + 1 Rare
     for rarity in [CardRarity::Uncommon, CardRarity::Rare] {
-        let id_card = make_card_colorless(&mut state.entities, &mut state.rng, &id_cards, rarity);
-        id_cards.push(id_card);
+        let offer = make_card_colorless(&mut state.entities, &mut state.rng, &cards, rarity);
+        cards.push(offer);
     }
 
     // Relics: 2 random-tier, 1 shop-tier. The tier roll stays per-slot for source parity
     for _ in 0..2 {
         let (pool, base_price) = roll_relic_tier(&mut state.rng);
-        push_relic(state, &mut id_relics, pool, base_price);
+        push_relic(state, &mut relics, pool, base_price);
     }
-    push_relic(
-        state,
-        &mut id_relics,
-        POOL_SHOP_RELIC,
-        SHOP_PRICE_RELIC_SHOP,
-    );
+    push_relic(state, &mut relics, POOL_SHOP_RELIC, SHOP_PRICE_RELIC_SHOP);
 
     // Potions: 3 (rarity rolled by get_random_potion_name)
     for _ in 0..SHOP_SLOTS_POTION {
-        id_potions.push(make_potion(&mut state.entities, &mut state.rng));
+        potions.push(make_potion(&mut state.entities, &mut state.rng));
     }
 
     // Sale tag: one random colored Card 50% off, before the A16 markup
     let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
-    state.entities[id_cards[idx]].price /= 2;
+    cards[idx].1 /= 2;
 
     // A16+ price bumps; the purge cost is exempt
     if state.ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
-        for &id in id_cards.iter().chain(&id_relics).chain(&id_potions) {
-            state.entities[id].price = bump_price_a16(state.entities[id].price);
+        for (_, price) in cards.iter_mut().chain(&mut relics).chain(&mut potions) {
+            *price = bump_price_a16(*price);
         }
     }
 
     // The Courier / Membership Card: 20% / 50% off everything
-    for &id in id_cards.iter().chain(&id_relics).chain(&id_potions) {
-        state.entities[id].price = apply_shop_discounts(state.entities[id].price, &state.id_relics);
+    for (_, price) in cards.iter_mut().chain(&mut relics).chain(&mut potions) {
+        *price = apply_shop_discounts(*price, &state.id_relics);
     }
 
     // Smiling Mask: the removal service is always 50 gold
@@ -94,11 +89,12 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         apply_shop_discounts(state.shop_purge_cost_run, &state.id_relics)
     };
 
-    state.mode_stack.push(Mode::Shop {
-        shop_id_cards: id_cards,
-        shop_id_relics: id_relics,
-        shop_id_potions: id_potions,
-        shop_purge_cost: purge_cost,
+    state.frame_stack.push(Frame::Shop {
+        cards: cards,
+        relics: relics,
+        potions: potions,
+        purge_cost: purge_cost,
+        purged: false,
     });
 }
 
@@ -121,14 +117,18 @@ fn roll_relic_tier(rng: &mut impl Rng) -> (&'static [RelicName], u16) {
 
 fn push_relic(
     state: &mut GameState,
-    id_relics: &mut Vec<usize>,
+    relics: &mut Vec<(usize, u16)>,
     pool: &[RelicName],
     base_price: u16,
 ) {
-    let id_taken = get_shop_taken_relic_names(&state.id_relics, &state.entities, id_relics);
+    let id_taken = get_shop_taken_relic_names(&state.id_relics, &state.entities, relics);
     let Some(name) = pick_relic_from_pool(pool, &id_taken, &mut state.rng) else {
         return;
     };
-    let id_relic = make_relic_with_price(&mut state.entities, &mut state.rng, name, base_price);
-    id_relics.push(id_relic);
+    relics.push(make_relic_with_price(
+        &mut state.entities,
+        &mut state.rng,
+        name,
+        base_price,
+    ));
 }

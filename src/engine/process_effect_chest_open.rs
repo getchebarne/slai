@@ -3,29 +3,24 @@ use crate::effect::EffectKind;
 use crate::effect::RewardSource;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::game::Location;
-use crate::map::room_at_mut;
 use crate::types::CardColor;
 use crate::types::CardPile;
 use crate::types::CardRarity;
-use crate::types::Mode;
+use crate::types::Frame;
 use crate::types::RelicName;
+use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
-use crate::utils::mode_replace;
 
 pub fn process_effect_chest_open(state: &mut GameState) {
-    let Location::Overworld { y, x } = state.location else {
-        panic!("ChestOpen outside Overworld");
+    let Frame::Chest {
+        chest_kind,
+        chest_opened,
+    } = frame_top_mut(&mut state.frame_stack)
+    else {
+        unreachable!("ChestOpen outside the Chest frame")
     };
-
-    let room =
-        room_at_mut(&state.id_rooms, &mut state.entities, y, x).expect("ChestOpen room missing");
-    let chest_kind = room
-        .room_chest_kind
-        .expect("ChestOpen with no chest_kind on room");
-
-    room.room_chest_opened = true;
-    mode_replace(&mut state.mode_stack, Mode::ChestOpened);
+    let chest_kind = *chest_kind;
+    *chest_opened = true;
 
     // Cursed Key: opening a chest adds a random Curse to the deck
     if has_relic(&state.id_relics, RelicName::CursedKey) {

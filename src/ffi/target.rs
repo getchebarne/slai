@@ -44,7 +44,7 @@ impl From<CandidatePool> for PyCandidatePool {
 
 mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", skip_from_py_object, {
     Any, Purgeable, Upgradeable, Transformable, PurgeableCurse, KindAttack, KindSkill,
-    KindPower, Costed, Picked, NotSource, NotMinion,
+    KindPower, Costed, Picked, NotSource, NotMinion, StarterStrike, StarterUpgradeable,
 });
 
 flat_variants!(PySelectionKind {
