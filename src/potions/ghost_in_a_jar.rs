@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_GHOST_IN_A_JAR: Entity = make_entity_potion(
     PotionName::GhostInAJar,
     PotionRarity::Rare,
-    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {

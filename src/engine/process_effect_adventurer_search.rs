@@ -11,22 +11,22 @@ use crate::modifier::ModifierKind;
 use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::monsters::lagavulin;
 use crate::types::DeltaSign;
-use crate::types::Frame;
+use crate::types::Focus;
 use crate::types::MonsterEncounter;
-use crate::utils::frame_top_mut;
+use crate::utils::context_focus;
 
 // Dead Adventurer search: escalating chance an elite returns
 pub fn process_effect_adventurer_search(state: &mut GameState) {
-    let Frame::Event {
-        kind:
-            EventKind::DeadAdventurer {
-                found_gold,
-                found_nothing,
-                found_relic,
-                searches,
-            },
-        ..
-    } = frame_top_mut(&mut state.frame_stack)
+    assert!(
+        context_focus(state) == Focus::Event,
+        "AdventurerSearch outside the Event context"
+    );
+    let EventKind::DeadAdventurer {
+        found_gold,
+        found_nothing,
+        found_relic,
+        searches,
+    } = &mut state.event.event_kind
     else {
         unreachable!("AdventurerSearch outside a Dead Adventurer event")
     };
@@ -36,11 +36,6 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
     let chance = base + 25 * *searches as u16;
 
     if (state.rng.random_range(0..100) as u16) < chance {
-        // The fight stacks over this live event; the un-found loot pays out
-        // through `fight_loot` when the combat ends
-
-        // Rolled at wake, not at spawn: the identity is hidden state with no
-        // observable consequence before the fight
         let encounter = match state.rng.random_range(0..3) {
             0 => MonsterEncounter::ThreeSentries,
             1 => MonsterEncounter::GremlinNob,

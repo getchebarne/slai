@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_DUPLICATION: Entity = make_entity_potion(
     PotionName::DuplicateNextCardPlayPotion,
     PotionRarity::Uncommon,
-    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {

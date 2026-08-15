@@ -25,7 +25,6 @@ pub static PREPARED: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::CardDraw { count: 1 },
@@ -52,14 +51,14 @@ pub static PREPARED: Entity = make_entity_card(
 pub static PREPARED_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = PREPARED.card_effects;
-        a[0].kind = EffectKind::CardDraw { count: 2 }; // +1 Card
-        a[1].target = Target::Resolve {
+        let mut effects = PREPARED.card_effects;
+        effects[0].kind = EffectKind::CardDraw { count: 2 }; // +1 Card
+        effects[1].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,
             filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Input { count: 2 }, // +1 Card
         };
-        a
+        effects
     },
     ..PREPARED
 };

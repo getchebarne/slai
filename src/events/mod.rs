@@ -37,13 +37,15 @@ mod wing_statue;
 mod world_of_goop;
 
 use crate::consts::MAX_EFFECTS_PER_EVENT_OPTION;
+use crate::consts::RELIC_TIER_TH_COMMON;
+use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::EventLoot;
+use crate::effect::RelicPick;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::ENTITY_ZERO;
@@ -71,11 +73,7 @@ pub const EVENT_CONSUME_EFFECT: Effect = Effect {
     target: Target::Direct(None),
 };
 
-// The leave option and the three deck-pick effects every shrine-shaped event repeats
-pub const OPTION_LEAVE: Entity =
-    make_entity_event_option("[Leave] Nothing happens.", &[EVENT_CONSUME_EFFECT]);
-
-pub const EFFECT_DECK_PURGE_PICK: Effect = Effect {
+pub const EFFECT_DECK_PURGE_PICK_1: Effect = Effect {
     kind: EffectKind::CardPurge,
     id_source: None,
     target: Target::Resolve {
@@ -85,7 +83,7 @@ pub const EFFECT_DECK_PURGE_PICK: Effect = Effect {
     },
 };
 
-pub const EFFECT_DECK_UPGRADE_PICK: Effect = Effect {
+pub const EFFECT_DECK_UPGRADE_PICK_1: Effect = Effect {
     kind: EffectKind::CardUpgrade,
     id_source: None,
     target: Target::Resolve {
@@ -95,7 +93,7 @@ pub const EFFECT_DECK_UPGRADE_PICK: Effect = Effect {
     },
 };
 
-pub const EFFECT_DECK_TRANSFORM_PICK: Effect = Effect {
+pub const EFFECT_DECK_TRANSFORM_PICK_1: Effect = Effect {
     kind: EffectKind::CardTransform { upgraded: false },
     id_source: None,
     target: Target::Resolve {
@@ -106,7 +104,7 @@ pub const EFFECT_DECK_TRANSFORM_PICK: Effect = Effect {
 };
 
 // Transform two chosen cards (Designer's Clean Up, Drug Dealer)
-pub const EFFECT_DECK_TRANSFORM_PICK_TWO: Effect = Effect {
+pub const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
     kind: EffectKind::CardTransform { upgraded: false },
     id_source: None,
     target: Target::Resolve {
@@ -115,6 +113,10 @@ pub const EFFECT_DECK_TRANSFORM_PICK_TWO: Effect = Effect {
         selection_kind: SelectionKind::Input { count: 2 },
     },
 };
+
+// The leave option and the three deck-pick effects every shrine-shaped event repeats
+pub const OPTION_LEAVE: Entity =
+    make_entity_event_option("[Leave] Nothing happens.", &[EVENT_CONSUME_EFFECT]);
 
 #[derive(Debug, Clone, Copy)]
 pub enum EventKind {
@@ -168,10 +170,7 @@ pub enum EventKind {
     Colosseum {
         stage: u8,
     },
-    Designer {
-        adjust_upgrades_one: bool,
-        cleanup_removes: bool,
-    },
+    Designer,
     KnowingSkull {
         potion_cost_hp: u8,
         gold_cost_hp: u8,
@@ -185,8 +184,6 @@ pub enum EventKind {
 pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<usize>) {
     let ascension = state.ascension;
     let (kind, options): (EventKind, &[Entity]) = match name {
-        // Neow rolls and bakes its own options
-        EventName::Neow => return neow::spawn_event_neow(state),
         EventName::BigFish => (EventKind::BigFish, big_fish::OPTIONS),
         EventName::TheCleric => (EventKind::TheCleric, the_cleric::options(ascension)),
         EventName::Duplicator => (EventKind::Duplicator, duplicator::OPTIONS),
@@ -222,10 +219,6 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
         EventName::BonfireSpirits => (EventKind::BonfireSpirits, bonfire_spirits::OPTIONS),
         EventName::OminousForge => (EventKind::OminousForge, ominous_forge::OPTIONS),
         EventName::FaceTrader => (EventKind::FaceTrader, face_trader::options(ascension)),
-        EventName::WeMeetAgain => (
-            we_meet_again::spawn_event_we_meet_again(state),
-            we_meet_again::OPTIONS,
-        ),
         EventName::Addict => (EventKind::Addict, addict::OPTIONS),
         EventName::Beggar => (EventKind::Beggar, beggar::OPTIONS),
         EventName::Ghosts => (EventKind::Ghosts, ghosts::options(ascension)),
@@ -237,11 +230,12 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
         EventName::Vampires => (EventKind::Vampires, vampires::OPTIONS),
         EventName::Colosseum => (EventKind::Colosseum { stage: 0 }, colosseum::OPTIONS),
         EventName::Designer => (
-            EventKind::Designer {
-                adjust_upgrades_one: state.rng.random_bool(0.5),
-                cleanup_removes: state.rng.random_bool(0.5),
-            },
-            designer::options(ascension),
+            EventKind::Designer,
+            designer::options(
+                ascension,
+                state.rng.random_bool(0.5),
+                state.rng.random_bool(0.5),
+            ),
         ),
         EventName::KnowingSkull => (
             EventKind::KnowingSkull {
@@ -261,22 +255,32 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
             },
             dead_adventurer::OPTIONS,
         ),
+
+        // Neow and We Meet Again! roll and bake their own options
+        EventName::Neow => return neow::spawn_event_neow(state),
+        EventName::WeMeetAgain => return we_meet_again::spawn_event_we_meet_again(state),
     };
-    let id_options = bake_options(state, options);
-    (kind, id_options)
+    let id_event_options = bake_options(state, options);
+    (kind, id_event_options)
 }
 
 // One Entity per option, copied into the arena at spawn
 fn bake_options(state: &mut GameState, options: &[Entity]) -> Vec<usize> {
-    let mut id_options = Vec::with_capacity(options.len());
+    let mut id_event_options = Vec::with_capacity(options.len());
     for &option in options {
-        id_options.push(push_entity(&mut state.entities, option));
+        id_event_options.push(push_entity(&mut state.entities, option));
     }
-    id_options
+    id_event_options
 }
 
-// Loot an event stakes on the fight it hosts, read off the frame the combat
-// reveals when it pops; None resumes the event unpaid (Colosseum's first bout)
+// Loot an event stakes on the fight it hosts, translated into reward effects by
+// the combat's end; None resumes the event unpaid (Colosseum's first bout)
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EventLoot {
+    pub gold: Option<Amount>,
+    pub relics: [Option<RelicPick>; 2],
+}
+
 pub fn fight_loot(kind: EventKind) -> Option<EventLoot> {
     match kind {
         EventKind::Mushrooms => Some(mushrooms::FIGHT_LOOT),
@@ -294,12 +298,18 @@ pub fn fight_loot(kind: EventKind) -> Option<EventLoot> {
                     min: 25 + gold_extra,
                     max: 35 + gold_extra,
                 }),
-                relic: None,
-                relic_roll: !found_relic,
-                relic_tiers: [None, None],
+                relics: [
+                    (!found_relic).then_some(RelicPick::Thresholds {
+                        th_common: RELIC_TIER_TH_COMMON,
+                        th_uncommon: RELIC_TIER_TH_UNCOMMON,
+                    }),
+                    None,
+                ],
             })
         }
-        _ => None,
+        // Every fight-hosting event must claim an arm; None is reserved for
+        // deliberate unpaid bouts (Colosseum's first)
+        _ => unreachable!("fight over a non-fight event: {kind:?}"),
     }
 }
 
@@ -331,10 +341,7 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
         EventKind::BackToBasics => back_to_basics::option_available(state, idx),
         EventKind::Vampires => vampires::option_available(state, idx),
         EventKind::Colosseum { stage } => colosseum::option_available(stage, idx),
-        EventKind::Designer {
-            adjust_upgrades_one,
-            cleanup_removes,
-        } => designer::option_available(state, adjust_upgrades_one, cleanup_removes, idx),
+        EventKind::Designer => designer::option_available(state, idx),
         EventKind::TheCleric => the_cleric::option_available(state, idx),
         EventKind::WingStatue => wing_statue::option_available(state, idx),
         EventKind::LivingWall => living_wall::option_available(state, idx),
@@ -355,28 +362,28 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
 
 pub fn deck_has_upgradable(state: &GameState) -> bool {
     state
-        .id_deck
+        .id_card_deck
         .iter()
         .any(|&id| card_is_upgradable(&state.entities[id]))
 }
 
 pub fn deck_has_purgeable(state: &GameState) -> bool {
     state
-        .id_deck
+        .id_card_deck
         .iter()
         .any(|&id| card_is_purgeable(&state.entities[id]))
 }
 
 pub fn deck_has_non_basic_non_curse(state: &GameState) -> bool {
     state
-        .id_deck
+        .id_card_deck
         .iter()
         .any(|&id| card_is_non_basic_non_curse(&state.entities[id]))
 }
 
 pub fn deck_has_damage_card(state: &GameState, min_base: u16) -> bool {
     state
-        .id_deck
+        .id_card_deck
         .iter()
         .any(|&id| card_has_damage_at_least(&state.entities[id], min_base))
 }

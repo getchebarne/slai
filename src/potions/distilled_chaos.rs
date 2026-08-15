@@ -9,7 +9,6 @@ use crate::types::PotionRarity;
 pub static POTION_DISTILLED_CHAOS: Entity = make_entity_potion(
     PotionName::DistilledChaos,
     PotionRarity::Uncommon,
-    false,
     true,
     &[Effect {
         kind: EffectKind::CardPlayFromDrawTop,

@@ -168,8 +168,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyAmountAbsolute;
     #[pymodule_export]
-    use super::ffi::PyAmountEventGoldAsk;
-    #[pymodule_export]
     use super::ffi::PyAmountRange;
     #[pymodule_export]
     use super::ffi::PyAmountRelative;
@@ -179,10 +177,6 @@ mod slai {
     use super::ffi::PyCandidatePoolDeck;
     #[pymodule_export]
     use super::ffi::PyCandidatePoolDiscover;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventPickCard;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventPickPotion;
     #[pymodule_export]
     use super::ffi::PyCandidatePoolHand;
     #[pymodule_export]
@@ -206,7 +200,11 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyCardPile;
     #[pymodule_export]
+    use super::ffi::PyChest;
+    #[pymodule_export]
     use super::ffi::PyChestKind;
+    #[pymodule_export]
+    use super::ffi::PyCombat;
     #[pymodule_export]
     use super::ffi::PyCostScope;
     #[pymodule_export]
@@ -340,6 +338,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectWheelSpin;
     #[pymodule_export]
+    use super::ffi::PyEvent;
+    #[pymodule_export]
     use super::ffi::PyEventKindAddict;
     #[pymodule_export]
     use super::ffi::PyEventKindBackToBasics;
@@ -414,21 +414,11 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventKindWorldOfGoop;
     #[pymodule_export]
-    use super::ffi::PyFrameChest;
-    #[pymodule_export]
-    use super::ffi::PyFrameCombat;
-    #[pymodule_export]
-    use super::ffi::PyFrameEvent;
-    #[pymodule_export]
-    use super::ffi::PyFrameMap;
-    #[pymodule_export]
-    use super::ffi::PyFrameRestSite;
-    #[pymodule_export]
-    use super::ffi::PyFrameReward;
-    #[pymodule_export]
-    use super::ffi::PyFrameShop;
-    #[pymodule_export]
     use super::ffi::PyKnowingSkullWish;
+    #[pymodule_export]
+    use super::ffi::PyRestSite;
+    #[pymodule_export]
+    use super::ffi::PyReward;
     #[pymodule_export]
     use super::ffi::PySelectionKindAll;
     #[pymodule_export]
@@ -439,4 +429,6 @@ mod slai {
     use super::ffi::PySelectionKindRandom;
     #[pymodule_export]
     use super::ffi::PySelectionKindSingle;
+    #[pymodule_export]
+    use super::ffi::PyShop;
 }

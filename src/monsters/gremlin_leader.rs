@@ -117,7 +117,10 @@ pub fn get_next_move_gremlin_leader(
         .flatten()
         .filter(|&&id| id != entity_id)
         .count();
-    let last = move_history.last().copied().map(|m| m as usize);
+    let last = move_history
+        .last()
+        .copied()
+        .map(|idx_move| idx_move as usize);
     let roll = rng.random_range(0..=99);
 
     if gremlins_alive == 1 {

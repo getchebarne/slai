@@ -23,7 +23,6 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 6 },
@@ -49,14 +48,14 @@ pub static CLOAK_AND_DAGGER: Entity = make_entity_card(
 pub static CLOAK_AND_DAGGER_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = CLOAK_AND_DAGGER.card_effects;
-        a[1].kind = EffectKind::CardAdd {
+        let mut effects = CLOAK_AND_DAGGER.card_effects;
+        effects[1].kind = EffectKind::CardAdd {
             card_name: CardName::Shiv,
             pile: CardPile::Hand,
             count: 2, // +1 shiv
             upgraded: false,
         };
-        a
+        effects
     },
     ..CLOAK_AND_DAGGER
 };

@@ -8,6 +8,8 @@ use super::card::PyCardPile;
 use super::card::PyCardRarity;
 use super::card::PyCostScope;
 use super::card::PyPlayRestriction;
+use super::context::PyChestKind;
+use super::effect::PyKnowingSkullWish;
 use super::map::PyRoomKind;
 use super::monster::PyIntentKind;
 use super::monster::PyMonsterEncounter;
@@ -152,8 +154,10 @@ impl_discriminant_hash!(
     PyRelicTier,
     PyCandidateFilter,
     PyCardPile,
+    PyChestKind,
     PyCostScope,
     PyIntentKind,
+    PyKnowingSkullWish,
 );
 
 pub(crate) use flat_variants;

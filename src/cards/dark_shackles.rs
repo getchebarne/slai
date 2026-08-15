@@ -21,7 +21,6 @@ pub static DARK_SHACKLES: Entity = make_entity_card(
     true,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::StrengthLoseTemp { stacks: 9 },
         id_source: None,
@@ -35,9 +34,9 @@ pub static DARK_SHACKLES: Entity = make_entity_card(
 pub static DARK_SHACKLES_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DARK_SHACKLES.card_effects;
-        a[0].kind = EffectKind::StrengthLoseTemp { stacks: 15 };
-        a
+        let mut effects = DARK_SHACKLES.card_effects;
+        effects[0].kind = EffectKind::StrengthLoseTemp { stacks: 15 };
+        effects
     },
     ..DARK_SHACKLES
 };

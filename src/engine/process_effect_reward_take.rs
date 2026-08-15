@@ -4,9 +4,8 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::types::Frame;
+use crate::types::Reward;
 use crate::types::RewardKind;
-use crate::utils::frame_top_mut;
 
 // Claims hand the staged reward entity to the matching Adopt effect, which owns
 // registration and any on-pickup behavior
@@ -15,16 +14,15 @@ pub fn process_effect_reward_take(
     state: &mut GameState,
     kind: RewardKind,
 ) {
-    let Frame::Reward {
+    assert!(state.reward.active, "RewardTake outside the Reward context");
+    let Reward {
         id_cards: bundles,
         id_relics,
         id_potions,
         gold,
         relics_exclusive,
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("RewardTake outside the Reward frame")
-    };
+        ..
+    } = &mut state.reward;
 
     // Each `expect` stays inside its arm: Gold legitimately carries no id_target
     let (id_taken, kind_adopt) = match kind {

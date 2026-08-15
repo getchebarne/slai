@@ -10,20 +10,20 @@ use crate::types::CardColor;
 use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::DeltaSign;
-use crate::types::Frame;
-use crate::utils::frame_top_mut;
+use crate::types::Focus;
+use crate::utils::context_focus;
 
 // Knowing Skull: pay the wish's HP cost, receive, and escalate that cost by one
 pub fn process_effect_knowing_skull_ask(state: &mut GameState, wish: KnowingSkullWish) {
-    let Frame::Event {
-        kind:
-            EventKind::KnowingSkull {
-                potion_cost_hp,
-                gold_cost_hp,
-                card_cost_hp,
-            },
-        ..
-    } = frame_top_mut(&mut state.frame_stack)
+    assert!(
+        context_focus(state) == Focus::Event,
+        "KnowingSkullAsk outside the Event context"
+    );
+    let EventKind::KnowingSkull {
+        potion_cost_hp,
+        gold_cost_hp,
+        card_cost_hp,
+    } = &mut state.event.event_kind
     else {
         unreachable!("KnowingSkullAsk outside a Knowing Skull event")
     };

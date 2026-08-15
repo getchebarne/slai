@@ -21,7 +21,6 @@ pub static HAND_OF_GREED: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -45,13 +44,13 @@ pub static HAND_OF_GREED: Entity = make_entity_card(
 pub static HAND_OF_GREED_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = HAND_OF_GREED.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = HAND_OF_GREED.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 25,
             lifesteal: false,
         }; // +5 damage
-        a[1].kind = EffectKind::HandOfGreedProc { gold: 25 }; // +5 gold
-        a
+        effects[1].kind = EffectKind::HandOfGreedProc { gold: 25 }; // +5 gold
+        effects
     },
     ..HAND_OF_GREED
 };

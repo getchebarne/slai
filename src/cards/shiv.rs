@@ -21,7 +21,6 @@ pub static SHIV: Entity = make_entity_card(
     true,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 4,
@@ -38,12 +37,12 @@ pub static SHIV: Entity = make_entity_card(
 pub static SHIV_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = SHIV.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = SHIV.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 6,
             lifesteal: false,
         }; // +2 damage
-        a
+        effects
     },
     ..SHIV
 };

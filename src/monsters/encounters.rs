@@ -252,8 +252,10 @@ const ENC_POOL_ELITE2: [MonsterEncounter; NUM_ELITE2] = build_pool(EncounterPool
 // Sort ascending by weight (stable for ties), normalize to sum 1.0
 fn normalize_weights(pool: &[MonsterEncounter]) -> Vec<(MonsterEncounter, f32)> {
     // Pair each encounter with its raw weight
-    let mut encounter_table: Vec<(MonsterEncounter, f32)> =
-        pool.iter().map(|&e| (e, get_encounter_weight(e))).collect();
+    let mut encounter_table: Vec<(MonsterEncounter, f32)> = pool
+        .iter()
+        .map(|&monster_encounter| (monster_encounter, get_encounter_weight(monster_encounter)))
+        .collect();
 
     // Stable ascending sort
     encounter_table.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());

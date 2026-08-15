@@ -21,7 +21,6 @@ pub static CALCULATED_GAMBLE: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::Gamble {
             choose_discards: false,

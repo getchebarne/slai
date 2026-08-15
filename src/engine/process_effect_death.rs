@@ -10,12 +10,11 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::potions::remove_potion;
+use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Frame;
 use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 use crate::utils::release_stasis_card;
 
@@ -71,27 +70,28 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     }
 
     // Monster-death path
-    let Frame::Combat {
+    assert!(
+        state.combat.active,
+        "Monster death outside the Combat frame"
+    );
+    let Combat {
         id_monsters,
-        id_stasis_cards,
-        id_hand,
-        id_pile_discard,
+        id_card_stasis,
+        id_card_hand,
+        id_card_discard,
         ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("Monster death outside the Combat frame")
-    };
+    } = &mut state.combat;
     let id_character = state.id_character;
 
     // Mark the corpse dead, drop it from the live roster, and check if combat continues
     state.entities[id_target].dead = true;
-    if let Some(slot) = id_monsters.iter().position(|s| *s == Some(id_target)) {
+    if let Some(slot) = id_monsters.iter().position(|slot| *slot == Some(id_target)) {
         id_monsters[slot] = None; // Clear from `id_monsters` Vec
-        release_stasis_card(slot, id_stasis_cards, id_hand, id_pile_discard);
+        release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
     }
 
     // Calculate if there're any monsters left alive
-    let any_alive = id_monsters.iter().any(|s| s.is_some());
+    let any_alive = id_monsters.iter().any(|slot| slot.is_some());
 
     // Return stolen gold, once. Only relevant for Looters in practice
     let stolen_gold = state.entities[id_target].monster_stolen_gold;

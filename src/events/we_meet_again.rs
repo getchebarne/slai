@@ -1,15 +1,12 @@
 use rand::Rng;
 
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventKind;
+use crate::events::bake_options;
 use crate::events::make_entity_event_option;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -21,70 +18,15 @@ const RELIC_REWARD: Effect = Effect {
     target: Target::Direct(None),
 };
 
-// The picks and the gold ask resolve from the payload at execution time
-const OPTION_GIVE_POTION: &[Effect] = &[
-    Effect {
-        kind: EffectKind::PotionDiscard,
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::EventPickPotion,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    },
-    RELIC_REWARD,
-    EVENT_CONSUME_EFFECT,
-];
-
-const OPTION_GIVE_GOLD: &[Effect] = &[
-    Effect {
-        kind: EffectKind::GoldDelta {
-            sign: DeltaSign::Loss,
-            amount: Amount::EventGoldAsk,
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    },
-    RELIC_REWARD,
-    EVENT_CONSUME_EFFECT,
-];
-
-const OPTION_GIVE_CARD: &[Effect] = &[
-    Effect {
-        kind: EffectKind::CardPurge,
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::EventPickCard,
-            filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Single,
-        },
-    },
-    RELIC_REWARD,
-    EVENT_CONSUME_EFFECT,
-];
-
 const OPTION_ATTACK: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option(
-        "[Give Potion] Lose the offered potion. Obtain a random relic.",
-        OPTION_GIVE_POTION,
-    ),
-    make_entity_event_option(
-        "[Give Gold] Lose the asked gold. Obtain a random relic.",
-        OPTION_GIVE_GOLD,
-    ),
-    make_entity_event_option(
-        "[Give Card] Lose the offered card. Obtain a random relic.",
-        OPTION_GIVE_CARD,
-    ),
-    make_entity_event_option("[Attack] Nothing happens.", OPTION_ATTACK),
-];
-
-pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventKind {
+// Spawn rolls the picks and the ask, then bakes them into the options;
+// availability re-validates the picks at selection (the offered potion can be
+// drunk while standing here)
+pub fn spawn_event_we_meet_again(state: &mut GameState) -> (EventKind, Vec<usize>) {
     // Card offer: uniform among non-Basic, non-Curse deck Cards
     let eligible: Vec<usize> = state
-        .id_deck
+        .id_card_deck
         .iter()
         .copied()
         .filter(|&id| card_is_non_basic_non_curse(&state.entities[id]))
@@ -101,11 +43,62 @@ pub fn spawn_event_we_meet_again(state: &mut GameState) -> EventKind {
     let gold = state.entities[state.id_character].character_gold;
     let gold_ask = (gold >= 50).then(|| state.rng.random_range(50..=gold.min(150)));
 
-    EventKind::WeMeetAgain {
-        id_card,
-        id_potion,
-        gold_ask,
-    }
+    // Unrolled picks bake Direct(None) / a zero ask; availability gates those options off
+    let option_give_potion = [
+        Effect {
+            kind: EffectKind::PotionDiscard,
+            id_source: None,
+            target: Target::Direct(id_potion),
+        },
+        RELIC_REWARD,
+        EVENT_CONSUME_EFFECT,
+    ];
+    let option_give_gold = [
+        Effect {
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Loss,
+                amount: Amount::Absolute(gold_ask.unwrap_or(0)),
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+        RELIC_REWARD,
+        EVENT_CONSUME_EFFECT,
+    ];
+    let option_give_card = [
+        Effect {
+            kind: EffectKind::CardPurge,
+            id_source: None,
+            target: Target::Direct(id_card),
+        },
+        RELIC_REWARD,
+        EVENT_CONSUME_EFFECT,
+    ];
+
+    let options = [
+        make_entity_event_option(
+            "[Give Potion] Lose the offered potion. Obtain a random relic.",
+            &option_give_potion,
+        ),
+        make_entity_event_option(
+            "[Give Gold] Lose the asked gold. Obtain a random relic.",
+            &option_give_gold,
+        ),
+        make_entity_event_option(
+            "[Give Card] Lose the offered card. Obtain a random relic.",
+            &option_give_card,
+        ),
+        make_entity_event_option("[Attack] Nothing happens.", OPTION_ATTACK),
+    ];
+    let id_event_options = bake_options(state, &options);
+    (
+        EventKind::WeMeetAgain {
+            id_card,
+            id_potion,
+            gold_ask,
+        },
+        id_event_options,
+    )
 }
 
 pub fn option_available(
@@ -119,7 +112,7 @@ pub fn option_available(
         // Rolled ids are validated at use: the pick must still be owned
         0 => id_potion.is_some_and(|id| state.id_potions.contains(&Some(id))),
         1 => gold_ask.is_some() && state.entities[state.id_character].character_gold >= 50,
-        2 => id_card.is_some_and(|id| state.id_deck.contains(&id)),
+        2 => id_card.is_some_and(|id| state.id_card_deck.contains(&id)),
         3 => true,
         _ => unreachable!("We meet again option out of range: {idx}"),
     }

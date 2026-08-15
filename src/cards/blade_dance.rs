@@ -22,7 +22,6 @@ pub static BLADE_DANCE: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
@@ -41,14 +40,14 @@ pub static BLADE_DANCE: Entity = make_entity_card(
 pub static BLADE_DANCE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = BLADE_DANCE.card_effects;
-        a[0].kind = EffectKind::CardAdd {
+        let mut effects = BLADE_DANCE.card_effects;
+        effects[0].kind = EffectKind::CardAdd {
             card_name: CardName::Shiv,
             pile: CardPile::Hand,
             count: 4, // +1 shiv
             upgraded: false,
         };
-        a
+        effects
     },
     ..BLADE_DANCE
 };

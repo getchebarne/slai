@@ -22,7 +22,6 @@ pub static DOPPELGANGER: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::ModifierGain {

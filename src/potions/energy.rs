@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_ENERGY: Entity = make_entity_potion(
     PotionName::EnergyPotion,
     PotionRarity::Common,
-    false,
     true,
     &[Effect {
         kind: EffectKind::EnergyDelta {

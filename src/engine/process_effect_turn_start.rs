@@ -16,23 +16,23 @@ use crate::relics::trigger_relic_counter;
 use crate::types::CardColor;
 use crate::types::CardName;
 use crate::types::CardPile;
+use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Frame;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 
 pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
-    let Frame::Combat {
+    assert!(
+        state.combat.active,
+        "process_effect_turn_start outside the Combat frame"
+    );
+    let Combat {
         id_monsters,
         energy,
         id_card_nightmare,
         ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("process_effect_turn_start outside the Combat frame")
-    };
+    } = &mut state.combat;
     let id_actor = id_target.expect("TurnStart requires id_target");
 
     // Clear effect buffer

@@ -23,7 +23,6 @@ pub static METAMORPHOSIS: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardAddRandom {
             color: CardColor::Green,
@@ -45,8 +44,8 @@ pub static METAMORPHOSIS: Entity = make_entity_card(
 pub static METAMORPHOSIS_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = METAMORPHOSIS.card_effects;
-        a[0].kind = EffectKind::CardAddRandom {
+        let mut effects = METAMORPHOSIS.card_effects;
+        effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Green,
             kind: Some(CardKind::Attack),
             pile: CardPile::Draw,
@@ -55,7 +54,7 @@ pub static METAMORPHOSIS_PLUS: Entity = Entity {
             upgraded: false,
             rarity: None,
         };
-        a
+        effects
     },
     ..METAMORPHOSIS
 };

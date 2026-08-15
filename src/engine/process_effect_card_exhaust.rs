@@ -5,25 +5,25 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardPile;
-use crate::types::Frame;
+use crate::types::Combat;
 use crate::types::RelicName;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 
 pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameState) {
-    let Frame::Combat {
-        id_hand,
-        id_pile_exhaust,
+    assert!(
+        state.combat.active,
+        "process_effect_card_exhaust outside the Combat frame"
+    );
+    let Combat {
+        id_card_hand,
+        id_card_exhaust,
         ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("process_effect_card_exhaust outside the Combat frame")
-    };
+    } = &mut state.combat;
     let id_card = id_target.expect("CardExhaust requires id_target");
-    if let Some(pos) = id_hand.iter().position(|&v| v == id_card) {
-        id_hand.remove(pos);
+    if let Some(pos) = id_card_hand.iter().position(|&id| id == id_card) {
+        id_card_hand.remove(pos);
     }
-    id_pile_exhaust.push(id_card);
+    id_card_exhaust.push(id_card);
 
     // Dead Branch: every exhaust conjures a random Silent Card into the hand
     // (all green Cards are rewardable, so no kind/rarity filter is needed)

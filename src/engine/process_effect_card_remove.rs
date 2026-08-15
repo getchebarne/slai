@@ -1,13 +1,14 @@
 use crate::game::GameState;
-use crate::types::Frame;
-use crate::utils::frame_top_mut;
+use crate::types::Combat;
 
 pub fn process_effect_card_remove(id_target: Option<usize>, state: &mut GameState) {
-    let Frame::Combat { id_hand, .. } = frame_top_mut(&mut state.frame_stack) else {
-        unreachable!("process_effect_card_remove outside the Combat frame")
-    };
+    assert!(
+        state.combat.active,
+        "process_effect_card_remove outside the Combat frame"
+    );
+    let Combat { id_card_hand, .. } = &mut state.combat;
     let id_card = id_target.expect("CardRemove requires id_target");
-    if let Some(pos) = id_hand.iter().position(|&v| v == id_card) {
-        id_hand.remove(pos);
+    if let Some(pos) = id_card_hand.iter().position(|&id| id == id_card) {
+        id_card_hand.remove(pos);
     }
 }

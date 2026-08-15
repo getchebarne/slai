@@ -21,7 +21,6 @@ pub static DIE_DIE_DIE: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 13,
@@ -38,12 +37,12 @@ pub static DIE_DIE_DIE: Entity = make_entity_card(
 pub static DIE_DIE_DIE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DIE_DIE_DIE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = DIE_DIE_DIE.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 17,
             lifesteal: false,
         }; // +4 damage
-        a
+        effects
     },
     ..DIE_DIE_DIE
 };

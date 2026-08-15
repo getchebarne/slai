@@ -18,9 +18,8 @@ pub static DAZED: Entity = make_entity_card(
     false,
     true, // Ethereal — auto-exhaust at end of turn
     false,
-    false,
     &[],
     &[],
     &[],
-    PlayRestriction::Never, // Unplayable
+    PlayRestriction::Never,
 );

@@ -9,7 +9,6 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RewardSource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::EventKind;
@@ -22,11 +21,9 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
-use crate::types::Frame;
 use crate::types::RelicName;
+use crate::types::reward_reset;
 use crate::utils::card_is_upgradable;
-use crate::utils::frame_replace;
-use crate::utils::frame_top;
 use crate::utils::increase_max_hp;
 use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
@@ -44,7 +41,6 @@ pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameStat
     queue_pickup_effects(state, name);
 }
 
-// On-pickup effects; every acquisition path queues RelicAdopt, so they all land here
 // TODO: add consants
 fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
     let id_character = state.id_character;
@@ -133,7 +129,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
         RelicName::PandorasBox => {
             let mut id_starter = [0usize; MAX_SIZE_DECK];
             let mut id_starter_num = 0;
-            for &id in &state.id_deck {
+            for &id in &state.id_card_deck {
                 if matches!(
                     state.entities[id].card_name,
                     CardName::Strike | CardName::Defend
@@ -166,18 +162,13 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
 
         // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare Relic
         RelicName::CallingBell => {
-            // The bell arrives from a reward screen or Neow's consumed blessing
+            // The bell arrives from a Reward context or Neow's consumed blessing
             assert!(
-                matches!(
-                    frame_top(&state.frame_stack),
-                    Frame::Reward { .. }
-                        | Frame::Event {
-                            kind: EventKind::Neow,
-                            consumed: true,
-                            ..
-                        }
-                ),
-                "Calling Bell adopts from a reward screen or Neow"
+                state.reward.active
+                    || (state.event.active
+                        && matches!(state.event.event_kind, EventKind::Neow)
+                        && state.event.consumed),
+                "Calling Bell adopts from a Reward context or Neow"
             );
 
             // Roll one Relic for each rarity
@@ -188,17 +179,14 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                 }
             }
 
-            // Set `Frame::Reward`
-            frame_replace(
-                &mut state.frame_stack,
-                Frame::Reward {
-                    id_cards: Vec::new(),
-                    id_relics,
-                    id_potions: Vec::new(),
-                    gold: None,
-                    relics_exclusive: false,
-                },
-            );
+            // The staged offer replaces the context it adopted from: a live
+            // Reward loses its remaining contents; Neow's blessing closes
+            if !state.reward.active {
+                state.event.active = false;
+            }
+            reward_reset(&mut state.reward);
+            state.reward.id_relics = id_relics;
+            state.reward.active = true;
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::CardAdd {
                     card_name: CardName::CurseOfTheBell,
@@ -238,8 +226,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
         // Orrery: a 5-bundle Reward frame pushed over the shop; the stock resumes on exit
         RelicName::Orrery => queue_reward_roll(
             state,
-            RewardSource::Cards {
-                bundles: ORRERY_BUNDLE_COUNT,
+            EffectKind::RewardRollCards {
+                bundles: ORRERY_BUNDLE_COUNT as u8,
+                rare_only: false,
             },
         ),
 
@@ -251,7 +240,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
         // Cauldron: brews 5 Potions, staged as a Reward frame over the shop
         RelicName::Cauldron => queue_reward_roll(
             state,
-            RewardSource::Potions {
+            EffectKind::RewardRollPotions {
                 count: CAULDRON_POTION_COUNT as u8,
                 uniform: false,
             },
@@ -277,9 +266,9 @@ fn queue_bottle_pick(state: &mut GameState, filter: CandidateFilter) {
 fn upgrade_random_cards(state: &mut GameState, count: usize, kind: Option<CardKind>) {
     let mut ids_valid = [0usize; MAX_SIZE_DECK];
     let mut num = 0;
-    for &id in &state.id_deck {
+    for &id in &state.id_card_deck {
         let card = &state.entities[id];
-        if card_is_upgradable(card) && kind.is_none_or(|k| card.card_kind == k) {
+        if card_is_upgradable(card) && kind.is_none_or(|card_kind| card.card_kind == card_kind) {
             ids_valid[num] = id;
             num += 1;
         }
@@ -300,9 +289,9 @@ fn upgrade_random_cards(state: &mut GameState, count: usize, kind: Option<CardKi
 }
 
 // Shop relics stage their roll as a Reward frame over the stock
-fn queue_reward_roll(state: &mut GameState, source: RewardSource) {
+fn queue_reward_roll(state: &mut GameState, roll: EffectKind) {
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::RewardRoll { source },
+        kind: roll,
         id_source: None,
         target: Target::Direct(None),
     });

@@ -21,7 +21,6 @@ pub static HEEL_HOOK: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -45,12 +44,12 @@ pub static HEEL_HOOK: Entity = make_entity_card(
 pub static HEEL_HOOK_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = HEEL_HOOK.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = HEEL_HOOK.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 8,
             lifesteal: false,
         }; // +3 damage
-        a
+        effects
     },
     ..HEEL_HOOK
 };

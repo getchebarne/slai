@@ -22,7 +22,6 @@ pub static INFINITE_BLADES: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::InfiniteBlades,

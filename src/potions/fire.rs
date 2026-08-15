@@ -10,7 +10,6 @@ pub static POTION_FIRE: Entity = make_entity_potion(
     PotionName::FirePotion,
     PotionRarity::Common,
     true,
-    true,
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 20,

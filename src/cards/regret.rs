@@ -18,7 +18,6 @@ pub static REGRET: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[],
     &[],
     &[],

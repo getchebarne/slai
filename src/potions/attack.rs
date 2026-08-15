@@ -13,7 +13,6 @@ use crate::types::PotionRarity;
 pub static POTION_ATTACK: Entity = make_entity_potion(
     PotionName::AttackPotion,
     PotionRarity::Common,
-    false,
     true,
     &[
         Effect {

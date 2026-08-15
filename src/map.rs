@@ -67,7 +67,9 @@ pub fn get_active_room_kind(
     match location {
         Location::Start => None,
         Location::BossRoom => Some(RoomKind::CombatBoss),
-        Location::Overworld { y, x } => room_at(id_rooms, entities, y, x).map(|n| n.room_kind),
+        Location::Overworld { y, x } => {
+            room_at(id_rooms, entities, y, x).map(|room| room.room_kind)
+        }
     }
 }
 
@@ -87,12 +89,12 @@ fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
 
     let mut x_source_first: Option<usize> = None;
 
-    for d in 0..PATH_DENSITY {
+    for idx_path in 0..PATH_DENSITY {
         let mut x_source: usize = rng.random_range(0..MAP_WIDTH);
-        if d == 0 {
+        if idx_path == 0 {
             x_source_first = Some(x_source);
         }
-        while d == 1 && Some(x_source) == x_source_first {
+        while idx_path == 1 && Some(x_source) == x_source_first {
             x_source = rng.random_range(0..MAP_WIDTH);
         }
 
@@ -425,8 +427,8 @@ fn assign_room_kinds(
                 && !(rule_parent_applies(kind) && mask_parents & (1 << kind as u8) != 0)
                 && !(rule_sibling_applies(kind) && mask_siblings & (1 << kind as u8) != 0)
         });
-        if let Some(i) = pick {
-            let kind = types.remove(i);
+        if let Some(idx) = pick {
+            let kind = types.remove(idx);
             if let Some(n) = &mut nodes[y][x] {
                 n.room_kind = kind;
             }

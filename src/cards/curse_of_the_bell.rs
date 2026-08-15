@@ -19,7 +19,6 @@ pub static CURSE_OF_THE_BELL: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[],
     &[],
     &[],

@@ -364,9 +364,9 @@ pub fn get_next_move(
 // The repeated monster move shapes; each spells out one Effect array longhand
 pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
     let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
-    let mut i = 0;
-    while i < instances as usize {
-        effects[i] = Effect {
+    let mut idx = 0;
+    while idx < instances as usize {
+        effects[idx] = Effect {
             kind: EffectKind::DamagePhysical {
                 amount: damage,
                 lifesteal: false,
@@ -374,7 +374,7 @@ pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) ->
             id_source: None,
             target: TARGET_CHARACTER,
         };
-        i += 1;
+        idx += 1;
     }
     Move {
         name,
@@ -544,10 +544,10 @@ pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -
         "Move effects exceeds MAX_EFFECTS_PER_MOVE",
     );
     let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
-    let mut i = 0;
-    while i < effects.len() {
-        arr[i] = effects[i];
-        i += 1;
+    let mut idx = 0;
+    while idx < effects.len() {
+        arr[idx] = effects[idx];
+        idx += 1;
     }
     Move {
         name,

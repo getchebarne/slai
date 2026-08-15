@@ -41,7 +41,9 @@ pub fn process_effect_set_cost_override(
         if matches!(card.card_cost_kind, CardCostKind::XCost { .. }) {
             return;
         }
-        let current = card.card_cost_override.map_or(card.card_cost, |o| o.amount);
+        let current = card
+            .card_cost_override
+            .map_or(card.card_cost, |cost_override| cost_override.amount);
         if current <= amount {
             return;
         }

@@ -21,7 +21,6 @@ pub static DEEP_BREATH: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::ShuffleDiscardPileIntoDrawPile,
@@ -42,9 +41,9 @@ pub static DEEP_BREATH: Entity = make_entity_card(
 pub static DEEP_BREATH_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DEEP_BREATH.card_effects;
-        a[1].kind = EffectKind::CardDraw { count: 2 }; // +1 draw
-        a
+        let mut effects = DEEP_BREATH.card_effects;
+        effects[1].kind = EffectKind::CardDraw { count: 2 }; // +1 draw
+        effects
     },
     ..DEEP_BREATH
 };

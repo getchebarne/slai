@@ -9,7 +9,6 @@ use crate::types::PotionRarity;
 pub static POTION_SWIFT: Entity = make_entity_potion(
     PotionName::SwiftPotion,
     PotionRarity::Common,
-    false,
     true,
     &[Effect {
         kind: EffectKind::CardDraw { count: 3 },

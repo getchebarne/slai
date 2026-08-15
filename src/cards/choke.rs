@@ -22,7 +22,6 @@ pub static CHOKE: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -49,12 +48,12 @@ pub static CHOKE: Entity = make_entity_card(
 pub static CHOKE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = CHOKE.card_effects;
-        a[1].kind = EffectKind::ModifierGain {
+        let mut effects = CHOKE.card_effects;
+        effects[1].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Choke,
             stacks: 5, // +2 stacks
         };
-        a
+        effects
     },
     ..CHOKE
 };

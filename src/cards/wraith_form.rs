@@ -22,7 +22,6 @@ pub static WRAITH_FORM: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::ModifierGain {
@@ -49,12 +48,12 @@ pub static WRAITH_FORM: Entity = make_entity_card(
 pub static WRAITH_FORM_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = WRAITH_FORM.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = WRAITH_FORM.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Intangible,
             stacks: 3, // +1 stack
         };
-        a
+        effects
     },
     ..WRAITH_FORM
 };

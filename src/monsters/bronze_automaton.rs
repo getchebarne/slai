@@ -114,9 +114,15 @@ pub fn get_next_move_bronze_automaton(move_history: &[u8], ascension_level: u8) 
     // Count cycling turns (Flail / Boost) since the last Hyper Beam
     let segment_start = move_history
         .iter()
-        .rposition(|&m| m as usize == IDX_MOVE_HYPER_BEAM)
+        .rposition(|&idx_move| idx_move as usize == IDX_MOVE_HYPER_BEAM)
         // The A19+ post-beam Boost is forced, so it is skipped in the count
-        .map_or(0, |p| if ascension_level >= 19 { p + 2 } else { p + 1 });
+        .map_or(0, |pos| {
+            if ascension_level >= 19 {
+                pos + 2
+            } else {
+                pos + 1
+            }
+        });
     let num_turns = move_history
         .iter()
         .skip(segment_start)

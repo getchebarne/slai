@@ -1,7 +1,6 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RewardSource;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -9,13 +8,11 @@ use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::make_entity_event_option;
 use crate::types::DeltaSign;
 
-// Read: 20 unique rolled cards on the reward screen, keep one
+// Read: 20 unique rolled cards staged on the Reward context, keep one
 const OPTION_READ: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
     Effect {
-        kind: EffectKind::RewardRoll {
-            source: RewardSource::LibraryCards,
-        },
+        kind: EffectKind::RewardRollLibraryCards,
         id_source: None,
         target: Target::Direct(None),
     },

@@ -6,7 +6,6 @@ use pyo3::type_object::PyTypeInfo;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::KnowingSkullWish;
-use crate::effect::RewardSource;
 use crate::effect::Target;
 
 use super::amount::PyAmount;
@@ -109,11 +108,10 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             filter: filter.into(),
             selection_kind: selection_kind.into(),
         }),
-        Target::Direct(None) => None,
-        Target::Direct(Some(_)) => panic!(
-            "snapshot_effect: unexpected Direct(Some) on static Card effect: {:?}",
-            effect,
-        ),
+        // PyTarget describes how a target gets chosen; a baked pick (We Meet
+        // Again's spawn-rolled card/potion) has no choosing left — the concrete
+        // pick is exposed on the event-kind payload instead
+        Target::Direct(_) => None,
     };
     match effect.kind {
         EffectKind::DamagePhysical { amount, lifesteal } => {
@@ -291,19 +289,16 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited, target })
         }
         EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard { target }),
-        EffectKind::RewardRoll {
-            source: RewardSource::Potions { count, uniform },
-        } => PyEffect::RewardRollPotions(PyEffectRewardRollPotions {
-            count,
-            uniform,
-            target,
-        }),
-        EffectKind::RewardRoll {
-            source:
-                RewardSource::NeowCards {
-                    colorless,
-                    rare_only,
-                },
+        EffectKind::RewardRollPotions { count, uniform } => {
+            PyEffect::RewardRollPotions(PyEffectRewardRollPotions {
+                count,
+                uniform,
+                target,
+            })
+        }
+        EffectKind::RewardRollNeowCards {
+            colorless,
+            rare_only,
         } => PyEffect::RewardRollNeowCards(PyEffectRewardRollNeowCards {
             colorless,
             rare_only,
@@ -315,16 +310,16 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             exclude,
             count,
         } => PyEffect::CardDiscoverRoll(PyEffectCardDiscoverRoll {
-            kind: kind.map(|k| k.into()),
+            kind: kind.map(|card_kind| card_kind.into()),
             color: color.into(),
-            exclude: exclude.iter().map(|&n| n.into()).collect(),
+            exclude: exclude.iter().map(|&card_name| card_name.into()).collect(),
             count,
             target,
         }),
         EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade { target }),
         EffectKind::CardDiscoverPick { cost_zero } => {
             PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
-                cost_zero: cost_zero.map(|c| c.into()),
+                cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
                 target,
             })
         }
@@ -338,10 +333,10 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             rarity,
         } => PyEffect::CardAddRandom(PyEffectCardAddRandom {
             color: color.into(),
-            kind: kind.map(|k| k.into()),
+            kind: kind.map(|card_kind| card_kind.into()),
             pile: pile.into(),
             count,
-            cost_zero: cost_zero.map(|c| c.into()),
+            cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             upgraded,
             rarity: rarity.map(Into::into),
             target,
@@ -355,7 +350,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target }),
         EffectKind::CardMove { pile, cost_zero } => PyEffect::CardMove(PyEffectCardMove {
             pile: pile.into(),
-            cost_zero: cost_zero.map(|c| c.into()),
+            cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             target,
         }),
         EffectKind::CardPlayFromDrawTop => {
@@ -386,9 +381,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::JoustBet { on_owner } => {
             PyEffect::JoustBet(PyEffectJoustBet { on_owner, target })
         }
-        EffectKind::RewardRoll {
-            source: RewardSource::LibraryCards,
-        } => PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards { target }),
+        EffectKind::RewardRollLibraryCards => {
+            PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards { target })
+        }
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

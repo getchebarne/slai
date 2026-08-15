@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_REGENERATION: Entity = make_entity_potion(
     PotionName::RegenerationPotion,
     PotionRarity::Uncommon,
-    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {

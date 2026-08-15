@@ -1,18 +1,18 @@
 use crate::consts::NIGHTMARE_COPIES;
 use crate::game::GameState;
 use crate::types::CardPile;
-use crate::types::Frame;
-use crate::utils::frame_top_mut;
+use crate::types::Combat;
 use crate::utils::place_card;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_nightmare_spawn(state: &mut GameState) {
-    let Frame::Combat {
+    assert!(
+        state.combat.active,
+        "process_effect_card_nightmare_spawn outside the Combat frame"
+    );
+    let Combat {
         id_card_nightmare, ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("process_effect_card_nightmare_spawn outside the Combat frame")
-    };
+    } = &mut state.combat;
     let id_template = id_card_nightmare
         .take()
         .expect("CardNightmareSpawn with no pending snapshot");

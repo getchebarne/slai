@@ -36,7 +36,6 @@ pub static APOTHEOSIS: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[
         upgrade_all(CandidatePool::Hand),
         upgrade_all(CandidatePool::PileDraw),

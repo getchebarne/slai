@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_SPEED: Entity = make_entity_potion(
     PotionName::SpeedPotion,
     PotionRarity::Common,
-    false,
     true,
     &[
         Effect {

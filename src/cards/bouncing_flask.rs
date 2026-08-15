@@ -38,7 +38,6 @@ pub static BOUNCING_FLASK: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[BOUNCE, BOUNCE, BOUNCE],
     &[],
     &[],
@@ -48,9 +47,9 @@ pub static BOUNCING_FLASK: Entity = make_entity_card(
 pub static BOUNCING_FLASK_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = BOUNCING_FLASK.card_effects;
-        a[3] = BOUNCE; // +1 bounce
-        a
+        let mut effects = BOUNCING_FLASK.card_effects;
+        effects[3] = BOUNCE; // +1 bounce
+        effects
     },
     card_effects_len: 4,
     ..BOUNCING_FLASK

@@ -17,7 +17,6 @@ flat_variants!(PyAmount {
     Absolute => PyAmountAbsolute as "AmountAbsolute" { amount: u16 },
     Relative => PyAmountRelative as "AmountRelative" { numerator: u8, denominator: u8 },
     Range => PyAmountRange as "AmountRange" { min: u16, max: u16 },
-    EventGoldAsk => PyAmountEventGoldAsk as "AmountEventGoldAsk",
 });
 
 impl From<Amount> for PyAmount {
@@ -40,7 +39,6 @@ impl From<Amount> for PyAmount {
                 denominator,
             }),
             Amount::Range { min, max } => Self::Range(PyAmountRange { min, max }),
-            Amount::EventGoldAsk => Self::EventGoldAsk(PyAmountEventGoldAsk),
         }
     }
 }

@@ -17,7 +17,7 @@ use rand::Rng;
 // Random Silent Skill (not Distraction) into hand, free-to-play-once
 pub fn process_effect_distraction_add(state: &mut GameState) {
     let mut buf = [CardName::Strike; 64];
-    let mut n = 0;
+    let mut num = 0;
     for pool in [
         POOL_COMMON_GREEN_CARD,
         POOL_UNCOMMON_GREEN_CARD,
@@ -30,15 +30,15 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
             if get_card(name, false).card_kind != CardKind::Skill {
                 continue;
             }
-            buf[n] = name;
-            n += 1;
+            buf[num] = name;
+            num += 1;
         }
     }
-    if n == 0 {
+    if num == 0 {
         return;
     }
 
-    let card_name = buf[state.rng.random_range(0..n)];
+    let card_name = buf[state.rng.random_range(0..num)];
     let id_card = push_entity(&mut state.entities, get_card(card_name, false));
     place_card(state, id_card, CardPile::Hand);
 

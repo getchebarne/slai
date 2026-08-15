@@ -14,7 +14,6 @@ use crate::types::PotionRarity;
 pub static POTION_LIQUID_MEMORIES: Entity = make_entity_potion(
     PotionName::LiquidMemories,
     PotionRarity::Uncommon,
-    false,
     true,
     &[Effect {
         kind: EffectKind::CardMove {

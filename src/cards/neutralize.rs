@@ -22,7 +22,6 @@ pub static NEUTRALIZE: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -49,16 +48,16 @@ pub static NEUTRALIZE: Entity = make_entity_card(
 pub static NEUTRALIZE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = NEUTRALIZE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = NEUTRALIZE.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 4,
             lifesteal: false,
         }; // +1 damage
-        a[1].kind = EffectKind::ModifierGain {
+        effects[1].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Weak,
             stacks: 2, // +1 stack
         };
-        a
+        effects
     },
     ..NEUTRALIZE
 };

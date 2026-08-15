@@ -95,19 +95,19 @@ def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
 
 
 # Per-slot description strings
-_HAND_POS = "position in state.mode_stack[-1].hand (the current hand)"
+_HAND_POS = "position in state.combat.hand (the current hand)"
 _MONSTER_POS = "position in the alive-monster list at dispatch time"
-_REWARD_BUNDLE_POS = "bundle in state.mode_stack[-1].cards"
+_REWARD_BUNDLE_POS = "bundle in state.reward.cards"
 _REWARD_POS = "card within the bundle"
-_REWARD_RELIC_POS = "slot in state.mode_stack[-1].relics"
+_REWARD_RELIC_POS = "slot in state.reward.relics"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
 _SLOT_POS = "slot in state.potions"
-_REWARD_POTION_POS = "slot in state.mode_stack[-1].potions"
-_DISCOVER_POS = "position in state.mode_stack[-1].discover (the discovery offer)"
-_SHOP_CARD_POS = "position in state.mode_stack[-1].cards"
-_SHOP_RELIC_POS = "position in state.mode_stack[-1].relics"
-_SHOP_POTION_POS = "position in state.mode_stack[-1].potions"
+_REWARD_POTION_POS = "slot in state.reward.potions"
+_DISCOVER_POS = "position in state.combat.discover (the discovery offer)"
+_SHOP_CARD_POS = "position in state.shop.cards"
+_SHOP_RELIC_POS = "position in state.shop.relics"
+_SHOP_POTION_POS = "position in state.shop.potions"
 
 
 # Action spec registry
@@ -127,13 +127,13 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.CardTransform, ArgSpec("idx", _DECK_POS)),
         create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
         create_action_spec(
-            ActionType.EventOptionSelect, ArgSpec("idx", "position in state.mode_stack[-1].options")
+            ActionType.EventOptionSelect, ArgSpec("idx", "position in state.event.options")
         ),
         # Hand-pick family (resolves a hand-pick halt)
         create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.CardExhaust, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(
-            ActionType.CardMoveToHand, ArgSpec("idx", "position in state.pile_draw")
+            ActionType.CardMoveToHand, ArgSpec("idx", "position in state.combat.pile_draw")
         ),
         create_action_spec(ActionType.PickSkip),
         create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
@@ -337,8 +337,6 @@ CandidatePoolMonsters = _rs.CandidatePoolMonsters
 CandidatePoolSource = _rs.CandidatePoolSource
 CandidatePoolDiscover = _rs.CandidatePoolDiscover
 CandidatePoolDeck = _rs.CandidatePoolDeck
-CandidatePoolEventPickCard = _rs.CandidatePoolEventPickCard
-CandidatePoolEventPickPotion = _rs.CandidatePoolEventPickPotion
 CandidatePoolPileDraw = _rs.CandidatePoolPileDraw
 CandidatePoolPileDiscard = _rs.CandidatePoolPileDiscard
 CandidatePoolPileExhaust = _rs.CandidatePoolPileExhaust
@@ -349,8 +347,6 @@ CandidatePool = (
     | CandidatePoolSource
     | CandidatePoolDiscover
     | CandidatePoolDeck
-    | CandidatePoolEventPickCard
-    | CandidatePoolEventPickPotion
     | CandidatePoolPileDraw
     | CandidatePoolPileDiscard
     | CandidatePoolPileExhaust
@@ -384,25 +380,14 @@ CardCostKind = (
 AmountAbsolute = _rs.AmountAbsolute
 AmountRelative = _rs.AmountRelative
 AmountRange = _rs.AmountRange
-AmountEventGoldAsk = _rs.AmountEventGoldAsk
-Amount = AmountAbsolute | AmountRelative | AmountRange | AmountEventGoldAsk
-FrameMap = _rs.FrameMap
-FrameRestSite = _rs.FrameRestSite
-FrameChest = _rs.FrameChest
+Amount = AmountAbsolute | AmountRelative | AmountRange
+RestSite = _rs.RestSite
+Chest = _rs.Chest
 ChestKind = _rs.ChestKind
-FrameCombat = _rs.FrameCombat
-FrameReward = _rs.FrameReward
-FrameShop = _rs.FrameShop
-FrameEvent = _rs.FrameEvent
-Frame = (
-    FrameMap
-    | FrameRestSite
-    | FrameChest
-    | FrameCombat
-    | FrameReward
-    | FrameShop
-    | FrameEvent
-)
+Combat = _rs.Combat
+Reward = _rs.Reward
+Shop = _rs.Shop
+Event = _rs.Event
 EventKindBigFish = _rs.EventKindBigFish
 EventKindTheCleric = _rs.EventKindTheCleric
 EventKindDuplicator = _rs.EventKindDuplicator
@@ -563,8 +548,6 @@ __all__ = [
     "CandidatePoolPileDraw",
     "CandidatePoolPileDiscard",
     "CandidatePoolPileExhaust",
-    "CandidatePoolEventPickCard",
-    "CandidatePoolEventPickPotion",
     "SelectionKind",
     "SelectionKindAll",
     "SelectionKindSingle",
@@ -648,16 +631,13 @@ __all__ = [
     "AmountAbsolute",
     "AmountRelative",
     "AmountRange",
-    "AmountEventGoldAsk",
-    "Frame",
-    "FrameMap",
-    "FrameRestSite",
-    "FrameChest",
+    "RestSite",
+    "Chest",
     "ChestKind",
-    "FrameCombat",
-    "FrameReward",
-    "FrameShop",
-    "FrameEvent",
+    "Combat",
+    "Reward",
+    "Shop",
+    "Event",
     "EventKind",
     "EventKindBigFish",
     "EventKindTheCleric",

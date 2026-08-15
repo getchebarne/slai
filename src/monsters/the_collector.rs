@@ -176,7 +176,7 @@ pub fn get_next_move_the_collector(
     // The ultimate lands once, guaranteed on the fourth turn
     let ult_used = move_history
         .iter()
-        .any(|&m| m as usize == IDX_MOVE_MEGA_DEBUFF);
+        .any(|&idx_move| idx_move as usize == IDX_MOVE_MEGA_DEBUFF);
     if move_history.len() >= 3 && !ult_used {
         return IDX_MOVE_MEGA_DEBUFF;
     }

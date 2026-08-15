@@ -21,7 +21,6 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::StrengthLoseTemp { stacks: 6 },
         id_source: None,
@@ -35,9 +34,9 @@ pub static PIERCING_WAIL: Entity = make_entity_card(
 pub static PIERCING_WAIL_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = PIERCING_WAIL.card_effects;
-        a[0].kind = EffectKind::StrengthLoseTemp { stacks: 8 };
-        a
+        let mut effects = PIERCING_WAIL.card_effects;
+        effects[0].kind = EffectKind::StrengthLoseTemp { stacks: 8 };
+        effects
     },
     ..PIERCING_WAIL
 };

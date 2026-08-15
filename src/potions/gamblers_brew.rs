@@ -9,7 +9,6 @@ use crate::types::PotionRarity;
 pub static POTION_GAMBLERS_BREW: Entity = make_entity_potion(
     PotionName::GamblersBrew,
     PotionRarity::Uncommon,
-    false,
     true,
     &[Effect {
         kind: EffectKind::Gamble {

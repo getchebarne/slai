@@ -11,7 +11,6 @@ pub static POTION_WEAK: Entity = make_entity_potion(
     PotionName::WeakPotion,
     PotionRarity::Common,
     true,
-    true,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Weak,

@@ -73,7 +73,9 @@ pub fn get_next_move_slaver_red(
     if move_current.is_none() {
         return IDX_MOVE_STAB;
     }
-    let used_entangle = move_history.iter().any(|&m| m == IDX_MOVE_ENTANGLE as u8);
+    let used_entangle = move_history
+        .iter()
+        .any(|&idx_move| idx_move == IDX_MOVE_ENTANGLE as u8);
 
     let roll = rng.random_range(0..=99);
     let last_two_stab = move_history.ends_with(&[IDX_MOVE_STAB as u8, IDX_MOVE_STAB as u8]);

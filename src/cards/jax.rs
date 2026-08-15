@@ -24,7 +24,6 @@ pub static JAX: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::HealthDelta {
@@ -51,12 +50,12 @@ pub static JAX: Entity = make_entity_card(
 pub static JAX_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = JAX.card_effects;
-        a[1].kind = EffectKind::ModifierGain {
+        let mut effects = JAX.card_effects;
+        effects[1].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Strength,
             stacks: 3,
         }; // +1 strength
-        a
+        effects
     },
     ..JAX
 };

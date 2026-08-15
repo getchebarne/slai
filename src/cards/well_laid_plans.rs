@@ -22,7 +22,6 @@ pub static WELL_LAID_PLANS: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Retain,
@@ -39,12 +38,12 @@ pub static WELL_LAID_PLANS: Entity = make_entity_card(
 pub static WELL_LAID_PLANS_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = WELL_LAID_PLANS.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = WELL_LAID_PLANS.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Retain,
             stacks: 2, // +1 stack
         };
-        a
+        effects
     },
     ..WELL_LAID_PLANS
 };

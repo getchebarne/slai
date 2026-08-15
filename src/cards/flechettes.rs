@@ -21,7 +21,6 @@ pub static FLECHETTES: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::DamageFlechettes { damage: 4 },
         id_source: None,
@@ -35,9 +34,9 @@ pub static FLECHETTES: Entity = make_entity_card(
 pub static FLECHETTES_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = FLECHETTES.card_effects;
-        a[0].kind = EffectKind::DamageFlechettes { damage: 6 }; // +2 damage
-        a
+        let mut effects = FLECHETTES.card_effects;
+        effects[0].kind = EffectKind::DamageFlechettes { damage: 6 }; // +2 damage
+        effects
     },
     ..FLECHETTES
 };

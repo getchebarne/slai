@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_LIQUID_BRONZE: Entity = make_entity_potion(
     PotionName::LiquidBronze,
     PotionRarity::Uncommon,
-    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {

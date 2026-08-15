@@ -24,7 +24,6 @@ pub static PURITY: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardExhaust,
         id_source: None,
@@ -42,13 +41,13 @@ pub static PURITY: Entity = make_entity_card(
 pub static PURITY_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = PURITY.card_effects;
-        a[0].target = Target::Resolve {
+        let mut effects = PURITY.card_effects;
+        effects[0].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,
             filter: CandidateFilter::Any,
             selection_kind: SelectionKind::InputUpTo { count: 5 }, // +2 Cards
         };
-        a
+        effects
     },
     ..PURITY
 };

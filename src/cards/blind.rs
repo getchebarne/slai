@@ -23,7 +23,6 @@ pub static BLIND: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Weak,
@@ -39,11 +38,10 @@ pub static BLIND: Entity = make_entity_card(
 // Upgraded
 pub static BLIND_PLUS: Entity = Entity {
     card_upgraded: true,
-    requires_target: false,
     card_effects: {
-        let mut a = BLIND.card_effects;
-        a[0].target = TARGET_MONSTERS_ALL; // Targets all monsters
-        a
+        let mut effects = BLIND.card_effects;
+        effects[0].target = TARGET_MONSTERS_ALL; // Targets all monsters
+        effects
     },
     ..BLIND
 };

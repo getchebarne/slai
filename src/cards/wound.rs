@@ -18,9 +18,8 @@ pub static WOUND: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[],
     &[],
     &[],
-    PlayRestriction::Never, // Unplayable
+    PlayRestriction::Never,
 );

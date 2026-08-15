@@ -18,7 +18,6 @@ pub static WRITHE: Entity = make_entity_card(
     false,
     false,
     true, // Innate
-    false,
     &[],
     &[],
     &[],
