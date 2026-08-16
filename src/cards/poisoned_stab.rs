@@ -22,7 +22,6 @@ pub static POISONED_STAB: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -49,16 +48,16 @@ pub static POISONED_STAB: Entity = make_entity_card(
 pub static POISONED_STAB_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = POISONED_STAB.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = POISONED_STAB.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 8,
             lifesteal: false,
         }; // +2 damage
-        a[1].kind = EffectKind::ModifierGain {
+        effects[1].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Poison,
             stacks: 4, // +1 poison
         };
-        a
+        effects
     },
     ..POISONED_STAB
 };

@@ -3,24 +3,24 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::relics::trigger_relic_counter;
+use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Frame;
 use crate::types::RelicName;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 use crate::utils::shuffle;
 
 pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState) {
-    let Frame::Combat {
-        id_pile_draw,
-        id_pile_discard,
+    assert!(
+        state.combat.active,
+        "process_effect_shuffle_discard_pile_into_draw_pile outside the Combat frame"
+    );
+    let Combat {
+        id_card_draw,
+        id_card_discard,
         ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("process_effect_shuffle_discard_pile_into_draw_pile outside the Combat frame")
-    };
-    id_pile_draw.append(id_pile_discard);
-    shuffle(&mut id_pile_draw[..], &mut state.rng);
+    } = &mut state.combat;
+    id_card_draw.append(id_card_discard);
+    shuffle(&mut id_card_draw[..], &mut state.rng);
 
     // Abacus: reshuffling the discard pile grants 6 block
     // Relic-sourced block: id_source None skips Dex / Frail scaling

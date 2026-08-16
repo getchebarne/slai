@@ -23,7 +23,6 @@ pub static LEG_SWEEP: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 11 },
@@ -47,13 +46,13 @@ pub static LEG_SWEEP: Entity = make_entity_card(
 pub static LEG_SWEEP_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = LEG_SWEEP.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 14 }; // +3 block
-        a[1].kind = EffectKind::ModifierGain {
+        let mut effects = LEG_SWEEP.card_effects;
+        effects[0].kind = EffectKind::BlockGain { amount: 14 }; // +3 block
+        effects[1].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Weak,
             stacks: 3, // +1 stack
         };
-        a
+        effects
     },
     ..LEG_SWEEP
 };

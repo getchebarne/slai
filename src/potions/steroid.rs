@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_STEROID: Entity = make_entity_potion(
     PotionName::SteroidPotion,
     PotionRarity::Common,
-    false,
     true,
     &[
         Effect {

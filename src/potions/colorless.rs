@@ -12,7 +12,6 @@ use crate::types::PotionRarity;
 pub static POTION_COLORLESS: Entity = make_entity_potion(
     PotionName::ColorlessPotion,
     PotionRarity::Common,
-    false,
     true,
     &[
         Effect {

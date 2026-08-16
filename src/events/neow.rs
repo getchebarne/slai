@@ -8,12 +8,11 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RewardSource;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::events::EFFECT_DECK_UPGRADE_PICK;
+use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventKind;
 use crate::events::bake_options;
@@ -133,12 +132,13 @@ pub fn spawn_event_neow(state: &mut GameState) -> (EventKind, Vec<usize>) {
         option_for(bonus_cat_2, Some(drawback), hp_bonus, damage, gold),
         option_for(NeowBonus::BossRelic, None, hp_bonus, damage, gold),
     ];
-    let id_options = bake_options(state, &options);
-    (EventKind::Neow, id_options)
+    let id_event_options = bake_options(state, &options);
+    (EventKind::Neow, id_event_options)
 }
 
-// EVENT_CONSUME leads every list: relic adoption can stage a Reward frame (Tiny House),
-// and the consume processor demands the Event frame on top; RewardRolls stay last
+// EVENT_CONSUME leads every list: relic adoption can replace the context with a
+// staged reward (Calling Bell), and the consume asserts the event is active;
+// reward staging stays last
 fn option_for(
     bonus: NeowBonus,
     drawback: Option<NeowDrawback>,
@@ -196,7 +196,7 @@ fn option_for(
             }
         }
         NeowBonus::UpgradeCard => {
-            effects.push(EFFECT_DECK_UPGRADE_PICK);
+            effects.push(EFFECT_DECK_UPGRADE_PICK_1);
             "[Upgrade] Upgrade a Card."
         }
         NeowBonus::Transform { count } => {
@@ -213,11 +213,9 @@ fn option_for(
         }
         NeowBonus::ThreeSmallPotions => {
             effects.push(Effect {
-                kind: EffectKind::RewardRoll {
-                    source: RewardSource::Potions {
-                        count: NEOW_POTION_COUNT,
-                        uniform: true,
-                    },
+                kind: EffectKind::RewardRollPotions {
+                    count: NEOW_POTION_COUNT,
+                    uniform: true,
                 },
                 id_source: None,
                 target: Target::Direct(None),
@@ -312,11 +310,9 @@ fn effect_drawback(drawback: NeowDrawback, hp_bonus: u16, damage: u16, gold: u16
 
 fn effect_neow_cards(colorless: bool, rare_only: bool) -> Effect {
     Effect {
-        kind: EffectKind::RewardRoll {
-            source: RewardSource::NeowCards {
-                colorless,
-                rare_only,
-            },
+        kind: EffectKind::RewardRollNeowCards {
+            colorless,
+            rare_only,
         },
         id_source: None,
         target: Target::Direct(None),

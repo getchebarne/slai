@@ -99,7 +99,7 @@ pub fn get_next_move_snake_plant(
             .iter()
             .rev()
             .take(lookback)
-            .any(|&m| m == IDX_MOVE_SPORES as u8);
+            .any(|&idx_move| idx_move == IDX_MOVE_SPORES as u8);
         if spores_blocked {
             IDX_MOVE_CHOMP
         } else {

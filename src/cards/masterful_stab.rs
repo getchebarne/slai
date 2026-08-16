@@ -21,7 +21,6 @@ pub static MASTERFUL_STAB: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 12,
@@ -38,12 +37,12 @@ pub static MASTERFUL_STAB: Entity = make_entity_card(
 pub static MASTERFUL_STAB_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = MASTERFUL_STAB.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = MASTERFUL_STAB.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 16,
             lifesteal: false,
         }; // +4 damage
-        a
+        effects
     },
     ..MASTERFUL_STAB
 };

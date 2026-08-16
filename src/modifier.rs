@@ -627,9 +627,9 @@ pub fn modifier_clear(mods: &mut Modifiers) {
 
 // Check that modifier definitons are in the correct order
 const _: () = {
-    let mut i = 0;
-    while i < MODIFIER_COUNT {
-        assert!(MODIFIER_DEFS[i].kind as usize == i);
-        i += 1;
+    let mut idx = 0;
+    while idx < MODIFIER_COUNT {
+        assert!(MODIFIER_DEFS[idx].kind as usize == idx);
+        idx += 1;
     }
 };

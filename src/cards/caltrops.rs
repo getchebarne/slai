@@ -22,7 +22,6 @@ pub static CALTROPS: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Thorns,
@@ -39,12 +38,12 @@ pub static CALTROPS: Entity = make_entity_card(
 pub static CALTROPS_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = CALTROPS.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = CALTROPS.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Thorns,
             stacks: 5, // +2 stacks
         };
-        a
+        effects
     },
     ..CALTROPS
 };

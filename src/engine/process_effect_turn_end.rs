@@ -14,12 +14,11 @@ use crate::modifier::modifier_stacks;
 use crate::monsters::snake_plant;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
+use crate::types::Combat;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
-use crate::types::Frame;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 
 // The character's turn end tears down the turn; monsters unwind their per-turn kit
@@ -98,12 +97,16 @@ fn process_effect_turn_end_monster(id_actor: usize, state: &mut GameState) {
 }
 
 fn process_effect_turn_end_character(state: &mut GameState) {
-    let Frame::Combat {
-        id_hand,
-        id_pile_draw,
-        id_pile_discard,
-        id_pile_exhaust,
-        id_stasis_cards,
+    assert!(
+        state.combat.active,
+        "process_effect_turn_end_character outside the Combat frame"
+    );
+    let Combat {
+        id_card_hand,
+        id_card_draw,
+        id_card_discard,
+        id_card_exhaust,
+        id_card_stasis,
         id_monsters,
         this_turn_discards,
         this_turn_attacks,
@@ -111,10 +114,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         this_turn_panache,
         bomb_countdown,
         ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("process_effect_turn_end_character outside the Combat frame")
-    };
+    } = &mut state.combat;
     // Reset per-turn Relic counters
     for &name in RELIC_COUNTERS_PER_TURN {
         if let Some(id) = state.id_relics[name as usize] {
@@ -123,12 +123,12 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Clear per-turn Card cost overrides
-    for id_card in id_hand
+    for id_card in id_card_hand
         .iter()
-        .chain(id_pile_draw.iter())
-        .chain(id_pile_discard.iter())
-        .chain(id_pile_exhaust.iter())
-        .chain(id_stasis_cards.iter().flatten())
+        .chain(id_card_draw.iter())
+        .chain(id_card_discard.iter())
+        .chain(id_card_exhaust.iter())
+        .chain(id_card_stasis.iter().flatten())
     {
         let entity = &mut state.entities[*id_card];
         if matches!(
@@ -202,7 +202,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
     let mods_char = &state.entities[state.id_character].modifiers;
     if has_modifier(mods_char, ModifierKind::Retain)
-        && !id_hand.is_empty()
+        && !id_card_hand.is_empty()
         // Runic Pyramid: keeps the whole hand
         && !has_relic(&state.id_relics, RelicName::RunicPyramid)
     {
@@ -305,7 +305,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Card-held-in-hand-at-the-end-of-turn effects
-    for &id_card in id_hand.iter() {
+    for &id_card in id_card_hand.iter() {
         let card = &state.entities[id_card];
         match card.card_name {
             CardName::Burn => {
@@ -333,7 +333,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Loss,
-                        amount: Amount::Absolute(id_hand.len() as u16),
+                        amount: Amount::Absolute(id_card_hand.len() as u16),
                     },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
@@ -344,7 +344,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Queue organic discards
-    for &id_card in id_hand.iter() {
+    for &id_card in id_card_hand.iter() {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::EndOfTurn,
@@ -363,7 +363,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
 
     // After `ModifierSetNotNew` so Weak / Frail keep `is_new` through next
     // `EffectKind::TurnStart` tick
-    for &id_card in id_hand.iter() {
+    for &id_card in id_card_hand.iter() {
         match state.entities[id_card].card_name {
             CardName::Doubt => {
                 state.effect_buf.push(Effect {

@@ -22,7 +22,6 @@ pub static ENVENOM: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Envenom,

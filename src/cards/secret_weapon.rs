@@ -25,7 +25,6 @@ pub static SECRET_WEAPON: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardMove {
             pile: CardPile::Hand,

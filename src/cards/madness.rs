@@ -25,7 +25,6 @@ pub static MADNESS: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::SetCostOverride {
             amount: 0,

@@ -22,7 +22,6 @@ pub static DEADLY_POISON: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Poison,
@@ -39,12 +38,12 @@ pub static DEADLY_POISON: Entity = make_entity_card(
 pub static DEADLY_POISON_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DEADLY_POISON.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = DEADLY_POISON.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Poison,
             stacks: 7, // +2 poison
         };
-        a
+        effects
     },
     ..DEADLY_POISON
 };

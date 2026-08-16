@@ -1,10 +1,11 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::EventLoot;
+use crate::effect::RelicPick;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventLoot;
 use crate::events::make_entity_event_option;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
@@ -53,9 +54,7 @@ const OPTION_FIGHT: &[Effect] = &[
 // The gang's pocket gold and the Red Mask, paid out by `fight_loot`
 pub const FIGHT_LOOT: EventLoot = EventLoot {
     gold: Some(Amount::Range { min: 25, max: 35 }),
-    relic: Some(RelicName::RedMask),
-    relic_roll: false,
-    relic_tiers: [None, None],
+    relics: [Some(RelicPick::Name(RelicName::RedMask)), None],
 };
 
 pub static OPTIONS: &[Entity] = &[

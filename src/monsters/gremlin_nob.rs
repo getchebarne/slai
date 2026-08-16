@@ -63,7 +63,9 @@ pub fn get_next_move_gremlin_nob(
     rng: &mut impl Rng,
 ) -> usize {
     // First turn: always Bellow
-    let bellow_used = move_history.iter().any(|&m| m == IDX_MOVE_BELLOW as u8);
+    let bellow_used = move_history
+        .iter()
+        .any(|&idx_move| idx_move == IDX_MOVE_BELLOW as u8);
     if !bellow_used {
         return IDX_MOVE_BELLOW;
     }

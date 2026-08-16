@@ -3,18 +3,19 @@ use crate::monsters::get_next_move;
 use crate::monsters::hexaghost;
 use crate::monsters::is_cycle_boundary;
 use crate::monsters::push_move_history;
-use crate::types::Frame;
+use crate::types::Combat;
 use crate::types::MonsterName;
-use crate::utils::frame_top_mut;
 
 pub fn process_effect_move_update(
     id_target: Option<usize>,
     state: &mut GameState,
     move_override: Option<usize>,
 ) {
-    let Frame::Combat { id_monsters, .. } = frame_top_mut(&mut state.frame_stack) else {
-        unreachable!("process_effect_move_update outside the Combat frame")
-    };
+    assert!(
+        state.combat.active,
+        "process_effect_move_update outside the Combat frame"
+    );
+    let Combat { id_monsters, .. } = &mut state.combat;
     let id_target = id_target.expect("MoveUpdate requires id_target");
 
     // Corpses don't roll: a mid-phase death leaves this queued effect dangling

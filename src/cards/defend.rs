@@ -21,7 +21,6 @@ pub static DEFEND: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::BlockGain { amount: 5 },
         id_source: None,
@@ -35,9 +34,9 @@ pub static DEFEND: Entity = make_entity_card(
 pub static DEFEND_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DEFEND.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 8 }; // +3 block
-        a
+        let mut effects = DEFEND.card_effects;
+        effects[0].kind = EffectKind::BlockGain { amount: 8 }; // +3 block
+        effects
     },
     ..DEFEND
 };

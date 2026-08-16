@@ -25,7 +25,6 @@ pub static DISCOVERY: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::CardDiscoverRoll {

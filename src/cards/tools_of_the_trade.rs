@@ -22,7 +22,6 @@ pub static TOOLS_OF_THE_TRADE: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::ToolsOfTheTrade,

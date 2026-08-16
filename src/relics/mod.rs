@@ -153,10 +153,10 @@ use crate::types::relic_name_from_u8;
 // Totality relies on the len == COUNT and no-duplicate asserts below
 const fn build_relic_by_name() -> [&'static Entity; RelicName::COUNT] {
     let mut buf = [ALL_RELICS[0]; RelicName::COUNT];
-    let mut i = 0;
-    while i < ALL_RELICS.len() {
-        buf[ALL_RELICS[i].relic_name as usize] = ALL_RELICS[i];
-        i += 1;
+    let mut idx = 0;
+    while idx < ALL_RELICS.len() {
+        buf[ALL_RELICS[idx].relic_name as usize] = ALL_RELICS[idx];
+        idx += 1;
     }
     buf
 }
@@ -227,7 +227,7 @@ pub fn iter_owned_relics(
     id_relics
         .iter()
         .enumerate()
-        .filter_map(|(i, &opt)| opt.map(|id| (relic_name_from_u8(i as u8), id)))
+        .filter_map(|(idx, &opt)| opt.map(|id| (relic_name_from_u8(idx as u8), id)))
 }
 
 pub const ALL_RELICS: &[&'static Entity] = &[
@@ -376,12 +376,12 @@ pub const ALL_RELICS: &[&'static Entity] = &[
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);
 const _: () = {
     let mut seen = [false; RelicName::COUNT];
-    let mut i = 0;
-    while i < ALL_RELICS.len() {
-        let idx = ALL_RELICS[i].relic_name as usize;
-        assert!(!seen[idx], "ALL_RELICS contains a duplicate RelicName");
-        seen[idx] = true;
-        i += 1;
+    let mut idx = 0;
+    while idx < ALL_RELICS.len() {
+        let idx_name = ALL_RELICS[idx].relic_name as usize;
+        assert!(!seen[idx_name], "ALL_RELICS contains a duplicate RelicName");
+        seen[idx_name] = true;
+        idx += 1;
     }
 };
 

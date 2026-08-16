@@ -20,7 +20,7 @@ pub fn process_effect_card_purge(id_target: Option<usize>, state: &mut GameState
             target: Target::Direct(Some(state.id_character)),
         });
     }
-    if let Some(pos) = state.id_deck.iter().position(|&v| v == id_card) {
-        state.id_deck.remove(pos);
+    if let Some(pos) = state.id_card_deck.iter().position(|&id| id == id_card) {
+        state.id_card_deck.remove(pos);
     }
 }

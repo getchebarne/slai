@@ -22,7 +22,6 @@ pub static NOXIOUS_FUMES: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::NoxiousFumes,
@@ -39,12 +38,12 @@ pub static NOXIOUS_FUMES: Entity = make_entity_card(
 pub static NOXIOUS_FUMES_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = NOXIOUS_FUMES.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = NOXIOUS_FUMES.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::NoxiousFumes,
             stacks: 3, // +1 poison
         };
-        a
+        effects
     },
     ..NOXIOUS_FUMES
 };

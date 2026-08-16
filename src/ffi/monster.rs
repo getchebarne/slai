@@ -7,11 +7,9 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
-use crate::types::Frame;
 use crate::types::MonsterEncounter;
 use crate::types::MonsterName;
 use crate::types::RelicName;
-use crate::utils::frame_top;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::vuln_factor;
@@ -113,7 +111,6 @@ pub struct PyIntent {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyMonster {
     pub name: PyMonsterName,
-    pub display_name: String,
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
@@ -121,73 +118,23 @@ pub struct PyMonster {
     pub intent: PyIntent,
 }
 
-impl MonsterName {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Cultist => "Cultist",
-            Self::FungiBeast => "Fungi Beast",
-            Self::GremlinFat => "Fat Gremlin",
-            Self::GremlinNob => "Gremlin Nob",
-            Self::GremlinThief => "Sneaky Gremlin",
-            Self::GremlinTsundere => "Shield Gremlin",
-            Self::GremlinWarrior => "Mad Gremlin",
-            Self::GremlinWizard => "Gremlin Wizard",
-            Self::Hexaghost => "Hexaghost",
-            Self::JawWorm => "Jaw Worm",
-            Self::Lagavulin => "Lagavulin",
-            Self::Looter => "Looter",
-            Self::LouseDefensive => "Green Louse",
-            Self::LouseNormal => "Red Louse",
-            Self::Sentry => "Sentry",
-            Self::SlaverBlue => "Blue Slaver",
-            Self::SlaverRed => "Red Slaver",
-            Self::SlimeAcidLarge => "Acid Slime (L)",
-            Self::SlimeAcidMedium => "Acid Slime (M)",
-            Self::SlimeAcidSmall => "Acid Slime (S)",
-            Self::SlimeBoss => "Slime Boss",
-            Self::SlimeSpikeLarge => "Spike Slime (L)",
-            Self::SlimeSpikeMedium => "Spike Slime (M)",
-            Self::SlimeSpikeSmall => "Spike Slime (S)",
-            Self::TheGuardian => "The Guardian",
-            Self::Byrd => "Byrd",
-            Self::Centurion => "Centurion",
-            Self::Chosen => "Chosen",
-            Self::Healer => "Mystic",
-            Self::Mugger => "Mugger",
-            Self::ShelledParasite => "Shelled Parasite",
-            Self::SnakePlant => "Snake Plant",
-            Self::Snecko => "Snecko",
-            Self::SphericGuardian => "Spheric Guardian",
-            Self::BookOfStabbing => "Book of Stabbing",
-            Self::GremlinLeader => "Gremlin Leader",
-            Self::Taskmaster => "Taskmaster",
-            Self::BronzeAutomaton => "Bronze Automaton",
-            Self::BronzeOrb => "Bronze Orb",
-            Self::Champ => "The Champ",
-            Self::TheCollector => "The Collector",
-            Self::TorchHead => "Torch Head",
-            Self::BanditBear => "Bear",
-            Self::BanditLeader => "Romeo",
-            Self::BanditPointy => "Pointy",
-        }
-    }
-}
-
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
-    let Frame::Combat { id_monsters, .. } = frame_top(&state.frame_stack) else {
+    if !state.combat.active {
         return Vec::new();
-    };
+    }
     let character = &state.entities[state.id_character];
     let mods_char = &character.modifiers;
-    id_monsters
+    state
+        .combat
+        .id_monsters
         .iter()
         .flatten()
         .copied()
         .map(|id_monster| {
-            let m = &state.entities[id_monster];
+            let monster = &state.entities[id_monster];
 
-            let intent = if let Some(move_idx) = m.monster_move_current {
-                let mv = &m.monster_moves[move_idx];
+            let intent = if let Some(move_idx) = monster.monster_move_current {
+                let mv = &monster.monster_moves[move_idx];
                 let (base_damage, instances) = match mv.intent {
                     Intent::Attack { damage, instances }
                     | Intent::AttackBlock { damage, instances }
@@ -205,18 +152,19 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 };
 
                 // Divider-style locked damage replaces the template before scaling
-                let base_damage = base_damage.map(|d| m.monster_move_damage_override.unwrap_or(d));
-                let damage = base_damage.map(|d| {
-                    let str_stacks = if has_modifier(&m.modifiers, ModifierKind::Strength) {
-                        modifier_stacks(&m.modifiers, ModifierKind::Strength)
+                let base_damage = base_damage
+                    .map(|damage| monster.monster_move_damage_override.unwrap_or(damage));
+                let damage = base_damage.map(|damage| {
+                    let str_stacks = if has_modifier(&monster.modifiers, ModifierKind::Strength) {
+                        modifier_stacks(&monster.modifiers, ModifierKind::Strength)
                     } else {
                         0
                     };
                     let mut scaled = scale_attack_damage(
-                        d,
+                        damage,
                         str_stacks,
                         weak_factor(
-                            has_modifier(&m.modifiers, ModifierKind::Weak),
+                            has_modifier(&monster.modifiers, ModifierKind::Weak),
                             has_relic(&state.id_relics, RelicName::PaperKrane),
                         ),
                         vuln_factor(
@@ -244,12 +192,11 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
             };
 
             PyMonster {
-                name: m.monster_name.into(),
-                display_name: m.monster_name.as_str().to_string(),
-                health: m.vitals.health,
-                health_max: m.vitals.health_max,
-                block: m.vitals.block,
-                modifiers: snapshot_modifiers(&m.modifiers),
+                name: monster.monster_name.into(),
+                health: monster.vitals.health,
+                health_max: monster.vitals.health_max,
+                block: monster.vitals.block,
+                modifiers: snapshot_modifiers(&monster.modifiers),
                 intent,
             }
         })

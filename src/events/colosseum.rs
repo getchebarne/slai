@@ -1,10 +1,11 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::EventLoot;
+use crate::effect::RelicPick;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventLoot;
 use crate::events::make_entity_event_option;
 use crate::types::MonsterName;
 use crate::types::RelicTier;
@@ -51,9 +52,10 @@ const OPTION_FIGHT_NOBS: &[Effect] = &[
 // The Nobs purse: 100 gold plus a rare and an uncommon Relic, paid by `fight_loot`
 pub const FIGHT_LOOT_NOBS: EventLoot = EventLoot {
     gold: Some(Amount::Absolute(100)),
-    relic: None,
-    relic_roll: false,
-    relic_tiers: [Some(RelicTier::Rare), Some(RelicTier::Uncommon)],
+    relics: [
+        Some(RelicPick::Tier(RelicTier::Rare)),
+        Some(RelicPick::Tier(RelicTier::Uncommon)),
+    ],
 };
 
 pub static OPTIONS: &[Entity] = &[

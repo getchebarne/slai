@@ -22,7 +22,6 @@ pub static PANACHE: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Panache,
@@ -39,12 +38,12 @@ pub static PANACHE: Entity = make_entity_card(
 pub static PANACHE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = PANACHE.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = PANACHE.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Panache,
             stacks: 14, // +4 damage
         };
-        a
+        effects
     },
     ..PANACHE
 };

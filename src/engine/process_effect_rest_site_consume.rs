@@ -1,10 +1,11 @@
 use crate::game::GameState;
-use crate::types::Frame;
-use crate::utils::frame_top_mut;
+use crate::types::Focus;
+use crate::utils::context_focus;
 
 pub fn process_effect_rest_site_consume(state: &mut GameState) {
-    let Frame::RestSite { consumed } = frame_top_mut(&mut state.frame_stack) else {
-        unreachable!("RestSiteConsume outside the RestSite frame")
-    };
-    *consumed = true;
+    assert!(
+        context_focus(state) == Focus::RestSite,
+        "RestSiteConsume outside the RestSite context"
+    );
+    state.rest_site.consumed = true;
 }

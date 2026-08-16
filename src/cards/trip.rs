@@ -23,7 +23,6 @@ pub static TRIP: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vulnerable,
@@ -39,11 +38,10 @@ pub static TRIP: Entity = make_entity_card(
 // Upgraded
 pub static TRIP_PLUS: Entity = Entity {
     card_upgraded: true,
-    requires_target: false,
     card_effects: {
-        let mut a = TRIP.card_effects;
-        a[0].target = TARGET_MONSTERS_ALL; // Targets all monsters
-        a
+        let mut effects = TRIP.card_effects;
+        effects[0].target = TARGET_MONSTERS_ALL; // Targets all monsters
+        effects
     },
     ..TRIP
 };

@@ -10,25 +10,27 @@ use crate::engine::shop::restock_relic;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::DeltaSign;
-use crate::types::Frame;
+use crate::types::Focus;
 use crate::types::RelicName;
+use crate::types::Shop;
 use crate::types::ShopSlot;
+use crate::utils::context_focus;
 use crate::utils::flush_effects_from_buf_to_queue_front;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 
 pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, slot: ShopSlot) {
     let id_bought = id_target.expect("ShopBuy requires id_target");
-    let Frame::Shop {
+    assert!(
+        context_focus(state) == Focus::Shop,
+        "ShopBuy outside the Shop context"
+    );
+    let Shop {
         cards,
         relics,
         potions,
         purge_cost,
         ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("ShopBuy outside the Shop frame")
-    };
+    } = &mut state.shop;
 
     // Take the offer out of its slot; its price settles the sale
     let (idx, price_bought) = {

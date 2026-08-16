@@ -29,24 +29,24 @@ pub fn process_effect_card_add_random(
 ) {
     let pool: Vec<&Entity> = ALL_CARDS
         .iter()
-        .filter(|c| c.card_color == color)
-        .filter(|c| kind.is_none_or(|k| c.card_kind == k))
-        .filter(|c| {
+        .filter(|card| card.card_color == color)
+        .filter(|card| kind.is_none_or(|card_kind| card.card_kind == card_kind))
+        .filter(|card| {
             rarity.map_or(
                 matches!(
-                    c.card_rarity,
+                    card.card_rarity,
                     CardRarity::Common | CardRarity::Uncommon | CardRarity::Rare
                 ),
-                |r| c.card_rarity == r,
+                |card_rarity| card.card_rarity == card_rarity,
             )
         })
-        .filter(|c| {
+        .filter(|card| {
             !matches!(
-                c.card_name,
+                card.card_name,
                 CardName::AscendersBane | CardName::CurseOfTheBell
             )
         })
-        .map(|c| &**c)
+        .map(|card| &**card)
         .collect();
 
     for _ in 0..count {

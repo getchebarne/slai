@@ -6,10 +6,9 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Frame;
 use crate::types::RelicName;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 
 // Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain/ethereal
@@ -18,15 +17,16 @@ pub fn process_effect_card_discard(
     state: &mut GameState,
     source: DiscardSource,
 ) {
-    let Frame::Combat {
-        id_hand,
-        id_pile_discard,
+    assert!(
+        state.combat.active,
+        "process_effect_card_discard outside the Combat frame"
+    );
+    let Combat {
+        id_card_hand,
+        id_card_discard,
         this_turn_discards,
         ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("process_effect_card_discard outside the Combat frame")
-    };
+    } = &mut state.combat;
     let id_target = id_target.expect("CardDiscard requires id_target");
     match source {
         DiscardSource::EndOfTurn => {
@@ -52,16 +52,16 @@ pub fn process_effect_card_discard(
             }
 
             // Move from hand to discard
-            if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
-                id_hand.remove(pos);
+            if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {
+                id_card_hand.remove(pos);
             }
-            id_pile_discard.push(id_target);
+            id_card_discard.push(id_target);
         }
         DiscardSource::Explicit => {
-            if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
-                id_hand.remove(pos);
+            if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {
+                id_card_hand.remove(pos);
             }
-            id_pile_discard.push(id_target);
+            id_card_discard.push(id_target);
             *this_turn_discards = this_turn_discards.saturating_add(1);
 
             // Push reversed so first effect runs first when queue resumes

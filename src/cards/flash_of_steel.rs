@@ -22,7 +22,6 @@ pub static FLASH_OF_STEEL: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -46,12 +45,12 @@ pub static FLASH_OF_STEEL: Entity = make_entity_card(
 pub static FLASH_OF_STEEL_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = FLASH_OF_STEEL.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = FLASH_OF_STEEL.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 6,
             lifesteal: false,
         }; // +3 damage
-        a
+        effects
     },
     ..FLASH_OF_STEEL
 };

@@ -1,8 +1,8 @@
 use crate::effect::Effect;
 use crate::entity::Entity;
-use crate::events::EFFECT_DECK_PURGE_PICK;
-use crate::events::EFFECT_DECK_TRANSFORM_PICK;
-use crate::events::EFFECT_DECK_UPGRADE_PICK;
+use crate::events::EFFECT_DECK_PURGE_PICK_1;
+use crate::events::EFFECT_DECK_TRANSFORM_PICK_1;
+use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_non_basic_non_curse;
 use crate::events::deck_has_purgeable;
@@ -11,13 +11,13 @@ use crate::events::make_entity_event_option;
 use crate::game::GameState;
 
 // Forget
-const OPTION_FORGET: &[Effect] = &[EFFECT_DECK_PURGE_PICK, EVENT_CONSUME_EFFECT];
+const OPTION_FORGET: &[Effect] = &[EFFECT_DECK_PURGE_PICK_1, EVENT_CONSUME_EFFECT];
 
 // Change
-const OPTION_CHANGE: &[Effect] = &[EFFECT_DECK_TRANSFORM_PICK, EVENT_CONSUME_EFFECT];
+const OPTION_CHANGE: &[Effect] = &[EFFECT_DECK_TRANSFORM_PICK_1, EVENT_CONSUME_EFFECT];
 
 // Grow
-const OPTION_GROW: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK, EVENT_CONSUME_EFFECT];
+const OPTION_GROW: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK_1, EVENT_CONSUME_EFFECT];
 
 pub static OPTIONS: &[Entity] = &[
     make_entity_event_option("[Forget] Remove a card from your deck.", OPTION_FORGET),

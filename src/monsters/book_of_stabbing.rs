@@ -17,10 +17,10 @@ const NUM_MULTI_STAB_MOVES: usize = MAX_EFFECTS_PER_MOVE - 1;
 
 const fn move_table(multi_damage: u16, single_damage: u16) -> [Move; NUM_MULTI_STAB_MOVES + 1] {
     let mut table = [make_move_attack("Single Stab", single_damage, 1); NUM_MULTI_STAB_MOVES + 1];
-    let mut i = 0;
-    while i < NUM_MULTI_STAB_MOVES {
-        table[i] = make_move_attack("Multi-Stab", multi_damage, (i + 2) as u8);
-        i += 1;
+    let mut idx = 0;
+    while idx < NUM_MULTI_STAB_MOVES {
+        table[idx] = make_move_attack("Multi-Stab", multi_damage, (idx + 2) as u8);
+        idx += 1;
     }
     table
 }
@@ -81,7 +81,10 @@ pub fn get_next_move_book_of_stabbing(
     };
     let idx_multi = escalation.min(IDX_MOVE_MULTI_STAB_LAST);
 
-    let last = move_history.last().copied().map(|m| m as usize);
+    let last = move_history
+        .last()
+        .copied()
+        .map(|idx_move| idx_move as usize);
     if rng.random_range(0..=99) < 15 {
         if last == Some(IDX_MOVE_SINGLE_STAB) {
             idx_multi
@@ -91,7 +94,7 @@ pub fn get_next_move_book_of_stabbing(
     } else if move_history.len() >= 2
         && move_history[move_history.len() - 2..]
             .iter()
-            .all(|&m| is_multi_stab(m as usize))
+            .all(|&idx_move| is_multi_stab(idx_move as usize))
     {
         IDX_MOVE_SINGLE_STAB
     } else {

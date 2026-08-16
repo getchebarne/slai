@@ -22,7 +22,6 @@ pub static UNLOAD: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -46,12 +45,12 @@ pub static UNLOAD: Entity = make_entity_card(
 pub static UNLOAD_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = UNLOAD.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = UNLOAD.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 18,
             lifesteal: false,
         }; // +4 damage
-        a
+        effects
     },
     ..UNLOAD
 };

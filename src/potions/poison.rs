@@ -11,7 +11,6 @@ pub static POTION_POISON: Entity = make_entity_potion(
     PotionName::PoisonPotion,
     PotionRarity::Common,
     true,
-    true,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Poison,

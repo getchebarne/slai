@@ -4,7 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::events::EFFECT_DECK_PURGE_PICK;
+use crate::events::EFFECT_DECK_PURGE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_purgeable;
@@ -51,7 +51,7 @@ const fn purify(cost: u16) -> [Effect; 3] {
             id_source: None,
             target: Target::Direct(None),
         },
-        EFFECT_DECK_PURGE_PICK,
+        EFFECT_DECK_PURGE_PICK_1,
         EVENT_CONSUME_EFFECT,
     ]
 }

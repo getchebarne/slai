@@ -9,7 +9,6 @@ use crate::types::PotionRarity;
 pub static POTION_SMOKE_BOMB: Entity = make_entity_potion(
     PotionName::SmokeBomb,
     PotionRarity::Rare,
-    false,
     true,
     &[Effect {
         kind: EffectKind::CombatEnd {

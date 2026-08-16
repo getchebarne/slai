@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_STRENGTH: Entity = make_entity_potion(
     PotionName::StrengthPotion,
     PotionRarity::Common,
-    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {

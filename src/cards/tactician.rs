@@ -22,7 +22,6 @@ pub static TACTICIAN: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[],
     &[Effect {
         kind: EffectKind::EnergyDelta {

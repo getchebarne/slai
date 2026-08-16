@@ -22,7 +22,6 @@ pub static DASH: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 10 },
@@ -46,13 +45,13 @@ pub static DASH: Entity = make_entity_card(
 pub static DASH_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DASH.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 13 }; // +3 block
-        a[1].kind = EffectKind::DamagePhysical {
+        let mut effects = DASH.card_effects;
+        effects[0].kind = EffectKind::BlockGain { amount: 13 }; // +3 block
+        effects[1].kind = EffectKind::DamagePhysical {
             amount: 13,
             lifesteal: false,
         }; // +3 damage
-        a
+        effects
     },
     ..DASH
 };

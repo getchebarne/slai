@@ -21,7 +21,6 @@ pub static IMPATIENCE: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardDrawIfNoAttacks { count: 2 },
         id_source: None,
@@ -35,9 +34,9 @@ pub static IMPATIENCE: Entity = make_entity_card(
 pub static IMPATIENCE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = IMPATIENCE.card_effects;
-        a[0].kind = EffectKind::CardDrawIfNoAttacks { count: 3 }; // +1 draw
-        a
+        let mut effects = IMPATIENCE.card_effects;
+        effects[0].kind = EffectKind::CardDrawIfNoAttacks { count: 3 }; // +1 draw
+        effects
     },
     ..IMPATIENCE
 };

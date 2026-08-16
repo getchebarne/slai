@@ -22,7 +22,6 @@ pub static SNEAKY_STRIKE: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -46,12 +45,12 @@ pub static SNEAKY_STRIKE: Entity = make_entity_card(
 pub static SNEAKY_STRIKE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = SNEAKY_STRIKE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = SNEAKY_STRIKE.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 16,
             lifesteal: false,
         }; // +4 damage
-        a
+        effects
     },
     ..SNEAKY_STRIKE
 };

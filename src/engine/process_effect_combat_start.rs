@@ -16,27 +16,24 @@ use crate::relics::iter_owned_relics;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::Energy;
-use crate::types::Frame;
 use crate::types::MonsterKind;
 use crate::types::RelicName;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
 pub fn process_effect_combat_start(state: &mut GameState) {
-    // MonsterSpawn constructs the frame zeroed; only what CombatStart computes is written here
-    let Frame::Combat {
-        id_pile_draw,
+    // MonsterSpawn opens the combat reset; only what CombatStart computes is written here
+    assert!(state.combat.active, "CombatStart outside combat");
+    let Combat {
+        id_card_draw,
         id_monsters,
         energy,
         ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("process_effect_combat_start outside the Combat frame")
-    };
+    } = &mut state.combat;
 
     // Elite fights are identified by the monsters, not the room (see Dead Aventurer Event)
     let is_fight_elite = id_monsters
@@ -92,8 +89,8 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     let mut innate_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
     let mut innate_n: usize = 0;
 
-    for i in 0..state.id_deck.len() {
-        let id_card_src = state.id_deck[i];
+    for idx in 0..state.id_card_deck.len() {
+        let id_card_src = state.id_card_deck[idx];
         let card = state.entities[id_card_src];
         let id_card = push_entity(&mut state.entities, card);
         if card.card_innate || card.card_bottled {
@@ -108,10 +105,10 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     shuffle(&mut other_ids[..other_n], &mut state.rng);
 
     for &id in &other_ids[..other_n] {
-        id_pile_draw.push(id);
+        id_card_draw.push(id);
     }
     for &id in &innate_ids[..innate_n] {
-        id_pile_draw.push(id);
+        id_card_draw.push(id);
     }
 
     // Monster MoveUpdates already queued at MonsterSpawn; queue character TurnStart
@@ -240,7 +237,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     // Du-Vu Doll: combat starts with 1 Strength per Curse in the deck
     if has_relic(&state.id_relics, RelicName::DuVuDoll) {
         let num_curses = state
-            .id_deck
+            .id_card_deck
             .iter()
             .filter(|&&id| state.entities[id].card_kind == CardKind::Curse)
             .count();

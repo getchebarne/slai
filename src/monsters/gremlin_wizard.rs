@@ -71,7 +71,7 @@ pub fn get_next_move_gremlin_wizard(
     // Charges needed depends on whether Ultimate Blast has already fired
     let has_fired_blast = move_history
         .iter()
-        .any(|&m| m == IDX_MOVE_ULTIMATE_BLAST as u8);
+        .any(|&idx_move| idx_move == IDX_MOVE_ULTIMATE_BLAST as u8);
 
     let charges_needed = if has_fired_blast { 3 } else { 2 };
 

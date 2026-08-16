@@ -20,7 +20,6 @@ use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
-use crate::types::Frame;
 use crate::types::RelicName;
 use crate::types::RoomKind;
 use crate::utils::candidate_matches;
@@ -89,11 +88,12 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             spawn_encounter_monsters(state, encounter);
         }
         RoomKind::RestSite => {
-            state.frame_stack.push(Frame::RestSite { consumed: false });
+            state.rest_site.consumed = false;
+            state.rest_site.active = true;
 
             // Eternal Feather: 3 HP per 5 deck Cards on arrival
             if has_relic(&state.id_relics, RelicName::EternalFeather) {
-                let heal = (state.id_deck.len() / 5) * 3;
+                let heal = (state.id_card_deck.len() / 5) * 3;
                 state.effect_queue.push_back(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Gain,
@@ -110,29 +110,27 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             }
         }
         RoomKind::Treasure => {
-            // Roll the chest kind into the frame
+            // Roll the chest kind into the context
             let roll = state.rng.random_range(0..100) as u8;
-            state.frame_stack.push(Frame::Chest {
-                chest_kind: if roll < CHEST_SMALL_PCT {
-                    ChestKind::Small
-                } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
-                    ChestKind::Medium
-                } else {
-                    ChestKind::Large
-                },
-                chest_opened: false,
-            });
+            state.chest.chest_kind = if roll < CHEST_SMALL_PCT {
+                ChestKind::Small
+            } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
+                ChestKind::Medium
+            } else {
+                ChestKind::Large
+            };
+            state.chest.chest_opened = false;
+            state.chest.active = true;
         }
         RoomKind::EventRoom => {
             let name = draw_random_event(state).expect("Event room with no drawable event");
-            let (kind, id_options) = spawn_event(state, name);
-            state.frame_stack.push(Frame::Event {
-                kind,
-                consumed: false,
-                id_options,
-            });
+            let (kind, id_event_options) = spawn_event(state, name);
+            state.event.event_kind = kind;
+            state.event.consumed = false;
+            state.event.id_event_options = id_event_options;
+            state.event.active = true;
         }
-        // ShopBuild constructs Frame::Shop; until it runs the frame stays Map
+        // ShopBuild fills the shop context; until it runs the focus stays Map
         RoomKind::Shop => {
             // Meal Ticket: Heal 15 on shop enter
             if has_relic(&state.id_relics, RelicName::MealTicket) {
@@ -269,7 +267,7 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
     let gold = state.entities[state.id_character].character_gold;
 
     // Calculate if there's any removable curses in the deck. This gates "The Divine Fountain"
-    let has_removable_curse = state.id_deck.iter().any(|&id| {
+    let has_removable_curse = state.id_card_deck.iter().any(|&id| {
         candidate_matches(
             CandidateFilter::PurgeableCurse,
             id,

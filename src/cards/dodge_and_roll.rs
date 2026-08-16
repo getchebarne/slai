@@ -22,7 +22,6 @@ pub static DODGE_AND_ROLL: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 4 },
@@ -46,13 +45,13 @@ pub static DODGE_AND_ROLL: Entity = make_entity_card(
 pub static DODGE_AND_ROLL_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DODGE_AND_ROLL.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 6 }; // +2 block
-        a[1].kind = EffectKind::ModifierGain {
+        let mut effects = DODGE_AND_ROLL.card_effects;
+        effects[0].kind = EffectKind::BlockGain { amount: 6 }; // +2 block
+        effects[1].kind = EffectKind::ModifierGain {
             kind: ModifierKind::NextTurnBlock,
             stacks: 6, // +2 next-turn block
         };
-        a
+        effects
     },
     ..DODGE_AND_ROLL
 };

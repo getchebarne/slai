@@ -18,7 +18,6 @@ pub static SHAME: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[],
     &[],
     &[],

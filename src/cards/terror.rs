@@ -24,7 +24,6 @@ pub static TERROR: Entity = make_entity_card(
     true,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vulnerable,

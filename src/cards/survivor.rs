@@ -26,7 +26,6 @@ pub static SURVIVOR: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 8 },
@@ -53,9 +52,9 @@ pub static SURVIVOR: Entity = make_entity_card(
 pub static SURVIVOR_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = SURVIVOR.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 11 }; // +3 block
-        a
+        let mut effects = SURVIVOR.card_effects;
+        effects[0].kind = EffectKind::BlockGain { amount: 11 }; // +3 block
+        effects
     },
     ..SURVIVOR
 };

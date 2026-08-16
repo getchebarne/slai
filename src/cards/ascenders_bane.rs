@@ -18,7 +18,6 @@ pub static ASCENDERS_BANE: Entity = make_entity_card(
     false,
     true, // Ethereal
     false,
-    false,
     &[],
     &[],
     &[],

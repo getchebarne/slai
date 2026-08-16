@@ -89,9 +89,6 @@ pub struct Entity {
     pub modifiers: Modifiers,
     pub dead: bool,
 
-    // Card and Potion (player-played entities that may pick a monster target)
-    pub requires_target: bool,
-
     // Character-only
     pub character_name: &'static str,
     pub character_reward_roll_offset: i8,
@@ -182,7 +179,6 @@ pub const ENTITY_ZERO: Entity = Entity {
     card_ethereal: false,
     card_innate: false,
     card_bottled: false,
-    requires_target: false,
     card_retain: false,
     card_play_restriction: PlayRestriction::Always,
     card_cost_kind: CardCostKind::Fixed,

@@ -4,19 +4,15 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::types::Frame;
-use crate::utils::frame_top_mut;
 
 pub fn process_effect_singing_bowl_proc(state: &mut GameState, idx_bundle: u8) {
-    let Frame::Reward {
-        id_cards: bundles, ..
-    } = frame_top_mut(&mut state.frame_stack)
-    else {
-        unreachable!("SingingBowlProc outside the Reward frame")
-    };
+    assert!(
+        state.reward.active,
+        "SingingBowlProc outside the Reward context"
+    );
 
     // Remove bundle
-    bundles.remove(idx_bundle as usize);
+    state.reward.id_cards.remove(idx_bundle as usize);
 
     // Push effect for max health gain
     state.effect_queue.push_front(Effect {

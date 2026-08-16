@@ -17,8 +17,7 @@ use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
-use crate::types::Frame;
-use crate::utils::frame_top;
+use crate::utils::entity_requires_target;
 use crate::utils::get_card_effective_cost;
 use crate::utils::is_play_restriction_satisfied;
 use crate::utils::scale_attack_damage;
@@ -112,7 +111,6 @@ mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyCard {
     pub name: PyCardName,
-    pub display_name: String,
 
     // Cost-related fields
     pub cost: u8,
@@ -135,7 +133,6 @@ pub struct PyCard {
     pub bottled: bool,
     pub requires_target: bool,
     pub retain: bool,
-    // `playable` does NOT factor in energy cost; clients must also check `cost <= energy.energy_current`
     pub playable: bool,
 
     // Effects. Snapshot copy: DamagePhysical / BlockGain amounts carry the current player-modifier
@@ -314,17 +311,17 @@ pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) ->
                 target,
             }) => {
                 // Player attacker: Paper Krane never applies
-                let mut d = scale_attack_damage(
+                let mut damage = scale_attack_damage(
                     amount.saturating_add(vigor),
                     str_stacks,
                     weak_factor(weak, false),
                     vuln_factor(false, false),
                 );
                 if double {
-                    d = d.saturating_mul(2);
+                    damage = damage.saturating_mul(2);
                 }
                 PyEffect::DamagePhysical(PyEffectDamagePhysical {
-                    amount: d,
+                    amount: damage,
                     lifesteal,
                     target,
                 })
@@ -348,42 +345,35 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     );
     // Combat-only; outside combat defaults are permissive (Cards not played)
     let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        if let Frame::Combat {
-            id_pile_draw,
-            energy,
-            this_turn_discards,
-            this_combat_damage_instances_taken,
-            ..
-        } = frame_top(&state.frame_stack)
-        {
+        if state.combat.active {
             (
                 is_play_restriction_satisfied(
                     card.card_play_restriction,
                     card.card_kind,
-                    &id_pile_draw,
+                    &state.combat.id_card_draw,
                     &state.id_relics,
                 ),
-                *this_turn_discards,
-                *this_combat_damage_instances_taken,
-                energy.energy_current,
+                state.combat.this_turn_discards,
+                state.combat.this_combat_damage_instances_taken,
+                state.combat.energy.energy_current,
             )
         } else {
             (true, 0, 0, 0)
         };
     let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
-    let base = card.card_name.as_str();
-    let display_name = if card.card_upgraded {
-        format!("{base}+")
-    } else {
-        base.to_string()
-    };
+    let cost =
+        get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current);
+
     let py_card = PyCard {
         name: card.card_name.into(),
-        display_name,
-        cost: get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current),
+        cost,
         cost_base: card.card_cost,
-        cost_override: card.card_cost_override.map(|o| o.amount),
-        cost_override_scope: card.card_cost_override.map(|o| o.scope.into()),
+        cost_override: card
+            .card_cost_override
+            .map(|cost_override| cost_override.amount),
+        cost_override_scope: card
+            .card_cost_override
+            .map(|cost_override| cost_override.scope.into()),
         cost_kind: card.card_cost_kind.into(),
         kind: card.card_kind.into(),
         color: card.card_color.into(),
@@ -394,9 +384,11 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         ethereal: card.card_ethereal,
         innate: card.card_innate,
         bottled: card.card_bottled,
-        requires_target: card.requires_target,
+        requires_target: entity_requires_target(card),
         retain: card.card_retain,
-        playable: restriction_ok && !entangled_blocks,
+        playable: restriction_ok
+            && !entangled_blocks
+            && (!state.combat.active || cost <= energy_current),
         effects: snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers),
     };
     py_card

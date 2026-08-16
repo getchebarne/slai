@@ -23,7 +23,6 @@ pub static TRANSMUTATION: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardAddRandom {
             color: CardColor::Colorless,
@@ -45,8 +44,8 @@ pub static TRANSMUTATION: Entity = make_entity_card(
 pub static TRANSMUTATION_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = TRANSMUTATION.card_effects;
-        a[0].kind = EffectKind::CardAddRandom {
+        let mut effects = TRANSMUTATION.card_effects;
+        effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
             pile: CardPile::Hand,
@@ -55,7 +54,7 @@ pub static TRANSMUTATION_PLUS: Entity = Entity {
             upgraded: true, // Added Cards are upgraded
             rarity: None,
         };
-        a
+        effects
     },
     ..TRANSMUTATION
 };

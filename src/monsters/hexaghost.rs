@@ -25,9 +25,9 @@ const INFERNO_HITS: usize = 6;
 // Inferno: six hits then the burn upgrade; fills all MAX_EFFECTS_PER_MOVE slots
 const fn make_move_inferno(damage: u16) -> Move {
     let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
-    let mut i = 0;
-    while i < INFERNO_HITS {
-        effects[i] = Effect {
+    let mut idx = 0;
+    while idx < INFERNO_HITS {
+        effects[idx] = Effect {
             kind: EffectKind::DamagePhysical {
                 amount: damage,
                 lifesteal: false,
@@ -35,7 +35,7 @@ const fn make_move_inferno(damage: u16) -> Move {
             id_source: None,
             target: TARGET_CHARACTER,
         };
-        i += 1;
+        idx += 1;
     }
     effects[INFERNO_HITS] = Effect {
         kind: EffectKind::HexaghostBurnIncrease { count: 3 },
@@ -268,7 +268,9 @@ pub fn get_next_move_hexaghost(move_current: Option<usize>, move_history: &[u8])
     }
 
     // Calculate if Inferno has already occured
-    let has_inferno = move_history.iter().any(|&m| m == IDX_MOVE_INFERNO as u8);
+    let has_inferno = move_history
+        .iter()
+        .any(|&idx_move| idx_move == IDX_MOVE_INFERNO as u8);
 
     // Cycle start
     if last == IDX_MOVE_DIVIDER || last == IDX_MOVE_INFERNO {

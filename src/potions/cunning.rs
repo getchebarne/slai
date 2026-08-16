@@ -11,7 +11,6 @@ use crate::types::PotionRarity;
 pub static POTION_CUNNING: Entity = make_entity_potion(
     PotionName::CunningPotion,
     PotionRarity::Uncommon,
-    false,
     true,
     &[Effect {
         kind: EffectKind::CardAdd {

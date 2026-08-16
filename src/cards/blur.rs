@@ -22,7 +22,6 @@ pub static BLUR: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 5 },
@@ -46,9 +45,9 @@ pub static BLUR: Entity = make_entity_card(
 pub static BLUR_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = BLUR.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 8 }; // +3 block
-        a
+        let mut effects = BLUR.card_effects;
+        effects[0].kind = EffectKind::BlockGain { amount: 8 }; // +3 block
+        effects
     },
     ..BLUR
 };

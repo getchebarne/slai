@@ -14,11 +14,8 @@ use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
 use crate::monsters::the_guardian;
 use crate::types::DeltaSign;
-use crate::types::Frame;
 use crate::types::MonsterName;
 use crate::types::RelicName;
-use crate::utils::frame_top;
-use crate::utils::frame_top_mut;
 use crate::utils::has_relic;
 use crate::utils::resolve_health_fraction;
 
@@ -77,7 +74,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     // Centennial Puzzle: the first actual HP loss each combat draws 3
     if id_target == state.id_character
         && amount > 0
-        && matches!(frame_top(&state.frame_stack), Frame::Combat { .. })
+        && state.combat.active
         && let Some(id_relic) = state.id_relics[RelicName::CentennialPuzzle as usize]
         && state.entities[id_relic].relic_counter == 0
     {
@@ -90,14 +87,11 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
     }
 
     // Bump number of damage instances taken this combat
-    if id_target == state.id_character
-        && amount > 0
-        && let Frame::Combat {
-            this_combat_damage_instances_taken,
-            ..
-        } = frame_top_mut(&mut state.frame_stack)
-    {
-        *this_combat_damage_instances_taken = this_combat_damage_instances_taken.saturating_add(1);
+    if id_target == state.id_character && amount > 0 && state.combat.active {
+        state.combat.this_combat_damage_instances_taken = state
+            .combat
+            .this_combat_damage_instances_taken
+            .saturating_add(1);
     }
 
     // Get mutable target reference
@@ -116,7 +110,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
         });
     }
 
-    // Decrement health
+    // Substract health
     target.vitals.health = target.vitals.health.saturating_sub(amount);
 
     // Check if the target's dead. If so, queue death effect and return early
@@ -225,7 +219,7 @@ fn apply_loss(id_target: usize, state: &mut GameState, amount: u16) {
                     target: Target::Direct(Some(id_target)),
                 });
             } else {
-                panic!("Tried to remove Frame Shift from the Character")
+                panic!("Tried to remove ModeShift from the Character")
             }
         } else {
             target.modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;

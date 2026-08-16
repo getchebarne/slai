@@ -25,7 +25,6 @@ pub static ACROBATICS: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::CardDraw { count: 3 },
@@ -52,9 +51,9 @@ pub static ACROBATICS: Entity = make_entity_card(
 pub static ACROBATICS_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = ACROBATICS.card_effects;
-        a[0].kind = EffectKind::CardDraw { count: 4 }; // +1 draw
-        a
+        let mut effects = ACROBATICS.card_effects;
+        effects[0].kind = EffectKind::CardDraw { count: 4 }; // +1 draw
+        effects
     },
     ..ACROBATICS
 };

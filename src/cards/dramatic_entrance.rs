@@ -21,7 +21,6 @@ pub static DRAMATIC_ENTRANCE: Entity = make_entity_card(
     true,
     false,
     true,
-    false,
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 8,
@@ -38,12 +37,12 @@ pub static DRAMATIC_ENTRANCE: Entity = make_entity_card(
 pub static DRAMATIC_ENTRANCE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DRAMATIC_ENTRANCE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = DRAMATIC_ENTRANCE.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 12,
             lifesteal: false,
         }; // +4 damage
-        a
+        effects
     },
     ..DRAMATIC_ENTRANCE
 };

@@ -48,7 +48,7 @@ flat_variants!(PyEventKind {
     TheMausoleum => PyEventKindTheMausoleum as "EventKindTheMausoleum",
     Vampires => PyEventKindVampires as "EventKindVampires",
     Colosseum => PyEventKindColosseum as "EventKindColosseum" { stage: u8 },
-    Designer => PyEventKindDesigner as "EventKindDesigner" { adjust_upgrades_one: bool, cleanup_removes: bool },
+    Designer => PyEventKindDesigner as "EventKindDesigner",
     KnowingSkull => PyEventKindKnowingSkull as "EventKindKnowingSkull" { potion_cost_hp: u8, gold_cost_hp: u8, card_cost_hp: u8 },
 });
 
@@ -111,13 +111,7 @@ pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEvent
         EventKind::TheMausoleum => PyEventKind::TheMausoleum(PyEventKindTheMausoleum),
         EventKind::Vampires => PyEventKind::Vampires(PyEventKindVampires),
         EventKind::Colosseum { stage } => PyEventKind::Colosseum(PyEventKindColosseum { stage }),
-        EventKind::Designer {
-            adjust_upgrades_one,
-            cleanup_removes,
-        } => PyEventKind::Designer(PyEventKindDesigner {
-            adjust_upgrades_one,
-            cleanup_removes,
-        }),
+        EventKind::Designer => PyEventKind::Designer(PyEventKindDesigner),
         EventKind::KnowingSkull {
             potion_cost_hp,
             gold_cost_hp,

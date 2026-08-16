@@ -22,7 +22,6 @@ pub static APPARITION: Entity = make_entity_card(
     true,
     true,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Intangible,

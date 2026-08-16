@@ -27,7 +27,6 @@ pub static BULLET_TIME: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::SetCostOverride {

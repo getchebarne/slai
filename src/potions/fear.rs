@@ -11,7 +11,6 @@ pub static POTION_FEAR: Entity = make_entity_potion(
     PotionName::FearPotion,
     PotionRarity::Common,
     true,
-    true,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vulnerable,

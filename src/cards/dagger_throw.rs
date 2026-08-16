@@ -26,7 +26,6 @@ pub static DAGGER_THROW: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::DamagePhysical {
@@ -61,12 +60,12 @@ pub static DAGGER_THROW: Entity = make_entity_card(
 pub static DAGGER_THROW_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DAGGER_THROW.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = DAGGER_THROW.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 12,
             lifesteal: false,
         }; // +3 damage
-        a
+        effects
     },
     ..DAGGER_THROW
 };

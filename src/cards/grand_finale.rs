@@ -21,7 +21,6 @@ pub static GRAND_FINALE: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 50,
@@ -38,12 +37,12 @@ pub static GRAND_FINALE: Entity = make_entity_card(
 pub static GRAND_FINALE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = GRAND_FINALE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical {
+        let mut effects = GRAND_FINALE.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
             amount: 60,
             lifesteal: false,
         }; // +10 damage
-        a
+        effects
     },
     ..GRAND_FINALE
 };

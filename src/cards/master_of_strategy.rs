@@ -21,7 +21,6 @@ pub static MASTER_OF_STRATEGY: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardDraw { count: 3 },
         id_source: None,
@@ -35,9 +34,9 @@ pub static MASTER_OF_STRATEGY: Entity = make_entity_card(
 pub static MASTER_OF_STRATEGY_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = MASTER_OF_STRATEGY.card_effects;
-        a[0].kind = EffectKind::CardDraw { count: 4 }; // +1 draw
-        a
+        let mut effects = MASTER_OF_STRATEGY.card_effects;
+        effects[0].kind = EffectKind::CardDraw { count: 4 }; // +1 draw
+        effects
     },
     ..MASTER_OF_STRATEGY
 };
