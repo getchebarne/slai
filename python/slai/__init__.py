@@ -224,6 +224,7 @@ EffectCardMove = _rs.EffectCardMove
 EffectCardExhaust = _rs.EffectCardExhaust
 EffectCardDrawIfNoAttacks = _rs.EffectCardDrawIfNoAttacks
 EffectHandOfGreedProc = _rs.EffectHandOfGreedProc
+EffectRitualDaggerProc = _rs.EffectRitualDaggerProc
 EffectCardDraw = _rs.EffectCardDraw
 EffectCardDrawUpTo = _rs.EffectCardDrawUpTo
 EffectCardDiscard = _rs.EffectCardDiscard
@@ -291,6 +292,7 @@ Effect = (
     | EffectCardExhaust
     | EffectCardDrawIfNoAttacks
     | EffectHandOfGreedProc
+    | EffectRitualDaggerProc
     | EffectCardDraw
     | EffectCardDrawUpTo
     | EffectCardDiscard
@@ -597,6 +599,7 @@ __all__ = [
     "EffectCardExhaust",
     "EffectCardDrawIfNoAttacks",
     "EffectHandOfGreedProc",
+    "EffectRitualDaggerProc",
     "EffectCardDraw",
     "EffectCardDrawUpTo",
     "EffectCardDiscard",

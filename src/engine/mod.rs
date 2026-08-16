@@ -85,6 +85,7 @@ pub mod process_effect_reward_roll_potion;
 pub mod process_effect_reward_roll_potions;
 pub mod process_effect_reward_roll_relic;
 pub mod process_effect_reward_take;
+pub mod process_effect_ritual_dagger_proc;
 pub mod process_effect_room_enter;
 pub mod process_effect_room_exit;
 pub mod process_effect_room_select;
@@ -193,6 +194,7 @@ use self::process_effect_reward_roll_potion::process_effect_reward_roll_potion;
 use self::process_effect_reward_roll_potions::process_effect_reward_roll_potions;
 use self::process_effect_reward_roll_relic::process_effect_reward_roll_relic;
 use self::process_effect_reward_take::process_effect_reward_take;
+use self::process_effect_ritual_dagger_proc::process_effect_ritual_dagger_proc;
 use self::process_effect_room_enter::process_effect_room_enter;
 use self::process_effect_room_exit::process_effect_room_exit;
 use self::process_effect_room_select::process_effect_room_select;
@@ -494,6 +496,9 @@ fn dispatch_by_kind(
             process_effect_reward_roll_potions(state, count, uniform)
         }
         EffectKind::RewardRollRelic { pick } => process_effect_reward_roll_relic(state, pick),
+        EffectKind::RitualDaggerProc { bump } => {
+            process_effect_ritual_dagger_proc(id_source, id_target, state, bump)
+        }
         EffectKind::RewardTake { kind } => process_effect_reward_take(id_target, state, kind),
         EffectKind::RoomExit => process_effect_room_exit(state),
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
@@ -559,7 +564,7 @@ fn dispatch_by_kind(
         EffectKind::ModifierSetNotNew => process_effect_modifier_set_not_new(state),
         EffectKind::Death => {
             // Character can die outside Combat; empty monster slots make iter a no-op
-            process_effect_death(id_source, id_target, state)
+            process_effect_death(id_target, state)
         }
         EffectKind::CombatStart => process_effect_combat_start(state),
         EffectKind::CombatEnd { escaped_character } => {

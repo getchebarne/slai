@@ -82,6 +82,7 @@ flat_variants!(PyEffect {
     CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, pile: PyCardPile, count: u8, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity>, target: Option<PyTarget> },
     CardDrawIfNoAttacks => PyEffectCardDrawIfNoAttacks as "EffectCardDrawIfNoAttacks" { count: u16, target: Option<PyTarget> },
     HandOfGreedProc => PyEffectHandOfGreedProc as "EffectHandOfGreedProc" { gold: u16, target: Option<PyTarget> },
+    RitualDaggerProc => PyEffectRitualDaggerProc as "EffectRitualDaggerProc" { bump: u16, target: Option<PyTarget> },
     CardExhaust => PyEffectCardExhaust as "EffectCardExhaust" { target: Option<PyTarget> },
     CardMove => PyEffectCardMove as "EffectCardMove" { pile: PyCardPile, cost_zero: Option<PyCostScope>, target: Option<PyTarget> },
     CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop as "EffectCardPlayFromDrawTop" { target: Option<PyTarget> },
@@ -346,6 +347,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }
         EffectKind::HandOfGreedProc { gold } => {
             PyEffect::HandOfGreedProc(PyEffectHandOfGreedProc { gold, target })
+        }
+        EffectKind::RitualDaggerProc { bump } => {
+            PyEffect::RitualDaggerProc(PyEffectRitualDaggerProc { bump, target })
         }
         EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target }),
         EffectKind::CardMove { pile, cost_zero } => PyEffect::CardMove(PyEffectCardMove {

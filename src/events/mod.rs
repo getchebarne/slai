@@ -261,7 +261,6 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
             EventKind::ForgottenAltar,
             forgotten_altar::options(ascension),
         ),
-        // N'loth rolls the two offered Relics and bakes them into its options
         EventName::Nloth => return nloth::spawn_event_nloth(state),
         EventName::Colosseum => (EventKind::Colosseum { stage: 0 }, colosseum::OPTIONS),
         EventName::Designer => (
@@ -320,7 +319,6 @@ pub fn fight_loot(kind: EventKind) -> Option<EventLoot> {
     match kind {
         EventKind::Mushrooms => Some(mushrooms::FIGHT_LOOT),
         EventKind::MaskedBandits => Some(masked_bandits::FIGHT_LOOT),
-        // Stage counts bouts started: the first pays nothing, the Nobs pay out
         EventKind::Colosseum { stage: 0 | 1 } => None,
         EventKind::Colosseum { .. } => Some(colosseum::FIGHT_LOOT_NOBS),
         EventKind::DeadAdventurer {

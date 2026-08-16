@@ -212,6 +212,9 @@ pub enum EffectKind {
         name: RelicName,
     },
     RestSiteConsume,
+    RitualDaggerProc {
+        bump: u16,
+    },
     RewardRollCards {
         bundles: u8,
         rare_only: bool,

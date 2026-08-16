@@ -10,7 +10,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-// On fatal, permanently gains damage (+3, +5 upgraded); see `process_effect_damage_deal.rs`
+// On fatal, permanently gains damage (+3, +5 upgraded)
 pub static RITUAL_DAGGER: Entity = make_entity_card(
     CardName::RitualDagger,
     CardKind::Attack,
@@ -22,14 +22,21 @@ pub static RITUAL_DAGGER: Entity = make_entity_card(
     true,
     false,
     false,
-    &[Effect {
-        kind: EffectKind::DamagePhysical {
-            amount: 15,
-            lifesteal: false,
+    &[
+        Effect {
+            kind: EffectKind::DamagePhysical {
+                amount: 15,
+                lifesteal: false,
+            },
+            id_source: None,
+            target: TARGET_MONSTER_PICKED,
         },
-        id_source: None,
-        target: TARGET_MONSTER_PICKED,
-    }],
+        Effect {
+            kind: EffectKind::RitualDaggerProc { bump: 3 },
+            id_source: None,
+            target: TARGET_MONSTER_PICKED,
+        },
+    ],
     &[],
     &[],
     PlayRestriction::Always,
@@ -37,5 +44,10 @@ pub static RITUAL_DAGGER: Entity = make_entity_card(
 // Upgraded: only the on-kill bump grows (3 -> 5); base damage is unchanged
 pub static RITUAL_DAGGER_PLUS: Entity = Entity {
     card_upgraded: true,
+    card_effects: {
+        let mut effects = RITUAL_DAGGER.card_effects;
+        effects[1].kind = EffectKind::RitualDaggerProc { bump: 5 };
+        effects
+    },
     ..RITUAL_DAGGER
 };

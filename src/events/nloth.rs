@@ -11,10 +11,9 @@ use crate::relics::iter_owned_relics;
 use crate::types::RelicName;
 use rand::Rng;
 
-// Two distinct owned Relics rolled at spawn; the draw gate guarantees at least two
-// Rolls two distinct owned Relics and bakes them into the trade options
+// Two distinct owned Relics rolled at spawn
 pub fn spawn_event_nloth(state: &mut GameState) -> (EventKind, Vec<usize>) {
-    let owned: Vec<_> = iter_owned_relics(&state.id_relics)
+    let owned: Vec<RelicName> = iter_owned_relics(&state.id_relics)
         .map(|(name, _)| name)
         .collect();
     let idx = state.rng.random_range(0..owned.len());

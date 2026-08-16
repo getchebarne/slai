@@ -322,6 +322,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollPotions;
     #[pymodule_export]
+    use super::ffi::PyEffectRitualDaggerProc;
+    #[pymodule_export]
     use super::ffi::PyEffectScrapOozeReach;
     #[pymodule_export]
     use super::ffi::PyEffectSetCostOverride;
@@ -442,4 +444,3 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyShop;
 }
-
