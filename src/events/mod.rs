@@ -4,10 +4,13 @@ mod beggar;
 mod big_fish;
 mod bonfire_spirits;
 mod colosseum;
+mod cursed_tome;
 mod dead_adventurer;
 mod designer;
+mod drug_dealer;
 mod duplicator;
 mod face_trader;
+mod forgotten_altar;
 mod ghosts;
 mod golden_idol;
 mod golden_shrine;
@@ -16,6 +19,8 @@ mod living_wall;
 mod masked_bandits;
 mod mushrooms;
 mod neow;
+mod nest;
+mod nloth;
 mod ominous_forge;
 mod purifier;
 mod scrap_ooze;
@@ -53,8 +58,10 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::types::EventName;
+use crate::types::RelicName;
 use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
+use crate::utils::card_is_transformable;
 use crate::utils::card_is_upgradable;
 use crate::utils::push_entity;
 use rand::Rng;
@@ -112,6 +119,12 @@ pub const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
         filter: CandidateFilter::Transformable,
         selection_kind: SelectionKind::Input { count: 2 },
     },
+};
+
+pub const EVENT_ADVANCE_EFFECT: Effect = Effect {
+    kind: EffectKind::EventAdvanceState { delta: 1 },
+    id_source: None,
+    target: Target::Direct(None),
 };
 
 // The leave option and the three deck-pick effects every shrine-shaped event repeats
@@ -176,6 +189,16 @@ pub enum EventKind {
         gold_cost_hp: u8,
         card_cost_hp: u8,
     },
+    Nest,
+    CursedTome {
+        stage: u8,
+    },
+    DrugDealer,
+    ForgottenAltar,
+    Nloth {
+        relic_first: RelicName,
+        relic_second: RelicName,
+    },
 }
 
 // Builds the event in one pass: entry rolls land in the kind, the matching
@@ -228,6 +251,17 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> (EventKind, Vec<us
         EventName::TheLibrary => (EventKind::TheLibrary, the_library::options(ascension)),
         EventName::TheMausoleum => (EventKind::TheMausoleum, the_mausoleum::OPTIONS),
         EventName::Vampires => (EventKind::Vampires, vampires::OPTIONS),
+        EventName::Nest => (EventKind::Nest, nest::options(ascension)),
+        EventName::CursedTome => (
+            EventKind::CursedTome { stage: 0 },
+            cursed_tome::options(ascension),
+        ),
+        EventName::DrugDealer => (EventKind::DrugDealer, drug_dealer::OPTIONS),
+        EventName::ForgottenAltar => (
+            EventKind::ForgottenAltar,
+            forgotten_altar::options(ascension),
+        ),
+        EventName::Nloth => return nloth::spawn_event_nloth(state),
         EventName::Colosseum => (EventKind::Colosseum { stage: 0 }, colosseum::OPTIONS),
         EventName::Designer => (
             EventKind::Designer,
@@ -285,7 +319,7 @@ pub fn fight_loot(kind: EventKind) -> Option<EventLoot> {
     match kind {
         EventKind::Mushrooms => Some(mushrooms::FIGHT_LOOT),
         EventKind::MaskedBandits => Some(masked_bandits::FIGHT_LOOT),
-        EventKind::Colosseum { stage: 0 } => None,
+        EventKind::Colosseum { stage: 0 | 1 } => None,
         EventKind::Colosseum { .. } => Some(colosseum::FIGHT_LOOT_NOBS),
         EventKind::DeadAdventurer {
             found_gold,
@@ -335,13 +369,18 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
         | EventKind::TheLibrary
         | EventKind::TheMausoleum
         | EventKind::KnowingSkull { .. }
-        | EventKind::DeadAdventurer { .. } => true,
+        | EventKind::DeadAdventurer { .. }
+        | EventKind::Nest
+        | EventKind::Nloth { .. } => true,
         EventKind::Addict => addict::option_available(state, idx),
         EventKind::Beggar => beggar::option_available(state, idx),
         EventKind::BackToBasics => back_to_basics::option_available(state, idx),
         EventKind::Vampires => vampires::option_available(state, idx),
         EventKind::Colosseum { stage } => colosseum::option_available(stage, idx),
         EventKind::Designer => designer::option_available(state, idx),
+        EventKind::DrugDealer => drug_dealer::option_available(state, idx),
+        EventKind::ForgottenAltar => forgotten_altar::option_available(state, idx),
+        EventKind::CursedTome { stage } => cursed_tome::option_available(stage, idx),
         EventKind::TheCleric => the_cleric::option_available(state, idx),
         EventKind::WingStatue => wing_statue::option_available(state, idx),
         EventKind::LivingWall => living_wall::option_available(state, idx),
@@ -358,6 +397,15 @@ pub fn event_option_available(state: &GameState, kind: EventKind, idx: usize) ->
             gold_ask,
         } => we_meet_again::option_available(state, id_card, id_potion, gold_ask, idx),
     }
+}
+
+pub fn deck_has_two_transformable(state: &GameState) -> bool {
+    state
+        .id_card_deck
+        .iter()
+        .filter(|&&id| card_is_transformable(&state.entities[id]))
+        .nth(1)
+        .is_some()
 }
 
 pub fn deck_has_upgradable(state: &GameState) -> bool {
@@ -442,8 +490,12 @@ pub const POOL_EVENT_ACT2: &[EventName] = &[
     EventName::BackToBasics,
     EventName::Beggar,
     EventName::Colosseum,
+    EventName::CursedTome,
+    EventName::DrugDealer,
+    EventName::ForgottenAltar,
     EventName::Ghosts,
     EventName::MaskedBandits,
+    EventName::Nest,
     EventName::TheLibrary,
     EventName::TheMausoleum,
     EventName::Vampires,
@@ -463,6 +515,7 @@ pub const POOL_EVENT_ACT2_SPECIAL: &[EventName] = &[
     EventName::Designer,
     EventName::Duplicator,
     EventName::KnowingSkull,
+    EventName::Nloth,
     EventName::TheJoust,
 ];
 

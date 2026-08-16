@@ -9,10 +9,10 @@ use crate::entity::Entity;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;
-use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
+use crate::utils::card_name_never_obtainable;
 use crate::utils::place_card;
 use crate::utils::push_entity;
 
@@ -40,12 +40,7 @@ pub fn process_effect_card_add_random(
                 |card_rarity| card.card_rarity == card_rarity,
             )
         })
-        .filter(|card| {
-            !matches!(
-                card.card_name,
-                CardName::AscendersBane | CardName::CurseOfTheBell
-            )
-        })
+        .filter(|card| !card_name_never_obtainable(card.card_name))
         .map(|card| &**card)
         .collect();
 

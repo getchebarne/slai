@@ -95,7 +95,8 @@ mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
     DramaticEntrance, Jax, Panacea, Trip, Apotheosis, Chrysalis, Discovery, Enlightenment,
     HandOfGreed, Impatience, JackOfAllTrades, Madness, Magnetism, Metamorphosis, Panache,
     PanicButton, SadisticNature, ThinkingAhead, Transmutation, Forethought, Mayhem, Purity,
-    SecretTechnique, SecretWeapon, TheBomb, Violence, CurseOfTheBell, Wound,
+    SecretTechnique, SecretWeapon, TheBomb, Violence, CurseOfTheBell, Wound, RitualDagger,
+    Necronomicurse,
 });
 
 // Exposed structs
@@ -274,6 +275,8 @@ impl CardName {
             Self::Violence => "Violence",
             Self::CurseOfTheBell => "Curse of the Bell",
             Self::Wound => "Wound",
+            Self::RitualDagger => "Ritual Dagger",
+            Self::Necronomicurse => "Necronomicurse",
         }
     }
 }

@@ -38,31 +38,19 @@ use strum::EnumCount;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
-use crate::effect::Target;
+use crate::effect::effect_discover_pick;
 use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
+use crate::types::CardPile;
 use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-// Follows a CardDiscover roll; halts until the player picks from `id_card_discover`
-pub const EFFECT_CARD_DISCOVER_PICK: Effect = Effect {
-    kind: EffectKind::CardDiscoverPick {
-        cost_zero: Some(CostScope::Turn),
-    },
-    id_source: None,
-    target: Target::Resolve {
-        candidate_pool: CandidatePool::Discover,
-        filter: CandidateFilter::Any,
-        selection_kind: SelectionKind::Input { count: 1 },
-    },
-};
+// Follows a CardDiscover roll; halts until the player picks from `id_discover`
+pub const EFFECT_CARD_DISCOVER_PICK: Effect =
+    effect_discover_pick(Some(CostScope::Turn), CardPile::Hand);
 
 // Totality relies on the len == COUNT and no-duplicate asserts below
 const fn build_potion_by_name() -> [&'static Entity; PotionName::COUNT] {

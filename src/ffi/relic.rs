@@ -30,7 +30,8 @@ mirror_enum!(PyRelicName from RelicName, "RelicName", skip_from_py_object, {
     GamblingChip, BottledFlame, BottledLightning, BottledTornado, Matryoshka, Orrery, Toolbox,
     SneckoEye, Astrolabe, CallingBell, TinyHouse, BlackStar, Girya, PeacePipe, Shovel,
     WingBoots, QuestionCard, SingingBowl, PrayerWheel, RunicPyramid, RingOfTheSerpent,
-    SacredBark, NeowsLament,
+    SacredBark, NeowsLament, Necronomicon, Enchiridion, NilrysCodex, MutagenicStrength,
+    NlothsGift, BloodyIdol,
 });
 
 mirror_enum!(PyRelicTier from RelicTier, "RelicTier", skip_from_py_object, {

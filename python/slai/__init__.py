@@ -224,6 +224,7 @@ EffectCardMove = _rs.EffectCardMove
 EffectCardExhaust = _rs.EffectCardExhaust
 EffectCardDrawIfNoAttacks = _rs.EffectCardDrawIfNoAttacks
 EffectHandOfGreedProc = _rs.EffectHandOfGreedProc
+EffectRitualDaggerProc = _rs.EffectRitualDaggerProc
 EffectCardDraw = _rs.EffectCardDraw
 EffectCardDrawUpTo = _rs.EffectCardDrawUpTo
 EffectCardDiscard = _rs.EffectCardDiscard
@@ -240,7 +241,6 @@ EffectGoldDelta = _rs.EffectGoldDelta
 EffectRelicGrantRandom = _rs.EffectRelicGrantRandom
 EffectWheelSpin = _rs.EffectWheelSpin
 EffectBonfireOffer = _rs.EffectBonfireOffer
-EffectFaceTrade = _rs.EffectFaceTrade
 EffectMonsterSpawn = _rs.EffectMonsterSpawn
 EffectCombatStart = _rs.EffectCombatStart
 EffectAdventurerSearch = _rs.EffectAdventurerSearch
@@ -263,6 +263,7 @@ EffectMausoleumOpen = _rs.EffectMausoleumOpen
 EffectKnowingSkullAsk = _rs.EffectKnowingSkullAsk
 EffectJoustBet = _rs.EffectJoustBet
 EffectRewardRollLibraryCards = _rs.EffectRewardRollLibraryCards
+EffectRelicGrantPool = _rs.EffectRelicGrantPool
 KnowingSkullWish = _rs.KnowingSkullWish
 Effect = (
     EffectDamagePhysical
@@ -291,6 +292,7 @@ Effect = (
     | EffectCardExhaust
     | EffectCardDrawIfNoAttacks
     | EffectHandOfGreedProc
+    | EffectRitualDaggerProc
     | EffectCardDraw
     | EffectCardDrawUpTo
     | EffectCardDiscard
@@ -307,7 +309,6 @@ Effect = (
     | EffectRelicGrantRandom
     | EffectWheelSpin
     | EffectBonfireOffer
-    | EffectFaceTrade
     | EffectMonsterSpawn
     | EffectCombatStart
     | EffectAdventurerSearch
@@ -330,6 +331,7 @@ Effect = (
     | EffectKnowingSkullAsk
     | EffectJoustBet
     | EffectRewardRollLibraryCards
+    | EffectRelicGrantPool
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -425,6 +427,11 @@ EventKindVampires = _rs.EventKindVampires
 EventKindColosseum = _rs.EventKindColosseum
 EventKindDesigner = _rs.EventKindDesigner
 EventKindKnowingSkull = _rs.EventKindKnowingSkull
+EventKindNest = _rs.EventKindNest
+EventKindCursedTome = _rs.EventKindCursedTome
+EventKindDrugDealer = _rs.EventKindDrugDealer
+EventKindForgottenAltar = _rs.EventKindForgottenAltar
+EventKindNloth = _rs.EventKindNloth
 EventKind = (
     EventKindBigFish
     | EventKindTheCleric
@@ -463,6 +470,11 @@ EventKind = (
     | EventKindColosseum
     | EventKindDesigner
     | EventKindKnowingSkull
+    | EventKindNest
+    | EventKindCursedTome
+    | EventKindDrugDealer
+    | EventKindForgottenAltar
+    | EventKindNloth
 )
 
 DeltaSign = _rs.DeltaSign
@@ -587,6 +599,7 @@ __all__ = [
     "EffectCardExhaust",
     "EffectCardDrawIfNoAttacks",
     "EffectHandOfGreedProc",
+    "EffectRitualDaggerProc",
     "EffectCardDraw",
     "EffectCardDrawUpTo",
     "EffectCardDiscard",
@@ -603,7 +616,6 @@ __all__ = [
     "EffectRelicGrantRandom",
     "EffectWheelSpin",
     "EffectBonfireOffer",
-    "EffectFaceTrade",
     "EffectMonsterSpawn",
     "EffectCombatStart",
     "EffectAdventurerSearch",
@@ -626,6 +638,7 @@ __all__ = [
     "EffectKnowingSkullAsk",
     "EffectJoustBet",
     "EffectRewardRollLibraryCards",
+    "EffectRelicGrantPool",
     "KnowingSkullWish",
     "Amount",
     "AmountAbsolute",
@@ -676,6 +689,11 @@ __all__ = [
     "EventKindColosseum",
     "EventKindDesigner",
     "EventKindKnowingSkull",
+    "EventKindNest",
+    "EventKindCursedTome",
+    "EventKindDrugDealer",
+    "EventKindForgottenAltar",
+    "EventKindNloth",
     "EVENT_KIND_ORDER",
     "DeltaSign",
     # Potion

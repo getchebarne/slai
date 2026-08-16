@@ -2,12 +2,10 @@ use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::ENERGY_MAX_BASE;
 use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::effect_discover_pick;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
@@ -16,6 +14,7 @@ use crate::relics::iter_owned_relics;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::Energy;
@@ -31,6 +30,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     let Combat {
         id_card_draw,
         id_monsters,
+        id_card_origins,
         energy,
         ..
     } = &mut state.combat;
@@ -93,6 +93,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         let id_card_src = state.id_card_deck[idx];
         let card = state.entities[id_card_src];
         let id_card = push_entity(&mut state.entities, card);
+        id_card_origins.push((id_card, id_card_src));
         if card.card_innate || card.card_bottled {
             innate_ids[innate_n] = id_card;
             innate_n += 1;
@@ -120,15 +121,9 @@ pub fn process_effect_combat_start(state: &mut GameState) {
 
     // Toolbox: choose 1 of 3 colorless Cards
     if has_relic(&state.id_relics, RelicName::Toolbox) {
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardDiscoverPick { cost_zero: None },
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Discover,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Input { count: 1 },
-            },
-        });
+        state
+            .effect_queue
+            .push_front(effect_discover_pick(None, CardPile::Hand));
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscoverRoll {
                 kind: None,

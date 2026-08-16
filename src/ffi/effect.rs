@@ -66,7 +66,6 @@ flat_variants!(PyEffect {
     RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, target: Option<PyTarget> },
     WheelSpin => PyEffectWheelSpin as "EffectWheelSpin" { target: Option<PyTarget> },
     BonfireOffer => PyEffectBonfireOffer as "EffectBonfireOffer" { target: Option<PyTarget> },
-    FaceTrade => PyEffectFaceTrade as "EffectFaceTrade" { target: Option<PyTarget> },
     CardBottle => PyEffectCardBottle as "EffectCardBottle" { target: Option<PyTarget> },
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName, target: Option<PyTarget> },
     CombatStart => PyEffectCombatStart as "EffectCombatStart" { target: Option<PyTarget> },
@@ -75,7 +74,7 @@ flat_variants!(PyEffect {
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8, target: Option<PyTarget> },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { dmg: u16, chance: u8, advance_on_miss: bool, target: Option<PyTarget> },
     EventConsume => PyEffectEventConsume as "EffectEventConsume" { target: Option<PyTarget> },
-    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, target: Option<PyTarget> },
+    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, target: Option<PyTarget> },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: Option<PyTarget> },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: Option<PyTarget> },
     CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { target: Option<PyTarget> },
@@ -83,6 +82,7 @@ flat_variants!(PyEffect {
     CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, pile: PyCardPile, count: u8, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity>, target: Option<PyTarget> },
     CardDrawIfNoAttacks => PyEffectCardDrawIfNoAttacks as "EffectCardDrawIfNoAttacks" { count: u16, target: Option<PyTarget> },
     HandOfGreedProc => PyEffectHandOfGreedProc as "EffectHandOfGreedProc" { gold: u16, target: Option<PyTarget> },
+    RitualDaggerProc => PyEffectRitualDaggerProc as "EffectRitualDaggerProc" { bump: u16, target: Option<PyTarget> },
     CardExhaust => PyEffectCardExhaust as "EffectCardExhaust" { target: Option<PyTarget> },
     CardMove => PyEffectCardMove as "EffectCardMove" { pile: PyCardPile, cost_zero: Option<PyCostScope>, target: Option<PyTarget> },
     CardPlayFromDrawTop => PyEffectCardPlayFromDrawTop as "EffectCardPlayFromDrawTop" { target: Option<PyTarget> },
@@ -95,6 +95,7 @@ flat_variants!(PyEffect {
     KnowingSkullAsk => PyEffectKnowingSkullAsk as "EffectKnowingSkullAsk" { wish: PyKnowingSkullWish, target: Option<PyTarget> },
     JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool, target: Option<PyTarget> },
     RewardRollLibraryCards => PyEffectRewardRollLibraryCards as "EffectRewardRollLibraryCards" { target: Option<PyTarget> },
+    RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName>, target: Option<PyTarget> },
 });
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -253,7 +254,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }),
         EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin { target }),
         EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
-        EffectKind::FaceTrade => PyEffect::FaceTrade(PyEffectFaceTrade { target }),
         EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle { target }),
         EffectKind::MonsterSpawn { name, .. } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
             name: name.into(),
@@ -317,8 +317,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             target,
         }),
         EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade { target }),
-        EffectKind::CardDiscoverPick { cost_zero } => {
+        EffectKind::CardDiscoverPick { cost_zero, pile } => {
             PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
+                pile: pile.into(),
                 cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
                 target,
             })
@@ -346,6 +347,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         }
         EffectKind::HandOfGreedProc { gold } => {
             PyEffect::HandOfGreedProc(PyEffectHandOfGreedProc { gold, target })
+        }
+        EffectKind::RitualDaggerProc { bump } => {
+            PyEffect::RitualDaggerProc(PyEffectRitualDaggerProc { bump, target })
         }
         EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target }),
         EffectKind::CardMove { pile, cost_zero } => PyEffect::CardMove(PyEffectCardMove {
@@ -381,6 +385,10 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::JoustBet { on_owner } => {
             PyEffect::JoustBet(PyEffectJoustBet { on_owner, target })
         }
+        EffectKind::RelicGrantPool { pool } => PyEffect::RelicGrantPool(PyEffectRelicGrantPool {
+            pool: pool.iter().map(|&relic_name| relic_name.into()).collect(),
+            target,
+        }),
         EffectKind::RewardRollLibraryCards => {
             PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards { target })
         }

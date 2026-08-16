@@ -46,6 +46,7 @@ pub enum EffectKind {
     },
     CardDiscoverPick {
         cost_zero: Option<CostScope>,
+        pile: CardPile,
     },
     CardDiscoverRoll {
         kind: Option<CardKind>,
@@ -120,7 +121,6 @@ pub enum EffectKind {
         delta: i8,
     },
     EventConsume,
-    FaceTrade,
     Gamble {
         choose_discards: bool,
         discards_before: Option<u8>,
@@ -198,6 +198,9 @@ pub enum EffectKind {
     PotionDiscard,
     PotionUse,
     RelicAdopt,
+    RelicGrantPool {
+        pool: &'static [RelicName],
+    },
     RelicGrantRandom {
         tier: Option<RelicTier>,
     },
@@ -209,6 +212,9 @@ pub enum EffectKind {
         name: RelicName,
     },
     RestSiteConsume,
+    RitualDaggerProc {
+        bump: u16,
+    },
     RewardRollCards {
         bundles: u8,
         rare_only: bool,
@@ -388,6 +394,19 @@ pub const TARGET_CHARACTER: Target = Target::Resolve {
     filter: CandidateFilter::Any,
     selection_kind: SelectionKind::Single,
 };
+
+// Discover pick: choose 1 of the rolled Cards; cost break and destination vary by caller
+pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) -> Effect {
+    Effect {
+        kind: EffectKind::CardDiscoverPick { cost_zero, pile },
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Discover,
+            filter: CandidateFilter::Any,
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
+    }
+}
 
 pub const TARGET_MONSTER_PICKED: Target = Target::Resolve {
     candidate_pool: CandidatePool::Monsters,

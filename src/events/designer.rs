@@ -11,11 +11,11 @@ use crate::events::EFFECT_DECK_TRANSFORM_PICK_2;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_purgeable;
+use crate::events::deck_has_two_transformable;
 use crate::events::deck_has_upgradable;
 use crate::events::make_entity_event_option;
 use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::utils::card_is_transformable;
 
 pub const DESIGNER_COST_ADJUST: u16 = 40;
 pub const DESIGNER_COST_ADJUST_A15: u16 = 50;
@@ -211,13 +211,7 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
             match state.entities[id_option].event_option_effects[1].kind {
                 EffectKind::CardPurge => gold >= cleanup_cost && deck_has_purgeable(state),
                 EffectKind::CardTransform { .. } => {
-                    gold >= cleanup_cost
-                        && state
-                            .id_card_deck
-                            .iter()
-                            .filter(|&&id| card_is_transformable(&state.entities[id]))
-                            .nth(1)
-                            .is_some()
+                    gold >= cleanup_cost && deck_has_two_transformable(state)
                 }
                 kind => unreachable!("Designer cleanup option with unexpected effect: {kind:?}"),
             }

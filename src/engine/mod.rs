@@ -41,7 +41,6 @@ pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
-pub mod process_effect_face_trade;
 pub mod process_effect_gamble;
 pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
@@ -73,6 +72,7 @@ pub mod process_effect_potion_adopt;
 pub mod process_effect_potion_discard;
 pub mod process_effect_potion_use;
 pub mod process_effect_relic_adopt;
+pub mod process_effect_relic_grant_pool;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
 pub mod process_effect_relic_lose;
@@ -85,6 +85,7 @@ pub mod process_effect_reward_roll_potion;
 pub mod process_effect_reward_roll_potions;
 pub mod process_effect_reward_roll_relic;
 pub mod process_effect_reward_take;
+pub mod process_effect_ritual_dagger_proc;
 pub mod process_effect_room_enter;
 pub mod process_effect_room_exit;
 pub mod process_effect_room_select;
@@ -149,7 +150,6 @@ use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
 use self::process_effect_event_consume::process_effect_event_consume;
-use self::process_effect_face_trade::process_effect_face_trade;
 use self::process_effect_gamble::process_effect_gamble;
 use self::process_effect_girya_lift::process_effect_girya_lift;
 use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
@@ -181,6 +181,7 @@ use self::process_effect_potion_adopt::process_effect_potion_adopt;
 use self::process_effect_potion_discard::process_effect_potion_discard;
 use self::process_effect_potion_use::process_effect_potion_use;
 use self::process_effect_relic_adopt::process_effect_relic_adopt;
+use self::process_effect_relic_grant_pool::process_effect_relic_grant_pool;
 use self::process_effect_relic_grant_random::process_effect_relic_grant_random;
 use self::process_effect_relic_grant_specific::process_effect_relic_grant_specific;
 use self::process_effect_relic_lose::process_effect_relic_lose;
@@ -193,6 +194,7 @@ use self::process_effect_reward_roll_potion::process_effect_reward_roll_potion;
 use self::process_effect_reward_roll_potions::process_effect_reward_roll_potions;
 use self::process_effect_reward_roll_relic::process_effect_reward_roll_relic;
 use self::process_effect_reward_take::process_effect_reward_take;
+use self::process_effect_ritual_dagger_proc::process_effect_ritual_dagger_proc;
 use self::process_effect_room_enter::process_effect_room_enter;
 use self::process_effect_room_exit::process_effect_room_exit;
 use self::process_effect_room_select::process_effect_room_select;
@@ -472,7 +474,6 @@ fn dispatch_by_kind(
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
         EffectKind::BonfireOffer => process_effect_bonfire_offer(id_target, state),
         EffectKind::CardBottle => process_effect_card_bottle(id_target, state),
-        EffectKind::FaceTrade => process_effect_face_trade(state),
         EffectKind::GiryaLift => process_effect_girya_lift(state),
         EffectKind::SingingBowlProc { idx_bundle } => {
             process_effect_singing_bowl_proc(state, idx_bundle)
@@ -495,6 +496,9 @@ fn dispatch_by_kind(
             process_effect_reward_roll_potions(state, count, uniform)
         }
         EffectKind::RewardRollRelic { pick } => process_effect_reward_roll_relic(state, pick),
+        EffectKind::RitualDaggerProc { bump } => {
+            process_effect_ritual_dagger_proc(id_source, id_target, state, bump)
+        }
         EffectKind::RewardTake { kind } => process_effect_reward_take(id_target, state, kind),
         EffectKind::RoomExit => process_effect_room_exit(state),
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
@@ -536,7 +540,7 @@ fn dispatch_by_kind(
             process_effect_damage_deal(id_source, id_target, state, amount, lifesteal)
         }
         EffectKind::HealthDelta { sign, amount } => {
-            process_effect_health_delta(id_target, state, sign, amount)
+            process_effect_health_delta(id_source, id_target, state, sign, amount)
         }
         EffectKind::HealthSet { amount } => process_effect_health_set(id_target, state, amount),
         EffectKind::BlockGain { amount } => {
@@ -619,6 +623,7 @@ fn dispatch_by_kind(
             choose_discards,
             discards_before,
         } => process_effect_gamble(state, choose_discards, discards_before),
+        EffectKind::RelicGrantPool { pool } => process_effect_relic_grant_pool(state, pool),
         EffectKind::RelicGrantRandom { tier } => process_effect_relic_grant_random(state, tier),
         EffectKind::RelicGrantSpecific {
             name,
@@ -633,8 +638,8 @@ fn dispatch_by_kind(
             advance_on_miss,
         } => process_effect_scrap_ooze_reach(state, dmg, chance, advance_on_miss),
         EffectKind::EventConsume => process_effect_event_consume(state),
-        EffectKind::CardDiscoverPick { cost_zero } => {
-            process_effect_card_discover_pick(id_target, state, cost_zero)
+        EffectKind::CardDiscoverPick { cost_zero, pile } => {
+            process_effect_card_discover_pick(id_target, state, cost_zero, pile)
         }
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }

@@ -279,6 +279,18 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         false
     };
 
+    // Necronomicon: the first Attack costing 2+ each turn is played twice
+    let necronomicon = if card.card_kind == CardKind::Attack
+        && effective_cost >= 2
+        && let Some(id) = state.id_relics[RelicName::Necronomicon as usize]
+        && state.entities[id].relic_counter == 0
+    {
+        state.entities[id].relic_counter = 1;
+        true
+    } else {
+        false
+    };
+
     let char_modifiers = &state.entities[id_character].modifiers;
 
     // Burst (skill-only) doubles; X-cost multiplies by X; they stack multiplicatively
@@ -302,7 +314,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     let duplication = has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
 
     // Total amount of Card-play repetitions
-    let reps = (1 + burst as usize + duplication as usize) * mul;
+    let reps = (1 + burst as usize + duplication as usize + necronomicon as usize) * mul;
 
     // Wrist Blade: attacks that cost 0 deal +4 per hit
     let wrist_blade_bonus = effective_cost == 0

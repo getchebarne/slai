@@ -79,6 +79,7 @@ mod masterful_stab;
 mod mayhem;
 mod metamorphosis;
 mod mind_blast;
+mod necronomicurse;
 mod neutralize;
 mod nightmare;
 mod normality;
@@ -99,6 +100,7 @@ mod quick_slash;
 mod reflex;
 mod regret;
 mod riddle_with_holes;
+mod ritual_dagger;
 mod sadistic_nature;
 mod secret_technique;
 mod secret_weapon;
@@ -140,6 +142,7 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::utils::card_name_never_obtainable;
 use crate::utils::shuffle;
 use strum::EnumCount;
 
@@ -277,6 +280,7 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         CardName::SecretWeapon => secret_weapon::SECRET_WEAPON_PLUS,
         CardName::TheBomb => the_bomb::THE_BOMB_PLUS,
         CardName::Violence => violence::VIOLENCE_PLUS,
+        CardName::RitualDagger => ritual_dagger::RITUAL_DAGGER_PLUS,
         CardName::Dazed
         | CardName::Wound
         | CardName::Slimed
@@ -290,7 +294,8 @@ pub fn get_card(name: CardName, upgraded: bool) -> Entity {
         | CardName::Shame
         | CardName::Writhe
         | CardName::Parasite
-        | CardName::Normality => *CARD_BY_NAME[name as usize],
+        | CardName::Normality
+        | CardName::Necronomicurse => *CARD_BY_NAME[name as usize],
     }
 }
 
@@ -424,6 +429,8 @@ pub const ALL_CARDS: &[&'static Entity] = &[
     &violence::VIOLENCE,
     &curse_of_the_bell::CURSE_OF_THE_BELL,
     &wound::WOUND,
+    &ritual_dagger::RITUAL_DAGGER,
+    &necronomicurse::NECRONOMICURSE,
 ];
 // Assert all Cards are included without duplicates
 const _: () = assert!(ALL_CARDS.len() == CardName::COUNT);
@@ -454,10 +461,7 @@ const fn in_pool(card: &Entity, rarity: CardRarity, color: CardColor) -> bool {
             card.card_kind,
             CardKind::Attack | CardKind::Skill | CardKind::Power | CardKind::Curse
         )
-        && !matches!(
-            card.card_name,
-            CardName::AscendersBane | CardName::CurseOfTheBell
-        )
+        && !card_name_never_obtainable(card.card_name)
 }
 
 const fn count_pool(rarity: CardRarity, color: CardColor) -> usize {

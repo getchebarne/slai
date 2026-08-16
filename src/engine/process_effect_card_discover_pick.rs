@@ -11,6 +11,7 @@ pub fn process_effect_card_discover_pick(
     id_target: Option<usize>,
     state: &mut GameState,
     cost_zero: Option<CostScope>,
+    pile: CardPile,
 ) {
     assert!(
         state.combat.active,
@@ -37,5 +38,5 @@ pub fn process_effect_card_discover_pick(
             target: Target::Direct(Some(id_card)),
         });
     }
-    place_card(state, id_card, CardPile::Hand);
+    place_card(state, id_card, pile);
 }

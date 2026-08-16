@@ -224,6 +224,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             id_card_last_drawn: None,
             id_card_nightmare: None,
             id_card_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
+            id_card_origins: Vec::new(),
             energy: Energy {
                 energy_current: 0,
                 energy_max: 0,

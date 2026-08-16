@@ -34,6 +34,8 @@ pub struct Combat {
     pub id_card_last_drawn: Option<usize>,
     pub id_card_nightmare: Option<usize>,
     pub id_card_discover: Vec<usize>,
+    // (combat copy, deck original) pairs; mid-combat spawns have no entry
+    pub id_card_origins: Vec<(usize, usize)>,
 
     // Energy
     pub energy: Energy,
@@ -63,6 +65,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.id_card_last_drawn = None;
     combat.id_card_nightmare = None;
     combat.id_card_discover.clear();
+    combat.id_card_origins.clear();
     combat.energy = Energy {
         energy_current: 0,
         energy_max: 0,
@@ -303,6 +306,8 @@ pub enum CardName {
     Violence,
     CurseOfTheBell,
     Wound,
+    RitualDagger,
+    Necronomicurse,
 }
 
 // Lifetime of a cost override; Combat writes the base cost and is never stored on the entity
@@ -532,6 +537,11 @@ pub enum EventName {
     TheLibrary,
     TheMausoleum,
     Vampires,
+    Nest,
+    CursedTome,
+    DrugDealer,
+    ForgottenAltar,
+    Nloth,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -744,6 +754,12 @@ pub enum RelicName {
     RingOfTheSerpent,
     SacredBark,
     NeowsLament,
+    Necronomicon,
+    Enchiridion,
+    NilrysCodex,
+    MutagenicStrength,
+    NlothsGift,
+    BloodyIdol,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

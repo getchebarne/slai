@@ -11,6 +11,7 @@ use super::card::snapshot_card;
 use super::macros::flat_variants;
 use super::potion::PyPotion;
 use super::potion::snapshot_potion;
+use super::relic::PyRelicName;
 
 flat_variants!(PyEventKind {
     BigFish => PyEventKindBigFish as "EventKindBigFish",
@@ -50,6 +51,11 @@ flat_variants!(PyEventKind {
     Colosseum => PyEventKindColosseum as "EventKindColosseum" { stage: u8 },
     Designer => PyEventKindDesigner as "EventKindDesigner",
     KnowingSkull => PyEventKindKnowingSkull as "EventKindKnowingSkull" { potion_cost_hp: u8, gold_cost_hp: u8, card_cost_hp: u8 },
+    Nest => PyEventKindNest as "EventKindNest",
+    CursedTome => PyEventKindCursedTome as "EventKindCursedTome" { stage: u8 },
+    DrugDealer => PyEventKindDrugDealer as "EventKindDrugDealer",
+    ForgottenAltar => PyEventKindForgottenAltar as "EventKindForgottenAltar",
+    Nloth => PyEventKindNloth as "EventKindNloth" { relic_first: PyRelicName, relic_second: PyRelicName },
 });
 
 pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEventKind {
@@ -120,6 +126,17 @@ pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEvent
             potion_cost_hp,
             gold_cost_hp,
             card_cost_hp,
+        }),
+        EventKind::Nest => PyEventKind::Nest(PyEventKindNest),
+        EventKind::CursedTome { stage } => PyEventKind::CursedTome(PyEventKindCursedTome { stage }),
+        EventKind::DrugDealer => PyEventKind::DrugDealer(PyEventKindDrugDealer),
+        EventKind::ForgottenAltar => PyEventKind::ForgottenAltar(PyEventKindForgottenAltar),
+        EventKind::Nloth {
+            relic_first,
+            relic_second,
+        } => PyEventKind::Nloth(PyEventKindNloth {
+            relic_first: relic_first.into(),
+            relic_second: relic_second.into(),
         }),
     }
 }

@@ -4,6 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::RelicPick;
 use crate::effect::Target;
 use crate::entity::Entity;
+use crate::events::EVENT_ADVANCE_EFFECT;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventLoot;
 use crate::events::make_entity_event_option;
@@ -40,6 +41,7 @@ const OPTION_FIGHT: &[Effect] = &[
 
 // Second bout: an elite pair with a rare+uncommon relic purse and 100 gold
 const OPTION_FIGHT_NOBS: &[Effect] = &[
+    EVENT_ADVANCE_EFFECT,
     spawn(MonsterName::Taskmaster),
     spawn(MonsterName::GremlinNob),
     Effect {
