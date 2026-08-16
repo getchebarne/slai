@@ -22,7 +22,6 @@ pub static ESCAPE_PLAN: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::CardDraw { count: 1 },
@@ -43,9 +42,9 @@ pub static ESCAPE_PLAN: Entity = make_entity_card(
 pub static ESCAPE_PLAN_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = ESCAPE_PLAN.card_effects;
-        a[1].kind = EffectKind::EscapePlanCheck { block: 5 }; // +2 block
-        a
+        let mut effects = ESCAPE_PLAN.card_effects;
+        effects[1].kind = EffectKind::EscapePlanCheck { block: 5 }; // +2 block
+        effects
     },
     ..ESCAPE_PLAN
 };

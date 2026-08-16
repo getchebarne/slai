@@ -22,7 +22,6 @@ pub static PANACEA: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Artifact,
@@ -39,12 +38,12 @@ pub static PANACEA: Entity = make_entity_card(
 pub static PANACEA_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = PANACEA.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = PANACEA.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Artifact,
             stacks: 2,
         }; // +1 artifact
-        a
+        effects
     },
     ..PANACEA
 };

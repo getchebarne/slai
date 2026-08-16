@@ -2,9 +2,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::Combat;
 use crate::types::CostScope;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_setup_pick(
     id_target: Option<usize>,
@@ -12,14 +11,15 @@ pub fn process_effect_card_setup_pick(
     free: bool,
     bottom: bool,
 ) {
-    let Mode::Combat {
-        id_hand,
-        id_pile_draw,
+    assert!(
+        state.combat.active,
+        "process_effect_card_setup_pick outside the Combat frame"
+    );
+    let Combat {
+        id_card_hand,
+        id_card_draw,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("process_effect_card_setup_pick outside Combat mode")
-    };
+    } = &mut state.combat;
     let id_target = id_target.expect("CardSetupPick requires id_target");
     if free {
         state.effect_queue.push_front(Effect {
@@ -33,13 +33,13 @@ pub fn process_effect_card_setup_pick(
             target: Target::Direct(Some(id_target)),
         });
     }
-    if let Some(pos) = id_hand.iter().position(|&v| v == id_target) {
-        id_hand.remove(pos);
+    if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {
+        id_card_hand.remove(pos);
     }
     // Top of the draw pile (Setup) is the vec's end; bottom (Forethought) is index 0
     if bottom {
-        id_pile_draw.insert(0, id_target);
+        id_card_draw.insert(0, id_target);
     } else {
-        id_pile_draw.push(id_target);
+        id_card_draw.push(id_target);
     }
 }

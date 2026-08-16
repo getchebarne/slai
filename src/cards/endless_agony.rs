@@ -23,9 +23,11 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
     true,
     false,
     false,
-    true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 4 },
+        kind: EffectKind::DamagePhysical {
+            amount: 4,
+            lifesteal: false,
+        },
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
@@ -46,9 +48,12 @@ pub static ENDLESS_AGONY: Entity = make_entity_card(
 pub static ENDLESS_AGONY_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = ENDLESS_AGONY.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 6 }; // +2 damage
-        a
+        let mut effects = ENDLESS_AGONY.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
+            amount: 6,
+            lifesteal: false,
+        }; // +2 damage
+        effects
     },
     card_effects_on_draw: &[Effect {
         kind: EffectKind::CardAdd {

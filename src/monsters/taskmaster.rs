@@ -6,8 +6,8 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
 use crate::monsters::make_move_attack_card_add;
@@ -23,7 +23,10 @@ static MOVE_SCOURING_WHIP_A18: Move = make_move(
     "Scouring Whip",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
@@ -85,7 +88,9 @@ pub fn spawn_monster_taskmaster(ascension_level: u8, rng: &mut impl Rng) -> Enti
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }
+
+// Doesn't have an AI: always uses Scouring Whip

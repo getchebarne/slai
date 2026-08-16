@@ -1,8 +1,9 @@
+use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::entity::Entity;
-use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
+use crate::monsters::Move;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move_attack;
 use crate::types::MonsterKind;
@@ -10,26 +11,28 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-// Multi-Stab is declared at one hit; move_update rewrites the hit count each pick
-static MOVE_MULTI_STAB_6: Move = make_move_attack("Multi-Stab", 6, 1);
-static MOVE_MULTI_STAB_7: Move = make_move_attack("Multi-Stab", 7, 1);
-static MOVE_SINGLE_STAB_21: Move = make_move_attack("Single Stab", 21, 1);
-static MOVE_SINGLE_STAB_24: Move = make_move_attack("Single Stab", 24, 1);
+// One Multi-Stab template per hit count (hits = idx + 2, up to the effect cap);
+// Single Stab closes the table
+const NUM_MULTI_STAB_MOVES: usize = MAX_EFFECTS_PER_MOVE - 1;
 
-static MOVES_ASC0: [Move; 2] = [MOVE_MULTI_STAB_6, MOVE_SINGLE_STAB_21];
-static MOVES_ASC3: [Move; 2] = [MOVE_MULTI_STAB_7, MOVE_SINGLE_STAB_24];
-
-pub const IDX_MOVE_MULTI_STAB: usize = 0;
-const IDX_MOVE_SINGLE_STAB: usize = 1;
-
-// Stab count starts at 2 and grows once per Multi-Stab pick; A18+ grows every turn.
-// The move's own effects_len (seeded at 1) carries the running count
-pub fn multi_stab_hits(effects_len_prev: usize, turns_taken: usize, ascension_level: u8) -> usize {
-    if ascension_level >= 18 {
-        2 + turns_taken
-    } else {
-        effects_len_prev + 1
+const fn move_table(multi_damage: u16, single_damage: u16) -> [Move; NUM_MULTI_STAB_MOVES + 1] {
+    let mut table = [make_move_attack("Single Stab", single_damage, 1); NUM_MULTI_STAB_MOVES + 1];
+    let mut idx = 0;
+    while idx < NUM_MULTI_STAB_MOVES {
+        table[idx] = make_move_attack("Multi-Stab", multi_damage, (idx + 2) as u8);
+        idx += 1;
     }
+    table
+}
+
+static MOVES_ASC0: [Move; NUM_MULTI_STAB_MOVES + 1] = move_table(6, 21);
+static MOVES_ASC3: [Move; NUM_MULTI_STAB_MOVES + 1] = move_table(7, 24);
+
+const IDX_MOVE_MULTI_STAB_LAST: usize = NUM_MULTI_STAB_MOVES - 1;
+const IDX_MOVE_SINGLE_STAB: usize = NUM_MULTI_STAB_MOVES;
+
+const fn is_multi_stab(idx: usize) -> bool {
+    idx <= IDX_MOVE_MULTI_STAB_LAST
 }
 
 pub fn spawn_monster_book_of_stabbing(ascension_level: u8, rng: &mut impl Rng) -> Entity {
@@ -46,7 +49,7 @@ pub fn spawn_monster_book_of_stabbing(ascension_level: u8, rng: &mut impl Rng) -
         &MOVES_ASC3
     };
 
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::PainfulStabs, 1);
 
     make_entity_monster(
@@ -62,17 +65,39 @@ pub fn spawn_monster_book_of_stabbing(ascension_level: u8, rng: &mut impl Rng) -
     )
 }
 
-pub fn get_next_move_book_of_stabbing(move_history: &[u8], rng: &mut impl Rng) -> usize {
-    let last = move_history.last().copied().map(|m| m as usize);
+pub fn get_next_move_book_of_stabbing(
+    move_history: &[u8],
+    ascension_level: u8,
+    rng: &mut impl Rng,
+) -> usize {
+    // Hit count starts at 2 and grows once per Multi-Stab pick; A18+ grows every turn
+    let escalation = if ascension_level >= 18 {
+        move_history.len()
+    } else {
+        move_history
+            .iter()
+            .filter(|&&m| is_multi_stab(m as usize))
+            .count()
+    };
+    let idx_multi = escalation.min(IDX_MOVE_MULTI_STAB_LAST);
+
+    let last = move_history
+        .last()
+        .copied()
+        .map(|idx_move| idx_move as usize);
     if rng.random_range(0..=99) < 15 {
         if last == Some(IDX_MOVE_SINGLE_STAB) {
-            IDX_MOVE_MULTI_STAB
+            idx_multi
         } else {
             IDX_MOVE_SINGLE_STAB
         }
-    } else if move_history.ends_with(&[IDX_MOVE_MULTI_STAB as u8, IDX_MOVE_MULTI_STAB as u8]) {
+    } else if move_history.len() >= 2
+        && move_history[move_history.len() - 2..]
+            .iter()
+            .all(|&idx_move| is_multi_stab(idx_move as usize))
+    {
         IDX_MOVE_SINGLE_STAB
     } else {
-        IDX_MOVE_MULTI_STAB
+        idx_multi
     }
 }

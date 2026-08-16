@@ -23,7 +23,6 @@ pub static CHRYSALIS: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardAddRandom {
             color: CardColor::Green,
@@ -45,8 +44,8 @@ pub static CHRYSALIS: Entity = make_entity_card(
 pub static CHRYSALIS_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = CHRYSALIS.card_effects;
-        a[0].kind = EffectKind::CardAddRandom {
+        let mut effects = CHRYSALIS.card_effects;
+        effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Green,
             kind: Some(CardKind::Skill),
             pile: CardPile::Draw,
@@ -55,7 +54,7 @@ pub static CHRYSALIS_PLUS: Entity = Entity {
             upgraded: false,
             rarity: None,
         };
-        a
+        effects
     },
     ..CHRYSALIS
 };

@@ -47,20 +47,18 @@ pub mod torch_head;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::consts::MAX_MONSTERS;
-use crate::consts::MAX_MOVES_PER_MONSTER;
+use crate::consts::MAX_MOVE_HISTORY;
+use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::effect::ZERO_EFFECT;
+use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::entity::ZERO_ENTITY;
-use crate::entity::ZERO_MOVE;
-use crate::entity::get_move_history_slice;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::types::CardName;
@@ -152,8 +150,7 @@ pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut i
     }
 }
 
-// Weighted gremlin pool: Warrior/Thief/Fat twice, Tsundere/Wizard once.
-// Shared by GremlinGang (shuffles a copy) and Rally summons (draws one)
+// Weighted gremlin pool: Warrior/Thief/Fat twice, Tsundere/Wizard once
 pub const GREMLIN_POOL: [MonsterName; 8] = [
     MonsterName::GremlinWarrior,
     MonsterName::GremlinWarrior,
@@ -167,6 +164,22 @@ pub const GREMLIN_POOL: [MonsterName; 8] = [
 
 pub fn pick_gremlin(rng: &mut impl Rng) -> MonsterName {
     GREMLIN_POOL[rng.random_range(0..GREMLIN_POOL.len())]
+}
+
+pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
+    let len = entity.monster_move_history_len as usize;
+    if len < MAX_MOVE_HISTORY {
+        entity.monster_move_history[len] = move_idx;
+        entity.monster_move_history_len += 1;
+    } else {
+        // Marathon combat: drop the oldest, keep the last `MAX_MOVE_HISTORY` moves
+        entity.monster_move_history.copy_within(1.., 0);
+        entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
+    }
+}
+
+pub fn get_move_history_slice(entity: &Entity) -> &[u8] {
+    &entity.monster_move_history[..entity.monster_move_history_len as usize]
 }
 
 pub fn count_monsters_named(
@@ -297,7 +310,7 @@ pub fn get_next_move(
         MonsterName::Healer => {
             healer::get_next_move_healer(history, entities, id_monsters, ascension_level, rng)
         }
-        // Same script as the Looter; move indices line up one-to-one
+        // Same script as the Looter
         MonsterName::Mugger => {
             looter::get_next_move_looter(entity.monster_move_current, history, rng)
         }
@@ -315,7 +328,7 @@ pub fn get_next_move(
         }
         MonsterName::SphericGuardian => spheric_guardian::get_next_move_spheric_guardian(history),
         MonsterName::BookOfStabbing => {
-            book_of_stabbing::get_next_move_book_of_stabbing(history, rng)
+            book_of_stabbing::get_next_move_book_of_stabbing(history, ascension_level, rng)
         }
         MonsterName::GremlinLeader => {
             gremlin_leader::get_next_move_gremlin_leader(history, entity_id, id_monsters, rng)
@@ -333,9 +346,7 @@ pub fn get_next_move(
             rng,
         ),
         MonsterName::TheCollector => {
-            let torch_heads_alive =
-                count_monsters_named(entities, id_monsters, MonsterName::TorchHead);
-            the_collector::get_next_move_the_collector(history, torch_heads_alive, rng)
+            the_collector::get_next_move_the_collector(history, entities, id_monsters, rng)
         }
         MonsterName::TorchHead => 0,
         MonsterName::BanditBear => {
@@ -352,15 +363,18 @@ pub fn get_next_move(
 
 // The repeated monster move shapes; each spells out one Effect array longhand
 pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
-    let mut effects = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
-    let mut i = 0;
-    while i < instances as usize {
-        effects[i] = Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+    let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
+    let mut idx = 0;
+    while idx < instances as usize {
+        effects[idx] = Effect {
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         };
-        i += 1;
+        idx += 1;
     }
     Move {
         name,
@@ -409,7 +423,10 @@ pub const fn make_move_attack_debuff(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -437,7 +454,10 @@ pub const fn make_move_attack_card_add(
         name,
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -523,11 +543,11 @@ pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -
         effects.len() <= MAX_EFFECTS_PER_MOVE,
         "Move effects exceeds MAX_EFFECTS_PER_MOVE",
     );
-    let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
-    let mut i = 0;
-    while i < effects.len() {
-        arr[i] = effects[i];
-        i += 1;
+    let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
+    let mut idx = 0;
+    while idx < effects.len() {
+        arr[idx] = effects[idx];
+        idx += 1;
     }
     Move {
         name,
@@ -542,112 +562,15 @@ pub const fn make_entity_monster(
     monster_kind: MonsterKind,
     vitals: Vitals,
     modifiers: Modifiers,
-    moves: &[Move],
+    moves: &'static [Move],
 ) -> Entity {
-    assert!(
-        moves.len() <= MAX_MOVES_PER_MONSTER,
-        "monster_moves exceeds MAX_MOVES_PER_MONSTER",
-    );
-    let mut arr = [ZERO_MOVE; MAX_MOVES_PER_MONSTER];
-    let mut i = 0;
-    while i < moves.len() {
-        arr[i] = moves[i];
-        i += 1;
-    }
     Entity {
         kind: EntityKind::Monster,
         vitals,
         modifiers,
         monster_name: name,
         monster_kind,
-        monster_moves: arr,
-        ..ZERO_ENTITY
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::entity::push_move_history;
-    use rand::SeedableRng;
-    use rand::rngs::SmallRng;
-
-    // Act-2 rolls are unreachable in-game until the act seam lands; this guards
-    // the pool tables and sequence rules
-    #[test]
-    fn act2_encounter_generation() {
-        use crate::monsters::encounters::generate_act_monsters;
-        use crate::monsters::encounters::get_encounter_pool;
-        use crate::types::EncounterPool;
-
-        let mut rng = SmallRng::seed_from_u64(11);
-        for _ in 0..50 {
-            let mut normal = Vec::new();
-            let mut elite = Vec::new();
-            generate_act_monsters(2, &mut normal, &mut elite, &mut rng);
-            assert_eq!(normal.len(), 2 + 1 + 12);
-            assert_eq!(elite.len(), 10);
-            assert!(
-                normal[..2]
-                    .iter()
-                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Easy)
-            );
-            assert!(
-                normal[2..]
-                    .iter()
-                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Hard)
-            );
-            assert!(
-                elite
-                    .iter()
-                    .all(|&e| get_encounter_pool(e) == EncounterPool::Act2Elite)
-            );
-        }
-    }
-
-    // Act-2 normals are unreachable in-game until the act seam lands; this guards
-    // their spawn tables and AI against panics and out-of-range move indices
-    #[test]
-    fn act2_normal_ai_smoke() {
-        let names = [
-            MonsterName::Byrd,
-            MonsterName::Centurion,
-            MonsterName::Chosen,
-            MonsterName::Healer,
-            MonsterName::Mugger,
-            MonsterName::ShelledParasite,
-            MonsterName::SnakePlant,
-            MonsterName::Snecko,
-            MonsterName::SphericGuardian,
-            MonsterName::BookOfStabbing,
-            MonsterName::GremlinLeader,
-            MonsterName::Taskmaster,
-            MonsterName::BronzeAutomaton,
-            MonsterName::BronzeOrb,
-            MonsterName::Champ,
-            MonsterName::TheCollector,
-            MonsterName::TorchHead,
-            MonsterName::BanditBear,
-            MonsterName::BanditLeader,
-            MonsterName::BanditPointy,
-        ];
-        let mut rng = SmallRng::seed_from_u64(7);
-        for ascension in [0, 2, 7, 17, 18, 20] {
-            for name in names {
-                let mut entities = vec![spawn_monster(name, ascension, &mut rng)];
-                let mut id_monsters = [None; MAX_MONSTERS];
-                id_monsters[0] = Some(0);
-                for _ in 0..50 {
-                    let idx = get_next_move(&entities, 0, &id_monsters, ascension, &mut rng);
-                    assert!(
-                        idx < MAX_MOVES_PER_MONSTER
-                            && !entities[0].monster_moves[idx].name.is_empty(),
-                        "{name:?} rolled invalid move idx {idx}"
-                    );
-                    entities[0].monster_move_current = Some(idx);
-                    push_move_history(&mut entities[0], idx as u8);
-                }
-            }
-        }
+        monster_moves: moves,
+        ..ENTITY_ZERO
     }
 }

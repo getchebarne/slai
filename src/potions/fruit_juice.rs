@@ -13,7 +13,6 @@ pub static POTION_FRUIT_JUICE: Entity = make_entity_potion(
     PotionName::FruitJuice,
     PotionRarity::Rare,
     false,
-    false,
     &[Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: DeltaSign::Gain,

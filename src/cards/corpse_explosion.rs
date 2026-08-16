@@ -22,7 +22,6 @@ pub static CORPSE_EXPLOSION: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::ModifierGain {
@@ -49,12 +48,12 @@ pub static CORPSE_EXPLOSION: Entity = make_entity_card(
 pub static CORPSE_EXPLOSION_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = CORPSE_EXPLOSION.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = CORPSE_EXPLOSION.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Poison,
             stacks: 9, // +3 poison
         };
-        a
+        effects
     },
     ..CORPSE_EXPLOSION
 };

@@ -4,14 +4,12 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
-use crate::types::ChestKind;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::RewardKind;
-use crate::types::RoomKind;
 use crate::types::ShopSlot;
 
 // EffectKind: the shared "what happens" enum
@@ -41,7 +39,7 @@ pub enum EffectKind {
         upgraded: bool,
         rarity: Option<CardRarity>,
     },
-    CardAddToDeck,
+    CardAdopt,
     CardBottle,
     CardDiscard {
         source: DiscardSource,
@@ -90,14 +88,10 @@ pub enum EffectKind {
     CombatEnd {
         escaped_character: bool,
     },
-    CombatStart {
-        loot: EventLoot,
-    },
+    CombatStart,
     DamageDeal {
         amount: u16,
-    },
-    DamageDealLifesteal {
-        amount: u16,
+        lifesteal: bool, // Life Suck
     },
     DamageFinisher {
         damage: u16,
@@ -105,12 +99,10 @@ pub enum EffectKind {
     DamageFlechettes {
         damage: u16,
     },
-    DamageLifesteal {
-        amount: u16,
-    },
     DamageMindBlast,
     DamagePhysical {
         amount: u16,
+        lifesteal: bool, // Life Suck
     },
     DamagePhysicalIfPoisoned {
         amount: u16,
@@ -165,7 +157,6 @@ pub enum EffectKind {
     KnowingSkullAsk {
         wish: KnowingSkullWish,
     },
-    MatchGameFlip,
     MausoleumOpen,
     MaxHealthDelta {
         sign: DeltaSign,
@@ -187,6 +178,9 @@ pub enum EffectKind {
     MonsterEscape,
     MonsterSpawn {
         name: MonsterName,
+        minion: bool, // Gremlin Leader's summons
+        // Skip the spawn when `cap` of this name are already rostered (Torch Heads)
+        cap: Option<u8>,
     },
     MonsterSplit {
         name: MonsterName,
@@ -218,8 +212,27 @@ pub enum EffectKind {
         name: RelicName,
     },
     RestSiteConsume,
-    RewardRoll {
-        source: RewardSource,
+    RewardRollCards {
+        bundles: u8,
+        rare_only: bool,
+    },
+    RewardRollGold {
+        amount: Amount,
+    },
+    RewardRollLibraryCards,
+    RewardRollNeowCards {
+        colorless: bool,
+        rare_only: bool,
+    },
+    RewardRollPotion {
+        eligible: bool,
+    },
+    RewardRollPotions {
+        count: u8,
+        uniform: bool,
+    },
+    RewardRollRelic {
+        pick: RelicPick,
     },
     RewardTake {
         kind: RewardKind,
@@ -259,29 +272,10 @@ pub enum EffectKind {
     },
     TargetClear,
     TargetSet,
-    TorchHeadSpawn,
     TurnEnd,
     TurnStart,
     UnloadDiscard,
     WheelSpin,
-}
-
-// Loot an event stakes on a fight it starts, resolved by the combat's reward roll
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct EventLoot {
-    pub gold: Option<Amount>,
-    pub relic: Option<RelicName>,
-    pub relic_roll: bool,
-    pub relic_tiers: [Option<RelicTier>; 2],
-}
-
-impl EventLoot {
-    pub const NONE: EventLoot = EventLoot {
-        gold: None,
-        relic: None,
-        relic_roll: false,
-        relic_tiers: [None, None],
-    };
 }
 
 // Knowing Skull's escalating asks
@@ -292,32 +286,12 @@ pub enum KnowingSkullWish {
     Card,
 }
 
-// What a reward roll is rolling for; the handler branches on it
+// How far the staged relic is already resolved; each variant rolls only what remains
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum RewardSource {
-    Cards {
-        bundles: usize,
-    },
-    // The Library: one pick-a-card bundle of 20 unique rarity-rolled cards
-    LibraryCards,
-    Chest {
-        kind: ChestKind,
-    },
-    Combat {
-        room_kind: RoomKind,
-        escaped: bool,
-        loot: EventLoot,
-    },
-
-    // Neow's card offers: always 3, Neow-specific rarity rules
-    NeowCards {
-        colorless: bool,
-        rare_only: bool,
-    },
-    Potions {
-        count: u8,
-        uniform: bool,
-    },
+pub enum RelicPick {
+    Thresholds { th_common: u8, th_uncommon: u8 },
+    Tier(RelicTier),
+    Name(RelicName),
 }
 
 // Origin tag the CardDiscard handler branches on
@@ -334,10 +308,6 @@ pub enum Amount {
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },
-
-    // We Meet Again's rolled ask, read from the event payload at execution time
-    // TODO: revisit, ugly
-    EventGoldAsk,
 }
 
 // Source pool for a Resolve effect
@@ -352,10 +322,6 @@ pub enum CandidatePool {
     PileDraw,
     PileDiscard,
     PileExhaust,
-
-    // We Meet Again's rolled picks, read from the event payload at execution time
-    EventPickCard,
-    EventPickPotion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -413,7 +379,7 @@ pub struct Effect {
 }
 
 // Filler for slots past `card_effects_len` in Entity.card_effects
-pub const ZERO_EFFECT: Effect = Effect {
+pub const EFFECT_ZERO: Effect = Effect {
     kind: EffectKind::NoOp,
     id_source: None,
     target: Target::Direct(None),

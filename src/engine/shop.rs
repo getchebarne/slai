@@ -61,7 +61,7 @@ pub(super) fn restock_relic(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     id_relics: &[Option<usize>; RelicName::COUNT],
-    id_relics_vec: &mut Vec<usize>,
+    relics: &mut Vec<(usize, u16)>,
     idx: usize,
 ) {
     let roll = rng.random_range(0..100) as u8;
@@ -74,7 +74,7 @@ pub(super) fn restock_relic(
     };
 
     // Get taken Relic IDs
-    let mut id_taken = get_shop_taken_relic_names(id_relics, entities, id_relics_vec);
+    let mut id_taken = get_shop_taken_relic_names(id_relics, entities, relics);
 
     // The gold-economy Relics never restock
     for name in [
@@ -89,13 +89,10 @@ pub(super) fn restock_relic(
     let Some(name) = pick_relic_from_pool(pool, &id_taken, rng) else {
         return;
     };
-    let id_relic_new = make_relic_with_price(entities, rng, name, base_price);
+    let (id_relic_new, price) = make_relic_with_price(entities, rng, name, base_price);
 
-    // Apply discounts
-    entities[id_relic_new].price = apply_shop_discounts(entities[id_relic_new].price, id_relics);
-
-    // Insert it
-    id_relics_vec.insert(idx, id_relic_new);
+    // Apply discounts and slot the offer back in
+    relics.insert(idx, (id_relic_new, apply_shop_discounts(price, id_relics)));
 }
 
 fn roll_var_card(rng: &mut impl Rng) -> f32 {
@@ -116,39 +113,40 @@ fn get_card_base_price(rarity: CardRarity) -> u16 {
 }
 
 // Card names already placed in this shop, so the shop's Cards stay distinct
-fn get_shop_placed_card_names(entities: &[Entity], id_cards: &[usize]) -> Vec<CardName> {
-    id_cards.iter().map(|&id| entities[id].card_name).collect()
+fn get_shop_placed_card_names(entities: &[Entity], cards: &[(usize, u16)]) -> Vec<CardName> {
+    cards
+        .iter()
+        .map(|&(id, _)| entities[id].card_name)
+        .collect()
 }
 
 // Sample one distinct shop Card with a variance-rolled price; placement is the caller's
 fn make_card(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-    id_cards: &[usize],
+    cards: &[(usize, u16)],
     color: CardColor,
     kind: Option<CardKind>,
     rarity: CardRarity,
     base_price: u16,
-) -> usize {
+) -> (usize, u16) {
     // Sample Card and its price
-    let cards_placed = get_shop_placed_card_names(entities, id_cards);
+    let cards_placed = get_shop_placed_card_names(entities, cards);
     let card = get_random_cards(color, kind, Some(rarity), &cards_placed, 1, rng)
         .into_iter()
         .next()
         .unwrap_or_else(|| panic!("No shop Card for {color:?} {kind:?} rarity {rarity:?}"));
     let card_price = (base_price as f32 * roll_var_card(rng)) as u16;
 
-    let id_card = push_entity(entities, card);
-    entities[id_card].price = card_price;
-    id_card
+    (push_entity(entities, card), card_price)
 }
 
 pub(super) fn make_card_colored(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-    id_cards: &[usize],
+    cards: &[(usize, u16)],
     kind: CardKind,
-) -> usize {
+) -> (usize, u16) {
     let mut rarity = roll_card_rarity(rng);
 
     // No Common green Powers exist, so a Power slot can't be Common; bump it to Uncommon
@@ -159,7 +157,7 @@ pub(super) fn make_card_colored(
     make_card(
         entities,
         rng,
-        id_cards,
+        cards,
         CardColor::Green,
         Some(kind),
         rarity,
@@ -170,15 +168,15 @@ pub(super) fn make_card_colored(
 pub(super) fn make_card_colorless(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-    id_cards: &[usize],
+    cards: &[(usize, u16)],
     rarity: CardRarity,
-) -> usize {
+) -> (usize, u16) {
     let base =
         get_card_base_price(rarity) * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM;
     make_card(
         entities,
         rng,
-        id_cards,
+        cards,
         CardColor::Colorless,
         None,
         rarity,
@@ -190,10 +188,10 @@ pub(super) fn make_card_colorless(
 pub(super) fn get_shop_taken_relic_names(
     id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &[Entity],
-    id_relics_vec: &[usize],
+    relics: &[(usize, u16)],
 ) -> [Option<usize>; RelicName::COUNT] {
     let mut taken = *id_relics;
-    for &id in id_relics_vec {
+    for &(id, _) in relics {
         taken[entities[id].relic_name as usize] = Some(id);
     }
     // The Courier never appears in shop stock (Java canSpawn blocks it inside shops)
@@ -206,14 +204,13 @@ pub(super) fn make_relic_with_price(
     rng: &mut impl Rng,
     name: RelicName,
     base_price: u16,
-) -> usize {
+) -> (usize, u16) {
     let id_relic = push_entity(entities, get_relic(name));
     let relic_price = (base_price as f32 * roll_var_relic_n_potion(rng)) as u16;
-    entities[id_relic].price = relic_price;
-    id_relic
+    (id_relic, relic_price)
 }
 
-pub(super) fn make_potion(entities: &mut Vec<Entity>, rng: &mut impl Rng) -> usize {
+pub(super) fn make_potion(entities: &mut Vec<Entity>, rng: &mut impl Rng) -> (usize, u16) {
     // Sample Potion and its base price
     let name = get_random_potion_name(rng, false);
     let entity = get_potion(name);
@@ -225,8 +222,7 @@ pub(super) fn make_potion(entities: &mut Vec<Entity>, rng: &mut impl Rng) -> usi
 
     let id_potion = push_entity(entities, entity);
     let potion_price = (base_price as f32 * roll_var_relic_n_potion(rng)) as u16;
-    entities[id_potion].price = potion_price;
-    id_potion
+    (id_potion, potion_price)
 }
 
 fn roll_card_rarity(rng: &mut impl Rng) -> CardRarity {

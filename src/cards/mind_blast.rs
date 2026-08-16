@@ -21,7 +21,6 @@ pub static MIND_BLAST: Entity = make_entity_card(
     false,
     false,
     true,
-    true,
     &[Effect {
         kind: EffectKind::DamageMindBlast,
         id_source: None,

@@ -25,7 +25,6 @@ pub static VIOLENCE: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardMove {
             pile: CardPile::Hand,
@@ -46,13 +45,13 @@ pub static VIOLENCE: Entity = make_entity_card(
 pub static VIOLENCE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = VIOLENCE.card_effects;
-        a[0].target = Target::Resolve {
+        let mut effects = VIOLENCE.card_effects;
+        effects[0].target = Target::Resolve {
             candidate_pool: CandidatePool::PileDraw,
             filter: CandidateFilter::KindAttack,
             selection_kind: SelectionKind::Random { count: 4 }, // +1 Card
         };
-        a
+        effects
     },
     ..VIOLENCE
 };

@@ -9,8 +9,8 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
 use crate::monsters::make_move_attack;
@@ -101,7 +101,7 @@ pub fn spawn_monster_gremlin_leader(ascension_level: u8, rng: &mut impl Rng) -> 
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }
@@ -117,7 +117,10 @@ pub fn get_next_move_gremlin_leader(
         .flatten()
         .filter(|&&id| id != entity_id)
         .count();
-    let last = move_history.last().copied().map(|m| m as usize);
+    let last = move_history
+        .last()
+        .copied()
+        .map(|idx_move| idx_move as usize);
     let roll = rng.random_range(0..=99);
 
     if gremlins_alive == 1 {

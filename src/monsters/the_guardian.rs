@@ -5,9 +5,9 @@ use crate::effect::TARGET_SOURCE;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_apply;
 use crate::monsters::make_entity_monster;
@@ -29,12 +29,18 @@ const fn make_move_twin_slam(mode_shift_stacks: i16) -> Move {
         "Twin Slam",
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: 8 },
+                kind: EffectKind::DamagePhysical {
+                    amount: 8,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::DamagePhysical { amount: 8 },
+                kind: EffectKind::DamagePhysical {
+                    amount: 8,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -98,22 +104,34 @@ static MOVE_WHIRLWIND: Move = make_move(
     "Whirlwind",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
@@ -123,8 +141,8 @@ static MOVE_WHIRLWIND: Move = make_move(
         instances: 4,
     },
 );
-static MOVE_DEFENSIVE_MODE_3: Move = make_move_buff("Defensive Mode", ModifierKind::SharpHide, 3);
-static MOVE_DEFENSIVE_MODE_4: Move = make_move_buff("Defensive Mode", ModifierKind::SharpHide, 4);
+static MOVE_DEFENSIVE_MODE_3: Move = make_move_buff("Defensive Frame", ModifierKind::SharpHide, 3);
+static MOVE_DEFENSIVE_MODE_4: Move = make_move_buff("Defensive Frame", ModifierKind::SharpHide, 4);
 static MOVE_ROLL_ATTACK_9: Move = make_move_attack("Roll Attack", 9, 1);
 static MOVE_ROLL_ATTACK_10: Move = make_move_attack("Roll Attack", 10, 1);
 static MOVE_TWIN_SLAM_30: Move = make_move_twin_slam(MODE_SHIFT_STACKS_30);
@@ -195,7 +213,7 @@ pub fn spawn_monster_the_guardian(ascension_level: u8) -> Entity {
     } else {
         MODE_SHIFT_STACKS_40
     };
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::ModeShift, mode_shift_stacks);
 
     make_entity_monster(
@@ -231,7 +249,7 @@ pub fn get_next_move_the_guardian_full(
             IDX_MOVE_WHIRLWIND => IDX_MOVE_CHARGING_UP,
             IDX_MOVE_TWIN_SLAM => IDX_MOVE_WHIRLWIND,
             _ => unreachable!(
-                "Invalid 'The Guardian' move in offensive mode: {}",
+                "Invalid 'The Guardian' move in offensive frame: {}",
                 move_last
             ),
         }
@@ -240,7 +258,7 @@ pub fn get_next_move_the_guardian_full(
             IDX_MOVE_DEFENSIVE_MODE => IDX_MOVE_ROLL_ATTACK,
             IDX_MOVE_ROLL_ATTACK => IDX_MOVE_TWIN_SLAM,
             _ => unreachable!(
-                "Invalid 'The Guardian' move in defensive mode: {}",
+                "Invalid 'The Guardian' move in defensive frame: {}",
                 move_last
             ),
         }

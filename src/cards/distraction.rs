@@ -21,7 +21,6 @@ pub static DISTRACTION: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::DistractionAdd,
         id_source: None,

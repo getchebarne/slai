@@ -1,74 +1,47 @@
-use crate::consts::DISCOVER_PICK_COUNT;
-use crate::consts::MAX_MONSTERS;
-use crate::consts::MAX_SIZE_DECK;
-use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::EventLoot;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::modifier_apply;
+use crate::monsters::count_monsters_named;
 use crate::monsters::spawn_monster;
-use crate::types::Energy;
-use crate::types::Mode;
 use crate::types::MonsterName;
 use crate::types::RelicName;
+use crate::types::combat_reset;
 use crate::utils::has_relic;
-use crate::utils::mode_top;
-use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
-// Returns the spawned entity id; None when a full roster fizzles the spawn
-pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) -> Option<usize> {
-    // A monster spawning implies a combat: the first spawn of a fight constructs it
-    if !matches!(mode_top(&state.mode_stack), Mode::Combat { .. }) {
-        // Event fights replace the consumed Event frame; room fights push over Map
-        let combat = Mode::Combat {
-            id_hand: Vec::with_capacity(MAX_SIZE_HAND),
-            id_pile_draw: Vec::with_capacity(MAX_SIZE_DECK),
-            id_pile_discard: Vec::with_capacity(MAX_SIZE_DECK),
-            id_pile_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
-            id_monsters: [None; MAX_MONSTERS],
-            id_stasis_cards: [None; MAX_MONSTERS],
-            id_card_origins: Vec::new(),
-            id_picked_monster: None,
-            id_card_last_drawn: None,
-            id_card_nightmare: None,
-            id_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
-            energy: Energy {
-                energy_current: 0,
-                energy_max: 0,
-            },
-            this_turn_discards: 0,
-            this_turn_attacks: 0,
-            this_turn_cards_played: 0,
-            this_turn_panache: 0,
-            this_combat_damage_instances_taken: 0,
-            this_combat_escaped: false,
-            bomb_countdown: 0,
-            event_loot: EventLoot::NONE,
-        };
-        // A consumed event is replaced by its fight; an unconsumed one (Colosseum)
-        // stays suspended beneath and resumes when the combat pops
-        if matches!(
-            mode_top(&state.mode_stack),
-            Mode::Event { consumed: true, .. }
-        ) {
-            state.mode_stack.pop();
-        }
-        state.mode_stack.push(combat);
+pub fn process_effect_monster_spawn(
+    state: &mut GameState,
+    name: MonsterName,
+    minion: bool,
+    cap: Option<u8>,
+) {
+    // A monster spawning implies a combat: the first spawn of a fight opens it
+    if !state.combat.active {
+        combat_reset(&mut state.combat);
+        state.combat.active = true;
     }
-    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("Constructed above")
-    };
+    let id_monsters = &mut state.combat.id_monsters;
+
+    // Capped spawns top the roster up (Collector's Torch Heads): skip at the cap
+    if let Some(cap) = cap
+        && count_monsters_named(&state.entities, id_monsters, name) >= cap as usize
+    {
+        return;
+    }
 
     // A full roster fizzles the spawn (Collector revive, mid-combat summons)
-    let Some(idx) = id_monsters.iter().position(|s| s.is_none()) else {
-        return None;
+    let Some(idx) = id_monsters.iter().position(|slot| slot.is_none()) else {
+        return;
     };
 
-    // Create the monster `Entity` and place it in the first empty slot
-    let monster = spawn_monster(name, state.ascension, &mut state.rng);
+    // Create the monster `Entity`; summons carry Minion from birth
+    let mut monster = spawn_monster(name, state.ascension, &mut state.rng);
+    if minion {
+        modifier_apply(&mut monster.modifiers, ModifierKind::Minion, 1);
+    }
     let id_monster = push_entity(&mut state.entities, monster);
     id_monsters[idx] = Some(id_monster);
 
@@ -92,6 +65,4 @@ pub fn process_effect_monster_spawn(state: &mut GameState, name: MonsterName) ->
             target: Target::Direct(Some(id_monster)),
         });
     }
-
-    Some(id_monster)
 }

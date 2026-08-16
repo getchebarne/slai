@@ -4,6 +4,7 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventKind;
+use crate::events::bake_options;
 use crate::events::make_entity_event_option;
 use crate::game::GameState;
 use crate::relics::iter_owned_relics;
@@ -11,19 +12,26 @@ use crate::types::RelicName;
 use rand::Rng;
 
 // Two distinct owned Relics rolled at spawn; the draw gate guarantees at least two
-pub fn spawn_event_nloth(state: &mut GameState) -> EventKind {
+// Rolls two distinct owned Relics and bakes them into the trade options
+pub fn spawn_event_nloth(state: &mut GameState) -> (EventKind, Vec<usize>) {
     let owned: Vec<_> = iter_owned_relics(&state.id_relics)
-        .map(|(n, _)| n)
+        .map(|(name, _)| name)
         .collect();
-    let i = state.rng.random_range(0..owned.len());
-    let mut j = state.rng.random_range(0..owned.len() - 1);
-    if j >= i {
-        j += 1;
+    let idx = state.rng.random_range(0..owned.len());
+    let mut jdx = state.rng.random_range(0..owned.len() - 1);
+    if jdx >= idx {
+        jdx += 1;
     }
-    EventKind::Nloth {
-        relic_first: owned[i],
-        relic_second: owned[j],
-    }
+    let relic_first = owned[idx];
+    let relic_second = owned[jdx];
+    let id_event_options = bake_options(state, &bake(relic_first, relic_second));
+    (
+        EventKind::Nloth {
+            relic_first,
+            relic_second,
+        },
+        id_event_options,
+    )
 }
 
 fn option_trade(label: &'static str, name: RelicName) -> Entity {

@@ -11,12 +11,18 @@ use crate::types::CardName;
 use crate::types::CardRarity;
 
 const HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 4 },
+    kind: EffectKind::DamagePhysical {
+        amount: 4,
+        lifesteal: false,
+    },
     id_source: None,
     target: TARGET_MONSTERS_ALL,
 };
 const HIT_PLUS: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 6 }, // +2 damage
+    kind: EffectKind::DamagePhysical {
+        amount: 6,
+        lifesteal: false,
+    }, // +2 damage
     id_source: None,
     target: TARGET_MONSTERS_ALL,
 };
@@ -32,7 +38,6 @@ pub static DAGGER_SPRAY: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[HIT, HIT],
     &[],
     &[],
@@ -42,10 +47,10 @@ pub static DAGGER_SPRAY: Entity = make_entity_card(
 pub static DAGGER_SPRAY_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = DAGGER_SPRAY.card_effects;
-        a[0] = HIT_PLUS;
-        a[1] = HIT_PLUS;
-        a
+        let mut effects = DAGGER_SPRAY.card_effects;
+        effects[0] = HIT_PLUS;
+        effects[1] = HIT_PLUS;
+        effects
     },
     ..DAGGER_SPRAY
 };

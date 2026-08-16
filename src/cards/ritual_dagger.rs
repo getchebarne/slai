@@ -22,9 +22,11 @@ pub static RITUAL_DAGGER: Entity = make_entity_card(
     true,
     false,
     false,
-    true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 15 },
+        kind: EffectKind::DamagePhysical {
+            amount: 15,
+            lifesteal: false,
+        },
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],

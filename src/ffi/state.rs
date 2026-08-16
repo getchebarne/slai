@@ -7,12 +7,22 @@ use super::card::PyCard;
 use super::card::snapshot_card;
 use super::character::PyCharacter;
 use super::character::snapshot_character;
+use super::context::PyChest;
+use super::context::PyCombat;
+use super::context::PyEvent;
+use super::context::PyRestSite;
+use super::context::PyReward;
+use super::context::PyShop;
+use super::context::snapshot_chest;
+use super::context::snapshot_combat;
+use super::context::snapshot_event;
+use super::context::snapshot_rest_site;
+use super::context::snapshot_reward;
+use super::context::snapshot_shop;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 use super::map::PyMap;
 use super::map::snapshot_map;
-use super::mode::PyMode;
-use super::mode::snapshot_mode;
 use super::potion::PyPotion;
 use super::potion::snapshot_potion;
 use super::relic::PyRelic;
@@ -27,8 +37,13 @@ use super::relic::snapshot_relic;
 )]
 #[derive(Debug, Clone)]
 pub struct PyGameState {
-    // Full context stack, bottom (Map) first; the last entry is the active mode
-    pub mode_stack: Vec<PyMode>,
+    // Contexts: None while inactive; all None = Focus::Map
+    pub combat: Option<PyCombat>,
+    pub reward: Option<PyReward>,
+    pub event: Option<PyEvent>,
+    pub shop: Option<PyShop>,
+    pub rest_site: Option<PyRestSite>,
+    pub chest: Option<PyChest>,
     pub game_over: bool,
     pub ascension: u8,
     pub act: u8,
@@ -39,24 +54,25 @@ pub struct PyGameState {
     pub potions: Vec<Option<PyPotion>>,
     pub potion_slots_max: u8,
     pub map: PyMap,
-    // Halt-for-input is orthogonal to mode
+    // Halt-for-input is orthogonal to the contexts
     pub pending: Option<PyEffect>,
 }
 
 // Snapshot builders
 pub fn snapshot_state(state: &GameState) -> PyGameState {
     PyGameState {
-        mode_stack: state
-            .mode_stack
-            .iter()
-            .map(|mode| snapshot_mode(state, mode))
-            .collect(),
+        combat: state.combat.active.then(|| snapshot_combat(state)),
+        reward: state.reward.active.then(|| snapshot_reward(state)),
+        event: state.event.active.then(|| snapshot_event(state)),
+        shop: state.shop.active.then(|| snapshot_shop(state)),
+        rest_site: state.rest_site.active.then(|| snapshot_rest_site(state)),
+        chest: state.chest.active.then(|| snapshot_chest(state)),
         game_over: state.game_over,
         ascension: state.ascension,
         act: state.act,
         character: snapshot_character(state),
         deck: state
-            .id_deck
+            .id_card_deck
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
@@ -65,7 +81,7 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         potions: state.id_potions[..state.potion_slots_max as usize]
             .iter()
-            .map(|s| s.map(|id| snapshot_potion(&state.entities[id])))
+            .map(|slot| slot.map(|id| snapshot_potion(&state.entities[id])))
             .collect(),
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),

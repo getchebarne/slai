@@ -1,7 +1,7 @@
 use crate::entity::Entity;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move_attack;
@@ -20,7 +20,7 @@ pub fn spawn_monster_torch_head(ascension_level: u8, rng: &mut impl Rng) -> Enti
     };
     let health_max = rng.random_range(health_max_min..=health_max_max);
 
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::Minion, 1);
 
     make_entity_monster(
@@ -35,3 +35,5 @@ pub fn spawn_monster_torch_head(ascension_level: u8, rng: &mut impl Rng) -> Enti
         &MOVES,
     )
 }
+
+// Deterministic: always uses Tackle

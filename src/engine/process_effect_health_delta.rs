@@ -14,12 +14,9 @@ use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
 use crate::monsters::the_guardian;
 use crate::types::DeltaSign;
-use crate::types::Mode;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
-use crate::utils::mode_top;
-use crate::utils::mode_top_mut;
 use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_health_delta(
@@ -78,7 +75,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     // Centennial Puzzle: the first actual HP loss each combat draws 3
     if id_target == state.id_character
         && amount > 0
-        && matches!(mode_top(&state.mode_stack), Mode::Combat { .. })
+        && state.combat.active
         && let Some(id_relic) = state.id_relics[RelicName::CentennialPuzzle as usize]
         && state.entities[id_relic].relic_counter == 0
     {
@@ -91,14 +88,11 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     }
 
     // Bump number of damage instances taken this combat
-    if id_target == state.id_character
-        && amount > 0
-        && let Mode::Combat {
-            this_combat_damage_instances_taken,
-            ..
-        } = mode_top_mut(&mut state.mode_stack)
-    {
-        *this_combat_damage_instances_taken = this_combat_damage_instances_taken.saturating_add(1);
+    if id_target == state.id_character && amount > 0 && state.combat.active {
+        state.combat.this_combat_damage_instances_taken = state
+            .combat
+            .this_combat_damage_instances_taken
+            .saturating_add(1);
     }
 
     // Get mutable target reference
@@ -117,7 +111,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         });
     }
 
-    // Decrement health
+    // Substract health
     target.vitals.health = target.vitals.health.saturating_sub(amount);
 
     // Check if the target's dead. If so, queue death effect and return early
@@ -199,7 +193,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         });
     }
 
-    // Mode Shift (The Guardian): Damage reduces stacks, triggers move update on break
+    // Frame Shift (The Guardian): Damage reduces stacks, triggers move update on break
     if has_modifier(&target.modifiers, ModifierKind::ModeShift) {
         let new_stacks =
             modifier_stacks(&target.modifiers, ModifierKind::ModeShift) - amount as i16;
@@ -218,7 +212,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
                     target: Target::Direct(Some(id_target)),
                 });
 
-                // Entering Defensive Mode grants block before the move swap resolves
+                // Entering Defensive Frame grants block before the move swap resolves
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::BlockGain {
                         amount: the_guardian::DEFENSIVE_MODE_BLOCK,
@@ -227,7 +221,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
                     target: Target::Direct(Some(id_target)),
                 });
             } else {
-                panic!("Tried to remove Mode Shift from the Character")
+                panic!("Tried to remove ModeShift from the Character")
             }
         } else {
             target.modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;

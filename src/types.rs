@@ -1,10 +1,9 @@
 use strum::EnumCount;
 
 use crate::consts::MAX_MONSTERS;
-use crate::effect::EventLoot;
 use crate::events::EventKind;
 
-// Vitals: physical combat state. Shared by character and monsters
+// Vitals: physical combat state. Shared by Character and Monsters
 #[derive(Debug, Clone, Copy)]
 pub struct Vitals {
     pub health: u16,
@@ -19,68 +18,144 @@ pub enum DeltaSign {
     Loss,
 }
 
-// The game's mode: each variant owns the working memory that is only meaningful
-// while it is active; constructed whole at entry, destroyed by variant replacement
+// Contexts: persistent GameState fields owning the working memory that is only
+// meaningful while `active`; reset in place at entry (buffers retain capacity),
+// deactivated at exit. Never reassign a whole context — that drops the buffers
 #[derive(Debug, Clone)]
-pub enum Mode {
-    Combat {
-        id_hand: Vec<usize>,
-        id_pile_draw: Vec<usize>,
-        id_pile_discard: Vec<usize>,
-        id_pile_exhaust: Vec<usize>,
-        id_monsters: [Option<usize>; MAX_MONSTERS],
-        // Slot-parallel to id_monsters: the Stasis hostage held by the monster in that slot
-        id_stasis_cards: [Option<usize>; MAX_MONSTERS],
-        id_picked_monster: Option<usize>,
-        id_card_last_drawn: Option<usize>,
-        id_card_nightmare: Option<usize>,
-        id_discover: Vec<usize>,
-        // (combat copy, deck original) pairs; mid-combat spawns have no entry
-        id_card_origins: Vec<(usize, usize)>,
+pub struct Combat {
+    pub active: bool,
+    pub id_card_hand: Vec<usize>,
+    pub id_card_draw: Vec<usize>,
+    pub id_card_discard: Vec<usize>,
+    pub id_card_exhaust: Vec<usize>,
+    pub id_monsters: [Option<usize>; MAX_MONSTERS],
+    pub id_card_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
+    pub id_monster_picked: Option<usize>,
+    pub id_card_last_drawn: Option<usize>,
+    pub id_card_nightmare: Option<usize>,
+    pub id_card_discover: Vec<usize>,
+    // (combat copy, deck original) pairs; mid-combat spawns have no entry
+    pub id_card_origins: Vec<(usize, usize)>,
 
-        // Energy
-        energy: Energy,
+    // Energy
+    pub energy: Energy,
 
-        // Per-turn counters
-        this_turn_discards: u8,
-        this_turn_attacks: u8,
-        this_turn_cards_played: u8,
-        this_turn_panache: u8,
+    // Per-turn counters
+    pub this_turn_discards: u8,
+    pub this_turn_attacks: u8,
+    pub this_turn_cards_played: u8,
+    pub this_turn_panache: u8,
 
-        // Per-combat counters
-        this_combat_damage_instances_taken: u8,
-        this_combat_escaped: bool,
+    // Per-combat counters
+    pub this_combat_damage_instances_taken: u8,
+    pub this_combat_escaped: bool,
 
-        // Bomb countdown
-        bomb_countdown: u8,
+    // Bomb countdown
+    pub bomb_countdown: u8,
+}
 
-        // Loot staked by the event that started this fight (Mushrooms, Colosseum)
-        event_loot: EventLoot,
-    },
-    CombatEnded,
-    Reward {
-        reward_id_cards: Vec<Vec<usize>>,
-        reward_id_relics: Vec<usize>,
-        reward_id_potions: Vec<usize>,
-        reward_gold: Option<u16>,
-        // Pick-one-of-N relic offer (boss relics): taking one drops the rest
-        reward_relics_exclusive: bool,
-    },
-    Event {
-        kind: EventKind,
-        consumed: bool,
-        id_options: Vec<usize>,
-    },
-    Shop {
-        shop_id_cards: Vec<usize>,
-        shop_id_relics: Vec<usize>,
-        shop_id_potions: Vec<usize>,
-        shop_purge_cost: u16,
-    },
-    Map,
-    RestSite,
+pub fn combat_reset(combat: &mut Combat) {
+    combat.id_card_hand.clear();
+    combat.id_card_draw.clear();
+    combat.id_card_discard.clear();
+    combat.id_card_exhaust.clear();
+    combat.id_monsters.fill(None);
+    combat.id_card_stasis.fill(None);
+    combat.id_monster_picked = None;
+    combat.id_card_last_drawn = None;
+    combat.id_card_nightmare = None;
+    combat.id_card_discover.clear();
+    combat.id_card_origins.clear();
+    combat.energy = Energy {
+        energy_current: 0,
+        energy_max: 0,
+    };
+    combat.this_turn_discards = 0;
+    combat.this_turn_attacks = 0;
+    combat.this_turn_cards_played = 0;
+    combat.this_turn_panache = 0;
+    combat.this_combat_damage_instances_taken = 0;
+    combat.this_combat_escaped = false;
+    combat.bomb_countdown = 0;
+}
+
+#[derive(Debug, Clone)]
+pub struct Reward {
+    pub active: bool,
+    pub id_cards: Vec<Vec<usize>>,
+    pub id_relics: Vec<usize>,
+    pub id_potions: Vec<usize>,
+    pub gold: Option<u16>,
+    pub relics_exclusive: bool, // Wether taking a Relic clears the rest (Boss rewards)
+}
+
+pub fn reward_reset(reward: &mut Reward) {
+    reward.id_cards.clear();
+    reward.id_relics.clear();
+    reward.id_potions.clear();
+    reward.gold = None;
+    reward.relics_exclusive = false;
+}
+
+// Find-or-create for the RewardRoll* effects: any roll may activate the context
+pub fn reward_ensure(reward: &mut Reward) {
+    if !reward.active {
+        reward_reset(reward);
+        reward.active = true;
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Event {
+    pub active: bool,
+    pub event_kind: EventKind,
+    pub consumed: bool,
+    pub id_event_options: Vec<usize>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Shop {
+    pub active: bool,
+
+    // The stock as offers: (entity id, price)
+    pub cards: Vec<(usize, u16)>,
+    pub relics: Vec<(usize, u16)>,
+    pub potions: Vec<(usize, u16)>,
+    pub purge_cost: u16,
+    pub purged: bool,
+}
+
+pub fn shop_reset(shop: &mut Shop) {
+    shop.cards.clear();
+    shop.relics.clear();
+    shop.potions.clear();
+    shop.purge_cost = 0;
+    shop.purged = false;
+}
+
+#[derive(Debug, Clone)]
+pub struct RestSite {
+    pub active: bool,
+    pub consumed: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct Chest {
+    pub active: bool,
+    pub chest_kind: ChestKind,
+    pub chest_opened: bool,
+}
+
+// The focused context
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Focus {
+    Combat,
+    Reward,
+    Shop,
     Chest,
-    ChestOpened,
+    RestSite,
+    Event,
+    Map,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -89,7 +164,7 @@ pub struct Energy {
     pub energy_max: u8,
 }
 
-pub const ZERO_VITALS: Vitals = Vitals {
+pub const VITALS_ZERO: Vitals = Vitals {
     health: 0,
     health_max: 0,
     block: 0,
@@ -456,7 +531,6 @@ pub enum EventName {
     BackToBasics,
     Colosseum,
     Designer,
-    GremlinMatchGame,
     KnowingSkull,
     MaskedBandits,
     TheJoust,

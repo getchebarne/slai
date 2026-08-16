@@ -2,18 +2,18 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
 
 // Gain `energy` if any explicit discard this turn
 pub fn process_effect_sneaky_strike_proc(state: &mut GameState, energy: u8) {
-    let Mode::Combat {
+    assert!(
+        state.combat.active,
+        "process_effect_sneaky_strike_proc outside the Combat frame"
+    );
+    let Combat {
         this_turn_discards, ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("process_effect_sneaky_strike_proc outside Combat mode")
-    };
+    } = &mut state.combat;
     if *this_turn_discards == 0 {
         return;
     }

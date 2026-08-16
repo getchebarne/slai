@@ -4,8 +4,8 @@ use crate::effect::TARGET_SOURCE;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
@@ -51,8 +51,6 @@ static MOVES_ASC17: [Move; 4] = [
     MOVE_ESCAPE,
 ];
 
-// Move order matches the Looter's; the dispatch arm reuses its AI script verbatim
-
 pub fn spawn_monster_mugger(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     let (health_max_min, health_max_max) = if ascension_level < 7 {
         (48, 52)
@@ -70,7 +68,7 @@ pub fn spawn_monster_mugger(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     };
 
     let stacks_thievery: i16 = if ascension_level < 17 { 15 } else { 20 };
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::Thievery, stacks_thievery);
 
     make_entity_monster(
@@ -85,3 +83,5 @@ pub fn spawn_monster_mugger(ascension_level: u8, rng: &mut impl Rng) -> Entity {
         moves,
     )
 }
+
+// Move order matches the Looter's; the dispatch arm reuses its AI script verbatim

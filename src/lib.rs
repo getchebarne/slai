@@ -168,8 +168,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyAmountAbsolute;
     #[pymodule_export]
-    use super::ffi::PyAmountEventGoldAsk;
-    #[pymodule_export]
     use super::ffi::PyAmountRange;
     #[pymodule_export]
     use super::ffi::PyAmountRelative;
@@ -179,10 +177,6 @@ mod slai {
     use super::ffi::PyCandidatePoolDeck;
     #[pymodule_export]
     use super::ffi::PyCandidatePoolDiscover;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventPickCard;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventPickPotion;
     #[pymodule_export]
     use super::ffi::PyCandidatePoolHand;
     #[pymodule_export]
@@ -205,6 +199,12 @@ mod slai {
     use super::ffi::PyCardCostKindXCost;
     #[pymodule_export]
     use super::ffi::PyCardPile;
+    #[pymodule_export]
+    use super::ffi::PyChest;
+    #[pymodule_export]
+    use super::ffi::PyChestKind;
+    #[pymodule_export]
+    use super::ffi::PyCombat;
     #[pymodule_export]
     use super::ffi::PyCostScope;
     #[pymodule_export]
@@ -260,8 +260,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectDamageFlechettes;
     #[pymodule_export]
-    use super::ffi::PyEffectDamageLifesteal;
-    #[pymodule_export]
     use super::ffi::PyEffectDamageMindBlast;
     #[pymodule_export]
     use super::ffi::PyEffectDamagePhysical;
@@ -293,8 +291,6 @@ mod slai {
     use super::ffi::PyEffectJoustBet;
     #[pymodule_export]
     use super::ffi::PyEffectKnowingSkullAsk;
-    #[pymodule_export]
-    use super::ffi::PyEffectMatchGameFlip;
     #[pymodule_export]
     use super::ffi::PyEffectMausoleumOpen;
     #[pymodule_export]
@@ -342,6 +338,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectWheelSpin;
     #[pymodule_export]
+    use super::ffi::PyEvent;
+    #[pymodule_export]
     use super::ffi::PyEventKindAddict;
     #[pymodule_export]
     use super::ffi::PyEventKindBackToBasics;
@@ -373,8 +371,6 @@ mod slai {
     use super::ffi::PyEventKindGoldenIdol;
     #[pymodule_export]
     use super::ffi::PyEventKindGoldenShrine;
-    #[pymodule_export]
-    use super::ffi::PyEventKindGremlinMatchGame;
     #[pymodule_export]
     use super::ffi::PyEventKindKnowingSkull;
     #[pymodule_export]
@@ -430,23 +426,9 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyKnowingSkullWish;
     #[pymodule_export]
-    use super::ffi::PyModeChest;
+    use super::ffi::PyRestSite;
     #[pymodule_export]
-    use super::ffi::PyModeChestOpened;
-    #[pymodule_export]
-    use super::ffi::PyModeCombat;
-    #[pymodule_export]
-    use super::ffi::PyModeCombatEnded;
-    #[pymodule_export]
-    use super::ffi::PyModeEvent;
-    #[pymodule_export]
-    use super::ffi::PyModeMap;
-    #[pymodule_export]
-    use super::ffi::PyModeRestSite;
-    #[pymodule_export]
-    use super::ffi::PyModeReward;
-    #[pymodule_export]
-    use super::ffi::PyModeShop;
+    use super::ffi::PyReward;
     #[pymodule_export]
     use super::ffi::PySelectionKindAll;
     #[pymodule_export]
@@ -457,4 +439,7 @@ mod slai {
     use super::ffi::PySelectionKindRandom;
     #[pymodule_export]
     use super::ffi::PySelectionKindSingle;
+    #[pymodule_export]
+    use super::ffi::PyShop;
 }
+

@@ -11,8 +11,8 @@ use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::increase_max_hp;
 
-pub fn process_effect_card_add_to_deck(id_target: Option<usize>, state: &mut GameState) {
-    let id_card = id_target.expect("CardAddToDeck requires id_target");
+pub fn process_effect_card_adopt(id_target: Option<usize>, state: &mut GameState) {
+    let id_card = id_target.expect("CardAdopt requires id_target");
     let card = state.entities[id_card];
 
     // Omamori: a charge negates the Curse outright; no other hook triggers
@@ -27,7 +27,7 @@ pub fn process_effect_card_add_to_deck(id_target: Option<usize>, state: &mut Gam
     }
 
     // Push card
-    state.id_deck.push(id_card);
+    state.id_card_deck.push(id_card);
 
     // Frozen / Molten / Toxic Egg: matching kinds join the deck upgraded
     if !card.card_upgraded && egg_upgrades_kind(card.card_kind, &state.id_relics) {

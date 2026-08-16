@@ -1,7 +1,7 @@
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::ZERO_MODIFIERS;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
 use crate::monsters::make_move_attack;
@@ -44,7 +44,7 @@ pub fn spawn_monster_gremlin_wizard(ascension_level: u8, rng: &mut impl Rng) -> 
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }
@@ -71,7 +71,7 @@ pub fn get_next_move_gremlin_wizard(
     // Charges needed depends on whether Ultimate Blast has already fired
     let has_fired_blast = move_history
         .iter()
-        .any(|&m| m == IDX_MOVE_ULTIMATE_BLAST as u8);
+        .any(|&idx_move| idx_move == IDX_MOVE_ULTIMATE_BLAST as u8);
 
     let charges_needed = if has_fired_blast { 3 } else { 2 };
 

@@ -9,24 +9,24 @@ use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
+use crate::types::Combat;
 use crate::types::CostScope;
-use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
-    let Mode::Combat {
-        id_hand,
-        id_pile_draw,
-        id_pile_discard,
+    assert!(
+        state.combat.active,
+        "process_effect_card_draw outside the Combat frame"
+    );
+    let Combat {
+        id_card_hand,
+        id_card_draw,
+        id_card_discard,
         id_card_last_drawn,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("process_effect_card_draw outside Combat mode")
-    };
+    } = &mut state.combat;
     if has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::NoDraw,
@@ -35,7 +35,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     }
 
     // Overdraw never happens: the excess stays on the draw pile, as in the source
-    let count = count.min(MAX_SIZE_HAND.saturating_sub(id_hand.len()) as u16);
+    let count = count.min(MAX_SIZE_HAND.saturating_sub(id_card_hand.len()) as u16);
 
     // Initialize variables to track IDs and count of drawn Cards, and wether reshuffle is needed
     let mut id_drawn = [0usize; 32];
@@ -43,21 +43,21 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     let mut shuffle_resume_remaining: Option<u16> = None;
 
     // Try to draw all Cards
-    for i in 0..count {
-        if id_pile_draw.is_empty() {
-            if id_pile_discard.is_empty() {
+    for idx in 0..count {
+        if id_card_draw.is_empty() {
+            if id_card_discard.is_empty() {
                 // Nothing to draw from
                 break;
             }
 
             // Need to reshuffle and re-draw the remaining count
-            shuffle_resume_remaining = Some(count - i);
+            shuffle_resume_remaining = Some(count - idx);
             break;
         }
 
         // Remove Card from draw pile
-        let id_card = id_pile_draw.pop().unwrap();
-        id_hand.push(id_card);
+        let id_card = id_card_draw.pop().unwrap();
+        id_card_hand.push(id_card);
         *id_card_last_drawn = Some(id_card);
 
         // Update drawn IDs and count

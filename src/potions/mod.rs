@@ -40,9 +40,9 @@ use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
 use crate::effect::Effect;
 use crate::effect::effect_discover_pick;
+use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
-use crate::entity::ZERO_ENTITY;
 use crate::types::CardPile;
 use crate::types::CostScope;
 use crate::types::PotionName;
@@ -55,10 +55,10 @@ pub const EFFECT_CARD_DISCOVER_PICK: Effect =
 // Totality relies on the len == COUNT and no-duplicate asserts below
 const fn build_potion_by_name() -> [&'static Entity; PotionName::COUNT] {
     let mut buf = [ALL_POTIONS[0]; PotionName::COUNT];
-    let mut i = 0;
-    while i < ALL_POTIONS.len() {
-        buf[ALL_POTIONS[i].potion_name as usize] = ALL_POTIONS[i];
-        i += 1;
+    let mut idx = 0;
+    while idx < ALL_POTIONS.len() {
+        buf[ALL_POTIONS[idx].potion_name as usize] = ALL_POTIONS[idx];
+        idx += 1;
     }
     buf
 }
@@ -108,12 +108,15 @@ pub const ALL_POTIONS: &[&'static Entity] = &[
 const _: () = assert!(ALL_POTIONS.len() == PotionName::COUNT);
 const _: () = {
     let mut seen = [false; PotionName::COUNT];
-    let mut i = 0;
-    while i < ALL_POTIONS.len() {
-        let idx = ALL_POTIONS[i].potion_name as usize;
-        assert!(!seen[idx], "ALL_POTIONS contains a duplicate PotionName");
-        seen[idx] = true;
-        i += 1;
+    let mut idx = 0;
+    while idx < ALL_POTIONS.len() {
+        let idx_name = ALL_POTIONS[idx].potion_name as usize;
+        assert!(
+            !seen[idx_name],
+            "ALL_POTIONS contains a duplicate PotionName"
+        );
+        seen[idx_name] = true;
+        idx += 1;
     }
 };
 
@@ -188,14 +191,14 @@ pub fn get_random_potion_name_uniform(rng: &mut impl Rng) -> PotionName {
 
 pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) -> Option<usize> {
     let cap = (slots_max as usize).min(POTION_SLOTS_MAX);
-    slots[..cap].iter().position(|s| s.is_none())
+    slots[..cap].iter().position(|slot| slot.is_none())
 }
 
 // Clear whichever belt slot holds id_potion; no-op if absent
-pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_potion: usize) {
-    for slot in id_potions.iter_mut() {
-        if *slot == Some(id_potion) {
-            *slot = None;
+pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_potion_target: usize) {
+    for id_potion in id_potions.iter_mut() {
+        if *id_potion == Some(id_potion_target) {
+            *id_potion = None;
             return;
         }
     }
@@ -204,7 +207,6 @@ pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_poti
 pub const fn make_entity_potion(
     name: PotionName,
     rarity: PotionRarity,
-    requires_target: bool,
     combat_only: bool,
     effects: &'static [Effect],
 ) -> Entity {
@@ -212,9 +214,8 @@ pub const fn make_entity_potion(
         kind: EntityKind::Potion,
         potion_name: name,
         potion_rarity: rarity,
-        requires_target: requires_target,
         potion_combat_only: combat_only,
         potion_effects: effects,
-        ..ZERO_ENTITY
+        ..ENTITY_ZERO
     }
 }

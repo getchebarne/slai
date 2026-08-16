@@ -3,9 +3,8 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardPile;
+use crate::types::Combat;
 use crate::types::CostScope;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
 use crate::utils::place_card;
 
 pub fn process_effect_card_discover_pick(
@@ -14,13 +13,17 @@ pub fn process_effect_card_discover_pick(
     cost_zero: Option<CostScope>,
     pile: CardPile,
 ) {
-    let Mode::Combat { id_discover, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("process_effect_card_discover_pick outside Combat mode")
-    };
+    assert!(
+        state.combat.active,
+        "process_effect_card_discover_pick outside the Combat frame"
+    );
+    let Combat {
+        id_card_discover, ..
+    } = &mut state.combat;
     let id_card = id_target.expect("CardDiscoverPick Direct form must have target");
 
     // Clear discovered Cards
-    id_discover.clear();
+    id_card_discover.clear();
 
     // Discovery (Card) grants cost 0 this turn; Toolbox (Relic) keeps the printed cost
     if let Some(scope) = cost_zero {

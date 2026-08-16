@@ -11,12 +11,18 @@ use crate::types::CardName;
 use crate::types::CardRarity;
 
 const HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 3 },
+    kind: EffectKind::DamagePhysical {
+        amount: 3,
+        lifesteal: false,
+    },
     id_source: None,
     target: TARGET_MONSTER_PICKED,
 };
 const HIT_PLUS: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 4 }, // +1 damage
+    kind: EffectKind::DamagePhysical {
+        amount: 4,
+        lifesteal: false,
+    }, // +1 damage
     id_source: None,
     target: TARGET_MONSTER_PICKED,
 };
@@ -32,7 +38,6 @@ pub static RIDDLE_WITH_HOLES: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[HIT, HIT, HIT, HIT, HIT],
     &[],
     &[],
@@ -42,13 +47,13 @@ pub static RIDDLE_WITH_HOLES: Entity = make_entity_card(
 pub static RIDDLE_WITH_HOLES_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = RIDDLE_WITH_HOLES.card_effects;
-        a[0] = HIT_PLUS;
-        a[1] = HIT_PLUS;
-        a[2] = HIT_PLUS;
-        a[3] = HIT_PLUS;
-        a[4] = HIT_PLUS;
-        a
+        let mut effects = RIDDLE_WITH_HOLES.card_effects;
+        effects[0] = HIT_PLUS;
+        effects[1] = HIT_PLUS;
+        effects[2] = HIT_PLUS;
+        effects[3] = HIT_PLUS;
+        effects[4] = HIT_PLUS;
+        effects
     },
     ..RIDDLE_WITH_HOLES
 };

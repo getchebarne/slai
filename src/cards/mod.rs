@@ -131,13 +131,13 @@ mod wraith_form;
 mod writhe;
 
 use crate::consts::MAX_EFFECTS_PER_CARD;
+use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
-use crate::effect::ZERO_EFFECT;
 use crate::entity::CardCostKind;
+use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
-use crate::entity::ZERO_ENTITY;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -149,10 +149,10 @@ use strum::EnumCount;
 // Totality relies on the len == COUNT and no-duplicate asserts below
 const fn build_card_by_name() -> [&'static Entity; CardName::COUNT] {
     let mut buf = [ALL_CARDS[0]; CardName::COUNT];
-    let mut i = 0;
-    while i < ALL_CARDS.len() {
-        buf[ALL_CARDS[i].card_name as usize] = ALL_CARDS[i];
-        i += 1;
+    let mut idx = 0;
+    while idx < ALL_CARDS.len() {
+        buf[ALL_CARDS[idx].card_name as usize] = ALL_CARDS[idx];
+        idx += 1;
     }
     buf
 }
@@ -531,11 +531,11 @@ pub fn get_random_cards(
 ) -> Vec<Entity> {
     let mut pool: Vec<Entity> = ALL_CARDS
         .iter()
-        .filter(|c| c.card_color == color)
-        .filter(|c| kind.is_none_or(|k| c.card_kind == k))
-        .filter(|c| rarity.is_none_or(|r| c.card_rarity == r))
-        .filter(|c| !exclude.contains(&c.card_name))
-        .map(|c| **c)
+        .filter(|card| card.card_color == color)
+        .filter(|card| kind.is_none_or(|card_kind| card.card_kind == card_kind))
+        .filter(|card| rarity.is_none_or(|card_rarity| card.card_rarity == card_rarity))
+        .filter(|card| !exclude.contains(&card.card_name))
+        .map(|card| **card)
         .collect();
 
     shuffle(&mut pool, rng);
@@ -555,7 +555,6 @@ pub const fn make_entity_card(
     exhaust: bool,
     ethereal: bool,
     innate: bool,
-    requires_target: bool,
     effects: &[Effect],
     on_discard_effects: &'static [Effect],
     on_draw_effects: &'static [Effect],
@@ -565,11 +564,11 @@ pub const fn make_entity_card(
         effects.len() <= MAX_EFFECTS_PER_CARD,
         "card_effects exceeds MAX_EFFECTS_PER_CARD",
     );
-    let mut arr = [ZERO_EFFECT; MAX_EFFECTS_PER_CARD];
-    let mut i = 0;
-    while i < effects.len() {
-        arr[i] = effects[i];
-        i += 1;
+    let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_CARD];
+    let mut idx = 0;
+    while idx < effects.len() {
+        arr[idx] = effects[idx];
+        idx += 1;
     }
     Entity {
         kind: EntityKind::Card,
@@ -583,12 +582,11 @@ pub const fn make_entity_card(
         card_exhaust: exhaust,
         card_ethereal: ethereal,
         card_innate: innate,
-        requires_target,
         card_play_restriction: play_restriction,
         card_effects: arr,
         card_effects_len: effects.len() as u8,
         card_on_discard_effects: on_discard_effects,
         card_effects_on_draw: on_draw_effects,
-        ..ZERO_ENTITY
+        ..ENTITY_ZERO
     }
 }

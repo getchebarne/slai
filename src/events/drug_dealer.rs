@@ -2,7 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::Entity;
-use crate::events::EFFECT_DECK_TRANSFORM_PICK_TWO;
+use crate::events::EFFECT_DECK_TRANSFORM_PICK_2;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::deck_has_two_transformable;
 use crate::events::make_entity_event_option;
@@ -25,7 +25,7 @@ const OPTION_JAX: [Effect; 2] = [
     EVENT_CONSUME_EFFECT,
 ];
 
-const OPTION_TRANSFORM: [Effect; 2] = [EFFECT_DECK_TRANSFORM_PICK_TWO, EVENT_CONSUME_EFFECT];
+const OPTION_TRANSFORM: [Effect; 2] = [EFFECT_DECK_TRANSFORM_PICK_2, EVENT_CONSUME_EFFECT];
 
 const OPTION_MUTAGENS: [Effect; 2] = [
     Effect {

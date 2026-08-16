@@ -1,108 +1,154 @@
 use crate::consts::ACT_FINAL;
-use crate::consts::MAX_GOLD;
+use crate::consts::BOSS_RELIC_REWARD_COUNT;
+use crate::consts::GOLD_ELITE_MAX;
+use crate::consts::GOLD_ELITE_MIN;
+use crate::consts::GOLD_MONSTER_MAX;
+use crate::consts::GOLD_MONSTER_MIN;
+use crate::consts::RELIC_TIER_TH_COMMON;
+use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RewardSource;
+use crate::effect::RelicPick;
 use crate::effect::Target;
+use crate::events::fight_loot;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
 use crate::types::DeltaSign;
-use crate::types::Mode;
 use crate::types::RelicName;
+use crate::types::RelicTier;
 use crate::types::RoomKind;
+use crate::types::reward_reset;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
+use crate::utils::queue_effect_untargeted;
 use crate::utils::roll_boss_gold;
 
 pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool) {
-    // Capture provenance, then drop the combat: teardown is the variant swap
-    let mode = mode_top_mut(&mut state.mode_stack);
-    let Mode::Combat {
-        this_combat_escaped,
-        event_loot,
-        ..
-    } = &*mode
-    else {
-        unreachable!("CombatEnd outside Combat mode")
-    };
-    let escaped_monster = *this_combat_escaped;
-    let event_loot = *event_loot;
-    *mode = Mode::CombatEnded;
+    assert!(state.combat.active, "CombatEnd outside combat");
+    let escaped_monster = state.combat.this_combat_escaped;
 
-    // Combat modifiers don't persist. Only the Character outlives the fight;
-    // monster corpses are unreachable once the roster drops with the variant
+    // Clear the Character's modifiers
     modifier_clear(&mut state.entities[state.id_character].modifiers);
 
-    // Smoke Bomb: no rewards, no victory hooks; straight back to the map. Return
-    // before the clear so already-queued effects (Toy Ornithopter heal) still land
+    // The spent combat is closed here; what it reveals owns the aftermath
+    state.combat.active = false;
+
+    // Smoke Bomb: no rewards, no victory hooks
     if escaped_character {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::RoomExit,
-            id_source: None,
-            target: Target::Direct(None),
-        });
+        if state.event.active {
+            state.event.consumed = true;
+        }
         return;
     }
 
-    // Replace pending combat work with the teardown chain queued below
-    state.effect_queue.clear();
-
-    // A fight inside a live event belongs to the event (Colosseum's first bout):
-    // pop back to it with no rewards; the post-combat relic hooks below still land
-    if matches!(
-        state.mode_stack.iter().rev().nth(1),
-        Some(Mode::Event {
-            consumed: false,
-            ..
-        })
-    ) {
-        state.mode_stack.pop();
+    // Queue order is RNG stream order: cards, relics, potion, then gold
+    if state.event.active {
+        // The fight belongs to the event it stacked over
+        if let Some(loot) = fight_loot(state.event.event_kind) {
+            state.event.consumed = true;
+            queue_effect_untargeted(
+                state,
+                EffectKind::RewardRollCards {
+                    bundles: 1,
+                    rare_only: false,
+                },
+            );
+            for pick in loot.relics.into_iter().flatten() {
+                queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick });
+            }
+            queue_effect_untargeted(state, EffectKind::RewardRollPotion { eligible: true });
+            if let Some(amount) = loot.gold {
+                queue_effect_untargeted(state, EffectKind::RewardRollGold { amount });
+            }
+        }
     } else {
-        let room_kind =
-            get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
-        match room_kind {
-            // Final boss: gold granted directly, game_over halts the queue before
-            // a GoldDelta would run
-            RoomKind::CombatBoss if state.act >= ACT_FINAL => {
-                let amount = roll_boss_gold(&mut state.rng, state.ascension);
+        // Final boss: the run ends below; every other fight rolls its reward
+        if !(matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL) {
+            // A "?" that resolved to a plain fight rewards as a normal monster room
+            let room_kind =
+                match get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+                    .expect("Combat reward outside any room")
+                {
+                    RoomKind::Unknown => RoomKind::CombatMonster,
+                    kind => kind,
+                };
 
-                // Ectoplasm: no gold gain (roll still consumed for RNG parity with the source)
-                if !has_relic(&state.id_relics, RelicName::Ectoplasm) {
-                    let gold = &mut state.entities[state.id_character].character_gold;
-                    *gold = gold.saturating_add(amount).min(MAX_GOLD);
+            // Boss gold pre-rolls here so Golden Idol still scales it at staging
+            let gold_amount = match room_kind {
+                RoomKind::CombatMonster => (!escaped_monster).then_some(Amount::Range {
+                    min: GOLD_MONSTER_MIN,
+                    max: GOLD_MONSTER_MAX,
+                }),
+                RoomKind::CombatElite => Some(Amount::Range {
+                    min: GOLD_ELITE_MIN,
+                    max: GOLD_ELITE_MAX,
+                }),
+                RoomKind::CombatBoss => Some(Amount::Absolute(roll_boss_gold(
+                    &mut state.rng,
+                    state.ascension,
+                ))),
+                _ => unreachable!("CombatEnd in a non-combat room: {room_kind:?}"),
+            };
+
+            // Prayer Wheel: adds a second card bundle on normal fights
+            let bundles = if room_kind == RoomKind::CombatMonster
+                && has_relic(&state.id_relics, RelicName::PrayerWheel)
+            {
+                2
+            } else {
+                1
+            };
+
+            // The Reward context opens up front so the boss flag rides the reset
+            reward_reset(&mut state.reward);
+            state.reward.relics_exclusive = room_kind == RoomKind::CombatBoss;
+            state.reward.active = true;
+
+            // Boss rewards draw from the rare pool only
+            queue_effect_untargeted(
+                state,
+                EffectKind::RewardRollCards {
+                    bundles,
+                    rare_only: room_kind == RoomKind::CombatBoss,
+                },
+            );
+
+            // The boss offers three unique unowned Boss relics; RewardTake keeps one
+            if room_kind == RoomKind::CombatBoss {
+                for _ in 0..BOSS_RELIC_REWARD_COUNT {
+                    queue_effect_untargeted(
+                        state,
+                        EffectKind::RewardRollRelic {
+                            pick: RelicPick::Tier(RelicTier::Boss),
+                        },
+                    );
                 }
             }
-            RoomKind::CombatBoss
-            | RoomKind::CombatMonster
-            | RoomKind::CombatElite
-            | RoomKind::Unknown
-            | RoomKind::EventRoom => {
-                // Stamped loot means an event started this fight (covers "?" rooms that
-                // resolved to an event); otherwise a "?" marker is a normal monster combat
-                let room_kind_reward = if event_loot.gold.is_some() {
-                    RoomKind::EventRoom
-                } else if room_kind == RoomKind::Unknown {
-                    RoomKind::CombatMonster
-                } else {
-                    room_kind
+
+            // Elite drop; Black Star adds a second with an independent tier roll
+            if room_kind == RoomKind::CombatElite {
+                let pick = RelicPick::Thresholds {
+                    th_common: RELIC_TIER_TH_COMMON,
+                    th_uncommon: RELIC_TIER_TH_UNCOMMON,
                 };
-                state.effect_queue.push_back(Effect {
-                    kind: EffectKind::RewardRoll {
-                        source: RewardSource::Combat {
-                            room_kind: room_kind_reward,
-                            escaped: escaped_monster,
-                            loot: event_loot,
-                        },
-                    },
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
+                queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick });
+                if has_relic(&state.id_relics, RelicName::BlackStar) {
+                    queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick });
+                }
             }
-            RoomKind::RestSite | RoomKind::Treasure | RoomKind::Shop => {
-                unreachable!("Combat end in non-combat room: {:?}", room_kind)
+
+            // Escaped normal fights roll potion chance 0 in the source
+            queue_effect_untargeted(
+                state,
+                EffectKind::RewardRollPotion {
+                    eligible: !(room_kind == RoomKind::CombatMonster && escaped_monster),
+                },
+            );
+
+            if let Some(amount) = gold_amount {
+                queue_effect_untargeted(state, EffectKind::RewardRollGold { amount });
             }
         }
     }
@@ -134,7 +180,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
     }
 
-    // Final-act boss victory ends the run; the mode rests on CombatEnded (projected as Map)
+    // Final-act boss victory ends the run, resting on Map
     if matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL {
         state.game_over = true;
     }

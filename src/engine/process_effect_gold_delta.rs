@@ -5,19 +5,17 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::events::EventKind;
 use crate::game::GameState;
 use crate::types::DeltaSign;
-use crate::types::Mode;
+use crate::types::Focus;
 use crate::types::RelicName;
+use crate::utils::context_focus;
 use crate::utils::has_relic;
-use crate::utils::mode_top;
 
 pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount: Amount) {
     let amount = match amount {
         Amount::Absolute(a) => a,
         Amount::Range { min, max } => state.rng.random_range(min..=max),
-        // Fraction of the character's current gold (Masked Bandits' pay-everything)
         Amount::Relative {
             numerator,
             denominator,
@@ -25,18 +23,8 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
             let gold = state.entities[state.id_character].character_gold;
             (gold as u32 * numerator as u32 / denominator as u32) as u16
         }
-        Amount::EventGoldAsk => {
-            let Mode::Event {
-                kind: EventKind::WeMeetAgain { gold_ask, .. },
-                ..
-            } = mode_top(&state.mode_stack)
-            else {
-                unreachable!("EventGoldAsk outside We Meet Again")
-            };
-            gold_ask.expect("EventGoldAsk without a rolled ask")
-        }
         _ => {
-            unreachable!("GoldDelta only resolves Absolute, Range, or EventGoldAsk")
+            unreachable!("GoldDelta only resolves Absolute, Relative, or Range")
         }
     };
 
@@ -60,7 +48,7 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
     // Maw Bank deactivates the first time gold is spent at a shop (event costs don't count)
     if sign == DeltaSign::Loss
         && amount > 0
-        && matches!(mode_top(&state.mode_stack), Mode::Shop { .. })
+        && context_focus(state) == Focus::Shop
         && let Some(id) = state.id_relics[RelicName::MawBank as usize]
     {
         state.entities[id].relic_used_up = true;

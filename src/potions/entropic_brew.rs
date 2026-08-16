@@ -11,7 +11,6 @@ pub static POTION_ENTROPIC_BREW: Entity = make_entity_potion(
     PotionName::EntropicBrew,
     PotionRarity::Rare,
     false,
-    false,
     &[Effect {
         kind: EffectKind::PotionAddRandom { limited: true },
         id_source: None,

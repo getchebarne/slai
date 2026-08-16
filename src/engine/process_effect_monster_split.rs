@@ -3,9 +3,8 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::monsters::spawn_monster;
-use crate::types::Mode;
+use crate::types::Combat;
 use crate::types::MonsterName;
-use crate::utils::mode_top_mut;
 use crate::utils::push_entity;
 
 pub fn process_effect_monster_split(
@@ -13,9 +12,11 @@ pub fn process_effect_monster_split(
     state: &mut GameState,
     name: MonsterName,
 ) {
-    let Mode::Combat { id_monsters, .. } = mode_top_mut(&mut state.mode_stack) else {
-        unreachable!("process_effect_monster_split outside Combat mode")
-    };
+    assert!(
+        state.combat.active,
+        "process_effect_monster_split outside the Combat frame"
+    );
+    let Combat { id_monsters, .. } = &mut state.combat;
     let id_source = id_source.expect("MonsterSplit requires id_source");
 
     // Check that the split monster is a slime
@@ -39,7 +40,7 @@ pub fn process_effect_monster_split(
     // Place it in the first empty monster slot
     let idx = id_monsters
         .iter()
-        .position(|s| s.is_none())
+        .position(|slot| slot.is_none())
         .expect("MonsterSplit would overflow id_monsters: no empty idx");
     id_monsters[idx] = Some(id_monster);
 

@@ -18,13 +18,12 @@ use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardColor;
 use crate::types::CardName;
 use crate::types::CardPile;
+use crate::types::Combat;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
-use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 
 // The character's turn end tears down the turn; monsters unwind their per-turn kit
 pub fn process_effect_turn_end(id_target: Option<usize>, state: &mut GameState) {
@@ -102,12 +101,16 @@ fn process_effect_turn_end_monster(id_actor: usize, state: &mut GameState) {
 }
 
 fn process_effect_turn_end_character(state: &mut GameState) {
-    let Mode::Combat {
-        id_hand,
-        id_pile_draw,
-        id_pile_discard,
-        id_pile_exhaust,
-        id_stasis_cards,
+    assert!(
+        state.combat.active,
+        "process_effect_turn_end_character outside the Combat frame"
+    );
+    let Combat {
+        id_card_hand,
+        id_card_draw,
+        id_card_discard,
+        id_card_exhaust,
+        id_card_stasis,
         id_monsters,
         this_turn_discards,
         this_turn_attacks,
@@ -115,10 +118,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         this_turn_panache,
         bomb_countdown,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("process_effect_turn_end_character outside Combat mode")
-    };
+    } = &mut state.combat;
     // Reset per-turn Relic counters
     for &name in RELIC_COUNTERS_PER_TURN {
         if let Some(id) = state.id_relics[name as usize] {
@@ -126,16 +126,15 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Clear per-turn Card cost overrides; only cards in the combat piles can carry
-    // one, so the walk stays off the (act-growing) entity arena
-    for id in id_hand
+    // Clear per-turn Card cost overrides
+    for id_card in id_card_hand
         .iter()
-        .chain(id_pile_draw.iter())
-        .chain(id_pile_discard.iter())
-        .chain(id_pile_exhaust.iter())
-        .chain(id_stasis_cards.iter().flatten())
+        .chain(id_card_draw.iter())
+        .chain(id_card_discard.iter())
+        .chain(id_card_exhaust.iter())
+        .chain(id_card_stasis.iter().flatten())
     {
-        let entity = &mut state.entities[*id];
+        let entity = &mut state.entities[*id_card];
         if matches!(
             entity.card_cost_override,
             Some(CostOverride {
@@ -193,7 +192,10 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         if *counter == 7 {
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 52 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 52,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
                 });
@@ -221,7 +223,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
     let mods_char = &state.entities[state.id_character].modifiers;
     if has_modifier(mods_char, ModifierKind::Retain)
-        && !id_hand.is_empty()
+        && !id_card_hand.is_empty()
         // Runic Pyramid: keeps the whole hand
         && !has_relic(&state.id_relics, RelicName::RunicPyramid)
     {
@@ -324,20 +326,26 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Card-held-in-hand-at-the-end-of-turn effects
-    for &id_card in id_hand.iter() {
+    for &id_card in id_card_hand.iter() {
         let card = &state.entities[id_card];
         match card.card_name {
             CardName::Burn => {
                 let dmg_burn: u16 = if card.card_upgraded { 4 } else { 2 };
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: dmg_burn },
+                    kind: EffectKind::DamageDeal {
+                        amount: dmg_burn,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
                 });
             }
             CardName::Decay => {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 2 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 2,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
                 });
@@ -346,7 +354,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::HealthDelta {
                         sign: DeltaSign::Loss,
-                        amount: Amount::Absolute(id_hand.len() as u16),
+                        amount: Amount::Absolute(id_card_hand.len() as u16),
                     },
                     id_source: None,
                     target: Target::Direct(Some(state.id_character)),
@@ -357,7 +365,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Queue organic discards
-    for &id_card in id_hand.iter() {
+    for &id_card in id_card_hand.iter() {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::EndOfTurn,
@@ -376,7 +384,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
 
     // After `ModifierSetNotNew` so Weak / Frail keep `is_new` through next
     // `EffectKind::TurnStart` tick
-    for &id_card in id_hand.iter() {
+    for &id_card in id_card_hand.iter() {
         match state.entities[id_card].card_name {
             CardName::Doubt => {
                 state.effect_buf.push(Effect {
@@ -466,6 +474,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks.max(0) as u16,
+                        lifesteal: false,
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),

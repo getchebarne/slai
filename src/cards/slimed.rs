@@ -18,7 +18,6 @@ pub static SLIMED: Entity = make_entity_card(
     true, // Exhaust on play
     false,
     false,
-    false,
     &[], // Does nothing
     &[],
     &[],

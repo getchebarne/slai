@@ -21,10 +21,12 @@ pub static BANE: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
@@ -42,10 +44,13 @@ pub static BANE: Entity = make_entity_card(
 pub static BANE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = BANE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 10 }; // +3 damage
-        a[1].kind = EffectKind::DamagePhysicalIfPoisoned { amount: 10 }; // +3 damage
-        a
+        let mut effects = BANE.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
+            amount: 10,
+            lifesteal: false,
+        }; // +3 damage
+        effects[1].kind = EffectKind::DamagePhysicalIfPoisoned { amount: 10 }; // +3 damage
+        effects
     },
     ..BANE
 };

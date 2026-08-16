@@ -13,8 +13,8 @@ use crate::monsters::encounters::generate_act_monsters;
 use crate::monsters::encounters::pick_boss;
 use crate::types::DeltaSign;
 
-// Between-act seam, mirroring the source's dungeonTransitionSetup
 pub fn process_effect_act_transition(state: &mut GameState) {
+    // Increase current Act number
     state.act += 1;
 
     // Heal to full; A5+ heals 75% of the missing health instead
@@ -34,12 +34,12 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         target: Target::Direct(Some(state.id_character)),
     });
 
-    // Fresh map; stale room entities stay in the arena, unreachable via id_rooms
+    // Fresh map; stale room entities stay in the arena, unreachable via `id_rooms`
     let (id_rooms, location) = generate_map(&mut state.rng, &mut state.entities, state.ascension);
     state.id_rooms = id_rooms;
     state.location = location;
 
-    // Re-roll the act's encounter pools and boss
+    // Re-roll the act's Encounter Pools and Boss
     state.encounter_pool_normal.clear();
     state.encounter_pool_elite.clear();
     generate_act_monsters(
@@ -50,8 +50,7 @@ pub fn process_effect_act_transition(state: &mut GameState) {
     );
     state.encounter_boss = pick_boss(state.act, &mut state.rng);
 
-    // Event pools: the act list replaces, per-act shrines re-add fresh (leftovers
-    // dropped first), and the run-scoped specials carry over and grow
+    // Events: the Act list replaces, shrines re-add fresh, run-scoped specials carry over
     let (pool_events, pool_special_additions) = pools_for_act(state.act);
     state.pool_events = pool_events.to_vec();
     state
@@ -64,7 +63,7 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         .pool_event_special
         .extend_from_slice(pool_special_additions);
 
-    // Per the source: ?-room drift and the potion swing reset between acts
+    // ?-room drift and the potion swing reset between acts
     state.unknown_chance_monster = UNKNOWN_CHANCE_BASE_MONSTER;
     state.unknown_chance_shop = UNKNOWN_CHANCE_BASE_SHOP;
     state.unknown_chance_treasure = UNKNOWN_CHANCE_BASE_TREASURE;

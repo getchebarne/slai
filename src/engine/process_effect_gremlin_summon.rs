@@ -1,17 +1,24 @@
-use crate::engine::process_effect_monster_spawn::process_effect_monster_spawn;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
-use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
 use crate::monsters::pick_gremlin;
 
-// Roll a gremlin from the weighted pool and spawn it as a Minion
 pub fn process_effect_gremlin_summon(state: &mut GameState) {
-    let name = pick_gremlin(&mut state.rng);
-    if let Some(id_gremlin) = process_effect_monster_spawn(state, name) {
-        modifier_apply(
-            &mut state.entities[id_gremlin].modifiers,
-            ModifierKind::Minion,
-            1,
-        );
+    // A full roster fizzles the summon before the pool roll; the first summon
+    // of an encounter runs before any spawn opened the combat
+    if state.combat.active && state.combat.id_monsters.iter().all(|slot| slot.is_some()) {
+        return;
     }
+
+    // Roll a gremlin from the weighted pool; the spawn stamps it Minion
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::MonsterSpawn {
+            name: pick_gremlin(&mut state.rng),
+            minion: true,
+            cap: None,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    });
 }

@@ -1,17 +1,23 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::EventLoot;
+use crate::effect::RelicPick;
 use crate::effect::Target;
 use crate::entity::Entity;
+use crate::events::EVENT_ADVANCE_EFFECT;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventLoot;
 use crate::events::make_entity_event_option;
 use crate::types::MonsterName;
 use crate::types::RelicTier;
 
 const fn spawn(name: MonsterName) -> Effect {
     Effect {
-        kind: EffectKind::MonsterSpawn { name },
+        kind: EffectKind::MonsterSpawn {
+            name,
+            minion: false,
+            cap: None,
+        },
         id_source: None,
         target: Target::Direct(None),
     }
@@ -27,9 +33,7 @@ const OPTION_FIGHT: &[Effect] = &[
     spawn(MonsterName::SlaverBlue),
     spawn(MonsterName::SlaverRed),
     Effect {
-        kind: EffectKind::CombatStart {
-            loot: EventLoot::NONE,
-        },
+        kind: EffectKind::CombatStart,
         id_source: None,
         target: Target::Direct(None),
     },
@@ -37,22 +41,24 @@ const OPTION_FIGHT: &[Effect] = &[
 
 // Second bout: an elite pair with a rare+uncommon relic purse and 100 gold
 const OPTION_FIGHT_NOBS: &[Effect] = &[
-    EVENT_CONSUME_EFFECT,
+    EVENT_ADVANCE_EFFECT,
     spawn(MonsterName::Taskmaster),
     spawn(MonsterName::GremlinNob),
     Effect {
-        kind: EffectKind::CombatStart {
-            loot: EventLoot {
-                gold: Some(Amount::Absolute(100)),
-                relic: None,
-                relic_roll: false,
-                relic_tiers: [Some(RelicTier::Rare), Some(RelicTier::Uncommon)],
-            },
-        },
+        kind: EffectKind::CombatStart,
         id_source: None,
         target: Target::Direct(None),
     },
 ];
+
+// The Nobs purse: 100 gold plus a rare and an uncommon Relic, paid by `fight_loot`
+pub const FIGHT_LOOT_NOBS: EventLoot = EventLoot {
+    gold: Some(Amount::Absolute(100)),
+    relics: [
+        Some(RelicPick::Tier(RelicTier::Rare)),
+        Some(RelicPick::Tier(RelicTier::Uncommon)),
+    ],
+};
 
 pub static OPTIONS: &[Entity] = &[
     make_entity_event_option("[Fight] Face the first round.", OPTION_FIGHT),

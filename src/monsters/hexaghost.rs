@@ -1,16 +1,16 @@
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
 use crate::consts::MAX_EFFECTS_PER_MOVE;
+use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::effect::ZERO_EFFECT;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
 use crate::monsters::make_move_attack_card_add;
@@ -24,15 +24,18 @@ const INFERNO_HITS: usize = 6;
 
 // Inferno: six hits then the burn upgrade; fills all MAX_EFFECTS_PER_MOVE slots
 const fn make_move_inferno(damage: u16) -> Move {
-    let mut effects = [ZERO_EFFECT; MAX_EFFECTS_PER_MOVE];
-    let mut i = 0;
-    while i < INFERNO_HITS {
-        effects[i] = Effect {
-            kind: EffectKind::DamagePhysical { amount: damage },
+    let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
+    let mut idx = 0;
+    while idx < INFERNO_HITS {
+        effects[idx] = Effect {
+            kind: EffectKind::DamagePhysical {
+                amount: damage,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         };
-        i += 1;
+        idx += 1;
     }
     effects[INFERNO_HITS] = Effect {
         kind: EffectKind::HexaghostBurnIncrease { count: 3 },
@@ -54,7 +57,10 @@ static MOVE_ACTIVATE: Move = make_move("Activate", &[], Intent::Unknown);
 
 // Divider true damage (HP/12+1 x 6); amounts and intent locked in at move selection
 static DIVIDER_HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical { amount: 0 },
+    kind: EffectKind::DamagePhysical {
+        amount: 0,
+        lifesteal: false,
+    },
     id_source: None,
     target: TARGET_CHARACTER,
 };
@@ -80,12 +86,18 @@ static MOVE_TACKLE_5: Move = make_move(
     "Tackle",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 5 },
+            kind: EffectKind::DamagePhysical {
+                amount: 5,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
@@ -99,12 +111,18 @@ static MOVE_TACKLE_6: Move = make_move(
     "Tackle",
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 6 },
+            kind: EffectKind::DamagePhysical {
+                amount: 6,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_CHARACTER,
         },
@@ -216,7 +234,7 @@ pub fn spawn_monster_hexaghost(ascension_level: u8) -> Entity {
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }
@@ -250,7 +268,9 @@ pub fn get_next_move_hexaghost(move_current: Option<usize>, move_history: &[u8])
     }
 
     // Calculate if Inferno has already occured
-    let has_inferno = move_history.iter().any(|&m| m == IDX_MOVE_INFERNO as u8);
+    let has_inferno = move_history
+        .iter()
+        .any(|&idx_move| idx_move == IDX_MOVE_INFERNO as u8);
 
     // Cycle start
     if last == IDX_MOVE_DIVIDER || last == IDX_MOVE_INFERNO {

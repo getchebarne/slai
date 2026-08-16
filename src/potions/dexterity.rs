@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_DEXTERITY: Entity = make_entity_potion(
     PotionName::DexterityPotion,
     PotionRarity::Common,
-    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {

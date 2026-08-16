@@ -23,10 +23,12 @@ pub static PREDATOR: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 15 },
+            kind: EffectKind::DamagePhysical {
+                amount: 15,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
@@ -47,9 +49,12 @@ pub static PREDATOR: Entity = make_entity_card(
 pub static PREDATOR_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = PREDATOR.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 20 }; // +5 damage
-        a
+        let mut effects = PREDATOR.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
+            amount: 20,
+            lifesteal: false,
+        }; // +5 damage
+        effects
     },
     ..PREDATOR
 };

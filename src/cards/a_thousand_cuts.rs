@@ -22,7 +22,6 @@ pub static A_THOUSAND_CUTS: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::ThousandCuts,
@@ -39,12 +38,12 @@ pub static A_THOUSAND_CUTS: Entity = make_entity_card(
 pub static A_THOUSAND_CUTS_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = A_THOUSAND_CUTS.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = A_THOUSAND_CUTS.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::ThousandCuts,
             stacks: 2, // +1 stack
         };
-        a
+        effects
     },
     ..A_THOUSAND_CUTS
 };

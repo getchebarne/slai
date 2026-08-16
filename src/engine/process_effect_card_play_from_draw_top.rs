@@ -5,23 +5,23 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::types::Combat;
 use crate::types::CostScope;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
-    let Mode::Combat {
-        id_pile_draw,
-        id_pile_discard,
+    assert!(
+        state.combat.active,
+        "process_effect_card_play_from_draw_top outside the Combat frame"
+    );
+    let Combat {
+        id_card_draw,
+        id_card_discard,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("process_effect_card_play_from_draw_top outside Combat mode")
-    };
+    } = &mut state.combat;
 
     // Check if the draw pile is empty
-    if id_pile_draw.is_empty() {
-        if id_pile_discard.is_empty() {
+    if id_card_draw.is_empty() {
+        if id_card_discard.is_empty() {
             return;
         }
 
@@ -42,7 +42,7 @@ pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
     }
 
     // Detached from the pile here; card_play's routing effects move it onward
-    let id_card = id_pile_draw.pop().unwrap();
+    let id_card = id_card_draw.pop().unwrap();
 
     // Executes in reverse:
     //     1. SetCostOverride

@@ -1,7 +1,7 @@
 use crate::entity::Entity;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move_attack;
 use crate::monsters::make_move_attack_debuff;
@@ -52,7 +52,7 @@ pub fn spawn_monster_gremlin_nob(ascension_level: u8, rng: &mut impl Rng) -> Ent
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }
@@ -63,7 +63,9 @@ pub fn get_next_move_gremlin_nob(
     rng: &mut impl Rng,
 ) -> usize {
     // First turn: always Bellow
-    let bellow_used = move_history.iter().any(|&m| m == IDX_MOVE_BELLOW as u8);
+    let bellow_used = move_history
+        .iter()
+        .any(|&idx_move| idx_move == IDX_MOVE_BELLOW as u8);
     if !bellow_used {
         return IDX_MOVE_BELLOW;
     }

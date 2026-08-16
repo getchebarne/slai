@@ -23,10 +23,12 @@ pub static FLYING_KNEE: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
+            kind: EffectKind::DamagePhysical {
+                amount: 8,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
@@ -47,9 +49,12 @@ pub static FLYING_KNEE: Entity = make_entity_card(
 pub static FLYING_KNEE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = FLYING_KNEE.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 11 }; // +3 damage
-        a
+        let mut effects = FLYING_KNEE.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
+            amount: 11,
+            lifesteal: false,
+        }; // +3 damage
+        effects
     },
     ..FLYING_KNEE
 };

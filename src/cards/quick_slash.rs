@@ -22,10 +22,12 @@ pub static QUICK_SLASH: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 8 },
+            kind: EffectKind::DamagePhysical {
+                amount: 8,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
@@ -43,9 +45,12 @@ pub static QUICK_SLASH: Entity = make_entity_card(
 pub static QUICK_SLASH_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = QUICK_SLASH.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 12 }; // +4 damage
-        a
+        let mut effects = QUICK_SLASH.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
+            amount: 12,
+            lifesteal: false,
+        }; // +4 damage
+        effects
     },
     ..QUICK_SLASH
 };

@@ -1,5 +1,3 @@
-// Modifier system
-
 use strum::EnumCount;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
@@ -542,7 +540,7 @@ pub fn modifier_def(kind: ModifierKind) -> &'static ModifierDef {
     &MODIFIER_DEFS[kind as usize]
 }
 
-pub const ZERO_MODIFIERS: Modifiers = Modifiers {
+pub const MODIFIERS_ZERO: Modifiers = Modifiers {
     stacks: [0; MODIFIER_COUNT],
     is_new: [false; MODIFIER_COUNT],
     active: 0,
@@ -605,13 +603,13 @@ pub fn modifier_remove(mods: &mut Modifiers, kind: ModifierKind) {
 }
 
 pub fn modifier_tick(mods: &mut Modifiers) {
-    for kind in active_modifier_kinds(mods.active) {
-        let idx = kind as usize;
-        let mod_def = modifier_def(kind);
-        if mod_def.stacks_duration && !mods.is_new[idx] {
-            mods.stacks[idx] -= 1;
-            if mods.stacks[idx] < mod_def.stacks_min {
-                modifier_remove(mods, kind);
+    for mod_kind in active_modifier_kinds(mods.active) {
+        let mod_idx = mod_kind as usize;
+        let mod_def = modifier_def(mod_kind);
+        if mod_def.stacks_duration && !mods.is_new[mod_idx] {
+            mods.stacks[mod_idx] -= 1;
+            if mods.stacks[mod_idx] < mod_def.stacks_min {
+                modifier_remove(mods, mod_kind);
             }
         }
     }
@@ -629,9 +627,9 @@ pub fn modifier_clear(mods: &mut Modifiers) {
 
 // Check that modifier definitons are in the correct order
 const _: () = {
-    let mut i = 0;
-    while i < MODIFIER_COUNT {
-        assert!(MODIFIER_DEFS[i].kind as usize == i);
-        i += 1;
+    let mut idx = 0;
+    while idx < MODIFIER_COUNT {
+        assert!(MODIFIER_DEFS[idx].kind as usize == idx);
+        idx += 1;
     }
 };

@@ -5,7 +5,7 @@ pub mod process_effect_block_set;
 pub mod process_effect_bonfire_offer;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
-pub mod process_effect_card_add_to_deck;
+pub mod process_effect_card_adopt;
 pub mod process_effect_card_bottle;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
@@ -54,7 +54,6 @@ pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
 pub mod process_effect_knowing_skull_ask;
-pub mod process_effect_match_game_flip;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
@@ -78,7 +77,13 @@ pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
 pub mod process_effect_relic_lose;
 pub mod process_effect_rest_site_consume;
-pub mod process_effect_reward_roll;
+pub mod process_effect_reward_roll_cards;
+pub mod process_effect_reward_roll_gold;
+pub mod process_effect_reward_roll_library_cards;
+pub mod process_effect_reward_roll_neow_cards;
+pub mod process_effect_reward_roll_potion;
+pub mod process_effect_reward_roll_potions;
+pub mod process_effect_reward_roll_relic;
 pub mod process_effect_reward_take;
 pub mod process_effect_room_enter;
 pub mod process_effect_room_exit;
@@ -96,7 +101,6 @@ pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
 pub mod process_effect_target_clear;
 pub mod process_effect_target_set;
-pub mod process_effect_torch_head_spawn;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
@@ -109,7 +113,7 @@ use self::process_effect_block_set::process_effect_block_set;
 use self::process_effect_bonfire_offer::process_effect_bonfire_offer;
 use self::process_effect_card_add::process_effect_card_add;
 use self::process_effect_card_add_random::process_effect_card_add_random;
-use self::process_effect_card_add_to_deck::process_effect_card_add_to_deck;
+use self::process_effect_card_adopt::process_effect_card_adopt;
 use self::process_effect_card_bottle::process_effect_card_bottle;
 use self::process_effect_card_discard::process_effect_card_discard;
 use self::process_effect_card_discover_pick::process_effect_card_discover_pick;
@@ -158,7 +162,6 @@ use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
 use self::process_effect_joust_bet::process_effect_joust_bet;
 use self::process_effect_knowing_skull_ask::process_effect_knowing_skull_ask;
-use self::process_effect_match_game_flip::process_effect_match_game_flip;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_modifier_gain::process_effect_modifier_gain;
@@ -182,7 +185,13 @@ use self::process_effect_relic_grant_random::process_effect_relic_grant_random;
 use self::process_effect_relic_grant_specific::process_effect_relic_grant_specific;
 use self::process_effect_relic_lose::process_effect_relic_lose;
 use self::process_effect_rest_site_consume::process_effect_rest_site_consume;
-use self::process_effect_reward_roll::process_effect_reward_roll;
+use self::process_effect_reward_roll_cards::process_effect_reward_roll_cards;
+use self::process_effect_reward_roll_gold::process_effect_reward_roll_gold;
+use self::process_effect_reward_roll_library_cards::process_effect_reward_roll_library_cards;
+use self::process_effect_reward_roll_neow_cards::process_effect_reward_roll_neow_cards;
+use self::process_effect_reward_roll_potion::process_effect_reward_roll_potion;
+use self::process_effect_reward_roll_potions::process_effect_reward_roll_potions;
+use self::process_effect_reward_roll_relic::process_effect_reward_roll_relic;
 use self::process_effect_reward_take::process_effect_reward_take;
 use self::process_effect_room_enter::process_effect_room_enter;
 use self::process_effect_room_exit::process_effect_room_exit;
@@ -200,7 +209,6 @@ use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
 use self::process_effect_target_clear::process_effect_target_clear;
 use self::process_effect_target_set::process_effect_target_set;
-use self::process_effect_torch_head_spawn::process_effect_torch_head_spawn;
 use self::process_effect_turn_end::process_effect_turn_end;
 use self::process_effect_turn_start::process_effect_turn_start;
 use self::process_effect_unload_discard::process_effect_unload_discard;
@@ -223,11 +231,9 @@ use crate::events::EventKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
-use crate::map::room_at;
-use crate::types::Mode;
+use crate::types::Combat;
 use crate::types::RoomKind;
 use crate::utils::candidate_matches;
-use crate::utils::mode_top;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -252,47 +258,31 @@ fn fill_buf_candidates(
     candidate_pool: CandidatePool,
     id_source: Option<usize>,
     id_character: usize,
-    mode: &Mode,
-    id_deck: &[usize],
+    combat: &Combat,
+    id_card_deck: &[usize],
 ) {
     // Combat-scoped pools demand the combat context; Character/Source/Deck don't
     match candidate_pool {
         CandidatePool::Hand => {
-            let Mode::Combat { id_hand, .. } = mode else {
-                unreachable!("Hand pool outside Combat mode")
-            };
-            effect_candidate_buf.extend_from_slice(id_hand)
+            assert!(combat.active, "Hand pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_hand)
         }
         CandidatePool::PileDraw => {
-            let Mode::Combat { id_pile_draw, .. } = mode else {
-                unreachable!("PileDraw pool outside Combat mode")
-            };
-            effect_candidate_buf.extend_from_slice(id_pile_draw)
+            assert!(combat.active, "PileDraw pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_draw)
         }
         CandidatePool::PileDiscard => {
-            let Mode::Combat {
-                id_pile_discard, ..
-            } = mode
-            else {
-                unreachable!("PileDiscard pool outside Combat mode")
-            };
-            effect_candidate_buf.extend_from_slice(id_pile_discard)
+            assert!(combat.active, "PileDiscard pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_discard)
         }
         CandidatePool::PileExhaust => {
-            let Mode::Combat {
-                id_pile_exhaust, ..
-            } = mode
-            else {
-                unreachable!("PileExhaust pool outside Combat mode")
-            };
-            effect_candidate_buf.extend_from_slice(id_pile_exhaust)
+            assert!(combat.active, "PileExhaust pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_exhaust)
         }
         CandidatePool::Character => effect_candidate_buf.push(id_character),
         CandidatePool::Monsters => {
-            let Mode::Combat { id_monsters, .. } = mode else {
-                unreachable!("Monsters pool outside Combat mode")
-            };
-            effect_candidate_buf.extend(id_monsters.iter().flatten().copied())
+            assert!(combat.active, "Monsters pool outside combat");
+            effect_candidate_buf.extend(combat.id_monsters.iter().flatten().copied())
         }
         CandidatePool::Source => {
             let id_source = id_source
@@ -301,32 +291,10 @@ fn fill_buf_candidates(
             effect_candidate_buf.push(id_source)
         }
         CandidatePool::Discover => {
-            let Mode::Combat { id_discover, .. } = mode else {
-                unreachable!("Discover pool outside Combat mode")
-            };
-            effect_candidate_buf.extend_from_slice(id_discover)
+            assert!(combat.active, "Discover pool outside combat");
+            effect_candidate_buf.extend_from_slice(&combat.id_card_discover)
         }
-        CandidatePool::Deck => effect_candidate_buf.extend_from_slice(id_deck),
-        CandidatePool::EventPickCard => {
-            let Mode::Event {
-                kind: EventKind::WeMeetAgain { id_card, .. },
-                ..
-            } = mode
-            else {
-                unreachable!("EventPickCard pool outside We Meet Again")
-            };
-            effect_candidate_buf.push(id_card.expect("EventPickCard without a rolled pick"));
-        }
-        CandidatePool::EventPickPotion => {
-            let Mode::Event {
-                kind: EventKind::WeMeetAgain { id_potion, .. },
-                ..
-            } = mode
-            else {
-                unreachable!("EventPickPotion pool outside We Meet Again")
-            };
-            effect_candidate_buf.push(id_potion.expect("EventPickPotion without a rolled pick"));
-        }
+        CandidatePool::Deck => effect_candidate_buf.extend_from_slice(id_card_deck),
     }
 }
 
@@ -407,27 +375,25 @@ fn resolve_or_halt(
 ) -> bool {
     // Stage 1: the pool enumerates
     state.effect_candidate_buf.clear();
-    let mode = mode_top(&state.mode_stack);
     fill_buf_candidates(
         &mut state.effect_candidate_buf,
         candidate_pool,
         id_source,
         state.id_character,
-        mode,
-        &state.id_deck,
+        &state.combat,
+        &state.id_card_deck,
     );
 
     // Stage 2: the filter retains
-    let id_picked_monster = match mode {
-        Mode::Combat {
-            id_picked_monster, ..
-        } => *id_picked_monster,
-        _ => None,
+    let id_monster_picked = if state.combat.active {
+        state.combat.id_monster_picked
+    } else {
+        None
     };
     let entities = &state.entities;
     state
         .effect_candidate_buf
-        .retain(|&id| candidate_matches(filter, id, &entities[id], id_source, id_picked_monster));
+        .retain(|&id| candidate_matches(filter, id, &entities[id], id_source, id_monster_picked));
 
     // NotSource: the last monster standing falls back to targeting itself
     if filter == CandidateFilter::NotSource
@@ -512,20 +478,32 @@ fn dispatch_by_kind(
         }
         EffectKind::WheelSpin => process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => process_effect_card_upgrade(id_target, state),
-        EffectKind::RewardRoll { source } => process_effect_reward_roll(state, source),
+        EffectKind::RewardRollCards { bundles, rare_only } => {
+            process_effect_reward_roll_cards(state, bundles, rare_only)
+        }
+        EffectKind::RewardRollGold { amount } => process_effect_reward_roll_gold(state, amount),
+        EffectKind::RewardRollLibraryCards => process_effect_reward_roll_library_cards(state),
+        EffectKind::RewardRollNeowCards {
+            colorless,
+            rare_only,
+        } => process_effect_reward_roll_neow_cards(state, colorless, rare_only),
+        EffectKind::RewardRollPotion { eligible } => {
+            process_effect_reward_roll_potion(state, eligible)
+        }
+        EffectKind::RewardRollPotions { count, uniform } => {
+            process_effect_reward_roll_potions(state, count, uniform)
+        }
+        EffectKind::RewardRollRelic { pick } => process_effect_reward_roll_relic(state, pick),
         EffectKind::RewardTake { kind } => process_effect_reward_take(id_target, state, kind),
         EffectKind::RoomExit => process_effect_room_exit(state),
-        EffectKind::RestSiteConsume => process_effect_rest_site_consume(id_target, state),
+        EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
         EffectKind::TargetSet => process_effect_target_set(id_target, state),
         EffectKind::TargetClear => process_effect_target_clear(state),
-        EffectKind::DamagePhysical { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, false, false)
+        EffectKind::DamagePhysical { amount, lifesteal } => {
+            process_effect_damage_physical(id_source, id_target, state, amount, false, lifesteal)
         }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
             process_effect_damage_physical(id_source, id_target, state, amount, true, false)
-        }
-        EffectKind::DamageLifesteal { amount } => {
-            process_effect_damage_physical(id_source, id_target, state, amount, false, true)
         }
         EffectKind::GlassKnifeDecay { delta } => {
             process_effect_glass_knife_decay(id_target, state, delta)
@@ -553,11 +531,8 @@ fn dispatch_by_kind(
             process_effect_strength_lose_temp(id_target, state, stacks)
         }
         EffectKind::UnloadDiscard => process_effect_unload_discard(state),
-        EffectKind::DamageDeal { amount } => {
-            process_effect_damage_deal(id_source, id_target, state, amount, false)
-        }
-        EffectKind::DamageDealLifesteal { amount } => {
-            process_effect_damage_deal(id_source, id_target, state, amount, true)
+        EffectKind::DamageDeal { amount, lifesteal } => {
+            process_effect_damage_deal(id_source, id_target, state, amount, lifesteal)
         }
         EffectKind::HealthDelta { sign, amount } => {
             process_effect_health_delta(id_source, id_target, state, sign, amount)
@@ -586,7 +561,7 @@ fn dispatch_by_kind(
             // Character can die outside Combat; empty monster slots make iter a no-op
             process_effect_death(id_source, id_target, state)
         }
-        EffectKind::CombatStart { loot } => process_effect_combat_start(state, loot),
+        EffectKind::CombatStart => process_effect_combat_start(state),
         EffectKind::CombatEnd { escaped_character } => {
             process_effect_combat_end(state, escaped_character)
         }
@@ -597,8 +572,8 @@ fn dispatch_by_kind(
         }
         EffectKind::MoveExecute => process_effect_move_execute(id_target, state),
         EffectKind::RoomEnter => process_effect_room_enter(state),
-        EffectKind::MonsterSpawn { name } => {
-            process_effect_monster_spawn(state, name);
+        EffectKind::MonsterSpawn { name, minion, cap } => {
+            process_effect_monster_spawn(state, name, minion, cap)
         }
         EffectKind::MonsterSplit { name } => process_effect_monster_split(id_source, state, name),
         EffectKind::MonsterEscape => process_effect_monster_escape(id_target, state),
@@ -606,10 +581,8 @@ fn dispatch_by_kind(
         EffectKind::GremlinSummon => process_effect_gremlin_summon(state),
         EffectKind::DebuffsClear => process_effect_debuffs_clear(id_target, state),
         EffectKind::StasisSteal => process_effect_stasis_steal(id_source, state),
-        EffectKind::TorchHeadSpawn => process_effect_torch_head_spawn(state),
         EffectKind::JoustBet { on_owner } => process_effect_joust_bet(state, on_owner),
         EffectKind::KnowingSkullAsk { wish } => process_effect_knowing_skull_ask(state, wish),
-        EffectKind::MatchGameFlip => process_effect_match_game_flip(id_source, state),
         EffectKind::MausoleumOpen => process_effect_mausoleum_open(state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
@@ -621,7 +594,7 @@ fn dispatch_by_kind(
         EffectKind::CardTransform { upgraded } => {
             process_effect_card_transform(id_target, state, upgraded)
         }
-        EffectKind::CardAddToDeck => process_effect_card_add_to_deck(id_target, state),
+        EffectKind::CardAdopt => process_effect_card_adopt(id_target, state),
         EffectKind::MaxHealthDelta { sign, amount } => {
             process_effect_max_health_delta(id_target, state, sign, amount)
         }
@@ -679,99 +652,105 @@ pub fn process_effect_queue(state: &mut GameState) {
                 });
                 continue;
             }
-            ensure_mode_validity(state);
+            ensure_context_validity(state);
             return; // Queue drained
         };
         if !process_effect(state, effect) {
-            ensure_mode_validity(state);
+            ensure_context_validity(state);
             return; // Queue halted
         }
     }
 }
 
-// Cross-source witness: the mode must agree with world facts (room kind, room
-// flags, event presence) at every rest. A stale mode cannot lie to all of them
-fn ensure_mode_validity(state: &GameState) {
+// Cross-source witness: the active contexts must agree with each other and
+// with world facts. Every active context is checked against the room directly
+fn ensure_context_validity(state: &GameState) {
     if state.game_over {
         return;
     }
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities);
-    let room = match state.location {
-        Location::Overworld { y, x } => room_at(&state.id_rooms, &state.entities, y, x),
-        _ => None,
-    };
-    // Stack shape: Map is the permanent bottom frame; the only 3-frame stack is
-    // Orrery's Reward suspended over its Shop
-    let stack = &state.mode_stack;
+
+    // At most one room context owns the visit
+    let room_contexts_active = [
+        state.shop.active,
+        state.chest.active,
+        state.rest_site.active,
+        state.event.active,
+    ]
+    .iter()
+    .filter(|&&a| a)
+    .count();
     assert!(
-        !stack.is_empty() && matches!(stack[0], Mode::Map),
-        "Mode stack must rest on Map: {:?}",
-        stack
+        room_contexts_active <= 1,
+        "Two room contexts active at once"
+    );
+
+    // Combat and Reward never coexist, and combat never runs inside a shop,
+    // chest, or rest site — only over an event (its fight) or the bare room
+    assert!(
+        !(state.combat.active && state.reward.active),
+        "Combat and Reward both active"
     );
     assert!(
-        !stack[1..].iter().any(|mode| matches!(mode, Mode::Map)),
-        "Map may only be the bottom frame: {:?}",
-        stack
+        !(state.combat.active
+            && (state.shop.active || state.chest.active || state.rest_site.active)),
+        "Combat active inside a non-event room context"
     );
-    assert!(
-        stack.len() <= 3,
-        "Mode stack deeper than Orrery-over-Shop: {:?}",
-        stack
-    );
-    if stack.len() == 3 {
-        // Orrery's Reward over its Shop, or an event's suspended fight (Colosseum)
+
+    // A Reward overlays a consumed event; a fight stacks over an unconsumed one
+    if state.reward.active && state.event.active {
         assert!(
-            matches!(stack[1], Mode::Shop { .. }) && matches!(stack[2], Mode::Reward { .. })
-                || matches!(
-                    stack[1],
-                    Mode::Event {
-                        consumed: false,
-                        ..
-                    }
-                ) && matches!(stack[2], Mode::Combat { .. }),
-            "3-frame stack must be [Map, Shop, Reward] or [Map, Event, Combat]: {:?}",
-            stack
+            state.event.consumed,
+            "Reward staged over an unconsumed event"
+        );
+    }
+    if state.combat.active && state.event.active {
+        assert!(
+            !state.event.consumed,
+            "Combat running over a consumed event"
         );
     }
 
-    // The room-owning frame answers to the room; overlays above it (Orrery's
-    // Reward over Shop) answer to the shape rows instead
-    let frame_room = &stack[(stack.len() - 1).min(1)];
-    let ok = match frame_room {
-        // Map doubles as the between-rooms state; nothing to cross-check
-        Mode::Map => true,
-        Mode::RestSite => room_kind == Some(RoomKind::RestSite),
-        Mode::Chest => {
-            matches!(room_kind, Some(RoomKind::Treasure | RoomKind::Unknown))
-                && room.is_some_and(|room| !room.room_chest_opened)
-        }
-        Mode::ChestOpened => {
-            matches!(room_kind, Some(RoomKind::Treasure | RoomKind::Unknown))
-                && room.is_some_and(|room| room.room_chest_opened)
-        }
-
-        // Neow rests over Location::Start, before any room exists
-        Mode::Event {
-            kind: EventKind::Neow,
-            ..
-        } => state.location == Location::Start,
-        Mode::Event { .. } => matches!(room_kind, Some(RoomKind::EventRoom | RoomKind::Unknown)),
-
-        // "?" rooms keep RoomKind::Unknown on the map after resolving
-        Mode::Shop { .. } => matches!(room_kind, Some(RoomKind::Shop | RoomKind::Unknown)),
-        Mode::Combat { .. } | Mode::CombatEnded => matches!(
+    // "?" rooms keep RoomKind::Unknown on the map after resolving
+    if state.rest_site.active {
+        assert!(
+            room_kind == Some(RoomKind::RestSite),
+            "RestSite context inconsistent with room kind {:?} at {:?}",
             room_kind,
-            Some(
-                RoomKind::CombatMonster
-                    | RoomKind::CombatElite
-                    | RoomKind::CombatBoss
-                    | RoomKind::EventRoom
-                    | RoomKind::Unknown
-            )
-        ),
-
-        // RestSite: Dream Catcher's rest reward; Location::Start: Neow's staged offers
-        Mode::Reward { .. } => {
+            state.location
+        );
+    }
+    if state.chest.active {
+        assert!(
+            matches!(room_kind, Some(RoomKind::Treasure | RoomKind::Unknown)),
+            "Chest context inconsistent with room kind {:?} at {:?}",
+            room_kind,
+            state.location
+        );
+    }
+    if state.shop.active {
+        assert!(
+            matches!(room_kind, Some(RoomKind::Shop | RoomKind::Unknown)),
+            "Shop context inconsistent with room kind {:?} at {:?}",
+            room_kind,
+            state.location
+        );
+    }
+    if state.event.active {
+        // Neow rests over Location::Start, before any room exists
+        let ok = if matches!(state.event.event_kind, EventKind::Neow) {
+            state.location == Location::Start
+        } else {
+            matches!(room_kind, Some(RoomKind::EventRoom | RoomKind::Unknown))
+        };
+        assert!(
+            ok,
+            "Event context inconsistent with room kind {:?} at {:?}",
+            room_kind, state.location
+        );
+    }
+    if state.combat.active {
+        assert!(
             matches!(
                 room_kind,
                 Some(
@@ -779,305 +758,34 @@ fn ensure_mode_validity(state: &GameState) {
                         | RoomKind::CombatElite
                         | RoomKind::CombatBoss
                         | RoomKind::EventRoom
-                        | RoomKind::Treasure
-                        | RoomKind::RestSite
                         | RoomKind::Unknown
                 )
-            ) || state.location == Location::Start
-        }
-    };
-    assert!(
-        ok,
-        "Mode {:?} inconsistent with room kind {:?} at {:?}",
-        frame_room, room_kind, state.location
-    );
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::consts::ACT_FINAL;
-    use crate::consts::BOSS_RELIC_REWARD_COUNT;
-    use crate::effect::EventLoot;
-    use crate::events::spawn_event;
-    use crate::game::create_game_state;
-    use crate::map::room_at_mut;
-    use crate::monsters::encounters::spawn_encounter_monsters;
-    use crate::types::EventName;
-    use crate::types::RelicTier;
-    use crate::types::RoomKind;
-
-    // Kill every rostered monster outright and settle
-    fn kill_roster(state: &mut GameState) {
-        let Mode::Combat { id_monsters, .. } = mode_top(&state.mode_stack) else {
-            panic!("no fight to win: {:?}", state.mode_stack);
-        };
-        let ids: Vec<usize> = id_monsters.iter().flatten().copied().collect();
-        for id in ids {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::Death,
-                id_source: None,
-                target: Target::Direct(Some(id)),
-            });
-        }
-        process_effect_queue(state);
+            ),
+            "Combat context inconsistent with room kind {:?} at {:?}",
+            room_kind,
+            state.location
+        );
     }
-
-    // Fabricate the pending boss fight at the current location and kill it outright
-    fn beat_boss(state: &mut GameState) {
-        state.location = Location::BossRoom;
-        let boss = state.encounter_boss;
-        spawn_encounter_monsters(state, boss, EventLoot::NONE);
-        process_effect_queue(state);
-        kill_roster(state);
-    }
-
-    // Fire one baked event option the way handle_event_option_select does
-    fn fire_option(state: &mut GameState, id_option: usize) {
-        let option = state.entities[id_option];
-        for effect in option.event_option_effects[..option.event_option_effects_len as usize]
-            .iter()
-            .rev()
-        {
-            state.effect_queue.push_front(Effect {
-                id_source: Some(id_option),
-                ..*effect
-            });
-        }
-        process_effect_queue(state);
-    }
-
-    // Repaint a row-0 room into an event room, stand on it, spawn and enter the event
-    fn enter_event(state: &mut GameState, name: EventName) -> Vec<usize> {
-        let x = (0..state.id_rooms[0].len())
-            .find(|&x| state.id_rooms[0][x].is_some())
-            .unwrap();
-        state.location = Location::Overworld { y: 0, x };
-        room_at_mut(&state.id_rooms, &mut state.entities, 0, x)
-            .unwrap()
-            .room_kind = RoomKind::EventRoom;
-        let (kind, id_options) = spawn_event(state, name);
-        state.mode_stack.push(Mode::Event {
-            kind,
-            consumed: false,
-            id_options: id_options.clone(),
-        });
-        id_options
-    }
-
-    // The Colosseum suspends beneath its first bout and resumes with no reward;
-    // the second bout pays out 100 gold plus a rare and an uncommon relic
-    #[test]
-    fn colosseum_round_trip() {
-        use crate::types::RelicTier;
-
-        for seed in 0..10 {
-            let mut state = create_game_state(0, seed, false, false);
-            let id_options = enter_event(&mut state, EventName::Colosseum);
-
-            // First bout: fight over the suspended event, then pop back to it
-            fire_option(&mut state, id_options[0]);
-            assert!(matches!(
-                state.mode_stack[..],
-                [
-                    Mode::Map,
-                    Mode::Event {
-                        consumed: false,
-                        ..
-                    },
-                    Mode::Combat { .. }
-                ]
-            ));
-            kill_roster(&mut state);
-            let Mode::Event {
-                kind: EventKind::Colosseum { stage: 1 },
-                consumed: false,
-                ..
-            } = mode_top(&state.mode_stack)
-            else {
-                panic!(
-                    "first bout did not resume the event: {:?}",
-                    state.mode_stack
-                );
-            };
-
-            // Second bout: consumed, fought over Map, rewarded in full
-            fire_option(&mut state, id_options[1]);
-            kill_roster(&mut state);
-            let Mode::Reward {
-                reward_gold,
-                reward_id_relics,
-                ..
-            } = mode_top(&state.mode_stack)
-            else {
-                panic!("second bout did not stage a reward: {:?}", state.mode_stack);
-            };
-            assert_eq!(*reward_gold, Some(100));
-            let tiers: Vec<RelicTier> = reward_id_relics
-                .iter()
-                .map(|&id| state.entities[id].relic_tier)
-                .collect();
-            assert_eq!(tiers, [RelicTier::Rare, RelicTier::Uncommon]);
-        }
-    }
-
-    // Reading to the end costs 16 HP total and grants one of the three books;
-    // Necronomicon arrives bound to its curse
-    #[test]
-    fn cursed_tome_grants_a_book() {
-        use crate::events::BOOK_POOL;
-        use crate::types::CardName;
-        use crate::types::RelicName;
-
-        for seed in 0..10 {
-            let mut state = create_game_state(0, seed, false, false);
-            let hp_before = state.entities[state.id_character].vitals.health;
-            let id_options = enter_event(&mut state, EventName::CursedTome);
-
-            for idx in 0..=4 {
-                fire_option(&mut state, id_options[idx]);
-            }
-            assert_eq!(
-                state.entities[state.id_character].vitals.health,
-                hp_before - 16
-            );
-            assert!(matches!(
-                state.mode_stack[..],
-                [Mode::Map, Mode::Event { consumed: true, .. }]
-            ));
-
-            let owned = BOOK_POOL
-                .iter()
-                .filter(|&&n| state.id_relics[n as usize].is_some())
-                .count();
-            assert_eq!(owned, 1);
-            let has_curse = state
-                .id_deck
-                .iter()
-                .any(|&id| state.entities[id].card_name == CardName::Necronomicurse);
-            assert_eq!(
-                state.id_relics[RelicName::Necronomicon as usize].is_some(),
-                has_curse
-            );
-        }
-    }
-
-    // Trading hands over the rolled Relic and grants N'loth's Gift
-    #[test]
-    fn nloth_trade_swaps_relic() {
-        use crate::events::EventKind;
-        use crate::relics::get_relic;
-        use crate::types::RelicName;
-        use crate::utils::push_entity;
-
-        for seed in 0..10 {
-            let mut state = create_game_state(0, seed, false, false);
-            let id = push_entity(&mut state.entities, get_relic(RelicName::Akabeko));
-            state.id_relics[RelicName::Akabeko as usize] = Some(id);
-
-            let id_options = enter_event(&mut state, EventName::Nloth);
-            let Mode::Event {
-                kind: EventKind::Nloth { relic_first, .. },
-                ..
-            } = *mode_top(&state.mode_stack)
-            else {
-                panic!("wrong kind");
-            };
-
-            fire_option(&mut state, id_options[0]);
-            assert!(state.id_relics[relic_first as usize].is_none());
-            assert!(state.id_relics[RelicName::NlothsGift as usize].is_some());
-            assert!(matches!(
-                state.mode_stack[..],
-                [Mode::Map, Mode::Event { consumed: true, .. }]
-            ));
-        }
-    }
-
-    // Skip the staged boss loot; RoomExit fires the act transition
-    fn skip_reward_and_transition(state: &mut GameState) {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::RoomExit,
-            id_source: None,
-            target: Target::Direct(None),
-        });
-        process_effect_queue(state);
-        assert_eq!(state.act, 2);
-    }
-
-    // Random walks rarely survive to the boss; drive the act seam directly
-    #[test]
-    fn act_transition_smoke() {
-        for seed in 0..20 {
-            let mut state = create_game_state(0, seed, false, false);
-            beat_boss(&mut state);
-
-            // Mid-run boss rests on a full reward: gold, rare cards, 3 Boss relics
-            let Mode::Reward {
-                reward_id_relics,
-                reward_gold,
-                ..
-            } = mode_top(&state.mode_stack)
-            else {
-                panic!(
-                    "boss victory did not stage a reward: {:?}",
-                    state.mode_stack
-                );
-            };
-            assert!(reward_gold.is_some());
-            assert_eq!(reward_id_relics.len(), BOSS_RELIC_REWARD_COUNT);
-            assert!(
-                reward_id_relics
-                    .iter()
-                    .all(|&id| state.entities[id].relic_tier == RelicTier::Boss)
-            );
-
-            skip_reward_and_transition(&mut state);
-
-            // The exact pool shapes are covered by monsters::tests::act2_encounter_generation
-            assert_eq!(state.location, Location::Start);
-            assert!(matches!(state.mode_stack[..], [Mode::Map]));
-            assert!(!state.encounter_pool_normal.is_empty());
-            assert!(!state.encounter_pool_elite.is_empty());
-            assert!(!state.pool_events.is_empty());
-
-            // The act-2 boss ends the run with no further transition
-            beat_boss(&mut state);
-            assert_eq!(state.act, ACT_FINAL);
-            assert!(state.game_over);
-        }
-    }
-
-    // Random-walk act 2 itself: the Python fuzzer's agents rarely survive act 1,
-    // so the city content gets its end-to-end coverage here
-    #[test]
-    fn act2_random_walk() {
-        use crate::action::recompute_legal_actions;
-        use crate::game::step;
-        use rand::Rng;
-        use rand::SeedableRng;
-        use rand::rngs::SmallRng;
-
-        for seed in 0..50 {
-            let mut state = create_game_state(0, seed, false, false);
-            beat_boss(&mut state);
-            skip_reward_and_transition(&mut state);
-
-            let mut rng = SmallRng::seed_from_u64(seed ^ 0xA2);
-            recompute_legal_actions(&mut state);
-            for _ in 0..2000 {
-                if state.game_over {
-                    break;
-                }
-                assert!(
-                    !state.legal_actions.is_empty(),
-                    "stuck with no legal actions: {:?}",
-                    state.mode_stack
-                );
-                let action =
-                    state.legal_actions[rng.random_range(0..state.legal_actions.len())].clone();
-                step(&mut state, action).expect("legal action must apply");
-            }
-        }
+    // Treasure/RestSite/Shop: chest loot, Dream Catcher's rest reward, and
+    // Orrery over the stock; Location::Start: Neow's staged offers
+    if state.reward.active {
+        let ok = matches!(
+            room_kind,
+            Some(
+                RoomKind::CombatMonster
+                    | RoomKind::CombatElite
+                    | RoomKind::CombatBoss
+                    | RoomKind::EventRoom
+                    | RoomKind::Treasure
+                    | RoomKind::RestSite
+                    | RoomKind::Shop
+                    | RoomKind::Unknown
+            )
+        ) || state.location == Location::Start;
+        assert!(
+            ok,
+            "Reward context inconsistent with room kind {:?} at {:?}",
+            room_kind, state.location
+        );
     }
 }

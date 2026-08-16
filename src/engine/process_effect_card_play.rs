@@ -10,7 +10,6 @@ use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
 use crate::entity::Entity;
-use crate::entity::get_card_effective_cost;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -19,23 +18,27 @@ use crate::relics::trigger_relic_counter;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
+use crate::types::Combat;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
-use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::detach_card;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 
 pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardPlay requires id_target");
 
     // Detach the played Card up front; it stays pile-less until its effects resolve
-    detach_card(mode_top_mut(&mut state.mode_stack), id_card);
+    detach_card(&mut state.combat, id_card);
 
-    let Mode::Combat {
-        id_hand,
+    assert!(
+        state.combat.active,
+        "process_effect_card_play outside the Combat frame"
+    );
+    let Combat {
+        id_card_hand,
         id_monsters,
         energy,
         this_turn_discards,
@@ -44,10 +47,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         this_turn_panache,
         this_combat_damage_instances_taken,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("process_effect_card_play outside Combat mode")
-    };
+    } = &mut state.combat;
 
     // Read-only here: copied out so the body below can borrow the whole state
     let id_character = state.id_character;
@@ -165,7 +165,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     {
         for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::DamageDeal { amount: 5 },
+                kind: EffectKind::DamageDeal {
+                    amount: 5,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
             });
@@ -188,7 +191,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         // Mummified Hand: make a random still-costed hand Card free this turn
         if has_relic(&state.id_relics, RelicName::MummifiedHand) {
             free_random_costed_hand_card(
-                &*id_hand,
+                &*id_card_hand,
                 &state.entities,
                 &mut state.rng,
                 &mut state.effect_queue,
@@ -321,14 +324,15 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
     // Push the Card's on-play effects once for each rep
     for _ in 0..reps {
-        for e in card.card_effects[..card.card_effects_len as usize].iter() {
+        for effect in card.card_effects[..card.card_effects_len as usize].iter() {
             let mut effect = Effect {
                 id_source: Some(id_card), // Stamp the Card's ID
-                ..*e
+                ..*effect
             };
 
             // Add Wrist Blade bonus
-            if wrist_blade_bonus && let EffectKind::DamagePhysical { amount } = &mut effect.kind {
+            if wrist_blade_bonus && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
+            {
                 *amount += 4;
             }
 
@@ -393,6 +397,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             state.effect_buf.push(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: stacks as u16,
+                    lifesteal: false,
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_monster)),
@@ -410,6 +415,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks.max(0) as u16,
+                        lifesteal: false,
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
@@ -427,6 +433,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
                         amount: stacks as u16,
+                        lifesteal: false,
                     },
                     id_source: Some(id_monster),
                     target: Target::Direct(Some(id_character)),
@@ -518,8 +525,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // Pain: each copy in hand bleeds 1 HP on any other Card play; HealthDelta ignores block
-    for i in 0..id_hand.len() {
-        if state.entities[id_hand[i]].card_name == CardName::Pain {
+    for idx in 0..id_card_hand.len() {
+        if state.entities[id_card_hand[idx]].card_name == CardName::Pain {
             state.effect_buf.push(Effect {
                 kind: EffectKind::HealthDelta {
                     sign: DeltaSign::Loss,
@@ -536,7 +543,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 
 // Zeroes the cost of one random hand Card that still costs energy this turn
 fn free_random_costed_hand_card(
-    id_hand: &[usize],
+    id_card_hand: &[usize],
     entities: &[Entity],
     rng: &mut impl Rng,
     effect_queue: &mut VecDeque<Effect>,
@@ -547,7 +554,7 @@ fn free_random_costed_hand_card(
 ) {
     let mut cards_valid = [0usize; MAX_SIZE_HAND];
     let mut num = 0;
-    for &id_card in id_hand.iter() {
+    for &id_card in id_card_hand.iter() {
         // Exclude just-played Card
         if id_card == id_card_played {
             continue;

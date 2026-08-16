@@ -8,6 +8,8 @@ use super::card::PyCardPile;
 use super::card::PyCardRarity;
 use super::card::PyCostScope;
 use super::card::PyPlayRestriction;
+use super::context::PyChestKind;
+use super::effect::PyKnowingSkullWish;
 use super::map::PyRoomKind;
 use super::monster::PyIntentKind;
 use super::monster::PyMonsterEncounter;
@@ -27,7 +29,7 @@ use super::target::PyCandidateFilter;
 ///
 /// Each row emits a frozen value-semantic `#[pyclass]` struct (eq + hash; `get_all` iff
 /// fielded). The table then emits the Rust enum — one tuple variant per row, table order =
-/// declaration order, golden-gated by tests/test_enum_order.py — and its IntoPyObject
+/// declaration order — and its IntoPyObject
 /// dispatch, whose union OUTPUT_TYPE makes generated stubs type fields as
 /// `VariantA | VariantB | ...`. The table IS the declaration: grep a class name to find its row.
 ///
@@ -94,8 +96,7 @@ macro_rules! flat_variants {
 /// });
 /// ```
 ///
-/// Table order = declaration order = int discriminant, golden-gated by
-/// tests/test_enum_order.py. The generated match is exhaustive, so a rename on either side
+/// Table order = declaration order = int discriminant
 /// stays a compile error. `$conv` is the pyo3 conversion token: `from_py_object` or
 /// `skip_from_py_object`. Call sites must have `use pyo3::prelude::*` in scope.
 macro_rules! mirror_enum {
@@ -153,8 +154,10 @@ impl_discriminant_hash!(
     PyRelicTier,
     PyCandidateFilter,
     PyCardPile,
+    PyChestKind,
     PyCostScope,
     PyIntentKind,
+    PyKnowingSkullWish,
 );
 
 pub(crate) use flat_variants;

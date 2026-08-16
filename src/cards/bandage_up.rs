@@ -23,7 +23,6 @@ pub static BANDAGE_UP: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
@@ -40,12 +39,12 @@ pub static BANDAGE_UP: Entity = make_entity_card(
 pub static BANDAGE_UP_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = BANDAGE_UP.card_effects;
-        a[0].kind = EffectKind::HealthDelta {
+        let mut effects = BANDAGE_UP.card_effects;
+        effects[0].kind = EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
             amount: Amount::Absolute(6),
         }; // +2 heal
-        a
+        effects
     },
     ..BANDAGE_UP
 };

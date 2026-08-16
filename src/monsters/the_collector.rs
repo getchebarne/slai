@@ -1,3 +1,4 @@
+use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
@@ -7,8 +8,9 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
+use crate::monsters::count_monsters_named;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
 use crate::monsters::make_move_attack;
@@ -19,17 +21,20 @@ use rand::Rng;
 
 pub const TORCH_HEAD_COUNT: usize = 2;
 
-// Spawn and Revive share one effect: top the roster back up to two Torch Heads
+// Spawn and Revive top the roster back up to two Torch Heads: capped spawns skip
+// past the ones still standing
+const TORCH_HEAD_SPAWN: Effect = Effect {
+    kind: EffectKind::MonsterSpawn {
+        name: MonsterName::TorchHead,
+        minion: false,
+        cap: Some(TORCH_HEAD_COUNT as u8),
+    },
+    id_source: None,
+    target: Target::Direct(None),
+};
+
 const fn make_move_torch_head_spawn(name: &'static str) -> Move {
-    make_move(
-        name,
-        &[Effect {
-            kind: EffectKind::TorchHeadSpawn,
-            id_source: None,
-            target: Target::Direct(None),
-        }],
-        Intent::Unknown,
-    )
+    make_move(name, &[TORCH_HEAD_SPAWN; TORCH_HEAD_COUNT], Intent::Unknown)
 }
 
 static MOVE_SPAWN: Move = make_move_torch_head_spawn("Spawn");
@@ -151,16 +156,19 @@ pub fn spawn_monster_the_collector(ascension_level: u8) -> Entity {
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }
 
 pub fn get_next_move_the_collector(
     move_history: &[u8],
-    torch_heads_alive: usize,
+    entities: &[Entity],
+    id_monsters: &[Option<usize>; MAX_MONSTERS],
     rng: &mut impl Rng,
 ) -> usize {
+    let torch_heads_alive = count_monsters_named(entities, id_monsters, MonsterName::TorchHead);
+
     if move_history.is_empty() {
         return IDX_MOVE_SPAWN;
     }
@@ -168,7 +176,7 @@ pub fn get_next_move_the_collector(
     // The ultimate lands once, guaranteed on the fourth turn
     let ult_used = move_history
         .iter()
-        .any(|&m| m as usize == IDX_MOVE_MEGA_DEBUFF);
+        .any(|&idx_move| idx_move as usize == IDX_MOVE_MEGA_DEBUFF);
     if move_history.len() >= 3 && !ult_used {
         return IDX_MOVE_MEGA_DEBUFF;
     }

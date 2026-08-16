@@ -9,6 +9,7 @@ use crate::action::handle_action;
 use crate::action::recompute_legal_actions;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
+use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_ELITE;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_NORMAL;
 use crate::consts::MAP_HEIGHT;
@@ -16,17 +17,23 @@ use crate::consts::MAP_WIDTH;
 use crate::consts::MAX_CANDIDATES;
 use crate::consts::MAX_EFFECTS_PER_HANDLER;
 use crate::consts::MAX_ENTITIES;
+use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_DECK;
+use crate::consts::MAX_SIZE_HAND;
 use crate::consts::POTION_SLOTS_DEFAULT;
 use crate::consts::POTION_SLOTS_DEFAULT_A11;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::SHOP_PURGE_COST_BASE;
+use crate::consts::SHOP_SLOTS_CARD_TOTAL;
+use crate::consts::SHOP_SLOTS_POTION;
+use crate::consts::SHOP_SLOTS_RELIC;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
+use crate::events::EventKind;
 use crate::events::pools_for_act;
 use crate::events::spawn_event;
 use crate::map::generate_map;
@@ -77,7 +84,7 @@ pub struct GameState {
     pub encounter_boss: MonsterEncounter,
 
     // Master deck (persists across combats)
-    pub id_deck: Vec<usize>,
+    pub id_card_deck: Vec<usize>,
 
     // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
     pub id_relics: [Option<usize>; RelicName::COUNT],
@@ -101,8 +108,13 @@ pub struct GameState {
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
 
-    // Stacked contexts: [0] is always Map (the resting frame), last() is current
-    pub mode_stack: Vec<Mode>,
+    // Contexts: one active; all inactive = Focus::Map. See context_focus
+    pub combat: Combat,
+    pub reward: Reward,
+    pub event: Event,
+    pub shop: Shop,
+    pub rest_site: RestSite,
+    pub chest: Chest,
     pub game_over: bool,
 
     // Removal cost for the whole run: 75 + 25 per purge, never reset
@@ -144,10 +156,10 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
 
     // Initialize starter deck
     let deck_starter = get_silent_starter_deck(ascension);
-    let mut id_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
+    let mut id_card_deck: Vec<usize> = Vec::with_capacity(MAX_SIZE_DECK);
     for card in deck_starter {
         let id_card = push_entity(&mut entities, card);
-        id_deck.push(id_card);
+        id_card_deck.push(id_card);
     }
 
     // Initialize map
@@ -169,7 +181,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Act-1 event pools
     let (pool_events, pool_event_special) = pools_for_act(1);
 
-    // Start unhalted on Mode::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
+    // Start unhalted on Focus::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
     let effect_queue = VecDeque::with_capacity(64);
 
     let mut state = GameState {
@@ -178,7 +190,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         act: 1,
         entities,
         id_character: 0,
-        id_deck,
+        id_card_deck,
         id_relics,
         relic_seq_next: 1,
         id_potions,
@@ -198,7 +210,64 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         pool_events: pool_events.to_vec(),
         pool_event_special: pool_event_special.to_vec(),
         potion_drop_mod: 0,
-        mode_stack: vec![Mode::Map],
+
+        // Contexts start inactive with their high-water capacities pre-reserved
+        combat: Combat {
+            active: false,
+            id_card_hand: Vec::with_capacity(MAX_SIZE_HAND),
+            id_card_draw: Vec::with_capacity(MAX_SIZE_DECK),
+            id_card_discard: Vec::with_capacity(MAX_SIZE_DECK),
+            id_card_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
+            id_monsters: [None; MAX_MONSTERS],
+            id_card_stasis: [None; MAX_MONSTERS],
+            id_monster_picked: None,
+            id_card_last_drawn: None,
+            id_card_nightmare: None,
+            id_card_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
+            id_card_origins: Vec::new(),
+            energy: Energy {
+                energy_current: 0,
+                energy_max: 0,
+            },
+            this_turn_discards: 0,
+            this_turn_attacks: 0,
+            this_turn_cards_played: 0,
+            this_turn_panache: 0,
+            this_combat_damage_instances_taken: 0,
+            this_combat_escaped: false,
+            bomb_countdown: 0,
+        },
+        reward: Reward {
+            active: false,
+            id_cards: Vec::new(),
+            id_relics: Vec::new(),
+            id_potions: Vec::new(),
+            gold: None,
+            relics_exclusive: false,
+        },
+        event: Event {
+            active: false,
+            event_kind: EventKind::Neow,
+            consumed: false,
+            id_event_options: Vec::new(),
+        },
+        shop: Shop {
+            active: false,
+            cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
+            relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
+            potions: Vec::with_capacity(SHOP_SLOTS_POTION),
+            purge_cost: 0,
+            purged: false,
+        },
+        rest_site: RestSite {
+            active: false,
+            consumed: false,
+        },
+        chest: Chest {
+            active: false,
+            chest_kind: ChestKind::Small,
+            chest_opened: false,
+        },
         game_over: false,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,
         legal_actions: Vec::new(),
@@ -206,17 +275,16 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         neow,
     };
 
-    // Neow's blessing rests over the Map frame at Location::Start
+    // Neow's blessing takes focus at Location::Start
     if neow {
-        let (kind, id_options) = spawn_event(&mut state, EventName::Neow);
-        state.mode_stack.push(Mode::Event {
-            kind,
-            consumed: false,
-            id_options,
-        });
+        let (kind, id_event_options) = spawn_event(&mut state, EventName::Neow);
+        state.event.event_kind = kind;
+        state.event.consumed = false;
+        state.event.id_event_options = id_event_options;
+        state.event.active = true;
     }
 
-    // Settle on the resting frame — Neow's options, or the initial row-0 room picks
+    // Settle on the resting focus — Neow's options, or the initial row-0 room picks
     recompute_legal_actions(&mut state);
     state
 }
@@ -231,7 +299,7 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     // Recompute legal actions
     recompute_legal_actions(state);
 
-    // If fast mode is enabled, auto advance  the game until there's more than one legal action
+    // If fast frame is enabled, auto advance the game until there's more than one legal action
     if state.fast_mode {
         auto_advance(state);
     }

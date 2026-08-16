@@ -21,7 +21,6 @@ pub static FINISHER: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::DamageFinisher { damage: 6 },
         id_source: None,
@@ -35,9 +34,9 @@ pub static FINISHER: Entity = make_entity_card(
 pub static FINISHER_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = FINISHER.card_effects;
-        a[0].kind = EffectKind::DamageFinisher { damage: 8 }; // +2 damage
-        a
+        let mut effects = FINISHER.card_effects;
+        effects[0].kind = EffectKind::DamageFinisher { damage: 8 }; // +2 damage
+        effects
     },
     ..FINISHER
 };

@@ -12,14 +12,13 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::potions::remove_potion;
 use crate::types::CardName;
+use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Mode;
 use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::card_damage_delta;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 use crate::utils::release_stasis_card;
 
 pub fn process_effect_death(
@@ -78,17 +77,18 @@ pub fn process_effect_death(
     }
 
     // Monster-death path
-    let Mode::Combat {
+    assert!(
+        state.combat.active,
+        "Monster death outside the Combat frame"
+    );
+    let Combat {
         id_monsters,
-        id_stasis_cards,
-        id_hand,
-        id_pile_discard,
+        id_card_stasis,
+        id_card_hand,
+        id_card_discard,
         id_card_origins,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("Monster death outside Combat mode")
-    };
+    } = &mut state.combat;
     let id_character = state.id_character;
 
     // Ritual Dagger: a fatal blow permanently grows this copy and its deck original
@@ -110,13 +110,13 @@ pub fn process_effect_death(
 
     // Mark the corpse dead, drop it from the live roster, and check if combat continues
     state.entities[id_target].dead = true;
-    if let Some(slot) = id_monsters.iter().position(|s| *s == Some(id_target)) {
+    if let Some(slot) = id_monsters.iter().position(|slot| *slot == Some(id_target)) {
         id_monsters[slot] = None; // Clear from `id_monsters` Vec
-        release_stasis_card(slot, id_stasis_cards, id_hand, id_pile_discard);
+        release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
     }
 
     // Calculate if there're any monsters left alive
-    let any_alive = id_monsters.iter().any(|s| s.is_some());
+    let any_alive = id_monsters.iter().any(|slot| slot.is_some());
 
     // Return stolen gold, once. Only relevant for Looters in practice
     let stolen_gold = state.entities[id_target].monster_stolen_gold;
@@ -152,8 +152,7 @@ pub fn process_effect_death(
 
     let target = &state.entities[id_target];
 
-    // A leader's death drains its minions: survivors that are all Minions escape
-    // (Gremlin Leader) or die; the queued effects recurse through this handler
+    // A leader's death drains its minions: survivors that are all Minions escape or die
     if !has_modifier(&target.modifiers, ModifierKind::Minion)
         && id_monsters
             .iter()
@@ -161,12 +160,13 @@ pub fn process_effect_death(
             .all(|&id| has_modifier(&state.entities[id].modifiers, ModifierKind::Minion))
     {
         let kind = if target.monster_name == MonsterName::GremlinLeader {
+            // Minions escaping here don't skip rewards because of `RoomKind::CombatElite`
             EffectKind::MonsterEscape
         } else {
             EffectKind::Death
         };
-        for slot in id_monsters.iter() {
-            if let Some(id) = *slot {
+        for id_monster in id_monsters.iter() {
+            if let Some(id) = *id_monster {
                 state.effect_queue.push_front(Effect {
                     kind,
                     id_source: None,
@@ -222,6 +222,7 @@ pub fn process_effect_death(
             },
         });
     }
+
     // Gremlin Horn: a monster's death grants 1 energy and draws 1
     if has_relic(&state.id_relics, RelicName::GremlinHorn) {
         state.effect_queue.push_front(Effect {
@@ -238,22 +239,31 @@ pub fn process_effect_death(
             target: Target::Direct(None),
         });
     }
+
+    // Spore Cloud: ...
     if let Some(e) = spore_effect {
         state.effect_queue.push_front(e);
     }
+
+    // Corpse Explosion: ...
     if let Some(dmg) = corpse_explosion {
-        for slot in id_monsters.iter().rev() {
-            if let Some(id) = *slot
+        for id_monster in id_monsters.iter().rev() {
+            if let Some(id) = *id_monster
                 && id != id_target
             {
                 state.effect_queue.push_front(Effect {
-                    kind: EffectKind::DamageDeal { amount: dmg },
+                    kind: EffectKind::DamageDeal {
+                        amount: dmg,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(id)),
                 });
             }
         }
     }
+
+    // Return sotlen gold
     if let Some(e) = gold_return {
         state.effect_queue.push_front(e);
     }

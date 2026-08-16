@@ -5,6 +5,7 @@ use super::macros::mirror_enum;
 use crate::entity::Entity;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
+use crate::utils::entity_requires_target;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
@@ -44,7 +45,7 @@ pub(crate) fn snapshot_potion(entity: &Entity) -> PyPotion {
     PyPotion {
         name: entity.potion_name.into(),
         rarity: entity.potion_rarity.into(),
-        requires_target: entity.requires_target,
+        requires_target: entity_requires_target(entity),
         combat_only: entity.potion_combat_only,
         effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
     }

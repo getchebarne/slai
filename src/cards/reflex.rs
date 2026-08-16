@@ -21,7 +21,6 @@ pub static REFLEX: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[],
     &[Effect {
         kind: EffectKind::CardDraw { count: 2 },

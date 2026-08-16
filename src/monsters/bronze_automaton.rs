@@ -4,8 +4,8 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
@@ -21,6 +21,8 @@ static MOVE_SPAWN_ORBS: Move = make_move(
         Effect {
             kind: EffectKind::MonsterSpawn {
                 name: MonsterName::BronzeOrb,
+                minion: false,
+                cap: None,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -28,6 +30,8 @@ static MOVE_SPAWN_ORBS: Move = make_move(
         Effect {
             kind: EffectKind::MonsterSpawn {
                 name: MonsterName::BronzeOrb,
+                minion: false,
+                cap: None,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -35,7 +39,6 @@ static MOVE_SPAWN_ORBS: Move = make_move(
     ],
     Intent::Unknown,
 );
-
 static MOVE_STUNNED: Move = make_move("Stunned", &[], Intent::Stunned);
 static MOVE_FLAIL_7: Move = make_move_attack("Flail", 7, 2);
 static MOVE_FLAIL_8: Move = make_move_attack("Flail", 8, 2);
@@ -84,7 +87,7 @@ pub fn spawn_monster_bronze_automaton(ascension_level: u8) -> Entity {
         &MOVES_ASC9
     };
 
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::Artifact, 3);
 
     make_entity_monster(
@@ -100,20 +103,26 @@ pub fn spawn_monster_bronze_automaton(ascension_level: u8) -> Entity {
     )
 }
 
-// Deterministic cycle: Spawn, then Flail/Boost alternating; the fifth cycling turn
-// is Hyper Beam, followed by a Stunned turn (A19+ Boosts instead of stalling)
+// Deterministic: Spawn, then Flail / Boost alternating; the fifth cycling turn
+// is Hyper Beam, followed by a Stunned turn
 pub fn get_next_move_bronze_automaton(move_history: &[u8], ascension_level: u8) -> usize {
     if move_history.is_empty() {
         return IDX_MOVE_SPAWN_ORBS;
     }
     let last = *move_history.last().unwrap() as usize;
 
-    // Count cycling turns (Flail/Boost) since the last Hyper Beam; the A19+
-    // post-beam Boost is forced, not cycled, so it is skipped in the count
+    // Count cycling turns (Flail / Boost) since the last Hyper Beam
     let segment_start = move_history
         .iter()
-        .rposition(|&m| m as usize == IDX_MOVE_HYPER_BEAM)
-        .map_or(0, |p| if ascension_level >= 19 { p + 2 } else { p + 1 });
+        .rposition(|&idx_move| idx_move as usize == IDX_MOVE_HYPER_BEAM)
+        // The A19+ post-beam Boost is forced, so it is skipped in the count
+        .map_or(0, |pos| {
+            if ascension_level >= 19 {
+                pos + 2
+            } else {
+                pos + 1
+            }
+        });
     let num_turns = move_history
         .iter()
         .skip(segment_start)

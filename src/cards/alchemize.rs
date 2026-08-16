@@ -21,7 +21,6 @@ pub static ALCHEMIZE: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::PotionAddRandom { limited: true },
         id_source: None,

@@ -5,8 +5,8 @@ use crate::effect::TARGET_SOURCE;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
@@ -31,7 +31,10 @@ const fn make_move_harden(damage: u16) -> Move {
                 target: TARGET_SOURCE,
             },
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -90,7 +93,7 @@ pub fn spawn_monster_spheric_guardian(ascension_level: u8, _rng: &mut impl Rng) 
         &MOVES_ASC17
     };
 
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::Barricade, 1);
     modifier_apply(&mut modifiers, ModifierKind::Artifact, 3);
 

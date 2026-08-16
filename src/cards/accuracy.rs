@@ -22,7 +22,6 @@ pub static ACCURACY: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Accuracy,
@@ -39,12 +38,12 @@ pub static ACCURACY: Entity = make_entity_card(
 pub static ACCURACY_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = ACCURACY.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = ACCURACY.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Accuracy,
             stacks: 6, // +2 stacks
         };
-        a
+        effects
     },
     ..ACCURACY
 };

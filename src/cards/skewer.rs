@@ -21,9 +21,11 @@ pub static SKEWER: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 7 },
+        kind: EffectKind::DamagePhysical {
+            amount: 7,
+            lifesteal: false,
+        },
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
@@ -35,9 +37,12 @@ pub static SKEWER: Entity = make_entity_card(
 pub static SKEWER_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = SKEWER.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 10 }; // +3 damage
-        a
+        let mut effects = SKEWER.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
+            amount: 10,
+            lifesteal: false,
+        }; // +3 damage
+        effects
     },
     ..SKEWER
 };

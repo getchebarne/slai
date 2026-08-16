@@ -1,23 +1,20 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RewardSource;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::make_entity_event_option;
 
-// Search: the rolled Potions land on the reward screen, where the belt is
+// Search: the rolled Potions land on the Reward context, where the belt is
 // interactive (discard-to-swap), matching the source's combatRewardScreen
 const fn search(count: u8) -> [Effect; 2] {
     [
-        // Consume first: RewardRollPotions replaces this event with Mode::Reward
+        // Consume first: the staged Reward overlays this frame until RoomExit
         EVENT_CONSUME_EFFECT,
         Effect {
-            kind: EffectKind::RewardRoll {
-                source: RewardSource::Potions {
-                    count,
-                    uniform: false,
-                },
+            kind: EffectKind::RewardRollPotions {
+                count,
+                uniform: false,
             },
             id_source: None,
             target: Target::Direct(None),

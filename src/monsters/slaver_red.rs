@@ -1,8 +1,8 @@
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move_attack;
 use crate::monsters::make_move_attack_debuff;
@@ -59,7 +59,7 @@ pub fn spawn_monster_slaver_red(ascension_level: u8, rng: &mut impl Rng) -> Enti
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }
@@ -73,7 +73,9 @@ pub fn get_next_move_slaver_red(
     if move_current.is_none() {
         return IDX_MOVE_STAB;
     }
-    let used_entangle = move_history.iter().any(|&m| m == IDX_MOVE_ENTANGLE as u8);
+    let used_entangle = move_history
+        .iter()
+        .any(|&idx_move| idx_move == IDX_MOVE_ENTANGLE as u8);
 
     let roll = rng.random_range(0..=99);
     let last_two_stab = move_history.ends_with(&[IDX_MOVE_STAB as u8, IDX_MOVE_STAB as u8]);

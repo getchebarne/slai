@@ -1,13 +1,12 @@
 use rand::Rng;
 use strum::EnumCount;
 
+use crate::consts::NUM_ENCOUNTERS_EASY;
+use crate::consts::NUM_ENCOUNTERS_EASY_ACT2;
 use crate::consts::NUM_ENCOUNTERS_ELITE;
 use crate::consts::NUM_ENCOUNTERS_HARD;
-use crate::consts::NUM_ENCOUNTERS_WEAK;
-use crate::consts::NUM_ENCOUNTERS_WEAK_ACT2;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::EventLoot;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::monsters::GREMLIN_POOL;
@@ -253,8 +252,10 @@ const ENC_POOL_ELITE2: [MonsterEncounter; NUM_ELITE2] = build_pool(EncounterPool
 // Sort ascending by weight (stable for ties), normalize to sum 1.0
 fn normalize_weights(pool: &[MonsterEncounter]) -> Vec<(MonsterEncounter, f32)> {
     // Pair each encounter with its raw weight
-    let mut encounter_table: Vec<(MonsterEncounter, f32)> =
-        pool.iter().map(|&e| (e, get_encounter_weight(e))).collect();
+    let mut encounter_table: Vec<(MonsterEncounter, f32)> = pool
+        .iter()
+        .map(|&monster_encounter| (monster_encounter, get_encounter_weight(monster_encounter)))
+        .collect();
 
     // Stable ascending sort
     encounter_table.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
@@ -332,12 +333,12 @@ fn populate_first_hard_encounter(
     }
 }
 
-// First-hard exclusions, keyed on the act and its last weak entry
+// First-hard exclusions, keyed on the act and its last easy entry
 fn get_act_exclusions(
     act: u8,
-    encounter_last_weak: MonsterEncounter,
+    encounter_last_easy: MonsterEncounter,
 ) -> &'static [MonsterEncounter] {
-    match (act, encounter_last_weak) {
+    match (act, encounter_last_easy) {
         (1, MonsterEncounter::TwoLouse) => &[MonsterEncounter::ThreeLouse],
         (1, MonsterEncounter::SmallSlimes) => {
             &[MonsterEncounter::LargeSlime, MonsterEncounter::LotsOfSlimes]
@@ -358,8 +359,8 @@ pub fn generate_act_monsters(
     elite_list: &mut Vec<MonsterEncounter>,
     rng: &mut impl Rng,
 ) {
-    // Per-act pools and weak-fight count
-    let (pool_easy, pool_hard, pool_elite, num_weak): (
+    // Per-act pools and easy-fight count
+    let (pool_easy, pool_hard, pool_elite, num_easy_enc): (
         &[MonsterEncounter],
         &[MonsterEncounter],
         &[MonsterEncounter],
@@ -369,13 +370,13 @@ pub fn generate_act_monsters(
             &ENC_POOL_EASY,
             &ENC_POOL_HARD,
             &ENC_POOL_ELITE,
-            NUM_ENCOUNTERS_WEAK,
+            NUM_ENCOUNTERS_EASY,
         ),
         2 => (
             &ENC_POOL_EASY2,
             &ENC_POOL_HARD2,
             &ENC_POOL_ELITE2,
-            NUM_ENCOUNTERS_WEAK_ACT2,
+            NUM_ENCOUNTERS_EASY_ACT2,
         ),
         _ => unreachable!("no encounter pools for act {act}"),
     };
@@ -386,7 +387,13 @@ pub fn generate_act_monsters(
     let encounter_table_elite = normalize_weights(pool_elite);
 
     // Sample easy encounters
-    populate_encounter_list(encounter_list, &encounter_table_easy, num_weak, false, rng);
+    populate_encounter_list(
+        encounter_list,
+        &encounter_table_easy,
+        num_easy_enc,
+        false,
+        rng,
+    );
 
     // Get exclusions based on last easy encounter
     let encounter_exclusions = get_act_exclusions(act, *encounter_list.last().unwrap());
@@ -483,18 +490,18 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
 
 fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName) {
     effects.push(Effect {
-        kind: EffectKind::MonsterSpawn { name },
+        kind: EffectKind::MonsterSpawn {
+            name,
+            minion: false,
+            cap: None,
+        },
         id_source: None,
         target: Target::Direct(None),
     });
 }
 
 // Queues the encounter's spawns followed by `EffectKind::CombatStart`
-pub fn spawn_encounter_monsters(
-    state: &mut GameState,
-    encounter: MonsterEncounter,
-    loot: EventLoot,
-) {
+pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncounter) {
     state.effect_buf.clear();
     let effects = &mut state.effect_buf;
     let rng = &mut state.rng;
@@ -648,7 +655,7 @@ pub fn spawn_encounter_monsters(
     }
 
     effects.push(Effect {
-        kind: EffectKind::CombatStart { loot },
+        kind: EffectKind::CombatStart,
         id_source: None,
         target: Target::Direct(None),
     });

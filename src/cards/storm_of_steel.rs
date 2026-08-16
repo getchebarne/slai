@@ -21,7 +21,6 @@ pub static STORM_OF_STEEL: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::StormOfSteelProc { upgraded: false },
         id_source: None,
@@ -35,9 +34,9 @@ pub static STORM_OF_STEEL: Entity = make_entity_card(
 pub static STORM_OF_STEEL_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = STORM_OF_STEEL.card_effects;
-        a[0].kind = EffectKind::StormOfSteelProc { upgraded: true }; // Shivs are upgraded
-        a
+        let mut effects = STORM_OF_STEEL.card_effects;
+        effects[0].kind = EffectKind::StormOfSteelProc { upgraded: true }; // Shivs are upgraded
+        effects
     },
     ..STORM_OF_STEEL
 };

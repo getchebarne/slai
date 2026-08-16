@@ -9,7 +9,6 @@ use crate::types::PotionRarity;
 pub static POTION_BLOCK: Entity = make_entity_potion(
     PotionName::BlockPotion,
     PotionRarity::Common,
-    false,
     true,
     &[Effect {
         kind: EffectKind::BlockGain { amount: 12 },

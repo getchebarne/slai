@@ -5,8 +5,8 @@ use crate::effect::TARGET_SOURCE;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
 use crate::monsters::make_move_attack;
@@ -45,7 +45,10 @@ const fn make_move_face_slap(damage: u16) -> Move {
         "Face Slap",
         &[
             Effect {
-                kind: EffectKind::DamagePhysical { amount: damage },
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    lifesteal: false,
+                },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -190,7 +193,7 @@ pub fn spawn_monster_champ(ascension_level: u8) -> Entity {
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }
@@ -202,7 +205,9 @@ pub fn get_next_move_champ(
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
-    let threshold_reached = move_history.iter().any(|&m| m as usize == IDX_MOVE_ANGER);
+    let threshold_reached = move_history
+        .iter()
+        .any(|&idx_move| idx_move as usize == IDX_MOVE_ANGER);
 
     // Below half HP the Champ rages once, then Executes every chance it gets
     if health < health_max / 2 && !threshold_reached {
@@ -213,7 +218,7 @@ pub fn get_next_move_champ(
             .iter()
             .rev()
             .take(2)
-            .any(|&m| m as usize == IDX_MOVE_EXECUTE)
+            .any(|&idx_move| idx_move as usize == IDX_MOVE_EXECUTE)
     {
         return IDX_MOVE_EXECUTE;
     }
@@ -221,13 +226,16 @@ pub fn get_next_move_champ(
     // Pre-threshold, Taunt lands every fourth turn
     let turns_since_taunt = move_history
         .iter()
-        .rposition(|&m| m as usize == IDX_MOVE_TAUNT)
-        .map_or(move_history.len(), |p| move_history.len() - p - 1);
+        .rposition(|&idx_move| idx_move as usize == IDX_MOVE_TAUNT)
+        .map_or(move_history.len(), |pos| move_history.len() - pos - 1);
     if !threshold_reached && turns_since_taunt == 3 {
         return IDX_MOVE_TAUNT;
     }
 
-    let last = move_history.last().copied().map(|m| m as usize);
+    let last = move_history
+        .last()
+        .copied()
+        .map(|idx_move| idx_move as usize);
     let roll = rng.random_range(0..=99);
     let forge_roll_max = if ascension_level >= 19 { 30 } else { 15 };
     let forge_times = move_history

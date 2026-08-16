@@ -21,20 +21,28 @@ pub static EVISCERATE: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
@@ -47,12 +55,15 @@ pub static EVISCERATE: Entity = make_entity_card(
 pub static EVISCERATE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = EVISCERATE.card_effects;
-        let upgraded_kind = EffectKind::DamagePhysical { amount: 9 }; // +2 damage
-        a[0].kind = upgraded_kind;
-        a[1].kind = upgraded_kind;
-        a[2].kind = upgraded_kind;
-        a
+        let mut effects = EVISCERATE.card_effects;
+        let upgraded_kind = EffectKind::DamagePhysical {
+            amount: 9,
+            lifesteal: false,
+        }; // +2 damage
+        effects[0].kind = upgraded_kind;
+        effects[1].kind = upgraded_kind;
+        effects[2].kind = upgraded_kind;
+        effects
     },
     ..EVISCERATE
 };

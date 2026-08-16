@@ -22,7 +22,6 @@ pub static CATALYST: Entity = make_entity_card(
     true,
     false,
     false,
-    true,
     &[Effect {
         kind: EffectKind::ModifierMultiply {
             kind: ModifierKind::Poison,
@@ -39,12 +38,12 @@ pub static CATALYST: Entity = make_entity_card(
 pub static CATALYST_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = CATALYST.card_effects;
-        a[0].kind = EffectKind::ModifierMultiply {
+        let mut effects = CATALYST.card_effects;
+        effects[0].kind = EffectKind::ModifierMultiply {
             kind: ModifierKind::Poison,
             factor: 3, // +1 factor
         };
-        a
+        effects
     },
     ..CATALYST
 };

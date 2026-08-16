@@ -28,6 +28,7 @@ use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
+use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -42,8 +43,9 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
+use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Mode;
+use crate::types::Focus;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -54,18 +56,33 @@ pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
     }
 }
 
-// The stack is never empty: `Mode::Map` is the permanent bottom frame
-pub fn mode_top(mode_stack: &[Mode]) -> &Mode {
-    mode_stack.last().expect("Mode stack never empty")
+// The focused context: reward > combat > room context > map. Derived from
+// the active flags, never stored
+pub fn context_focus(state: &GameState) -> Focus {
+    if state.reward.active {
+        Focus::Reward
+    } else if state.combat.active {
+        Focus::Combat
+    } else if state.shop.active {
+        Focus::Shop
+    } else if state.chest.active {
+        Focus::Chest
+    } else if state.rest_site.active {
+        Focus::RestSite
+    } else if state.event.active {
+        Focus::Event
+    } else {
+        Focus::Map
+    }
 }
 
-pub fn mode_top_mut(mode_stack: &mut [Mode]) -> &mut Mode {
-    mode_stack.last_mut().expect("Mode stack never empty")
-}
-
-// Swap the active frame for a new one; its memory dies with it
-pub fn mode_replace(mode_stack: &mut [Mode], mode: Mode) {
-    *mode_top_mut(mode_stack) = mode;
+// Untargeted tail-queue, shared by the reward recipes (combat_end, chest_open)
+pub fn queue_effect_untargeted(state: &mut GameState, kind: EffectKind) {
+    state.effect_queue.push_back(Effect {
+        kind,
+        id_source: None,
+        target: Target::Direct(None),
+    });
 }
 
 // The MaxHealthDelta handler queues the matching heal itself
@@ -92,10 +109,7 @@ pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName)
 }
 
 pub fn card_is_upgradable(entity: &Entity) -> bool {
-    if entity.kind != EntityKind::Card {
-        return false;
-    }
-    if entity.card_upgraded {
+    if entity.kind != EntityKind::Card || entity.card_upgraded {
         return false;
     }
     !matches!(entity.card_kind, CardKind::Curse | CardKind::Status)
@@ -125,27 +139,78 @@ pub const fn card_name_never_obtainable(name: CardName) -> bool {
     )
 }
 
-pub fn card_is_purgeable(entity: &Entity) -> bool {
-    if entity.kind != EntityKind::Card {
-        return false;
+pub fn get_card_effective_cost(
+    card: &Entity,
+    this_turn_discards: u8,
+    this_combat_damage_instances_taken: u8,
+    energy_current: u8,
+) -> u8 {
+    if let Some(cost_override) = card.card_cost_override {
+        return cost_override.amount;
     }
+    match card.card_cost_kind {
+        CardCostKind::Fixed => card.card_cost,
+        CardCostKind::MinusDiscardsThisTurn => card.card_cost.saturating_sub(this_turn_discards),
+        CardCostKind::GrowsOnDamageInstanceTaken => card
+            .card_cost
+            .saturating_add(this_combat_damage_instances_taken),
+        CardCostKind::XCost { .. } => energy_current,
+    }
+}
+
+// Evaluate a PlayRestriction against the relevant slice of game state
+pub fn is_play_restriction_satisfied(
+    restriction: PlayRestriction,
+    card_kind: CardKind,
+    id_card_draw: &[usize],
+    id_relics: &[Option<usize>; RelicName::COUNT],
+) -> bool {
+    match restriction {
+        PlayRestriction::Always => true,
+        PlayRestriction::Never => match card_kind {
+            CardKind::Curse => has_relic(id_relics, RelicName::BlueCandle),
+            CardKind::Status => has_relic(id_relics, RelicName::MedicalKit),
+            _ => false,
+        },
+        PlayRestriction::DrawPileEmpty => id_card_draw.is_empty(),
+    }
+}
+
+// A play needs a picked monster iff any effect resolves against the pick
+pub fn entity_requires_target(entity: &Entity) -> bool {
+    let card_effects = &entity.card_effects[..entity.card_effects_len as usize];
+    card_effects
+        .iter()
+        .chain(entity.potion_effects)
+        .any(|effect| {
+            matches!(
+                effect.target,
+                Target::Resolve {
+                    filter: CandidateFilter::Picked,
+                    ..
+                }
+            )
+        })
+}
+
+pub fn card_is_purgeable(entity: &Entity) -> bool {
     // Bottled Cards can't be removed or transformed while bottled
-    if entity.card_bottled {
+    if entity.kind != EntityKind::Card || entity.card_bottled {
         return false;
     }
     !card_name_never_obtainable(entity.card_name)
 }
 pub use card_is_purgeable as card_is_transformable;
 
-// Single source of truth for which Cards a CandidatePoolCardFilter admits (deck or hand pools)
-// One filter for every Resolve. Entity predicates are total over the fat Entity;
-// Picked / NotSource compare `id` against the resolve context instead
+// Single source of truth for which candidates a Resolve admits, whatever the
+// pool. Entity predicates are total over the fat Entity; Picked / NotSource
+// compare `id` against the resolve context instead
 pub fn candidate_matches(
     filter: CandidateFilter,
     id: usize,
     entity: &Entity,
     id_source: Option<usize>,
-    id_picked_monster: Option<usize>,
+    id_monster_picked: Option<usize>,
 ) -> bool {
     match filter {
         CandidateFilter::Any => true,
@@ -163,10 +228,10 @@ pub fn candidate_matches(
                 && entity.card_cost > 0
                 && entity
                     .card_cost_override
-                    .map_or(entity.card_cost, |o| o.amount)
+                    .map_or(entity.card_cost, |cost_override| cost_override.amount)
                     > 0
         }
-        CandidateFilter::Picked => Some(id) == id_picked_monster,
+        CandidateFilter::Picked => Some(id) == id_monster_picked,
         CandidateFilter::NotSource => Some(id) != id_source,
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
         CandidateFilter::StarterStrike => entity.card_name == CardName::Strike,
@@ -180,69 +245,67 @@ pub fn candidate_matches(
 // Vacating a roster slot frees its Stasis hostage; mirrors place_card's hand-overflow rule
 pub fn release_stasis_card(
     slot: usize,
-    id_stasis_cards: &mut [Option<usize>; MAX_MONSTERS],
-    id_hand: &mut Vec<usize>,
-    id_pile_discard: &mut Vec<usize>,
+    id_card_stasis: &mut [Option<usize>; MAX_MONSTERS],
+    id_card_hand: &mut Vec<usize>,
+    id_card_discard: &mut Vec<usize>,
 ) {
-    if let Some(id_card) = id_stasis_cards[slot].take() {
-        if id_hand.len() < MAX_SIZE_HAND {
-            id_hand.push(id_card);
+    if let Some(id_card) = id_card_stasis[slot].take() {
+        if id_card_hand.len() < MAX_SIZE_HAND {
+            id_card_hand.push(id_card);
         } else {
-            id_pile_discard.push(id_card);
+            id_card_discard.push(id_card);
         }
     }
 }
 
 pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool {
-    let Mode::Combat {
-        id_hand,
-        id_pile_draw,
-        id_pile_discard,
+    assert!(
+        context_focus(state) == Focus::Combat,
+        "Combat pile placement outside combat"
+    );
+    let Combat {
+        id_card_hand,
+        id_card_draw,
+        id_card_discard,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("Combat pile placement outside Combat mode")
-    };
+    } = &mut state.combat;
 
     match pile {
         // Hand overflows to discard
         CardPile::Hand => {
-            if id_hand.len() < MAX_SIZE_HAND {
-                id_hand.push(id_card);
+            if id_card_hand.len() < MAX_SIZE_HAND {
+                id_card_hand.push(id_card);
             } else {
-                id_pile_discard.push(id_card);
+                id_card_discard.push(id_card);
                 return false;
             }
         }
 
         // Draw inserts at a random position
         CardPile::Draw => {
-            let idx = state.rng.random_range(0..=id_pile_draw.len());
-            id_pile_draw.insert(idx, id_card);
+            let idx = state.rng.random_range(0..=id_card_draw.len());
+            id_card_draw.insert(idx, id_card);
         }
 
         // Discard just goes to discard
-        CardPile::Discard => id_pile_discard.push(id_card),
+        CardPile::Discard => id_card_discard.push(id_card),
 
-        // Deck entry goes through CardAddToDeck instead
+        // Deck entry goes through CardAdopt instead
         CardPile::Deck => unreachable!(),
     }
     true
 }
 
 // Remove the id from whichever combat pile holds it; played Cards are pile-less (no-op)
-pub fn detach_card(mode: &mut Mode, id_card: usize) {
-    let Mode::Combat {
-        id_hand,
-        id_pile_draw,
-        id_pile_discard,
+pub fn detach_card(combat: &mut Combat, id_card: usize) {
+    let Combat {
+        id_card_hand,
+        id_card_draw,
+        id_card_discard,
         ..
-    } = mode
-    else {
-        unreachable!("detach_card outside Combat mode")
-    };
-    for pile in [id_hand, id_pile_draw, id_pile_discard] {
-        if let Some(pos) = pile.iter().position(|&v| v == id_card) {
+    } = combat;
+    for pile in [id_card_hand, id_card_draw, id_card_discard] {
+        if let Some(pos) = pile.iter().position(|&id| id == id_card) {
             pile.remove(pos);
             return;
         }
@@ -250,27 +313,27 @@ pub fn detach_card(mode: &mut Mode, id_card: usize) {
 }
 
 pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
-    for i in (1..slice.len()).rev() {
-        let j = rng.random_range(0..=i);
-        slice.swap(i, j);
+    for idx in (1..slice.len()).rev() {
+        let jdx = rng.random_range(0..=idx);
+        slice.swap(idx, jdx);
     }
 }
 
 // Unceasing Top: queue rest in Combat means the player is about to act; a drawable Card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
-    let Mode::Combat {
-        id_hand,
-        id_pile_draw,
-        id_pile_discard,
-        ..
-    } = mode_top(&state.mode_stack)
-    else {
+    if context_focus(state) != Focus::Combat {
         return false;
-    };
+    }
+    let Combat {
+        id_card_hand,
+        id_card_draw,
+        id_card_discard,
+        ..
+    } = &state.combat;
     has_relic(&state.id_relics, RelicName::UnceasingTop)
         && state.effect_pending.is_none()
-        && id_hand.is_empty()
-        && !(id_pile_draw.is_empty() && id_pile_discard.is_empty())
+        && id_card_hand.is_empty()
+        && !(id_card_draw.is_empty() && id_card_discard.is_empty())
         && !has_modifier(
             &state.entities[state.id_character].modifiers,
             ModifierKind::NoDraw,
@@ -306,7 +369,7 @@ pub fn scale_attack_damage(
     value.max(0.0) as u16
 }
 
-// Shared by the live block pipeline and the FFI Card preview
+// Shared by the live block pipeline and the FFI Card snapshot
 pub fn scale_block_gain(base: u16, dex_stacks: i16, frail: bool) -> u16 {
     let mut value = base as f32 + dex_stacks as f32;
     if frail {
@@ -376,8 +439,7 @@ pub fn roll_boss_gold(rng: &mut impl Rng, ascension: u8) -> u16 {
     }
 }
 
-// Fraction-of-max resolution shared by HealthDelta and MaxHealthDelta; f32 mirrors
-// the source's (int)(maxHP * fraction) float truncation
+// Fraction-of-max resolution shared by HealthDelta and MaxHealthDelta
 pub fn resolve_health_fraction(health_max: u16, amount: Amount, sign: DeltaSign) -> u16 {
     match amount {
         Amount::Absolute(a) => a,
@@ -454,8 +516,7 @@ pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize
     count
 }
 
-// Roll `count` distinct Cards (count <= MAX_CARD_REWARD_ROLL); pity-bumps reward_roll_offset
-// toward rares. Boss rewards force the rare pool without touching the pity state
+// Roll `count` distinct Cards; pity-bumps reward_roll_offset toward rares
 pub fn roll_card_rewards(
     id_character: usize,
     entities: &mut Vec<Entity>,
@@ -480,6 +541,7 @@ pub fn roll_card_rewards(
 
     out.clear();
     for _ in 0..count {
+        // Roll rarity
         let (pool, rarity) = if rare_only {
             (POOL_RARE_GREEN_CARD, CardRarity::Rare)
         } else {
@@ -505,12 +567,14 @@ pub fn roll_card_rewards(
             }
         }
 
+        // Roll Cards. Loop until it's unique
         let mut name = pool[rng.random_range(0..pool.len())];
         while card_names_rolled[..out.len()].contains(&name) {
             name = pool[rng.random_range(0..pool.len())];
         }
-
         card_names_rolled[out.len()] = name;
+
+        // Push the rolled Card
         let card = get_card(
             name,
             // Eggs upgrade matching rewards at roll time, so the preview shows the truth

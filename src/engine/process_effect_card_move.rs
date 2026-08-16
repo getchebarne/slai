@@ -5,7 +5,6 @@ use crate::game::GameState;
 use crate::types::CardPile;
 use crate::types::CostScope;
 use crate::utils::detach_card;
-use crate::utils::mode_top_mut;
 use crate::utils::place_card;
 
 pub fn process_effect_card_move(
@@ -18,7 +17,7 @@ pub fn process_effect_card_move(
     let id_target = id_target.expect("CardMove requires id_target");
 
     // Remove from current pile
-    detach_card(mode_top_mut(&mut state.mode_stack), id_target);
+    detach_card(&mut state.combat, id_target);
 
     // Place in new one
     let placed = place_card(state, id_target, pile);

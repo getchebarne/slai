@@ -9,10 +9,12 @@ use crate::types::PotionRarity;
 pub static POTION_EXPLOSIVE: Entity = make_entity_potion(
     PotionName::ExplosivePotion,
     PotionRarity::Common,
-    false,
     true,
     &[Effect {
-        kind: EffectKind::DamagePhysical { amount: 10 },
+        kind: EffectKind::DamagePhysical {
+            amount: 10,
+            lifesteal: false,
+        },
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     }],

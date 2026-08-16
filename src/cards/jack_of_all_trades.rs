@@ -22,7 +22,6 @@ pub static JACK_OF_ALL_TRADES: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardAddRandom {
             color: CardColor::Colorless,
@@ -44,8 +43,8 @@ pub static JACK_OF_ALL_TRADES: Entity = make_entity_card(
 pub static JACK_OF_ALL_TRADES_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = JACK_OF_ALL_TRADES.card_effects;
-        a[0].kind = EffectKind::CardAddRandom {
+        let mut effects = JACK_OF_ALL_TRADES.card_effects;
+        effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,
             pile: CardPile::Hand,
@@ -54,7 +53,7 @@ pub static JACK_OF_ALL_TRADES_PLUS: Entity = Entity {
             upgraded: false,
             rarity: None,
         };
-        a
+        effects
     },
     ..JACK_OF_ALL_TRADES
 };

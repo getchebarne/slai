@@ -22,10 +22,12 @@ pub static SUCKER_PUNCH: Entity = make_entity_card(
     false,
     false,
     false,
-    true,
     &[
         Effect {
-            kind: EffectKind::DamagePhysical { amount: 7 },
+            kind: EffectKind::DamagePhysical {
+                amount: 7,
+                lifesteal: false,
+            },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
         },
@@ -46,13 +48,16 @@ pub static SUCKER_PUNCH: Entity = make_entity_card(
 pub static SUCKER_PUNCH_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = SUCKER_PUNCH.card_effects;
-        a[0].kind = EffectKind::DamagePhysical { amount: 9 }; // +2 damage
-        a[1].kind = EffectKind::ModifierGain {
+        let mut effects = SUCKER_PUNCH.card_effects;
+        effects[0].kind = EffectKind::DamagePhysical {
+            amount: 9,
+            lifesteal: false,
+        }; // +2 damage
+        effects[1].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Weak,
             stacks: 2, // +1 weak
         };
-        a
+        effects
     },
     ..SUCKER_PUNCH
 };

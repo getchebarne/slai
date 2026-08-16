@@ -1,6 +1,6 @@
 use crate::entity::Entity;
 use crate::entity::Move;
-use crate::modifier::ZERO_MODIFIERS;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move_attack;
 use crate::types::MonsterKind;
@@ -27,7 +27,7 @@ pub fn spawn_monster_bandit_pointy(ascension_level: u8) -> Entity {
             health_max,
             block: 0,
         },
-        ZERO_MODIFIERS,
+        MODIFIERS_ZERO,
         moves,
     )
 }

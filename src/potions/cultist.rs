@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_CULTIST: Entity = make_entity_potion(
     PotionName::CultistPotion,
     PotionRarity::Rare,
-    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {

@@ -6,7 +6,6 @@ use pyo3::type_object::PyTypeInfo;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::KnowingSkullWish;
-use crate::effect::RewardSource;
 use crate::effect::Target;
 
 use super::amount::PyAmount;
@@ -31,7 +30,7 @@ mirror_enum!(PyKnowingSkullWish from KnowingSkullWish, "KnowingSkullWish", skip_
 
 // Mirrors only EffectKind variants reachable from static Card/monster defs; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
-    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, target: Option<PyTarget> },
+    DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, lifesteal: bool, target: Option<PyTarget> },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: Option<PyTarget> },
     HeelHookProc => PyEffectHeelHookProc as "EffectHeelHookProc" { target: Option<PyTarget> },
     EscapePlanCheck => PyEffectEscapePlanCheck as "EffectEscapePlanCheck" { block: u16, target: Option<PyTarget> },
@@ -69,7 +68,7 @@ flat_variants!(PyEffect {
     BonfireOffer => PyEffectBonfireOffer as "EffectBonfireOffer" { target: Option<PyTarget> },
     CardBottle => PyEffectCardBottle as "EffectCardBottle" { target: Option<PyTarget> },
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName, target: Option<PyTarget> },
-    CombatStart => PyEffectCombatStart as "EffectCombatStart" { event_gold: Option<PyAmount>, event_relic: Option<PyRelicName>, event_relic_roll: bool, event_relic_tiers: Vec<PyRelicTier>, target: Option<PyTarget> },
+    CombatStart => PyEffectCombatStart as "EffectCombatStart" { target: Option<PyTarget> },
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch" { target: Option<PyTarget> },
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName, fallback_circlet: bool, target: Option<PyTarget> },
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8, target: Option<PyTarget> },
@@ -91,11 +90,9 @@ flat_variants!(PyEffect {
     RelicLose => PyEffectRelicLose as "EffectRelicLose" { name: PyRelicName, target: Option<PyTarget> },
     RewardRollNeowCards => PyEffectRewardRollNeowCards as "EffectRewardRollNeowCards" { colorless: bool, rare_only: bool, target: Option<PyTarget> },
     StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: Option<PyTarget> },
-    DamageLifesteal => PyEffectDamageLifesteal as "EffectDamageLifesteal" { amount: u16, target: Option<PyTarget> },
     MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen" { target: Option<PyTarget> },
     KnowingSkullAsk => PyEffectKnowingSkullAsk as "EffectKnowingSkullAsk" { wish: PyKnowingSkullWish, target: Option<PyTarget> },
     JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool, target: Option<PyTarget> },
-    MatchGameFlip => PyEffectMatchGameFlip as "EffectMatchGameFlip" { target: Option<PyTarget> },
     RewardRollLibraryCards => PyEffectRewardRollLibraryCards as "EffectRewardRollLibraryCards" { target: Option<PyTarget> },
     RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName>, target: Option<PyTarget> },
 });
@@ -111,15 +108,18 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             filter: filter.into(),
             selection_kind: selection_kind.into(),
         }),
-        Target::Direct(None) => None,
-        Target::Direct(Some(_)) => panic!(
-            "snapshot_effect: unexpected Direct(Some) on static Card effect: {:?}",
-            effect,
-        ),
+        // PyTarget describes how a target gets chosen; a baked pick (We Meet
+        // Again's spawn-rolled card/potion) has no choosing left — the concrete
+        // pick is exposed on the event-kind payload instead
+        Target::Direct(_) => None,
     };
     match effect.kind {
-        EffectKind::DamagePhysical { amount } => {
-            PyEffect::DamagePhysical(PyEffectDamagePhysical { amount, target })
+        EffectKind::DamagePhysical { amount, lifesteal } => {
+            PyEffect::DamagePhysical(PyEffectDamagePhysical {
+                amount,
+                lifesteal,
+                target,
+            })
         }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
             PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned { amount, target })
@@ -254,22 +254,11 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin { target }),
         EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target }),
         EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle { target }),
-        EffectKind::MonsterSpawn { name } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
+        EffectKind::MonsterSpawn { name, .. } => PyEffect::MonsterSpawn(PyEffectMonsterSpawn {
             name: name.into(),
             target,
         }),
-        EffectKind::CombatStart { loot } => PyEffect::CombatStart(PyEffectCombatStart {
-            event_gold: loot.gold.map(Into::into),
-            event_relic: loot.relic.map(Into::into),
-            event_relic_roll: loot.relic_roll,
-            event_relic_tiers: loot
-                .relic_tiers
-                .iter()
-                .flatten()
-                .map(|&t| t.into())
-                .collect(),
-            target,
-        }),
+        EffectKind::CombatStart => PyEffect::CombatStart(PyEffectCombatStart { target }),
         EffectKind::AdventurerSearch => {
             PyEffect::AdventurerSearch(PyEffectAdventurerSearch { target })
         }
@@ -299,19 +288,16 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited, target })
         }
         EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard { target }),
-        EffectKind::RewardRoll {
-            source: RewardSource::Potions { count, uniform },
-        } => PyEffect::RewardRollPotions(PyEffectRewardRollPotions {
-            count,
-            uniform,
-            target,
-        }),
-        EffectKind::RewardRoll {
-            source:
-                RewardSource::NeowCards {
-                    colorless,
-                    rare_only,
-                },
+        EffectKind::RewardRollPotions { count, uniform } => {
+            PyEffect::RewardRollPotions(PyEffectRewardRollPotions {
+                count,
+                uniform,
+                target,
+            })
+        }
+        EffectKind::RewardRollNeowCards {
+            colorless,
+            rare_only,
         } => PyEffect::RewardRollNeowCards(PyEffectRewardRollNeowCards {
             colorless,
             rare_only,
@@ -323,9 +309,9 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             exclude,
             count,
         } => PyEffect::CardDiscoverRoll(PyEffectCardDiscoverRoll {
-            kind: kind.map(|k| k.into()),
+            kind: kind.map(|card_kind| card_kind.into()),
             color: color.into(),
-            exclude: exclude.iter().map(|&n| n.into()).collect(),
+            exclude: exclude.iter().map(|&card_name| card_name.into()).collect(),
             count,
             target,
         }),
@@ -333,7 +319,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardDiscoverPick { cost_zero, pile } => {
             PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
                 pile: pile.into(),
-                cost_zero: cost_zero.map(|c| c.into()),
+                cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
                 target,
             })
         }
@@ -347,10 +333,10 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             rarity,
         } => PyEffect::CardAddRandom(PyEffectCardAddRandom {
             color: color.into(),
-            kind: kind.map(|k| k.into()),
+            kind: kind.map(|card_kind| card_kind.into()),
             pile: pile.into(),
             count,
-            cost_zero: cost_zero.map(|c| c.into()),
+            cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             upgraded,
             rarity: rarity.map(Into::into),
             target,
@@ -364,7 +350,7 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target }),
         EffectKind::CardMove { pile, cost_zero } => PyEffect::CardMove(PyEffectCardMove {
             pile: pile.into(),
-            cost_zero: cost_zero.map(|c| c.into()),
+            cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
             target,
         }),
         EffectKind::CardPlayFromDrawTop => {
@@ -385,9 +371,6 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
         EffectKind::StrengthLoseTemp { stacks } => {
             PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp { stacks, target })
         }
-        EffectKind::DamageLifesteal { amount } => {
-            PyEffect::DamageLifesteal(PyEffectDamageLifesteal { amount, target })
-        }
         EffectKind::MausoleumOpen => PyEffect::MausoleumOpen(PyEffectMausoleumOpen { target }),
         EffectKind::KnowingSkullAsk { wish } => {
             PyEffect::KnowingSkullAsk(PyEffectKnowingSkullAsk {
@@ -399,13 +382,12 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
             PyEffect::JoustBet(PyEffectJoustBet { on_owner, target })
         }
         EffectKind::RelicGrantPool { pool } => PyEffect::RelicGrantPool(PyEffectRelicGrantPool {
-            pool: pool.iter().map(|&n| n.into()).collect(),
+            pool: pool.iter().map(|&relic_name| relic_name.into()).collect(),
             target,
         }),
-        EffectKind::MatchGameFlip => PyEffect::MatchGameFlip(PyEffectMatchGameFlip { target }),
-        EffectKind::RewardRoll {
-            source: RewardSource::LibraryCards,
-        } => PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards { target }),
+        EffectKind::RewardRollLibraryCards => {
+            PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards { target })
+        }
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

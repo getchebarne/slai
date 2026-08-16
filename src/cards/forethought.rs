@@ -25,7 +25,6 @@ pub static FORETHOUGHT: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardSetupPick {
             free: true,
@@ -46,15 +45,15 @@ pub static FORETHOUGHT: Entity = make_entity_card(
 pub static FORETHOUGHT_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = FORETHOUGHT.card_effects;
-        a[0].target = Target::Resolve {
+        let mut effects = FORETHOUGHT.card_effects;
+        effects[0].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,
             filter: CandidateFilter::Any,
             selection_kind: SelectionKind::InputUpTo {
                 count: MAX_SIZE_HAND as u16,
             },
         }; // Any number of Cards
-        a
+        effects
     },
     ..FORETHOUGHT
 };

@@ -12,7 +12,6 @@ use crate::types::PotionRarity;
 pub static POTION_BLESSING_OF_THE_FORGE: Entity = make_entity_potion(
     PotionName::BlessingOfTheForge,
     PotionRarity::Common,
-    false,
     true,
     &[Effect {
         kind: EffectKind::CardUpgrade,

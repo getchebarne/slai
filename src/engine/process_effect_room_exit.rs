@@ -6,17 +6,29 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
+use crate::types::Focus;
 use crate::types::RoomKind;
+use crate::utils::context_focus;
 
 pub fn process_effect_room_exit(state: &mut GameState) {
-    // Pop the room frame; Map (or a suspended frame) resumes underneath
-    assert!(
-        state.mode_stack.len() > 1,
-        "RoomExit with no room frame to pop"
-    );
-    state.mode_stack.pop();
+    // Close the focused context
+    match context_focus(state) {
+        Focus::Reward => state.reward.active = false,
+        Focus::Combat => unreachable!("RoomExit during combat"),
+        Focus::Shop => state.shop.active = false,
+        Focus::Chest => state.chest.active = false,
+        Focus::RestSite => state.rest_site.active = false,
+        Focus::Event => state.event.active = false,
+        Focus::Map => unreachable!("RoomExit with no context to close"),
+    }
 
-    // Leaving a mid-run boss room starts the next act
+    // Closing a Reward overlay reveals its live host; the room itself is not
+    // left until every context is closed, so the exit logic below stays out
+    if context_focus(state) != Focus::Map {
+        return;
+    }
+
+    // Exiting a mid-run Boss room starts the next act
     if matches!(state.location, Location::BossRoom) && state.act < ACT_FINAL {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ActTransition,

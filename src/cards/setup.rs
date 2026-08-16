@@ -24,7 +24,6 @@ pub static SETUP: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::CardSetupPick {
             free: true,

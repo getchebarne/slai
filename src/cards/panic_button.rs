@@ -22,7 +22,6 @@ pub static PANIC_BUTTON: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::BlockGain { amount: 30 },
@@ -46,9 +45,9 @@ pub static PANIC_BUTTON: Entity = make_entity_card(
 pub static PANIC_BUTTON_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = PANIC_BUTTON.card_effects;
-        a[0].kind = EffectKind::BlockGain { amount: 40 }; // +10 block
-        a
+        let mut effects = PANIC_BUTTON.card_effects;
+        effects[0].kind = EffectKind::BlockGain { amount: 40 }; // +10 block
+        effects
     },
     ..PANIC_BUTTON
 };

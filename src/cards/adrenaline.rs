@@ -22,7 +22,6 @@ pub static ADRENALINE: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::EnergyDelta {
@@ -46,12 +45,12 @@ pub static ADRENALINE: Entity = make_entity_card(
 pub static ADRENALINE_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = ADRENALINE.card_effects;
-        a[0].kind = EffectKind::EnergyDelta {
+        let mut effects = ADRENALINE.card_effects;
+        effects[0].kind = EffectKind::EnergyDelta {
             sign: DeltaSign::Gain,
             amount: 2,
         }; // +1 energy gain
-        a
+        effects
     },
     ..ADRENALINE
 };

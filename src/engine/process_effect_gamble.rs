@@ -7,8 +7,7 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::types::Mode;
-use crate::utils::mode_top;
+use crate::types::Combat;
 
 // Two-phase discard-then-draw-that-many. Phase 1 (None) snapshots the discard
 // counter and queues the discards: player-chosen (Gambler's Brew) or the whole
@@ -18,17 +17,18 @@ pub fn process_effect_gamble(
     choose_discards: bool,
     discards_before: Option<u8>,
 ) {
-    let Mode::Combat {
-        id_hand,
+    assert!(
+        state.combat.active,
+        "process_effect_gamble outside the Combat frame"
+    );
+    let Combat {
+        id_card_hand,
         this_turn_discards,
         ..
-    } = mode_top(&state.mode_stack)
-    else {
-        unreachable!("process_effect_gamble outside Combat mode")
-    };
+    } = &state.combat;
     match discards_before {
         None => {
-            if id_hand.is_empty() {
+            if id_card_hand.is_empty() {
                 return;
             }
             let before = *this_turn_discards;

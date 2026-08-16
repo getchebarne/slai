@@ -24,7 +24,6 @@ pub static THINKING_AHEAD: Entity = make_entity_card(
     true,
     false,
     false,
-    false,
     &[
         Effect {
             kind: EffectKind::CardDraw { count: 2 },

@@ -1,41 +1,38 @@
 use crate::game::GameState;
 use crate::types::CardRarity;
-use crate::types::Mode;
-use crate::utils::mode_top_mut;
+use crate::types::Combat;
 use rand::Rng;
 
 // Bronze Orb's Stasis: exile a card from the draw pile (discard as fallback) until
 // the orb dies. Prefers the highest rarity present; random among ties
 pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameState) {
-    let id_orb = id_source.expect("StasisSteal requires id_source");
-
-    let Mode::Combat {
+    assert!(
+        state.combat.active,
+        "process_effect_stasis_steal outside the Combat frame"
+    );
+    let Combat {
         id_monsters,
-        id_stasis_cards,
-        id_pile_draw,
-        id_pile_discard,
+        id_card_stasis,
+        id_card_draw,
+        id_card_discard,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("process_effect_stasis_steal outside Combat mode")
-    };
-    let slot_orb = id_monsters
-        .iter()
-        .position(|s| *s == Some(id_orb))
-        .expect("StasisSteal source is not on the roster");
-    let pile: &mut Vec<usize> = if !id_pile_draw.is_empty() {
-        id_pile_draw
-    } else if !id_pile_discard.is_empty() {
-        id_pile_discard
+    } = &mut state.combat;
+    let id_source = id_source.expect("StasisSteal requires id_source");
+
+    // Pick pile to steal from. Prefers draw over discard
+    let id_pile: &mut Vec<usize> = if !id_card_draw.is_empty() {
+        id_card_draw
+    } else if !id_card_discard.is_empty() {
+        id_card_discard
     } else {
         return;
     };
 
-    // Highest rarity tier present wins; Special/Basic cards are the last resort
+    // Highest rarity tier present wins; Special / Basic cards are the last resort
     let mut best_idx = 0;
     let mut best_rank = -1i8;
     let mut ties: u16 = 0;
-    for (idx, &id_card) in pile.iter().enumerate() {
+    for (idx, &id_card) in id_pile.iter().enumerate() {
         let rank = match state.entities[id_card].card_rarity {
             CardRarity::Rare => 3,
             CardRarity::Uncommon => 2,
@@ -55,6 +52,13 @@ pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameSta
         }
     }
 
-    let id_card = pile.remove(best_idx);
-    id_stasis_cards[slot_orb] = Some(id_card);
+    // Remove stolen Card from pile
+    let id_card = id_pile.remove(best_idx);
+
+    // Store it mirroring the source Monster's index in `id_card_stasis`
+    let idx_monster = id_monsters
+        .iter()
+        .position(|slot| *slot == Some(id_source))
+        .expect("StasisSteal source is not on the roster");
+    id_card_stasis[idx_monster] = Some(id_card);
 }

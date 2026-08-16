@@ -1,7 +1,6 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RewardSource;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
@@ -19,16 +18,14 @@ const fn buy(cost: u16, count: u8) -> [Effect; 3] {
             id_source: None,
             target: Target::Direct(None),
         },
-        // Consume first: the Potion roll replaces this event with Mode::Reward.
-        // Rolled Potions land on the reward screen, where the belt is interactive
+        // Consume first: the staged Reward overlays this frame until RoomExit
+        // Rolled Potions land on the Reward context, where the belt is interactive
         // (discard-to-swap), matching the source's combatRewardScreen
         EVENT_CONSUME_EFFECT,
         Effect {
-            kind: EffectKind::RewardRoll {
-                source: RewardSource::Potions {
-                    count,
-                    uniform: false,
-                },
+            kind: EffectKind::RewardRollPotions {
+                count,
+                uniform: false,
             },
             id_source: None,
             target: Target::Direct(None),

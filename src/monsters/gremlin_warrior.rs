@@ -1,7 +1,7 @@
 use crate::entity::Entity;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move_attack;
@@ -33,7 +33,7 @@ pub fn spawn_monster_gremlin_warrior(ascension_level: u8, rng: &mut impl Rng) ->
     };
 
     let angry_stacks: i16 = if ascension_level >= 17 { 2 } else { 1 };
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::Angry, angry_stacks);
 
     make_entity_monster(

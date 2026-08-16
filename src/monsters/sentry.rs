@@ -5,8 +5,8 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::ZERO_MODIFIERS;
 use crate::modifier::modifier_apply;
 use crate::monsters::make_entity_monster;
 use crate::monsters::make_move;
@@ -73,7 +73,7 @@ pub fn spawn_monster_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
     };
 
     // Spawn with 1 Artifact stack
-    let mut modifiers = ZERO_MODIFIERS;
+    let mut modifiers = MODIFIERS_ZERO;
     modifier_apply(&mut modifiers, ModifierKind::Artifact, 1);
 
     make_entity_monster(

@@ -10,7 +10,6 @@ use crate::types::PotionRarity;
 pub static POTION_ESSENCE_OF_STEEL: Entity = make_entity_potion(
     PotionName::EssenceOfSteel,
     PotionRarity::Uncommon,
-    false,
     true,
     &[Effect {
         kind: EffectKind::ModifierGain {

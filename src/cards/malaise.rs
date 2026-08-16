@@ -22,7 +22,6 @@ pub static MALAISE: Entity = make_entity_card(
     true,
     false,
     false,
-    true,
     &[
         Effect {
             kind: EffectKind::ModifierGain {

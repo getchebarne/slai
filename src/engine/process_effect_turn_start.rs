@@ -16,23 +16,23 @@ use crate::relics::trigger_relic_counter;
 use crate::types::CardColor;
 use crate::types::CardName;
 use crate::types::CardPile;
+use crate::types::Combat;
 use crate::types::DeltaSign;
-use crate::types::Mode;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
-use crate::utils::mode_top_mut;
 
 pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState) {
-    let Mode::Combat {
+    assert!(
+        state.combat.active,
+        "process_effect_turn_start outside the Combat frame"
+    );
+    let Combat {
         id_monsters,
         energy,
         id_card_nightmare,
         ..
-    } = mode_top_mut(&mut state.mode_stack)
-    else {
-        unreachable!("process_effect_turn_start outside Combat mode")
-    };
+    } = &mut state.combat;
     let id_actor = id_target.expect("TurnStart requires id_target");
 
     // Clear effect buffer
@@ -326,7 +326,10 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         if has_relic(&state.id_relics, RelicName::MercuryHourglass) {
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal { amount: 3 },
+                    kind: EffectKind::DamageDeal {
+                        amount: 3,
+                        lifesteal: false,
+                    },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
                 });

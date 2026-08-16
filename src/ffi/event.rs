@@ -7,7 +7,6 @@ use crate::events::EventKind;
 use crate::game::GameState;
 
 use super::card::PyCard;
-use super::card::PyCardName;
 use super::card::snapshot_card;
 use super::macros::flat_variants;
 use super::potion::PyPotion;
@@ -50,9 +49,8 @@ flat_variants!(PyEventKind {
     TheMausoleum => PyEventKindTheMausoleum as "EventKindTheMausoleum",
     Vampires => PyEventKindVampires as "EventKindVampires",
     Colosseum => PyEventKindColosseum as "EventKindColosseum" { stage: u8 },
-    Designer => PyEventKindDesigner as "EventKindDesigner" { adjust_upgrades_one: bool, cleanup_removes: bool },
-    KnowingSkull => PyEventKindKnowingSkull as "EventKindKnowingSkull" { potion_cost: u8, gold_cost: u8, card_cost: u8 },
-    GremlinMatchGame => PyEventKindGremlinMatchGame as "EventKindGremlinMatchGame" { board: Vec<Option<PyCardName>>, attempts: u8, first_flip: Option<u8> },
+    Designer => PyEventKindDesigner as "EventKindDesigner",
+    KnowingSkull => PyEventKindKnowingSkull as "EventKindKnowingSkull" { potion_cost_hp: u8, gold_cost_hp: u8, card_cost_hp: u8 },
     Nest => PyEventKindNest as "EventKindNest",
     CursedTome => PyEventKindCursedTome as "EventKindCursedTome" { stage: u8 },
     DrugDealer => PyEventKindDrugDealer as "EventKindDrugDealer",
@@ -119,39 +117,15 @@ pub(crate) fn snapshot_event_kind(state: &GameState, kind: EventKind) -> PyEvent
         EventKind::TheMausoleum => PyEventKind::TheMausoleum(PyEventKindTheMausoleum),
         EventKind::Vampires => PyEventKind::Vampires(PyEventKindVampires),
         EventKind::Colosseum { stage } => PyEventKind::Colosseum(PyEventKindColosseum { stage }),
-        EventKind::Designer {
-            adjust_upgrades_one,
-            cleanup_removes,
-        } => PyEventKind::Designer(PyEventKindDesigner {
-            adjust_upgrades_one,
-            cleanup_removes,
-        }),
+        EventKind::Designer => PyEventKind::Designer(PyEventKindDesigner),
         EventKind::KnowingSkull {
-            potion_cost,
-            gold_cost,
-            card_cost,
+            potion_cost_hp,
+            gold_cost_hp,
+            card_cost_hp,
         } => PyEventKind::KnowingSkull(PyEventKindKnowingSkull {
-            potion_cost,
-            gold_cost,
-            card_cost,
-        }),
-        // Only matched pairs, the current flip and the last miss are face up
-        EventKind::GremlinMatchGame {
-            board,
-            matched,
-            revealed,
-            attempts,
-        } => PyEventKind::GremlinMatchGame(PyEventKindGremlinMatchGame {
-            board: board
-                .iter()
-                .enumerate()
-                .map(|(idx, &name)| {
-                    let face_up = (matched | revealed) & (1 << idx) != 0;
-                    face_up.then(|| name.into())
-                })
-                .collect(),
-            attempts,
-            first_flip: (revealed.count_ones() == 1).then(|| revealed.trailing_zeros() as u8),
+            potion_cost_hp,
+            gold_cost_hp,
+            card_cost_hp,
         }),
         EventKind::Nest => PyEventKind::Nest(PyEventKindNest),
         EventKind::CursedTome { stage } => PyEventKind::CursedTome(PyEventKindCursedTome { stage }),

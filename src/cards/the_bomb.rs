@@ -22,7 +22,6 @@ pub static THE_BOMB: Entity = make_entity_card(
     false,
     false,
     false,
-    false,
     &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::TheBomb,
@@ -39,12 +38,12 @@ pub static THE_BOMB: Entity = make_entity_card(
 pub static THE_BOMB_PLUS: Entity = Entity {
     card_upgraded: true,
     card_effects: {
-        let mut a = THE_BOMB.card_effects;
-        a[0].kind = EffectKind::ModifierGain {
+        let mut effects = THE_BOMB.card_effects;
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::TheBomb,
             stacks: 50, // +10 stacks
         };
-        a
+        effects
     },
     ..THE_BOMB
 };
