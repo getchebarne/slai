@@ -51,6 +51,10 @@ impl GameEnv {
     #[classattr]
     const ORRERY_BUNDLE_COUNT: usize = consts::ORRERY_BUNDLE_COUNT;
     #[classattr]
+    const MAX_CARD_REWARD_ROLL: usize = consts::MAX_CARD_REWARD_ROLL;
+    #[classattr]
+    const CAULDRON_POTION_COUNT: usize = consts::CAULDRON_POTION_COUNT;
+    #[classattr]
     const CARDS_DRAWN_PER_TURN: u16 = consts::CARDS_DRAWN_PER_TURN;
     #[classattr]
     const NIGHTMARE_COPIES: u8 = consts::NIGHTMARE_COPIES;
@@ -58,6 +62,8 @@ impl GameEnv {
     const MAX_BLOCK: u16 = consts::MAX_BLOCK;
     #[classattr]
     const MAP_HEIGHT: usize = consts::MAP_HEIGHT;
+    #[classattr]
+    const ACT_FINAL: u8 = consts::ACT_FINAL;
     #[classattr]
     const MAP_WIDTH: usize = consts::MAP_WIDTH;
 

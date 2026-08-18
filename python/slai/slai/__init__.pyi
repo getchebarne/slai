@@ -1487,10 +1487,13 @@ class EventKindWorldOfGoop:
 
 @final
 class GameEnv:
+    ACT_FINAL: Final[int]
     CARDS_DRAWN_PER_TURN: Final[int]
+    CAULDRON_POTION_COUNT: Final[int]
     MAP_HEIGHT: Final[int]
     MAP_WIDTH: Final[int]
     MAX_BLOCK: Final[int]
+    MAX_CARD_REWARD_ROLL: Final[int]
     MAX_COMBAT_CARD_REWARD: Final[int]
     MAX_MONSTERS: Final[int]
     MAX_REWARD_CARD_BUNDLES: Final[int]
@@ -1695,6 +1698,8 @@ class Monster:
     def modifiers(self, /) -> list[Modifier]: ...
     @property
     def name(self, /) -> MonsterName: ...
+    @property
+    def stolen_gold(self, /) -> int: ...
 
 @final
 class MonsterEncounter:
@@ -2082,6 +2087,8 @@ class Reward:
     def potions(self, /) -> list[Potion]: ...
     @property
     def relics(self, /) -> list[Relic]: ...
+    @property
+    def relics_exclusive(self, /) -> bool: ...
 
 @final
 class Room:

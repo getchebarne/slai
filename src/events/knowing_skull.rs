@@ -2,6 +2,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::KnowingSkullWish;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
@@ -31,7 +32,7 @@ const OPTION_LEAVE_PAID: &[Effect] = &[
             amount: Amount::Absolute(KNOWING_SKULL_COST_LEAVE),
         },
         id_source: None,
-        target: Target::Direct(None),
+        target: TARGET_CHARACTER,
     },
     EVENT_CONSUME_EFFECT,
 ];

@@ -4,6 +4,7 @@ use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::Entity;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
@@ -55,7 +56,7 @@ const fn punch(damage: u16) -> [Effect; 2] {
                 amount: Amount::Absolute(damage),
             },
             id_source: None,
-            target: Target::Direct(None),
+            target: TARGET_CHARACTER,
         },
         EVENT_CONSUME_EFFECT,
     ]
