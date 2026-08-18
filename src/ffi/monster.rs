@@ -116,6 +116,7 @@ pub struct PyMonster {
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
     pub intent: PyIntent,
+    pub stolen_gold: u16,
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
@@ -198,6 +199,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 block: monster.vitals.block,
                 modifiers: snapshot_modifiers(&monster.modifiers),
                 intent,
+                stolen_gold: monster.monster_stolen_gold,
             }
         })
         .collect()

@@ -73,6 +73,9 @@ pub struct PyReward {
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
+
+    // Boss rewards roll mutually exclusive relics: taking one discards the rest
+    pub relics_exclusive: bool,
 }
 
 #[pyclass(
@@ -203,6 +206,7 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
             .map(|&id| snapshot_potion(&state.entities[id]))
             .collect(),
         gold: reward.gold,
+        relics_exclusive: reward.relics_exclusive,
     }
 }
 

@@ -507,6 +507,23 @@ EVENT_KIND_ORDER: tuple[type, ...] = (
     EventKindWeMeetAgain,
     EventKindDeadAdventurer,
     EventKindNeow,
+    EventKindAddict,
+    EventKindBeggar,
+    EventKindGhosts,
+    EventKindBackToBasics,
+    EventKindMaskedBandits,
+    EventKindTheJoust,
+    EventKindTheLibrary,
+    EventKindTheMausoleum,
+    EventKindVampires,
+    EventKindColosseum,
+    EventKindDesigner,
+    EventKindKnowingSkull,
+    EventKindNest,
+    EventKindCursedTome,
+    EventKindDrugDealer,
+    EventKindForgottenAltar,
+    EventKindNloth,
 )
 
 
