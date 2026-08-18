@@ -4,11 +4,11 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventOptionTemplate;
 use crate::events::deck_has_purgeable;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 
 // Simplicity: every un-upgraded Strike and Defend upgrades
@@ -27,9 +27,9 @@ const OPTION_SIMPLICITY: &[Effect] = &[
 
 const OPTION_ELEGANCE: &[Effect] = &[EFFECT_DECK_PURGE_PICK_1, EVENT_CONSUME_EFFECT];
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option("[Elegance] Remove a card from your deck.", OPTION_ELEGANCE),
-    make_entity_event_option(
+pub static OPTIONS: &[EventOptionTemplate] = &[
+    make_event_option_template("[Elegance] Remove a card from your deck.", OPTION_ELEGANCE),
+    make_event_option_template(
         "[Simplicity] Upgrade all your Strikes and Defends.",
         OPTION_SIMPLICITY,
     ),

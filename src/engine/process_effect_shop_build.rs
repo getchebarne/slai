@@ -1,17 +1,17 @@
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::consts::ASCENSION_SHOP_PRICE_BUMP_DENOM;
 use crate::consts::ASCENSION_SHOP_PRICE_BUMP_LEVEL;
-use crate::consts::ASCENSION_SHOP_PRICE_BUMP_NUMER;
 use crate::consts::SHOP_PRICE_RELIC_COMMON;
 use crate::consts::SHOP_PRICE_RELIC_RARE;
 use crate::consts::SHOP_PRICE_RELIC_SHOP;
 use crate::consts::SHOP_PRICE_RELIC_UNCOMMON;
 use crate::consts::SHOP_RELIC_TH_COMMON;
 use crate::consts::SHOP_RELIC_TH_UNCOMMON;
+use crate::consts::SHOP_SALE_DIVISOR;
 use crate::consts::SHOP_SLOTS_CARD_COLORED;
 use crate::consts::SHOP_SLOTS_POTION;
+use crate::consts::bump_price_a16;
 use crate::engine::shop::apply_shop_discounts;
 use crate::engine::shop::get_shop_taken_relic_names;
 use crate::engine::shop::make_card_colored;
@@ -88,7 +88,7 @@ pub fn process_effect_shop_build(state: &mut GameState) {
 
     // Sale tag: one random colored Card 50% off, before the A16 markup
     let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
-    cards[idx].1 /= 2;
+    cards[idx].1 /= SHOP_SALE_DIVISOR;
 
     // A16+ price bumps; the purge cost is exempt
     if state.ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
@@ -111,12 +111,6 @@ pub fn process_effect_shop_build(state: &mut GameState) {
 
     state.shop.purge_cost = purge_cost;
     state.shop.active = true;
-}
-
-fn bump_price_a16(price: u16) -> u16 {
-    ((price as u32 * ASCENSION_SHOP_PRICE_BUMP_NUMER as u32
-        + ASCENSION_SHOP_PRICE_BUMP_DENOM as u32 / 2)
-        / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
 }
 
 fn roll_relic_tier(rng: &mut impl Rng) -> (&'static [RelicName], u16) {

@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,5 +6,9 @@ use crate::types::RelicTier;
 // relic_counter is a seen-kinds bitmask (Attack=1, Skill=2, Power=4)
 // See:
 //    - `process_effect_card_play.rs`
-pub static ORANGE_PELLETS: Entity =
-    make_entity_relic(RelicName::OrangePellets, RelicTier::Shop, 0, &[]);
+pub static ORANGE_PELLETS: RelicTemplate = RelicTemplate {
+    name: RelicName::OrangePellets,
+    tier: RelicTier::Shop,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

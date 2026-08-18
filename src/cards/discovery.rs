@@ -1,10 +1,10 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::effect::effect_discover_pick;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -13,7 +13,7 @@ use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
 
-pub static DISCOVERY: Entity = make_entity_card(
+pub static DISCOVERY: CardTemplate = make_card_template(
     CardName::Discovery,
     CardKind::Skill,
     CardColor::Colorless,
@@ -42,8 +42,8 @@ pub static DISCOVERY: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DISCOVERY_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_exhaust: false, // Doesn't exhaust
+pub static DISCOVERY_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    exhaust: false, // Doesn't exhaust
     ..DISCOVERY
 };

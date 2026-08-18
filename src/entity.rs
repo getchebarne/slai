@@ -137,7 +137,7 @@ pub struct Entity {
     pub relic_counter: i16,
     pub relic_used_up: bool,
     pub relic_seq: u16,
-    pub relic_effects_on_combat_start: &'static [Effect],
+    pub relic_effects_combat_start: &'static [Effect],
 
     // Potion-only
     pub potion_name: PotionName,
@@ -196,7 +196,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     relic_counter: 0,
     relic_used_up: false,
     relic_seq: 0,
-    relic_effects_on_combat_start: &[],
+    relic_effects_combat_start: &[],
     potion_name: PotionName::EnergyPotion,
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,

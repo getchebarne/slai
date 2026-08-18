@@ -8,6 +8,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::types::MonsterEncounter;
+use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -17,6 +18,10 @@ use crate::utils::weak_factor;
 
 use super::modifier::PyModifier;
 use super::modifier::snapshot_modifiers;
+
+mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", skip_from_py_object, {
+    Normal, Elite, Boss,
+});
 
 mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
     Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
@@ -116,6 +121,7 @@ pub struct PyMonster {
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
     pub intent: PyIntent,
+    // Gold held by Looter/Mugger thievery: returned on kill, lost on escape
     pub stolen_gold: u16,
 }
 

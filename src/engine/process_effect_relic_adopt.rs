@@ -11,7 +11,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::events::EventKind;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
@@ -21,6 +20,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
+use crate::types::EventName;
 use crate::types::RelicName;
 use crate::types::reward_reset;
 use crate::utils::card_is_upgradable;
@@ -180,7 +180,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             assert!(
                 state.reward.active
                     || (state.event.active
-                        && matches!(state.event.event_kind, EventKind::Neow)
+                        && matches!(state.event.name, EventName::Neow)
                         && state.event.consumed),
                 "Calling Bell adopts from a Reward context or Neow"
             );

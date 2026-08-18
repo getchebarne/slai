@@ -4,18 +4,17 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::CardPile;
 use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_LIQUID_MEMORIES: Entity = make_entity_potion(
-    PotionName::LiquidMemories,
-    PotionRarity::Uncommon,
-    true,
-    &[Effect {
+pub static POTION_LIQUID_MEMORIES: PotionTemplate = PotionTemplate {
+    name: PotionName::LiquidMemories,
+    rarity: PotionRarity::Uncommon,
+    combat_only: true,
+    effects: &[Effect {
         kind: EffectKind::CardMove {
             pile: CardPile::Hand,
             cost_zero: Some(CostScope::Turn),
@@ -27,4 +26,4 @@ pub static POTION_LIQUID_MEMORIES: Entity = make_entity_potion(
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
-);
+};

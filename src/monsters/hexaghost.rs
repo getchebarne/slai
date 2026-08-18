@@ -6,24 +6,21 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack_card_add;
+use crate::monsters::move_attack_card_add;
 use crate::types::CardName;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 
 // First move: essentially a no-op
 const INFERNO_HITS: usize = 6;
 
 // Inferno: six hits then the burn upgrade; fills all MAX_EFFECTS_PER_MOVE slots
-const fn make_move_inferno(damage: u16) -> Move {
+const fn move_inferno(damage: u16) -> Move {
     let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut idx = 0;
     while idx < INFERNO_HITS {
@@ -73,14 +70,10 @@ static MOVE_DIVIDER: Move = make_move(
     },
 );
 
-static MOVE_SEAR_BURN_1_NORMAL: Move =
-    make_move_attack_card_add("Sear", 6, CardName::Burn, 1, false);
-static MOVE_SEAR_BURN_1_UPGRADED: Move =
-    make_move_attack_card_add("Sear", 6, CardName::Burn, 1, true);
-static MOVE_SEAR_BURN_2_NORMAL: Move =
-    make_move_attack_card_add("Sear", 6, CardName::Burn, 2, false);
-static MOVE_SEAR_BURN_2_UPGRADED: Move =
-    make_move_attack_card_add("Sear", 6, CardName::Burn, 2, true);
+static MOVE_SEAR_BURN_1_NORMAL: Move = move_attack_card_add("Sear", 6, CardName::Burn, 1, false);
+static MOVE_SEAR_BURN_1_UPGRADED: Move = move_attack_card_add("Sear", 6, CardName::Burn, 1, true);
+static MOVE_SEAR_BURN_2_NORMAL: Move = move_attack_card_add("Sear", 6, CardName::Burn, 2, false);
+static MOVE_SEAR_BURN_2_UPGRADED: Move = move_attack_card_add("Sear", 6, CardName::Burn, 2, true);
 
 static MOVE_TACKLE_5: Move = make_move(
     "Tackle",
@@ -173,8 +166,8 @@ static MOVE_INFLAME_3: Move = make_move(
 );
 
 // Inferno: 6 hits + Burn increase (upgrade existing Burns + add 3 upgraded)
-static MOVE_INFERNO_2: Move = make_move_inferno(2);
-static MOVE_INFERNO_3: Move = make_move_inferno(3);
+static MOVE_INFERNO_2: Move = move_inferno(2);
+static MOVE_INFERNO_3: Move = move_inferno(3);
 
 // Asc 0-3: Tackle 5, Inferno 2, Sear 1 Burn, Inflame +2 Str
 static MOVES_ASC0: [Move; 7] = [
@@ -215,29 +208,14 @@ const IDX_MOVE_TACKLE: usize = 4;
 const IDX_MOVE_INFLAME: usize = 5;
 const IDX_MOVE_INFERNO: usize = 6;
 
-pub fn spawn_monster_hexaghost(ascension_level: u8) -> Entity {
-    let health_max: u16 = if ascension_level < 9 { 250 } else { 264 };
-
-    let moves: &'static [Move] = if ascension_level < 4 {
-        &MOVES_ASC0
-    } else if ascension_level < 19 {
-        &MOVES_ASC4
-    } else {
-        &MOVES_ASC19
-    };
-
-    make_entity_monster(
-        MonsterName::Hexaghost,
-        MonsterKind::Boss,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::Hexaghost,
+    kind: MonsterKind::Boss,
+    health_tiers: &[(0, (250, 250)), (9, (264, 264))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (4, &MOVES_ASC4), (19, &MOVES_ASC19)],
+    modifier_tiers: &[],
+};
 
 // Cycle slot -> move idx, with Sear variant chosen by `has_inferno`
 fn cycle_slot(slot: usize, has_inferno: bool) -> usize {

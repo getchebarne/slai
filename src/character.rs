@@ -1,5 +1,8 @@
 use crate::cards::get_card;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
+use crate::consts::HP_START_FRACTION_A6;
+use crate::consts::SILENT_HP_MAX_A14_DELTA;
+use crate::consts::SILENT_HP_MAX_BASE;
 use crate::consts::STARTING_GOLD;
 use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
@@ -43,15 +46,15 @@ pub fn get_silent_starter_deck(ascension: u8) -> Vec<Entity> {
 }
 
 fn silent_health(ascension: u8) -> (u16, u16) {
-    let mut health_max: u16 = 70;
+    let mut health_max: u16 = SILENT_HP_MAX_BASE;
     let mut health: u16 = health_max;
 
     if ascension >= 14 {
-        health_max -= 4;
+        health_max -= SILENT_HP_MAX_A14_DELTA;
         health = health_max;
     }
     if ascension >= 6 {
-        health = (0.90 * health as f32).round() as u16;
+        health = (HP_START_FRACTION_A6 * health as f32).round() as u16;
     }
 
     (health, health_max)

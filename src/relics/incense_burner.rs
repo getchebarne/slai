@@ -1,10 +1,13 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Every 6th turn start grants 1 Intangible; counter persists across combats
 // See:
 //    - `process_effect_turn_start.rs`
-pub static INCENSE_BURNER: Entity =
-    make_entity_relic(RelicName::IncenseBurner, RelicTier::Rare, 0, &[]);
+pub static INCENSE_BURNER: RelicTemplate = RelicTemplate {
+    name: RelicName::IncenseBurner,
+    tier: RelicTier::Rare,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

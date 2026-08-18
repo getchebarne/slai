@@ -2,22 +2,19 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_buff;
+use crate::monsters::move_attack;
+use crate::monsters::move_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
 // Defensive Stance: block plus Metallicize
-const fn make_move_defensive_stance(block: u16, metallicize: i16) -> Move {
+const fn move_defensive_stance(block: u16, metallicize: i16) -> Move {
     make_move(
         "Defensive Stance",
         &[
@@ -40,7 +37,7 @@ const fn make_move_defensive_stance(block: u16, metallicize: i16) -> Move {
 }
 
 // Face Slap: damage plus Frail and Vulnerable
-const fn make_move_face_slap(damage: u16) -> Move {
+const fn move_face_slap(damage: u16) -> Move {
     make_move(
         "Face Slap",
         &[
@@ -101,7 +98,7 @@ static MOVE_TAUNT: Move = make_move(
 );
 
 // Anger: shed every debuff and surge Strength
-const fn make_move_anger(strength: i16) -> Move {
+const fn move_anger(strength: i16) -> Move {
     make_move(
         "Anger",
         &[
@@ -123,45 +120,45 @@ const fn make_move_anger(strength: i16) -> Move {
     )
 }
 
-static MOVE_HEAVY_SLASH_16: Move = make_move_attack("Heavy Slash", 16, 1);
-static MOVE_HEAVY_SLASH_18: Move = make_move_attack("Heavy Slash", 18, 1);
-static MOVE_EXECUTE: Move = make_move_attack("Execute", 10, 2);
+static MOVE_HEAVY_SLASH_16: Move = move_attack("Heavy Slash", 16, 1);
+static MOVE_HEAVY_SLASH_18: Move = move_attack("Heavy Slash", 18, 1);
+static MOVE_EXECUTE: Move = move_attack("Execute", 10, 2);
 
 static MOVES_ASC0: [Move; 7] = [
     MOVE_HEAVY_SLASH_16,
-    make_move_defensive_stance(15, 5),
+    move_defensive_stance(15, 5),
     MOVE_EXECUTE,
-    make_move_face_slap(12),
-    make_move_buff("Gloat", ModifierKind::Strength, 2),
+    move_face_slap(12),
+    move_buff("Gloat", ModifierKind::Strength, 2),
     MOVE_TAUNT,
-    make_move_anger(6),
+    move_anger(6),
 ];
 static MOVES_ASC4: [Move; 7] = [
     MOVE_HEAVY_SLASH_18,
-    make_move_defensive_stance(15, 5),
+    move_defensive_stance(15, 5),
     MOVE_EXECUTE,
-    make_move_face_slap(14),
-    make_move_buff("Gloat", ModifierKind::Strength, 3),
+    move_face_slap(14),
+    move_buff("Gloat", ModifierKind::Strength, 3),
     MOVE_TAUNT,
-    make_move_anger(9),
+    move_anger(9),
 ];
 static MOVES_ASC9: [Move; 7] = [
     MOVE_HEAVY_SLASH_18,
-    make_move_defensive_stance(18, 6),
+    move_defensive_stance(18, 6),
     MOVE_EXECUTE,
-    make_move_face_slap(14),
-    make_move_buff("Gloat", ModifierKind::Strength, 3),
+    move_face_slap(14),
+    move_buff("Gloat", ModifierKind::Strength, 3),
     MOVE_TAUNT,
-    make_move_anger(9),
+    move_anger(9),
 ];
 static MOVES_ASC19: [Move; 7] = [
     MOVE_HEAVY_SLASH_18,
-    make_move_defensive_stance(20, 7),
+    move_defensive_stance(20, 7),
     MOVE_EXECUTE,
-    make_move_face_slap(14),
-    make_move_buff("Gloat", ModifierKind::Strength, 4),
+    move_face_slap(14),
+    move_buff("Gloat", ModifierKind::Strength, 4),
     MOVE_TAUNT,
-    make_move_anger(12),
+    move_anger(12),
 ];
 
 const IDX_MOVE_HEAVY_SLASH: usize = 0;
@@ -172,31 +169,19 @@ const IDX_MOVE_GLOAT: usize = 4;
 const IDX_MOVE_TAUNT: usize = 5;
 const IDX_MOVE_ANGER: usize = 6;
 
-pub fn spawn_monster_champ(ascension_level: u8) -> Entity {
-    let health_max = if ascension_level < 9 { 420 } else { 440 };
-
-    let moves: &'static [Move] = if ascension_level < 4 {
-        &MOVES_ASC0
-    } else if ascension_level < 9 {
-        &MOVES_ASC4
-    } else if ascension_level < 19 {
-        &MOVES_ASC9
-    } else {
-        &MOVES_ASC19
-    };
-
-    make_entity_monster(
-        MonsterName::Champ,
-        MonsterKind::Boss,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::Champ,
+    kind: MonsterKind::Boss,
+    health_tiers: &[(0, (420, 420)), (9, (440, 440))],
+    block_start: 0,
+    move_tiers: &[
+        (0, &MOVES_ASC0),
+        (4, &MOVES_ASC4),
+        (9, &MOVES_ASC9),
+        (19, &MOVES_ASC19),
+    ],
+    modifier_tiers: &[],
+};
 
 pub fn get_next_move_champ(
     move_history: &[u8],

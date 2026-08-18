@@ -125,9 +125,8 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
         RoomKind::EventRoom => {
             let name = draw_random_event(state).expect("Event room with no drawable event");
-            let (kind, id_event_options) = spawn_event(state, name);
-            state.event.event_kind = kind;
-            state.event.consumed = false;
+            let id_event_options = spawn_event(state, name);
+            state.event.name = name;
             state.event.id_event_options = id_event_options;
             state.event.active = true;
         }

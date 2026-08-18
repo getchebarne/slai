@@ -3,20 +3,22 @@ use crate::entity::Move;
 use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_apply;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_entity_monster;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_buff;
+use crate::monsters::move_attack;
+use crate::monsters::move_buff;
+use crate::monsters::pick_tier;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BITE_5: Move = make_move_attack("Bite", 5, 1);
-static MOVE_BITE_6: Move = make_move_attack("Bite", 6, 1);
-static MOVE_BITE_7: Move = make_move_attack("Bite", 7, 1);
-static MOVE_BITE_8: Move = make_move_attack("Bite", 8, 1);
-static MOVE_STRENGTHEN_3: Move = make_move_buff("Grow", ModifierKind::Strength, 3);
-static MOVE_STRENGTHEN_4: Move = make_move_buff("Grow", ModifierKind::Strength, 4);
+static MOVE_BITE_5: Move = move_attack("Bite", 5, 1);
+static MOVE_BITE_6: Move = move_attack("Bite", 6, 1);
+static MOVE_BITE_7: Move = move_attack("Bite", 7, 1);
+static MOVE_BITE_8: Move = move_attack("Bite", 8, 1);
+static MOVE_STRENGTHEN_3: Move = move_buff("Grow", ModifierKind::Strength, 3);
+static MOVE_STRENGTHEN_4: Move = move_buff("Grow", ModifierKind::Strength, 4);
 
 // 9 move tables: 3 asc brackets x 3 bite values (5/6/7 at Asc 0-1, 6/7/8 at Asc 2+)
 static MOVES_ASC0_BITE5: [Move; 2] = [MOVE_BITE_5, MOVE_STRENGTHEN_3];
@@ -32,12 +34,19 @@ static MOVES_ASC17_BITE8: [Move; 2] = [MOVE_BITE_8, MOVE_STRENGTHEN_4];
 const IDX_MOVE_BITE: usize = 0;
 const IDX_MOVE_STRENGTHEN: usize = 1;
 
+// Moves and Curl Up are spawn-rolled (bite damage tables); see the spawn fn
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::LouseNormal,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (10, 15)), (7, (11, 16))],
+    block_start: 0,
+    move_tiers: &[],
+    modifier_tiers: &[],
+};
+
 pub fn spawn_monster_louse_red(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (10, 15)
-    } else {
-        (11, 16)
-    };
+    let (health_max_min, health_max_max) =
+        pick_tier(TEMPLATE.health_tiers, ascension_level).expect("health_tiers is never empty");
     let health_max = rng.random_range(health_max_min..=health_max_max);
 
     let bite_dmg: u8 = if ascension_level < 2 {
@@ -81,7 +90,7 @@ pub fn spawn_monster_louse_red(ascension_level: u8, rng: &mut impl Rng) -> Entit
 
     make_entity_monster(
         MonsterName::LouseNormal,
-        MonsterKind::Normal,
+        TEMPLATE.kind,
         Vitals {
             health: health_max,
             health_max,

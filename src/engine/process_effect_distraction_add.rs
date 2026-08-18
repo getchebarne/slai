@@ -1,6 +1,7 @@
 use crate::cards::POOL_COMMON_GREEN_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
+use crate::cards::card_template;
 use crate::cards::get_card;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -27,7 +28,7 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
             if name == CardName::Distraction {
                 continue;
             }
-            if get_card(name, false).card_kind != CardKind::Skill {
+            if card_template(name, false).kind != CardKind::Skill {
                 continue;
             }
             buf[num] = name;

@@ -7,8 +7,7 @@ use super::card::PyCard;
 use super::card::snapshot_card;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
-use super::event::PyEventKind;
-use super::event::snapshot_event_kind;
+use super::event::PyEventName;
 use super::macros::mirror_enum;
 use super::monster::PyMonster;
 use super::monster::snapshot_monsters;
@@ -73,7 +72,6 @@ pub struct PyReward {
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
-
     // Boss rewards roll mutually exclusive relics: taking one discards the rest
     pub relics_exclusive: bool,
 }
@@ -110,9 +108,20 @@ pub struct PyShop {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEvent {
-    pub kind: PyEventKind,
+    pub name: PyEventName,
+    // Per-event control state: stage / attempts / searches, meaning per event
+    pub stage: u8,
+    // Dead Adventurer's without-replacement loot draws
+    pub found_gold: bool,
+    pub found_nothing: bool,
+    pub found_relic: bool,
     pub options: Vec<Vec<PyEffect>>,
     pub consumed: bool,
+
+    // Entities this visit staked; the options' pick pools resolve against them
+    pub card_picks: Vec<PyCard>,
+    pub relic_picks: Vec<PyRelic>,
+    pub potion_picks: Vec<PyPotion>,
 }
 
 #[pyclass(
@@ -239,7 +248,11 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
 pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
     let event = &state.event;
     PyEvent {
-        kind: snapshot_event_kind(state, event.event_kind),
+        name: event.name.into(),
+        stage: event.stage,
+        found_gold: event.found_gold,
+        found_nothing: event.found_nothing,
+        found_relic: event.found_relic,
         options: event
             .id_event_options
             .iter()
@@ -252,6 +265,21 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
             })
             .collect(),
         consumed: event.consumed,
+        card_picks: event
+            .id_card_picks
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
+        relic_picks: event
+            .id_relic_picks
+            .iter()
+            .map(|&id| snapshot_relic(&state.entities[id]))
+            .collect(),
+        potion_picks: event
+            .id_potion_picks
+            .iter()
+            .map(|&id| snapshot_potion(&state.entities[id]))
+            .collect(),
     }
 }
 

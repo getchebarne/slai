@@ -33,7 +33,6 @@ use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
-use crate::events::EventKind;
 use crate::events::pools_for_act;
 use crate::events::spawn_event;
 use crate::map::generate_map;
@@ -247,9 +246,18 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         },
         event: Event {
             active: false,
-            event_kind: EventKind::Neow,
+            name: EventName::Neow,
             consumed: false,
+            stage: 0,
+            found_gold: false,
+            found_nothing: false,
+            found_relic: false,
             id_event_options: Vec::new(),
+
+            // Event-rolled Entity IDs — meaning depends on the `EventKind`
+            id_card_picks: Vec::new(),
+            id_relic_picks: Vec::new(),
+            id_potion_picks: Vec::new(),
         },
         shop: Shop {
             active: false,
@@ -277,9 +285,8 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
 
     // Neow's blessing takes focus at Location::Start
     if neow {
-        let (kind, id_event_options) = spawn_event(&mut state, EventName::Neow);
-        state.event.event_kind = kind;
-        state.event.consumed = false;
+        let id_event_options = spawn_event(&mut state, EventName::Neow);
+        state.event.name = EventName::Neow;
         state.event.id_event_options = id_event_options;
         state.event.active = true;
     }

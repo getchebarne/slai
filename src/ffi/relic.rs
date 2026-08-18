@@ -53,7 +53,7 @@ pub struct PyRelic {
     pub tier: PyRelicTier,
     pub counter: i16,
     pub used_up: bool,
-    pub effects_on_combat_start: Vec<PyEffect>,
+    pub effects_combat_start: Vec<PyEffect>,
 }
 
 pub(crate) fn snapshot_relic(entity: &Entity) -> PyRelic {
@@ -62,8 +62,8 @@ pub(crate) fn snapshot_relic(entity: &Entity) -> PyRelic {
         tier: entity.relic_tier.into(),
         counter: entity.relic_counter,
         used_up: entity.relic_used_up,
-        effects_on_combat_start: entity
-            .relic_effects_on_combat_start
+        effects_combat_start: entity
+            .relic_effects_combat_start
             .iter()
             .map(snapshot_effect)
             .collect(),

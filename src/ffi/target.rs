@@ -20,6 +20,9 @@ flat_variants!(PyCandidatePool {
     PileDraw => PyCandidatePoolPileDraw as "CandidatePoolPileDraw",
     PileDiscard => PyCandidatePoolPileDiscard as "CandidatePoolPileDiscard",
     PileExhaust => PyCandidatePoolPileExhaust as "CandidatePoolPileExhaust",
+    EventCardPicks => PyCandidatePoolEventCardPicks as "CandidatePoolEventCardPicks",
+    EventRelicPicks => PyCandidatePoolEventRelicPicks as "CandidatePoolEventRelicPicks",
+    EventPotionPicks => PyCandidatePoolEventPotionPicks as "CandidatePoolEventPotionPicks",
 });
 
 impl From<CandidatePool> for PyCandidatePool {
@@ -34,6 +37,11 @@ impl From<CandidatePool> for PyCandidatePool {
             CandidatePool::PileDraw => Self::PileDraw(PyCandidatePoolPileDraw),
             CandidatePool::PileDiscard => Self::PileDiscard(PyCandidatePoolPileDiscard),
             CandidatePool::PileExhaust => Self::PileExhaust(PyCandidatePoolPileExhaust),
+            CandidatePool::EventCardPicks => Self::EventCardPicks(PyCandidatePoolEventCardPicks),
+            CandidatePool::EventRelicPicks => Self::EventRelicPicks(PyCandidatePoolEventRelicPicks),
+            CandidatePool::EventPotionPicks => {
+                Self::EventPotionPicks(PyCandidatePoolEventPotionPicks)
+            }
         }
     }
 }

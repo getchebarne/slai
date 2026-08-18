@@ -1,4 +1,5 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
@@ -6,7 +7,6 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
@@ -27,7 +27,7 @@ const BOUNCE: Effect = Effect {
     },
 };
 
-pub static BOUNCING_FLASK: Entity = make_entity_card(
+pub static BOUNCING_FLASK: CardTemplate = make_card_template(
     CardName::BouncingFlask,
     CardKind::Skill,
     CardColor::Green,
@@ -44,13 +44,13 @@ pub static BOUNCING_FLASK: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded: one more bounce
-pub static BOUNCING_FLASK_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_effects: {
-        let mut effects = BOUNCING_FLASK.card_effects;
+pub static BOUNCING_FLASK_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    effects: {
+        let mut effects = BOUNCING_FLASK.effects;
         effects[3] = BOUNCE; // +1 bounce
         effects
     },
-    card_effects_len: 4,
+    effects_len: 4,
     ..BOUNCING_FLASK
 };

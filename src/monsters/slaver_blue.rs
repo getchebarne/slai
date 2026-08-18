@@ -1,20 +1,17 @@
-use crate::entity::Entity;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::monsters::make_entity_monster;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_attack_debuff;
+use crate::monsters::MonsterTemplate;
+use crate::monsters::move_attack;
+use crate::monsters::move_attack_debuff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_STAB_12: Move = make_move_attack("Stab", 12, 1);
-static MOVE_STAB_13: Move = make_move_attack("Stab", 13, 1);
-static MOVE_RAKE_7_W1: Move = make_move_attack_debuff("Rake", 7, ModifierKind::Weak, 1);
-static MOVE_RAKE_8_W1: Move = make_move_attack_debuff("Rake", 8, ModifierKind::Weak, 1);
-static MOVE_RAKE_8_W2: Move = make_move_attack_debuff("Rake", 8, ModifierKind::Weak, 2);
+static MOVE_STAB_12: Move = move_attack("Stab", 12, 1);
+static MOVE_STAB_13: Move = move_attack("Stab", 13, 1);
+static MOVE_RAKE_7_W1: Move = move_attack_debuff("Rake", 7, ModifierKind::Weak, 1);
+static MOVE_RAKE_8_W1: Move = move_attack_debuff("Rake", 8, ModifierKind::Weak, 1);
+static MOVE_RAKE_8_W2: Move = move_attack_debuff("Rake", 8, ModifierKind::Weak, 2);
 static MOVES_ASC0: [Move; 2] = [MOVE_STAB_12, MOVE_RAKE_7_W1];
 static MOVES_ASC2: [Move; 2] = [MOVE_STAB_13, MOVE_RAKE_8_W1];
 static MOVES_ASC17: [Move; 2] = [MOVE_STAB_13, MOVE_RAKE_8_W2];
@@ -22,34 +19,14 @@ static MOVES_ASC17: [Move; 2] = [MOVE_STAB_13, MOVE_RAKE_8_W2];
 const IDX_MOVE_STAB: usize = 0;
 const IDX_MOVE_RAKE: usize = 1;
 
-pub fn spawn_monster_slaver_blue(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (46, 50)
-    } else {
-        (48, 52)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
-    } else {
-        &MOVES_ASC17
-    };
-
-    make_entity_monster(
-        MonsterName::SlaverBlue,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::SlaverBlue,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (46, 50)), (7, (48, 52))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
+    modifier_tiers: &[],
+};
 
 pub fn get_next_move_slaver_blue(
     move_history: &[u8],

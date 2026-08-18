@@ -1,21 +1,17 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_split;
+use crate::monsters::move_attack;
+use crate::monsters::move_split;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 
 static MOVE_GOOP_SPRAY_3: Move = make_move(
     "Goop Spray",
@@ -46,9 +42,9 @@ static MOVE_GOOP_SPRAY_5: Move = make_move(
     Intent::DebuffPowerful,
 );
 static MOVE_PREPARING: Move = make_move("Preparing", &[], Intent::Unknown);
-static MOVE_SLAM_35: Move = make_move_attack("Slam", 35, 1);
-static MOVE_SLAM_38: Move = make_move_attack("Slam", 38, 1);
-static MOVE_SPLIT: Move = make_move_split(
+static MOVE_SLAM_35: Move = move_attack("Slam", 35, 1);
+static MOVE_SLAM_38: Move = move_attack("Slam", 38, 1);
+static MOVE_SPLIT: Move = move_split(
     "Split",
     MonsterName::SlimeSpikeLarge,
     MonsterName::SlimeAcidLarge,
@@ -63,32 +59,14 @@ const IDX_MOVE_PREPARING: usize = 1;
 const IDX_MOVE_SLAM: usize = 2;
 pub const IDX_MOVE_SPLIT: usize = 3;
 
-pub fn spawn_monster_slime_boss(ascension_level: u8) -> Entity {
-    let health_max: u16 = if ascension_level < 9 { 140 } else { 150 };
-
-    let moves: &'static [Move] = if ascension_level < 4 {
-        &MOVES_ASC0
-    } else if ascension_level < 19 {
-        &MOVES_ASC4
-    } else {
-        &MOVES_ASC19
-    };
-
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::Splittable, 1);
-
-    make_entity_monster(
-        MonsterName::SlimeBoss,
-        MonsterKind::Boss,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::SlimeBoss,
+    kind: MonsterKind::Boss,
+    health_tiers: &[(0, (140, 140)), (9, (150, 150))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (4, &MOVES_ASC4), (19, &MOVES_ASC19)],
+    modifier_tiers: &[(0, &[(ModifierKind::Splittable, 1)])],
+};
 
 pub fn get_next_move_slime_boss(move_current: Option<usize>, move_history: &[u8]) -> usize {
     if move_current.is_none() {

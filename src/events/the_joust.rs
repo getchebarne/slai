@@ -1,9 +1,9 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::make_entity_event_option;
+use crate::events::EventOptionTemplate;
+use crate::events::make_event_option_template;
 
 pub const JOUST_STAKE: u16 = 50;
 pub const JOUST_OWNER_WIN_CHANCE: f64 = 0.3;
@@ -23,12 +23,12 @@ const fn bet(on_owner: bool) -> [Effect; 2] {
 const OPTION_MURDERER: [Effect; 2] = bet(false);
 const OPTION_OWNER: [Effect; 2] = bet(true);
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option(
+pub static OPTIONS: &[EventOptionTemplate] = &[
+    make_event_option_template(
         "[Bet on the Murderer] Wager 50 Gold at 70% to win 100.",
         &OPTION_MURDERER,
     ),
-    make_entity_event_option(
+    make_event_option_template(
         "[Bet on the Owner] Wager 50 Gold at 30% to win 250.",
         &OPTION_OWNER,
     ),

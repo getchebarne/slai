@@ -3,9 +3,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::make_entity_event_option;
+use crate::events::EventOptionTemplate;
+use crate::events::make_event_option_template;
 use crate::types::DeltaSign;
 
 const fn buy(cost: u16, count: u8) -> [Effect; 3] {
@@ -54,20 +54,20 @@ const OPTION_LEAVE_A15: &[Effect] = &[
 ];
 
 // The event only spawns with >= 50 gold, which covers every price
-static OPTIONS_BASE: &[Entity] = &[
-    make_entity_event_option("[Buy 1 Potion] Lose 20 Gold.", &OPTION_BUY_1),
-    make_entity_event_option("[Buy 2 Potions] Lose 30 Gold.", &OPTION_BUY_2),
-    make_entity_event_option("[Buy 3 Potions] Lose 40 Gold.", &OPTION_BUY_3),
-    make_entity_event_option("[Leave] Nothing happens.", OPTION_LEAVE_BASE),
+static OPTIONS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template("[Buy 1 Potion] Lose 20 Gold.", &OPTION_BUY_1),
+    make_event_option_template("[Buy 2 Potions] Lose 30 Gold.", &OPTION_BUY_2),
+    make_event_option_template("[Buy 3 Potions] Lose 40 Gold.", &OPTION_BUY_3),
+    make_event_option_template("[Leave] Nothing happens.", OPTION_LEAVE_BASE),
 ];
-static OPTIONS_A15: &[Entity] = &[
-    make_entity_event_option("[Buy 1 Potion] Lose 20 Gold.", &OPTION_BUY_1),
-    make_entity_event_option("[Buy 2 Potions] Lose 30 Gold.", &OPTION_BUY_2),
-    make_entity_event_option("[Buy 3 Potions] Lose 40 Gold.", &OPTION_BUY_3),
-    make_entity_event_option("[Leave] Lose 5% of your Max HP.", OPTION_LEAVE_A15),
+static OPTIONS_A15: &[EventOptionTemplate] = &[
+    make_event_option_template("[Buy 1 Potion] Lose 20 Gold.", &OPTION_BUY_1),
+    make_event_option_template("[Buy 2 Potions] Lose 30 Gold.", &OPTION_BUY_2),
+    make_event_option_template("[Buy 3 Potions] Lose 40 Gold.", &OPTION_BUY_3),
+    make_event_option_template("[Leave] Lose 5% of your Max HP.", OPTION_LEAVE_A15),
 ];
 
-pub fn options(ascension: u8) -> &'static [Entity] {
+pub fn options(ascension: u8) -> &'static [EventOptionTemplate] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

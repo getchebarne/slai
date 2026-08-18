@@ -53,7 +53,7 @@ pub mod process_effect_health_set;
 pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
-pub mod process_effect_knowing_skull_ask;
+pub mod process_effect_knowing_skull_cost_bump;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
@@ -162,7 +162,7 @@ use self::process_effect_health_set::process_effect_health_set;
 use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
 use self::process_effect_joust_bet::process_effect_joust_bet;
-use self::process_effect_knowing_skull_ask::process_effect_knowing_skull_ask;
+use self::process_effect_knowing_skull_cost_bump::process_effect_knowing_skull_cost_bump;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_modifier_gain::process_effect_modifier_gain;
@@ -229,11 +229,12 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::events::EventKind;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::types::Combat;
+use crate::types::Event;
+use crate::types::EventName;
 use crate::types::RoomKind;
 use crate::utils::candidate_matches;
 use crate::utils::shuffle;
@@ -261,6 +262,7 @@ fn fill_buf_candidates(
     id_source: Option<usize>,
     id_character: usize,
     combat: &Combat,
+    event: &Event,
     id_card_deck: &[usize],
 ) {
     // Combat-scoped pools demand the combat context; Character/Source/Deck don't
@@ -297,6 +299,20 @@ fn fill_buf_candidates(
             effect_candidate_buf.extend_from_slice(&combat.id_card_discover)
         }
         CandidatePool::Deck => effect_candidate_buf.extend_from_slice(id_card_deck),
+
+        // Staged picks: a plain indexed collection, so no EventKind knowledge here
+        CandidatePool::EventCardPicks => {
+            assert!(event.active, "EventCardPicks pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_card_picks)
+        }
+        CandidatePool::EventRelicPicks => {
+            assert!(event.active, "EventRelicPicks pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_relic_picks)
+        }
+        CandidatePool::EventPotionPicks => {
+            assert!(event.active, "EventPotionPicks pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_potion_picks)
+        }
     }
 }
 
@@ -383,6 +399,7 @@ fn resolve_or_halt(
         id_source,
         state.id_character,
         &state.combat,
+        &state.event,
         &state.id_card_deck,
     );
 
@@ -587,7 +604,9 @@ fn dispatch_by_kind(
         EffectKind::DebuffsClear => process_effect_debuffs_clear(id_target, state),
         EffectKind::StasisSteal => process_effect_stasis_steal(id_source, state),
         EffectKind::JoustBet { on_owner } => process_effect_joust_bet(state, on_owner),
-        EffectKind::KnowingSkullAsk { wish } => process_effect_knowing_skull_ask(state, wish),
+        EffectKind::KnowingSkullCostBump => {
+            process_effect_knowing_skull_cost_bump(id_source, state)
+        }
         EffectKind::MausoleumOpen => process_effect_mausoleum_open(state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
@@ -629,7 +648,7 @@ fn dispatch_by_kind(
             name,
             fallback_circlet,
         } => process_effect_relic_grant_specific(state, name, fallback_circlet),
-        EffectKind::RelicLose { name } => process_effect_relic_lose(state, name),
+        EffectKind::RelicLose => process_effect_relic_lose(id_target, state),
         EffectKind::RelicAdopt => process_effect_relic_adopt(id_target, state),
         EffectKind::EventAdvanceState { delta } => process_effect_event_advance_state(state, delta),
         EffectKind::ScrapOozeReach {
@@ -743,7 +762,7 @@ fn ensure_context_validity(state: &GameState) {
     }
     if state.event.active {
         // Neow rests over Location::Start, before any room exists
-        let ok = if matches!(state.event.event_kind, EventKind::Neow) {
+        let ok = if matches!(state.event.name, EventName::Neow) {
             state.location == Location::Start
         } else {
             matches!(room_kind, Some(RoomKind::EventRoom | RoomKind::Unknown))

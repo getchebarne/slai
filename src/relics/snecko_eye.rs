@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,4 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_turn_start.rs`
 //    - `process_effect_card_draw.rs`
-pub static SNECKO_EYE: Entity = make_entity_relic(RelicName::SneckoEye, RelicTier::Boss, 0, &[]);
+pub static SNECKO_EYE: RelicTemplate = RelicTemplate {
+    name: RelicName::SneckoEye,
+    tier: RelicTier::Boss,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

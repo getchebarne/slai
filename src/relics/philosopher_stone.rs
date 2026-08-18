@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,5 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_combat_start.rs`
 //    - `process_effect_monster_spawn.rs`
-pub static PHILOSOPHER_STONE: Entity =
-    make_entity_relic(RelicName::PhilosopherStone, RelicTier::Boss, 0, &[]);
+pub static PHILOSOPHER_STONE: RelicTemplate = RelicTemplate {
+    name: RelicName::PhilosopherStone,
+    tier: RelicTier::Boss,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

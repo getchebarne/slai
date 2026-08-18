@@ -6,17 +6,14 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
+use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
 // Rally: two summons off the weighted gremlin pool
@@ -38,7 +35,7 @@ static MOVE_RALLY: Move = make_move(
 );
 
 // Encourage: Strength to everyone, block to the others
-const fn make_move_encourage(strength: i16, block: u16) -> Move {
+const fn move_encourage(strength: i16, block: u16) -> Move {
     make_move(
         "Encourage",
         &[
@@ -64,10 +61,10 @@ const fn make_move_encourage(strength: i16, block: u16) -> Move {
     )
 }
 
-static MOVE_ENCOURAGE_3: Move = make_move_encourage(3, 6);
-static MOVE_ENCOURAGE_4: Move = make_move_encourage(4, 6);
-static MOVE_ENCOURAGE_5: Move = make_move_encourage(5, 10);
-static MOVE_STAB: Move = make_move_attack("Stab", 6, 3);
+static MOVE_ENCOURAGE_3: Move = move_encourage(3, 6);
+static MOVE_ENCOURAGE_4: Move = move_encourage(4, 6);
+static MOVE_ENCOURAGE_5: Move = move_encourage(5, 10);
+static MOVE_STAB: Move = move_attack("Stab", 6, 3);
 
 static MOVES_ASC0: [Move; 3] = [MOVE_RALLY, MOVE_ENCOURAGE_3, MOVE_STAB];
 static MOVES_ASC3: [Move; 3] = [MOVE_RALLY, MOVE_ENCOURAGE_4, MOVE_STAB];
@@ -77,34 +74,14 @@ const IDX_MOVE_RALLY: usize = 0;
 const IDX_MOVE_ENCOURAGE: usize = 1;
 const IDX_MOVE_STAB: usize = 2;
 
-pub fn spawn_monster_gremlin_leader(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 8 {
-        (140, 148)
-    } else {
-        (145, 155)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 3 {
-        &MOVES_ASC0
-    } else if ascension_level < 18 {
-        &MOVES_ASC3
-    } else {
-        &MOVES_ASC18
-    };
-
-    make_entity_monster(
-        MonsterName::GremlinLeader,
-        MonsterKind::Elite,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::GremlinLeader,
+    kind: MonsterKind::Elite,
+    health_tiers: &[(0, (140, 148)), (8, (145, 155))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (3, &MOVES_ASC3), (18, &MOVES_ASC18)],
+    modifier_tiers: &[],
+};
 
 pub fn get_next_move_gremlin_leader(
     move_history: &[u8],

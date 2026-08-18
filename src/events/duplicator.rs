@@ -4,10 +4,10 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 
 // Pray
 const OPTION_PRAY: &[Effect] = &[
@@ -24,8 +24,8 @@ const OPTION_PRAY: &[Effect] = &[
 ];
 
 // Leave
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option(
+pub static OPTIONS: &[EventOptionTemplate] = &[
+    make_event_option_template(
         "[Pray] Choose a card. Add a copy of it to your deck.",
         OPTION_PRAY,
     ),

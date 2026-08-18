@@ -1,7 +1,7 @@
 use strum::EnumCount;
+use strum::EnumIter;
 
 use crate::consts::MAX_MONSTERS;
-use crate::events::EventKind;
 
 // Vitals: physical combat state. Shared by Character and Monsters
 #[derive(Debug, Clone, Copy)]
@@ -108,9 +108,33 @@ pub fn reward_ensure(reward: &mut Reward) {
 #[derive(Debug, Clone)]
 pub struct Event {
     pub active: bool,
-    pub event_kind: EventKind,
+    pub name: EventName,
     pub consumed: bool,
+    // Per-event control state: stage / attempts / searches, meaning per event
+    pub stage: u8,
+    // Dead Adventurer's without-replacement loot draws
+    pub found_gold: bool,
+    pub found_nothing: bool,
+    pub found_relic: bool,
     pub id_event_options: Vec<usize>,
+
+    // Entities the spawn staked on this visit; options target them through the
+    // Event*Picks pools instead of baking a resolved id
+    pub id_card_picks: Vec<usize>,
+    pub id_relic_picks: Vec<usize>,
+    pub id_potion_picks: Vec<usize>,
+}
+
+// Runs before a spawn fills the context; the caller sets kind/options/active
+pub fn event_reset(event: &mut Event) {
+    event.consumed = false;
+    event.stage = 0;
+    event.found_gold = false;
+    event.found_nothing = false;
+    event.found_relic = false;
+    event.id_card_picks.clear();
+    event.id_relic_picks.clear();
+    event.id_potion_picks.clear();
 }
 
 #[derive(Debug, Clone)]
@@ -170,7 +194,7 @@ pub const VITALS_ZERO: Vitals = Vitals {
     block: 0,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum CardName {
     AThousandCuts,
@@ -353,7 +377,7 @@ pub enum CardRarity {
     Curse,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum MonsterName {
     Cultist,
@@ -497,19 +521,17 @@ pub enum RoomKind {
     Unknown,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum EventName {
     BigFish,
     TheCleric,
     Duplicator,
     GoldenShrine,
-    GoldenIdol,
     WingStatue,
     WorldOfGoop,
     LivingWall,
     Purifier,
-    ScrapOoze,
     ShiningLight,
     TheSsssserpent,
     Transmogrifier,
@@ -521,22 +543,24 @@ pub enum EventName {
     BonfireSpirits,
     OminousForge,
     FaceTrader,
-    WeMeetAgain,
     Mushrooms,
+    GoldenIdol,
+    ScrapOoze,
+    WeMeetAgain,
     DeadAdventurer,
     Neow,
     Addict,
     Beggar,
     Ghosts,
     BackToBasics,
-    Colosseum,
-    Designer,
-    KnowingSkull,
     MaskedBandits,
     TheJoust,
     TheLibrary,
     TheMausoleum,
     Vampires,
+    Colosseum,
+    Designer,
+    KnowingSkull,
     Nest,
     CursedTome,
     DrugDealer,
@@ -566,7 +590,7 @@ pub enum ShopSlot {
     Potion,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum PotionName {
     EnergyPotion,
@@ -611,7 +635,7 @@ pub enum PotionRarity {
     Rare,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum RelicName {
     SnakeRing = 0,

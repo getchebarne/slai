@@ -59,8 +59,10 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::Intent;
 use crate::entity::Move;
+use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
+use crate::modifier::modifier_apply;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::MonsterKind;
@@ -68,85 +70,119 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
+// Static definition of a monster: everything spawn-time except per-monster rolls.
+// Tier arrays are (min_ascension, value), ascending; the last satisfied entry wins
+pub struct MonsterTemplate {
+    pub name: MonsterName,
+    pub kind: MonsterKind,
+    pub health_tiers: &'static [(u8, (u16, u16))],
+    pub block_start: u16,
+    pub move_tiers: &'static [(u8, &'static [Move])],
+    pub modifier_tiers: &'static [(u8, &'static [(ModifierKind, i16)])],
+}
+
+// None iff `tiers` is empty (the louses' rolled move tables)
+pub fn pick_tier<T: Copy>(tiers: &'static [(u8, T)], ascension_level: u8) -> Option<T> {
+    debug_assert!(
+        tiers.windows(2).all(|w| w[0].0 < w[1].0),
+        "tiers must ascend"
+    );
+    tiers
+        .iter()
+        .rev()
+        .find(|&&(threshold, _)| ascension_level >= threshold)
+        .map(|&(_, value)| value)
+}
+
+// Uniform instancer: one HP roll (skipped for fixed-HP monsters — a width-1
+// random_range would still consume RNG), tiered moves and spawn modifiers
+pub fn instance_monster_from_template(
+    template: &MonsterTemplate,
+    ascension_level: u8,
+    rng: &mut impl Rng,
+) -> Entity {
+    let (hp_min, hp_max) =
+        pick_tier(template.health_tiers, ascension_level).expect("health_tiers is never empty");
+    let health_max = if hp_min == hp_max {
+        hp_min
+    } else {
+        rng.random_range(hp_min..=hp_max)
+    };
+    let mut modifiers = MODIFIERS_ZERO;
+    for &(kind, stacks) in pick_tier(template.modifier_tiers, ascension_level).unwrap_or(&[]) {
+        modifier_apply(&mut modifiers, kind, stacks);
+    }
+    make_entity_monster(
+        template.name,
+        template.kind,
+        Vitals {
+            health: health_max,
+            health_max,
+            block: template.block_start,
+        },
+        modifiers,
+        pick_tier(template.move_tiers, ascension_level)
+            .expect("hand-spawned monster (louse); use spawn_monster"),
+    )
+}
+
 pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut impl Rng) -> Entity {
     match monster_name {
-        MonsterName::Cultist => cultist::spawn_monster_cultist(ascension_level, rng),
-        MonsterName::JawWorm => jaw_worm::spawn_monster_jaw_worm(ascension_level, rng),
-        MonsterName::TheGuardian => the_guardian::spawn_monster_the_guardian(ascension_level),
-        MonsterName::FungiBeast => fungi_beast::spawn_monster_fungi_beast(ascension_level, rng),
-        MonsterName::SlaverBlue => slaver_blue::spawn_monster_slaver_blue(ascension_level, rng),
-        MonsterName::SlimeAcidSmall => {
-            slime_acid_small::spawn_monster_slime_acid_small(ascension_level, rng)
-        }
-        MonsterName::SlimeSpikeSmall => {
-            slime_spike_small::spawn_monster_slime_spike_small(ascension_level, rng)
-        }
-        MonsterName::GremlinFat => gremlin_fat::spawn_monster_gremlin_fat(ascension_level, rng),
-        MonsterName::GremlinNob => gremlin_nob::spawn_monster_gremlin_nob(ascension_level, rng),
-        MonsterName::GremlinThief => {
-            gremlin_thief::spawn_monster_gremlin_thief(ascension_level, rng)
-        }
-        MonsterName::GremlinTsundere => {
-            gremlin_tsundere::spawn_monster_gremlin_tsundere(ascension_level, rng)
-        }
-        MonsterName::GremlinWarrior => {
-            gremlin_warrior::spawn_monster_gremlin_warrior(ascension_level, rng)
-        }
-        MonsterName::GremlinWizard => {
-            gremlin_wizard::spawn_monster_gremlin_wizard(ascension_level, rng)
-        }
-        MonsterName::Hexaghost => hexaghost::spawn_monster_hexaghost(ascension_level),
-        MonsterName::Lagavulin => lagavulin::spawn_monster_lagavulin(ascension_level, rng),
-        MonsterName::Looter => looter::spawn_monster_looter(ascension_level, rng),
+        // Rolled bite damage + Curl Up keep the louses on hand-written spawns
         MonsterName::LouseDefensive => louse_green::spawn_monster_louse_green(ascension_level, rng),
         MonsterName::LouseNormal => louse_red::spawn_monster_louse_red(ascension_level, rng),
-        MonsterName::Sentry => sentry::spawn_monster_sentry(ascension_level, rng),
-        MonsterName::SlaverRed => slaver_red::spawn_monster_slaver_red(ascension_level, rng),
-        MonsterName::SlimeAcidLarge => {
-            slime_acid_large::spawn_monster_slime_acid_large(ascension_level, rng)
-        }
-        MonsterName::SlimeAcidMedium => {
-            slime_acid_medium::spawn_monster_slime_acid_medium(ascension_level, rng)
-        }
-        MonsterName::SlimeBoss => slime_boss::spawn_monster_slime_boss(ascension_level),
-        MonsterName::SlimeSpikeLarge => {
-            slime_spike_large::spawn_monster_slime_spike_large(ascension_level, rng)
-        }
-        MonsterName::SlimeSpikeMedium => {
-            slime_spike_medium::spawn_monster_slime_spike_medium(ascension_level, rng)
-        }
-        MonsterName::Byrd => byrd::spawn_monster_byrd(ascension_level, rng),
-        MonsterName::Centurion => centurion::spawn_monster_centurion(ascension_level, rng),
-        MonsterName::Chosen => chosen::spawn_monster_chosen(ascension_level, rng),
-        MonsterName::Healer => healer::spawn_monster_healer(ascension_level, rng),
-        MonsterName::Mugger => mugger::spawn_monster_mugger(ascension_level, rng),
-        MonsterName::ShelledParasite => {
-            shelled_parasite::spawn_monster_shelled_parasite(ascension_level, rng)
-        }
-        MonsterName::SnakePlant => snake_plant::spawn_monster_snake_plant(ascension_level, rng),
-        MonsterName::Snecko => snecko::spawn_monster_snecko(ascension_level, rng),
-        MonsterName::SphericGuardian => {
-            spheric_guardian::spawn_monster_spheric_guardian(ascension_level, rng)
-        }
-        MonsterName::BookOfStabbing => {
-            book_of_stabbing::spawn_monster_book_of_stabbing(ascension_level, rng)
-        }
-        MonsterName::GremlinLeader => {
-            gremlin_leader::spawn_monster_gremlin_leader(ascension_level, rng)
-        }
-        MonsterName::Taskmaster => taskmaster::spawn_monster_taskmaster(ascension_level, rng),
-        MonsterName::BronzeAutomaton => {
-            bronze_automaton::spawn_monster_bronze_automaton(ascension_level)
-        }
-        MonsterName::BronzeOrb => bronze_orb::spawn_monster_bronze_orb(ascension_level, rng),
-        MonsterName::Champ => champ::spawn_monster_champ(ascension_level),
-        MonsterName::TheCollector => the_collector::spawn_monster_the_collector(ascension_level),
-        MonsterName::TorchHead => torch_head::spawn_monster_torch_head(ascension_level, rng),
-        MonsterName::BanditBear => bandit_bear::spawn_monster_bandit_bear(ascension_level, rng),
-        MonsterName::BanditLeader => {
-            bandit_leader::spawn_monster_bandit_leader(ascension_level, rng)
-        }
-        MonsterName::BanditPointy => bandit_pointy::spawn_monster_bandit_pointy(ascension_level),
+        other => instance_monster_from_template(monster_template(other), ascension_level, rng),
+    }
+}
+
+// Named arms: a new MonsterName fails compilation here until it has a template
+pub fn monster_template(monster_name: MonsterName) -> &'static MonsterTemplate {
+    match monster_name {
+        MonsterName::Cultist => &cultist::TEMPLATE,
+        MonsterName::JawWorm => &jaw_worm::TEMPLATE,
+        MonsterName::TheGuardian => &the_guardian::TEMPLATE,
+        MonsterName::FungiBeast => &fungi_beast::TEMPLATE,
+        MonsterName::SlaverBlue => &slaver_blue::TEMPLATE,
+        MonsterName::SlimeAcidSmall => &slime_acid_small::TEMPLATE,
+        MonsterName::SlimeSpikeSmall => &slime_spike_small::TEMPLATE,
+        MonsterName::GremlinFat => &gremlin_fat::TEMPLATE,
+        MonsterName::GremlinNob => &gremlin_nob::TEMPLATE,
+        MonsterName::GremlinThief => &gremlin_thief::TEMPLATE,
+        MonsterName::GremlinTsundere => &gremlin_tsundere::TEMPLATE,
+        MonsterName::GremlinWarrior => &gremlin_warrior::TEMPLATE,
+        MonsterName::GremlinWizard => &gremlin_wizard::TEMPLATE,
+        MonsterName::Hexaghost => &hexaghost::TEMPLATE,
+        MonsterName::Lagavulin => &lagavulin::TEMPLATE,
+        MonsterName::Looter => &looter::TEMPLATE,
+        MonsterName::LouseDefensive => &louse_green::TEMPLATE,
+        MonsterName::LouseNormal => &louse_red::TEMPLATE,
+        MonsterName::Sentry => &sentry::TEMPLATE,
+        MonsterName::SlaverRed => &slaver_red::TEMPLATE,
+        MonsterName::SlimeAcidLarge => &slime_acid_large::TEMPLATE,
+        MonsterName::SlimeAcidMedium => &slime_acid_medium::TEMPLATE,
+        MonsterName::SlimeBoss => &slime_boss::TEMPLATE,
+        MonsterName::SlimeSpikeLarge => &slime_spike_large::TEMPLATE,
+        MonsterName::SlimeSpikeMedium => &slime_spike_medium::TEMPLATE,
+        MonsterName::Byrd => &byrd::TEMPLATE,
+        MonsterName::Centurion => &centurion::TEMPLATE,
+        MonsterName::Chosen => &chosen::TEMPLATE,
+        MonsterName::Healer => &healer::TEMPLATE,
+        MonsterName::Mugger => &mugger::TEMPLATE,
+        MonsterName::ShelledParasite => &shelled_parasite::TEMPLATE,
+        MonsterName::SnakePlant => &snake_plant::TEMPLATE,
+        MonsterName::Snecko => &snecko::TEMPLATE,
+        MonsterName::SphericGuardian => &spheric_guardian::TEMPLATE,
+        MonsterName::BookOfStabbing => &book_of_stabbing::TEMPLATE,
+        MonsterName::GremlinLeader => &gremlin_leader::TEMPLATE,
+        MonsterName::Taskmaster => &taskmaster::TEMPLATE,
+        MonsterName::BronzeAutomaton => &bronze_automaton::TEMPLATE,
+        MonsterName::BronzeOrb => &bronze_orb::TEMPLATE,
+        MonsterName::Champ => &champ::TEMPLATE,
+        MonsterName::TheCollector => &the_collector::TEMPLATE,
+        MonsterName::TorchHead => &torch_head::TEMPLATE,
+        MonsterName::BanditBear => &bandit_bear::TEMPLATE,
+        MonsterName::BanditLeader => &bandit_leader::TEMPLATE,
+        MonsterName::BanditPointy => &bandit_pointy::TEMPLATE,
     }
 }
 
@@ -362,7 +398,7 @@ pub fn get_next_move(
 }
 
 // The repeated monster move shapes; each spells out one Effect array longhand
-pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
+pub const fn move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
     let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut idx = 0;
     while idx < instances as usize {
@@ -384,7 +420,7 @@ pub const fn make_move_attack(name: &'static str, damage: u16, instances: u8) ->
     }
 }
 
-pub const fn make_move_buff(name: &'static str, kind: ModifierKind, stacks: i16) -> Move {
+pub const fn move_buff(name: &'static str, kind: ModifierKind, stacks: i16) -> Move {
     make_move(
         name,
         &[Effect {
@@ -396,7 +432,7 @@ pub const fn make_move_buff(name: &'static str, kind: ModifierKind, stacks: i16)
     )
 }
 
-pub const fn make_move_debuff(
+pub const fn move_debuff(
     name: &'static str,
     kind: ModifierKind,
     stacks: i16,
@@ -413,7 +449,7 @@ pub const fn make_move_debuff(
     )
 }
 
-pub const fn make_move_attack_debuff(
+pub const fn move_attack_debuff(
     name: &'static str,
     damage: u16,
     kind: ModifierKind,
@@ -443,7 +479,7 @@ pub const fn make_move_attack_debuff(
     )
 }
 
-pub const fn make_move_attack_card_add(
+pub const fn move_attack_card_add(
     name: &'static str,
     damage: u16,
     card_name: CardName,
@@ -479,7 +515,7 @@ pub const fn make_move_attack_card_add(
     )
 }
 
-pub const fn make_move_block(name: &'static str, block: u16) -> Move {
+pub const fn move_block(name: &'static str, block: u16) -> Move {
     make_move(
         name,
         &[Effect {
@@ -492,7 +528,7 @@ pub const fn make_move_block(name: &'static str, block: u16) -> Move {
 }
 
 // Self-buff then block; the order matches the jaw_worm sites this serves
-pub const fn make_move_block_buff(name: &'static str, block: u16, strength: i16) -> Move {
+pub const fn move_block_buff(name: &'static str, block: u16, strength: i16) -> Move {
     make_move(
         name,
         &[
@@ -514,7 +550,7 @@ pub const fn make_move_block_buff(name: &'static str, block: u16, strength: i16)
     )
 }
 
-pub const fn make_move_split(name: &'static str, first: MonsterName, second: MonsterName) -> Move {
+pub const fn move_split(name: &'static str, first: MonsterName, second: MonsterName) -> Move {
     make_move(
         name,
         &[
@@ -538,6 +574,7 @@ pub const fn make_move_split(name: &'static str, first: MonsterName, second: Mon
     )
 }
 
+// `move` is a reserved keyword, so the base constructor keeps its make_ prefix
 pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
     assert!(
         effects.len() <= MAX_EFFECTS_PER_MOVE,

@@ -2,10 +2,10 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -49,12 +49,12 @@ const OPTION_STEAL: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option(
+pub static OPTIONS: &[EventOptionTemplate] = &[
+    make_event_option_template(
         "[Offer Gold] Lose 85 Gold. Obtain a random Relic.",
         OPTION_PAY,
     ),
-    make_entity_event_option(
+    make_event_option_template(
         "[Steal] Obtain a random Relic. Become Cursed - Shame.",
         OPTION_STEAL,
     ),

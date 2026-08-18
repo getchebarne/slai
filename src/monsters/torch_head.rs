@@ -1,39 +1,19 @@
-use crate::entity::Entity;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
-use crate::monsters::make_entity_monster;
-use crate::monsters::make_move_attack;
+use crate::monsters::MonsterTemplate;
+use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
-use rand::Rng;
 
-static MOVES: [Move; 1] = [make_move_attack("Tackle", 7, 1)];
+static MOVES: [Move; 1] = [move_attack("Tackle", 7, 1)];
 
-pub fn spawn_monster_torch_head(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 9 {
-        (38, 40)
-    } else {
-        (40, 45)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::Minion, 1);
-
-    make_entity_monster(
-        MonsterName::TorchHead,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        &MOVES,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::TorchHead,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (38, 40)), (9, (40, 45))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES)],
+    modifier_tiers: &[(0, &[(ModifierKind::Minion, 1)])],
+};
 
 // Deterministic: always uses Tackle

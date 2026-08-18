@@ -1,12 +1,12 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_upgradable;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -39,9 +39,9 @@ const OPTION_RUMMAGE: &[Effect] = &[
 ];
 
 // Leave
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option("[Forge] Upgrade a card.", OPTION_FORGE),
-    make_entity_event_option(
+pub static OPTIONS: &[EventOptionTemplate] = &[
+    make_event_option_template("[Forge] Upgrade a card.", OPTION_FORGE),
+    make_event_option_template(
         "[Rummage] Obtain Warped Tongs. Become Cursed - Pain.",
         OPTION_RUMMAGE,
     ),

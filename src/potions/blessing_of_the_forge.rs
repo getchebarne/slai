@@ -4,16 +4,15 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_BLESSING_OF_THE_FORGE: Entity = make_entity_potion(
-    PotionName::BlessingOfTheForge,
-    PotionRarity::Common,
-    true,
-    &[Effect {
+pub static POTION_BLESSING_OF_THE_FORGE: PotionTemplate = PotionTemplate {
+    name: PotionName::BlessingOfTheForge,
+    rarity: PotionRarity::Common,
+    combat_only: true,
+    effects: &[Effect {
         kind: EffectKind::CardUpgrade,
         id_source: None,
         target: Target::Resolve {
@@ -22,4 +21,4 @@ pub static POTION_BLESSING_OF_THE_FORGE: Entity = make_entity_potion(
             selection_kind: SelectionKind::All,
         },
     }],
-);
+};

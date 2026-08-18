@@ -5,20 +5,17 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
+use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
 // Defend: block onto a random other Monster
-const fn make_move_defend(block: u16) -> Move {
+const fn move_defend(block: u16) -> Move {
     make_move(
         "Defend",
         &[Effect {
@@ -34,12 +31,12 @@ const fn make_move_defend(block: u16) -> Move {
     )
 }
 
-static MOVE_SLASH_12: Move = make_move_attack("Slash", 12, 1);
-static MOVE_SLASH_14: Move = make_move_attack("Slash", 14, 1);
-static MOVE_FURY_6: Move = make_move_attack("Fury", 6, 3);
-static MOVE_FURY_7: Move = make_move_attack("Fury", 7, 3);
-static MOVE_DEFEND_15: Move = make_move_defend(15);
-static MOVE_DEFEND_20: Move = make_move_defend(20);
+static MOVE_SLASH_12: Move = move_attack("Slash", 12, 1);
+static MOVE_SLASH_14: Move = move_attack("Slash", 14, 1);
+static MOVE_FURY_6: Move = move_attack("Fury", 6, 3);
+static MOVE_FURY_7: Move = move_attack("Fury", 7, 3);
+static MOVE_DEFEND_15: Move = move_defend(15);
+static MOVE_DEFEND_20: Move = move_defend(20);
 
 static MOVES_ASC0: [Move; 3] = [MOVE_SLASH_12, MOVE_FURY_6, MOVE_DEFEND_15];
 static MOVES_ASC2: [Move; 3] = [MOVE_SLASH_14, MOVE_FURY_7, MOVE_DEFEND_15];
@@ -49,34 +46,14 @@ const IDX_MOVE_SLASH: usize = 0;
 const IDX_MOVE_FURY: usize = 1;
 const IDX_MOVE_DEFEND: usize = 2;
 
-pub fn spawn_monster_centurion(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (76, 80)
-    } else {
-        (78, 83)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
-    } else {
-        &MOVES_ASC17
-    };
-
-    make_entity_monster(
-        MonsterName::Centurion,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::Centurion,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (76, 80)), (7, (78, 83))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
+    modifier_tiers: &[],
+};
 
 pub fn get_next_move_centurion(
     move_history: &[u8],

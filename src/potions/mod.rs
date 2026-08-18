@@ -53,23 +53,23 @@ pub const EFFECT_CARD_DISCOVER_PICK: Effect =
     effect_discover_pick(Some(CostScope::Turn), CardPile::Hand);
 
 // Totality relies on the len == COUNT and no-duplicate asserts below
-const fn build_potion_by_name() -> [&'static Entity; PotionName::COUNT] {
+const fn build_potion_by_name() -> [&'static PotionTemplate; PotionName::COUNT] {
     let mut buf = [ALL_POTIONS[0]; PotionName::COUNT];
     let mut idx = 0;
     while idx < ALL_POTIONS.len() {
-        buf[ALL_POTIONS[idx].potion_name as usize] = ALL_POTIONS[idx];
+        buf[ALL_POTIONS[idx].name as usize] = ALL_POTIONS[idx];
         idx += 1;
     }
     buf
 }
 
-static POTION_BY_NAME: [&'static Entity; PotionName::COUNT] = build_potion_by_name();
+static POTION_BY_NAME: [&'static PotionTemplate; PotionName::COUNT] = build_potion_by_name();
 
 pub fn get_potion(name: PotionName) -> Entity {
-    *POTION_BY_NAME[name as usize]
+    instance_potion_from_template(POTION_BY_NAME[name as usize])
 }
 
-pub const ALL_POTIONS: &[&'static Entity] = &[
+pub const ALL_POTIONS: &[&'static PotionTemplate] = &[
     &energy::POTION_ENERGY,
     &block::POTION_BLOCK,
     &strength::POTION_STRENGTH,
@@ -110,7 +110,7 @@ const _: () = {
     let mut seen = [false; PotionName::COUNT];
     let mut idx = 0;
     while idx < ALL_POTIONS.len() {
-        let idx_name = ALL_POTIONS[idx].potion_name as usize;
+        let idx_name = ALL_POTIONS[idx].name as usize;
         assert!(
             !seen[idx_name],
             "ALL_POTIONS contains a duplicate PotionName"
@@ -128,7 +128,7 @@ const fn count_pool(rarity: PotionRarity) -> usize {
     let mut count = 0;
     let mut idx = 0;
     while idx < ALL_POTIONS.len() {
-        if potion_rarity_eq(ALL_POTIONS[idx].potion_rarity, rarity) {
+        if potion_rarity_eq(ALL_POTIONS[idx].rarity, rarity) {
             count += 1;
         }
         idx += 1;
@@ -142,8 +142,8 @@ const fn build_pool<const N: usize>(rarity: PotionRarity) -> [PotionName; N] {
     let mut idx_all = 0;
     while idx_all < ALL_POTIONS.len() {
         let potion = ALL_POTIONS[idx_all];
-        if potion_rarity_eq(potion.potion_rarity, rarity) {
-            buf[idx_pool] = potion.potion_name;
+        if potion_rarity_eq(potion.rarity, rarity) {
+            buf[idx_pool] = potion.name;
             idx_pool += 1;
         }
         idx_all += 1;
@@ -186,7 +186,7 @@ pub fn get_random_potion_name(rng: &mut impl Rng, limited: bool) -> PotionName {
 
 // Uniform over every Potion, ignoring rarity (Neow's Potions offer)
 pub fn get_random_potion_name_uniform(rng: &mut impl Rng) -> PotionName {
-    ALL_POTIONS[rng.random_range(0..ALL_POTIONS.len())].potion_name
+    ALL_POTIONS[rng.random_range(0..ALL_POTIONS.len())].name
 }
 
 pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) -> Option<usize> {
@@ -204,18 +204,20 @@ pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_poti
     }
 }
 
-pub const fn make_entity_potion(
-    name: PotionName,
-    rarity: PotionRarity,
-    combat_only: bool,
-    effects: &'static [Effect],
-) -> Entity {
+pub struct PotionTemplate {
+    pub name: PotionName,
+    pub rarity: PotionRarity,
+    pub combat_only: bool,
+    pub effects: &'static [Effect],
+}
+
+pub const fn instance_potion_from_template(template: &PotionTemplate) -> Entity {
     Entity {
         kind: EntityKind::Potion,
-        potion_name: name,
-        potion_rarity: rarity,
-        potion_combat_only: combat_only,
-        potion_effects: effects,
+        potion_name: template.name,
+        potion_rarity: template.rarity,
+        potion_combat_only: template.combat_only,
+        potion_effects: template.effects,
         ..ENTITY_ZERO
     }
 }

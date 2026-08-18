@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,5 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_play.rs`
 //    - `process_effect_relic_adopt.rs`
-pub static NECRONOMICON: Entity =
-    make_entity_relic(RelicName::Necronomicon, RelicTier::Special, 0, &[]);
+pub static NECRONOMICON: RelicTemplate = RelicTemplate {
+    name: RelicName::Necronomicon,
+    tier: RelicTier::Special,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

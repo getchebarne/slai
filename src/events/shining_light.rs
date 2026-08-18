@@ -6,11 +6,11 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_upgradable;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
@@ -45,22 +45,22 @@ const OPTION_ENTER_BASE: [Effect; 3] = enter(1, 5);
 const OPTION_ENTER_A15: [Effect; 3] = enter(3, 10);
 
 // Leave
-static OPTIONS_BASE: &[Entity] = &[
-    make_entity_event_option(
+static OPTIONS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(
         "[Enter] Upgrade 2 random cards. Lose 20% of your max HP.",
         &OPTION_ENTER_BASE,
     ),
     OPTION_LEAVE,
 ];
-static OPTIONS_A15: &[Entity] = &[
-    make_entity_event_option(
+static OPTIONS_A15: &[EventOptionTemplate] = &[
+    make_event_option_template(
         "[Enter] Upgrade 2 random cards. Lose 30% of your max HP.",
         &OPTION_ENTER_A15,
     ),
     OPTION_LEAVE,
 ];
 
-pub fn options(ascension: u8) -> &'static [Entity] {
+pub fn options(ascension: u8) -> &'static [EventOptionTemplate] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

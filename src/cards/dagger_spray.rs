@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -27,7 +27,7 @@ const HIT_PLUS: Effect = Effect {
     target: TARGET_MONSTERS_ALL,
 };
 
-pub static DAGGER_SPRAY: Entity = make_entity_card(
+pub static DAGGER_SPRAY: CardTemplate = make_card_template(
     CardName::DaggerSpray,
     CardKind::Attack,
     CardColor::Green,
@@ -44,10 +44,10 @@ pub static DAGGER_SPRAY: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static DAGGER_SPRAY_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_effects: {
-        let mut effects = DAGGER_SPRAY.card_effects;
+pub static DAGGER_SPRAY_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    effects: {
+        let mut effects = DAGGER_SPRAY.effects;
         effects[0] = HIT_PLUS;
         effects[1] = HIT_PLUS;
         effects

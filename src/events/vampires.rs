@@ -6,10 +6,11 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_entity_event_option;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -58,23 +59,25 @@ const OPTION_ACCEPT: &[Effect] = &[
 
 const OPTION_VIAL: &[Effect] = &[
     Effect {
-        kind: EffectKind::RelicLose {
-            name: RelicName::BloodVial,
-        },
+        kind: EffectKind::RelicLose,
         id_source: None,
-        target: Target::Direct(None),
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::EventRelicPicks,
+            filter: CandidateFilter::Any,
+            selection_kind: SelectionKind::Single,
+        },
     },
     EFFECT_PURGE_STRIKES,
     EFFECT_GAIN_BITES,
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option(
+pub static OPTIONS: &[EventOptionTemplate] = &[
+    make_event_option_template(
         "[Accept] Lose 30% of your Max HP. Replace your Strikes with 5 Bites.",
         OPTION_ACCEPT,
     ),
-    make_entity_event_option(
+    make_event_option_template(
         "[Offer Blood Vial] Replace your Strikes with 5 Bites.",
         OPTION_VIAL,
     ),
@@ -86,4 +89,12 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
         1 => has_relic(&state.id_relics, RelicName::BloodVial),
         _ => true,
     }
+}
+
+// The Vial option targets the staked Relic; availability gates it on ownership
+pub fn spawn_event_vampires(state: &mut GameState) -> Vec<usize> {
+    if let Some(id) = state.id_relics[RelicName::BloodVial as usize] {
+        state.event.id_relic_picks.push(id);
+    }
+    bake_options(state, OPTIONS)
 }

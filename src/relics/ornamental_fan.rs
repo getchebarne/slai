@@ -1,10 +1,13 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Every 3rd Attack played each turn grants 4 block
 // See:
 //    - `process_effect_card_play.rs`
-pub static ORNAMENTAL_FAN: Entity =
-    make_entity_relic(RelicName::OrnamentalFan, RelicTier::Uncommon, 0, &[]);
+pub static ORNAMENTAL_FAN: RelicTemplate = RelicTemplate {
+    name: RelicName::OrnamentalFan,
+    tier: RelicTier::Uncommon,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

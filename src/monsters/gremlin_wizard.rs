@@ -1,18 +1,14 @@
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
+use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
-use rand::Rng;
 
 static MOVE_CHARGE: Move = make_move("Charge", &[], Intent::Unknown);
-static MOVE_ULTIMATE_BLAST_25: Move = make_move_attack("Ultimate Blast", 25, 1);
-static MOVE_ULTIMATE_BLAST_30: Move = make_move_attack("Ultimate Blast", 30, 1);
+static MOVE_ULTIMATE_BLAST_25: Move = move_attack("Ultimate Blast", 25, 1);
+static MOVE_ULTIMATE_BLAST_30: Move = move_attack("Ultimate Blast", 30, 1);
 static MOVES_ASC0: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_25];
 static MOVES_ASC2: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];
 static MOVES_ASC17: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];
@@ -20,34 +16,14 @@ static MOVES_ASC17: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];
 const IDX_MOVE_CHARGE: usize = 0;
 const IDX_MOVE_ULTIMATE_BLAST: usize = 1;
 
-pub fn spawn_monster_gremlin_wizard(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (21, 25)
-    } else {
-        (22, 26)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
-    } else {
-        &MOVES_ASC17
-    };
-
-    make_entity_monster(
-        MonsterName::GremlinWizard,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::GremlinWizard,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (21, 25)), (7, (22, 26))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
+    modifier_tiers: &[],
+};
 
 pub fn get_next_move_gremlin_wizard(
     move_current: Option<usize>,

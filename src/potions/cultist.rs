@@ -1,17 +1,16 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Entity;
 use crate::modifier::ModifierKind;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_CULTIST: Entity = make_entity_potion(
-    PotionName::CultistPotion,
-    PotionRarity::Rare,
-    true,
-    &[Effect {
+pub static POTION_CULTIST: PotionTemplate = PotionTemplate {
+    name: PotionName::CultistPotion,
+    rarity: PotionRarity::Rare,
+    combat_only: true,
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Ritual,
             stacks: 1,
@@ -19,4 +18,4 @@ pub static POTION_CULTIST: Entity = make_entity_potion(
         id_source: None,
         target: TARGET_CHARACTER,
     }],
-);
+};

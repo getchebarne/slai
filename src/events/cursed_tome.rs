@@ -3,11 +3,11 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EVENT_ADVANCE_EFFECT;
 use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 
@@ -51,28 +51,31 @@ const OPTION_TAKE_A15: [Effect; 3] = take_book(15);
 const OPTION_STOP: [Effect; 2] = [hp_loss(3), EVENT_CONSUME_EFFECT];
 
 // Only the take-option varies with ascension
-const fn options_for(take_label: &'static str, take: &'static [Effect]) -> [Entity; 7] {
+const fn options_for(
+    take_label: &'static str,
+    take: &'static [Effect],
+) -> [EventOptionTemplate; 7] {
     [
-        make_entity_event_option("[Read] Begin reading.", &OPTION_READ),
-        make_entity_event_option("[Continue] Lose 1 HP.", &OPTION_PAGE_1),
-        make_entity_event_option("[Continue] Lose 2 HP.", &OPTION_PAGE_2),
-        make_entity_event_option("[Continue] Lose 3 HP.", &OPTION_PAGE_3),
-        make_entity_event_option(take_label, take),
-        make_entity_event_option("[Stop Reading] Lose 3 HP.", &OPTION_STOP),
+        make_event_option_template("[Read] Begin reading.", &OPTION_READ),
+        make_event_option_template("[Continue] Lose 1 HP.", &OPTION_PAGE_1),
+        make_event_option_template("[Continue] Lose 2 HP.", &OPTION_PAGE_2),
+        make_event_option_template("[Continue] Lose 3 HP.", &OPTION_PAGE_3),
+        make_event_option_template(take_label, take),
+        make_event_option_template("[Stop Reading] Lose 3 HP.", &OPTION_STOP),
         OPTION_LEAVE,
     ]
 }
 
-static OPTIONS_BASE: &[Entity] = &options_for(
+static OPTIONS_BASE: &[EventOptionTemplate] = &options_for(
     "[Take the Book] Lose 10 HP. Obtain a book Relic.",
     &OPTION_TAKE_BASE,
 );
-static OPTIONS_A15: &[Entity] = &options_for(
+static OPTIONS_A15: &[EventOptionTemplate] = &options_for(
     "[Take the Book] Lose 15 HP. Obtain a book Relic.",
     &OPTION_TAKE_A15,
 );
 
-pub fn options(ascension: u8) -> &'static [Entity] {
+pub fn options(ascension: u8) -> &'static [EventOptionTemplate] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

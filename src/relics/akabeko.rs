@@ -1,19 +1,18 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Entity;
 use crate::modifier::ModifierKind;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // See:
 //    - `process_effect_combat_start.rs`
-pub static AKABEKO: Entity = make_entity_relic(
-    RelicName::Akabeko,
-    RelicTier::Common,
-    0,
-    &[Effect {
+pub static AKABEKO: RelicTemplate = RelicTemplate {
+    name: RelicName::Akabeko,
+    tier: RelicTier::Common,
+    counter_init: 0,
+    effects_combat_start: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vigor,
             stacks: 8,
@@ -21,4 +20,4 @@ pub static AKABEKO: Entity = make_entity_relic(
         id_source: None,
         target: TARGET_CHARACTER,
     }],
-);
+};

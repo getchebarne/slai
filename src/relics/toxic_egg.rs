@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,4 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_adopt.rs`
 //    - `utils.rs`
-pub static TOXIC_EGG: Entity = make_entity_relic(RelicName::ToxicEgg, RelicTier::Uncommon, 0, &[]);
+pub static TOXIC_EGG: RelicTemplate = RelicTemplate {
+    name: RelicName::ToxicEgg,
+    tier: RelicTier::Uncommon,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

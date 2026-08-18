@@ -1,17 +1,16 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Entity;
 use crate::modifier::ModifierKind;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_SPEED: Entity = make_entity_potion(
-    PotionName::SpeedPotion,
-    PotionRarity::Common,
-    true,
-    &[
+pub static POTION_SPEED: PotionTemplate = PotionTemplate {
+    name: PotionName::SpeedPotion,
+    rarity: PotionRarity::Common,
+    combat_only: true,
+    effects: &[
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Dexterity,
@@ -29,4 +28,4 @@ pub static POTION_SPEED: Entity = make_entity_potion(
             target: TARGET_CHARACTER,
         },
     ],
-);
+};

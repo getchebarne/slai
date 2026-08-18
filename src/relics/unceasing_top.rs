@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,5 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `engine/mod.rs`
 //    - `utils.rs`
-pub static UNCEASING_TOP: Entity =
-    make_entity_relic(RelicName::UnceasingTop, RelicTier::Rare, 0, &[]);
+pub static UNCEASING_TOP: RelicTemplate = RelicTemplate {
+    name: RelicName::UnceasingTop,
+    tier: RelicTier::Rare,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

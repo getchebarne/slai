@@ -6,18 +6,16 @@ use crate::effect::TARGET_MONSTERS_ALL;
 use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack_debuff;
+use crate::monsters::move_attack_debuff;
 use crate::types::DeltaSign;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
-const fn make_move_heal(amount: u16) -> Move {
+const fn move_heal(amount: u16) -> Move {
     make_move(
         "Heal",
         &[Effect {
@@ -32,7 +30,7 @@ const fn make_move_heal(amount: u16) -> Move {
     )
 }
 
-const fn make_move_buff_all(strength: i16) -> Move {
+const fn move_buff_all(strength: i16) -> Move {
     make_move(
         "Buff",
         &[Effect {
@@ -47,13 +45,13 @@ const fn make_move_buff_all(strength: i16) -> Move {
     )
 }
 
-static MOVE_STAFF_BASH_8: Move = make_move_attack_debuff("Staff Bash", 8, ModifierKind::Frail, 2);
-static MOVE_STAFF_BASH_9: Move = make_move_attack_debuff("Staff Bash", 9, ModifierKind::Frail, 2);
-static MOVE_HEAL_16: Move = make_move_heal(16);
-static MOVE_HEAL_20: Move = make_move_heal(20);
-static MOVE_BUFF_2: Move = make_move_buff_all(2);
-static MOVE_BUFF_3: Move = make_move_buff_all(3);
-static MOVE_BUFF_4: Move = make_move_buff_all(4);
+static MOVE_STAFF_BASH_8: Move = move_attack_debuff("Staff Bash", 8, ModifierKind::Frail, 2);
+static MOVE_STAFF_BASH_9: Move = move_attack_debuff("Staff Bash", 9, ModifierKind::Frail, 2);
+static MOVE_HEAL_16: Move = move_heal(16);
+static MOVE_HEAL_20: Move = move_heal(20);
+static MOVE_BUFF_2: Move = move_buff_all(2);
+static MOVE_BUFF_3: Move = move_buff_all(3);
+static MOVE_BUFF_4: Move = move_buff_all(4);
 
 static MOVES_ASC0: [Move; 3] = [MOVE_STAFF_BASH_8, MOVE_HEAL_16, MOVE_BUFF_2];
 static MOVES_ASC2: [Move; 3] = [MOVE_STAFF_BASH_9, MOVE_HEAL_16, MOVE_BUFF_3];
@@ -63,34 +61,14 @@ const IDX_MOVE_STAFF_BASH: usize = 0;
 const IDX_MOVE_HEAL: usize = 1;
 const IDX_MOVE_BUFF: usize = 2;
 
-pub fn spawn_monster_healer(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (48, 56)
-    } else {
-        (50, 58)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
-    } else {
-        &MOVES_ASC17
-    };
-
-    make_entity_monster(
-        MonsterName::Healer,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::Healer,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (48, 56)), (7, (50, 58))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
+    modifier_tiers: &[],
+};
 
 pub fn get_next_move_healer(
     move_history: &[u8],

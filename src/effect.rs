@@ -154,9 +154,7 @@ pub enum EffectKind {
     JoustBet {
         on_owner: bool,
     },
-    KnowingSkullAsk {
-        wish: KnowingSkullWish,
-    },
+    KnowingSkullCostBump,
     MausoleumOpen,
     MaxHealthDelta {
         sign: DeltaSign,
@@ -208,9 +206,7 @@ pub enum EffectKind {
         name: RelicName,
         fallback_circlet: bool,
     },
-    RelicLose {
-        name: RelicName,
-    },
+    RelicLose,
     RestSiteConsume,
     RitualDaggerProc {
         bump: u16,
@@ -281,14 +277,6 @@ pub enum EffectKind {
     WheelSpin,
 }
 
-// Knowing Skull's escalating asks
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum KnowingSkullWish {
-    Potion,
-    Gold,
-    Card,
-}
-
 // How far the staged relic is already resolved; each variant rolls only what remains
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RelicPick {
@@ -325,6 +313,12 @@ pub enum CandidatePool {
     PileDraw,
     PileDiscard,
     PileExhaust,
+
+    // Entities the event's spawn staked; `Single` where one was rolled,
+    // `Input` to let the player choose among several
+    EventCardPicks,
+    EventRelicPicks,
+    EventPotionPicks,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

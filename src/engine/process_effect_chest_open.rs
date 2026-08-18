@@ -1,5 +1,7 @@
 use rand::Rng;
 
+use crate::consts::CHEST_GOLD_VARIANCE_MAX;
+use crate::consts::CHEST_GOLD_VARIANCE_MIN;
 use crate::consts::CHEST_LARGE_GOLD_BASE;
 use crate::consts::CHEST_LARGE_GOLD_CHANCE;
 use crate::consts::CHEST_LARGE_TH_COMMON;
@@ -143,6 +145,6 @@ pub fn process_effect_chest_open(state: &mut GameState) {
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {
     let base = chest_params.gold_base as f32;
-    let factor = rng.random_range(0.9..=1.1);
+    let factor = rng.random_range(CHEST_GOLD_VARIANCE_MIN..=CHEST_GOLD_VARIANCE_MAX);
     (base * factor).round() as u16
 }

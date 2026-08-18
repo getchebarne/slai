@@ -142,7 +142,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         .collect();
     id_owned.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
     for id_relic in id_owned {
-        for &eff in state.entities[id_relic].relic_effects_on_combat_start {
+        for &eff in state.entities[id_relic].relic_effects_combat_start {
             state.effect_queue.push_back(eff);
         }
     }

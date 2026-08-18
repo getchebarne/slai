@@ -11,6 +11,11 @@ pub const MAX_EFFECTS_PER_EVENT_OPTION: usize = 5;
 
 pub const STARTING_GOLD: u16 = 99;
 pub const MAX_GOLD: u16 = 9999;
+
+// Silent starting vitals: base max HP, A14 penalty, A6+ current-HP fraction
+pub const SILENT_HP_MAX_BASE: u16 = 70;
+pub const SILENT_HP_MAX_A14_DELTA: u16 = 4;
+pub const HP_START_FRACTION_A6: f32 = 0.90;
 pub const GOLD_MONSTER_MIN: u16 = 10;
 pub const GOLD_MONSTER_MAX: u16 = 20;
 pub const GOLD_ELITE_MIN: u16 = 25;
@@ -101,6 +106,10 @@ pub const CHEST_LARGE_GOLD_BASE: u16 = 75;
 pub const CHEST_LARGE_TH_COMMON: u8 = 0;
 pub const CHEST_LARGE_TH_UNCOMMON: u8 = 75;
 
+// Chest gold: base x U[0.9, 1.1] inclusive
+pub const CHEST_GOLD_VARIANCE_MIN: f32 = 0.9;
+pub const CHEST_GOLD_VARIANCE_MAX: f32 = 1.1;
+
 // Cumulative thresholds for Relic-tier roll (elite reward, random grant)
 pub const RELIC_TIER_TH_COMMON: u8 = 50;
 pub const RELIC_TIER_TH_UNCOMMON: u8 = 83;
@@ -140,6 +149,10 @@ pub const NEOW_GOLD_SMALL: u16 = 100;
 pub const NEOW_GOLD_LARGE: u16 = 250;
 pub const NEOW_LAMENT_COMBATS: i16 = 3;
 
+// We Meet Again: gold ask rolled MIN..=gold.min(MAX); option unavailable below MIN
+pub const WE_MEET_AGAIN_GOLD_ASK_MIN: u16 = 50;
+pub const WE_MEET_AGAIN_GOLD_ASK_MAX: u16 = 150;
+
 // Shop pricing — Cards: base x U[0.9, 1.1], colorless x 1.2
 pub const SHOP_PRICE_CARD_COMMON: u16 = 50;
 pub const SHOP_PRICE_CARD_UNCOMMON: u16 = 75;
@@ -163,10 +176,39 @@ pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 = 1.05;
 pub const SHOP_PURGE_COST_BASE: u16 = 75;
 pub const SHOP_PURGE_COST_INCREMENT: u16 = 25;
 
+// One random colored-card slot is floor-halved, pre-markup
+pub const SHOP_SALE_DIVISOR: u16 = 2;
+
 // A16+ markup: Card/Relic/Potion prices x 11/10 rounded half-up; purge cost is exempt
 pub const ASCENSION_SHOP_PRICE_BUMP_LEVEL: u8 = 16;
 pub const ASCENSION_SHOP_PRICE_BUMP_NUMER: u16 = 11;
 pub const ASCENSION_SHOP_PRICE_BUMP_DENOM: u16 = 10;
+
+// The one A16 markup formula; process_effect_shop_build applies it to live prices
+pub const fn bump_price_a16(price: u16) -> u16 {
+    ((price as u32 * ASCENSION_SHOP_PRICE_BUMP_NUMER as u32
+        + ASCENSION_SHOP_PRICE_BUMP_DENOM as u32 / 2)
+        / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
+}
+
+// Sup of base x U[lo, hi) with hi = 11/10 (cards) or 21/20 (relics/potions);
+// integer mirror of the f32 variance rolls in engine/shop.rs, pinned below
+const fn price_sup_card(base: u16) -> u16 {
+    (base * 11 - 1) / 10
+}
+const fn price_sup_relic_potion(base: u16) -> u16 {
+    (base * 21 - 1) / 20
+}
+const _: () = assert!(SHOP_PRICE_CARD_VARIANCE_MAX == 11.0 / 10.0);
+const _: () = assert!(SHOP_PRICE_RELIC_POTION_VARIANCE_MAX == 21.0 / 20.0);
+
+// Derived stock-price ceilings, post-A16 markup, pre-discount (discounts only lower)
+pub const SHOP_PRICE_CARD_MAX: u16 = bump_price_a16(price_sup_card(
+    SHOP_PRICE_CARD_RARE * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM,
+));
+pub const SHOP_PRICE_RELIC_MAX: u16 = bump_price_a16(price_sup_relic_potion(SHOP_PRICE_RELIC_RARE));
+pub const SHOP_PRICE_POTION_MAX: u16 =
+    bump_price_a16(price_sup_relic_potion(SHOP_PRICE_POTION_RARE));
 
 // Shop inventory composition
 pub const SHOP_SLOTS_CARD_COLORED: usize = 5;

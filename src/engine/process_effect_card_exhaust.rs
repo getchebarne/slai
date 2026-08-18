@@ -1,4 +1,4 @@
-use crate::cards::get_random_cards;
+use crate::cards::get_random_card_names;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -29,7 +29,7 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
     // (all green Cards are rewardable, so no kind/rarity filter is needed)
     if has_relic(&state.id_relics, RelicName::DeadBranch) {
         let card_name =
-            get_random_cards(CardColor::Green, None, None, &[], 1, &mut state.rng)[0].card_name;
+            get_random_card_names(CardColor::Green, None, None, &[], 1, &mut state.rng)[0];
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAdd {
                 card_name,

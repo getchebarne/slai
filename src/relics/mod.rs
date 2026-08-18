@@ -157,20 +157,24 @@ use crate::types::RelicTier;
 use crate::types::relic_name_from_u8;
 
 // Totality relies on the len == COUNT and no-duplicate asserts below
-const fn build_relic_by_name() -> [&'static Entity; RelicName::COUNT] {
+const fn build_relic_by_name() -> [&'static RelicTemplate; RelicName::COUNT] {
     let mut buf = [ALL_RELICS[0]; RelicName::COUNT];
     let mut idx = 0;
     while idx < ALL_RELICS.len() {
-        buf[ALL_RELICS[idx].relic_name as usize] = ALL_RELICS[idx];
+        buf[ALL_RELICS[idx].name as usize] = ALL_RELICS[idx];
         idx += 1;
     }
     buf
 }
 
-static RELIC_BY_NAME: [&'static Entity; RelicName::COUNT] = build_relic_by_name();
+static RELIC_BY_NAME: [&'static RelicTemplate; RelicName::COUNT] = build_relic_by_name();
+
+pub fn relic_template(name: RelicName) -> &'static RelicTemplate {
+    RELIC_BY_NAME[name as usize]
+}
 
 pub fn get_relic(name: RelicName) -> Entity {
-    *RELIC_BY_NAME[name as usize]
+    instance_relic_from_template(RELIC_BY_NAME[name as usize])
 }
 
 // Bump a Relic's counter if owned; at `threshold` reset it to 0 and report the fire
@@ -237,7 +241,7 @@ pub fn iter_owned_relics(
         .filter_map(|(idx, &opt)| opt.map(|id| (relic_name_from_u8(idx as u8), id)))
 }
 
-pub const ALL_RELICS: &[&'static Entity] = &[
+pub const ALL_RELICS: &[&'static RelicTemplate] = &[
     &snake_ring::SNAKE_RING,
     &abacus::ABACUS,
     &akabeko::AKABEKO,
@@ -391,7 +395,7 @@ const _: () = {
     let mut seen = [false; RelicName::COUNT];
     let mut idx = 0;
     while idx < ALL_RELICS.len() {
-        let idx_name = ALL_RELICS[idx].relic_name as usize;
+        let idx_name = ALL_RELICS[idx].name as usize;
         assert!(!seen[idx_name], "ALL_RELICS contains a duplicate RelicName");
         seen[idx_name] = true;
         idx += 1;
@@ -406,7 +410,7 @@ const fn count_pool(tier: RelicTier) -> usize {
     let mut count = 0;
     let mut idx = 0;
     while idx < ALL_RELICS.len() {
-        if relic_tier_eq(ALL_RELICS[idx].relic_tier, tier) {
+        if relic_tier_eq(ALL_RELICS[idx].tier, tier) {
             count += 1;
         }
         idx += 1;
@@ -420,8 +424,8 @@ const fn build_pool<const N: usize>(tier: RelicTier) -> [RelicName; N] {
     let mut idx_all = 0;
     while idx_all < ALL_RELICS.len() {
         let relic = ALL_RELICS[idx_all];
-        if relic_tier_eq(relic.relic_tier, tier) {
-            buf[idx_pool] = relic.relic_name;
+        if relic_tier_eq(relic.tier, tier) {
+            buf[idx_pool] = relic.name;
             idx_pool += 1;
         }
         idx_all += 1;
@@ -443,19 +447,21 @@ pub const POOL_RARE_RELIC: &[RelicName] = &build_pool::<NUM_RARE>(RelicTier::Rar
 pub const POOL_BOSS_RELIC: &[RelicName] = &build_pool::<NUM_BOSS>(RelicTier::Boss);
 pub const POOL_SHOP_RELIC: &[RelicName] = &build_pool::<NUM_SHOP>(RelicTier::Shop);
 
-pub const fn make_entity_relic(
-    name: RelicName,
-    tier: RelicTier,
-    counter_init: i16,
-    effects_on_combat_start: &'static [Effect],
-) -> Entity {
+pub struct RelicTemplate {
+    pub name: RelicName,
+    pub tier: RelicTier,
+    pub counter_init: i16,
+    pub effects_combat_start: &'static [Effect],
+}
+
+pub const fn instance_relic_from_template(template: &RelicTemplate) -> Entity {
     Entity {
         kind: EntityKind::Relic,
-        relic_name: name,
-        relic_tier: tier,
-        relic_counter: counter_init,
+        relic_name: template.name,
+        relic_tier: template.tier,
+        relic_counter: template.counter_init,
         relic_used_up: false,
-        relic_effects_on_combat_start: effects_on_combat_start,
+        relic_effects_combat_start: template.effects_combat_start,
         ..ENTITY_ZERO
     }
 }

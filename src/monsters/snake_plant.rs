@@ -1,18 +1,14 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
+use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
 pub const MALLEABLE_BASE: i16 = 3;
@@ -41,8 +37,8 @@ static MOVE_SPORES: Move = make_move(
     Intent::DebuffPowerful,
 );
 
-static MOVE_CHOMP_7: Move = make_move_attack("Chomp", 7, 3);
-static MOVE_CHOMP_8: Move = make_move_attack("Chomp", 8, 3);
+static MOVE_CHOMP_7: Move = move_attack("Chomp", 7, 3);
+static MOVE_CHOMP_8: Move = move_attack("Chomp", 8, 3);
 
 static MOVES_ASC0: [Move; 2] = [MOVE_CHOMP_7, MOVE_SPORES];
 static MOVES_ASC2: [Move; 2] = [MOVE_CHOMP_8, MOVE_SPORES];
@@ -50,35 +46,14 @@ static MOVES_ASC2: [Move; 2] = [MOVE_CHOMP_8, MOVE_SPORES];
 const IDX_MOVE_CHOMP: usize = 0;
 const IDX_MOVE_SPORES: usize = 1;
 
-pub fn spawn_monster_snake_plant(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (75, 79)
-    } else {
-        (78, 82)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else {
-        &MOVES_ASC2
-    };
-
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::Malleable, MALLEABLE_BASE);
-
-    make_entity_monster(
-        MonsterName::SnakePlant,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::SnakePlant,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (75, 79)), (7, (78, 82))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2)],
+    modifier_tiers: &[(0, &[(ModifierKind::Malleable, MALLEABLE_BASE)])],
+};
 
 pub fn get_next_move_snake_plant(
     move_history: &[u8],

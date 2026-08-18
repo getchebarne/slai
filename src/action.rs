@@ -85,6 +85,9 @@ pub enum Action {
     EventOptionSelect {
         idx: usize,
     },
+    EventPick {
+        idx: usize,
+    },
     PickSkip,
     PotionDiscard {
         idx: usize,
@@ -160,6 +163,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
         Action::CardUpgrade { idx } => handle_card_upgrade(state, idx),
         Action::ChestOpen => handle_chest_open(state),
         Action::EventOptionSelect { idx } => handle_event_option_select(state, idx),
+        Action::EventPick { idx } => handle_event_pick(state, idx),
         Action::PotionDiscard { idx } => handle_potion_discard(state, idx),
         Action::PotionUse {
             idx_potion,
@@ -333,6 +337,27 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
             id_source: Some(id_option),
             ..*effect
         });
+    }
+}
+
+// idx indexes the pick collection named by the pending effect's pool
+fn handle_event_pick(state: &mut GameState, idx: usize) {
+    let pending = state
+        .effect_pending
+        .expect("EventPick requires a pending effect");
+    let Target::Resolve { candidate_pool, .. } = pending.target else {
+        unreachable!("EventPick carries a Resolve target")
+    };
+    let id_picked = event_picks(state, candidate_pool)[idx];
+    resolve_pending_pick(state, id_picked);
+}
+
+fn event_picks(state: &GameState, pool: CandidatePool) -> &Vec<usize> {
+    match pool {
+        CandidatePool::EventCardPicks => &state.event.id_card_picks,
+        CandidatePool::EventRelicPicks => &state.event.id_relic_picks,
+        CandidatePool::EventPotionPicks => &state.event.id_potion_picks,
+        other => unreachable!("EventPick with non-pick pool: {:?}", other),
     }
 }
 
@@ -597,6 +622,17 @@ fn fill_legal_actions_effect_pending(
                 }
             }
         }
+        _ if matches!(
+            pool,
+            CandidatePool::EventCardPicks
+                | CandidatePool::EventRelicPicks
+                | CandidatePool::EventPotionPicks
+        ) =>
+        {
+            for idx in 0..event_picks(state, pool).len() {
+                state.legal_actions.push(Action::EventPick { idx });
+            }
+        }
         EffectKind::CardDiscoverPick { .. } => {
             assert!(state.combat.active, "Discover pick outside combat");
             for idx in 0..state.combat.id_card_discover.len() {
@@ -755,10 +791,9 @@ fn fill_legal_actions_event(state: &mut GameState) {
     if state.event.consumed {
         state.legal_actions.push(Action::RoomExit);
     } else {
-        let event_kind = state.event.event_kind;
         let num_options = state.event.id_event_options.len();
         for idx in 0..num_options {
-            if event_option_available(state, event_kind, idx) {
+            if event_option_available(state, idx) {
                 state
                     .legal_actions
                     .push(Action::EventOptionSelect { idx: idx });

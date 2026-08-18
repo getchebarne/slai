@@ -1,24 +1,19 @@
-use crate::entity::Entity;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::monsters::make_entity_monster;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_attack_debuff;
-use crate::monsters::make_move_buff;
+use crate::monsters::MonsterTemplate;
+use crate::monsters::move_attack;
+use crate::monsters::move_attack_debuff;
+use crate::monsters::move_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BELLOW_2: Move = make_move_buff("Bellow", ModifierKind::Enrage, 2);
-static MOVE_BELLOW_3: Move = make_move_buff("Bellow", ModifierKind::Enrage, 3);
-static MOVE_BULL_RUSH_14: Move = make_move_attack("Bull Rush", 14, 1);
-static MOVE_BULL_RUSH_16: Move = make_move_attack("Bull Rush", 16, 1);
-static MOVE_SKULL_BASH_6: Move =
-    make_move_attack_debuff("Skull Bash", 6, ModifierKind::Vulnerable, 2);
-static MOVE_SKULL_BASH_8: Move =
-    make_move_attack_debuff("Skull Bash", 8, ModifierKind::Vulnerable, 2);
+static MOVE_BELLOW_2: Move = move_buff("Bellow", ModifierKind::Enrage, 2);
+static MOVE_BELLOW_3: Move = move_buff("Bellow", ModifierKind::Enrage, 3);
+static MOVE_BULL_RUSH_14: Move = move_attack("Bull Rush", 14, 1);
+static MOVE_BULL_RUSH_16: Move = move_attack("Bull Rush", 16, 1);
+static MOVE_SKULL_BASH_6: Move = move_attack_debuff("Skull Bash", 6, ModifierKind::Vulnerable, 2);
+static MOVE_SKULL_BASH_8: Move = move_attack_debuff("Skull Bash", 8, ModifierKind::Vulnerable, 2);
 
 static MOVES_ASC0: [Move; 3] = [MOVE_BELLOW_2, MOVE_BULL_RUSH_14, MOVE_SKULL_BASH_6];
 static MOVES_ASC3: [Move; 3] = [MOVE_BELLOW_2, MOVE_BULL_RUSH_16, MOVE_SKULL_BASH_8];
@@ -28,34 +23,14 @@ const IDX_MOVE_BELLOW: usize = 0;
 const IDX_MOVE_BULL_RUSH: usize = 1;
 const IDX_MOVE_SKULL_BASH: usize = 2;
 
-pub fn spawn_monster_gremlin_nob(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 8 {
-        (82, 86)
-    } else {
-        (85, 90)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 3 {
-        &MOVES_ASC0
-    } else if ascension_level < 18 {
-        &MOVES_ASC3
-    } else {
-        &MOVES_ASC18
-    };
-
-    make_entity_monster(
-        MonsterName::GremlinNob,
-        MonsterKind::Elite,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::GremlinNob,
+    kind: MonsterKind::Elite,
+    health_tiers: &[(0, (82, 86)), (8, (85, 90))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (3, &MOVES_ASC3), (18, &MOVES_ASC18)],
+    modifier_tiers: &[],
+};
 
 pub fn get_next_move_gremlin_nob(
     move_history: &[u8],

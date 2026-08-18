@@ -184,6 +184,12 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyCandidatePoolDiscover;
     #[pymodule_export]
+    use super::ffi::PyCandidatePoolEventCardPicks;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolEventPotionPicks;
+    #[pymodule_export]
+    use super::ffi::PyCandidatePoolEventRelicPicks;
+    #[pymodule_export]
     use super::ffi::PyCandidatePoolHand;
     #[pymodule_export]
     use super::ffi::PyCandidatePoolMonsters;
@@ -296,7 +302,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectJoustBet;
     #[pymodule_export]
-    use super::ffi::PyEffectKnowingSkullAsk;
+    use super::ffi::PyEffectKnowingSkullCostBump;
     #[pymodule_export]
     use super::ffi::PyEffectMausoleumOpen;
     #[pymodule_export]
@@ -348,92 +354,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEvent;
     #[pymodule_export]
-    use super::ffi::PyEventKindAddict;
-    #[pymodule_export]
-    use super::ffi::PyEventKindBackToBasics;
-    #[pymodule_export]
-    use super::ffi::PyEventKindBeggar;
-    #[pymodule_export]
-    use super::ffi::PyEventKindBigFish;
-    #[pymodule_export]
-    use super::ffi::PyEventKindBonfireSpirits;
-    #[pymodule_export]
-    use super::ffi::PyEventKindColosseum;
-    #[pymodule_export]
-    use super::ffi::PyEventKindCursedTome;
-    #[pymodule_export]
-    use super::ffi::PyEventKindDeadAdventurer;
-    #[pymodule_export]
-    use super::ffi::PyEventKindDesigner;
-    #[pymodule_export]
-    use super::ffi::PyEventKindDrugDealer;
-    #[pymodule_export]
-    use super::ffi::PyEventKindDuplicator;
-    #[pymodule_export]
-    use super::ffi::PyEventKindFaceTrader;
-    #[pymodule_export]
-    use super::ffi::PyEventKindForgottenAltar;
-    #[pymodule_export]
-    use super::ffi::PyEventKindGhosts;
-    #[pymodule_export]
-    use super::ffi::PyEventKindGoldenIdol;
-    #[pymodule_export]
-    use super::ffi::PyEventKindGoldenShrine;
-    #[pymodule_export]
-    use super::ffi::PyEventKindKnowingSkull;
-    #[pymodule_export]
-    use super::ffi::PyEventKindLivingWall;
-    #[pymodule_export]
-    use super::ffi::PyEventKindMaskedBandits;
-    #[pymodule_export]
-    use super::ffi::PyEventKindMushrooms;
-    #[pymodule_export]
-    use super::ffi::PyEventKindNeow;
-    #[pymodule_export]
-    use super::ffi::PyEventKindNest;
-    #[pymodule_export]
-    use super::ffi::PyEventKindNloth;
-    #[pymodule_export]
-    use super::ffi::PyEventKindOminousForge;
-    #[pymodule_export]
-    use super::ffi::PyEventKindPurifier;
-    #[pymodule_export]
-    use super::ffi::PyEventKindScrapOoze;
-    #[pymodule_export]
-    use super::ffi::PyEventKindShiningLight;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTheCleric;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTheDivineFountain;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTheJoust;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTheLab;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTheLibrary;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTheMausoleum;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTheSsssserpent;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTheWomanInBlue;
-    #[pymodule_export]
-    use super::ffi::PyEventKindTransmogrifier;
-    #[pymodule_export]
-    use super::ffi::PyEventKindUpgradeShrine;
-    #[pymodule_export]
-    use super::ffi::PyEventKindVampires;
-    #[pymodule_export]
-    use super::ffi::PyEventKindWeMeetAgain;
-    #[pymodule_export]
-    use super::ffi::PyEventKindWheelOfChange;
-    #[pymodule_export]
-    use super::ffi::PyEventKindWingStatue;
-    #[pymodule_export]
-    use super::ffi::PyEventKindWorldOfGoop;
-    #[pymodule_export]
-    use super::ffi::PyKnowingSkullWish;
-    #[pymodule_export]
     use super::ffi::PyRestSite;
     #[pymodule_export]
     use super::ffi::PyReward;
@@ -449,4 +369,131 @@ mod slai {
     use super::ffi::PySelectionKindSingle;
     #[pymodule_export]
     use super::ffi::PyShop;
+    // Content catalog: template classes + state-free enumeration functions
+    #[pymodule_export]
+    use super::ffi::PyCardTemplate;
+    #[pymodule_export]
+    use super::ffi::PyEventName;
+    #[pymodule_export]
+    use super::ffi::PyEventOptionTemplate;
+    #[pymodule_export]
+    use super::ffi::PyMonsterKind;
+    #[pymodule_export]
+    use super::ffi::PyMonsterTemplate;
+    #[pymodule_export]
+    use super::ffi::PyRelicTemplate;
+    #[pymodule_export]
+    use super::ffi::template::get_card_templates;
+    #[pymodule_export]
+    use super::ffi::template::get_event_option_templates;
+    #[pymodule_export]
+    use super::ffi::template::get_monster_templates;
+    #[pymodule_export]
+    use super::ffi::template::get_potion_templates;
+    #[pymodule_export]
+    use super::ffi::template::get_relic_templates;
+
+    // Constants surface: load-bearing tunables + derived shop ceilings
+    #[pymodule_export]
+    const STARTING_GOLD: u16 = super::consts::STARTING_GOLD;
+    #[pymodule_export]
+    const MAX_GOLD: u16 = super::consts::MAX_GOLD;
+    #[pymodule_export]
+    const GOLD_MONSTER_MIN: u16 = super::consts::GOLD_MONSTER_MIN;
+    #[pymodule_export]
+    const GOLD_MONSTER_MAX: u16 = super::consts::GOLD_MONSTER_MAX;
+    #[pymodule_export]
+    const GOLD_ELITE_MIN: u16 = super::consts::GOLD_ELITE_MIN;
+    #[pymodule_export]
+    const GOLD_ELITE_MAX: u16 = super::consts::GOLD_ELITE_MAX;
+    #[pymodule_export]
+    const GOLD_BOSS_MIN: u16 = super::consts::GOLD_BOSS_MIN;
+    #[pymodule_export]
+    const GOLD_BOSS_MAX: u16 = super::consts::GOLD_BOSS_MAX;
+    #[pymodule_export]
+    const CHEST_SMALL_GOLD_CHANCE: u8 = super::consts::CHEST_SMALL_GOLD_CHANCE;
+    #[pymodule_export]
+    const CHEST_SMALL_GOLD_BASE: u16 = super::consts::CHEST_SMALL_GOLD_BASE;
+    #[pymodule_export]
+    const CHEST_MEDIUM_GOLD_CHANCE: u8 = super::consts::CHEST_MEDIUM_GOLD_CHANCE;
+    #[pymodule_export]
+    const CHEST_MEDIUM_GOLD_BASE: u16 = super::consts::CHEST_MEDIUM_GOLD_BASE;
+    #[pymodule_export]
+    const CHEST_LARGE_GOLD_CHANCE: u8 = super::consts::CHEST_LARGE_GOLD_CHANCE;
+    #[pymodule_export]
+    const CHEST_LARGE_GOLD_BASE: u16 = super::consts::CHEST_LARGE_GOLD_BASE;
+    #[pymodule_export]
+    const CHEST_GOLD_VARIANCE_MIN: f32 = super::consts::CHEST_GOLD_VARIANCE_MIN;
+    #[pymodule_export]
+    const CHEST_GOLD_VARIANCE_MAX: f32 = super::consts::CHEST_GOLD_VARIANCE_MAX;
+    #[pymodule_export]
+    const SHOP_PRICE_CARD_COMMON: u16 = super::consts::SHOP_PRICE_CARD_COMMON;
+    #[pymodule_export]
+    const SHOP_PRICE_CARD_UNCOMMON: u16 = super::consts::SHOP_PRICE_CARD_UNCOMMON;
+    #[pymodule_export]
+    const SHOP_PRICE_CARD_RARE: u16 = super::consts::SHOP_PRICE_CARD_RARE;
+    #[pymodule_export]
+    const SHOP_PRICE_COLORLESS_NUMER: u16 = super::consts::SHOP_PRICE_COLORLESS_NUMER;
+    #[pymodule_export]
+    const SHOP_PRICE_COLORLESS_DENOM: u16 = super::consts::SHOP_PRICE_COLORLESS_DENOM;
+    #[pymodule_export]
+    const SHOP_PRICE_CARD_VARIANCE_MIN: f32 = super::consts::SHOP_PRICE_CARD_VARIANCE_MIN;
+    #[pymodule_export]
+    const SHOP_PRICE_CARD_VARIANCE_MAX: f32 = super::consts::SHOP_PRICE_CARD_VARIANCE_MAX;
+    #[pymodule_export]
+    const SHOP_PRICE_POTION_COMMON: u16 = super::consts::SHOP_PRICE_POTION_COMMON;
+    #[pymodule_export]
+    const SHOP_PRICE_POTION_UNCOMMON: u16 = super::consts::SHOP_PRICE_POTION_UNCOMMON;
+    #[pymodule_export]
+    const SHOP_PRICE_POTION_RARE: u16 = super::consts::SHOP_PRICE_POTION_RARE;
+    #[pymodule_export]
+    const SHOP_PRICE_RELIC_COMMON: u16 = super::consts::SHOP_PRICE_RELIC_COMMON;
+    #[pymodule_export]
+    const SHOP_PRICE_RELIC_UNCOMMON: u16 = super::consts::SHOP_PRICE_RELIC_UNCOMMON;
+    #[pymodule_export]
+    const SHOP_PRICE_RELIC_RARE: u16 = super::consts::SHOP_PRICE_RELIC_RARE;
+    #[pymodule_export]
+    const SHOP_PRICE_RELIC_SHOP: u16 = super::consts::SHOP_PRICE_RELIC_SHOP;
+    #[pymodule_export]
+    const SHOP_PRICE_RELIC_POTION_VARIANCE_MIN: f32 =
+        super::consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MIN;
+    #[pymodule_export]
+    const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 =
+        super::consts::SHOP_PRICE_RELIC_POTION_VARIANCE_MAX;
+    #[pymodule_export]
+    const SHOP_SALE_DIVISOR: u16 = super::consts::SHOP_SALE_DIVISOR;
+    #[pymodule_export]
+    const SHOP_PURGE_COST_BASE: u16 = super::consts::SHOP_PURGE_COST_BASE;
+    #[pymodule_export]
+    const SHOP_PURGE_COST_INCREMENT: u16 = super::consts::SHOP_PURGE_COST_INCREMENT;
+    #[pymodule_export]
+    const ASCENSION_SHOP_PRICE_BUMP_LEVEL: u8 = super::consts::ASCENSION_SHOP_PRICE_BUMP_LEVEL;
+    #[pymodule_export]
+    const ASCENSION_SHOP_PRICE_BUMP_NUMER: u16 = super::consts::ASCENSION_SHOP_PRICE_BUMP_NUMER;
+    #[pymodule_export]
+    const ASCENSION_SHOP_PRICE_BUMP_DENOM: u16 = super::consts::ASCENSION_SHOP_PRICE_BUMP_DENOM;
+    #[pymodule_export]
+    const SHOP_PRICE_CARD_MAX: u16 = super::consts::SHOP_PRICE_CARD_MAX;
+    #[pymodule_export]
+    const SHOP_PRICE_RELIC_MAX: u16 = super::consts::SHOP_PRICE_RELIC_MAX;
+    #[pymodule_export]
+    const SHOP_PRICE_POTION_MAX: u16 = super::consts::SHOP_PRICE_POTION_MAX;
+    #[pymodule_export]
+    const WE_MEET_AGAIN_GOLD_ASK_MIN: u16 = super::consts::WE_MEET_AGAIN_GOLD_ASK_MIN;
+    #[pymodule_export]
+    const WE_MEET_AGAIN_GOLD_ASK_MAX: u16 = super::consts::WE_MEET_AGAIN_GOLD_ASK_MAX;
+    #[pymodule_export]
+    const NEOW_GOLD_SMALL: u16 = super::consts::NEOW_GOLD_SMALL;
+    #[pymodule_export]
+    const NEOW_GOLD_LARGE: u16 = super::consts::NEOW_GOLD_LARGE;
+    #[pymodule_export]
+    const NEOW_CARD_COUNT: usize = super::consts::NEOW_CARD_COUNT;
+    #[pymodule_export]
+    const NEOW_POTION_COUNT: u8 = super::consts::NEOW_POTION_COUNT;
+    #[pymodule_export]
+    const SILENT_HP_MAX_BASE: u16 = super::consts::SILENT_HP_MAX_BASE;
+    #[pymodule_export]
+    const SILENT_HP_MAX_A14_DELTA: u16 = super::consts::SILENT_HP_MAX_A14_DELTA;
+    #[pymodule_export]
+    const HP_START_FRACTION_A6: f32 = super::consts::HP_START_FRACTION_A6;
 }

@@ -1,24 +1,20 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
+use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_MUG_10: Move = make_move_attack("Mug", 10, 1);
-static MOVE_MUG_11: Move = make_move_attack("Mug", 11, 1);
-static MOVE_LUNGE_12: Move = make_move_attack("Lunge", 12, 1);
-static MOVE_LUNGE_14: Move = make_move_attack("Lunge", 14, 1);
+static MOVE_MUG_10: Move = move_attack("Mug", 10, 1);
+static MOVE_MUG_11: Move = move_attack("Mug", 11, 1);
+static MOVE_LUNGE_12: Move = move_attack("Lunge", 12, 1);
+static MOVE_LUNGE_14: Move = move_attack("Lunge", 14, 1);
 static MOVE_SMOKE_BOMB: Move = make_move(
     "Smoke Bomb",
     &[Effect {
@@ -46,36 +42,17 @@ const IDX_MOVE_LUNGE: usize = 1;
 const IDX_MOVE_SMOKE_BOMB: usize = 2;
 const IDX_MOVE_ESCAPE: usize = 3;
 
-pub fn spawn_monster_looter(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (44, 48)
-    } else {
-        (46, 50)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else {
-        &MOVES_ASC2
-    };
-
-    let stacks_thievery: i16 = if ascension_level < 17 { 15 } else { 20 };
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::Thievery, stacks_thievery);
-
-    make_entity_monster(
-        MonsterName::Looter,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::Looter,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (44, 48)), (7, (46, 50))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2)],
+    modifier_tiers: &[
+        (0, &[(ModifierKind::Thievery, 15)]),
+        (17, &[(ModifierKind::Thievery, 20)]),
+    ],
+};
 
 pub fn get_next_move_looter(
     move_current: Option<usize>,

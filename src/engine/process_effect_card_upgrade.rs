@@ -1,3 +1,4 @@
+use crate::cards::card_template;
 use crate::cards::get_card;
 use crate::game::GameState;
 
@@ -15,7 +16,7 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
     let card_upgraded = get_card(name, true);
 
     // Snapshot runtime-preserved fields: cost, cost override, bottled status
-    let cost = if card_upgraded.card_cost == get_card(name, false).card_cost {
+    let cost = if card_upgraded.card_cost == card_template(name, false).cost {
         card.card_cost
     } else {
         card_upgraded.card_cost

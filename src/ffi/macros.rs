@@ -9,10 +9,11 @@ use super::card::PyCardRarity;
 use super::card::PyCostScope;
 use super::card::PyPlayRestriction;
 use super::context::PyChestKind;
-use super::effect::PyKnowingSkullWish;
+use super::event::PyEventName;
 use super::map::PyRoomKind;
 use super::monster::PyIntentKind;
 use super::monster::PyMonsterEncounter;
+use super::monster::PyMonsterKind;
 use super::monster::PyMonsterName;
 use super::potion::PyPotionName;
 use super::potion::PyPotionRarity;
@@ -157,7 +158,8 @@ impl_discriminant_hash!(
     PyChestKind,
     PyCostScope,
     PyIntentKind,
-    PyKnowingSkullWish,
+    PyMonsterKind,
+    PyEventName,
 );
 
 pub(crate) use flat_variants;

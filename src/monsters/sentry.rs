@@ -2,24 +2,19 @@ use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
+use crate::monsters::move_attack;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
-use rand::Rng;
 
-static MOVE_BEAM_9: Move = make_move_attack("Beam", 9, 1);
-static MOVE_BEAM_10: Move = make_move_attack("Beam", 10, 1);
+static MOVE_BEAM_9: Move = move_attack("Beam", 9, 1);
+static MOVE_BEAM_10: Move = move_attack("Beam", 10, 1);
 static MOVE_BOLT_2: Move = make_move(
     "Bolt",
     &[Effect {
@@ -56,38 +51,14 @@ static MOVES_ASC18: [Move; 2] = [MOVE_BEAM_10, MOVE_BOLT_3];
 const IDX_MOVE_BEAM: usize = 0;
 const IDX_MOVE_BOLT: usize = 1;
 
-pub fn spawn_monster_sentry(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 8 {
-        (38, 42)
-    } else {
-        (39, 45)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 3 {
-        &MOVES_ASC0
-    } else if ascension_level < 18 {
-        &MOVES_ASC3
-    } else {
-        &MOVES_ASC18
-    };
-
-    // Spawn with 1 Artifact stack
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::Artifact, 1);
-
-    make_entity_monster(
-        MonsterName::Sentry,
-        MonsterKind::Elite,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        moves,
-    )
-}
+pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::Sentry,
+    kind: MonsterKind::Elite,
+    health_tiers: &[(0, (38, 42)), (8, (39, 45))],
+    block_start: 0,
+    move_tiers: &[(0, &MOVES_ASC0), (3, &MOVES_ASC3), (18, &MOVES_ASC18)],
+    modifier_tiers: &[(0, &[(ModifierKind::Artifact, 1)])],
+};
 
 // Strict Bolt↔Beam alternation; first is Bolt at even roster index, Beam at odd
 pub fn get_next_move_sentry(

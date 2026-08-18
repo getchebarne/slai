@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTER_PICKED;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -27,7 +27,7 @@ const HIT_PLUS: Effect = Effect {
     target: TARGET_MONSTER_PICKED,
 };
 
-pub static RIDDLE_WITH_HOLES: Entity = make_entity_card(
+pub static RIDDLE_WITH_HOLES: CardTemplate = make_card_template(
     CardName::RiddleWithHoles,
     CardKind::Attack,
     CardColor::Green,
@@ -44,10 +44,10 @@ pub static RIDDLE_WITH_HOLES: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static RIDDLE_WITH_HOLES_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_effects: {
-        let mut effects = RIDDLE_WITH_HOLES.card_effects;
+pub static RIDDLE_WITH_HOLES_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    effects: {
+        let mut effects = RIDDLE_WITH_HOLES.effects;
         effects[0] = HIT_PLUS;
         effects[1] = HIT_PLUS;
         effects[2] = HIT_PLUS;

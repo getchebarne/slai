@@ -1,11 +1,11 @@
 use rand::Rng;
 
 use crate::cards::ALL_CARDS;
+use crate::cards::CardTemplate;
 use crate::cards::get_card;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -27,25 +27,25 @@ pub fn process_effect_card_add_random(
     upgraded: bool,
     rarity: Option<CardRarity>,
 ) {
-    let pool: Vec<&Entity> = ALL_CARDS
+    let pool: Vec<&CardTemplate> = ALL_CARDS
         .iter()
-        .filter(|card| card.card_color == color)
-        .filter(|card| kind.is_none_or(|card_kind| card.card_kind == card_kind))
+        .filter(|card| card.color == color)
+        .filter(|card| kind.is_none_or(|card_kind| card.kind == card_kind))
         .filter(|card| {
             rarity.map_or(
                 matches!(
-                    card.card_rarity,
+                    card.rarity,
                     CardRarity::Common | CardRarity::Uncommon | CardRarity::Rare
                 ),
-                |card_rarity| card.card_rarity == card_rarity,
+                |card_rarity| card.rarity == card_rarity,
             )
         })
-        .filter(|card| !card_name_never_obtainable(card.card_name))
+        .filter(|card| !card_name_never_obtainable(card.name))
         .map(|card| &**card)
         .collect();
 
     for _ in 0..count {
-        let name = pool[state.rng.random_range(0..pool.len())].card_name;
+        let name = pool[state.rng.random_range(0..pool.len())].name;
         let id_card = push_entity(&mut state.entities, get_card(name, upgraded));
 
         // Deck additions route through the obtain hook

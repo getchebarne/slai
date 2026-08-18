@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -8,5 +7,9 @@ use crate::types::RelicTier;
 //    - `process_effect_relic_adopt.rs`
 //    - `process_effect_card_bottle.rs`
 //    - `process_effect_combat_start.rs`
-pub static BOTTLED_LIGHTNING: Entity =
-    make_entity_relic(RelicName::BottledLightning, RelicTier::Uncommon, 0, &[]);
+pub static BOTTLED_LIGHTNING: RelicTemplate = RelicTemplate {
+    name: RelicName::BottledLightning,
+    tier: RelicTier::Uncommon,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

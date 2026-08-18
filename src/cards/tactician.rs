@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -11,7 +11,7 @@ use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::DeltaSign;
 
-pub static TACTICIAN: Entity = make_entity_card(
+pub static TACTICIAN: CardTemplate = make_card_template(
     CardName::Tactician,
     CardKind::Skill,
     CardColor::Green,
@@ -34,9 +34,9 @@ pub static TACTICIAN: Entity = make_entity_card(
     &[],
     PlayRestriction::Never,
 );
-pub static TACTICIAN_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_on_discard_effects: &[Effect {
+pub static TACTICIAN_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    on_discard_effects: &[Effect {
         kind: EffectKind::EnergyDelta {
             sign: DeltaSign::Gain,
             amount: 2,
