@@ -3,10 +3,9 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_upgradable;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -39,14 +38,7 @@ const OPTION_RUMMAGE: &[Effect] = &[
 ];
 
 // Leave
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template("[Forge] Upgrade a card.", OPTION_FORGE),
-    make_event_option_template(
-        "[Rummage] Obtain Warped Tongs. Become Cursed - Pain.",
-        OPTION_RUMMAGE,
-    ),
-    OPTION_LEAVE,
-];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_FORGE), opt(OPTION_RUMMAGE), OPTION_LEAVE];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {

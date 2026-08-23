@@ -67,7 +67,7 @@ const IDX_MOVE_GLARE: usize = 0;
 const IDX_MOVE_BITE: usize = 1;
 const IDX_MOVE_TAIL_WHIP: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SNECKO: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Snecko,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (114, 120)), (7, (120, 125))],

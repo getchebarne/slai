@@ -46,7 +46,7 @@ const IDX_MOVE_SLASH: usize = 0;
 const IDX_MOVE_FURY: usize = 1;
 const IDX_MOVE_DEFEND: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static CENTURION: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Centurion,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (76, 80)), (7, (78, 83))],

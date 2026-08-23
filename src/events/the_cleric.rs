@@ -5,10 +5,9 @@ use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_purgeable;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
@@ -59,24 +58,10 @@ const OPTION_PURIFY_BASE: [Effect; 3] = purify(COST_PURIFY_BASE);
 const OPTION_PURIFY_A15: [Effect; 3] = purify(COST_PURIFY_A15);
 
 // Leave
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
-    make_event_option_template(
-        "[Purify] Pay 50 Gold. Remove a card from your deck.",
-        &OPTION_PURIFY_BASE,
-    ),
-    OPTION_LEAVE,
-];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
-    make_event_option_template(
-        "[Purify] Pay 75 Gold. Remove a card from your deck.",
-        &OPTION_PURIFY_A15,
-    ),
-    OPTION_LEAVE,
-];
+static OPTIONS_BASE: &[&[Effect]] = &[opt(OPTION_HEAL), opt(&OPTION_PURIFY_BASE), OPTION_LEAVE];
+static OPTIONS_A15: &[&[Effect]] = &[opt(OPTION_HEAL), opt(&OPTION_PURIFY_A15), OPTION_LEAVE];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

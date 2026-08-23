@@ -5,9 +5,8 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 
 // Drink: purge every removable curse at once
 const OPTION_DRINK: &[Effect] = &[
@@ -25,7 +24,4 @@ const OPTION_DRINK: &[Effect] = &[
 
 // Leave
 // The event only spawns with a removable curse in the deck
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template("[Drink] Remove all Curses from your deck.", OPTION_DRINK),
-    OPTION_LEAVE,
-];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_DRINK), OPTION_LEAVE];

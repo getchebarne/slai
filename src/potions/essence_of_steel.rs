@@ -6,7 +6,7 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_ESSENCE_OF_STEEL: PotionTemplate = PotionTemplate {
+pub static ESSENCE_OF_STEEL: PotionTemplate = PotionTemplate {
     name: PotionName::EssenceOfSteel,
     rarity: PotionRarity::Uncommon,
     combat_only: true,

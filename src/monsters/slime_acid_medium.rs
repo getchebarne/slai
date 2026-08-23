@@ -25,7 +25,7 @@ const IDX_MOVE_WOUND_TACKLE: usize = 0;
 const IDX_MOVE_HEAVY_TACKLE: usize = 1;
 const IDX_MOVE_LICK: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SLIME_ACID_MEDIUM: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeAcidMedium,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (28, 32)), (7, (29, 34))],

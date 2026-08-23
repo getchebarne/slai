@@ -184,6 +184,14 @@ pub(super) fn make_card_colorless(
     )
 }
 
+// Relics that are never sold in shops
+const RELICS_NEVER_IN_SHOP: [RelicName; 4] = [
+    RelicName::TheCourier,
+    RelicName::MawBank,
+    RelicName::OldCoin,
+    RelicName::SmilingMask,
+];
+
 // Owned Relics plus those already placed in this shop, so the shop's Relics stay distinct
 pub(super) fn get_shop_taken_relic_names(
     id_relics: &[Option<usize>; RelicName::COUNT],
@@ -194,8 +202,9 @@ pub(super) fn get_shop_taken_relic_names(
     for &(id, _) in relics {
         taken[entities[id].relic_name as usize] = Some(id);
     }
-    // The Courier never appears in shop stock (Java canSpawn blocks it inside shops)
-    taken[RelicName::TheCourier as usize] = Some(usize::MAX);
+    for name in RELICS_NEVER_IN_SHOP {
+        taken[name as usize] = Some(usize::MAX);
+    }
     taken
 }
 

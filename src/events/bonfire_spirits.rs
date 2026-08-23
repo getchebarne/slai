@@ -5,8 +5,7 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 
 // Offer: pick a Card to purge. An empty purgeable pool auto-resolves to nothing
 const OPTION_OFFER: &[Effect] = &[
@@ -22,7 +21,4 @@ const OPTION_OFFER: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[EventOptionTemplate] = &[make_event_option_template(
-    "[Offer] Remove a card; its rarity decides the spirits' blessing.",
-    OPTION_OFFER,
-)];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_OFFER)];

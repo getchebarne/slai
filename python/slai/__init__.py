@@ -340,6 +340,27 @@ Effect = (
     | EffectRewardRollLibraryCards
     | EffectRelicGrantPool
 )
+
+# The kinds that can park in GameState.pending. A halt only happens on a
+# Target::Resolve carrying Input/InputUpTo, so this is a strict subset of Effect
+# — mirrored from ffi/effect.rs's PyPendingEffect, which is what `pending`
+# actually returns.
+PendingEffect = (
+    EffectBonfireOffer
+    | EffectCardBottle
+    | EffectCardDiscard
+    | EffectCardDiscoverPick
+    | EffectCardDuplicate
+    | EffectCardExhaust
+    | EffectCardMove
+    | EffectCardNightmarePick
+    | EffectCardPurge
+    | EffectCardRetain
+    | EffectCardSetupPick
+    | EffectCardTransform
+    | EffectCardUpgrade
+    | EffectRelicLose
+)
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
 CandidatePoolMonsters = _rs.CandidatePoolMonsters
@@ -527,6 +548,7 @@ __all__ = [
     "CardCostKindXCost",
     "Target",
     "Effect",
+    "PendingEffect",
     "EffectDamagePhysical",
     "EffectDamagePhysicalIfPoisoned",
     "EffectHeelHookProc",

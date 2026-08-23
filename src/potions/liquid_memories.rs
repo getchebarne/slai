@@ -10,7 +10,7 @@ use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_LIQUID_MEMORIES: PotionTemplate = PotionTemplate {
+pub static LIQUID_MEMORIES: PotionTemplate = PotionTemplate {
     name: PotionName::LiquidMemories,
     rarity: PotionRarity::Uncommon,
     combat_only: true,

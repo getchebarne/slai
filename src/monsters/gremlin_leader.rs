@@ -74,7 +74,7 @@ const IDX_MOVE_RALLY: usize = 0;
 const IDX_MOVE_ENCOURAGE: usize = 1;
 const IDX_MOVE_STAB: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static GREMLIN_LEADER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinLeader,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (140, 148)), (8, (145, 155))],

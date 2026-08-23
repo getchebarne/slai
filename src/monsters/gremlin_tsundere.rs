@@ -43,7 +43,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_PROTECT_11, MOVE_BASH_8];
 const IDX_MOVE_PROTECT: usize = 0;
 const IDX_MOVE_BASH: usize = 1;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static GREMLIN_TSUNDERE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinTsundere,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (12, 15)), (7, (13, 17))],

@@ -46,7 +46,7 @@ static MOVES_ASC17: [Move; 4] = [
     MOVE_ESCAPE,
 ];
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static MUGGER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Mugger,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (48, 52)), (7, (50, 54))],

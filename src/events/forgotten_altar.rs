@@ -7,9 +7,8 @@ use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -81,24 +80,18 @@ const OPTION_DECAY: [Effect; 2] = [
 const OPTION_SACRIFICE_BASE: [Effect; 3] = sacrifice(25);
 const OPTION_SACRIFICE_A15: [Effect; 3] = sacrifice(35);
 
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template("[Offer: Golden Idol] Obtain Bloody Idol.", &OPTION_IDOL),
-    make_event_option_template(
-        "[Sacrifice] Gain 5 Max HP. Lose 25% of your Max HP.",
-        &OPTION_SACRIFICE_BASE,
-    ),
-    make_event_option_template("[Desecrate] Obtain Decay.", &OPTION_DECAY),
+static OPTIONS_BASE: &[&[Effect]] = &[
+    opt(&OPTION_IDOL),
+    opt(&OPTION_SACRIFICE_BASE),
+    opt(&OPTION_DECAY),
 ];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template("[Offer: Golden Idol] Obtain Bloody Idol.", &OPTION_IDOL),
-    make_event_option_template(
-        "[Sacrifice] Gain 5 Max HP. Lose 35% of your Max HP.",
-        &OPTION_SACRIFICE_A15,
-    ),
-    make_event_option_template("[Desecrate] Obtain Decay.", &OPTION_DECAY),
+static OPTIONS_A15: &[&[Effect]] = &[
+    opt(&OPTION_IDOL),
+    opt(&OPTION_SACRIFICE_A15),
+    opt(&OPTION_DECAY),
 ];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

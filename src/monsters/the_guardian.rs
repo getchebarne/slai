@@ -189,7 +189,7 @@ const IDX_MOVE_DEFENSIVE_MODE: usize = 4;
 const IDX_MOVE_ROLL_ATTACK: usize = 5;
 pub const IDX_MOVE_TWIN_SLAM: usize = 6;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static THE_GUARDIAN: MonsterTemplate = MonsterTemplate {
     name: MonsterName::TheGuardian,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (240, 240)), (9, (250, 250))],

@@ -34,7 +34,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             .iter()
             .flatten()
             .copied()
-            .find(|&id| state.entities[id].potion_name == PotionName::FairyPotion)
+            .find(|&id| state.entities[id].potion_name == PotionName::Fairy)
         {
             remove_potion(&mut state.id_potions, id_potion);
             // Sacred Bark doubles the revive potency, like every other potion

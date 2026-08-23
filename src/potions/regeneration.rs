@@ -6,8 +6,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_REGENERATION: PotionTemplate = PotionTemplate {
-    name: PotionName::RegenerationPotion,
+pub static REGENERATION: PotionTemplate = PotionTemplate {
+    name: PotionName::Regeneration,
     rarity: PotionRarity::Uncommon,
     combat_only: true,
     effects: &[Effect {

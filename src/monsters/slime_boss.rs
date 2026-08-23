@@ -59,7 +59,7 @@ const IDX_MOVE_PREPARING: usize = 1;
 const IDX_MOVE_SLAM: usize = 2;
 pub const IDX_MOVE_SPLIT: usize = 3;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SLIME_BOSS: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeBoss,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (140, 140)), (9, (150, 150))],

@@ -6,8 +6,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_STEROID: PotionTemplate = PotionTemplate {
-    name: PotionName::SteroidPotion,
+pub static STEROID: PotionTemplate = PotionTemplate {
+    name: PotionName::Steroid,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[

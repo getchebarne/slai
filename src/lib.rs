@@ -163,9 +163,9 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyPotionName;
     #[pymodule_export]
-    use super::ffi::PyPotionTemplate;
-    #[pymodule_export]
     use super::ffi::PyPotionRarity;
+    #[pymodule_export]
+    use super::ffi::PyPotionTemplate;
     #[pymodule_export]
     use super::ffi::PyRelicName;
     #[pymodule_export]

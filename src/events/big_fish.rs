@@ -4,8 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -59,8 +58,4 @@ const OPTION_BOX: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template("[Banana] Heal 1/3 of your max HP.", OPTION_BANANA),
-    make_event_option_template("[Donut] Raise your max HP by 5.", OPTION_DONUT),
-    make_event_option_template("[Box] Receive a Relic. Become Cursed - Regret.", OPTION_BOX),
-];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_BANANA), opt(OPTION_DONUT), opt(OPTION_BOX)];

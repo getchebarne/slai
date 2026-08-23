@@ -19,8 +19,8 @@ use super::context::snapshot_event;
 use super::context::snapshot_rest_site;
 use super::context::snapshot_reward;
 use super::context::snapshot_shop;
-use super::effect::PyEffect;
-use super::effect::snapshot_effect;
+use super::effect::PyPendingEffect;
+use super::effect::snapshot_pending_effect;
 use super::map::PyMap;
 use super::map::snapshot_map;
 use super::potion::PyPotion;
@@ -55,7 +55,7 @@ pub struct PyGameState {
     pub potion_slots_max: u8,
     pub map: PyMap,
     // Halt-for-input is orthogonal to the contexts
-    pub pending: Option<PyEffect>,
+    pub pending: Option<PyPendingEffect>,
 }
 
 // Snapshot builders
@@ -85,6 +85,6 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),
-        pending: state.effect_pending.as_ref().map(snapshot_effect),
+        pending: state.effect_pending.as_ref().map(snapshot_pending_effect),
     }
 }

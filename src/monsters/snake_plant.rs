@@ -46,7 +46,7 @@ static MOVES_ASC2: [Move; 2] = [MOVE_CHOMP_8, MOVE_SPORES];
 const IDX_MOVE_CHOMP: usize = 0;
 const IDX_MOVE_SPORES: usize = 1;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SNAKE_PLANT: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SnakePlant,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (75, 79)), (7, (78, 82))],

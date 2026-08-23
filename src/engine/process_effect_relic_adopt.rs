@@ -232,9 +232,9 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             upgrade_random_cards(state, 1, None);
         }
 
-        // Ring of the Serpent: replaces the starter; SnakeRing's combat-start draw is lost
+        // Ring of the Serpent: replaces the starter; RingOfTheSnake's combat-start draw is lost
         RelicName::RingOfTheSerpent => {
-            state.id_relics[RelicName::SnakeRing as usize] = None;
+            state.id_relics[RelicName::RingOfTheSnake as usize] = None;
         }
 
         // Orrery: a 5-bundle Reward frame pushed over the shop; the stock resumes on exit

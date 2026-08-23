@@ -8,8 +8,8 @@ use crate::types::CardColor;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_COLORLESS: PotionTemplate = PotionTemplate {
-    name: PotionName::ColorlessPotion,
+pub static COLORLESS: PotionTemplate = PotionTemplate {
+    name: PotionName::Colorless,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[

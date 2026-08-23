@@ -6,8 +6,8 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_card_adopt.rs`
 //    - `utils.rs`
-pub static TOXIC_EGG: RelicTemplate = RelicTemplate {
-    name: RelicName::ToxicEgg,
+pub static EGG_TOXIC: RelicTemplate = RelicTemplate {
+    name: RelicName::EggToxic,
     tier: RelicTier::Uncommon,
     counter_init: 0,
     effects_combat_start: &[],

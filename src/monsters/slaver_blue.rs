@@ -19,7 +19,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_STAB_13, MOVE_RAKE_8_W2];
 const IDX_MOVE_STAB: usize = 0;
 const IDX_MOVE_RAKE: usize = 1;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SLAVER_BLUE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlaverBlue,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (46, 50)), (7, (48, 52))],

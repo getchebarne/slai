@@ -83,7 +83,7 @@ pub fn flight_stacks(ascension_level: u8) -> i16 {
     }
 }
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static BYRD: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Byrd,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (25, 31)), (7, (26, 33))],

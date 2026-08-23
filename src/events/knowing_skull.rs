@@ -4,8 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::CardColor;
 use crate::types::CardPile;
 use crate::types::CardRarity;
@@ -15,8 +14,6 @@ pub const KNOWING_SKULL_COST_START: u16 = 6;
 pub const KNOWING_SKULL_GOLD: u16 = 90;
 pub const KNOWING_SKULL_COST_LEAVE: u16 = 6;
 
-// Each wish pays its own baked HP cost, receives, then escalates that cost
-// in place (the reference's ++cost per ask; see KnowingSkullCostBump)
 const fn wish(reward: EffectKind) -> [Effect; 3] {
     [
         Effect {
@@ -68,12 +65,9 @@ const OPTION_LEAVE_PAID: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template("[A Pretty Potion!] Obtain a random potion.", &OPTION_POTION),
-    make_event_option_template("[Riches!] Obtain 90 Gold.", &OPTION_GOLD),
-    make_event_option_template(
-        "[A Great Discovery!] Obtain a random Uncommon colorless card.",
-        &OPTION_CARD,
-    ),
-    make_event_option_template("[Leave] Lose 6 HP.", OPTION_LEAVE_PAID),
+pub static OPTIONS: &[&[Effect]] = &[
+    opt(&OPTION_POTION),
+    opt(&OPTION_GOLD),
+    opt(&OPTION_CARD),
+    opt(OPTION_LEAVE_PAID),
 ];

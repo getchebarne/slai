@@ -4,9 +4,8 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -85,28 +84,22 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
 const OPTION_HIDE_BASE: [Effect; 2] = hide(8, 100);
 const OPTION_HIDE_A15: [Effect; 2] = hide(10, 100);
 
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template("[Take] Obtain Golden Idol.", OPTION_TAKE),
+static OPTIONS_BASE: &[&[Effect]] = &[
+    opt(OPTION_TAKE),
     OPTION_LEAVE,
-    make_event_option_template("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
-    make_event_option_template(
-        "[Smash] Take 25% of your max HP as damage.",
-        &OPTION_SMASH_BASE,
-    ),
-    make_event_option_template("[Hide] Lose 8% of your max HP.", &OPTION_HIDE_BASE),
+    opt(OPTION_OUTRUN),
+    opt(&OPTION_SMASH_BASE),
+    opt(&OPTION_HIDE_BASE),
 ];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template("[Take] Obtain Golden Idol.", OPTION_TAKE),
+static OPTIONS_A15: &[&[Effect]] = &[
+    opt(OPTION_TAKE),
     OPTION_LEAVE,
-    make_event_option_template("[Outrun] Become Cursed - Injury.", OPTION_OUTRUN),
-    make_event_option_template(
-        "[Smash] Take 35% of your max HP as damage.",
-        &OPTION_SMASH_A15,
-    ),
-    make_event_option_template("[Hide] Lose 10% of your max HP.", &OPTION_HIDE_A15),
+    opt(OPTION_OUTRUN),
+    opt(&OPTION_SMASH_A15),
+    opt(&OPTION_HIDE_A15),
 ];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

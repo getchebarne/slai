@@ -7,10 +7,9 @@ use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
 use crate::events::bake_options;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -72,17 +71,7 @@ const OPTION_VIAL: [Effect; 4] = [
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Accept] Lose 30% of your Max HP. Replace your Strikes with 5 Bites.",
-        OPTION_ACCEPT,
-    ),
-    make_event_option_template(
-        "[Offer Blood Vial] Replace your Strikes with 5 Bites.",
-        &OPTION_VIAL,
-    ),
-    OPTION_LEAVE,
-];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_ACCEPT), opt(&OPTION_VIAL), OPTION_LEAVE];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {

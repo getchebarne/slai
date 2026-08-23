@@ -491,7 +491,7 @@ pub fn pick_relic_from_pool(
     id_relics: &[Option<usize>; RelicName::COUNT],
     rng: &mut impl Rng,
 ) -> Option<RelicName> {
-    let mut candidates = [RelicName::SnakeRing; RelicName::COUNT];
+    let mut candidates = [RelicName::RingOfTheSnake; RelicName::COUNT];
     let mut num = 0;
     for &name in pool {
         if id_relics[name as usize].is_none() {

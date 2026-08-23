@@ -7,9 +7,8 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::relics::iter_owned_relics;
 use crate::types::RelicName;
@@ -36,13 +35,7 @@ const OPTION_TRADE: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Offer a Relic] Lose the chosen Relic. Obtain N'loth's Gift.",
-        OPTION_TRADE,
-    ),
-    make_event_option_template("[Refuse] Nothing happens.", &[EVENT_CONSUME_EFFECT]),
-];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_TRADE), opt(&[EVENT_CONSUME_EFFECT])];
 
 // Two distinct owned Relics, staked on the context for the trade to pick from
 pub fn spawn_event_nloth(state: &mut GameState) -> Vec<usize> {

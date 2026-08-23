@@ -94,7 +94,7 @@ pub const IDX_MOVE_STUNNED: usize = 2;
 const IDX_MOVE_ATTACK: usize = 3;
 pub const IDX_MOVE_SIPHON: usize = 4;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static LAGAVULIN: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Lagavulin,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (109, 111)), (8, (112, 115))],

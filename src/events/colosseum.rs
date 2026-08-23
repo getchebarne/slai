@@ -6,8 +6,7 @@ use crate::effect::Target;
 use crate::events::EVENT_ADVANCE_EFFECT;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventLoot;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::MonsterName;
 use crate::types::RelicTier;
 
@@ -60,13 +59,10 @@ pub const FIGHT_LOOT_NOBS: EventLoot = EventLoot {
     ],
 };
 
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template("[Fight] Face the first round.", OPTION_FIGHT),
-    make_event_option_template(
-        "[Fight the Nobs] Gain 100 Gold. Obtain a Rare and an Uncommon Relic.",
-        OPTION_FIGHT_NOBS,
-    ),
-    make_event_option_template("[Flee] Escape the arena.", &[EVENT_CONSUME_EFFECT]),
+pub static OPTIONS: &[&[Effect]] = &[
+    opt(OPTION_FIGHT),
+    opt(OPTION_FIGHT_NOBS),
+    opt(&[EVENT_CONSUME_EFFECT]),
 ];
 
 // Stage 0 offers only the first bout; stage 1 the Nobs or the exit

@@ -6,8 +6,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_WEAK: PotionTemplate = PotionTemplate {
-    name: PotionName::WeakPotion,
+pub static WEAK: PotionTemplate = PotionTemplate {
+    name: PotionName::Weak,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[Effect {

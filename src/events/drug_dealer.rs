@@ -3,9 +3,8 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::events::EFFECT_DECK_TRANSFORM_PICK_2;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::deck_has_two_transformable;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -39,10 +38,10 @@ const OPTION_MUTAGENS: [Effect; 2] = [
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template("[Ingest Mutagens] Obtain J.A.X.", &OPTION_JAX),
-    make_event_option_template("[Sign Up] Transform 2 Cards.", &OPTION_TRANSFORM),
-    make_event_option_template("[Experiment] Obtain Mutagenic Strength.", &OPTION_MUTAGENS),
+pub static OPTIONS: &[&[Effect]] = &[
+    opt(&OPTION_JAX),
+    opt(&OPTION_TRANSFORM),
+    opt(&OPTION_MUTAGENS),
 ];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {

@@ -10,7 +10,7 @@ static MOVES_ASC0: [Move; 1] = [MOVE_TACKLE_5];
 static MOVES_ASC2: [Move; 1] = [MOVE_TACKLE_6];
 static MOVES_ASC17: [Move; 1] = [MOVE_TACKLE_6];
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SLIME_SPIKE_SMALL: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeSpikeSmall,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (10, 14)), (7, (11, 15))],

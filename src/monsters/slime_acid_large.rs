@@ -42,7 +42,7 @@ const IDX_MOVE_HEAVY_TACKLE: usize = 1;
 const IDX_MOVE_LICK: usize = 2;
 pub const IDX_MOVE_SPLIT: usize = 3;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SLIME_ACID_LARGE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeAcidLarge,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (65, 69)), (7, (68, 72))],

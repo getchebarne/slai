@@ -5,8 +5,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_SWIFT: PotionTemplate = PotionTemplate {
-    name: PotionName::SwiftPotion,
+pub static SWIFT: PotionTemplate = PotionTemplate {
+    name: PotionName::Swift,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[Effect {

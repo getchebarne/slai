@@ -27,7 +27,7 @@ static MOVES_ASC17: [Move; 3] = [MOVE_FLAME_TACKLE_18, MOVE_LICK_FRAIL_3, MOVE_S
 
 pub const IDX_MOVE_SPLIT: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SLIME_SPIKE_LARGE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeSpikeLarge,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (64, 70)), (7, (67, 73))],

@@ -31,7 +31,7 @@ const fn is_multi_stab(idx: usize) -> bool {
     idx <= IDX_MOVE_MULTI_STAB_LAST
 }
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static BOOK_OF_STABBING: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BookOfStabbing,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (160, 164)), (8, (168, 172))],

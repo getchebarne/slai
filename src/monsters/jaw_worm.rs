@@ -47,7 +47,7 @@ const IDX_MOVE_CHOMP: usize = 0;
 const IDX_MOVE_BELLOW: usize = 1;
 const IDX_MOVE_THRASH: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static JAW_WORM: MonsterTemplate = MonsterTemplate {
     name: MonsterName::JawWorm,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (40, 44)), (7, (42, 46))],

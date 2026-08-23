@@ -49,7 +49,7 @@ static MOVES_ASC0: [Move; 1] = [MOVE_SMASH_4_W1];
 static MOVES_ASC2: [Move; 1] = [MOVE_SMASH_5_W1];
 static MOVES_ASC17: [Move; 1] = [MOVE_SMASH_5_W1_F1];
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static GREMLIN_FAT: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinFat,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (13, 17)), (7, (14, 18))],

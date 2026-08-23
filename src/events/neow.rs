@@ -16,7 +16,7 @@ use crate::effect::Target;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::bake_options;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::CardColor;
 use crate::types::CardPile;
@@ -271,15 +271,15 @@ pub fn spawn_event_neow(state: &mut GameState) -> Vec<usize> {
     ];
 
     // The boss swap consumes the staked starter relic
-    let id_snake_ring = state.id_relics[RelicName::SnakeRing as usize]
+    let id_ring_of_the_snake = state.id_relics[RelicName::RingOfTheSnake as usize]
         .expect("Neow spawns at run start with the starter relic");
-    state.event.id_roll_relic.push(id_snake_ring);
+    state.event.id_roll_relic.push(id_ring_of_the_snake);
 
     let options = [
-        make_event_option_template(built[0].0, &built[0].1),
-        make_event_option_template(built[1].0, &built[1].1),
-        make_event_option_template(built[2].0, &built[2].1),
-        make_event_option_template(LABEL_BOSS_SWAP, &OPTION_BOSS_SWAP),
+        opt(&built[0].1),
+        opt(&built[1].1),
+        opt(&built[2].1),
+        opt(&OPTION_BOSS_SWAP),
     ];
     bake_options(state, &options)
 }

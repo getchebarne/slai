@@ -9,8 +9,8 @@ use crate::types::CardKind;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_ATTACK: PotionTemplate = PotionTemplate {
-    name: PotionName::AttackPotion,
+pub static ATTACK: PotionTemplate = PotionTemplate {
+    name: PotionName::Attack,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[

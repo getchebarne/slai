@@ -7,8 +7,8 @@ use crate::types::CardPile;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_CUNNING: PotionTemplate = PotionTemplate {
-    name: PotionName::CunningPotion,
+pub static CUNNING: PotionTemplate = PotionTemplate {
+    name: PotionName::Cunning,
     rarity: PotionRarity::Uncommon,
     combat_only: true,
     effects: &[Effect {

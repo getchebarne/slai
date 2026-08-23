@@ -2,8 +2,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 
 // Search: the rolled Potions land on the Reward context, where the belt is
 // interactive (discard-to-swap), matching the source's combatRewardScreen
@@ -25,16 +24,10 @@ const OPTION_SEARCH_BASE: [Effect; 2] = search(3);
 const OPTION_SEARCH_A15: [Effect; 2] = search(2);
 
 // The source game offers no way to decline
-static OPTIONS_BASE: &[EventOptionTemplate] = &[make_event_option_template(
-    "[Search] Obtain 3 random potions.",
-    &OPTION_SEARCH_BASE,
-)];
-static OPTIONS_A15: &[EventOptionTemplate] = &[make_event_option_template(
-    "[Search] Obtain 2 random potions.",
-    &OPTION_SEARCH_A15,
-)];
+static OPTIONS_BASE: &[&[Effect]] = &[opt(&OPTION_SEARCH_BASE)];
+static OPTIONS_A15: &[&[Effect]] = &[opt(&OPTION_SEARCH_A15)];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

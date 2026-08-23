@@ -5,7 +5,7 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_SMOKE_BOMB: PotionTemplate = PotionTemplate {
+pub static SMOKE_BOMB: PotionTemplate = PotionTemplate {
     name: PotionName::SmokeBomb,
     rarity: PotionRarity::Rare,
     combat_only: true,

@@ -29,7 +29,7 @@ const IDX_MOVE_STAB: usize = 0;
 const IDX_MOVE_ENTANGLE: usize = 1;
 const IDX_MOVE_SCRAPE: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SLAVER_RED: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlaverRed,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (46, 50)), (7, (48, 52))],

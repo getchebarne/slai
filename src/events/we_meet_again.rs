@@ -11,7 +11,7 @@ use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::bake_options;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::utils::card_is_non_basic_non_curse;
@@ -114,19 +114,10 @@ pub fn spawn_event_we_meet_again(state: &mut GameState) -> Vec<usize> {
     state.event.id_roll_potion.extend(id_potion);
     let effects_gold = option_give_gold(gold_ask.unwrap_or(0));
     let options = [
-        make_event_option_template(
-            "[Give Potion] Lose the offered potion. Obtain a random relic.",
-            &OPTION_GIVE_POTION,
-        ),
-        make_event_option_template(
-            "[Give Gold] Lose the asked gold. Obtain a random relic.",
-            &effects_gold,
-        ),
-        make_event_option_template(
-            "[Give Card] Lose the offered card. Obtain a random relic.",
-            &OPTION_GIVE_CARD,
-        ),
-        make_event_option_template("[Attack] Nothing happens.", OPTION_ATTACK),
+        opt(&OPTION_GIVE_POTION),
+        opt(&effects_gold),
+        opt(&OPTION_GIVE_CARD),
+        opt(OPTION_ATTACK),
     ];
     bake_options(state, &options)
 }

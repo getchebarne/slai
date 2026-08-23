@@ -6,8 +6,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_SPEED: PotionTemplate = PotionTemplate {
-    name: PotionName::SpeedPotion,
+pub static SPEED: PotionTemplate = PotionTemplate {
+    name: PotionName::Speed,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[

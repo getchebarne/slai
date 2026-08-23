@@ -60,7 +60,7 @@ static MOVES_ASC0: [Move; 1] = [MOVE_SCOURING_WHIP_W1];
 static MOVES_ASC3: [Move; 1] = [MOVE_SCOURING_WHIP_W2];
 static MOVES_ASC18: [Move; 1] = [MOVE_SCOURING_WHIP_A18];
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static TASKMASTER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Taskmaster,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (54, 60)), (8, (57, 64))],

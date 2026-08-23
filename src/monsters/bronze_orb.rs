@@ -46,7 +46,7 @@ const IDX_MOVE_STASIS: usize = 0;
 const IDX_MOVE_BEAM: usize = 1;
 const IDX_MOVE_SUPPORT_BEAM: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static BRONZE_ORB: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BronzeOrb,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (52, 58)), (9, (54, 60))],

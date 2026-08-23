@@ -58,7 +58,7 @@ const IDX_MOVE_DOUBLE_STRIKE: usize = 1;
 const IDX_MOVE_SUCK: usize = 2;
 pub const IDX_MOVE_STUNNED: usize = 3;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SHELLED_PARASITE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::ShelledParasite,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (68, 72)), (7, (70, 75))],

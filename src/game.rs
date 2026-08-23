@@ -141,9 +141,9 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     push_entity(&mut entities, character);
 
     // Innate start Relic
-    let id_snake_ring = push_entity(&mut entities, get_relic(RelicName::SnakeRing));
+    let id_ring_of_the_snake = push_entity(&mut entities, get_relic(RelicName::RingOfTheSnake));
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
-    id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
+    id_relics[RelicName::RingOfTheSnake as usize] = Some(id_ring_of_the_snake);
 
     // Belt capacity is a run-level rule (3, or 2 at ascension 11+); slots start empty
     let id_potions: [Option<usize>; POTION_SLOTS_MAX] = [None; POTION_SLOTS_MAX];

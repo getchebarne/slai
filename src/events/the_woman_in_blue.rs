@@ -4,8 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::DeltaSign;
 
 const fn buy(cost: u16, count: u8) -> [Effect; 3] {
@@ -54,20 +53,20 @@ const OPTION_LEAVE_A15: &[Effect] = &[
 ];
 
 // The event only spawns with >= 50 gold, which covers every price
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template("[Buy 1 Potion] Lose 20 Gold.", &OPTION_BUY_1),
-    make_event_option_template("[Buy 2 Potions] Lose 30 Gold.", &OPTION_BUY_2),
-    make_event_option_template("[Buy 3 Potions] Lose 40 Gold.", &OPTION_BUY_3),
-    make_event_option_template("[Leave] Nothing happens.", OPTION_LEAVE_BASE),
+static OPTIONS_BASE: &[&[Effect]] = &[
+    opt(&OPTION_BUY_1),
+    opt(&OPTION_BUY_2),
+    opt(&OPTION_BUY_3),
+    opt(OPTION_LEAVE_BASE),
 ];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template("[Buy 1 Potion] Lose 20 Gold.", &OPTION_BUY_1),
-    make_event_option_template("[Buy 2 Potions] Lose 30 Gold.", &OPTION_BUY_2),
-    make_event_option_template("[Buy 3 Potions] Lose 40 Gold.", &OPTION_BUY_3),
-    make_event_option_template("[Leave] Lose 5% of your Max HP.", OPTION_LEAVE_A15),
+static OPTIONS_A15: &[&[Effect]] = &[
+    opt(&OPTION_BUY_1),
+    opt(&OPTION_BUY_2),
+    opt(&OPTION_BUY_3),
+    opt(OPTION_LEAVE_A15),
 ];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

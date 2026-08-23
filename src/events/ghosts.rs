@@ -4,9 +4,8 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -41,22 +40,10 @@ const fn accept(count: u16) -> [Effect; 3] {
 const OPTION_ACCEPT_BASE: [Effect; 3] = accept(5);
 const OPTION_ACCEPT_A15: [Effect; 3] = accept(3);
 
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Accept] Lose half your Max HP. Obtain 5 Apparitions.",
-        &OPTION_ACCEPT_BASE,
-    ),
-    OPTION_LEAVE,
-];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Accept] Lose half your Max HP. Obtain 3 Apparitions.",
-        &OPTION_ACCEPT_A15,
-    ),
-    OPTION_LEAVE,
-];
+static OPTIONS_BASE: &[&[Effect]] = &[opt(&OPTION_ACCEPT_BASE), OPTION_LEAVE];
+static OPTIONS_A15: &[&[Effect]] = &[opt(&OPTION_ACCEPT_A15), OPTION_LEAVE];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

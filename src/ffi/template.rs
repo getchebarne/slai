@@ -4,9 +4,6 @@ use strum::IntoEnumIterator;
 
 use crate::cards::CardTemplate;
 use crate::cards::card_template;
-use crate::effect::Effect;
-use crate::events::catalog_neow;
-use crate::events::catalog_we_meet_again;
 use crate::events::options_catalog;
 use crate::monsters::monster_template;
 use crate::monsters::pick_tier;
@@ -227,31 +224,13 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
 /// State-free and deterministic.
 #[pyfunction]
 pub fn get_event_option_templates(ascension: u8) -> Vec<PyEventOptionTemplate> {
-    let push_computed = |out: &mut Vec<PyEventOptionTemplate>,
-                             name: EventName,
-                             rows: Vec<Vec<Effect>>| {
-        for effects in rows {
+    let mut out = Vec::new();
+    for name in EventName::iter() {
+        for effects in options_catalog(name, ascension) {
             out.push(PyEventOptionTemplate {
                 event: name.into(),
                 effects: effects.iter().map(snapshot_effect).collect(),
             });
-        }
-    };
-    let mut out = Vec::new();
-    for name in EventName::iter() {
-        match name {
-            EventName::Neow => push_computed(&mut out, name, catalog_neow(ascension)),
-            EventName::WeMeetAgain => push_computed(&mut out, name, catalog_we_meet_again()),
-            _ => {
-                for table in options_catalog(name, ascension) {
-                    for option in table {
-                        out.push(PyEventOptionTemplate {
-                            event: name.into(),
-                            effects: option.effects.iter().map(snapshot_effect).collect(),
-                        });
-                    }
-                }
-            }
         }
     }
     out

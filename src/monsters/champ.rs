@@ -169,7 +169,7 @@ const IDX_MOVE_GLOAT: usize = 4;
 const IDX_MOVE_TAUNT: usize = 5;
 const IDX_MOVE_ANGER: usize = 6;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static CHAMP: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Champ,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (420, 420)), (9, (440, 440))],

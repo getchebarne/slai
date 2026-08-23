@@ -10,7 +10,7 @@ static MOVES_ASC0: [Move; 1] = [MOVE_PUNCTURE_9];
 static MOVES_ASC2: [Move; 1] = [MOVE_PUNCTURE_10];
 static MOVES_ASC17: [Move; 1] = [MOVE_PUNCTURE_10];
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static GREMLIN_THIEF: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinThief,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (10, 14)), (7, (11, 15))],

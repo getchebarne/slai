@@ -17,7 +17,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_INCANTATION_5, MOVE_DARK_STRIKE];
 const IDX_MOVE_INCANTATION: usize = 0;
 const IDX_MOVE_DARK_STRIKE: usize = 1;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static CULTIST: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Cultist,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (48, 54)), (7, (50, 56))],

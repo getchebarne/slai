@@ -5,7 +5,7 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_GAMBLERS_BREW: PotionTemplate = PotionTemplate {
+pub static GAMBLERS_BREW: PotionTemplate = PotionTemplate {
     name: PotionName::GamblersBrew,
     rarity: PotionRarity::Uncommon,
     combat_only: true,

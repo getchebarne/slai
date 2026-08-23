@@ -6,7 +6,7 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_LIQUID_BRONZE: PotionTemplate = PotionTemplate {
+pub static LIQUID_BRONZE: PotionTemplate = PotionTemplate {
     name: PotionName::LiquidBronze,
     rarity: PotionRarity::Uncommon,
     combat_only: true,

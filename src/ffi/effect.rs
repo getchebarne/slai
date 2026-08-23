@@ -92,6 +92,49 @@ flat_variants!(PyEffect {
     RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName> },
 });
 
+// The kinds that can park in `state.effect_pending`. A halt happens in exactly
+// one place — the Target::Resolve arm of process_effect, when
+// resolve_selection_kind declines an Input/InputUpTo — so a kind is reachable
+// here iff some definition gives it an Input target. Narrowing the union keeps
+// the `pending` stub honest (14 variants, not all 65) and makes a new halting
+// kind an error in snapshot_pending_effect rather than a surprise downstream.
+flat_variants!(@enum PyPendingEffect {
+    BonfireOffer => PyEffectBonfireOffer,
+    CardBottle => PyEffectCardBottle,
+    CardDiscard => PyEffectCardDiscard,
+    CardDiscoverPick => PyEffectCardDiscoverPick,
+    CardDuplicate => PyEffectCardDuplicate,
+    CardExhaust => PyEffectCardExhaust,
+    CardMove => PyEffectCardMove,
+    CardNightmarePick => PyEffectCardNightmarePick,
+    CardPurge => PyEffectCardPurge,
+    CardRetain => PyEffectCardRetain,
+    CardSetupPick => PyEffectCardSetupPick,
+    CardTransform => PyEffectCardTransform,
+    CardUpgrade => PyEffectCardUpgrade,
+    RelicLose => PyEffectRelicLose
+});
+
+pub(crate) fn snapshot_pending_effect(effect: &Effect) -> PyPendingEffect {
+    match snapshot_effect(effect) {
+        PyEffect::BonfireOffer(v) => PyPendingEffect::BonfireOffer(v),
+        PyEffect::CardBottle(v) => PyPendingEffect::CardBottle(v),
+        PyEffect::CardDiscard(v) => PyPendingEffect::CardDiscard(v),
+        PyEffect::CardDiscoverPick(v) => PyPendingEffect::CardDiscoverPick(v),
+        PyEffect::CardDuplicate(v) => PyPendingEffect::CardDuplicate(v),
+        PyEffect::CardExhaust(v) => PyPendingEffect::CardExhaust(v),
+        PyEffect::CardMove(v) => PyPendingEffect::CardMove(v),
+        PyEffect::CardNightmarePick(v) => PyPendingEffect::CardNightmarePick(v),
+        PyEffect::CardPurge(v) => PyPendingEffect::CardPurge(v),
+        PyEffect::CardRetain(v) => PyPendingEffect::CardRetain(v),
+        PyEffect::CardSetupPick(v) => PyPendingEffect::CardSetupPick(v),
+        PyEffect::CardTransform(v) => PyPendingEffect::CardTransform(v),
+        PyEffect::CardUpgrade(v) => PyPendingEffect::CardUpgrade(v),
+        PyEffect::RelicLose(v) => PyPendingEffect::RelicLose(v),
+        other => unreachable!("effect kind cannot halt: {:?}", other),
+    }
+}
+
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
     let target = match effect.target {
         Target::Resolve {
@@ -169,14 +212,25 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             })
         }
         EffectKind::DamagePhysicalIfPoisoned { amount } => {
-            PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned { amount, target: require_target(target) })
+            PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
+                amount,
+                target: require_target(target),
+            })
         }
-        EffectKind::HeelHookProc => PyEffect::HeelHookProc(PyEffectHeelHookProc { target: require_target(target) }),
+        EffectKind::HeelHookProc => PyEffect::HeelHookProc(PyEffectHeelHookProc {
+            target: require_target(target),
+        }),
         EffectKind::EscapePlanCheck { block } => {
-            PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck { block, target: require_target(target) })
+            PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck {
+                block,
+                target: require_target(target),
+            })
         }
         EffectKind::GlassKnifeDecay { delta } => {
-            PyEffect::GlassKnifeDecay(PyEffectGlassKnifeDecay { delta, target: require_target(target) })
+            PyEffect::GlassKnifeDecay(PyEffectGlassKnifeDecay {
+                delta,
+                target: require_target(target),
+            })
         }
         EffectKind::CardSetupPick { free, bottom } => {
             PyEffect::CardSetupPick(PyEffectCardSetupPick {
@@ -185,9 +239,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 target: require_target(target),
             })
         }
-        EffectKind::CardNightmarePick => {
-            PyEffect::CardNightmarePick(PyEffectCardNightmarePick { target: require_target(target) })
-        }
+        EffectKind::CardNightmarePick => PyEffect::CardNightmarePick(PyEffectCardNightmarePick {
+            target: require_target(target),
+        }),
         EffectKind::DistractionAdd => PyEffect::DistractionAdd(PyEffectDistractionAdd),
         EffectKind::SetCostOverride {
             amount,
@@ -201,11 +255,15 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             scope: scope.into(),
             target: require_target(target),
         }),
-        EffectKind::DamageFinisher { damage } => {
-            PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target: require_target(target) })
-        }
+        EffectKind::DamageFinisher { damage } => PyEffect::DamageFinisher(PyEffectDamageFinisher {
+            damage,
+            target: require_target(target),
+        }),
         EffectKind::DamageFlechettes { damage } => {
-            PyEffect::DamageFlechettes(PyEffectDamageFlechettes { damage, target: require_target(target) })
+            PyEffect::DamageFlechettes(PyEffectDamageFlechettes {
+                damage,
+                target: require_target(target),
+            })
         }
         EffectKind::UnloadDiscard => PyEffect::UnloadDiscard(PyEffectUnloadDiscard),
         EffectKind::StormOfSteelProc { upgraded } => {
@@ -214,9 +272,10 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::SneakyStrikeProc { energy } => {
             PyEffect::SneakyStrikeProc(PyEffectSneakyStrikeProc { energy })
         }
-        EffectKind::BlockGain { amount } => {
-            PyEffect::BlockGain(PyEffectBlockGain { amount, target: require_target(target) })
-        }
+        EffectKind::BlockGain { amount } => PyEffect::BlockGain(PyEffectBlockGain {
+            amount,
+            target: require_target(target),
+        }),
         EffectKind::ModifierGain { kind, stacks } => PyEffect::ModifierGain(PyEffectModifierGain {
             kind: kind.into(),
             stacks,
@@ -248,13 +307,15 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardDrawUpTo { amount } => {
             PyEffect::CardDrawUpTo(PyEffectCardDrawUpTo { amount })
         }
-        EffectKind::CardDiscard { source: _ } => {
-            PyEffect::CardDiscard(PyEffectCardDiscard { target: require_target(target) })
-        }
-        EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain { target: require_target(target) }),
-        EffectKind::DamageMindBlast => {
-            PyEffect::DamageMindBlast(PyEffectDamageMindBlast { target: require_target(target) })
-        }
+        EffectKind::CardDiscard { source: _ } => PyEffect::CardDiscard(PyEffectCardDiscard {
+            target: require_target(target),
+        }),
+        EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain {
+            target: require_target(target),
+        }),
+        EffectKind::DamageMindBlast => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
+            target: require_target(target),
+        }),
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
             PyEffect::ShuffleDiscardPileIntoDrawPile(PyEffectShuffleDiscardPileIntoDrawPile)
         }
@@ -274,20 +335,31 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 target: require_target(target),
             })
         }
-        EffectKind::CardPurge => PyEffect::CardPurge(PyEffectCardPurge { target: require_target(target) }),
-        EffectKind::CardDuplicate => PyEffect::CardDuplicate(PyEffectCardDuplicate { target: require_target(target) }),
-        EffectKind::CardTransform { upgraded } => {
-            PyEffect::CardTransform(PyEffectCardTransform { upgraded, target: require_target(target) })
-        }
+        EffectKind::CardPurge => PyEffect::CardPurge(PyEffectCardPurge {
+            target: require_target(target),
+        }),
+        EffectKind::CardDuplicate => PyEffect::CardDuplicate(PyEffectCardDuplicate {
+            target: require_target(target),
+        }),
+        EffectKind::CardTransform { upgraded } => PyEffect::CardTransform(PyEffectCardTransform {
+            upgraded,
+            target: require_target(target),
+        }),
         EffectKind::RelicGrantRandom { tier } => {
             PyEffect::RelicGrantRandom(PyEffectRelicGrantRandom {
                 tier: tier.map(Into::into),
             })
         }
-        EffectKind::RelicLose => PyEffect::RelicLose(PyEffectRelicLose { target: require_target(target) }),
+        EffectKind::RelicLose => PyEffect::RelicLose(PyEffectRelicLose {
+            target: require_target(target),
+        }),
         EffectKind::WheelSpin => PyEffect::WheelSpin(PyEffectWheelSpin),
-        EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer { target: require_target(target) }),
-        EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle { target: require_target(target) }),
+        EffectKind::BonfireOffer => PyEffect::BonfireOffer(PyEffectBonfireOffer {
+            target: require_target(target),
+        }),
+        EffectKind::CardBottle => PyEffect::CardBottle(PyEffectCardBottle {
+            target: require_target(target),
+        }),
         EffectKind::MonsterSpawn { name, .. } => {
             PyEffect::MonsterSpawn(PyEffectMonsterSpawn { name: name.into() })
         }
@@ -316,7 +388,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::PotionAddRandom { limited } => {
             PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited })
         }
-        EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard { target: require_target(target) }),
+        EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard {
+            target: require_target(target),
+        }),
         EffectKind::RewardRollPotions { count, uniform } => {
             PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count, uniform })
         }
@@ -338,7 +412,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             exclude: exclude.iter().map(|&card_name| card_name.into()).collect(),
             count,
         }),
-        EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade { target: require_target(target) }),
+        EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade {
+            target: require_target(target),
+        }),
         EffectKind::CardDiscoverPick { cost_zero, pile } => {
             PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
                 pile: pile.into(),
@@ -367,12 +443,20 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             PyEffect::CardDrawIfNoAttacks(PyEffectCardDrawIfNoAttacks { count })
         }
         EffectKind::HandOfGreedProc { gold } => {
-            PyEffect::HandOfGreedProc(PyEffectHandOfGreedProc { gold, target: require_target(target) })
+            PyEffect::HandOfGreedProc(PyEffectHandOfGreedProc {
+                gold,
+                target: require_target(target),
+            })
         }
         EffectKind::RitualDaggerProc { bump } => {
-            PyEffect::RitualDaggerProc(PyEffectRitualDaggerProc { bump, target: require_target(target) })
+            PyEffect::RitualDaggerProc(PyEffectRitualDaggerProc {
+                bump,
+                target: require_target(target),
+            })
         }
-        EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust { target: require_target(target) }),
+        EffectKind::CardExhaust => PyEffect::CardExhaust(PyEffectCardExhaust {
+            target: require_target(target),
+        }),
         EffectKind::CardMove { pile, cost_zero } => PyEffect::CardMove(PyEffectCardMove {
             pile: pile.into(),
             cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
@@ -388,7 +472,10 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             PyEffect::CombatEnd(PyEffectCombatEnd { escaped_character })
         }
         EffectKind::StrengthLoseTemp { stacks } => {
-            PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp { stacks, target: require_target(target) })
+            PyEffect::StrengthLoseTemp(PyEffectStrengthLoseTemp {
+                stacks,
+                target: require_target(target),
+            })
         }
         EffectKind::MausoleumOpen => PyEffect::MausoleumOpen(PyEffectMausoleumOpen),
         EffectKind::KnowingSkullCostBump => {

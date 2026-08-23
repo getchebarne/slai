@@ -74,7 +74,7 @@ const IDX_MOVE_ACTIVATE: usize = 1;
 const IDX_MOVE_HARDEN: usize = 2;
 const IDX_MOVE_FRAIL_ATTACK: usize = 3;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SPHERIC_GUARDIAN: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SphericGuardian,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (20, 20))],

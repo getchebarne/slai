@@ -4,8 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::DeltaSign;
 
 // Gather
@@ -46,16 +45,10 @@ const fn leave(min: u16, max: u16) -> [Effect; 2] {
 const OPTION_LEAVE_BASE: [Effect; 2] = leave(20, 50);
 const OPTION_LEAVE_A15: [Effect; 2] = leave(35, 75);
 
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template("[Gather Gold] Gain 75 Gold. Lose 11 HP.", OPTION_GATHER),
-    make_event_option_template("[Leave It] Lose 20-50 Gold.", &OPTION_LEAVE_BASE),
-];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template("[Gather Gold] Gain 75 Gold. Lose 11 HP.", OPTION_GATHER),
-    make_event_option_template("[Leave It] Lose 35-75 Gold.", &OPTION_LEAVE_A15),
-];
+static OPTIONS_BASE: &[&[Effect]] = &[opt(OPTION_GATHER), opt(&OPTION_LEAVE_BASE)];
+static OPTIONS_A15: &[&[Effect]] = &[opt(OPTION_GATHER), opt(&OPTION_LEAVE_A15)];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

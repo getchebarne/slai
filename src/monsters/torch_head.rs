@@ -7,7 +7,7 @@ use crate::types::MonsterName;
 
 static MOVES: [Move; 1] = [move_attack("Tackle", 7, 1)];
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static TORCH_HEAD: MonsterTemplate = MonsterTemplate {
     name: MonsterName::TorchHead,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (38, 40)), (9, (40, 45))],

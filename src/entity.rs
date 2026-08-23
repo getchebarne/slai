@@ -146,7 +146,6 @@ pub struct Entity {
     pub potion_effects: &'static [Effect],
 
     // EventOption-only
-    pub event_option_label: &'static str,
     pub event_option_effects: [Effect; MAX_EFFECTS_PER_EVENT_OPTION],
     pub event_option_effects_len: u8,
 }
@@ -191,17 +190,16 @@ pub const ENTITY_ZERO: Entity = Entity {
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
     room_edges: 0,
-    relic_name: RelicName::SnakeRing,
+    relic_name: RelicName::RingOfTheSnake,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,
     relic_used_up: false,
     relic_seq: 0,
     relic_effects_combat_start: &[],
-    potion_name: PotionName::EnergyPotion,
+    potion_name: PotionName::Energy,
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,
     potion_effects: &[],
-    event_option_label: "",
     event_option_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_EVENT_OPTION],
     event_option_effects_len: 0,
 };

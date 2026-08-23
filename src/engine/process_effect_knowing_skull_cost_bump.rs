@@ -4,8 +4,7 @@ use crate::game::GameState;
 use crate::types::Focus;
 use crate::utils::context_focus;
 
-// Escalate the selected wish's baked HP cost by one (the reference's ++cost);
-// mutating baked option effects mirrors how combat mutates card effects
+// Escalate the selected wish's baked HP cost by one
 pub fn process_effect_knowing_skull_cost_bump(id_source: Option<usize>, state: &mut GameState) {
     assert!(
         context_focus(state) == Focus::Event,

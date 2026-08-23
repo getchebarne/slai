@@ -208,7 +208,7 @@ const IDX_MOVE_TACKLE: usize = 4;
 const IDX_MOVE_INFLAME: usize = 5;
 const IDX_MOVE_INFERNO: usize = 6;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static HEXAGHOST: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Hexaghost,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (250, 250)), (9, (264, 264))],

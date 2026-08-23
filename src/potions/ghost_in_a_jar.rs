@@ -6,7 +6,7 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_GHOST_IN_A_JAR: PotionTemplate = PotionTemplate {
+pub static GHOST_IN_A_JAR: PotionTemplate = PotionTemplate {
     name: PotionName::GhostInAJar,
     rarity: PotionRarity::Rare,
     combat_only: true,

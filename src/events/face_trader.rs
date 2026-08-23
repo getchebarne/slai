@@ -4,9 +4,8 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 
@@ -57,24 +56,10 @@ const OPTION_TRADE: &[Effect] = &[
 ];
 
 // Leave
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
-        &OPTION_TOUCH_BASE,
-    ),
-    make_event_option_template("[Trade] Obtain a random face.", OPTION_TRADE),
-    OPTION_LEAVE,
-];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
-        &OPTION_TOUCH_A15,
-    ),
-    make_event_option_template("[Trade] Obtain a random face.", OPTION_TRADE),
-    OPTION_LEAVE,
-];
+static OPTIONS_BASE: &[&[Effect]] = &[opt(&OPTION_TOUCH_BASE), opt(OPTION_TRADE), OPTION_LEAVE];
+static OPTIONS_A15: &[&[Effect]] = &[opt(&OPTION_TOUCH_A15), opt(OPTION_TRADE), OPTION_LEAVE];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

@@ -10,7 +10,7 @@ use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 
 mirror_enum!(PyRelicName from RelicName, "RelicName", skip_from_py_object, {
-    SnakeRing, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
+    RingOfTheSnake, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
     NinjaScroll, OddlySmoothStone, Shuriken, ThreadAndNeedle, TwistedFunnel, Vajra, Circlet,
     GoldenIdol, Lantern, ClockworkSouvenir, GremlinVisage, RedMask, Nunchaku, InkBottle,
     LetterOpener, OrnamentalFan, BirdFacedUrn, MummifiedHand, OrangePellets, StrangeSpoon,
@@ -20,7 +20,7 @@ mirror_enum!(PyRelicName from RelicName, "RelicName", skip_from_py_object, {
     ToughBandages, GremlinHorn, TheSpecimen, LizardTail, Boot, Torii, TungstenRod, HandDrill,
     StrikeDummy, PaperKrane, CentennialPuzzle, MealTicket, MawBank, JuzuBracelet, TinyChest,
     EternalFeather, AncientTeaSet, RegalPillow, MeatOnTheBone, Omamori, DarkstonePeriapt,
-    CeramicFish, FrozenEgg, MoltenEgg, ToxicEgg, ToyOrnithopter, SmilingMask, DeadBranch,
+    CeramicFish, EggFrozen, EggMolten, EggToxic, ToyOrnithopter, SmilingMask, DeadBranch,
     DuVuDoll, Pantograph, SlingOfCourage, Strawberry, Pear, Mango, OldCoin, PotionBelt,
     WarPaint, Whetstone, EmptyCage, PandorasBox, PenNib, FossilizedHelix, PreservedInsect,
     UnceasingTop, BlueCandle, MedicalKit, SpiritPoop, WarpedTongs, CultistHeadpiece,

@@ -5,8 +5,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_EXPLOSIVE: PotionTemplate = PotionTemplate {
-    name: PotionName::ExplosivePotion,
+pub static EXPLOSIVE: PotionTemplate = PotionTemplate {
+    name: PotionName::Explosive,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[Effect {

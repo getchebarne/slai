@@ -5,8 +5,7 @@ use crate::effect::RelicPick;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventLoot;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
@@ -57,10 +56,4 @@ pub const FIGHT_LOOT: EventLoot = EventLoot {
     relics: [Some(RelicPick::Name(RelicName::RedMask)), None],
 };
 
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template("[Pay] Lose ALL your Gold.", OPTION_PAY),
-    make_event_option_template(
-        "[Fight] Gain 25-35 Gold. Obtain the Red Mask.",
-        OPTION_FIGHT,
-    ),
-];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_PAY), opt(OPTION_FIGHT)];

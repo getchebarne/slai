@@ -72,7 +72,7 @@ const IDX_MOVE_BOOST: usize = 2;
 const IDX_MOVE_HYPER_BEAM: usize = 3;
 const IDX_MOVE_STUNNED: usize = 4;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static BRONZE_AUTOMATON: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BronzeAutomaton,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (300, 300)), (9, (320, 320))],

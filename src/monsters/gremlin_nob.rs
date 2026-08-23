@@ -23,7 +23,7 @@ const IDX_MOVE_BELLOW: usize = 0;
 const IDX_MOVE_BULL_RUSH: usize = 1;
 const IDX_MOVE_SKULL_BASH: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static GREMLIN_NOB: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinNob,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (82, 86)), (8, (85, 90))],

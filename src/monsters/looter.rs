@@ -42,7 +42,7 @@ const IDX_MOVE_LUNGE: usize = 1;
 const IDX_MOVE_SMOKE_BOMB: usize = 2;
 const IDX_MOVE_ESCAPE: usize = 3;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static LOOTER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Looter,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (44, 48)), (7, (46, 50))],

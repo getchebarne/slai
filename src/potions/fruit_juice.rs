@@ -8,7 +8,7 @@ use crate::types::PotionName;
 use crate::types::PotionRarity;
 
 // The MaxHealthDelta handler heals too, matching StS `increaseMaxHp(5, true)`
-pub static POTION_FRUIT_JUICE: PotionTemplate = PotionTemplate {
+pub static FRUIT_JUICE: PotionTemplate = PotionTemplate {
     name: PotionName::FruitJuice,
     rarity: PotionRarity::Rare,
     combat_only: false,

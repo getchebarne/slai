@@ -67,7 +67,7 @@ const IDX_MOVE_DEBILITATE: usize = 2;
 const IDX_MOVE_DRAIN: usize = 3;
 const IDX_MOVE_HEX: usize = 4;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static CHOSEN: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Chosen,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (95, 99)), (7, (98, 103))],

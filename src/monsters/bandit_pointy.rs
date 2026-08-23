@@ -7,7 +7,7 @@ use crate::types::MonsterName;
 static MOVES_ASC0: [Move; 1] = [move_attack("Spit Web", 5, 2)];
 static MOVES_ASC2: [Move; 1] = [move_attack("Spit Web", 6, 2)];
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static BANDIT_POINTY: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BanditPointy,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (30, 30)), (7, (34, 34))],

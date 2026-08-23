@@ -18,7 +18,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_TACKLE_4, MOVE_LICK];
 const IDX_MOVE_TACKLE: usize = 0;
 const IDX_MOVE_LICK: usize = 1;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SLIME_ACID_SMALL: MonsterTemplate = MonsterTemplate {
     name: MonsterName::SlimeAcidSmall,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (8, 12)), (7, (9, 13))],

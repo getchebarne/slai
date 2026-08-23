@@ -6,8 +6,8 @@ use crate::types::DeltaSign;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_ENERGY: PotionTemplate = PotionTemplate {
-    name: PotionName::EnergyPotion,
+pub static ENERGY: PotionTemplate = PotionTemplate {
+    name: PotionName::Energy,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[Effect {

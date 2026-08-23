@@ -20,6 +20,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::Combat;
 use crate::types::DeltaSign;
+use crate::types::Event;
 use crate::types::Focus;
 use crate::types::PotionName;
 use crate::types::RelicName;
@@ -180,51 +181,101 @@ pub fn recompute_legal_actions(state: &mut GameState) {
 
 // idx indexes the collection named by the pending effect's candidate pool
 fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
-    let pending = state
+    // Validate there's a pending `Effect` and, if so, take it
+    let effect_pending = state
         .effect_pending
+        .take()
         .expect("EffectPendingResolve requires a pending effect");
-    let Target::Resolve { candidate_pool, .. } = pending.target else {
+
+    // Validate the pending `Effect`'s target is `Target::Resolve`
+    let Target::Resolve {
+        candidate_pool,
+        filter,
+        selection_kind,
+    } = effect_pending.target
+    else {
         unreachable!("effect_pending carries a Resolve target")
     };
-    let id_picked = pool_collection(state, candidate_pool)[idx];
-    resolve_pending_pick(state, id_picked);
+
+    // Get selected `Entity` ID
+    let id_selected = pool_collection(
+        candidate_pool,
+        &state.combat,
+        &state.event,
+        &state.id_card_deck,
+    )[idx];
+
+    // Push resolved `Effect` w/ `Target::Direct`
+    state.effect_buf.push(Effect {
+        kind: effect_pending.kind,
+        id_source: effect_pending.id_source,
+        target: Target::Direct(Some(id_selected)),
+    });
+
+    // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
+    let remaining = match selection_kind {
+        SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => {
+            count.saturating_sub(1)
+        }
+        _ => panic!("Pending pick carries an Input halt"),
+    };
+    if remaining > 0 {
+        let selection_kind = match selection_kind {
+            SelectionKind::Input { .. } => SelectionKind::Input { count: remaining },
+            _ => SelectionKind::InputUpTo { count: remaining },
+        };
+        state.effect_buf.push(Effect {
+            kind: effect_pending.kind,
+            id_source: effect_pending.id_source,
+            target: Target::Resolve {
+                candidate_pool,
+                filter,
+                selection_kind,
+            },
+        });
+    }
 }
 
 // The indexable collection behind each halting pool
-fn pool_collection(state: &GameState, pool: CandidatePool) -> &Vec<usize> {
+fn pool_collection<'a>(
+    pool: CandidatePool,
+    combat: &'a Combat,
+    event: &'a Event,
+    id_card_deck: &'a [usize],
+) -> &'a [usize] {
     match pool {
         CandidatePool::Hand => {
-            assert!(state.combat.active, "Hand pick outside combat");
-            &state.combat.id_card_hand
+            assert!(combat.active, "Hand pick outside combat");
+            &combat.id_card_hand
         }
         CandidatePool::Discover => {
-            assert!(state.combat.active, "Discover pick outside combat");
-            &state.combat.id_card_discover
+            assert!(combat.active, "Discover pick outside combat");
+            &combat.id_card_discover
         }
         CandidatePool::PileDraw => {
-            assert!(state.combat.active, "Pile pick outside combat");
-            &state.combat.id_card_draw
+            assert!(combat.active, "Pile pick outside combat");
+            &combat.id_card_draw
         }
         CandidatePool::PileDiscard => {
-            assert!(state.combat.active, "Pile pick outside combat");
-            &state.combat.id_card_discard
+            assert!(combat.active, "Pile pick outside combat");
+            &combat.id_card_discard
         }
         CandidatePool::PileExhaust => {
-            assert!(state.combat.active, "Pile pick outside combat");
-            &state.combat.id_card_exhaust
+            assert!(combat.active, "Pile pick outside combat");
+            &combat.id_card_exhaust
         }
-        CandidatePool::Deck => &state.id_card_deck,
+        CandidatePool::Deck => id_card_deck,
         CandidatePool::EventRollCard => {
-            assert!(state.event.active, "Event roll pick outside an event");
-            &state.event.id_roll_card
+            assert!(event.active, "Event roll pick outside an event");
+            &event.id_roll_card
         }
         CandidatePool::EventRollRelic => {
-            assert!(state.event.active, "Event roll pick outside an event");
-            &state.event.id_roll_relic
+            assert!(event.active, "Event roll pick outside an event");
+            &event.id_roll_relic
         }
         CandidatePool::EventRollPotion => {
-            assert!(state.event.active, "Event roll pick outside an event");
-            &state.event.id_roll_potion
+            assert!(event.active, "Event roll pick outside an event");
+            &event.id_roll_potion
         }
         other => unreachable!("pick over non-indexable pool: {:?}", other),
     }
@@ -541,15 +592,16 @@ fn fill_legal_actions_effect_pending(
     filter: CandidateFilter,
     pool: CandidatePool,
 ) {
-    let collection = pool_collection(state, pool);
-    let legal: Vec<usize> = (0..collection.len())
-        .filter(|&idx| {
-            let id = collection[idx];
-            candidate_matches(filter, id, &state.entities[id], None, None)
-        })
-        .collect();
-    for idx in legal {
-        state.legal_actions.push(Action::EffectPendingResolve { idx });
+    // Get `CandidatePool`'s instanced IDs
+    let id_collection = pool_collection(pool, &state.combat, &state.event, &state.id_card_deck);
+
+    // Apply `CandidateFilter`
+    for (idx, &id) in id_collection.iter().enumerate() {
+        if candidate_matches(filter, id, &state.entities[id], None, None) {
+            state
+                .legal_actions
+                .push(Action::EffectPendingResolve { idx });
+        }
     }
 }
 
@@ -697,7 +749,11 @@ fn fill_legal_actions_shop(state: &mut GameState) {
         purged,
         ..
     } = &state.shop;
+
+    // Exiting is always legal
     state.legal_actions.push(Action::RoomExit);
+
+    // Snapshots
     let gold = state.entities[state.id_character].character_gold;
     let belt_has_room = find_free_slot(&state.id_potions, state.potion_slots_max).is_some();
 
@@ -852,7 +908,7 @@ fn push_potion_actions(state: &mut GameState) {
         let potion = &state.entities[id_potion];
 
         // Fairy in a Bottle is never drinkable; it procs from the death hook
-        if potion.potion_name == PotionName::FairyPotion {
+        if potion.potion_name == PotionName::Fairy {
             state.legal_actions.push(Action::PotionDiscard { idx: s });
             continue;
         }
@@ -892,47 +948,3 @@ fn push_potion_actions(state: &mut GameState) {
         state.legal_actions.push(Action::PotionDiscard { idx: s });
     }
 }
-
-// Pops effect_pending, applies the picked entity as a Direct effect, and re-raises the
-// halt with the remaining count against the pending's own pool
-fn resolve_pending_pick(state: &mut GameState, id_picked: usize) {
-    let effect_pending = state.effect_pending.take().unwrap();
-
-    state.effect_buf.push(Effect {
-        kind: effect_pending.kind,
-        id_source: effect_pending.id_source,
-        target: Target::Direct(Some(id_picked)),
-    });
-
-    // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
-    let Target::Resolve {
-        candidate_pool,
-        filter,
-        selection_kind,
-    } = effect_pending.target
-    else {
-        unreachable!("Pending pick carries a Resolve target")
-    };
-    let remaining = match selection_kind {
-        SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => {
-            count.saturating_sub(1)
-        }
-        _ => panic!("Pending pick carries an Input halt"),
-    };
-    if remaining > 0 {
-        let selection_kind = match selection_kind {
-            SelectionKind::Input { .. } => SelectionKind::Input { count: remaining },
-            _ => SelectionKind::InputUpTo { count: remaining },
-        };
-        state.effect_buf.push(Effect {
-            kind: effect_pending.kind,
-            id_source: effect_pending.id_source,
-            target: Target::Resolve {
-                candidate_pool,
-                filter,
-                selection_kind,
-            },
-        });
-    }
-}
-

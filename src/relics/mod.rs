@@ -35,12 +35,14 @@ mod dollys_mirror;
 mod dream_catcher;
 mod du_vu_doll;
 mod ectoplasm;
+mod egg_frozen;
+mod egg_molten;
+mod egg_toxic;
 mod empty_cage;
 mod enchiridion;
 mod eternal_feather;
 mod face_of_cleric;
 mod fossilized_helix;
-mod frozen_egg;
 mod fusion_hammer;
 mod gambling_chip;
 mod ginger;
@@ -69,7 +71,6 @@ mod meat_on_the_bone;
 mod medical_kit;
 mod membership_card;
 mod mercury_hourglass;
-mod molten_egg;
 mod mummified_hand;
 mod mutagenic_strength;
 mod necronomicon;
@@ -102,6 +103,7 @@ mod question_card;
 mod red_mask;
 mod regal_pillow;
 mod ring_of_the_serpent;
+mod ring_of_the_snake;
 mod runic_pyramid;
 mod sacred_bark;
 mod shovel;
@@ -110,7 +112,6 @@ mod singing_bowl;
 mod slavers_collar;
 mod sling_of_courage;
 mod smiling_mask;
-mod snake_ring;
 mod snecko_eye;
 mod snecko_skull;
 mod sozu;
@@ -130,7 +131,6 @@ mod tiny_house;
 mod toolbox;
 mod torii;
 mod tough_bandages;
-mod toxic_egg;
 mod toy_ornithopter;
 mod tungsten_rod;
 mod turnip;
@@ -204,9 +204,9 @@ pub fn trigger_relic_counter(
 // Frozen / Molten / Toxic Egg: Cards of the matching kind are obtained upgraded
 pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::COUNT]) -> bool {
     let egg = match kind {
-        CardKind::Power => RelicName::FrozenEgg,
-        CardKind::Attack => RelicName::MoltenEgg,
-        CardKind::Skill => RelicName::ToxicEgg,
+        CardKind::Power => RelicName::EggFrozen,
+        CardKind::Attack => RelicName::EggMolten,
+        CardKind::Skill => RelicName::EggToxic,
         _ => return false,
     };
     id_relics[egg as usize].is_some()
@@ -242,7 +242,7 @@ pub fn iter_owned_relics(
 }
 
 pub const ALL_RELICS: &[&'static RelicTemplate] = &[
-    &snake_ring::SNAKE_RING,
+    &ring_of_the_snake::RING_OF_THE_SNAKE,
     &abacus::ABACUS,
     &akabeko::AKABEKO,
     &anchor::ANCHOR,
@@ -269,7 +269,7 @@ pub const ALL_RELICS: &[&'static RelicTemplate] = &[
     &empty_cage::EMPTY_CAGE,
     &eternal_feather::ETERNAL_FEATHER,
     &fossilized_helix::FOSSILIZED_HELIX,
-    &frozen_egg::FROZEN_EGG,
+    &egg_frozen::EGG_FROZEN,
     &ginger::GINGER,
     &golden_idol::GOLDEN_IDOL,
     &gremlin_horn::GREMLIN_HORN,
@@ -292,7 +292,7 @@ pub const ALL_RELICS: &[&'static RelicTemplate] = &[
     &meat_on_the_bone::MEAT_ON_THE_BONE,
     &medical_kit::MEDICAL_KIT,
     &mercury_hourglass::MERCURY_HOURGLASS,
-    &molten_egg::MOLTEN_EGG,
+    &egg_molten::EGG_MOLTEN,
     &mummified_hand::MUMMIFIED_HAND,
     &ninja_scroll::NINJA_SCROLL,
     &nunchaku::NUNCHAKU,
@@ -327,7 +327,7 @@ pub const ALL_RELICS: &[&'static RelicTemplate] = &[
     &tiny_chest::TINY_CHEST,
     &torii::TORII,
     &tough_bandages::TOUGH_BANDAGES,
-    &toxic_egg::TOXIC_EGG,
+    &egg_toxic::EGG_TOXIC,
     &toy_ornithopter::TOY_ORNITHOPTER,
     &tungsten_rod::TUNGSTEN_ROD,
     &turnip::TURNIP,
@@ -419,7 +419,7 @@ const fn count_pool(tier: RelicTier) -> usize {
 }
 
 const fn build_pool<const N: usize>(tier: RelicTier) -> [RelicName; N] {
-    let mut buf = [RelicName::SnakeRing; N];
+    let mut buf = [RelicName::RingOfTheSnake; N];
     let mut idx_pool = 0;
     let mut idx_all = 0;
     while idx_all < ALL_RELICS.len() {

@@ -5,9 +5,8 @@ use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_ADVANCE_EFFECT;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 
@@ -51,31 +50,22 @@ const OPTION_TAKE_A15: [Effect; 3] = take_book(15);
 const OPTION_STOP: [Effect; 2] = [hp_loss(3), EVENT_CONSUME_EFFECT];
 
 // Only the take-option varies with ascension
-const fn options_for(
-    take_label: &'static str,
-    take: &'static [Effect],
-) -> [EventOptionTemplate<'static>; 7] {
+const fn options_for(take: &'static [Effect]) -> [&'static [Effect]; 7] {
     [
-        make_event_option_template("[Read] Begin reading.", &OPTION_READ),
-        make_event_option_template("[Continue] Lose 1 HP.", &OPTION_PAGE_1),
-        make_event_option_template("[Continue] Lose 2 HP.", &OPTION_PAGE_2),
-        make_event_option_template("[Continue] Lose 3 HP.", &OPTION_PAGE_3),
-        make_event_option_template(take_label, take),
-        make_event_option_template("[Stop Reading] Lose 3 HP.", &OPTION_STOP),
+        opt(&OPTION_READ),
+        opt(&OPTION_PAGE_1),
+        opt(&OPTION_PAGE_2),
+        opt(&OPTION_PAGE_3),
+        opt(take),
+        opt(&OPTION_STOP),
         OPTION_LEAVE,
     ]
 }
 
-static OPTIONS_BASE: &[EventOptionTemplate] = &options_for(
-    "[Take the Book] Lose 10 HP. Obtain a book Relic.",
-    &OPTION_TAKE_BASE,
-);
-static OPTIONS_A15: &[EventOptionTemplate] = &options_for(
-    "[Take the Book] Lose 15 HP. Obtain a book Relic.",
-    &OPTION_TAKE_A15,
-);
+static OPTIONS_BASE: &[&[Effect]] = &options_for(&OPTION_TAKE_BASE);
+static OPTIONS_A15: &[&[Effect]] = &options_for(&OPTION_TAKE_A15);
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

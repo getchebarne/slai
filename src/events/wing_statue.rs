@@ -5,11 +5,10 @@ use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::OPTION_LEAVE;
 use crate::events::deck_has_damage_card;
 use crate::events::deck_has_purgeable;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
@@ -41,14 +40,7 @@ const OPTION_ATTACK: &[Effect] = &[
 ];
 
 // Leave
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Pray] Remove a card from your deck. Lose 7 HP.",
-        OPTION_PRAY,
-    ),
-    make_event_option_template("[Destroy] Receive 50-80 Gold.", OPTION_ATTACK),
-    OPTION_LEAVE,
-];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_PRAY), opt(OPTION_ATTACK), OPTION_LEAVE];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {

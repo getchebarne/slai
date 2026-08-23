@@ -126,25 +126,15 @@ pub const EVENT_ADVANCE_EFFECT: Effect = Effect {
     target: Target::Direct(None),
 };
 
-// Immutable option definition; bake instances it into the arena.
-// `'a` lets spawns build templates over per-visit effects; static menus sit at `'static`
-#[derive(Debug, Clone, Copy)]
-pub struct EventOptionTemplate<'a> {
-    pub label: &'static str,
-    pub effects: &'a [Effect],
-}
-
-pub const fn make_event_option_template<'a>(
-    label: &'static str,
-    effects: &'a [Effect],
-) -> EventOptionTemplate<'a> {
+// An option IS its effect list; `opt` is the const bound-check on the way in, so
+// an over-cap static menu fails to compile rather than panicking at spawn
+pub const fn opt(effects: &[Effect]) -> &[Effect] {
     assert!(effects.len() <= MAX_EFFECTS_PER_EVENT_OPTION);
-    EventOptionTemplate { label, effects }
+    effects
 }
 
 // The leave option and the three deck-pick effects every shrine-shaped event repeats
-pub const OPTION_LEAVE: EventOptionTemplate<'static> =
-    make_event_option_template("[Leave] Nothing happens.", &[EVENT_CONSUME_EFFECT]);
+pub const OPTION_LEAVE: &[Effect] = opt(&[EVENT_CONSUME_EFFECT]);
 
 // Bakes the options into the arena; processors may mutate baked amounts mid-event
 pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
@@ -169,8 +159,8 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::WeMeetAgain => return we_meet_again::spawn_event_we_meet_again(state),
         _ => {}
     }
-    // Single table source, shared with the FFI catalog
-    let tables = options_catalog(name, ascension);
+    // Single table source, shared with the FFI catalog via options_catalog
+    let tables = static_tables(name, ascension);
     debug_assert!(
         tables.len() == 1,
         "static-table events have exactly one table"
@@ -178,12 +168,23 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
     bake_options(state, tables[0])
 }
 
-// State-free option tables; spawn-composed events (WMA, Neow) have no static
-// tables — the catalog enumerates them by evaluation via catalog_* below
-pub fn options_catalog(
-    name: EventName,
-    ascension: u8,
-) -> Vec<&'static [EventOptionTemplate<'static>]> {
+// Every event's reachable option rows, state-free — one uniform shape whether
+// the menu is a static table or composed at spawn.
+pub fn options_catalog(name: EventName, ascension: u8) -> Vec<Vec<Effect>> {
+    match name {
+        EventName::Neow => neow::catalog(ascension),
+        EventName::WeMeetAgain => we_meet_again::catalog(),
+        _ => static_tables(name, ascension)
+            .iter()
+            .flat_map(|table| table.iter().map(|effects| effects.to_vec()))
+            .collect(),
+    }
+}
+
+// The static menu(s) an event can present, shared by spawn and catalog so the
+// two cannot drift. Designer lists the four coin-flip tables a spawn picks one
+// of; the composed menus (Neow, WMA) have none and enumerate themselves.
+fn static_tables(name: EventName, ascension: u8) -> Vec<&'static [&'static [Effect]]> {
     match name {
         EventName::BigFish => vec![big_fish::OPTIONS],
         EventName::TheCleric => vec![the_cleric::options(ascension)],
@@ -230,26 +231,15 @@ pub fn options_catalog(
         EventName::KnowingSkull => vec![knowing_skull::OPTIONS],
         EventName::Mushrooms => vec![mushrooms::OPTIONS],
         EventName::DeadAdventurer => vec![dead_adventurer::OPTIONS],
-        // Spawn-composed menus: no static tables to enumerate
-        EventName::Neow => vec![],
-        EventName::WeMeetAgain => vec![],
+        EventName::Neow | EventName::WeMeetAgain => vec![],
     }
 }
 
-// Spawn-composed menus enumerate by evaluation, sharing the spawn's builders
-pub fn catalog_neow(ascension: u8) -> Vec<Vec<Effect>> {
-    neow::catalog(ascension)
-}
-
-pub fn catalog_we_meet_again() -> Vec<Vec<Effect>> {
-    we_meet_again::catalog()
-}
-
 // One Entity per option, instanced into the arena at spawn
-fn bake_options(state: &mut GameState, templates: &[EventOptionTemplate]) -> Vec<usize> {
-    let mut id_event_options = Vec::with_capacity(templates.len());
-    for template in templates {
-        let option = instance_event_option_from_template(template);
+fn bake_options(state: &mut GameState, options: &[&[Effect]]) -> Vec<usize> {
+    let mut id_event_options = Vec::with_capacity(options.len());
+    for effects in options {
+        let option = instance_event_option(effects);
         id_event_options.push(push_entity(&mut state.entities, option));
     }
     id_event_options
@@ -488,25 +478,20 @@ pub fn pools_for_act(act: u8) -> (&'static [EventName], &'static [EventName]) {
     }
 }
 
-const fn instance_event_option_from_template(template: &EventOptionTemplate) -> Entity {
-    assert!(template.effects.len() <= MAX_EFFECTS_PER_EVENT_OPTION);
+const fn instance_event_option(effects: &[Effect]) -> Entity {
+    assert!(effects.len() <= MAX_EFFECTS_PER_EVENT_OPTION);
 
-    // Push Effects
     let mut effects_owned = [EFFECT_ZERO; MAX_EFFECTS_PER_EVENT_OPTION];
     let mut idx = 0;
-    while idx < template.effects.len() {
-        effects_owned[idx] = template.effects[idx];
+    while idx < effects.len() {
+        effects_owned[idx] = effects[idx];
         idx += 1;
     }
 
-    // Make Entity
     Entity {
         kind: EntityKind::EventOption,
-        event_option_label: template.label,
         event_option_effects: effects_owned,
-        event_option_effects_len: template.effects.len() as u8,
+        event_option_effects_len: effects.len() as u8,
         ..ENTITY_ZERO
     }
 }
-
-

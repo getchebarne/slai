@@ -34,7 +34,7 @@ const IDX_MOVE_BITE: usize = 0;
 const IDX_MOVE_WEB: usize = 1;
 
 // Moves and Curl Up are spawn-rolled (bite damage tables); see the spawn fn
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static LOUSE_DEFENSIVE: MonsterTemplate = MonsterTemplate {
     name: MonsterName::LouseDefensive,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (11, 17)), (7, (12, 18))],
@@ -44,8 +44,8 @@ pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
 };
 
 pub fn spawn_monster_louse_green(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) =
-        pick_tier(TEMPLATE.health_tiers, ascension_level).expect("health_tiers is never empty");
+    let (health_max_min, health_max_max) = pick_tier(LOUSE_DEFENSIVE.health_tiers, ascension_level)
+        .expect("health_tiers is never empty");
     let health_max = rng.random_range(health_max_min..=health_max_max);
 
     let bite_dmg: u8 = if ascension_level < 2 {
@@ -89,7 +89,7 @@ pub fn spawn_monster_louse_green(ascension_level: u8, rng: &mut impl Rng) -> Ent
 
     make_entity_monster(
         MonsterName::LouseDefensive,
-        TEMPLATE.kind,
+        LOUSE_DEFENSIVE.kind,
         Vitals {
             health: health_max,
             health_max,

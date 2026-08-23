@@ -4,8 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -50,22 +49,10 @@ const OPTION_DAGGER: [Effect; 3] = [
 const OPTION_GOLD_BASE: [Effect; 2] = take_gold(99);
 const OPTION_GOLD_A15: [Effect; 2] = take_gold(50);
 
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template("[Smash and Grab] Gain 99 Gold.", &OPTION_GOLD_BASE),
-    make_event_option_template(
-        "[Join the Cult] Lose 6 HP. Obtain Ritual Dagger.",
-        &OPTION_DAGGER,
-    ),
-];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template("[Smash and Grab] Gain 50 Gold.", &OPTION_GOLD_A15),
-    make_event_option_template(
-        "[Join the Cult] Lose 6 HP. Obtain Ritual Dagger.",
-        &OPTION_DAGGER,
-    ),
-];
+static OPTIONS_BASE: &[&[Effect]] = &[opt(&OPTION_GOLD_BASE), opt(&OPTION_DAGGER)];
+static OPTIONS_A15: &[&[Effect]] = &[opt(&OPTION_GOLD_A15), opt(&OPTION_DAGGER)];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

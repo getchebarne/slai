@@ -6,8 +6,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_DUPLICATION: PotionTemplate = PotionTemplate {
-    name: PotionName::DuplicateNextCardPlayPotion,
+pub static DUPLICATION: PotionTemplate = PotionTemplate {
+    name: PotionName::Duplication,
     rarity: PotionRarity::Uncommon,
     combat_only: true,
     effects: &[Effect {

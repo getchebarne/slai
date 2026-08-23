@@ -10,11 +10,10 @@ use crate::events::EFFECT_DECK_PURGE_PICK_1;
 use crate::events::EFFECT_DECK_TRANSFORM_PICK_2;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
 use crate::events::deck_has_purgeable;
 use crate::events::deck_has_two_transformable;
 use crate::events::deck_has_upgradable;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
@@ -91,53 +90,25 @@ const CLEAN_TRANSFORM_A15: [Effect; 3] =
 const FULL_A15: [Effect; 4] = full_service(DESIGNER_COST_FULL_A15);
 const PUNCH_A15: [Effect; 2] = punch(5);
 
-const OPT_ADJ_ONE_BASE: EventOptionTemplate =
-    make_event_option_template("[Adjustments] Lose 40 Gold. Upgrade a card.", &ADJ_ONE_BASE);
-const OPT_ADJ_TWO_BASE: EventOptionTemplate = make_event_option_template(
-    "[Adjustments] Lose 40 Gold. Upgrade 2 random cards.",
-    &ADJ_TWO_BASE,
-);
-const OPT_CLEAN_REMOVE_BASE: EventOptionTemplate = make_event_option_template(
-    "[Clean Up] Lose 60 Gold. Remove a card from your deck.",
-    &CLEAN_REMOVE_BASE,
-);
-const OPT_CLEAN_TRANSFORM_BASE: EventOptionTemplate = make_event_option_template(
-    "[Clean Up] Lose 60 Gold. Transform 2 cards.",
-    &CLEAN_TRANSFORM_BASE,
-);
-const OPT_FULL_BASE: EventOptionTemplate = make_event_option_template(
-    "[Full Service] Lose 90 Gold. Remove a card, then upgrade a random card.",
-    &FULL_BASE,
-);
-const OPT_PUNCH_BASE: EventOptionTemplate =
-    make_event_option_template("[Punch] Lose 3 HP.", &PUNCH_BASE);
-const OPT_ADJ_ONE_A15: EventOptionTemplate =
-    make_event_option_template("[Adjustments] Lose 50 Gold. Upgrade a card.", &ADJ_ONE_A15);
-const OPT_ADJ_TWO_A15: EventOptionTemplate = make_event_option_template(
-    "[Adjustments] Lose 50 Gold. Upgrade 2 random cards.",
-    &ADJ_TWO_A15,
-);
-const OPT_CLEAN_REMOVE_A15: EventOptionTemplate = make_event_option_template(
-    "[Clean Up] Lose 75 Gold. Remove a card from your deck.",
-    &CLEAN_REMOVE_A15,
-);
-const OPT_CLEAN_TRANSFORM_A15: EventOptionTemplate = make_event_option_template(
-    "[Clean Up] Lose 75 Gold. Transform 2 cards.",
-    &CLEAN_TRANSFORM_A15,
-);
-const OPT_FULL_A15: EventOptionTemplate = make_event_option_template(
-    "[Full Service] Lose 110 Gold. Remove a card, then upgrade a random card.",
-    &FULL_A15,
-);
-const OPT_PUNCH_A15: EventOptionTemplate =
-    make_event_option_template("[Punch] Lose 5 HP.", &PUNCH_A15);
+const OPT_ADJ_ONE_BASE: &'static [Effect] = opt(&ADJ_ONE_BASE);
+const OPT_ADJ_TWO_BASE: &'static [Effect] = opt(&ADJ_TWO_BASE);
+const OPT_CLEAN_REMOVE_BASE: &'static [Effect] = opt(&CLEAN_REMOVE_BASE);
+const OPT_CLEAN_TRANSFORM_BASE: &'static [Effect] = opt(&CLEAN_TRANSFORM_BASE);
+const OPT_FULL_BASE: &'static [Effect] = opt(&FULL_BASE);
+const OPT_PUNCH_BASE: &'static [Effect] = opt(&PUNCH_BASE);
+const OPT_ADJ_ONE_A15: &'static [Effect] = opt(&ADJ_ONE_A15);
+const OPT_ADJ_TWO_A15: &'static [Effect] = opt(&ADJ_TWO_A15);
+const OPT_CLEAN_REMOVE_A15: &'static [Effect] = opt(&CLEAN_REMOVE_A15);
+const OPT_CLEAN_TRANSFORM_A15: &'static [Effect] = opt(&CLEAN_TRANSFORM_A15);
+const OPT_FULL_A15: &'static [Effect] = opt(&FULL_A15);
+const OPT_PUNCH_A15: &'static [Effect] = opt(&PUNCH_A15);
 
 // Spawn bakes the rolled service variants; only the four real options exist
 pub fn options(
     ascension: u8,
     adjust_upgrades_one: bool,
     cleanup_removes: bool,
-) -> &'static [EventOptionTemplate<'static>] {
+) -> &'static [&'static [Effect]] {
     match (ascension < 15, adjust_upgrades_one, cleanup_removes) {
         (true, true, true) => &[
             OPT_ADJ_ONE_BASE,

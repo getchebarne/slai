@@ -6,8 +6,7 @@ use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
 use crate::events::EventLoot;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -68,10 +67,4 @@ const OPTION_EAT: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-pub static OPTIONS: &[EventOptionTemplate] = &[
-    make_event_option_template("[Stomp] Fight 3 Fungi Beasts.", OPTION_STOMP),
-    make_event_option_template(
-        "[Eat] Heal 25% of your Max HP. Become Cursed - Parasite.",
-        OPTION_EAT,
-    ),
-];
+pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_STOMP), opt(OPTION_EAT)];

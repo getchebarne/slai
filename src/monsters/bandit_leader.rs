@@ -26,7 +26,7 @@ const IDX_MOVE_MOCK: usize = 0;
 const IDX_MOVE_AGONIZING: usize = 1;
 const IDX_MOVE_CROSS_SLASH: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static BANDIT_LEADER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BanditLeader,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (35, 39)), (7, (37, 41))],

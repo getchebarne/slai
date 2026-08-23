@@ -6,8 +6,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_CULTIST: PotionTemplate = PotionTemplate {
-    name: PotionName::CultistPotion,
+pub static CULTIST: PotionTemplate = PotionTemplate {
+    name: PotionName::Cultist,
     rarity: PotionRarity::Rare,
     combat_only: true,
     effects: &[Effect {

@@ -70,39 +70,39 @@ pub fn get_potion(name: PotionName) -> Entity {
 }
 
 pub const ALL_POTIONS: &[&'static PotionTemplate] = &[
-    &energy::POTION_ENERGY,
-    &block::POTION_BLOCK,
-    &strength::POTION_STRENGTH,
-    &dexterity::POTION_DEXTERITY,
-    &fire::POTION_FIRE,
-    &explosive::POTION_EXPLOSIVE,
-    &weak::POTION_WEAK,
-    &fear::POTION_FEAR,
-    &poison::POTION_POISON,
-    &swift::POTION_SWIFT,
-    &attack::POTION_ATTACK,
-    &skill::POTION_SKILL,
-    &power::POTION_POWER,
-    &fruit_juice::POTION_FRUIT_JUICE,
-    &ancient::POTION_ANCIENT,
-    &liquid_bronze::POTION_LIQUID_BRONZE,
-    &essence_of_steel::POTION_ESSENCE_OF_STEEL,
-    &ghost_in_a_jar::POTION_GHOST_IN_A_JAR,
-    &cultist::POTION_CULTIST,
-    &cunning::POTION_CUNNING,
-    &distilled_chaos::POTION_DISTILLED_CHAOS,
-    &blessing_of_the_forge::POTION_BLESSING_OF_THE_FORGE,
-    &entropic_brew::POTION_ENTROPIC_BREW,
-    &regeneration::POTION_REGENERATION,
-    &steroid::POTION_STEROID,
-    &speed::POTION_SPEED,
-    &duplication::POTION_DUPLICATION,
-    &colorless::POTION_COLORLESS,
-    &gamblers_brew::POTION_GAMBLERS_BREW,
-    &liquid_memories::POTION_LIQUID_MEMORIES,
-    &snecko_oil::POTION_SNECKO_OIL,
-    &fairy::POTION_FAIRY,
-    &smoke_bomb::POTION_SMOKE_BOMB,
+    &energy::ENERGY,
+    &block::BLOCK,
+    &strength::STRENGTH,
+    &dexterity::DEXTERITY,
+    &fire::FIRE,
+    &explosive::EXPLOSIVE,
+    &weak::WEAK,
+    &fear::FEAR,
+    &poison::POISON,
+    &swift::SWIFT,
+    &attack::ATTACK,
+    &skill::SKILL,
+    &power::POWER,
+    &fruit_juice::FRUIT_JUICE,
+    &ancient::ANCIENT,
+    &liquid_bronze::LIQUID_BRONZE,
+    &essence_of_steel::ESSENCE_OF_STEEL,
+    &ghost_in_a_jar::GHOST_IN_A_JAR,
+    &cultist::CULTIST,
+    &cunning::CUNNING,
+    &distilled_chaos::DISTILLED_CHAOS,
+    &blessing_of_the_forge::BLESSING_OF_THE_FORGE,
+    &entropic_brew::ENTROPIC_BREW,
+    &regeneration::REGENERATION,
+    &steroid::STEROID,
+    &speed::SPEED,
+    &duplication::DUPLICATION,
+    &colorless::COLORLESS,
+    &gamblers_brew::GAMBLERS_BREW,
+    &liquid_memories::LIQUID_MEMORIES,
+    &snecko_oil::SNECKO_OIL,
+    &fairy::FAIRY,
+    &smoke_bomb::SMOKE_BOMB,
 ];
 // Assert all Potions are included without duplicates
 const _: () = assert!(ALL_POTIONS.len() == PotionName::COUNT);
@@ -137,7 +137,7 @@ const fn count_pool(rarity: PotionRarity) -> usize {
 }
 
 const fn build_pool<const N: usize>(rarity: PotionRarity) -> [PotionName; N] {
-    let mut buf = [PotionName::EnergyPotion; N];
+    let mut buf = [PotionName::Energy; N];
     let mut idx_pool = 0;
     let mut idx_all = 0;
     while idx_all < ALL_POTIONS.len() {

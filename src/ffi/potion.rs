@@ -11,12 +11,12 @@ use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 
 mirror_enum!(PyPotionName from PotionName, "PotionName", skip_from_py_object, {
-    EnergyPotion, BlockPotion, StrengthPotion, DexterityPotion, FirePotion, ExplosivePotion,
-    WeakPotion, FearPotion, PoisonPotion, SwiftPotion, AttackPotion, SkillPotion, PowerPotion,
-    FruitJuice, AncientPotion, LiquidBronze, EssenceOfSteel, GhostInAJar, CultistPotion,
-    CunningPotion, DistilledChaos, BlessingOfTheForge, EntropicBrew, RegenerationPotion,
-    SteroidPotion, SpeedPotion, DuplicateNextCardPlayPotion, ColorlessPotion, GamblersBrew,
-    LiquidMemories, SneckoOil, FairyPotion, SmokeBomb,
+    Energy, Block, Strength, Dexterity, Fire, Explosive,
+    Weak, Fear, Poison, Swift, Attack, Skill, Power,
+    FruitJuice, Ancient, LiquidBronze, EssenceOfSteel, GhostInAJar, Cultist,
+    Cunning, DistilledChaos, BlessingOfTheForge, EntropicBrew, Regeneration,
+    Steroid, Speed, Duplication, Colorless, GamblersBrew,
+    LiquidMemories, SneckoOil, Fairy, SmokeBomb,
 });
 
 mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", skip_from_py_object, {

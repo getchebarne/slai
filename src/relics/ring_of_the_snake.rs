@@ -7,8 +7,8 @@ use crate::types::RelicTier;
 
 // See:
 //    - `process_effect_combat_start.rs`
-pub static SNAKE_RING: RelicTemplate = RelicTemplate {
-    name: RelicName::SnakeRing,
+pub static RING_OF_THE_SNAKE: RelicTemplate = RelicTemplate {
+    name: RelicName::RingOfTheSnake,
     tier: RelicTier::Starter,
     counter_init: 0,
     effects_combat_start: &[Effect {

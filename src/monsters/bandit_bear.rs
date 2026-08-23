@@ -53,7 +53,7 @@ const IDX_MOVE_BEAR_HUG: usize = 0;
 const IDX_MOVE_LUNGE: usize = 1;
 const IDX_MOVE_MAUL: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static BANDIT_BEAR: MonsterTemplate = MonsterTemplate {
     name: MonsterName::BanditBear,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (38, 42)), (7, (40, 44))],

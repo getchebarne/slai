@@ -6,7 +6,7 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_ENTROPIC_BREW: PotionTemplate = PotionTemplate {
+pub static ENTROPIC_BREW: PotionTemplate = PotionTemplate {
     name: PotionName::EntropicBrew,
     rarity: PotionRarity::Rare,
     combat_only: false,

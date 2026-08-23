@@ -39,9 +39,7 @@ impl From<CandidatePool> for PyCandidatePool {
             CandidatePool::PileExhaust => Self::PileExhaust(PyCandidatePoolPileExhaust),
             CandidatePool::EventRollCard => Self::EventRollCard(PyCandidatePoolEventRollCard),
             CandidatePool::EventRollRelic => Self::EventRollRelic(PyCandidatePoolEventRollRelic),
-            CandidatePool::EventRollPotion => {
-                Self::EventRollPotion(PyCandidatePoolEventRollPotion)
-            }
+            CandidatePool::EventRollPotion => Self::EventRollPotion(PyCandidatePoolEventRollPotion),
         }
     }
 }

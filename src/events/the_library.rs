@@ -4,8 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::DeltaSign;
 
 // Read: 20 unique rolled cards staged on the Reward context, keep one
@@ -38,16 +37,10 @@ const fn sleep(numerator: u8, denominator: u8) -> [Effect; 2] {
 const OPTION_SLEEP_BASE: [Effect; 2] = sleep(33, 100);
 const OPTION_SLEEP_A15: [Effect; 2] = sleep(20, 100);
 
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template("[Read] Choose 1 of 20 random cards.", OPTION_READ),
-    make_event_option_template("[Sleep] Heal 33% of your Max HP.", &OPTION_SLEEP_BASE),
-];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template("[Read] Choose 1 of 20 random cards.", OPTION_READ),
-    make_event_option_template("[Sleep] Heal 20% of your Max HP.", &OPTION_SLEEP_A15),
-];
+static OPTIONS_BASE: &[&[Effect]] = &[opt(OPTION_READ), opt(&OPTION_SLEEP_BASE)];
+static OPTIONS_A15: &[&[Effect]] = &[opt(OPTION_READ), opt(&OPTION_SLEEP_A15)];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

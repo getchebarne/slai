@@ -61,7 +61,7 @@ const IDX_MOVE_STAFF_BASH: usize = 0;
 const IDX_MOVE_HEAL: usize = 1;
 const IDX_MOVE_BUFF: usize = 2;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static HEALER: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Healer,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (48, 56)), (7, (50, 58))],

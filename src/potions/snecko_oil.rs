@@ -9,7 +9,7 @@ use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_SNECKO_OIL: PotionTemplate = PotionTemplate {
+pub static SNECKO_OIL: PotionTemplate = PotionTemplate {
     name: PotionName::SneckoOil,
     rarity: PotionRarity::Rare,
     combat_only: true,

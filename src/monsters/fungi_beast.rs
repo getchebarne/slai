@@ -18,7 +18,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];
 const IDX_MOVE_GROW: usize = 0;
 const IDX_MOVE_BITE: usize = 1;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static FUNGI_BEAST: MonsterTemplate = MonsterTemplate {
     name: MonsterName::FungiBeast,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (22, 28)), (7, (24, 28))],

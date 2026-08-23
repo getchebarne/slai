@@ -3,8 +3,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventOptionTemplate;
-use crate::events::make_event_option_template;
+use crate::events::opt;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -39,22 +38,10 @@ const OPTION_AGREE_A15: [Effect; 3] = agree(150);
 // Disagree
 const OPTION_DISAGREE: &[Effect] = &[EVENT_CONSUME_EFFECT];
 
-static OPTIONS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Agree] Gain 175 Gold. Become Cursed - Doubt.",
-        &OPTION_AGREE_BASE,
-    ),
-    make_event_option_template("[Disagree] Nothing happens.", OPTION_DISAGREE),
-];
-static OPTIONS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template(
-        "[Agree] Gain 150 Gold. Become Cursed - Doubt.",
-        &OPTION_AGREE_A15,
-    ),
-    make_event_option_template("[Disagree] Nothing happens.", OPTION_DISAGREE),
-];
+static OPTIONS_BASE: &[&[Effect]] = &[opt(&OPTION_AGREE_BASE), opt(OPTION_DISAGREE)];
+static OPTIONS_A15: &[&[Effect]] = &[opt(&OPTION_AGREE_A15), opt(OPTION_DISAGREE)];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
+pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

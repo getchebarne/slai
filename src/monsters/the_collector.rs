@@ -133,7 +133,7 @@ const IDX_MOVE_BUFF: usize = 2;
 const IDX_MOVE_MEGA_DEBUFF: usize = 3;
 const IDX_MOVE_REVIVE: usize = 4;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static THE_COLLECTOR: MonsterTemplate = MonsterTemplate {
     name: MonsterName::TheCollector,
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (282, 282)), (9, (300, 300))],

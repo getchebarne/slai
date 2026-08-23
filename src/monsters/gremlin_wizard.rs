@@ -16,7 +16,7 @@ static MOVES_ASC17: [Move; 2] = [MOVE_CHARGE, MOVE_ULTIMATE_BLAST_30];
 const IDX_MOVE_CHARGE: usize = 0;
 const IDX_MOVE_ULTIMATE_BLAST: usize = 1;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static GREMLIN_WIZARD: MonsterTemplate = MonsterTemplate {
     name: MonsterName::GremlinWizard,
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (21, 25)), (7, (22, 26))],

@@ -8,7 +8,7 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_BLESSING_OF_THE_FORGE: PotionTemplate = PotionTemplate {
+pub static BLESSING_OF_THE_FORGE: PotionTemplate = PotionTemplate {
     name: PotionName::BlessingOfTheForge,
     rarity: PotionRarity::Common,
     combat_only: true,

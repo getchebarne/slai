@@ -51,7 +51,7 @@ static MOVES_ASC18: [Move; 2] = [MOVE_BEAM_10, MOVE_BOLT_3];
 const IDX_MOVE_BEAM: usize = 0;
 const IDX_MOVE_BOLT: usize = 1;
 
-pub static TEMPLATE: MonsterTemplate = MonsterTemplate {
+pub static SENTRY: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Sentry,
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (38, 42)), (8, (39, 45))],

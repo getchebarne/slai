@@ -5,8 +5,8 @@ use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_FIRE: PotionTemplate = PotionTemplate {
-    name: PotionName::FirePotion,
+pub static FIRE: PotionTemplate = PotionTemplate {
+    name: PotionName::Fire,
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[Effect {
