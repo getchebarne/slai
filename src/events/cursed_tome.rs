@@ -54,7 +54,7 @@ const OPTION_STOP: [Effect; 2] = [hp_loss(3), EVENT_CONSUME_EFFECT];
 const fn options_for(
     take_label: &'static str,
     take: &'static [Effect],
-) -> [EventOptionTemplate; 7] {
+) -> [EventOptionTemplate<'static>; 7] {
     [
         make_event_option_template("[Read] Begin reading.", &OPTION_READ),
         make_event_option_template("[Continue] Lose 1 HP.", &OPTION_PAGE_1),
@@ -75,7 +75,7 @@ static OPTIONS_A15: &[EventOptionTemplate] = &options_for(
     &OPTION_TAKE_A15,
 );
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate] {
+pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

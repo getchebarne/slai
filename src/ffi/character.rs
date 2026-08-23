@@ -14,6 +14,8 @@ use super::modifier::snapshot_modifiers;
 )]
 #[derive(Debug, Clone)]
 pub struct PyCharacter {
+    // Arena index: a join key, never a feature
+    pub id: usize,
     pub name: String,
     pub health: u16,
     pub health_max: u16,
@@ -25,6 +27,7 @@ pub struct PyCharacter {
 pub(crate) fn snapshot_character(state: &GameState) -> PyCharacter {
     let character = &state.entities[state.id_character];
     PyCharacter {
+        id: state.id_character,
         name: character.character_name.to_string(),
         health: character.vitals.health,
         health_max: character.vitals.health_max,

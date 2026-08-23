@@ -1,7 +1,10 @@
 use crate::consts::SHOP_PURGE_COST_INCREMENT;
 use crate::effect::Amount;
+use crate::effect::CandidateFilter;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -9,9 +12,8 @@ use crate::types::Focus;
 use crate::utils::context_focus;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
-pub fn process_effect_shop_purge(id_target: Option<usize>, state: &mut GameState) {
-    // Charge gold and purge the picked Card
-    let id_card = id_target.expect("ShopPurge requires id_target");
+// Pay-then-pick: charge the purge cost, then halt on the deck pick
+pub fn process_effect_shop_purge(state: &mut GameState) {
     assert!(
         context_focus(state) == Focus::Shop,
         "ShopPurge outside the Shop context"
@@ -30,7 +32,11 @@ pub fn process_effect_shop_purge(id_target: Option<usize>, state: &mut GameState
     state.effect_buf.push(Effect {
         kind: EffectKind::CardPurge,
         id_source: None,
-        target: Target::Direct(Some(id_card)),
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Deck,
+            filter: CandidateFilter::Purgeable,
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
     });
     flush_effects_from_buf_to_queue_front(state);
 

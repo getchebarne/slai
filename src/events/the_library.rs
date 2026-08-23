@@ -47,7 +47,7 @@ static OPTIONS_A15: &[EventOptionTemplate] = &[
     make_event_option_template("[Sleep] Heal 20% of your Max HP.", &OPTION_SLEEP_A15),
 ];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate] {
+pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

@@ -45,7 +45,7 @@ pub fn get_silent_starter_deck(ascension: u8) -> Vec<Entity> {
     deck
 }
 
-fn silent_health(ascension: u8) -> (u16, u16) {
+pub fn silent_health(ascension: u8) -> (u16, u16) {
     let mut health_max: u16 = SILENT_HP_MAX_BASE;
     let mut health: u16 = health_max;
 

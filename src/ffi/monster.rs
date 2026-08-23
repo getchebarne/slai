@@ -115,6 +115,8 @@ pub struct PyIntent {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyMonster {
+    // Arena index: a join key, never a feature
+    pub id: usize,
     pub name: PyMonsterName,
     pub health: u16,
     pub health_max: u16,
@@ -199,6 +201,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
             };
 
             PyMonster {
+                id: id_monster,
                 name: monster.monster_name.into(),
                 health: monster.vitals.health,
                 health_max: monster.vitals.health_max,

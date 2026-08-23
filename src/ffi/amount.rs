@@ -42,3 +42,36 @@ impl From<Amount> for PyAmount {
         }
     }
 }
+
+// Health/MaxHealth deltas never carry Range; the narrower union keeps the stub truthful
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum PyAmountScalar {
+    Absolute(PyAmountAbsolute),
+    Relative(PyAmountRelative),
+}
+
+impl<'py> IntoPyObject<'py> for PyAmountScalar {
+    type Target = PyAny;
+    type Output = Bound<'py, PyAny>;
+    type Error = PyErr;
+    const OUTPUT_TYPE: PyStaticExpr = type_hint_union!(
+        <PyAmountAbsolute as PyTypeInfo>::TYPE_HINT,
+        <PyAmountRelative as PyTypeInfo>::TYPE_HINT
+    );
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        Ok(match self {
+            Self::Absolute(v) => Bound::new(py, v)?.into_any(),
+            Self::Relative(v) => Bound::new(py, v)?.into_any(),
+        })
+    }
+}
+
+impl From<Amount> for PyAmountScalar {
+    fn from(amount: Amount) -> Self {
+        match PyAmount::from(amount) {
+            PyAmount::Absolute(absolute) => Self::Absolute(absolute),
+            PyAmount::Relative(relative) => Self::Relative(relative),
+            PyAmount::Range(_) => unreachable!("health deltas never carry Amount::Range"),
+        }
+    }
+}

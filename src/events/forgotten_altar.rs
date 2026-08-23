@@ -22,7 +22,7 @@ const OPTION_IDOL: [Effect; 3] = [
         kind: EffectKind::RelicLose,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::EventRelicPicks,
+            candidate_pool: CandidatePool::EventRollRelic,
             filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
@@ -98,7 +98,7 @@ static OPTIONS_A15: &[EventOptionTemplate] = &[
     make_event_option_template("[Desecrate] Obtain Decay.", &OPTION_DECAY),
 ];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate] {
+pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {
@@ -113,10 +113,10 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     }
 }
 
-// The Idol trade targets the staked Relic; availability gates it on ownership
+// The Idol trade consumes the staked Relic; availability gates it on ownership
 pub fn spawn_event_forgotten_altar(state: &mut GameState) -> Vec<usize> {
     if let Some(id) = state.id_relics[RelicName::GoldenIdol as usize] {
-        state.event.id_relic_picks.push(id);
+        state.event.id_roll_relic.push(id);
     }
     bake_options(state, options(state.ascension))
 }

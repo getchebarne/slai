@@ -10,8 +10,8 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::bake_option_entities;
-use crate::events::make_entity_event_option;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::utils::card_is_non_basic_non_curse;
@@ -23,6 +23,64 @@ const RELIC_REWARD: Effect = Effect {
 };
 
 const OPTION_ATTACK: &[Effect] = &[EVENT_CONSUME_EFFECT];
+
+// The offer options consume the staked roll; only the gold ask varies per visit
+const OPTION_GIVE_POTION: [Effect; 3] = [
+    Effect {
+        kind: EffectKind::PotionDiscard,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::EventRollPotion,
+            filter: CandidateFilter::Any,
+            selection_kind: SelectionKind::Single,
+        },
+    },
+    RELIC_REWARD,
+    EVENT_CONSUME_EFFECT,
+];
+
+fn option_give_gold(ask: u16) -> [Effect; 3] {
+    [
+        Effect {
+            kind: EffectKind::GoldDelta {
+                sign: DeltaSign::Loss,
+                amount: Amount::Absolute(ask),
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+        RELIC_REWARD,
+        EVENT_CONSUME_EFFECT,
+    ]
+}
+
+const OPTION_GIVE_CARD: [Effect; 3] = [
+    Effect {
+        kind: EffectKind::CardPurge,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::EventRollCard,
+            filter: CandidateFilter::Any,
+            selection_kind: SelectionKind::Single,
+        },
+    },
+    RELIC_REWARD,
+    EVENT_CONSUME_EFFECT,
+];
+
+// Catalog rows, option-table order; the ask enumerates its reachable values —
+// 0 (unrolled, gated off but visible) and every rollable 50..=150
+pub fn catalog() -> Vec<Vec<Effect>> {
+    let mut rows = Vec::with_capacity(105);
+    rows.push(OPTION_GIVE_POTION.to_vec());
+    rows.push(option_give_gold(0).to_vec());
+    for ask in WE_MEET_AGAIN_GOLD_ASK_MIN..=WE_MEET_AGAIN_GOLD_ASK_MAX {
+        rows.push(option_give_gold(ask).to_vec());
+    }
+    rows.push(OPTION_GIVE_CARD.to_vec());
+    rows.push(OPTION_ATTACK.to_vec());
+    rows
+}
 
 // Spawn rolls the picks and the ask, then bakes them into the options;
 // availability re-validates the picks at selection (the offered potion can be
@@ -51,64 +109,26 @@ pub fn spawn_event_we_meet_again(state: &mut GameState) -> Vec<usize> {
             .random_range(WE_MEET_AGAIN_GOLD_ASK_MIN..=gold.min(WE_MEET_AGAIN_GOLD_ASK_MAX))
     });
 
-    // Unrolled picks bake Direct(None) / a zero ask; availability gates those options off
-    let option_give_potion = [
-        Effect {
-            kind: EffectKind::PotionDiscard,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::EventPotionPicks,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        RELIC_REWARD,
-        EVENT_CONSUME_EFFECT,
-    ];
-    let option_give_gold = [
-        Effect {
-            kind: EffectKind::GoldDelta {
-                sign: DeltaSign::Loss,
-                amount: Amount::Absolute(gold_ask.unwrap_or(0)),
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        },
-        RELIC_REWARD,
-        EVENT_CONSUME_EFFECT,
-    ];
-    let option_give_card = [
-        Effect {
-            kind: EffectKind::CardPurge,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::EventCardPicks,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Single,
-            },
-        },
-        RELIC_REWARD,
-        EVENT_CONSUME_EFFECT,
-    ];
-
+    // Unrolled offers leave their roll vec empty / a zero ask; availability gates them off
+    state.event.id_roll_card.extend(id_card);
+    state.event.id_roll_potion.extend(id_potion);
+    let effects_gold = option_give_gold(gold_ask.unwrap_or(0));
     let options = [
-        make_entity_event_option(
+        make_event_option_template(
             "[Give Potion] Lose the offered potion. Obtain a random relic.",
-            &option_give_potion,
+            &OPTION_GIVE_POTION,
         ),
-        make_entity_event_option(
+        make_event_option_template(
             "[Give Gold] Lose the asked gold. Obtain a random relic.",
-            &option_give_gold,
+            &effects_gold,
         ),
-        make_entity_event_option(
+        make_event_option_template(
             "[Give Card] Lose the offered card. Obtain a random relic.",
-            &option_give_card,
+            &OPTION_GIVE_CARD,
         ),
-        make_entity_event_option("[Attack] Nothing happens.", OPTION_ATTACK),
+        make_event_option_template("[Attack] Nothing happens.", OPTION_ATTACK),
     ];
-    state.event.id_card_picks.extend(id_card);
-    state.event.id_potion_picks.extend(id_potion);
-    bake_option_entities(state, &options)
+    bake_options(state, &options)
 }
 
 const IDX_OPTION_GIVE_GOLD: usize = 1;
@@ -128,16 +148,16 @@ fn baked_gold_ask(state: &GameState) -> u16 {
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     let gold = state.entities[state.id_character].character_gold;
     match idx {
-        // Staged picks are validated at use: the pick must still be owned
+        // Staked rolls are validated at use: the pick must still be owned
         0 => state
             .event
-            .id_potion_picks
+            .id_roll_potion
             .first()
             .is_some_and(|&id| state.id_potions.contains(&Some(id))),
         1 => baked_gold_ask(state) > 0 && gold >= WE_MEET_AGAIN_GOLD_ASK_MIN,
         2 => state
             .event
-            .id_card_picks
+            .id_roll_card
             .first()
             .is_some_and(|&id| state.id_card_deck.contains(&id)),
         3 => true,

@@ -55,7 +55,7 @@ static OPTIONS_A15: &[EventOptionTemplate] = &[
     make_event_option_template("[Leave It] Lose 35-75 Gold.", &OPTION_LEAVE_A15),
 ];
 
-pub fn options(ascension: u8) -> &'static [EventOptionTemplate] {
+pub fn options(ascension: u8) -> &'static [EventOptionTemplate<'static>] {
     if ascension < 15 {
         OPTIONS_BASE
     } else {

@@ -118,10 +118,11 @@ pub struct PyEvent {
     pub options: Vec<Vec<PyEffect>>,
     pub consumed: bool,
 
-    // Entities this visit staked; the options' pick pools resolve against them
-    pub card_picks: Vec<PyCard>,
-    pub relic_picks: Vec<PyRelic>,
-    pub potion_picks: Vec<PyPotion>,
+    // Entities the spawn rolled/staked; option targets resolve against these via
+    // the CandidatePoolEventRoll* pools
+    pub roll_cards: Vec<PyCard>,
+    pub roll_relics: Vec<PyRelic>,
+    pub roll_potions: Vec<PyPotion>,
 }
 
 #[pyclass(
@@ -207,12 +208,12 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
         relics: reward
             .id_relics
             .iter()
-            .map(|&id| snapshot_relic(&state.entities[id]))
+            .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
         potions: reward
             .id_potions
             .iter()
-            .map(|&id| snapshot_potion(&state.entities[id]))
+            .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
         gold: reward.gold,
         relics_exclusive: reward.relics_exclusive,
@@ -231,13 +232,13 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
         relics: shop
             .relics
             .iter()
-            .map(|&(id, _)| snapshot_relic(&state.entities[id]))
+            .map(|&(id, _)| snapshot_relic(id, &state.entities[id]))
             .collect(),
         relic_prices: shop.relics.iter().map(|&(_, price)| price).collect(),
         potions: shop
             .potions
             .iter()
-            .map(|&(id, _)| snapshot_potion(&state.entities[id]))
+            .map(|&(id, _)| snapshot_potion(id, &state.entities[id]))
             .collect(),
         potion_prices: shop.potions.iter().map(|&(_, price)| price).collect(),
         purge_cost: shop.purge_cost,
@@ -265,20 +266,20 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
             })
             .collect(),
         consumed: event.consumed,
-        card_picks: event
-            .id_card_picks
+        roll_cards: event
+            .id_roll_card
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        relic_picks: event
-            .id_relic_picks
+        roll_relics: event
+            .id_roll_relic
             .iter()
-            .map(|&id| snapshot_relic(&state.entities[id]))
+            .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
-        potion_picks: event
-            .id_potion_picks
+        roll_potions: event
+            .id_roll_potion
             .iter()
-            .map(|&id| snapshot_potion(&state.entities[id]))
+            .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
     }
 }

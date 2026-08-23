@@ -115,36 +115,25 @@ _SHOP_POTION_POS = "position in state.shop.potions"
 # Action spec registry
 ACTION_SPEC_REGISTRY = ActionSpecRegistry(
     [
-        create_action_spec(ActionType.CardBottle, ArgSpec("idx_card", _DECK_POS)),
-        create_action_spec(ActionType.CardDiscover, ArgSpec("idx", _DISCOVER_POS)),
         create_action_spec(
             ActionType.CardPlay,
             ArgSpec("idx_card", _HAND_POS),
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.ChestOpen),
-        # Deck-pick family (resolves a deck-pick halt)
-        create_action_spec(ActionType.CardDuplicate, ArgSpec("idx", _DECK_POS)),
-        create_action_spec(ActionType.CardPurge, ArgSpec("idx", _DECK_POS)),
-        create_action_spec(ActionType.CardTransform, ArgSpec("idx", _DECK_POS)),
-        create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
+        # Pending-halt family: one resolver, one skip
+        create_action_spec(
+            ActionType.EffectPendingResolve,
+            ArgSpec(
+                "idx",
+                "position in the collection named by state.pending.target.candidate_pool "
+                "(hand, deck, discover, pile, or event roll list)",
+            ),
+        ),
+        create_action_spec(ActionType.PickSkip),
         create_action_spec(
             ActionType.EventOptionSelect, ArgSpec("idx", "position in state.event.options")
         ),
-        create_action_spec(
-            ActionType.EventPick,
-            ArgSpec("idx", "position in the event pick list named by pending.target.candidate_pool"),
-        ),
-        # Hand-pick family (resolves a hand-pick halt)
-        create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardExhaust, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(
-            ActionType.CardMoveToHand, ArgSpec("idx", "position in state.combat.pile_draw")
-        ),
-        create_action_spec(ActionType.PickSkip),
-        create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
         create_action_spec(
             ActionType.PotionUse,
@@ -154,6 +143,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.Rest),
         create_action_spec(ActionType.RestDig),
         create_action_spec(ActionType.RestLift),
+        create_action_spec(ActionType.RestSmith),
         create_action_spec(ActionType.RestToke),
         # Reward pickup family
         create_action_spec(
@@ -175,7 +165,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.ShopBuyCard, ArgSpec("idx", _SHOP_CARD_POS)),
         create_action_spec(ActionType.ShopBuyRelic, ArgSpec("idx", _SHOP_RELIC_POS)),
         create_action_spec(ActionType.ShopBuyPotion, ArgSpec("idx", _SHOP_POTION_POS)),
-        create_action_spec(ActionType.ShopPurge, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.ShopPurge),
         create_action_spec(ActionType.TurnEnd),
     ]
 )
@@ -198,17 +188,17 @@ Monster = _rs.Monster
 Relic = _rs.Relic
 Potion = _rs.Potion
 
-# Plain struct view
+# Plain struct view: how a target gets chosen (pool + filter + selection)
 Target = _rs.Target
 
 # Content catalog: immutable template views over the static definitions plus
 # state-free enumeration functions; live snapshots join back via (name, upgraded).
-# PotionTemplate aliases Potion — live potions never diverge from their definition
+# PotionTemplate split from Potion when live entities gained the `id` join key
 CardTemplate = _rs.CardTemplate
 RelicTemplate = _rs.RelicTemplate
 MonsterTemplate = _rs.MonsterTemplate
 EventOptionTemplate = _rs.EventOptionTemplate
-PotionTemplate = _rs.Potion
+PotionTemplate = _rs.PotionTemplate
 get_card_templates = _rs.get_card_templates
 get_relic_templates = _rs.get_relic_templates
 get_potion_templates = _rs.get_potion_templates
@@ -236,7 +226,6 @@ EffectSneakyStrikeProc = _rs.EffectSneakyStrikeProc
 EffectBlockGain = _rs.EffectBlockGain
 EffectModifierGain = _rs.EffectModifierGain
 EffectModifierMultiply = _rs.EffectModifierMultiply
-EffectModifierRemove = _rs.EffectModifierRemove
 EffectEnergyDelta = _rs.EffectEnergyDelta
 EffectCardAdd = _rs.EffectCardAdd
 EffectCardAddRandom = _rs.EffectCardAddRandom
@@ -303,7 +292,6 @@ Effect = (
     | EffectBlockGain
     | EffectModifierGain
     | EffectModifierMultiply
-    | EffectModifierRemove
     | EffectEnergyDelta
     | EffectCardAdd
     | EffectCardAddRandom
@@ -361,9 +349,9 @@ CandidatePoolDeck = _rs.CandidatePoolDeck
 CandidatePoolPileDraw = _rs.CandidatePoolPileDraw
 CandidatePoolPileDiscard = _rs.CandidatePoolPileDiscard
 CandidatePoolPileExhaust = _rs.CandidatePoolPileExhaust
-CandidatePoolEventCardPicks = _rs.CandidatePoolEventCardPicks
-CandidatePoolEventRelicPicks = _rs.CandidatePoolEventRelicPicks
-CandidatePoolEventPotionPicks = _rs.CandidatePoolEventPotionPicks
+CandidatePoolEventRollCard = _rs.CandidatePoolEventRollCard
+CandidatePoolEventRollRelic = _rs.CandidatePoolEventRollRelic
+CandidatePoolEventRollPotion = _rs.CandidatePoolEventRollPotion
 CandidatePool = (
     CandidatePoolHand
     | CandidatePoolCharacter
@@ -374,9 +362,9 @@ CandidatePool = (
     | CandidatePoolPileDraw
     | CandidatePoolPileDiscard
     | CandidatePoolPileExhaust
-    | CandidatePoolEventCardPicks
-    | CandidatePoolEventRelicPicks
-    | CandidatePoolEventPotionPicks
+    | CandidatePoolEventRollCard
+    | CandidatePoolEventRollRelic
+    | CandidatePoolEventRollPotion
 )
 SelectionKindAll = _rs.SelectionKindAll
 SelectionKindSingle = _rs.SelectionKindSingle
@@ -523,9 +511,9 @@ __all__ = [
     "CandidatePoolPileDraw",
     "CandidatePoolPileDiscard",
     "CandidatePoolPileExhaust",
-    "CandidatePoolEventCardPicks",
-    "CandidatePoolEventRelicPicks",
-    "CandidatePoolEventPotionPicks",
+    "CandidatePoolEventRollCard",
+    "CandidatePoolEventRollRelic",
+    "CandidatePoolEventRollPotion",
     "SelectionKind",
     "SelectionKindAll",
     "SelectionKindSingle",
@@ -557,7 +545,6 @@ __all__ = [
     "EffectBlockGain",
     "EffectModifierGain",
     "EffectModifierMultiply",
-    "EffectModifierRemove",
     "EffectEnergyDelta",
     "EffectCardAdd",
     "EffectCardAddRandom",

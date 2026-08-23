@@ -4,6 +4,9 @@ use strum::IntoEnumIterator;
 
 use crate::cards::CardTemplate;
 use crate::cards::card_template;
+use crate::effect::Effect;
+use crate::events::catalog_neow;
+use crate::events::catalog_we_meet_again;
 use crate::events::options_catalog;
 use crate::monsters::monster_template;
 use crate::monsters::pick_tier;
@@ -15,6 +18,7 @@ use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::effects_require_target;
+use crate::utils::entity_requires_target;
 
 use super::card::PyCardColor;
 use super::card::PyCardCostKind;
@@ -27,8 +31,8 @@ use super::effect::snapshot_effect;
 use super::event::PyEventName;
 use super::monster::PyMonsterKind;
 use super::monster::PyMonsterName;
-use super::potion::PyPotion;
-use super::potion::snapshot_potion;
+use super::potion::PyPotionName;
+use super::potion::PyPotionRarity;
 use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
 
@@ -78,6 +82,24 @@ pub struct PyRelicTemplate {
     pub name: PyRelicName,
     pub tier: PyRelicTier,
     pub effects_combat_start: Vec<PyEffect>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "PotionTemplate",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyPotionTemplate {
+    pub name: PyPotionName,
+    pub rarity: PyPotionRarity,
+    pub requires_target: bool,
+    pub combat_only: bool,
+    pub effects: Vec<PyEffect>,
 }
 
 #[pyclass(
@@ -166,9 +188,18 @@ pub fn get_relic_templates() -> Vec<PyRelicTemplate> {
 
 /// Every potion in enum declaration order. State-free and deterministic.
 #[pyfunction]
-pub fn get_potion_templates() -> Vec<PyPotion> {
+pub fn get_potion_templates() -> Vec<PyPotionTemplate> {
     PotionName::iter()
-        .map(|name| snapshot_potion(&get_potion(name)))
+        .map(|name| {
+            let entity = get_potion(name);
+            PyPotionTemplate {
+                name: entity.potion_name.into(),
+                rarity: entity.potion_rarity.into(),
+                requires_target: entity_requires_target(&entity),
+                combat_only: entity.potion_combat_only,
+                effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
+            }
+        })
         .collect()
 }
 
@@ -190,19 +221,36 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
 }
 
 /// Every event option variant reachable at the passed ascension, in EventName
-/// declaration order, option-table order within an event. We Meet Again is
-/// excluded (its gold ask is rolled per visit; declarative bounds are the
-/// exported WE_MEET_AGAIN_GOLD_ASK_MIN/MAX). State-free and deterministic.
+/// declaration order, option-table order within an event. Spawn-composed menus
+/// enumerate by evaluation from the spawn's own builders: We Meet Again's ask
+/// covers 0 (unrolled) plus 50..=150, Neow's product covers all 37 variants.
+/// State-free and deterministic.
 #[pyfunction]
 pub fn get_event_option_templates(ascension: u8) -> Vec<PyEventOptionTemplate> {
+    let push_computed = |out: &mut Vec<PyEventOptionTemplate>,
+                             name: EventName,
+                             rows: Vec<Vec<Effect>>| {
+        for effects in rows {
+            out.push(PyEventOptionTemplate {
+                event: name.into(),
+                effects: effects.iter().map(snapshot_effect).collect(),
+            });
+        }
+    };
     let mut out = Vec::new();
     for name in EventName::iter() {
-        for table in options_catalog(name, ascension) {
-            for option in table {
-                out.push(PyEventOptionTemplate {
-                    event: name.into(),
-                    effects: option.effects.iter().map(snapshot_effect).collect(),
-                });
+        match name {
+            EventName::Neow => push_computed(&mut out, name, catalog_neow(ascension)),
+            EventName::WeMeetAgain => push_computed(&mut out, name, catalog_we_meet_again()),
+            _ => {
+                for table in options_catalog(name, ascension) {
+                    for option in table {
+                        out.push(PyEventOptionTemplate {
+                            event: name.into(),
+                            effects: option.effects.iter().map(snapshot_effect).collect(),
+                        });
+                    }
+                }
             }
         }
     }

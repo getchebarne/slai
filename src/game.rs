@@ -253,11 +253,9 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             found_nothing: false,
             found_relic: false,
             id_event_options: Vec::new(),
-
-            // Event-rolled Entity IDs — meaning depends on the `EventKind`
-            id_card_picks: Vec::new(),
-            id_relic_picks: Vec::new(),
-            id_potion_picks: Vec::new(),
+            id_roll_card: Vec::new(),
+            id_roll_relic: Vec::new(),
+            id_roll_potion: Vec::new(),
         },
         shop: Shop {
             active: false,

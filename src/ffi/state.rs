@@ -77,11 +77,11 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .map(|&id| snapshot_card(state, id))
             .collect(),
         relics: iter_owned_relics(&state.id_relics)
-            .map(|(_name, id)| snapshot_relic(&state.entities[id]))
+            .map(|(_name, id)| snapshot_relic(id, &state.entities[id]))
             .collect(),
         potions: state.id_potions[..state.potion_slots_max as usize]
             .iter()
-            .map(|slot| slot.map(|id| snapshot_potion(&state.entities[id])))
+            .map(|slot| slot.map(|id| snapshot_potion(id, &state.entities[id])))
             .collect(),
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),

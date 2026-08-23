@@ -314,11 +314,11 @@ pub enum CandidatePool {
     PileDiscard,
     PileExhaust,
 
-    // Entities the event's spawn staked; `Single` where one was rolled,
-    // `Input` to let the player choose among several
-    EventCardPicks,
-    EventRelicPicks,
-    EventPotionPicks,
+    // Entities the event's spawn rolled/staked; Single where one was staked,
+    // Input to let the player choose among several
+    EventRollCard,
+    EventRollRelic,
+    EventRollPotion,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

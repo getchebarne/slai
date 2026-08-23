@@ -57,12 +57,12 @@ const OPTION_ACCEPT: &[Effect] = &[
     EVENT_CONSUME_EFFECT,
 ];
 
-const OPTION_VIAL: &[Effect] = &[
+const OPTION_VIAL: [Effect; 4] = [
     Effect {
         kind: EffectKind::RelicLose,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::EventRelicPicks,
+            candidate_pool: CandidatePool::EventRollRelic,
             filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Single,
         },
@@ -79,7 +79,7 @@ pub static OPTIONS: &[EventOptionTemplate] = &[
     ),
     make_event_option_template(
         "[Offer Blood Vial] Replace your Strikes with 5 Bites.",
-        OPTION_VIAL,
+        &OPTION_VIAL,
     ),
     OPTION_LEAVE,
 ];
@@ -91,10 +91,10 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     }
 }
 
-// The Vial option targets the staked Relic; availability gates it on ownership
+// The Vial option consumes the staked Relic; availability gates it on ownership
 pub fn spawn_event_vampires(state: &mut GameState) -> Vec<usize> {
     if let Some(id) = state.id_relics[RelicName::BloodVial as usize] {
-        state.event.id_relic_picks.push(id);
+        state.event.id_roll_relic.push(id);
     }
     bake_options(state, OPTIONS)
 }

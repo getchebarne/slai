@@ -20,9 +20,9 @@ flat_variants!(PyCandidatePool {
     PileDraw => PyCandidatePoolPileDraw as "CandidatePoolPileDraw",
     PileDiscard => PyCandidatePoolPileDiscard as "CandidatePoolPileDiscard",
     PileExhaust => PyCandidatePoolPileExhaust as "CandidatePoolPileExhaust",
-    EventCardPicks => PyCandidatePoolEventCardPicks as "CandidatePoolEventCardPicks",
-    EventRelicPicks => PyCandidatePoolEventRelicPicks as "CandidatePoolEventRelicPicks",
-    EventPotionPicks => PyCandidatePoolEventPotionPicks as "CandidatePoolEventPotionPicks",
+    EventRollCard => PyCandidatePoolEventRollCard as "CandidatePoolEventRollCard",
+    EventRollRelic => PyCandidatePoolEventRollRelic as "CandidatePoolEventRollRelic",
+    EventRollPotion => PyCandidatePoolEventRollPotion as "CandidatePoolEventRollPotion",
 });
 
 impl From<CandidatePool> for PyCandidatePool {
@@ -37,10 +37,10 @@ impl From<CandidatePool> for PyCandidatePool {
             CandidatePool::PileDraw => Self::PileDraw(PyCandidatePoolPileDraw),
             CandidatePool::PileDiscard => Self::PileDiscard(PyCandidatePoolPileDiscard),
             CandidatePool::PileExhaust => Self::PileExhaust(PyCandidatePoolPileExhaust),
-            CandidatePool::EventCardPicks => Self::EventCardPicks(PyCandidatePoolEventCardPicks),
-            CandidatePool::EventRelicPicks => Self::EventRelicPicks(PyCandidatePoolEventRelicPicks),
-            CandidatePool::EventPotionPicks => {
-                Self::EventPotionPicks(PyCandidatePoolEventPotionPicks)
+            CandidatePool::EventRollCard => Self::EventRollCard(PyCandidatePoolEventRollCard),
+            CandidatePool::EventRollRelic => Self::EventRollRelic(PyCandidatePoolEventRollRelic),
+            CandidatePool::EventRollPotion => {
+                Self::EventRollPotion(PyCandidatePoolEventRollPotion)
             }
         }
     }

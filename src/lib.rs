@@ -163,6 +163,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyPotionName;
     #[pymodule_export]
+    use super::ffi::PyPotionTemplate;
+    #[pymodule_export]
     use super::ffi::PyPotionRarity;
     #[pymodule_export]
     use super::ffi::PyRelicName;
@@ -184,11 +186,11 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyCandidatePoolDiscover;
     #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventCardPicks;
+    use super::ffi::PyCandidatePoolEventRollCard;
     #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventPotionPicks;
+    use super::ffi::PyCandidatePoolEventRollPotion;
     #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventRelicPicks;
+    use super::ffi::PyCandidatePoolEventRollRelic;
     #[pymodule_export]
     use super::ffi::PyCandidatePoolHand;
     #[pymodule_export]
@@ -311,8 +313,6 @@ mod slai {
     use super::ffi::PyEffectModifierGain;
     #[pymodule_export]
     use super::ffi::PyEffectModifierMultiply;
-    #[pymodule_export]
-    use super::ffi::PyEffectModifierRemove;
     #[pymodule_export]
     use super::ffi::PyEffectMonsterSpawn;
     #[pymodule_export]

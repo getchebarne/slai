@@ -49,6 +49,9 @@ mirror_enum!(PyRelicTier from RelicTier, "RelicTier", skip_from_py_object, {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyRelic {
+    // Arena index: a join key across collections (a staked roll and the owned
+    // relic share one id), never a feature
+    pub id: usize,
     pub name: PyRelicName,
     pub tier: PyRelicTier,
     pub counter: i16,
@@ -56,8 +59,9 @@ pub struct PyRelic {
     pub effects_combat_start: Vec<PyEffect>,
 }
 
-pub(crate) fn snapshot_relic(entity: &Entity) -> PyRelic {
+pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
     PyRelic {
+        id,
         name: entity.relic_name.into(),
         tier: entity.relic_tier.into(),
         counter: entity.relic_counter,

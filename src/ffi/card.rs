@@ -111,6 +111,9 @@ mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyCard {
+    // Arena index: a join key across collections, never a feature. Combat piles
+    // hold fresh copies of deck Cards, so a hand id never equals its deck source
+    pub id: usize,
     pub name: PyCardName,
 
     // Cost-related fields
@@ -368,6 +371,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current);
 
     let py_card = PyCard {
+        id: id_card,
         name: card.card_name.into(),
         cost,
         cost_base: card.card_cost,

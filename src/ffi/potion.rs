@@ -34,6 +34,9 @@ mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", skip_from_py_obje
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyPotion {
+    // Arena index: a join key across collections (a rolled potion and the belt
+    // slot holding it share one id), never a feature
+    pub id: usize,
     pub name: PyPotionName,
     pub rarity: PyPotionRarity,
     pub requires_target: bool,
@@ -41,8 +44,9 @@ pub struct PyPotion {
     pub effects: Vec<PyEffect>,
 }
 
-pub(crate) fn snapshot_potion(entity: &Entity) -> PyPotion {
+pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
     PyPotion {
+        id,
         name: entity.potion_name.into(),
         rarity: entity.potion_rarity.into(),
         requires_target: entity_requires_target(entity),

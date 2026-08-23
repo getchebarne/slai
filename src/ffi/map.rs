@@ -23,6 +23,8 @@ mirror_enum!(PyRoomKind from RoomKind, "RoomKind", from_py_object, {
 )]
 #[derive(Debug, Clone)]
 pub struct PyRoom {
+    // Arena index: a join key, never a feature
+    pub id: usize,
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
 }
@@ -70,6 +72,7 @@ pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
                     cell.map(|id_room| {
                         let room = &state.entities[id_room];
                         PyRoom {
+                            id: id_room,
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.room_edges).collect(),
                         }

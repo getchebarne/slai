@@ -299,19 +299,17 @@ fn fill_buf_candidates(
             effect_candidate_buf.extend_from_slice(&combat.id_card_discover)
         }
         CandidatePool::Deck => effect_candidate_buf.extend_from_slice(id_card_deck),
-
-        // Staged picks: a plain indexed collection, so no EventKind knowledge here
-        CandidatePool::EventCardPicks => {
-            assert!(event.active, "EventCardPicks pool outside an event");
-            effect_candidate_buf.extend_from_slice(&event.id_card_picks)
+        CandidatePool::EventRollCard => {
+            assert!(event.active, "EventRollCard pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_roll_card)
         }
-        CandidatePool::EventRelicPicks => {
-            assert!(event.active, "EventRelicPicks pool outside an event");
-            effect_candidate_buf.extend_from_slice(&event.id_relic_picks)
+        CandidatePool::EventRollRelic => {
+            assert!(event.active, "EventRollRelic pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_roll_relic)
         }
-        CandidatePool::EventPotionPicks => {
-            assert!(event.active, "EventPotionPicks pool outside an event");
-            effect_candidate_buf.extend_from_slice(&event.id_potion_picks)
+        CandidatePool::EventRollPotion => {
+            assert!(event.active, "EventRollPotion pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_roll_potion)
         }
     }
 }
@@ -626,7 +624,7 @@ fn dispatch_by_kind(
         EffectKind::PotionDiscard => process_effect_potion_discard(id_target, state),
         EffectKind::ShopBuild => process_effect_shop_build(state),
         EffectKind::ShopBuy { slot } => process_effect_shop_buy(id_target, state, slot),
-        EffectKind::ShopPurge => process_effect_shop_purge(id_target, state),
+        EffectKind::ShopPurge => process_effect_shop_purge(state),
         EffectKind::PotionUse => process_effect_potion_use(id_target, state),
         EffectKind::PotionAddRandom { limited } => process_effect_potion_add_random(state, limited),
         EffectKind::PotionAdopt => process_effect_potion_adopt(id_target, state),

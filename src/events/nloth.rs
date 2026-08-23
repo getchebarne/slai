@@ -20,7 +20,7 @@ const OPTION_TRADE: &[Effect] = &[
         kind: EffectKind::RelicLose,
         id_source: None,
         target: Target::Resolve {
-            candidate_pool: CandidatePool::EventRelicPicks,
+            candidate_pool: CandidatePool::EventRollRelic,
             filter: CandidateFilter::Any,
             selection_kind: SelectionKind::Input { count: 1 },
         },
@@ -52,7 +52,7 @@ pub fn spawn_event_nloth(state: &mut GameState) -> Vec<usize> {
     if jdx >= idx {
         jdx += 1;
     }
-    state.event.id_relic_picks.push(owned[idx].1);
-    state.event.id_relic_picks.push(owned[jdx].1);
+    state.event.id_roll_relic.push(owned[idx].1);
+    state.event.id_roll_relic.push(owned[jdx].1);
     bake_options(state, OPTIONS)
 }

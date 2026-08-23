@@ -137,7 +137,7 @@ pub fn options(
     ascension: u8,
     adjust_upgrades_one: bool,
     cleanup_removes: bool,
-) -> &'static [EventOptionTemplate] {
+) -> &'static [EventOptionTemplate<'static>] {
     match (ascension < 15, adjust_upgrades_one, cleanup_removes) {
         (true, true, true) => &[
             OPT_ADJ_ONE_BASE,
