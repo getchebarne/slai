@@ -19,7 +19,7 @@ pub fn process_effect_monster_split(
     let Combat { id_monsters, .. } = &mut state.combat;
     let id_source = id_source.expect("MonsterSplit requires id_source");
 
-    // Check that the split monster is a slime
+    // Check that the split Monster is a slime
     assert!(
         matches!(
             state.entities[id_source].monster_name,
@@ -37,7 +37,7 @@ pub fn process_effect_monster_split(
     // Push it
     let id_monster = push_entity(&mut state.entities, monster);
 
-    // Place it in the first empty monster slot
+    // Place it in the first empty Monster slot
     let idx = id_monsters
         .iter()
         .position(|slot| slot.is_none())

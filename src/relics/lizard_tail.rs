@@ -2,7 +2,7 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// The first lethal blow leaves the character at half max HP instead
+// The first lethal blow leaves the Character at half max HP instead
 // See:
 //    - `process_effect_death.rs`
 pub static LIZARD_TAIL: RelicTemplate = RelicTemplate {

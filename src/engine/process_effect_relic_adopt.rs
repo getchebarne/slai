@@ -302,7 +302,7 @@ fn upgrade_random_cards(state: &mut GameState, count: usize, kind: Option<CardKi
     }
 }
 
-// Shop relics stage their roll as a Reward frame over the stock
+// Shop Relics stage their roll as a Reward frame over the stock
 fn queue_reward_roll(state: &mut GameState, roll: EffectKind) {
     state.effect_queue.push_front(Effect {
         kind: roll,

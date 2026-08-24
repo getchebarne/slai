@@ -14,7 +14,7 @@ use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use rand::Rng;
 
-// Drain: Weak on the character, Strength on self
+// Drain: Weak on the Character, Strength on self
 static MOVE_DRAIN: Move = make_move(
     "Drain",
     &[

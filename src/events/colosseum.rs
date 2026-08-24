@@ -3,14 +3,17 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicPick;
 use crate::effect::Target;
-use crate::events::EVENT_ADVANCE_EFFECT;
-use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EFFECT_EVENT_ADVANCE;
+use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventLoot;
-use crate::events::opt;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::MonsterName;
 use crate::types::RelicTier;
 
-const fn spawn(name: MonsterName) -> Effect {
+const fn monster_spawn(name: MonsterName) -> Effect {
     Effect {
         kind: EffectKind::MonsterSpawn {
             name,
@@ -29,8 +32,8 @@ const OPTION_FIGHT: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    spawn(MonsterName::SlaverBlue),
-    spawn(MonsterName::SlaverRed),
+    monster_spawn(MonsterName::SlaverBlue),
+    monster_spawn(MonsterName::SlaverRed),
     Effect {
         kind: EffectKind::CombatStart,
         id_source: None,
@@ -38,11 +41,11 @@ const OPTION_FIGHT: &[Effect] = &[
     },
 ];
 
-// Second bout: an elite pair with a rare+uncommon relic purse and 100 gold
+// Second bout: an elite pair with a rare+uncommon Relic purse and 100 gold
 const OPTION_FIGHT_NOBS: &[Effect] = &[
-    EVENT_ADVANCE_EFFECT,
-    spawn(MonsterName::Taskmaster),
-    spawn(MonsterName::GremlinNob),
+    EFFECT_EVENT_ADVANCE,
+    monster_spawn(MonsterName::Taskmaster),
+    monster_spawn(MonsterName::GremlinNob),
     Effect {
         kind: EffectKind::CombatStart,
         id_source: None,
@@ -59,16 +62,25 @@ pub const FIGHT_LOOT_NOBS: EventLoot = EventLoot {
     ],
 };
 
-pub static OPTIONS: &[&[Effect]] = &[
-    opt(OPTION_FIGHT),
-    opt(OPTION_FIGHT_NOBS),
-    opt(&[EVENT_CONSUME_EFFECT]),
+pub static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_FIGHT),
+    make_event_option_template(OPTION_FIGHT_NOBS),
+    make_event_option_template(&[EFFECT_EVENT_CONSUME]),
 ];
 
 // Stage 0 offers only the first bout; stage 1 the Nobs or the exit
-pub fn option_available(stage: u8, idx: usize) -> bool {
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    let stage = state.event.stage;
     match stage {
         0 => idx == 0,
         _ => idx != 0,
     }
+}
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
 }

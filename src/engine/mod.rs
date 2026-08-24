@@ -229,6 +229,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::is_multi_pick;
+use crate::effect::pool_is_cards;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
@@ -338,10 +340,8 @@ fn resolve_selection_kind(
         }
         SelectionKind::Input { count } => (count as usize) >= effect_candidate_buf.len(),
         SelectionKind::InputUpTo { count } => {
-            if count == 0 {
-                effect_candidate_buf.clear();
-            }
-            count == 0 || effect_candidate_buf.is_empty()
+            assert!(count > 0, "InputUpTo requires a positive count");
+            effect_candidate_buf.is_empty()
         }
     }
 }
@@ -389,6 +389,11 @@ fn resolve_or_halt(
     filter: CandidateFilter,
     selection_kind: SelectionKind,
 ) -> bool {
+    assert!(
+        !is_multi_pick(selection_kind) || pool_is_cards(candidate_pool),
+        "multi-pick halt over a non-card pool: {candidate_pool:?}"
+    );
+
     // Stage 1: the pool enumerates
     state.effect_candidate_buf.clear();
     fill_buf_candidates(
@@ -412,7 +417,7 @@ fn resolve_or_halt(
         .effect_candidate_buf
         .retain(|&id| candidate_matches(filter, id, &entities[id], id_source, id_monster_picked));
 
-    // NotSource: the last monster standing falls back to targeting itself
+    // NotSource: the last Monster standing falls back to targeting itself
     if filter == CandidateFilter::NotSource
         && state.effect_candidate_buf.is_empty()
         && let Some(id_source) = id_source
@@ -578,7 +583,7 @@ fn dispatch_by_kind(
         EffectKind::PoisonTick => process_effect_poison_tick(id_target, state),
         EffectKind::ModifierSetNotNew => process_effect_modifier_set_not_new(state),
         EffectKind::Death => {
-            // Character can die outside Combat; empty monster slots make iter a no-op
+            // Character can die outside Combat; empty Monster slots make iter a no-op
             process_effect_death(id_target, state)
         }
         EffectKind::CombatStart => process_effect_combat_start(state),
@@ -685,14 +690,18 @@ pub fn process_effect_queue(state: &mut GameState) {
 }
 
 // Cross-source witness: the active contexts must agree with each other and
-// with world facts. Every active context is checked against the room directly
+// with world facts. Every active context is checked against the Room directly
 fn ensure_context_validity(state: &GameState) {
+    assert!(
+        state.effect_pending.is_some() || state.effect_pending_picks.is_empty(),
+        "staged picks outlived their halt"
+    );
     if state.game_over {
         return;
     }
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities);
 
-    // At most one room context owns the visit
+    // At most one Room context owns the visit
     let room_contexts_active = [
         state.shop.active,
         state.chest.active,
@@ -708,7 +717,7 @@ fn ensure_context_validity(state: &GameState) {
     );
 
     // Combat and Reward never coexist, and combat never runs inside a shop,
-    // chest, or rest site — only over an event (its fight) or the bare room
+    // chest, or rest site — only over an event (its fight) or the bare Room
     assert!(
         !(state.combat.active && state.reward.active),
         "Combat and Reward both active"
@@ -733,7 +742,7 @@ fn ensure_context_validity(state: &GameState) {
         );
     }
 
-    // "?" rooms keep RoomKind::Unknown on the map after resolving
+    // "?" Rooms keep RoomKind::Unknown on the map after resolving
     if state.rest_site.active {
         assert!(
             room_kind == Some(RoomKind::RestSite),
@@ -759,7 +768,7 @@ fn ensure_context_validity(state: &GameState) {
         );
     }
     if state.event.active {
-        // Neow rests over Location::Start, before any room exists
+        // Neow rests over Location::Start, before any Room exists
         let ok = if matches!(state.event.name, EventName::Neow) {
             state.location == Location::Start
         } else {

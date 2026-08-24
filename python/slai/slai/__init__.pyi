@@ -17,7 +17,8 @@ GOLD_ELITE_MAX: Final[int]
 GOLD_ELITE_MIN: Final[int]
 GOLD_MONSTER_MAX: Final[int]
 GOLD_MONSTER_MIN: Final[int]
-HP_START_FRACTION_A6: Final[float]
+HP_START_A6_DENOM: Final[int]
+HP_START_A6_NUMER: Final[int]
 MAX_GOLD: Final[int]
 NEOW_CARD_COUNT: Final[int]
 NEOW_GOLD_LARGE: Final[int]
@@ -1329,6 +1330,8 @@ class GameState:
     def map(self, /) -> Map: ...
     @property
     def pending(self, /) -> EffectBonfireOffer |EffectCardBottle |EffectCardDiscard |EffectCardDiscoverPick |EffectCardDuplicate |EffectCardExhaust |EffectCardMove |EffectCardNightmarePick |EffectCardPurge |EffectCardRetain |EffectCardSetupPick |EffectCardTransform |EffectCardUpgrade |EffectRelicLose |None: ...
+    @property
+    def pending_picks(self, /) -> list[Card]: ...
     @property
     def potion_slots_max(self, /) -> int: ...
     @property

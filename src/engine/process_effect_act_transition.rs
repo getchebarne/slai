@@ -34,7 +34,7 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         target: Target::Direct(Some(state.id_character)),
     });
 
-    // Fresh map; stale room entities stay in the arena, unreachable via `id_rooms`
+    // Fresh map; stale Room entities stay in the arena, unreachable via `id_rooms`
     let (id_rooms, location) = generate_map(&mut state.rng, &mut state.entities, state.ascension);
     state.id_rooms = id_rooms;
     state.location = location;
@@ -63,7 +63,7 @@ pub fn process_effect_act_transition(state: &mut GameState) {
         .pool_event_special
         .extend_from_slice(pool_special_additions);
 
-    // ?-room drift and the potion swing reset between acts
+    // ?-Room drift and the Potion swing reset between acts
     state.unknown_chance_monster = UNKNOWN_CHANCE_BASE_MONSTER;
     state.unknown_chance_shop = UNKNOWN_CHANCE_BASE_SHOP;
     state.unknown_chance_treasure = UNKNOWN_CHANCE_BASE_TREASURE;

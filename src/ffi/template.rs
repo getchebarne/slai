@@ -149,8 +149,8 @@ fn template_card(card: &CardTemplate) -> PyCardTemplate {
     }
 }
 
-/// Every constructible card in enum declaration order, base and upgraded forms
-/// adjacent where the card is upgradeable. State-free and deterministic.
+/// Every constructible Card in enum declaration order, base and upgraded forms
+/// adjacent where the Card is upgradeable. State-free and deterministic.
 #[pyfunction]
 pub fn get_card_templates() -> Vec<PyCardTemplate> {
     let mut out = Vec::with_capacity(2 * CardName::COUNT);
@@ -164,7 +164,7 @@ pub fn get_card_templates() -> Vec<PyCardTemplate> {
     out
 }
 
-/// Every relic in enum declaration order. State-free and deterministic.
+/// Every Relic in enum declaration order. State-free and deterministic.
 #[pyfunction]
 pub fn get_relic_templates() -> Vec<PyRelicTemplate> {
     RelicName::iter()
@@ -183,7 +183,7 @@ pub fn get_relic_templates() -> Vec<PyRelicTemplate> {
         .collect()
 }
 
-/// Every potion in enum declaration order. State-free and deterministic.
+/// Every Potion in enum declaration order. State-free and deterministic.
 #[pyfunction]
 pub fn get_potion_templates() -> Vec<PyPotionTemplate> {
     PotionName::iter()
@@ -200,7 +200,7 @@ pub fn get_potion_templates() -> Vec<PyPotionTemplate> {
         .collect()
 }
 
-/// Every monster in enum declaration order with the HP-roll bounds (inclusive)
+/// Every Monster in enum declaration order with the HP-roll bounds (inclusive)
 /// resolved for the passed ascension. State-free and deterministic.
 #[pyfunction]
 pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
@@ -217,7 +217,7 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
         .collect()
 }
 
-/// Every event option variant reachable at the passed ascension, in EventName
+/// Every Event Option variant reachable at the passed ascension, in EventName
 /// declaration order, option-table order within an event. Spawn-composed menus
 /// enumerate by evaluation from the spawn's own builders: We Meet Again's ask
 /// covers 0 (unrolled) plus 50..=150, Neow's product covers all 37 variants.
@@ -226,10 +226,13 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
 pub fn get_event_option_templates(ascension: u8) -> Vec<PyEventOptionTemplate> {
     let mut out = Vec::new();
     for name in EventName::iter() {
-        for effects in options_catalog(name, ascension) {
+        for template in options_catalog(name, ascension) {
             out.push(PyEventOptionTemplate {
                 event: name.into(),
-                effects: effects.iter().map(snapshot_effect).collect(),
+                effects: template.effects[..template.effects_len as usize]
+                    .iter()
+                    .map(snapshot_effect)
+                    .collect(),
             });
         }
     }

@@ -1,6 +1,9 @@
 use crate::cards::get_card;
+use crate::consts::ASCENSION_HP_MAX_CUT_LEVEL;
+use crate::consts::ASCENSION_HP_START_CUT_LEVEL;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
-use crate::consts::HP_START_FRACTION_A6;
+use crate::consts::HP_START_A6_DENOM;
+use crate::consts::HP_START_A6_NUMER;
 use crate::consts::SILENT_HP_MAX_A14_DELTA;
 use crate::consts::SILENT_HP_MAX_BASE;
 use crate::consts::STARTING_GOLD;
@@ -45,16 +48,18 @@ pub fn get_silent_starter_deck(ascension: u8) -> Vec<Entity> {
     deck
 }
 
-pub fn silent_health(ascension: u8) -> (u16, u16) {
+// A6 keeps 90% of max, rounded half-up; integer form so the tables Neow builds
+// from these vitals can be const
+pub const fn silent_health(ascension: u8) -> (u16, u16) {
     let mut health_max: u16 = SILENT_HP_MAX_BASE;
     let mut health: u16 = health_max;
 
-    if ascension >= 14 {
+    if ascension >= ASCENSION_HP_MAX_CUT_LEVEL {
         health_max -= SILENT_HP_MAX_A14_DELTA;
         health = health_max;
     }
-    if ascension >= 6 {
-        health = (HP_START_FRACTION_A6 * health as f32).round() as u16;
+    if ascension >= ASCENSION_HP_START_CUT_LEVEL {
+        health = (health * HP_START_A6_NUMER + HP_START_A6_DENOM / 2) / HP_START_A6_DENOM;
     }
 
     (health, health_max)

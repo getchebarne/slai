@@ -72,7 +72,7 @@ pub struct PyReward {
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
-    // Boss rewards roll mutually exclusive relics: taking one discards the rest
+    // Boss rewards roll mutually exclusive Relics: taking one discards the rest
     pub relics_exclusive: bool,
 }
 

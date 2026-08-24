@@ -70,6 +70,9 @@ pub struct GameState {
 
     // Halt overlay; cleared by the action handler that supplies the pick
     pub effect_pending: Option<Effect>,
+
+    // Picks staged during a multi-pick halt; applied when the selection closes
+    pub effect_pending_picks: Vec<usize>,
     pub location: Location,
 
     // Entities and indices
@@ -95,7 +98,7 @@ pub struct GameState {
     pub id_potions: [Option<usize>; POTION_SLOTS_MAX],
     pub potion_slots_max: u8,
 
-    // `?`-room drift state; event chance = 1 - sum(others)
+    // `?`-Room drift state; event chance = 1 - sum(others)
     pub unknown_chance_monster: f32,
     pub unknown_chance_shop: f32,
     pub unknown_chance_treasure: f32,
@@ -136,7 +139,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Initialize empty entities arena
     let mut entities: Vec<Entity> = Vec::with_capacity(MAX_ENTITIES);
 
-    // Initialize character
+    // Initialize Character
     let character = spawn_silent(ascension);
     push_entity(&mut entities, character);
 
@@ -164,7 +167,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Initialize map
     let (id_rooms, location) = generate_map(&mut rng, &mut entities, ascension);
 
-    // Pre-generate monster encounters
+    // Pre-generate Monster encounters
     let mut encounter_pool_normal: Vec<MonsterEncounter> =
         Vec::with_capacity(ENCOUNTER_POOL_CAPACITY_NORMAL);
     let mut encounter_pool_elite: Vec<MonsterEncounter> =
@@ -203,6 +206,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         effect_buf: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
+        effect_pending_picks: Vec::with_capacity(MAX_SIZE_HAND),
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
@@ -289,7 +293,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         state.event.active = true;
     }
 
-    // Settle on the resting focus — Neow's options, or the initial row-0 room picks
+    // Settle on the resting focus — Neow's options, or the initial row-0 Room picks
     recompute_legal_actions(&mut state);
     state
 }

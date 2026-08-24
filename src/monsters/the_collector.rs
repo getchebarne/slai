@@ -17,7 +17,7 @@ use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use rand::Rng;
 
-pub const TORCH_HEAD_COUNT: usize = 2;
+const TORCH_HEAD_COUNT: usize = 2;
 
 // Spawn and Revive top the roster back up to two Torch Heads: capped spawns skip
 // past the ones still standing

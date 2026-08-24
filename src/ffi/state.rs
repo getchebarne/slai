@@ -56,6 +56,8 @@ pub struct PyGameState {
     pub map: PyMap,
     // Halt-for-input is orthogonal to the contexts
     pub pending: Option<PyPendingEffect>,
+    // Cards staged so far in a multi-pick halt; empty unless one is open
+    pub pending_picks: Vec<PyCard>,
 }
 
 // Snapshot builders
@@ -86,5 +88,10 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),
         pending: state.effect_pending.as_ref().map(snapshot_pending_effect),
+        pending_picks: state
+            .effect_pending_picks
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
     }
 }

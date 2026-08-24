@@ -141,7 +141,7 @@ pub struct PyCard {
 
     // Effects. Snapshot copy: DamagePhysical / BlockGain amounts carry the current player-modifier
     // adjustment (Str/Vigor/Weak/DoubleDamage, Dex/Frail), target-agnostic, so clients read finished
-    // combat values. This makes hash(card) (which hashes effects) vary with combat modifiers.
+    // combat values. This makes hash(Card) (which hashes effects) vary with combat modifiers.
     pub effects: Vec<PyEffect>,
 }
 

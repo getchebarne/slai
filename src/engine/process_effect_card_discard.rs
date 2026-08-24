@@ -64,10 +64,10 @@ pub fn process_effect_card_discard(
             id_card_discard.push(id_target);
             *this_turn_discards = this_turn_discards.saturating_add(1);
 
-            // Push reversed so first effect runs first when queue resumes
+            // Queued behind the rest so a batch's discards all land before any trigger
             let effects_on_discard = state.entities[id_target].card_on_discard_effects;
-            for effect in effects_on_discard.iter().rev() {
-                state.effect_queue.push_front(Effect {
+            for effect in effects_on_discard {
+                state.effect_queue.push_back(Effect {
                     id_source: Some(id_target),
                     ..*effect
                 });

@@ -65,19 +65,12 @@ use crate::utils::card_is_purgeable;
 use crate::utils::card_is_transformable;
 use crate::utils::card_is_upgradable;
 use crate::utils::push_entity;
-use rand::Rng;
 
 pub use beggar::BEGGAR_COST_PURGE;
 pub use the_joust::JOUST_OWNER_WIN_CHANCE;
 pub use the_joust::JOUST_PAYOUT_MURDERER;
 pub use the_joust::JOUST_PAYOUT_OWNER;
 pub use the_joust::JOUST_STAKE;
-
-pub const EVENT_CONSUME_EFFECT: Effect = Effect {
-    kind: EffectKind::EventConsume,
-    id_source: None,
-    target: Target::Direct(None),
-};
 
 pub const EFFECT_DECK_PURGE_PICK_1: Effect = Effect {
     kind: EffectKind::CardPurge,
@@ -109,7 +102,7 @@ pub const EFFECT_DECK_TRANSFORM_PICK_1: Effect = Effect {
     },
 };
 
-// Transform two chosen cards (Designer's Clean Up, Drug Dealer)
+// Transform two chosen Cards (Designer's Clean Up, Drug Dealer)
 pub const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
     kind: EffectKind::CardTransform { upgraded: false },
     id_source: None,
@@ -120,126 +113,144 @@ pub const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
     },
 };
 
-pub const EVENT_ADVANCE_EFFECT: Effect = Effect {
+pub const EFFECT_EVENT_ADVANCE: Effect = Effect {
     kind: EffectKind::EventAdvanceState { delta: 1 },
     id_source: None,
     target: Target::Direct(None),
 };
 
-// An option IS its effect list; `opt` is the const bound-check on the way in, so
-// an over-cap static menu fails to compile rather than panicking at spawn
-pub const fn opt(effects: &[Effect]) -> &[Effect] {
-    assert!(effects.len() <= MAX_EFFECTS_PER_EVENT_OPTION);
-    effects
+pub const EFFECT_EVENT_CONSUME: Effect = Effect {
+    kind: EffectKind::EventConsume,
+    id_source: None,
+    target: Target::Direct(None),
+};
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EventOptionTemplate {
+    pub effects: [Effect; MAX_EFFECTS_PER_EVENT_OPTION],
+    pub effects_len: u8,
+}
+
+pub const fn make_event_option_template(effects: &[Effect]) -> EventOptionTemplate {
+    let mut owned = [EFFECT_ZERO; MAX_EFFECTS_PER_EVENT_OPTION];
+    let mut idx = 0;
+    while idx < effects.len() {
+        owned[idx] = effects[idx];
+        idx += 1;
+    }
+    EventOptionTemplate {
+        effects: owned,
+        effects_len: effects.len() as u8,
+    }
 }
 
 // The leave option and the three deck-pick effects every shrine-shaped event repeats
-pub const OPTION_LEAVE: &[Effect] = opt(&[EVENT_CONSUME_EFFECT]);
+pub const EOT_LEAVE: EventOptionTemplate = make_event_option_template(&[EFFECT_EVENT_CONSUME]);
 
 // Bakes the options into the arena; processors may mutate baked amounts mid-event
 pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
     // Clear last visit's staged picks before this spawn stakes its own
     event_reset(&mut state.event);
-    let ascension = state.ascension;
+
     match name {
-        // Rolled option table: pick one of the catalog's four variants
-        EventName::Designer => {
-            let options = designer::options(
-                ascension,
-                state.rng.random_bool(0.5),
-                state.rng.random_bool(0.5),
-            );
-            return bake_options(state, options);
-        }
-        // Custom spawns: staged picks and per-visit rolls
-        EventName::Vampires => return vampires::spawn_event_vampires(state),
-        EventName::ForgottenAltar => return forgotten_altar::spawn_event_forgotten_altar(state),
-        EventName::Nloth => return nloth::spawn_event_nloth(state),
-        EventName::Neow => return neow::spawn_event_neow(state),
-        EventName::WeMeetAgain => return we_meet_again::spawn_event_we_meet_again(state),
-        _ => {}
+        EventName::BigFish => big_fish::spawn(state),
+        EventName::TheCleric => the_cleric::spawn(state),
+        EventName::Duplicator => duplicator::spawn(state),
+        EventName::GoldenShrine => golden_shrine::spawn(state),
+        EventName::WingStatue => wing_statue::spawn(state),
+        EventName::WorldOfGoop => world_of_goop::spawn(state),
+        EventName::LivingWall => living_wall::spawn(state),
+        EventName::Purifier => purifier::spawn(state),
+        EventName::ShiningLight => shining_light::spawn(state),
+        EventName::TheSsssserpent => the_ssssserpent::spawn(state),
+        EventName::Transmogrifier => transmogrifier::spawn(state),
+        EventName::UpgradeShrine => upgrade_shrine::spawn(state),
+        EventName::TheDivineFountain => the_divine_fountain::spawn(state),
+        EventName::TheLab => the_lab::spawn(state),
+        EventName::TheWomanInBlue => the_woman_in_blue::spawn(state),
+        EventName::WheelOfChange => wheel_of_change::spawn(state),
+        EventName::BonfireSpirits => bonfire_spirits::spawn(state),
+        EventName::OminousForge => ominous_forge::spawn(state),
+        EventName::FaceTrader => face_trader::spawn(state),
+        EventName::Mushrooms => mushrooms::spawn(state),
+        EventName::GoldenIdol => golden_idol::spawn(state),
+        EventName::ScrapOoze => scrap_ooze::spawn(state),
+        EventName::WeMeetAgain => we_meet_again::spawn(state),
+        EventName::DeadAdventurer => dead_adventurer::spawn(state),
+        EventName::Neow => neow::spawn(state),
+        EventName::Addict => addict::spawn(state),
+        EventName::Beggar => beggar::spawn(state),
+        EventName::Ghosts => ghosts::spawn(state),
+        EventName::BackToBasics => back_to_basics::spawn(state),
+        EventName::MaskedBandits => masked_bandits::spawn(state),
+        EventName::TheJoust => the_joust::spawn(state),
+        EventName::TheLibrary => the_library::spawn(state),
+        EventName::TheMausoleum => the_mausoleum::spawn(state),
+        EventName::Vampires => vampires::spawn(state),
+        EventName::Colosseum => colosseum::spawn(state),
+        EventName::Designer => designer::spawn(state),
+        EventName::KnowingSkull => knowing_skull::spawn(state),
+        EventName::Nest => nest::spawn(state),
+        EventName::CursedTome => cursed_tome::spawn(state),
+        EventName::DrugDealer => drug_dealer::spawn(state),
+        EventName::ForgottenAltar => forgotten_altar::spawn(state),
+        EventName::Nloth => nloth::spawn(state),
     }
-    // Single table source, shared with the FFI catalog via options_catalog
-    let tables = static_tables(name, ascension);
-    debug_assert!(
-        tables.len() == 1,
-        "static-table events have exactly one table"
-    );
-    bake_options(state, tables[0])
 }
 
-// Every event's reachable option rows, state-free — one uniform shape whether
-// the menu is a static table or composed at spawn.
-pub fn options_catalog(name: EventName, ascension: u8) -> Vec<Vec<Effect>> {
+// Every event's reachable option EOTs, state-free. A spawn selects from these
+pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionTemplate] {
     match name {
+        EventName::BigFish => big_fish::catalog(ascension),
+        EventName::TheCleric => the_cleric::catalog(ascension),
+        EventName::Duplicator => duplicator::catalog(ascension),
+        EventName::GoldenShrine => golden_shrine::catalog(ascension),
+        EventName::WingStatue => wing_statue::catalog(ascension),
+        EventName::WorldOfGoop => world_of_goop::catalog(ascension),
+        EventName::LivingWall => living_wall::catalog(ascension),
+        EventName::Purifier => purifier::catalog(ascension),
+        EventName::ShiningLight => shining_light::catalog(ascension),
+        EventName::TheSsssserpent => the_ssssserpent::catalog(ascension),
+        EventName::Transmogrifier => transmogrifier::catalog(ascension),
+        EventName::UpgradeShrine => upgrade_shrine::catalog(ascension),
+        EventName::TheDivineFountain => the_divine_fountain::catalog(ascension),
+        EventName::TheLab => the_lab::catalog(ascension),
+        EventName::TheWomanInBlue => the_woman_in_blue::catalog(ascension),
+        EventName::WheelOfChange => wheel_of_change::catalog(ascension),
+        EventName::BonfireSpirits => bonfire_spirits::catalog(ascension),
+        EventName::OminousForge => ominous_forge::catalog(ascension),
+        EventName::FaceTrader => face_trader::catalog(ascension),
+        EventName::Mushrooms => mushrooms::catalog(ascension),
+        EventName::GoldenIdol => golden_idol::catalog(ascension),
+        EventName::ScrapOoze => scrap_ooze::catalog(ascension),
+        EventName::WeMeetAgain => we_meet_again::catalog(ascension),
+        EventName::DeadAdventurer => dead_adventurer::catalog(ascension),
         EventName::Neow => neow::catalog(ascension),
-        EventName::WeMeetAgain => we_meet_again::catalog(),
-        _ => static_tables(name, ascension)
-            .iter()
-            .flat_map(|table| table.iter().map(|effects| effects.to_vec()))
-            .collect(),
-    }
-}
-
-// The static menu(s) an event can present, shared by spawn and catalog so the
-// two cannot drift. Designer lists the four coin-flip tables a spawn picks one
-// of; the composed menus (Neow, WMA) have none and enumerate themselves.
-fn static_tables(name: EventName, ascension: u8) -> Vec<&'static [&'static [Effect]]> {
-    match name {
-        EventName::BigFish => vec![big_fish::OPTIONS],
-        EventName::TheCleric => vec![the_cleric::options(ascension)],
-        EventName::Duplicator => vec![duplicator::OPTIONS],
-        EventName::GoldenShrine => vec![golden_shrine::options(ascension)],
-        EventName::GoldenIdol => vec![golden_idol::options(ascension)],
-        EventName::WingStatue => vec![wing_statue::OPTIONS],
-        EventName::WorldOfGoop => vec![world_of_goop::options(ascension)],
-        EventName::LivingWall => vec![living_wall::OPTIONS],
-        EventName::Purifier => vec![purifier::OPTIONS],
-        EventName::ScrapOoze => vec![scrap_ooze::options(ascension)],
-        EventName::ShiningLight => vec![shining_light::options(ascension)],
-        EventName::TheSsssserpent => vec![the_ssssserpent::options(ascension)],
-        EventName::Transmogrifier => vec![transmogrifier::OPTIONS],
-        EventName::UpgradeShrine => vec![upgrade_shrine::OPTIONS],
-        EventName::TheDivineFountain => vec![the_divine_fountain::OPTIONS],
-        EventName::TheLab => vec![the_lab::options(ascension)],
-        EventName::TheWomanInBlue => vec![the_woman_in_blue::options(ascension)],
-        EventName::WheelOfChange => vec![wheel_of_change::OPTIONS],
-        EventName::BonfireSpirits => vec![bonfire_spirits::OPTIONS],
-        EventName::OminousForge => vec![ominous_forge::OPTIONS],
-        EventName::FaceTrader => vec![face_trader::options(ascension)],
-        EventName::Addict => vec![addict::OPTIONS],
-        EventName::Beggar => vec![beggar::OPTIONS],
-        EventName::Ghosts => vec![ghosts::options(ascension)],
-        EventName::BackToBasics => vec![back_to_basics::OPTIONS],
-        EventName::MaskedBandits => vec![masked_bandits::OPTIONS],
-        EventName::TheJoust => vec![the_joust::OPTIONS],
-        EventName::TheLibrary => vec![the_library::options(ascension)],
-        EventName::TheMausoleum => vec![the_mausoleum::OPTIONS],
-        EventName::Vampires => vec![vampires::OPTIONS],
-        EventName::Nest => vec![nest::options(ascension)],
-        EventName::CursedTome => vec![cursed_tome::options(ascension)],
-        EventName::DrugDealer => vec![drug_dealer::OPTIONS],
-        EventName::ForgottenAltar => vec![forgotten_altar::options(ascension)],
-        EventName::Nloth => vec![nloth::OPTIONS],
-        EventName::Colosseum => vec![colosseum::OPTIONS],
-        EventName::Designer => vec![
-            designer::options(ascension, false, false),
-            designer::options(ascension, false, true),
-            designer::options(ascension, true, false),
-            designer::options(ascension, true, true),
-        ],
-        EventName::KnowingSkull => vec![knowing_skull::OPTIONS],
-        EventName::Mushrooms => vec![mushrooms::OPTIONS],
-        EventName::DeadAdventurer => vec![dead_adventurer::OPTIONS],
-        EventName::Neow | EventName::WeMeetAgain => vec![],
+        EventName::Addict => addict::catalog(ascension),
+        EventName::Beggar => beggar::catalog(ascension),
+        EventName::Ghosts => ghosts::catalog(ascension),
+        EventName::BackToBasics => back_to_basics::catalog(ascension),
+        EventName::MaskedBandits => masked_bandits::catalog(ascension),
+        EventName::TheJoust => the_joust::catalog(ascension),
+        EventName::TheLibrary => the_library::catalog(ascension),
+        EventName::TheMausoleum => the_mausoleum::catalog(ascension),
+        EventName::Vampires => vampires::catalog(ascension),
+        EventName::Colosseum => colosseum::catalog(ascension),
+        EventName::Designer => designer::catalog(ascension),
+        EventName::KnowingSkull => knowing_skull::catalog(ascension),
+        EventName::Nest => nest::catalog(ascension),
+        EventName::CursedTome => cursed_tome::catalog(ascension),
+        EventName::DrugDealer => drug_dealer::catalog(ascension),
+        EventName::ForgottenAltar => forgotten_altar::catalog(ascension),
+        EventName::Nloth => nloth::catalog(ascension),
     }
 }
 
 // One Entity per option, instanced into the arena at spawn
-fn bake_options(state: &mut GameState, options: &[&[Effect]]) -> Vec<usize> {
+fn bake_options(state: &mut GameState, options: &[EventOptionTemplate]) -> Vec<usize> {
     let mut id_event_options = Vec::with_capacity(options.len());
-    for effects in options {
-        let option = instance_event_option(effects);
+    for template in options {
+        let option = instance_event_option(template);
         id_event_options.push(push_entity(&mut state.entities, option));
     }
     id_event_options
@@ -277,6 +288,7 @@ pub fn fight_loot(event: &Event) -> Option<EventLoot> {
                 ],
             })
         }
+
         // Every fight-hosting event must claim an arm; None is reserved for
         // deliberate unpaid bouts (Colosseum's first)
         name => unreachable!("fight over a non-fight event: {name:?}"),
@@ -286,48 +298,48 @@ pub fn fight_loot(event: &Event) -> Option<EventLoot> {
 // Per-event availability checks
 pub fn event_option_available(state: &GameState, idx: usize) -> bool {
     match state.event.name {
-        EventName::BigFish
-        | EventName::Duplicator
-        | EventName::GoldenShrine
-        | EventName::WorldOfGoop
-        | EventName::TheSsssserpent
-        | EventName::TheDivineFountain
-        | EventName::TheLab
-        | EventName::TheWomanInBlue
-        | EventName::WheelOfChange
-        | EventName::BonfireSpirits
-        | EventName::FaceTrader
-        | EventName::Mushrooms
-        | EventName::Neow
-        | EventName::Ghosts
-        | EventName::MaskedBandits
-        | EventName::TheJoust
-        | EventName::TheLibrary
-        | EventName::TheMausoleum
-        | EventName::KnowingSkull
-        | EventName::DeadAdventurer
-        | EventName::Nest
-        | EventName::Nloth => true,
-        EventName::Addict => addict::option_available(state, idx),
-        EventName::Beggar => beggar::option_available(state, idx),
-        EventName::BackToBasics => back_to_basics::option_available(state, idx),
-        EventName::Vampires => vampires::option_available(state, idx),
-        EventName::Colosseum => colosseum::option_available(state.event.stage, idx),
-        EventName::Designer => designer::option_available(state, idx),
-        EventName::DrugDealer => drug_dealer::option_available(state, idx),
-        EventName::ForgottenAltar => forgotten_altar::option_available(state, idx),
-        EventName::CursedTome => cursed_tome::option_available(state.event.stage, idx),
+        EventName::BigFish => big_fish::option_available(state, idx),
         EventName::TheCleric => the_cleric::option_available(state, idx),
+        EventName::Duplicator => duplicator::option_available(state, idx),
+        EventName::GoldenShrine => golden_shrine::option_available(state, idx),
         EventName::WingStatue => wing_statue::option_available(state, idx),
+        EventName::WorldOfGoop => world_of_goop::option_available(state, idx),
         EventName::LivingWall => living_wall::option_available(state, idx),
         EventName::Purifier => purifier::option_available(state, idx),
         EventName::ShiningLight => shining_light::option_available(state, idx),
+        EventName::TheSsssserpent => the_ssssserpent::option_available(state, idx),
         EventName::Transmogrifier => transmogrifier::option_available(state, idx),
         EventName::UpgradeShrine => upgrade_shrine::option_available(state, idx),
+        EventName::TheDivineFountain => the_divine_fountain::option_available(state, idx),
+        EventName::TheLab => the_lab::option_available(state, idx),
+        EventName::TheWomanInBlue => the_woman_in_blue::option_available(state, idx),
+        EventName::WheelOfChange => wheel_of_change::option_available(state, idx),
+        EventName::BonfireSpirits => bonfire_spirits::option_available(state, idx),
         EventName::OminousForge => ominous_forge::option_available(state, idx),
-        EventName::GoldenIdol => golden_idol::option_available(state.event.stage, idx),
-        EventName::ScrapOoze => scrap_ooze::option_available(state.event.stage, idx),
+        EventName::FaceTrader => face_trader::option_available(state, idx),
+        EventName::Mushrooms => mushrooms::option_available(state, idx),
+        EventName::GoldenIdol => golden_idol::option_available(state, idx),
+        EventName::ScrapOoze => scrap_ooze::option_available(state, idx),
         EventName::WeMeetAgain => we_meet_again::option_available(state, idx),
+        EventName::DeadAdventurer => dead_adventurer::option_available(state, idx),
+        EventName::Neow => neow::option_available(state, idx),
+        EventName::Addict => addict::option_available(state, idx),
+        EventName::Beggar => beggar::option_available(state, idx),
+        EventName::Ghosts => ghosts::option_available(state, idx),
+        EventName::BackToBasics => back_to_basics::option_available(state, idx),
+        EventName::MaskedBandits => masked_bandits::option_available(state, idx),
+        EventName::TheJoust => the_joust::option_available(state, idx),
+        EventName::TheLibrary => the_library::option_available(state, idx),
+        EventName::TheMausoleum => the_mausoleum::option_available(state, idx),
+        EventName::Vampires => vampires::option_available(state, idx),
+        EventName::Colosseum => colosseum::option_available(state, idx),
+        EventName::Designer => designer::option_available(state, idx),
+        EventName::KnowingSkull => knowing_skull::option_available(state, idx),
+        EventName::Nest => nest::option_available(state, idx),
+        EventName::CursedTome => cursed_tome::option_available(state, idx),
+        EventName::DrugDealer => drug_dealer::option_available(state, idx),
+        EventName::ForgottenAltar => forgotten_altar::option_available(state, idx),
+        EventName::Nloth => nloth::option_available(state, idx),
     }
 }
 
@@ -478,20 +490,11 @@ pub fn pools_for_act(act: u8) -> (&'static [EventName], &'static [EventName]) {
     }
 }
 
-const fn instance_event_option(effects: &[Effect]) -> Entity {
-    assert!(effects.len() <= MAX_EFFECTS_PER_EVENT_OPTION);
-
-    let mut effects_owned = [EFFECT_ZERO; MAX_EFFECTS_PER_EVENT_OPTION];
-    let mut idx = 0;
-    while idx < effects.len() {
-        effects_owned[idx] = effects[idx];
-        idx += 1;
-    }
-
+const fn instance_event_option(template: &EventOptionTemplate) -> Entity {
     Entity {
         kind: EntityKind::EventOption,
-        event_option_effects: effects_owned,
-        event_option_effects_len: effects.len() as u8,
+        event_option_effects: template.effects,
+        event_option_effects_len: template.effects_len,
         ..ENTITY_ZERO
     }
 }

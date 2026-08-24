@@ -3,8 +3,11 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::opt;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::DeltaSign;
 
 // Gather
@@ -25,7 +28,7 @@ const OPTION_GATHER: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Leave
@@ -39,19 +42,33 @@ const fn leave(min: u16, max: u16) -> [Effect; 2] {
             id_source: None,
             target: Target::Direct(None),
         },
-        EVENT_CONSUME_EFFECT,
+        EFFECT_EVENT_CONSUME,
     ]
 }
+
+// Leave: forfeit a fifth of the gold
 const OPTION_LEAVE_BASE: [Effect; 2] = leave(20, 50);
+
+// Leave at A15+: forfeit 35%
 const OPTION_LEAVE_A15: [Effect; 2] = leave(35, 75);
 
-static OPTIONS_BASE: &[&[Effect]] = &[opt(OPTION_GATHER), opt(&OPTION_LEAVE_BASE)];
-static OPTIONS_A15: &[&[Effect]] = &[opt(OPTION_GATHER), opt(&OPTION_LEAVE_A15)];
+static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_GATHER),
+    make_event_option_template(&OPTION_LEAVE_BASE),
+];
+static EOTS_A15: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_GATHER),
+    make_event_option_template(&OPTION_LEAVE_A15),
+];
 
-pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
-    if ascension < 15 {
-        OPTIONS_BASE
-    } else {
-        OPTIONS_A15
-    }
+pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
+    if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
+}
+
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
 }

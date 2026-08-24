@@ -23,7 +23,7 @@ use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
 use super::target::PyTarget;
 
-// Mirrors only EffectKind variants reachable from static Card/monster defs; snapshot_effect panics on runtime-only variants
+// Mirrors only EffectKind variants reachable from static Card/Monster defs; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
     DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, lifesteal: bool, target: PyTarget },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: PyTarget },
@@ -158,7 +158,7 @@ fn require_target(target: Option<PyTarget>) -> PyTarget {
 }
 
 // These rows carry no `target` field because no def ever resolves one for them
-// (audited across every card, potion, move table and baked event option). A new
+// (audited across every Card, Potion, move table and baked Event Option). A new
 // def that targets one would otherwise drop the selection silently
 fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
     if target.is_some() {

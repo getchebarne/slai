@@ -50,7 +50,7 @@ mirror_enum!(PyRelicTier from RelicTier, "RelicTier", skip_from_py_object, {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyRelic {
     // Arena index: a join key across collections (a staked roll and the owned
-    // relic share one id), never a feature
+    // Relic share one id), never a feature
     pub id: usize,
     pub name: PyRelicName,
     pub tier: PyRelicTier,

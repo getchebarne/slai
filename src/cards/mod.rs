@@ -167,6 +167,7 @@ pub fn card_template(name: CardName, upgraded: bool) -> &'static CardTemplate {
     if !upgraded {
         return CARD_BY_NAME[name as usize];
     }
+
     // Named, not `_`, so a new CardName missing its _PLUS arm stays a compile error
     match name {
         CardName::AThousandCuts => &a_thousand_cuts::A_THOUSAND_CUTS_PLUS,
@@ -457,7 +458,7 @@ const fn card_color_eq(lhs: CardColor, rhs: CardColor) -> bool {
     lhs as u8 == rhs as u8
 }
 
-// Reward pools: rewardable kind, minus the two Curse cards that are Neow/event-only
+// Reward pools: rewardable kind, minus the two Curse Cards that are Neow/event-only
 const fn in_pool(card: &CardTemplate, rarity: CardRarity, color: CardColor) -> bool {
     card_rarity_eq(card.rarity, rarity)
         && card_color_eq(card.color, color)
@@ -597,10 +598,6 @@ pub const fn make_card_template(
     on_draw_effects: &'static [Effect],
     play_restriction: PlayRestriction,
 ) -> CardTemplate {
-    assert!(
-        effects.len() <= MAX_EFFECTS_PER_CARD,
-        "card effects exceed MAX_EFFECTS_PER_CARD",
-    );
     let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_CARD];
     let mut idx = 0;
     while idx < effects.len() {

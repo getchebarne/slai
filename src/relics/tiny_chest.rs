@@ -2,7 +2,7 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Every 4th unknown room is a Treasure room
+// Every 4th unknown Room is a Treasure Room
 // See:
 //    - `process_effect_room_enter.rs`
 pub static TINY_CHEST: RelicTemplate = RelicTemplate {

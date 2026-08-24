@@ -2,17 +2,19 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::OPTION_LEAVE;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EOT_LEAVE;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
 use crate::events::deck_has_upgradable;
-use crate::events::opt;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::RelicName;
 
 // Forge
-const OPTION_FORGE: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK_1, EVENT_CONSUME_EFFECT];
+const OPTION_FORGE: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK_1, EFFECT_EVENT_CONSUME];
 
 // Rummage
 const OPTION_RUMMAGE: &[Effect] = &[
@@ -34,11 +36,15 @@ const OPTION_RUMMAGE: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Leave
-pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_FORGE), opt(OPTION_RUMMAGE), OPTION_LEAVE];
+pub static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_FORGE),
+    make_event_option_template(OPTION_RUMMAGE),
+    EOT_LEAVE,
+];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
@@ -46,4 +52,12 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
         1 | 2 => true,
         _ => unreachable!("Ominous forge option out of range: {idx}"),
     }
+}
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
 }

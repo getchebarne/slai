@@ -26,7 +26,7 @@ pub fn process_effect_card_adopt(id_target: Option<usize>, state: &mut GameState
         return;
     }
 
-    // Push card
+    // Push Card
     state.id_card_deck.push(id_card);
 
     // Frozen / Molten / Toxic Egg: matching kinds join the deck upgraded

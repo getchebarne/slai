@@ -66,11 +66,13 @@ use crate::modifier::modifier_apply;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::MonsterKind;
+use strum::EnumCount;
+
 use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-// Static definition of a monster: everything spawn-time except per-monster rolls.
+// Static definition of a Monster: everything spawn-time except per-Monster rolls.
 // Tier arrays are (min_ascension, value), ascending; the last satisfied entry wins
 pub struct MonsterTemplate {
     pub name: MonsterName,
@@ -81,12 +83,76 @@ pub struct MonsterTemplate {
     pub modifier_tiers: &'static [(u8, &'static [(ModifierKind, i16)])],
 }
 
+// Every MonsterTemplate, for compile-time validation and template enumeration
+pub const ALL_MONSTERS: &[&'static MonsterTemplate] = &[
+    &bandit_bear::BANDIT_BEAR,
+    &bandit_leader::BANDIT_LEADER,
+    &bandit_pointy::BANDIT_POINTY,
+    &book_of_stabbing::BOOK_OF_STABBING,
+    &bronze_automaton::BRONZE_AUTOMATON,
+    &bronze_orb::BRONZE_ORB,
+    &byrd::BYRD,
+    &centurion::CENTURION,
+    &champ::CHAMP,
+    &chosen::CHOSEN,
+    &cultist::CULTIST,
+    &fungi_beast::FUNGI_BEAST,
+    &gremlin_fat::GREMLIN_FAT,
+    &gremlin_leader::GREMLIN_LEADER,
+    &gremlin_nob::GREMLIN_NOB,
+    &gremlin_thief::GREMLIN_THIEF,
+    &gremlin_tsundere::GREMLIN_TSUNDERE,
+    &gremlin_warrior::GREMLIN_WARRIOR,
+    &gremlin_wizard::GREMLIN_WIZARD,
+    &healer::HEALER,
+    &hexaghost::HEXAGHOST,
+    &jaw_worm::JAW_WORM,
+    &lagavulin::LAGAVULIN,
+    &looter::LOOTER,
+    &louse_green::LOUSE_DEFENSIVE,
+    &louse_red::LOUSE_NORMAL,
+    &mugger::MUGGER,
+    &sentry::SENTRY,
+    &shelled_parasite::SHELLED_PARASITE,
+    &slaver_blue::SLAVER_BLUE,
+    &slaver_red::SLAVER_RED,
+    &slime_acid_large::SLIME_ACID_LARGE,
+    &slime_acid_medium::SLIME_ACID_MEDIUM,
+    &slime_acid_small::SLIME_ACID_SMALL,
+    &slime_boss::SLIME_BOSS,
+    &slime_spike_large::SLIME_SPIKE_LARGE,
+    &slime_spike_medium::SLIME_SPIKE_MEDIUM,
+    &slime_spike_small::SLIME_SPIKE_SMALL,
+    &snake_plant::SNAKE_PLANT,
+    &snecko::SNECKO,
+    &spheric_guardian::SPHERIC_GUARDIAN,
+    &taskmaster::TASKMASTER,
+    &the_collector::THE_COLLECTOR,
+    &the_guardian::THE_GUARDIAN,
+    &torch_head::TORCH_HEAD,
+];
+const _: () = assert!(ALL_MONSTERS.len() == MonsterName::COUNT);
+
+// Tier tables are looked up by descending scan, so they must ascend by threshold
+const fn assert_tiers_ascend<T: Copy>(tiers: &[(u8, T)]) {
+    let mut i = 1;
+    while i < tiers.len() {
+        assert!(tiers[i - 1].0 < tiers[i].0, "monster tiers must ascend");
+        i += 1;
+    }
+}
+const _: () = {
+    let mut i = 0;
+    while i < ALL_MONSTERS.len() {
+        assert_tiers_ascend(ALL_MONSTERS[i].health_tiers);
+        assert_tiers_ascend(ALL_MONSTERS[i].move_tiers);
+        assert_tiers_ascend(ALL_MONSTERS[i].modifier_tiers);
+        i += 1;
+    }
+};
+
 // None iff `tiers` is empty (the louses' rolled move tables)
 pub fn pick_tier<T: Copy>(tiers: &'static [(u8, T)], ascension_level: u8) -> Option<T> {
-    debug_assert!(
-        tiers.windows(2).all(|w| w[0].0 < w[1].0),
-        "tiers must ascend"
-    );
     tiers
         .iter()
         .rev()
@@ -94,9 +160,9 @@ pub fn pick_tier<T: Copy>(tiers: &'static [(u8, T)], ascension_level: u8) -> Opt
         .map(|&(_, value)| value)
 }
 
-// Uniform instancer: one HP roll (skipped for fixed-HP monsters — a width-1
+// Uniform instancer: one HP roll (skipped for fixed-HP Monsters — a width-1
 // random_range would still consume RNG), tiered moves and spawn modifiers
-pub fn instance_monster_from_template(
+fn instance_monster_from_template(
     template: &MonsterTemplate,
     ascension_level: u8,
     rng: &mut impl Rng,
@@ -214,7 +280,7 @@ pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     }
 }
 
-pub fn get_move_history_slice(entity: &Entity) -> &[u8] {
+fn get_move_history_slice(entity: &Entity) -> &[u8] {
     &entity.monster_move_history[..entity.monster_move_history_len as usize]
 }
 
@@ -238,7 +304,7 @@ pub fn is_cycle_boundary(name: MonsterName, move_idx: u8) -> bool {
     }
 }
 
-// Takes the whole arena: some AIs read other monsters' state (ally counts, party HP)
+// Takes the whole arena: some AIs read other Monsters' state (ally counts, party HP)
 pub fn get_next_move(
     entities: &[Entity],
     entity_id: usize,
@@ -249,7 +315,7 @@ pub fn get_next_move(
     let entity = &entities[entity_id];
     let history = get_move_history_slice(entity);
     match entity.monster_name {
-        // Single-move monsters
+        // Single-move Monsters
         MonsterName::SlimeSpikeSmall
         | MonsterName::GremlinFat
         | MonsterName::GremlinThief
@@ -397,7 +463,7 @@ pub fn get_next_move(
     }
 }
 
-// The repeated monster move shapes; each spells out one Effect array longhand
+// The repeated Monster move shapes; each spells out one Effect array longhand
 pub const fn move_attack(name: &'static str, damage: u16, instances: u8) -> Move {
     let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut idx = 0;
@@ -576,10 +642,6 @@ pub const fn move_split(name: &'static str, first: MonsterName, second: MonsterN
 
 // `move` is a reserved keyword, so the base constructor keeps its make_ prefix
 pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
-    assert!(
-        effects.len() <= MAX_EFFECTS_PER_MOVE,
-        "Move effects exceeds MAX_EFFECTS_PER_MOVE",
-    );
     let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut idx = 0;
     while idx < effects.len() {

@@ -3,14 +3,17 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicPick;
 use crate::effect::Target;
-use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventLoot;
-use crate::events::opt;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 
-const fn spawn(name: MonsterName) -> Effect {
+const fn monster_spawn(name: MonsterName) -> Effect {
     Effect {
         kind: EffectKind::MonsterSpawn {
             name,
@@ -35,14 +38,14 @@ const OPTION_PAY: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Fight: the whole gang, with the Red Mask and their pocket gold on the line
 const OPTION_FIGHT: &[Effect] = &[
-    spawn(MonsterName::BanditPointy),
-    spawn(MonsterName::BanditLeader),
-    spawn(MonsterName::BanditBear),
+    monster_spawn(MonsterName::BanditPointy),
+    monster_spawn(MonsterName::BanditLeader),
+    monster_spawn(MonsterName::BanditBear),
     Effect {
         kind: EffectKind::CombatStart,
         id_source: None,
@@ -56,4 +59,19 @@ pub const FIGHT_LOOT: EventLoot = EventLoot {
     relics: [Some(RelicPick::Name(RelicName::RedMask)), None],
 };
 
-pub static OPTIONS: &[&[Effect]] = &[opt(OPTION_PAY), opt(OPTION_FIGHT)];
+pub static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_PAY),
+    make_event_option_template(OPTION_FIGHT),
+];
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
+}
+
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
+}

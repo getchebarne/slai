@@ -1,8 +1,11 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::events::OPTION_LEAVE;
-use crate::events::opt;
+use crate::events::EOT_LEAVE;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 
 // Reach in; +1 HP and +10% per miss until the 105% rung, which cannot fail
 const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 1] {
@@ -42,44 +45,45 @@ const OPTIONS_REACH_A15: [[Effect; 1]; 9] = [
 ];
 
 // Leave
-static OPTIONS_BASE: &[&[Effect]] = &[
-    opt(&OPTIONS_REACH_BASE[0]),
-    opt(&OPTIONS_REACH_BASE[1]),
-    opt(&OPTIONS_REACH_BASE[2]),
-    opt(&OPTIONS_REACH_BASE[3]),
-    opt(&OPTIONS_REACH_BASE[4]),
-    opt(&OPTIONS_REACH_BASE[5]),
-    opt(&OPTIONS_REACH_BASE[6]),
-    opt(&OPTIONS_REACH_BASE[7]),
-    opt(&OPTIONS_REACH_BASE[8]),
-    OPTION_LEAVE,
+static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(&OPTIONS_REACH_BASE[0]),
+    make_event_option_template(&OPTIONS_REACH_BASE[1]),
+    make_event_option_template(&OPTIONS_REACH_BASE[2]),
+    make_event_option_template(&OPTIONS_REACH_BASE[3]),
+    make_event_option_template(&OPTIONS_REACH_BASE[4]),
+    make_event_option_template(&OPTIONS_REACH_BASE[5]),
+    make_event_option_template(&OPTIONS_REACH_BASE[6]),
+    make_event_option_template(&OPTIONS_REACH_BASE[7]),
+    make_event_option_template(&OPTIONS_REACH_BASE[8]),
+    EOT_LEAVE,
 ];
-static OPTIONS_A15: &[&[Effect]] = &[
-    opt(&OPTIONS_REACH_A15[0]),
-    opt(&OPTIONS_REACH_A15[1]),
-    opt(&OPTIONS_REACH_A15[2]),
-    opt(&OPTIONS_REACH_A15[3]),
-    opt(&OPTIONS_REACH_A15[4]),
-    opt(&OPTIONS_REACH_A15[5]),
-    opt(&OPTIONS_REACH_A15[6]),
-    opt(&OPTIONS_REACH_A15[7]),
+static EOTS_A15: &[EventOptionTemplate] = &[
+    make_event_option_template(&OPTIONS_REACH_A15[0]),
+    make_event_option_template(&OPTIONS_REACH_A15[1]),
+    make_event_option_template(&OPTIONS_REACH_A15[2]),
+    make_event_option_template(&OPTIONS_REACH_A15[3]),
+    make_event_option_template(&OPTIONS_REACH_A15[4]),
+    make_event_option_template(&OPTIONS_REACH_A15[5]),
+    make_event_option_template(&OPTIONS_REACH_A15[6]),
+    make_event_option_template(&OPTIONS_REACH_A15[7]),
     // Base game also reads 105%. I'm innocent
-    opt(&OPTIONS_REACH_A15[8]),
-    OPTION_LEAVE,
+    make_event_option_template(&OPTIONS_REACH_A15[8]),
+    EOT_LEAVE,
 ];
 
-pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
-    if ascension < 15 {
-        OPTIONS_BASE
-    } else {
-        OPTIONS_A15
-    }
+pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
+    if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
 }
 
-pub fn option_available(attempts: u8, idx: usize) -> bool {
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    let attempts = state.event.stage;
     match idx {
         0..=8 => idx as u8 == attempts,
         9 => true,
         _ => unreachable!("Scrap ooze option out of range: {idx}"),
     }
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
 }

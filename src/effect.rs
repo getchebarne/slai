@@ -277,7 +277,7 @@ pub enum EffectKind {
     WheelSpin,
 }
 
-// How far the staged relic is already resolved; each variant rolls only what remains
+// How far the staged Relic is already resolved; each variant rolls only what remains
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RelicPick {
     Thresholds { th_common: u8, th_uncommon: u8 },
@@ -321,6 +321,29 @@ pub enum CandidatePool {
     EventRollPotion,
 }
 
+// Only Card pools are ever multi-pick: the game's sole multi-select widgets
+// (HandCardSelectScreen, GridCardSelectScreen) both take a CardGroup
+pub const fn pool_is_cards(pool: CandidatePool) -> bool {
+    matches!(
+        pool,
+        CandidatePool::Hand
+            | CandidatePool::Discover
+            | CandidatePool::Deck
+            | CandidatePool::PileDraw
+            | CandidatePool::PileDiscard
+            | CandidatePool::PileExhaust
+            | CandidatePool::EventRollCard
+    )
+}
+
+// Input picks above one stage before applying; every other kind resolves at once
+pub const fn is_multi_pick(selection_kind: SelectionKind) -> bool {
+    match selection_kind {
+        SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count > 1,
+        _ => false,
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CandidateFilter {
     // Compare against `Entity` fields
@@ -339,7 +362,7 @@ pub enum CandidateFilter {
     NotSource,
     NotMinion,
 
-    // Starter-card predicates (Vampires, Back to Basics)
+    // Starter-Card predicates (Vampires, Back to Basics)
     StarterStrike,
     StarterUpgradeable,
 }

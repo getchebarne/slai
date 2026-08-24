@@ -14,7 +14,7 @@ use crate::utils::scale_attack_damage;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
-// Source -> actor: Cards delegate to character; monsters/character self
+// Source -> actor: Cards delegate to Character; Monsters/Character self
 fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
     if entities[id_source].kind == EntityKind::Card {
         id_character
@@ -80,11 +80,11 @@ pub fn process_effect_damage_physical(
         0
     };
 
-    // Paper Krane: Boosts Weak on monster attackers
+    // Paper Krane: Boosts Weak on Monster attackers
     let weak_paper_krane = state.entities[id_actor].kind == EntityKind::Monster
         && has_relic(&state.id_relics, RelicName::PaperKrane);
 
-    // Odd Mushroom: softens Vulnerable when the character is the target
+    // Odd Mushroom: softens Vulnerable when the Character is the target
     let vuln_odd_mushroom = state.entities[id_target].kind == EntityKind::Character
         && has_relic(&state.id_relics, RelicName::OddMushroom);
 

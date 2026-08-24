@@ -34,9 +34,9 @@ pub enum PyActionType {
     RestDig,
     RestLift,
     RestToke,
+    RestSmith,
     RewardSingingBowl,
     EffectPendingResolve,
-    RestSmith,
 }
 
 #[pymethods]

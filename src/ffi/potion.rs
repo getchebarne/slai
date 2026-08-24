@@ -34,7 +34,7 @@ mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", skip_from_py_obje
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyPotion {
-    // Arena index: a join key across collections (a rolled potion and the belt
+    // Arena index: a join key across collections (a rolled Potion and the belt
     // slot holding it share one id), never a feature
     pub id: usize,
     pub name: PyPotionName,

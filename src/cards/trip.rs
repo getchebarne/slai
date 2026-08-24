@@ -40,7 +40,7 @@ pub static TRIP_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
     effects: {
         let mut effects = TRIP.effects;
-        effects[0].target = TARGET_MONSTERS_ALL; // Targets all monsters
+        effects[0].target = TARGET_MONSTERS_ALL; // Targets all Monsters
         effects
     },
     ..TRIP

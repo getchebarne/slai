@@ -35,7 +35,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         ..
     } = &mut state.combat;
 
-    // Elite fights are identified by the monsters, not the room (see Dead Aventurer Event)
+    // Elite fights are identified by the Monsters, not the Room (see Dead Aventurer Event)
     let is_fight_elite = id_monsters
         .iter()
         .flatten()
@@ -112,7 +112,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         id_card_draw.push(id);
     }
 
-    // Monster MoveUpdates already queued at MonsterSpawn; queue character TurnStart
+    // Monster MoveUpdates already queued at MonsterSpawn; queue Character TurnStart
     state.effect_queue.push_front(Effect {
         kind: EffectKind::TurnStart,
         id_source: None,

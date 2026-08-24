@@ -1,7 +1,7 @@
 pub const MAX_MOVE_HISTORY: usize = 64;
 
 // Per-Card effect array cap; bump if any Card legitimately exceeds 8
-pub const MAX_EFFECTS_PER_CARD: usize = 8;
+pub const MAX_EFFECTS_PER_CARD: usize = 6;
 
 // Per-move effect array cap; sized for Book of Stabbing's Multi-Stab growth
 pub const MAX_EFFECTS_PER_MOVE: usize = 20;
@@ -14,8 +14,11 @@ pub const MAX_GOLD: u16 = 9999;
 
 // Silent starting vitals: base max HP, A14 penalty, A6+ current-HP fraction
 pub const SILENT_HP_MAX_BASE: u16 = 70;
+pub const ASCENSION_HP_MAX_CUT_LEVEL: u8 = 14;
+pub const ASCENSION_HP_START_CUT_LEVEL: u8 = 6;
 pub const SILENT_HP_MAX_A14_DELTA: u16 = 4;
-pub const HP_START_FRACTION_A6: f32 = 0.90;
+pub const HP_START_A6_NUMER: u16 = 9;
+pub const HP_START_A6_DENOM: u16 = 10;
 pub const GOLD_MONSTER_MIN: u16 = 10;
 pub const GOLD_MONSTER_MAX: u16 = 20;
 pub const GOLD_ELITE_MIN: u16 = 25;
@@ -25,7 +28,7 @@ pub const GOLD_BOSS_MAX: u16 = 105;
 pub const BOSS_RELIC_REWARD_COUNT: usize = 3;
 pub const LIBRARY_CARD_COUNT: usize = 20;
 
-// Largest single card-reward roll (The Library's 20)
+// Largest single Card-reward roll (The Library's 20)
 pub const MAX_CARD_REWARD_ROLL: usize = 20;
 const _: () = assert!(LIBRARY_CARD_COUNT <= MAX_CARD_REWARD_ROLL);
 
@@ -141,7 +144,7 @@ pub const POTION_TH_UNCOMMON: u8 = 90;
 // Discovery: number of Card options offered
 pub const DISCOVER_PICK_COUNT: u8 = 3;
 
-// Neow: cards per offer, 33% Uncommon-else-Common roll, gold amounts, Lament charge count
+// Neow: Cards per offer, 33% Uncommon-else-Common roll, gold amounts, Lament charge count
 pub const NEOW_CARD_COUNT: usize = 3;
 pub const NEOW_POTION_COUNT: u8 = 3;
 pub const NEOW_UNCOMMON_CHANCE: f64 = 0.33;
@@ -176,7 +179,7 @@ pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 = 1.05;
 pub const SHOP_PURGE_COST_BASE: u16 = 75;
 pub const SHOP_PURGE_COST_INCREMENT: u16 = 25;
 
-// One random colored-card slot is floor-halved, pre-markup
+// One random colored-Card slot is floor-halved, pre-markup
 pub const SHOP_SALE_DIVISOR: u16 = 2;
 
 // A16+ markup: Card/Relic/Potion prices x 11/10 rounded half-up; purge cost is exempt
@@ -191,7 +194,7 @@ pub const fn bump_price_a16(price: u16) -> u16 {
         / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
 }
 
-// Sup of base x U[lo, hi) with hi = 11/10 (cards) or 21/20 (relics/potions);
+// Sup of base x U[lo, hi) with hi = 11/10 (Cards) or 21/20 (Relics/Potions);
 // integer mirror of the f32 variance rolls in engine/shop.rs, pinned below
 const fn price_sup_card(base: u16) -> u16 {
     (base * 11 - 1) / 10
@@ -212,7 +215,7 @@ pub const SHOP_PRICE_POTION_MAX: u16 =
 
 // Shop inventory composition
 pub const SHOP_SLOTS_CARD_COLORED: usize = 5;
-pub const SHOP_SLOTS_CARD_COLORLESS: usize = 2;
+const SHOP_SLOTS_CARD_COLORLESS: usize = 2;
 pub const SHOP_SLOTS_CARD_TOTAL: usize = SHOP_SLOTS_CARD_COLORED + SHOP_SLOTS_CARD_COLORLESS;
 pub const SHOP_SLOTS_RELIC: usize = 3;
 pub const SHOP_SLOTS_POTION: usize = 3;

@@ -45,7 +45,7 @@ pub struct PyMap {
     pub identity_hash: u64,
 }
 
-// Position-independent hash of the room topology (kinds + edges) — a stable map identity for the
+// Position-independent hash of the Room topology (kinds + edges) — a stable map identity for the
 // RL encoder's static-grid cache. Excludes the live position so it's constant across a map's life.
 fn map_identity_hash(state: &GameState) -> u64 {
     use std::hash::Hash;

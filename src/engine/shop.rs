@@ -85,7 +85,7 @@ pub(super) fn restock_relic(
         id_taken[name as usize] = Some(usize::MAX);
     }
 
-    // Sample relic from pool
+    // Sample Relic from pool
     let Some(name) = pick_relic_from_pool(pool, &id_taken, rng) else {
         return;
     };

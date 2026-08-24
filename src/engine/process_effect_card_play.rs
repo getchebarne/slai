@@ -595,7 +595,7 @@ fn free_random_costed_hand_card(
 }
 
 // Tracks the played kind in a seen-kinds bitmask (Attack=1, Skill=2, Power=4) on the
-// Relic counter; once all three are seen in a turn, clears the character's debuffs and resets
+// Relic counter; once all three are seen in a turn, clears the Character's debuffs and resets
 fn orange_pellets_track_and_sweep(
     entities: &mut [Entity],
     effect_queue: &mut VecDeque<Effect>,

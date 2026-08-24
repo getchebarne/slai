@@ -13,13 +13,13 @@ pub fn process_effect_block_gain(
     amount: u16,
 ) {
     let id_target = id_target.expect("BlockGain requires id_target");
-    // Card-played block scales with Dex/Frail; modifier-driven and monster-self don't
+    // Card-played block scales with Dex/Frail; modifier-driven and Monster-self don't
     let from_card = match id_source {
         Some(id) => state.entities[id].kind == EntityKind::Card,
         None => false,
     };
 
-    // No-Block (Panic Button): Card-sourced block on the character is negated
+    // No-Block (Panic Button): Card-sourced block on the Character is negated
     if from_card
         && id_target == state.id_character
         && has_modifier(&state.entities[id_target].modifiers, ModifierKind::NoBlock)

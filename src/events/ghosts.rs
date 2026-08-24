@@ -3,9 +3,12 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::OPTION_LEAVE;
-use crate::events::opt;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EOT_LEAVE;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -34,19 +37,29 @@ const fn accept(count: u16) -> [Effect; 3] {
             id_source: None,
             target: Target::Direct(None),
         },
-        EVENT_CONSUME_EFFECT,
+        EFFECT_EVENT_CONSUME,
     ]
 }
+
+// Accept: half max HP for 5 Apparitions
 const OPTION_ACCEPT_BASE: [Effect; 3] = accept(5);
+
+// Accept at A15+: only 3 Apparitions
 const OPTION_ACCEPT_A15: [Effect; 3] = accept(3);
 
-static OPTIONS_BASE: &[&[Effect]] = &[opt(&OPTION_ACCEPT_BASE), OPTION_LEAVE];
-static OPTIONS_A15: &[&[Effect]] = &[opt(&OPTION_ACCEPT_A15), OPTION_LEAVE];
+static EOTS_BASE: &[EventOptionTemplate] =
+    &[make_event_option_template(&OPTION_ACCEPT_BASE), EOT_LEAVE];
+static EOTS_A15: &[EventOptionTemplate] =
+    &[make_event_option_template(&OPTION_ACCEPT_A15), EOT_LEAVE];
 
-pub fn options(ascension: u8) -> &'static [&'static [Effect]] {
-    if ascension < 15 {
-        OPTIONS_BASE
-    } else {
-        OPTIONS_A15
-    }
+pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
+    if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
+}
+
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
 }

@@ -197,43 +197,52 @@ fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
         unreachable!("effect_pending carries a Resolve target")
     };
 
-    // Get selected `Entity` ID
+    // Stage the selected `Entity` ID; nothing applies until the selection closes
     let id_selected = pool_collection(
         candidate_pool,
         &state.combat,
         &state.event,
         &state.id_card_deck,
     )[idx];
+    state.effect_pending_picks.push(id_selected);
 
-    // Push resolved `Effect` w/ `Target::Direct`
-    state.effect_buf.push(Effect {
-        kind: effect_pending.kind,
-        id_source: effect_pending.id_source,
-        target: Target::Direct(Some(id_selected)),
-    });
-
-    // Re-raise the remaining count; the pick flushes ahead so the pool shrinks first
     let remaining = match selection_kind {
         SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => {
             count.saturating_sub(1)
         }
         _ => panic!("Pending pick carries an Input halt"),
     };
-    if remaining > 0 {
-        let selection_kind = match selection_kind {
-            SelectionKind::Input { .. } => SelectionKind::Input { count: remaining },
-            _ => SelectionKind::InputUpTo { count: remaining },
-        };
+    if remaining == 0 {
+        flush_pending_picks(state, effect_pending.kind, effect_pending.id_source);
+        return;
+    }
+
+    // Re-park with the remaining count; staged picks stay out of the pool
+    let selection_kind = match selection_kind {
+        SelectionKind::Input { .. } => SelectionKind::Input { count: remaining },
+        _ => SelectionKind::InputUpTo { count: remaining },
+    };
+    state.effect_buf.push(Effect {
+        kind: effect_pending.kind,
+        id_source: effect_pending.id_source,
+        target: Target::Resolve {
+            candidate_pool,
+            filter,
+            selection_kind,
+        },
+    });
+}
+
+// One Direct effect per staged pick, in pick order
+fn flush_pending_picks(state: &mut GameState, kind: EffectKind, id_source: Option<usize>) {
+    for &id in &state.effect_pending_picks {
         state.effect_buf.push(Effect {
-            kind: effect_pending.kind,
-            id_source: effect_pending.id_source,
-            target: Target::Resolve {
-                candidate_pool,
-                filter,
-                selection_kind,
-            },
+            kind,
+            id_source,
+            target: Target::Direct(Some(id)),
         });
     }
+    state.effect_pending_picks.clear();
 }
 
 // The indexable collection behind each halting pool
@@ -281,12 +290,13 @@ fn pool_collection<'a>(
     }
 }
 
-// Ends an InputUpTo halt early; remaining picks are forfeited
+// Ends an InputUpTo halt early; staged picks apply, the remainder is forfeited
 fn handle_pick_skip(state: &mut GameState) {
-    state
+    let effect_pending = state
         .effect_pending
         .take()
         .expect("PickSkip requires a pending effect");
+    flush_pending_picks(state, effect_pending.kind, effect_pending.id_source);
 }
 
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
@@ -538,7 +548,7 @@ fn handle_room_exit(state: &mut GameState) {
 }
 
 fn handle_room_select(state: &mut GameState, idx: usize) {
-    // Membership guarantees the column has a reachable room, so row < MAP_HEIGHT and the room exists
+    // Membership guarantees the column has a reachable Room, so row < MAP_HEIGHT and the Room exists
     let y_next = match state.location {
         Location::Start => 0,
         Location::Overworld { y, .. } => y + 1,
@@ -595,9 +605,11 @@ fn fill_legal_actions_effect_pending(
     // Get `CandidatePool`'s instanced IDs
     let id_collection = pool_collection(pool, &state.combat, &state.event, &state.id_card_deck);
 
-    // Apply `CandidateFilter`
+    // Apply `CandidateFilter`; staged picks are out of the running
     for (idx, &id) in id_collection.iter().enumerate() {
-        if candidate_matches(filter, id, &state.entities[id], None, None) {
+        if !state.effect_pending_picks.contains(&id)
+            && candidate_matches(filter, id, &state.entities[id], None, None)
+        {
             state
                 .legal_actions
                 .push(Action::EffectPendingResolve { idx });
@@ -618,7 +630,7 @@ fn fill_legal_actions_combat(state: &mut GameState) {
     } = &state.combat;
     let id_character = state.id_character;
 
-    // Entangled: can't play `CardKind::Attack` cards
+    // Entangled: can't play `CardKind::Attack` Cards
     let entangled = has_modifier(
         &state.entities[id_character].modifiers,
         ModifierKind::Entangled,
@@ -880,7 +892,7 @@ fn push_room_select_actions(state: &mut GameState) {
             if let Some(id_current) = state.id_rooms[y][x] {
                 let edges = state.entities[id_current].room_edges;
 
-                // Wing Boots: with charges left, any next-row room is reachable
+                // Wing Boots: with charges left, any next-row Room is reachable
                 let winged = state.id_relics[RelicName::WingBoots as usize]
                     .is_some_and(|id| state.entities[id].relic_counter > 0);
                 for x in 0..MAP_WIDTH {

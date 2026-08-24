@@ -212,7 +212,7 @@ pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::
     id_relics[egg as usize].is_some()
 }
 
-// Per-turn Relic counters; reset at character turn end and at combat start
+// Per-turn Relic counters; reset at Character turn end and at combat start
 // (combat can end mid-turn, so turn-end resets alone leak into the next combat)
 pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::Kunai,

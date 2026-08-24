@@ -2,7 +2,7 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// The character can no longer become Weakened
+// The Character can no longer become Weakened
 // See:
 //    - `process_effect_modifier_gain.rs`
 pub static GINGER: RelicTemplate = RelicTemplate {

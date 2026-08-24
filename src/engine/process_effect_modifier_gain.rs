@@ -36,7 +36,7 @@ pub fn process_effect_modifier_gain(
     // Get mutable target reference
     let target = &mut state.entities[id_target];
 
-    // Snecko Skull: +1 to any positive Poison application on a monster
+    // Snecko Skull: +1 to any positive Poison application on a Monster
     let stacks = if kind == ModifierKind::Poison
         && stacks > 0
         && matches!(target.kind, EntityKind::Monster)
@@ -85,7 +85,7 @@ pub fn process_effect_modifier_gain(
         });
     }
 
-    // Sadistic Nature: player-applied debuffs landing on a monster proc THORNS-type damage
+    // Sadistic Nature: player-applied debuffs landing on a Monster proc THORNS-type damage
     if is_debuff_attempt
         && kind != ModifierKind::Shackled
         && state.entities[id_target].kind == EntityKind::Monster

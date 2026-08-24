@@ -22,13 +22,13 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         Focus::Map => unreachable!("RoomExit with no context to close"),
     }
 
-    // Closing a Reward overlay reveals its live host; the room itself is not
+    // Closing a Reward overlay reveals its live host; the Room itself is not
     // left until every context is closed, so the exit logic below stays out
     if context_focus(state) != Focus::Map {
         return;
     }
 
-    // Exiting a mid-run Boss room starts the next act
+    // Exiting a mid-run Boss Room starts the next act
     if matches!(state.location, Location::BossRoom) && state.act < ACT_FINAL {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ActTransition,
@@ -38,7 +38,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         return;
     }
 
-    // Final-row rest room enters the boss instead of returning to the map
+    // Final-row rest Room enters the boss instead of returning to the map
     if matches!(state.location, Location::Overworld { y, .. } if y == MAP_HEIGHT - 1)
         && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
             == Some(RoomKind::RestSite)

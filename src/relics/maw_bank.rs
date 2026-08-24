@@ -2,7 +2,7 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Entering any room grants 12 gold until gold is spent at a shop
+// Entering any Room grants 12 gold until gold is spent at a shop
 // See:
 //    - `process_effect_gold_delta.rs`
 //    - `process_effect_room_enter.rs`

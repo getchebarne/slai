@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 // type_hint_union! folds one CTFE frame per PyEffect variant; the default 128 overflows
 #![recursion_limit = "512"]
 
@@ -495,5 +494,7 @@ mod slai {
     #[pymodule_export]
     const SILENT_HP_MAX_A14_DELTA: u16 = super::consts::SILENT_HP_MAX_A14_DELTA;
     #[pymodule_export]
-    const HP_START_FRACTION_A6: f32 = super::consts::HP_START_FRACTION_A6;
+    const HP_START_A6_NUMER: u16 = super::consts::HP_START_A6_NUMER;
+    #[pymodule_export]
+    const HP_START_A6_DENOM: u16 = super::consts::HP_START_A6_DENOM;
 }
