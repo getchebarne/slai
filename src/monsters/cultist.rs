@@ -22,7 +22,11 @@ pub static CULTIST: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (48, 54)), (7, (50, 56))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
     modifier_tiers: &[],
 };
 

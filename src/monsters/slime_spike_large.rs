@@ -2,6 +2,7 @@ use crate::entity::Intent;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack_card_add;
 use crate::monsters::move_debuff;
 use crate::monsters::move_split;
@@ -32,6 +33,10 @@ pub static SLIME_SPIKE_LARGE: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (64, 70)), (7, (67, 73))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
-    modifier_tiers: &[(0, &[(ModifierKind::Splittable, 1)])],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Splittable, 1)])],
 };

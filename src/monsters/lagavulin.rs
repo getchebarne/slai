@@ -9,6 +9,7 @@ use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -99,10 +100,17 @@ pub static LAGAVULIN: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (109, 111)), (8, (112, 115))],
     block_start: 8,
-    move_tiers: &[(0, &MOVES_ASC0), (3, &MOVES_ASC3), (18, &MOVES_ASC18)],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (3, &[&MOVES_ASC3]),
+        (18, &[&MOVES_ASC18]),
+    ],
     modifier_tiers: &[(
         0,
-        &[(ModifierKind::Asleep, 1), (ModifierKind::Metallicize, 8)],
+        &[
+            modifier_fixed(ModifierKind::Asleep, 1),
+            modifier_fixed(ModifierKind::Metallicize, 8),
+        ],
     )],
 };
 

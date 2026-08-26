@@ -9,6 +9,7 @@ use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_buff;
 use crate::types::MonsterKind;
@@ -195,15 +196,33 @@ pub static THE_GUARDIAN: MonsterTemplate = MonsterTemplate {
     health_tiers: &[(0, (240, 240)), (9, (250, 250))],
     block_start: 0,
     move_tiers: &[
-        (0, &MOVES_ASC0),
-        (4, &MOVES_ASC4),
-        (9, &MOVES_ASC9),
-        (19, &MOVES_ASC19),
+        (0, &[&MOVES_ASC0]),
+        (4, &[&MOVES_ASC4]),
+        (9, &[&MOVES_ASC9]),
+        (19, &[&MOVES_ASC19]),
     ],
     modifier_tiers: &[
-        (0, &[(ModifierKind::ModeShift, MODE_SHIFT_STACKS_30)]),
-        (9, &[(ModifierKind::ModeShift, MODE_SHIFT_STACKS_35)]),
-        (19, &[(ModifierKind::ModeShift, MODE_SHIFT_STACKS_40)]),
+        (
+            0,
+            &[modifier_fixed(
+                ModifierKind::ModeShift,
+                MODE_SHIFT_STACKS_30,
+            )],
+        ),
+        (
+            9,
+            &[modifier_fixed(
+                ModifierKind::ModeShift,
+                MODE_SHIFT_STACKS_35,
+            )],
+        ),
+        (
+            19,
+            &[modifier_fixed(
+                ModifierKind::ModeShift,
+                MODE_SHIFT_STACKS_40,
+            )],
+        ),
     ],
 };
 

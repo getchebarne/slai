@@ -175,10 +175,10 @@ pub static CHAMP: MonsterTemplate = MonsterTemplate {
     health_tiers: &[(0, (420, 420)), (9, (440, 440))],
     block_start: 0,
     move_tiers: &[
-        (0, &MOVES_ASC0),
-        (4, &MOVES_ASC4),
-        (9, &MOVES_ASC9),
-        (19, &MOVES_ASC19),
+        (0, &[&MOVES_ASC0]),
+        (4, &[&MOVES_ASC4]),
+        (9, &[&MOVES_ASC9]),
+        (19, &[&MOVES_ASC19]),
     ],
     modifier_tiers: &[],
 };

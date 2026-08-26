@@ -2,6 +2,7 @@ use crate::consts::MAX_EFFECTS_PER_MOVE;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::Move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -36,8 +37,8 @@ pub static BOOK_OF_STABBING: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (160, 164)), (8, (168, 172))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (3, &MOVES_ASC3)],
-    modifier_tiers: &[(0, &[(ModifierKind::PainfulStabs, 1)])],
+    move_tiers: &[(0, &[&MOVES_ASC0]), (3, &[&MOVES_ASC3])],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::PainfulStabs, 1)])],
 };
 
 pub fn get_next_move_book_of_stabbing(

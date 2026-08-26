@@ -49,10 +49,10 @@ pub static GREMLIN_TSUNDERE: MonsterTemplate = MonsterTemplate {
     health_tiers: &[(0, (12, 15)), (7, (13, 17))],
     block_start: 0,
     move_tiers: &[
-        (0, &MOVES_ASC0),
-        (2, &MOVES_ASC2),
-        (7, &MOVES_ASC7),
-        (17, &MOVES_ASC17),
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (7, &[&MOVES_ASC7]),
+        (17, &[&MOVES_ASC17]),
     ],
     modifier_tiers: &[],
 };

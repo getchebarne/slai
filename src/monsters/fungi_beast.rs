@@ -1,6 +1,7 @@
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_buff;
 use crate::types::MonsterKind;
@@ -23,8 +24,12 @@ pub static FUNGI_BEAST: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (22, 28)), (7, (24, 28))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
-    modifier_tiers: &[(0, &[(ModifierKind::SporeCloud, 2)])],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::SporeCloud, 2)])],
 };
 
 pub fn get_next_move_fungi_beast(move_history: &[u8], rng: &mut impl Rng) -> usize {

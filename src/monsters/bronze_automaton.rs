@@ -6,6 +6,7 @@ use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_block_buff;
 use crate::types::MonsterKind;
@@ -77,8 +78,12 @@ pub static BRONZE_AUTOMATON: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (300, 300)), (9, (320, 320))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (4, &MOVES_ASC4), (9, &MOVES_ASC9)],
-    modifier_tiers: &[(0, &[(ModifierKind::Artifact, 3)])],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (4, &[&MOVES_ASC4]),
+        (9, &[&MOVES_ASC9]),
+    ],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Artifact, 3)])],
 };
 
 // Deterministic: Spawn, then Flail / Boost alternating; the fifth cycling turn

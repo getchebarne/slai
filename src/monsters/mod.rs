@@ -73,13 +73,40 @@ use crate::types::Vitals;
 use rand::Rng;
 
 // Static definition of a Monster: everything spawn-time except per-Monster rolls
+#[derive(Debug, Clone, Copy)]
+pub struct ModifierSpawn {
+    pub kind: ModifierKind,
+    pub stacks_min: i16,
+    pub stacks_max: i16,
+}
+
+pub const fn modifier_fixed(kind: ModifierKind, stacks: i16) -> ModifierSpawn {
+    ModifierSpawn {
+        kind,
+        stacks_min: stacks,
+        stacks_max: stacks,
+    }
+}
+
+pub const fn modifier_rolled(
+    kind: ModifierKind,
+    stacks_min: i16,
+    stacks_max: i16,
+) -> ModifierSpawn {
+    ModifierSpawn {
+        kind,
+        stacks_min,
+        stacks_max,
+    }
+}
+
 pub struct MonsterTemplate {
     pub name: MonsterName,
     pub kind: MonsterKind,
     pub health_tiers: &'static [(u8, (u16, u16))],
     pub block_start: u16,
-    pub move_tiers: &'static [(u8, &'static [Move])],
-    pub modifier_tiers: &'static [(u8, &'static [(ModifierKind, i16)])],
+    pub move_tiers: &'static [(u8, &'static [&'static [Move]])],
+    pub modifier_tiers: &'static [(u8, &'static [ModifierSpawn])],
 }
 
 // Every MonsterTemplate, for compile-time validation and template enumeration
@@ -150,7 +177,7 @@ const _: () = {
     }
 };
 
-// None iff `tiers` is empty (the louses' rolled move tables)
+// None iff `tiers` is empty (the modifier tables most Monsters leave blank)
 pub fn pick_tier<T: Copy>(tiers: &'static [(u8, T)], ascension_level: u8) -> Option<T> {
     tiers
         .iter()
@@ -173,10 +200,24 @@ fn instance_monster_from_template(
         rng.random_range(health_min..=health_max)
     };
 
+    // Moves before Modifiers: the rolled monsters draw their move set first
+    let move_sets =
+        pick_tier(template.move_tiers, ascension_level).expect("move_tiers is never empty");
+    let moves = if move_sets.len() == 1 {
+        move_sets[0]
+    } else {
+        move_sets[rng.random_range(0..move_sets.len())]
+    };
+
     // Modifiers
     let mut modifiers = MODIFIERS_ZERO;
-    for &(kind, stacks) in pick_tier(template.modifier_tiers, ascension_level).unwrap_or(&[]) {
-        modifier_apply(&mut modifiers, kind, stacks);
+    for spawn in pick_tier(template.modifier_tiers, ascension_level).unwrap_or(&[]) {
+        let stacks = if spawn.stacks_min == spawn.stacks_max {
+            spawn.stacks_min
+        } else {
+            rng.random_range(spawn.stacks_min..=spawn.stacks_max)
+        };
+        modifier_apply(&mut modifiers, spawn.kind, stacks);
     }
 
     // Instance
@@ -189,18 +230,12 @@ fn instance_monster_from_template(
             block: template.block_start,
         },
         modifiers,
-        pick_tier(template.move_tiers, ascension_level)
-            .expect("hand-spawned monster (louse); use spawn_monster"),
+        moves,
     )
 }
 
 pub fn spawn_monster(monster_name: MonsterName, ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    match monster_name {
-        // Rolled bite damage + Curl Up keep the louses on hand-written spawns
-        MonsterName::LouseDefensive => louse_green::spawn_monster_louse_green(ascension_level, rng),
-        MonsterName::LouseNormal => louse_red::spawn_monster_louse_red(ascension_level, rng),
-        other => instance_monster_from_template(monster_template(other), ascension_level, rng),
-    }
+    instance_monster_from_template(monster_template(monster_name), ascension_level, rng)
 }
 
 // Named arms: a new MonsterName fails compilation here until it has a template
@@ -642,7 +677,6 @@ pub const fn move_split(name: &'static str, first: MonsterName, second: MonsterN
     )
 }
 
-// `move` is a reserved keyword, so the base constructor keeps its make_ prefix
 pub const fn make_move(name: &'static str, effects: &[Effect], intent: Intent) -> Move {
     let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
     let mut idx = 0;

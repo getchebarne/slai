@@ -1,6 +1,7 @@
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -16,9 +17,13 @@ pub static GREMLIN_WARRIOR: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (20, 24)), (7, (21, 25))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
     modifier_tiers: &[
-        (0, &[(ModifierKind::Angry, 1)]),
-        (17, &[(ModifierKind::Angry, 2)]),
+        (0, &[modifier_fixed(ModifierKind::Angry, 1)]),
+        (17, &[modifier_fixed(ModifierKind::Angry, 2)]),
     ],
 };

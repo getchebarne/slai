@@ -7,6 +7,7 @@ use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -56,8 +57,12 @@ pub static SENTRY: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (38, 42)), (8, (39, 45))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (3, &MOVES_ASC3), (18, &MOVES_ASC18)],
-    modifier_tiers: &[(0, &[(ModifierKind::Artifact, 1)])],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (3, &[&MOVES_ASC3]),
+        (18, &[&MOVES_ASC18]),
+    ],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Artifact, 1)])],
 };
 
 // Strict Bolt↔Beam alternation; first is Bolt at even roster index, Beam at odd

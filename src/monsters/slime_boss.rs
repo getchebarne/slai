@@ -6,6 +6,7 @@ use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_split;
 use crate::types::CardName;
@@ -64,8 +65,12 @@ pub static SLIME_BOSS: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Boss,
     health_tiers: &[(0, (140, 140)), (9, (150, 150))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (4, &MOVES_ASC4), (19, &MOVES_ASC19)],
-    modifier_tiers: &[(0, &[(ModifierKind::Splittable, 1)])],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (4, &[&MOVES_ASC4]),
+        (19, &[&MOVES_ASC19]),
+    ],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Splittable, 1)])],
 };
 
 pub fn get_next_move_slime_boss(move_current: Option<usize>, move_history: &[u8]) -> usize {

@@ -28,7 +28,11 @@ pub static GREMLIN_NOB: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (82, 86)), (8, (85, 90))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (3, &MOVES_ASC3), (18, &MOVES_ASC18)],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (3, &[&MOVES_ASC3]),
+        (18, &[&MOVES_ASC18]),
+    ],
     modifier_tiers: &[],
 };
 

@@ -139,10 +139,10 @@ pub static THE_COLLECTOR: MonsterTemplate = MonsterTemplate {
     health_tiers: &[(0, (282, 282)), (9, (300, 300))],
     block_start: 0,
     move_tiers: &[
-        (0, &MOVES_ASC0),
-        (4, &MOVES_ASC4),
-        (9, &MOVES_ASC9),
-        (19, &MOVES_ASC19),
+        (0, &[&MOVES_ASC0]),
+        (4, &[&MOVES_ASC4]),
+        (9, &[&MOVES_ASC9]),
+        (19, &[&MOVES_ASC19]),
     ],
     modifier_tiers: &[],
 };

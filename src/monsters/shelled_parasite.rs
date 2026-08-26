@@ -6,6 +6,7 @@ use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_attack_debuff;
 use crate::types::MonsterKind;
@@ -63,8 +64,14 @@ pub static SHELLED_PARASITE: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (68, 72)), (7, (70, 75))],
     block_start: PLATED_ARMOR_START as u16,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2)],
-    modifier_tiers: &[(0, &[(ModifierKind::PlatedArmor, PLATED_ARMOR_START)])],
+    move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
+    modifier_tiers: &[(
+        0,
+        &[modifier_fixed(
+            ModifierKind::PlatedArmor,
+            PLATED_ARMOR_START,
+        )],
+    )],
 };
 
 pub fn get_next_move_shelled_parasite(

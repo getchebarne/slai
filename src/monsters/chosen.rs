@@ -72,7 +72,7 @@ pub static CHOSEN: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (95, 99)), (7, (98, 103))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2)],
+    move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
     modifier_tiers: &[],
 };
 

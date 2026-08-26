@@ -7,6 +7,7 @@ use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_attack_debuff;
 use crate::monsters::move_block;
@@ -79,10 +80,17 @@ pub static SPHERIC_GUARDIAN: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (20, 20))],
     block_start: START_BLOCK,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
     modifier_tiers: &[(
         0,
-        &[(ModifierKind::Barricade, 1), (ModifierKind::Artifact, 3)],
+        &[
+            modifier_fixed(ModifierKind::Barricade, 1),
+            modifier_fixed(ModifierKind::Artifact, 3),
+        ],
     )],
 };
 

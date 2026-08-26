@@ -157,7 +157,7 @@ use crate::types::RelicTier;
 use crate::types::relic_name_from_u8;
 
 // Totality relies on the len == COUNT and no-duplicate asserts below
-const fn build_relic_by_name() -> [&'static RelicTemplate; RelicName::COUNT] {
+const fn build_relic_template_by_name() -> [&'static RelicTemplate; RelicName::COUNT] {
     let mut buf = [ALL_RELICS[0]; RelicName::COUNT];
     let mut idx = 0;
     while idx < ALL_RELICS.len() {
@@ -167,14 +167,15 @@ const fn build_relic_by_name() -> [&'static RelicTemplate; RelicName::COUNT] {
     buf
 }
 
-static RELIC_BY_NAME: [&'static RelicTemplate; RelicName::COUNT] = build_relic_by_name();
+static RELIC_TEMPLATE_BY_NAME: [&'static RelicTemplate; RelicName::COUNT] =
+    build_relic_template_by_name();
 
 pub fn relic_template(name: RelicName) -> &'static RelicTemplate {
-    RELIC_BY_NAME[name as usize]
+    RELIC_TEMPLATE_BY_NAME[name as usize]
 }
 
 pub fn get_relic(name: RelicName) -> Entity {
-    instance_relic_from_template(RELIC_BY_NAME[name as usize])
+    instance_relic_from_template(RELIC_TEMPLATE_BY_NAME[name as usize])
 }
 
 // Bump a Relic's counter if owned; at `threshold` reset it to 0 and report the fire

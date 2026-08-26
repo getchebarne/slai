@@ -79,7 +79,11 @@ pub static GREMLIN_LEADER: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Elite,
     health_tiers: &[(0, (140, 148)), (8, (145, 155))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (3, &MOVES_ASC3), (18, &MOVES_ASC18)],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (3, &[&MOVES_ASC3]),
+        (18, &[&MOVES_ASC18]),
+    ],
     modifier_tiers: &[],
 };
 

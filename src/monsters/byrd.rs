@@ -8,6 +8,7 @@ use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_buff;
 use crate::types::MonsterKind;
@@ -88,10 +89,20 @@ pub static BYRD: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (25, 31)), (7, (26, 33))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2), (17, &MOVES_ASC17)],
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
     modifier_tiers: &[
-        (0, &[(ModifierKind::Flight, FLIGHT_STACKS_BASE)]),
-        (17, &[(ModifierKind::Flight, FLIGHT_STACKS_A17)]),
+        (
+            0,
+            &[modifier_fixed(ModifierKind::Flight, FLIGHT_STACKS_BASE)],
+        ),
+        (
+            17,
+            &[modifier_fixed(ModifierKind::Flight, FLIGHT_STACKS_A17)],
+        ),
     ],
 };
 

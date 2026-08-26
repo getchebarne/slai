@@ -2,6 +2,7 @@ use crate::entity::Intent;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::monsters::move_attack_card_add;
 use crate::monsters::move_debuff;
@@ -47,8 +48,8 @@ pub static SLIME_ACID_LARGE: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (65, 69)), (7, (68, 72))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES_ASC0), (2, &MOVES_ASC2)],
-    modifier_tiers: &[(0, &[(ModifierKind::Splittable, 1)])],
+    move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Splittable, 1)])],
 };
 
 pub fn get_next_move_slime_acid_large(

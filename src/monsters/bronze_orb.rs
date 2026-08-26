@@ -9,6 +9,7 @@ use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
@@ -51,8 +52,8 @@ pub static BRONZE_ORB: MonsterTemplate = MonsterTemplate {
     kind: MonsterKind::Normal,
     health_tiers: &[(0, (52, 58)), (9, (54, 60))],
     block_start: 0,
-    move_tiers: &[(0, &MOVES)],
-    modifier_tiers: &[(0, &[(ModifierKind::Minion, 1)])],
+    move_tiers: &[(0, &[&MOVES])],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Minion, 1)])],
 };
 
 pub fn get_next_move_bronze_orb(move_history: &[u8], rng: &mut impl Rng) -> usize {
