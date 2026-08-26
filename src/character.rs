@@ -2,8 +2,8 @@ use crate::cards::get_card;
 use crate::consts::ASCENSION_HP_MAX_CUT_LEVEL;
 use crate::consts::ASCENSION_HP_START_CUT_LEVEL;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
-use crate::consts::HP_START_A6_DENOM;
-use crate::consts::HP_START_A6_NUMER;
+use crate::consts::HEALTH_START_A6_DENOM;
+use crate::consts::HEALTH_START_A6_NUMER;
 use crate::consts::SILENT_HP_MAX_A14_DELTA;
 use crate::consts::SILENT_HP_MAX_BASE;
 use crate::consts::STARTING_GOLD;
@@ -59,7 +59,8 @@ pub const fn silent_health(ascension: u8) -> (u16, u16) {
         health = health_max;
     }
     if ascension >= ASCENSION_HP_START_CUT_LEVEL {
-        health = (health * HP_START_A6_NUMER + HP_START_A6_DENOM / 2) / HP_START_A6_DENOM;
+        health =
+            (health * HEALTH_START_A6_NUMER + HEALTH_START_A6_DENOM / 2) / HEALTH_START_A6_DENOM;
     }
 
     (health, health_max)

@@ -113,7 +113,7 @@ pub struct Event {
     pub stage: u8,
     pub id_event_options: Vec<usize>,
 
-    // Entities the spawn rolled/staked; options target them via the EventRoll* pools
+    // Entities the spawn rolled; options target them via the EventRoll<...> pools
     pub id_roll_card: Vec<usize>,
     pub id_roll_relic: Vec<usize>,
     pub id_roll_potion: Vec<usize>,

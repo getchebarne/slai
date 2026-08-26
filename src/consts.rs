@@ -17,8 +17,8 @@ pub const SILENT_HP_MAX_BASE: u16 = 70;
 pub const ASCENSION_HP_MAX_CUT_LEVEL: u8 = 14;
 pub const ASCENSION_HP_START_CUT_LEVEL: u8 = 6;
 pub const SILENT_HP_MAX_A14_DELTA: u16 = 4;
-pub const HP_START_A6_NUMER: u16 = 9;
-pub const HP_START_A6_DENOM: u16 = 10;
+pub const HEALTH_START_A6_NUMER: u16 = 9;
+pub const HEALTH_START_A6_DENOM: u16 = 10;
 pub const GOLD_MONSTER_MIN: u16 = 10;
 pub const GOLD_MONSTER_MAX: u16 = 20;
 pub const GOLD_ELITE_MIN: u16 = 25;
@@ -194,24 +194,30 @@ pub const fn bump_price_a16(price: u16) -> u16 {
         / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
 }
 
-// Sup of base x U[lo, hi) with hi = 11/10 (Cards) or 21/20 (Relics/Potions);
-// integer mirror of the f32 variance rolls in engine/shop.rs, pinned below
-const fn price_sup_card(base: u16) -> u16 {
-    (base * 11 - 1) / 10
+// Largest price the half-open variance roll in engine/shop.rs can produce
+const fn price_sup(base: u16, variance_max: f32) -> u16 {
+    let max = base as f32 * variance_max;
+    let truncated = max as u16;
+    if truncated as f32 == max {
+        truncated - 1
+    } else {
+        truncated
+    }
 }
-const fn price_sup_relic_potion(base: u16) -> u16 {
-    (base * 21 - 1) / 20
-}
-const _: () = assert!(SHOP_PRICE_CARD_VARIANCE_MAX == 11.0 / 10.0);
-const _: () = assert!(SHOP_PRICE_RELIC_POTION_VARIANCE_MAX == 21.0 / 20.0);
 
 // Derived stock-price ceilings, post-A16 markup, pre-discount (discounts only lower)
-pub const SHOP_PRICE_CARD_MAX: u16 = bump_price_a16(price_sup_card(
+pub const SHOP_PRICE_CARD_MAX: u16 = bump_price_a16(price_sup(
     SHOP_PRICE_CARD_RARE * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM,
+    SHOP_PRICE_CARD_VARIANCE_MAX,
 ));
-pub const SHOP_PRICE_RELIC_MAX: u16 = bump_price_a16(price_sup_relic_potion(SHOP_PRICE_RELIC_RARE));
-pub const SHOP_PRICE_POTION_MAX: u16 =
-    bump_price_a16(price_sup_relic_potion(SHOP_PRICE_POTION_RARE));
+pub const SHOP_PRICE_RELIC_MAX: u16 = bump_price_a16(price_sup(
+    SHOP_PRICE_RELIC_RARE,
+    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
+));
+pub const SHOP_PRICE_POTION_MAX: u16 = bump_price_a16(price_sup(
+    SHOP_PRICE_POTION_RARE,
+    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
+));
 
 // Shop inventory composition
 pub const SHOP_SLOTS_CARD_COLORED: usize = 5;

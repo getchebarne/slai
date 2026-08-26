@@ -494,7 +494,7 @@ mod slai {
     #[pymodule_export]
     const SILENT_HP_MAX_A14_DELTA: u16 = super::consts::SILENT_HP_MAX_A14_DELTA;
     #[pymodule_export]
-    const HP_START_A6_NUMER: u16 = super::consts::HP_START_A6_NUMER;
+    const HEALTH_START_A6_NUMER: u16 = super::consts::HEALTH_START_A6_NUMER;
     #[pymodule_export]
-    const HP_START_A6_DENOM: u16 = super::consts::HP_START_A6_DENOM;
+    const HEALTH_START_A6_DENOM: u16 = super::consts::HEALTH_START_A6_DENOM;
 }

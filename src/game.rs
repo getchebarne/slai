@@ -70,9 +70,9 @@ pub struct GameState {
 
     // Halt overlay; cleared by the action handler that supplies the pick
     pub effect_pending: Option<Effect>,
-
-    // Picks staged during a multi-pick halt; applied when the selection closes
     pub effect_pending_picks: Vec<usize>,
+
+    // Location
     pub location: Location,
 
     // Entities and indices

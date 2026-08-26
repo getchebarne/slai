@@ -313,16 +313,12 @@ pub enum CandidatePool {
     PileDraw,
     PileDiscard,
     PileExhaust,
-
-    // Entities the event's spawn rolled/staked; Single where one was staked,
-    // Input to let the player choose among several
     EventRollCard,
     EventRollRelic,
     EventRollPotion,
 }
 
-// Only Card pools are ever multi-pick: the game's sole multi-select widgets
-// (HandCardSelectScreen, GridCardSelectScreen) both take a CardGroup
+// Only Card pools are ever multi-pick
 pub const fn pool_is_cards(pool: CandidatePool) -> bool {
     matches!(
         pool,
