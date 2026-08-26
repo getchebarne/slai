@@ -94,13 +94,13 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
 
     // Return stolen gold, once. Only relevant for Looters in practice
-    let stolen_gold = state.entities[id_target].monster_stolen_gold;
-    state.entities[id_target].monster_stolen_gold = 0;
-    let gold_return = if stolen_gold > 0 {
+    let gold_stolen = state.entities[id_target].monster_gold_stolen;
+    state.entities[id_target].monster_gold_stolen = 0;
+    let gold_return = if gold_stolen > 0 {
         Some(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                amount: Amount::Absolute(stolen_gold),
+                amount: Amount::Absolute(gold_stolen),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),

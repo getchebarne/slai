@@ -32,15 +32,15 @@ use super::effect::snapshot_effect;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
-mirror_enum!(PyCardKind from CardKind, "CardKind", skip_from_py_object, {
+mirror_enum!(PyCardKind from CardKind, "CardKind", {
     Attack, Skill, Power, Curse, Status,
 });
 
-mirror_enum!(PyCardColor from CardColor, "CardColor", skip_from_py_object, {
+mirror_enum!(PyCardColor from CardColor, "CardColor", {
     Green, Colorless, Curse,
 });
 
-mirror_enum!(PyCardRarity from CardRarity, "CardRarity", skip_from_py_object, {
+mirror_enum!(PyCardRarity from CardRarity, "CardRarity", {
     Basic, Common, Uncommon, Rare, Special, Curse,
 });
 
@@ -66,19 +66,19 @@ impl From<CardCostKind> for PyCardCostKind {
     }
 }
 
-mirror_enum!(PyPlayRestriction from PlayRestriction, "PlayRestriction", skip_from_py_object, {
+mirror_enum!(PyPlayRestriction from PlayRestriction, "PlayRestriction", {
     Always, Never, DrawPileEmpty,
 });
 
-mirror_enum!(PyCardPile from CardPile, "CardPile", skip_from_py_object, {
+mirror_enum!(PyCardPile from CardPile, "CardPile", {
     Hand, Draw, Discard, Deck,
 });
 
-mirror_enum!(PyCostScope from CostScope, "CostScope", skip_from_py_object, {
+mirror_enum!(PyCostScope from CostScope, "CostScope", {
     Turn, Combat, UntilPlayed,
 });
 
-mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
+mirror_enum!(PyCardName from CardName, "CardName", {
     AThousandCuts, Accuracy, Acrobatics, Adrenaline, AfterImage, Alchemize, AllOutAttack,
     Backflip, Backstab, BandageUp, Bane, BladeDance, Blind, Blur, BouncingFlask, BulletTime,
     Burn, Burst, CalculatedGamble, Caltrops, Catalyst, Choke, CloakAndDagger, Concentrate,
@@ -111,9 +111,7 @@ mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyCard {
-    // Arena index: a join key across collections, never a feature. Combat piles
-    // hold fresh copies of deck Cards, so a hand id never equals its deck source
-    pub id: usize,
+    pub id: usize, // Entity ID
     pub name: PyCardName,
 
     // Cost-related fields
@@ -139,9 +137,7 @@ pub struct PyCard {
     pub retain: bool,
     pub playable: bool,
 
-    // Effects. Snapshot copy: DamagePhysical / BlockGain amounts carry the current player-modifier
-    // adjustment (Str/Vigor/Weak/DoubleDamage, Dex/Frail), target-agnostic, so clients read finished
-    // combat values. This makes hash(Card) (which hashes effects) vary with combat modifiers.
+    // Effects, with Dex / Str / Vigor / etc. applied
     pub effects: Vec<PyEffect>,
 }
 

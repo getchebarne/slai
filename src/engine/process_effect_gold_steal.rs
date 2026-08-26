@@ -8,7 +8,7 @@ pub fn process_effect_gold_steal(id_source: Option<usize>, state: &mut GameState
         return;
     }
     state.entities[id_character].character_gold -= take;
-    state.entities[id_source].monster_stolen_gold = state.entities[id_source]
-        .monster_stolen_gold
+    state.entities[id_source].monster_gold_stolen = state.entities[id_source]
+        .monster_gold_stolen
         .saturating_add(take);
 }

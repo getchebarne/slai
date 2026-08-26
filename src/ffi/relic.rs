@@ -9,7 +9,7 @@ use crate::types::RelicTier;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 
-mirror_enum!(PyRelicName from RelicName, "RelicName", skip_from_py_object, {
+mirror_enum!(PyRelicName from RelicName, "RelicName", {
     RingOfTheSnake, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
     NinjaScroll, OddlySmoothStone, Shuriken, ThreadAndNeedle, TwistedFunnel, Vajra, Circlet,
     GoldenIdol, Lantern, ClockworkSouvenir, GremlinVisage, RedMask, Nunchaku, InkBottle,
@@ -34,7 +34,7 @@ mirror_enum!(PyRelicName from RelicName, "RelicName", skip_from_py_object, {
     NlothsGift, BloodyIdol,
 });
 
-mirror_enum!(PyRelicTier from RelicTier, "RelicTier", skip_from_py_object, {
+mirror_enum!(PyRelicTier from RelicTier, "RelicTier", {
     Starter, Common, Uncommon, Rare, Boss, Shop, Special,
 });
 
@@ -49,8 +49,6 @@ mirror_enum!(PyRelicTier from RelicTier, "RelicTier", skip_from_py_object, {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyRelic {
-    // Arena index: a join key across collections (a staked roll and the owned
-    // Relic share one id), never a feature
     pub id: usize,
     pub name: PyRelicName,
     pub tier: PyRelicTier,

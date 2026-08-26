@@ -10,7 +10,7 @@ use crate::types::RoomKind;
 
 use super::monster::PyMonsterEncounter;
 
-mirror_enum!(PyRoomKind from RoomKind, "RoomKind", from_py_object, {
+mirror_enum!(PyRoomKind from RoomKind, "RoomKind", {
     CombatMonster, CombatElite, CombatBoss, RestSite, Treasure, EventRoom, Shop, Unknown,
 });
 
@@ -23,7 +23,6 @@ mirror_enum!(PyRoomKind from RoomKind, "RoomKind", from_py_object, {
 )]
 #[derive(Debug, Clone)]
 pub struct PyRoom {
-    // Arena index: a join key, never a feature
     pub id: usize,
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,

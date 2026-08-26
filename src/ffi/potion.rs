@@ -10,7 +10,7 @@ use crate::utils::entity_requires_target;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 
-mirror_enum!(PyPotionName from PotionName, "PotionName", skip_from_py_object, {
+mirror_enum!(PyPotionName from PotionName, "PotionName", {
     Energy, Block, Strength, Dexterity, Fire, Explosive,
     Weak, Fear, Poison, Swift, Attack, Skill, Power,
     FruitJuice, Ancient, LiquidBronze, EssenceOfSteel, GhostInAJar, Cultist,
@@ -19,7 +19,7 @@ mirror_enum!(PyPotionName from PotionName, "PotionName", skip_from_py_object, {
     LiquidMemories, SneckoOil, Fairy, SmokeBomb,
 });
 
-mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", skip_from_py_object, {
+mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", {
     Common, Uncommon, Rare,
 });
 
@@ -34,8 +34,6 @@ mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", skip_from_py_obje
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyPotion {
-    // Arena index: a join key across collections (a rolled Potion and the belt
-    // slot holding it share one id), never a feature
     pub id: usize,
     pub name: PyPotionName,
     pub rarity: PyPotionRarity,

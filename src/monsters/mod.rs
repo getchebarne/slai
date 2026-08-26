@@ -72,8 +72,7 @@ use crate::types::MonsterName;
 use crate::types::Vitals;
 use rand::Rng;
 
-// Static definition of a Monster: everything spawn-time except per-Monster rolls.
-// Tier arrays are (min_ascension, value), ascending; the last satisfied entry wins
+// Static definition of a Monster: everything spawn-time except per-Monster rolls
 pub struct MonsterTemplate {
     pub name: MonsterName,
     pub kind: MonsterKind,
@@ -160,24 +159,27 @@ pub fn pick_tier<T: Copy>(tiers: &'static [(u8, T)], ascension_level: u8) -> Opt
         .map(|&(_, value)| value)
 }
 
-// Uniform instancer: one HP roll (skipped for fixed-HP Monsters — a width-1
-// random_range would still consume RNG), tiered moves and spawn modifiers
 fn instance_monster_from_template(
     template: &MonsterTemplate,
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> Entity {
-    let (hp_min, hp_max) =
+    // Health
+    let (health_min, health_max) =
         pick_tier(template.health_tiers, ascension_level).expect("health_tiers is never empty");
-    let health_max = if hp_min == hp_max {
-        hp_min
+    let health_max = if health_min == health_max {
+        health_min
     } else {
-        rng.random_range(hp_min..=hp_max)
+        rng.random_range(health_min..=health_max)
     };
+
+    // Modifiers
     let mut modifiers = MODIFIERS_ZERO;
     for &(kind, stacks) in pick_tier(template.modifier_tiers, ascension_level).unwrap_or(&[]) {
         modifier_apply(&mut modifiers, kind, stacks);
     }
+
+    // Instance
     make_entity_monster(
         template.name,
         template.kind,

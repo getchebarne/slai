@@ -105,7 +105,7 @@ pub struct Entity {
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_len: u8,
     pub monster_cycle_count: u8,  // Only used by "The Guardian"
-    pub monster_stolen_gold: u16, // Only used by "Looter" and "Mugger"
+    pub monster_gold_stolen: u16, // Only used by "Looter" and "Mugger"
 
     // Card-only
     pub card_name: CardName,
@@ -160,7 +160,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     character_name: "",
     character_reward_roll_offset: 0,
     character_gold: 0,
-    monster_stolen_gold: 0,
+    monster_gold_stolen: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
     monster_moves: &[],

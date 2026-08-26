@@ -16,7 +16,7 @@ use super::potion::snapshot_potion;
 use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
-mirror_enum!(PyChestKind from ChestKind, "ChestKind", skip_from_py_object, {
+mirror_enum!(PyChestKind from ChestKind, "ChestKind", {
     Small, Medium, Large,
 });
 
@@ -109,20 +109,15 @@ pub struct PyShop {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEvent {
     pub name: PyEventName,
-    // Per-event control state: stage / attempts / searches, meaning per event
-    pub stage: u8,
-    // Dead Adventurer's without-replacement loot draws
-    pub found_gold: bool,
-    pub found_nothing: bool,
-    pub found_relic: bool,
-    pub options: Vec<Vec<PyEffect>>,
     pub consumed: bool,
-
-    // Entities the spawn rolled/staked; option targets resolve against these via
-    // the CandidatePoolEventRoll* pools
+    pub stage: u8,
+    pub options: Vec<Vec<PyEffect>>,
     pub roll_cards: Vec<PyCard>,
     pub roll_relics: Vec<PyRelic>,
     pub roll_potions: Vec<PyPotion>,
+    pub found_gold: bool,
+    pub found_nothing: bool,
+    pub found_relic: bool,
 }
 
 #[pyclass(

@@ -19,8 +19,8 @@ use super::context::snapshot_event;
 use super::context::snapshot_rest_site;
 use super::context::snapshot_reward;
 use super::context::snapshot_shop;
-use super::effect::PyPendingEffect;
-use super::effect::snapshot_pending_effect;
+use super::effect::PyEffectPending;
+use super::effect::snapshot_effect_pending;
 use super::map::PyMap;
 use super::map::snapshot_map;
 use super::potion::PyPotion;
@@ -50,14 +50,11 @@ pub struct PyGameState {
     pub character: PyCharacter,
     pub deck: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
-    // Slot-indexed belt (length potion_slots_max); None at empty slots so positions stay valid
     pub potions: Vec<Option<PyPotion>>,
     pub potion_slots_max: u8,
     pub map: PyMap,
-    // Halt-for-input is orthogonal to the contexts
-    pub pending: Option<PyPendingEffect>,
-    // Cards staged so far in a multi-pick halt; empty unless one is open
-    pub pending_picks: Vec<PyCard>,
+    pub effect_pending: Option<PyEffectPending>,
+    pub effect_pending_picks: Vec<PyCard>,
 }
 
 // Snapshot builders
@@ -87,8 +84,8 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),
-        pending: state.effect_pending.as_ref().map(snapshot_pending_effect),
-        pending_picks: state
+        effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
+        effect_pending_picks: state
             .effect_pending_picks
             .iter()
             .map(|&id| snapshot_card(state, id))

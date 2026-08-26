@@ -14,7 +14,6 @@ use super::modifier::snapshot_modifiers;
 )]
 #[derive(Debug, Clone)]
 pub struct PyCharacter {
-    // Arena index: a join key, never a feature
     pub id: usize,
     pub name: String,
     pub health: u16,

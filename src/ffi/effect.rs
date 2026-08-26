@@ -92,13 +92,8 @@ flat_variants!(PyEffect {
     RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName> },
 });
 
-// The kinds that can park in `state.effect_pending`. A halt happens in exactly
-// one place — the Target::Resolve arm of process_effect, when
-// resolve_selection_kind declines an Input/InputUpTo — so a kind is reachable
-// here iff some definition gives it an Input target. Narrowing the union keeps
-// the `pending` stub honest (14 variants, not all 65) and makes a new halting
-// kind an error in snapshot_pending_effect rather than a surprise downstream.
-flat_variants!(@enum PyPendingEffect {
+// The kinds that can park in `state.effect_pending`
+flat_variants!(@enum PyEffectPending {
     BonfireOffer => PyEffectBonfireOffer,
     CardBottle => PyEffectCardBottle,
     CardDiscard => PyEffectCardDiscard,
@@ -115,22 +110,22 @@ flat_variants!(@enum PyPendingEffect {
     RelicLose => PyEffectRelicLose
 });
 
-pub(crate) fn snapshot_pending_effect(effect: &Effect) -> PyPendingEffect {
+pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
     match snapshot_effect(effect) {
-        PyEffect::BonfireOffer(v) => PyPendingEffect::BonfireOffer(v),
-        PyEffect::CardBottle(v) => PyPendingEffect::CardBottle(v),
-        PyEffect::CardDiscard(v) => PyPendingEffect::CardDiscard(v),
-        PyEffect::CardDiscoverPick(v) => PyPendingEffect::CardDiscoverPick(v),
-        PyEffect::CardDuplicate(v) => PyPendingEffect::CardDuplicate(v),
-        PyEffect::CardExhaust(v) => PyPendingEffect::CardExhaust(v),
-        PyEffect::CardMove(v) => PyPendingEffect::CardMove(v),
-        PyEffect::CardNightmarePick(v) => PyPendingEffect::CardNightmarePick(v),
-        PyEffect::CardPurge(v) => PyPendingEffect::CardPurge(v),
-        PyEffect::CardRetain(v) => PyPendingEffect::CardRetain(v),
-        PyEffect::CardSetupPick(v) => PyPendingEffect::CardSetupPick(v),
-        PyEffect::CardTransform(v) => PyPendingEffect::CardTransform(v),
-        PyEffect::CardUpgrade(v) => PyPendingEffect::CardUpgrade(v),
-        PyEffect::RelicLose(v) => PyPendingEffect::RelicLose(v),
+        PyEffect::BonfireOffer(v) => PyEffectPending::BonfireOffer(v),
+        PyEffect::CardBottle(v) => PyEffectPending::CardBottle(v),
+        PyEffect::CardDiscard(v) => PyEffectPending::CardDiscard(v),
+        PyEffect::CardDiscoverPick(v) => PyEffectPending::CardDiscoverPick(v),
+        PyEffect::CardDuplicate(v) => PyEffectPending::CardDuplicate(v),
+        PyEffect::CardExhaust(v) => PyEffectPending::CardExhaust(v),
+        PyEffect::CardMove(v) => PyEffectPending::CardMove(v),
+        PyEffect::CardNightmarePick(v) => PyEffectPending::CardNightmarePick(v),
+        PyEffect::CardPurge(v) => PyEffectPending::CardPurge(v),
+        PyEffect::CardRetain(v) => PyEffectPending::CardRetain(v),
+        PyEffect::CardSetupPick(v) => PyEffectPending::CardSetupPick(v),
+        PyEffect::CardTransform(v) => PyEffectPending::CardTransform(v),
+        PyEffect::CardUpgrade(v) => PyEffectPending::CardUpgrade(v),
+        PyEffect::RelicLose(v) => PyEffectPending::RelicLose(v),
         other => unreachable!("effect kind cannot halt: {:?}", other),
     }
 }
@@ -152,14 +147,10 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
     snapshot_effect_rows(effect, target)
 }
 
-// Required-target rows: every reachable def and pending halt resolves a target
 fn require_target(target: Option<PyTarget>) -> PyTarget {
     target.expect("row requires a resolved target")
 }
 
-// These rows carry no `target` field because no def ever resolves one for them
-// (audited across every Card, Potion, move table and baked Event Option). A new
-// def that targets one would otherwise drop the selection silently
 fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
     if target.is_some() {
         assert!(

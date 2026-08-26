@@ -126,7 +126,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
             ActionType.EffectPendingResolve,
             ArgSpec(
                 "idx",
-                "position in the collection named by state.pending.target.candidate_pool "
+                "position in the collection named by state.effect_pending.target.candidate_pool "
                 "(hand, deck, discover, pile, or event roll list)",
             ),
         ),
@@ -341,7 +341,7 @@ Effect = (
     | EffectRelicGrantPool
 )
 
-# The kinds that can park in GameState.pending. A halt only happens on a
+# The kinds that can park in GameState.effect_pending. A halt only happens on a
 # Target::Resolve carrying Input/InputUpTo, so this is a strict subset of Effect
 # — mirrored from ffi/effect.rs's PyPendingEffect, which is what `pending`
 # actually returns.

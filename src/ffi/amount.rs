@@ -9,7 +9,7 @@ use crate::types::DeltaSign;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
-mirror_enum!(PyDeltaSign from DeltaSign, "DeltaSign", skip_from_py_object, {
+mirror_enum!(PyDeltaSign from DeltaSign, "DeltaSign", {
     Gain, Loss,
 });
 
@@ -43,7 +43,7 @@ impl From<Amount> for PyAmount {
     }
 }
 
-// Health/MaxHealth deltas never carry Range; the narrower union keeps the stub truthful
+// Health / MaxHealth deltas never carry Range; the narrower union keeps the stub truthful
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PyAmountScalar {
     Absolute(PyAmountAbsolute),
