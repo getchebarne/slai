@@ -1,20 +1,19 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // See:
 //    - `process_effect_combat_start.rs`
-pub static SNAKE_RING: Entity = make_entity_relic(
-    RelicName::SnakeRing,
-    RelicTier::Starter,
-    0,
-    &[Effect {
+pub static RING_OF_THE_SNAKE: RelicTemplate = RelicTemplate {
+    name: RelicName::RingOfTheSnake,
+    tier: RelicTier::Starter,
+    counter_init: 0,
+    effects_combat_start: &[Effect {
         kind: EffectKind::CardDraw { count: 2 },
         id_source: None,
         target: Target::Direct(None),
     }],
-);
+};

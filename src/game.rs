@@ -33,7 +33,6 @@ use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
-use crate::events::EventKind;
 use crate::events::pools_for_act;
 use crate::events::spawn_event;
 use crate::map::generate_map;
@@ -71,6 +70,9 @@ pub struct GameState {
 
     // Halt overlay; cleared by the action handler that supplies the pick
     pub effect_pending: Option<Effect>,
+    pub effect_pending_picks: Vec<usize>,
+
+    // Location
     pub location: Location,
 
     // Entities and indices
@@ -96,7 +98,7 @@ pub struct GameState {
     pub id_potions: [Option<usize>; POTION_SLOTS_MAX],
     pub potion_slots_max: u8,
 
-    // `?`-room drift state; event chance = 1 - sum(others)
+    // `?`-Room drift state; event chance = 1 - sum(others)
     pub unknown_chance_monster: f32,
     pub unknown_chance_shop: f32,
     pub unknown_chance_treasure: f32,
@@ -137,14 +139,14 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Initialize empty entities arena
     let mut entities: Vec<Entity> = Vec::with_capacity(MAX_ENTITIES);
 
-    // Initialize character
+    // Initialize Character
     let character = spawn_silent(ascension);
     push_entity(&mut entities, character);
 
     // Innate start Relic
-    let id_snake_ring = push_entity(&mut entities, get_relic(RelicName::SnakeRing));
+    let id_ring_of_the_snake = push_entity(&mut entities, get_relic(RelicName::RingOfTheSnake));
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
-    id_relics[RelicName::SnakeRing as usize] = Some(id_snake_ring);
+    id_relics[RelicName::RingOfTheSnake as usize] = Some(id_ring_of_the_snake);
 
     // Belt capacity is a run-level rule (3, or 2 at ascension 11+); slots start empty
     let id_potions: [Option<usize>; POTION_SLOTS_MAX] = [None; POTION_SLOTS_MAX];
@@ -165,7 +167,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Initialize map
     let (id_rooms, location) = generate_map(&mut rng, &mut entities, ascension);
 
-    // Pre-generate monster encounters
+    // Pre-generate Monster encounters
     let mut encounter_pool_normal: Vec<MonsterEncounter> =
         Vec::with_capacity(ENCOUNTER_POOL_CAPACITY_NORMAL);
     let mut encounter_pool_elite: Vec<MonsterEncounter> =
@@ -204,6 +206,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         effect_buf: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
+        effect_pending_picks: Vec::with_capacity(MAX_SIZE_HAND),
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
@@ -247,9 +250,16 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         },
         event: Event {
             active: false,
-            event_kind: EventKind::Neow,
+            name: EventName::Neow,
             consumed: false,
+            stage: 0,
             id_event_options: Vec::new(),
+            id_roll_card: Vec::new(),
+            id_roll_relic: Vec::new(),
+            id_roll_potion: Vec::new(),
+            found_gold: false,
+            found_nothing: false,
+            found_relic: false,
         },
         shop: Shop {
             active: false,
@@ -277,14 +287,13 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
 
     // Neow's blessing takes focus at Location::Start
     if neow {
-        let (kind, id_event_options) = spawn_event(&mut state, EventName::Neow);
-        state.event.event_kind = kind;
-        state.event.consumed = false;
+        let id_event_options = spawn_event(&mut state, EventName::Neow);
+        state.event.name = EventName::Neow;
         state.event.id_event_options = id_event_options;
         state.event.active = true;
     }
 
-    // Settle on the resting focus — Neow's options, or the initial row-0 room picks
+    // Settle on the resting focus — Neow's options, or the initial row-0 Room picks
     recompute_legal_actions(&mut state);
     state
 }

@@ -154,9 +154,7 @@ pub enum EffectKind {
     JoustBet {
         on_owner: bool,
     },
-    KnowingSkullAsk {
-        wish: KnowingSkullWish,
-    },
+    KnowingSkullCostBump,
     MausoleumOpen,
     MaxHealthDelta {
         sign: DeltaSign,
@@ -208,9 +206,7 @@ pub enum EffectKind {
         name: RelicName,
         fallback_circlet: bool,
     },
-    RelicLose {
-        name: RelicName,
-    },
+    RelicLose,
     RestSiteConsume,
     RitualDaggerProc {
         bump: u16,
@@ -281,15 +277,7 @@ pub enum EffectKind {
     WheelSpin,
 }
 
-// Knowing Skull's escalating asks
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum KnowingSkullWish {
-    Potion,
-    Gold,
-    Card,
-}
-
-// How far the staged relic is already resolved; each variant rolls only what remains
+// How far the staged Relic is already resolved; each variant rolls only what remains
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RelicPick {
     Thresholds { th_common: u8, th_uncommon: u8 },
@@ -325,6 +313,31 @@ pub enum CandidatePool {
     PileDraw,
     PileDiscard,
     PileExhaust,
+    EventRollCard,
+    EventRollRelic,
+    EventRollPotion,
+}
+
+// Only Card pools are ever multi-pick
+pub const fn pool_is_cards(pool: CandidatePool) -> bool {
+    matches!(
+        pool,
+        CandidatePool::Hand
+            | CandidatePool::Discover
+            | CandidatePool::Deck
+            | CandidatePool::PileDraw
+            | CandidatePool::PileDiscard
+            | CandidatePool::PileExhaust
+            | CandidatePool::EventRollCard
+    )
+}
+
+// Input picks above one stage before applying; every other kind resolves at once
+pub const fn is_multi_pick(selection_kind: SelectionKind) -> bool {
+    match selection_kind {
+        SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => count > 1,
+        _ => false,
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -345,7 +358,7 @@ pub enum CandidateFilter {
     NotSource,
     NotMinion,
 
-    // Starter-card predicates (Vampires, Back to Basics)
+    // Starter-Card predicates (Vampires, Back to Basics)
     StarterStrike,
     StarterUpgradeable,
 }

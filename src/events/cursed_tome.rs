@@ -3,22 +3,24 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::EVENT_ADVANCE_EFFECT;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::OPTION_LEAVE;
-use crate::events::make_entity_event_option;
+use crate::events::EFFECT_EVENT_ADVANCE;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EOT_LEAVE;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 
 // The three book Relics; the take-option rolls uniformly among the unowned ones
-pub const BOOK_POOL: &[RelicName] = &[
+const BOOK_POOL: &[RelicName] = &[
     RelicName::Necronomicon,
     RelicName::Enchiridion,
     RelicName::NilrysCodex,
 ];
 
-const fn hp_loss(amount: u16) -> Effect {
+const fn health_delta(amount: u16) -> Effect {
     Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Loss,
@@ -29,62 +31,69 @@ const fn hp_loss(amount: u16) -> Effect {
     }
 }
 
-const OPTION_READ: [Effect; 1] = [EVENT_ADVANCE_EFFECT];
-const OPTION_PAGE_1: [Effect; 2] = [hp_loss(1), EVENT_ADVANCE_EFFECT];
-const OPTION_PAGE_2: [Effect; 2] = [hp_loss(2), EVENT_ADVANCE_EFFECT];
-const OPTION_PAGE_3: [Effect; 2] = [hp_loss(3), EVENT_ADVANCE_EFFECT];
+// Read: open the book and start turning pages
+const OPTION_READ: [Effect; 1] = [EFFECT_EVENT_ADVANCE];
 
-const fn take_book(final_dmg: u16) -> [Effect; 3] {
+// Page 1: 1 HP
+const OPTION_PAGE_1: [Effect; 2] = [health_delta(1), EFFECT_EVENT_ADVANCE];
+
+// Page 2: 2 HP
+const OPTION_PAGE_2: [Effect; 2] = [health_delta(2), EFFECT_EVENT_ADVANCE];
+
+// Page 3: 3 HP
+const OPTION_PAGE_3: [Effect; 2] = [health_delta(3), EFFECT_EVENT_ADVANCE];
+
+const fn take_book(damage: u16) -> [Effect; 3] {
     [
-        hp_loss(final_dmg),
+        health_delta(damage),
         Effect {
             kind: EffectKind::RelicGrantPool { pool: BOOK_POOL },
             id_source: None,
             target: Target::Direct(None),
         },
-        EVENT_CONSUME_EFFECT,
+        EFFECT_EVENT_CONSUME,
     ]
 }
 
-const OPTION_TAKE_BASE: [Effect; 3] = take_book(10);
+// Take the book: 10 HP for one of the three tomes
+const OPTION_TAKE: [Effect; 3] = take_book(10);
+
+// Take the book at A15+: 15 HP
 const OPTION_TAKE_A15: [Effect; 3] = take_book(15);
-const OPTION_STOP: [Effect; 2] = [hp_loss(3), EVENT_CONSUME_EFFECT];
+
+// Stop reading: 3 HP and no book
+const OPTION_STOP: [Effect; 2] = [health_delta(3), EFFECT_EVENT_CONSUME];
 
 // Only the take-option varies with ascension
-const fn options_for(take_label: &'static str, take: &'static [Effect]) -> [Entity; 7] {
+const fn options_for(take: &'static [Effect]) -> [EventOptionTemplate; 7] {
     [
-        make_entity_event_option("[Read] Begin reading.", &OPTION_READ),
-        make_entity_event_option("[Continue] Lose 1 HP.", &OPTION_PAGE_1),
-        make_entity_event_option("[Continue] Lose 2 HP.", &OPTION_PAGE_2),
-        make_entity_event_option("[Continue] Lose 3 HP.", &OPTION_PAGE_3),
-        make_entity_event_option(take_label, take),
-        make_entity_event_option("[Stop Reading] Lose 3 HP.", &OPTION_STOP),
-        OPTION_LEAVE,
+        make_event_option_template(&OPTION_READ),
+        make_event_option_template(&OPTION_PAGE_1),
+        make_event_option_template(&OPTION_PAGE_2),
+        make_event_option_template(&OPTION_PAGE_3),
+        make_event_option_template(take),
+        make_event_option_template(&OPTION_STOP),
+        EOT_LEAVE,
     ]
 }
 
-static OPTIONS_BASE: &[Entity] = &options_for(
-    "[Take the Book] Lose 10 HP. Obtain a book Relic.",
-    &OPTION_TAKE_BASE,
-);
-static OPTIONS_A15: &[Entity] = &options_for(
-    "[Take the Book] Lose 15 HP. Obtain a book Relic.",
-    &OPTION_TAKE_A15,
-);
+static EOTS_BASE: &[EventOptionTemplate] = &options_for(&OPTION_TAKE);
+static EOTS_A15: &[EventOptionTemplate] = &options_for(&OPTION_TAKE_A15);
 
-pub fn options(ascension: u8) -> &'static [Entity] {
-    if ascension < 15 {
-        OPTIONS_BASE
-    } else {
-        OPTIONS_A15
-    }
+pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
+    if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
 }
 
 // Stages: 0 intro, 1-3 pages, 4 the final choice
-pub fn option_available(stage: u8, idx: usize) -> bool {
+pub fn option_available(state: &GameState, idx: usize) -> bool {
+    let stage = state.event.stage;
     match stage {
         0 => idx == 0 || idx == 6,
         1..=3 => idx == stage as usize,
         _ => idx == 4 || idx == 5,
     }
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
 }

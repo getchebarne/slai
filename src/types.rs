@@ -1,7 +1,7 @@
 use strum::EnumCount;
+use strum::EnumIter;
 
 use crate::consts::MAX_MONSTERS;
-use crate::events::EventKind;
 
 // Vitals: physical combat state. Shared by Character and Monsters
 #[derive(Debug, Clone, Copy)]
@@ -108,9 +108,32 @@ pub fn reward_ensure(reward: &mut Reward) {
 #[derive(Debug, Clone)]
 pub struct Event {
     pub active: bool,
-    pub event_kind: EventKind,
+    pub name: EventName,
     pub consumed: bool,
+    pub stage: u8,
     pub id_event_options: Vec<usize>,
+
+    // Entities the spawn rolled; options target them via the EventRoll<...> pools
+    pub id_roll_card: Vec<usize>,
+    pub id_roll_relic: Vec<usize>,
+    pub id_roll_potion: Vec<usize>,
+
+    // Dead Adventurer's without-replacement loot draws
+    pub found_gold: bool,
+    pub found_nothing: bool,
+    pub found_relic: bool,
+}
+
+// Runs before a spawn fills the context; the caller sets kind/options/active
+pub fn event_reset(event: &mut Event) {
+    event.consumed = false;
+    event.stage = 0;
+    event.id_roll_card.clear();
+    event.id_roll_relic.clear();
+    event.id_roll_potion.clear();
+    event.found_gold = false;
+    event.found_nothing = false;
+    event.found_relic = false;
 }
 
 #[derive(Debug, Clone)]
@@ -170,7 +193,7 @@ pub const VITALS_ZERO: Vitals = Vitals {
     block: 0,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum CardName {
     AThousandCuts,
@@ -353,7 +376,7 @@ pub enum CardRarity {
     Curse,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum MonsterName {
     Cultist,
@@ -497,19 +520,17 @@ pub enum RoomKind {
     Unknown,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum EventName {
     BigFish,
     TheCleric,
     Duplicator,
     GoldenShrine,
-    GoldenIdol,
     WingStatue,
     WorldOfGoop,
     LivingWall,
     Purifier,
-    ScrapOoze,
     ShiningLight,
     TheSsssserpent,
     Transmogrifier,
@@ -521,22 +542,24 @@ pub enum EventName {
     BonfireSpirits,
     OminousForge,
     FaceTrader,
-    WeMeetAgain,
     Mushrooms,
+    GoldenIdol,
+    ScrapOoze,
+    WeMeetAgain,
     DeadAdventurer,
     Neow,
     Addict,
     Beggar,
     Ghosts,
     BackToBasics,
-    Colosseum,
-    Designer,
-    KnowingSkull,
     MaskedBandits,
     TheJoust,
     TheLibrary,
     TheMausoleum,
     Vampires,
+    Colosseum,
+    Designer,
+    KnowingSkull,
     Nest,
     CursedTome,
     DrugDealer,
@@ -566,41 +589,41 @@ pub enum ShopSlot {
     Potion,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum PotionName {
-    EnergyPotion,
-    BlockPotion,
-    StrengthPotion,
-    DexterityPotion,
-    FirePotion,
-    ExplosivePotion,
-    WeakPotion,
-    FearPotion,
-    PoisonPotion,
-    SwiftPotion,
-    AttackPotion,
-    SkillPotion,
-    PowerPotion,
+    Energy,
+    Block,
+    Strength,
+    Dexterity,
+    Fire,
+    Explosive,
+    Weak,
+    Fear,
+    Poison,
+    Swift,
+    Attack,
+    Skill,
+    Power,
     FruitJuice,
-    AncientPotion,
+    Ancient,
     LiquidBronze,
     EssenceOfSteel,
     GhostInAJar,
-    CultistPotion,
-    CunningPotion,
+    Cultist,
+    Cunning,
     DistilledChaos,
     BlessingOfTheForge,
     EntropicBrew,
-    RegenerationPotion,
-    SteroidPotion,
-    SpeedPotion,
-    DuplicateNextCardPlayPotion,
-    ColorlessPotion,
+    Regeneration,
+    Steroid,
+    Speed,
+    Duplication,
+    Colorless,
     GamblersBrew,
     LiquidMemories,
     SneckoOil,
-    FairyPotion,
+    Fairy,
     SmokeBomb,
 }
 
@@ -611,10 +634,10 @@ pub enum PotionRarity {
     Rare,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumCount, EnumIter)]
 #[repr(u8)]
 pub enum RelicName {
-    SnakeRing = 0,
+    RingOfTheSnake = 0,
     Akabeko,
     Anchor,
     BagOfMarbles,
@@ -685,9 +708,9 @@ pub enum RelicName {
     Omamori,
     DarkstonePeriapt,
     CeramicFish,
-    FrozenEgg,
-    MoltenEgg,
-    ToxicEgg,
+    EggFrozen,
+    EggMolten,
+    EggToxic,
     ToyOrnithopter,
     SmilingMask,
     DeadBranch,

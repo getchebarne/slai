@@ -3,7 +3,7 @@ use crate::types::CardRarity;
 use crate::types::Combat;
 use rand::Rng;
 
-// Bronze Orb's Stasis: exile a card from the draw pile (discard as fallback) until
+// Bronze Orb's Stasis: exile a Card from the draw pile (discard as fallback) until
 // the orb dies. Prefers the highest rarity present; random among ties
 pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameState) {
     assert!(
@@ -28,7 +28,7 @@ pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameSta
         return;
     };
 
-    // Highest rarity tier present wins; Special / Basic cards are the last resort
+    // Highest rarity tier present wins; Special / Basic Cards are the last resort
     let mut best_idx = 0;
     let mut best_rank = -1i8;
     let mut ties: u16 = 0;

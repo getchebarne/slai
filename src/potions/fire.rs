@@ -1,16 +1,15 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTER_PICKED;
-use crate::entity::Entity;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_FIRE: Entity = make_entity_potion(
-    PotionName::FirePotion,
-    PotionRarity::Common,
-    true,
-    &[Effect {
+pub static FIRE: PotionTemplate = PotionTemplate {
+    name: PotionName::Fire,
+    rarity: PotionRarity::Common,
+    combat_only: true,
+    effects: &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 20,
             lifesteal: false,
@@ -18,4 +17,4 @@ pub static POTION_FIRE: Entity = make_entity_potion(
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
-);
+};

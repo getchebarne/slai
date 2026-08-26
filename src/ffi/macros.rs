@@ -9,10 +9,11 @@ use super::card::PyCardRarity;
 use super::card::PyCostScope;
 use super::card::PyPlayRestriction;
 use super::context::PyChestKind;
-use super::effect::PyKnowingSkullWish;
+use super::event::PyEventName;
 use super::map::PyRoomKind;
 use super::monster::PyIntentKind;
 use super::monster::PyMonsterEncounter;
+use super::monster::PyMonsterKind;
 use super::monster::PyMonsterName;
 use super::potion::PyPotionName;
 use super::potion::PyPotionRarity;
@@ -91,17 +92,17 @@ macro_rules! flat_variants {
 /// A unit pyclass enum mirroring an internal enum 1:1, plus its `From` impl, from one table.
 ///
 /// ```ignore
-/// mirror_enum!(PyCardName from CardName, "CardName", skip_from_py_object, {
+/// mirror_enum!(PyCardName from CardName, "CardName", {
 ///     AThousandCuts, Accuracy, /* one ident per variant, internal declaration order */
 /// });
 /// ```
 ///
 /// Table order = declaration order = int discriminant
-/// stays a compile error. `$conv` is the pyo3 conversion token: `from_py_object` or
-/// `skip_from_py_object`. Call sites must have `use pyo3::prelude::*` in scope.
+/// stays a compile error. Mirrored enums are snapshot-only, so the pyclass is
+/// always `skip_from_py_object`. Call sites need `use pyo3::prelude::*` in scope.
 macro_rules! mirror_enum {
-    ($py:ident from $internal:ident, $name:literal, $conv:tt, { $($v:ident),+ $(,)? }) => {
-        #[pyclass($conv, eq, eq_int, frozen, name = $name, module = "slai.slai")]
+    ($py:ident from $internal:ident, $name:literal, { $($v:ident),+ $(,)? }) => {
+        #[pyclass(skip_from_py_object, eq, eq_int, frozen, name = $name, module = "slai.slai")]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum $py { $($v,)+ }
 
@@ -157,7 +158,8 @@ impl_discriminant_hash!(
     PyChestKind,
     PyCostScope,
     PyIntentKind,
-    PyKnowingSkullWish,
+    PyMonsterKind,
+    PyEventName,
 );
 
 pub(crate) use flat_variants;

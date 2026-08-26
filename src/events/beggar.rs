@@ -2,18 +2,20 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::OPTION_LEAVE;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EOT_LEAVE;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
 use crate::events::deck_has_purgeable;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
 // The draw gate in `draw_event` requires this much gold before the event can spawn
 pub const BEGGAR_COST_PURGE: u16 = 75;
 
+// Give: 75 gold buys a Card purge
 const OPTION_GIVE: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
@@ -24,16 +26,11 @@ const OPTION_GIVE: &[Effect] = &[
         target: Target::Direct(None),
     },
     EFFECT_DECK_PURGE_PICK_1,
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option(
-        "[Offer Gold] Lose 75 Gold. Remove a card from your deck.",
-        OPTION_GIVE,
-    ),
-    OPTION_LEAVE,
-];
+pub static EOTS_BASE: &[EventOptionTemplate] =
+    &[make_event_option_template(OPTION_GIVE), EOT_LEAVE];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
@@ -43,4 +40,12 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
         }
         _ => true,
     }
+}
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
 }

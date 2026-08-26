@@ -1,17 +1,16 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Entity;
 use crate::modifier::ModifierKind;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_DUPLICATION: Entity = make_entity_potion(
-    PotionName::DuplicateNextCardPlayPotion,
-    PotionRarity::Uncommon,
-    true,
-    &[Effect {
+pub static DUPLICATION: PotionTemplate = PotionTemplate {
+    name: PotionName::Duplication,
+    rarity: PotionRarity::Uncommon,
+    combat_only: true,
+    effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::DuplicateNextCardPlay,
             stacks: 1,
@@ -19,4 +18,4 @@ pub static POTION_DUPLICATION: Entity = make_entity_potion(
         id_source: None,
         target: TARGET_CHARACTER,
     }],
-);
+};

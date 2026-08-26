@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -8,4 +7,9 @@ use crate::types::RelicTier;
 //    - `process_effect_combat_start.rs`
 //    - `process_effect_gold_delta.rs`
 //    - `process_effect_combat_end.rs`
-pub static ECTOPLASM: Entity = make_entity_relic(RelicName::Ectoplasm, RelicTier::Boss, 0, &[]);
+pub static ECTOPLASM: RelicTemplate = RelicTemplate {
+    name: RelicName::Ectoplasm,
+    tier: RelicTier::Boss,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

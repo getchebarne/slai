@@ -4,6 +4,7 @@ use strum::EnumCount;
 use crate::cards::POOL_COMMON_GREEN_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
+use crate::cards::card_template;
 use crate::cards::get_card;
 use crate::consts::CARD_REWARD_BASE_COUNT;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
@@ -38,7 +39,6 @@ use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_SHOP_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::egg_upgrades_kind;
-use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -56,7 +56,7 @@ pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
     }
 }
 
-// The focused context: reward > combat > room context > map. Derived from
+// The focused context: reward > combat > Room context > map. Derived from
 // the active flags, never stored
 pub fn context_focus(state: &GameState) -> Focus {
     if state.reward.active {
@@ -176,21 +176,22 @@ pub fn is_play_restriction_satisfied(
     }
 }
 
-// A play needs a picked monster iff any effect resolves against the pick
+// A play needs a picked Monster iff any effect resolves against the pick
+pub fn effects_require_target(effects: &[Effect]) -> bool {
+    effects.iter().any(|effect| {
+        matches!(
+            effect.target,
+            Target::Resolve {
+                filter: CandidateFilter::Picked,
+                ..
+            }
+        )
+    })
+}
+
 pub fn entity_requires_target(entity: &Entity) -> bool {
-    let card_effects = &entity.card_effects[..entity.card_effects_len as usize];
-    card_effects
-        .iter()
-        .chain(entity.potion_effects)
-        .any(|effect| {
-            matches!(
-                effect.target,
-                Target::Resolve {
-                    filter: CandidateFilter::Picked,
-                    ..
-                }
-            )
-        })
+    effects_require_target(&entity.card_effects[..entity.card_effects_len as usize])
+        || effects_require_target(entity.potion_effects)
 }
 
 pub fn card_is_purgeable(entity: &Entity) -> bool {
@@ -349,7 +350,7 @@ pub fn weak_factor(is_weak: bool, paper_krane: bool) -> f32 {
     }
 }
 
-// Odd Mushroom softens Vulnerable on the character only
+// Odd Mushroom softens Vulnerable on the Character only
 pub fn vuln_factor(is_vulnerable: bool, odd_mushroom: bool) -> f32 {
     match (is_vulnerable, odd_mushroom) {
         (false, _) => 1.0,
@@ -471,25 +472,12 @@ pub fn resolve_health_fraction(health_max: u16, amount: Amount, sign: DeltaSign)
     }
 }
 
-// Used by both elite combat-end and chest opening
-pub fn add_relic_reward_for_roll(
-    roll: u8,
-    th_common: u8,
-    th_uncommon: u8,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    entities: &mut Vec<Entity>,
-    rng: &mut impl Rng,
-) -> usize {
-    let name = pick_relic_by_roll(roll, th_common, th_uncommon, id_relics, rng);
-    push_entity(entities, get_relic(name))
-}
-
 pub fn pick_relic_from_pool(
     pool: &[RelicName],
     id_relics: &[Option<usize>; RelicName::COUNT],
     rng: &mut impl Rng,
 ) -> Option<RelicName> {
-    let mut candidates = [RelicName::SnakeRing; RelicName::COUNT];
+    let mut candidates = [RelicName::RingOfTheSnake; RelicName::COUNT];
     let mut num = 0;
     for &name in pool {
         if id_relics[name as usize].is_none() {
@@ -578,7 +566,7 @@ pub fn roll_card_rewards(
         let card = get_card(
             name,
             // Eggs upgrade matching rewards at roll time, so the preview shows the truth
-            egg_upgrades_kind(get_card(name, false).card_kind, id_relics),
+            egg_upgrades_kind(card_template(name, false).kind, id_relics),
         );
         let id_card = push_entity(entities, card);
         out.push(id_card);

@@ -67,7 +67,7 @@ pub enum ModifierKind {
     Minion,
 }
 
-pub const MODIFIER_COUNT: usize = ModifierKind::COUNT;
+const MODIFIER_COUNT: usize = ModifierKind::COUNT;
 
 pub fn modifier_kind_from_u8(v: u8) -> ModifierKind {
     assert!((v as usize) < MODIFIER_COUNT, "Invalid ModifierKind: {v}");

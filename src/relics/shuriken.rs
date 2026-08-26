@@ -1,8 +1,12 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // See:
 //    - `process_effect_card_play.rs`
-pub static SHURIKEN: Entity = make_entity_relic(RelicName::Shuriken, RelicTier::Uncommon, 0, &[]);
+pub static SHURIKEN: RelicTemplate = RelicTemplate {
+    name: RelicName::Shuriken,
+    tier: RelicTier::Uncommon,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

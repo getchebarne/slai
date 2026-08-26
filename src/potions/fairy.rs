@@ -1,8 +1,11 @@
-use crate::entity::Entity;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
 // Never drinkable; consumed by the death hook in `process_effect_death`
-pub static POTION_FAIRY: Entity =
-    make_entity_potion(PotionName::FairyPotion, PotionRarity::Rare, true, &[]);
+pub static FAIRY: PotionTemplate = PotionTemplate {
+    name: PotionName::Fairy,
+    rarity: PotionRarity::Rare,
+    combat_only: true,
+    effects: &[],
+};

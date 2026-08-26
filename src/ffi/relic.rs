@@ -9,8 +9,8 @@ use crate::types::RelicTier;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 
-mirror_enum!(PyRelicName from RelicName, "RelicName", skip_from_py_object, {
-    SnakeRing, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
+mirror_enum!(PyRelicName from RelicName, "RelicName", {
+    RingOfTheSnake, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
     NinjaScroll, OddlySmoothStone, Shuriken, ThreadAndNeedle, TwistedFunnel, Vajra, Circlet,
     GoldenIdol, Lantern, ClockworkSouvenir, GremlinVisage, RedMask, Nunchaku, InkBottle,
     LetterOpener, OrnamentalFan, BirdFacedUrn, MummifiedHand, OrangePellets, StrangeSpoon,
@@ -20,7 +20,7 @@ mirror_enum!(PyRelicName from RelicName, "RelicName", skip_from_py_object, {
     ToughBandages, GremlinHorn, TheSpecimen, LizardTail, Boot, Torii, TungstenRod, HandDrill,
     StrikeDummy, PaperKrane, CentennialPuzzle, MealTicket, MawBank, JuzuBracelet, TinyChest,
     EternalFeather, AncientTeaSet, RegalPillow, MeatOnTheBone, Omamori, DarkstonePeriapt,
-    CeramicFish, FrozenEgg, MoltenEgg, ToxicEgg, ToyOrnithopter, SmilingMask, DeadBranch,
+    CeramicFish, EggFrozen, EggMolten, EggToxic, ToyOrnithopter, SmilingMask, DeadBranch,
     DuVuDoll, Pantograph, SlingOfCourage, Strawberry, Pear, Mango, OldCoin, PotionBelt,
     WarPaint, Whetstone, EmptyCage, PandorasBox, PenNib, FossilizedHelix, PreservedInsect,
     UnceasingTop, BlueCandle, MedicalKit, SpiritPoop, WarpedTongs, CultistHeadpiece,
@@ -34,7 +34,7 @@ mirror_enum!(PyRelicName from RelicName, "RelicName", skip_from_py_object, {
     NlothsGift, BloodyIdol,
 });
 
-mirror_enum!(PyRelicTier from RelicTier, "RelicTier", skip_from_py_object, {
+mirror_enum!(PyRelicTier from RelicTier, "RelicTier", {
     Starter, Common, Uncommon, Rare, Boss, Shop, Special,
 });
 
@@ -49,21 +49,23 @@ mirror_enum!(PyRelicTier from RelicTier, "RelicTier", skip_from_py_object, {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyRelic {
+    pub id: usize,
     pub name: PyRelicName,
     pub tier: PyRelicTier,
     pub counter: i16,
     pub used_up: bool,
-    pub effects_on_combat_start: Vec<PyEffect>,
+    pub effects_combat_start: Vec<PyEffect>,
 }
 
-pub(crate) fn snapshot_relic(entity: &Entity) -> PyRelic {
+pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
     PyRelic {
+        id,
         name: entity.relic_name.into(),
         tier: entity.relic_tier.into(),
         counter: entity.relic_counter,
         used_up: entity.relic_used_up,
-        effects_on_combat_start: entity
-            .relic_effects_on_combat_start
+        effects_combat_start: entity
+            .relic_effects_combat_start
             .iter()
             .map(snapshot_effect)
             .collect(),

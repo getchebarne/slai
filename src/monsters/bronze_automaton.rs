@@ -1,19 +1,16 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_block_buff;
+use crate::monsters::modifier_fixed;
+use crate::monsters::move_attack;
+use crate::monsters::move_block_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 
 static MOVE_SPAWN_ORBS: Move = make_move(
     "Spawn Orbs",
@@ -40,13 +37,13 @@ static MOVE_SPAWN_ORBS: Move = make_move(
     Intent::Unknown,
 );
 static MOVE_STUNNED: Move = make_move("Stunned", &[], Intent::Stunned);
-static MOVE_FLAIL_7: Move = make_move_attack("Flail", 7, 2);
-static MOVE_FLAIL_8: Move = make_move_attack("Flail", 8, 2);
-static MOVE_HYPER_BEAM_45: Move = make_move_attack("Hyper Beam", 45, 1);
-static MOVE_HYPER_BEAM_50: Move = make_move_attack("Hyper Beam", 50, 1);
-static MOVE_BOOST_9_3: Move = make_move_block_buff("Boost", 9, 3);
-static MOVE_BOOST_9_4: Move = make_move_block_buff("Boost", 9, 4);
-static MOVE_BOOST_12_4: Move = make_move_block_buff("Boost", 12, 4);
+static MOVE_FLAIL_7: Move = move_attack("Flail", 7, 2);
+static MOVE_FLAIL_8: Move = move_attack("Flail", 8, 2);
+static MOVE_HYPER_BEAM_45: Move = move_attack("Hyper Beam", 45, 1);
+static MOVE_HYPER_BEAM_50: Move = move_attack("Hyper Beam", 50, 1);
+static MOVE_BOOST_9_3: Move = move_block_buff("Boost", 9, 3);
+static MOVE_BOOST_9_4: Move = move_block_buff("Boost", 9, 4);
+static MOVE_BOOST_12_4: Move = move_block_buff("Boost", 12, 4);
 
 static MOVES_ASC0: [Move; 5] = [
     MOVE_SPAWN_ORBS,
@@ -76,32 +73,18 @@ const IDX_MOVE_BOOST: usize = 2;
 const IDX_MOVE_HYPER_BEAM: usize = 3;
 const IDX_MOVE_STUNNED: usize = 4;
 
-pub fn spawn_monster_bronze_automaton(ascension_level: u8) -> Entity {
-    let health_max = if ascension_level < 9 { 300 } else { 320 };
-
-    let moves: &'static [Move] = if ascension_level < 4 {
-        &MOVES_ASC0
-    } else if ascension_level < 9 {
-        &MOVES_ASC4
-    } else {
-        &MOVES_ASC9
-    };
-
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::Artifact, 3);
-
-    make_entity_monster(
-        MonsterName::BronzeAutomaton,
-        MonsterKind::Boss,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        moves,
-    )
-}
+pub static BRONZE_AUTOMATON: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::BronzeAutomaton,
+    kind: MonsterKind::Boss,
+    health_tiers: &[(0, (300, 300)), (9, (320, 320))],
+    block_start: 0,
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (4, &[&MOVES_ASC4]),
+        (9, &[&MOVES_ASC9]),
+    ],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Artifact, 3)])],
+};
 
 // Deterministic: Spawn, then Flail / Boost alternating; the fifth cycling turn
 // is Hyper Beam, followed by a Stunned turn

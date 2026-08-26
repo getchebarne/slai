@@ -1,33 +1,17 @@
-use crate::entity::Entity;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
-use crate::monsters::make_entity_monster;
-use crate::monsters::make_move_attack;
+use crate::monsters::MonsterTemplate;
+use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 
-static MOVES_ASC0: [Move; 1] = [make_move_attack("Spit Web", 5, 2)];
-static MOVES_ASC2: [Move; 1] = [make_move_attack("Spit Web", 6, 2)];
+static MOVES_ASC0: [Move; 1] = [move_attack("Spit Web", 5, 2)];
+static MOVES_ASC2: [Move; 1] = [move_attack("Spit Web", 6, 2)];
 
-pub fn spawn_monster_bandit_pointy(ascension_level: u8) -> Entity {
-    let health_max = if ascension_level < 7 { 30 } else { 34 };
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else {
-        &MOVES_ASC2
-    };
-
-    make_entity_monster(
-        MonsterName::BanditPointy,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static BANDIT_POINTY: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::BanditPointy,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (30, 30)), (7, (34, 34))],
+    block_start: 0,
+    move_tiers: &[(0, &[&MOVES_ASC0]), (2, &[&MOVES_ASC2])],
+    modifier_tiers: &[],
+};

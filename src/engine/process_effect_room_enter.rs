@@ -27,7 +27,7 @@ use crate::utils::candidate_matches;
 use crate::utils::has_relic;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
-    // Maw Bank: 12 gold on every room entry until deactivated
+    // Maw Bank: 12 gold on every Room entry until deactivated
     if let Some(id) = state.id_relics[RelicName::MawBank as usize]
         && !state.entities[id].relic_used_up
     {
@@ -44,7 +44,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
     // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
     let room_kind_resolved = if room_kind == RoomKind::Unknown {
-        // Ssserpent Head: gain 50 gold on entering a "?" room, whatever it resolves to
+        // Ssserpent Head: gain 50 gold on entering a "?" Room, whatever it resolves to
         if has_relic(&state.id_relics, RelicName::SsserpentHead) {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::GoldDelta {
@@ -79,12 +79,12 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             }
         }
         RoomKind::CombatMonster => {
-            // Pop an encounter and spawn its monsters
+            // Pop an encounter and spawn its Monsters
             let encounter = state.encounter_pool_normal.remove(0);
             spawn_encounter_monsters(state, encounter);
         }
         RoomKind::CombatElite => {
-            // Pop an encounter and spawn its monsters
+            // Pop an encounter and spawn its Monsters
             let encounter = state.encounter_pool_elite.remove(0);
             spawn_encounter_monsters(state, encounter);
         }
@@ -125,9 +125,8 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         }
         RoomKind::EventRoom => {
             let name = draw_random_event(state).expect("Event room with no drawable event");
-            let (kind, id_event_options) = spawn_event(state, name);
-            state.event.event_kind = kind;
-            state.event.consumed = false;
+            let id_event_options = spawn_event(state, name);
+            state.event.name = name;
             state.event.id_event_options = id_event_options;
             state.event.active = true;
         }
@@ -156,9 +155,9 @@ pub fn process_effect_room_enter(state: &mut GameState) {
     }
 }
 
-// Resolve a "?" room into a concrete kind, then drift the running tallies
+// Resolve a "?" Room into a concrete kind, then drift the running tallies
 fn roll_unknown_room(state: &mut GameState) -> RoomKind {
-    // Tiny Chest: every 4th ? room is forced Treasure; drift still runs as if rolled
+    // Tiny Chest: every 4th ? Room is forced Treasure; drift still runs as if rolled
     let force_treasure = if let Some(id) = state.id_relics[RelicName::TinyChest as usize] {
         // Increase counter
         let counter = &mut state.entities[id].relic_counter;
@@ -175,7 +174,7 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
         false
     };
 
-    // Resolve the room kind
+    // Resolve the Room kind
     let mut room_kind_resolved = if force_treasure {
         RoomKind::Treasure
     } else {
@@ -212,7 +211,7 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
         state.unknown_chance_treasure + UNKNOWN_CHANCE_BASE_TREASURE
     };
 
-    // Juzu Bracelet: a monster resolution becomes an event (after the drift settles)
+    // Juzu Bracelet: a Monster resolution becomes an event (after the drift settles)
     if room_kind_resolved == RoomKind::CombatMonster
         && has_relic(&state.id_relics, RelicName::JuzuBracelet)
     {

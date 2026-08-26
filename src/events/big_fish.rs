@@ -3,9 +3,11 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::make_entity_event_option;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -23,7 +25,7 @@ const OPTION_BANANA: &[Effect] = &[
         id_source: None,
         target: TARGET_CHARACTER,
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Donut
@@ -36,7 +38,7 @@ const OPTION_DONUT: &[Effect] = &[
         id_source: None,
         target: TARGET_CHARACTER,
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Box
@@ -56,11 +58,23 @@ const OPTION_BOX: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option("[Banana] Heal 1/3 of your max HP.", OPTION_BANANA),
-    make_entity_event_option("[Donut] Raise your max HP by 5.", OPTION_DONUT),
-    make_entity_event_option("[Box] Receive a Relic. Become Cursed - Regret.", OPTION_BOX),
+pub static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_BANANA),
+    make_event_option_template(OPTION_DONUT),
+    make_event_option_template(OPTION_BOX),
 ];
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
+}
+
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
+}

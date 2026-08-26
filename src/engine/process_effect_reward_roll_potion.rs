@@ -13,7 +13,7 @@ use crate::types::reward_ensure;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 
-// The drifting end-of-combat potion drop
+// The drifting end-of-combat Potion drop
 pub fn process_effect_reward_roll_potion(state: &mut GameState, eligible: bool) {
     // White Beast Statue: guaranteed drop, bypassing the drifting chance roll
     let has_white_beast_statue = has_relic(&state.id_relics, RelicName::WhiteBeastStatue);
@@ -27,7 +27,7 @@ pub fn process_effect_reward_roll_potion(state: &mut GameState, eligible: bool) 
         reward_ensure(&mut state.reward);
         state.reward.id_potions.push(id);
     } else if !eligible {
-        // Escaped normal fights roll chance 0 in the source: no potion, but the miss drift lands
+        // Escaped normal fights roll chance 0 in the source: no Potion, but the miss drift lands
         state.potion_drop_mod = (state.potion_drop_mod + POTION_DROP_CHANCE_MOD_MISS)
             .clamp(POTION_DROP_CHANCE_MOD_MIN, POTION_DROP_CHANCE_MOD_MAX);
     }

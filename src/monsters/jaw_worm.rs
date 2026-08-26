@@ -2,21 +2,18 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_block_buff;
+use crate::monsters::move_attack;
+use crate::monsters::move_block_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_CHOMP_11: Move = make_move_attack("Chomp", 11, 1);
-static MOVE_CHOMP_12: Move = make_move_attack("Chomp", 12, 1);
+static MOVE_CHOMP_11: Move = move_attack("Chomp", 11, 1);
+static MOVE_CHOMP_12: Move = move_attack("Chomp", 12, 1);
 static MOVE_THRASH: Move = make_move(
     "Thrash",
     &[
@@ -39,9 +36,9 @@ static MOVE_THRASH: Move = make_move(
         instances: 1,
     },
 );
-static MOVE_BELLOW_3_6: Move = make_move_block_buff("Bellow", 6, 3);
-static MOVE_BELLOW_4_6: Move = make_move_block_buff("Bellow", 6, 4);
-static MOVE_BELLOW_5_9: Move = make_move_block_buff("Bellow", 9, 5);
+static MOVE_BELLOW_3_6: Move = move_block_buff("Bellow", 6, 3);
+static MOVE_BELLOW_4_6: Move = move_block_buff("Bellow", 6, 4);
+static MOVE_BELLOW_5_9: Move = move_block_buff("Bellow", 9, 5);
 static MOVES_ASC0: [Move; 3] = [MOVE_CHOMP_11, MOVE_BELLOW_3_6, MOVE_THRASH];
 static MOVES_ASC2: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_4_6, MOVE_THRASH];
 static MOVES_ASC17: [Move; 3] = [MOVE_CHOMP_12, MOVE_BELLOW_5_9, MOVE_THRASH];
@@ -50,34 +47,18 @@ const IDX_MOVE_CHOMP: usize = 0;
 const IDX_MOVE_BELLOW: usize = 1;
 const IDX_MOVE_THRASH: usize = 2;
 
-pub fn spawn_monster_jaw_worm(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (40, 44)
-    } else {
-        (42, 46)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
-    } else {
-        &MOVES_ASC17
-    };
-
-    make_entity_monster(
-        MonsterName::JawWorm,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        MODIFIERS_ZERO,
-        moves,
-    )
-}
+pub static JAW_WORM: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::JawWorm,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (40, 44)), (7, (42, 46))],
+    block_start: 0,
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
+    modifier_tiers: &[],
+};
 
 pub fn get_next_move_jaw_worm(
     move_current: Option<usize>,

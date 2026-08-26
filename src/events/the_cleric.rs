@@ -3,12 +3,13 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::OPTION_LEAVE;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EOT_LEAVE;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
 use crate::events::deck_has_purgeable;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
@@ -37,7 +38,7 @@ const OPTION_HEAL: &[Effect] = &[
         id_source: None,
         target: TARGET_CHARACTER,
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Purify: +25 gold cost at A15
@@ -52,36 +53,30 @@ const fn purify(cost: u16) -> [Effect; 3] {
             target: Target::Direct(None),
         },
         EFFECT_DECK_PURGE_PICK_1,
-        EVENT_CONSUME_EFFECT,
+        EFFECT_EVENT_CONSUME,
     ]
 }
+
+// Purify: 50 gold purges a Card
 const OPTION_PURIFY_BASE: [Effect; 3] = purify(COST_PURIFY_BASE);
+
+// Purify at A15+: 75 gold
 const OPTION_PURIFY_A15: [Effect; 3] = purify(COST_PURIFY_A15);
 
 // Leave
-static OPTIONS_BASE: &[Entity] = &[
-    make_entity_event_option("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
-    make_entity_event_option(
-        "[Purify] Pay 50 Gold. Remove a card from your deck.",
-        &OPTION_PURIFY_BASE,
-    ),
-    OPTION_LEAVE,
+static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_HEAL),
+    make_event_option_template(&OPTION_PURIFY_BASE),
+    EOT_LEAVE,
 ];
-static OPTIONS_A15: &[Entity] = &[
-    make_entity_event_option("[Heal] Pay 35 Gold. Heal 25% of your max HP.", OPTION_HEAL),
-    make_entity_event_option(
-        "[Purify] Pay 75 Gold. Remove a card from your deck.",
-        &OPTION_PURIFY_A15,
-    ),
-    OPTION_LEAVE,
+static EOTS_A15: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_HEAL),
+    make_event_option_template(&OPTION_PURIFY_A15),
+    EOT_LEAVE,
 ];
 
-pub fn options(ascension: u8) -> &'static [Entity] {
-    if ascension < 15 {
-        OPTIONS_BASE
-    } else {
-        OPTIONS_A15
-    }
+pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
+    if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
 }
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
@@ -99,4 +94,8 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
         2 => true,
         _ => unreachable!("The cleric option out of range: {idx}"),
     }
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
 }

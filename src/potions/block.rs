@@ -1,18 +1,17 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Entity;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_BLOCK: Entity = make_entity_potion(
-    PotionName::BlockPotion,
-    PotionRarity::Common,
-    true,
-    &[Effect {
+pub static BLOCK: PotionTemplate = PotionTemplate {
+    name: PotionName::Block,
+    rarity: PotionRarity::Common,
+    combat_only: true,
+    effects: &[Effect {
         kind: EffectKind::BlockGain { amount: 12 },
         id_source: None,
         target: TARGET_CHARACTER,
     }],
-);
+};

@@ -1,9 +1,13 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // See:
 //    - `process_effect_relic_grant_specific.rs`
 //    - `utils.rs`
-pub static CIRCLET: Entity = make_entity_relic(RelicName::Circlet, RelicTier::Special, 0, &[]);
+pub static CIRCLET: RelicTemplate = RelicTemplate {
+    name: RelicName::Circlet,
+    tier: RelicTier::Special,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

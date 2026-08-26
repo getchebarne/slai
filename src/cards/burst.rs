@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
@@ -11,7 +11,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-pub static BURST: Entity = make_entity_card(
+pub static BURST: CardTemplate = make_card_template(
     CardName::Burst,
     CardKind::Skill,
     CardColor::Green,
@@ -35,10 +35,10 @@ pub static BURST: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static BURST_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_effects: {
-        let mut effects = BURST.card_effects;
+pub static BURST_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    effects: {
+        let mut effects = BURST.effects;
         effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Burst,
             stacks: 2, // +1 stack

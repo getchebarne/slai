@@ -18,7 +18,7 @@ pub fn process_effect_monster_spawn(
     minion: bool,
     cap: Option<u8>,
 ) {
-    // A monster spawning implies a combat: the first spawn of a fight opens it
+    // A Monster spawning implies a combat: the first spawn of a fight opens it
     if !state.combat.active {
         combat_reset(&mut state.combat);
         state.combat.active = true;
@@ -37,7 +37,7 @@ pub fn process_effect_monster_spawn(
         return;
     };
 
-    // Create the monster `Entity`; summons carry Minion from birth
+    // Create the Monster `Entity`; summons carry Minion from birth
     let mut monster = spawn_monster(name, state.ascension, &mut state.rng);
     if minion {
         modifier_apply(&mut monster.modifiers, ModifierKind::Minion, 1);
@@ -54,7 +54,7 @@ pub fn process_effect_monster_spawn(
         target: Target::Direct(Some(id_monster)),
     });
 
-    // Philosopher's Stone: every monster (including mid-combat spawns) gains 1 Strength
+    // Philosopher's Stone: every Monster (including mid-combat spawns) gains 1 Strength
     if has_relic(&state.id_relics, RelicName::PhilosopherStone) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {

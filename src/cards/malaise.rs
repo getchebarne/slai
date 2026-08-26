@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTER_PICKED;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
@@ -11,7 +11,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-pub static MALAISE: Entity = make_entity_card(
+pub static MALAISE: CardTemplate = make_card_template(
     CardName::Malaise,
     CardKind::Skill,
     CardColor::Green,
@@ -45,8 +45,8 @@ pub static MALAISE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static MALAISE_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_cost_kind: CardCostKind::XCost { offset: 1 }, // +1 offset
+pub static MALAISE_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    cost_kind: CardCostKind::XCost { offset: 1 }, // +1 offset
     ..MALAISE
 };

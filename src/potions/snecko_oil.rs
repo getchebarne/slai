@@ -4,17 +4,16 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_SNECKO_OIL: Entity = make_entity_potion(
-    PotionName::SneckoOil,
-    PotionRarity::Rare,
-    true,
-    &[
+pub static SNECKO_OIL: PotionTemplate = PotionTemplate {
+    name: PotionName::SneckoOil,
+    rarity: PotionRarity::Rare,
+    combat_only: true,
+    effects: &[
         Effect {
             kind: EffectKind::CardDraw { count: 5 },
             id_source: None,
@@ -35,4 +34,4 @@ pub static POTION_SNECKO_OIL: Entity = make_entity_potion(
             },
         },
     ],
-);
+};

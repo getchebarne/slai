@@ -15,7 +15,7 @@ pub fn process_effect_ritual_dagger_proc(
 ) {
     let id_source = id_source.expect("RitualDaggerProc requires id_source");
     let id_target = id_target.expect("RitualDaggerProc requires id_target");
-    debug_assert!(state.entities[id_source].kind == EntityKind::Card);
+    assert!(state.entities[id_source].kind == EntityKind::Card);
 
     // Summons don't feed the blade
     if !state.entities[id_target].dead

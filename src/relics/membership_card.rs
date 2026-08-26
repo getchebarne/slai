@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,5 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_shop_build.rs`
 //    - `process_effect_shop_buy_relic.rs`
-pub static MEMBERSHIP_CARD: Entity =
-    make_entity_relic(RelicName::MembershipCard, RelicTier::Shop, 0, &[]);
+pub static MEMBERSHIP_CARD: RelicTemplate = RelicTemplate {
+    name: RelicName::MembershipCard,
+    tier: RelicTier::Shop,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

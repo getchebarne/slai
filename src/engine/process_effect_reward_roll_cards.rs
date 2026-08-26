@@ -4,7 +4,7 @@ use crate::types::reward_ensure;
 use crate::utils::card_reward_count;
 use crate::utils::roll_card_rewards;
 
-// Stage `bundles` combat-style card bundles (Busted Crown and Question Card apply)
+// Stage `bundles` combat-style Card bundles (Busted Crown and Question Card apply)
 pub fn process_effect_reward_roll_cards(state: &mut GameState, bundles: u8, rare_only: bool) {
     let cards_per_bundle = card_reward_count(&state.id_relics);
     let mut id_card_bundles: Vec<Vec<usize>> = Vec::with_capacity(bundles as usize);

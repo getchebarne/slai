@@ -34,10 +34,10 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             .iter()
             .flatten()
             .copied()
-            .find(|&id| state.entities[id].potion_name == PotionName::FairyPotion)
+            .find(|&id| state.entities[id].potion_name == PotionName::Fairy)
         {
             remove_potion(&mut state.id_potions, id_potion);
-            // Sacred Bark doubles the revive potency, like every other potion
+            // Sacred Bark doubles the revive potency, like every other Potion
             let factor = if has_relic(&state.id_relics, RelicName::SacredBark) {
                 0.60
             } else {
@@ -90,17 +90,17 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
     }
 
-    // Calculate if there're any monsters left alive
+    // Calculate if there're any Monsters left alive
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
 
     // Return stolen gold, once. Only relevant for Looters in practice
-    let stolen_gold = state.entities[id_target].monster_stolen_gold;
-    state.entities[id_target].monster_stolen_gold = 0;
-    let gold_return = if stolen_gold > 0 {
+    let gold_stolen = state.entities[id_target].monster_gold_stolen;
+    state.entities[id_target].monster_gold_stolen = 0;
+    let gold_return = if gold_stolen > 0 {
         Some(Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                amount: Amount::Absolute(stolen_gold),
+                amount: Amount::Absolute(gold_stolen),
             },
             id_source: None,
             target: Target::Direct(Some(id_character)),
@@ -198,7 +198,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         });
     }
 
-    // Gremlin Horn: a monster's death grants 1 energy and draws 1
+    // Gremlin Horn: a Monster's death grants 1 energy and draws 1
     if has_relic(&state.id_relics, RelicName::GremlinHorn) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDraw { count: 1 },

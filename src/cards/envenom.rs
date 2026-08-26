@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
@@ -11,7 +11,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-pub static ENVENOM: Entity = make_entity_card(
+pub static ENVENOM: CardTemplate = make_card_template(
     CardName::Envenom,
     CardKind::Power,
     CardColor::Green,
@@ -35,8 +35,8 @@ pub static ENVENOM: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static ENVENOM_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_cost: 1, // -1 cost
+pub static ENVENOM_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    cost: 1, // -1 cost
     ..ENVENOM
 };

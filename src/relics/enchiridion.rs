@@ -1,8 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardPile;
@@ -11,11 +10,11 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Combat start: a random Power lands in hand, costing 0 for the turn
-pub static ENCHIRIDION: Entity = make_entity_relic(
-    RelicName::Enchiridion,
-    RelicTier::Special,
-    0,
-    &[Effect {
+pub static ENCHIRIDION: RelicTemplate = RelicTemplate {
+    name: RelicName::Enchiridion,
+    tier: RelicTier::Special,
+    counter_init: 0,
+    effects_combat_start: &[Effect {
         kind: EffectKind::CardAddRandom {
             color: CardColor::Green,
             kind: Some(CardKind::Power),
@@ -28,4 +27,4 @@ pub static ENCHIRIDION: Entity = make_entity_relic(
         id_source: None,
         target: Target::Direct(None),
     }],
-);
+};

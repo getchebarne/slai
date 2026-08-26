@@ -10,16 +10,16 @@ use crate::utils::entity_requires_target;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 
-mirror_enum!(PyPotionName from PotionName, "PotionName", skip_from_py_object, {
-    EnergyPotion, BlockPotion, StrengthPotion, DexterityPotion, FirePotion, ExplosivePotion,
-    WeakPotion, FearPotion, PoisonPotion, SwiftPotion, AttackPotion, SkillPotion, PowerPotion,
-    FruitJuice, AncientPotion, LiquidBronze, EssenceOfSteel, GhostInAJar, CultistPotion,
-    CunningPotion, DistilledChaos, BlessingOfTheForge, EntropicBrew, RegenerationPotion,
-    SteroidPotion, SpeedPotion, DuplicateNextCardPlayPotion, ColorlessPotion, GamblersBrew,
-    LiquidMemories, SneckoOil, FairyPotion, SmokeBomb,
+mirror_enum!(PyPotionName from PotionName, "PotionName", {
+    Energy, Block, Strength, Dexterity, Fire, Explosive,
+    Weak, Fear, Poison, Swift, Attack, Skill, Power,
+    FruitJuice, Ancient, LiquidBronze, EssenceOfSteel, GhostInAJar, Cultist,
+    Cunning, DistilledChaos, BlessingOfTheForge, EntropicBrew, Regeneration,
+    Steroid, Speed, Duplication, Colorless, GamblersBrew,
+    LiquidMemories, SneckoOil, Fairy, SmokeBomb,
 });
 
-mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", skip_from_py_object, {
+mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", {
     Common, Uncommon, Rare,
 });
 
@@ -34,6 +34,7 @@ mirror_enum!(PyPotionRarity from PotionRarity, "PotionRarity", skip_from_py_obje
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyPotion {
+    pub id: usize,
     pub name: PyPotionName,
     pub rarity: PyPotionRarity,
     pub requires_target: bool,
@@ -41,8 +42,9 @@ pub struct PyPotion {
     pub effects: Vec<PyEffect>,
 }
 
-pub(crate) fn snapshot_potion(entity: &Entity) -> PyPotion {
+pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
     PyPotion {
+        id,
         name: entity.potion_name.into(),
         rarity: entity.potion_rarity.into(),
         requires_target: entity_requires_target(entity),

@@ -1,10 +1,13 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Every turn start deals 3 damage to all enemies
 // See:
 //    - `process_effect_turn_start.rs`
-pub static MERCURY_HOURGLASS: Entity =
-    make_entity_relic(RelicName::MercuryHourglass, RelicTier::Uncommon, 0, &[]);
+pub static MERCURY_HOURGLASS: RelicTemplate = RelicTemplate {
+    name: RelicName::MercuryHourglass,
+    tier: RelicTier::Uncommon,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

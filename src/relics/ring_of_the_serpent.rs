@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,5 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_relic_adopt.rs`
 //    - `process_effect_turn_start.rs`
-pub static RING_OF_THE_SERPENT: Entity =
-    make_entity_relic(RelicName::RingOfTheSerpent, RelicTier::Boss, 0, &[]);
+pub static RING_OF_THE_SERPENT: RelicTemplate = RelicTemplate {
+    name: RelicName::RingOfTheSerpent,
+    tier: RelicTier::Boss,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

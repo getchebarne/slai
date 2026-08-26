@@ -73,6 +73,7 @@ pub enum Intent {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Move {
+    #[allow(dead_code)]
     pub name: &'static str,
     pub effects: [Effect; MAX_EFFECTS_PER_MOVE],
     pub effects_len: u8,
@@ -103,7 +104,7 @@ pub struct Entity {
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_len: u8,
     pub monster_cycle_count: u8,  // Only used by "The Guardian"
-    pub monster_stolen_gold: u16, // Only used by "Looter" and "Mugger"
+    pub monster_gold_stolen: u16, // Only used by "Looter" and "Mugger"
 
     // Card-only
     pub card_name: CardName,
@@ -137,7 +138,7 @@ pub struct Entity {
     pub relic_counter: i16,
     pub relic_used_up: bool,
     pub relic_seq: u16,
-    pub relic_effects_on_combat_start: &'static [Effect],
+    pub relic_effects_combat_start: &'static [Effect],
 
     // Potion-only
     pub potion_name: PotionName,
@@ -146,7 +147,6 @@ pub struct Entity {
     pub potion_effects: &'static [Effect],
 
     // EventOption-only
-    pub event_option_label: &'static str,
     pub event_option_effects: [Effect; MAX_EFFECTS_PER_EVENT_OPTION],
     pub event_option_effects_len: u8,
 }
@@ -159,7 +159,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     character_name: "",
     character_reward_roll_offset: 0,
     character_gold: 0,
-    monster_stolen_gold: 0,
+    monster_gold_stolen: 0,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
     monster_moves: &[],
@@ -191,17 +191,16 @@ pub const ENTITY_ZERO: Entity = Entity {
     room_x: 0,
     room_kind: RoomKind::CombatBoss,
     room_edges: 0,
-    relic_name: RelicName::SnakeRing,
+    relic_name: RelicName::RingOfTheSnake,
     relic_tier: RelicTier::Starter,
     relic_counter: 0,
     relic_used_up: false,
     relic_seq: 0,
-    relic_effects_on_combat_start: &[],
-    potion_name: PotionName::EnergyPotion,
+    relic_effects_combat_start: &[],
+    potion_name: PotionName::Energy,
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,
     potion_effects: &[],
-    event_option_label: "",
     event_option_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_EVENT_OPTION],
     event_option_effects_len: 0,
 };

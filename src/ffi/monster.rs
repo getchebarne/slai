@@ -8,6 +8,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::types::MonsterEncounter;
+use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -18,7 +19,11 @@ use crate::utils::weak_factor;
 use super::modifier::PyModifier;
 use super::modifier::snapshot_modifiers;
 
-mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
+mirror_enum!(PyMonsterKind from MonsterKind, "MonsterKind", {
+    Normal, Elite, Boss,
+});
+
+mirror_enum!(PyMonsterName from MonsterName, "MonsterName", {
     Cultist, FungiBeast, GremlinFat, GremlinNob, GremlinThief, GremlinTsundere, GremlinWarrior,
     GremlinWizard, Hexaghost, JawWorm, Lagavulin, Looter, LouseDefensive, LouseNormal, Sentry,
     SlaverBlue, SlaverRed, SlimeAcidLarge, SlimeAcidMedium, SlimeAcidSmall, SlimeBoss,
@@ -28,7 +33,7 @@ mirror_enum!(PyMonsterName from MonsterName, "MonsterName", from_py_object, {
     BanditBear, BanditLeader, BanditPointy,
 });
 
-mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", from_py_object, {
+mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     Cultist, JawWorm, TwoLouse, SmallSlimes, BlueSlaver, RedSlaver, Looter, TwoFungiBeasts,
     ThreeLouse, LargeSlime, LotsOfSlimes, GremlinGang, ExordiumThugs, ExordiumWildlife,
     GremlinNob, Lagavulin, ThreeSentries, TheGuardian, Hexaghost, SlimeBoss, ThreeFungiBeasts,
@@ -110,13 +115,14 @@ pub struct PyIntent {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyMonster {
+    pub id: usize,
     pub name: PyMonsterName,
     pub health: u16,
     pub health_max: u16,
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
     pub intent: PyIntent,
-    pub stolen_gold: u16,
+    pub gold_stolen: u16, // Only relevant for Looters and Muggers
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
@@ -193,13 +199,14 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
             };
 
             PyMonster {
+                id: id_monster,
                 name: monster.monster_name.into(),
                 health: monster.vitals.health,
                 health_max: monster.vitals.health_max,
                 block: monster.vitals.block,
                 modifiers: snapshot_modifiers(&monster.modifiers),
                 intent,
-                stolen_gold: monster.monster_stolen_gold,
+                gold_stolen: monster.monster_gold_stolen,
             }
         })
         .collect()

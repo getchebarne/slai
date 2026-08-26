@@ -2,21 +2,18 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::TARGET_SOURCE;
-use crate::entity::Entity;
 use crate::entity::Intent;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
 use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
-use crate::modifier::modifier_apply;
-use crate::monsters::make_entity_monster;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_buff;
+use crate::monsters::modifier_fixed;
+use crate::monsters::move_attack;
+use crate::monsters::move_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 
 const MODE_SHIFT_STACKS_30: i16 = 30;
 const MODE_SHIFT_STACKS_35: i16 = 35;
@@ -24,7 +21,7 @@ const MODE_SHIFT_STACKS_40: i16 = 40;
 pub const DEFENSIVE_MODE_BLOCK: u16 = 20;
 
 // Twin Slam: two hits, ModeShift refresh, SharpHide drop
-const fn make_move_twin_slam(mode_shift_stacks: i16) -> Move {
+const fn move_twin_slam(mode_shift_stacks: i16) -> Move {
     make_move(
         "Twin Slam",
         &[
@@ -76,8 +73,8 @@ static MOVE_CHARGING_UP: Move = make_move(
     }],
     Intent::Block,
 );
-static MOVE_FIERCE_BASH_32: Move = make_move_attack("Fierce Bash", 32, 1);
-static MOVE_FIERCE_BASH_36: Move = make_move_attack("Fierce Bash", 36, 1);
+static MOVE_FIERCE_BASH_32: Move = move_attack("Fierce Bash", 32, 1);
+static MOVE_FIERCE_BASH_36: Move = move_attack("Fierce Bash", 36, 1);
 static MOVE_VENT_STEAM: Move = make_move(
     "Vent Steam",
     &[
@@ -141,13 +138,13 @@ static MOVE_WHIRLWIND: Move = make_move(
         instances: 4,
     },
 );
-static MOVE_DEFENSIVE_MODE_3: Move = make_move_buff("Defensive Frame", ModifierKind::SharpHide, 3);
-static MOVE_DEFENSIVE_MODE_4: Move = make_move_buff("Defensive Frame", ModifierKind::SharpHide, 4);
-static MOVE_ROLL_ATTACK_9: Move = make_move_attack("Roll Attack", 9, 1);
-static MOVE_ROLL_ATTACK_10: Move = make_move_attack("Roll Attack", 10, 1);
-static MOVE_TWIN_SLAM_30: Move = make_move_twin_slam(MODE_SHIFT_STACKS_30);
-static MOVE_TWIN_SLAM_35: Move = make_move_twin_slam(MODE_SHIFT_STACKS_35);
-static MOVE_TWIN_SLAM_40: Move = make_move_twin_slam(MODE_SHIFT_STACKS_40);
+static MOVE_DEFENSIVE_MODE_3: Move = move_buff("Defensive Frame", ModifierKind::SharpHide, 3);
+static MOVE_DEFENSIVE_MODE_4: Move = move_buff("Defensive Frame", ModifierKind::SharpHide, 4);
+static MOVE_ROLL_ATTACK_9: Move = move_attack("Roll Attack", 9, 1);
+static MOVE_ROLL_ATTACK_10: Move = move_attack("Roll Attack", 10, 1);
+static MOVE_TWIN_SLAM_30: Move = move_twin_slam(MODE_SHIFT_STACKS_30);
+static MOVE_TWIN_SLAM_35: Move = move_twin_slam(MODE_SHIFT_STACKS_35);
+static MOVE_TWIN_SLAM_40: Move = move_twin_slam(MODE_SHIFT_STACKS_40);
 static MOVES_ASC0: [Move; 7] = [
     MOVE_CHARGING_UP,
     MOVE_FIERCE_BASH_32,
@@ -193,41 +190,41 @@ const IDX_MOVE_DEFENSIVE_MODE: usize = 4;
 const IDX_MOVE_ROLL_ATTACK: usize = 5;
 pub const IDX_MOVE_TWIN_SLAM: usize = 6;
 
-pub fn spawn_monster_the_guardian(ascension_level: u8) -> Entity {
-    let health_max = if ascension_level < 9 { 240 } else { 250 };
-
-    let moves: &'static [Move] = if ascension_level < 4 {
-        &MOVES_ASC0
-    } else if ascension_level < 9 {
-        &MOVES_ASC4
-    } else if ascension_level < 19 {
-        &MOVES_ASC9
-    } else {
-        &MOVES_ASC19
-    };
-
-    let mode_shift_stacks = if ascension_level < 9 {
-        MODE_SHIFT_STACKS_30
-    } else if ascension_level < 19 {
-        MODE_SHIFT_STACKS_35
-    } else {
-        MODE_SHIFT_STACKS_40
-    };
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::ModeShift, mode_shift_stacks);
-
-    make_entity_monster(
-        MonsterName::TheGuardian,
-        MonsterKind::Boss,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        moves,
-    )
-}
+pub static THE_GUARDIAN: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::TheGuardian,
+    kind: MonsterKind::Boss,
+    health_tiers: &[(0, (240, 240)), (9, (250, 250))],
+    block_start: 0,
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (4, &[&MOVES_ASC4]),
+        (9, &[&MOVES_ASC9]),
+        (19, &[&MOVES_ASC19]),
+    ],
+    modifier_tiers: &[
+        (
+            0,
+            &[modifier_fixed(
+                ModifierKind::ModeShift,
+                MODE_SHIFT_STACKS_30,
+            )],
+        ),
+        (
+            9,
+            &[modifier_fixed(
+                ModifierKind::ModeShift,
+                MODE_SHIFT_STACKS_35,
+            )],
+        ),
+        (
+            19,
+            &[modifier_fixed(
+                ModifierKind::ModeShift,
+                MODE_SHIFT_STACKS_40,
+            )],
+        ),
+    ],
+};
 
 pub fn get_next_move_the_guardian_full(
     move_current: Option<usize>,

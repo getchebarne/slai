@@ -25,7 +25,7 @@ use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
-// The character's turn end tears down the turn; monsters unwind their per-turn kit
+// The Character's turn end tears down the turn; Monsters unwind their per-turn kit
 pub fn process_effect_turn_end(id_target: Option<usize>, state: &mut GameState) {
     let id_actor = id_target.expect("TurnEnd requires id_target");
     if id_actor == state.id_character {
@@ -147,7 +147,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Clear effect buffer. Relic effects go through effect_buf so they
-    // resolve before the monster turns
+    // resolve before the Monster turns
     state.effect_buf.clear();
 
     // Art of War: 1 energy next turn if no attacks were played this turn
@@ -174,7 +174,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Orichalcum: character gains 6 block if it has none
+    // Orichalcum: Character gains 6 block if it has none
     if state.entities[state.id_character].vitals.block == 0
         && has_relic(&state.id_relics, RelicName::Orichalcum)
     {
@@ -185,7 +185,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Stone Calendar: 52 damage to all monsters at the end of turn 7; fires once, no reset
+    // Stone Calendar: 52 damage to all Monsters at the end of turn 7; fires once, no reset
     if let Some(id) = state.id_relics[RelicName::StoneCalendar as usize] {
         let counter = &mut state.entities[id].relic_counter;
         *counter += 1;
@@ -410,7 +410,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Every monster's turn start, then every monster acts and rolls, then every turn end
+    // Every Monster's turn start, then every Monster acts and rolls, then every turn end
     for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_buf.push(Effect {
             kind: EffectKind::TurnStart,

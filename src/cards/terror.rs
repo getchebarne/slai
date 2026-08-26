@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTER_PICKED;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
@@ -13,7 +13,7 @@ use crate::types::CardRarity;
 
 const STACKS_TERROR: i16 = 99;
 
-pub static TERROR: Entity = make_entity_card(
+pub static TERROR: CardTemplate = make_card_template(
     CardName::Terror,
     CardKind::Skill,
     CardColor::Green,
@@ -37,8 +37,8 @@ pub static TERROR: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static TERROR_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_cost: 0, // -1 cost
+pub static TERROR_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    cost: 0, // -1 cost
     ..TERROR
 };

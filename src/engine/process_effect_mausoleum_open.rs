@@ -7,7 +7,7 @@ use crate::types::CardPile;
 use rand::Rng;
 
 pub fn process_effect_mausoleum_open(state: &mut GameState) {
-    // Executes in reverse: relic first, then the curse
+    // Executes in reverse: Relic first, then the curse
     if state.rng.random_bool(0.5) || state.ascension >= 15 {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardAdd {

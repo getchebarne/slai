@@ -1,18 +1,17 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::entity::Entity;
 use crate::modifier::ModifierKind;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Combat start: +3 Strength, lost at the end of the first turn
-pub static MUTAGENIC_STRENGTH: Entity = make_entity_relic(
-    RelicName::MutagenicStrength,
-    RelicTier::Special,
-    0,
-    &[
+pub static MUTAGENIC_STRENGTH: RelicTemplate = RelicTemplate {
+    name: RelicName::MutagenicStrength,
+    tier: RelicTier::Special,
+    counter_init: 0,
+    effects_combat_start: &[
         Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,
@@ -30,4 +29,4 @@ pub static MUTAGENIC_STRENGTH: Entity = make_entity_relic(
             target: TARGET_CHARACTER,
         },
     ],
-);
+};

@@ -15,6 +15,7 @@ pub mod potion;
 pub mod relic;
 pub mod state;
 pub mod target;
+pub mod template;
 
 pub use action::*;
 pub use amount::*;
@@ -30,3 +31,4 @@ pub use potion::*;
 pub use relic::*;
 pub use state::*;
 pub use target::*;
+pub use template::*;

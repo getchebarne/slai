@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
@@ -11,7 +11,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-pub static THE_BOMB: Entity = make_entity_card(
+pub static THE_BOMB: CardTemplate = make_card_template(
     CardName::TheBomb,
     CardKind::Skill,
     CardColor::Colorless,
@@ -35,10 +35,10 @@ pub static THE_BOMB: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static THE_BOMB_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_effects: {
-        let mut effects = THE_BOMB.card_effects;
+pub static THE_BOMB_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    effects: {
+        let mut effects = THE_BOMB.effects;
         effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::TheBomb,
             stacks: 50, // +10 stacks

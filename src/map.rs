@@ -39,7 +39,7 @@ pub fn edge_indices(edges: u8) -> impl Iterator<Item = usize> {
     (0..MAP_WIDTH).filter(move |&x| edges & (1 << x) != 0)
 }
 
-pub fn room_at<'a>(
+fn room_at<'a>(
     id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
     entities: &'a [Entity],
     y: usize,
@@ -47,16 +47,6 @@ pub fn room_at<'a>(
 ) -> Option<&'a Entity> {
     let id_room = id_rooms[y][x]?;
     Some(&entities[id_room])
-}
-
-pub fn room_at_mut<'a>(
-    id_rooms: &[[Option<usize>; MAP_WIDTH]; MAP_HEIGHT],
-    entities: &'a mut [Entity],
-    y: usize,
-    x: usize,
-) -> Option<&'a mut Entity> {
-    let id_room = id_rooms[y][x]?;
-    Some(&mut entities[id_room])
 }
 
 pub fn get_active_room_kind(
@@ -135,7 +125,7 @@ fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
 
     // Pre-trim row-0 edges define parenthood for row 1: the source keeps stale
     // parent links after redundant-edge removal, and their surviving children
-    // still count as siblings during room-kind assignment
+    // still count as siblings during Room-kind assignment
     let mut edges_row0_pretrim = [0u8; MAP_WIDTH];
     for (x, node) in nodes[0].iter().enumerate() {
         if let Some(node) = node {

@@ -3,13 +3,14 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::OPTION_LEAVE;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EOT_LEAVE;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
 use crate::events::deck_has_damage_card;
 use crate::events::deck_has_purgeable;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
@@ -24,7 +25,7 @@ const OPTION_PRAY: &[Effect] = &[
         target: TARGET_CHARACTER,
     },
     EFFECT_DECK_PURGE_PICK_1,
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Attack
@@ -37,17 +38,14 @@ const OPTION_ATTACK: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Leave
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option(
-        "[Pray] Remove a card from your deck. Lose 7 HP.",
-        OPTION_PRAY,
-    ),
-    make_entity_event_option("[Destroy] Receive 50-80 Gold.", OPTION_ATTACK),
-    OPTION_LEAVE,
+pub static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_PRAY),
+    make_event_option_template(OPTION_ATTACK),
+    EOT_LEAVE,
 ];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
@@ -57,4 +55,12 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
         2 => true,
         _ => unreachable!("Wing statue option out of range: {idx}"),
     }
+}
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
 }

@@ -17,7 +17,7 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
         return;
     }
 
-    // A live monster with no rolled move is a broken spawn/roll invariant
+    // A live Monster with no rolled move is a broken spawn/roll invariant
     let Some(move_idx) = monster.monster_move_current else {
         unreachable!("MoveExecute on a monster with no rolled move");
     };

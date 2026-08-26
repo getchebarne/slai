@@ -13,7 +13,7 @@ use crate::types::CardName;
 use crate::types::reward_ensure;
 use crate::utils::push_entity;
 
-// Neow's card offers: 33% Uncommon else Common, never Rare unless forced
+// Neow's Card offers: 33% Uncommon else Common, never Rare unless forced
 pub fn process_effect_reward_roll_neow_cards(
     state: &mut GameState,
     colorless: bool,
@@ -38,7 +38,7 @@ pub fn process_effect_reward_roll_neow_cards(
             }
         };
 
-        // Roll the Card's name — loops until the rolled card hasn't been rolled already
+        // Roll the Card's name — loops until the rolled Card hasn't been rolled already
         let mut card_name = card_pool[state.rng.random_range(0..card_pool.len())];
         while card_names_rolled[..idx].contains(&card_name) {
             card_name = card_pool[state.rng.random_range(0..card_pool.len())];

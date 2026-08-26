@@ -3,9 +3,11 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::make_entity_event_option;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -20,7 +22,7 @@ const fn take_gold(gold: u16) -> [Effect; 2] {
             id_source: None,
             target: Target::Direct(None),
         },
-        EVENT_CONSUME_EFFECT,
+        EFFECT_EVENT_CONSUME,
     ]
 }
 
@@ -44,31 +46,32 @@ const OPTION_DAGGER: [Effect; 3] = [
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
+// Take the gold: 99
 const OPTION_GOLD_BASE: [Effect; 2] = take_gold(99);
+
+// Take the gold at A15+: only 50
 const OPTION_GOLD_A15: [Effect; 2] = take_gold(50);
 
-static OPTIONS_BASE: &[Entity] = &[
-    make_entity_event_option("[Smash and Grab] Gain 99 Gold.", &OPTION_GOLD_BASE),
-    make_entity_event_option(
-        "[Join the Cult] Lose 6 HP. Obtain Ritual Dagger.",
-        &OPTION_DAGGER,
-    ),
+static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(&OPTION_GOLD_BASE),
+    make_event_option_template(&OPTION_DAGGER),
 ];
-static OPTIONS_A15: &[Entity] = &[
-    make_entity_event_option("[Smash and Grab] Gain 50 Gold.", &OPTION_GOLD_A15),
-    make_entity_event_option(
-        "[Join the Cult] Lose 6 HP. Obtain Ritual Dagger.",
-        &OPTION_DAGGER,
-    ),
+static EOTS_A15: &[EventOptionTemplate] = &[
+    make_event_option_template(&OPTION_GOLD_A15),
+    make_event_option_template(&OPTION_DAGGER),
 ];
 
-pub fn options(ascension: u8) -> &'static [Entity] {
-    if ascension < 15 {
-        OPTIONS_BASE
-    } else {
-        OPTIONS_A15
-    }
+pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
+    if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
+}
+
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
 }

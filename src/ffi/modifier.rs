@@ -9,7 +9,7 @@ use crate::modifier::modifier_is_buff;
 use crate::modifier::modifier_kind_from_u8;
 use crate::modifier::stacks_max_for;
 
-mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", from_py_object, {
+mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", {
     Accuracy, AfterImage, Angry, Artifact, Asleep, Blur, Burst, Choke, CorpseExplosion, CurlUp,
     Dexterity, DoubleDamage, DrawCardNextTurn, Enrage, Entangled, Envenom, Frail,
     InfiniteBlades, Intangible, Metallicize, ModeShift, NextTurnBlock, NextTurnEnergy, NoDraw,

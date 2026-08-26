@@ -1,9 +1,13 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // Every 10th Attack played grants 1 energy; counter persists across turns and combats
 // See:
 //    - `process_effect_card_play.rs`
-pub static NUNCHAKU: Entity = make_entity_relic(RelicName::Nunchaku, RelicTier::Common, 0, &[]);
+pub static NUNCHAKU: RelicTemplate = RelicTemplate {
+    name: RelicName::Nunchaku,
+    tier: RelicTier::Common,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

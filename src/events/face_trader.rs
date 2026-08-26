@@ -3,10 +3,12 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::OPTION_LEAVE;
-use crate::events::make_entity_event_option;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EOT_LEAVE;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 
@@ -32,10 +34,14 @@ const fn touch(gold: u16) -> [Effect; 3] {
             id_source: None,
             target: TARGET_CHARACTER,
         },
-        EVENT_CONSUME_EFFECT,
+        EFFECT_EVENT_CONSUME,
     ]
 }
+
+// Touch: 75 gold and a face
 const OPTION_TOUCH_BASE: [Effect; 3] = touch(75);
+
+// Touch at A15+: 50 gold
 const OPTION_TOUCH_A15: [Effect; 3] = touch(50);
 
 // Trade: gain a random unowned face Relic
@@ -47,37 +53,36 @@ const FACE_POOL: &[RelicName] = &[
     RelicName::SsserpentHead,
 ];
 
+// Trade: one of the face Relics
 const OPTION_TRADE: &[Effect] = &[
     Effect {
         kind: EffectKind::RelicGrantPool { pool: FACE_POOL },
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
 // Leave
-static OPTIONS_BASE: &[Entity] = &[
-    make_entity_event_option(
-        "[Touch] Lose HP equal to 10% of Max HP. Gain 75 Gold.",
-        &OPTION_TOUCH_BASE,
-    ),
-    make_entity_event_option("[Trade] Obtain a random face.", OPTION_TRADE),
-    OPTION_LEAVE,
+static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(&OPTION_TOUCH_BASE),
+    make_event_option_template(OPTION_TRADE),
+    EOT_LEAVE,
 ];
-static OPTIONS_A15: &[Entity] = &[
-    make_entity_event_option(
-        "[Touch] Lose HP equal to 10% of Max HP. Gain 50 Gold.",
-        &OPTION_TOUCH_A15,
-    ),
-    make_entity_event_option("[Trade] Obtain a random face.", OPTION_TRADE),
-    OPTION_LEAVE,
+static EOTS_A15: &[EventOptionTemplate] = &[
+    make_event_option_template(&OPTION_TOUCH_A15),
+    make_event_option_template(OPTION_TRADE),
+    EOT_LEAVE,
 ];
 
-pub fn options(ascension: u8) -> &'static [Entity] {
-    if ascension < 15 {
-        OPTIONS_BASE
-    } else {
-        OPTIONS_A15
-    }
+pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
+    if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
+}
+
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
 }

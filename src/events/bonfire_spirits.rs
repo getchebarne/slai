@@ -4,9 +4,11 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::make_entity_event_option;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 
 // Offer: pick a Card to purge. An empty purgeable pool auto-resolves to nothing
 const OPTION_OFFER: &[Effect] = &[
@@ -19,10 +21,19 @@ const OPTION_OFFER: &[Effect] = &[
             selection_kind: SelectionKind::Input { count: 1 },
         },
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
-pub static OPTIONS: &[Entity] = &[make_entity_event_option(
-    "[Offer] Remove a card; its rarity decides the spirits' blessing.",
-    OPTION_OFFER,
-)];
+pub static EOTS_BASE: &[EventOptionTemplate] = &[make_event_option_template(OPTION_OFFER)];
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
+}
+
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
+}

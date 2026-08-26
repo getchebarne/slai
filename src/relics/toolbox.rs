@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -8,4 +7,9 @@ use crate::types::RelicTier;
 //    - `process_effect_combat_start.rs`
 //    - `process_effect_toolbox_roll.rs`
 //    - `process_effect_toolbox_pick.rs`
-pub static TOOLBOX: Entity = make_entity_relic(RelicName::Toolbox, RelicTier::Shop, 0, &[]);
+pub static TOOLBOX: RelicTemplate = RelicTemplate {
+    name: RelicName::Toolbox,
+    tier: RelicTier::Shop,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

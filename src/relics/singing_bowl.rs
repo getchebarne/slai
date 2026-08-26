@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,5 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `action.rs`
 //    - `process_effect_singing_bowl_proc.rs`
-pub static SINGING_BOWL: Entity =
-    make_entity_relic(RelicName::SingingBowl, RelicTier::Uncommon, 0, &[]);
+pub static SINGING_BOWL: RelicTemplate = RelicTemplate {
+    name: RelicName::SingingBowl,
+    tier: RelicTier::Uncommon,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

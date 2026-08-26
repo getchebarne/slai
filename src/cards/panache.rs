@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
@@ -11,7 +11,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-pub static PANACHE: Entity = make_entity_card(
+pub static PANACHE: CardTemplate = make_card_template(
     CardName::Panache,
     CardKind::Power,
     CardColor::Colorless,
@@ -35,10 +35,10 @@ pub static PANACHE: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded
-pub static PANACHE_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_effects: {
-        let mut effects = PANACHE.card_effects;
+pub static PANACHE_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    effects: {
+        let mut effects = PANACHE.effects;
         effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Panache,
             stacks: 14, // +4 damage

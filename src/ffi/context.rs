@@ -7,8 +7,7 @@ use super::card::PyCard;
 use super::card::snapshot_card;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
-use super::event::PyEventKind;
-use super::event::snapshot_event_kind;
+use super::event::PyEventName;
 use super::macros::mirror_enum;
 use super::monster::PyMonster;
 use super::monster::snapshot_monsters;
@@ -17,7 +16,7 @@ use super::potion::snapshot_potion;
 use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
-mirror_enum!(PyChestKind from ChestKind, "ChestKind", skip_from_py_object, {
+mirror_enum!(PyChestKind from ChestKind, "ChestKind", {
     Small, Medium, Large,
 });
 
@@ -73,8 +72,7 @@ pub struct PyReward {
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
-
-    // Boss rewards roll mutually exclusive relics: taking one discards the rest
+    // Boss rewards roll mutually exclusive Relics: taking one discards the rest
     pub relics_exclusive: bool,
 }
 
@@ -110,9 +108,16 @@ pub struct PyShop {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEvent {
-    pub kind: PyEventKind,
-    pub options: Vec<Vec<PyEffect>>,
+    pub name: PyEventName,
     pub consumed: bool,
+    pub stage: u8,
+    pub options: Vec<Vec<PyEffect>>,
+    pub roll_cards: Vec<PyCard>,
+    pub roll_relics: Vec<PyRelic>,
+    pub roll_potions: Vec<PyPotion>,
+    pub found_gold: bool,
+    pub found_nothing: bool,
+    pub found_relic: bool,
 }
 
 #[pyclass(
@@ -198,12 +203,12 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
         relics: reward
             .id_relics
             .iter()
-            .map(|&id| snapshot_relic(&state.entities[id]))
+            .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
         potions: reward
             .id_potions
             .iter()
-            .map(|&id| snapshot_potion(&state.entities[id]))
+            .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
         gold: reward.gold,
         relics_exclusive: reward.relics_exclusive,
@@ -222,13 +227,13 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
         relics: shop
             .relics
             .iter()
-            .map(|&(id, _)| snapshot_relic(&state.entities[id]))
+            .map(|&(id, _)| snapshot_relic(id, &state.entities[id]))
             .collect(),
         relic_prices: shop.relics.iter().map(|&(_, price)| price).collect(),
         potions: shop
             .potions
             .iter()
-            .map(|&(id, _)| snapshot_potion(&state.entities[id]))
+            .map(|&(id, _)| snapshot_potion(id, &state.entities[id]))
             .collect(),
         potion_prices: shop.potions.iter().map(|&(_, price)| price).collect(),
         purge_cost: shop.purge_cost,
@@ -239,7 +244,11 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
 pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
     let event = &state.event;
     PyEvent {
-        kind: snapshot_event_kind(state, event.event_kind),
+        name: event.name.into(),
+        stage: event.stage,
+        found_gold: event.found_gold,
+        found_nothing: event.found_nothing,
+        found_relic: event.found_relic,
         options: event
             .id_event_options
             .iter()
@@ -252,6 +261,21 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
             })
             .collect(),
         consumed: event.consumed,
+        roll_cards: event
+            .id_roll_card
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
+        roll_relics: event
+            .id_roll_relic
+            .iter()
+            .map(|&id| snapshot_relic(id, &state.entities[id]))
+            .collect(),
+        roll_potions: event
+            .id_roll_potion
+            .iter()
+            .map(|&id| snapshot_potion(id, &state.entities[id]))
+            .collect(),
     }
 }
 

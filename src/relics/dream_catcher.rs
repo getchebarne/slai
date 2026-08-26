@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,5 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `action.rs`
 //    - `process_effect_reward_roll_cards.rs`
-pub static DREAM_CATCHER: Entity =
-    make_entity_relic(RelicName::DreamCatcher, RelicTier::Common, 0, &[]);
+pub static DREAM_CATCHER: RelicTemplate = RelicTemplate {
+    name: RelicName::DreamCatcher,
+    tier: RelicTier::Common,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

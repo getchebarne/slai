@@ -1,7 +1,7 @@
 pub const MAX_MOVE_HISTORY: usize = 64;
 
 // Per-Card effect array cap; bump if any Card legitimately exceeds 8
-pub const MAX_EFFECTS_PER_CARD: usize = 8;
+pub const MAX_EFFECTS_PER_CARD: usize = 6;
 
 // Per-move effect array cap; sized for Book of Stabbing's Multi-Stab growth
 pub const MAX_EFFECTS_PER_MOVE: usize = 20;
@@ -11,6 +11,14 @@ pub const MAX_EFFECTS_PER_EVENT_OPTION: usize = 5;
 
 pub const STARTING_GOLD: u16 = 99;
 pub const MAX_GOLD: u16 = 9999;
+
+// Silent starting vitals: base max HP, A14 penalty, A6+ current-HP fraction
+pub const SILENT_HP_MAX_BASE: u16 = 70;
+pub const ASCENSION_HP_MAX_CUT_LEVEL: u8 = 14;
+pub const ASCENSION_HP_START_CUT_LEVEL: u8 = 6;
+pub const SILENT_HP_MAX_A14_DELTA: u16 = 4;
+pub const HEALTH_START_A6_NUMER: u16 = 9;
+pub const HEALTH_START_A6_DENOM: u16 = 10;
 pub const GOLD_MONSTER_MIN: u16 = 10;
 pub const GOLD_MONSTER_MAX: u16 = 20;
 pub const GOLD_ELITE_MIN: u16 = 25;
@@ -20,7 +28,7 @@ pub const GOLD_BOSS_MAX: u16 = 105;
 pub const BOSS_RELIC_REWARD_COUNT: usize = 3;
 pub const LIBRARY_CARD_COUNT: usize = 20;
 
-// Largest single card-reward roll (The Library's 20)
+// Largest single Card-reward roll (The Library's 20)
 pub const MAX_CARD_REWARD_ROLL: usize = 20;
 const _: () = assert!(LIBRARY_CARD_COUNT <= MAX_CARD_REWARD_ROLL);
 
@@ -101,6 +109,10 @@ pub const CHEST_LARGE_GOLD_BASE: u16 = 75;
 pub const CHEST_LARGE_TH_COMMON: u8 = 0;
 pub const CHEST_LARGE_TH_UNCOMMON: u8 = 75;
 
+// Chest gold: base x U[0.9, 1.1] inclusive
+pub const CHEST_GOLD_VARIANCE_MIN: f32 = 0.9;
+pub const CHEST_GOLD_VARIANCE_MAX: f32 = 1.1;
+
 // Cumulative thresholds for Relic-tier roll (elite reward, random grant)
 pub const RELIC_TIER_TH_COMMON: u8 = 50;
 pub const RELIC_TIER_TH_UNCOMMON: u8 = 83;
@@ -132,13 +144,17 @@ pub const POTION_TH_UNCOMMON: u8 = 90;
 // Discovery: number of Card options offered
 pub const DISCOVER_PICK_COUNT: u8 = 3;
 
-// Neow: cards per offer, 33% Uncommon-else-Common roll, gold amounts, Lament charge count
+// Neow: Cards per offer, 33% Uncommon-else-Common roll, gold amounts, Lament charge count
 pub const NEOW_CARD_COUNT: usize = 3;
 pub const NEOW_POTION_COUNT: u8 = 3;
 pub const NEOW_UNCOMMON_CHANCE: f64 = 0.33;
 pub const NEOW_GOLD_SMALL: u16 = 100;
 pub const NEOW_GOLD_LARGE: u16 = 250;
 pub const NEOW_LAMENT_COMBATS: i16 = 3;
+
+// We Meet Again: gold ask rolled MIN..=gold.min(MAX); option unavailable below MIN
+pub const WE_MEET_AGAIN_GOLD_ASK_MIN: u16 = 50;
+pub const WE_MEET_AGAIN_GOLD_ASK_MAX: u16 = 150;
 
 // Shop pricing — Cards: base x U[0.9, 1.1], colorless x 1.2
 pub const SHOP_PRICE_CARD_COMMON: u16 = 50;
@@ -163,14 +179,49 @@ pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 = 1.05;
 pub const SHOP_PURGE_COST_BASE: u16 = 75;
 pub const SHOP_PURGE_COST_INCREMENT: u16 = 25;
 
+// One random colored-Card slot is floor-halved, pre-markup
+pub const SHOP_SALE_DIVISOR: u16 = 2;
+
 // A16+ markup: Card/Relic/Potion prices x 11/10 rounded half-up; purge cost is exempt
 pub const ASCENSION_SHOP_PRICE_BUMP_LEVEL: u8 = 16;
 pub const ASCENSION_SHOP_PRICE_BUMP_NUMER: u16 = 11;
 pub const ASCENSION_SHOP_PRICE_BUMP_DENOM: u16 = 10;
 
+// The one A16 markup formula; process_effect_shop_build applies it to live prices
+pub const fn bump_price_a16(price: u16) -> u16 {
+    ((price as u32 * ASCENSION_SHOP_PRICE_BUMP_NUMER as u32
+        + ASCENSION_SHOP_PRICE_BUMP_DENOM as u32 / 2)
+        / ASCENSION_SHOP_PRICE_BUMP_DENOM as u32) as u16
+}
+
+// Largest price the half-open variance roll in engine/shop.rs can produce
+const fn price_sup(base: u16, variance_max: f32) -> u16 {
+    let max = base as f32 * variance_max;
+    let truncated = max as u16;
+    if truncated as f32 == max {
+        truncated - 1
+    } else {
+        truncated
+    }
+}
+
+// Derived stock-price ceilings, post-A16 markup, pre-discount (discounts only lower)
+pub const SHOP_PRICE_CARD_MAX: u16 = bump_price_a16(price_sup(
+    SHOP_PRICE_CARD_RARE * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM,
+    SHOP_PRICE_CARD_VARIANCE_MAX,
+));
+pub const SHOP_PRICE_RELIC_MAX: u16 = bump_price_a16(price_sup(
+    SHOP_PRICE_RELIC_RARE,
+    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
+));
+pub const SHOP_PRICE_POTION_MAX: u16 = bump_price_a16(price_sup(
+    SHOP_PRICE_POTION_RARE,
+    SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,
+));
+
 // Shop inventory composition
 pub const SHOP_SLOTS_CARD_COLORED: usize = 5;
-pub const SHOP_SLOTS_CARD_COLORLESS: usize = 2;
+const SHOP_SLOTS_CARD_COLORLESS: usize = 2;
 pub const SHOP_SLOTS_CARD_TOTAL: usize = SHOP_SLOTS_CARD_COLORED + SHOP_SLOTS_CARD_COLORLESS;
 pub const SHOP_SLOTS_RELIC: usize = 3;
 pub const SHOP_SLOTS_POTION: usize = 3;

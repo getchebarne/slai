@@ -4,10 +4,12 @@ use crate::effect::EffectKind;
 use crate::effect::RelicPick;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventLoot;
-use crate::events::make_entity_event_option;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
+use crate::events::make_event_option_template;
+use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -65,13 +67,22 @@ const OPTION_EAT: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EVENT_CONSUME_EFFECT,
+    EFFECT_EVENT_CONSUME,
 ];
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option("[Stomp] Fight 3 Fungi Beasts.", OPTION_STOMP),
-    make_entity_event_option(
-        "[Eat] Heal 25% of your Max HP. Become Cursed - Parasite.",
-        OPTION_EAT,
-    ),
+pub static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_STOMP),
+    make_event_option_template(OPTION_EAT),
 ];
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
+}
+
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
+}

@@ -1,9 +1,9 @@
-use crate::cards::make_entity_card;
+use crate::cards::CardTemplate;
+use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTER_PICKED;
 use crate::entity::CardCostKind;
-use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
@@ -11,7 +11,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-pub static CATALYST: Entity = make_entity_card(
+pub static CATALYST: CardTemplate = make_card_template(
     CardName::Catalyst,
     CardKind::Skill,
     CardColor::Green,
@@ -35,10 +35,10 @@ pub static CATALYST: Entity = make_entity_card(
     PlayRestriction::Always,
 );
 // Upgraded: triples instead of doubles
-pub static CATALYST_PLUS: Entity = Entity {
-    card_upgraded: true,
-    card_effects: {
-        let mut effects = CATALYST.card_effects;
+pub static CATALYST_PLUS: CardTemplate = CardTemplate {
+    upgraded: true,
+    effects: {
+        let mut effects = CATALYST.effects;
         effects[0].kind = EffectKind::ModifierMultiply {
             kind: ModifierKind::Poison,
             factor: 3, // +1 factor

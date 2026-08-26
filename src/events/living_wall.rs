@@ -1,28 +1,29 @@
 use crate::effect::Effect;
-use crate::entity::Entity;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
 use crate::events::EFFECT_DECK_TRANSFORM_PICK_1;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
-use crate::events::EVENT_CONSUME_EFFECT;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EventOptionTemplate;
+use crate::events::bake_options;
 use crate::events::deck_has_non_basic_non_curse;
 use crate::events::deck_has_purgeable;
 use crate::events::deck_has_upgradable;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 
 // Forget
-const OPTION_FORGET: &[Effect] = &[EFFECT_DECK_PURGE_PICK_1, EVENT_CONSUME_EFFECT];
+const OPTION_FORGET: &[Effect] = &[EFFECT_DECK_PURGE_PICK_1, EFFECT_EVENT_CONSUME];
 
 // Change
-const OPTION_CHANGE: &[Effect] = &[EFFECT_DECK_TRANSFORM_PICK_1, EVENT_CONSUME_EFFECT];
+const OPTION_CHANGE: &[Effect] = &[EFFECT_DECK_TRANSFORM_PICK_1, EFFECT_EVENT_CONSUME];
 
 // Grow
-const OPTION_GROW: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK_1, EVENT_CONSUME_EFFECT];
+const OPTION_GROW: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK_1, EFFECT_EVENT_CONSUME];
 
-pub static OPTIONS: &[Entity] = &[
-    make_entity_event_option("[Forget] Remove a card from your deck.", OPTION_FORGET),
-    make_entity_event_option("[Change] Transform a card in your deck.", OPTION_CHANGE),
-    make_entity_event_option("[Grow] Upgrade a card in your deck.", OPTION_GROW),
+pub static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_FORGET),
+    make_event_option_template(OPTION_CHANGE),
+    make_event_option_template(OPTION_GROW),
 ];
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
@@ -32,4 +33,12 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
         2 => deck_has_upgradable(state),
         _ => unreachable!("Living wall option out of range: {idx}"),
     }
+}
+
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
+}
+
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    bake_options(state, catalog(state.ascension))
 }

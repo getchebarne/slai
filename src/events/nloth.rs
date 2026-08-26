@@ -1,68 +1,69 @@
+use rand::Rng;
+
+use crate::effect::CandidateFilter;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::events::EVENT_CONSUME_EFFECT;
-use crate::events::EventKind;
+use crate::events::EFFECT_EVENT_CONSUME;
+use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
-use crate::events::make_entity_event_option;
+use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::relics::iter_owned_relics;
 use crate::types::RelicName;
-use rand::Rng;
 
-// Two distinct owned Relics rolled at spawn
-pub fn spawn_event_nloth(state: &mut GameState) -> (EventKind, Vec<usize>) {
-    let owned: Vec<RelicName> = iter_owned_relics(&state.id_relics)
-        .map(|(name, _)| name)
-        .collect();
-    let idx = state.rng.random_range(0..owned.len());
-    let mut jdx = state.rng.random_range(0..owned.len() - 1);
+// One trade for both offers: the player picks which staked Relic to give up
+const OPTION_TRADE: &[Effect] = &[
+    Effect {
+        kind: EffectKind::RelicLose,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::EventRollRelic,
+            filter: CandidateFilter::Any,
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
+    },
+    Effect {
+        kind: EffectKind::RelicGrantSpecific {
+            name: RelicName::NlothsGift,
+            fallback_circlet: true,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    },
+    EFFECT_EVENT_CONSUME,
+];
+
+pub static EOTS_BASE: &[EventOptionTemplate] = &[
+    make_event_option_template(OPTION_TRADE),
+    make_event_option_template(&[EFFECT_EVENT_CONSUME]),
+];
+
+// Two distinct owned Relics, staked on the context for the trade to pick from
+pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    // Collect owned `RelicName`s and their IDs
+    let relic_name_id_owned: Vec<(RelicName, usize)> =
+        iter_owned_relics(&state.id_relics).collect();
+
+    // Roll picks
+    let idx = state.rng.random_range(0..relic_name_id_owned.len());
+    let mut jdx = state.rng.random_range(0..relic_name_id_owned.len() - 1);
     if jdx >= idx {
         jdx += 1;
     }
-    let relic_first = owned[idx];
-    let relic_second = owned[jdx];
-    let id_event_options = bake_options(state, &bake(relic_first, relic_second));
-    (
-        EventKind::Nloth {
-            relic_first,
-            relic_second,
-        },
-        id_event_options,
-    )
+
+    // Push and bake Event Options
+    state.event.id_roll_relic.push(relic_name_id_owned[idx].1);
+    state.event.id_roll_relic.push(relic_name_id_owned[jdx].1);
+    bake_options(state, catalog(state.ascension))
 }
 
-fn option_trade(label: &'static str, name: RelicName) -> Entity {
-    make_entity_event_option(
-        label,
-        &[
-            Effect {
-                kind: EffectKind::RelicLose { name },
-                id_source: None,
-                target: Target::Direct(None),
-            },
-            Effect {
-                kind: EffectKind::RelicGrantSpecific {
-                    name: RelicName::NlothsGift,
-                    fallback_circlet: true,
-                },
-                id_source: None,
-                target: Target::Direct(None),
-            },
-            EVENT_CONSUME_EFFECT,
-        ],
-    )
+pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
+    EOTS_BASE
 }
 
-// The rolled Relics are spawn-time state, so the trades bake straight into the options
-pub fn bake(relic_first: RelicName, relic_second: RelicName) -> [Entity; 3] {
-    [
-        option_trade("[Offer the first Relic] Obtain N'loth's Gift.", relic_first),
-        option_trade(
-            "[Offer the second Relic] Obtain N'loth's Gift.",
-            relic_second,
-        ),
-        make_entity_event_option("[Refuse] Nothing happens.", &[EVENT_CONSUME_EFFECT]),
-    ]
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
 }

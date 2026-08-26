@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -7,4 +6,9 @@ use crate::types::RelicTier;
 // See:
 //    - `process_effect_combat_start.rs`
 //    - `process_effect_chest_open.rs`
-pub static CURSED_KEY: Entity = make_entity_relic(RelicName::CursedKey, RelicTier::Boss, 0, &[]);
+pub static CURSED_KEY: RelicTemplate = RelicTemplate {
+    name: RelicName::CursedKey,
+    tier: RelicTier::Boss,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

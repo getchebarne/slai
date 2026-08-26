@@ -1,18 +1,17 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
-use crate::potions::make_entity_potion;
+use crate::potions::PotionTemplate;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
-pub static POTION_CUNNING: Entity = make_entity_potion(
-    PotionName::CunningPotion,
-    PotionRarity::Uncommon,
-    true,
-    &[Effect {
+pub static CUNNING: PotionTemplate = PotionTemplate {
+    name: PotionName::Cunning,
+    rarity: PotionRarity::Uncommon,
+    combat_only: true,
+    effects: &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
             pile: CardPile::Hand,
@@ -22,4 +21,4 @@ pub static POTION_CUNNING: Entity = make_entity_potion(
         id_source: None,
         target: Target::Direct(None),
     }],
-);
+};

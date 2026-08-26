@@ -1,20 +1,17 @@
-use crate::entity::Entity;
 use crate::entity::Move;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
-use crate::monsters::make_entity_monster;
-use crate::monsters::make_move_attack;
-use crate::monsters::make_move_buff;
+use crate::monsters::MonsterTemplate;
+use crate::monsters::modifier_fixed;
+use crate::monsters::move_attack;
+use crate::monsters::move_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
-static MOVE_BITE: Move = make_move_attack("Bite", 6, 1);
-static MOVE_GROW_3: Move = make_move_buff("Grow", ModifierKind::Strength, 3);
-static MOVE_GROW_4: Move = make_move_buff("Grow", ModifierKind::Strength, 4);
-static MOVE_GROW_5: Move = make_move_buff("Grow", ModifierKind::Strength, 5);
+static MOVE_BITE: Move = move_attack("Bite", 6, 1);
+static MOVE_GROW_3: Move = move_buff("Grow", ModifierKind::Strength, 3);
+static MOVE_GROW_4: Move = move_buff("Grow", ModifierKind::Strength, 4);
+static MOVE_GROW_5: Move = move_buff("Grow", ModifierKind::Strength, 5);
 static MOVES_ASC0: [Move; 2] = [MOVE_GROW_3, MOVE_BITE];
 static MOVES_ASC2: [Move; 2] = [MOVE_GROW_4, MOVE_BITE];
 static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];
@@ -22,37 +19,18 @@ static MOVES_ASC17: [Move; 2] = [MOVE_GROW_5, MOVE_BITE];
 const IDX_MOVE_GROW: usize = 0;
 const IDX_MOVE_BITE: usize = 1;
 
-pub fn spawn_monster_fungi_beast(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 7 {
-        (22, 28)
-    } else {
-        (24, 28)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 2 {
-        &MOVES_ASC0
-    } else if ascension_level < 17 {
-        &MOVES_ASC2
-    } else {
-        &MOVES_ASC17
-    };
-
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::SporeCloud, 2);
-
-    make_entity_monster(
-        MonsterName::FungiBeast,
-        MonsterKind::Normal,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        moves,
-    )
-}
+pub static FUNGI_BEAST: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::FungiBeast,
+    kind: MonsterKind::Normal,
+    health_tiers: &[(0, (22, 28)), (7, (24, 28))],
+    block_start: 0,
+    move_tiers: &[
+        (0, &[&MOVES_ASC0]),
+        (2, &[&MOVES_ASC2]),
+        (17, &[&MOVES_ASC17]),
+    ],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::SporeCloud, 2)])],
+};
 
 pub fn get_next_move_fungi_beast(move_history: &[u8], rng: &mut impl Rng) -> usize {
     let roll = rng.random_range(0..=99);

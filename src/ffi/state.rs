@@ -19,8 +19,8 @@ use super::context::snapshot_event;
 use super::context::snapshot_rest_site;
 use super::context::snapshot_reward;
 use super::context::snapshot_shop;
-use super::effect::PyEffect;
-use super::effect::snapshot_effect;
+use super::effect::PyEffectPending;
+use super::effect::snapshot_effect_pending;
 use super::map::PyMap;
 use super::map::snapshot_map;
 use super::potion::PyPotion;
@@ -50,12 +50,11 @@ pub struct PyGameState {
     pub character: PyCharacter,
     pub deck: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
-    // Slot-indexed belt (length potion_slots_max); None at empty slots so positions stay valid
     pub potions: Vec<Option<PyPotion>>,
     pub potion_slots_max: u8,
     pub map: PyMap,
-    // Halt-for-input is orthogonal to the contexts
-    pub pending: Option<PyEffect>,
+    pub effect_pending: Option<PyEffectPending>,
+    pub effect_pending_picks: Vec<PyCard>,
 }
 
 // Snapshot builders
@@ -77,14 +76,19 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .map(|&id| snapshot_card(state, id))
             .collect(),
         relics: iter_owned_relics(&state.id_relics)
-            .map(|(_name, id)| snapshot_relic(&state.entities[id]))
+            .map(|(_name, id)| snapshot_relic(id, &state.entities[id]))
             .collect(),
         potions: state.id_potions[..state.potion_slots_max as usize]
             .iter()
-            .map(|slot| slot.map(|id| snapshot_potion(&state.entities[id])))
+            .map(|slot| slot.map(|id| snapshot_potion(id, &state.entities[id])))
             .collect(),
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),
-        pending: state.effect_pending.as_ref().map(snapshot_effect),
+        effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
+        effect_pending_picks: state
+            .effect_pending_picks
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
     }
 }

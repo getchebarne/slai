@@ -1,5 +1,4 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -9,5 +8,9 @@ use crate::types::RelicTier;
 //    - `process_effect_shop_buy_card.rs`
 //    - `process_effect_shop_buy_relic.rs`
 //    - `process_effect_shop_buy_potion.rs`
-pub static THE_COURIER: Entity =
-    make_entity_relic(RelicName::TheCourier, RelicTier::Uncommon, 0, &[]);
+pub static THE_COURIER: RelicTemplate = RelicTemplate {
+    name: RelicName::TheCourier,
+    tier: RelicTier::Uncommon,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

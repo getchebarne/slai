@@ -46,7 +46,7 @@ pub fn process_effect_reward_take(
                 .expect("Taken Relic is a staged reward");
             id_relics.remove(idx);
 
-            // Pick-one-of-N offer (boss relics): taking one drops the rest
+            // Pick-one-of-N offer (boss Relics): taking one drops the rest
             if *relics_exclusive {
                 id_relics.clear();
             }

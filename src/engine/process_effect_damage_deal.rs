@@ -61,7 +61,7 @@ pub fn process_effect_damage_deal(
         damage_over_block = 5;
     }
 
-    // Torii: monster hits leaving a 2-5 remainder on the character land 1 instead
+    // Torii: Monster hits leaving a 2-5 remainder on the Character land 1 instead
     let id_character = state.id_character;
     if from_monster
         && id_target == id_character
@@ -72,7 +72,7 @@ pub fn process_effect_damage_deal(
         damage_over_block = 1;
     }
 
-    // Hand Drill: breaking a monster's block applies 2 Vulnerable
+    // Hand Drill: breaking a Monster's block applies 2 Vulnerable
     if target.kind == EntityKind::Monster
         && block_prev > 0
         && target.vitals.block == 0

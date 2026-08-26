@@ -1,9 +1,13 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// The first lethal blow leaves the character at half max HP instead
+// The first lethal blow leaves the Character at half max HP instead
 // See:
 //    - `process_effect_death.rs`
-pub static LIZARD_TAIL: Entity = make_entity_relic(RelicName::LizardTail, RelicTier::Rare, 0, &[]);
+pub static LIZARD_TAIL: RelicTemplate = RelicTemplate {
+    name: RelicName::LizardTail,
+    tier: RelicTier::Rare,
+    counter_init: 0,
+    effects_combat_start: &[],
+};

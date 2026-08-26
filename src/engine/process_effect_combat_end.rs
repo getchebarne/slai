@@ -43,10 +43,10 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         return;
     }
 
-    // Queue order is RNG stream order: cards, relics, potion, then gold
+    // Queue order is RNG stream order: Cards, Relics, Potion, then gold
     if state.event.active {
         // The fight belongs to the event it stacked over
-        if let Some(loot) = fight_loot(state.event.event_kind) {
+        if let Some(loot) = fight_loot(&state.event) {
             state.event.consumed = true;
             queue_effect_untargeted(
                 state,
@@ -66,7 +66,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     } else {
         // Final boss: the run ends below; every other fight rolls its reward
         if !(matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL) {
-            // A "?" that resolved to a plain fight rewards as a normal monster room
+            // A "?" that resolved to a plain fight rewards as a normal Monster Room
             let room_kind =
                 match get_active_room_kind(&state.id_rooms, state.location, &state.entities)
                     .expect("Combat reward outside any room")
@@ -92,7 +92,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 _ => unreachable!("CombatEnd in a non-combat room: {room_kind:?}"),
             };
 
-            // Prayer Wheel: adds a second card bundle on normal fights
+            // Prayer Wheel: adds a second Card bundle on normal fights
             let bundles = if room_kind == RoomKind::CombatMonster
                 && has_relic(&state.id_relics, RelicName::PrayerWheel)
             {
@@ -115,7 +115,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 },
             );
 
-            // The boss offers three unique unowned Boss relics; RewardTake keeps one
+            // The boss offers three unique unowned Boss Relics; RewardTake keeps one
             if room_kind == RoomKind::CombatBoss {
                 for _ in 0..BOSS_RELIC_REWARD_COUNT {
                     queue_effect_untargeted(
@@ -139,7 +139,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 }
             }
 
-            // Escaped normal fights roll potion chance 0 in the source
+            // Escaped normal fights roll Potion chance 0 in the source
             queue_effect_untargeted(
                 state,
                 EffectKind::RewardRollPotion {

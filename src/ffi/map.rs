@@ -10,7 +10,7 @@ use crate::types::RoomKind;
 
 use super::monster::PyMonsterEncounter;
 
-mirror_enum!(PyRoomKind from RoomKind, "RoomKind", from_py_object, {
+mirror_enum!(PyRoomKind from RoomKind, "RoomKind", {
     CombatMonster, CombatElite, CombatBoss, RestSite, Treasure, EventRoom, Shop, Unknown,
 });
 
@@ -23,6 +23,7 @@ mirror_enum!(PyRoomKind from RoomKind, "RoomKind", from_py_object, {
 )]
 #[derive(Debug, Clone)]
 pub struct PyRoom {
+    pub id: usize,
     pub room_kind: PyRoomKind,
     pub edges: Vec<usize>,
 }
@@ -43,7 +44,7 @@ pub struct PyMap {
     pub identity_hash: u64,
 }
 
-// Position-independent hash of the room topology (kinds + edges) — a stable map identity for the
+// Position-independent hash of the Room topology (kinds + edges) — a stable map identity for the
 // RL encoder's static-grid cache. Excludes the live position so it's constant across a map's life.
 fn map_identity_hash(state: &GameState) -> u64 {
     use std::hash::Hash;
@@ -70,6 +71,7 @@ pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
                     cell.map(|id_room| {
                         let room = &state.entities[id_room];
                         PyRoom {
+                            id: id_room,
                             room_kind: room.room_kind.into(),
                             edges: edge_indices(room.room_edges).collect(),
                         }

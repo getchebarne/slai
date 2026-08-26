@@ -1,10 +1,14 @@
-use crate::entity::Entity;
-use crate::relics::make_entity_relic;
+use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// 3 charges: move to any room in the next row, ignoring paths
+// 3 charges: move to any Room in the next row, ignoring paths
 // See:
 //    - `action.rs`
 //    - `process_effect_room_select.rs`
-pub static WING_BOOTS: Entity = make_entity_relic(RelicName::WingBoots, RelicTier::Rare, 3, &[]);
+pub static WING_BOOTS: RelicTemplate = RelicTemplate {
+    name: RelicName::WingBoots,
+    tier: RelicTier::Rare,
+    counter_init: 3,
+    effects_combat_start: &[],
+};

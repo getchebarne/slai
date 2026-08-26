@@ -1,14 +1,11 @@
 use crate::consts::MAX_EFFECTS_PER_MOVE;
-use crate::entity::Entity;
-use crate::modifier::MODIFIERS_ZERO;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_apply;
+use crate::monsters::MonsterTemplate;
 use crate::monsters::Move;
-use crate::monsters::make_entity_monster;
-use crate::monsters::make_move_attack;
+use crate::monsters::modifier_fixed;
+use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
-use crate::types::Vitals;
 use rand::Rng;
 
 // One Multi-Stab template per hit count (hits = idx + 2, up to the effect cap);
@@ -16,10 +13,10 @@ use rand::Rng;
 const NUM_MULTI_STAB_MOVES: usize = MAX_EFFECTS_PER_MOVE - 1;
 
 const fn move_table(multi_damage: u16, single_damage: u16) -> [Move; NUM_MULTI_STAB_MOVES + 1] {
-    let mut table = [make_move_attack("Single Stab", single_damage, 1); NUM_MULTI_STAB_MOVES + 1];
+    let mut table = [move_attack("Single Stab", single_damage, 1); NUM_MULTI_STAB_MOVES + 1];
     let mut idx = 0;
     while idx < NUM_MULTI_STAB_MOVES {
-        table[idx] = make_move_attack("Multi-Stab", multi_damage, (idx + 2) as u8);
+        table[idx] = move_attack("Multi-Stab", multi_damage, (idx + 2) as u8);
         idx += 1;
     }
     table
@@ -35,35 +32,14 @@ const fn is_multi_stab(idx: usize) -> bool {
     idx <= IDX_MOVE_MULTI_STAB_LAST
 }
 
-pub fn spawn_monster_book_of_stabbing(ascension_level: u8, rng: &mut impl Rng) -> Entity {
-    let (health_max_min, health_max_max) = if ascension_level < 8 {
-        (160, 164)
-    } else {
-        (168, 172)
-    };
-    let health_max = rng.random_range(health_max_min..=health_max_max);
-
-    let moves: &'static [Move] = if ascension_level < 3 {
-        &MOVES_ASC0
-    } else {
-        &MOVES_ASC3
-    };
-
-    let mut modifiers = MODIFIERS_ZERO;
-    modifier_apply(&mut modifiers, ModifierKind::PainfulStabs, 1);
-
-    make_entity_monster(
-        MonsterName::BookOfStabbing,
-        MonsterKind::Elite,
-        Vitals {
-            health: health_max,
-            health_max,
-            block: 0,
-        },
-        modifiers,
-        moves,
-    )
-}
+pub static BOOK_OF_STABBING: MonsterTemplate = MonsterTemplate {
+    name: MonsterName::BookOfStabbing,
+    kind: MonsterKind::Elite,
+    health_tiers: &[(0, (160, 164)), (8, (168, 172))],
+    block_start: 0,
+    move_tiers: &[(0, &[&MOVES_ASC0]), (3, &[&MOVES_ASC3])],
+    modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::PainfulStabs, 1)])],
+};
 
 pub fn get_next_move_book_of_stabbing(
     move_history: &[u8],

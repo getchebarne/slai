@@ -34,6 +34,8 @@ PotionRarity = _rs.PotionRarity
 ModifierKind = _rs.ModifierKind
 IntentKind = _rs.IntentKind
 CandidateFilter = _rs.CandidateFilter
+MonsterKind = _rs.MonsterKind
+EventName = _rs.EventName
 
 
 # Action schema types
@@ -113,32 +115,25 @@ _SHOP_POTION_POS = "position in state.shop.potions"
 # Action spec registry
 ACTION_SPEC_REGISTRY = ActionSpecRegistry(
     [
-        create_action_spec(ActionType.CardBottle, ArgSpec("idx_card", _DECK_POS)),
-        create_action_spec(ActionType.CardDiscover, ArgSpec("idx", _DISCOVER_POS)),
         create_action_spec(
             ActionType.CardPlay,
             ArgSpec("idx_card", _HAND_POS),
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.ChestOpen),
-        # Deck-pick family (resolves a deck-pick halt)
-        create_action_spec(ActionType.CardDuplicate, ArgSpec("idx", _DECK_POS)),
-        create_action_spec(ActionType.CardPurge, ArgSpec("idx", _DECK_POS)),
-        create_action_spec(ActionType.CardTransform, ArgSpec("idx", _DECK_POS)),
-        create_action_spec(ActionType.CardUpgrade, ArgSpec("idx", _DECK_POS)),
+        # Pending-halt family: one resolver, one skip
+        create_action_spec(
+            ActionType.EffectPendingResolve,
+            ArgSpec(
+                "idx",
+                "position in the collection named by state.effect_pending.target.candidate_pool "
+                "(hand, deck, discover, pile, or event roll list)",
+            ),
+        ),
+        create_action_spec(ActionType.PickSkip),
         create_action_spec(
             ActionType.EventOptionSelect, ArgSpec("idx", "position in state.event.options")
         ),
-        # Hand-pick family (resolves a hand-pick halt)
-        create_action_spec(ActionType.CardDiscard, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardExhaust, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(
-            ActionType.CardMoveToHand, ArgSpec("idx", "position in state.combat.pile_draw")
-        ),
-        create_action_spec(ActionType.PickSkip),
-        create_action_spec(ActionType.CardNightmare, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardRetain, ArgSpec("idx_hand", _HAND_POS)),
-        create_action_spec(ActionType.CardSetup, ArgSpec("idx_hand", _HAND_POS)),
         create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
         create_action_spec(
             ActionType.PotionUse,
@@ -148,6 +143,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.Rest),
         create_action_spec(ActionType.RestDig),
         create_action_spec(ActionType.RestLift),
+        create_action_spec(ActionType.RestSmith),
         create_action_spec(ActionType.RestToke),
         # Reward pickup family
         create_action_spec(
@@ -169,7 +165,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(ActionType.ShopBuyCard, ArgSpec("idx", _SHOP_CARD_POS)),
         create_action_spec(ActionType.ShopBuyRelic, ArgSpec("idx", _SHOP_RELIC_POS)),
         create_action_spec(ActionType.ShopBuyPotion, ArgSpec("idx", _SHOP_POTION_POS)),
-        create_action_spec(ActionType.ShopPurge, ArgSpec("idx", _DECK_POS)),
+        create_action_spec(ActionType.ShopPurge),
         create_action_spec(ActionType.TurnEnd),
     ]
 )
@@ -192,8 +188,22 @@ Monster = _rs.Monster
 Relic = _rs.Relic
 Potion = _rs.Potion
 
-# Plain struct view
+# Plain struct view: how a target gets chosen (pool + filter + selection)
 Target = _rs.Target
+
+# Content catalog: immutable template views over the static definitions plus
+# state-free enumeration functions; live snapshots join back via (name, upgraded).
+# PotionTemplate split from Potion when live entities gained the `id` join key
+CardTemplate = _rs.CardTemplate
+RelicTemplate = _rs.RelicTemplate
+MonsterTemplate = _rs.MonsterTemplate
+EventOptionTemplate = _rs.EventOptionTemplate
+PotionTemplate = _rs.PotionTemplate
+get_card_templates = _rs.get_card_templates
+get_relic_templates = _rs.get_relic_templates
+get_potion_templates = _rs.get_potion_templates
+get_monster_templates = _rs.get_monster_templates
+get_event_option_templates = _rs.get_event_option_templates
 
 # Sum types: one flat frozen class per variant (EffectDamagePhysical, ...) plus a
 # PEP 604 union alias per family. The union works as annotation, isinstance target,
@@ -216,7 +226,6 @@ EffectSneakyStrikeProc = _rs.EffectSneakyStrikeProc
 EffectBlockGain = _rs.EffectBlockGain
 EffectModifierGain = _rs.EffectModifierGain
 EffectModifierMultiply = _rs.EffectModifierMultiply
-EffectModifierRemove = _rs.EffectModifierRemove
 EffectEnergyDelta = _rs.EffectEnergyDelta
 EffectCardAdd = _rs.EffectCardAdd
 EffectCardAddRandom = _rs.EffectCardAddRandom
@@ -260,11 +269,10 @@ EffectRelicLose = _rs.EffectRelicLose
 EffectRewardRollNeowCards = _rs.EffectRewardRollNeowCards
 EffectStrengthLoseTemp = _rs.EffectStrengthLoseTemp
 EffectMausoleumOpen = _rs.EffectMausoleumOpen
-EffectKnowingSkullAsk = _rs.EffectKnowingSkullAsk
+EffectKnowingSkullCostBump = _rs.EffectKnowingSkullCostBump
 EffectJoustBet = _rs.EffectJoustBet
 EffectRewardRollLibraryCards = _rs.EffectRewardRollLibraryCards
 EffectRelicGrantPool = _rs.EffectRelicGrantPool
-KnowingSkullWish = _rs.KnowingSkullWish
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -284,7 +292,6 @@ Effect = (
     | EffectBlockGain
     | EffectModifierGain
     | EffectModifierMultiply
-    | EffectModifierRemove
     | EffectEnergyDelta
     | EffectCardAdd
     | EffectCardAddRandom
@@ -328,10 +335,31 @@ Effect = (
     | EffectRewardRollNeowCards
     | EffectStrengthLoseTemp
     | EffectMausoleumOpen
-    | EffectKnowingSkullAsk
+    | EffectKnowingSkullCostBump
     | EffectJoustBet
     | EffectRewardRollLibraryCards
     | EffectRelicGrantPool
+)
+
+# The kinds that can park in GameState.effect_pending. A halt only happens on a
+# Target::Resolve carrying Input/InputUpTo, so this is a strict subset of Effect
+# — mirrored from ffi/effect.rs's PyPendingEffect, which is what `pending`
+# actually returns.
+PendingEffect = (
+    EffectBonfireOffer
+    | EffectCardBottle
+    | EffectCardDiscard
+    | EffectCardDiscoverPick
+    | EffectCardDuplicate
+    | EffectCardExhaust
+    | EffectCardMove
+    | EffectCardNightmarePick
+    | EffectCardPurge
+    | EffectCardRetain
+    | EffectCardSetupPick
+    | EffectCardTransform
+    | EffectCardUpgrade
+    | EffectRelicLose
 )
 CandidatePoolHand = _rs.CandidatePoolHand
 CandidatePoolCharacter = _rs.CandidatePoolCharacter
@@ -342,6 +370,9 @@ CandidatePoolDeck = _rs.CandidatePoolDeck
 CandidatePoolPileDraw = _rs.CandidatePoolPileDraw
 CandidatePoolPileDiscard = _rs.CandidatePoolPileDiscard
 CandidatePoolPileExhaust = _rs.CandidatePoolPileExhaust
+CandidatePoolEventRollCard = _rs.CandidatePoolEventRollCard
+CandidatePoolEventRollRelic = _rs.CandidatePoolEventRollRelic
+CandidatePoolEventRollPotion = _rs.CandidatePoolEventRollPotion
 CandidatePool = (
     CandidatePoolHand
     | CandidatePoolCharacter
@@ -352,6 +383,9 @@ CandidatePool = (
     | CandidatePoolPileDraw
     | CandidatePoolPileDiscard
     | CandidatePoolPileExhaust
+    | CandidatePoolEventRollCard
+    | CandidatePoolEventRollRelic
+    | CandidatePoolEventRollPotion
 )
 SelectionKindAll = _rs.SelectionKindAll
 SelectionKindSingle = _rs.SelectionKindSingle
@@ -390,141 +424,63 @@ Combat = _rs.Combat
 Reward = _rs.Reward
 Shop = _rs.Shop
 Event = _rs.Event
-EventKindBigFish = _rs.EventKindBigFish
-EventKindTheCleric = _rs.EventKindTheCleric
-EventKindDuplicator = _rs.EventKindDuplicator
-EventKindGoldenShrine = _rs.EventKindGoldenShrine
-EventKindWingStatue = _rs.EventKindWingStatue
-EventKindWorldOfGoop = _rs.EventKindWorldOfGoop
-EventKindLivingWall = _rs.EventKindLivingWall
-EventKindPurifier = _rs.EventKindPurifier
-EventKindShiningLight = _rs.EventKindShiningLight
-EventKindTheSsssserpent = _rs.EventKindTheSsssserpent
-EventKindTransmogrifier = _rs.EventKindTransmogrifier
-EventKindUpgradeShrine = _rs.EventKindUpgradeShrine
-EventKindTheDivineFountain = _rs.EventKindTheDivineFountain
-EventKindTheLab = _rs.EventKindTheLab
-EventKindTheWomanInBlue = _rs.EventKindTheWomanInBlue
-EventKindWheelOfChange = _rs.EventKindWheelOfChange
-EventKindBonfireSpirits = _rs.EventKindBonfireSpirits
-EventKindOminousForge = _rs.EventKindOminousForge
-EventKindFaceTrader = _rs.EventKindFaceTrader
-EventKindMushrooms = _rs.EventKindMushrooms
-EventKindGoldenIdol = _rs.EventKindGoldenIdol
-EventKindScrapOoze = _rs.EventKindScrapOoze
-EventKindWeMeetAgain = _rs.EventKindWeMeetAgain
-EventKindDeadAdventurer = _rs.EventKindDeadAdventurer
-EventKindNeow = _rs.EventKindNeow
-EventKindAddict = _rs.EventKindAddict
-EventKindBeggar = _rs.EventKindBeggar
-EventKindGhosts = _rs.EventKindGhosts
-EventKindBackToBasics = _rs.EventKindBackToBasics
-EventKindMaskedBandits = _rs.EventKindMaskedBandits
-EventKindTheJoust = _rs.EventKindTheJoust
-EventKindTheLibrary = _rs.EventKindTheLibrary
-EventKindTheMausoleum = _rs.EventKindTheMausoleum
-EventKindVampires = _rs.EventKindVampires
-EventKindColosseum = _rs.EventKindColosseum
-EventKindDesigner = _rs.EventKindDesigner
-EventKindKnowingSkull = _rs.EventKindKnowingSkull
-EventKindNest = _rs.EventKindNest
-EventKindCursedTome = _rs.EventKindCursedTome
-EventKindDrugDealer = _rs.EventKindDrugDealer
-EventKindForgottenAltar = _rs.EventKindForgottenAltar
-EventKindNloth = _rs.EventKindNloth
-EventKind = (
-    EventKindBigFish
-    | EventKindTheCleric
-    | EventKindDuplicator
-    | EventKindGoldenShrine
-    | EventKindWingStatue
-    | EventKindWorldOfGoop
-    | EventKindLivingWall
-    | EventKindPurifier
-    | EventKindShiningLight
-    | EventKindTheSsssserpent
-    | EventKindTransmogrifier
-    | EventKindUpgradeShrine
-    | EventKindTheDivineFountain
-    | EventKindTheLab
-    | EventKindTheWomanInBlue
-    | EventKindWheelOfChange
-    | EventKindBonfireSpirits
-    | EventKindOminousForge
-    | EventKindFaceTrader
-    | EventKindMushrooms
-    | EventKindGoldenIdol
-    | EventKindScrapOoze
-    | EventKindWeMeetAgain
-    | EventKindDeadAdventurer
-    | EventKindNeow
-    | EventKindAddict
-    | EventKindBeggar
-    | EventKindGhosts
-    | EventKindBackToBasics
-    | EventKindMaskedBandits
-    | EventKindTheJoust
-    | EventKindTheLibrary
-    | EventKindTheMausoleum
-    | EventKindVampires
-    | EventKindColosseum
-    | EventKindDesigner
-    | EventKindKnowingSkull
-    | EventKindNest
-    | EventKindCursedTome
-    | EventKindDrugDealer
-    | EventKindForgottenAltar
-    | EventKindNloth
-)
 
 DeltaSign = _rs.DeltaSign
 
-# EventKind variants in engine declaration order — the stable event-identity
-# index for featurization (variant classes carry no discriminant of their own)
-EVENT_KIND_ORDER: tuple[type, ...] = (
-    EventKindBigFish,
-    EventKindTheCleric,
-    EventKindDuplicator,
-    EventKindGoldenShrine,
-    EventKindWingStatue,
-    EventKindWorldOfGoop,
-    EventKindLivingWall,
-    EventKindPurifier,
-    EventKindShiningLight,
-    EventKindTheSsssserpent,
-    EventKindTransmogrifier,
-    EventKindUpgradeShrine,
-    EventKindTheDivineFountain,
-    EventKindTheLab,
-    EventKindTheWomanInBlue,
-    EventKindWheelOfChange,
-    EventKindBonfireSpirits,
-    EventKindOminousForge,
-    EventKindFaceTrader,
-    EventKindMushrooms,
-    EventKindGoldenIdol,
-    EventKindScrapOoze,
-    EventKindWeMeetAgain,
-    EventKindDeadAdventurer,
-    EventKindNeow,
-    EventKindAddict,
-    EventKindBeggar,
-    EventKindGhosts,
-    EventKindBackToBasics,
-    EventKindMaskedBandits,
-    EventKindTheJoust,
-    EventKindTheLibrary,
-    EventKindTheMausoleum,
-    EventKindVampires,
-    EventKindColosseum,
-    EventKindDesigner,
-    EventKindKnowingSkull,
-    EventKindNest,
-    EventKindCursedTome,
-    EventKindDrugDealer,
-    EventKindForgottenAltar,
-    EventKindNloth,
-)
+
+# Constants surface: load-bearing engine tunables (the engine's own roll/formula
+# sites read these same values) plus derived shop price ceilings
+STARTING_GOLD = _rs.STARTING_GOLD
+MAX_GOLD = _rs.MAX_GOLD
+GOLD_MONSTER_MIN = _rs.GOLD_MONSTER_MIN
+GOLD_MONSTER_MAX = _rs.GOLD_MONSTER_MAX
+GOLD_ELITE_MIN = _rs.GOLD_ELITE_MIN
+GOLD_ELITE_MAX = _rs.GOLD_ELITE_MAX
+GOLD_BOSS_MIN = _rs.GOLD_BOSS_MIN
+GOLD_BOSS_MAX = _rs.GOLD_BOSS_MAX
+CHEST_SMALL_GOLD_CHANCE = _rs.CHEST_SMALL_GOLD_CHANCE
+CHEST_SMALL_GOLD_BASE = _rs.CHEST_SMALL_GOLD_BASE
+CHEST_MEDIUM_GOLD_CHANCE = _rs.CHEST_MEDIUM_GOLD_CHANCE
+CHEST_MEDIUM_GOLD_BASE = _rs.CHEST_MEDIUM_GOLD_BASE
+CHEST_LARGE_GOLD_CHANCE = _rs.CHEST_LARGE_GOLD_CHANCE
+CHEST_LARGE_GOLD_BASE = _rs.CHEST_LARGE_GOLD_BASE
+CHEST_GOLD_VARIANCE_MIN = _rs.CHEST_GOLD_VARIANCE_MIN
+CHEST_GOLD_VARIANCE_MAX = _rs.CHEST_GOLD_VARIANCE_MAX
+SHOP_PRICE_CARD_COMMON = _rs.SHOP_PRICE_CARD_COMMON
+SHOP_PRICE_CARD_UNCOMMON = _rs.SHOP_PRICE_CARD_UNCOMMON
+SHOP_PRICE_CARD_RARE = _rs.SHOP_PRICE_CARD_RARE
+SHOP_PRICE_COLORLESS_NUMER = _rs.SHOP_PRICE_COLORLESS_NUMER
+SHOP_PRICE_COLORLESS_DENOM = _rs.SHOP_PRICE_COLORLESS_DENOM
+SHOP_PRICE_CARD_VARIANCE_MIN = _rs.SHOP_PRICE_CARD_VARIANCE_MIN
+SHOP_PRICE_CARD_VARIANCE_MAX = _rs.SHOP_PRICE_CARD_VARIANCE_MAX
+SHOP_PRICE_POTION_COMMON = _rs.SHOP_PRICE_POTION_COMMON
+SHOP_PRICE_POTION_UNCOMMON = _rs.SHOP_PRICE_POTION_UNCOMMON
+SHOP_PRICE_POTION_RARE = _rs.SHOP_PRICE_POTION_RARE
+SHOP_PRICE_RELIC_COMMON = _rs.SHOP_PRICE_RELIC_COMMON
+SHOP_PRICE_RELIC_UNCOMMON = _rs.SHOP_PRICE_RELIC_UNCOMMON
+SHOP_PRICE_RELIC_RARE = _rs.SHOP_PRICE_RELIC_RARE
+SHOP_PRICE_RELIC_SHOP = _rs.SHOP_PRICE_RELIC_SHOP
+SHOP_PRICE_RELIC_POTION_VARIANCE_MIN = _rs.SHOP_PRICE_RELIC_POTION_VARIANCE_MIN
+SHOP_PRICE_RELIC_POTION_VARIANCE_MAX = _rs.SHOP_PRICE_RELIC_POTION_VARIANCE_MAX
+SHOP_SALE_DIVISOR = _rs.SHOP_SALE_DIVISOR
+SHOP_PURGE_COST_BASE = _rs.SHOP_PURGE_COST_BASE
+SHOP_PURGE_COST_INCREMENT = _rs.SHOP_PURGE_COST_INCREMENT
+ASCENSION_SHOP_PRICE_BUMP_LEVEL = _rs.ASCENSION_SHOP_PRICE_BUMP_LEVEL
+ASCENSION_SHOP_PRICE_BUMP_NUMER = _rs.ASCENSION_SHOP_PRICE_BUMP_NUMER
+ASCENSION_SHOP_PRICE_BUMP_DENOM = _rs.ASCENSION_SHOP_PRICE_BUMP_DENOM
+SHOP_PRICE_CARD_MAX = _rs.SHOP_PRICE_CARD_MAX
+SHOP_PRICE_RELIC_MAX = _rs.SHOP_PRICE_RELIC_MAX
+SHOP_PRICE_POTION_MAX = _rs.SHOP_PRICE_POTION_MAX
+WE_MEET_AGAIN_GOLD_ASK_MIN = _rs.WE_MEET_AGAIN_GOLD_ASK_MIN
+WE_MEET_AGAIN_GOLD_ASK_MAX = _rs.WE_MEET_AGAIN_GOLD_ASK_MAX
+NEOW_GOLD_SMALL = _rs.NEOW_GOLD_SMALL
+NEOW_GOLD_LARGE = _rs.NEOW_GOLD_LARGE
+NEOW_CARD_COUNT = _rs.NEOW_CARD_COUNT
+NEOW_POTION_COUNT = _rs.NEOW_POTION_COUNT
+SILENT_HP_MAX_BASE = _rs.SILENT_HP_MAX_BASE
+SILENT_HP_MAX_A14_DELTA = _rs.SILENT_HP_MAX_A14_DELTA
+HEALTH_START_A6_NUMER = _rs.HEALTH_START_A6_NUMER
+HEALTH_START_A6_DENOM = _rs.HEALTH_START_A6_DENOM
 
 
 __all__ = [
@@ -577,6 +533,9 @@ __all__ = [
     "CandidatePoolPileDraw",
     "CandidatePoolPileDiscard",
     "CandidatePoolPileExhaust",
+    "CandidatePoolEventRollCard",
+    "CandidatePoolEventRollRelic",
+    "CandidatePoolEventRollPotion",
     "SelectionKind",
     "SelectionKindAll",
     "SelectionKindSingle",
@@ -590,6 +549,7 @@ __all__ = [
     "CardCostKindXCost",
     "Target",
     "Effect",
+    "PendingEffect",
     "EffectDamagePhysical",
     "EffectDamagePhysicalIfPoisoned",
     "EffectHeelHookProc",
@@ -608,7 +568,6 @@ __all__ = [
     "EffectBlockGain",
     "EffectModifierGain",
     "EffectModifierMultiply",
-    "EffectModifierRemove",
     "EffectEnergyDelta",
     "EffectCardAdd",
     "EffectCardAddRandom",
@@ -652,11 +611,10 @@ __all__ = [
     "EffectRewardRollNeowCards",
     "EffectStrengthLoseTemp",
     "EffectMausoleumOpen",
-    "EffectKnowingSkullAsk",
+    "EffectKnowingSkullCostBump",
     "EffectJoustBet",
     "EffectRewardRollLibraryCards",
     "EffectRelicGrantPool",
-    "KnowingSkullWish",
     "Amount",
     "AmountAbsolute",
     "AmountRelative",
@@ -668,51 +626,72 @@ __all__ = [
     "Reward",
     "Shop",
     "Event",
-    "EventKind",
-    "EventKindBigFish",
-    "EventKindTheCleric",
-    "EventKindDuplicator",
-    "EventKindGoldenShrine",
-    "EventKindWingStatue",
-    "EventKindWorldOfGoop",
-    "EventKindLivingWall",
-    "EventKindPurifier",
-    "EventKindShiningLight",
-    "EventKindTheSsssserpent",
-    "EventKindTransmogrifier",
-    "EventKindUpgradeShrine",
-    "EventKindTheDivineFountain",
-    "EventKindTheLab",
-    "EventKindTheWomanInBlue",
-    "EventKindWheelOfChange",
-    "EventKindBonfireSpirits",
-    "EventKindOminousForge",
-    "EventKindFaceTrader",
-    "EventKindMushrooms",
-    "EventKindGoldenIdol",
-    "EventKindScrapOoze",
-    "EventKindWeMeetAgain",
-    "EventKindDeadAdventurer",
-    "EventKindNeow",
-    "EventKindAddict",
-    "EventKindBeggar",
-    "EventKindGhosts",
-    "EventKindBackToBasics",
-    "EventKindMaskedBandits",
-    "EventKindTheJoust",
-    "EventKindTheLibrary",
-    "EventKindTheMausoleum",
-    "EventKindVampires",
-    "EventKindColosseum",
-    "EventKindDesigner",
-    "EventKindKnowingSkull",
-    "EventKindNest",
-    "EventKindCursedTome",
-    "EventKindDrugDealer",
-    "EventKindForgottenAltar",
-    "EventKindNloth",
-    "EVENT_KIND_ORDER",
     "DeltaSign",
     # Potion
     "Potion",
+    # Content catalog
+    "CardTemplate",
+    "RelicTemplate",
+    "PotionTemplate",
+    "MonsterTemplate",
+    "EventOptionTemplate",
+    "MonsterKind",
+    "EventName",
+    "get_card_templates",
+    "get_relic_templates",
+    "get_potion_templates",
+    "get_monster_templates",
+    "get_event_option_templates",
+    # Constants surface
+    "STARTING_GOLD",
+    "MAX_GOLD",
+    "GOLD_MONSTER_MIN",
+    "GOLD_MONSTER_MAX",
+    "GOLD_ELITE_MIN",
+    "GOLD_ELITE_MAX",
+    "GOLD_BOSS_MIN",
+    "GOLD_BOSS_MAX",
+    "CHEST_SMALL_GOLD_CHANCE",
+    "CHEST_SMALL_GOLD_BASE",
+    "CHEST_MEDIUM_GOLD_CHANCE",
+    "CHEST_MEDIUM_GOLD_BASE",
+    "CHEST_LARGE_GOLD_CHANCE",
+    "CHEST_LARGE_GOLD_BASE",
+    "CHEST_GOLD_VARIANCE_MIN",
+    "CHEST_GOLD_VARIANCE_MAX",
+    "SHOP_PRICE_CARD_COMMON",
+    "SHOP_PRICE_CARD_UNCOMMON",
+    "SHOP_PRICE_CARD_RARE",
+    "SHOP_PRICE_COLORLESS_NUMER",
+    "SHOP_PRICE_COLORLESS_DENOM",
+    "SHOP_PRICE_CARD_VARIANCE_MIN",
+    "SHOP_PRICE_CARD_VARIANCE_MAX",
+    "SHOP_PRICE_POTION_COMMON",
+    "SHOP_PRICE_POTION_UNCOMMON",
+    "SHOP_PRICE_POTION_RARE",
+    "SHOP_PRICE_RELIC_COMMON",
+    "SHOP_PRICE_RELIC_UNCOMMON",
+    "SHOP_PRICE_RELIC_RARE",
+    "SHOP_PRICE_RELIC_SHOP",
+    "SHOP_PRICE_RELIC_POTION_VARIANCE_MIN",
+    "SHOP_PRICE_RELIC_POTION_VARIANCE_MAX",
+    "SHOP_SALE_DIVISOR",
+    "SHOP_PURGE_COST_BASE",
+    "SHOP_PURGE_COST_INCREMENT",
+    "ASCENSION_SHOP_PRICE_BUMP_LEVEL",
+    "ASCENSION_SHOP_PRICE_BUMP_NUMER",
+    "ASCENSION_SHOP_PRICE_BUMP_DENOM",
+    "SHOP_PRICE_CARD_MAX",
+    "SHOP_PRICE_RELIC_MAX",
+    "SHOP_PRICE_POTION_MAX",
+    "WE_MEET_AGAIN_GOLD_ASK_MIN",
+    "WE_MEET_AGAIN_GOLD_ASK_MAX",
+    "NEOW_GOLD_SMALL",
+    "NEOW_GOLD_LARGE",
+    "NEOW_CARD_COUNT",
+    "NEOW_POTION_COUNT",
+    "SILENT_HP_MAX_BASE",
+    "SILENT_HP_MAX_A14_DELTA",
+    "HEALTH_START_A6_NUMER",
+    "HEALTH_START_A6_DENOM",
 ]
