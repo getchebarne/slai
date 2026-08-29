@@ -248,13 +248,13 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
     MonsterName::iter()
         .map(|name| {
             let template = monster_template(name);
-            let move_sets =
-                pick_tier(template.move_tiers, ascension).expect("move_tiers is never empty");
-            let moves = move_sets
+            let moveset =
+                pick_tier(template.move_tiers, ascension).expect("`move_tiers` is never empty");
+            let moves = moveset
                 .iter()
-                .flat_map(|move_set| move_set.iter())
-                .map(|mv| {
-                    let (damage, instances) = match mv.intent {
+                .flat_map(|moveset| moveset.iter())
+                .map(|move_| {
+                    let (damage, instances) = match move_.intent {
                         Intent::Attack { damage, instances }
                         | Intent::AttackBlock { damage, instances }
                         | Intent::AttackBuff { damage, instances }
@@ -264,11 +264,11 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
                         _ => (None, None),
                     };
                     PyMonsterMoveTemplate {
-                        name: mv.name.to_string(),
-                        intent: mv.intent.into(),
+                        name: move_.name.to_string(),
+                        intent: move_.intent.into(),
                         damage,
                         instances,
-                        effects: mv.effects[..mv.effects_len as usize]
+                        effects: move_.effects[..move_.effects_len as usize]
                             .iter()
                             .map(snapshot_effect)
                             .collect(),

@@ -1,11 +1,16 @@
 use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::effect::RewardRollTrigger;
 use crate::game::GameState;
 use crate::types::reward_ensure;
 use crate::utils::card_reward_count;
 use crate::utils::roll_card_rewards;
 
 // Stage `bundles` combat-style Card bundles (Busted Crown and Question Card apply)
-pub fn process_effect_reward_roll_cards(state: &mut GameState, bundles: u8, rare_only: bool) {
+pub fn process_effect_reward_roll_cards(
+    state: &mut GameState,
+    bundles: u8,
+    trigger: RewardRollTrigger,
+) {
     let cards_per_bundle = card_reward_count(&state.id_relics);
     let mut id_card_bundles: Vec<Vec<usize>> = Vec::with_capacity(bundles as usize);
     for _ in 0..bundles {
@@ -17,9 +22,7 @@ pub fn process_effect_reward_roll_cards(state: &mut GameState, bundles: u8, rare
             &mut id_cards,
             &state.id_relics,
             cards_per_bundle,
-            rare_only,
-            !rare_only,
-            false,
+            trigger,
         );
         id_card_bundles.push(id_cards);
     }

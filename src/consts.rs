@@ -85,8 +85,13 @@ pub const MAX_EVENT_ROLL_POTIONS: usize = 1; // We Meet Again
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;
 pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
+// Cumulative cuts: Rare below the first, Uncommon below the second
 pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON: i32 = 40;
+
+// Elite rooms widen both bands (MonsterRoomElite 10 / 40 over AbstractRoom's 3 / 37)
+pub const CARD_REWARD_ROLL_CHANCE_RARE_ELITE: i32 = 10;
+pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE: i32 = 50;
 
 // Acts, 1-based; the run ends at the ACT_FINAL boss
 pub const ACT_FINAL: u8 = 2;
@@ -240,9 +245,9 @@ pub const SHOP_SLOTS_CARD_TOTAL: usize = SHOP_SLOTS_CARD_COLORED + SHOP_SLOTS_CA
 pub const SHOP_SLOTS_RELIC: usize = 3;
 pub const SHOP_SLOTS_POTION: usize = 3;
 
-// Colored-Card rarity weights (cumulative < thresholds)
-pub const SHOP_CARD_TH_COMMON: u8 = 60;
-pub const SHOP_CARD_TH_UNCOMMON: u8 = 97;
+// ShopRoom's own bands, 9 / 37 (cumulative cuts), with alternation off
+pub const SHOP_CARD_CUT_RARE: i32 = 9;
+pub const SHOP_CARD_CUT_UNCOMMON: i32 = 46;
 
 // Relic-tier weights for the 2 non-shop Relic slots
 pub const SHOP_RELIC_TH_COMMON: u8 = 48;

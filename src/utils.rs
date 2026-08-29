@@ -8,7 +8,9 @@ use crate::cards::card_template;
 use crate::cards::get_card;
 use crate::consts::CARD_REWARD_BASE_COUNT;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
+use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE_ELITE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
+use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
 use crate::consts::FACTOR_FRAIL;
@@ -25,6 +27,7 @@ use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
@@ -521,6 +524,92 @@ fn roll_rarity_pool(
     }
 }
 
+// The one rarity roll, shared by Card rewards and shop stock. `cuts` are the
+// room's cumulative Rare / Uncommon bands and `alternation` is vanilla's
+// useAlternation: only rooms that pass it let a Relic widen the Rare band
+pub fn roll_card_rarity(
+    rng: &mut impl Rng,
+    offset: i8,
+    cuts: (i32, i32),
+    alternation: bool,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+) -> CardRarity {
+    let (base_rare, base_uncommon) = cuts;
+    let chance_rare = if alternation && has_relic(id_relics, RelicName::NlothsGift) {
+        base_rare * 3
+    } else {
+        base_rare
+    };
+    let roll = rng.random_range(0i32..=99) + offset as i32;
+    if roll < chance_rare {
+        CardRarity::Rare
+    } else if roll < chance_rare + (base_uncommon - base_rare) {
+        CardRarity::Uncommon
+    } else {
+        CardRarity::Common
+    }
+}
+
+// Cumulative Rare / Uncommon cuts; None is MonsterRoomBoss, which never rolls
+pub struct RollPolicy {
+    pub cuts: Option<(i32, i32)>,
+    pub alternation: bool,
+    pub write_pity: bool,
+    pub dupe_rerolls_rarity: bool,
+}
+
+// The one place a consumer's roll rules live. Rows marked PENDING reproduce
+// today's behaviour and are the single edit each remaining audit fix needs
+pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
+    const MONSTER: Option<(i32, i32)> = Some((
+        CARD_REWARD_ROLL_CHANCE_RARE,
+        CARD_REWARD_ROLL_CHANCE_UNCOMMON,
+    ));
+    match trigger {
+        RewardRollTrigger::CombatMonster | RewardRollTrigger::EventFight => RollPolicy {
+            cuts: MONSTER,
+            alternation: true,
+            write_pity: true,
+            dupe_rerolls_rarity: false,
+        },
+        RewardRollTrigger::CombatElite => RollPolicy {
+            cuts: Some((
+                CARD_REWARD_ROLL_CHANCE_RARE_ELITE,
+                CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE,
+            )),
+            alternation: true,
+            write_pity: true,
+            dupe_rerolls_rarity: false,
+        },
+        RewardRollTrigger::CombatBoss => RollPolicy {
+            cuts: None,
+            alternation: false,
+            write_pity: true,
+            dupe_rerolls_rarity: false,
+        },
+        // PENDING: vanilla's RestRoom passes useAlternation = false
+        RewardRollTrigger::DreamCatcher => RollPolicy {
+            cuts: MONSTER,
+            alternation: true,
+            write_pity: true,
+            dupe_rerolls_rarity: false,
+        },
+        // PENDING: vanilla's ShopRoom is 9 / 37 with useAlternation = false
+        RewardRollTrigger::Orrery => RollPolicy {
+            cuts: MONSTER,
+            alternation: true,
+            write_pity: true,
+            dupe_rerolls_rarity: false,
+        },
+        RewardRollTrigger::Library => RollPolicy {
+            cuts: MONSTER,
+            alternation: true,
+            write_pity: false,
+            dupe_rerolls_rarity: true,
+        },
+    }
+}
+
 pub fn roll_card_rewards(
     id_character: usize,
     entities: &mut Vec<Entity>,
@@ -528,27 +617,30 @@ pub fn roll_card_rewards(
     out: &mut Vec<usize>,
     id_relics: &[Option<usize>; RelicName::COUNT],
     count: usize,
-    rare_only: bool,
-    write_pity: bool,
-    dupe_rerolls_rarity: bool,
+    trigger: RewardRollTrigger,
 ) {
+    let policy = roll_policy(trigger);
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut card_names_rolled: [CardName; MAX_CARD_REWARD_ROLL] =
         [CardName::Strike; MAX_CARD_REWARD_ROLL];
 
+    let (base_rare, base_uncommon) = policy.cuts.unwrap_or((
+        CARD_REWARD_ROLL_CHANCE_RARE,
+        CARD_REWARD_ROLL_CHANCE_UNCOMMON,
+    ));
+
     // N'loth's Gift: Rares roll three times as often; the Uncommon band keeps its width
-    let chance_rare = if has_relic(id_relics, RelicName::NlothsGift) {
-        CARD_REWARD_ROLL_CHANCE_RARE * 3
+    let chance_rare = if policy.alternation && has_relic(id_relics, RelicName::NlothsGift) {
+        base_rare * 3
     } else {
-        CARD_REWARD_ROLL_CHANCE_RARE
+        base_rare
     };
-    let chance_uncommon =
-        chance_rare + (CARD_REWARD_ROLL_CHANCE_UNCOMMON - CARD_REWARD_ROLL_CHANCE_RARE);
+    let chance_uncommon = chance_rare + (base_uncommon - base_rare);
 
     out.clear();
     for _ in 0..count {
         // Roll rarity
-        let (mut pool, rarity) = if rare_only {
+        let (mut pool, rarity) = if policy.cuts.is_none() {
             (POOL_RARE_GREEN_CARD, CardRarity::Rare)
         } else {
             roll_rarity_pool(
@@ -560,7 +652,7 @@ pub fn roll_card_rewards(
         };
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
-        if write_pity {
+        if policy.write_pity {
             match rarity {
                 CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,
                 CardRarity::Common => {
@@ -574,7 +666,7 @@ pub fn roll_card_rewards(
         // Roll Cards. Loop until it's unique
         let mut name = pool[rng.random_range(0..pool.len())];
         while card_names_rolled[..out.len()].contains(&name) {
-            if dupe_rerolls_rarity {
+            if policy.dupe_rerolls_rarity {
                 pool = roll_rarity_pool(
                     rng,
                     character_reward_roll_offset,
