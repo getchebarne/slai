@@ -14,6 +14,8 @@ pub fn process_effect_reward_roll_library_cards(state: &mut GameState) {
         &state.id_relics,
         LIBRARY_CARD_COUNT,
         false,
+        false,
+        true,
     );
 
     reward_ensure(&mut state.reward);
