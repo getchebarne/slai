@@ -279,6 +279,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectDamagePhysicalIfPoisoned;
     #[pymodule_export]
+    use super::ffi::PyEffectDebuffsClear;
+    #[pymodule_export]
     use super::ffi::PyEffectDistractionAdd;
     #[pymodule_export]
     use super::ffi::PyEffectEnergyDelta;
@@ -295,11 +297,15 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectGoldDelta;
     #[pymodule_export]
+    use super::ffi::PyEffectGremlinSummon;
+    #[pymodule_export]
     use super::ffi::PyEffectHandOfGreedProc;
     #[pymodule_export]
     use super::ffi::PyEffectHealthDelta;
     #[pymodule_export]
     use super::ffi::PyEffectHeelHookProc;
+    #[pymodule_export]
+    use super::ffi::PyEffectHexaghostBurnIncrease;
     #[pymodule_export]
     use super::ffi::PyEffectJoustBet;
     #[pymodule_export]
@@ -313,7 +319,13 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectModifierMultiply;
     #[pymodule_export]
+    use super::ffi::PyEffectModifierRemove;
+    #[pymodule_export]
+    use super::ffi::PyEffectMonsterEscape;
+    #[pymodule_export]
     use super::ffi::PyEffectMonsterSpawn;
+    #[pymodule_export]
+    use super::ffi::PyEffectMonsterSplit;
     #[pymodule_export]
     use super::ffi::PyEffectPotionAddRandom;
     #[pymodule_export]
@@ -338,6 +350,8 @@ mod slai {
     use super::ffi::PyEffectScrapOozeReach;
     #[pymodule_export]
     use super::ffi::PyEffectSetCostOverride;
+    #[pymodule_export]
+    use super::ffi::PyEffectStasisSteal;
     #[pymodule_export]
     use super::ffi::PyEffectShuffleDiscardPileIntoDrawPile;
     #[pymodule_export]

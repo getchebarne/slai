@@ -262,6 +262,13 @@ EffectKnowingSkullCostBump = _rs.EffectKnowingSkullCostBump
 EffectJoustBet = _rs.EffectJoustBet
 EffectRewardRollLibraryCards = _rs.EffectRewardRollLibraryCards
 EffectRelicGrantPool = _rs.EffectRelicGrantPool
+EffectDebuffsClear = _rs.EffectDebuffsClear
+EffectGremlinSummon = _rs.EffectGremlinSummon
+EffectHexaghostBurnIncrease = _rs.EffectHexaghostBurnIncrease
+EffectModifierRemove = _rs.EffectModifierRemove
+EffectMonsterEscape = _rs.EffectMonsterEscape
+EffectMonsterSplit = _rs.EffectMonsterSplit
+EffectStasisSteal = _rs.EffectStasisSteal
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -328,6 +335,13 @@ Effect = (
     | EffectJoustBet
     | EffectRewardRollLibraryCards
     | EffectRelicGrantPool
+    | EffectDebuffsClear
+    | EffectGremlinSummon
+    | EffectHexaghostBurnIncrease
+    | EffectModifierRemove
+    | EffectMonsterEscape
+    | EffectMonsterSplit
+    | EffectStasisSteal
 )
 
 # The kinds that can park in GameState.effect_pending. A halt only happens on a

@@ -3,6 +3,8 @@ use strum::IntoEnumIterator;
 
 use super::macros::mirror_enum;
 
+use super::effect::PyEffect;
+use super::effect::snapshot_effect;
 use crate::entity::Intent;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -138,7 +140,8 @@ pub struct PyMonster {
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
     pub intent: PyIntent,
-    pub gold_stolen: u16, // Only relevant for Looters and Muggers
+    pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
+    pub gold_stolen: u16,            // Only relevant for Looters and Muggers
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
@@ -156,7 +159,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
         .map(|id_monster| {
             let monster = &state.entities[id_monster];
 
-            let intent = if let Some(move_idx) = monster.monster_move_current {
+            let (intent, move_effects) = if let Some(move_idx) = monster.monster_move_current {
                 let mv = &monster.monster_moves[move_idx];
                 let (base_damage, instances) = match mv.intent {
                     Intent::Attack { damage, instances }
@@ -201,17 +204,27 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     scaled
                 });
 
-                PyIntent {
-                    kind: mv.intent.into(),
-                    damage,
-                    instances,
-                }
+                let move_effects = mv.effects[..mv.effects_len as usize]
+                    .iter()
+                    .map(snapshot_effect)
+                    .collect();
+                (
+                    PyIntent {
+                        kind: mv.intent.into(),
+                        damage,
+                        instances,
+                    },
+                    move_effects,
+                )
             } else {
-                PyIntent {
-                    kind: PyIntentKind::Unknown,
-                    damage: None,
-                    instances: None,
-                }
+                (
+                    PyIntent {
+                        kind: PyIntentKind::Unknown,
+                        damage: None,
+                        instances: None,
+                    },
+                    Vec::new(),
+                )
             };
 
             PyMonster {
@@ -222,6 +235,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 block: monster.vitals.block,
                 modifiers: snapshot_modifiers(&monster.modifiers),
                 intent,
+                move_effects,
                 gold_stolen: monster.monster_gold_stolen,
             }
         })
