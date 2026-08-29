@@ -90,6 +90,13 @@ flat_variants!(PyEffect {
     JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool },
     RewardRollLibraryCards => PyEffectRewardRollLibraryCards as "EffectRewardRollLibraryCards",
     RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName> },
+    DebuffsClear => PyEffectDebuffsClear as "EffectDebuffsClear" { target: PyTarget },
+    GremlinSummon => PyEffectGremlinSummon as "EffectGremlinSummon",
+    HexaghostBurnIncrease => PyEffectHexaghostBurnIncrease as "EffectHexaghostBurnIncrease" { count: u8 },
+    ModifierRemove => PyEffectModifierRemove as "EffectModifierRemove" { kind: PyModifierKind, target: PyTarget },
+    MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: PyTarget },
+    MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
+    StasisSteal => PyEffectStasisSteal as "EffectStasisSteal",
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -172,6 +179,8 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::EventConsume
                     | EffectKind::Gamble { .. }
                     | EffectKind::GoldDelta { .. }
+                    | EffectKind::GremlinSummon
+                    | EffectKind::HexaghostBurnIncrease { .. }
                     | EffectKind::JoustBet { .. }
                     | EffectKind::KnowingSkullCostBump
                     | EffectKind::MausoleumOpen
@@ -186,6 +195,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::ScrapOozeReach { .. }
                     | EffectKind::ShuffleDiscardPileIntoDrawPile
                     | EffectKind::SneakyStrikeProc { .. }
+                    | EffectKind::StasisSteal
                     | EffectKind::StormOfSteelProc { .. }
                     | EffectKind::UnloadDiscard
                     | EffectKind::WheelSpin
@@ -477,6 +487,25 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::RewardRollLibraryCards => {
             PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards)
         }
+        EffectKind::DebuffsClear => PyEffect::DebuffsClear(PyEffectDebuffsClear {
+            target: require_target(target),
+        }),
+        EffectKind::GremlinSummon => PyEffect::GremlinSummon(PyEffectGremlinSummon),
+        EffectKind::HexaghostBurnIncrease { count } => {
+            PyEffect::HexaghostBurnIncrease(PyEffectHexaghostBurnIncrease { count })
+        }
+        EffectKind::ModifierRemove { kind } => PyEffect::ModifierRemove(PyEffectModifierRemove {
+            kind: kind.into(),
+            target: require_target(target),
+        }),
+        EffectKind::MonsterEscape => PyEffect::MonsterEscape(PyEffectMonsterEscape {
+            target: require_target(target),
+        }),
+        EffectKind::MonsterSplit { name } => PyEffect::MonsterSplit(PyEffectMonsterSplit {
+            name: name.into(),
+            target: require_target(target),
+        }),
+        EffectKind::StasisSteal => PyEffect::StasisSteal(PyEffectStasisSteal),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other
