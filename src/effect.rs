@@ -213,7 +213,7 @@ pub enum EffectKind {
     },
     RewardRollCards {
         bundles: u8,
-        rare_only: bool,
+        source: RollSource,
     },
     RewardRollGold {
         amount: Amount,
@@ -282,6 +282,21 @@ pub enum RelicPick {
     Thresholds { th_common: u8, th_uncommon: u8 },
     Tier(RelicTier),
     Name(RelicName),
+}
+
+// Who is asking for a Card roll. In vanilla the ROOM supplies the rarity bands
+// and whether relic hooks alternate them, while the ENTRY FUNCTION supplies the
+// pity write-back and the dupe policy; one tag pins both. utils::roll_policy
+// expands it
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum RollSource {
+    CombatMonster,
+    CombatElite,
+    CombatBoss,
+    EventFight,
+    DreamCatcher,
+    Orrery,
+    Library,
 }
 
 // Origin tag the CardDiscard handler branches on

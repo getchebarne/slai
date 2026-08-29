@@ -6,6 +6,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RollSource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::event_option_available;
@@ -455,7 +456,7 @@ fn handle_rest(state: &mut GameState) {
         state.effect_buf.push(Effect {
             kind: EffectKind::RewardRollCards {
                 bundles: 1,
-                rare_only: false,
+                source: RollSource::DreamCatcher,
             },
             id_source: None,
             target: Target::Direct(None),

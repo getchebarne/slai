@@ -10,6 +10,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicPick;
+use crate::effect::RollSource;
 use crate::effect::Target;
 use crate::events::fight_loot;
 use crate::game::GameState;
@@ -52,7 +53,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 state,
                 EffectKind::RewardRollCards {
                     bundles: 1,
-                    rare_only: false,
+                    source: RollSource::EventFight,
                 },
             );
             for pick in loot.relics.into_iter().flatten() {
@@ -106,12 +107,16 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             state.reward.relics_exclusive = room_kind == RoomKind::CombatBoss;
             state.reward.active = true;
 
-            // Boss rewards draw from the rare pool only
+            // Boss rewards draw from the rare pool only; Elites widen both bands
             queue_effect_untargeted(
                 state,
                 EffectKind::RewardRollCards {
                     bundles,
-                    rare_only: room_kind == RoomKind::CombatBoss,
+                    source: match room_kind {
+                        RoomKind::CombatBoss => RollSource::CombatBoss,
+                        RoomKind::CombatElite => RollSource::CombatElite,
+                        _ => RollSource::CombatMonster,
+                    },
                 },
             );
 
