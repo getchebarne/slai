@@ -10,7 +10,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicPick;
-use crate::effect::RollSource;
+use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::events::fight_loot;
 use crate::game::GameState;
@@ -53,7 +53,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 state,
                 EffectKind::RewardRollCards {
                     bundles: 1,
-                    source: RollSource::EventFight,
+                    trigger: RewardRollTrigger::EventFight,
                 },
             );
             for pick in loot.relics.into_iter().flatten() {
@@ -112,10 +112,10 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 state,
                 EffectKind::RewardRollCards {
                     bundles,
-                    source: match room_kind {
-                        RoomKind::CombatBoss => RollSource::CombatBoss,
-                        RoomKind::CombatElite => RollSource::CombatElite,
-                        _ => RollSource::CombatMonster,
+                    trigger: match room_kind {
+                        RoomKind::CombatBoss => RewardRollTrigger::CombatBoss,
+                        RoomKind::CombatElite => RewardRollTrigger::CombatElite,
+                        _ => RewardRollTrigger::CombatMonster,
                     },
                 },
             );

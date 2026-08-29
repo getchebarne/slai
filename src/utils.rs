@@ -27,7 +27,7 @@ use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RollSource;
+use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
@@ -560,19 +560,19 @@ pub struct RollPolicy {
 
 // The one place a consumer's roll rules live. Rows marked PENDING reproduce
 // today's behaviour and are the single edit each remaining audit fix needs
-pub const fn roll_policy(source: RollSource) -> RollPolicy {
+pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
     const MONSTER: Option<(i32, i32)> = Some((
         CARD_REWARD_ROLL_CHANCE_RARE,
         CARD_REWARD_ROLL_CHANCE_UNCOMMON,
     ));
-    match source {
-        RollSource::CombatMonster | RollSource::EventFight => RollPolicy {
+    match trigger {
+        RewardRollTrigger::CombatMonster | RewardRollTrigger::EventFight => RollPolicy {
             cuts: MONSTER,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
         },
-        RollSource::CombatElite => RollPolicy {
+        RewardRollTrigger::CombatElite => RollPolicy {
             cuts: Some((
                 CARD_REWARD_ROLL_CHANCE_RARE_ELITE,
                 CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE,
@@ -581,27 +581,27 @@ pub const fn roll_policy(source: RollSource) -> RollPolicy {
             write_pity: true,
             dupe_rerolls_rarity: false,
         },
-        RollSource::CombatBoss => RollPolicy {
+        RewardRollTrigger::CombatBoss => RollPolicy {
             cuts: None,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
         },
         // PENDING: vanilla's RestRoom passes useAlternation = false
-        RollSource::DreamCatcher => RollPolicy {
+        RewardRollTrigger::DreamCatcher => RollPolicy {
             cuts: MONSTER,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
         },
         // PENDING: vanilla's ShopRoom is 9 / 37 with useAlternation = false
-        RollSource::Orrery => RollPolicy {
+        RewardRollTrigger::Orrery => RollPolicy {
             cuts: MONSTER,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
         },
-        RollSource::Library => RollPolicy {
+        RewardRollTrigger::Library => RollPolicy {
             cuts: MONSTER,
             alternation: true,
             write_pity: false,
@@ -617,9 +617,9 @@ pub fn roll_card_rewards(
     out: &mut Vec<usize>,
     id_relics: &[Option<usize>; RelicName::COUNT],
     count: usize,
-    source: RollSource,
+    trigger: RewardRollTrigger,
 ) {
-    let policy = roll_policy(source);
+    let policy = roll_policy(trigger);
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut card_names_rolled: [CardName; MAX_CARD_REWARD_ROLL] =
         [CardName::Strike; MAX_CARD_REWARD_ROLL];

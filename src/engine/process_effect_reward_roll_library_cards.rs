@@ -1,5 +1,5 @@
 use crate::consts::LIBRARY_CARD_COUNT;
-use crate::effect::RollSource;
+use crate::effect::RewardRollTrigger;
 use crate::game::GameState;
 use crate::types::reward_ensure;
 use crate::utils::roll_card_rewards;
@@ -14,7 +14,7 @@ pub fn process_effect_reward_roll_library_cards(state: &mut GameState) {
         &mut id_cards,
         &state.id_relics,
         LIBRARY_CARD_COUNT,
-        RollSource::Library,
+        RewardRollTrigger::Library,
     );
 
     reward_ensure(&mut state.reward);

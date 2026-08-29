@@ -500,8 +500,8 @@ fn dispatch_by_kind(
         }
         EffectKind::WheelSpin => process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => process_effect_card_upgrade(id_target, state),
-        EffectKind::RewardRollCards { bundles, source } => {
-            process_effect_reward_roll_cards(state, bundles, source)
+        EffectKind::RewardRollCards { bundles, trigger } => {
+            process_effect_reward_roll_cards(state, bundles, trigger)
         }
         EffectKind::RewardRollGold { amount } => process_effect_reward_roll_gold(state, amount),
         EffectKind::RewardRollLibraryCards => process_effect_reward_roll_library_cards(state),

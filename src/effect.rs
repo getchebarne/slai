@@ -213,7 +213,7 @@ pub enum EffectKind {
     },
     RewardRollCards {
         bundles: u8,
-        source: RollSource,
+        trigger: RewardRollTrigger,
     },
     RewardRollGold {
         amount: Amount,
@@ -284,12 +284,9 @@ pub enum RelicPick {
     Name(RelicName),
 }
 
-// Who is asking for a Card roll. In vanilla the ROOM supplies the rarity bands
-// and whether relic hooks alternate them, while the ENTRY FUNCTION supplies the
-// pity write-back and the dupe policy; one tag pins both. utils::roll_policy
-// expands it
+// Who is asking for a Card roll
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum RollSource {
+pub enum RewardRollTrigger {
     CombatMonster,
     CombatElite,
     CombatBoss,
