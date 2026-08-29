@@ -2,19 +2,8 @@ from typing import Iterator, NamedTuple, Optional, Union
 
 from . import slai as _rs
 
-
-def members(rust_enum: type) -> list:
-    """Members of a raw pyo3 unit enum, in declaration (dir) order. Raw pyo3 enums
-    are not iterable, so this is the iteration mechanism for building index tables."""
-    return [
-        getattr(rust_enum, k)
-        for k in dir(rust_enum)
-        if not k.startswith("_") and isinstance(getattr(rust_enum, k), rust_enum)
-    ]
-
-
 # Every enum is re-exported raw — exactly what the FFI hands back, so annotations /
-# isinstance / match agree with runtime values. Iterate with members(). ActionType is
+# isinstance / match agree with runtime values. Iterate with Enum.members(). ActionType is
 # an input type (Python constructs actions); its Rust `.name` feeds the registry below.
 ActionType = _rs.ActionType
 CardKind = _rs.CardKind
@@ -361,32 +350,7 @@ PendingEffect = (
     | EffectCardUpgrade
     | EffectRelicLose
 )
-CandidatePoolHand = _rs.CandidatePoolHand
-CandidatePoolCharacter = _rs.CandidatePoolCharacter
-CandidatePoolMonsters = _rs.CandidatePoolMonsters
-CandidatePoolSource = _rs.CandidatePoolSource
-CandidatePoolDiscover = _rs.CandidatePoolDiscover
-CandidatePoolDeck = _rs.CandidatePoolDeck
-CandidatePoolPileDraw = _rs.CandidatePoolPileDraw
-CandidatePoolPileDiscard = _rs.CandidatePoolPileDiscard
-CandidatePoolPileExhaust = _rs.CandidatePoolPileExhaust
-CandidatePoolEventRollCard = _rs.CandidatePoolEventRollCard
-CandidatePoolEventRollRelic = _rs.CandidatePoolEventRollRelic
-CandidatePoolEventRollPotion = _rs.CandidatePoolEventRollPotion
-CandidatePool = (
-    CandidatePoolHand
-    | CandidatePoolCharacter
-    | CandidatePoolMonsters
-    | CandidatePoolSource
-    | CandidatePoolDiscover
-    | CandidatePoolDeck
-    | CandidatePoolPileDraw
-    | CandidatePoolPileDiscard
-    | CandidatePoolPileExhaust
-    | CandidatePoolEventRollCard
-    | CandidatePoolEventRollRelic
-    | CandidatePoolEventRollPotion
-)
+CandidatePool = _rs.CandidatePool
 SelectionKindAll = _rs.SelectionKindAll
 SelectionKindSingle = _rs.SelectionKindSingle
 SelectionKindRandom = _rs.SelectionKindRandom
@@ -492,7 +456,6 @@ __all__ = [
     "ActionSpec",
     "ActionSpecRegistry",
     "ACTION_SPEC_REGISTRY",
-    "members",
     # Views
     "Card",
     "Character",
@@ -524,18 +487,6 @@ __all__ = [
     "MonsterEncounter",
     # Sum types (flat variant classes + union aliases)
     "CandidatePool",
-    "CandidatePoolHand",
-    "CandidatePoolCharacter",
-    "CandidatePoolMonsters",
-    "CandidatePoolSource",
-    "CandidatePoolDiscover",
-    "CandidatePoolDeck",
-    "CandidatePoolPileDraw",
-    "CandidatePoolPileDiscard",
-    "CandidatePoolPileExhaust",
-    "CandidatePoolEventRollCard",
-    "CandidatePoolEventRollRelic",
-    "CandidatePoolEventRollPotion",
     "SelectionKind",
     "SelectionKindAll",
     "SelectionKindSingle",

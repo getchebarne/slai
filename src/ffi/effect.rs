@@ -66,7 +66,7 @@ flat_variants!(PyEffect {
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch",
     RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName, fallback_circlet: bool },
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
-    ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { dmg: u16, chance: u8, advance_on_miss: bool },
+    ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
     CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, target: PyTarget },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
@@ -367,11 +367,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             PyEffect::EventAdvanceState(PyEffectEventAdvanceState { delta })
         }
         EffectKind::ScrapOozeReach {
-            dmg,
             chance,
             advance_on_miss,
         } => PyEffect::ScrapOozeReach(PyEffectScrapOozeReach {
-            dmg,
             chance,
             advance_on_miss,
         }),

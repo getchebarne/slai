@@ -1,3 +1,4 @@
+use crate::consts::BOMB_FUSE_TURNS;
 use crate::consts::DISCOVER_PICK_COUNT;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
@@ -462,10 +463,10 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // The Bomb: lazily armed 3-turn timer, detonates for `stacks` on all enemies
+    // The Bomb: lazily armed timer, detonates for `stacks` on all enemies
     if has_modifier(mods_char, ModifierKind::TheBomb) {
         if *bomb_countdown == 0 {
-            *bomb_countdown = 3;
+            *bomb_countdown = BOMB_FUSE_TURNS;
         }
         *bomb_countdown -= 1;
         if *bomb_countdown == 0 {

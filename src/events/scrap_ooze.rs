@@ -4,22 +4,25 @@ use crate::effect::Target;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
+use crate::events::health_delta;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
 // Reach in; +1 HP and +10% per miss until the 105% rung, which cannot fail
-const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 1] {
-    [Effect {
-        kind: EffectKind::ScrapOozeReach {
-            dmg,
-            chance,
-            advance_on_miss,
+const fn reach(dmg: u16, chance: u8, advance_on_miss: bool) -> [Effect; 2] {
+    [
+        health_delta(dmg),
+        Effect {
+            kind: EffectKind::ScrapOozeReach {
+                chance,
+                advance_on_miss,
+            },
+            id_source: None,
+            target: Target::Direct(None),
         },
-        id_source: None,
-        target: Target::Direct(None),
-    }]
+    ]
 }
-const OPTIONS_REACH_BASE: [[Effect; 1]; 9] = [
+const OPTIONS_REACH_BASE: [[Effect; 2]; 9] = [
     reach(3, 25, true),
     reach(4, 35, true),
     reach(5, 45, true),
@@ -32,7 +35,7 @@ const OPTIONS_REACH_BASE: [[Effect; 1]; 9] = [
 ];
 
 // Base damage 3 -> 5 at A15
-const OPTIONS_REACH_A15: [[Effect; 1]; 9] = [
+const OPTIONS_REACH_A15: [[Effect; 2]; 9] = [
     reach(5, 25, true),
     reach(6, 35, true),
     reach(7, 45, true),

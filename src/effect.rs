@@ -240,7 +240,6 @@ pub enum EffectKind {
     RoomExit,
     RoomSelect,
     ScrapOozeReach {
-        dmg: u16,
         chance: u8,
         advance_on_miss: bool,
     },

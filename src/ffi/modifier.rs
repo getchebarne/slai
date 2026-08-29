@@ -18,20 +18,12 @@ mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", {
     Vulnerable, Weak, WraithForm, Buffer, PenNib, Magnetism, NoBlock, Panache, SadisticNature,
     Mayhem, TheBomb, Regeneration, LoseStrength, LoseDexterity, DuplicateNextCardPlay,
     Flight, Malleable, Barricade, Hex, Confusion, PainfulStabs, Minion,
-});
-
-#[pymethods]
-impl PyModifierKind {
+}, {
     #[getter]
     fn is_buff(&self) -> bool {
         modifier_is_buff(modifier_kind_from_u8(*self as u8))
     }
-
-    // hash by discriminant (other unit enums get this via impl_discriminant_hash)
-    fn __hash__(&self) -> isize {
-        *self as isize
-    }
-}
+});
 
 #[pyclass(
     skip_from_py_object,
