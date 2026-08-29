@@ -504,7 +504,23 @@ pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize
     count
 }
 
-// Roll `count` distinct Cards; pity-bumps reward_roll_offset toward rares
+// One rarity roll; the pity offset shifts it toward Rare
+fn roll_rarity_pool(
+    rng: &mut impl Rng,
+    offset: i8,
+    chance_rare: i32,
+    chance_uncommon: i32,
+) -> (&'static [CardName], CardRarity) {
+    let roll = rng.random_range(0i32..=99) + offset as i32;
+    if roll < chance_rare {
+        (POOL_RARE_GREEN_CARD, CardRarity::Rare)
+    } else if roll < chance_uncommon {
+        (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
+    } else {
+        (POOL_COMMON_GREEN_CARD, CardRarity::Common)
+    }
+}
+
 pub fn roll_card_rewards(
     id_character: usize,
     entities: &mut Vec<Entity>,
@@ -513,6 +529,8 @@ pub fn roll_card_rewards(
     id_relics: &[Option<usize>; RelicName::COUNT],
     count: usize,
     rare_only: bool,
+    write_pity: bool,
+    dupe_rerolls_rarity: bool,
 ) {
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut card_names_rolled: [CardName; MAX_CARD_REWARD_ROLL] =
@@ -530,21 +548,19 @@ pub fn roll_card_rewards(
     out.clear();
     for _ in 0..count {
         // Roll rarity
-        let (pool, rarity) = if rare_only {
+        let (mut pool, rarity) = if rare_only {
             (POOL_RARE_GREEN_CARD, CardRarity::Rare)
         } else {
-            let roll = rng.random_range(0i32..=99) + character_reward_roll_offset as i32;
-            if roll < chance_rare {
-                (POOL_RARE_GREEN_CARD, CardRarity::Rare)
-            } else if roll < chance_uncommon {
-                (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
-            } else {
-                (POOL_COMMON_GREEN_CARD, CardRarity::Common)
-            }
+            roll_rarity_pool(
+                rng,
+                character_reward_roll_offset,
+                chance_rare,
+                chance_uncommon,
+            )
         };
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
-        if !rare_only {
+        if write_pity {
             match rarity {
                 CardRarity::Rare => character_reward_roll_offset = CARD_REWARD_ROLL_OFFSET_BASE,
                 CardRarity::Common => {
@@ -558,6 +574,15 @@ pub fn roll_card_rewards(
         // Roll Cards. Loop until it's unique
         let mut name = pool[rng.random_range(0..pool.len())];
         while card_names_rolled[..out.len()].contains(&name) {
+            if dupe_rerolls_rarity {
+                pool = roll_rarity_pool(
+                    rng,
+                    character_reward_roll_offset,
+                    chance_rare,
+                    chance_uncommon,
+                )
+                .0;
+            }
             name = pool[rng.random_range(0..pool.len())];
         }
         card_names_rolled[out.len()] = name;

@@ -18,6 +18,8 @@ pub fn process_effect_reward_roll_cards(state: &mut GameState, bundles: u8, rare
             &state.id_relics,
             cards_per_bundle,
             rare_only,
+            !rare_only,
+            false,
         );
         id_card_bundles.push(id_cards);
     }
