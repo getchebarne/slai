@@ -73,7 +73,6 @@ pub enum Intent {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Move {
-    #[allow(dead_code)]
     pub name: &'static str,
     pub effects: [Effect; MAX_EFFECTS_PER_MOVE],
     pub effects_len: u8,

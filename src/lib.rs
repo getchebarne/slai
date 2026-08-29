@@ -76,6 +76,12 @@ impl GameEnv {
     #[classattr]
     const BOMB_FUSE_TURNS: u8 = consts::BOMB_FUSE_TURNS;
     #[classattr]
+    const FACTOR_VULN: f32 = consts::FACTOR_VULN;
+    #[classattr]
+    const HEXAGHOST_DIVIDER_HITS: u8 = consts::HEXAGHOST_DIVIDER_HITS;
+    #[classattr]
+    const HEXAGHOST_DIVIDER_DIVISOR: u16 = consts::HEXAGHOST_DIVIDER_DIVISOR;
+    #[classattr]
     const CARDS_DRAWN_PER_TURN: u16 = consts::CARDS_DRAWN_PER_TURN;
     #[classattr]
     const NIGHTMARE_COPIES: u8 = consts::NIGHTMARE_COPIES;
@@ -391,6 +397,10 @@ mod slai {
     use super::ffi::PyEventOptionTemplate;
     #[pymodule_export]
     use super::ffi::PyMonsterKind;
+    #[pymodule_export]
+    use super::ffi::PyModifierSpawnTemplate;
+    #[pymodule_export]
+    use super::ffi::PyMonsterMoveTemplate;
     #[pymodule_export]
     use super::ffi::PyMonsterTemplate;
     #[pymodule_export]

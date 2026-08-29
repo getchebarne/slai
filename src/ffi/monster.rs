@@ -141,6 +141,8 @@ pub struct PyMonster {
     pub modifiers: Vec<PyModifier>,
     pub intent: PyIntent,
     pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
+    pub move_current: Option<u8>,    // Index into the spawn-rolled moveset
+    pub move_history: Vec<u8>,       // Selection-ordered move indices; the last entry IS the current move
     pub gold_stolen: u16,            // Only relevant for Looters and Muggers
 }
 
@@ -236,6 +238,10 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 modifiers: snapshot_modifiers(&monster.modifiers),
                 intent,
                 move_effects,
+                move_current: monster.monster_move_current.map(|idx| idx as u8),
+                move_history: monster.monster_move_history
+                    [..monster.monster_move_history_len as usize]
+                    .to_vec(),
                 gold_stolen: monster.monster_gold_stolen,
             }
         })
