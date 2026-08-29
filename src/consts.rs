@@ -25,6 +25,9 @@ pub const GOLD_ELITE_MIN: u16 = 25;
 pub const GOLD_ELITE_MAX: u16 = 35;
 pub const GOLD_BOSS_MIN: u16 = 95;
 pub const GOLD_BOSS_MAX: u16 = 105;
+
+// Widest reward-gold offer: boss roll + Golden Idol's 25% (rounded half-up)
+pub const REWARD_GOLD_MAX: u16 = GOLD_BOSS_MAX + (GOLD_BOSS_MAX + 2) / 4;
 pub const BOSS_RELIC_REWARD_COUNT: usize = 3;
 pub const LIBRARY_CARD_COUNT: usize = 20;
 
@@ -67,6 +70,14 @@ pub const MATRYOSHKA_TH_COMMON: u8 = 75;
 pub const MATRYOSHKA_TH_UNCOMMON: u8 = 100;
 pub const MAX_BLOCK: u16 = 999;
 pub const NIGHTMARE_COPIES: u8 = 3;
+
+// The Bomb: lazily armed detonation timer (see process_effect_turn_end)
+pub const BOMB_FUSE_TURNS: u8 = 3;
+
+// Event roll-pool stakes: the widest offer any event places in `id_roll_*`
+pub const MAX_EVENT_ROLL_CARDS: usize = 1; // We Meet Again
+pub const MAX_EVENT_ROLL_RELICS: usize = 2; // N'loth's two owned relics
+pub const MAX_EVENT_ROLL_POTIONS: usize = 1; // We Meet Again
 
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;

@@ -54,7 +54,7 @@ pub struct PyGameState {
     pub potion_slots_max: u8,
     pub map: PyMap,
     pub effect_pending: Option<PyEffectPending>,
-    pub effect_pending_picks: Vec<PyCard>,
+    pub effect_pending_selected: Vec<PyCard>,
 }
 
 // Snapshot builders
@@ -85,8 +85,8 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),
         effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
-        effect_pending_picks: state
-            .effect_pending_picks
+        effect_pending_selected: state
+            .effect_pending_selected
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),

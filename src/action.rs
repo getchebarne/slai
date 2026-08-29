@@ -204,7 +204,7 @@ fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
         &state.event,
         &state.id_card_deck,
     )[idx];
-    state.effect_pending_picks.push(id_selected);
+    state.effect_pending_selected.push(id_selected);
 
     let remaining = match selection_kind {
         SelectionKind::Input { count } | SelectionKind::InputUpTo { count } => {
@@ -235,14 +235,14 @@ fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
 
 // One Direct effect per staged pick, in pick order
 fn flush_pending_picks(state: &mut GameState, kind: EffectKind, id_source: Option<usize>) {
-    for &id in &state.effect_pending_picks {
+    for &id in &state.effect_pending_selected {
         state.effect_buf.push(Effect {
             kind,
             id_source,
             target: Target::Direct(Some(id)),
         });
     }
-    state.effect_pending_picks.clear();
+    state.effect_pending_selected.clear();
 }
 
 // The indexable collection behind each halting pool
@@ -607,7 +607,7 @@ fn fill_legal_actions_effect_pending(
 
     // Apply `CandidateFilter`; staged picks are out of the running
     for (idx, &id) in id_collection.iter().enumerate() {
-        if !state.effect_pending_picks.contains(&id)
+        if !state.effect_pending_selected.contains(&id)
             && candidate_matches(filter, id, &state.entities[id], None, None)
         {
             state

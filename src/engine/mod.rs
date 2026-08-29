@@ -655,10 +655,9 @@ fn dispatch_by_kind(
         EffectKind::RelicAdopt => process_effect_relic_adopt(id_target, state),
         EffectKind::EventAdvanceState { delta } => process_effect_event_advance_state(state, delta),
         EffectKind::ScrapOozeReach {
-            dmg,
             chance,
             advance_on_miss,
-        } => process_effect_scrap_ooze_reach(state, dmg, chance, advance_on_miss),
+        } => process_effect_scrap_ooze_reach(state, chance, advance_on_miss),
         EffectKind::EventConsume => process_effect_event_consume(state),
         EffectKind::CardDiscoverPick { cost_zero, pile } => {
             process_effect_card_discover_pick(id_target, state, cost_zero, pile)
@@ -693,7 +692,7 @@ pub fn process_effect_queue(state: &mut GameState) {
 // with world facts. Every active context is checked against the Room directly
 fn ensure_context_validity(state: &GameState) {
     assert!(
-        state.effect_pending.is_some() || state.effect_pending_picks.is_empty(),
+        state.effect_pending.is_some() || state.effect_pending_selected.is_empty(),
         "staged picks outlived their halt"
     );
     if state.game_over {

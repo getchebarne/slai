@@ -54,6 +54,28 @@ impl GameEnv {
     #[classattr]
     const CAULDRON_POTION_COUNT: usize = consts::CAULDRON_POTION_COUNT;
     #[classattr]
+    const MAX_EVENT_ROLL_CARDS: usize = consts::MAX_EVENT_ROLL_CARDS;
+    #[classattr]
+    const MAX_EVENT_ROLL_RELICS: usize = consts::MAX_EVENT_ROLL_RELICS;
+    #[classattr]
+    const MAX_EVENT_ROLL_POTIONS: usize = consts::MAX_EVENT_ROLL_POTIONS;
+    #[classattr]
+    const POTION_SLOTS_MAX: usize = consts::POTION_SLOTS_MAX;
+    #[classattr]
+    const BOSS_RELIC_REWARD_COUNT: usize = consts::BOSS_RELIC_REWARD_COUNT;
+    #[classattr]
+    const SHOP_SLOTS_CARD_TOTAL: usize = consts::SHOP_SLOTS_CARD_TOTAL;
+    #[classattr]
+    const SHOP_SLOTS_RELIC: usize = consts::SHOP_SLOTS_RELIC;
+    #[classattr]
+    const SHOP_SLOTS_POTION: usize = consts::SHOP_SLOTS_POTION;
+    #[classattr]
+    const DISCOVER_PICK_COUNT: u8 = consts::DISCOVER_PICK_COUNT;
+    #[classattr]
+    const REWARD_GOLD_MAX: u16 = consts::REWARD_GOLD_MAX;
+    #[classattr]
+    const BOMB_FUSE_TURNS: u8 = consts::BOMB_FUSE_TURNS;
+    #[classattr]
     const CARDS_DRAWN_PER_TURN: u16 = consts::CARDS_DRAWN_PER_TURN;
     #[classattr]
     const NIGHTMARE_COPIES: u8 = consts::NIGHTMARE_COPIES;
@@ -179,29 +201,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyAmountRelative;
     #[pymodule_export]
-    use super::ffi::PyCandidatePoolCharacter;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolDeck;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolDiscover;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventRollCard;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventRollPotion;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolEventRollRelic;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolHand;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolMonsters;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolPileDiscard;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolPileDraw;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolPileExhaust;
-    #[pymodule_export]
-    use super::ffi::PyCandidatePoolSource;
+    use super::ffi::PyCandidatePool;
     #[pymodule_export]
     use super::ffi::PyCardCostKindFixed;
     #[pymodule_export]

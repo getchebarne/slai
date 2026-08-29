@@ -10,39 +10,10 @@ use crate::effect::SelectionKind;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
-flat_variants!(PyCandidatePool {
-    Hand => PyCandidatePoolHand as "CandidatePoolHand",
-    Character => PyCandidatePoolCharacter as "CandidatePoolCharacter",
-    Monsters => PyCandidatePoolMonsters as "CandidatePoolMonsters",
-    Source => PyCandidatePoolSource as "CandidatePoolSource",
-    Discover => PyCandidatePoolDiscover as "CandidatePoolDiscover",
-    Deck => PyCandidatePoolDeck as "CandidatePoolDeck",
-    PileDraw => PyCandidatePoolPileDraw as "CandidatePoolPileDraw",
-    PileDiscard => PyCandidatePoolPileDiscard as "CandidatePoolPileDiscard",
-    PileExhaust => PyCandidatePoolPileExhaust as "CandidatePoolPileExhaust",
-    EventRollCard => PyCandidatePoolEventRollCard as "CandidatePoolEventRollCard",
-    EventRollRelic => PyCandidatePoolEventRollRelic as "CandidatePoolEventRollRelic",
-    EventRollPotion => PyCandidatePoolEventRollPotion as "CandidatePoolEventRollPotion",
+mirror_enum!(PyCandidatePool from CandidatePool, "CandidatePool", {
+    Hand, Character, Monsters, Source, Discover, Deck, PileDraw, PileDiscard, PileExhaust,
+    EventRollCard, EventRollRelic, EventRollPotion,
 });
-
-impl From<CandidatePool> for PyCandidatePool {
-    fn from(pool: CandidatePool) -> Self {
-        match pool {
-            CandidatePool::Hand => Self::Hand(PyCandidatePoolHand),
-            CandidatePool::Character => Self::Character(PyCandidatePoolCharacter),
-            CandidatePool::Monsters => Self::Monsters(PyCandidatePoolMonsters),
-            CandidatePool::Source => Self::Source(PyCandidatePoolSource),
-            CandidatePool::Discover => Self::Discover(PyCandidatePoolDiscover),
-            CandidatePool::Deck => Self::Deck(PyCandidatePoolDeck),
-            CandidatePool::PileDraw => Self::PileDraw(PyCandidatePoolPileDraw),
-            CandidatePool::PileDiscard => Self::PileDiscard(PyCandidatePoolPileDiscard),
-            CandidatePool::PileExhaust => Self::PileExhaust(PyCandidatePoolPileExhaust),
-            CandidatePool::EventRollCard => Self::EventRollCard(PyCandidatePoolEventRollCard),
-            CandidatePool::EventRollRelic => Self::EventRollRelic(PyCandidatePoolEventRollRelic),
-            CandidatePool::EventRollPotion => Self::EventRollPotion(PyCandidatePoolEventRollPotion),
-        }
-    }
-}
 
 mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", {
     Any, Purgeable, Upgradeable, Transformable, PurgeableCurse, KindAttack, KindSkill,

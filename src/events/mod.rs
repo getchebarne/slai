@@ -52,11 +52,13 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicPick;
 use crate::effect::SelectionKind;
+use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
+use crate::types::DeltaSign;
 use crate::types::Event;
 use crate::types::EventName;
 use crate::types::event_reset;
@@ -124,6 +126,18 @@ pub const EFFECT_EVENT_CONSUME: Effect = Effect {
     id_source: None,
     target: Target::Direct(None),
 };
+
+// Character HP loss, the standard Event Option cost
+pub const fn health_delta(amount: u16) -> Effect {
+    Effect {
+        kind: EffectKind::HealthDelta {
+            sign: DeltaSign::Loss,
+            amount: Amount::Absolute(amount),
+        },
+        id_source: None,
+        target: TARGET_CHARACTER,
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct EventOptionTemplate {

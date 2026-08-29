@@ -1,26 +1,3 @@
-use pyo3::prelude::*;
-
-use super::amount::PyDeltaSign;
-use super::card::PyCardColor;
-use super::card::PyCardKind;
-use super::card::PyCardName;
-use super::card::PyCardPile;
-use super::card::PyCardRarity;
-use super::card::PyCostScope;
-use super::card::PyPlayRestriction;
-use super::context::PyChestKind;
-use super::event::PyEventName;
-use super::map::PyRoomKind;
-use super::monster::PyIntentKind;
-use super::monster::PyMonsterEncounter;
-use super::monster::PyMonsterKind;
-use super::monster::PyMonsterName;
-use super::potion::PyPotionName;
-use super::potion::PyPotionRarity;
-use super::relic::PyRelicName;
-use super::relic::PyRelicTier;
-use super::target::PyCandidateFilter;
-
 /// Complex enums exposed as one flat pyclass per variant, driven by one table per family.
 ///
 /// flat_variants!(PyFamily {
@@ -102,6 +79,9 @@ macro_rules! flat_variants {
 /// always `skip_from_py_object`. Call sites need `use pyo3::prelude::*` in scope.
 macro_rules! mirror_enum {
     ($py:ident from $internal:ident, $name:literal, { $($v:ident),+ $(,)? }) => {
+        mirror_enum!($py from $internal, $name, { $($v),+ }, {});
+    };
+    ($py:ident from $internal:ident, $name:literal, { $($v:ident),+ $(,)? }, { $($extra:item)* }) => {
         #[pyclass(skip_from_py_object, eq, eq_int, frozen, name = $name, module = "slai.slai")]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum $py { $($v,)+ }
@@ -113,54 +93,25 @@ macro_rules! mirror_enum {
                 }
             }
         }
-    };
-}
 
-/// `__hash__` by raw discriminant for the mirror enums, so `eq_int` and hash agree.
-///
-/// pyo3's derived `hash` runs the discriminant through a hasher, so hash(enum) != hash(int)
-/// even though `eq_int` makes enum == int — violating Python's eq/hash contract and making
-/// these enums silently un-findable in int-keyed dicts. Removing this outright is worse:
-/// Python nulls `__hash__` on any type defining `__eq__` without it, leaving all 17 enums
-/// unhashable (test_stub_conformance fails with one error per enum). PyModifierKind and
-/// PyActionType are absent here because each carries its own inline `__hash__` — pyo3
-/// rejects two `#[pymethods]` blocks without the multiple-pymethods feature.
-// TODO: revisit if this is necessary
-macro_rules! impl_discriminant_hash {
-    ($($ty:ty),+ $(,)?) => {
-        $(
-            #[pymethods]
-            impl $ty {
-                fn __hash__(&self) -> isize {
-                    *self as isize
-                }
+        #[pymethods]
+        impl $py {
+            // Declaration order, which is also int() order
+            #[staticmethod]
+            fn members() -> Vec<$py> {
+                vec![$($py::$v),+]
             }
-        )+
+
+            // Hash by raw discriminant so eq_int and hash agree; the derived hash
+            // breaks Python's eq/hash contract for int-keyed dicts
+            fn __hash__(&self) -> isize {
+                *self as isize
+            }
+
+            $($extra)*
+        }
     };
 }
-
-impl_discriminant_hash!(
-    PyCardKind,
-    PyCardColor,
-    PyCardRarity,
-    PyPlayRestriction,
-    PyDeltaSign,
-    PyRoomKind,
-    PyPotionName,
-    PyPotionRarity,
-    PyRelicName,
-    PyCardName,
-    PyMonsterName,
-    PyMonsterEncounter,
-    PyRelicTier,
-    PyCandidateFilter,
-    PyCardPile,
-    PyChestKind,
-    PyCostScope,
-    PyIntentKind,
-    PyMonsterKind,
-    PyEventName,
-);
 
 pub(crate) use flat_variants;
 pub(crate) use mirror_enum;

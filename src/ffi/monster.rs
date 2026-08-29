@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use strum::IntoEnumIterator;
 
 use super::macros::mirror_enum;
 
@@ -51,7 +52,7 @@ mirror_enum!(PyMonsterEncounter from MonsterEncounter, "MonsterEncounter", {
     name = "IntentKind",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::EnumIter)]
 pub enum PyIntentKind {
     Attack,
     AttackBlock,
@@ -66,6 +67,21 @@ pub enum PyIntentKind {
     Sleep,
     Stunned,
     Unknown,
+}
+
+#[pymethods]
+impl PyIntentKind {
+    // Declaration order, which is also int() order
+    #[staticmethod]
+    fn members() -> Vec<PyIntentKind> {
+        PyIntentKind::iter().collect()
+    }
+
+    // Hash by raw discriminant so eq_int and hash agree; the derived hash
+    // breaks Python's eq/hash contract for int-keyed dicts
+    fn __hash__(&self) -> isize {
+        *self as isize
+    }
 }
 
 impl From<Intent> for PyIntentKind {

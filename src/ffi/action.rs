@@ -1,4 +1,5 @@
 use pyo3::prelude::*;
+use strum::IntoEnumIterator;
 
 use crate::action::Action;
 
@@ -11,7 +12,7 @@ use crate::action::Action;
     name = "ActionType",
     module = "slai.slai"
 )]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::IntoStaticStr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::IntoStaticStr, strum::EnumIter)]
 pub enum PyActionType {
     CardPlay,
     ChestOpen,
@@ -41,6 +42,12 @@ pub enum PyActionType {
 
 #[pymethods]
 impl PyActionType {
+    // Declaration order, which is also int() order
+    #[staticmethod]
+    fn members() -> Vec<PyActionType> {
+        PyActionType::iter().collect()
+    }
+
     // variant name for the action-spec registry (raw pyo3 enums have no .name)
     #[getter]
     fn name(&self) -> &'static str {

@@ -1,16 +1,14 @@
-use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_ADVANCE;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
+use crate::events::health_delta;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
-use crate::types::DeltaSign;
 use crate::types::RelicName;
 
 // The three book Relics; the take-option rolls uniformly among the unowned ones
@@ -19,17 +17,6 @@ const BOOK_POOL: &[RelicName] = &[
     RelicName::Enchiridion,
     RelicName::NilrysCodex,
 ];
-
-const fn health_delta(amount: u16) -> Effect {
-    Effect {
-        kind: EffectKind::HealthDelta {
-            sign: DeltaSign::Loss,
-            amount: Amount::Absolute(amount),
-        },
-        id_source: None,
-        target: TARGET_CHARACTER,
-    }
-}
 
 // Read: open the book and start turning pages
 const OPTION_READ: [Effect; 1] = [EFFECT_EVENT_ADVANCE];
