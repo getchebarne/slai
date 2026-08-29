@@ -4,6 +4,7 @@ use strum::IntoEnumIterator;
 
 use crate::cards::CardTemplate;
 use crate::cards::card_template;
+use crate::entity::Intent;
 use crate::events::options_catalog;
 use crate::monsters::monster_template;
 use crate::monsters::pick_tier;
@@ -26,6 +27,8 @@ use super::card::PyPlayRestriction;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 use super::event::PyEventName;
+use super::modifier::PyModifierKind;
+use super::monster::PyIntentKind;
 use super::monster::PyMonsterKind;
 use super::monster::PyMonsterName;
 use super::potion::PyPotionName;
@@ -105,6 +108,40 @@ pub struct PyPotionTemplate {
     hash,
     frozen,
     get_all,
+    name = "ModifierSpawnTemplate",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyModifierSpawnTemplate {
+    pub kind: PyModifierKind,
+    pub stacks_min: i16,
+    pub stacks_max: i16,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "MonsterMoveTemplate",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyMonsterMoveTemplate {
+    pub name: String,
+    pub intent: PyIntentKind,
+    pub damage: Option<u16>, // Raw damage, before Strength / Weak / Vulnerable / etc. scaling
+    pub instances: Option<u8>,
+    pub effects: Vec<PyEffect>,
+}
+
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
     name = "MonsterTemplate",
     module = "slai.slai"
 )]
@@ -113,6 +150,9 @@ pub struct PyMonsterTemplate {
     pub name: PyMonsterName,
     pub kind: PyMonsterKind,
     pub hp_range: (u16, u16),
+    pub block_start: u16,
+    pub moves: Vec<PyMonsterMoveTemplate>,
+    pub modifier_spawns: Vec<PyModifierSpawnTemplate>,
 }
 
 #[pyclass(
@@ -208,11 +248,49 @@ pub fn get_monster_templates(ascension: u8) -> Vec<PyMonsterTemplate> {
     MonsterName::iter()
         .map(|name| {
             let template = monster_template(name);
+            let move_sets =
+                pick_tier(template.move_tiers, ascension).expect("move_tiers is never empty");
+            let moves = move_sets
+                .iter()
+                .flat_map(|move_set| move_set.iter())
+                .map(|mv| {
+                    let (damage, instances) = match mv.intent {
+                        Intent::Attack { damage, instances }
+                        | Intent::AttackBlock { damage, instances }
+                        | Intent::AttackBuff { damage, instances }
+                        | Intent::AttackDebuff { damage, instances } => {
+                            (Some(damage), Some(instances))
+                        }
+                        _ => (None, None),
+                    };
+                    PyMonsterMoveTemplate {
+                        name: mv.name.to_string(),
+                        intent: mv.intent.into(),
+                        damage,
+                        instances,
+                        effects: mv.effects[..mv.effects_len as usize]
+                            .iter()
+                            .map(snapshot_effect)
+                            .collect(),
+                    }
+                })
+                .collect();
             PyMonsterTemplate {
                 name: name.into(),
                 kind: template.kind.into(),
                 hp_range: pick_tier(template.health_tiers, ascension)
                     .expect("health_tiers is never empty"),
+                block_start: template.block_start,
+                moves,
+                modifier_spawns: pick_tier(template.modifier_tiers, ascension)
+                    .unwrap_or(&[])
+                    .iter()
+                    .map(|spawn| PyModifierSpawnTemplate {
+                        kind: spawn.kind.into(),
+                        stacks_min: spawn.stacks_min,
+                        stacks_max: spawn.stacks_max,
+                    })
+                    .collect(),
             }
         })
         .collect()

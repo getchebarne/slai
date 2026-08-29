@@ -1,3 +1,4 @@
+use crate::consts::HEXAGHOST_DIVIDER_DIVISOR;
 use crate::game::GameState;
 use crate::monsters::get_next_move;
 use crate::monsters::hexaghost;
@@ -42,7 +43,7 @@ pub fn process_effect_move_update(
     // Divider damage locks in at selection; later HP changes don't move it
     entity.monster_move_damage_override = (entity.monster_name == MonsterName::Hexaghost
         && move_next == hexaghost::IDX_MOVE_DIVIDER)
-        .then(|| character_health / 12 + 1);
+        .then(|| character_health / HEXAGHOST_DIVIDER_DIVISOR + 1);
 
     let move_idx = move_next as u8;
     push_move_history(entity, move_idx);

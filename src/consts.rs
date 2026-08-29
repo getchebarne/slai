@@ -60,6 +60,9 @@ pub const FACTOR_VULN_ODD_MUSHROOM: f32 = 1.25;
 pub const FACTOR_FRAIL: f32 = 0.75;
 pub const MODE_SHIFT_INCREASE_PER_CYCLE: i16 = 10;
 pub const HEXAGHOST_DIVIDER_HITS: u8 = 6;
+
+// Divider rolls `character_health / DIVISOR + 1` per hit at move selection
+pub const HEXAGHOST_DIVIDER_DIVISOR: u16 = 12;
 pub const MAX_MONSTERS: usize = 5;
 
 // Girya: maximum rest-site lifts
