@@ -12,5 +12,12 @@ pub static THE_COURIER: RelicTemplate = RelicTemplate {
     name: RelicName::TheCourier,
     tier: RelicTier::Uncommon,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_on_pickup: &[],
+    effects_on_rest: &[],
+    effects_counter: &[],
 };

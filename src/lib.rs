@@ -275,6 +275,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCombatStart;
     #[pymodule_export]
+    use super::ffi::PyEffectDamageDeal;
+    #[pymodule_export]
     use super::ffi::PyEffectDamageFinisher;
     #[pymodule_export]
     use super::ffi::PyEffectDamageFlechettes;
@@ -345,6 +347,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRelicLose;
     #[pymodule_export]
+    use super::ffi::PyEffectRewardRollCards;
+    #[pymodule_export]
     use super::ffi::PyEffectRewardRollLibraryCards;
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollNeowCards;
@@ -376,6 +380,8 @@ mod slai {
     use super::ffi::PyRestSite;
     #[pymodule_export]
     use super::ffi::PyReward;
+    #[pymodule_export]
+    use super::ffi::PyRewardRollTrigger;
     #[pymodule_export]
     use super::ffi::PySelectionKindAll;
     #[pymodule_export]

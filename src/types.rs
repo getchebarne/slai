@@ -141,17 +141,17 @@ pub struct Shop {
     pub active: bool,
 
     // The stock as offers: (entity id, price)
-    pub cards: Vec<(usize, u16)>,
-    pub relics: Vec<(usize, u16)>,
-    pub potions: Vec<(usize, u16)>,
+    pub id_cards_price: Vec<(usize, u16)>,
+    pub id_relics_price: Vec<(usize, u16)>,
+    pub id_potions_price: Vec<(usize, u16)>,
     pub purge_cost: u16,
     pub purged: bool,
 }
 
 pub fn shop_reset(shop: &mut Shop) {
-    shop.cards.clear();
-    shop.relics.clear();
-    shop.potions.clear();
+    shop.id_cards_price.clear();
+    shop.id_relics_price.clear();
+    shop.id_potions_price.clear();
     shop.purge_cost = 0;
     shop.purged = false;
 }

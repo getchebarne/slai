@@ -2,9 +2,9 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::relics::relic_template;
 use crate::relics::trigger_relic_counter;
 use crate::types::Combat;
-use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::shuffle;
@@ -32,15 +32,16 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
         });
     }
 
-    // Persistent reshuffle counter; every 3rd fires
-    if trigger_relic_counter(RelicName::Sundial, 3, &state.id_relics, &mut state.entities) {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::EnergyDelta {
-                sign: DeltaSign::Gain,
-                amount: 2,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
+    // Persistent reshuffle counter; threshold and payload on the template
+    let template = relic_template(RelicName::Sundial);
+    if trigger_relic_counter(
+        RelicName::Sundial,
+        template.counter_reset,
+        &state.id_relics,
+        &mut state.entities,
+    ) {
+        for &eff in template.effects_counter {
+            state.effect_queue.push_back(eff);
+        }
     }
 }

@@ -452,7 +452,14 @@ pub struct RelicTemplate {
     pub name: RelicName,
     pub tier: RelicTier,
     pub counter_init: i16,
+    pub counter_reset: i16, // Threshold the counter fires and resets at; 0 = no firing counter
     pub effects_combat_start: &'static [Effect],
+    pub effects_turn_start: &'static [Effect],
+    pub effects_turn_end: &'static [Effect],
+    pub effects_combat_end: &'static [Effect],
+    pub effects_on_pickup: &'static [Effect],
+    pub effects_on_rest: &'static [Effect],
+    pub effects_counter: &'static [Effect],
 }
 
 pub const fn instance_relic_from_template(template: &RelicTemplate) -> Entity {
@@ -463,6 +470,10 @@ pub const fn instance_relic_from_template(template: &RelicTemplate) -> Entity {
         relic_counter: template.counter_init,
         relic_used_up: false,
         relic_effects_combat_start: template.effects_combat_start,
+        relic_effects_turn_start: template.effects_turn_start,
+        relic_effects_turn_end: template.effects_turn_end,
+        relic_effects_combat_end: template.effects_combat_end,
+        relic_effects_on_rest: template.effects_on_rest,
         ..ENTITY_ZERO
     }
 }

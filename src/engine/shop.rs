@@ -5,8 +5,6 @@ use rand::Rng;
 use strum::EnumCount;
 
 use crate::cards::get_random_cards;
-use crate::consts::SHOP_CARD_CUT_RARE;
-use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::consts::SHOP_PRICE_CARD_COMMON;
 use crate::consts::SHOP_PRICE_CARD_RARE;
 use crate::consts::SHOP_PRICE_CARD_UNCOMMON;
@@ -37,6 +35,7 @@ use crate::types::CardName;
 use crate::types::CardRarity;
 use crate::types::PotionRarity;
 use crate::types::RelicName;
+use crate::utils::SHOP_STOCK_POLICY;
 use crate::utils::has_relic;
 use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
@@ -150,12 +149,10 @@ pub(super) fn make_card_colored(
     id_character: usize,
     id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> (usize, u16) {
-    // ShopRoom rolls its own bands and reads the pity offset without writing it
     let mut rarity = roll_card_rarity(
         rng,
         entities[id_character].character_reward_roll_offset,
-        (SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON),
-        false,
+        &SHOP_STOCK_POLICY,
         id_relics,
     );
 

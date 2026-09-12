@@ -35,7 +35,6 @@ mod weak;
 use rand::Rng;
 use strum::EnumCount;
 
-use crate::consts::POTION_SLOTS_MAX;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
 use crate::effect::Effect;
@@ -189,18 +188,14 @@ pub fn get_random_potion_name_uniform(rng: &mut impl Rng) -> PotionName {
     ALL_POTIONS[rng.random_range(0..ALL_POTIONS.len())].name
 }
 
-pub fn find_free_slot(slots: &[Option<usize>; POTION_SLOTS_MAX], slots_max: u8) -> Option<usize> {
-    let cap = (slots_max as usize).min(POTION_SLOTS_MAX);
-    slots[..cap].iter().position(|slot| slot.is_none())
+pub fn belt_has_room(id_potions: &[usize], slots_max: u8) -> bool {
+    id_potions.len() < slots_max as usize
 }
 
-// Clear whichever belt slot holds id_potion; no-op if absent
-pub fn remove_potion(id_potions: &mut [Option<usize>; POTION_SLOTS_MAX], id_potion_target: usize) {
-    for id_potion in id_potions.iter_mut() {
-        if *id_potion == Some(id_potion_target) {
-            *id_potion = None;
-            return;
-        }
+// Drop the first belt entry holding id_potion, closing the gap; no-op if absent
+pub fn remove_potion(id_potions: &mut Vec<usize>, id_potion_target: usize) {
+    if let Some(idx) = id_potions.iter().position(|&id| id == id_potion_target) {
+        id_potions.remove(idx);
     }
 }
 

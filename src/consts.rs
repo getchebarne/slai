@@ -85,11 +85,18 @@ pub const MAX_EVENT_ROLL_POTIONS: usize = 1; // We Meet Again
 // Card rewards
 pub const CARD_REWARD_ROLL_OFFSET_BASE: i8 = 5;
 pub const CARD_REWARD_ROLL_OFFSET_MIN: i8 = -40;
+
 // Cumulative cuts: Rare below the first, Uncommon below the second
 pub const CARD_REWARD_ROLL_CHANCE_RARE: i32 = 3;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON: i32 = 40;
 
-// Elite rooms widen both bands (MonsterRoomElite 10 / 40 over AbstractRoom's 3 / 37)
+// Reward Cards arrive pre-upgraded per act: Exordium 0, TheCity 0.25 (0.125 at A12+).
+// Rares are exempt (getRewardCards guards on `rarity != RARE`)
+pub const CARD_REWARD_UPGRADE_CHANCE_ACT2: f64 = 0.25;
+pub const CARD_REWARD_UPGRADE_CHANCE_ACT2_A12: f64 = 0.125;
+pub const ASCENSION_CARD_UPGRADE_CUT_LEVEL: u8 = 12;
+
+// Elite rooms widen both bands
 pub const CARD_REWARD_ROLL_CHANCE_RARE_ELITE: i32 = 10;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE: i32 = 50;
 

@@ -15,6 +15,8 @@ pub fn process_effect_reward_roll_library_cards(state: &mut GameState) {
         &state.id_relics,
         LIBRARY_CARD_COUNT,
         RewardRollTrigger::Library,
+        state.act,
+        state.ascension,
     );
 
     reward_ensure(&mut state.reward);

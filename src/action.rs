@@ -6,7 +6,6 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RewardRollTrigger;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::event_option_available;
@@ -16,7 +15,8 @@ use crate::map::get_active_room_kind;
 use crate::map::has_edge;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
-use crate::potions::find_free_slot;
+use crate::potions::belt_has_room;
+use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::Combat;
@@ -365,7 +365,7 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
 }
 
 fn handle_potion_discard(state: &mut GameState, idx: usize) {
-    let id_potion = state.id_potions[idx].expect("Enumerated Potion slot is occupied");
+    let id_potion = state.id_potions[idx];
     state.effect_buf.push(Effect {
         kind: EffectKind::PotionDiscard,
         id_source: Some(id_potion),
@@ -374,7 +374,7 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
 }
 
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
-    let id_potion = state.id_potions[idx_potion].expect("Enumerated Potion slot is occupied");
+    let id_potion = state.id_potions[idx_potion];
     if entity_requires_target(&state.entities[id_potion]) {
         assert!(state.combat.active, "Targeted Potion use outside combat");
         let idx_monster =
@@ -438,29 +438,19 @@ fn handle_rest(state: &mut GameState) {
         target: Target::Direct(Some(id_character)),
     });
 
-    // Regal Pillow: resting heals 15 more
-    if has_relic(&state.id_relics, RelicName::RegalPillow) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::HealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(15),
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_character)),
-        });
-    }
     push_rest_site_consume(state);
 
-    // Dream Catcher: resting also offers a Card reward (Rest only, not Smith)
-    if has_relic(&state.id_relics, RelicName::DreamCatcher) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::RewardRollCards {
-                bundles: 1,
-                trigger: RewardRollTrigger::DreamCatcher,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
+    // Rest Relic effects, in acquisition order (Regal Pillow, Dream Catcher; Rest
+    // only, not Smith). AFTER the consume: Dream Catcher's reward frame replaces
+    // the RestSite focus, and RestSiteConsume asserts it runs under the site
+    let mut id_owned: Vec<usize> = iter_owned_relics(&state.id_relics)
+        .map(|(_, id)| id)
+        .collect();
+    id_owned.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+    for id_relic in id_owned {
+        for &eff in state.entities[id_relic].relic_effects_on_rest {
+            state.effect_buf.push(eff);
+        }
     }
 }
 
@@ -578,9 +568,9 @@ fn handle_shop_buy(state: &mut GameState, slot: ShopSlot, idx: usize) {
         "ShopBuy outside the Shop context"
     );
     let id_bought = match slot {
-        ShopSlot::Card => state.shop.cards[idx].0,
-        ShopSlot::Relic => state.shop.relics[idx].0,
-        ShopSlot::Potion => state.shop.potions[idx].0,
+        ShopSlot::Card => state.shop.id_cards_price[idx].0,
+        ShopSlot::Relic => state.shop.id_relics_price[idx].0,
+        ShopSlot::Potion => state.shop.id_potions_price[idx].0,
     };
     state.effect_buf.push(Effect {
         kind: EffectKind::ShopBuy { slot },
@@ -721,7 +711,7 @@ fn fill_legal_actions_reward(state: &mut GameState) {
     }
 
     // Sozu: Potion rewards can't be taken (mirrors the shop gate)
-    if find_free_slot(&state.id_potions, state.potion_slots_max).is_some()
+    if belt_has_room(&state.id_potions, state.potion_slots_max)
         && !has_relic(&state.id_relics, RelicName::Sozu)
     {
         for idx in 0..id_potions.len() {
@@ -755,9 +745,9 @@ fn fill_legal_actions_event(state: &mut GameState) {
 
 fn fill_legal_actions_shop(state: &mut GameState) {
     let Shop {
-        cards,
-        relics,
-        potions,
+        id_cards_price,
+        id_relics_price,
+        id_potions_price,
         purge_cost,
         purged,
         ..
@@ -768,25 +758,25 @@ fn fill_legal_actions_shop(state: &mut GameState) {
 
     // Snapshots
     let gold = state.entities[state.id_character].character_gold;
-    let belt_has_room = find_free_slot(&state.id_potions, state.potion_slots_max).is_some();
+    let belt_room = belt_has_room(&state.id_potions, state.potion_slots_max);
 
     // Cards
-    for (idx, &(_, price)) in cards.iter().enumerate() {
+    for (idx, &(_, price)) in id_cards_price.iter().enumerate() {
         if gold >= price {
             state.legal_actions.push(Action::ShopBuyCard { idx: idx });
         }
     }
 
     // Relics
-    for (idx, &(_, price)) in relics.iter().enumerate() {
+    for (idx, &(_, price)) in id_relics_price.iter().enumerate() {
         if gold >= price {
             state.legal_actions.push(Action::ShopBuyRelic { idx: idx });
         }
     }
 
     // Potions (Sozu: unobtainable, so unbuyable)
-    if belt_has_room && !has_relic(&state.id_relics, RelicName::Sozu) {
-        for (idx, &(_, price)) in potions.iter().enumerate() {
+    if belt_room && !has_relic(&state.id_relics, RelicName::Sozu) {
+        for (idx, &(_, price)) in id_potions_price.iter().enumerate() {
             if gold >= price {
                 state.legal_actions.push(Action::ShopBuyPotion { idx: idx });
             }
@@ -913,11 +903,8 @@ fn push_potion_actions(state: &mut GameState) {
     } else {
         (false, 0)
     };
-    let slots_max = state.potion_slots_max as usize;
-    for s in 0..slots_max {
-        let Some(id_potion) = state.id_potions[s] else {
-            continue;
-        };
+    for s in 0..state.id_potions.len() {
+        let id_potion = state.id_potions[s];
         let potion = &state.entities[id_potion];
 
         // Fairy in a Bottle is never drinkable; it procs from the death hook

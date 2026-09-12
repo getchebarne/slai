@@ -1,22 +1,17 @@
 use rand::Rng;
 
-use crate::consts::CAULDRON_POTION_COUNT;
 use crate::consts::MAX_SIZE_DECK;
-use crate::consts::ORRERY_BUNDLE_COUNT;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::RewardRollTrigger;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
+use crate::relics::relic_template;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -42,80 +37,15 @@ pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameStat
     queue_pickup_effects(state, name);
 }
 
-// TODO: add consants
 fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
     let id_character = state.id_character;
 
+    // Template pickup effects execute in slice order (push_front reverses)
+    for &eff in relic_template(name).effects_on_pickup.iter().rev() {
+        state.effect_queue.push_front(eff);
+    }
+
     match name {
-        // Necronomicon arrives bound to its curse
-        RelicName::Necronomicon => {
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardAdd {
-                    card_name: CardName::Necronomicurse,
-                    pile: CardPile::Deck,
-                    count: 1,
-                    upgraded: false,
-                },
-                id_source: None,
-                target: Target::Direct(None),
-            });
-        }
-
-        // Dolly's Mirror: choose a deck Card and obtain a copy of it
-        RelicName::DollysMirror => {
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardDuplicate,
-                id_source: None,
-                target: Target::Resolve {
-                    candidate_pool: CandidatePool::Deck,
-                    filter: CandidateFilter::Any,
-                    selection_kind: SelectionKind::Input { count: 1 },
-                },
-            });
-        }
-
-        // Lee's Waffle: gain 7 max HP and heal to full
-        RelicName::LeesWaffle => {
-            // Executes in reverse: MaxHealthDelta, then HealthDelta (full heal)
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::HealthDelta {
-                    sign: DeltaSign::Gain,
-                    amount: Amount::Relative {
-                        // Full health
-                        numerator: 1,
-                        denominator: 1,
-                    },
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::MaxHealthDelta {
-                    sign: DeltaSign::Gain,
-                    amount: Amount::Absolute(7),
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
-        }
-
-        // Strawberry / Pear / Mango: gain max HP (healed)
-        RelicName::Strawberry => increase_max_hp(state, id_character, 7),
-        RelicName::Pear => increase_max_hp(state, id_character, 10),
-        RelicName::Mango => increase_max_hp(state, id_character, 14),
-
-        // Old Coin: gain 300 gold
-        RelicName::OldCoin => {
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::GoldDelta {
-                    sign: DeltaSign::Gain,
-                    amount: Amount::Absolute(300),
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
-        }
-
         // Potion Belt: gain 2 Potion slots
         RelicName::PotionBelt => {
             state.potion_slots_max = (state.potion_slots_max + 2).min(POTION_SLOTS_MAX as u8);
@@ -124,21 +54,6 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
         // War Paint / Whetstone: upgrade 2 random Skills / Attacks
         RelicName::WarPaint => upgrade_random_cards(state, 2, Some(CardKind::Skill)),
         RelicName::Whetstone => upgrade_random_cards(state, 2, Some(CardKind::Attack)),
-
-        // Empty Cage: remove 2 Cards from the deck
-        RelicName::EmptyCage => {
-            for _ in 0..2 {
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::CardPurge,
-                    id_source: None,
-                    target: Target::Resolve {
-                        candidate_pool: CandidatePool::Deck,
-                        filter: CandidateFilter::Purgeable,
-                        selection_kind: SelectionKind::Input { count: 1 },
-                    },
-                });
-            }
-        }
 
         // Pandora's Box: every starter Strike / Defend becomes a random Card
         RelicName::PandorasBox => {
@@ -160,19 +75,6 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
                     target: Target::Direct(Some(id)),
                 });
             }
-        }
-
-        // Astrolabe: choose 3 Cards to transform; the results are upgraded
-        RelicName::Astrolabe => {
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardTransform { upgraded: true },
-                id_source: None,
-                target: Target::Resolve {
-                    candidate_pool: CandidatePool::Deck,
-                    filter: CandidateFilter::Transformable,
-                    selection_kind: SelectionKind::Input { count: 3 },
-                },
-            });
         }
 
         // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare Relic
@@ -238,43 +140,8 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             state.id_relics[RelicName::RingOfTheSnake as usize] = None;
         }
 
-        // Orrery: a 5-bundle Reward frame pushed over the shop; the stock resumes on exit
-        RelicName::Orrery => queue_reward_roll(
-            state,
-            EffectKind::RewardRollCards {
-                bundles: ORRERY_BUNDLE_COUNT as u8,
-                trigger: RewardRollTrigger::Orrery,
-            },
-        ),
-
-        // Bottled Flame / Lightning / Tornado: bottle a Card of the kind
-        RelicName::BottledFlame => queue_bottle_pick(state, CandidateFilter::KindAttack),
-        RelicName::BottledLightning => queue_bottle_pick(state, CandidateFilter::KindSkill),
-        RelicName::BottledTornado => queue_bottle_pick(state, CandidateFilter::KindPower),
-
-        // Cauldron: brews 5 Potions, staged as a Reward frame over the shop
-        RelicName::Cauldron => queue_reward_roll(
-            state,
-            EffectKind::RewardRollPotions {
-                count: CAULDRON_POTION_COUNT as u8,
-                uniform: false,
-            },
-        ),
         _ => {}
     }
-}
-
-// Bottle a deck Card of the given kind; an empty pool auto-resolves to no pick (Relic inert)
-fn queue_bottle_pick(state: &mut GameState, filter: CandidateFilter) {
-    state.effect_queue.push_front(Effect {
-        kind: EffectKind::CardBottle,
-        id_source: None,
-        target: Target::Resolve {
-            candidate_pool: CandidatePool::Deck,
-            filter,
-            selection_kind: SelectionKind::Input { count: 1 },
-        },
-    });
 }
 
 // Upgrade `count` random upgradable Cards, optionally kind-filtered; without replacement
@@ -301,13 +168,4 @@ fn upgrade_random_cards(state: &mut GameState, count: usize, kind: Option<CardKi
         ids_valid[idx] = ids_valid[num - 1];
         num -= 1;
     }
-}
-
-// Shop Relics stage their roll as a Reward frame over the stock
-fn queue_reward_roll(state: &mut GameState, roll: EffectKind) {
-    state.effect_queue.push_front(Effect {
-        kind: roll,
-        id_source: None,
-        target: Target::Direct(None),
-    });
 }

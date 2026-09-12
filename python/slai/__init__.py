@@ -93,7 +93,7 @@ _REWARD_POS = "card within the bundle"
 _REWARD_RELIC_POS = "slot in state.reward.relics"
 _DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
-_SLOT_POS = "slot in state.potions"
+_POTION_POS = "position in state.potions"
 _REWARD_POTION_POS = "slot in state.reward.potions"
 _DISCOVER_POS = "position in state.combat.discover (the discovery offer)"
 _SHOP_CARD_POS = "position in state.shop.cards"
@@ -123,10 +123,10 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(
             ActionType.EventOptionSelect, ArgSpec("idx", "position in state.event.options")
         ),
-        create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
+        create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_potion", _POTION_POS)),
         create_action_spec(
             ActionType.PotionUse,
-            ArgSpec("idx_potion", _SLOT_POS),
+            ArgSpec("idx_potion", _POTION_POS),
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.Rest),
@@ -271,6 +271,9 @@ EffectModifierRemove = _rs.EffectModifierRemove
 EffectMonsterEscape = _rs.EffectMonsterEscape
 EffectMonsterSplit = _rs.EffectMonsterSplit
 EffectStasisSteal = _rs.EffectStasisSteal
+EffectRewardRollCards = _rs.EffectRewardRollCards
+EffectDamageDeal = _rs.EffectDamageDeal
+RewardRollTrigger = _rs.RewardRollTrigger
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -344,6 +347,8 @@ Effect = (
     | EffectMonsterEscape
     | EffectMonsterSplit
     | EffectStasisSteal
+    | EffectRewardRollCards
+    | EffectDamageDeal
 )
 
 # The kinds that can park in GameState.effect_pending. A halt only happens on a

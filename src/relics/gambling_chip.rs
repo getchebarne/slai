@@ -12,6 +12,7 @@ pub static GAMBLING_CHIP: RelicTemplate = RelicTemplate {
     name: RelicName::GamblingChip,
     tier: RelicTier::Rare,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[Effect {
         kind: EffectKind::Gamble {
             choose_discards: true,
@@ -20,4 +21,10 @@ pub static GAMBLING_CHIP: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Direct(None),
     }],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_on_pickup: &[],
+    effects_on_rest: &[],
+    effects_counter: &[],
 };

@@ -94,8 +94,8 @@ pub struct GameState {
     // Next acquisition stamp for `relic_seq`; the source iterates hooks in pickup order
     pub relic_seq_next: u16,
 
-    // Slot-indexed belt; `id_potions[slot]` is `Some(entity_id)` iff occupied (duplicates allowed)
-    pub id_potions: [Option<usize>; POTION_SLOTS_MAX],
+    // Dense belt in pickup order (duplicates allowed); `potion_slots_max` caps its length
+    pub id_potions: Vec<usize>,
     pub potion_slots_max: u8,
 
     // `?`-Room drift state; event chance = 1 - sum(others)
@@ -148,8 +148,8 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     let mut id_relics: [Option<usize>; RelicName::COUNT] = [None; RelicName::COUNT];
     id_relics[RelicName::RingOfTheSnake as usize] = Some(id_ring_of_the_snake);
 
-    // Belt capacity is a run-level rule (3, or 2 at ascension 11+); slots start empty
-    let id_potions: [Option<usize>; POTION_SLOTS_MAX] = [None; POTION_SLOTS_MAX];
+    // Belt capacity is a run-level rule (3, or 2 at ascension 11+); the belt starts empty
+    let id_potions: Vec<usize> = Vec::with_capacity(POTION_SLOTS_MAX);
     let potion_slots_max = if ascension >= 11 {
         POTION_SLOTS_DEFAULT_A11
     } else {
@@ -263,9 +263,9 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         },
         shop: Shop {
             active: false,
-            cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
-            relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
-            potions: Vec::with_capacity(SHOP_SLOTS_POTION),
+            id_cards_price: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
+            id_relics_price: Vec::with_capacity(SHOP_SLOTS_RELIC),
+            id_potions_price: Vec::with_capacity(SHOP_SLOTS_POTION),
             purge_cost: 0,
             purged: false,
         },

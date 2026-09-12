@@ -17,11 +17,17 @@ use super::card::PyCardPile;
 use super::card::PyCardRarity;
 use super::card::PyCostScope;
 use super::macros::flat_variants;
+use super::macros::mirror_enum;
 use super::modifier::PyModifierKind;
 use super::monster::PyMonsterName;
 use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
 use super::target::PyTarget;
+use crate::effect::RewardRollTrigger;
+
+mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
+    CombatMonster, CombatElite, CombatBoss, EventFight, DreamCatcher, Orrery, Library,
+});
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
@@ -97,6 +103,8 @@ flat_variants!(PyEffect {
     MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: PyTarget },
     MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
     StasisSteal => PyEffectStasisSteal as "EffectStasisSteal",
+    RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
+    DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -189,6 +197,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::RelicGrantPool { .. }
                     | EffectKind::RelicGrantRandom { .. }
                     | EffectKind::RelicGrantSpecific { .. }
+                    | EffectKind::RewardRollCards { .. }
                     | EffectKind::RewardRollLibraryCards
                     | EffectKind::RewardRollNeowCards { .. }
                     | EffectKind::RewardRollPotions { .. }
@@ -506,6 +515,17 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             target: require_target(target),
         }),
         EffectKind::StasisSteal => PyEffect::StasisSteal(PyEffectStasisSteal),
+        EffectKind::RewardRollCards { bundles, trigger } => {
+            PyEffect::RewardRollCards(PyEffectRewardRollCards {
+                bundles,
+                trigger: trigger.into(),
+            })
+        }
+        EffectKind::DamageDeal { amount, lifesteal } => PyEffect::DamageDeal(PyEffectDamageDeal {
+            amount,
+            lifesteal,
+            target: require_target(target),
+        }),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

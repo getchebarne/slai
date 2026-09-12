@@ -11,6 +11,7 @@ pub static MUTAGENIC_STRENGTH: RelicTemplate = RelicTemplate {
     name: RelicName::MutagenicStrength,
     tier: RelicTier::Special,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[
         Effect {
             kind: EffectKind::ModifierGain {
@@ -29,4 +30,10 @@ pub static MUTAGENIC_STRENGTH: RelicTemplate = RelicTemplate {
             target: TARGET_CHARACTER,
         },
     ],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_on_pickup: &[],
+    effects_on_rest: &[],
+    effects_counter: &[],
 };

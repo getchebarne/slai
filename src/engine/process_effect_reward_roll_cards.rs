@@ -23,6 +23,8 @@ pub fn process_effect_reward_roll_cards(
             &state.id_relics,
             cards_per_bundle,
             trigger,
+            state.act,
+            state.ascension,
         );
         id_card_bundles.push(id_cards);
     }
