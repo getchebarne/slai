@@ -213,7 +213,7 @@ pub enum EffectKind {
     },
     RewardRollCards {
         bundles: u8,
-        rare_only: bool,
+        trigger: RewardRollTrigger,
     },
     RewardRollGold {
         amount: Amount,
@@ -282,6 +282,18 @@ pub enum RelicPick {
     Thresholds { th_common: u8, th_uncommon: u8 },
     Tier(RelicTier),
     Name(RelicName),
+}
+
+// Who is asking for a Card roll
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum RewardRollTrigger {
+    CombatMonster,
+    CombatElite,
+    CombatBoss,
+    EventFight,
+    DreamCatcher,
+    Orrery,
+    Library,
 }
 
 // Origin tag the CardDiscard handler branches on

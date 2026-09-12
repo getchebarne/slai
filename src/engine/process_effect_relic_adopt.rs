@@ -9,6 +9,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardRollTrigger;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -242,7 +243,7 @@ fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
             state,
             EffectKind::RewardRollCards {
                 bundles: ORRERY_BUNDLE_COUNT as u8,
-                rare_only: false,
+                trigger: RewardRollTrigger::Orrery,
             },
         ),
 

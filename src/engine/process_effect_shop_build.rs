@@ -50,7 +50,14 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         CardKind::Skill,
         CardKind::Power,
     ] {
-        let offer = make_card_colored(&mut state.entities, &mut state.rng, cards, kind);
+        let offer = make_card_colored(
+            &mut state.entities,
+            &mut state.rng,
+            cards,
+            kind,
+            state.id_character,
+            &state.id_relics,
+        );
         cards.push(offer);
     }
 

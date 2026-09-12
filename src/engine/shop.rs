@@ -5,8 +5,8 @@ use rand::Rng;
 use strum::EnumCount;
 
 use crate::cards::get_random_cards;
-use crate::consts::SHOP_CARD_TH_COMMON;
-use crate::consts::SHOP_CARD_TH_UNCOMMON;
+use crate::consts::SHOP_CARD_CUT_RARE;
+use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::consts::SHOP_PRICE_CARD_COMMON;
 use crate::consts::SHOP_PRICE_CARD_RARE;
 use crate::consts::SHOP_PRICE_CARD_UNCOMMON;
@@ -40,6 +40,7 @@ use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
+use crate::utils::roll_card_rarity;
 
 // The Courier x0.8 then Membership Card x0.5; sequential round-half-up (Java shop-init order)
 pub(super) fn apply_shop_discounts(
@@ -146,8 +147,17 @@ pub(super) fn make_card_colored(
     rng: &mut impl Rng,
     cards: &[(usize, u16)],
     kind: CardKind,
+    id_character: usize,
+    id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> (usize, u16) {
-    let mut rarity = roll_card_rarity(rng);
+    // ShopRoom rolls its own bands and reads the pity offset without writing it
+    let mut rarity = roll_card_rarity(
+        rng,
+        entities[id_character].character_reward_roll_offset,
+        (SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON),
+        false,
+        id_relics,
+    );
 
     // No Common green Powers exist, so a Power slot can't be Common; bump it to Uncommon
     if kind == CardKind::Power && rarity == CardRarity::Common {
@@ -232,15 +242,4 @@ pub(super) fn make_potion(entities: &mut Vec<Entity>, rng: &mut impl Rng) -> (us
     let id_potion = push_entity(entities, entity);
     let potion_price = (base_price as f32 * roll_var_relic_n_potion(rng)) as u16;
     (id_potion, potion_price)
-}
-
-fn roll_card_rarity(rng: &mut impl Rng) -> CardRarity {
-    let roll = rng.random_range(0..100) as u8;
-    if roll < SHOP_CARD_TH_COMMON {
-        CardRarity::Common
-    } else if roll < SHOP_CARD_TH_UNCOMMON {
-        CardRarity::Uncommon
-    } else {
-        CardRarity::Rare
-    }
 }

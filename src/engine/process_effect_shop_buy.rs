@@ -77,7 +77,14 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
                 let (id_new, price) = if color == CardColor::Colorless {
                     make_card_colorless(&mut state.entities, &mut state.rng, cards, rarity)
                 } else {
-                    make_card_colored(&mut state.entities, &mut state.rng, cards, kind)
+                    make_card_colored(
+                        &mut state.entities,
+                        &mut state.rng,
+                        cards,
+                        kind,
+                        state.id_character,
+                        &state.id_relics,
+                    )
                 };
                 let price = apply_shop_discounts(price, &state.id_relics);
                 cards.insert(idx, (id_new, price));

@@ -357,11 +357,11 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectSetCostOverride;
     #[pymodule_export]
-    use super::ffi::PyEffectStasisSteal;
-    #[pymodule_export]
     use super::ffi::PyEffectShuffleDiscardPileIntoDrawPile;
     #[pymodule_export]
     use super::ffi::PyEffectSneakyStrikeProc;
+    #[pymodule_export]
+    use super::ffi::PyEffectStasisSteal;
     #[pymodule_export]
     use super::ffi::PyEffectStormOfSteelProc;
     #[pymodule_export]
@@ -396,9 +396,9 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEventOptionTemplate;
     #[pymodule_export]
-    use super::ffi::PyMonsterKind;
-    #[pymodule_export]
     use super::ffi::PyModifierSpawnTemplate;
+    #[pymodule_export]
+    use super::ffi::PyMonsterKind;
     #[pymodule_export]
     use super::ffi::PyMonsterMoveTemplate;
     #[pymodule_export]
