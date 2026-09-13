@@ -14,7 +14,6 @@ pub static MERCURY_HOURGLASS: RelicTemplate = RelicTemplate {
     counter_init: 0,
     counter_reset: 0,
     effects_combat_start: &[],
-    // Every turn: 3 damage to all Monsters
     effects_turn_start: &[Effect {
         kind: EffectKind::DamageDeal {
             amount: 3,
@@ -25,7 +24,7 @@ pub static MERCURY_HOURGLASS: RelicTemplate = RelicTemplate {
     }],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    effects_on_pickup: &[],
-    effects_on_rest: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

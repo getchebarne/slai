@@ -440,16 +440,15 @@ fn handle_rest(state: &mut GameState) {
 
     push_rest_site_consume(state);
 
-    // Rest Relic effects, in acquisition order (Regal Pillow, Dream Catcher; Rest
-    // only, not Smith). AFTER the consume: Dream Catcher's reward frame replaces
-    // the RestSite focus, and RestSiteConsume asserts it runs under the site
-    let mut id_owned: Vec<usize> = iter_owned_relics(&state.id_relics)
+    // Rest Relic effects, in acquisition order, after the consume
+    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
         .map(|(_, id)| id)
         .collect();
-    id_owned.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
-    for id_relic in id_owned {
-        for &eff in state.entities[id_relic].relic_effects_on_rest {
-            state.effect_buf.push(eff);
+
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+    for id_relic in id_relics {
+        for &effect in state.entities[id_relic].relic_effects_on_rest {
+            state.effect_buf.push(effect);
         }
     }
 }

@@ -291,14 +291,13 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
         for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
             if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities) {
-                for &eff in state.entities[id].relic_effects_counter {
-                    state.effect_buf.push(eff);
+                for &effect in state.entities[id].relic_effects_counter {
+                    state.effect_buf.push(effect);
                 }
             }
         }
 
-        // Horn Cleat and Captain's Wheel: one-shot turn counters (fire once at the
-        // reset threshold, then park at -1)
+        // Horn Cleat and Captain's Wheel: one-shot turn counters
         // TODO: add combat turn # field to `GameState`
         for name in [RelicName::HornCleat, RelicName::CaptainsWheel] {
             if let Some(id) = state.id_relics[name as usize] {
@@ -308,23 +307,23 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                     if relic.relic_counter == relic.relic_counter_reset {
                         // Use -1 so that it doesn't proc again
                         relic.relic_counter = -1;
-                        for &eff in relic.relic_effects_counter {
-                            state.effect_buf.push(eff);
+                        for &effect in relic.relic_effects_counter {
+                            state.effect_buf.push(effect);
                         }
                     }
                 }
             }
         }
 
-        // Turn-start Relic effects, in acquisition order; pushed after the draws
-        // so picks see the drawn hand
-        let mut id_owned: Vec<usize> = iter_owned_relics(&state.id_relics)
+        // Turn-start Relic effects, in acquisition order; pushed after the Card draws
+        let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
             .map(|(_, id)| id)
             .collect();
-        id_owned.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
-        for id_relic in id_owned {
-            for &eff in state.entities[id_relic].relic_effects_turn_start {
-                state.effect_buf.push(eff);
+
+        id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+        for id_relic in id_relics {
+            for &effect in state.entities[id_relic].relic_effects_turn_start {
+                state.effect_buf.push(effect);
             }
         }
     }

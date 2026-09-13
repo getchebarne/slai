@@ -20,27 +20,15 @@ pub static EMPTY_CAGE: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    // Remove 2 Cards from the deck
-    effects_on_pickup: &[
-        Effect {
-            kind: EffectKind::CardPurge,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck,
-                filter: CandidateFilter::Purgeable,
-                selection_kind: SelectionKind::Input { count: 1 },
-            },
+    effects_pickup: &[Effect {
+        kind: EffectKind::CardPurge,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Deck,
+            filter: CandidateFilter::Purgeable,
+            selection_kind: SelectionKind::Input { count: 2 },
         },
-        Effect {
-            kind: EffectKind::CardPurge,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck,
-                filter: CandidateFilter::Purgeable,
-                selection_kind: SelectionKind::Input { count: 1 },
-            },
-        },
-    ],
-    effects_on_rest: &[],
+    }],
+    effects_rest: &[],
     effects_counter: &[],
 };

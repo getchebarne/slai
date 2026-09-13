@@ -33,7 +33,7 @@ pub static NILRYS_CODEX: RelicTemplate = RelicTemplate {
         effect_discover_pick(None, CardPile::Draw),
     ],
     effects_combat_end: &[],
-    effects_on_pickup: &[],
-    effects_on_rest: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

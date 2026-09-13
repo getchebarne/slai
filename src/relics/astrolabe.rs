@@ -21,8 +21,7 @@ pub static ASTROLABE: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    // Choose 3 Cards to transform; the results are upgraded
-    effects_on_pickup: &[Effect {
+    effects_pickup: &[Effect {
         kind: EffectKind::CardTransform { upgraded: true },
         id_source: None,
         target: Target::Resolve {
@@ -31,6 +30,6 @@ pub static ASTROLABE: RelicTemplate = RelicTemplate {
             selection_kind: SelectionKind::Input { count: 3 },
         },
     }],
-    effects_on_rest: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

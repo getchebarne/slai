@@ -22,7 +22,6 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
     shuffle(&mut id_card_draw[..], &mut state.rng);
 
     // Abacus: reshuffling the discard pile grants 6 block
-    // Relic-sourced block: id_source None skips Dex / Frail scaling
     if has_relic(&state.id_relics, RelicName::Abacus) {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::BlockGain { amount: 6 },
@@ -35,8 +34,8 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
     if let Some(id) =
         trigger_relic_counter(RelicName::Sundial, &state.id_relics, &mut state.entities)
     {
-        for &eff in state.entities[id].relic_effects_counter {
-            state.effect_queue.push_back(eff);
+        for &effect in state.entities[id].relic_effects_counter {
+            state.effect_queue.push_back(effect);
         }
     }
 }

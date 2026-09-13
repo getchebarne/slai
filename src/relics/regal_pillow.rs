@@ -19,9 +19,8 @@ pub static REGAL_PILLOW: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    effects_on_pickup: &[],
-    // Resting heals 15 more
-    effects_on_rest: &[Effect {
+    effects_pickup: &[],
+    effects_rest: &[Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
             amount: Amount::Absolute(15),

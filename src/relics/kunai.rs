@@ -17,8 +17,8 @@ pub static KUNAI: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    effects_on_pickup: &[],
-    effects_on_rest: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
     effects_counter: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Dexterity,

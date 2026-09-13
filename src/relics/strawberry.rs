@@ -19,7 +19,7 @@ pub static STRAWBERRY: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    effects_on_pickup: &[Effect {
+    effects_pickup: &[Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: DeltaSign::Gain,
             amount: Amount::Absolute(7),
@@ -27,6 +27,6 @@ pub static STRAWBERRY: RelicTemplate = RelicTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
-    effects_on_rest: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

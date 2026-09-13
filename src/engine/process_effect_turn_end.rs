@@ -188,20 +188,21 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         let relic = &mut state.entities[id];
         relic.relic_counter += 1;
         if relic.relic_counter == relic.relic_counter_reset {
-            for &eff in relic.relic_effects_counter {
-                state.effect_buf.push(eff);
+            for &effect in relic.relic_effects_counter {
+                state.effect_buf.push(effect);
             }
         }
     }
 
     // Turn-end Relic effects, in acquisition order (Nilry's Codex discover, etc.)
-    let mut id_owned: Vec<usize> = iter_owned_relics(&state.id_relics)
+    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
         .map(|(_, id)| id)
         .collect();
-    id_owned.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
-    for id_relic in id_owned {
-        for &eff in state.entities[id_relic].relic_effects_turn_end {
-            state.effect_buf.push(eff);
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+
+    for id_relic in id_relics {
+        for &effect in state.entities[id_relic].relic_effects_turn_end {
+            state.effect_buf.push(effect);
         }
     }
 

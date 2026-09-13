@@ -19,8 +19,7 @@ pub static ORRERY: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    // A 5-bundle Reward frame pushed over the shop; the stock resumes on exit
-    effects_on_pickup: &[Effect {
+    effects_pickup: &[Effect {
         kind: EffectKind::RewardRollCards {
             bundles: ORRERY_BUNDLE_COUNT as u8,
             trigger: RewardRollTrigger::Orrery,
@@ -28,6 +27,6 @@ pub static ORRERY: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Direct(None),
     }],
-    effects_on_rest: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

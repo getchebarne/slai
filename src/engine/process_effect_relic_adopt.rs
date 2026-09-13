@@ -41,12 +41,12 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
     let name = state.entities[id_relic].relic_name;
 
     // Pickup effects execute in slice order (push_front reverses)
-    for &eff in state.entities[id_relic]
+    for &effect in state.entities[id_relic]
         .relic_effects_on_pickup
         .iter()
         .rev()
     {
-        state.effect_queue.push_front(eff);
+        state.effect_queue.push_front(effect);
     }
 
     match name {

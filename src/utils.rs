@@ -520,12 +520,11 @@ const fn green_pool(rarity: CardRarity) -> &'static [CardName] {
     }
 }
 
-// Shop stock is not a reward, so it sits outside RewardRollTrigger: ShopRoom's
-// own bands, useAlternation = false, and it reads the pity without writing it
+// Shop stock is not a reward, so it sits outside `RewardRollTrigger`
 pub const SHOP_STOCK_POLICY: RollPolicy = RollPolicy {
-    cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
+    cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)), // Own bands
     alternation: false,
-    write_pity: false,
+    write_pity: false, // Reads the pity without writing it
     dupe_rerolls_rarity: false,
     upgrade_roll: false,
 };

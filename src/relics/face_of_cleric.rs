@@ -25,7 +25,7 @@ pub static FACE_OF_CLERIC: RelicTemplate = RelicTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
-    effects_on_pickup: &[],
-    effects_on_rest: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

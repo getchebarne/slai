@@ -71,8 +71,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             RelicName::Nunchaku,
         ] {
             if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities) {
-                for &eff in state.entities[id].relic_effects_counter {
-                    state.effect_queue.push_back(eff);
+                for &effect in state.entities[id].relic_effects_counter {
+                    state.effect_queue.push_back(effect);
                 }
             }
         }
@@ -116,8 +116,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
             &mut state.entities,
         )
     {
-        for &eff in state.entities[id].relic_effects_counter {
-            state.effect_queue.push_back(eff);
+        for &effect in state.entities[id].relic_effects_counter {
+            state.effect_queue.push_back(effect);
         }
     }
 
@@ -153,8 +153,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     if let Some(id) =
         trigger_relic_counter(RelicName::InkBottle, &state.id_relics, &mut state.entities)
     {
-        for &eff in state.entities[id].relic_effects_counter {
-            state.effect_queue.push_back(eff);
+        for &effect in state.entities[id].relic_effects_counter {
+            state.effect_queue.push_back(effect);
         }
     }
 

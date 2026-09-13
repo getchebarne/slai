@@ -19,9 +19,8 @@ pub static DREAM_CATCHER: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    effects_on_pickup: &[],
-    // Resting also offers a Card reward (Rest only, not Smith)
-    effects_on_rest: &[Effect {
+    effects_pickup: &[],
+    effects_rest: &[Effect {
         kind: EffectKind::RewardRollCards {
             bundles: 1,
             trigger: RewardRollTrigger::DreamCatcher,

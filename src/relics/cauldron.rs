@@ -18,8 +18,7 @@ pub static CAULDRON: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    // Brews 5 Potions, staged as a Reward frame over the shop
-    effects_on_pickup: &[Effect {
+    effects_pickup: &[Effect {
         kind: EffectKind::RewardRollPotions {
             count: CAULDRON_POTION_COUNT as u8,
             uniform: false,
@@ -27,6 +26,6 @@ pub static CAULDRON: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Direct(None),
     }],
-    effects_on_rest: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

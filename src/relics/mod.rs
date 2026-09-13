@@ -456,8 +456,8 @@ pub struct RelicTemplate {
     pub effects_turn_start: &'static [Effect],
     pub effects_turn_end: &'static [Effect],
     pub effects_combat_end: &'static [Effect],
-    pub effects_on_pickup: &'static [Effect],
-    pub effects_on_rest: &'static [Effect],
+    pub effects_pickup: &'static [Effect],
+    pub effects_rest: &'static [Effect],
     pub effects_counter: &'static [Effect],
 }
 
@@ -472,8 +472,8 @@ pub const fn instance_relic_from_template(template: &RelicTemplate) -> Entity {
         relic_effects_turn_start: template.effects_turn_start,
         relic_effects_turn_end: template.effects_turn_end,
         relic_effects_combat_end: template.effects_combat_end,
-        relic_effects_on_rest: template.effects_on_rest,
-        relic_effects_on_pickup: template.effects_on_pickup,
+        relic_effects_on_rest: template.effects_rest,
+        relic_effects_on_pickup: template.effects_pickup,
         relic_counter_reset: template.counter_reset,
         relic_effects_counter: template.effects_counter,
         ..ENTITY_ZERO

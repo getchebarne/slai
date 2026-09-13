@@ -20,8 +20,7 @@ pub static DOLLYS_MIRROR: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    // Choose a deck Card and obtain a copy of it
-    effects_on_pickup: &[Effect {
+    effects_pickup: &[Effect {
         kind: EffectKind::CardDuplicate,
         id_source: None,
         target: Target::Resolve {
@@ -30,6 +29,6 @@ pub static DOLLYS_MIRROR: RelicTemplate = RelicTemplate {
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
-    effects_on_rest: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

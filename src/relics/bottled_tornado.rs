@@ -22,8 +22,7 @@ pub static BOTTLED_TORNADO: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    // Bottle a deck Card of the kind; an empty pool auto-resolves to no pick
-    effects_on_pickup: &[Effect {
+    effects_pickup: &[Effect {
         kind: EffectKind::CardBottle,
         id_source: None,
         target: Target::Resolve {
@@ -32,6 +31,6 @@ pub static BOTTLED_TORNADO: RelicTemplate = RelicTemplate {
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
-    effects_on_rest: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

@@ -59,8 +59,8 @@ pub struct PyRelic {
     pub effects_turn_start: Vec<PyEffect>,
     pub effects_turn_end: Vec<PyEffect>,
     pub effects_combat_end: Vec<PyEffect>,
-    pub effects_on_pickup: Vec<PyEffect>,
-    pub effects_on_rest: Vec<PyEffect>,
+    pub effects_pickup: Vec<PyEffect>,
+    pub effects_rest: Vec<PyEffect>,
     pub effects_counter: Vec<PyEffect>,
 }
 
@@ -92,12 +92,12 @@ pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
             .iter()
             .map(snapshot_effect)
             .collect(),
-        effects_on_pickup: entity
+        effects_pickup: entity
             .relic_effects_on_pickup
             .iter()
             .map(snapshot_effect)
             .collect(),
-        effects_on_rest: entity
+        effects_rest: entity
             .relic_effects_on_rest
             .iter()
             .map(snapshot_effect)

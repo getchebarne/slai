@@ -14,8 +14,6 @@ pub static WARPED_TONGS: RelicTemplate = RelicTemplate {
     counter_init: 0,
     counter_reset: 0,
     effects_combat_start: &[],
-
-    // Fired post-draw (see process_effect_turn_start), so the pick sees the drawn hand
     effects_turn_start: &[Effect {
         kind: EffectKind::CardUpgrade,
         id_source: None,
@@ -27,7 +25,7 @@ pub static WARPED_TONGS: RelicTemplate = RelicTemplate {
     }],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    effects_on_pickup: &[],
-    effects_on_rest: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };

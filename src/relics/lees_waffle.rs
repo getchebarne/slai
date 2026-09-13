@@ -19,8 +19,7 @@ pub static LEES_WAFFLE: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    // +7 max HP, then heal to full
-    effects_on_pickup: &[
+    effects_pickup: &[
         Effect {
             kind: EffectKind::MaxHealthDelta {
                 sign: DeltaSign::Gain,
@@ -41,6 +40,6 @@ pub static LEES_WAFFLE: RelicTemplate = RelicTemplate {
             target: TARGET_CHARACTER,
         },
     ],
-    effects_on_rest: &[],
+    effects_rest: &[],
     effects_counter: &[],
 };
