@@ -11,7 +11,6 @@ use crate::relics::POOL_COMMON_RELIC;
 use crate::relics::POOL_RARE_RELIC;
 use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
-use crate::relics::relic_template;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -34,14 +33,19 @@ pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameStat
     state.relic_seq_next += 1;
 
     // Queue the Relic's pickup effects
-    queue_pickup_effects(state, name);
+    queue_pickup_effects(state, id_relic);
 }
 
-fn queue_pickup_effects(state: &mut GameState, name: RelicName) {
+fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
     let id_character = state.id_character;
+    let name = state.entities[id_relic].relic_name;
 
-    // Template pickup effects execute in slice order (push_front reverses)
-    for &eff in relic_template(name).effects_on_pickup.iter().rev() {
+    // Pickup effects execute in slice order (push_front reverses)
+    for &eff in state.entities[id_relic]
+        .relic_effects_on_pickup
+        .iter()
+        .rev()
+    {
         state.effect_queue.push_front(eff);
     }
 

@@ -15,7 +15,6 @@ use crate::modifier::modifier_stacks;
 use crate::monsters::snake_plant;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
-use crate::relics::relic_template;
 use crate::types::CardName;
 use crate::types::Combat;
 use crate::types::CostScope;
@@ -184,12 +183,12 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Stone Calendar: fires once at the template threshold (end of turn 7), no reset
+    // Stone Calendar: fires once at the reset threshold (end of turn 7), no reset
     if let Some(id) = state.id_relics[RelicName::StoneCalendar as usize] {
-        let counter = &mut state.entities[id].relic_counter;
-        *counter += 1;
-        if *counter == relic_template(RelicName::StoneCalendar).counter_reset {
-            for &eff in relic_template(RelicName::StoneCalendar).effects_counter {
+        let relic = &mut state.entities[id];
+        relic.relic_counter += 1;
+        if relic.relic_counter == relic.relic_counter_reset {
+            for &eff in relic.relic_effects_counter {
                 state.effect_buf.push(eff);
             }
         }

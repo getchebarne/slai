@@ -178,28 +178,27 @@ pub fn get_relic(name: RelicName) -> Entity {
     instance_relic_from_template(RELIC_TEMPLATE_BY_NAME[name as usize])
 }
 
-// Bump a Relic's counter if owned; at `threshold` reset it to 0 and report the fire
+// Bump a Relic's counter if owned; at its reset threshold zero it and return the fired id
 pub fn trigger_relic_counter(
     name: RelicName,
-    threshold: i16,
     id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &mut [Entity],
-) -> bool {
+) -> Option<usize> {
     let Some(id) = id_relics[name as usize] else {
         // If the Relic is not owned, return
-        return false;
+        return None;
     };
 
     // Increase counter
-    let counter = &mut entities[id].relic_counter;
-    *counter += 1;
+    let relic = &mut entities[id];
+    relic.relic_counter += 1;
 
     // Reset if needed
-    if *counter >= threshold {
-        *counter = 0;
-        return true;
+    if relic.relic_counter >= relic.relic_counter_reset {
+        relic.relic_counter = 0;
+        return Some(id);
     }
-    false
+    None
 }
 
 // Frozen / Molten / Toxic Egg: Cards of the matching kind are obtained upgraded
@@ -474,6 +473,9 @@ pub const fn instance_relic_from_template(template: &RelicTemplate) -> Entity {
         relic_effects_turn_end: template.effects_turn_end,
         relic_effects_combat_end: template.effects_combat_end,
         relic_effects_on_rest: template.effects_on_rest,
+        relic_effects_on_pickup: template.effects_on_pickup,
+        relic_counter_reset: template.counter_reset,
+        relic_effects_counter: template.effects_counter,
         ..ENTITY_ZERO
     }
 }

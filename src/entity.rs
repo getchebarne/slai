@@ -142,6 +142,9 @@ pub struct Entity {
     pub relic_effects_turn_end: &'static [Effect],
     pub relic_effects_combat_end: &'static [Effect],
     pub relic_effects_on_rest: &'static [Effect],
+    pub relic_effects_on_pickup: &'static [Effect],
+    pub relic_counter_reset: i16,
+    pub relic_effects_counter: &'static [Effect],
 
     // Potion-only
     pub potion_name: PotionName,
@@ -204,6 +207,9 @@ pub const ENTITY_ZERO: Entity = Entity {
     relic_effects_turn_end: &[],
     relic_effects_combat_end: &[],
     relic_effects_on_rest: &[],
+    relic_effects_on_pickup: &[],
+    relic_counter_reset: 0,
+    relic_effects_counter: &[],
     potion_name: PotionName::Energy,
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,

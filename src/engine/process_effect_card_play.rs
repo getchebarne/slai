@@ -14,7 +14,6 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
-use crate::relics::relic_template;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -64,22 +63,15 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         // Increase this-turn-played-attacks counter
         *this_turn_attacks = this_turn_attacks.saturating_add(1);
 
-        // Attack-count Relic counters (Kunai, Shuriken, Ornamental Fan, Nunchaku):
-        // thresholds and payloads live on the templates
+        // Attack-count Relic counters (Kunai, Shuriken, Ornamental Fan, Nunchaku)
         for name in [
             RelicName::Kunai,
             RelicName::Shuriken,
             RelicName::OrnamentalFan,
             RelicName::Nunchaku,
         ] {
-            let template = relic_template(name);
-            if trigger_relic_counter(
-                name,
-                template.counter_reset,
-                &state.id_relics,
-                &mut state.entities,
-            ) {
-                for &eff in template.effects_counter {
+            if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities) {
+                for &eff in state.entities[id].relic_effects_counter {
                     state.effect_queue.push_back(eff);
                 }
             }
@@ -116,16 +108,15 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    // Letter Opener: skill-count counter, payload on the template
+    // Letter Opener: skill-count counter
     if card.card_kind == CardKind::Skill
-        && trigger_relic_counter(
+        && let Some(id) = trigger_relic_counter(
             RelicName::LetterOpener,
-            relic_template(RelicName::LetterOpener).counter_reset,
             &state.id_relics,
             &mut state.entities,
         )
     {
-        for &eff in relic_template(RelicName::LetterOpener).effects_counter {
+        for &eff in state.entities[id].relic_effects_counter {
             state.effect_queue.push_back(eff);
         }
     }
@@ -159,13 +150,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // Ink Bottle: counts every Card played; counter persists across turns and combats
-    if trigger_relic_counter(
-        RelicName::InkBottle,
-        relic_template(RelicName::InkBottle).counter_reset,
-        &state.id_relics,
-        &mut state.entities,
-    ) {
-        for &eff in relic_template(RelicName::InkBottle).effects_counter {
+    if let Some(id) =
+        trigger_relic_counter(RelicName::InkBottle, &state.id_relics, &mut state.entities)
+    {
+        for &eff in state.entities[id].relic_effects_counter {
             state.effect_queue.push_back(eff);
         }
     }

@@ -13,7 +13,6 @@ use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
 use crate::relics::iter_owned_relics;
-use crate::relics::relic_template;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardColor;
 use crate::types::CardName;
@@ -289,34 +288,27 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Persistent turn counters (Happy Flower, Incense Burner), spanning combats;
-        // thresholds and payloads live on the templates
+        // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
         for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
-            let template = relic_template(name);
-            if trigger_relic_counter(
-                name,
-                template.counter_reset,
-                &state.id_relics,
-                &mut state.entities,
-            ) {
-                for &eff in template.effects_counter {
+            if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities) {
+                for &eff in state.entities[id].relic_effects_counter {
                     state.effect_buf.push(eff);
                 }
             }
         }
 
         // Horn Cleat and Captain's Wheel: one-shot turn counters (fire once at the
-        // template threshold, then park at -1)
+        // reset threshold, then park at -1)
         // TODO: add combat turn # field to `GameState`
         for name in [RelicName::HornCleat, RelicName::CaptainsWheel] {
             if let Some(id) = state.id_relics[name as usize] {
-                let counter = &mut state.entities[id].relic_counter;
-                if *counter >= 0 {
-                    *counter += 1;
-                    if *counter == relic_template(name).counter_reset {
+                let relic = &mut state.entities[id];
+                if relic.relic_counter >= 0 {
+                    relic.relic_counter += 1;
+                    if relic.relic_counter == relic.relic_counter_reset {
                         // Use -1 so that it doesn't proc again
-                        *counter = -1;
-                        for &eff in relic_template(name).effects_counter {
+                        relic.relic_counter = -1;
+                        for &eff in relic.relic_effects_counter {
                             state.effect_buf.push(eff);
                         }
                     }
