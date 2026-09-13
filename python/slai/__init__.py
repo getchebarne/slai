@@ -2,9 +2,7 @@ from typing import Iterator, NamedTuple, Optional, Union
 
 from . import slai as _rs
 
-# Every enum is re-exported raw — exactly what the FFI hands back, so annotations /
-# isinstance / match agree with runtime values. Iterate with Enum.members(). ActionType is
-# an input type (Python constructs actions); its Rust `.name` feeds the registry below.
+# Every enum is re-exported raw
 ActionType = _rs.ActionType
 CardKind = _rs.CardKind
 CardColor = _rs.CardColor
@@ -86,16 +84,14 @@ def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
 
 
 # Per-slot description strings
-_HAND_POS = "position in state.combat.hand (the current hand)"
+_HAND_POS = "position in state.combat.hand"
 _MONSTER_POS = "position in the alive-monster list at dispatch time"
 _REWARD_BUNDLE_POS = "bundle in state.reward.cards"
 _REWARD_POS = "card within the bundle"
 _REWARD_RELIC_POS = "slot in state.reward.relics"
-_DECK_POS = "position in state.deck (the full deck)"
 _MAP_COL = "column on the next map row (0..MAP_WIDTH)"
-_SLOT_POS = "slot in state.potions"
+_POTION_POS = "position in state.potions"
 _REWARD_POTION_POS = "slot in state.reward.potions"
-_DISCOVER_POS = "position in state.combat.discover (the discovery offer)"
 _SHOP_CARD_POS = "position in state.shop.cards"
 _SHOP_RELIC_POS = "position in state.shop.relics"
 _SHOP_POTION_POS = "position in state.shop.potions"
@@ -110,7 +106,6 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.ChestOpen),
-        # Pending-halt family: one resolver, one skip
         create_action_spec(
             ActionType.EffectPendingResolve,
             ArgSpec(
@@ -123,10 +118,10 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
         create_action_spec(
             ActionType.EventOptionSelect, ArgSpec("idx", "position in state.event.options")
         ),
-        create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_slot", _SLOT_POS)),
+        create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_potion", _POTION_POS)),
         create_action_spec(
             ActionType.PotionUse,
-            ArgSpec("idx_potion", _SLOT_POS),
+            ArgSpec("idx_potion", _POTION_POS),
             ArgSpec("idx_monster", _MONSTER_POS, optional=True),
         ),
         create_action_spec(ActionType.Rest),
@@ -271,6 +266,9 @@ EffectModifierRemove = _rs.EffectModifierRemove
 EffectMonsterEscape = _rs.EffectMonsterEscape
 EffectMonsterSplit = _rs.EffectMonsterSplit
 EffectStasisSteal = _rs.EffectStasisSteal
+EffectRewardRollCards = _rs.EffectRewardRollCards
+EffectDamageDeal = _rs.EffectDamageDeal
+RewardRollTrigger = _rs.RewardRollTrigger
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -344,6 +342,8 @@ Effect = (
     | EffectMonsterEscape
     | EffectMonsterSplit
     | EffectStasisSteal
+    | EffectRewardRollCards
+    | EffectDamageDeal
 )
 
 # The kinds that can park in GameState.effect_pending. A halt only happens on a

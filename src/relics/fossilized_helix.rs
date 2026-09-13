@@ -13,6 +13,7 @@ pub static FOSSILIZED_HELIX: RelicTemplate = RelicTemplate {
     name: RelicName::FossilizedHelix,
     tier: RelicTier::Rare,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Buffer,
@@ -21,4 +22,10 @@ pub static FOSSILIZED_HELIX: RelicTemplate = RelicTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
+    effects_counter: &[],
 };

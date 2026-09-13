@@ -36,9 +36,9 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     // Stock builds straight into the context's retained buffers
     shop_reset(&mut state.shop);
     let Shop {
-        cards,
-        relics,
-        potions,
+        id_cards_price,
+        id_relics_price,
+        id_potions_price,
         ..
     } = &mut state.shop;
 
@@ -50,21 +50,21 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         CardKind::Skill,
         CardKind::Power,
     ] {
-        let offer = make_card_colored(
+        let card = make_card_colored(
             &mut state.entities,
             &mut state.rng,
-            cards,
+            id_cards_price,
             kind,
             state.id_character,
             &state.id_relics,
         );
-        cards.push(offer);
+        id_cards_price.push(card);
     }
 
     // Colorless: 1 Uncommon + 1 Rare
     for rarity in [CardRarity::Uncommon, CardRarity::Rare] {
-        let offer = make_card_colorless(&mut state.entities, &mut state.rng, cards, rarity);
-        cards.push(offer);
+        let card = make_card_colorless(&mut state.entities, &mut state.rng, id_cards_price, rarity);
+        id_cards_price.push(card);
     }
 
     // Relics: 2 random-tier, 1 shop-tier. The tier roll stays per-slot for source parity
@@ -74,7 +74,7 @@ pub fn process_effect_shop_build(state: &mut GameState) {
             &mut state.entities,
             &mut state.rng,
             &state.id_relics,
-            relics,
+            id_relics_price,
             pool,
             base_price,
         );
@@ -83,29 +83,37 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         &mut state.entities,
         &mut state.rng,
         &state.id_relics,
-        relics,
+        id_relics_price,
         POOL_SHOP_RELIC,
         SHOP_PRICE_RELIC_SHOP,
     );
 
     // Potions: 3 (rarity rolled by get_random_potion_name)
     for _ in 0..SHOP_SLOTS_POTION {
-        potions.push(make_potion(&mut state.entities, &mut state.rng));
+        id_potions_price.push(make_potion(&mut state.entities, &mut state.rng));
     }
 
     // Sale tag: one random colored Card 50% off, before the A16 markup
     let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
-    cards[idx].1 /= SHOP_SALE_DIVISOR;
+    id_cards_price[idx].1 /= SHOP_SALE_DIVISOR;
 
     // A16+ price bumps; the purge cost is exempt
     if state.ascension >= ASCENSION_SHOP_PRICE_BUMP_LEVEL {
-        for (_, price) in cards.iter_mut().chain(&mut *relics).chain(&mut *potions) {
+        for (_, price) in id_cards_price
+            .iter_mut()
+            .chain(&mut *id_relics_price)
+            .chain(&mut *id_potions_price)
+        {
             *price = bump_price_a16(*price);
         }
     }
 
     // The Courier / Membership Card: 20% / 50% off everything
-    for (_, price) in cards.iter_mut().chain(&mut *relics).chain(&mut *potions) {
+    for (_, price) in id_cards_price
+        .iter_mut()
+        .chain(&mut *id_relics_price)
+        .chain(&mut *id_potions_price)
+    {
         *price = apply_shop_discounts(*price, &state.id_relics);
     }
 

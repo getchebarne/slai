@@ -12,6 +12,7 @@ pub static AKABEKO: RelicTemplate = RelicTemplate {
     name: RelicName::Akabeko,
     tier: RelicTier::Common,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vigor,
@@ -20,4 +21,10 @@ pub static AKABEKO: RelicTemplate = RelicTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
+    effects_counter: &[],
 };

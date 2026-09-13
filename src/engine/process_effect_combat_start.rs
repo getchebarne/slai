@@ -137,13 +137,14 @@ pub fn process_effect_combat_start(state: &mut GameState) {
     }
 
     // Combat-start Relic effects, in acquisition order
-    let mut id_owned: Vec<usize> = iter_owned_relics(&state.id_relics)
+    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
         .map(|(_, id)| id)
         .collect();
-    id_owned.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
-    for id_relic in id_owned {
-        for &eff in state.entities[id_relic].relic_effects_combat_start {
-            state.effect_queue.push_back(eff);
+
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+    for id_relic in id_relics {
+        for &effect in state.entities[id_relic].relic_effects_combat_start {
+            state.effect_queue.push_back(effect);
         }
     }
 

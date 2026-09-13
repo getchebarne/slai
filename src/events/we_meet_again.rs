@@ -126,8 +126,8 @@ pub fn spawn(state: &mut GameState) -> Vec<usize> {
     let id_card = (!id_card_eligible.is_empty())
         .then(|| id_card_eligible[state.rng.random_range(0..id_card_eligible.len())]);
 
-    // Potion offer: uniform among occupied belt slots
-    let id_potion_eligible: Vec<usize> = state.id_potions.iter().flatten().copied().collect();
+    // Potion offer: uniform over the belt
+    let id_potion_eligible: Vec<usize> = state.id_potions.clone();
     let id_potion = (!id_potion_eligible.is_empty())
         .then(|| id_potion_eligible[state.rng.random_range(0..id_potion_eligible.len())]);
 
@@ -178,7 +178,7 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
             .event
             .id_roll_potion
             .first()
-            .is_some_and(|&id| state.id_potions.contains(&Some(id))),
+            .is_some_and(|&id| state.id_potions.contains(&id)),
         // A rolled ask is always <= the gold held at spawn, and nothing
         // reachable from here spends gold, so affordability needs no re-check
         1 => baked_gold_ask(state) > 0,

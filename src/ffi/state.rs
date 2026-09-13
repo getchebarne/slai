@@ -50,7 +50,7 @@ pub struct PyGameState {
     pub character: PyCharacter,
     pub deck: Vec<PyCard>,
     pub relics: Vec<PyRelic>,
-    pub potions: Vec<Option<PyPotion>>,
+    pub potions: Vec<PyPotion>,
     pub potion_slots_max: u8,
     pub map: PyMap,
     pub effect_pending: Option<PyEffectPending>,
@@ -78,9 +78,10 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         relics: iter_owned_relics(&state.id_relics)
             .map(|(_name, id)| snapshot_relic(id, &state.entities[id]))
             .collect(),
-        potions: state.id_potions[..state.potion_slots_max as usize]
+        potions: state
+            .id_potions
             .iter()
-            .map(|slot| slot.map(|id| snapshot_potion(id, &state.entities[id])))
+            .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),

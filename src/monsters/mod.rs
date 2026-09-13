@@ -201,12 +201,12 @@ fn instance_monster_from_template(
     };
 
     // Moves before Modifiers: the rolled monsters draw their move set first
-    let move_sets =
+    let movesets =
         pick_tier(template.move_tiers, ascension_level).expect("move_tiers is never empty");
-    let moves = if move_sets.len() == 1 {
-        move_sets[0]
+    let moves = if movesets.len() == 1 {
+        movesets[0]
     } else {
-        move_sets[rng.random_range(0..move_sets.len())]
+        movesets[rng.random_range(0..movesets.len())]
     };
 
     // Modifiers

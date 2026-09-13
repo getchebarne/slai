@@ -11,9 +11,16 @@ pub static BAG_OF_PREPARATION: RelicTemplate = RelicTemplate {
     name: RelicName::BagOfPreparation,
     tier: RelicTier::Common,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[Effect {
         kind: EffectKind::CardDraw { count: 2 },
         id_source: None,
         target: Target::Direct(None),
     }],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
+    effects_counter: &[],
 };

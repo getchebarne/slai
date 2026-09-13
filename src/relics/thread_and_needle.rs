@@ -12,6 +12,7 @@ pub static THREAD_AND_NEEDLE: RelicTemplate = RelicTemplate {
     name: RelicName::ThreadAndNeedle,
     tier: RelicTier::Rare,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::PlatedArmor,
@@ -20,4 +21,10 @@ pub static THREAD_AND_NEEDLE: RelicTemplate = RelicTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
+    effects_counter: &[],
 };

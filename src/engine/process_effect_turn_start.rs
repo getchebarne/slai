@@ -12,6 +12,7 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
+use crate::relics::iter_owned_relics;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardColor;
 use crate::types::CardName;
@@ -287,91 +288,43 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Persistent turn counters, spanning combats
-        // Happy Flower: gain +1 energy every 3 turns
-        if trigger_relic_counter(
-            RelicName::HappyFlower,
-            3,
-            &state.id_relics,
-            &mut state.entities,
-        ) {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::EnergyDelta {
-                    sign: DeltaSign::Gain,
-                    amount: 1,
-                },
-                id_source: None,
-                target: Target::Direct(None),
-            });
-        }
-
-        // Incense Burner: gain +1 `ModifierKind::Intangible` every 6 turns
-        if trigger_relic_counter(
-            RelicName::IncenseBurner,
-            6,
-            &state.id_relics,
-            &mut state.entities,
-        ) {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierGain {
-                    kind: ModifierKind::Intangible,
-                    stacks: 1,
-                },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
-        }
-
-        // Mercury Hourglass: deal 3 damage to all Monsters
-        if has_relic(&state.id_relics, RelicName::MercuryHourglass) {
-            for id_monster in id_monsters.iter().flatten().copied() {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: 3,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_monster)),
-                });
+        // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
+        for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
+            if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities) {
+                for &effect in state.entities[id].relic_effects_counter {
+                    state.effect_buf.push(effect);
+                }
             }
         }
 
-        // Horn Cleat and Captain's Wheel: gain block at the 2nd and 3rd turns, respectively
+        // Horn Cleat and Captain's Wheel: one-shot turn counters
         // TODO: add combat turn # field to `GameState`
-        for (name, turn_num, block) in [
-            (RelicName::HornCleat, 2, 14),
-            (RelicName::CaptainsWheel, 3, 18),
-        ] {
+        for name in [RelicName::HornCleat, RelicName::CaptainsWheel] {
             if let Some(id) = state.id_relics[name as usize] {
-                let counter = &mut state.entities[id].relic_counter;
-                if *counter >= 0 {
-                    *counter += 1;
-                    if *counter == turn_num {
+                let relic = &mut state.entities[id];
+                if relic.relic_counter >= 0 {
+                    relic.relic_counter += 1;
+                    if relic.relic_counter == relic.relic_counter_reset {
                         // Use -1 so that it doesn't proc again
-                        *counter = -1;
-
-                        // Relic-sourced block: id_source None skips Dex / Frail scaling
-                        state.effect_buf.push(Effect {
-                            kind: EffectKind::BlockGain { amount: block },
-                            id_source: None,
-                            target: Target::Direct(Some(state.id_character)),
-                        });
+                        relic.relic_counter = -1;
+                        for &effect in relic.relic_effects_counter {
+                            state.effect_buf.push(effect);
+                        }
                     }
                 }
             }
         }
 
-        // Warped Tongs: pushed after the draws so the pick sees the drawn hand
-        if has_relic(&state.id_relics, RelicName::WarpedTongs) {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::CardUpgrade,
-                id_source: None,
-                target: Target::Resolve {
-                    candidate_pool: CandidatePool::Hand,
-                    filter: CandidateFilter::Upgradeable,
-                    selection_kind: SelectionKind::Random { count: 1 },
-                },
-            });
+        // Turn-start Relic effects, in acquisition order; pushed after the Card draws
+        let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
+            .map(|(_, id)| id)
+            .collect();
+
+        id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+        for id_relic in id_relics {
+            for &effect in state.entities[id_relic].relic_effects_turn_start {
+                state.effect_buf.push(effect);
+            }
         }
     }
 

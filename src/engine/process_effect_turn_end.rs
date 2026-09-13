@@ -1,5 +1,4 @@
 use crate::consts::BOMB_FUSE_TURNS;
-use crate::consts::DISCOVER_PICK_COUNT;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -8,7 +7,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::effect::effect_discover_pick;
 use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -16,9 +14,8 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::monsters::snake_plant;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
-use crate::types::CardColor;
+use crate::relics::iter_owned_relics;
 use crate::types::CardName;
-use crate::types::CardPile;
 use crate::types::Combat;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
@@ -186,39 +183,27 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Stone Calendar: 52 damage to all Monsters at the end of turn 7; fires once, no reset
+    // Stone Calendar: fires once at the reset threshold (end of turn 7), no reset
     if let Some(id) = state.id_relics[RelicName::StoneCalendar as usize] {
-        let counter = &mut state.entities[id].relic_counter;
-        *counter += 1;
-        if *counter == 7 {
-            for id_monster in id_monsters.iter().flatten().copied() {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: 52,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_monster)),
-                });
+        let relic = &mut state.entities[id];
+        relic.relic_counter += 1;
+        if relic.relic_counter == relic.relic_counter_reset {
+            for &effect in relic.relic_effects_counter {
+                state.effect_buf.push(effect);
             }
         }
     }
 
-    // Nilry's Codex: discover a Card, shuffled into a random draw-pile spot
-    if has_relic(&state.id_relics, RelicName::NilrysCodex) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardDiscoverRoll {
-                kind: None,
-                color: CardColor::Green,
-                exclude: &[],
-                count: DISCOVER_PICK_COUNT,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-        state
-            .effect_buf
-            .push(effect_discover_pick(None, CardPile::Draw));
+    // Turn-end Relic effects, in acquisition order (Nilry's Codex discover, etc.)
+    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
+        .map(|(_, id)| id)
+        .collect();
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+
+    for id_relic in id_relics {
+        for &effect in state.entities[id_relic].relic_effects_turn_end {
+            state.effect_buf.push(effect);
+        }
     }
 
     // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard

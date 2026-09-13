@@ -82,6 +82,13 @@ pub struct PyRelicTemplate {
     pub name: PyRelicName,
     pub tier: PyRelicTier,
     pub effects_combat_start: Vec<PyEffect>,
+    pub effects_turn_start: Vec<PyEffect>,
+    pub effects_turn_end: Vec<PyEffect>,
+    pub effects_combat_end: Vec<PyEffect>,
+    pub effects_pickup: Vec<PyEffect>,
+    pub effects_rest: Vec<PyEffect>,
+    pub counter_reset: i16,
+    pub effects_counter: Vec<PyEffect>,
 }
 
 #[pyclass(
@@ -217,6 +224,33 @@ pub fn get_relic_templates() -> Vec<PyRelicTemplate> {
                 tier: template.tier.into(),
                 effects_combat_start: template
                     .effects_combat_start
+                    .iter()
+                    .map(snapshot_effect)
+                    .collect(),
+                effects_turn_start: template
+                    .effects_turn_start
+                    .iter()
+                    .map(snapshot_effect)
+                    .collect(),
+                effects_turn_end: template
+                    .effects_turn_end
+                    .iter()
+                    .map(snapshot_effect)
+                    .collect(),
+                effects_combat_end: template
+                    .effects_combat_end
+                    .iter()
+                    .map(snapshot_effect)
+                    .collect(),
+                effects_pickup: template
+                    .effects_pickup
+                    .iter()
+                    .map(snapshot_effect)
+                    .collect(),
+                effects_rest: template.effects_rest.iter().map(snapshot_effect).collect(),
+                counter_reset: template.counter_reset,
+                effects_counter: template
+                    .effects_counter
                     .iter()
                     .map(snapshot_effect)
                     .collect(),

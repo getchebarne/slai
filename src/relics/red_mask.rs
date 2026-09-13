@@ -12,6 +12,7 @@ pub static RED_MASK: RelicTemplate = RelicTemplate {
     name: RelicName::RedMask,
     tier: RelicTier::Special,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Weak,
@@ -20,4 +21,10 @@ pub static RED_MASK: RelicTemplate = RelicTemplate {
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     }],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
+    effects_counter: &[],
 };

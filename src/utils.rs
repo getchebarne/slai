@@ -6,6 +6,7 @@ use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::card_template;
 use crate::cards::get_card;
+use crate::consts::ASCENSION_CARD_UPGRADE_CUT_LEVEL;
 use crate::consts::CARD_REWARD_BASE_COUNT;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE_ELITE;
@@ -13,6 +14,8 @@ use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_BASE;
 use crate::consts::CARD_REWARD_ROLL_OFFSET_MIN;
+use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2;
+use crate::consts::CARD_REWARD_UPGRADE_CHANCE_ACT2_A12;
 use crate::consts::FACTOR_FRAIL;
 use crate::consts::FACTOR_VULN;
 use crate::consts::FACTOR_VULN_ODD_MUSHROOM;
@@ -23,6 +26,8 @@ use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_HAND;
+use crate::consts::SHOP_CARD_CUT_RARE;
+use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::Effect;
@@ -507,39 +512,41 @@ pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize
     count
 }
 
-// One rarity roll; the pity offset shifts it toward Rare
-fn roll_rarity_pool(
-    rng: &mut impl Rng,
-    offset: i8,
-    chance_rare: i32,
-    chance_uncommon: i32,
-) -> (&'static [CardName], CardRarity) {
-    let roll = rng.random_range(0i32..=99) + offset as i32;
-    if roll < chance_rare {
-        (POOL_RARE_GREEN_CARD, CardRarity::Rare)
-    } else if roll < chance_uncommon {
-        (POOL_UNCOMMON_GREEN_CARD, CardRarity::Uncommon)
-    } else {
-        (POOL_COMMON_GREEN_CARD, CardRarity::Common)
+const fn green_pool(rarity: CardRarity) -> &'static [CardName] {
+    match rarity {
+        CardRarity::Rare => POOL_RARE_GREEN_CARD,
+        CardRarity::Uncommon => POOL_UNCOMMON_GREEN_CARD,
+        _ => POOL_COMMON_GREEN_CARD,
     }
 }
 
-// The one rarity roll, shared by Card rewards and shop stock. `cuts` are the
-// room's cumulative Rare / Uncommon bands and `alternation` is vanilla's
-// useAlternation: only rooms that pass it let a Relic widen the Rare band
+// Shop stock is not a reward, so it sits outside `RewardRollTrigger`
+pub const SHOP_STOCK_POLICY: RollPolicy = RollPolicy {
+    cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)), // Own bands
+    alternation: false,
+    write_pity: false, // Reads the pity without writing it
+    dupe_rerolls_rarity: false,
+    upgrade_roll: false,
+};
+
+// The one rarity roll, shared by Card rewards and Shop stock
 pub fn roll_card_rarity(
     rng: &mut impl Rng,
     offset: i8,
-    cuts: (i32, i32),
-    alternation: bool,
+    policy: &RollPolicy,
     id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> CardRarity {
-    let (base_rare, base_uncommon) = cuts;
+    let (base_rare, base_uncommon) = policy.cuts.expect("a Boss roll never picks a rarity");
+    let alternation = policy.alternation;
+
+    // N'loths Gift: Triple the chance of receiving rare Cards
     let chance_rare = if alternation && has_relic(id_relics, RelicName::NlothsGift) {
         base_rare * 3
     } else {
         base_rare
     };
+
+    // Roll
     let roll = rng.random_range(0i32..=99) + offset as i32;
     if roll < chance_rare {
         CardRarity::Rare
@@ -556,21 +563,22 @@ pub struct RollPolicy {
     pub alternation: bool,
     pub write_pity: bool,
     pub dupe_rerolls_rarity: bool,
+    pub upgrade_roll: bool,
 }
 
-// The one place a consumer's roll rules live. Rows marked PENDING reproduce
-// today's behaviour and are the single edit each remaining audit fix needs
+// The one place a consumer's roll rules live
 pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
-    const MONSTER: Option<(i32, i32)> = Some((
+    const CUTS_MONSTER: Option<(i32, i32)> = Some((
         CARD_REWARD_ROLL_CHANCE_RARE,
         CARD_REWARD_ROLL_CHANCE_UNCOMMON,
     ));
     match trigger {
         RewardRollTrigger::CombatMonster | RewardRollTrigger::EventFight => RollPolicy {
-            cuts: MONSTER,
+            cuts: CUTS_MONSTER,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
+            upgrade_roll: true,
         },
         RewardRollTrigger::CombatElite => RollPolicy {
             cuts: Some((
@@ -580,33 +588,49 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
+            upgrade_roll: true,
         },
         RewardRollTrigger::CombatBoss => RollPolicy {
             cuts: None,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
+            upgrade_roll: true,
         },
-        // PENDING: vanilla's RestRoom passes useAlternation = false
+        // RestRoom keeps the default bands but passes useAlternation = false
         RewardRollTrigger::DreamCatcher => RollPolicy {
-            cuts: MONSTER,
-            alternation: true,
+            cuts: CUTS_MONSTER,
+            alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
+            upgrade_roll: true,
         },
-        // PENDING: vanilla's ShopRoom is 9 / 37 with useAlternation = false
+        // Bought in a Shop, so the offer rolls ShopRoom's bands with no alternation
         RewardRollTrigger::Orrery => RollPolicy {
-            cuts: MONSTER,
-            alternation: true,
+            cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
+            alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
+            upgrade_roll: true,
         },
         RewardRollTrigger::Library => RollPolicy {
-            cuts: MONSTER,
+            cuts: CUTS_MONSTER,
             alternation: true,
             write_pity: false,
             dupe_rerolls_rarity: true,
+            upgrade_roll: false,
         },
+    }
+}
+
+pub fn card_reward_upgrade_chance(act: u8, ascension_level: u8) -> f64 {
+    if act < 2 {
+        return 0.0;
+    }
+    if ascension_level >= ASCENSION_CARD_UPGRADE_CUT_LEVEL {
+        CARD_REWARD_UPGRADE_CHANCE_ACT2_A12
+    } else {
+        CARD_REWARD_UPGRADE_CHANCE_ACT2
     }
 }
 
@@ -618,24 +642,13 @@ pub fn roll_card_rewards(
     id_relics: &[Option<usize>; RelicName::COUNT],
     count: usize,
     trigger: RewardRollTrigger,
+    act: u8,
+    ascension_level: u8,
 ) {
     let policy = roll_policy(trigger);
     let mut character_reward_roll_offset = entities[id_character].character_reward_roll_offset;
     let mut card_names_rolled: [CardName; MAX_CARD_REWARD_ROLL] =
         [CardName::Strike; MAX_CARD_REWARD_ROLL];
-
-    let (base_rare, base_uncommon) = policy.cuts.unwrap_or((
-        CARD_REWARD_ROLL_CHANCE_RARE,
-        CARD_REWARD_ROLL_CHANCE_UNCOMMON,
-    ));
-
-    // N'loth's Gift: Rares roll three times as often; the Uncommon band keeps its width
-    let chance_rare = if policy.alternation && has_relic(id_relics, RelicName::NlothsGift) {
-        base_rare * 3
-    } else {
-        base_rare
-    };
-    let chance_uncommon = chance_rare + (base_uncommon - base_rare);
 
     out.clear();
     for _ in 0..count {
@@ -643,12 +656,8 @@ pub fn roll_card_rewards(
         let (mut pool, rarity) = if policy.cuts.is_none() {
             (POOL_RARE_GREEN_CARD, CardRarity::Rare)
         } else {
-            roll_rarity_pool(
-                rng,
-                character_reward_roll_offset,
-                chance_rare,
-                chance_uncommon,
-            )
+            let rarity = roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics);
+            (green_pool(rarity), rarity)
         };
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
@@ -667,13 +676,12 @@ pub fn roll_card_rewards(
         let mut name = pool[rng.random_range(0..pool.len())];
         while card_names_rolled[..out.len()].contains(&name) {
             if policy.dupe_rerolls_rarity {
-                pool = roll_rarity_pool(
+                pool = green_pool(roll_card_rarity(
                     rng,
                     character_reward_roll_offset,
-                    chance_rare,
-                    chance_uncommon,
-                )
-                .0;
+                    &policy,
+                    id_relics,
+                ));
             }
             name = pool[rng.random_range(0..pool.len())];
         }
@@ -687,6 +695,21 @@ pub fn roll_card_rewards(
         );
         let id_card = push_entity(entities, card);
         out.push(id_card);
+    }
+
+    // Pre-upgrade pass over the finished bundle
+    let upgrade_chance = card_reward_upgrade_chance(act, ascension_level);
+    if policy.upgrade_roll && upgrade_chance > 0.0 {
+        for &id_card in out.iter() {
+            let card = &entities[id_card];
+            if card.card_rarity == CardRarity::Rare {
+                continue;
+            }
+            if rng.random_bool(upgrade_chance) && card_is_upgradable(card) {
+                let name = card.card_name;
+                entities[id_card] = get_card(name, true);
+            }
+        }
     }
 
     entities[id_character].character_reward_roll_offset = character_reward_roll_offset;

@@ -219,23 +219,35 @@ pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
     let shop = &state.shop;
     PyShop {
         cards: shop
-            .cards
+            .id_cards_price
             .iter()
             .map(|&(id, _)| snapshot_card(state, id))
             .collect(),
-        card_prices: shop.cards.iter().map(|&(_, price)| price).collect(),
+        card_prices: shop
+            .id_cards_price
+            .iter()
+            .map(|&(_, price)| price)
+            .collect(),
         relics: shop
-            .relics
+            .id_relics_price
             .iter()
             .map(|&(id, _)| snapshot_relic(id, &state.entities[id]))
             .collect(),
-        relic_prices: shop.relics.iter().map(|&(_, price)| price).collect(),
+        relic_prices: shop
+            .id_relics_price
+            .iter()
+            .map(|&(_, price)| price)
+            .collect(),
         potions: shop
-            .potions
+            .id_potions_price
             .iter()
             .map(|&(id, _)| snapshot_potion(id, &state.entities[id]))
             .collect(),
-        potion_prices: shop.potions.iter().map(|&(_, price)| price).collect(),
+        potion_prices: shop
+            .id_potions_price
+            .iter()
+            .map(|&(_, price)| price)
+            .collect(),
         purge_cost: shop.purge_cost,
         purged: shop.purged,
     }

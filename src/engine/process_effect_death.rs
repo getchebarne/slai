@@ -32,7 +32,6 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         if let Some(id_potion) = state
             .id_potions
             .iter()
-            .flatten()
             .copied()
             .find(|&id| state.entities[id].potion_name == PotionName::Fairy)
         {

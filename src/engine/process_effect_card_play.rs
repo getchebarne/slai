@@ -63,64 +63,18 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         // Increase this-turn-played-attacks counter
         *this_turn_attacks = this_turn_attacks.saturating_add(1);
 
-        // Kunai: every 3 Attacks played grants 1 Dexterity
-        if trigger_relic_counter(RelicName::Kunai, 3, &state.id_relics, &mut state.entities) {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierGain {
-                    kind: ModifierKind::Dexterity,
-                    stacks: 1,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
-        }
-
-        // Shuriken: every 3 Attacks played grants 1 Strength
-        if trigger_relic_counter(
+        // Attack-count Relic counters (Kunai, Shuriken, Ornamental Fan, Nunchaku)
+        for name in [
+            RelicName::Kunai,
             RelicName::Shuriken,
-            3,
-            &state.id_relics,
-            &mut state.entities,
-        ) {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierGain {
-                    kind: ModifierKind::Strength,
-                    stacks: 1,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
-        }
-
-        // Ornamental Fan: id_source=None skips Dex / Frail scaling
-        if trigger_relic_counter(
             RelicName::OrnamentalFan,
-            3,
-            &state.id_relics,
-            &mut state.entities,
-        ) {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::BlockGain { amount: 4 },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
-        }
-
-        // Nunchaku: every 10 Attacks played grants 1 energy
-        if trigger_relic_counter(
             RelicName::Nunchaku,
-            10,
-            &state.id_relics,
-            &mut state.entities,
-        ) {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::EnergyDelta {
-                    sign: DeltaSign::Gain,
-                    amount: 1,
-                },
-                id_source: None,
-                target: Target::Direct(None),
-            });
+        ] {
+            if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities) {
+                for &effect in state.entities[id].relic_effects_counter {
+                    state.effect_queue.push_back(effect);
+                }
+            }
         }
 
         // Pen Nib: every 10th Attack is doubled; 9 primes the charge, 10 consumes it
@@ -154,24 +108,16 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    // Letter Opener: every 3 Skills played deals 5 damage to all Monsters
+    // Letter Opener: skill-count counter
     if card.card_kind == CardKind::Skill
-        && trigger_relic_counter(
+        && let Some(id) = trigger_relic_counter(
             RelicName::LetterOpener,
-            3,
             &state.id_relics,
             &mut state.entities,
         )
     {
-        for id_monster in id_monsters.iter().flatten().copied() {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::DamageDeal {
-                    amount: 5,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_monster)),
-            });
+        for &effect in state.entities[id].relic_effects_counter {
+            state.effect_queue.push_back(effect);
         }
     }
 
@@ -203,18 +149,13 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
-    // Ink Bottle: Counts every Card played; counter persists across turns and combats
-    if trigger_relic_counter(
-        RelicName::InkBottle,
-        10,
-        &state.id_relics,
-        &mut state.entities,
-    ) {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::CardDraw { count: 1 },
-            id_source: None,
-            target: Target::Direct(None),
-        });
+    // Ink Bottle: counts every Card played; counter persists across turns and combats
+    if let Some(id) =
+        trigger_relic_counter(RelicName::InkBottle, &state.id_relics, &mut state.entities)
+    {
+        for &effect in state.entities[id].relic_effects_counter {
+            state.effect_queue.push_back(effect);
+        }
     }
 
     // Orange Pellets: Attack + Skill + Power in one turn sweeps all debuffs

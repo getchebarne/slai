@@ -1,5 +1,5 @@
 use crate::game::GameState;
-use crate::potions::find_free_slot;
+use crate::potions::belt_has_room;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
@@ -11,7 +11,9 @@ pub fn process_effect_potion_adopt(id_target: Option<usize>, state: &mut GameSta
         return;
     }
 
-    let slot = find_free_slot(&state.id_potions, state.potion_slots_max)
-        .expect("PotionAdopt queuers check for a free slot");
-    state.id_potions[slot] = Some(id_potion);
+    assert!(
+        belt_has_room(&state.id_potions, state.potion_slots_max),
+        "PotionAdopt queuers check for belt room"
+    );
+    state.id_potions.push(id_potion);
 }

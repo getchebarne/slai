@@ -11,9 +11,16 @@ pub static ANCHOR: RelicTemplate = RelicTemplate {
     name: RelicName::Anchor,
     tier: RelicTier::Common,
     counter_init: 0,
+    counter_reset: 0,
     effects_combat_start: &[Effect {
         kind: EffectKind::BlockGain { amount: 10 },
         id_source: None,
         target: TARGET_CHARACTER,
     }],
+    effects_turn_start: &[],
+    effects_turn_end: &[],
+    effects_combat_end: &[],
+    effects_pickup: &[],
+    effects_rest: &[],
+    effects_counter: &[],
 };

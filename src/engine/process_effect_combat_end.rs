@@ -17,6 +17,7 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
+use crate::relics::iter_owned_relics;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -158,16 +159,16 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
     }
 
-    // Face of Cleric: +1 max HP after each combat
-    if has_relic(&state.id_relics, RelicName::FaceOfCleric) {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::MaxHealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(1),
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
+    // Combat-end Relic effects, in acquisition order (Face of Cleric, etc.)
+    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
+        .map(|(_, id)| id)
+        .collect();
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+
+    for id_relic in id_relics {
+        for &effect in state.entities[id_relic].relic_effects_combat_end {
+            state.effect_queue.push_back(effect);
+        }
     }
 
     // Meat on the Bone: ending combat at half HP or less heals 12
