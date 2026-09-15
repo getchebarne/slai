@@ -2,6 +2,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -16,6 +17,7 @@ use crate::monsters::the_guardian;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
+use crate::utils::get_id_actor;
 use crate::utils::has_relic;
 use crate::utils::resolve_health_fraction;
 
@@ -95,12 +97,21 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
             .saturating_add(1);
     }
 
-    // Get mutable target reference
+    // Plated Armor: only foreign attack damage strips a stack
+    // TODO: improve this provenance
+    let id_source_actor = id_source.map(|id| get_id_actor(&state.entities, state.id_character, id));
+    let from_attack = match id_source_actor {
+        Some(id) => {
+            id != id_target
+                && matches!(
+                    state.entities[id].kind,
+                    EntityKind::Character | EntityKind::Monster
+                )
+        }
+        None => false,
+    };
     let target = &mut state.entities[id_target];
-
-    // Plated Armor: Decrement stacks
-    // TODO: should only decrement for physical attacks
-    if amount > 0 && has_modifier(&target.modifiers, ModifierKind::PlatedArmor) {
+    if from_attack && amount > 0 && has_modifier(&target.modifiers, ModifierKind::PlatedArmor) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::PlatedArmor,
@@ -201,19 +212,14 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
             modifier_remove(&mut target.modifiers, ModifierKind::ModeShift);
             if id_target != state.id_character {
-                // Executes in reverse:
-                //     1. BlockGain
-                //     2. MoveUpdate
-                state.effect_queue.push_front(Effect {
+                state.effect_queue.push_back(Effect {
                     kind: EffectKind::MoveUpdate {
                         move_override: None,
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_target)),
                 });
-
-                // Entering Defensive Frame grants block before the move swap resolves
-                state.effect_queue.push_front(Effect {
+                state.effect_queue.push_back(Effect {
                     kind: EffectKind::BlockGain {
                         amount: the_guardian::DEFENSIVE_MODE_BLOCK,
                     },

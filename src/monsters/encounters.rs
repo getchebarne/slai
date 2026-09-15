@@ -655,7 +655,7 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
     }
 
     effects.push(Effect {
-        kind: EffectKind::CombatStart,
+        kind: EffectKind::CombatStart { elite: false },
         id_source: None,
         target: Target::Direct(None),
     });

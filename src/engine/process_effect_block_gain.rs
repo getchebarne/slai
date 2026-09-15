@@ -13,6 +13,11 @@ pub fn process_effect_block_gain(
     amount: u16,
 ) {
     let id_target = id_target.expect("BlockGain requires id_target");
+
+    // Dead Entities don't block
+    if state.entities[id_target].dead {
+        return;
+    }
     // Card-played block scales with Dex/Frail; modifier-driven and Monster-self don't
     let from_card = match id_source {
         Some(id) => state.entities[id].kind == EntityKind::Card,

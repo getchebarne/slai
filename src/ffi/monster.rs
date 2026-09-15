@@ -191,6 +191,8 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     let mut scaled = scale_attack_damage(
                         damage,
                         str_stacks,
+                        has_modifier(&monster.modifiers, ModifierKind::DoubleDamage),
+                        has_modifier(&monster.modifiers, ModifierKind::PenNib),
                         weak_factor(
                             has_modifier(&monster.modifiers, ModifierKind::Weak),
                             has_relic(&state.id_relics, RelicName::PaperKrane),
@@ -199,6 +201,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                             has_modifier(mods_char, ModifierKind::Vulnerable),
                             has_relic(&state.id_relics, RelicName::OddMushroom),
                         ),
+                        has_modifier(mods_char, ModifierKind::Flight),
                     );
                     if has_modifier(mods_char, ModifierKind::Intangible) && scaled > 1 {
                         scaled = 1;

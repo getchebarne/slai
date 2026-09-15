@@ -1,7 +1,10 @@
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
-use crate::modifier::modifier_def;
+use crate::modifier::modifier_stacks;
 
 // Multiply target's stacks of `kind` by `factor`. No-op if target doesn't have the modifier
 pub fn process_effect_modifier_multiply(
@@ -11,13 +14,25 @@ pub fn process_effect_modifier_multiply(
     factor: u8,
 ) {
     let id_target = id_target.expect("ModifierMultiply requires id_target");
-    let modifiers = &mut state.entities[id_target].modifiers;
+    let modifiers = &state.entities[id_target].modifiers;
     if !has_modifier(modifiers, kind) {
         return;
     }
-    let mod_def = modifier_def(kind);
-    let stacks_cur = modifiers.stacks[kind as usize] as i32;
-    let stacks_new =
-        (stacks_cur * factor as i32).clamp(mod_def.stacks_min as i32, mod_def.stacks_max as i32);
-    modifiers.stacks[kind as usize] = stacks_new as i16;
+
+    // Calculate stacks' delta
+    let stacks_cur = modifier_stacks(modifiers, kind) as i32;
+    let delta = stacks_cur * (factor as i32 - 1);
+    if delta == 0 {
+        return;
+    }
+
+    // Enqueue `ModifierGain` so that Snecko Skull, Sadistic Nature, etc. also proc
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::ModifierGain {
+            kind,
+            stacks: delta as i16,
+        },
+        id_source: Some(state.id_character),
+        target: Target::Direct(Some(id_target)),
+    });
 }

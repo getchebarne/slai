@@ -10,7 +10,7 @@ pub static FIRE: PotionTemplate = PotionTemplate {
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
+        kind: EffectKind::DamageDeal {
             amount: 20,
             lifesteal: false,
         },

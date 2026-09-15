@@ -598,7 +598,7 @@ fn fill_legal_actions_effect_pending(
     // Apply `CandidateFilter`; staged picks are out of the running
     for (idx, &id) in id_collection.iter().enumerate() {
         if !state.effect_pending_selected.contains(&id)
-            && candidate_matches(filter, id, &state.entities[id], None, None)
+            && candidate_matches(filter, id, &state.entities[id], None)
         {
             state
                 .legal_actions

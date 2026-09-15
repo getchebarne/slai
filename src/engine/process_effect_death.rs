@@ -109,8 +109,13 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     };
 
     if !any_alive {
-        // Combat ends. Replace pending effects with on-death triggers then CombatEnd
-        state.effect_queue.clear();
+        // Combat ends; keep damage-type actions so Hand Of Greed and Ritual Dagger still proc
+        state.effect_queue.retain(|e| {
+            matches!(
+                e.kind,
+                EffectKind::HandOfGreedProc { .. } | EffectKind::RitualDaggerProc { .. }
+            )
+        });
         if let Some(e) = gold_return {
             state.effect_queue.push_back(e);
         }

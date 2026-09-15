@@ -350,6 +350,50 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
+    // Queue `EffectKind::ModifierRemove`s for Modifiers that clear at end of turn
+    for kind in [
+        ModifierKind::Burst,
+        ModifierKind::NoDraw,
+        ModifierKind::Entangled,
+    ] {
+        if has_modifier(mods_char, kind) {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ModifierRemove { kind },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+        }
+    }
+
+    // The Bomb: lazily armed timer, detonates for `stacks` on all enemies
+    let any_monster_alive = id_monsters.iter().any(|slot| slot.is_some());
+    if any_monster_alive && has_modifier(mods_char, ModifierKind::TheBomb) {
+        if *bomb_countdown == 0 {
+            *bomb_countdown = BOMB_FUSE_TURNS;
+        }
+        *bomb_countdown -= 1;
+        if *bomb_countdown == 0 {
+            let stacks = modifier_stacks(mods_char, ModifierKind::TheBomb);
+            for id_monster in id_monsters.iter().flatten().copied() {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: stacks.max(0) as u16,
+                        lifesteal: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+            state.effect_buf.push(Effect {
+                kind: EffectKind::ModifierRemove {
+                    kind: ModifierKind::TheBomb,
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+        }
+    }
+
     // Queue organic discards
     for &id_card in id_card_hand.iter() {
         state.effect_buf.push(Effect {
@@ -432,49 +476,6 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         id_source: None,
         target: Target::Direct(Some(state.id_character)),
     });
-
-    // Queue `EffectKind::ModifierRemove`s for Modifiers that clear at end of turn
-    for kind in [
-        ModifierKind::Burst,
-        ModifierKind::NoDraw,
-        ModifierKind::Entangled,
-    ] {
-        if has_modifier(mods_char, kind) {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierRemove { kind },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
-        }
-    }
-
-    // The Bomb: lazily armed timer, detonates for `stacks` on all enemies
-    if has_modifier(mods_char, ModifierKind::TheBomb) {
-        if *bomb_countdown == 0 {
-            *bomb_countdown = BOMB_FUSE_TURNS;
-        }
-        *bomb_countdown -= 1;
-        if *bomb_countdown == 0 {
-            let stacks = modifier_stacks(mods_char, ModifierKind::TheBomb);
-            for id_monster in id_monsters.iter().flatten().copied() {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: stacks.max(0) as u16,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_monster)),
-                });
-            }
-            state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierRemove {
-                    kind: ModifierKind::TheBomb,
-                },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
-        }
-    }
 
     // Reset per-turn trackers
     *this_turn_discards = 0;

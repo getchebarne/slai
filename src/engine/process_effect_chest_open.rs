@@ -66,14 +66,6 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         });
     }
 
-    // N'loth's Hungry Face: the next chest opened is empty (one-shot)
-    if let Some(id) = state.id_relics[RelicName::NlothsHungryFace as usize]
-        && !state.entities[id].relic_used_up
-    {
-        state.entities[id].relic_used_up = true;
-        return;
-    }
-
     let chest_params = match chest_kind {
         ChestKind::Small => ChestParams {
             gold_chance: CHEST_SMALL_GOLD_CHANCE,
@@ -141,6 +133,13 @@ pub fn process_effect_chest_open(state: &mut GameState) {
             pick: RelicPick::Tier(tier),
         },
     );
+
+    if let Some(id) = state.id_relics[RelicName::NlothsHungryFace as usize]
+        && !state.entities[id].relic_used_up
+    {
+        state.entities[id].relic_used_up = true;
+        queue_effect_untargeted(state, EffectKind::RelicRewardRemoveOne);
+    }
 }
 
 fn roll_gold_amount(rng: &mut impl Rng, chest_params: ChestParams) -> u16 {

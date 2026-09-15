@@ -22,7 +22,15 @@ pub fn process_effect_card_discover_roll(
     } = &mut state.combat;
     id_card_discover.clear();
 
-    let card_picks = get_random_cards(color, kind, None, exclude, count as usize, &mut state.rng);
+    let card_picks = get_random_cards(
+        color,
+        kind,
+        None,
+        exclude,
+        true,
+        count as usize,
+        &mut state.rng,
+    );
     for card_pick in card_picks {
         let id = push_entity(&mut state.entities, card_pick);
         id_card_discover.push(id);

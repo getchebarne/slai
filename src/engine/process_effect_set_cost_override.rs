@@ -17,6 +17,13 @@ pub fn process_effect_set_cost_override(
     let id_target = id_target.expect("SetCostOverride requires id_target");
     let card = &state.entities[id_target];
 
+    // Ignore XCost cards
+    if matches!(card.card_cost_kind, CardCostKind::XCost { .. })
+        && matches!(scope, CostScope::Turn | CostScope::Combat)
+    {
+        return;
+    }
+
     // Snecko Oil: roll 0..=amount instead; X-cost and unplayables skip before rolling
     let amount = if random {
         if matches!(card.card_cost_kind, CardCostKind::XCost { .. })
@@ -48,6 +55,7 @@ pub fn process_effect_set_cost_override(
             return;
         }
     }
+
     match scope {
         CostScope::Combat => {
             card.card_cost = amount;

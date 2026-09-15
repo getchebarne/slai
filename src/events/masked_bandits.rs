@@ -47,7 +47,7 @@ const OPTION_FIGHT: &[Effect] = &[
     monster_spawn(MonsterName::BanditLeader),
     monster_spawn(MonsterName::BanditBear),
     Effect {
-        kind: EffectKind::CombatStart,
+        kind: EffectKind::CombatStart { elite: false },
         id_source: None,
         target: Target::Direct(None),
     },

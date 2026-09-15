@@ -273,7 +273,6 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
             id,
             &state.entities[id],
             None,
-            None,
         )
     });
 

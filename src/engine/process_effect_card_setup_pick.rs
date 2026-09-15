@@ -1,6 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::CardCostKind;
 use crate::game::GameState;
 use crate::types::Combat;
 use crate::types::CostScope;
@@ -21,6 +22,14 @@ pub fn process_effect_card_setup_pick(
         ..
     } = &mut state.combat;
     let id_target = id_target.expect("CardSetupPick requires id_target");
+
+    // Do not set XCost cards as free
+    let free = free
+        && !matches!(
+            state.entities[id_target].card_cost_kind,
+            CardCostKind::XCost { .. }
+        );
+
     if free {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::SetCostOverride {
@@ -36,6 +45,7 @@ pub fn process_effect_card_setup_pick(
     if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {
         id_card_hand.remove(pos);
     }
+
     // Top of the draw pile (Setup) is the vec's end; bottom (Forethought) is index 0
     if bottom {
         id_card_draw.insert(0, id_target);

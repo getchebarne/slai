@@ -30,6 +30,7 @@ use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RewardRollTrigger;
@@ -84,7 +85,7 @@ pub fn context_focus(state: &GameState) -> Focus {
     }
 }
 
-// Untargeted tail-queue, shared by the reward recipes (combat_end, chest_open)
+// Untargeted tail-queue, shared by the reward recipes
 pub fn queue_effect_untargeted(state: &mut GameState, kind: EffectKind) {
     state.effect_queue.push_back(Effect {
         kind,
@@ -110,6 +111,15 @@ pub fn push_entity(entities: &mut Vec<Entity>, e: Entity) -> usize {
     let id = entities.len();
     entities.push(e);
     id
+}
+
+// Source -> actor: Cards delegate to Character; Monsters/Character self
+pub fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
+    if entities[id_source].kind == EntityKind::Card {
+        id_character
+    } else {
+        id_source
+    }
 }
 
 pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName) -> bool {
@@ -144,6 +154,14 @@ pub const fn card_name_never_obtainable(name: CardName) -> bool {
     matches!(
         name,
         CardName::AscendersBane | CardName::CurseOfTheBell | CardName::Necronomicurse
+    )
+}
+
+// Skipped by the in-combat random draws, but still shop stock
+pub const fn card_name_healing(name: CardName) -> bool {
+    matches!(
+        name,
+        CardName::Alchemize | CardName::BandageUp | CardName::Bite
     )
 }
 
@@ -190,7 +208,7 @@ pub fn effects_require_target(effects: &[Effect]) -> bool {
         matches!(
             effect.target,
             Target::Resolve {
-                filter: CandidateFilter::Picked,
+                candidate_pool: CandidatePool::MonsterPicked,
                 ..
             }
         )
@@ -219,7 +237,6 @@ pub fn candidate_matches(
     id: usize,
     entity: &Entity,
     id_source: Option<usize>,
-    id_monster_picked: Option<usize>,
 ) -> bool {
     match filter {
         CandidateFilter::Any => true,
@@ -240,7 +257,6 @@ pub fn candidate_matches(
                     .map_or(entity.card_cost, |cost_override| cost_override.amount)
                     > 0
         }
-        CandidateFilter::Picked => Some(id) == id_monster_picked,
         CandidateFilter::NotSource => Some(id) != id_source,
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
         CandidateFilter::StarterStrike => entity.card_name == CardName::Strike,
@@ -292,7 +308,11 @@ pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool
 
         // Draw inserts at a random position
         CardPile::Draw => {
-            let idx = state.rng.random_range(0..=id_card_draw.len());
+            let idx = if id_card_draw.is_empty() {
+                0
+            } else {
+                state.rng.random_range(0..id_card_draw.len())
+            };
             id_card_draw.insert(idx, id_card);
         }
 
@@ -371,17 +391,30 @@ pub fn vuln_factor(is_vulnerable: bool, odd_mushroom: bool) -> f32 {
 pub fn scale_attack_damage(
     base: u16,
     source_str_stacks: i16,
+    double_damage: bool,
+    pen_nib: bool,
     weak_factor: f32,
     vuln_factor: f32,
+    flight: bool,
 ) -> u16 {
-    let value = (base as f32 + source_str_stacks as f32) * weak_factor * vuln_factor;
+    let mut value = base as f32 + source_str_stacks as f32;
+    if double_damage {
+        value *= 2.0;
+    }
+    if pen_nib {
+        value *= 2.0;
+    }
+    value *= weak_factor * vuln_factor;
+    if flight {
+        value *= 0.5;
+    }
     value.max(0.0) as u16
 }
 
 // Shared by the live block pipeline and the FFI Card snapshot
-pub fn scale_block_gain(base: u16, dex_stacks: i16, frail: bool) -> u16 {
+pub fn scale_block_gain(base: u16, dex_stacks: i16, is_frail: bool) -> u16 {
     let mut value = base as f32 + dex_stacks as f32;
-    if frail {
+    if is_frail {
         value *= FACTOR_FRAIL;
     }
     value.max(0.0) as u16

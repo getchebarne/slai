@@ -7,24 +7,25 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::effect::effect_discover_pick;
 use crate::game::GameState;
+use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::types::CardColor;
 use crate::types::CardKind;
-use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::Energy;
 use crate::types::MonsterKind;
 use crate::types::RelicName;
+use crate::types::RoomKind;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
 
-pub fn process_effect_combat_start(state: &mut GameState) {
+pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     // MonsterSpawn opens the combat reset; only what CombatStart computes is written here
     assert!(state.combat.active, "CombatStart outside combat");
     let Combat {
@@ -35,11 +36,9 @@ pub fn process_effect_combat_start(state: &mut GameState) {
         ..
     } = &mut state.combat;
 
-    // Elite fights are identified by the Monsters, not the Room (see Dead Aventurer Event)
-    let is_fight_elite = id_monsters
-        .iter()
-        .flatten()
-        .any(|&id| state.entities[id].monster_kind == MonsterKind::Elite);
+    let is_fight_elite = get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+        == Some(RoomKind::CombatElite)
+        || elite;
     let is_fight_boss = id_monsters
         .iter()
         .flatten()
@@ -128,7 +127,7 @@ pub fn process_effect_combat_start(state: &mut GameState) {
             kind: EffectKind::CardDiscoverRoll {
                 kind: None,
                 color: CardColor::Colorless,
-                exclude: &[CardName::BandageUp], // Can't heal
+                exclude: &[],
                 count: DISCOVER_PICK_COUNT,
             },
             id_source: None,

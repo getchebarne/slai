@@ -35,7 +35,7 @@ const OPTION_FIGHT: &[Effect] = &[
     monster_spawn(MonsterName::SlaverBlue),
     monster_spawn(MonsterName::SlaverRed),
     Effect {
-        kind: EffectKind::CombatStart,
+        kind: EffectKind::CombatStart { elite: false },
         id_source: None,
         target: Target::Direct(None),
     },
@@ -47,7 +47,7 @@ const OPTION_FIGHT_NOBS: &[Effect] = &[
     monster_spawn(MonsterName::Taskmaster),
     monster_spawn(MonsterName::GremlinNob),
     Effect {
-        kind: EffectKind::CombatStart,
+        kind: EffectKind::CombatStart { elite: true },
         id_source: None,
         target: Target::Direct(None),
     },
