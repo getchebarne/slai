@@ -29,7 +29,7 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
     // (all green Cards are rewardable, so no kind/rarity filter is needed)
     if has_relic(&state.id_relics, RelicName::DeadBranch) {
         let card_name =
-            get_random_card_names(CardColor::Green, None, None, &[], 1, &mut state.rng)[0];
+            get_random_card_names(CardColor::Green, None, None, &[], true, 1, &mut state.rng)[0];
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAdd {
                 card_name,

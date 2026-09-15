@@ -142,6 +142,7 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::utils::card_name_healing;
 use crate::utils::card_name_never_obtainable;
 use crate::utils::shuffle;
 use strum::EnumCount;
@@ -531,6 +532,7 @@ pub fn get_random_card_names(
     kind: Option<CardKind>,
     rarity: Option<CardRarity>,
     exclude: &[CardName],
+    exclude_healing: bool,
     count: usize,
     rng: &mut impl rand::Rng,
 ) -> Vec<CardName> {
@@ -540,6 +542,15 @@ pub fn get_random_card_names(
         .filter(|card| card.color == color)
         .filter(|card| kind.is_none_or(|card_kind| card.kind == card_kind))
         .filter(|card| rarity.is_none_or(|card_rarity| card.rarity == card_rarity))
+        .filter(|card| {
+            matches!(
+                card.rarity,
+                CardRarity::Common | CardRarity::Uncommon | CardRarity::Rare
+            )
+        })
+        .filter(|card| card.kind != CardKind::Status)
+        .filter(|card| !card_name_never_obtainable(card.name))
+        .filter(|card| !exclude_healing || !card_name_healing(card.name))
         .filter(|card| !exclude.contains(&card.name))
         .collect();
 
@@ -554,10 +565,11 @@ pub fn get_random_cards(
     kind: Option<CardKind>,
     rarity: Option<CardRarity>,
     exclude: &[CardName],
+    exclude_healing: bool,
     count: usize,
     rng: &mut impl rand::Rng,
 ) -> Vec<Entity> {
-    get_random_card_names(color, kind, rarity, exclude, count, rng)
+    get_random_card_names(color, kind, rarity, exclude, exclude_healing, count, rng)
         .into_iter()
         .map(|name| get_card(name, false))
         .collect()

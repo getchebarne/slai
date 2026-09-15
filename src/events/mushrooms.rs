@@ -32,7 +32,7 @@ const OPTION_STOMP: &[Effect] = &[
     SPAWN_FUNGI,
     SPAWN_FUNGI,
     Effect {
-        kind: EffectKind::CombatStart,
+        kind: EffectKind::CombatStart { elite: false },
         id_source: None,
         target: Target::Direct(None),
     },

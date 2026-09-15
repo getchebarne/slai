@@ -62,6 +62,7 @@ pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_set_not_new;
 pub mod process_effect_modifier_tick;
 pub mod process_effect_monster_escape;
+pub mod process_effect_monster_remove;
 pub mod process_effect_monster_spawn;
 pub mod process_effect_monster_split;
 pub mod process_effect_move_execute;
@@ -76,6 +77,7 @@ pub mod process_effect_relic_grant_pool;
 pub mod process_effect_relic_grant_random;
 pub mod process_effect_relic_grant_specific;
 pub mod process_effect_relic_lose;
+pub mod process_effect_relic_reward_remove_one;
 pub mod process_effect_rest_site_consume;
 pub mod process_effect_reward_roll_cards;
 pub mod process_effect_reward_roll_gold;
@@ -171,6 +173,7 @@ use self::process_effect_modifier_remove::process_effect_modifier_remove;
 use self::process_effect_modifier_set_not_new::process_effect_modifier_set_not_new;
 use self::process_effect_modifier_tick::process_effect_modifier_tick;
 use self::process_effect_monster_escape::process_effect_monster_escape;
+use self::process_effect_monster_remove::process_effect_monster_remove;
 use self::process_effect_monster_spawn::process_effect_monster_spawn;
 use self::process_effect_monster_split::process_effect_monster_split;
 use self::process_effect_move_execute::process_effect_move_execute;
@@ -185,6 +188,7 @@ use self::process_effect_relic_grant_pool::process_effect_relic_grant_pool;
 use self::process_effect_relic_grant_random::process_effect_relic_grant_random;
 use self::process_effect_relic_grant_specific::process_effect_relic_grant_specific;
 use self::process_effect_relic_lose::process_effect_relic_lose;
+use self::process_effect_relic_reward_remove_one::process_effect_relic_reward_remove_one;
 use self::process_effect_rest_site_consume::process_effect_rest_site_consume;
 use self::process_effect_reward_roll_cards::process_effect_reward_roll_cards;
 use self::process_effect_reward_roll_gold::process_effect_reward_roll_gold;
@@ -289,6 +293,10 @@ fn fill_buf_candidates(
         CandidatePool::Monsters => {
             assert!(combat.active, "Monsters pool outside combat");
             effect_candidate_buf.extend(combat.id_monsters.iter().flatten().copied())
+        }
+        CandidatePool::MonsterPicked => {
+            assert!(combat.active, "MonsterPicked pool outside combat");
+            effect_candidate_buf.extend(combat.id_monster_picked)
         }
         CandidatePool::Source => {
             let id_source = id_source
@@ -407,15 +415,10 @@ fn resolve_or_halt(
     );
 
     // Stage 2: the filter retains
-    let id_monster_picked = if state.combat.active {
-        state.combat.id_monster_picked
-    } else {
-        None
-    };
     let entities = &state.entities;
     state
         .effect_candidate_buf
-        .retain(|&id| candidate_matches(filter, id, &entities[id], id_source, id_monster_picked));
+        .retain(|&id| candidate_matches(filter, id, &entities[id], id_source));
 
     // NotSource: the last Monster standing falls back to targeting itself
     if filter == CandidateFilter::NotSource
@@ -515,6 +518,7 @@ fn dispatch_by_kind(
         EffectKind::RewardRollPotions { count, uniform } => {
             process_effect_reward_roll_potions(state, count, uniform)
         }
+        EffectKind::RelicRewardRemoveOne => process_effect_relic_reward_remove_one(state),
         EffectKind::RewardRollRelic { pick } => process_effect_reward_roll_relic(state, pick),
         EffectKind::RitualDaggerProc { bump } => {
             process_effect_ritual_dagger_proc(id_source, id_target, state, bump)
@@ -540,7 +544,9 @@ fn dispatch_by_kind(
             random,
             scope,
         } => process_effect_set_cost_override(id_target, state, amount, only_reduce, random, scope),
-        EffectKind::EscapePlanCheck { block } => process_effect_escape_plan_check(state, block),
+        EffectKind::EscapePlanCheck { block } => {
+            process_effect_escape_plan_check(id_source, state, block)
+        }
         EffectKind::DamageFinisher { damage } => {
             process_effect_damage_finisher(id_source, id_target, state, damage)
         }
@@ -571,7 +577,7 @@ fn dispatch_by_kind(
             process_effect_energy_delta(state, sign, amount)
         }
         EffectKind::ModifierGain { kind, stacks } => {
-            process_effect_modifier_gain(id_target, state, kind, stacks)
+            process_effect_modifier_gain(id_source, id_target, state, kind, stacks)
         }
         EffectKind::ModifierMultiply { kind, factor } => {
             process_effect_modifier_multiply(id_target, state, kind, factor)
@@ -586,7 +592,7 @@ fn dispatch_by_kind(
             // Character can die outside Combat; empty Monster slots make iter a no-op
             process_effect_death(id_target, state)
         }
-        EffectKind::CombatStart => process_effect_combat_start(state),
+        EffectKind::CombatStart { elite } => process_effect_combat_start(state, elite),
         EffectKind::CombatEnd { escaped_character } => {
             process_effect_combat_end(state, escaped_character)
         }
@@ -602,6 +608,7 @@ fn dispatch_by_kind(
         }
         EffectKind::MonsterSplit { name } => process_effect_monster_split(id_source, state, name),
         EffectKind::MonsterEscape => process_effect_monster_escape(id_target, state),
+        EffectKind::MonsterRemove => process_effect_monster_remove(id_target, state),
         EffectKind::GoldSteal { amount } => process_effect_gold_steal(id_source, state, amount),
         EffectKind::GremlinSummon => process_effect_gremlin_summon(state),
         EffectKind::DebuffsClear => process_effect_debuffs_clear(id_target, state),

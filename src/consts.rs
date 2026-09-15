@@ -99,6 +99,9 @@ pub const ASCENSION_CARD_UPGRADE_CUT_LEVEL: u8 = 12;
 pub const CARD_REWARD_ROLL_CHANCE_RARE_ELITE: i32 = 10;
 pub const CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE: i32 = 50;
 
+// Wheel of Change pays 100 per act
+pub const WHEEL_GOLD_PER_ACT: u16 = 100;
+
 // Acts, 1-based; the run ends at the ACT_FINAL boss
 pub const ACT_FINAL: u8 = 2;
 

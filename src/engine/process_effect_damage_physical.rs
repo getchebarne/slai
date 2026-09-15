@@ -1,7 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -9,19 +8,11 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::types::CardName;
 use crate::types::RelicName;
+use crate::utils::get_id_actor;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
-
-// Source -> actor: Cards delegate to Character; Monsters/Character self
-fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) -> usize {
-    if entities[id_source].kind == EntityKind::Card {
-        id_character
-    } else {
-        id_source
-    }
-}
 
 // Physical damage: if_poisoned bails unless target Poisoned; Str+Vigor+Weak/Vuln scale, x2 DoubleDmg, Intangible clamp, Thorns reflect
 pub fn process_effect_damage_physical(
@@ -92,6 +83,8 @@ pub fn process_effect_damage_physical(
     let mut final_damage = scale_attack_damage(
         base_damage.max(0) as u16,
         source_str_stacks,
+        has_modifier(mods_source_actor, ModifierKind::DoubleDamage),
+        has_modifier(mods_source_actor, ModifierKind::PenNib),
         weak_factor(
             has_modifier(mods_source_actor, ModifierKind::Weak),
             weak_paper_krane,
@@ -100,25 +93,11 @@ pub fn process_effect_damage_physical(
             has_modifier(mods_target, ModifierKind::Vulnerable),
             vuln_odd_mushroom,
         ),
+        has_modifier(mods_target, ModifierKind::Flight),
     );
 
-    // Double damage
-    if has_modifier(mods_source_actor, ModifierKind::DoubleDamage) {
-        final_damage = final_damage.saturating_mul(2);
-    }
-
-    // Pen Nib modifier (double damage)
-    if has_modifier(mods_source_actor, ModifierKind::PenNib) {
-        final_damage = final_damage.saturating_mul(2);
-    }
-
-    // Flight (target): attack damage halved while airborne
-    if has_modifier(mods_target, ModifierKind::Flight) {
-        final_damage /= 2;
-    }
-
-    // Intangible (target)
-    if has_modifier(mods_target, ModifierKind::Intangible) {
+    // Intangible (target): clamps down, so a computed 0 stays 0
+    if has_modifier(mods_target, ModifierKind::Intangible) && final_damage > 1 {
         final_damage = 1;
     }
 

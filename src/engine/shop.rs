@@ -132,7 +132,7 @@ fn make_card(
 ) -> (usize, u16) {
     // Sample Card and its price
     let cards_placed = get_shop_placed_card_names(entities, cards);
-    let card = get_random_cards(color, kind, Some(rarity), &cards_placed, 1, rng)
+    let card = get_random_cards(color, kind, Some(rarity), &cards_placed, false, 1, rng)
         .into_iter()
         .next()
         .unwrap_or_else(|| panic!("No shop Card for {color:?} {kind:?} rarity {rarity:?}"));

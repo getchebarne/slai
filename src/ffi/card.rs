@@ -296,6 +296,7 @@ pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) ->
     };
     let weak = has_modifier(char_mods, ModifierKind::Weak);
     let double = has_modifier(char_mods, ModifierKind::DoubleDamage);
+    let pen_nib = has_modifier(char_mods, ModifierKind::PenNib);
     let dex = if has_modifier(char_mods, ModifierKind::Dexterity) {
         modifier_stacks(char_mods, ModifierKind::Dexterity)
     } else {
@@ -313,15 +314,15 @@ pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) ->
                 target,
             }) => {
                 // Player attacker: Paper Krane never applies
-                let mut damage = scale_attack_damage(
+                let damage = scale_attack_damage(
                     amount.saturating_add(vigor),
                     str_stacks,
+                    double,
+                    pen_nib,
                     weak_factor(weak, false),
                     vuln_factor(false, false),
+                    false,
                 );
-                if double {
-                    damage = damage.saturating_mul(2);
-                }
                 PyEffect::DamagePhysical(PyEffectDamagePhysical {
                     amount: damage,
                     lifesteal,

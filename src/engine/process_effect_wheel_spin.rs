@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::consts::WHEEL_GOLD_PER_ACT;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -20,7 +21,7 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
         0 => Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Gain,
-                amount: Amount::Absolute(100),
+                amount: Amount::Absolute(WHEEL_GOLD_PER_ACT * state.act as u16),
             },
             id_source: None,
             target: Target::Direct(None),

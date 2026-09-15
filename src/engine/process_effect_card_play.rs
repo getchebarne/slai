@@ -376,7 +376,7 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
                         amount: stacks as u16,
                         lifesteal: false,
                     },
-                    id_source: Some(id_monster),
+                    id_source: None,
                     target: Target::Direct(Some(id_character)),
                 });
             }

@@ -101,6 +101,7 @@ flat_variants!(PyEffect {
     HexaghostBurnIncrease => PyEffectHexaghostBurnIncrease as "EffectHexaghostBurnIncrease" { count: u8 },
     ModifierRemove => PyEffectModifierRemove as "EffectModifierRemove" { kind: PyModifierKind, target: PyTarget },
     MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: PyTarget },
+    MonsterRemove => PyEffectMonsterRemove as "EffectMonsterRemove" { target: PyTarget },
     MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
     StasisSteal => PyEffectStasisSteal as "EffectStasisSteal",
     RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
@@ -180,7 +181,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::CardDrawUpTo { .. }
                     | EffectKind::CardPlayFromDrawTop
                     | EffectKind::CombatEnd { .. }
-                    | EffectKind::CombatStart
+                    | EffectKind::CombatStart { .. }
                     | EffectKind::DistractionAdd
                     | EffectKind::EnergyDelta { .. }
                     | EffectKind::EventAdvanceState { .. }
@@ -373,7 +374,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::MonsterSpawn { name, .. } => {
             PyEffect::MonsterSpawn(PyEffectMonsterSpawn { name: name.into() })
         }
-        EffectKind::CombatStart => PyEffect::CombatStart(PyEffectCombatStart),
+        EffectKind::CombatStart { .. } => PyEffect::CombatStart(PyEffectCombatStart),
         EffectKind::AdventurerSearch => PyEffect::AdventurerSearch(PyEffectAdventurerSearch),
         EffectKind::RelicGrantSpecific {
             name,
@@ -508,6 +509,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             target: require_target(target),
         }),
         EffectKind::MonsterEscape => PyEffect::MonsterEscape(PyEffectMonsterEscape {
+            target: require_target(target),
+        }),
+        EffectKind::MonsterRemove => PyEffect::MonsterRemove(PyEffectMonsterRemove {
             target: require_target(target),
         }),
         EffectKind::MonsterSplit { name } => PyEffect::MonsterSplit(PyEffectMonsterSplit {

@@ -12,17 +12,55 @@ use crate::modifier::modifier_def;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::shelled_parasite;
+use crate::types::CardName;
 use crate::types::MonsterName;
 use crate::types::RelicName;
+use crate::utils::card_damage_delta;
 use crate::utils::has_relic;
+use crate::utils::scale_block_gain;
 
 pub fn process_effect_modifier_gain(
+    id_source: Option<usize>,
     id_target: Option<usize>,
     state: &mut GameState,
     kind: ModifierKind,
     stacks: i16,
 ) {
     let id_target = id_target.expect("ModifierGain requires id_target");
+
+    // A corpse takes no Powers, and its hooks (Snecko Skull, Sadistic Nature) must not fire
+    if state.entities[id_target].dead {
+        return;
+    }
+
+    // Dodge and Roll freezes the Dex/Frail-adjusted block at play time
+    let stacks = if kind == ModifierKind::NextTurnBlock
+        && stacks > 0
+        && id_source.is_some_and(|id| state.entities[id].kind == EntityKind::Card)
+    {
+        let mods = &state.entities[state.id_character].modifiers;
+        let dex_stacks = modifier_stacks(mods, ModifierKind::Dexterity);
+        let is_frail = has_modifier(mods, ModifierKind::Frail);
+        scale_block_gain(stacks as u16, dex_stacks, is_frail) as i16
+    } else {
+        stacks
+    };
+
+    // Accuracy rewrites every Shiv already in play, across all piles
+    if kind == ModifierKind::Accuracy && stacks != 0 && id_target == state.id_character {
+        let combat = &state.combat;
+        let mut ids: Vec<usize> = Vec::new();
+        ids.extend(&combat.id_card_hand);
+        ids.extend(&combat.id_card_draw);
+        ids.extend(&combat.id_card_discard);
+        ids.extend(&combat.id_card_exhaust);
+        ids.extend(combat.id_card_stasis.iter().flatten().copied());
+        for id_card in ids {
+            if state.entities[id_card].card_name == CardName::Shiv {
+                card_damage_delta(&mut state.entities[id_card], stacks);
+            }
+        }
+    }
 
     // Ginger / Turnip: negate the application outright, before Artifact is consumed
     if id_target == state.id_character

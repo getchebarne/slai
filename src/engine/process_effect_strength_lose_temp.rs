@@ -11,6 +11,11 @@ pub fn process_effect_strength_lose_temp(
     stacks: i16,
 ) {
     let id_target = id_target.expect("StrengthLoseTemp requires id_target");
+
+    // A corpse takes no debuff
+    if state.entities[id_target].dead {
+        return;
+    }
     let modifiers = &state.entities[id_target].modifiers;
 
     // Executes in reverse:

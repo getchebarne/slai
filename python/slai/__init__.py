@@ -264,6 +264,7 @@ EffectGremlinSummon = _rs.EffectGremlinSummon
 EffectHexaghostBurnIncrease = _rs.EffectHexaghostBurnIncrease
 EffectModifierRemove = _rs.EffectModifierRemove
 EffectMonsterEscape = _rs.EffectMonsterEscape
+EffectMonsterRemove = _rs.EffectMonsterRemove
 EffectMonsterSplit = _rs.EffectMonsterSplit
 EffectStasisSteal = _rs.EffectStasisSteal
 EffectRewardRollCards = _rs.EffectRewardRollCards
@@ -340,6 +341,7 @@ Effect = (
     | EffectHexaghostBurnIncrease
     | EffectModifierRemove
     | EffectMonsterEscape
+    | EffectMonsterRemove
     | EffectMonsterSplit
     | EffectStasisSteal
     | EffectRewardRollCards

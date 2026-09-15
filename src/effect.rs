@@ -88,7 +88,9 @@ pub enum EffectKind {
     CombatEnd {
         escaped_character: bool,
     },
-    CombatStart,
+    CombatStart {
+        elite: bool,
+    },
     DamageDeal {
         amount: u16,
         lifesteal: bool, // Life Suck
@@ -174,6 +176,7 @@ pub enum EffectKind {
     ModifierSetNotNew,
     ModifierTick,
     MonsterEscape,
+    MonsterRemove,
     MonsterSpawn {
         name: MonsterName,
         minion: bool, // Gremlin Leader's summons
@@ -230,6 +233,7 @@ pub enum EffectKind {
         count: u8,
         uniform: bool,
     },
+    RelicRewardRemoveOne,
     RewardRollRelic {
         pick: RelicPick,
     },
@@ -318,6 +322,7 @@ pub enum CandidatePool {
     Hand,
     Character,
     Monsters,
+    MonsterPicked,
     Source,
     Discover,
     Deck,
@@ -365,7 +370,6 @@ pub enum CandidateFilter {
     Costed,
 
     // Compare against the `Target::Resolve` context
-    Picked,
     NotSource,
     NotMinion,
 
@@ -432,9 +436,10 @@ pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) 
     }
 }
 
+// The pick outlives the roster slot, so a lethal hit still resolves a target
 pub const TARGET_MONSTER_PICKED: Target = Target::Resolve {
-    candidate_pool: CandidatePool::Monsters,
-    filter: CandidateFilter::Picked,
+    candidate_pool: CandidatePool::MonsterPicked,
+    filter: CandidateFilter::Any,
     selection_kind: SelectionKind::Single,
 };
 

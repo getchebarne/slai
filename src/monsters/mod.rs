@@ -668,7 +668,7 @@ pub const fn move_split(name: &'static str, first: MonsterName, second: MonsterN
                 target: TARGET_SOURCE,
             },
             Effect {
-                kind: EffectKind::MonsterEscape,
+                kind: EffectKind::MonsterRemove,
                 id_source: None,
                 target: TARGET_SOURCE,
             },

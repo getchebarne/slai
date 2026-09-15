@@ -331,6 +331,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectMonsterEscape;
     #[pymodule_export]
+    use super::ffi::PyEffectMonsterRemove;
+    #[pymodule_export]
     use super::ffi::PyEffectMonsterSpawn;
     #[pymodule_export]
     use super::ffi::PyEffectMonsterSplit;

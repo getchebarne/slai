@@ -89,7 +89,7 @@ pub fn process_effect_damage_deal(
     }
 
     // Executes in reverse:
-    //     1. On-damage-taken triggers (CurlUp, Angry, Flight, Malleable)
+    //     1. On-damage-taken triggers (Angry, Flight; CurlUp / Malleable tail-queue)
     //     2. ModifierGain Poison (Envenom)
     //     3. HealthDelta
     //     4. HealthDelta Gain (lifesteal)
@@ -155,7 +155,12 @@ pub fn process_effect_damage_deal(
         // On-attacked triggers respond to attack damage only
         if (from_card || from_monster) && id_source != Some(id_target) {
             let target = &mut state.entities[id_target];
-            fire_on_damage_taken(target, id_target, &mut state.effect_queue);
+            fire_on_damage_taken(
+                target,
+                id_target,
+                damage_over_block,
+                &mut state.effect_queue,
+            );
         }
     }
 }
@@ -163,13 +168,17 @@ pub fn process_effect_damage_deal(
 fn fire_on_damage_taken(
     target: &mut Entity,
     id_target: usize,
+    damage_over_block: u16,
     effect_queue: &mut VecDeque<Effect>,
 ) {
+    // CurlUp and Malleable skip a killing blow
+    let lives = damage_over_block < target.vitals.health;
+
     // CurlUp: gain block = stacks once per combat, then remove the modifier
-    if has_modifier(&target.modifiers, ModifierKind::CurlUp) {
+    if lives && has_modifier(&target.modifiers, ModifierKind::CurlUp) {
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::CurlUp);
         modifier_remove(&mut target.modifiers, ModifierKind::CurlUp);
-        effect_queue.push_front(Effect {
+        effect_queue.push_back(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
@@ -210,10 +219,10 @@ fn fire_on_damage_taken(
     }
 
     // Malleable: gain `stacks` block per hit taken, then escalate by one
-    if has_modifier(&target.modifiers, ModifierKind::Malleable) {
+    if lives && has_modifier(&target.modifiers, ModifierKind::Malleable) {
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::Malleable);
         modifier_apply(&mut target.modifiers, ModifierKind::Malleable, 1);
-        effect_queue.push_front(Effect {
+        effect_queue.push_back(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },

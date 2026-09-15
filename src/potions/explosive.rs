@@ -10,7 +10,7 @@ pub static EXPLOSIVE: PotionTemplate = PotionTemplate {
     rarity: PotionRarity::Common,
     combat_only: true,
     effects: &[Effect {
-        kind: EffectKind::DamagePhysical {
+        kind: EffectKind::DamageDeal {
             amount: 10,
             lifesteal: false,
         },
