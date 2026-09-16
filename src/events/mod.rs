@@ -62,7 +62,6 @@ use crate::types::DeltaSign;
 use crate::types::Event;
 use crate::types::EventName;
 use crate::types::event_reset;
-use crate::utils::card_is_non_basic_non_curse;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_transformable;
 use crate::utils::card_is_upgradable;
@@ -378,13 +377,6 @@ pub fn deck_has_purgeable(state: &GameState) -> bool {
         .id_card_deck
         .iter()
         .any(|&id| card_is_purgeable(&state.entities[id]))
-}
-
-pub fn deck_has_non_basic_non_curse(state: &GameState) -> bool {
-    state
-        .id_card_deck
-        .iter()
-        .any(|&id| card_is_non_basic_non_curse(&state.entities[id]))
 }
 
 pub fn deck_has_damage_card(state: &GameState, min_base: u16) -> bool {

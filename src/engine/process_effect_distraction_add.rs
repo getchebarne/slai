@@ -11,11 +11,12 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CostScope;
+use crate::utils::card_name_healing;
 use crate::utils::place_card;
 use crate::utils::push_entity;
 use rand::Rng;
 
-// Random Silent Skill (not Distraction) into hand, free-to-play-once
+// Random Silent Skill into hand, free-to-play-once
 pub fn process_effect_distraction_add(state: &mut GameState) {
     let mut buf = [CardName::Strike; 64];
     let mut num = 0;
@@ -25,7 +26,7 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
         POOL_RARE_GREEN_CARD,
     ] {
         for &name in pool {
-            if name == CardName::Distraction {
+            if card_name_healing(name) {
                 continue;
             }
             if card_template(name, false).kind != CardKind::Skill {

@@ -16,7 +16,6 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
         id_card_stasis,
         id_card_hand,
         id_card_discard,
-        this_combat_escaped,
         ..
     } = &mut state.combat;
     let id_target = id_target.expect("MonsterEscape requires id_target");
@@ -27,9 +26,12 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
         // An escaping Stasis holder relinquishes its hostage (unreachable today)
         release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
     }
-    *this_combat_escaped = true;
-
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
+
+    // haveMonstersEscaped is false while any Monster is still there or fell in battle
+    if !any_alive && !state.combat.this_combat_monster_died {
+        state.combat.this_combat_escaped = true;
+    }
     if !any_alive {
         state.effect_queue.clear();
         state.effect_queue.push_back(Effect {

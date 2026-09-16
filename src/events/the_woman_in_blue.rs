@@ -23,10 +23,7 @@ const fn buy(cost: u16, count: u8) -> [Effect; 3] {
         // Consume first: the staged Reward overlays this frame until RoomExit
         EFFECT_EVENT_CONSUME,
         Effect {
-            kind: EffectKind::RewardRollPotions {
-                count,
-                uniform: false,
-            },
+            kind: EffectKind::RewardRollPotions { count },
             id_source: None,
             target: Target::Direct(None),
         },

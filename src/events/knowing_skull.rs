@@ -41,7 +41,10 @@ const fn wish(effect_kind_reward: EffectKind) -> [Effect; 3] {
 }
 
 // Potion: a random one, at a rising HP cost
-const OPTION_POTION: [Effect; 3] = wish(EffectKind::PotionAddRandom { limited: false });
+const OPTION_POTION: [Effect; 3] = wish(EffectKind::PotionAddRandom {
+    limited: false,
+    uniform: true,
+});
 
 // Gold: 90, at a rising HP cost
 const OPTION_GOLD: [Effect; 3] = wish(EffectKind::GoldDelta {

@@ -194,6 +194,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyPotionTemplate;
     #[pymodule_export]
+    use super::ffi::PyRelicExclusion;
+    #[pymodule_export]
     use super::ffi::PyRelicName;
     #[pymodule_export]
     use super::ffi::PyRelicTier;
@@ -230,6 +232,8 @@ mod slai {
     use super::ffi::PyEffectAdventurerSearch;
     #[pymodule_export]
     use super::ffi::PyEffectBlockGain;
+    #[pymodule_export]
+    use super::ffi::PyEffectBombArm;
     #[pymodule_export]
     use super::ffi::PyEffectBonfireOffer;
     #[pymodule_export]
@@ -318,6 +322,8 @@ mod slai {
     use super::ffi::PyEffectJoustBet;
     #[pymodule_export]
     use super::ffi::PyEffectKnowingSkullCostBump;
+    #[pymodule_export]
+    use super::ffi::PyEffectLifestealHeal;
     #[pymodule_export]
     use super::ffi::PyEffectMausoleumOpen;
     #[pymodule_export]

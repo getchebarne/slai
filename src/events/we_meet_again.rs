@@ -7,6 +7,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -18,7 +19,10 @@ use crate::types::DeltaSign;
 use crate::utils::card_is_non_basic_non_curse;
 
 const RELIC_REWARD: Effect = Effect {
-    kind: EffectKind::RelicGrantRandom { tier: None },
+    kind: EffectKind::RelicGrantRandom {
+        tier: None,
+        exclusion: RelicExclusion::Screenless,
+    },
     id_source: None,
     target: Target::Direct(None),
 };

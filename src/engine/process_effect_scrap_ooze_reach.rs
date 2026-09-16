@@ -2,6 +2,7 @@ use rand::Rng;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -13,7 +14,10 @@ pub fn process_effect_scrap_ooze_reach(state: &mut GameState, chance: u8, advanc
     let roll = state.rng.random_range(0..100) as u8;
     if roll as u16 + chance as u16 >= 99 {
         state.effect_buf.push(Effect {
-            kind: EffectKind::RelicGrantRandom { tier: None },
+            kind: EffectKind::RelicGrantRandom {
+                tier: None,
+                exclusion: RelicExclusion::Screenless,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

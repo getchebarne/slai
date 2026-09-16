@@ -19,5 +19,6 @@ pub fn process_effect_reward_roll_gold(state: &mut GameState, amount: Amount) {
     }
 
     reward_ensure(&mut state.reward);
-    state.reward.gold = Some(rolled);
+    // addGoldToRewards appends an item; the screen shows the sum
+    state.reward.gold = Some(state.reward.gold.unwrap_or(0) + rolled);
 }

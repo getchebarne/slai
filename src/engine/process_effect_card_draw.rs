@@ -5,14 +5,13 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
+use crate::entity::CostOverride;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::types::Combat;
 use crate::types::CostScope;
-use crate::types::RelicName;
-use crate::utils::has_relic;
 
 // NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
@@ -27,6 +26,9 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         id_card_last_drawn,
         ..
     } = &mut state.combat;
+
+    // DrawCardAction clears the draw history before every bail path
+    *id_card_last_drawn = None;
     if has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::NoDraw,
@@ -95,13 +97,11 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         });
     }
 
-    // Snecko Eye / Confusion (Snecko's Glare): every drawn Card's cost re-rolls to [0, 3]
-    if has_relic(&state.id_relics, RelicName::SneckoEye)
-        || has_modifier(
-            &state.entities[state.id_character].modifiers,
-            ModifierKind::Confusion,
-        )
-    {
+    // Confusion (Snecko Eye, Snecko's Glare): every drawn Card's cost re-rolls to [0, 3]
+    if has_modifier(
+        &state.entities[state.id_character].modifiers,
+        ModifierKind::Confusion,
+    ) {
         for &id_card in &id_drawn[..id_drawn_num] {
             let card = &state.entities[id_card];
 
@@ -111,12 +111,24 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             {
                 continue;
             }
+            let card_cost = card.card_cost;
 
             // Roll new cost
             let new_cost: u8 = state.rng.random_range(0..=3);
 
+            // freeToPlayOnce is cleared whether or not the roll changed anything
+            if matches!(
+                state.entities[id_card].card_cost_override,
+                Some(CostOverride {
+                    scope: CostScope::UntilPlayed,
+                    ..
+                })
+            ) {
+                state.entities[id_card].card_cost_override = None;
+            }
+
             // Only push it if it's different from the original
-            if new_cost != card.card_cost {
+            if new_cost != card_cost {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::SetCostOverride {
                         amount: new_cost,

@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -62,13 +64,22 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
                 // Distilled Chaos: one play per effect, so the potency doubles by repeating
                 EffectKind::CardPlayFromDrawTop => repeat = true,
 
+                // Discover potions: DiscoveryAction puts both copies in hand
+                EffectKind::CardDiscoverPick { copies, .. } => *copies *= 2,
+
                 // No potency: Blessing of the Forge, Smoke Bomb, Gambler's Brew, Entropic
                 // Brew, Snecko Oil's randomize
                 _ => {}
             }
         }
-        state.effect_queue.push_front(effect);
-        if repeat {
+        for _ in 0..(1 + repeat as usize) {
+            // Distilled Chaos rolls every play's target inside use(), before any card resolves
+            if matches!(effect.kind, EffectKind::CardPlayFromDrawTop) {
+                let alive: Vec<usize> =
+                    state.combat.id_monsters.iter().flatten().copied().collect();
+                let id_monster = alive[state.rng.random_range(0..alive.len())];
+                effect.target = Target::Direct(Some(id_monster));
+            }
             state.effect_queue.push_front(effect);
         }
     }

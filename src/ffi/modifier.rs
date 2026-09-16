@@ -16,7 +16,7 @@ mirror_enum!(PyModifierKind from ModifierKind, "ModifierKind", {
     NoxiousFumes, Phantasmal, PlatedArmor, Poison, Retain, Ritual, Shackled, SharpHide,
     Splittable, SporeCloud, Strength, Thievery, Thorns, ThousandCuts, ToolsOfTheTrade, Vigor,
     Vulnerable, Weak, WraithForm, Buffer, PenNib, Magnetism, NoBlock, Panache, SadisticNature,
-    Mayhem, TheBomb, Regeneration, LoseStrength, LoseDexterity, DuplicateNextCardPlay,
+    Mayhem, Regeneration, LoseStrength, LoseDexterity, DuplicateNextCardPlay,
     Flight, Malleable, Barricade, Hex, Confusion, PainfulStabs, Minion,
 }, {
     #[getter]

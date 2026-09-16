@@ -180,7 +180,14 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
     } else {
         let idx = state.rng.random_range(0..100) as i32;
         let chance_monster = (state.unknown_chance_monster * 100.0) as i32;
-        let chance_shop = (state.unknown_chance_shop * 100.0) as i32;
+        // A ? entered straight out of a Shop cannot roll another one
+        let left_shop = get_active_room_kind(&state.id_rooms, state.location_prev, &state.entities)
+            == Some(RoomKind::Shop);
+        let chance_shop = if left_shop {
+            0
+        } else {
+            (state.unknown_chance_shop * 100.0) as i32
+        };
         let chance_treasure = (state.unknown_chance_treasure * 100.0) as i32;
 
         if idx < chance_monster {

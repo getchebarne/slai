@@ -1,4 +1,3 @@
-use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
@@ -78,8 +77,11 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         id_card_stasis,
         id_card_hand,
         id_card_discard,
+        gold_stolen: gold_stolen_total,
+        this_combat_monster_died,
         ..
     } = &mut state.combat;
+    *this_combat_monster_died = true;
     let id_character = state.id_character;
 
     // Mark the corpse dead, drop it from the live roster, and check if combat continues
@@ -92,21 +94,10 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     // Calculate if there're any Monsters left alive
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
 
-    // Return stolen gold, once. Only relevant for Looters in practice
-    let gold_stolen = state.entities[id_target].monster_gold_stolen;
+    // Stolen gold is staged as its own reward item, claimed at the reward screen
+    // and exempt from Golden Idol
+    *gold_stolen_total += state.entities[id_target].monster_gold_stolen;
     state.entities[id_target].monster_gold_stolen = 0;
-    let gold_return = if gold_stolen > 0 {
-        Some(Effect {
-            kind: EffectKind::GoldDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(gold_stolen),
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_character)),
-        })
-    } else {
-        None
-    };
 
     if !any_alive {
         // Combat ends; keep damage-type actions so Hand Of Greed and Ritual Dagger still proc
@@ -116,9 +107,6 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
                 EffectKind::HandOfGreedProc { .. } | EffectKind::RitualDaggerProc { .. }
             )
         });
-        if let Some(e) = gold_return {
-            state.effect_queue.push_back(e);
-        }
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CombatEnd {
                 escaped_character: false,
@@ -171,8 +159,11 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     };
 
     // CorpseExplosion: max_health to others; no source scaling, no Envenom proc
-    let corpse_explosion = has_modifier(&target.modifiers, ModifierKind::CorpseExplosion)
-        .then(|| target.vitals.health_max);
+    let corpse_explosion =
+        has_modifier(&target.modifiers, ModifierKind::CorpseExplosion).then(|| {
+            target.vitals.health_max
+                * modifier_stacks(&target.modifiers, ModifierKind::CorpseExplosion).max(0) as u16
+        });
 
     // The Specimen: the corpse's Poison moves to a random survivor
     let specimen_poison = (has_relic(&state.id_relics, RelicName::TheSpecimen)
@@ -240,10 +231,5 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
                 });
             }
         }
-    }
-
-    // Return sotlen gold
-    if let Some(e) = gold_return {
-        state.effect_queue.push_front(e);
     }
 }

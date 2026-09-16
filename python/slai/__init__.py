@@ -12,6 +12,7 @@ CostScope = _rs.CostScope
 PlayRestriction = _rs.PlayRestriction
 RoomKind = _rs.RoomKind
 RelicTier = _rs.RelicTier
+RelicExclusion = _rs.RelicExclusion
 CardName = _rs.CardName
 MonsterName = _rs.MonsterName
 MonsterEncounter = _rs.MonsterEncounter
@@ -210,6 +211,8 @@ EffectUnloadDiscard = _rs.EffectUnloadDiscard
 EffectStormOfSteelProc = _rs.EffectStormOfSteelProc
 EffectSneakyStrikeProc = _rs.EffectSneakyStrikeProc
 EffectBlockGain = _rs.EffectBlockGain
+EffectBombArm = _rs.EffectBombArm
+EffectLifestealHeal = _rs.EffectLifestealHeal
 EffectModifierGain = _rs.EffectModifierGain
 EffectModifierMultiply = _rs.EffectModifierMultiply
 EffectEnergyDelta = _rs.EffectEnergyDelta
@@ -287,6 +290,8 @@ Effect = (
     | EffectStormOfSteelProc
     | EffectSneakyStrikeProc
     | EffectBlockGain
+    | EffectBombArm
+    | EffectLifestealHeal
     | EffectModifierGain
     | EffectModifierMultiply
     | EffectEnergyDelta
@@ -498,6 +503,7 @@ __all__ = [
     "RoomKind",
     "RelicName",
     "RelicTier",
+    "RelicExclusion",
     "PotionName",
     "PotionRarity",
     "CardName",
@@ -535,6 +541,8 @@ __all__ = [
     "EffectStormOfSteelProc",
     "EffectSneakyStrikeProc",
     "EffectBlockGain",
+    "EffectBombArm",
+    "EffectLifestealHeal",
     "EffectModifierGain",
     "EffectModifierMultiply",
     "EffectEnergyDelta",

@@ -4,7 +4,7 @@ use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
-use crate::events::deck_has_non_basic_non_curse;
+use crate::events::deck_has_purgeable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
@@ -17,7 +17,7 @@ pub static EOTS_BASE: &[EventOptionTemplate] =
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
-        0 => deck_has_non_basic_non_curse(state),
+        0 => deck_has_purgeable(state),
         1 => true,
         _ => unreachable!("Transmogrifier option out of range: {idx}"),
     }

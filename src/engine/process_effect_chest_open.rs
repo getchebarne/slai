@@ -18,6 +18,7 @@ use crate::consts::MATRYOSHKA_TH_COMMON;
 use crate::consts::MATRYOSHKA_TH_UNCOMMON;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::RelicPick;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -115,6 +116,7 @@ pub fn process_effect_chest_open(state: &mut GameState) {
                     th_common: MATRYOSHKA_TH_COMMON,
                     th_uncommon: MATRYOSHKA_TH_UNCOMMON,
                 },
+                exclusion: RelicExclusion::Unfiltered,
             },
         );
     }
@@ -131,6 +133,7 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         state,
         EffectKind::RewardRollRelic {
             pick: RelicPick::Tier(tier),
+            exclusion: RelicExclusion::Unfiltered,
         },
     );
 

@@ -1,6 +1,7 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
@@ -25,7 +26,10 @@ const OPTION_PAY: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::RelicGrantRandom { tier: None },
+        kind: EffectKind::RelicGrantRandom {
+            tier: None,
+            exclusion: RelicExclusion::Screenless,
+        },
         id_source: None,
         target: Target::Direct(None),
     },
@@ -35,7 +39,10 @@ const OPTION_PAY: &[Effect] = &[
 // Steal: the Relic, plus a Shame curse
 const OPTION_STEAL: &[Effect] = &[
     Effect {
-        kind: EffectKind::RelicGrantRandom { tier: None },
+        kind: EffectKind::RelicGrantRandom {
+            tier: None,
+            exclusion: RelicExclusion::Screenless,
+        },
         id_source: None,
         target: Target::Direct(None),
     },

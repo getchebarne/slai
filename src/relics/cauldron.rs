@@ -21,7 +21,6 @@ pub static CAULDRON: RelicTemplate = RelicTemplate {
     effects_pickup: &[Effect {
         kind: EffectKind::RewardRollPotions {
             count: CAULDRON_POTION_COUNT as u8,
-            uniform: false,
         },
         id_source: None,
         target: Target::Direct(None),

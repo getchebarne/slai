@@ -20,6 +20,7 @@ use super::macros::flat_variants;
 use super::macros::mirror_enum;
 use super::modifier::PyModifierKind;
 use super::monster::PyMonsterName;
+use super::relic::PyRelicExclusion;
 use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
 use super::target::PyTarget;
@@ -46,6 +47,8 @@ flat_variants!(PyEffect {
     StormOfSteelProc => PyEffectStormOfSteelProc as "EffectStormOfSteelProc" { upgraded: bool },
     SneakyStrikeProc => PyEffectSneakyStrikeProc as "EffectSneakyStrikeProc" { energy: u8 },
     BlockGain => PyEffectBlockGain as "EffectBlockGain" { amount: u16, target: PyTarget },
+    BombArm => PyEffectBombArm as "EffectBombArm" { turns: u8, damage: u16 },
+    LifestealHeal => PyEffectLifestealHeal as "EffectLifestealHeal" { target: PyTarget },
     ModifierGain => PyEffectModifierGain as "EffectModifierGain" { kind: PyModifierKind, stacks: i16, target: PyTarget },
     ModifierMultiply => PyEffectModifierMultiply as "EffectModifierMultiply" { kind: PyModifierKind, factor: u8, target: PyTarget },
     EnergyDelta => PyEffectEnergyDelta as "EffectEnergyDelta" { sign: PyDeltaSign, amount: u16 },
@@ -58,12 +61,12 @@ flat_variants!(PyEffect {
     ShuffleDiscardPileIntoDrawPile => PyEffectShuffleDiscardPileIntoDrawPile as "EffectShuffleDiscardPileIntoDrawPile",
     MaxHealthDelta => PyEffectMaxHealthDelta as "EffectMaxHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
-    PotionAddRandom => PyEffectPotionAddRandom as "EffectPotionAddRandom" { limited: bool },
+    PotionAddRandom => PyEffectPotionAddRandom as "EffectPotionAddRandom" { limited: bool, uniform: bool },
     PotionDiscard => PyEffectPotionDiscard as "EffectPotionDiscard" { target: PyTarget },
-    RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8, uniform: bool },
+    RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8 },
     CardDiscoverRoll => PyEffectCardDiscoverRoll as "EffectCardDiscoverRoll" { kind: Option<PyCardKind>, color: PyCardColor, exclude: Vec<PyCardName>, count: u8 },
     GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmount },
-    RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier> },
+    RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, exclusion: PyRelicExclusion },
     WheelSpin => PyEffectWheelSpin as "EffectWheelSpin",
     BonfireOffer => PyEffectBonfireOffer as "EffectBonfireOffer" { target: PyTarget },
     CardBottle => PyEffectCardBottle as "EffectCardBottle" { target: PyTarget },
@@ -74,7 +77,7 @@ flat_variants!(PyEffect {
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
-    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, target: PyTarget },
+    CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, copies: u8, target: PyTarget },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
     CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { target: PyTarget },
@@ -173,6 +176,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             !matches!(
                 effect.kind,
                 EffectKind::AdventurerSearch
+                    | EffectKind::BombArm { .. }
                     | EffectKind::CardAdd { .. }
                     | EffectKind::CardAddRandom { .. }
                     | EffectKind::CardDiscoverRoll { .. }
@@ -283,6 +287,12 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::SneakyStrikeProc { energy } => {
             PyEffect::SneakyStrikeProc(PyEffectSneakyStrikeProc { energy })
         }
+        EffectKind::BombArm { turns, damage } => {
+            PyEffect::BombArm(PyEffectBombArm { turns, damage })
+        }
+        EffectKind::LifestealHeal => PyEffect::LifestealHeal(PyEffectLifestealHeal {
+            target: require_target(target),
+        }),
         EffectKind::BlockGain { amount } => PyEffect::BlockGain(PyEffectBlockGain {
             amount,
             target: require_target(target),
@@ -356,9 +366,10 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             upgraded,
             target: require_target(target),
         }),
-        EffectKind::RelicGrantRandom { tier } => {
+        EffectKind::RelicGrantRandom { tier, exclusion } => {
             PyEffect::RelicGrantRandom(PyEffectRelicGrantRandom {
                 tier: tier.map(Into::into),
+                exclusion: exclusion.into(),
             })
         }
         EffectKind::RelicLose => PyEffect::RelicLose(PyEffectRelicLose {
@@ -394,14 +405,14 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             advance_on_miss,
         }),
         EffectKind::EventConsume => PyEffect::EventConsume(PyEffectEventConsume),
-        EffectKind::PotionAddRandom { limited } => {
-            PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited })
+        EffectKind::PotionAddRandom { limited, uniform } => {
+            PyEffect::PotionAddRandom(PyEffectPotionAddRandom { limited, uniform })
         }
         EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard {
             target: require_target(target),
         }),
-        EffectKind::RewardRollPotions { count, uniform } => {
-            PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count, uniform })
+        EffectKind::RewardRollPotions { count } => {
+            PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count })
         }
         EffectKind::RewardRollNeowCards {
             colorless,
@@ -424,13 +435,16 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade {
             target: require_target(target),
         }),
-        EffectKind::CardDiscoverPick { cost_zero, pile } => {
-            PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
-                pile: pile.into(),
-                cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
-                target: require_target(target),
-            })
-        }
+        EffectKind::CardDiscoverPick {
+            cost_zero,
+            pile,
+            copies,
+        } => PyEffect::CardDiscoverPick(PyEffectCardDiscoverPick {
+            pile: pile.into(),
+            copies,
+            cost_zero: cost_zero.map(|cost_scope| cost_scope.into()),
+            target: require_target(target),
+        }),
         EffectKind::CardAddRandom {
             color,
             kind,

@@ -6,6 +6,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::event_option_available;
@@ -18,7 +19,6 @@ use crate::modifier::has_modifier;
 use crate::potions::belt_has_room;
 use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
-use crate::types::CardName;
 use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::Event;
@@ -39,6 +39,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::is_play_restriction_satisfied;
+use crate::utils::play_cap_reached;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
@@ -322,7 +323,9 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
             target: Target::Direct(Some(id_monster_target)),
         });
         state.effect_buf.push(Effect {
-            kind: EffectKind::CardPlay,
+            kind: EffectKind::CardPlay {
+                energy_on_use: None,
+            },
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });
@@ -333,7 +336,9 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
         });
     } else {
         state.effect_buf.push(Effect {
-            kind: EffectKind::CardPlay,
+            kind: EffectKind::CardPlay {
+                energy_on_use: None,
+            },
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });
@@ -494,7 +499,10 @@ fn handle_rest_smith(state: &mut GameState) {
 // Shovel: spend the rest on a random Relic (granted directly, not staged)
 fn handle_rest_dig(state: &mut GameState) {
     state.effect_buf.push(Effect {
-        kind: EffectKind::RelicGrantRandom { tier: None },
+        kind: EffectKind::RelicGrantRandom {
+            tier: None,
+            exclusion: RelicExclusion::Unfiltered,
+        },
         id_source: None,
         target: Target::Direct(None),
     });
@@ -615,7 +623,6 @@ fn fill_legal_actions_combat(state: &mut GameState) {
         energy,
         this_turn_discards,
         this_turn_cards_played,
-        this_combat_damage_instances_taken,
         ..
     } = &state.combat;
     let id_character = state.id_character;
@@ -626,17 +633,14 @@ fn fill_legal_actions_combat(state: &mut GameState) {
         ModifierKind::Entangled,
     );
 
-    // Normality in hand caps the turn at 3 plays; blocks ANY further CardPlay
-    let normality_blocks = *this_turn_cards_played >= 3
-        && id_card_hand
-            .iter()
-            .any(|&id| state.entities[id].card_name == CardName::Normality);
-
-    // Velvet Choker: no more than 6 Cards per turn (increment is post-play, so exactly 6 land)
-    let choker_blocks =
-        *this_turn_cards_played >= 6 && has_relic(&state.id_relics, RelicName::VelvetChoker);
+    let cap_reached = play_cap_reached(
+        id_card_hand,
+        &state.entities,
+        &state.id_relics,
+        *this_turn_cards_played,
+    );
     for idx in 0..id_card_hand.len() {
-        if normality_blocks || choker_blocks {
+        if cap_reached {
             break;
         }
         let card = &state.entities[id_card_hand[idx]];
@@ -650,12 +654,7 @@ fn fill_legal_actions_combat(state: &mut GameState) {
         if !restriction_ok || entangled_blocks {
             continue;
         }
-        let cost = get_card_effective_cost(
-            card,
-            *this_turn_discards,
-            *this_combat_damage_instances_taken,
-            energy.energy_current,
-        );
+        let cost = get_card_effective_cost(card, *this_turn_discards, energy.energy_current);
         if cost > energy.energy_current {
             continue;
         }
@@ -697,7 +696,7 @@ fn fill_legal_actions_reward(state: &mut GameState) {
                 idx_card,
             });
         }
-        if singing_bowl && !bundle.is_empty() {
+        if singing_bowl && !bundle.is_empty() && !state.reward.cards_forced {
             state
                 .legal_actions
                 .push(Action::RewardSingingBowl { idx_bundle });
@@ -722,7 +721,11 @@ fn fill_legal_actions_reward(state: &mut GameState) {
     if gold.is_some() {
         state.legal_actions.push(Action::RewardTakeGold);
     }
-    state.legal_actions.push(Action::RoomExit);
+
+    // The Library's grid has no cancel button
+    if !(state.reward.cards_forced && !id_cards.is_empty()) {
+        state.legal_actions.push(Action::RoomExit);
+    }
     push_potion_actions(state);
 }
 
