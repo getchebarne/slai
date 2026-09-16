@@ -5,6 +5,7 @@ use crate::entity::CostOverride;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::types::CostScope;
+use crate::utils::get_card_effective_cost;
 
 pub fn process_effect_set_cost_override(
     id_target: Option<usize>,
@@ -41,25 +42,39 @@ pub fn process_effect_set_cost_override(
         amount
     };
 
+    // `only_reduce` guards against cost-increase (see Enlightment). A per-turn cut reads the
+    // live cost, a permanent one the printed cost; Java tests the two independently
+    let (this_turn_discards, energy_current) = if state.combat.active {
+        (
+            state.combat.this_turn_discards,
+            state.combat.energy.energy_current,
+        )
+    } else {
+        (0, 0)
+    };
     let card = &mut state.entities[id_target];
 
-    // `only_reduce` guards against cost-increase (see Enlightment)
     if only_reduce {
         if matches!(card.card_cost_kind, CardCostKind::XCost { .. }) {
             return;
         }
-        let current = card
-            .card_cost_override
-            .map_or(card.card_cost, |cost_override| cost_override.amount);
+        let current = match scope {
+            CostScope::Combat => card.card_cost,
+            _ => get_card_effective_cost(card, this_turn_discards, energy_current),
+        };
         if current <= amount {
             return;
         }
     }
 
     match scope {
+        // Madness and Confusion write costForTurn in the same breath; a guarded permanent
+        // cut (Enlightenment+) lowers the printed cost alone
         CostScope::Combat => {
             card.card_cost = amount;
-            card.card_cost_override = None;
+            if !only_reduce {
+                card.card_cost_override = None;
+            }
         }
         scope => card.card_cost_override = Some(CostOverride { amount, scope }),
     }

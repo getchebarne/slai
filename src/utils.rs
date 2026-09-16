@@ -33,6 +33,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -40,13 +41,9 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
+use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
-use crate::relics::POOL_BOSS_RELIC;
-use crate::relics::POOL_COMMON_RELIC;
-use crate::relics::POOL_RARE_RELIC;
-use crate::relics::POOL_SHOP_RELIC;
-use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::egg_upgrades_kind;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -57,6 +54,7 @@ use crate::types::DeltaSign;
 use crate::types::Focus;
 use crate::types::RelicName;
 use crate::types::RelicTier;
+use crate::types::RoomKind;
 
 // Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
@@ -165,22 +163,53 @@ pub const fn card_name_healing(name: CardName) -> bool {
     )
 }
 
-pub fn get_card_effective_cost(
-    card: &Entity,
-    this_turn_discards: u8,
-    this_combat_damage_instances_taken: u8,
-    energy_current: u8,
-) -> u8 {
+// Normality in hand caps the turn at 3 plays; Velvet Choker at 6
+pub fn play_cap_reached(
+    id_card_hand: &[usize],
+    entities: &[Entity],
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    this_turn_cards_played: u8,
+) -> bool {
+    let normality = this_turn_cards_played >= 3
+        && id_card_hand
+            .iter()
+            .any(|&id| entities[id].card_name == CardName::Normality);
+    let choker = this_turn_cards_played >= 6 && has_relic(id_relics, RelicName::VelvetChoker);
+    normality || choker
+}
+
+pub fn get_card_effective_cost(card: &Entity, this_turn_discards: u8, energy_current: u8) -> u8 {
     if let Some(cost_override) = card.card_cost_override {
         return cost_override.amount;
     }
     match card.card_cost_kind {
-        CardCostKind::Fixed => card.card_cost,
+        CardCostKind::Fixed | CardCostKind::GrowsOnDamageInstanceTaken => card.card_cost,
         CardCostKind::MinusDiscardsThisTurn => card.card_cost.saturating_sub(this_turn_discards),
-        CardCostKind::GrowsOnDamageInstanceTaken => card
-            .card_cost
-            .saturating_add(this_combat_damage_instances_taken),
         CardCostKind::XCost { .. } => energy_current,
+    }
+}
+
+// updateCardsOnDamage: each Masterful Stab in hand, draw or discard costs 1 more, and a
+// live override rises with it so Java's frozen cost - costForTurn gap is preserved
+pub fn cards_grow_on_damage(state: &mut GameState) {
+    for pile in [
+        &state.combat.id_card_hand,
+        &state.combat.id_card_draw,
+        &state.combat.id_card_discard,
+    ] {
+        for &id_card in pile.iter() {
+            let card = &mut state.entities[id_card];
+            if !matches!(
+                card.card_cost_kind,
+                CardCostKind::GrowsOnDamageInstanceTaken
+            ) {
+                continue;
+            }
+            card.card_cost = card.card_cost.saturating_add(1);
+            if let Some(cost_override) = &mut card.card_cost_override {
+                cost_override.amount = cost_override.amount.saturating_add(1);
+            }
+        }
     }
 }
 
@@ -241,6 +270,10 @@ pub fn candidate_matches(
     match filter {
         CandidateFilter::Any => true,
         CandidateFilter::Purgeable => card_is_purgeable(entity),
+        // getPurgeableCards without the bottle wrapper (Astrolabe, Empty Cage)
+        CandidateFilter::PurgeableOrBottled => {
+            entity.kind == EntityKind::Card && !card_name_never_obtainable(entity.card_name)
+        }
         CandidateFilter::Upgradeable => card_is_upgradable(entity),
         CandidateFilter::Transformable => card_is_transformable(entity),
         CandidateFilter::PurgeableCurse => {
@@ -251,11 +284,13 @@ pub fn candidate_matches(
         CandidateFilter::KindPower => entity.card_kind == CardKind::Power,
         CandidateFilter::Costed => {
             !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
-                && entity.card_cost > 0
                 && entity
                     .card_cost_override
                     .map_or(entity.card_cost, |cost_override| cost_override.amount)
                     > 0
+        }
+        CandidateFilter::CostedPrinted => {
+            !matches!(entity.card_cost_kind, CardCostKind::XCost { .. }) && entity.card_cost > 0
         }
         CandidateFilter::NotSource => Some(id) != id_source,
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
@@ -420,53 +455,113 @@ pub fn scale_block_gain(base: u16, dex_stacks: i16, is_frail: bool) -> u16 {
     value.max(0.0) as u16
 }
 
-// Tier-by-roll with cascade to higher tiers when the rolled pool is exhausted
-pub fn pick_relic_by_roll(
-    roll: u8,
-    th_common: u8,
-    th_uncommon: u8,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    rng: &mut impl Rng,
-) -> RelicName {
+// returnRandomRelicTier with the caller's cuts
+pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier {
     if roll < th_common {
-        pick_relic_from_pool(POOL_COMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
-            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
-            .unwrap_or(RelicName::Circlet)
+        RelicTier::Common
     } else if roll < th_uncommon {
-        pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
-            .unwrap_or(RelicName::Circlet)
+        RelicTier::Uncommon
     } else {
-        pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        RelicTier::Rare
     }
 }
 
-// Fixed-tier uniform pick, cascading like pick_relic_by_roll when the pool is owned out
-pub fn pick_relic_by_tier(
-    tier: RelicTier,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    rng: &mut impl Rng,
-) -> RelicName {
-    match tier {
-        RelicTier::Common => pick_relic_from_pool(POOL_COMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
-            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
-            .unwrap_or(RelicName::Circlet),
-        RelicTier::Uncommon => pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
-            .unwrap_or(RelicName::Circlet),
-        RelicTier::Rare => {
-            pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+// AbstractRelic.canSpawn for the Relics that override it
+pub fn relic_can_spawn(state: &GameState, name: RelicName) -> bool {
+    let deck_has = |pred: fn(&Entity) -> bool| {
+        state
+            .id_card_deck
+            .iter()
+            .any(|&id| pred(&state.entities[id]))
+    };
+    match name {
+        RelicName::BottledFlame => {
+            deck_has(|c| c.card_kind == CardKind::Attack && c.card_rarity != CardRarity::Basic)
         }
-        RelicTier::Boss => {
-            pick_relic_from_pool(POOL_BOSS_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        RelicName::BottledLightning => {
+            deck_has(|c| c.card_kind == CardKind::Skill && c.card_rarity != CardRarity::Basic)
         }
-        RelicTier::Shop => {
-            pick_relic_from_pool(POOL_SHOP_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        RelicName::BottledTornado => deck_has(|c| c.card_kind == CardKind::Power),
+        RelicName::Girya | RelicName::PeacePipe | RelicName::Shovel => {
+            [RelicName::Girya, RelicName::PeacePipe, RelicName::Shovel]
+                .iter()
+                .filter(|&&campfire| has_relic(&state.id_relics, campfire))
+                .count()
+                < 2
         }
+        RelicName::RingOfTheSerpent => has_relic(&state.id_relics, RelicName::RingOfTheSnake),
+        RelicName::Ectoplasm => state.act <= 1,
+        RelicName::TheCourier
+        | RelicName::MawBank
+        | RelicName::OldCoin
+        | RelicName::SmilingMask => {
+            get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+                != Some(RoomKind::Shop)
+        }
+        _ => true,
+    }
+}
+
+// returnRandomRelicKey / returnEndRandomRelicKey: pop the run pool for `tier`, cascading
+// Common -> Uncommon -> Rare -> Circlet and Shop -> Uncommon; a pick that fails canSpawn
+// is burned and the redraw comes from the back
+pub fn draw_relic(state: &mut GameState, tier: RelicTier, from_back: bool) -> RelicName {
+    let (pool, cascade) = match tier {
+        RelicTier::Common => (&mut state.pool_relic_common, Some(RelicTier::Uncommon)),
+        RelicTier::Uncommon => (&mut state.pool_relic_uncommon, Some(RelicTier::Rare)),
+        RelicTier::Rare => (&mut state.pool_relic_rare, None),
+        RelicTier::Shop => (&mut state.pool_relic_shop, Some(RelicTier::Uncommon)),
+        RelicTier::Boss => (&mut state.pool_relic_boss, None),
         RelicTier::Starter | RelicTier::Special => {
-            unreachable!("No random grants from tier {:?}", tier)
+            unreachable!("No random draws from tier {:?}", tier)
+        }
+    };
+    if pool.is_empty() {
+        return match cascade {
+            Some(next) => draw_relic(state, next, false),
+            None => RelicName::Circlet,
+        };
+    }
+    // The Boss pool pops the front from either entry point
+    let name = if from_back && tier != RelicTier::Boss {
+        pool.pop().unwrap()
+    } else {
+        pool.remove(0)
+    };
+    if relic_can_spawn(state, name) && !has_relic(&state.id_relics, name) {
+        name
+    } else {
+        draw_relic(state, tier, true)
+    }
+}
+
+// returnRandomScreenlessRelic / returnRandomNonCampfireRelic: front draws until the pick
+// is outside the excluded set; rejected picks stay consumed
+pub fn draw_relic_excluding(
+    state: &mut GameState,
+    tier: RelicTier,
+    exclusion: RelicExclusion,
+) -> RelicName {
+    loop {
+        let name = draw_relic(state, tier, false);
+        let excluded = match exclusion {
+            RelicExclusion::Unfiltered => false,
+            RelicExclusion::Screenless => matches!(
+                name,
+                RelicName::BottledFlame
+                    | RelicName::BottledLightning
+                    | RelicName::BottledTornado
+                    | RelicName::Whetstone
+            ),
+            RelicExclusion::NonCampfire => {
+                matches!(
+                    name,
+                    RelicName::Girya | RelicName::PeacePipe | RelicName::Shovel
+                )
+            }
+        };
+        if !excluded {
+            return name;
         }
     }
 }
@@ -530,6 +625,22 @@ pub fn pick_relic_from_pool(
         None
     } else {
         Some(candidates[rng.random_range(0..num)])
+    }
+}
+
+// applyDiscount recomputes the purge price from the static base, so the last purge-affecting
+// Relic wins instead of compounding
+pub fn purge_price(purge_cost_run: u16, id_relics: &[Option<usize>; RelicName::COUNT]) -> u16 {
+    if has_relic(id_relics, RelicName::SmilingMask) {
+        return 50;
+    }
+    let base = purge_cost_run as u32;
+    if has_relic(id_relics, RelicName::MembershipCard) {
+        ((base + 1) / 2) as u16
+    } else if has_relic(id_relics, RelicName::TheCourier) {
+        ((base * 4 + 2) / 5) as u16
+    } else {
+        purge_cost_run
     }
 }
 

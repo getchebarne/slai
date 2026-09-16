@@ -11,7 +11,6 @@ use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
-use crate::relics::iter_owned_relics;
 use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardPile;
@@ -133,18 +132,6 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
             id_source: None,
             target: Target::Direct(None),
         });
-    }
-
-    // Combat-start Relic effects, in acquisition order
-    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-        .map(|(_, id)| id)
-        .collect();
-
-    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
-    for id_relic in id_relics {
-        for &effect in state.entities[id_relic].relic_effects_combat_start {
-            state.effect_queue.push_back(effect);
-        }
     }
 
     // Ancient Tea Set: primed by the last rest site (counter 1), spends it for 2 energy

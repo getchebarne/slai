@@ -1,6 +1,7 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -54,7 +55,10 @@ const OPTION_BOX: &[Effect] = &[
         target: Target::Direct(None),
     },
     Effect {
-        kind: EffectKind::RelicGrantRandom { tier: None },
+        kind: EffectKind::RelicGrantRandom {
+            tier: None,
+            exclusion: RelicExclusion::Screenless,
+        },
         id_source: None,
         target: Target::Direct(None),
     },

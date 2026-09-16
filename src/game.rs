@@ -38,9 +38,15 @@ use crate::events::spawn_event;
 use crate::map::generate_map;
 use crate::monsters::encounters::generate_act_monsters;
 use crate::monsters::encounters::pick_boss;
+use crate::relics::POOL_BOSS_RELIC;
+use crate::relics::POOL_COMMON_RELIC;
+use crate::relics::POOL_RARE_RELIC;
+use crate::relics::POOL_SHOP_RELIC;
+use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
 use crate::types::*;
 use crate::utils::push_entity;
+use crate::utils::shuffle;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Location {
@@ -74,6 +80,7 @@ pub struct GameState {
 
     // Location
     pub location: Location,
+    pub location_prev: Location,
 
     // Entities and indices
     pub entities: Vec<Entity>,
@@ -106,6 +113,13 @@ pub struct GameState {
     // Run-scoped event draw pools; drawn without replacement, never refilled
     pub pool_events: Vec<EventName>,
     pub pool_event_special: Vec<EventName>,
+
+    // Run-scoped Relic draw pools, shuffled once; rewards pop the front, shops the back
+    pub pool_relic_common: Vec<RelicName>,
+    pub pool_relic_uncommon: Vec<RelicName>,
+    pub pool_relic_rare: Vec<RelicName>,
+    pub pool_relic_shop: Vec<RelicName>,
+    pub pool_relic_boss: Vec<RelicName>,
 
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
     pub potion_drop_mod: i8,
@@ -183,6 +197,22 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Act-1 event pools
     let (pool_events, pool_event_special) = pools_for_act(1);
 
+    // initializeRelicList: one shuffled pool per tier for the whole run
+    let mut pool_relic_common = POOL_COMMON_RELIC.to_vec();
+    let mut pool_relic_uncommon = POOL_UNCOMMON_RELIC.to_vec();
+    let mut pool_relic_rare = POOL_RARE_RELIC.to_vec();
+    let mut pool_relic_shop = POOL_SHOP_RELIC.to_vec();
+    let mut pool_relic_boss = POOL_BOSS_RELIC.to_vec();
+    for pool in [
+        &mut pool_relic_common,
+        &mut pool_relic_uncommon,
+        &mut pool_relic_rare,
+        &mut pool_relic_shop,
+        &mut pool_relic_boss,
+    ] {
+        shuffle(pool, &mut rng);
+    }
+
     // Start unhalted on Focus::Map; the empty queue drains and legal_actions_map enumerates row-0 picks
     let effect_queue = VecDeque::with_capacity(64);
 
@@ -199,6 +229,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         potion_slots_max,
         id_rooms,
         location,
+        location_prev: location,
         encounter_pool_normal,
         encounter_pool_elite,
         encounter_boss,
@@ -212,6 +243,11 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
         pool_events: pool_events.to_vec(),
         pool_event_special: pool_event_special.to_vec(),
+        pool_relic_common,
+        pool_relic_uncommon,
+        pool_relic_rare,
+        pool_relic_shop,
+        pool_relic_boss,
         potion_drop_mod: 0,
 
         // Contexts start inactive with their high-water capacities pre-reserved
@@ -236,9 +272,13 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             this_turn_attacks: 0,
             this_turn_cards_played: 0,
             this_turn_panache: 0,
-            this_combat_damage_instances_taken: 0,
+            turn: 0,
             this_combat_escaped: false,
-            bomb_countdown: 0,
+            this_combat_monster_died: false,
+            gold_stolen: 0,
+            flight_baked: [false; MAX_MONSTERS],
+            last_health_lost: 0,
+            bombs: Vec::new(),
         },
         reward: Reward {
             active: false,
@@ -247,6 +287,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             id_potions: Vec::new(),
             gold: None,
             relics_exclusive: false,
+            cards_forced: false,
         },
         event: Event {
             active: false,

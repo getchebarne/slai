@@ -4,6 +4,7 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardColor;
+use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::Combat;
 use crate::types::RelicName;
@@ -24,6 +25,20 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         id_card_hand.remove(pos);
     }
     id_card_exhaust.push(id_card);
+
+    // Necronomicurse: exhausting it returns a copy to hand
+    if state.entities[id_card].card_name == CardName::Necronomicurse {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::CardAdd {
+                card_name: CardName::Necronomicurse,
+                pile: CardPile::Hand,
+                count: 1,
+                upgraded: false,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
 
     // Dead Branch: every exhaust conjures a random Silent Card into the hand
     // (all green Cards are rewardable, so no kind/rarity filter is needed)

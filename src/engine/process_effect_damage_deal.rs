@@ -44,10 +44,20 @@ pub fn process_effect_damage_deal(
         None => false,
     };
 
+    // Intangible clamps the instance before block is spent against it
+    let amount = if amount > 1
+        && has_modifier(
+            &state.entities[id_target].modifiers,
+            ModifierKind::Intangible,
+        ) {
+        1
+    } else {
+        amount
+    };
+
     // Substract block and calculate damage over it
     let target = &mut state.entities[id_target];
     let block_prev = target.vitals.block;
-    let health_prev = target.vitals.health;
     let mut damage_over_block = amount.saturating_sub(block_prev);
     target.vitals.block = block_prev.saturating_sub(amount);
 
@@ -90,34 +100,22 @@ pub fn process_effect_damage_deal(
 
     // Executes in reverse:
     //     1. On-damage-taken triggers (Angry, Flight; CurlUp / Malleable tail-queue)
-    //     2. ModifierGain Poison (Envenom)
-    //     3. HealthDelta
+    //     2. HealthDelta
+    //     3. ModifierGain Poison (Envenom)
     //     4. HealthDelta Gain (lifesteal)
     if damage_over_block > 0 {
-        // Life Suck: the source drinks the HP the target actually loses
+        // Life Suck: the source drinks the HP the target actually loses, read back after
+        // Buffer and Tungsten Rod have had their say
         if lifesteal && let Some(id_src) = id_source {
-            let heal = damage_over_block.min(health_prev);
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::HealthDelta {
-                    sign: DeltaSign::Gain,
-                    amount: Amount::Absolute(heal),
-                },
+                kind: EffectKind::LifestealHeal,
                 id_source: None,
                 target: Target::Direct(Some(id_src)),
             });
         }
 
-        // The killer's id rides along so Death knows it (Ritual Dagger)
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::HealthDelta {
-                sign: DeltaSign::Loss,
-                amount: Amount::Absolute(damage_over_block),
-            },
-            id_source,
-            target: Target::Direct(Some(id_target)),
-        });
-
-        // Envenom: Card-played unblocked damage applies Poison; modifier-damage excluded
+        // Envenom: Card-played unblocked damage applies Poison; modifier-damage excluded.
+        // Queued behind the HP loss, so a Monster killed by the hit never takes the stacks
         let mods_char = state.entities[state.id_character].modifiers;
         if from_card && has_modifier(&mods_char, ModifierKind::Envenom) {
             let stacks = modifier_stacks(&mods_char, ModifierKind::Envenom);
@@ -130,6 +128,16 @@ pub fn process_effect_damage_deal(
                 target: Target::Direct(Some(id_target)),
             });
         }
+
+        // The killer's id rides along so Death knows it (Ritual Dagger)
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Loss,
+                amount: Amount::Absolute(damage_over_block),
+            },
+            id_source,
+            target: Target::Direct(Some(id_target)),
+        });
 
         // Painful Stabs: each unblocked hit from the owner adds a Wound to the discard pile
         if from_monster

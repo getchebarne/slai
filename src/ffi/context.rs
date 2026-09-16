@@ -54,7 +54,7 @@ pub struct PyCombat {
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
     pub discover: Vec<PyCard>,
-    pub bomb_countdown: u8,
+    pub bombs: Vec<(u8, u16)>,
 }
 
 #[pyclass(
@@ -74,6 +74,7 @@ pub struct PyReward {
     pub gold: Option<u16>,
     // Boss rewards roll mutually exclusive Relics: taking one discards the rest
     pub relics_exclusive: bool,
+    pub cards_forced: bool,
 }
 
 #[pyclass(
@@ -188,7 +189,7 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        bomb_countdown: combat.bomb_countdown,
+        bombs: combat.bombs.clone(),
     }
 }
 
@@ -212,6 +213,7 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
             .collect(),
         gold: reward.gold,
         relics_exclusive: reward.relics_exclusive,
+        cards_forced: reward.cards_forced,
     }
 }
 

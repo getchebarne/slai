@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
+use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Amount;
 use crate::effect::Effect;
@@ -26,8 +27,13 @@ use crate::utils::detach_card;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
+use crate::utils::play_cap_reached;
 
-pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_card_play(
+    id_target: Option<usize>,
+    state: &mut GameState,
+    energy_on_use: Option<u8>,
+) {
     let id_card = id_target.expect("CardPlay requires id_target");
 
     // Detach the played Card up front; it stays pile-less until its effects resolve
@@ -45,16 +51,28 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         this_turn_attacks,
         this_turn_cards_played,
         this_turn_panache,
-        this_combat_damage_instances_taken,
+        flight_baked,
         ..
     } = &mut state.combat;
 
     // Read-only here: copied out so the body below can borrow the whole state
     let id_character = state.id_character;
     let this_turn_discards = *this_turn_discards;
-    let this_combat_damage_instances_taken = *this_combat_damage_instances_taken;
-    let energy_current = energy.energy_current;
+    let replay = energy_on_use.is_some();
+    let energy_current = energy_on_use.unwrap_or(energy.energy_current);
     let card = state.entities[id_card];
+
+    // canUse re-gates the queued copy: at the play cap it silently does not play
+    if replay
+        && play_cap_reached(
+            id_card_hand,
+            &state.entities,
+            &state.id_relics,
+            *this_turn_cards_played,
+        )
+    {
+        return;
+    }
 
     // Increase this-turn-played-Cards counter
     *this_turn_cards_played = this_turn_cards_played.saturating_add(1);
@@ -122,28 +140,18 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     }
 
     // On-power play triggers
+    let mut urn_heal = false;
     if card.card_kind == CardKind::Power {
-        // Bird-Faced Urn: playing a Power heals 2
-        if has_relic(&state.id_relics, RelicName::BirdFacedUrn) {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::HealthDelta {
-                    sign: DeltaSign::Gain,
-                    amount: Amount::Absolute(2),
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_character)),
-            });
-        }
+        // Bird-Faced Urn: playing a Power heals 2, addToTop
+        urn_heal = has_relic(&state.id_relics, RelicName::BirdFacedUrn);
         // Mummified Hand: make a random still-costed hand Card free this turn
         if has_relic(&state.id_relics, RelicName::MummifiedHand) {
             free_random_costed_hand_card(
                 &*id_card_hand,
-                &state.entities,
+                &mut state.entities,
                 &mut state.rng,
-                &mut state.effect_queue,
                 id_card,
                 this_turn_discards,
-                this_combat_damage_instances_taken,
                 energy_current,
             );
         }
@@ -180,24 +188,53 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         state.entities[id_card].card_cost_override = None;
     }
 
+    // calculateCardDamage runs once per play: later hits keep the halving of the first
+    for slot in 0..MAX_MONSTERS {
+        flight_baked[slot] = id_monsters[slot]
+            .is_some_and(|id| has_modifier(&state.entities[id].modifiers, ModifierKind::Flight));
+    }
+
     // Clear effect buffer — prepare it to be filled
     state.effect_buf.clear();
 
     // Energy loss
-    let effective_cost = get_card_effective_cost(
-        &card,
-        this_turn_discards,
-        this_combat_damage_instances_taken,
-        energy_current,
-    );
-    state.effect_buf.push(Effect {
-        kind: EffectKind::EnergyDelta {
-            sign: DeltaSign::Loss,
-            amount: (effective_cost) as u16,
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    });
+    let effective_cost = get_card_effective_cost(&card, this_turn_discards, energy_current);
+    if !replay {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Loss,
+                amount: (effective_cost) as u16,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
+
+    // Pain: each copy in hand bleeds 1 HP on any other Card play; HealthDelta ignores block
+    for idx in 0..id_card_hand.len() {
+        if state.entities[id_card_hand[idx]].card_name == CardName::Pain {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::HealthDelta {
+                    sign: DeltaSign::Loss,
+                    amount: Amount::Absolute(1),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_character)),
+            });
+        }
+    }
+
+    // Bird-Faced Urn's heal is addToTop too, behind Pain
+    if urn_heal {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::HealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(2),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
 
     // Blue Candle / Medical Kit: Relic-enabled plays exhaust; the candle also costs 1 HP
     let relic_exhaust = if card.card_kind == CardKind::Curse
@@ -221,7 +258,8 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
     };
 
     // Necronomicon: the first Attack costing 2+ each turn is played twice
-    let necronomicon = if card.card_kind == CardKind::Attack
+    let necronomicon = if !replay
+        && card.card_kind == CardKind::Attack
         && effective_cost >= 2
         && let Some(id) = state.id_relics[RelicName::Necronomicon as usize]
         && state.entities[id].relic_counter == 0
@@ -248,14 +286,12 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
         _ => 1,
     };
-    let burst =
-        has_modifier(char_modifiers, ModifierKind::Burst) && card.card_kind == CardKind::Skill;
+    let burst = !replay
+        && has_modifier(char_modifiers, ModifierKind::Burst)
+        && card.card_kind == CardKind::Skill;
 
     // DuplicateNextCardPlay replays any Card kind; additive with Burst
-    let duplication = has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
-
-    // Total amount of Card-play repetitions
-    let reps = (1 + burst as usize + duplication as usize + necronomicon as usize) * mul;
+    let duplication = !replay && has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
 
     // Wrist Blade: attacks that cost 0 deal +4 per hit
     let wrist_blade_bonus = effective_cost == 0
@@ -263,56 +299,34 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         && !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) // X-cost never qualifies
         && has_relic(&state.id_relics, RelicName::WristBlade);
 
-    // Push the Card's on-play effects once for each rep
-    for _ in 0..reps {
-        for effect in card.card_effects[..card.card_effects_len as usize].iter() {
-            let mut effect = Effect {
-                id_source: Some(id_card), // Stamp the Card's ID
-                ..*effect
-            };
+    // X-cost repeats the effects inside the one play; Malaise instead scales its stacks,
+    // as Java queues one application whatever X is
+    for effect in card.card_effects[..card.card_effects_len as usize].iter() {
+        let mut effect = Effect {
+            id_source: Some(id_card), // Stamp the Card's ID
+            ..*effect
+        };
 
-            // Add Wrist Blade bonus
-            if wrist_blade_bonus && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
-            {
-                *amount += 4;
-            }
+        // Add Wrist Blade bonus
+        if wrist_blade_bonus && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
+            *amount += 4;
+        }
 
-            // Push
+        if let EffectKind::ModifierGain { stacks, .. } = &mut effect.kind {
+            *stacks *= mul as i16;
+            state.effect_buf.push(effect);
+            continue;
+        }
+        for _ in 0..mul {
             state.effect_buf.push(effect);
         }
     }
 
-    // Relocation and on-play triggers land after the Card's own effects
-    if card.card_exhaust || relic_exhaust {
-        // Strange Spoon: on-play exhausts have a 50% chance to discard instead; Powers exempt
-        let effect_kind = if card.card_kind != CardKind::Power
-            && has_relic(&state.id_relics, RelicName::StrangeSpoon)
-            && state.rng.random_range(0..100) < 50
-        {
-            EffectKind::CardMove {
-                pile: CardPile::Discard,
-                cost_zero: None,
-            }
-        } else {
-            EffectKind::CardExhaust
-        };
+    // UseCardAction's pile routing; a replay's copy is purged instead
+    if !replay {
         state.effect_buf.push(Effect {
-            kind: effect_kind,
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
-    } else if card.card_kind == CardKind::Power {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardRemove,
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
-    } else {
-        // Not a real discard: skips this_turn_discards and on discard triggers
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardMove {
-                pile: CardPile::Discard,
-                cost_zero: None,
+            kind: EffectKind::CardPlayRelocate {
+                exhaust: card.card_exhaust || relic_exhaust,
             },
             id_source: None,
             target: Target::Direct(Some(id_card)),
@@ -465,16 +479,16 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         });
     }
 
-    // Pain: each copy in hand bleeds 1 HP on any other Card play; HealthDelta ignores block
-    for idx in 0..id_card_hand.len() {
-        if state.entities[id_card_hand[idx]].card_name == CardName::Pain {
+    // Burst / Duplication / Necronomicon each queue a full second play of the same
+    // Card; it runs once the original's chain has drained, as the card queue does
+    if !replay {
+        for _ in 0..(burst as usize + duplication as usize + necronomicon as usize) {
             state.effect_buf.push(Effect {
-                kind: EffectKind::HealthDelta {
-                    sign: DeltaSign::Loss,
-                    amount: Amount::Absolute(1),
+                kind: EffectKind::CardPlay {
+                    energy_on_use: Some(energy_current),
                 },
                 id_source: None,
-                target: Target::Direct(Some(id_character)),
+                target: Target::Direct(Some(id_card)),
             });
         }
     }
@@ -485,12 +499,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
 // Zeroes the cost of one random hand Card that still costs energy this turn
 fn free_random_costed_hand_card(
     id_card_hand: &[usize],
-    entities: &[Entity],
+    entities: &mut [Entity],
     rng: &mut impl Rng,
-    effect_queue: &mut VecDeque<Effect>,
     id_card_played: usize,
     this_turn_discards: u8,
-    this_combat_damage_instances_taken: u8,
     energy_current: u8,
 ) {
     let mut cards_valid = [0usize; MAX_SIZE_HAND];
@@ -505,12 +517,7 @@ fn free_random_costed_hand_card(
         let card = &entities[id_card];
         let cost_base_positive =
             !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) && card.card_cost > 0;
-        let cost_effective = get_card_effective_cost(
-            card,
-            this_turn_discards,
-            this_combat_damage_instances_taken,
-            energy_current,
-        );
+        let cost_effective = get_card_effective_cost(card, this_turn_discards, energy_current);
 
         // Only consider eligible if the base cost and effective costs are grater than zero (excludes X-cost)
         if cost_base_positive && cost_effective > 0 {
@@ -522,15 +529,10 @@ fn free_random_costed_hand_card(
     // Sample
     if num > 0 {
         let id_pick = cards_valid[rng.random_range(0..num)];
-        effect_queue.push_back(Effect {
-            kind: EffectKind::SetCostOverride {
-                amount: 0,
-                only_reduce: false,
-                random: false,
-                scope: CostScope::Turn,
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_pick)),
+        // setCostForTurn lands inside onUseCard, so a duplicated play must pick another Card
+        entities[id_pick].card_cost_override = Some(CostOverride {
+            amount: 0,
+            scope: CostScope::Turn,
         });
     }
 }

@@ -46,8 +46,8 @@ pub const ENERGY_MAX_BASE: u8 = 3;
 pub const MAX_COMBAT_CARD_REWARD: usize = 4;
 pub const CARD_REWARD_BASE_COUNT: usize = 3;
 
-// Most bundles a Reward frame can hold: Orrery's five
-pub const ORRERY_BUNDLE_COUNT: usize = 5;
+// Most bundles a Reward frame can hold: Orrery's four
+pub const ORRERY_BUNDLE_COUNT: usize = 4;
 
 // Cauldron's brew, staged as Potion rewards
 pub const CAULDRON_POTION_COUNT: usize = 5;
@@ -110,6 +110,7 @@ pub const MAP_HEIGHT: usize = 15;
 pub const MAP_WIDTH: usize = 7;
 pub const PATH_DENSITY: usize = 6;
 pub const ANCESTOR_GAP_MIN: usize = 3;
+pub const ANCESTOR_GAP_MAX: usize = 5;
 pub const FACTOR_NUM_REST_SITE: f32 = 0.12;
 pub const FACTOR_NUM_ELITE: f32 = 0.08;
 pub const FACTOR_NUM_ELITE_A1_MULT: f32 = 1.6;
@@ -162,8 +163,6 @@ pub const POTION_SLOTS_MAX: usize = 5;
 pub const POTION_DROP_CHANCE_BASE: i8 = 40;
 pub const POTION_DROP_CHANCE_MOD_HIT: i8 = -10;
 pub const POTION_DROP_CHANCE_MOD_MISS: i8 = 10;
-pub const POTION_DROP_CHANCE_MOD_MIN: i8 = -30;
-pub const POTION_DROP_CHANCE_MOD_MAX: i8 = 60;
 
 // Potion rarity roll thresholds
 pub const POTION_TH_COMMON: u8 = 65;
@@ -259,6 +258,7 @@ pub const SHOP_CARD_CUT_RARE: i32 = 9;
 pub const SHOP_CARD_CUT_UNCOMMON: i32 = 46;
 
 // Relic-tier weights for the 2 non-shop Relic slots
+pub const SHOP_COLORLESS_RARE_CHANCE: f32 = 0.3;
 pub const SHOP_RELIC_TH_COMMON: u8 = 48;
 pub const SHOP_RELIC_TH_UNCOMMON: u8 = 82;
 

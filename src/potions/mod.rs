@@ -176,11 +176,13 @@ pub fn get_random_potion_name(rng: &mut impl Rng, limited: bool) -> PotionName {
     } else {
         POOL_RARE_POTION
     };
-    let name = pool[rng.random_range(0..pool.len())];
-    if limited && name == PotionName::FruitJuice {
-        return get_random_potion_name(rng, limited);
+    // The rarity is fixed; only the pick within it re-rolls past Fruit Juice
+    loop {
+        let name = pool[rng.random_range(0..pool.len())];
+        if !(limited && name == PotionName::FruitJuice) {
+            return name;
+        }
     }
-    name
 }
 
 // Uniform over every Potion, ignoring rarity (Neow's Potions offer)

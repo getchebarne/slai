@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 
 use super::macros::mirror_enum;
 
+use crate::effect::RelicExclusion;
 use crate::entity::Entity;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -36,6 +37,10 @@ mirror_enum!(PyRelicName from RelicName, "RelicName", {
 
 mirror_enum!(PyRelicTier from RelicTier, "RelicTier", {
     Starter, Common, Uncommon, Rare, Boss, Shop, Special,
+});
+
+mirror_enum!(PyRelicExclusion from RelicExclusion, "RelicExclusion", {
+    Unfiltered, Screenless, NonCampfire,
 });
 
 #[pyclass(

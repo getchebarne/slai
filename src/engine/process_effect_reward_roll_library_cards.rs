@@ -21,4 +21,5 @@ pub fn process_effect_reward_roll_library_cards(state: &mut GameState) {
 
     reward_ensure(&mut state.reward);
     state.reward.id_cards.push(id_cards);
+    state.reward.cards_forced = true;
 }

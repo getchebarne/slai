@@ -1,4 +1,3 @@
-use crate::consts::BOMB_FUSE_TURNS;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -22,6 +21,15 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+
+// triggerOnEndOfTurnForPlayingCard: these queue themselves as real plays at turn end
+const CARDS_PLAYED_AT_TURN_END: [CardName; 5] = [
+    CardName::Burn,
+    CardName::Decay,
+    CardName::Regret,
+    CardName::Doubt,
+    CardName::Shame,
+];
 
 // The Character's turn end tears down the turn; Monsters unwind their per-turn kit
 pub fn process_effect_turn_end(id_target: Option<usize>, state: &mut GameState) {
@@ -114,7 +122,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         this_turn_attacks,
         this_turn_cards_played,
         this_turn_panache,
-        bomb_countdown,
+        bombs,
         ..
     } = &mut state.combat;
     // Reset per-turn Relic counters
@@ -206,8 +214,71 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
     let mods_char = &state.entities[state.id_character].modifiers;
+
+    // Plated Armor: gain block equal to stacks
+    if has_modifier(mods_char, ModifierKind::PlatedArmor) {
+        let stacks = modifier_stacks(mods_char, ModifierKind::PlatedArmor);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::BlockGain {
+                amount: stacks as u16,
+            },
+            id_source: Some(state.id_character),
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
+
+    // Burn / Decay / Regret / Doubt / Shame play themselves out of hand: payload, then
+    // UseCardAction's routing, untriggered and blind to retain or Runic Pyramid
+    for &id_card in id_card_hand.iter() {
+        let card = &state.entities[id_card];
+        if !CARDS_PLAYED_AT_TURN_END.contains(&card.card_name) {
+            continue;
+        }
+        match card.card_name {
+            CardName::Burn => {
+                let dmg_burn: u16 = if card.card_upgraded { 4 } else { 2 };
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: dmg_burn,
+                        lifesteal: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
+            CardName::Decay => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: 2,
+                        lifesteal: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
+            CardName::Regret => {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::HealthDelta {
+                        sign: DeltaSign::Loss,
+                        amount: Amount::Absolute(id_card_hand.len() as u16),
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
+            _ => {}
+        }
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardPlayRelocate {
+                exhaust: card.card_exhaust,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
+    }
+
+    // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
     if has_modifier(mods_char, ModifierKind::Retain)
         && !id_card_hand.is_empty()
         // Runic Pyramid: keeps the whole hand
@@ -220,17 +291,15 @@ fn process_effect_turn_end_character(state: &mut GameState) {
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Hand,
                 filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::Input {
+                selection_kind: SelectionKind::InputUpTo {
                     count: stacks.max(0) as u16,
                 },
             },
         });
     }
 
-    // Ritual: gain `stacks` Strength each turn end, skipping the turn it was applied
-    if has_modifier(mods_char, ModifierKind::Ritual)
-        && !mods_char.is_new[ModifierKind::Ritual as usize]
-    {
+    // Ritual: gain `stacks` Strength each turn end; skipFirst is monster-only
+    if has_modifier(mods_char, ModifierKind::Ritual) {
         let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
@@ -238,18 +307,6 @@ fn process_effect_turn_end_character(state: &mut GameState) {
                 stacks,
             },
             id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    // Plated Armor: gain block equal to stacks
-    if has_modifier(mods_char, ModifierKind::PlatedArmor) {
-        let stacks = modifier_stacks(mods_char, ModifierKind::PlatedArmor);
-        state.effect_buf.push(Effect {
-            kind: EffectKind::BlockGain {
-                amount: stacks as u16,
-            },
-            id_source: Some(state.id_character),
             target: Target::Direct(Some(state.id_character)),
         });
     }
@@ -311,45 +368,6 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Card-held-in-hand-at-the-end-of-turn effects
-    for &id_card in id_card_hand.iter() {
-        let card = &state.entities[id_card];
-        match card.card_name {
-            CardName::Burn => {
-                let dmg_burn: u16 = if card.card_upgraded { 4 } else { 2 };
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: dmg_burn,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(state.id_character)),
-                });
-            }
-            CardName::Decay => {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: 2,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(state.id_character)),
-                });
-            }
-            CardName::Regret => {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::HealthDelta {
-                        sign: DeltaSign::Loss,
-                        amount: Amount::Absolute(id_card_hand.len() as u16),
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(state.id_character)),
-                });
-            }
-            _ => {}
-        }
-    }
-
     // Queue `EffectKind::ModifierRemove`s for Modifiers that clear at end of turn
     for kind in [
         ModifierKind::Burst,
@@ -364,38 +382,47 @@ fn process_effect_turn_end_character(state: &mut GameState) {
             });
         }
     }
+    if has_modifier(mods_char, ModifierKind::DuplicateNextCardPlay) {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::DuplicateNextCardPlay,
+                stacks: -1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+    }
 
-    // The Bomb: lazily armed timer, detonates for `stacks` on all enemies
+    // Each Bomb counts down on its own and detonates for its own damage
     let any_monster_alive = id_monsters.iter().any(|slot| slot.is_some());
-    if any_monster_alive && has_modifier(mods_char, ModifierKind::TheBomb) {
-        if *bomb_countdown == 0 {
-            *bomb_countdown = BOMB_FUSE_TURNS;
+    let mut idx = 0;
+    while idx < bombs.len() {
+        if bombs[idx].0 > 1 {
+            bombs[idx].0 -= 1;
+            idx += 1;
+            continue;
         }
-        *bomb_countdown -= 1;
-        if *bomb_countdown == 0 {
-            let stacks = modifier_stacks(mods_char, ModifierKind::TheBomb);
-            for id_monster in id_monsters.iter().flatten().copied() {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: stacks.max(0) as u16,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_monster)),
-                });
-            }
+        let (_, damage) = bombs.remove(idx);
+        if !any_monster_alive {
+            continue;
+        }
+        for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierRemove {
-                    kind: ModifierKind::TheBomb,
+                kind: EffectKind::DamageDeal {
+                    amount: damage,
+                    lifesteal: false,
                 },
                 id_source: None,
-                target: Target::Direct(Some(state.id_character)),
+                target: Target::Direct(Some(id_monster)),
             });
         }
     }
 
     // Queue organic discards
     for &id_card in id_card_hand.iter() {
+        if CARDS_PLAYED_AT_TURN_END.contains(&state.entities[id_card].card_name) {
+            continue;
+        }
         state.effect_buf.push(Effect {
             kind: EffectKind::CardDiscard {
                 source: DiscardSource::EndOfTurn,

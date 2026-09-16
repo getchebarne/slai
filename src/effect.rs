@@ -47,6 +47,7 @@ pub enum EffectKind {
     CardDiscoverPick {
         cost_zero: Option<CostScope>,
         pile: CardPile,
+        copies: u8,
     },
     CardDiscoverRoll {
         kind: Option<CardKind>,
@@ -71,7 +72,17 @@ pub enum EffectKind {
     },
     CardNightmarePick,
     CardNightmareSpawn,
-    CardPlay,
+    CardPlay {
+        energy_on_use: Option<u8>,
+    },
+    BombArm {
+        turns: u8,
+        damage: u16,
+    },
+    LifestealHeal,
+    CardPlayRelocate {
+        exhaust: bool,
+    },
     CardPlayFromDrawTop,
     CardPurge,
     CardRemove,
@@ -194,6 +205,7 @@ pub enum EffectKind {
     PoisonTick,
     PotionAddRandom {
         limited: bool,
+        uniform: bool,
     },
     PotionAdopt,
     PotionDiscard,
@@ -204,6 +216,7 @@ pub enum EffectKind {
     },
     RelicGrantRandom {
         tier: Option<RelicTier>,
+        exclusion: RelicExclusion,
     },
     RelicGrantSpecific {
         name: RelicName,
@@ -228,14 +241,15 @@ pub enum EffectKind {
     },
     RewardRollPotion {
         eligible: bool,
+        staged: bool,
     },
     RewardRollPotions {
         count: u8,
-        uniform: bool,
     },
     RelicRewardRemoveOne,
     RewardRollRelic {
         pick: RelicPick,
+        exclusion: RelicExclusion,
     },
     RewardTake {
         kind: RewardKind,
@@ -286,6 +300,15 @@ pub enum RelicPick {
     Thresholds { th_common: u8, th_uncommon: u8 },
     Tier(RelicTier),
     Name(RelicName),
+}
+
+// Redraw loops around returnRandomRelicKey: screenless grants skip the bottles and
+// Whetstone, Black Star's second slot skips the campfire trio
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RelicExclusion {
+    Unfiltered,
+    Screenless,
+    NonCampfire,
 }
 
 // Who is asking for a Card roll
@@ -368,6 +391,8 @@ pub enum CandidateFilter {
     KindSkill,
     KindPower,
     Costed,
+    CostedPrinted,
+    PurgeableOrBottled,
 
     // Compare against the `Target::Resolve` context
     NotSource,
@@ -426,7 +451,11 @@ pub const TARGET_CHARACTER: Target = Target::Resolve {
 // Discover pick: choose 1 of the rolled Cards; cost break and destination vary by caller
 pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) -> Effect {
     Effect {
-        kind: EffectKind::CardDiscoverPick { cost_zero, pile },
+        kind: EffectKind::CardDiscoverPick {
+            cost_zero,
+            pile,
+            copies: 1,
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Discover,

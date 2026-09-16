@@ -347,25 +347,22 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         ModifierKind::Entangled,
     );
     // Combat-only; outside combat defaults are permissive (Cards not played)
-    let (restriction_ok, this_turn_discards, this_combat_damage, energy_current) =
-        if state.combat.active {
-            (
-                is_play_restriction_satisfied(
-                    card.card_play_restriction,
-                    card.card_kind,
-                    &state.combat.id_card_draw,
-                    &state.id_relics,
-                ),
-                state.combat.this_turn_discards,
-                state.combat.this_combat_damage_instances_taken,
-                state.combat.energy.energy_current,
-            )
-        } else {
-            (true, 0, 0, 0)
-        };
+    let (restriction_ok, this_turn_discards, energy_current) = if state.combat.active {
+        (
+            is_play_restriction_satisfied(
+                card.card_play_restriction,
+                card.card_kind,
+                &state.combat.id_card_draw,
+                &state.id_relics,
+            ),
+            state.combat.this_turn_discards,
+            state.combat.energy.energy_current,
+        )
+    } else {
+        (true, 0, 0)
+    };
     let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
-    let cost =
-        get_card_effective_cost(card, this_turn_discards, this_combat_damage, energy_current);
+    let cost = get_card_effective_cost(card, this_turn_discards, energy_current);
 
     let py_card = PyCard {
         id: id_card,

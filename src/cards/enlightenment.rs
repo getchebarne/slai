@@ -43,18 +43,49 @@ pub static ENLIGHTENMENT: CardTemplate = make_card_template(
     &[],
     PlayRestriction::Always,
 );
-// Upgraded
-pub static ENLIGHTENMENT_PLUS: CardTemplate = CardTemplate {
-    upgraded: true,
-    effects: {
-        let mut effects = ENLIGHTENMENT.effects;
-        effects[0].kind = EffectKind::SetCostOverride {
-            amount: 1,
-            only_reduce: true,
-            random: false,
-            scope: CostScope::Combat, // Lasts the rest of combat
-        };
-        effects
-    },
-    ..ENLIGHTENMENT
-};
+// Upgraded: the turn cut still lands, plus an independent cut to the printed cost
+pub static ENLIGHTENMENT_PLUS: CardTemplate = make_card_template(
+    CardName::Enlightenment,
+    CardKind::Skill,
+    CardColor::Colorless,
+    CardRarity::Uncommon,
+    0,
+    CardCostKind::Fixed,
+    true,
+    false,
+    false,
+    false,
+    &[
+        Effect {
+            kind: EffectKind::SetCostOverride {
+                amount: 1,
+                only_reduce: true,
+                random: false,
+                scope: CostScope::Turn,
+            },
+            id_source: None,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Hand,
+                filter: CandidateFilter::Any,
+                selection_kind: SelectionKind::All,
+            },
+        },
+        Effect {
+            kind: EffectKind::SetCostOverride {
+                amount: 1,
+                only_reduce: true,
+                random: false,
+                scope: CostScope::Combat,
+            },
+            id_source: None,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Hand,
+                filter: CandidateFilter::Any,
+                selection_kind: SelectionKind::All,
+            },
+        },
+    ],
+    &[],
+    &[],
+    PlayRestriction::Always,
+);

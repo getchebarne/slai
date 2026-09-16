@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::consts::ANCESTOR_GAP_MAX;
 use crate::consts::ANCESTOR_GAP_MIN;
 use crate::consts::FACTOR_NUM_ELITE;
 use crate::consts::FACTOR_NUM_ELITE_A1_MULT;
@@ -25,6 +26,9 @@ struct Room {
     pub x: usize,
     pub room_kind: RoomKind,
     pub edges: u8,
+    // addParent appends without a uniqueness test, so one parent can appear twice
+    pub parents: [u8; PATH_DENSITY],
+    pub parents_len: u8,
 }
 
 type Grid = [[Option<Room>; MAP_WIDTH]; MAP_HEIGHT];
@@ -95,6 +99,8 @@ fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
                 x: x_source,
                 room_kind: RoomKind::CombatMonster,
                 edges: 0,
+                parents: [0; PATH_DENSITY],
+                parents_len: 0,
             });
         }
 
@@ -111,11 +117,20 @@ fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
                     x: x_target,
                     room_kind: RoomKind::CombatMonster,
                     edges: 0,
+                    parents: [0; PATH_DENSITY],
+                    parents_len: 0,
                 });
             }
 
             if let Some(ref mut src) = nodes[y_source][x_source] {
                 src.edges |= 1 << x_target;
+            }
+            if let Some(ref mut dst) = nodes[y_target][x_target] {
+                let len = dst.parents_len as usize;
+                if len < dst.parents.len() {
+                    dst.parents[len] = x_source as u8;
+                    dst.parents_len += 1;
+                }
             }
 
             y_source = y_target;
@@ -181,14 +196,27 @@ fn create_target(
         if let Some(ancestor) = get_common_ancestor((py, px), (y_source, x_source), nodes) {
             let ancestor_gap = y_target - ancestor.0;
             if ancestor_gap < ANCESTOR_GAP_MIN {
-                let new_offset = if x_target > x_source {
-                    rng.random_range(-1..=0)
+                let x_end = MAP_WIDTH as i32 - 1;
+                let base = x_source as i32;
+
+                // Each arm resolves its own out-of-range case: two bounce, one falls back
+                let x_new = if x_target > x_source {
+                    let rolled = base + rng.random_range(-1..=0);
+                    if rolled < 0 { base } else { rolled }
                 } else if x_target == x_source {
-                    rng.random_range(-1..=1)
+                    let rolled = base + rng.random_range(-1..=1);
+                    if rolled > x_end {
+                        base - 1
+                    } else if rolled < 0 {
+                        base + 1
+                    } else {
+                        rolled
+                    }
                 } else {
-                    rng.random_range(0..=1)
+                    let rolled = base + rng.random_range(0..=1);
+                    if rolled > x_end { base } else { rolled }
                 };
-                x_target = ((x_source as i32) + new_offset).clamp(0, MAP_WIDTH as i32 - 1) as usize;
+                x_target = x_new as usize;
             }
         }
     }
@@ -224,18 +252,17 @@ fn get_room_parents(y: usize, x: usize, nodes: &Grid) -> Vec<(usize, usize)> {
     if y == 0 {
         return Vec::new();
     }
-    let y_parent = y - 1;
-    let mut parents = Vec::new();
-    for (px, node) in nodes[y_parent].iter().enumerate() {
-        if let Some(n) = node {
-            if has_edge(n.edges, x) {
-                parents.push((y_parent, px));
-            }
-        }
+    match &nodes[y][x] {
+        Some(room) => room.parents[..room.parents_len as usize]
+            .iter()
+            .map(|&px| (y - 1, px as usize))
+            .collect(),
+        None => Vec::new(),
     }
-    parents
 }
 
+// Climbs both sides row by row — max X on the left, min X on the right — until they
+// meet. The left/right split keeps the source's `node1.x < node2.y` typo
 fn get_common_ancestor(
     node1: (usize, usize),
     node2: (usize, usize),
@@ -245,13 +272,32 @@ fn get_common_ancestor(
         return None;
     }
 
-    let parents_a = get_room_parents(node1.0, node1.1, nodes);
-    let parents_b = get_room_parents(node2.0, node2.1, nodes);
+    let (mut l_node, mut r_node) = if node1.1 < node2.0 {
+        (node1, node2)
+    } else {
+        (node2, node1)
+    };
 
-    for pa in &parents_a {
-        if parents_b.contains(pa) {
-            return Some(*pa);
+    let y_start = node1.0 as i32;
+    let mut current_y = y_start;
+    while current_y >= 0 && current_y >= y_start - ANCESTOR_GAP_MAX as i32 {
+        let parents_l = get_room_parents(l_node.0, l_node.1, nodes);
+        let parents_r = get_room_parents(r_node.0, r_node.1, nodes);
+        if parents_l.is_empty() || parents_r.is_empty() {
+            return None;
         }
+        l_node = *parents_l
+            .iter()
+            .max_by_key(|parent| parent.1)
+            .expect("non-empty");
+        r_node = *parents_r
+            .iter()
+            .min_by_key(|parent| parent.1)
+            .expect("non-empty");
+        if l_node == r_node {
+            return Some(l_node);
+        }
+        current_y -= 1;
     }
     None
 }

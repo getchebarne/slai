@@ -18,6 +18,10 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
         id_card_discard,
         ..
     } = &mut state.combat;
+    // No discard, no shuffle and no onShuffle hooks
+    if id_card_discard.is_empty() {
+        return;
+    }
     id_card_draw.append(id_card_discard);
     shuffle(&mut id_card_draw[..], &mut state.rng);
 

@@ -6,12 +6,14 @@ use crate::types::CardPile;
 use crate::types::Combat;
 use crate::types::CostScope;
 use crate::utils::place_card;
+use crate::utils::push_entity;
 
 pub fn process_effect_card_discover_pick(
     id_target: Option<usize>,
     state: &mut GameState,
     cost_zero: Option<CostScope>,
     pile: CardPile,
+    copies: u8,
 ) {
     assert!(
         state.combat.active,
@@ -39,4 +41,23 @@ pub fn process_effect_card_discover_pick(
         });
     }
     place_card(state, id_card, pile);
+
+    // Sacred Bark's second copy is a stat-equivalent clone, priced the same way
+    for _ in 1..copies {
+        let copy = state.entities[id_card];
+        let id_copy = push_entity(&mut state.entities, copy);
+        if let Some(scope) = cost_zero {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::SetCostOverride {
+                    amount: 0,
+                    only_reduce: false,
+                    random: false,
+                    scope,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_copy)),
+            });
+        }
+        place_card(state, id_copy, pile);
+    }
 }

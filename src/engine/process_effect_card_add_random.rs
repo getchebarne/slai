@@ -12,6 +12,7 @@ use crate::types::CardKind;
 use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::CostScope;
+use crate::utils::card_name_healing;
 use crate::utils::card_name_never_obtainable;
 use crate::utils::place_card;
 use crate::utils::push_entity;
@@ -41,6 +42,9 @@ pub fn process_effect_card_add_random(
             )
         })
         .filter(|card| !card_name_never_obtainable(card.name))
+        .filter(|card| card.kind != CardKind::Status)
+        // returnTrulyRandomCardInCombat skips HEALING; the out-of-combat grants do not
+        .filter(|card| !state.combat.active || !card_name_healing(card.name))
         .map(|card| &**card)
         .collect();
 

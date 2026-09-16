@@ -25,7 +25,7 @@ pub static EMPTY_CAGE: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::Purgeable,
+            filter: CandidateFilter::PurgeableOrBottled,
             selection_kind: SelectionKind::Input { count: 2 },
         },
     }],

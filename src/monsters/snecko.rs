@@ -27,7 +27,7 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
         },
         Effect {
             kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Vulnerable,
+                kind: ModifierKind::Weak,
                 stacks: 2,
             },
             id_source: None,
@@ -35,7 +35,7 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
         },
         Effect {
             kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Weak,
+                kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },
             id_source: None,

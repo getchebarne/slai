@@ -35,6 +35,17 @@ pub fn process_effect_damage_physical(
     // Intialize variable to accumulate base damage
     let mut base_damage = amount as i16;
 
+    // Flight is read from the snapshot the play took, not from the live stacks
+    let flight = match state
+        .combat
+        .id_monsters
+        .iter()
+        .position(|&slot| slot == Some(id_target))
+    {
+        Some(slot) => state.combat.flight_baked[slot],
+        None => has_modifier(&state.entities[id_target].modifiers, ModifierKind::Flight),
+    };
+
     // Strike Dummy: Strike-tagged Cards get +3 base, before Strength/Weak/Vuln scaling
     let source = &state.entities[id_source];
     if source.kind == EntityKind::Card
@@ -93,7 +104,7 @@ pub fn process_effect_damage_physical(
             has_modifier(mods_target, ModifierKind::Vulnerable),
             vuln_odd_mushroom,
         ),
-        has_modifier(mods_target, ModifierKind::Flight),
+        flight,
     );
 
     // Intangible (target): clamps down, so a computed 0 stays 0
