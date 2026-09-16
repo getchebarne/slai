@@ -123,6 +123,7 @@ pub enum EffectKind {
         delta: i8,
     },
     EventConsume,
+    EventOptionSelect,
     Gamble {
         choose_discards: bool,
         discards_before: Option<u8>,
@@ -259,9 +260,7 @@ pub enum EffectKind {
     },
     ShopPurge,
     ShuffleDiscardPileIntoDrawPile,
-    SingingBowlProc {
-        idx_bundle: u8,
-    },
+    SingingBowlProc,
     SneakyStrikeProc {
         energy: u8,
     },
@@ -317,12 +316,11 @@ pub enum Amount {
 }
 
 // Source pool for a Resolve effect
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CandidatePool {
     Hand,
     Character,
     Monsters,
-    MonsterPicked,
     Source,
     Discover,
     Deck,
@@ -332,6 +330,12 @@ pub enum CandidatePool {
     EventRollCard,
     EventRollRelic,
     EventRollPotion,
+
+    // The Monster a play's effects share (see Combat.id_monster_target)
+    MonsterTarget,
+
+    // The entity the current Action named (see GameState.id_selected)
+    Selected,
 }
 
 // Only Card pools are ever multi-pick
@@ -437,11 +441,68 @@ pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) 
 }
 
 // The pick outlives the roster slot, so a lethal hit still resolves a target
-pub const TARGET_MONSTER_PICKED: Target = Target::Resolve {
-    candidate_pool: CandidatePool::MonsterPicked,
+pub const TARGET_MONSTER: Target = Target::Resolve {
+    candidate_pool: CandidatePool::MonsterTarget,
     filter: CandidateFilter::Any,
     selection_kind: SelectionKind::Single,
 };
+
+// An Action's driver acts on the entity the Action named; the pool reads it off the state
+pub const TARGET_SELECTED: Target = Target::Resolve {
+    candidate_pool: CandidatePool::Selected,
+    filter: CandidateFilter::Any,
+    selection_kind: SelectionKind::Single,
+};
+
+// Action payloads shared by the resolvers and the offer snapshots, so what the
+// engine executes and what Python sees are the same values
+pub const fn effect_gold_loss(amount: u16) -> Effect {
+    Effect {
+        kind: EffectKind::GoldDelta {
+            sign: DeltaSign::Loss,
+            amount: Amount::Absolute(amount),
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }
+}
+
+pub const fn effect_gold_gain(amount: u16) -> Effect {
+    Effect {
+        kind: EffectKind::GoldDelta {
+            sign: DeltaSign::Gain,
+            amount: Amount::Absolute(amount),
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }
+}
+
+pub const EFFECT_REST_HEAL: Effect = Effect {
+    kind: EffectKind::HealthDelta {
+        sign: DeltaSign::Gain,
+        amount: Amount::Relative {
+            numerator: 3,
+            denominator: 10,
+        },
+    },
+    id_source: None,
+    target: TARGET_CHARACTER,
+};
+
+pub const EFFECT_RELIC_GRANT_RANDOM: Effect = Effect {
+    kind: EffectKind::RelicGrantRandom { tier: None },
+    id_source: None,
+    target: Target::Direct(None),
+};
+
+pub const fn effect_untargeted(kind: EffectKind) -> Effect {
+    Effect {
+        kind,
+        id_source: None,
+        target: Target::Direct(None),
+    }
+}
 
 pub const TARGET_SOURCE: Target = Target::Resolve {
     candidate_pool: CandidatePool::Source,

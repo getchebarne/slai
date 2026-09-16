@@ -2,7 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::TARGET_MONSTER_PICKED;
+use crate::effect::TARGET_MONSTER;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
@@ -16,7 +16,7 @@ const HIT: Effect = Effect {
         lifesteal: false,
     },
     id_source: None,
-    target: TARGET_MONSTER_PICKED,
+    target: TARGET_MONSTER,
 };
 const HIT_PLUS: Effect = Effect {
     kind: EffectKind::DamagePhysical {
@@ -24,7 +24,7 @@ const HIT_PLUS: Effect = Effect {
         lifesteal: false,
     }, // +1 damage
     id_source: None,
-    target: TARGET_MONSTER_PICKED,
+    target: TARGET_MONSTER,
 };
 
 pub static RIDDLE_WITH_HOLES: CardTemplate = make_card_template(

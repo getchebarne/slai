@@ -48,12 +48,6 @@ pub fn process_effect_card_play_from_draw_top(state: &mut GameState) {
     //     1. SetCostOverride
     //     2. TargetSet
     //     3. CardPlay
-    //     4. TargetClear
-    state.effect_queue.push_front(Effect {
-        kind: EffectKind::TargetClear,
-        id_source: None,
-        target: Target::Direct(None),
-    });
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardPlay,
         id_source: None,

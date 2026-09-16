@@ -8,6 +8,7 @@ use crate::types::RelicTier;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
+use super::effect::snapshot_effects_buy;
 
 mirror_enum!(PyRelicName from RelicName, "RelicName", {
     RingOfTheSnake, Akabeko, Anchor, BagOfMarbles, BagOfPreparation, BloodVial, BronzeScales, Kunai,
@@ -62,6 +63,7 @@ pub struct PyRelic {
     pub effects_pickup: Vec<PyEffect>,
     pub effects_rest: Vec<PyEffect>,
     pub effects_counter: Vec<PyEffect>,
+    pub effects_buy: Vec<PyEffect>,
 }
 
 pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
@@ -107,5 +109,6 @@ pub(crate) fn snapshot_relic(id: usize, entity: &Entity) -> PyRelic {
             .iter()
             .map(snapshot_effect)
             .collect(),
+        effects_buy: snapshot_effects_buy(entity),
     }
 }

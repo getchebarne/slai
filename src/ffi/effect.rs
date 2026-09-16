@@ -6,6 +6,8 @@ use pyo3::type_object::PyTypeInfo;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::effect::effect_gold_loss;
+use crate::entity::Entity;
 
 use super::amount::PyAmount;
 use super::amount::PyAmountScalar;
@@ -24,9 +26,19 @@ use super::relic::PyRelicName;
 use super::relic::PyRelicTier;
 use super::target::PyTarget;
 use crate::effect::RewardRollTrigger;
+use crate::types::RewardKind;
+use crate::types::ShopSlot;
 
 mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     CombatMonster, CombatElite, CombatBoss, EventFight, DreamCatcher, Orrery, Library,
+});
+
+mirror_enum!(PyRewardKind from RewardKind, "RewardKind", {
+    Card, Relic, Potion, Gold,
+});
+
+mirror_enum!(PyShopSlot from ShopSlot, "ShopSlot", {
+    Card, Relic, Potion,
 });
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs; snapshot_effect panics on runtime-only variants
@@ -106,6 +118,21 @@ flat_variants!(PyEffect {
     StasisSteal => PyEffectStasisSteal as "EffectStasisSteal",
     RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
     DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
+    CardPlay => PyEffectCardPlay as "EffectCardPlay" { target: PyTarget },
+    PotionUse => PyEffectPotionUse as "EffectPotionUse" { target: PyTarget },
+    ShopBuy => PyEffectShopBuy as "EffectShopBuy" { slot: PyShopSlot, target: PyTarget },
+    ShopPurge => PyEffectShopPurge as "EffectShopPurge",
+    RewardTake => PyEffectRewardTake as "EffectRewardTake" { kind: PyRewardKind, target: Option<PyTarget> },
+    RoomSelect => PyEffectRoomSelect as "EffectRoomSelect" { target: PyTarget },
+    RoomExit => PyEffectRoomExit as "EffectRoomExit",
+    TurnEnd => PyEffectTurnEnd as "EffectTurnEnd" { target: PyTarget },
+    TargetSet => PyEffectTargetSet as "EffectTargetSet" { target: PyTarget },
+    ChestOpen => PyEffectChestOpen as "EffectChestOpen",
+    GiryaLift => PyEffectGiryaLift as "EffectGiryaLift",
+    SingingBowlProc => PyEffectSingingBowlProc as "EffectSingingBowlProc",
+    RestSiteConsume => PyEffectRestSiteConsume as "EffectRestSiteConsume",
+    EventOptionSelect => PyEffectEventOptionSelect as "EffectEventOptionSelect" { target: PyTarget },
+    TargetClear => PyEffectTargetClear as "EffectTargetClear",
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -144,6 +171,14 @@ pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
         PyEffect::RelicLose(v) => PyEffectPending::RelicLose(v),
         other => unreachable!("effect kind cannot halt: {:?}", other),
     }
+}
+
+// What buying the entity does: its price, while it sits in a shop's stock
+pub(crate) fn snapshot_effects_buy(entity: &Entity) -> Vec<PyEffect> {
+    if entity.shop_price == 0 {
+        return Vec::new();
+    }
+    vec![snapshot_effect(&effect_gold_loss(entity.shop_price))]
 }
 
 pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
@@ -530,6 +565,39 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             lifesteal,
             target: require_target(target),
         }),
+        EffectKind::CardPlay => PyEffect::CardPlay(PyEffectCardPlay {
+            target: require_target(target),
+        }),
+        EffectKind::PotionUse => PyEffect::PotionUse(PyEffectPotionUse {
+            target: require_target(target),
+        }),
+        EffectKind::ShopBuy { slot } => PyEffect::ShopBuy(PyEffectShopBuy {
+            slot: slot.into(),
+            target: require_target(target),
+        }),
+        EffectKind::ShopPurge => PyEffect::ShopPurge(PyEffectShopPurge),
+        EffectKind::RewardTake { kind } => PyEffect::RewardTake(PyEffectRewardTake {
+            kind: kind.into(),
+            target,
+        }),
+        EffectKind::RoomSelect => PyEffect::RoomSelect(PyEffectRoomSelect {
+            target: require_target(target),
+        }),
+        EffectKind::RoomExit => PyEffect::RoomExit(PyEffectRoomExit),
+        EffectKind::TurnEnd => PyEffect::TurnEnd(PyEffectTurnEnd {
+            target: require_target(target),
+        }),
+        EffectKind::TargetSet => PyEffect::TargetSet(PyEffectTargetSet {
+            target: require_target(target),
+        }),
+        EffectKind::ChestOpen => PyEffect::ChestOpen(PyEffectChestOpen),
+        EffectKind::GiryaLift => PyEffect::GiryaLift(PyEffectGiryaLift),
+        EffectKind::SingingBowlProc => PyEffect::SingingBowlProc(PyEffectSingingBowlProc),
+        EffectKind::RestSiteConsume => PyEffect::RestSiteConsume(PyEffectRestSiteConsume),
+        EffectKind::EventOptionSelect => PyEffect::EventOptionSelect(PyEffectEventOptionSelect {
+            target: require_target(target),
+        }),
+        EffectKind::TargetClear => PyEffect::TargetClear(PyEffectTargetClear),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

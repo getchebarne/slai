@@ -70,7 +70,11 @@ pub struct GameState {
 
     // Halt overlay; cleared by the action handler that supplies the pick
     pub effect_pending: Option<Effect>,
-    pub effect_pending_selected: Vec<usize>,
+    // The client's picks for the selection in flight: entity ids, consumed by the picks in order
+    pub id_input: Vec<usize>,
+
+    // The entity the current Action named; its chain resolves against this
+    pub id_selected: Option<usize>,
 
     // Location
     pub location: Location,
@@ -206,7 +210,8 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         effect_buf: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
-        effect_pending_selected: Vec::with_capacity(MAX_SIZE_HAND),
+        id_input: Vec::with_capacity(MAX_SIZE_HAND),
+        id_selected: None,
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,
@@ -223,7 +228,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             id_card_exhaust: Vec::with_capacity(MAX_SIZE_DECK),
             id_monsters: [None; MAX_MONSTERS],
             id_card_stasis: [None; MAX_MONSTERS],
-            id_monster_picked: None,
+            id_monster_target: None,
             id_card_last_drawn: None,
             id_card_nightmare: None,
             id_card_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
@@ -263,9 +268,9 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         },
         shop: Shop {
             active: false,
-            id_cards_price: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
-            id_relics_price: Vec::with_capacity(SHOP_SLOTS_RELIC),
-            id_potions_price: Vec::with_capacity(SHOP_SLOTS_POTION),
+            id_cards: Vec::with_capacity(SHOP_SLOTS_CARD_TOTAL),
+            id_relics: Vec::with_capacity(SHOP_SLOTS_RELIC),
+            id_potions: Vec::with_capacity(SHOP_SLOTS_POTION),
             purge_cost: 0,
             purged: false,
         },
@@ -298,9 +303,9 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     state
 }
 
-pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
-    // Handle the action. May enqueue elements to `state.effect_queue`
-    handle_action(state, action)?;
+pub fn step(state: &mut GameState, idx: usize) -> Result<(), String> {
+    // Handle the idx-th legal action. May enqueue elements to `state.effect_queue`
+    handle_action(state, idx)?;
 
     // Process `state.effect_queue`
     process_effect_queue(state);
@@ -324,11 +329,8 @@ fn auto_advance(state: &mut GameState) {
             guard < 99,
             "fast_mode auto-advance exceeded 99 forced moves"
         );
-        // Get single legal action
-        let action = state.legal_actions[0].clone();
-
         // Keep processing the queue until there's more than one legal action to take
-        handle_action(state, action).expect("Cached single legal action must be valid");
+        handle_action(state, 0).expect("Cached single legal action must be valid");
         process_effect_queue(state);
         recompute_legal_actions(state);
     }

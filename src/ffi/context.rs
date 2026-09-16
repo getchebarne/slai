@@ -97,6 +97,22 @@ pub struct PyShop {
     pub purged: bool,
 }
 
+// An event's choice: the entity the option pick names, and what choosing it does
+#[pyclass(
+    skip_from_py_object,
+    eq,
+    hash,
+    frozen,
+    get_all,
+    name = "EventOption",
+    module = "slai.slai"
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PyEventOption {
+    pub id: usize,
+    pub effects: Vec<PyEffect>,
+}
+
 #[pyclass(
     skip_from_py_object,
     eq,
@@ -111,7 +127,7 @@ pub struct PyEvent {
     pub name: PyEventName,
     pub consumed: bool,
     pub stage: u8,
-    pub options: Vec<Vec<PyEffect>>,
+    pub options: Vec<PyEventOption>,
     pub roll_cards: Vec<PyCard>,
     pub roll_relics: Vec<PyRelic>,
     pub roll_potions: Vec<PyPotion>,
@@ -217,37 +233,26 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
 
 pub(crate) fn snapshot_shop(state: &GameState) -> PyShop {
     let shop = &state.shop;
+    let price = |&id: &usize| state.entities[id].shop_price;
     PyShop {
         cards: shop
-            .id_cards_price
+            .id_cards
             .iter()
-            .map(|&(id, _)| snapshot_card(state, id))
+            .map(|&id| snapshot_card(state, id))
             .collect(),
-        card_prices: shop
-            .id_cards_price
-            .iter()
-            .map(|&(_, price)| price)
-            .collect(),
+        card_prices: shop.id_cards.iter().map(price).collect(),
         relics: shop
-            .id_relics_price
+            .id_relics
             .iter()
-            .map(|&(id, _)| snapshot_relic(id, &state.entities[id]))
+            .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
-        relic_prices: shop
-            .id_relics_price
-            .iter()
-            .map(|&(_, price)| price)
-            .collect(),
+        relic_prices: shop.id_relics.iter().map(price).collect(),
         potions: shop
-            .id_potions_price
+            .id_potions
             .iter()
-            .map(|&(id, _)| snapshot_potion(id, &state.entities[id]))
+            .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
-        potion_prices: shop
-            .id_potions_price
-            .iter()
-            .map(|&(_, price)| price)
-            .collect(),
+        potion_prices: shop.id_potions.iter().map(price).collect(),
         purge_cost: shop.purge_cost,
         purged: shop.purged,
     }
@@ -266,10 +271,14 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
             .iter()
             .map(|&id| {
                 let option = &state.entities[id];
-                option.event_option_effects[..option.event_option_effects_len as usize]
-                    .iter()
-                    .map(snapshot_effect)
-                    .collect()
+                PyEventOption {
+                    id,
+                    effects: option.event_option_effects
+                        [..option.event_option_effects_len as usize]
+                        .iter()
+                        .map(snapshot_effect)
+                        .collect(),
+                }
             })
             .collect(),
         consumed: event.consumed,

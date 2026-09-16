@@ -1,9 +1,7 @@
-use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::types::DeltaSign;
 use crate::types::Reward;
 use crate::types::RewardKind;
 
@@ -64,18 +62,9 @@ pub fn process_effect_reward_take(
             (id_potion, EffectKind::PotionAdopt)
         }
 
-        // Gold: routed through GoldDelta so the MAX_GOLD cap and Ectoplasm apply
+        // Gold: the chain's GoldDelta paid it out; this claims the offer
         RewardKind::Gold => {
-            if let Some(amount) = gold.take() {
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::GoldDelta {
-                        sign: DeltaSign::Gain,
-                        amount: Amount::Absolute(amount),
-                    },
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
-            }
+            gold.take();
             return;
         }
     };

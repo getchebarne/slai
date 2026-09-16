@@ -7,6 +7,7 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::effect::effect_untargeted;
 use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
 use crate::entity::Entity;
@@ -479,6 +480,10 @@ pub fn process_effect_card_play(id_target: Option<usize>, state: &mut GameState)
         }
     }
 
+    // The play releases its Monster target
+    state
+        .effect_buf
+        .push(effect_untargeted(EffectKind::TargetClear));
     flush_effects_from_buf_to_queue_front(state);
 }
 
@@ -521,7 +526,7 @@ fn free_random_costed_hand_card(
 
     // Sample
     if num > 0 {
-        let id_pick = cards_valid[rng.random_range(0..num)];
+        let id_card = cards_valid[rng.random_range(0..num)];
         effect_queue.push_back(Effect {
             kind: EffectKind::SetCostOverride {
                 amount: 0,
@@ -530,7 +535,7 @@ fn free_random_costed_hand_card(
                 scope: CostScope::Turn,
             },
             id_source: None,
-            target: Target::Direct(Some(id_pick)),
+            target: Target::Direct(Some(id_card)),
         });
     }
 }

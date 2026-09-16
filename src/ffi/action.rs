@@ -2,18 +2,22 @@ use pyo3::prelude::*;
 use strum::IntoEnumIterator;
 
 use crate::action::Action;
+use crate::action::ActionKind;
 
-// `PyActionType` is the discriminant for the flat `PyAction` struct below
+use super::effect::PyEffect;
+use super::effect::snapshot_effect;
+
+// `PyActionKind` is the discriminant for the flat `PyAction` struct below
 #[pyclass(
     from_py_object,
     eq,
     eq_int,
     frozen,
-    name = "ActionType",
+    name = "ActionKind",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::IntoStaticStr, strum::EnumIter)]
-pub enum PyActionType {
+pub enum PyActionKind {
     CardPlay,
     ChestOpen,
     EventOptionSelect,
@@ -31,7 +35,7 @@ pub enum PyActionType {
     ShopBuyRelic,
     ShopPurge,
     TurnEnd,
-    PickSkip,
+    SelectionSkip,
     RestDig,
     RestLift,
     RestToke,
@@ -41,14 +45,14 @@ pub enum PyActionType {
 }
 
 #[pymethods]
-impl PyActionType {
+impl PyActionKind {
     // Declaration order, which is also int() order
     #[staticmethod]
-    fn members() -> Vec<PyActionType> {
-        PyActionType::iter().collect()
+    fn members() -> Vec<PyActionKind> {
+        PyActionKind::iter().collect()
     }
 
-    // variant name for the action-spec registry (raw pyo3 enums have no .name)
+    // Variant name (raw pyo3 enums have no .name)
     #[getter]
     fn name(&self) -> &'static str {
         self.into()
@@ -60,130 +64,87 @@ impl PyActionType {
     }
 }
 
+// A legal action: its kind, the entities its picks take, and the effects choosing it
+// enqueues. The engine lists these; the client picks one by index and never builds one
 #[pyclass(
-    from_py_object,
+    skip_from_py_object,
     eq,
     hash,
     frozen,
+    get_all,
     name = "Action",
     module = "slai.slai"
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyAction {
-    #[pyo3(get)]
-    pub action_type: PyActionType,
-    #[pyo3(get)]
-    pub idxs: Vec<usize>,
+    pub action_kind: PyActionKind,
+    // What the chain's pick takes, and the Monster a play targets
+    pub id_selected: Option<usize>,
+    pub id_monster_target: Option<usize>,
+    pub effects: Vec<PyEffect>,
 }
 
 #[pymethods]
 impl PyAction {
-    #[new]
-    #[pyo3(signature = (action_type, idxs))]
-    fn new(action_type: PyActionType, idxs: Vec<usize>) -> Self {
-        Self { action_type, idxs }
-    }
-
     fn __repr__(&self) -> String {
-        format!("PyAction({:?}, {:?})", self.action_type, self.idxs)
+        let ids: Vec<usize> = [self.id_selected, self.id_monster_target]
+            .into_iter()
+            .flatten()
+            .collect();
+        format!("PyAction({:?}, {ids:?})", self.action_kind)
     }
 }
 
-pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
-    let idxs = &action.idxs;
-    let i0 = idxs.first().copied().unwrap_or(0);
-    let i1 = idxs.get(1).copied().unwrap_or(0);
-    let internal = match action.action_type {
-        PyActionType::CardPlay => Action::CardPlay {
-            idx_card: i0,
-            idx_monster: idxs.get(1).copied(),
-        },
-        PyActionType::TurnEnd => Action::TurnEnd,
-        PyActionType::PickSkip => Action::PickSkip,
-        PyActionType::EffectPendingResolve => Action::EffectPendingResolve { idx: i0 },
-        PyActionType::RoomSelect => Action::RoomSelect { idx: i0 },
-        PyActionType::ShopBuyCard => Action::ShopBuyCard { idx: i0 },
-        PyActionType::ShopBuyPotion => Action::ShopBuyPotion { idx: i0 },
-        PyActionType::ShopBuyRelic => Action::ShopBuyRelic { idx: i0 },
-        PyActionType::ShopPurge => Action::ShopPurge,
-        PyActionType::Rest => Action::Rest,
-        PyActionType::RestDig => Action::RestDig,
-        PyActionType::RestLift => Action::RestLift,
-        PyActionType::RestToke => Action::RestToke,
-        PyActionType::RestSmith => Action::RestSmith,
-        PyActionType::RewardSingingBowl => Action::RewardSingingBowl { idx_bundle: i0 },
-        PyActionType::RoomExit => Action::RoomExit,
-        PyActionType::ChestOpen => Action::ChestOpen,
-        PyActionType::PotionUse => Action::PotionUse {
-            idx_potion: i0,
-            idx_monster: idxs.get(1).copied(),
-        },
-        PyActionType::PotionDiscard => Action::PotionDiscard { idx: i0 },
-        PyActionType::RewardTakeCard => Action::RewardTakeCard {
-            idx_bundle: i0,
-            idx_card: i1,
-        },
-        PyActionType::RewardTakeRelic => Action::RewardTakeRelic { idx: i0 },
-        PyActionType::RewardTakePotion => Action::RewardTakePotion { idx: i0 },
-        PyActionType::RewardTakeGold => Action::RewardTakeGold,
-        PyActionType::EventOptionSelect => Action::EventOptionSelect { idx: i0 },
-    };
-
-    // Round-trip is the arity gate: a wrong-length idxs list cannot rebuild itself
-    if from_internal_action(internal.clone()).idxs != *idxs {
-        return Err(format!(
-            "{:?} got malformed idxs {idxs:?}",
-            action.action_type
-        ));
+pub fn from_internal_action(action: &Action) -> PyAction {
+    PyAction {
+        action_kind: action.kind.into(),
+        id_selected: action.id_selected,
+        id_monster_target: action.id_monster_target,
+        effects: action.effects.iter().map(snapshot_effect).collect(),
     }
-    Ok(internal)
 }
 
-pub fn from_internal_action(action: Action) -> PyAction {
-    let (action_type, idxs) = match action {
-        Action::CardPlay {
-            idx_card,
-            idx_monster: None,
-        } => (PyActionType::CardPlay, vec![idx_card]),
-        Action::CardPlay {
-            idx_card,
-            idx_monster: Some(m),
-        } => (PyActionType::CardPlay, vec![idx_card, m]),
-        Action::TurnEnd => (PyActionType::TurnEnd, vec![]),
-        Action::PickSkip => (PyActionType::PickSkip, vec![]),
-        Action::EffectPendingResolve { idx } => (PyActionType::EffectPendingResolve, vec![idx]),
-        Action::RoomSelect { idx } => (PyActionType::RoomSelect, vec![idx]),
-        Action::Rest => (PyActionType::Rest, vec![]),
-        Action::RestDig => (PyActionType::RestDig, vec![]),
-        Action::RestLift => (PyActionType::RestLift, vec![]),
-        Action::RestToke => (PyActionType::RestToke, vec![]),
-        Action::RestSmith => (PyActionType::RestSmith, vec![]),
-        Action::RewardSingingBowl { idx_bundle } => {
-            (PyActionType::RewardSingingBowl, vec![idx_bundle])
+// Declared in the same order; the kind is the int
+impl From<PyActionKind> for ActionKind {
+    fn from(action_kind: PyActionKind) -> Self {
+        let kind = ActionKind::iter()
+            .nth(action_kind as usize)
+            .expect("Python ActionKind outside the engine's");
+        debug_assert!(
+            PyActionKind::from(kind) == action_kind,
+            "engine ActionKind order != Python ActionKind order"
+        );
+        kind
+    }
+}
+
+impl From<ActionKind> for PyActionKind {
+    fn from(kind: ActionKind) -> Self {
+        match kind {
+            ActionKind::CardPlay => Self::CardPlay,
+            ActionKind::ChestOpen => Self::ChestOpen,
+            ActionKind::EventOptionSelect => Self::EventOptionSelect,
+            ActionKind::PotionDiscard => Self::PotionDiscard,
+            ActionKind::PotionUse => Self::PotionUse,
+            ActionKind::Rest => Self::Rest,
+            ActionKind::RewardTakeCard => Self::RewardTakeCard,
+            ActionKind::RewardTakeGold => Self::RewardTakeGold,
+            ActionKind::RewardTakePotion => Self::RewardTakePotion,
+            ActionKind::RewardTakeRelic => Self::RewardTakeRelic,
+            ActionKind::RoomExit => Self::RoomExit,
+            ActionKind::RoomSelect => Self::RoomSelect,
+            ActionKind::ShopBuyCard => Self::ShopBuyCard,
+            ActionKind::ShopBuyPotion => Self::ShopBuyPotion,
+            ActionKind::ShopBuyRelic => Self::ShopBuyRelic,
+            ActionKind::ShopPurge => Self::ShopPurge,
+            ActionKind::TurnEnd => Self::TurnEnd,
+            ActionKind::SelectionSkip => Self::SelectionSkip,
+            ActionKind::RestDig => Self::RestDig,
+            ActionKind::RestLift => Self::RestLift,
+            ActionKind::RestToke => Self::RestToke,
+            ActionKind::RestSmith => Self::RestSmith,
+            ActionKind::RewardSingingBowl => Self::RewardSingingBowl,
+            ActionKind::EffectPendingResolve => Self::EffectPendingResolve,
         }
-        Action::RoomExit => (PyActionType::RoomExit, vec![]),
-        Action::ShopBuyCard { idx } => (PyActionType::ShopBuyCard, vec![idx]),
-        Action::ShopBuyPotion { idx } => (PyActionType::ShopBuyPotion, vec![idx]),
-        Action::ShopBuyRelic { idx } => (PyActionType::ShopBuyRelic, vec![idx]),
-        Action::ShopPurge => (PyActionType::ShopPurge, vec![]),
-        Action::ChestOpen => (PyActionType::ChestOpen, vec![]),
-        Action::PotionUse {
-            idx_potion,
-            idx_monster: None,
-        } => (PyActionType::PotionUse, vec![idx_potion]),
-        Action::PotionUse {
-            idx_potion,
-            idx_monster: Some(m),
-        } => (PyActionType::PotionUse, vec![idx_potion, m]),
-        Action::PotionDiscard { idx } => (PyActionType::PotionDiscard, vec![idx]),
-        Action::RewardTakeCard {
-            idx_bundle,
-            idx_card,
-        } => (PyActionType::RewardTakeCard, vec![idx_bundle, idx_card]),
-        Action::RewardTakeRelic { idx } => (PyActionType::RewardTakeRelic, vec![idx]),
-        Action::RewardTakePotion { idx } => (PyActionType::RewardTakePotion, vec![idx]),
-        Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
-        Action::EventOptionSelect { idx } => (PyActionType::EventOptionSelect, vec![idx]),
-    };
-    PyAction { action_type, idxs }
+    }
 }

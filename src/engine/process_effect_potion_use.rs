@@ -3,6 +3,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::effect_untargeted;
 use crate::game::GameState;
 use crate::potions::remove_potion;
 use crate::types::DeltaSign;
@@ -16,6 +17,11 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
     remove_potion(&mut state.id_potions, id_potion);
     let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
     let potion = &state.entities[id_potion];
+
+    // The use releases its Monster target once its effects have run
+    state
+        .effect_queue
+        .push_front(effect_untargeted(EffectKind::TargetClear));
 
     // Push the Potions's on-use effects
     for effect in potion.potion_effects.iter().rev() {

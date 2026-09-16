@@ -41,6 +41,7 @@ pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
 pub mod process_effect_event_consume;
+pub mod process_effect_event_option_select;
 pub mod process_effect_gamble;
 pub mod process_effect_girya_lift;
 pub mod process_effect_glass_knife_decay;
@@ -152,6 +153,7 @@ use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
 use self::process_effect_event_consume::process_effect_event_consume;
+use self::process_effect_event_option_select::process_effect_event_option_select;
 use self::process_effect_gamble::process_effect_gamble;
 use self::process_effect_girya_lift::process_effect_girya_lift;
 use self::process_effect_glass_knife_decay::process_effect_glass_knife_decay;
@@ -225,8 +227,6 @@ mod shop;
 
 use std::collections::VecDeque;
 
-use rand::Rng;
-
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
@@ -238,8 +238,6 @@ use crate::effect::pool_is_cards;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
-use crate::types::Combat;
-use crate::types::Event;
 use crate::types::EventName;
 use crate::types::RoomKind;
 use crate::utils::candidate_matches;
@@ -262,15 +260,15 @@ pub(crate) fn enqueue_direct_targets(
     }
 }
 
-fn fill_buf_candidates(
+pub(crate) fn fill_buf_candidates(
     effect_candidate_buf: &mut Vec<usize>,
     candidate_pool: CandidatePool,
     id_source: Option<usize>,
-    id_character: usize,
-    combat: &Combat,
-    event: &Event,
-    id_card_deck: &[usize],
+    state: &GameState,
 ) {
+    let combat = &state.combat;
+    let event = &state.event;
+
     // Combat-scoped pools demand the combat context; Character/Source/Deck don't
     match candidate_pool {
         CandidatePool::Hand => {
@@ -289,14 +287,10 @@ fn fill_buf_candidates(
             assert!(combat.active, "PileExhaust pool outside combat");
             effect_candidate_buf.extend_from_slice(&combat.id_card_exhaust)
         }
-        CandidatePool::Character => effect_candidate_buf.push(id_character),
+        CandidatePool::Character => effect_candidate_buf.push(state.id_character),
         CandidatePool::Monsters => {
             assert!(combat.active, "Monsters pool outside combat");
             effect_candidate_buf.extend(combat.id_monsters.iter().flatten().copied())
-        }
-        CandidatePool::MonsterPicked => {
-            assert!(combat.active, "MonsterPicked pool outside combat");
-            effect_candidate_buf.extend(combat.id_monster_picked)
         }
         CandidatePool::Source => {
             let id_source = id_source
@@ -308,7 +302,7 @@ fn fill_buf_candidates(
             assert!(combat.active, "Discover pool outside combat");
             effect_candidate_buf.extend_from_slice(&combat.id_card_discover)
         }
-        CandidatePool::Deck => effect_candidate_buf.extend_from_slice(id_card_deck),
+        CandidatePool::Deck => effect_candidate_buf.extend_from_slice(&state.id_card_deck),
         CandidatePool::EventRollCard => {
             assert!(event.active, "EventRollCard pool outside an event");
             effect_candidate_buf.extend_from_slice(&event.id_roll_card)
@@ -321,37 +315,75 @@ fn fill_buf_candidates(
             assert!(event.active, "EventRollPotion pool outside an event");
             effect_candidate_buf.extend_from_slice(&event.id_roll_potion)
         }
+
+        CandidatePool::MonsterTarget => {
+            assert!(combat.active, "MonsterTarget pool outside combat");
+            effect_candidate_buf.extend(combat.id_monster_target)
+        }
+        CandidatePool::Selected => {
+            effect_candidate_buf.push(state.id_selected.expect("Selected pool with no selection"))
+        }
     }
 }
 
-// Returns true if resolved (ready to enqueue); false if halted on player input
-fn resolve_selection_kind(
-    effect_candidate_buf: &mut Vec<usize>,
-    selection_kind: SelectionKind,
-    rng: &mut impl Rng,
-) -> bool {
+// Returns true if resolved (ready to enqueue); false if halted on player input. The client's
+// picks were consumed before the filter ran; here a forced pick with none input resolves alone,
+// anything else input-bound parks until the client answers
+fn resolve_selection_kind(state: &mut GameState, selection_kind: SelectionKind) -> bool {
+    let candidates = &mut state.effect_candidate_buf;
     match selection_kind {
         SelectionKind::All => true,
         SelectionKind::Single => {
             assert_eq!(
-                effect_candidate_buf.len(),
+                candidates.len(),
                 1,
                 "SelectionKind::Single resolved to {} candidates",
-                effect_candidate_buf.len()
+                candidates.len()
             );
             true
         }
         SelectionKind::Random { count } => {
-            shuffle(effect_candidate_buf.as_mut_slice(), rng);
-            effect_candidate_buf.truncate(count as usize);
+            shuffle(candidates.as_mut_slice(), &mut state.rng);
+            candidates.truncate(count as usize);
             true
         }
-        SelectionKind::Input { count } => (count as usize) >= effect_candidate_buf.len(),
+        SelectionKind::Input { count } => {
+            state.id_input.is_empty() && count as usize >= candidates.len()
+        }
         SelectionKind::InputUpTo { count } => {
             assert!(count > 0, "InputUpTo requires a positive count");
-            effect_candidate_buf.is_empty()
+            candidates.is_empty()
         }
     }
+}
+
+// The entities a pick can take: its pool, filtered. The one definition — the legal-action
+// pass offers these and the resolver resolves against them
+pub(crate) fn selection_candidates(
+    state: &GameState,
+    candidate_pool: CandidatePool,
+    filter: CandidateFilter,
+    id_source: Option<usize>,
+) -> Vec<usize> {
+    let mut candidates = Vec::new();
+    fill_buf_candidates(&mut candidates, candidate_pool, id_source, state);
+
+    candidates.retain(|&id| candidate_matches(filter, id, &state.entities[id], id_source));
+    candidates
+}
+
+// The first `count` inputs become the pick, in input order: each a candidate, none twice
+fn take_input(state: &mut GameState, candidates: &mut Vec<usize>, count: usize) {
+    let ids: Vec<usize> = state.id_input.drain(..count).collect();
+    for (i, &id) in ids.iter().enumerate() {
+        assert!(
+            candidates.contains(&id),
+            "input {id} is not a candidate of the pick"
+        );
+        assert!(!ids[..i].contains(&id), "input {id} picked twice");
+    }
+    candidates.clear();
+    candidates.extend(ids);
 }
 
 // Returns true on success; false on halt (unresolved Effect stashed in effect_pending)
@@ -402,43 +434,33 @@ fn resolve_or_halt(
         "multi-pick halt over a non-card pool: {candidate_pool:?}"
     );
 
-    // Stage 1: the pool enumerates
-    state.effect_candidate_buf.clear();
-    fill_buf_candidates(
-        &mut state.effect_candidate_buf,
-        candidate_pool,
-        id_source,
-        state.id_character,
-        &state.combat,
-        &state.event,
-        &state.id_card_deck,
-    );
+    let mut candidates = selection_candidates(state, candidate_pool, filter, id_source);
 
-    // Stage 2: the filter retains
-    let entities = &state.entities;
-    state
-        .effect_candidate_buf
-        .retain(|&id| candidate_matches(filter, id, &entities[id], id_source));
+    // A pick with all its inputs in resolves to them and never halts
+    if let SelectionKind::Input { count } | SelectionKind::InputUpTo { count } = selection_kind
+        && state.id_input.len() >= count as usize
+    {
+        take_input(state, &mut candidates, count as usize);
+        state.effect_candidate_buf = candidates;
+        return true;
+    }
 
     // NotSource: the last Monster standing falls back to targeting itself
     if filter == CandidateFilter::NotSource
-        && state.effect_candidate_buf.is_empty()
+        && candidates.is_empty()
         && let Some(id_source) = id_source
     {
-        state.effect_candidate_buf.push(id_source);
+        candidates.push(id_source);
     }
+    state.effect_candidate_buf = candidates;
 
     // Nothing survived: the effect resolves to no targets (guards Single's assert)
     if state.effect_candidate_buf.is_empty() {
         return true;
     }
 
-    // Stage 3: the selection picks. Returns `true` if the targets were resolved
-    resolve_selection_kind(
-        &mut state.effect_candidate_buf,
-        selection_kind,
-        &mut state.rng,
-    )
+    // The selection picks. Returns `true` if the targets were resolved
+    resolve_selection_kind(state, selection_kind)
 }
 
 fn dispatch_by_kind(
@@ -498,9 +520,7 @@ fn dispatch_by_kind(
         EffectKind::BonfireOffer => process_effect_bonfire_offer(id_target, state),
         EffectKind::CardBottle => process_effect_card_bottle(id_target, state),
         EffectKind::GiryaLift => process_effect_girya_lift(state),
-        EffectKind::SingingBowlProc { idx_bundle } => {
-            process_effect_singing_bowl_proc(state, idx_bundle)
-        }
+        EffectKind::SingingBowlProc => process_effect_singing_bowl_proc(id_target, state),
         EffectKind::WheelSpin => process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => process_effect_card_upgrade(id_target, state),
         EffectKind::RewardRollCards { bundles, trigger } => {
@@ -666,6 +686,7 @@ fn dispatch_by_kind(
             advance_on_miss,
         } => process_effect_scrap_ooze_reach(state, chance, advance_on_miss),
         EffectKind::EventConsume => process_effect_event_consume(state),
+        EffectKind::EventOptionSelect => process_effect_event_option_select(id_target, state),
         EffectKind::CardDiscoverPick { cost_zero, pile } => {
             process_effect_card_discover_pick(id_target, state, cost_zero, pile)
         }
@@ -685,6 +706,8 @@ pub fn process_effect_queue(state: &mut GameState) {
                 });
                 continue;
             }
+            // A drained queue owes no target; a halt keeps its play's
+            state.combat.id_monster_target = None;
             ensure_context_validity(state);
             return; // Queue drained
         };
@@ -699,8 +722,8 @@ pub fn process_effect_queue(state: &mut GameState) {
 // with world facts. Every active context is checked against the Room directly
 fn ensure_context_validity(state: &GameState) {
     assert!(
-        state.effect_pending.is_some() || state.effect_pending_selected.is_empty(),
-        "staged picks outlived their halt"
+        state.effect_pending.is_some() || state.id_input.is_empty(),
+        "input outlived its pick"
     );
     if state.game_over {
         return;

@@ -30,7 +30,8 @@ pub struct Combat {
     pub id_card_exhaust: Vec<usize>,
     pub id_monsters: [Option<usize>; MAX_MONSTERS],
     pub id_card_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
-    pub id_monster_picked: Option<usize>,
+    // The Monster a played Card's or used Potion's effects share, set by TargetSet
+    pub id_monster_target: Option<usize>,
     pub id_card_last_drawn: Option<usize>,
     pub id_card_nightmare: Option<usize>,
     pub id_card_discover: Vec<usize>,
@@ -61,7 +62,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.id_card_exhaust.clear();
     combat.id_monsters.fill(None);
     combat.id_card_stasis.fill(None);
-    combat.id_monster_picked = None;
+    combat.id_monster_target = None;
     combat.id_card_last_drawn = None;
     combat.id_card_nightmare = None;
     combat.id_card_discover.clear();
@@ -140,18 +141,18 @@ pub fn event_reset(event: &mut Event) {
 pub struct Shop {
     pub active: bool,
 
-    // The stock as offers: (entity id, price)
-    pub id_cards_price: Vec<(usize, u16)>,
-    pub id_relics_price: Vec<(usize, u16)>,
-    pub id_potions_price: Vec<(usize, u16)>,
+    // The stock; each entity carries its price
+    pub id_cards: Vec<usize>,
+    pub id_relics: Vec<usize>,
+    pub id_potions: Vec<usize>,
     pub purge_cost: u16,
     pub purged: bool,
 }
 
 pub fn shop_reset(shop: &mut Shop) {
-    shop.id_cards_price.clear();
-    shop.id_relics_price.clear();
-    shop.id_potions_price.clear();
+    shop.id_cards.clear();
+    shop.id_relics.clear();
+    shop.id_potions.clear();
     shop.purge_cost = 0;
     shop.purged = false;
 }

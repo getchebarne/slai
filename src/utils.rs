@@ -40,6 +40,9 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
+use crate::game::Location;
+use crate::map::get_active_room_kind;
+use crate::map::has_edge;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::relics::POOL_BOSS_RELIC;
@@ -55,8 +58,10 @@ use crate::types::CardRarity;
 use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::Focus;
+use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
+use crate::types::RoomKind;
 
 // Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
@@ -208,7 +213,7 @@ pub fn effects_require_target(effects: &[Effect]) -> bool {
         matches!(
             effect.target,
             Target::Resolve {
-                candidate_pool: CandidatePool::MonsterPicked,
+                candidate_pool: CandidatePool::MonsterTarget,
                 ..
             }
         )
@@ -230,8 +235,7 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
 pub use card_is_purgeable as card_is_transformable;
 
 // Single source of truth for which candidates a Resolve admits, whatever the
-// pool. Entity predicates are total over the fat Entity; Picked / NotSource
-// compare `id` against the resolve context instead
+// pool; `position` is the candidate's index in the unfiltered pool
 pub fn candidate_matches(
     filter: CandidateFilter,
     id: usize,
@@ -264,6 +268,89 @@ pub fn candidate_matches(
             matches!(entity.card_name, CardName::Strike | CardName::Defend)
                 && card_is_upgradable(entity)
         }
+    }
+}
+
+// A hand Card the character can play right now
+pub fn card_is_playable(state: &GameState, card: &Entity) -> bool {
+    let combat = &state.combat;
+    if !combat.active {
+        return false;
+    }
+    let id_character = state.id_character;
+    let id_card_hand = &combat.id_card_hand;
+
+    // Normality in hand caps the turn at 3 plays; Velvet Choker at 6
+    let normality_blocks = combat.this_turn_cards_played >= 3
+        && id_card_hand
+            .iter()
+            .any(|&id| state.entities[id].card_name == CardName::Normality);
+    let choker_blocks =
+        combat.this_turn_cards_played >= 6 && has_relic(&state.id_relics, RelicName::VelvetChoker);
+    if normality_blocks || choker_blocks {
+        return false;
+    }
+    let restriction_ok = is_play_restriction_satisfied(
+        card.card_play_restriction,
+        card.card_kind,
+        &combat.id_card_draw,
+        &state.id_relics,
+    );
+    let entangled = has_modifier(
+        &state.entities[id_character].modifiers,
+        ModifierKind::Entangled,
+    );
+    if !restriction_ok || (entangled && card.card_kind == CardKind::Attack) {
+        return false;
+    }
+    let cost = get_card_effective_cost(
+        card,
+        combat.this_turn_discards,
+        combat.this_combat_damage_instances_taken,
+        combat.energy.energy_current,
+    );
+    cost <= combat.energy.energy_current
+}
+
+// A belt Potion the character can drink right now (discarding is always legal)
+pub fn potion_is_usable(state: &GameState, potion: &Entity) -> bool {
+    let in_combat = context_focus(state) == Focus::Combat;
+
+    // Fairy in a Bottle only procs from the death hook
+    if potion.potion_name == PotionName::Fairy {
+        return false;
+    }
+
+    // Smoke Bomb can't escape a Boss fight
+    if potion.potion_name == PotionName::SmokeBomb
+        && in_combat
+        && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+            == Some(RoomKind::CombatBoss)
+    {
+        return false;
+    }
+    if potion.potion_combat_only && !in_combat {
+        return false;
+    }
+    !(entity_requires_target(potion) && !in_combat)
+}
+
+// A next-row Room the character can step to
+pub fn room_is_reachable(state: &GameState, room: &Entity) -> bool {
+    match state.location {
+        Location::Start => true,
+        Location::Overworld { y, x } => {
+            let Some(id_current) = state.id_rooms[y][x] else {
+                return false;
+            };
+
+            // Winged Boots: can fly to any room
+            let winged = state.id_relics[RelicName::WingBoots as usize]
+                .is_some_and(|id| state.entities[id].relic_counter > 0);
+
+            winged || has_edge(state.entities[id_current].room_edges, room.room_x)
+        }
+        Location::BossRoom => false,
     }
 }
 

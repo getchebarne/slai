@@ -11,9 +11,9 @@ use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
 mirror_enum!(PyCandidatePool from CandidatePool, "CandidatePool", {
-    Hand, Character, Monsters, MonsterPicked, Source, Discover, Deck, PileDraw, PileDiscard,
-    PileExhaust,
+    Hand, Character, Monsters, Source, Discover, Deck, PileDraw, PileDiscard, PileExhaust,
     EventRollCard, EventRollRelic, EventRollPotion,
+    MonsterTarget, Selected,
 });
 
 mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", {

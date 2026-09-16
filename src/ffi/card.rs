@@ -29,6 +29,7 @@ use super::effect::PyEffect;
 use super::effect::PyEffectBlockGain;
 use super::effect::PyEffectDamagePhysical;
 use super::effect::snapshot_effect;
+use super::effect::snapshot_effects_buy;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
@@ -139,6 +140,7 @@ pub struct PyCard {
 
     // Effects, with Dex / Str / Vigor / etc. applied
     pub effects: Vec<PyEffect>,
+    pub effects_buy: Vec<PyEffect>,
 }
 
 // Display-name lookups
@@ -394,6 +396,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
             && !entangled_blocks
             && (!state.combat.active || cost <= energy_current),
         effects: snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers),
+        effects_buy: snapshot_effects_buy(card),
     };
     py_card
 }

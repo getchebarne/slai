@@ -2,7 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::TARGET_MONSTER_PICKED;
+use crate::effect::TARGET_MONSTER;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
 use crate::modifier::ModifierKind;
@@ -30,7 +30,7 @@ pub static TERROR: CardTemplate = make_card_template(
             stacks: STACKS_TERROR,
         },
         id_source: None,
-        target: TARGET_MONSTER_PICKED,
+        target: TARGET_MONSTER,
     }],
     &[],
     &[],

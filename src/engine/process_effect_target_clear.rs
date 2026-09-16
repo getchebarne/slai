@@ -1,13 +1,6 @@
 use crate::game::GameState;
-use crate::types::Combat;
 
+// The tail of every play: the shared Monster target is released
 pub fn process_effect_target_clear(state: &mut GameState) {
-    assert!(
-        state.combat.active,
-        "process_effect_target_clear outside the Combat frame"
-    );
-    let Combat {
-        id_monster_picked, ..
-    } = &mut state.combat;
-    *id_monster_picked = None;
+    state.combat.id_monster_target = None;
 }
