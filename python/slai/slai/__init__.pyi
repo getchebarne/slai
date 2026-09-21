@@ -62,9 +62,7 @@ class Action:
     @property
     def effects(self, /) -> list[EffectDamagePhysical |EffectDamagePhysicalIfPoisoned |EffectHeelHookProc |EffectEscapePlanCheck |EffectGlassKnifeDecay |EffectCardSetupPick |EffectCardNightmarePick |EffectDistractionAdd |EffectSetCostOverride |EffectDamageFinisher |EffectDamageFlechettes |EffectUnloadDiscard |EffectStormOfSteelProc |EffectSneakyStrikeProc |EffectBlockGain |EffectModifierGain |EffectModifierMultiply |EffectEnergyDelta |EffectCardAdd |EffectCardDraw |EffectCardDrawUpTo |EffectCardDiscard |EffectCardRetain |EffectDamageMindBlast |EffectShuffleDiscardPileIntoDrawPile |EffectMaxHealthDelta |EffectHealthDelta |EffectPotionAddRandom |EffectPotionDiscard |EffectRewardRollPotions |EffectCardDiscoverRoll |EffectGoldDelta |EffectRelicGrantRandom |EffectWheelSpin |EffectBonfireOffer |EffectCardBottle |EffectMonsterSpawn |EffectCombatStart |EffectAdventurerSearch |EffectRelicGrantSpecific |EffectEventAdvanceState |EffectScrapOozeReach |EffectEventConsume |EffectCardDiscoverPick |EffectCardPurge |EffectCardUpgrade |EffectCardDuplicate |EffectCardTransform |EffectCardAddRandom |EffectCardDrawIfNoAttacks |EffectHandOfGreedProc |EffectRitualDaggerProc |EffectCardExhaust |EffectCardMove |EffectCardPlayFromDrawTop |EffectGamble |EffectCombatEnd |EffectRelicLose |EffectRewardRollNeowCards |EffectStrengthLoseTemp |EffectMausoleumOpen |EffectKnowingSkullCostBump |EffectJoustBet |EffectRewardRollLibraryCards |EffectRelicGrantPool |EffectDebuffsClear |EffectGremlinSummon |EffectHexaghostBurnIncrease |EffectModifierRemove |EffectMonsterEscape |EffectMonsterRemove |EffectMonsterSplit |EffectStasisSteal |EffectRewardRollCards |EffectDamageDeal |EffectCardPlay |EffectPotionUse |EffectShopBuy |EffectShopPurge |EffectRewardTake |EffectRoomSelect |EffectRoomExit |EffectTurnEnd |EffectTargetSet |EffectChestOpen |EffectGiryaLift |EffectSingingBowlProc |EffectRestSiteConsume |EffectEventOptionSelect |EffectTargetClear]: ...
     @property
-    def id_monster_target(self, /) -> int |None: ...
-    @property
-    def id_selected(self, /) -> int |None: ...
+    def id_input(self, /) -> list[int]: ...
 
 @final
 class ActionKind:
@@ -132,19 +130,24 @@ class AmountRelative:
 
 @final
 class CandidateFilter:
+    Affordable: Final[CandidateFilter]
     Any: Final[CandidateFilter]
     Costed: Final[CandidateFilter]
+    EventOptionAvailable: Final[CandidateFilter]
     KindAttack: Final[CandidateFilter]
     KindPower: Final[CandidateFilter]
     KindSkill: Final[CandidateFilter]
     NotMinion: Final[CandidateFilter]
     NotSource: Final[CandidateFilter]
+    Playable: Final[CandidateFilter]
     Purgeable: Final[CandidateFilter]
     PurgeableCurse: Final[CandidateFilter]
+    Reachable: Final[CandidateFilter]
     StarterStrike: Final[CandidateFilter]
     StarterUpgradeable: Final[CandidateFilter]
     Transformable: Final[CandidateFilter]
     Upgradeable: Final[CandidateFilter]
+    Usable: Final[CandidateFilter]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
     def __int__(self, /) -> int: ...
@@ -155,19 +158,26 @@ class CandidateFilter:
 
 @final
 class CandidatePool:
+    CardShop: Final[CandidatePool]
     Character: Final[CandidatePool]
     Deck: Final[CandidatePool]
     Discover: Final[CandidatePool]
+    EventOptions: Final[CandidatePool]
     EventRollCard: Final[CandidatePool]
     EventRollPotion: Final[CandidatePool]
     EventRollRelic: Final[CandidatePool]
     Hand: Final[CandidatePool]
-    MonsterTarget: Final[CandidatePool]
     Monsters: Final[CandidatePool]
+    NextRooms: Final[CandidatePool]
     PileDiscard: Final[CandidatePool]
     PileDraw: Final[CandidatePool]
     PileExhaust: Final[CandidatePool]
-    Selected: Final[CandidatePool]
+    PotionShop: Final[CandidatePool]
+    PotionsOwned: Final[CandidatePool]
+    RelicShop: Final[CandidatePool]
+    RewardCards: Final[CandidatePool]
+    RewardPotions: Final[CandidatePool]
+    RewardRelics: Final[CandidatePool]
     Source: Final[CandidatePool]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
@@ -2325,6 +2335,12 @@ class SelectionKindSingle:
     def __ne__(self, other: object) -> bool: ...
 
 @final
+class SelectionKindTarget:
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self, /) -> int: ...
+    def __ne__(self, other: object) -> bool: ...
+
+@final
 class Shop:
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
@@ -2369,7 +2385,7 @@ class Target:
     @property
     def filter(self, /) -> CandidateFilter: ...
     @property
-    def selection_kind(self, /) -> SelectionKindAll |SelectionKindSingle |SelectionKindRandom |SelectionKindInput |SelectionKindInputUpTo: ...
+    def selection_kind(self, /) -> SelectionKindAll |SelectionKindSingle |SelectionKindRandom |SelectionKindInput |SelectionKindInputUpTo |SelectionKindTarget: ...
 
 def get_card_templates() -> list[CardTemplate]: ...
 def get_event_option_templates(ascension: int) -> list[EventOptionTemplate]: ...

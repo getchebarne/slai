@@ -227,6 +227,7 @@ mod shop;
 
 use std::collections::VecDeque;
 
+use crate::consts::MAP_HEIGHT;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
@@ -268,6 +269,8 @@ pub(crate) fn fill_buf_candidates(
 ) {
     let combat = &state.combat;
     let event = &state.event;
+    let reward = &state.reward;
+    let shop = &state.shop;
 
     // Combat-scoped pools demand the combat context; Character/Source/Deck don't
     match candidate_pool {
@@ -315,13 +318,46 @@ pub(crate) fn fill_buf_candidates(
             assert!(event.active, "EventRollPotion pool outside an event");
             effect_candidate_buf.extend_from_slice(&event.id_roll_potion)
         }
-
-        CandidatePool::MonsterTarget => {
-            assert!(combat.active, "MonsterTarget pool outside combat");
-            effect_candidate_buf.extend(combat.id_monster_target)
+        CandidatePool::PotionsOwned => effect_candidate_buf.extend_from_slice(&state.id_potions),
+        CandidatePool::EventOptions => {
+            assert!(event.active, "EventOptions pool outside an event");
+            effect_candidate_buf.extend_from_slice(&event.id_event_options)
         }
-        CandidatePool::Selected => {
-            effect_candidate_buf.push(state.id_selected.expect("Selected pool with no selection"))
+        CandidatePool::RewardCards => {
+            assert!(reward.active, "RewardCards pool outside a reward");
+            effect_candidate_buf.extend(reward.id_cards.iter().flatten().copied())
+        }
+        CandidatePool::RewardRelics => {
+            assert!(reward.active, "RewardRelics pool outside a reward");
+            effect_candidate_buf.extend_from_slice(&reward.id_relics)
+        }
+        CandidatePool::RewardPotions => {
+            assert!(reward.active, "RewardPotions pool outside a reward");
+            effect_candidate_buf.extend_from_slice(&reward.id_potions)
+        }
+        CandidatePool::CardShop => {
+            assert!(shop.active, "CardShop pool outside a shop");
+            effect_candidate_buf.extend_from_slice(&shop.id_cards)
+        }
+        CandidatePool::RelicShop => {
+            assert!(shop.active, "RelicShop pool outside a shop");
+            effect_candidate_buf.extend_from_slice(&shop.id_relics)
+        }
+        CandidatePool::PotionShop => {
+            assert!(shop.active, "PotionShop pool outside a shop");
+            effect_candidate_buf.extend_from_slice(&shop.id_potions)
+        }
+
+        // The row after the current location; none past the last row or in the Boss Room
+        CandidatePool::NextRooms => {
+            let y_next = match state.location {
+                Location::Start => Some(0),
+                Location::Overworld { y, .. } => (y + 1 < MAP_HEIGHT).then_some(y + 1),
+                Location::BossRoom => None,
+            };
+            if let Some(y_next) = y_next {
+                effect_candidate_buf.extend(state.id_rooms[y_next].iter().flatten().copied())
+            }
         }
     }
 }
@@ -354,6 +390,7 @@ fn resolve_selection_kind(state: &mut GameState, selection_kind: SelectionKind) 
             assert!(count > 0, "InputUpTo requires a positive count");
             candidates.is_empty()
         }
+        SelectionKind::Target => unreachable!("Target resolves before enumeration"),
     }
 }
 
@@ -368,22 +405,32 @@ pub(crate) fn selection_candidates(
     let mut candidates = Vec::new();
     fill_buf_candidates(&mut candidates, candidate_pool, id_source, state);
 
-    candidates.retain(|&id| candidate_matches(filter, id, &state.entities[id], id_source));
+    candidates.retain(|&id| candidate_matches(state, filter, id, id_source));
     candidates
 }
 
-// The first `count` inputs become the pick, in input order: each a candidate, none twice
-fn take_input(state: &mut GameState, candidates: &mut Vec<usize>, count: usize) {
-    let ids: Vec<usize> = state.id_input.drain(..count).collect();
-    for (i, &id) in ids.iter().enumerate() {
-        assert!(
-            candidates.contains(&id),
-            "input {id} is not a candidate of the pick"
-        );
-        assert!(!ids[..i].contains(&id), "input {id} picked twice");
-    }
-    candidates.clear();
-    candidates.extend(ids);
+// The first `count` inputs become the pick, in input order
+fn take_input(state: &mut GameState, count: usize) {
+    state.effect_candidate_buf.clear();
+    state
+        .effect_candidate_buf
+        .extend(state.id_input.drain(..count));
+}
+
+// Debug check on a taken pick: each id a candidate of the pool, none twice. Release trusts the
+// input, since every id in it came from `selection_candidates` in the legal pass
+fn taken_are_candidates(
+    state: &GameState,
+    candidate_pool: CandidatePool,
+    filter: CandidateFilter,
+    id_source: Option<usize>,
+) -> bool {
+    let candidates = selection_candidates(state, candidate_pool, filter, id_source);
+    let taken = &state.effect_candidate_buf;
+    taken
+        .iter()
+        .enumerate()
+        .all(|(i, id)| candidates.contains(id) && !taken[..i].contains(id))
 }
 
 // Returns true on success; false on halt (unresolved Effect stashed in effect_pending)
@@ -434,16 +481,31 @@ fn resolve_or_halt(
         "multi-pick halt over a non-card pool: {candidate_pool:?}"
     );
 
-    let mut candidates = selection_candidates(state, candidate_pool, filter, id_source);
+    // Target: the Monster the play's TargetSet picked, read without enumerating the pool: a
+    // killing blow drops the roster slot but keeps Hand of Greed's and Ritual Dagger's procs
+    if selection_kind == SelectionKind::Target {
+        let id_monster = state
+            .combat
+            .id_monster_target
+            .expect("Target before its TargetSet");
+        state.effect_candidate_buf.clear();
+        state.effect_candidate_buf.push(id_monster);
+        return true;
+    }
 
-    // A pick with all its inputs in resolves to them and never halts
+    // A pick whose answers are already input takes them; the legal pass enumerated once
     if let SelectionKind::Input { count } | SelectionKind::InputUpTo { count } = selection_kind
         && state.id_input.len() >= count as usize
     {
-        take_input(state, &mut candidates, count as usize);
-        state.effect_candidate_buf = candidates;
+        take_input(state, count as usize);
+        debug_assert!(
+            taken_are_candidates(state, candidate_pool, filter, id_source),
+            "input outside the pick's candidates"
+        );
         return true;
     }
+
+    let mut candidates = selection_candidates(state, candidate_pool, filter, id_source);
 
     // NotSource: the last Monster standing falls back to targeting itself
     if filter == CandidateFilter::NotSource

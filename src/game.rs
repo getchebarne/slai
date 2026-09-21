@@ -70,11 +70,9 @@ pub struct GameState {
 
     // Halt overlay; cleared by the action handler that supplies the pick
     pub effect_pending: Option<Effect>,
-    // The client's picks for the selection in flight: entity ids, consumed by the picks in order
-    pub id_input: Vec<usize>,
 
-    // The entity the current Action named; its chain resolves against this
-    pub id_selected: Option<usize>,
+    // The client's answers to the picks in flight, in pick order; an Action pre-loads its own
+    pub id_input: Vec<usize>,
 
     // Location
     pub location: Location,
@@ -211,7 +209,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
         id_input: Vec::with_capacity(MAX_SIZE_HAND),
-        id_selected: None,
         unknown_chance_monster: UNKNOWN_CHANCE_BASE_MONSTER,
         unknown_chance_shop: UNKNOWN_CHANCE_BASE_SHOP,
         unknown_chance_treasure: UNKNOWN_CHANCE_BASE_TREASURE,

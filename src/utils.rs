@@ -30,15 +30,16 @@ use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RewardRollTrigger;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
+use crate::events::event_option_available;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
@@ -213,7 +214,7 @@ pub fn effects_require_target(effects: &[Effect]) -> bool {
         matches!(
             effect.target,
             Target::Resolve {
-                candidate_pool: CandidatePool::MonsterTarget,
+                selection_kind: SelectionKind::Target,
                 ..
             }
         )
@@ -237,11 +238,12 @@ pub use card_is_purgeable as card_is_transformable;
 // Single source of truth for which candidates a Resolve admits, whatever the
 // pool; `position` is the candidate's index in the unfiltered pool
 pub fn candidate_matches(
+    state: &GameState,
     filter: CandidateFilter,
     id: usize,
-    entity: &Entity,
     id_source: Option<usize>,
 ) -> bool {
+    let entity = &state.entities[id];
     match filter {
         CandidateFilter::Any => true,
         CandidateFilter::Purgeable => card_is_purgeable(entity),
@@ -268,11 +270,26 @@ pub fn candidate_matches(
             matches!(entity.card_name, CardName::Strike | CardName::Defend)
                 && card_is_upgradable(entity)
         }
+        CandidateFilter::Playable => card_is_playable(state, entity),
+        CandidateFilter::Usable => potion_is_usable(state, entity),
+        CandidateFilter::Affordable => {
+            state.entities[state.id_character].character_gold >= entity.shop_price
+        }
+        CandidateFilter::Reachable => room_is_reachable(state, entity),
+        CandidateFilter::EventOptionAvailable => {
+            let idx = state
+                .event
+                .id_event_options
+                .iter()
+                .position(|&id_option| id_option == id)
+                .expect("EventOptionAvailable over an entity outside the event's options");
+            event_option_available(state, idx)
+        }
     }
 }
 
 // A hand Card the character can play right now
-pub fn card_is_playable(state: &GameState, card: &Entity) -> bool {
+fn card_is_playable(state: &GameState, card: &Entity) -> bool {
     let combat = &state.combat;
     if !combat.active {
         return false;
@@ -313,7 +330,7 @@ pub fn card_is_playable(state: &GameState, card: &Entity) -> bool {
 }
 
 // A belt Potion the character can drink right now (discarding is always legal)
-pub fn potion_is_usable(state: &GameState, potion: &Entity) -> bool {
+fn potion_is_usable(state: &GameState, potion: &Entity) -> bool {
     let in_combat = context_focus(state) == Focus::Combat;
 
     // Fairy in a Bottle only procs from the death hook
@@ -336,7 +353,7 @@ pub fn potion_is_usable(state: &GameState, potion: &Entity) -> bool {
 }
 
 // A next-row Room the character can step to
-pub fn room_is_reachable(state: &GameState, room: &Entity) -> bool {
+fn room_is_reachable(state: &GameState, room: &Entity) -> bool {
     match state.location {
         Location::Start => true,
         Location::Overworld { y, x } => {

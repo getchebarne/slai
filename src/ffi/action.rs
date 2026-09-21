@@ -64,8 +64,8 @@ impl PyActionKind {
     }
 }
 
-// A legal action: its kind, the entities its picks take, and the effects choosing it
-// enqueues. The engine lists these; the client picks one by index and never builds one
+// A legal action: its kind, the answers to its chain's picks in order, and that chain. The
+// engine lists these; the client picks one by index and never builds one
 #[pyclass(
     skip_from_py_object,
     eq,
@@ -78,28 +78,21 @@ impl PyActionKind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyAction {
     pub action_kind: PyActionKind,
-    // What the chain's pick takes, and the Monster a play targets
-    pub id_selected: Option<usize>,
-    pub id_monster_target: Option<usize>,
+    pub id_input: Vec<usize>,
     pub effects: Vec<PyEffect>,
 }
 
 #[pymethods]
 impl PyAction {
     fn __repr__(&self) -> String {
-        let ids: Vec<usize> = [self.id_selected, self.id_monster_target]
-            .into_iter()
-            .flatten()
-            .collect();
-        format!("PyAction({:?}, {ids:?})", self.action_kind)
+        format!("PyAction({:?}, {:?})", self.action_kind, self.id_input)
     }
 }
 
 pub fn from_internal_action(action: &Action) -> PyAction {
     PyAction {
         action_kind: action.kind.into(),
-        id_selected: action.id_selected,
-        id_monster_target: action.id_monster_target,
+        id_input: action.id_input.clone(),
         effects: action.effects.iter().map(snapshot_effect).collect(),
     }
 }

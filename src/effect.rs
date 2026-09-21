@@ -331,11 +331,16 @@ pub enum CandidatePool {
     EventRollRelic,
     EventRollPotion,
 
-    // The Monster a play's effects share (see Combat.id_monster_target)
-    MonsterTarget,
-
-    // The entity the current Action named (see GameState.id_selected)
-    Selected,
+    // The collections an Action's chain picks from
+    PotionsOwned,
+    EventOptions,
+    RewardCards,
+    RewardRelics,
+    RewardPotions,
+    CardShop,
+    RelicShop,
+    PotionShop,
+    NextRooms,
 }
 
 // Only Card pools are ever multi-pick
@@ -380,6 +385,13 @@ pub enum CandidateFilter {
     // Starter-Card predicates (Vampires, Back to Basics)
     StarterStrike,
     StarterUpgradeable,
+
+    // Compare against the game state
+    Playable,
+    Usable,
+    Affordable,
+    Reachable,
+    EventOptionAvailable,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -389,6 +401,9 @@ pub enum SelectionKind {
     Random { count: u8 },
     Input { count: u16 },
     InputUpTo { count: u16 },
+
+    // The Monster the play's TargetSet picked (see Combat.id_monster_target)
+    Target,
 }
 
 // Target known at queue time (Direct) or resolved against live state at dequeue (Resolve)
@@ -442,17 +457,38 @@ pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) 
 
 // The pick outlives the roster slot, so a lethal hit still resolves a target
 pub const TARGET_MONSTER: Target = Target::Resolve {
-    candidate_pool: CandidatePool::MonsterTarget,
+    candidate_pool: CandidatePool::Monsters,
     filter: CandidateFilter::Any,
-    selection_kind: SelectionKind::Single,
+    selection_kind: SelectionKind::Target,
 };
 
-// An Action's driver acts on the entity the Action named; the pool reads it off the state
-pub const TARGET_SELECTED: Target = Target::Resolve {
-    candidate_pool: CandidatePool::Selected,
-    filter: CandidateFilter::Any,
-    selection_kind: SelectionKind::Single,
+// Heads a targeted play's chain: the Monster its effects share
+pub const EFFECT_TARGET_SET: Effect = Effect {
+    kind: EffectKind::TargetSet,
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Monsters,
+        filter: CandidateFilter::Any,
+        selection_kind: SelectionKind::Input { count: 1 },
+    },
 };
+
+// A driver that picks one entity from a pool
+pub const fn effect_input_one(
+    kind: EffectKind,
+    candidate_pool: CandidatePool,
+    filter: CandidateFilter,
+) -> Effect {
+    Effect {
+        kind,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool,
+            filter,
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
+    }
+}
 
 // Action payloads shared by the resolvers and the offer snapshots, so what the
 // engine executes and what Python sees are the same values

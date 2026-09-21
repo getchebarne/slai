@@ -427,6 +427,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PySelectionKindSingle;
     #[pymodule_export]
+    use super::ffi::PySelectionKindTarget;
+    #[pymodule_export]
     use super::ffi::PyShop;
     // Content catalog: template classes + state-free enumeration functions
     #[pymodule_export]

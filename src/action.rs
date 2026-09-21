@@ -2,54 +2,45 @@ use strum::EnumCount;
 use strum::EnumIter;
 
 use crate::consts::GIRYA_LIFT_MAX;
-use crate::consts::MAP_HEIGHT;
+use crate::effect::CandidateFilter;
+use crate::effect::CandidatePool;
 use crate::effect::EFFECT_RELIC_GRANT_RANDOM;
 use crate::effect::EFFECT_REST_HEAL;
+use crate::effect::EFFECT_TARGET_SET;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
-use crate::effect::TARGET_SELECTED;
 use crate::effect::Target;
 use crate::effect::effect_gold_gain;
 use crate::effect::effect_gold_loss;
+use crate::effect::effect_input_one;
 use crate::effect::effect_untargeted;
 use crate::engine::selection_candidates;
-use crate::entity::Entity;
-use crate::events::event_option_available;
 use crate::game::GameState;
-use crate::game::Location;
 use crate::potions::belt_has_room;
 use crate::relics::iter_owned_relics;
 use crate::types::Focus;
 use crate::types::RelicName;
 use crate::types::RewardKind;
 use crate::types::ShopSlot;
-use crate::utils::card_is_playable;
-use crate::utils::card_is_purgeable;
-use crate::utils::card_is_upgradable;
 use crate::utils::context_focus;
 use crate::utils::entity_requires_target;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
-use crate::utils::potion_is_usable;
-use crate::utils::room_is_reachable;
 
-// A legal action: its kind, the entities it names, and the effects choosing it enqueues
+// A legal action: its kind, the answers to its chain's picks in order, and that chain
 #[derive(Debug, Clone)]
 pub struct Action {
     pub kind: ActionKind,
-    pub id_selected: Option<usize>,
-    pub id_monster_target: Option<usize>,
+    pub id_input: Vec<usize>,
     pub effects: Vec<Effect>,
 }
 
 // Identity is what the engine runs; the effects describe it, they do not name it
 impl PartialEq for Action {
     fn eq(&self, other: &Self) -> bool {
-        self.kind == other.kind
-            && self.id_selected == other.id_selected
-            && self.id_monster_target == other.id_monster_target
+        self.kind == other.kind && self.id_input == other.id_input
     }
 }
 
@@ -81,59 +72,102 @@ pub enum ActionKind {
     EffectPendingResolve,
 }
 
-// An effect acting on the entity the Action named
-const fn effect_on_selected(kind: EffectKind) -> Effect {
-    Effect {
-        kind,
-        id_source: None,
-        target: TARGET_SELECTED,
-    }
-}
-
 // The effects an Action of this kind enqueues in this state, in order
 pub fn effects_for_action_kind(kind: ActionKind, state: &GameState) -> Vec<Effect> {
     let consume = effect_untargeted(EffectKind::RestSiteConsume);
     match kind {
-        ActionKind::CardPlay => vec![effect_on_selected(EffectKind::CardPlay)],
-        ActionKind::PotionUse => vec![effect_on_selected(EffectKind::PotionUse)],
-        ActionKind::PotionDiscard => vec![effect_on_selected(EffectKind::PotionDiscard)],
+        ActionKind::CardPlay => vec![effect_input_one(
+            EffectKind::CardPlay,
+            CandidatePool::Hand,
+            CandidateFilter::Playable,
+        )],
+        ActionKind::PotionUse => vec![effect_input_one(
+            EffectKind::PotionUse,
+            CandidatePool::PotionsOwned,
+            CandidateFilter::Usable,
+        )],
+        ActionKind::PotionDiscard => vec![effect_input_one(
+            EffectKind::PotionDiscard,
+            CandidatePool::PotionsOwned,
+            CandidateFilter::Any,
+        )],
         ActionKind::TurnEnd => vec![Effect {
             kind: EffectKind::TurnEnd,
             id_source: None,
             target: TARGET_CHARACTER,
         }],
-        ActionKind::EventOptionSelect => vec![effect_on_selected(EffectKind::EventOptionSelect)],
-        ActionKind::RewardTakeCard => vec![effect_on_selected(EffectKind::RewardTake {
-            kind: RewardKind::Card,
-        })],
-        ActionKind::RewardTakeRelic => vec![effect_on_selected(EffectKind::RewardTake {
-            kind: RewardKind::Relic,
-        })],
-        ActionKind::RewardTakePotion => vec![effect_on_selected(EffectKind::RewardTake {
-            kind: RewardKind::Potion,
-        })],
+        ActionKind::EventOptionSelect => vec![effect_input_one(
+            EffectKind::EventOptionSelect,
+            CandidatePool::EventOptions,
+            CandidateFilter::EventOptionAvailable,
+        )],
+        ActionKind::RewardTakeCard => vec![effect_input_one(
+            EffectKind::RewardTake {
+                kind: RewardKind::Card,
+            },
+            CandidatePool::RewardCards,
+            CandidateFilter::Any,
+        )],
+        ActionKind::RewardTakeRelic => vec![effect_input_one(
+            EffectKind::RewardTake {
+                kind: RewardKind::Relic,
+            },
+            CandidatePool::RewardRelics,
+            CandidateFilter::Any,
+        )],
+        ActionKind::RewardTakePotion => vec![effect_input_one(
+            EffectKind::RewardTake {
+                kind: RewardKind::Potion,
+            },
+            CandidatePool::RewardPotions,
+            CandidateFilter::Any,
+        )],
         ActionKind::RewardTakeGold => vec![
             effect_gold_gain(state.reward.gold.expect("gold is offered")),
             effect_untargeted(EffectKind::RewardTake {
                 kind: RewardKind::Gold,
             }),
         ],
-        ActionKind::RewardSingingBowl => vec![effect_on_selected(EffectKind::SingingBowlProc)],
-        ActionKind::RoomSelect => vec![effect_on_selected(EffectKind::RoomSelect)],
+        ActionKind::RewardSingingBowl => vec![effect_input_one(
+            EffectKind::SingingBowlProc,
+            CandidatePool::RewardCards,
+            CandidateFilter::Any,
+        )],
+        ActionKind::RoomSelect => vec![effect_input_one(
+            EffectKind::RoomSelect,
+            CandidatePool::NextRooms,
+            CandidateFilter::Reachable,
+        )],
         ActionKind::RoomExit => vec![effect_untargeted(EffectKind::RoomExit)],
-        ActionKind::ShopBuyCard => vec![effect_on_selected(EffectKind::ShopBuy {
-            slot: ShopSlot::Card,
-        })],
-        ActionKind::ShopBuyRelic => vec![effect_on_selected(EffectKind::ShopBuy {
-            slot: ShopSlot::Relic,
-        })],
-        ActionKind::ShopBuyPotion => vec![effect_on_selected(EffectKind::ShopBuy {
-            slot: ShopSlot::Potion,
-        })],
+        ActionKind::ShopBuyCard => vec![effect_input_one(
+            EffectKind::ShopBuy {
+                slot: ShopSlot::Card,
+            },
+            CandidatePool::CardShop,
+            CandidateFilter::Affordable,
+        )],
+        ActionKind::ShopBuyRelic => vec![effect_input_one(
+            EffectKind::ShopBuy {
+                slot: ShopSlot::Relic,
+            },
+            CandidatePool::RelicShop,
+            CandidateFilter::Affordable,
+        )],
+        ActionKind::ShopBuyPotion => vec![effect_input_one(
+            EffectKind::ShopBuy {
+                slot: ShopSlot::Potion,
+            },
+            CandidatePool::PotionShop,
+            CandidateFilter::Affordable,
+        )],
         // Pay, purge the named Card, then the driver's bookkeeping
         ActionKind::ShopPurge => vec![
             effect_gold_loss(state.shop.purge_cost),
-            effect_on_selected(EffectKind::CardPurge),
+            effect_input_one(
+                EffectKind::CardPurge,
+                CandidatePool::Deck,
+                CandidateFilter::Purgeable,
+            ),
             effect_untargeted(EffectKind::ShopPurge),
         ],
         ActionKind::ChestOpen => vec![effect_untargeted(EffectKind::ChestOpen)],
@@ -150,15 +184,30 @@ pub fn effects_for_action_kind(kind: ActionKind, state: &GameState) -> Vec<Effec
             }
             effects
         }
-        ActionKind::RestSmith => vec![effect_on_selected(EffectKind::CardUpgrade), consume],
-        ActionKind::RestToke => vec![effect_on_selected(EffectKind::CardPurge), consume],
+        ActionKind::RestSmith => vec![
+            effect_input_one(
+                EffectKind::CardUpgrade,
+                CandidatePool::Deck,
+                CandidateFilter::Upgradeable,
+            ),
+            consume,
+        ],
+        ActionKind::RestToke => vec![
+            effect_input_one(
+                EffectKind::CardPurge,
+                CandidatePool::Deck,
+                CandidateFilter::Purgeable,
+            ),
+            consume,
+        ],
         ActionKind::RestDig => vec![EFFECT_RELIC_GRANT_RANDOM, consume],
         ActionKind::RestLift => vec![effect_untargeted(EffectKind::GiryaLift), consume],
+        // The halt branch builds these from the parked effect
         ActionKind::SelectionSkip | ActionKind::EffectPendingResolve => Vec::new(),
     }
 }
 
-// Runs the idx-th legal action: its ids go to `id_input`, its chain to the queue
+// Runs the idx-th legal action: its answers join the input, its chain the queue front
 pub fn handle_action(state: &mut GameState, idx: usize) -> Result<(), String> {
     if state.game_over {
         return Err("GameOver".into());
@@ -170,21 +219,11 @@ pub fn handle_action(state: &mut GameState, idx: usize) -> Result<(), String> {
         ));
     };
 
-    // Handlers push their effects into effect_buf; flush drains them to the queue front (reversed)
+    // A halt answer's chain is the parked effect itself, so nothing here is kind-specific
+    state.effect_pending = None;
+    state.id_input.extend_from_slice(&action.id_input);
     state.effect_buf.clear();
-    match action.kind {
-        ActionKind::EffectPendingResolve => handle_effect_pending_resolve(
-            state,
-            action.id_selected.expect("halt answer carries its id"),
-        ),
-        ActionKind::SelectionSkip => handle_selection_skip(state),
-        // The Action names its entities; its chain resolves against them
-        _ => {
-            state.id_selected = action.id_selected;
-            state.combat.id_monster_target = action.id_monster_target;
-            state.effect_buf.extend_from_slice(&action.effects);
-        }
-    }
+    state.effect_buf.extend_from_slice(&action.effects);
     flush_effects_from_buf_to_queue_front(state);
     Ok(())
 }
@@ -196,7 +235,7 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         return;
     }
 
-    // A halt: the pick's candidates not yet input answer it, nothing else is legal
+    // A halt: each candidate not yet input answers it, re-queuing the parked effect
     if let Some(effect_pending) = state.effect_pending {
         let Target::Resolve {
             candidate_pool,
@@ -206,26 +245,30 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         else {
             unreachable!("effect_pending carries a Resolve target")
         };
-        // TODO: should be set by the resolver
         for id in selection_candidates(state, candidate_pool, filter, effect_pending.id_source) {
             if !state.id_input.contains(&id) {
-                state.legal_actions.push(Action {
-                    kind: ActionKind::EffectPendingResolve,
-                    id_selected: Some(id),
-                    id_monster_target: None,
-                    effects: Vec::new(),
-                });
+                push_action(
+                    state,
+                    ActionKind::EffectPendingResolve,
+                    vec![id],
+                    vec![effect_pending],
+                );
             }
         }
 
-        // `SelectionKind::InputUpTo` is skippable
+        // An InputUpTo pick may close at what has been input
         if matches!(selection_kind, SelectionKind::InputUpTo { .. }) {
-            state.legal_actions.push(Action {
-                kind: ActionKind::SelectionSkip,
-                id_selected: None,
-                id_monster_target: None,
-                effects: Vec::new(),
-            });
+            let closed = Effect {
+                target: Target::Resolve {
+                    candidate_pool,
+                    filter,
+                    selection_kind: SelectionKind::Input {
+                        count: state.id_input.len() as u16,
+                    },
+                },
+                ..effect_pending
+            };
+            push_action(state, ActionKind::SelectionSkip, Vec::new(), vec![closed]);
         }
         return;
     }
@@ -244,153 +287,131 @@ pub fn recompute_legal_actions(state: &mut GameState) {
     legal_actions_potions(state);
 }
 
-// One legal action, carrying the chain its kind enqueues
+// One legal action
 fn push_action(
     state: &mut GameState,
     kind: ActionKind,
-    id_selected: Option<usize>,
-    id_monster_target: Option<usize>,
+    id_input: Vec<usize>,
+    effects: Vec<Effect>,
 ) {
-    let effects = effects_for_action_kind(kind, state);
     state.legal_actions.push(Action {
         kind,
-        id_selected,
-        id_monster_target,
+        id_input,
         effects,
     });
 }
 
-// One legal action per entity the kind names
-fn push_selections(state: &mut GameState, kind: ActionKind, ids: Vec<usize>) {
-    for id in ids {
-        push_action(state, kind, Some(id), None);
+// The pool and filter of a chain's first Input pick
+fn input_source(effects: &[Effect]) -> Option<(CandidatePool, CandidateFilter)> {
+    effects.iter().find_map(|effect| match effect.target {
+        Target::Resolve {
+            candidate_pool,
+            filter,
+            selection_kind: SelectionKind::Input { .. },
+        } => Some((candidate_pool, filter)),
+        _ => None,
+    })
+}
+
+// Every legal action of a kind: one per entity its pick may take, or one when it picks nothing
+fn push_actions_for_kind(state: &mut GameState, kind: ActionKind) {
+    let effects = effects_for_action_kind(kind, state);
+    match input_source(&effects) {
+        None => push_action(state, kind, Vec::new(), effects),
+        Some((candidate_pool, filter)) => {
+            for id in selection_candidates(state, candidate_pool, filter, None) {
+                push_action(state, kind, vec![id], effects.clone());
+            }
+        }
     }
 }
 
-// A play is one action per Monster when the entity it names wants a target, else one action
-fn push_play_or_use(state: &mut GameState, kind: ActionKind, id_selected: usize) {
-    if !entity_requires_target(&state.entities[id_selected]) {
-        push_action(state, kind, Some(id_selected), None);
-        return;
-    }
-    let id_monsters: Vec<usize> = state.combat.id_monsters.iter().flatten().copied().collect();
-    for id_monster_target in id_monsters {
-        push_action(state, kind, Some(id_selected), Some(id_monster_target));
+// A play: one action per Monster when the played entity wants one, its TargetSet heading the
+// chain and its Monster heading the answers
+fn push_plays_for_kind(state: &mut GameState, kind: ActionKind) {
+    let effects = effects_for_action_kind(kind, state);
+    let (candidate_pool, filter) = input_source(&effects).expect("a play picks its entity");
+    for id in selection_candidates(state, candidate_pool, filter, None) {
+        if !entity_requires_target(&state.entities[id]) {
+            push_action(state, kind, vec![id], effects.clone());
+            continue;
+        }
+        let id_monsters: Vec<usize> = state.combat.id_monsters.iter().flatten().copied().collect();
+        for id_monster in id_monsters {
+            let effects_targeted = [&[EFFECT_TARGET_SET], effects.as_slice()].concat();
+            push_action(state, kind, vec![id_monster, id], effects_targeted);
+        }
     }
 }
 
 fn legal_actions_combat(state: &mut GameState) {
     // Playable Cards
-    let id_cards_playable: Vec<usize> = state
-        .combat
-        .id_card_hand
-        .iter()
-        .copied()
-        .filter(|&id| card_is_playable(state, &state.entities[id]))
-        .collect();
-    for id_card in id_cards_playable {
-        push_play_or_use(state, ActionKind::CardPlay, id_card);
-    }
+    push_plays_for_kind(state, ActionKind::CardPlay);
 
     // Turn end
-    push_action(state, ActionKind::TurnEnd, None, None);
+    push_actions_for_kind(state, ActionKind::TurnEnd);
 }
 
 fn legal_actions_reward(state: &mut GameState) {
-    let id_cards_flat: Vec<usize> = state.reward.id_cards.iter().flatten().copied().collect();
-    let id_relics = state.reward.id_relics.clone();
-    let id_potions = state.reward.id_potions.clone();
-
     // Cards
-    push_selections(state, ActionKind::RewardTakeCard, id_cards_flat.clone());
+    push_actions_for_kind(state, ActionKind::RewardTakeCard);
 
     // Singing Bowl: forfeit the picked Card's whole bundle for +2 max HP
     if has_relic(&state.id_relics, RelicName::SingingBowl) {
-        push_selections(state, ActionKind::RewardSingingBowl, id_cards_flat);
+        push_actions_for_kind(state, ActionKind::RewardSingingBowl);
     }
 
     // Relics
-    push_selections(state, ActionKind::RewardTakeRelic, id_relics);
+    push_actions_for_kind(state, ActionKind::RewardTakeRelic);
 
     // Potions
     if can_take_potions(state) {
-        push_selections(state, ActionKind::RewardTakePotion, id_potions);
+        push_actions_for_kind(state, ActionKind::RewardTakePotion);
     }
 
     // Gold
     if state.reward.gold.is_some() {
-        push_action(state, ActionKind::RewardTakeGold, None, None);
+        push_actions_for_kind(state, ActionKind::RewardTakeGold);
     }
 
     // Exit
-    push_action(state, ActionKind::RoomExit, None, None);
+    push_actions_for_kind(state, ActionKind::RoomExit);
 }
 
 fn legal_actions_event(state: &mut GameState) {
     // TODO: investigate pushing `EffectKind::RoomExit` at once
     if state.event.consumed {
-        push_action(state, ActionKind::RoomExit, None, None);
+        push_actions_for_kind(state, ActionKind::RoomExit);
         return;
     }
-
-    let id_event_option_av: Vec<usize> = state
-        .event
-        .id_event_options
-        .iter()
-        .copied()
-        .enumerate()
-        .filter(|&(idx, _)| event_option_available(state, idx))
-        .map(|(_, id)| id)
-        .collect();
-
-    push_selections(state, ActionKind::EventOptionSelect, id_event_option_av);
+    push_actions_for_kind(state, ActionKind::EventOptionSelect);
 }
 
 fn legal_actions_shop(state: &mut GameState) {
     // Shop is always exitable
-    push_action(state, ActionKind::RoomExit, None, None);
-
-    // TODO: make `shop_price` a field of `Shop` again
-    let char_gold = state.entities[state.id_character].character_gold;
-    let id_cards_aff = filter_affordable(state, &state.shop.id_cards);
-    let id_relics_aff = filter_affordable(state, &state.shop.id_relics);
-    let id_potions_aff = filter_affordable(state, &state.shop.id_potions);
+    push_actions_for_kind(state, ActionKind::RoomExit);
 
     // Cards
-    push_selections(state, ActionKind::ShopBuyCard, id_cards_aff);
+    push_actions_for_kind(state, ActionKind::ShopBuyCard);
 
     // Relics
-    push_selections(state, ActionKind::ShopBuyRelic, id_relics_aff);
+    push_actions_for_kind(state, ActionKind::ShopBuyRelic);
 
     // Potions
     if can_take_potions(state) {
-        push_selections(state, ActionKind::ShopBuyPotion, id_potions_aff);
+        push_actions_for_kind(state, ActionKind::ShopBuyPotion);
     }
 
     // Purge
+    // TODO: make `shop_price` a field of `Shop` again
+    let char_gold = state.entities[state.id_character].character_gold;
     if !state.shop.purged && char_gold >= state.shop.purge_cost {
-        let id_cards_purge = deck_cards(state, card_is_purgeable);
-        push_selections(state, ActionKind::ShopPurge, id_cards_purge);
+        push_actions_for_kind(state, ActionKind::ShopPurge);
     }
 }
 
 fn legal_actions_map(state: &mut GameState) {
-    let y_next = match state.location {
-        Location::Start => Some(0),
-        Location::Overworld { y, .. } => (y + 1 < MAP_HEIGHT).then_some(y + 1),
-        Location::BossRoom => None,
-    };
-    let Some(y_next) = y_next else {
-        return;
-    };
-
-    let id_rooms_reach: Vec<usize> = state.id_rooms[y_next]
-        .iter()
-        .flatten()
-        .copied()
-        .filter(|&id| room_is_reachable(state, &state.entities[id]))
-        .collect();
-    push_selections(state, ActionKind::RoomSelect, id_rooms_reach);
+    push_actions_for_kind(state, ActionKind::RoomSelect);
 }
 
 fn legal_actions_rest_site(state: &mut GameState) {
@@ -399,13 +420,12 @@ fn legal_actions_rest_site(state: &mut GameState) {
 
     // Coffee Dripper: restless
     if !consumed && !has_relic(&id_relics, RelicName::CoffeeDripper) {
-        push_action(state, ActionKind::Rest, None, None);
+        push_actions_for_kind(state, ActionKind::Rest);
     }
 
     // Fusion Hammer: cannot upgrade
     if !consumed && !has_relic(&id_relics, RelicName::FusionHammer) {
-        let upgradable = deck_cards(state, card_is_upgradable);
-        push_selections(state, ActionKind::RestSmith, upgradable);
+        push_actions_for_kind(state, ActionKind::RestSmith);
     }
 
     // Girya: can lift to gain Strength
@@ -413,108 +433,42 @@ fn legal_actions_rest_site(state: &mut GameState) {
         && id_relics[RelicName::Girya as usize]
             .is_some_and(|id| state.entities[id].relic_counter < GIRYA_LIFT_MAX)
     {
-        push_action(state, ActionKind::RestLift, None, None);
+        push_actions_for_kind(state, ActionKind::RestLift);
     }
 
     // Peace Pipe: can toke to purge a Card
     if !consumed && has_relic(&id_relics, RelicName::PeacePipe) {
-        let purgeable = deck_cards(state, card_is_purgeable);
-        push_selections(state, ActionKind::RestToke, purgeable);
+        push_actions_for_kind(state, ActionKind::RestToke);
     }
 
     // Shovel: can dig to find a random Relic
     if !consumed && has_relic(&id_relics, RelicName::Shovel) {
-        push_action(state, ActionKind::RestDig, None, None);
+        push_actions_for_kind(state, ActionKind::RestDig);
     }
 
     // Leave once the site is used, or when no option is left (no soft-lock)
     if state.legal_actions.is_empty() {
-        push_action(state, ActionKind::RoomExit, None, None);
+        push_actions_for_kind(state, ActionKind::RoomExit);
     }
 }
 
 fn legal_actions_chest(state: &mut GameState) {
     if !state.chest.chest_opened {
-        push_action(state, ActionKind::ChestOpen, None, None);
+        push_actions_for_kind(state, ActionKind::ChestOpen);
     }
-    push_action(state, ActionKind::RoomExit, None, None);
+    push_actions_for_kind(state, ActionKind::RoomExit);
 }
 
 fn legal_actions_potions(state: &mut GameState) {
-    let id_potions_usable: Vec<usize> = state
-        .id_potions
-        .iter()
-        .copied()
-        .filter(|&id| potion_is_usable(state, &state.entities[id]))
-        .collect();
-
     // Potion use
-    for id_potion in id_potions_usable {
-        push_play_or_use(state, ActionKind::PotionUse, id_potion);
-    }
+    push_plays_for_kind(state, ActionKind::PotionUse);
 
     // Potion discard
-    let id_potions_own = state.id_potions.clone();
-    push_selections(state, ActionKind::PotionDiscard, id_potions_own);
-}
-
-fn filter_affordable(state: &GameState, stock: &[usize]) -> Vec<usize> {
-    let char_gold = state.entities[state.id_character].character_gold;
-    stock
-        .iter()
-        .copied()
-        .filter(|&id| char_gold >= state.entities[id].shop_price)
-        .collect()
-}
-
-fn deck_cards(state: &GameState, accepts: fn(&Entity) -> bool) -> Vec<usize> {
-    state
-        .id_card_deck
-        .iter()
-        .copied()
-        .filter(|&id| accepts(&state.entities[id]))
-        .collect()
+    push_actions_for_kind(state, ActionKind::PotionDiscard);
 }
 
 fn can_take_potions(state: &GameState) -> bool {
     belt_has_room(&state.id_potions, state.potion_slots_max)
         // Sozu: Potions can't be obtained, so neither taken nor bought
         && !has_relic(&state.id_relics, RelicName::Sozu)
-}
-
-// The id joins the inputs of the parked pick and the effect runs again, resolving once its
-// whole count is there
-fn handle_effect_pending_resolve(state: &mut GameState, id: usize) {
-    let effect_pending = state
-        .effect_pending
-        .take()
-        .expect("EffectPendingResolve requires a pending effect");
-    state.id_input.push(id);
-    state.effect_buf.push(effect_pending);
-}
-
-// Ends an InputUpTo halt early: the pick closes at what has been input, nothing more
-fn handle_selection_skip(state: &mut GameState) {
-    let effect_pending = state
-        .effect_pending
-        .take()
-        .expect("SelectionSkip requires a pending effect");
-    let Target::Resolve {
-        candidate_pool,
-        filter,
-        ..
-    } = effect_pending.target
-    else {
-        unreachable!("effect_pending carries a Resolve target")
-    };
-    state.effect_buf.push(Effect {
-        target: Target::Resolve {
-            candidate_pool,
-            filter,
-            selection_kind: SelectionKind::Input {
-                count: state.id_input.len() as u16,
-            },
-        },
-        ..effect_pending
-    });
 }

@@ -277,12 +277,14 @@ SelectionKindSingle = _rs.SelectionKindSingle
 SelectionKindRandom = _rs.SelectionKindRandom
 SelectionKindInput = _rs.SelectionKindInput
 SelectionKindInputUpTo = _rs.SelectionKindInputUpTo
+SelectionKindTarget = _rs.SelectionKindTarget
 SelectionKind = (
     SelectionKindAll
     | SelectionKindSingle
     | SelectionKindRandom
     | SelectionKindInput
     | SelectionKindInputUpTo
+    | SelectionKindTarget
 )
 
 # Flat variant classes + PEP 604 union aliases. The union works as annotation,
@@ -413,6 +415,7 @@ __all__ = [
     "SelectionKindRandom",
     "SelectionKindInput",
     "SelectionKindInputUpTo",
+    "SelectionKindTarget",
     "CardCostKind",
     "CardCostKindFixed",
     "CardCostKindMinusDiscardsThisTurn",
