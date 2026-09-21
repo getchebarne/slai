@@ -6,7 +6,7 @@ use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
-use crate::effect::TARGET_MONSTER_PICKED;
+use crate::effect::TARGET_MONSTER;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
@@ -33,7 +33,7 @@ pub static DAGGER_THROW: CardTemplate = make_card_template(
                 lifesteal: false,
             },
             id_source: None,
-            target: TARGET_MONSTER_PICKED,
+            target: TARGET_MONSTER,
         },
         Effect {
             kind: EffectKind::CardDraw { count: 1 },

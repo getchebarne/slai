@@ -61,7 +61,7 @@ pub(super) fn restock_relic(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
     id_relics: &[Option<usize>; RelicName::COUNT],
-    relics: &mut Vec<(usize, u16)>,
+    relics: &mut Vec<usize>,
     idx: usize,
 ) {
     let roll = rng.random_range(0..100) as u8;
@@ -89,10 +89,12 @@ pub(super) fn restock_relic(
     let Some(name) = pick_relic_from_pool(pool, &id_taken, rng) else {
         return;
     };
-    let (id_relic_new, price) = make_relic_with_price(entities, rng, name, base_price);
+    let id_relic_new = make_relic_with_price(entities, rng, name, base_price);
 
     // Apply discounts and slot the offer back in
-    relics.insert(idx, (id_relic_new, apply_shop_discounts(price, id_relics)));
+    let price = &mut entities[id_relic_new].shop_price;
+    *price = apply_shop_discounts(*price, id_relics);
+    relics.insert(idx, id_relic_new);
 }
 
 fn roll_var_card(rng: &mut impl Rng) -> f32 {
@@ -113,42 +115,39 @@ fn get_card_base_price(rarity: CardRarity) -> u16 {
 }
 
 // Card names already placed in this shop, so the shop's Cards stay distinct
-fn get_shop_placed_card_names(entities: &[Entity], cards: &[(usize, u16)]) -> Vec<CardName> {
-    cards
-        .iter()
-        .map(|&(id, _)| entities[id].card_name)
-        .collect()
+fn get_shop_placed_card_names(entities: &[Entity], cards: &[usize]) -> Vec<CardName> {
+    cards.iter().map(|&id| entities[id].card_name).collect()
 }
 
 // Sample one distinct shop Card with a variance-rolled price; placement is the caller's
 fn make_card(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-    cards: &[(usize, u16)],
+    cards: &[usize],
     color: CardColor,
     kind: Option<CardKind>,
     rarity: CardRarity,
     base_price: u16,
-) -> (usize, u16) {
+) -> usize {
     // Sample Card and its price
     let cards_placed = get_shop_placed_card_names(entities, cards);
     let card = get_random_cards(color, kind, Some(rarity), &cards_placed, false, 1, rng)
         .into_iter()
         .next()
         .unwrap_or_else(|| panic!("No shop Card for {color:?} {kind:?} rarity {rarity:?}"));
-    let card_price = (base_price as f32 * roll_var_card(rng)) as u16;
-
-    (push_entity(entities, card), card_price)
+    let id_card = push_entity(entities, card);
+    entities[id_card].shop_price = (base_price as f32 * roll_var_card(rng)) as u16;
+    id_card
 }
 
 pub(super) fn make_card_colored(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-    cards: &[(usize, u16)],
+    cards: &[usize],
     kind: CardKind,
     id_character: usize,
     id_relics: &[Option<usize>; RelicName::COUNT],
-) -> (usize, u16) {
+) -> usize {
     let mut rarity = roll_card_rarity(
         rng,
         entities[id_character].character_reward_roll_offset,
@@ -175,9 +174,9 @@ pub(super) fn make_card_colored(
 pub(super) fn make_card_colorless(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-    cards: &[(usize, u16)],
+    cards: &[usize],
     rarity: CardRarity,
-) -> (usize, u16) {
+) -> usize {
     let base =
         get_card_base_price(rarity) * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM;
     make_card(
@@ -203,10 +202,10 @@ const RELICS_NEVER_IN_SHOP: [RelicName; 4] = [
 pub(super) fn get_shop_taken_relic_names(
     id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &[Entity],
-    relics: &[(usize, u16)],
+    relics: &[usize],
 ) -> [Option<usize>; RelicName::COUNT] {
     let mut taken = *id_relics;
-    for &(id, _) in relics {
+    for &id in relics {
         taken[entities[id].relic_name as usize] = Some(id);
     }
     for name in RELICS_NEVER_IN_SHOP {
@@ -220,13 +219,13 @@ pub(super) fn make_relic_with_price(
     rng: &mut impl Rng,
     name: RelicName,
     base_price: u16,
-) -> (usize, u16) {
+) -> usize {
     let id_relic = push_entity(entities, get_relic(name));
-    let relic_price = (base_price as f32 * roll_var_relic_n_potion(rng)) as u16;
-    (id_relic, relic_price)
+    entities[id_relic].shop_price = (base_price as f32 * roll_var_relic_n_potion(rng)) as u16;
+    id_relic
 }
 
-pub(super) fn make_potion(entities: &mut Vec<Entity>, rng: &mut impl Rng) -> (usize, u16) {
+pub(super) fn make_potion(entities: &mut Vec<Entity>, rng: &mut impl Rng) -> usize {
     // Sample Potion and its base price
     let name = get_random_potion_name(rng, false);
     let entity = get_potion(name);
@@ -237,6 +236,6 @@ pub(super) fn make_potion(entities: &mut Vec<Entity>, rng: &mut impl Rng) -> (us
     };
 
     let id_potion = push_entity(entities, entity);
-    let potion_price = (base_price as f32 * roll_var_relic_n_potion(rng)) as u16;
-    (id_potion, potion_price)
+    entities[id_potion].shop_price = (base_price as f32 * roll_var_relic_n_potion(rng)) as u16;
+    id_potion
 }

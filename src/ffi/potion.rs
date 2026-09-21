@@ -9,6 +9,7 @@ use crate::utils::entity_requires_target;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
+use super::effect::snapshot_effects_buy;
 
 mirror_enum!(PyPotionName from PotionName, "PotionName", {
     Energy, Block, Strength, Dexterity, Fire, Explosive,
@@ -40,6 +41,7 @@ pub struct PyPotion {
     pub requires_target: bool,
     pub combat_only: bool,
     pub effects: Vec<PyEffect>,
+    pub effects_buy: Vec<PyEffect>,
 }
 
 pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
@@ -50,5 +52,6 @@ pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
         requires_target: entity_requires_target(entity),
         combat_only: entity.potion_combat_only,
         effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
+        effects_buy: snapshot_effects_buy(entity),
     }
 }

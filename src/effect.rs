@@ -123,6 +123,7 @@ pub enum EffectKind {
         delta: i8,
     },
     EventConsume,
+    EventOptionSelect,
     Gamble {
         choose_discards: bool,
         discards_before: Option<u8>,
@@ -259,9 +260,7 @@ pub enum EffectKind {
     },
     ShopPurge,
     ShuffleDiscardPileIntoDrawPile,
-    SingingBowlProc {
-        idx_bundle: u8,
-    },
+    SingingBowlProc,
     SneakyStrikeProc {
         energy: u8,
     },
@@ -317,12 +316,11 @@ pub enum Amount {
 }
 
 // Source pool for a Resolve effect
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CandidatePool {
     Hand,
     Character,
     Monsters,
-    MonsterPicked,
     Source,
     Discover,
     Deck,
@@ -332,6 +330,17 @@ pub enum CandidatePool {
     EventRollCard,
     EventRollRelic,
     EventRollPotion,
+
+    // The collections an Action's chain picks from
+    PotionsOwned,
+    EventOptions,
+    RewardCards,
+    RewardRelics,
+    RewardPotions,
+    CardShop,
+    RelicShop,
+    PotionShop,
+    NextRooms,
 }
 
 // Only Card pools are ever multi-pick
@@ -376,6 +385,13 @@ pub enum CandidateFilter {
     // Starter-Card predicates (Vampires, Back to Basics)
     StarterStrike,
     StarterUpgradeable,
+
+    // Compare against the game state
+    Playable,
+    Usable,
+    Affordable,
+    Reachable,
+    EventOptionAvailable,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -385,6 +401,9 @@ pub enum SelectionKind {
     Random { count: u8 },
     Input { count: u16 },
     InputUpTo { count: u16 },
+
+    // The Monster the play's TargetSet picked (see Combat.id_monster_target)
+    Target,
 }
 
 // Target known at queue time (Direct) or resolved against live state at dequeue (Resolve)
@@ -437,11 +456,89 @@ pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) 
 }
 
 // The pick outlives the roster slot, so a lethal hit still resolves a target
-pub const TARGET_MONSTER_PICKED: Target = Target::Resolve {
-    candidate_pool: CandidatePool::MonsterPicked,
+pub const TARGET_MONSTER: Target = Target::Resolve {
+    candidate_pool: CandidatePool::Monsters,
     filter: CandidateFilter::Any,
-    selection_kind: SelectionKind::Single,
+    selection_kind: SelectionKind::Target,
 };
+
+// Heads a targeted play's chain: the Monster its effects share
+pub const EFFECT_TARGET_SET: Effect = Effect {
+    kind: EffectKind::TargetSet,
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Monsters,
+        filter: CandidateFilter::Any,
+        selection_kind: SelectionKind::Input { count: 1 },
+    },
+};
+
+// A driver that picks one entity from a pool
+pub const fn effect_input_one(
+    kind: EffectKind,
+    candidate_pool: CandidatePool,
+    filter: CandidateFilter,
+) -> Effect {
+    Effect {
+        kind,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool,
+            filter,
+            selection_kind: SelectionKind::Input { count: 1 },
+        },
+    }
+}
+
+// Action payloads shared by the resolvers and the offer snapshots, so what the
+// engine executes and what Python sees are the same values
+pub const fn effect_gold_loss(amount: u16) -> Effect {
+    Effect {
+        kind: EffectKind::GoldDelta {
+            sign: DeltaSign::Loss,
+            amount: Amount::Absolute(amount),
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }
+}
+
+pub const fn effect_gold_gain(amount: u16) -> Effect {
+    Effect {
+        kind: EffectKind::GoldDelta {
+            sign: DeltaSign::Gain,
+            amount: Amount::Absolute(amount),
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }
+}
+
+pub const EFFECT_REST_HEAL: Effect = Effect {
+    kind: EffectKind::HealthDelta {
+        sign: DeltaSign::Gain,
+        amount: Amount::Relative {
+            numerator: 3,
+            denominator: 10,
+        },
+    },
+    id_source: None,
+    target: TARGET_CHARACTER,
+};
+
+pub const EFFECT_RELIC_GRANT_RANDOM: Effect = Effect {
+    kind: EffectKind::RelicGrantRandom { tier: None },
+    id_source: None,
+    target: Target::Direct(None),
+};
+
+pub const fn effect_untargeted(kind: EffectKind) -> Effect {
+    Effect {
+        kind,
+        id_source: None,
+        target: Target::Direct(None),
+    }
+}
 
 pub const TARGET_SOURCE: Target = Target::Resolve {
     candidate_pool: CandidatePool::Source,

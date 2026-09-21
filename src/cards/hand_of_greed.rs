@@ -2,7 +2,7 @@ use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::TARGET_MONSTER_PICKED;
+use crate::effect::TARGET_MONSTER;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
@@ -28,12 +28,12 @@ pub static HAND_OF_GREED: CardTemplate = make_card_template(
                 lifesteal: false,
             },
             id_source: None,
-            target: TARGET_MONSTER_PICKED,
+            target: TARGET_MONSTER,
         },
         Effect {
             kind: EffectKind::HandOfGreedProc { gold: 20 },
             id_source: None,
-            target: TARGET_MONSTER_PICKED,
+            target: TARGET_MONSTER,
         },
     ],
     &[],

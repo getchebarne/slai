@@ -1,6 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::TARGET_MONSTER_PICKED;
+use crate::effect::TARGET_MONSTER;
 use crate::potions::PotionTemplate;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
@@ -15,6 +15,6 @@ pub static FIRE: PotionTemplate = PotionTemplate {
             lifesteal: false,
         },
         id_source: None,
-        target: TARGET_MONSTER_PICKED,
+        target: TARGET_MONSTER,
     }],
 };

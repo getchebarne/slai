@@ -5,14 +5,21 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
-pub fn process_effect_singing_bowl_proc(state: &mut GameState, idx_bundle: u8) {
+pub fn process_effect_singing_bowl_proc(id_target: Option<usize>, state: &mut GameState) {
+    let id_card = id_target.expect("SingingBowlProc requires id_target");
     assert!(
         state.reward.active,
         "SingingBowlProc outside the Reward context"
     );
 
-    // Remove bundle
-    state.reward.id_cards.remove(idx_bundle as usize);
+    // Forfeit the bundle the picked Card belongs to
+    let idx = state
+        .reward
+        .id_cards
+        .iter()
+        .position(|bundle| bundle.contains(&id_card))
+        .expect("SingingBowlProc names a staged Card");
+    state.reward.id_cards.remove(idx);
 
     // Push effect for max health gain
     state.effect_queue.push_front(Effect {

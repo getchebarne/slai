@@ -25,7 +25,6 @@ use ffi::PyAction;
 use ffi::PyGameState;
 use ffi::from_internal_action;
 use ffi::snapshot_state;
-use ffi::to_internal_action;
 use game::create_game_state;
 use game::step;
 
@@ -110,11 +109,9 @@ impl GameEnv {
         snapshot_state(&self.state)
     }
 
-    // Apply an action. Returns `(obs, terminated)`
-    fn step(&mut self, action: PyAction) -> PyResult<(PyGameState, bool)> {
-        let internal =
-            to_internal_action(action).map_err(pyo3::exceptions::PyValueError::new_err)?;
-        step(&mut self.state, internal).map_err(pyo3::exceptions::PyValueError::new_err)?;
+    // Apply the idx-th legal action. Returns `(obs, terminated)`
+    fn step(&mut self, idx: usize) -> PyResult<(PyGameState, bool)> {
+        step(&mut self.state, idx).map_err(pyo3::exceptions::PyValueError::new_err)?;
         let obs = snapshot_state(&self.state);
         Ok((obs, self.state.game_over))
     }
@@ -124,7 +121,6 @@ impl GameEnv {
         self.state
             .legal_actions
             .iter()
-            .cloned()
             .map(from_internal_action)
             .collect()
     }
@@ -138,7 +134,11 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyAction;
     #[pymodule_export]
-    use super::ffi::PyActionType;
+    use super::ffi::PyActionKind;
+    #[pymodule_export]
+    use super::ffi::PyRewardKind;
+    #[pymodule_export]
+    use super::ffi::PyShopSlot;
     // Snapshot views
     #[pymodule_export]
     use super::ffi::PyCard;
@@ -259,6 +259,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectCardNightmarePick;
     #[pymodule_export]
+    use super::ffi::PyEffectCardPlay;
+    #[pymodule_export]
     use super::ffi::PyEffectCardPlayFromDrawTop;
     #[pymodule_export]
     use super::ffi::PyEffectCardPurge;
@@ -270,6 +272,8 @@ mod slai {
     use super::ffi::PyEffectCardTransform;
     #[pymodule_export]
     use super::ffi::PyEffectCardUpgrade;
+    #[pymodule_export]
+    use super::ffi::PyEffectChestOpen;
     #[pymodule_export]
     use super::ffi::PyEffectCombatEnd;
     #[pymodule_export]
@@ -299,7 +303,11 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectEventConsume;
     #[pymodule_export]
+    use super::ffi::PyEffectEventOptionSelect;
+    #[pymodule_export]
     use super::ffi::PyEffectGamble;
+    #[pymodule_export]
+    use super::ffi::PyEffectGiryaLift;
     #[pymodule_export]
     use super::ffi::PyEffectGlassKnifeDecay;
     #[pymodule_export]
@@ -341,6 +349,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectPotionDiscard;
     #[pymodule_export]
+    use super::ffi::PyEffectPotionUse;
+    #[pymodule_export]
     use super::ffi::PyEffectRelicGrantPool;
     #[pymodule_export]
     use super::ffi::PyEffectRelicGrantRandom;
@@ -348,6 +358,8 @@ mod slai {
     use super::ffi::PyEffectRelicGrantSpecific;
     #[pymodule_export]
     use super::ffi::PyEffectRelicLose;
+    #[pymodule_export]
+    use super::ffi::PyEffectRestSiteConsume;
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollCards;
     #[pymodule_export]
@@ -357,13 +369,25 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollPotions;
     #[pymodule_export]
+    use super::ffi::PyEffectRewardTake;
+    #[pymodule_export]
     use super::ffi::PyEffectRitualDaggerProc;
+    #[pymodule_export]
+    use super::ffi::PyEffectRoomExit;
+    #[pymodule_export]
+    use super::ffi::PyEffectRoomSelect;
     #[pymodule_export]
     use super::ffi::PyEffectScrapOozeReach;
     #[pymodule_export]
     use super::ffi::PyEffectSetCostOverride;
     #[pymodule_export]
+    use super::ffi::PyEffectShopBuy;
+    #[pymodule_export]
+    use super::ffi::PyEffectShopPurge;
+    #[pymodule_export]
     use super::ffi::PyEffectShuffleDiscardPileIntoDrawPile;
+    #[pymodule_export]
+    use super::ffi::PyEffectSingingBowlProc;
     #[pymodule_export]
     use super::ffi::PyEffectSneakyStrikeProc;
     #[pymodule_export]
@@ -373,11 +397,19 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectStrengthLoseTemp;
     #[pymodule_export]
+    use super::ffi::PyEffectTargetClear;
+    #[pymodule_export]
+    use super::ffi::PyEffectTargetSet;
+    #[pymodule_export]
+    use super::ffi::PyEffectTurnEnd;
+    #[pymodule_export]
     use super::ffi::PyEffectUnloadDiscard;
     #[pymodule_export]
     use super::ffi::PyEffectWheelSpin;
     #[pymodule_export]
     use super::ffi::PyEvent;
+    #[pymodule_export]
+    use super::ffi::PyEventOption;
     #[pymodule_export]
     use super::ffi::PyRestSite;
     #[pymodule_export]
@@ -394,6 +426,8 @@ mod slai {
     use super::ffi::PySelectionKindRandom;
     #[pymodule_export]
     use super::ffi::PySelectionKindSingle;
+    #[pymodule_export]
+    use super::ffi::PySelectionKindTarget;
     #[pymodule_export]
     use super::ffi::PyShop;
     // Content catalog: template classes + state-free enumeration functions

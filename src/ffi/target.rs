@@ -11,14 +11,16 @@ use super::macros::flat_variants;
 use super::macros::mirror_enum;
 
 mirror_enum!(PyCandidatePool from CandidatePool, "CandidatePool", {
-    Hand, Character, Monsters, MonsterPicked, Source, Discover, Deck, PileDraw, PileDiscard,
-    PileExhaust,
+    Hand, Character, Monsters, Source, Discover, Deck, PileDraw, PileDiscard, PileExhaust,
     EventRollCard, EventRollRelic, EventRollPotion,
+    PotionsOwned, EventOptions, RewardCards, RewardRelics, RewardPotions, CardShop, RelicShop,
+    PotionShop, NextRooms,
 });
 
 mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", {
     Any, Purgeable, Upgradeable, Transformable, PurgeableCurse, KindAttack, KindSkill,
     KindPower, Costed, NotSource, NotMinion, StarterStrike, StarterUpgradeable,
+    Playable, Usable, Affordable, Reachable, EventOptionAvailable,
 });
 
 flat_variants!(PySelectionKind {
@@ -27,6 +29,7 @@ flat_variants!(PySelectionKind {
     Random => PySelectionKindRandom as "SelectionKindRandom" { count: u8 },
     Input => PySelectionKindInput as "SelectionKindInput" { count: u16 },
     InputUpTo => PySelectionKindInputUpTo as "SelectionKindInputUpTo" { count: u16 },
+    Target => PySelectionKindTarget as "SelectionKindTarget",
 });
 
 impl From<SelectionKind> for PySelectionKind {
@@ -39,6 +42,7 @@ impl From<SelectionKind> for PySelectionKind {
             SelectionKind::InputUpTo { count } => {
                 Self::InputUpTo(PySelectionKindInputUpTo { count })
             }
+            SelectionKind::Target => Self::Target(PySelectionKindTarget),
         }
     }
 }

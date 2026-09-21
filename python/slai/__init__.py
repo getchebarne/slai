@@ -1,9 +1,8 @@
-from typing import Iterator, NamedTuple, Optional, Union
 
 from . import slai as _rs
 
 # Every enum is re-exported raw
-ActionType = _rs.ActionType
+ActionKind = _rs.ActionKind
 CardKind = _rs.CardKind
 CardColor = _rs.CardColor
 CardRarity = _rs.CardRarity
@@ -25,134 +24,6 @@ MonsterKind = _rs.MonsterKind
 EventName = _rs.EventName
 
 
-# Action schema types
-class ArgSpec(NamedTuple):
-    name: str
-    description: str
-    optional: bool = False
-    variable: bool = False
-
-
-class ActionSpec(NamedTuple):
-    id: ActionType
-    name: str
-    args: tuple[ArgSpec, ...]
-    arity: tuple[int, Optional[int]]
-
-
-class ActionSpecRegistry:
-    def __init__(self, specs: list[ActionSpec]) -> None:
-        self._list: list[ActionSpec] = specs
-        self._by_name: dict[str, ActionSpec] = {s.name: s for s in specs}
-        self._by_id: dict[ActionType, ActionSpec] = {s.id: s for s in specs}
-
-    def __getattr__(self, name: str) -> ActionSpec:
-        try:
-            return self._by_name[name]
-        except KeyError:
-            raise AttributeError(name) from None
-
-    def __getitem__(self, key: Union[ActionType, str]) -> ActionSpec:
-        if isinstance(key, str):
-            return self._by_name[key]
-        return self._by_id[key]
-
-    def __iter__(self) -> Iterator[ActionSpec]:
-        return iter(self._list)
-
-    def __len__(self) -> int:
-        return len(self._list)
-
-    def __contains__(self, key: object) -> bool:
-        return key in self._by_name or key in self._by_id
-
-
-def _arity_from_args(args: tuple[ArgSpec, ...]) -> tuple[int, Optional[int]]:
-    if not args:
-        return (0, 0)
-    last = args[-1]
-    if last.variable:
-        return (len(args) - 1, None)
-    min_len = sum(1 for s in args if not s.optional)
-    return (min_len, len(args))
-
-
-def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
-    return ActionSpec(
-        id=action_type, name=action_type.name, args=args, arity=_arity_from_args(args)
-    )
-
-
-# Per-slot description strings
-_HAND_POS = "position in state.combat.hand"
-_MONSTER_POS = "position in the alive-monster list at dispatch time"
-_REWARD_BUNDLE_POS = "bundle in state.reward.cards"
-_REWARD_POS = "card within the bundle"
-_REWARD_RELIC_POS = "slot in state.reward.relics"
-_MAP_COL = "column on the next map row (0..MAP_WIDTH)"
-_POTION_POS = "position in state.potions"
-_REWARD_POTION_POS = "slot in state.reward.potions"
-_SHOP_CARD_POS = "position in state.shop.cards"
-_SHOP_RELIC_POS = "position in state.shop.relics"
-_SHOP_POTION_POS = "position in state.shop.potions"
-
-
-# Action spec registry
-ACTION_SPEC_REGISTRY = ActionSpecRegistry(
-    [
-        create_action_spec(
-            ActionType.CardPlay,
-            ArgSpec("idx_card", _HAND_POS),
-            ArgSpec("idx_monster", _MONSTER_POS, optional=True),
-        ),
-        create_action_spec(ActionType.ChestOpen),
-        create_action_spec(
-            ActionType.EffectPendingResolve,
-            ArgSpec(
-                "idx",
-                "position in the collection named by state.effect_pending.target.candidate_pool "
-                "(hand, deck, discover, pile, or event roll list)",
-            ),
-        ),
-        create_action_spec(ActionType.PickSkip),
-        create_action_spec(
-            ActionType.EventOptionSelect, ArgSpec("idx", "position in state.event.options")
-        ),
-        create_action_spec(ActionType.PotionDiscard, ArgSpec("idx_potion", _POTION_POS)),
-        create_action_spec(
-            ActionType.PotionUse,
-            ArgSpec("idx_potion", _POTION_POS),
-            ArgSpec("idx_monster", _MONSTER_POS, optional=True),
-        ),
-        create_action_spec(ActionType.Rest),
-        create_action_spec(ActionType.RestDig),
-        create_action_spec(ActionType.RestLift),
-        create_action_spec(ActionType.RestSmith),
-        create_action_spec(ActionType.RestToke),
-        # Reward pickup family
-        create_action_spec(
-            ActionType.RewardSingingBowl, ArgSpec("idx_bundle", _REWARD_BUNDLE_POS)
-        ),
-        create_action_spec(
-            ActionType.RewardTakeCard,
-            ArgSpec("idx_bundle", _REWARD_BUNDLE_POS),
-            ArgSpec("idx_card", _REWARD_POS),
-        ),
-        create_action_spec(ActionType.RewardTakeGold),
-        create_action_spec(
-            ActionType.RewardTakePotion, ArgSpec("idx", _REWARD_POTION_POS)
-        ),
-        create_action_spec(ActionType.RewardTakeRelic, ArgSpec("idx", _REWARD_RELIC_POS)),
-        create_action_spec(ActionType.RoomSelect, ArgSpec("idx", _MAP_COL)),
-        create_action_spec(ActionType.RoomExit),
-        # Shop
-        create_action_spec(ActionType.ShopBuyCard, ArgSpec("idx", _SHOP_CARD_POS)),
-        create_action_spec(ActionType.ShopBuyRelic, ArgSpec("idx", _SHOP_RELIC_POS)),
-        create_action_spec(ActionType.ShopBuyPotion, ArgSpec("idx", _SHOP_POTION_POS)),
-        create_action_spec(ActionType.ShopPurge),
-        create_action_spec(ActionType.TurnEnd),
-    ]
-)
 
 
 # Environment + action
@@ -269,7 +140,24 @@ EffectMonsterSplit = _rs.EffectMonsterSplit
 EffectStasisSteal = _rs.EffectStasisSteal
 EffectRewardRollCards = _rs.EffectRewardRollCards
 EffectDamageDeal = _rs.EffectDamageDeal
+EffectCardPlay = _rs.EffectCardPlay
+EffectPotionUse = _rs.EffectPotionUse
+EffectShopBuy = _rs.EffectShopBuy
+EffectShopPurge = _rs.EffectShopPurge
+EffectRewardTake = _rs.EffectRewardTake
+EffectRoomSelect = _rs.EffectRoomSelect
+EffectRoomExit = _rs.EffectRoomExit
+EffectTargetSet = _rs.EffectTargetSet
+EffectTurnEnd = _rs.EffectTurnEnd
+EffectChestOpen = _rs.EffectChestOpen
+EffectGiryaLift = _rs.EffectGiryaLift
+EffectSingingBowlProc = _rs.EffectSingingBowlProc
+EffectRestSiteConsume = _rs.EffectRestSiteConsume
+EffectEventOptionSelect = _rs.EffectEventOptionSelect
+EffectTargetClear = _rs.EffectTargetClear
 RewardRollTrigger = _rs.RewardRollTrigger
+RewardKind = _rs.RewardKind
+ShopSlot = _rs.ShopSlot
 Effect = (
     EffectDamagePhysical
     | EffectDamagePhysicalIfPoisoned
@@ -346,6 +234,21 @@ Effect = (
     | EffectStasisSteal
     | EffectRewardRollCards
     | EffectDamageDeal
+    | EffectCardPlay
+    | EffectPotionUse
+    | EffectShopBuy
+    | EffectShopPurge
+    | EffectRewardTake
+    | EffectRoomSelect
+    | EffectRoomExit
+    | EffectTargetSet
+    | EffectTurnEnd
+    | EffectChestOpen
+    | EffectGiryaLift
+    | EffectSingingBowlProc
+    | EffectRestSiteConsume
+    | EffectEventOptionSelect
+    | EffectTargetClear
 )
 
 # The kinds that can park in GameState.effect_pending. A halt only happens on a
@@ -374,12 +277,14 @@ SelectionKindSingle = _rs.SelectionKindSingle
 SelectionKindRandom = _rs.SelectionKindRandom
 SelectionKindInput = _rs.SelectionKindInput
 SelectionKindInputUpTo = _rs.SelectionKindInputUpTo
+SelectionKindTarget = _rs.SelectionKindTarget
 SelectionKind = (
     SelectionKindAll
     | SelectionKindSingle
     | SelectionKindRandom
     | SelectionKindInput
     | SelectionKindInputUpTo
+    | SelectionKindTarget
 )
 
 # Flat variant classes + PEP 604 union aliases. The union works as annotation,
@@ -406,6 +311,7 @@ Combat = _rs.Combat
 Reward = _rs.Reward
 Shop = _rs.Shop
 Event = _rs.Event
+EventOption = _rs.EventOption
 
 DeltaSign = _rs.DeltaSign
 
@@ -469,11 +375,9 @@ __all__ = [
     # Environment + action
     "GameEnv",
     "Action",
-    "ActionType",
-    "ArgSpec",
-    "ActionSpec",
-    "ActionSpecRegistry",
-    "ACTION_SPEC_REGISTRY",
+    "ActionKind",
+    "RewardKind",
+    "ShopSlot",
     # Views
     "Card",
     "Character",
@@ -511,6 +415,7 @@ __all__ = [
     "SelectionKindRandom",
     "SelectionKindInput",
     "SelectionKindInputUpTo",
+    "SelectionKindTarget",
     "CardCostKind",
     "CardCostKindFixed",
     "CardCostKindMinusDiscardsThisTurn",
@@ -558,6 +463,21 @@ __all__ = [
     "EffectRewardRollPotions",
     "EffectCardDiscoverRoll",
     "EffectGoldDelta",
+    "EffectCardPlay",
+    "EffectPotionUse",
+    "EffectShopBuy",
+    "EffectShopPurge",
+    "EffectRewardTake",
+    "EffectRoomSelect",
+    "EffectRoomExit",
+    "EffectTargetSet",
+    "EffectTurnEnd",
+    "EffectChestOpen",
+    "EffectGiryaLift",
+    "EffectSingingBowlProc",
+    "EffectRestSiteConsume",
+    "EffectEventOptionSelect",
+    "EffectTargetClear",
     "EffectRelicGrantRandom",
     "EffectWheelSpin",
     "EffectBonfireOffer",
@@ -595,6 +515,7 @@ __all__ = [
     "Reward",
     "Shop",
     "Event",
+    "EventOption",
     "DeltaSign",
     # Potion
     "Potion",

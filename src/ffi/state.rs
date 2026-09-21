@@ -3,6 +3,8 @@ use pyo3::prelude::*;
 use crate::game::GameState;
 use crate::relics::iter_owned_relics;
 
+use super::action::PyAction;
+use super::action::from_internal_action;
 use super::card::PyCard;
 use super::card::snapshot_card;
 use super::character::PyCharacter;
@@ -54,7 +56,8 @@ pub struct PyGameState {
     pub potion_slots_max: u8,
     pub map: PyMap,
     pub effect_pending: Option<PyEffectPending>,
-    pub effect_pending_selected: Vec<PyCard>,
+    pub input_selected: Vec<PyCard>,
+    pub legal_actions: Vec<PyAction>,
 }
 
 // Snapshot builders
@@ -86,10 +89,15 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
         potion_slots_max: state.potion_slots_max,
         map: snapshot_map(state),
         effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
-        effect_pending_selected: state
-            .effect_pending_selected
+        input_selected: state
+            .id_input
             .iter()
             .map(|&id| snapshot_card(state, id))
+            .collect(),
+        legal_actions: state
+            .legal_actions
+            .iter()
+            .map(from_internal_action)
             .collect(),
     }
 }

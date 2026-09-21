@@ -267,14 +267,10 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
     let gold = state.entities[state.id_character].character_gold;
 
     // Calculate if there's any removable curses in the deck. This gates "The Divine Fountain"
-    let has_removable_curse = state.id_card_deck.iter().any(|&id| {
-        candidate_matches(
-            CandidateFilter::PurgeableCurse,
-            id,
-            &state.entities[id],
-            None,
-        )
-    });
+    let has_removable_curse = state
+        .id_card_deck
+        .iter()
+        .any(|&id| candidate_matches(state, CandidateFilter::PurgeableCurse, id, None));
 
     // Calculate eligible specials
     let eligible: Vec<usize> = state

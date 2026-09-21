@@ -1,7 +1,7 @@
-use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::effect::effect_gold_loss;
 use crate::engine::shop::apply_shop_discounts;
 use crate::engine::shop::make_card_colored;
 use crate::engine::shop::make_card_colorless;
@@ -9,7 +9,6 @@ use crate::engine::shop::make_potion;
 use crate::engine::shop::restock_relic;
 use crate::game::GameState;
 use crate::types::CardColor;
-use crate::types::DeltaSign;
 use crate::types::Focus;
 use crate::types::RelicName;
 use crate::types::Shop;
@@ -25,38 +24,41 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
         "ShopBuy outside the Shop context"
     );
     let Shop {
-        id_cards_price,
-        id_relics_price,
-        id_potions_price,
+        id_cards,
+        id_relics,
+        id_potions,
         purge_cost,
         ..
     } = &mut state.shop;
 
-    // Take the offer out of its slot; its price settles the sale
-    let (idx, price_bought) = {
-        let offers: &mut Vec<(usize, u16)> = match slot {
-            ShopSlot::Card => id_cards_price,
-            ShopSlot::Relic => id_relics_price,
-            ShopSlot::Potion => id_potions_price,
+    // Take the offer out of its slot; its price settles the sale and leaves it
+    let idx = {
+        let offers: &mut Vec<usize> = match slot {
+            ShopSlot::Card => id_cards,
+            ShopSlot::Relic => id_relics,
+            ShopSlot::Potion => id_potions,
         };
         let idx = offers
             .iter()
-            .position(|&(id, _)| id == id_bought)
+            .position(|&id| id == id_bought)
             .expect("Bought entry is a shop entry");
-        let (_, price) = offers.remove(idx);
-        (idx, price)
+        offers.remove(idx);
+        idx
     };
+    let price_bought = state.entities[id_bought].shop_price;
+    state.entities[id_bought].shop_price = 0;
 
     // The Relic name is only meaningful on the Relic slot
     let name_bought = (slot == ShopSlot::Relic).then(|| state.entities[id_bought].relic_name);
 
     // Membership Card bought mid-shop: retro-discount the remaining stock and purge
     if name_bought == Some(RelicName::MembershipCard) {
-        for (_, price) in id_cards_price
-            .iter_mut()
-            .chain(id_relics_price.iter_mut())
-            .chain(id_potions_price.iter_mut())
+        for &id in id_cards
+            .iter()
+            .chain(id_relics.iter())
+            .chain(id_potions.iter())
         {
+            let price = &mut state.entities[id].shop_price;
             *price = ((*price as u32 + 1) / 2) as u16;
         }
 
@@ -74,25 +76,27 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
                 let bought = &state.entities[id_bought];
                 let (color, kind, rarity) =
                     (bought.card_color, bought.card_kind, bought.card_rarity);
-                let (id_new, price) = if color == CardColor::Colorless {
-                    make_card_colorless(&mut state.entities, &mut state.rng, id_cards_price, rarity)
+                let id_new = if color == CardColor::Colorless {
+                    make_card_colorless(&mut state.entities, &mut state.rng, id_cards, rarity)
                 } else {
                     make_card_colored(
                         &mut state.entities,
                         &mut state.rng,
-                        id_cards_price,
+                        id_cards,
                         kind,
                         state.id_character,
                         &state.id_relics,
                     )
                 };
-                let price = apply_shop_discounts(price, &state.id_relics);
-                id_cards_price.insert(idx, (id_new, price));
+                let price = &mut state.entities[id_new].shop_price;
+                *price = apply_shop_discounts(*price, &state.id_relics);
+                id_cards.insert(idx, id_new);
             }
             ShopSlot::Potion => {
-                let (id_new, price) = make_potion(&mut state.entities, &mut state.rng);
-                let price = apply_shop_discounts(price, &state.id_relics);
-                id_potions_price.insert(idx, (id_new, price));
+                let id_new = make_potion(&mut state.entities, &mut state.rng);
+                let price = &mut state.entities[id_new].shop_price;
+                *price = apply_shop_discounts(*price, &state.id_relics);
+                id_potions.insert(idx, id_new);
             }
             ShopSlot::Relic => {
                 // Restock as if the sale settled: priced with the bought Relic, never re-offering it
@@ -103,7 +107,7 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
                     &mut state.entities,
                     &mut state.rng,
                     &id_relics_settled,
-                    id_relics_price,
+                    id_relics,
                     idx,
                 );
             }
@@ -117,14 +121,7 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
         ShopSlot::Potion => EffectKind::PotionAdopt,
     };
     state.effect_buf.clear();
-    state.effect_buf.push(Effect {
-        kind: EffectKind::GoldDelta {
-            sign: DeltaSign::Loss,
-            amount: Amount::Absolute(price_bought),
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    });
+    state.effect_buf.push(effect_gold_loss(price_bought));
     state.effect_buf.push(Effect {
         kind: kind_adopt,
         id_source: None,

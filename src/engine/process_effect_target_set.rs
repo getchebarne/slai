@@ -1,14 +1,14 @@
 use crate::game::GameState;
-use crate::types::Combat;
 
+// The Monster a play's effects share; one play at a time holds it
 pub fn process_effect_target_set(id_target: Option<usize>, state: &mut GameState) {
     assert!(
         state.combat.active,
         "process_effect_target_set outside the Combat frame"
     );
-    let Combat {
-        id_monster_picked, ..
-    } = &mut state.combat;
-    let id_target = id_target.expect("TargetSet requires id_target");
-    *id_monster_picked = Some(id_target);
+    assert!(
+        state.combat.id_monster_target.is_none(),
+        "TargetSet over a held target: nested targeted plays are not supported"
+    );
+    state.combat.id_monster_target = Some(id_target.expect("TargetSet requires id_target"));
 }

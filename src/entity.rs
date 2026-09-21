@@ -83,6 +83,8 @@ pub struct Move {
 #[derive(Debug, Clone, Copy)]
 pub struct Entity {
     pub kind: EntityKind,
+    // Offer price while in a shop's stock; 0 off the stock
+    pub shop_price: u16,
 
     // Combatant: Character or Monster
     pub vitals: Vitals,
@@ -160,6 +162,7 @@ pub struct Entity {
 // Zero-fill sentinel; used by const constructors and unused arena slots
 pub const ENTITY_ZERO: Entity = Entity {
     kind: EntityKind::Character,
+    shop_price: 0,
     vitals: VITALS_ZERO,
     modifiers: MODIFIERS_ZERO,
     character_name: "",
