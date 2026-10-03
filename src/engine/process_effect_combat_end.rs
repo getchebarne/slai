@@ -32,15 +32,15 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     assert!(state.combat.active, "CombatEnd outside combat");
     let escaped_monster = state.combat.this_combat_escaped;
 
-    // Clear the Character's modifiers and block: resetPlayer wipes both
+    // Clear the Character's modifiers and block
     modifier_clear(&mut state.entities[state.id_character].modifiers);
     state.entities[state.id_character].vitals.block = 0;
 
     // The spent combat is closed here; what it reveals owns the aftermath
     state.combat.active = false;
 
-    // Smoke Bomb: no rewards; endBattle still runs, so addPotionToRewards drifts the drop
-    // chance and the victory Relics still fire
+    // Smoke Bomb: no rewards, but the Potion drop chance still drifts and the victory
+    // Relics still fire
     if escaped_character {
         queue_effect_untargeted(
             state,
@@ -197,7 +197,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 }
             }
 
-            // Escaped normal fights roll Potion chance 0 in the source
+            // Escaped normal fights roll Potion chance 0
             queue_effect_untargeted(
                 state,
                 EffectKind::RewardRollPotion {
@@ -220,7 +220,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     }
 }
 
-// endBattle's Relic hooks: they fire on a victory and on a Smoke Bomb alike
+// Combat-end Relic hooks: they fire on a victory and on a Smoke Bomb alike
 fn queue_combat_end_relics(state: &mut GameState) {
     // Meat on the Bone: ending combat at half HP or less heals 12
     if has_relic(&state.id_relics, RelicName::MeatOnTheBone) {

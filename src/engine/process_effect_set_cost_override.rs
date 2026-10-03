@@ -33,7 +33,7 @@ pub fn process_effect_set_cost_override(
             return;
         }
         let roll = state.rng.random_range(0..=amount);
-        // Same-cost roll leaves any live per-turn override in place (StS parity)
+        // Same-cost roll leaves any live per-turn override in place
         if roll == state.entities[id_target].card_cost {
             return;
         }
@@ -43,7 +43,7 @@ pub fn process_effect_set_cost_override(
     };
 
     // `only_reduce` guards against cost-increase (see Enlightment). A per-turn cut reads the
-    // live cost, a permanent one the printed cost; Java tests the two independently
+    // live cost, a permanent one the printed cost; the two are tested independently
     let (this_turn_discards, energy_current) = if state.combat.active {
         (
             state.combat.this_turn_discards,
@@ -68,7 +68,7 @@ pub fn process_effect_set_cost_override(
     }
 
     match scope {
-        // Madness and Confusion write costForTurn in the same breath; a guarded permanent
+        // Madness and Confusion set the live cost in the same breath; a guarded permanent
         // cut (Enlightenment+) lowers the printed cost alone
         CostScope::Combat => {
             card.card_cost = amount;

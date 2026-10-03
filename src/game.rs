@@ -98,7 +98,7 @@ pub struct GameState {
     // Name-indexed: `id_relics[name as usize]` is `Some(entity_id)` iff owned
     pub id_relics: [Option<usize>; RelicName::COUNT],
 
-    // Next acquisition stamp for `relic_seq`; the source iterates hooks in pickup order
+    // Next acquisition stamp for `relic_seq`; Relic hooks run in pickup order
     pub relic_seq_next: u16,
 
     // Dense belt in pickup order (duplicates allowed); `potion_slots_max` caps its length
@@ -197,7 +197,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
     // Act-1 event pools
     let (pool_events, pool_event_special) = pools_for_act(1);
 
-    // initializeRelicList: one shuffled pool per tier for the whole run
+    // One shuffled pool per tier for the whole run
     let mut pool_relic_common = POOL_COMMON_RELIC.to_vec();
     let mut pool_relic_uncommon = POOL_UNCOMMON_RELIC.to_vec();
     let mut pool_relic_rare = POOL_RARE_RELIC.to_vec();
@@ -261,7 +261,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             id_card_stasis: [None; MAX_MONSTERS],
             id_monster_picked: None,
             id_card_last_drawn: None,
-            id_card_nightmare: None,
+            id_card_nightmares: Vec::new(),
             id_card_discover: Vec::with_capacity(DISCOVER_PICK_COUNT as usize),
             id_card_origins: Vec::new(),
             energy: Energy {

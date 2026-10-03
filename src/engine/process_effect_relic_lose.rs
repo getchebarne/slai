@@ -12,7 +12,7 @@ pub fn process_effect_relic_lose(id_target: Option<usize>, state: &mut GameState
     );
     state.id_relics[name as usize] = None;
 
-    // onUnequip: a bottle leaving the belt frees its Card
+    // A bottle leaving the belt frees its Card
     let bottled_kind = match name {
         RelicName::BottledFlame => Some(CardKind::Attack),
         RelicName::BottledLightning => Some(CardKind::Skill),

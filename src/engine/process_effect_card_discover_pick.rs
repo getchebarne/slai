@@ -42,7 +42,7 @@ pub fn process_effect_card_discover_pick(
     }
     place_card(state, id_card, pile);
 
-    // Sacred Bark's second copy is a stat-equivalent clone, priced the same way
+    // Sacred Bark's second copy is a stat-equivalent clone, costed the same way
     for _ in 1..copies {
         let copy = state.entities[id_card];
         let id_copy = push_entity(&mut state.entities, copy);

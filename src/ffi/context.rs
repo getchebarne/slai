@@ -55,6 +55,7 @@ pub struct PyCombat {
     pub monsters: Vec<PyMonster>,
     pub discover: Vec<PyCard>,
     pub bombs: Vec<(u8, u16)>,
+    pub nightmares: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
 }
 
 #[pyclass(
@@ -190,6 +191,11 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .map(|&id| snapshot_card(state, id))
             .collect(),
         bombs: combat.bombs.clone(),
+        nightmares: combat
+            .id_card_nightmares
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
     }
 }
 

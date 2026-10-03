@@ -41,7 +41,7 @@ use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::roll_card_rarity;
 
-// setPrice: the Courier restock keeps one float through variance and both discounts
+// The Courier restock keeps one float through variance and both discounts
 pub(super) fn make_card_restock(
     state: &mut GameState,
     color: CardColor,
@@ -49,7 +49,7 @@ pub(super) fn make_card_restock(
 ) -> (usize, u16) {
     let colorless = color == CardColor::Colorless;
     let rarity = if colorless {
-        // colorlessRareChance: a fresh roll, never the bought Card's rarity
+        // A fresh rarity roll, never the bought Card's rarity
         if state.rng.random::<f32>() < SHOP_COLORLESS_RARE_CHANCE {
             CardRarity::Rare
         } else {
@@ -102,7 +102,7 @@ pub(super) fn make_card_restock(
     (id_card, price as u16)
 }
 
-// The Courier x0.8 then Membership Card x0.5; sequential round-half-up (Java shop-init order)
+// The Courier x0.8 then Membership Card x0.5, each rounded half-up in turn
 pub(super) fn apply_shop_discounts(
     price: u16,
     id_relics: &[Option<usize>; RelicName::COUNT],
@@ -117,7 +117,7 @@ pub(super) fn apply_shop_discounts(
     price_snap as u16
 }
 
-// rollRelicTier with the shop's cuts and base prices
+// Relic tier and base price from the shop's cuts
 pub(super) fn roll_shop_relic_tier(rng: &mut impl Rng) -> (RelicTier, u16) {
     let roll = rng.random_range(0..100) as u8;
     if roll < SHOP_RELIC_TH_COMMON {

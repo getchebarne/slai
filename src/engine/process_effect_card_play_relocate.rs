@@ -9,7 +9,7 @@ use crate::types::CardPile;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
-// UseCardAction's pile routing once a Card has been used: Powers vanish, exhausts may
+// Pile routing once a Card has been used: Powers vanish, exhausts may
 // Strange-Spoon into a discard, everything else discards
 pub fn process_effect_card_play_relocate(
     id_target: Option<usize>,

@@ -13,7 +13,6 @@ use crate::modifier::has_modifier;
 use crate::types::Combat;
 use crate::types::CostScope;
 
-// NoDraw short-circuits. on_draw hooks fire after the full batch, in draw order
 pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
     assert!(
         state.combat.active,
@@ -27,7 +26,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         ..
     } = &mut state.combat;
 
-    // DrawCardAction clears the draw history before every bail path
+    // Clear the draw history before every bail path
     *id_card_last_drawn = None;
     if has_modifier(
         &state.entities[state.id_character].modifiers,
@@ -36,7 +35,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         return;
     }
 
-    // Overdraw never happens: the excess stays on the draw pile, as in the source
+    // Overdraw never happens: the excess stays on the draw pile
     let count = count.min(MAX_SIZE_HAND.saturating_sub(id_card_hand.len()) as u16);
 
     // Initialize variables to track IDs and count of drawn Cards, and wether reshuffle is needed
@@ -116,7 +115,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             // Roll new cost
             let new_cost: u8 = state.rng.random_range(0..=3);
 
-            // freeToPlayOnce is cleared whether or not the roll changed anything
+            // `CostOverride` is cleared whether or not the roll changed anything
             if matches!(
                 state.entities[id_card].card_cost_override,
                 Some(CostOverride {

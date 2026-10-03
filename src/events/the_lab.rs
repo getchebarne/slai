@@ -8,7 +8,7 @@ use crate::events::make_event_option_template;
 use crate::game::GameState;
 
 // Search: the rolled Potions land on the Reward context, where the belt is
-// interactive (discard-to-swap), matching the source's combatRewardScreen
+// interactive (discard-to-swap)
 const fn search(count: u8) -> [Effect; 2] {
     [
         // Consume first: the staged Reward overlays this frame until RoomExit

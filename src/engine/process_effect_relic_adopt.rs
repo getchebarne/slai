@@ -92,7 +92,7 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
                 "Calling Bell adopts from a Reward context or Neow"
             );
 
-            // returnRandomScreenlessRelic, one per rarity
+            // One screenless Relic per rarity
             let mut id_relics = Vec::with_capacity(3);
             for tier in [RelicTier::Common, RelicTier::Uncommon, RelicTier::Rare] {
                 let name = draw_relic_excluding(state, tier, RelicExclusion::Screenless);
@@ -131,7 +131,7 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
                 id_source: None,
                 target: Target::Direct(None),
             });
-            // addGoldToRewards: Golden Idol scales it like any reward gold
+            // Golden Idol scales it like any reward gold
             let gold = if has_relic(&state.id_relics, RelicName::GoldenIdol) {
                 50 + (50 + 2) / 4
             } else {

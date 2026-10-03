@@ -59,7 +59,7 @@ pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     let id_options = bake_options(state, catalog(state.ascension));
 
-    // The constructor freezes hpLoss at room entry, clamped to leave 1 max HP
+    // The max-HP loss is frozen at room entry, clamped to leave 1 max HP
     let health_max = state.entities[state.id_character].vitals.health_max;
     let loss = health_max.div_ceil(2).min(health_max.saturating_sub(1));
     state.entities[id_options[0]].event_option_effects[0].kind = EffectKind::MaxHealthDelta {

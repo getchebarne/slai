@@ -26,7 +26,7 @@ struct Room {
     pub x: usize,
     pub room_kind: RoomKind,
     pub edges: u8,
-    // addParent appends without a uniqueness test, so one parent can appear twice
+    // Parents append without a uniqueness test, so one parent can appear twice
     pub parents: [u8; PATH_DENSITY],
     pub parents_len: u8,
 }
@@ -138,9 +138,8 @@ fn generate_grid(rng: &mut impl Rng, ascension: u8) -> Grid {
         }
     }
 
-    // Pre-trim row-0 edges define parenthood for row 1: the source keeps stale
-    // parent links after redundant-edge removal, and their surviving children
-    // still count as siblings during Room-kind assignment
+    // Pre-trim row-0 edges define parenthood for row 1: parent links outlive
+    // redundant-edge removal, so those children still count as siblings
     let mut edges_row0_pretrim = [0u8; MAP_WIDTH];
     for (x, node) in nodes[0].iter().enumerate() {
         if let Some(node) = node {
@@ -262,7 +261,7 @@ fn get_room_parents(y: usize, x: usize, nodes: &Grid) -> Vec<(usize, usize)> {
 }
 
 // Climbs both sides row by row — max X on the left, min X on the right — until they
-// meet. The left/right split keeps the source's `node1.x < node2.y` typo
+// meet. The left/right split deliberately compares one node's x to the other's y
 fn get_common_ancestor(
     node1: (usize, usize),
     node2: (usize, usize),
@@ -335,7 +334,7 @@ fn rule_row_ok(kind: RoomKind, y: usize) -> bool {
     }
 }
 
-// Vanilla parent-rule kinds (Treasure is listed too but never drawable)
+// Kinds bound by the parent rule (Treasure is listed too but never drawable)
 fn rule_parent_applies(kind: RoomKind) -> bool {
     matches!(
         kind,

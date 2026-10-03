@@ -53,9 +53,9 @@ pub fn process_effect_card_play_from_draw_top(id_target: Option<usize>, state: &
     // Detached from the pile here; card_play's routing effects move it onward
     let id_card = id_card_draw.pop().unwrap();
 
-    // canUse gates the autoplay; a refused Card is still routed by UseCardAction, untriggered
+    // Playability gates the autoplay; a refused Card is still routed to its pile, untriggered
     let card = &state.entities[id_card];
-    // A target frozen at potion use may have died since; cardPlayable then fails
+    // A target frozen at potion use may have died since; the Card is then unplayable
     let target_gone = id_target.is_some_and(|id| !id_monsters.contains(&Some(id)));
     let entangled = has_modifier(
         &state.entities[state.id_character].modifiers,
@@ -97,7 +97,8 @@ pub fn process_effect_card_play_from_draw_top(id_target: Option<usize>, state: &
     });
     state.effect_queue.push_front(Effect {
         kind: EffectKind::CardPlay {
-            energy_on_use: None,
+            replay: false,
+            energy: state.combat.energy.energy_current,
         },
         id_source: None,
         target: Target::Direct(Some(id_card)),

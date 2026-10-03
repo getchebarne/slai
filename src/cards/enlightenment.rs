@@ -43,7 +43,7 @@ pub static ENLIGHTENMENT: CardTemplate = make_card_template(
     &[],
     PlayRestriction::Always,
 );
-// Upgraded: the turn cut still lands, plus an independent cut to the printed cost
+// Upgraded
 pub static ENLIGHTENMENT_PLUS: CardTemplate = make_card_template(
     CardName::Enlightenment,
     CardKind::Skill,
@@ -70,6 +70,7 @@ pub static ENLIGHTENMENT_PLUS: CardTemplate = make_card_template(
                 selection_kind: SelectionKind::All,
             },
         },
+        // Also discounts for the rest of combat
         Effect {
             kind: EffectKind::SetCostOverride {
                 amount: 1,

@@ -73,7 +73,8 @@ pub enum EffectKind {
     CardNightmarePick,
     CardNightmareSpawn,
     CardPlay {
-        energy_on_use: Option<u8>,
+        replay: bool,
+        energy: u8,
     },
     BombArm {
         turns: u8,
@@ -302,7 +303,7 @@ pub enum RelicPick {
     Name(RelicName),
 }
 
-// Redraw loops around returnRandomRelicKey: screenless grants skip the bottles and
+// Redraw loops around the relic draw: screenless grants skip the bottles and
 // Whetstone, Black Star's second slot skips the campfire trio
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RelicExclusion {
@@ -391,7 +392,6 @@ pub enum CandidateFilter {
     KindSkill,
     KindPower,
     Costed,
-    CostedPrinted,
     PurgeableOrBottled,
 
     // Compare against the `Target::Resolve` context

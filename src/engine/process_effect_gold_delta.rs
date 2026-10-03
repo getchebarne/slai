@@ -28,7 +28,7 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
         }
     };
 
-    // Ectoplasm: gold can no longer be gained (after resolution, for RNG parity with the source game)
+    // Ectoplasm: gold can no longer be gained; checked after resolution so the roll still draws
     if sign == DeltaSign::Gain && has_relic(&state.id_relics, RelicName::Ectoplasm) {
         return;
     }

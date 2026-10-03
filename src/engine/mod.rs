@@ -248,7 +248,7 @@ use crate::types::Combat;
 use crate::types::Event;
 use crate::types::EventName;
 use crate::types::RoomKind;
-use crate::utils::candidate_matches;
+use crate::utils::filter_candidates;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -421,35 +421,12 @@ fn resolve_or_halt(
     );
 
     // Stage 2: the filter retains
-    let entities = &state.entities;
-    state
-        .effect_candidate_buf
-        .retain(|&id| candidate_matches(filter, id, &entities[id], id_source));
-
-    // Madness: a Card whose printed cost is positive is the fallback tier, not a second condition
-    if filter == CandidateFilter::Costed && state.effect_candidate_buf.is_empty() {
-        fill_buf_candidates(
-            &mut state.effect_candidate_buf,
-            candidate_pool,
-            id_source,
-            state.id_character,
-            &state.combat,
-            &state.event,
-            &state.id_card_deck,
-        );
-        let entities = &state.entities;
-        state.effect_candidate_buf.retain(|&id| {
-            candidate_matches(CandidateFilter::CostedPrinted, id, &entities[id], id_source)
-        });
-    }
-
-    // NotSource: the last Monster standing falls back to targeting itself
-    if filter == CandidateFilter::NotSource
-        && state.effect_candidate_buf.is_empty()
-        && let Some(id_source) = id_source
-    {
-        state.effect_candidate_buf.push(id_source);
-    }
+    filter_candidates(
+        filter,
+        &mut state.effect_candidate_buf,
+        &state.entities,
+        id_source,
+    );
 
     // Nothing survived: the effect resolves to no targets (guards Single's assert)
     if state.effect_candidate_buf.is_empty() {
@@ -490,8 +467,8 @@ fn dispatch_by_kind(
             process_effect_hand_of_greed_proc(id_target, state, gold)
         }
         EffectKind::CardDrawUpTo { amount } => process_effect_card_draw_up_to(state, amount),
-        EffectKind::CardPlay { energy_on_use } => {
-            process_effect_card_play(id_target, state, energy_on_use)
+        EffectKind::CardPlay { replay, energy } => {
+            process_effect_card_play(id_target, state, replay, energy)
         }
         EffectKind::CardAdd {
             card_name,

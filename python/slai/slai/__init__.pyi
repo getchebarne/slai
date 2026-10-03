@@ -132,7 +132,6 @@ class AmountRelative:
 class CandidateFilter:
     Any: Final[CandidateFilter]
     Costed: Final[CandidateFilter]
-    CostedPrinted: Final[CandidateFilter]
     KindAttack: Final[CandidateFilter]
     KindPower: Final[CandidateFilter]
     KindSkill: Final[CandidateFilter]
@@ -534,6 +533,8 @@ class Combat:
     def hand(self, /) -> list[Card]: ...
     @property
     def monsters(self, /) -> list[Monster]: ...
+    @property
+    def nightmares(self, /) -> list[Card]: ...
     @property
     def pile_discard(self, /) -> list[Card]: ...
     @property

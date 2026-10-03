@@ -189,8 +189,8 @@ pub fn get_card_effective_cost(card: &Entity, this_turn_discards: u8, energy_cur
     }
 }
 
-// updateCardsOnDamage: each Masterful Stab in hand, draw or discard costs 1 more, and a
-// live override rises with it so Java's frozen cost - costForTurn gap is preserved
+// Each Masterful Stab in hand, draw or discard costs 1 more, and a live override rises
+// with it so the gap between printed and live cost is preserved
 pub fn cards_grow_on_damage(state: &mut GameState) {
     for pile in [
         &state.combat.id_card_hand,
@@ -261,16 +261,51 @@ pub use card_is_purgeable as card_is_transformable;
 // Single source of truth for which candidates a Resolve admits, whatever the
 // pool. Entity predicates are total over the fat Entity; Picked / NotSource
 // compare `id` against the resolve context instead
-pub fn candidate_matches(
+// One filter pass over the whole candidate set; Costed and NotSource fall back on what
+// else survives, which no single-entity test can express
+pub fn filter_candidates(
     filter: CandidateFilter,
-    id: usize,
-    entity: &Entity,
+    candidates: &mut Vec<usize>,
+    entities: &[Entity],
     id_source: Option<usize>,
-) -> bool {
+) {
+    match filter {
+        // Printed cost is only the fallback tier when no Card has a live one
+        CandidateFilter::Costed => {
+            let live = |entity: &Entity| {
+                !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
+                    && entity
+                        .card_cost_override
+                        .map_or(entity.card_cost, |cost_override| cost_override.amount)
+                        > 0
+            };
+            let printed = |entity: &Entity| {
+                !matches!(entity.card_cost_kind, CardCostKind::XCost { .. }) && entity.card_cost > 0
+            };
+            if candidates.iter().any(|&id| live(&entities[id])) {
+                candidates.retain(|&id| live(&entities[id]));
+            } else {
+                candidates.retain(|&id| printed(&entities[id]));
+            }
+        }
+        // The last Monster standing falls back to targeting itself
+        CandidateFilter::NotSource => {
+            candidates.retain(|&id| Some(id) != id_source);
+            if candidates.is_empty()
+                && let Some(id_source) = id_source
+            {
+                candidates.push(id_source);
+            }
+        }
+        _ => candidates.retain(|&id| entity_matches(filter, &entities[id])),
+    }
+}
+
+fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
     match filter {
         CandidateFilter::Any => true,
         CandidateFilter::Purgeable => card_is_purgeable(entity),
-        // getPurgeableCards without the bottle wrapper (Astrolabe, Empty Cage)
+        // Purgeable, bottled Cards included (Astrolabe, Empty Cage)
         CandidateFilter::PurgeableOrBottled => {
             entity.kind == EntityKind::Card && !card_name_never_obtainable(entity.card_name)
         }
@@ -282,17 +317,9 @@ pub fn candidate_matches(
         CandidateFilter::KindAttack => entity.card_kind == CardKind::Attack,
         CandidateFilter::KindSkill => entity.card_kind == CardKind::Skill,
         CandidateFilter::KindPower => entity.card_kind == CardKind::Power,
-        CandidateFilter::Costed => {
-            !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
-                && entity
-                    .card_cost_override
-                    .map_or(entity.card_cost, |cost_override| cost_override.amount)
-                    > 0
+        CandidateFilter::Costed | CandidateFilter::NotSource => {
+            unreachable!("{filter:?} is set-level; filter_candidates handles it")
         }
-        CandidateFilter::CostedPrinted => {
-            !matches!(entity.card_cost_kind, CardCostKind::XCost { .. }) && entity.card_cost > 0
-        }
-        CandidateFilter::NotSource => Some(id) != id_source,
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
         CandidateFilter::StarterStrike => entity.card_name == CardName::Strike,
         CandidateFilter::StarterUpgradeable => {
@@ -455,7 +482,7 @@ pub fn scale_block_gain(base: u16, dex_stacks: i16, is_frail: bool) -> u16 {
     value.max(0.0) as u16
 }
 
-// returnRandomRelicTier with the caller's cuts
+// Relic tier from a roll against the caller's cuts
 pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier {
     if roll < th_common {
         RelicTier::Common
@@ -466,7 +493,7 @@ pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier
     }
 }
 
-// AbstractRelic.canSpawn for the Relics that override it
+// Spawn gates for the Relics that have one
 pub fn relic_can_spawn(state: &GameState, name: RelicName) -> bool {
     let deck_has = |pred: fn(&Entity) -> bool| {
         state
@@ -502,9 +529,8 @@ pub fn relic_can_spawn(state: &GameState, name: RelicName) -> bool {
     }
 }
 
-// returnRandomRelicKey / returnEndRandomRelicKey: pop the run pool for `tier`, cascading
-// Common -> Uncommon -> Rare -> Circlet and Shop -> Uncommon; a pick that fails canSpawn
-// is burned and the redraw comes from the back
+// Pop the run pool for `tier`, cascading Common -> Uncommon -> Rare -> Circlet and
+// Shop -> Uncommon; a pick that fails its spawn gate is burned, the redraw from the back
 pub fn draw_relic(state: &mut GameState, tier: RelicTier, from_back: bool) -> RelicName {
     let (pool, cascade) = match tier {
         RelicTier::Common => (&mut state.pool_relic_common, Some(RelicTier::Uncommon)),
@@ -535,8 +561,7 @@ pub fn draw_relic(state: &mut GameState, tier: RelicTier, from_back: bool) -> Re
     }
 }
 
-// returnRandomScreenlessRelic / returnRandomNonCampfireRelic: front draws until the pick
-// is outside the excluded set; rejected picks stay consumed
+// Front draws until the pick is outside the excluded set; rejected picks stay consumed
 pub fn draw_relic_excluding(
     state: &mut GameState,
     tier: RelicTier,
@@ -628,7 +653,7 @@ pub fn pick_relic_from_pool(
     }
 }
 
-// applyDiscount recomputes the purge price from the static base, so the last purge-affecting
+// The purge price is recomputed from the static base, so the last purge-affecting
 // Relic wins instead of compounding
 pub fn purge_price(purge_cost_run: u16, id_relics: &[Option<usize>; RelicName::COUNT]) -> u16 {
     if has_relic(id_relics, RelicName::SmilingMask) {
@@ -741,7 +766,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
         },
-        // RestRoom keeps the default bands but passes useAlternation = false
+        // Rest sites keep the default bands, but relics never widen them
         RewardRollTrigger::DreamCatcher => RollPolicy {
             cuts: CUTS_MONSTER,
             alternation: false,
@@ -749,7 +774,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
         },
-        // Bought in a Shop, so the offer rolls ShopRoom's bands with no alternation
+        // Bought in a Shop, so the offer rolls the shop bands and relics never widen them
         RewardRollTrigger::Orrery => RollPolicy {
             cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
             alternation: false,

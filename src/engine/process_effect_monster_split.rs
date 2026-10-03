@@ -47,7 +47,7 @@ pub fn process_effect_monster_split(
         .expect("MonsterSplit would overflow id_monsters: no empty idx");
     id_monsters[idx] = Some(id_monster);
 
-    // Philosopher's Stone: onSpawnMonster reaches split children too
+    // Philosopher's Stone: split children get the Strength too
     if has_relic(&state.id_relics, RelicName::PhilosopherStone) {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierGain {

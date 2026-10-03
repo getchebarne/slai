@@ -30,11 +30,11 @@ use crate::types::RewardKind;
 use crate::types::RoomKind;
 use crate::types::Shop;
 use crate::types::ShopSlot;
-use crate::utils::candidate_matches;
 use crate::utils::card_is_purgeable;
 use crate::utils::card_is_upgradable;
 use crate::utils::context_focus;
 use crate::utils::entity_requires_target;
+use crate::utils::filter_candidates;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
@@ -324,7 +324,8 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
         });
         state.effect_buf.push(Effect {
             kind: EffectKind::CardPlay {
-                energy_on_use: None,
+                replay: false,
+                energy: state.combat.energy.energy_current,
             },
             id_source: None,
             target: Target::Direct(Some(id_card)),
@@ -337,7 +338,8 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
     } else {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardPlay {
-                energy_on_use: None,
+                replay: false,
+                energy: state.combat.energy.energy_current,
             },
             id_source: None,
             target: Target::Direct(Some(id_card)),
@@ -603,11 +605,12 @@ fn fill_legal_actions_effect_pending(
     // Get `CandidatePool`'s instanced IDs
     let id_collection = pool_collection(pool, &state.combat, &state.event, &state.id_card_deck);
 
-    // Apply `CandidateFilter`; staged picks are out of the running
+    // Apply `CandidateFilter` over the whole set, then map survivors back to pool indices;
+    // staged picks are out of the running
+    let mut survivors = id_collection.to_vec();
+    filter_candidates(filter, &mut survivors, &state.entities, None);
     for (idx, &id) in id_collection.iter().enumerate() {
-        if !state.effect_pending_selected.contains(&id)
-            && candidate_matches(filter, id, &state.entities[id], None)
-        {
+        if !state.effect_pending_selected.contains(&id) && survivors.contains(&id) {
             state
                 .legal_actions
                 .push(Action::EffectPendingResolve { idx });

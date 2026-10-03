@@ -64,7 +64,7 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
                 // Distilled Chaos: one play per effect, so the potency doubles by repeating
                 EffectKind::CardPlayFromDrawTop => repeat = true,
 
-                // Discover potions: DiscoveryAction puts both copies in hand
+                // Discover potions: the doubled copies all go to hand
                 EffectKind::CardDiscoverPick { copies, .. } => *copies *= 2,
 
                 // No potency: Blessing of the Forge, Smoke Bomb, Gambler's Brew, Entropic

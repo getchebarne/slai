@@ -28,7 +28,7 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
     }
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
 
-    // haveMonstersEscaped is false while any Monster is still there or fell in battle
+    // A fight counts as escaped only if no Monster is left and none fell in battle
     if !any_alive && !state.combat.this_combat_monster_died {
         state.combat.this_combat_escaped = true;
     }

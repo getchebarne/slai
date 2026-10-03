@@ -35,7 +35,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         id_monsters,
         id_card_draw,
         energy,
-        id_card_nightmare,
+        id_card_nightmares,
         turn,
         ..
     } = &mut state.combat;
@@ -104,7 +104,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         modifiers.stacks[ModifierKind::Flight as usize] = byrd::flight_stacks(state.ascension);
     }
 
-    // Character's turn start, in GameActionManager's order; turn 1 follows AbstractRoom's
+    // Character's turn start; turn 1 also slots in the combat-start Relics
     if id_actor == state.id_character {
         let first_turn = *turn == 0;
         *turn += 1;
@@ -116,7 +116,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             .collect();
         id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
-        // Turn 1: addToTop combat-start Relics run ahead of everything, newest pickup first
+        // Turn 1: front-queued combat-start Relics run ahead of everything, newest pickup first
         if first_turn {
             for &id_relic in id_relics.iter().rev() {
                 let relic = &state.entities[id_relic];
@@ -210,7 +210,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
 
         // Spawn nightmare copies
-        if id_card_nightmare.is_some() {
+        if !id_card_nightmares.is_empty() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardNightmareSpawn,
                 id_source: None,
@@ -267,7 +267,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             draw_count += 1;
         }
 
-        // initializeDeck: innate and bottled Cards past the hand size draw extra on turn 1
+        // Innate and bottled Cards past the hand size draw extra on turn 1
         if first_turn {
             let n_top = id_card_draw
                 .iter()
@@ -306,7 +306,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             target: Target::Direct(None),
         });
 
-        // Turn 1: addToBot combat-start Relics, acquisition order
+        // Turn 1: back-queued combat-start Relics, acquisition order
         if first_turn {
             for &id_relic in &id_relics {
                 let relic = &state.entities[id_relic];
@@ -396,7 +396,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Mayhem: PlayTopCardAction is queued when its wrapper runs, behind everything above
+        // Mayhem: the top-card play queues behind everything above
         if has_modifier(&modifiers, ModifierKind::Mayhem) {
             let stacks = modifier_stacks(&modifiers, ModifierKind::Mayhem);
             for _ in 0..stacks.max(0) {

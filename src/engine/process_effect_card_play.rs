@@ -32,7 +32,8 @@ use crate::utils::play_cap_reached;
 pub fn process_effect_card_play(
     id_target: Option<usize>,
     state: &mut GameState,
-    energy_on_use: Option<u8>,
+    replay: bool,
+    energy: u8,
 ) {
     let id_card = id_target.expect("CardPlay requires id_target");
 
@@ -46,7 +47,6 @@ pub fn process_effect_card_play(
     let Combat {
         id_card_hand,
         id_monsters,
-        energy,
         this_turn_discards,
         this_turn_attacks,
         this_turn_cards_played,
@@ -58,11 +58,9 @@ pub fn process_effect_card_play(
     // Read-only here: copied out so the body below can borrow the whole state
     let id_character = state.id_character;
     let this_turn_discards = *this_turn_discards;
-    let replay = energy_on_use.is_some();
-    let energy_current = energy_on_use.unwrap_or(energy.energy_current);
     let card = state.entities[id_card];
 
-    // canUse re-gates the queued copy: at the play cap it silently does not play
+    // The replayed copy is re-gated: at the play cap it silently does not play
     if replay
         && play_cap_reached(
             id_card_hand,
@@ -141,18 +139,19 @@ pub fn process_effect_card_play(
 
     // On-power play triggers
     let mut urn_heal = false;
+    let mut mummified_pick = None;
     if card.card_kind == CardKind::Power {
-        // Bird-Faced Urn: playing a Power heals 2, addToTop
+        // Bird-Faced Urn: playing a Power heals 2
         urn_heal = has_relic(&state.id_relics, RelicName::BirdFacedUrn);
-        // Mummified Hand: make a random still-costed hand Card free this turn
+        // Mummified Hand: pick a random still-costed hand Card to make free this turn
         if has_relic(&state.id_relics, RelicName::MummifiedHand) {
-            free_random_costed_hand_card(
+            mummified_pick = pick_random_costed_hand_card(
                 &*id_card_hand,
-                &mut state.entities,
+                &state.entities,
                 &mut state.rng,
                 id_card,
                 this_turn_discards,
-                energy_current,
+                energy,
             );
         }
     }
@@ -188,7 +187,7 @@ pub fn process_effect_card_play(
         state.entities[id_card].card_cost_override = None;
     }
 
-    // calculateCardDamage runs once per play: later hits keep the halving of the first
+    // Flight is read once per play: later hits keep the halving of the first
     for slot in 0..MAX_MONSTERS {
         flight_baked[slot] = id_monsters[slot]
             .is_some_and(|id| has_modifier(&state.entities[id].modifiers, ModifierKind::Flight));
@@ -197,8 +196,22 @@ pub fn process_effect_card_play(
     // Clear effect buffer — prepare it to be filled
     state.effect_buf.clear();
 
+    // Mummified Hand's cut resolves first, so a replay of this play picks another Card
+    if let Some(id_pick) = mummified_pick {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::SetCostOverride {
+                amount: 0,
+                only_reduce: false,
+                random: false,
+                scope: CostScope::Turn,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_pick)),
+        });
+    }
+
     // Energy loss
-    let effective_cost = get_card_effective_cost(&card, this_turn_discards, energy_current);
+    let effective_cost = get_card_effective_cost(&card, this_turn_discards, energy);
     if !replay {
         state.effect_buf.push(Effect {
             kind: EffectKind::EnergyDelta {
@@ -224,7 +237,7 @@ pub fn process_effect_card_play(
         }
     }
 
-    // Bird-Faced Urn's heal is addToTop too, behind Pain
+    // Bird-Faced Urn's heal also runs ahead of the Card's effects, behind Pain
     if urn_heal {
         state.effect_buf.push(Effect {
             kind: EffectKind::HealthDelta {
@@ -273,10 +286,10 @@ pub fn process_effect_card_play(
     let char_modifiers = &state.entities[id_character].modifiers;
 
     // Burst (skill-only) doubles; X-cost multiplies by X; they stack multiplicatively
-    // X-cost reads raw energy_current so Setup-flagged X-cost still scales
+    // X-cost reads `energy`, not the effective cost, so Setup-flagged X-cost still scales
     let mul = match card.card_cost_kind {
         CardCostKind::XCost { offset } => {
-            let x = (energy_current as i16 + offset as i16).max(0) as usize;
+            let x = (energy as i16 + offset as i16).max(0) as usize;
             // Chemical X: X+2 on effect reps; energy paid is unchanged
             if has_relic(&state.id_relics, RelicName::ChemicalX) {
                 x + 2
@@ -299,8 +312,8 @@ pub fn process_effect_card_play(
         && !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) // X-cost never qualifies
         && has_relic(&state.id_relics, RelicName::WristBlade);
 
-    // X-cost repeats the effects inside the one play; Malaise instead scales its stacks,
-    // as Java queues one application whatever X is
+    // X-cost repeats the effects inside the one play; Malaise instead scales its stacks
+    // into a single application whatever X is
     for effect in card.card_effects[..card.card_effects_len as usize].iter() {
         let mut effect = Effect {
             id_source: Some(id_card), // Stamp the Card's ID
@@ -322,7 +335,7 @@ pub fn process_effect_card_play(
         }
     }
 
-    // UseCardAction's pile routing; a replay's copy is purged instead
+    // Route the played Card to its pile; a replay's copy is purged instead
     if !replay {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardPlayRelocate {
@@ -485,7 +498,8 @@ pub fn process_effect_card_play(
         for _ in 0..(burst as usize + duplication as usize + necronomicon as usize) {
             state.effect_buf.push(Effect {
                 kind: EffectKind::CardPlay {
-                    energy_on_use: Some(energy_current),
+                    replay: true,
+                    energy,
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
@@ -496,15 +510,15 @@ pub fn process_effect_card_play(
     flush_effects_from_buf_to_queue_front(state);
 }
 
-// Zeroes the cost of one random hand Card that still costs energy this turn
-fn free_random_costed_hand_card(
+// One random hand Card that still costs energy this turn
+fn pick_random_costed_hand_card(
     id_card_hand: &[usize],
-    entities: &mut [Entity],
+    entities: &[Entity],
     rng: &mut impl Rng,
     id_card_played: usize,
     this_turn_discards: u8,
     energy_current: u8,
-) {
+) -> Option<usize> {
     let mut cards_valid = [0usize; MAX_SIZE_HAND];
     let mut num = 0;
     for &id_card in id_card_hand.iter() {
@@ -528,12 +542,9 @@ fn free_random_costed_hand_card(
 
     // Sample
     if num > 0 {
-        let id_pick = cards_valid[rng.random_range(0..num)];
-        // setCostForTurn lands inside onUseCard, so a duplicated play must pick another Card
-        entities[id_pick].card_cost_override = Some(CostOverride {
-            amount: 0,
-            scope: CostScope::Turn,
-        });
+        Some(cards_valid[rng.random_range(0..num)])
+    } else {
+        None
     }
 }
 

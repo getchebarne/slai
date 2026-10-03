@@ -43,7 +43,6 @@ pub fn process_effect_card_add_random(
         })
         .filter(|card| !card_name_never_obtainable(card.name))
         .filter(|card| card.kind != CardKind::Status)
-        // returnTrulyRandomCardInCombat skips HEALING; the out-of-combat grants do not
         .filter(|card| !state.combat.active || !card_name_healing(card.name))
         .map(|card| &**card)
         .collect();

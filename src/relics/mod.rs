@@ -224,7 +224,7 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::Necronomicon,
 ];
 
-// atBattleStart relics that addToTop: run before the turn-1 draw, newest pickup first
+// Front-queued combat-start relics: run before the turn-1 draw, newest pickup first
 pub const RELICS_COMBAT_START_TOP: &[RelicName] = &[
     RelicName::Akabeko,
     RelicName::BloodVial,
@@ -237,14 +237,14 @@ pub const RELICS_COMBAT_START_TOP: &[RelicName] = &[
     RelicName::Vajra,
 ];
 
-// atBattleStartPreDraw / atPreBattle: after the turn-1 energy, before the draw
+// Pre-draw combat-start relics: after the turn-1 energy, before the draw
 pub const RELICS_COMBAT_START_PRE_DRAW: &[RelicName] = &[
     RelicName::Enchiridion,
     RelicName::NinjaScroll,
     RelicName::SneckoEye,
 ];
 
-// atTurnStartPostDraw: after the draw and after every addToBot combat-start relic
+// Post-draw turn-start relics: after the draw and every back-queued combat-start relic
 pub const RELICS_TURN_START_POST_DRAW: &[RelicName] =
     &[RelicName::GamblingChip, RelicName::WarpedTongs];
 

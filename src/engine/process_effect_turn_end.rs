@@ -22,7 +22,7 @@ use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
-// triggerOnEndOfTurnForPlayingCard: these queue themselves as real plays at turn end
+// These queue themselves as real plays at turn end
 const CARDS_PLAYED_AT_TURN_END: [CardName; 5] = [
     CardName::Burn,
     CardName::Decay,
@@ -229,7 +229,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
     }
 
     // Burn / Decay / Regret / Doubt / Shame play themselves out of hand: payload, then
-    // UseCardAction's routing, untriggered and blind to retain or Runic Pyramid
+    // pile routing, untriggered and blind to retain or Runic Pyramid
     for &id_card in id_card_hand.iter() {
         let card = &state.entities[id_card];
         if !CARDS_PLAYED_AT_TURN_END.contains(&card.card_name) {
@@ -298,7 +298,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Ritual: gain `stacks` Strength each turn end; skipFirst is monster-only
+    // Ritual: gain `stacks` Strength each turn end; only Monsters skip the first tick
     if has_modifier(mods_char, ModifierKind::Ritual) {
         let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
         state.effect_buf.push(Effect {

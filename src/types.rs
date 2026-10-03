@@ -32,7 +32,7 @@ pub struct Combat {
     pub id_card_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
     pub id_monster_picked: Option<usize>,
     pub id_card_last_drawn: Option<usize>,
-    pub id_card_nightmare: Option<usize>,
+    pub id_card_nightmares: Vec<usize>, // One per Nightmare play; they never merge
     pub id_card_discover: Vec<usize>,
     // (combat copy, deck original) pairs; mid-combat spawns have no entry
     pub id_card_origins: Vec<(usize, usize)>,
@@ -52,10 +52,10 @@ pub struct Combat {
     pub this_combat_monster_died: bool,
     pub gold_stolen: u16,
 
-    // calculateCardDamage bakes the Flight halving once per play, per Monster slot
+    // Flight halving baked once per play, per Monster slot
     pub flight_baked: [bool; MAX_MONSTERS],
 
-    // lastDamageTaken: the HP a target actually lost, after Buffer and Tungsten Rod
+    // The HP a target actually lost, after Buffer and Tungsten Rod
     pub last_health_lost: u16,
 
     // Live Bombs: (turns left, damage)
@@ -71,7 +71,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.id_card_stasis.fill(None);
     combat.id_monster_picked = None;
     combat.id_card_last_drawn = None;
-    combat.id_card_nightmare = None;
+    combat.id_card_nightmares.clear();
     combat.id_card_discover.clear();
     combat.id_card_origins.clear();
     combat.energy = Energy {

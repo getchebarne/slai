@@ -28,12 +28,12 @@ pub fn process_effect_reward_roll_potion(state: &mut GameState, eligible: bool, 
             state.reward.id_potions.push(id);
         }
     } else if !eligible {
-        // Escaped normal fights roll chance 0 in the source: no Potion, but the miss drift lands
+        // Escaped normal fights roll chance 0: no Potion, but the miss drift lands
         state.potion_drop_mod += POTION_DROP_CHANCE_MOD_MISS;
     }
 }
 
-// +10 on miss, -10 on hit; blizzardPotionMod has no clamp
+// +10 on miss, -10 on hit; the drift is unclamped
 fn roll_potion_drop(rng: &mut impl Rng, potion_drop_mod: &mut i8) -> bool {
     let roll = rng.random_range(0..100) as u8;
     let chance = (POTION_DROP_CHANCE_BASE as i16 + *potion_drop_mod as i16).clamp(0, 100) as u8;

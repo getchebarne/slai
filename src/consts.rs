@@ -253,7 +253,7 @@ pub const SHOP_SLOTS_CARD_TOTAL: usize = SHOP_SLOTS_CARD_COLORED + SHOP_SLOTS_CA
 pub const SHOP_SLOTS_RELIC: usize = 3;
 pub const SHOP_SLOTS_POTION: usize = 3;
 
-// ShopRoom's own bands, 9 / 37 (cumulative cuts), with alternation off
+// Shop card bands, 9 / 37 (cumulative cuts); relics never widen them
 pub const SHOP_CARD_CUT_RARE: i32 = 9;
 pub const SHOP_CARD_CUT_UNCOMMON: i32 = 46;
 

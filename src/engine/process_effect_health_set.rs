@@ -7,7 +7,7 @@ pub fn process_effect_health_set(id_target: Option<usize>, state: &mut GameState
     let health_max = state.entities[id_target].vitals.health_max;
     let value = match amount {
         Amount::Absolute(amount) => amount,
-        // f32 mirrors the source's (int)(maxHP * fraction) float truncation
+        // Float product, truncated once
         Amount::Relative {
             numerator,
             denominator,
