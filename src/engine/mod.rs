@@ -34,7 +34,6 @@ pub mod process_effect_combat_start;
 pub mod process_effect_damage_deal;
 pub mod process_effect_damage_finisher;
 pub mod process_effect_damage_flechettes;
-pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_debuffs_clear;
@@ -148,7 +147,6 @@ use self::process_effect_combat_start::process_effect_combat_start;
 use self::process_effect_damage_deal::process_effect_damage_deal;
 use self::process_effect_damage_finisher::process_effect_damage_finisher;
 use self::process_effect_damage_flechettes::process_effect_damage_flechettes;
-use self::process_effect_damage_mind_blast::process_effect_damage_mind_blast;
 use self::process_effect_damage_physical::process_effect_damage_physical;
 use self::process_effect_death::process_effect_death;
 use self::process_effect_debuffs_clear::process_effect_debuffs_clear;
@@ -481,7 +479,7 @@ fn dispatch_by_kind(
             process_effect_card_move(id_target, state, pile, cost_zero)
         }
         EffectKind::DamageMindBlast => {
-            process_effect_damage_mind_blast(id_source, id_target, state)
+            unreachable!("Mind Blast is baked into a DamagePhysical when the Card is played")
         }
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
             process_effect_shuffle_discard_pile_into_draw_pile(state)

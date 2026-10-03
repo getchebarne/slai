@@ -276,7 +276,6 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             this_combat_escaped: false,
             this_combat_monster_died: false,
             gold_stolen: 0,
-            flight_baked: [false; MAX_MONSTERS],
             last_health_lost: 0,
             bombs: Vec::new(),
         },

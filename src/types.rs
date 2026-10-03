@@ -52,9 +52,6 @@ pub struct Combat {
     pub this_combat_monster_died: bool,
     pub gold_stolen: u16,
 
-    // Flight halving baked once per play, per Monster slot
-    pub flight_baked: [bool; MAX_MONSTERS],
-
     // The HP a target actually lost, after Buffer and Tungsten Rod
     pub last_health_lost: u16,
 
@@ -86,7 +83,6 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.this_combat_escaped = false;
     combat.this_combat_monster_died = false;
     combat.gold_stolen = 0;
-    combat.flight_baked = [false; MAX_MONSTERS];
     combat.last_health_lost = 0;
     combat.bombs.clear();
 }

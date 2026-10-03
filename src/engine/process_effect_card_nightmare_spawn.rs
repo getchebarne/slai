@@ -16,9 +16,9 @@ pub fn process_effect_card_nightmare_spawn(state: &mut GameState) {
 
     // Each pending Nightmare adds its copies in play order, so the first fills the hand first
     for idx in 0..state.combat.id_card_nightmares.len() {
-        let template = state.entities[state.combat.id_card_nightmares[idx]];
+        let card_template = state.entities[state.combat.id_card_nightmares[idx]];
         for _ in 0..NIGHTMARE_COPIES {
-            let id_card = push_entity(&mut state.entities, template);
+            let id_card = push_entity(&mut state.entities, card_template);
             place_card(state, id_card, CardPile::Hand);
         }
     }

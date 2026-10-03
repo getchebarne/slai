@@ -5,6 +5,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
+use crate::utils::attack_hit_damage;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
 // Reads move_current at dispatch (late binding); mid-turn overrides (split, wake) take effect
@@ -42,6 +43,18 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
             && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
         {
             *amount = damage;
+        }
+
+        // Monster damage is final when the move executes: every hit lands this number
+        if let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
+            *amount = attack_hit_damage(
+                &state.entities,
+                &state.id_relics,
+                state.id_character,
+                id_monster,
+                state.id_character,
+                *amount,
+            );
         }
         state.effect_buf.push(effect);
         if let Some(amount) = stacks_thievery
