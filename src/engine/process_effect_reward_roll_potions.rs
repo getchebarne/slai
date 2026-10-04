@@ -27,13 +27,19 @@ pub fn process_effect_reward_roll_potions(
         !(trigger == RewardRollTrigger::CombatMonster && state.combat.this_combat_escaped);
 
     for _ in 0..count {
-        // White Beast Statue guarantees the drop; otherwise it's a drifting chance
-        if policy.drop_chance && !has_relic(&state.id_relics, RelicName::WhiteBeastStatue) {
-            if !eligible {
+        if policy.drop_chance {
+            // White Beast Statue pins the chance at 100; the roll and its drift still happen
+            let statue = has_relic(&state.id_relics, RelicName::WhiteBeastStatue);
+            if !eligible && !statue {
                 state.potion_drop_mod += POTION_DROP_CHANCE_MOD_MISS;
                 continue;
             }
-            if !roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod) {
+            let chance = if statue {
+                100
+            } else {
+                potion_drop_chance(state.potion_drop_mod)
+            };
+            if !roll_potion_drop(&mut state.rng, &mut state.potion_drop_mod, chance) {
                 continue;
             }
         }
@@ -53,13 +59,18 @@ pub fn process_effect_reward_roll_potions(
     }
 }
 
+// The drift shifts the base chance; only the chance clamps to 0..=100
+fn potion_drop_chance(potion_drop_mod: i8) -> u8 {
+    (POTION_DROP_CHANCE_BASE as i16 + potion_drop_mod as i16).clamp(0, 100) as u8
+}
+
 // +10 on miss, -10 on hit; the drift is unclamped
-fn roll_potion_drop(rng: &mut impl Rng, potion_drop_mod: &mut i8) -> bool {
+fn roll_potion_drop(rng: &mut impl Rng, potion_drop_mod: &mut i8, chance: u8) -> bool {
     let roll = rng.random_range(0..100) as u8;
-    let chance = (POTION_DROP_CHANCE_BASE as i16 + *potion_drop_mod as i16).clamp(0, 100) as u8;
 
     if roll < chance {
-        *potion_drop_mod += POTION_DROP_CHANCE_MOD_HIT;
+        // White Beast Statue hits every roll, so the drift can fall past the i8 range
+        *potion_drop_mod = potion_drop_mod.saturating_add(POTION_DROP_CHANCE_MOD_HIT);
         true
     } else {
         *potion_drop_mod += POTION_DROP_CHANCE_MOD_MISS;

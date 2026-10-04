@@ -9,7 +9,6 @@ use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
 use crate::events::deck_has_damage_card;
-use crate::events::deck_has_purgeable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -50,7 +49,7 @@ pub static EOTS_BASE: &[EventOptionTemplate] = &[
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
-        0 => deck_has_purgeable(state),
+        0 => true,
         1 => deck_has_damage_card(state, 10),
         2 => true,
         _ => unreachable!("Wing statue option out of range: {idx}"),

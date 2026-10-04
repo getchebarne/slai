@@ -58,6 +58,7 @@ use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::game::GameState;
+use crate::types::CardKind;
 use crate::types::DeltaSign;
 use crate::types::Event;
 use crate::types::EventName;
@@ -387,7 +388,7 @@ pub fn deck_has_damage_card(state: &GameState, min_base: u16) -> bool {
 }
 
 fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
-    if entity.kind != EntityKind::Card {
+    if entity.kind != EntityKind::Card || entity.card_kind != CardKind::Attack {
         return false;
     }
     for effect in entity.card_effects[..entity.card_effects_len as usize].iter() {

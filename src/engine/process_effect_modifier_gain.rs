@@ -81,7 +81,7 @@ pub fn process_effect_modifier_gain(
         && matches!(target.kind, EntityKind::Monster)
         && has_relic(&state.id_relics, RelicName::SneckoSkull)
     {
-        stacks + 1
+        stacks.saturating_add(1)
     } else {
         stacks
     };

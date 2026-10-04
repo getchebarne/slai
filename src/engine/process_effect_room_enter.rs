@@ -191,15 +191,22 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
         };
         let chance_treasure = (state.unknown_chance_treasure * 100.0) as i32;
 
-        if idx < chance_monster {
-            RoomKind::CombatMonster
-        } else if idx < chance_monster + chance_shop {
-            RoomKind::Shop
-        } else if idx < chance_monster + chance_shop + chance_treasure {
-            RoomKind::Treasure
-        } else {
-            RoomKind::EventRoom
+        // The bands fill a 100-slot table in order, and a later band can take slot 99
+        let bands = [
+            (RoomKind::CombatMonster, chance_monster),
+            (RoomKind::Shop, chance_shop),
+            (RoomKind::Treasure, chance_treasure),
+        ];
+        let mut slots = [RoomKind::EventRoom; 100];
+        let mut start = 0;
+        for (kind, size) in bands {
+            let (from, to) = (start.min(99), (start + size).min(100));
+            for slot in &mut slots[from as usize..to as usize] {
+                *slot = kind;
+            }
+            start += size;
         }
+        slots[idx as usize]
     };
 
     // Drift: the chosen type resets to base, every other type accumulates by its base
