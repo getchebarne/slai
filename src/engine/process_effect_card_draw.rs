@@ -35,6 +35,11 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         return;
     }
 
+    // Both piles empty: nothing to draw and no reshuffle
+    if id_card_draw.is_empty() && id_card_discard.is_empty() {
+        return;
+    }
+
     // Overdraw never happens: the excess stays on the draw pile
     let count = count.min(MAX_SIZE_HAND.saturating_sub(id_card_hand.len()) as u16);
 
@@ -45,13 +50,8 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
 
     // Try to draw all Cards
     for idx in 0..count {
+        // Out of cards partway: reshuffle, even an empty discard, and draw the rest
         if id_card_draw.is_empty() {
-            if id_card_discard.is_empty() {
-                // Nothing to draw from
-                break;
-            }
-
-            // Need to reshuffle and re-draw the remaining count
             shuffle_resume_remaining = Some(count - idx);
             break;
         }
@@ -65,17 +65,6 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         if id_drawn_num < id_drawn.len() {
             id_drawn[id_drawn_num] = id_card;
             id_drawn_num += 1;
-        }
-    }
-
-    // Fire on-draw hooks in draw order; pushed first so they resolve after the resumed draw
-    for &id_card in id_drawn[..id_drawn_num].iter().rev() {
-        let effects_on_draw = state.entities[id_card].card_effects_on_draw;
-        for effect in effects_on_draw.iter().rev() {
-            state.effect_queue.push_front(Effect {
-                id_source: Some(id_card),
-                ..*effect
-            });
         }
     }
 
@@ -94,6 +83,17 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             id_source: None,
             target: Target::Direct(None),
         });
+    }
+
+    // On-draw hooks run before any reshuffle, the last-drawn Card's first
+    for &id_card in &id_drawn[..id_drawn_num] {
+        let effects_on_draw = state.entities[id_card].card_effects_on_draw;
+        for effect in effects_on_draw.iter().rev() {
+            state.effect_queue.push_front(Effect {
+                id_source: Some(id_card),
+                ..*effect
+            });
+        }
     }
 
     // Confusion (Snecko Eye, Snecko's Glare): every drawn Card's cost re-rolls to [0, 3]

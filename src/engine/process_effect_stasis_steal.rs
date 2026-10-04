@@ -52,13 +52,17 @@ pub fn process_effect_stasis_steal(id_source: Option<usize>, state: &mut GameSta
         }
     }
 
-    // Remove stolen Card from pile
-    let id_card = id_pile.remove(best_idx);
-
-    // Store it mirroring the source Monster's index in `id_card_stasis`
+    // The stasis slot mirrors the source Monster's roster index
     let idx_monster = id_monsters
         .iter()
         .position(|slot| *slot == Some(id_source))
         .expect("StasisSteal source is not on the roster");
+    assert!(
+        id_card_stasis[idx_monster].is_none(),
+        "a Bronze Orb steals once"
+    );
+
+    // Move the stolen Card from its pile into the slot
+    let id_card = id_pile.remove(best_idx);
     id_card_stasis[idx_monster] = Some(id_card);
 }

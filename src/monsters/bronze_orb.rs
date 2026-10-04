@@ -1,3 +1,4 @@
+use crate::consts::MAX_MONSTER_MOVES;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
@@ -56,10 +57,12 @@ pub static BRONZE_ORB: MonsterTemplate = MonsterTemplate {
     modifier_tiers: &[(0, &[modifier_fixed(ModifierKind::Minion, 1)])],
 };
 
-pub fn get_next_move_bronze_orb(move_history: &[u8], rng: &mut impl Rng) -> usize {
-    let used_stasis = move_history
-        .iter()
-        .any(|&idx_move| idx_move as usize == IDX_MOVE_STASIS);
+pub fn get_next_move_bronze_orb(
+    move_history: &[u8],
+    move_uses: &[u8; MAX_MONSTER_MOVES],
+    rng: &mut impl Rng,
+) -> usize {
+    let used_stasis = move_uses[IDX_MOVE_STASIS] > 0;
     let roll = rng.random_range(0..=99);
 
     if !used_stasis && roll >= 25 {

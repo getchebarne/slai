@@ -1,3 +1,4 @@
+use crate::consts::MAX_MONSTER_MOVES;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
@@ -185,14 +186,13 @@ pub static CHAMP: MonsterTemplate = MonsterTemplate {
 
 pub fn get_next_move_champ(
     move_history: &[u8],
+    move_uses: &[u8; MAX_MONSTER_MOVES],
     health: u16,
     health_max: u16,
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
-    let threshold_reached = move_history
-        .iter()
-        .any(|&idx_move| idx_move as usize == IDX_MOVE_ANGER);
+    let threshold_reached = move_uses[IDX_MOVE_ANGER] > 0;
 
     // Below half HP the Champ rages once, then Executes every chance it gets
     if health < health_max / 2 && !threshold_reached {
@@ -223,10 +223,7 @@ pub fn get_next_move_champ(
         .map(|idx_move| idx_move as usize);
     let roll = rng.random_range(0..=99);
     let forge_roll_max = if ascension_level >= 19 { 30 } else { 15 };
-    let forge_times = move_history
-        .iter()
-        .filter(|&&m| m as usize == IDX_MOVE_DEFENSIVE_STANCE)
-        .count();
+    let forge_times = move_uses[IDX_MOVE_DEFENSIVE_STANCE];
 
     if last != Some(IDX_MOVE_DEFENSIVE_STANCE) && forge_times < 2 && roll <= forge_roll_max {
         IDX_MOVE_DEFENSIVE_STANCE

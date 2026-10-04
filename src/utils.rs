@@ -40,6 +40,7 @@ use crate::effect::RelicExclusion;
 use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
+use crate::entity::CostOverride;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
@@ -53,6 +54,7 @@ use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::CardRarity;
 use crate::types::Combat;
+use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::Focus;
 use crate::types::RelicName;
@@ -207,8 +209,14 @@ pub fn cards_grow_on_damage(state: &mut GameState) {
                 continue;
             }
             card.card_cost = card.card_cost.saturating_add(1);
-            if let Some(cost_override) = &mut card.card_cost_override {
-                cost_override.amount = cost_override.amount.saturating_add(1);
+
+            // A per-turn override grows with the Card; a "costs 0 until played" stamp stays free
+            if let Some(CostOverride {
+                amount,
+                scope: CostScope::Turn,
+            }) = &mut card.card_cost_override
+            {
+                *amount = amount.saturating_add(1);
             }
         }
     }
