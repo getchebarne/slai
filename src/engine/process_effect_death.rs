@@ -94,8 +94,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     // Calculate if there're any Monsters left alive
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
 
-    // Stolen gold is staged as its own reward item, claimed at the reward screen
-    // and exempt from Golden Idol
+    // Stolen gold is staged as its own reward item; claimed at reward screen; skips Golden Idol
     *gold_stolen_total += state.entities[id_target].monster_gold_stolen;
     state.entities[id_target].monster_gold_stolen = 0;
 

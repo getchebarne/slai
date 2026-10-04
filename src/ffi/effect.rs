@@ -27,7 +27,9 @@ use super::target::PyTarget;
 use crate::effect::RewardRollTrigger;
 
 mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
-    CombatMonster, CombatElite, CombatBoss, EventFight, DreamCatcher, Orrery, Library,
+    CombatMonster, CombatElite, CombatBoss, EventFight, EventFightUnpaid, SmokeBomb, DreamCatcher,
+    Orrery, Library, Neow, NeowRare, NeowColorless, NeowColorlessRare, Cauldron, WomanInBlue, Lab,
+    TinyHouse,
 });
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs; snapshot_effect panics on runtime-only variants
@@ -63,7 +65,7 @@ flat_variants!(PyEffect {
     HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     PotionAddRandom => PyEffectPotionAddRandom as "EffectPotionAddRandom" { limited: bool, uniform: bool },
     PotionDiscard => PyEffectPotionDiscard as "EffectPotionDiscard" { target: PyTarget },
-    RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8 },
+    RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8, trigger: PyRewardRollTrigger },
     CardDiscoverRoll => PyEffectCardDiscoverRoll as "EffectCardDiscoverRoll" { kind: Option<PyCardKind>, color: PyCardColor, exclude: Vec<PyCardName>, count: u8 },
     GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmount },
     RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, exclusion: PyRelicExclusion },
@@ -92,12 +94,10 @@ flat_variants!(PyEffect {
     Gamble => PyEffectGamble as "EffectGamble" { choose_discards: bool },
     CombatEnd => PyEffectCombatEnd as "EffectCombatEnd" { escaped_character: bool },
     RelicLose => PyEffectRelicLose as "EffectRelicLose" { target: PyTarget },
-    RewardRollNeowCards => PyEffectRewardRollNeowCards as "EffectRewardRollNeowCards" { colorless: bool, rare_only: bool },
     StrengthLoseTemp => PyEffectStrengthLoseTemp as "EffectStrengthLoseTemp" { stacks: i16, target: PyTarget },
     MausoleumOpen => PyEffectMausoleumOpen as "EffectMausoleumOpen",
     KnowingSkullCostBump => PyEffectKnowingSkullCostBump as "EffectKnowingSkullCostBump",
     JoustBet => PyEffectJoustBet as "EffectJoustBet" { on_owner: bool },
-    RewardRollLibraryCards => PyEffectRewardRollLibraryCards as "EffectRewardRollLibraryCards",
     RelicGrantPool => PyEffectRelicGrantPool as "EffectRelicGrantPool" { pool: Vec<PyRelicName> },
     DebuffsClear => PyEffectDebuffsClear as "EffectDebuffsClear" { target: PyTarget },
     GremlinSummon => PyEffectGremlinSummon as "EffectGremlinSummon",
@@ -203,8 +203,6 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::RelicGrantRandom { .. }
                     | EffectKind::RelicGrantSpecific { .. }
                     | EffectKind::RewardRollCards { .. }
-                    | EffectKind::RewardRollLibraryCards
-                    | EffectKind::RewardRollNeowCards { .. }
                     | EffectKind::RewardRollPotions { .. }
                     | EffectKind::ScrapOozeReach { .. }
                     | EffectKind::ShuffleDiscardPileIntoDrawPile
@@ -411,16 +409,12 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::PotionDiscard => PyEffect::PotionDiscard(PyEffectPotionDiscard {
             target: require_target(target),
         }),
-        EffectKind::RewardRollPotions { count } => {
-            PyEffect::RewardRollPotions(PyEffectRewardRollPotions { count })
+        EffectKind::RewardRollPotions { count, trigger } => {
+            PyEffect::RewardRollPotions(PyEffectRewardRollPotions {
+                count,
+                trigger: trigger.into(),
+            })
         }
-        EffectKind::RewardRollNeowCards {
-            colorless,
-            rare_only,
-        } => PyEffect::RewardRollNeowCards(PyEffectRewardRollNeowCards {
-            colorless,
-            rare_only,
-        }),
         EffectKind::CardDiscoverRoll {
             kind,
             color,
@@ -508,9 +502,6 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::RelicGrantPool { pool } => PyEffect::RelicGrantPool(PyEffectRelicGrantPool {
             pool: pool.iter().map(|&relic_name| relic_name.into()).collect(),
         }),
-        EffectKind::RewardRollLibraryCards => {
-            PyEffect::RewardRollLibraryCards(PyEffectRewardRollLibraryCards)
-        }
         EffectKind::DebuffsClear => PyEffect::DebuffsClear(PyEffectDebuffsClear {
             target: require_target(target),
         }),

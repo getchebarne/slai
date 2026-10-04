@@ -6,13 +6,13 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
+use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
-use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -124,26 +124,19 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
         // Tiny House: upgrade 1 random Card, +5 max HP (healed), 50 gold, 1 random Potion
         RelicName::TinyHouse => {
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::PotionAddRandom {
-                    limited: false,
-                    uniform: true,
+                kind: EffectKind::RewardRollPotions {
+                    count: 1,
+                    trigger: RewardRollTrigger::TinyHouse,
                 },
                 id_source: None,
                 target: Target::Direct(None),
             });
-            // Golden Idol scales it like any reward gold
-            let gold = if has_relic(&state.id_relics, RelicName::GoldenIdol) {
-                50 + (50 + 2) / 4
-            } else {
-                50
-            };
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::GoldDelta {
-                    sign: DeltaSign::Gain,
-                    amount: Amount::Absolute(gold),
+                kind: EffectKind::RewardRollGold {
+                    amount: Amount::Absolute(50),
                 },
                 id_source: None,
-                target: Target::Direct(Some(id_character)),
+                target: Target::Direct(None),
             });
             increase_max_hp(state, id_character, 5);
             upgrade_random_cards(state, 1, None);

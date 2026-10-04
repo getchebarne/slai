@@ -1,5 +1,5 @@
-use crate::cards::card_template;
 use crate::cards::get_card;
+use crate::cards::get_card_template;
 use crate::effect::EffectKind;
 use crate::game::GameState;
 
@@ -13,24 +13,21 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
     }
 
     // Get upgraded variant
-    let name = card.card_name;
-    let base = card_template(name, false);
-    let mut card_upgraded = get_card(name, true);
+    let card_template = get_card_template(card.card_name, false);
+    let mut card_upgraded = get_card(card.card_name, true);
 
-    // upgrade() adds to the live instance, so in-combat growth and decay survive it
+    // Add to the live instance, so in-combat growth and decay survive it
     let slots = (card_upgraded.card_effects_len as usize)
-        .min(base.effects_len as usize)
+        .min(card_template.effects_len as usize)
         .min(card.card_effects_len as usize);
     for idx in 0..slots {
-        let delta = match (base.effects[idx].kind, card.card_effects[idx].kind) {
+        let delta = match (card_template.effects[idx].kind, card.card_effects[idx].kind) {
             (
-                EffectKind::DamagePhysical {
-                    amount: printed, ..
-                },
+                EffectKind::DamagePhysical { amount: base, .. },
                 EffectKind::DamagePhysical { amount: live, .. },
             )
-            | (EffectKind::BlockGain { amount: printed }, EffectKind::BlockGain { amount: live }) => {
-                live as i32 - printed as i32
+            | (EffectKind::BlockGain { amount: base }, EffectKind::BlockGain { amount: live }) => {
+                live as i32 - base as i32
             }
             _ => 0,
         };
@@ -46,7 +43,7 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
     }
 
     // Snapshot runtime-preserved fields: cost, cost override, bottled status
-    let cost = if card_upgraded.card_cost == base.cost {
+    let cost = if card_upgraded.card_cost == card_template.cost {
         card.card_cost
     } else {
         card_upgraded.card_cost

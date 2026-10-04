@@ -9,17 +9,18 @@ use crate::types::CardPile;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
-// Pile routing once a Card has been used: Powers vanish, exhausts may
-// Strange-Spoon into a discard, everything else discards
 pub fn process_effect_card_play_relocate(
     id_target: Option<usize>,
     state: &mut GameState,
     exhaust: bool,
 ) {
     let id_card = id_target.expect("CardPlayRelocate requires id_target");
-    let kind = if state.entities[id_card].card_kind == CardKind::Power {
+
+    let effect_kind = if state.entities[id_card].card_kind == CardKind::Power {
+        // Powers are removed from play
         EffectKind::CardRemove
     } else if exhaust
+        // Strange Spoon: exhausts have a 50% chance of being discarded instead
         && !(has_relic(&state.id_relics, RelicName::StrangeSpoon)
             && state.rng.random_range(0..100) < 50)
     {
@@ -32,7 +33,7 @@ pub fn process_effect_card_play_relocate(
         }
     };
     state.effect_queue.push_front(Effect {
-        kind,
+        kind: effect_kind,
         id_source: None,
         target: Target::Direct(Some(id_card)),
     });

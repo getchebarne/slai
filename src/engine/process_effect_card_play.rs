@@ -204,12 +204,12 @@ pub fn process_effect_card_play(
     }
 
     // Energy loss
-    let effective_cost = get_card_effective_cost(&card, this_turn_discards, energy);
+    let cost_effective = get_card_effective_cost(&card, this_turn_discards, energy);
     if !replay {
         state.effect_buf.push(Effect {
             kind: EffectKind::EnergyDelta {
                 sign: DeltaSign::Loss,
-                amount: (effective_cost) as u16,
+                amount: (cost_effective) as u16,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -266,7 +266,7 @@ pub fn process_effect_card_play(
     // Necronomicon: the first Attack costing 2+ each turn is played twice
     let necronomicon = if !replay
         && card.card_kind == CardKind::Attack
-        && effective_cost >= 2
+        && cost_effective >= 2
         && let Some(id) = state.id_relics[RelicName::Necronomicon as usize]
         && state.entities[id].relic_counter == 0
     {
@@ -300,7 +300,7 @@ pub fn process_effect_card_play(
     let duplication = !replay && has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
 
     // Wrist Blade: attacks that cost 0 deal +4 per hit
-    let wrist_blade_bonus = effective_cost == 0
+    let wrist_blade_bonus = cost_effective == 0
         && card.card_kind == CardKind::Attack
         && !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) // X-cost never qualifies
         && has_relic(&state.id_relics, RelicName::WristBlade);
@@ -317,7 +317,7 @@ pub fn process_effect_card_play(
             *amount += 4;
         }
 
-        // `EffectKind::ModifierGain` scales its stacks into a single application whatever X is
+        // `EffectKind::ModifierGain` scales its stacks into a single application whatever X is (e.g., Malaise)
         if let EffectKind::ModifierGain { stacks, .. } = &mut effect.kind {
             *stacks *= mul as i16;
             state.effect_buf.push(effect);

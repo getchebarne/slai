@@ -255,12 +255,10 @@ EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
 EffectGamble = _rs.EffectGamble
 EffectCombatEnd = _rs.EffectCombatEnd
 EffectRelicLose = _rs.EffectRelicLose
-EffectRewardRollNeowCards = _rs.EffectRewardRollNeowCards
 EffectStrengthLoseTemp = _rs.EffectStrengthLoseTemp
 EffectMausoleumOpen = _rs.EffectMausoleumOpen
 EffectKnowingSkullCostBump = _rs.EffectKnowingSkullCostBump
 EffectJoustBet = _rs.EffectJoustBet
-EffectRewardRollLibraryCards = _rs.EffectRewardRollLibraryCards
 EffectRelicGrantPool = _rs.EffectRelicGrantPool
 EffectDebuffsClear = _rs.EffectDebuffsClear
 EffectGremlinSummon = _rs.EffectGremlinSummon
@@ -334,12 +332,10 @@ Effect = (
     | EffectGamble
     | EffectCombatEnd
     | EffectRelicLose
-    | EffectRewardRollNeowCards
     | EffectStrengthLoseTemp
     | EffectMausoleumOpen
     | EffectKnowingSkullCostBump
     | EffectJoustBet
-    | EffectRewardRollLibraryCards
     | EffectRelicGrantPool
     | EffectDebuffsClear
     | EffectGremlinSummon
@@ -585,12 +581,10 @@ __all__ = [
     "EffectGamble",
     "EffectCombatEnd",
     "EffectRelicLose",
-    "EffectRewardRollNeowCards",
     "EffectStrengthLoseTemp",
     "EffectMausoleumOpen",
     "EffectKnowingSkullCostBump",
     "EffectJoustBet",
-    "EffectRewardRollLibraryCards",
     "EffectRelicGrantPool",
     "Amount",
     "AmountAbsolute",

@@ -154,7 +154,6 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         }
 
         // Horn Cleat and Captain's Wheel: one-shot turn counters
-        // TODO: add combat turn # field to `GameState`
         for name in [RelicName::HornCleat, RelicName::CaptainsWheel] {
             if let Some(id) = state.id_relics[name as usize] {
                 let relic = &mut state.entities[id];
@@ -251,7 +250,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // recharge(): energy is set to max, not topped up; Ice Cream adds a full bar instead
+        // Energy is set to max, not topped up; Ice Cream adds a full bar instead
         energy.energy_current = if has_relic(&state.id_relics, RelicName::IceCream) {
             energy.energy_current + energy.energy_max
         } else {

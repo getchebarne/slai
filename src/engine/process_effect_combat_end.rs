@@ -39,14 +39,13 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     // The spent combat is closed here; what it reveals owns the aftermath
     state.combat.active = false;
 
-    // Smoke Bomb: no rewards, but the Potion drop chance still drifts and the victory
-    // Relics still fire
+    // Smoke Bomb: no rewards; Potion drop chance still drifts and Relics still fire
     if escaped_character {
         queue_effect_untargeted(
             state,
-            EffectKind::RewardRollPotion {
-                eligible: true,
-                staged: false,
+            EffectKind::RewardRollPotions {
+                count: 1,
+                trigger: RewardRollTrigger::SmokeBomb,
             },
         );
         queue_combat_end_relics(state);
@@ -62,9 +61,9 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         if fight_loot(&state.event).is_none() {
             queue_effect_untargeted(
                 state,
-                EffectKind::RewardRollPotion {
-                    eligible: true,
-                    staged: false,
+                EffectKind::RewardRollPotions {
+                    count: 1,
+                    trigger: RewardRollTrigger::EventFightUnpaid,
                 },
             );
         }
@@ -90,9 +89,9 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             }
             queue_effect_untargeted(
                 state,
-                EffectKind::RewardRollPotion {
-                    eligible: true,
-                    staged: true,
+                EffectKind::RewardRollPotions {
+                    count: 1,
+                    trigger: RewardRollTrigger::EventFight,
                 },
             );
             if let Some(amount) = loot.gold {
@@ -142,23 +141,18 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             state.reward.relics_exclusive = room_kind == RoomKind::CombatBoss;
             state.reward.active = true;
 
-            // The thieves' purse is its own reward item, without the Idol bonus
+            // The thieves' purse is its own reward item, without Golden Idol's bonus
             if state.combat.gold_stolen > 0 {
                 state.reward.gold = Some(state.combat.gold_stolen);
             }
 
             // Boss rewards draw from the rare pool only; Elites widen both bands
-            queue_effect_untargeted(
-                state,
-                EffectKind::RewardRollCards {
-                    bundles,
-                    trigger: match room_kind {
-                        RoomKind::CombatBoss => RewardRollTrigger::CombatBoss,
-                        RoomKind::CombatElite => RewardRollTrigger::CombatElite,
-                        _ => RewardRollTrigger::CombatMonster,
-                    },
-                },
-            );
+            let trigger = match room_kind {
+                RoomKind::CombatBoss => RewardRollTrigger::CombatBoss,
+                RoomKind::CombatElite => RewardRollTrigger::CombatElite,
+                _ => RewardRollTrigger::CombatMonster,
+            };
+            queue_effect_untargeted(state, EffectKind::RewardRollCards { bundles, trigger });
 
             // The boss offers three unique unowned Boss Relics; RewardTake keeps one
             if room_kind == RoomKind::CombatBoss {
@@ -197,14 +191,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 }
             }
 
-            // Escaped normal fights roll Potion chance 0
-            queue_effect_untargeted(
-                state,
-                EffectKind::RewardRollPotion {
-                    eligible: !(room_kind == RoomKind::CombatMonster && escaped_monster),
-                    staged: true,
-                },
-            );
+            queue_effect_untargeted(state, EffectKind::RewardRollPotions { count: 1, trigger });
 
             if let Some(amount) = gold_amount {
                 queue_effect_untargeted(state, EffectKind::RewardRollGold { amount });

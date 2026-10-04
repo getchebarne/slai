@@ -26,6 +26,7 @@ struct Room {
     pub x: usize,
     pub room_kind: RoomKind,
     pub edges: u8,
+
     // Parents append without a uniqueness test, so one parent can appear twice
     pub parents: [u8; PATH_DENSITY],
     pub parents_len: u8,
@@ -260,8 +261,7 @@ fn get_room_parents(y: usize, x: usize, nodes: &Grid) -> Vec<(usize, usize)> {
     }
 }
 
-// Climbs both sides row by row — max X on the left, min X on the right — until they
-// meet. The left/right split deliberately compares one node's x to the other's y
+// Climbs both sides row by row — max X on the left, min X on the right — until they meet
 fn get_common_ancestor(
     node1: (usize, usize),
     node2: (usize, usize),
@@ -271,6 +271,7 @@ fn get_common_ancestor(
         return None;
     }
 
+    // The left / right split deliberately compares one node's x to the other's y
     let (mut l_node, mut r_node) = if node1.1 < node2.0 {
         (node1, node2)
     } else {

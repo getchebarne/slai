@@ -12,17 +12,19 @@ pub fn process_effect_potion_add_random(state: &mut GameState, limited: bool, un
     if !belt_has_room(&state.id_potions, state.potion_slots_max) {
         return;
     }
+
     // The Fruit Juice ban only applies in combat (Entropic Brew outside it draws freely)
-    let limited = limited && state.combat.active;
     let name = if uniform {
         get_random_potion_name_uniform(&mut state.rng)
     } else {
-        get_random_potion_name(&mut state.rng, limited)
+        get_random_potion_name(&mut state.rng, limited && state.combat.active)
     };
-    let id = push_entity(&mut state.entities, get_potion(name));
+
+    // Push
+    let id_potion = push_entity(&mut state.entities, get_potion(name));
     state.effect_queue.push_front(Effect {
         kind: EffectKind::PotionAdopt,
         id_source: None,
-        target: Target::Direct(Some(id)),
+        target: Target::Direct(Some(id_potion)),
     });
 }

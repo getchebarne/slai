@@ -1,8 +1,8 @@
 use crate::cards::POOL_COMMON_GREEN_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
-use crate::cards::card_template;
 use crate::cards::get_card;
+use crate::cards::get_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -29,7 +29,7 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
             if card_name_healing(name) {
                 continue;
             }
-            if card_template(name, false).kind != CardKind::Skill {
+            if get_card_template(name, false).kind != CardKind::Skill {
                 continue;
             }
             buf[num] = name;

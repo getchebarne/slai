@@ -26,7 +26,7 @@ pub static ASTROLABE: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::PurgeableOrBottled,
+            filter: CandidateFilter::NotBoundCurse,
             selection_kind: SelectionKind::Input { count: 3 },
         },
     }],

@@ -238,17 +238,9 @@ pub enum EffectKind {
     RewardRollGold {
         amount: Amount,
     },
-    RewardRollLibraryCards,
-    RewardRollNeowCards {
-        colorless: bool,
-        rare_only: bool,
-    },
-    RewardRollPotion {
-        eligible: bool,
-        staged: bool,
-    },
     RewardRollPotions {
         count: u8,
+        trigger: RewardRollTrigger,
     },
     RelicRewardRemoveOne,
     RewardRollRelic {
@@ -306,25 +298,34 @@ pub enum RelicPick {
     Name(RelicName),
 }
 
-// Redraw loops around the relic draw: screenless grants skip the bottles and
-// Whetstone, Black Star's second slot skips the campfire trio
+// Redraw loops around the relic draw
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RelicExclusion {
     Unfiltered,
-    Screenless,
-    NonCampfire,
+    Screenless,  // Skip Bottles and Whetstone
+    NonCampfire, // Skip Girya, Shovel, Peace Pipe
 }
 
-// Who is asking for a Card roll
+// Who is asking for a reward roll
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RewardRollTrigger {
     CombatMonster,
     CombatElite,
     CombatBoss,
     EventFight,
+    EventFightUnpaid,
+    SmokeBomb,
     DreamCatcher,
     Orrery,
     Library,
+    Neow,
+    NeowRare,
+    NeowColorless,
+    NeowColorlessRare,
+    Cauldron,
+    WomanInBlue,
+    Lab,
+    TinyHouse,
 }
 
 // Origin tag the CardDiscard handler branches on
@@ -395,7 +396,7 @@ pub enum CandidateFilter {
     KindSkill,
     KindPower,
     Costed,
-    PurgeableOrBottled,
+    NotBoundCurse,
 
     // Compare against the `Target::Resolve` context
     NotSource,

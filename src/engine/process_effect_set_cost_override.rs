@@ -33,6 +33,7 @@ pub fn process_effect_set_cost_override(
             return;
         }
         let roll = state.rng.random_range(0..=amount);
+
         // Same-cost roll leaves any live per-turn override in place
         if roll == state.entities[id_target].card_cost {
             return;
@@ -42,8 +43,10 @@ pub fn process_effect_set_cost_override(
         amount
     };
 
-    // `only_reduce` guards against cost-increase (see Enlightment). A per-turn cut reads the
-    // live cost, a permanent one the printed cost; the two are tested independently
+    // Get mutable Card reference
+    let card = &mut state.entities[id_target];
+
+    // Used to get the Card's effective cost
     let (this_turn_discards, energy_current) = if state.combat.active {
         (
             state.combat.this_turn_discards,
@@ -52,8 +55,8 @@ pub fn process_effect_set_cost_override(
     } else {
         (0, 0)
     };
-    let card = &mut state.entities[id_target];
 
+    // Check for `only_reduce`
     if only_reduce {
         if matches!(card.card_cost_kind, CardCostKind::XCost { .. }) {
             return;
@@ -68,8 +71,6 @@ pub fn process_effect_set_cost_override(
     }
 
     match scope {
-        // Madness and Confusion set the live cost in the same breath; a guarded permanent
-        // cut (Enlightenment+) lowers the printed cost alone
         CostScope::Combat => {
             card.card_cost = amount;
             if !only_reduce {

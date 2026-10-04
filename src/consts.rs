@@ -174,7 +174,7 @@ pub const DISCOVER_PICK_COUNT: u8 = 3;
 // Neow: Cards per offer, 33% Uncommon-else-Common roll, gold amounts, Lament charge count
 pub const NEOW_CARD_COUNT: usize = 3;
 pub const NEOW_POTION_COUNT: u8 = 3;
-pub const NEOW_UNCOMMON_CHANCE: f64 = 0.33;
+pub const NEOW_UNCOMMON_CHANCE: i32 = 33;
 pub const NEOW_GOLD_SMALL: u16 = 100;
 pub const NEOW_GOLD_LARGE: u16 = 250;
 pub const NEOW_LAMENT_COMBATS: i16 = 3;

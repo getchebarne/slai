@@ -18,7 +18,7 @@ mirror_enum!(PyCandidatePool from CandidatePool, "CandidatePool", {
 
 mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", {
     Any, Purgeable, Upgradeable, Transformable, PurgeableCurse, KindAttack, KindSkill,
-    KindPower, Costed, PurgeableOrBottled, NotSource, NotMinion, StarterStrike,
+    KindPower, Costed, NotBoundCurse, NotSource, NotMinion, StarterStrike,
     StarterUpgradeable,
 });
 

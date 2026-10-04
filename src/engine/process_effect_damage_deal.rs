@@ -102,18 +102,15 @@ pub fn process_effect_damage_deal(
     //     3. ModifierGain Poison (Envenom)
     //     4. HealthDelta Gain (lifesteal)
     if damage_over_block > 0 {
-        // Life Suck: the source drinks the HP the target actually loses, read back after
-        // Buffer and Tungsten Rod have had their say
-        if lifesteal && let Some(id_src) = id_source {
+        if lifesteal && let Some(id_source) = id_source {
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::LifestealHeal,
                 id_source: None,
-                target: Target::Direct(Some(id_src)),
+                target: Target::Direct(Some(id_source)),
             });
         }
 
-        // Envenom: Card-played unblocked damage applies Poison; modifier-damage excluded.
-        // Queued behind the HP loss, so a Monster killed by the hit never takes the stacks
+        // Envenom: Card-played unblocked damage applies Poison; modifier-damage excluded
         let mods_char = state.entities[state.id_character].modifiers;
         if from_card && has_modifier(&mods_char, ModifierKind::Envenom) {
             let stacks = modifier_stacks(&mods_char, ModifierKind::Envenom);
@@ -127,7 +124,7 @@ pub fn process_effect_damage_deal(
             });
         }
 
-        // The killer's id rides along so Death knows it (Ritual Dagger)
+        // The killer's ID rides along so Death knows it (Ritual Dagger)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
@@ -140,9 +137,9 @@ pub fn process_effect_damage_deal(
         // Painful Stabs: each unblocked hit from the owner adds a Wound to the discard pile
         if from_monster
             && id_target == id_character
-            && let Some(id_src) = id_source
+            && let Some(id_source) = id_source
             && has_modifier(
-                &state.entities[id_src].modifiers,
+                &state.entities[id_source].modifiers,
                 ModifierKind::PainfulStabs,
             )
         {

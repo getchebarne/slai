@@ -73,9 +73,8 @@ pub struct PyReward {
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
-    // Boss rewards roll mutually exclusive Relics: taking one discards the rest
-    pub relics_exclusive: bool,
-    pub cards_forced: bool,
+    pub relics_exclusive: bool, // Boss rewards roll mutually exclusive Relics
+    pub cards_forced: bool,     // Cannot skip Card rewards (The Library)
 }
 
 #[pyclass(

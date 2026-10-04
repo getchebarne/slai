@@ -55,8 +55,11 @@ pub fn process_effect_card_play_from_draw_top(id_target: Option<usize>, state: &
 
     // Playability gates the autoplay; a refused Card is still routed to its pile, untriggered
     let card = &state.entities[id_card];
+
     // A target frozen at potion use may have died since; the Card is then unplayable
     let target_gone = id_target.is_some_and(|id| !id_monsters.contains(&Some(id)));
+
+    // Check playability
     let entangled = has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::Entangled,
@@ -103,6 +106,7 @@ pub fn process_effect_card_play_from_draw_top(id_target: Option<usize>, state: &
         id_source: None,
         target: Target::Direct(Some(id_card)),
     });
+
     // Distilled Chaos froze its target at use; Mayhem rolls one now
     state.effect_queue.push_front(Effect {
         kind: EffectKind::TargetSet,

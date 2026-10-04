@@ -26,6 +26,7 @@ pub fn process_effect_relic_grant_random(
         )
     });
     let name = draw_relic_excluding(state, tier, exclusion);
+
     // Exhausted pools fall back to a possibly owned Circlet
     if state.id_relics[name as usize].is_some() {
         return;

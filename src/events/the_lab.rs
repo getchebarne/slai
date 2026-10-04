@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventOptionTemplate;
@@ -14,7 +15,10 @@ const fn search(count: u8) -> [Effect; 2] {
         // Consume first: the staged Reward overlays this frame until RoomExit
         EFFECT_EVENT_CONSUME,
         Effect {
-            kind: EffectKind::RewardRollPotions { count },
+            kind: EffectKind::RewardRollPotions {
+                count,
+                trigger: RewardRollTrigger::Lab,
+            },
             id_source: None,
             target: Target::Direct(None),
         },

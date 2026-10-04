@@ -1,6 +1,7 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardRollTrigger;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -14,7 +15,10 @@ use crate::types::DeltaSign;
 const OPTION_READ: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
     Effect {
-        kind: EffectKind::RewardRollLibraryCards,
+        kind: EffectKind::RewardRollCards {
+            bundles: 1,
+            trigger: RewardRollTrigger::Library,
+        },
         id_source: None,
         target: Target::Direct(None),
     },

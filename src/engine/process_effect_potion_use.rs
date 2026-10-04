@@ -73,7 +73,7 @@ pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState
             }
         }
         for _ in 0..(1 + repeat as usize) {
-            // Distilled Chaos rolls every play's target inside use(), before any card resolves
+            // Distilled Chaos rolls all its targets up front, before any Card resolves
             if matches!(effect.kind, EffectKind::CardPlayFromDrawTop) {
                 let alive: Vec<usize> =
                     state.combat.id_monsters.iter().flatten().copied().collect();

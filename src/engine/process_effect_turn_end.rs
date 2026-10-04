@@ -228,8 +228,7 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         });
     }
 
-    // Burn / Decay / Regret / Doubt / Shame play themselves out of hand: payload, then
-    // pile routing, untriggered and blind to retain or Runic Pyramid
+    // Burn / Decay / Regret / Doubt / Shame play themselves out of hand
     for &id_card in id_card_hand.iter() {
         let card = &state.entities[id_card];
         if !CARDS_PLAYED_AT_TURN_END.contains(&card.card_name) {
@@ -237,10 +236,10 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
         match card.card_name {
             CardName::Burn => {
-                let dmg_burn: u16 = if card.card_upgraded { 4 } else { 2 };
+                let damage: u16 = if card.card_upgraded { 4 } else { 2 };
                 state.effect_buf.push(Effect {
                     kind: EffectKind::DamageDeal {
-                        amount: dmg_burn,
+                        amount: damage,
                         lifesteal: false,
                     },
                     id_source: None,

@@ -85,9 +85,6 @@ pub mod process_effect_relic_reward_remove_one;
 pub mod process_effect_rest_site_consume;
 pub mod process_effect_reward_roll_cards;
 pub mod process_effect_reward_roll_gold;
-pub mod process_effect_reward_roll_library_cards;
-pub mod process_effect_reward_roll_neow_cards;
-pub mod process_effect_reward_roll_potion;
 pub mod process_effect_reward_roll_potions;
 pub mod process_effect_reward_roll_relic;
 pub mod process_effect_reward_take;
@@ -200,9 +197,6 @@ use self::process_effect_relic_reward_remove_one::process_effect_relic_reward_re
 use self::process_effect_rest_site_consume::process_effect_rest_site_consume;
 use self::process_effect_reward_roll_cards::process_effect_reward_roll_cards;
 use self::process_effect_reward_roll_gold::process_effect_reward_roll_gold;
-use self::process_effect_reward_roll_library_cards::process_effect_reward_roll_library_cards;
-use self::process_effect_reward_roll_neow_cards::process_effect_reward_roll_neow_cards;
-use self::process_effect_reward_roll_potion::process_effect_reward_roll_potion;
 use self::process_effect_reward_roll_potions::process_effect_reward_roll_potions;
 use self::process_effect_reward_roll_relic::process_effect_reward_roll_relic;
 use self::process_effect_reward_take::process_effect_reward_take;
@@ -517,15 +511,9 @@ fn dispatch_by_kind(
             process_effect_reward_roll_cards(state, bundles, trigger)
         }
         EffectKind::RewardRollGold { amount } => process_effect_reward_roll_gold(state, amount),
-        EffectKind::RewardRollLibraryCards => process_effect_reward_roll_library_cards(state),
-        EffectKind::RewardRollNeowCards {
-            colorless,
-            rare_only,
-        } => process_effect_reward_roll_neow_cards(state, colorless, rare_only),
-        EffectKind::RewardRollPotion { eligible, staged } => {
-            process_effect_reward_roll_potion(state, eligible, staged)
+        EffectKind::RewardRollPotions { count, trigger } => {
+            process_effect_reward_roll_potions(state, count, trigger)
         }
-        EffectKind::RewardRollPotions { count } => process_effect_reward_roll_potions(state, count),
         EffectKind::RelicRewardRemoveOne => process_effect_relic_reward_remove_one(state),
         EffectKind::RewardRollRelic { pick, exclusion } => {
             process_effect_reward_roll_relic(state, pick, exclusion)

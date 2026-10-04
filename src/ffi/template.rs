@@ -3,7 +3,7 @@ use strum::EnumCount;
 use strum::IntoEnumIterator;
 
 use crate::cards::CardTemplate;
-use crate::cards::card_template;
+use crate::cards::get_card_template;
 use crate::entity::Intent;
 use crate::events::options_catalog;
 use crate::monsters::monster_template;
@@ -202,10 +202,10 @@ pub fn get_card_templates() -> Vec<PyCardTemplate> {
     let mut out = Vec::with_capacity(2 * CardName::COUNT);
     for name in CardName::iter() {
         // Normal
-        out.push(template_card(card_template(name, false)));
+        out.push(template_card(get_card_template(name, false)));
 
         // Upgraded
-        let upgraded = card_template(name, true);
+        let upgraded = get_card_template(name, true);
         if upgraded.upgraded {
             out.push(template_card(upgraded));
         }
