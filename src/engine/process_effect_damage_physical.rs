@@ -6,11 +6,11 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
-use crate::types::CardName;
 use crate::types::RelicName;
 use crate::utils::get_id_actor;
 use crate::utils::has_relic;
 use crate::utils::scale_attack_damage;
+use crate::utils::strike_dummy_bonus;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
@@ -42,14 +42,8 @@ pub fn process_effect_damage_physical(
 
     // Strike Dummy: Strike-tagged Cards get +3 base, before Strength/Weak/Vuln scaling
     let source = &state.entities[id_source];
-    if source.kind == EntityKind::Card
-        && matches!(
-            source.card_name,
-            CardName::Strike | CardName::SneakyStrike | CardName::SwiftStrike
-        )
-        && has_relic(&state.id_relics, RelicName::StrikeDummy)
-    {
-        base_damage += 3;
+    if source.kind == EntityKind::Card {
+        base_damage += strike_dummy_bonus(source.card_name, &state.id_relics) as i16;
     }
 
     // Get the source _actor_ id (Character or Monster)

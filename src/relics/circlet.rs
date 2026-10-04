@@ -8,7 +8,7 @@ use crate::types::RelicTier;
 pub static CIRCLET: RelicTemplate = RelicTemplate {
     name: RelicName::Circlet,
     tier: RelicTier::Special,
-    counter_init: 0,
+    counter_init: 1,
     counter_reset: 0,
     effects_combat_start: &[],
     effects_turn_start: &[],

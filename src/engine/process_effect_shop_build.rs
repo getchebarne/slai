@@ -50,6 +50,7 @@ pub fn process_effect_shop_build(state: &mut GameState) {
             &mut state.rng,
             &state.shop.id_cards_price,
             rarity,
+            &state.id_relics,
         );
         state.shop.id_cards_price.push(card);
     }

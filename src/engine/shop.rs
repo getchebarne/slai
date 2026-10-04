@@ -4,6 +4,7 @@
 use rand::Rng;
 use strum::EnumCount;
 
+use crate::cards::get_card;
 use crate::cards::get_random_cards;
 use crate::consts::SHOP_COLORLESS_RARE_CHANCE;
 use crate::consts::SHOP_PRICE_CARD_COMMON;
@@ -27,6 +28,7 @@ use crate::entity::Entity;
 use crate::game::GameState;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
+use crate::relics::egg_upgrades_kind;
 use crate::relics::get_relic;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -87,6 +89,11 @@ pub(super) fn make_card_restock(
     };
     let Some(card) = card.into_iter().next() else {
         return (usize::MAX, 0);
+    };
+    let card = if egg_upgrades_kind(card.card_kind, &state.id_relics) {
+        get_card(card.card_name, true)
+    } else {
+        card
     };
     let mut price = get_card_base_price(rarity) as f32 * roll_var_card(&mut state.rng);
     if colorless {
@@ -179,6 +186,7 @@ fn make_card(
     kind: Option<CardKind>,
     rarity: CardRarity,
     base_price: u16,
+    id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> (usize, u16) {
     // Sample Card and its price
     let cards_placed = get_shop_placed_card_names(entities, cards);
@@ -187,6 +195,13 @@ fn make_card(
         .next()
         .unwrap_or_else(|| panic!("No shop Card for {color:?} {kind:?} rarity {rarity:?}"));
     let card_price = (base_price as f32 * roll_var_card(rng)) as u16;
+
+    // Eggs upgrade matching stock up front, so the shelf shows the Card as obtained
+    let card = if egg_upgrades_kind(card.card_kind, id_relics) {
+        get_card(card.card_name, true)
+    } else {
+        card
+    };
 
     (push_entity(entities, card), card_price)
 }
@@ -219,6 +234,7 @@ pub(super) fn make_card_colored(
         Some(kind),
         rarity,
         get_card_base_price(rarity),
+        id_relics,
     )
 }
 
@@ -227,6 +243,7 @@ pub(super) fn make_card_colorless(
     rng: &mut impl Rng,
     cards: &[(usize, u16)],
     rarity: CardRarity,
+    id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> (usize, u16) {
     let base =
         get_card_base_price(rarity) * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM;
@@ -238,6 +255,7 @@ pub(super) fn make_card_colorless(
         None,
         rarity,
         base,
+        id_relics,
     )
 }
 

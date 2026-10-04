@@ -11,7 +11,7 @@ pub static DAZED: CardTemplate = make_card_template(
     CardName::Dazed,
     CardKind::Status,
     CardColor::Colorless,
-    CardRarity::Special,
+    CardRarity::Common,
     0,
     CardCostKind::Fixed,
     false,

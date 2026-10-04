@@ -8,7 +8,6 @@ use crate::entity::Entity;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::types::CardColor;
@@ -22,15 +21,20 @@ use crate::utils::get_card_effective_cost;
 use crate::utils::is_play_restriction_satisfied;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
+use crate::utils::strike_dummy_bonus;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
+use crate::utils::wrist_blade_bonus;
 
 use super::effect::PyEffect;
 use super::effect::PyEffectBlockGain;
 use super::effect::PyEffectDamagePhysical;
+use super::effect::PyEffectEscapePlanCheck;
+use super::effect::PyEffectModifierGain;
 use super::effect::snapshot_effect;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
+use super::modifier::PyModifierKind;
 
 mirror_enum!(PyCardKind from CardKind, "CardKind", {
     Attack, Skill, Power, Curse, Status,
@@ -280,10 +284,23 @@ impl CardName {
     }
 }
 
-// Snapshot a Card's effects with the current player modifiers folded into the DamagePhysical /
-// BlockGain amounts (target-agnostic — Vulnerable/Intangible depend on the L3 target chosen later),
-// via the same scaling utils as the live pipeline. Other effect kinds pass through unchanged.
-pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) -> Vec<PyEffect> {
+// Snapshot a Card's effects with the Character's Modifiers and Relic bonuses folded into the damage and
+// block amounts
+pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec<PyEffect> {
+    let char_mods = &state.entities[state.id_character].modifiers;
+
+    // Strike Dummy and Wrist Blade join the base damage before scaling, as in the engine
+    let bonus = if state.combat.active {
+        let cost = get_card_effective_cost(
+            card,
+            state.combat.this_turn_discards,
+            state.combat.energy.energy_current,
+        );
+        strike_dummy_bonus(card.card_name, &state.id_relics)
+            + wrist_blade_bonus(card, cost, &state.id_relics)
+    } else {
+        0
+    };
     let vigor = if has_modifier(char_mods, ModifierKind::Vigor) {
         modifier_stacks(char_mods, ModifierKind::Vigor).max(0) as u16
     } else {
@@ -315,7 +332,7 @@ pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) ->
             }) => {
                 // Player attacker: Paper Krane never applies
                 let damage = scale_attack_damage(
-                    amount.saturating_add(vigor),
+                    amount.saturating_add(bonus).saturating_add(vigor),
                     str_stacks,
                     double,
                     pen_nib,
@@ -332,6 +349,22 @@ pub(crate) fn snapshot_adjusted_effects(card: &Entity, char_mods: &Modifiers) ->
             PyEffect::BlockGain(PyEffectBlockGain { amount, target }) => {
                 PyEffect::BlockGain(PyEffectBlockGain {
                     amount: scale_block_gain(amount, dex, frail),
+                    target,
+                })
+            }
+            // Dodge and Roll's next-turn block scales like its block
+            PyEffect::ModifierGain(PyEffectModifierGain {
+                kind: PyModifierKind::NextTurnBlock,
+                stacks,
+                target,
+            }) => PyEffect::ModifierGain(PyEffectModifierGain {
+                kind: PyModifierKind::NextTurnBlock,
+                stacks: scale_block_gain(stacks.max(0) as u16, dex, frail) as i16,
+                target,
+            }),
+            PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck { block, target }) => {
+                PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck {
+                    block: scale_block_gain(block, dex, frail),
                     target,
                 })
             }
@@ -390,7 +423,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         playable: restriction_ok
             && !entangled_blocks
             && (!state.combat.active || cost <= energy_current),
-        effects: snapshot_adjusted_effects(card, &state.entities[state.id_character].modifiers),
+        effects: snapshot_adjusted_effects(state, card),
     };
     py_card
 }

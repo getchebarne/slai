@@ -11,7 +11,7 @@ pub static WOUND: CardTemplate = make_card_template(
     CardName::Wound,
     CardKind::Status,
     CardColor::Colorless,
-    CardRarity::Special,
+    CardRarity::Common,
     0,
     CardCostKind::Fixed,
     false,

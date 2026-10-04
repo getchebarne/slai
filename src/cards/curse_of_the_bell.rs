@@ -12,7 +12,7 @@ pub static CURSE_OF_THE_BELL: CardTemplate = make_card_template(
     CardName::CurseOfTheBell,
     CardKind::Curse,
     CardColor::Curse,
-    CardRarity::Curse,
+    CardRarity::Special,
     0,
     CardCostKind::Fixed,
     false,

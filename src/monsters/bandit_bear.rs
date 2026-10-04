@@ -38,8 +38,18 @@ const fn move_lunge(damage: u16) -> Move {
     )
 }
 
-static MOVE_BEAR_HUG_2: Move = move_debuff("Bear Hug", ModifierKind::Dexterity, -2, Intent::Debuff);
-static MOVE_BEAR_HUG_4: Move = move_debuff("Bear Hug", ModifierKind::Dexterity, -4, Intent::Debuff);
+static MOVE_BEAR_HUG_2: Move = move_debuff(
+    "Bear Hug",
+    ModifierKind::Dexterity,
+    -2,
+    Intent::DebuffPowerful,
+);
+static MOVE_BEAR_HUG_4: Move = move_debuff(
+    "Bear Hug",
+    ModifierKind::Dexterity,
+    -4,
+    Intent::DebuffPowerful,
+);
 static MOVE_LUNGE_9: Move = move_lunge(9);
 static MOVE_LUNGE_10: Move = move_lunge(10);
 static MOVE_MAUL_18: Move = move_attack("Maul", 18, 1);
