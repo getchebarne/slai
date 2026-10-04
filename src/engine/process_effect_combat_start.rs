@@ -82,10 +82,10 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     }
 
     // Innate and bottled Cards sit on top of the draw pile, ahead of the shuffled rest
-    let mut other_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
-    let mut other_n: usize = 0;
-    let mut innate_ids: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
-    let mut innate_n: usize = 0;
+    let mut ids_other: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
+    let mut num_other: usize = 0;
+    let mut ids_innate: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
+    let mut num_innate: usize = 0;
 
     for idx in 0..state.id_card_deck.len() {
         let id_card_src = state.id_card_deck[idx];
@@ -93,20 +93,21 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         let id_card = push_entity(&mut state.entities, card);
         id_card_origins.push((id_card, id_card_src));
         if card.card_innate || card.card_bottled {
-            innate_ids[innate_n] = id_card;
-            innate_n += 1;
+            ids_innate[num_innate] = id_card;
+            num_innate += 1;
         } else {
-            other_ids[other_n] = id_card;
-            other_n += 1;
+            ids_other[num_other] = id_card;
+            num_other += 1;
         }
     }
 
-    shuffle(&mut other_ids[..other_n], &mut state.rng);
+    shuffle(&mut ids_other[..num_other], &mut state.rng);
+    shuffle(&mut ids_innate[..num_innate], &mut state.rng);
 
-    for &id in &other_ids[..other_n] {
+    for &id in &ids_other[..num_other] {
         id_card_draw.push(id);
     }
-    for &id in &innate_ids[..innate_n] {
+    for &id in &ids_innate[..num_innate] {
         id_card_draw.push(id);
     }
 

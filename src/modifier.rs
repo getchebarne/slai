@@ -286,7 +286,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Retain,
@@ -567,7 +567,7 @@ pub fn modifier_apply(mods: &mut Modifiers, kind: ModifierKind, stacks: i16) {
 
     // Calculate new amount of stacks
     let stacks_new = if has_modifier(mods, kind) {
-        mods.stacks[idx] + stacks
+        mods.stacks[idx].saturating_add(stacks)
     } else {
         stacks
     };

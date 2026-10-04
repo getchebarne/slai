@@ -30,7 +30,7 @@ const fn sleep(numerator: u8, denominator: u8) -> [Effect; 2] {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,
-                amount: Amount::Relative {
+                amount: Amount::RelativeRounded {
                     numerator,
                     denominator,
                 },

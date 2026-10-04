@@ -30,7 +30,7 @@ pub fn process_effect_modifier_multiply(
     state.effect_queue.push_front(Effect {
         kind: EffectKind::ModifierGain {
             kind,
-            stacks: delta as i16,
+            stacks: delta.min(i16::MAX as i32) as i16,
         },
         id_source: Some(state.id_character),
         target: Target::Direct(Some(id_target)),

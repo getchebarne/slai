@@ -58,18 +58,12 @@ pub(super) fn make_card_restock(
     } else {
         roll_card_rarity(&mut state.rng, 0, &SHOP_STOCK_POLICY, &state.id_relics)
     };
-    let cards_placed: Vec<CardName> = state
-        .shop
-        .id_cards_price
-        .iter()
-        .map(|&(id, _)| state.entities[id].card_name)
-        .collect();
     let card = if colorless {
         get_random_cards(
             CardColor::Colorless,
             None,
             Some(rarity),
-            &cards_placed,
+            &[],
             false,
             1,
             &mut state.rng,
@@ -79,7 +73,7 @@ pub(super) fn make_card_restock(
             CardColor::Green,
             Some(kind),
             Some(rarity),
-            &cards_placed,
+            &[],
             false,
             1,
             &mut state.rng,

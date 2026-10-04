@@ -25,17 +25,17 @@ pub static LEG_SWEEP: CardTemplate = make_card_template(
     false,
     &[
         Effect {
-            kind: EffectKind::BlockGain { amount: 11 },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-        Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
             id_source: None,
             target: TARGET_MONSTER_PICKED,
+        },
+        Effect {
+            kind: EffectKind::BlockGain { amount: 11 },
+            id_source: None,
+            target: TARGET_CHARACTER,
         },
     ],
     &[],
@@ -47,11 +47,11 @@ pub static LEG_SWEEP_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
     effects: {
         let mut effects = LEG_SWEEP.effects;
-        effects[0].kind = EffectKind::BlockGain { amount: 14 }; // +3 block
-        effects[1].kind = EffectKind::ModifierGain {
+        effects[0].kind = EffectKind::ModifierGain {
             kind: ModifierKind::Weak,
             stacks: 3, // +1 stack
         };
+        effects[1].kind = EffectKind::BlockGain { amount: 14 }; // +3 block
         effects
     },
     ..LEG_SWEEP
