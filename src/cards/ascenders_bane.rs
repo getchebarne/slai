@@ -11,7 +11,7 @@ pub static ASCENDERS_BANE: CardTemplate = make_card_template(
     CardName::AscendersBane,
     CardKind::Curse,
     CardColor::Curse,
-    CardRarity::Curse,
+    CardRarity::Special,
     0,
     CardCostKind::Fixed,
     false,

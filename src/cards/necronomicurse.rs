@@ -12,7 +12,7 @@ pub static NECRONOMICURSE: CardTemplate = make_card_template(
     CardName::Necronomicurse,
     CardKind::Curse,
     CardColor::Curse,
-    CardRarity::Curse,
+    CardRarity::Special,
     0,
     CardCostKind::Fixed,
     false,

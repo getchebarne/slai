@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::cards::get_card;
 use crate::consts::MAX_SIZE_DECK;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
@@ -9,6 +10,7 @@ use crate::effect::RelicExclusion;
 use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::relics::egg_upgrades_kind;
 use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -25,9 +27,17 @@ use crate::utils::push_entity;
 
 pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameState) {
     let id_relic = id_target.expect("RelicAdopt requires id_target");
+    let name = state.entities[id_relic].relic_name;
+
+    // A second Circlet only counts on the one already held
+    if name == RelicName::Circlet
+        && let Some(id_held) = state.id_relics[RelicName::Circlet as usize]
+    {
+        state.entities[id_held].relic_counter += 1;
+        return;
+    }
 
     // Flag Relic as owned and stamp its acquisition order
-    let name = state.entities[id_relic].relic_name;
     state.id_relics[name as usize] = Some(id_relic);
     state.entities[id_relic].relic_seq = state.relic_seq_next;
     state.relic_seq_next += 1;
@@ -58,6 +68,16 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
         // War Paint / Whetstone: upgrade 2 random Skills / Attacks
         RelicName::WarPaint => upgrade_random_cards(state, 2, Some(CardKind::Skill)),
         RelicName::Whetstone => upgrade_random_cards(state, 2, Some(CardKind::Attack)),
+
+        // An Egg picked up in a Shop upgrades the matching Cards still for sale
+        RelicName::EggFrozen | RelicName::EggMolten | RelicName::EggToxic if state.shop.active => {
+            for &(id_card, _) in state.shop.id_cards_price.iter() {
+                let card = state.entities[id_card];
+                if !card.card_upgraded && egg_upgrades_kind(card.card_kind, &state.id_relics) {
+                    state.entities[id_card] = get_card(card.card_name, true);
+                }
+            }
+        }
 
         // Pandora's Box: every starter Strike / Defend becomes a random Card
         RelicName::PandorasBox => {

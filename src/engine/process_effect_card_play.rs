@@ -27,6 +27,7 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::play_cap_reached;
+use crate::utils::wrist_blade_bonus;
 
 pub fn process_effect_card_play(
     id_target: Option<usize>,
@@ -300,10 +301,7 @@ pub fn process_effect_card_play(
     let duplication = !replay && has_modifier(char_modifiers, ModifierKind::DuplicateNextCardPlay);
 
     // Wrist Blade: attacks that cost 0 deal +4 per hit
-    let wrist_blade_bonus = cost_effective == 0
-        && card.card_kind == CardKind::Attack
-        && !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) // X-cost never qualifies
-        && has_relic(&state.id_relics, RelicName::WristBlade);
+    let bonus_wrist_blade = wrist_blade_bonus(&card, cost_effective, &state.id_relics);
 
     // X-cost repeats the effects inside the one play
     for effect in card.card_effects[..card.card_effects_len as usize].iter() {
@@ -313,8 +311,8 @@ pub fn process_effect_card_play(
         };
 
         // Add Wrist Blade bonus
-        if wrist_blade_bonus && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
-            *amount += 4;
+        if let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
+            *amount += bonus_wrist_blade;
         }
 
         // `EffectKind::ModifierGain` scales its stacks into a single application whatever X is (e.g., Malaise)

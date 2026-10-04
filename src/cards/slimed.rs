@@ -11,7 +11,7 @@ pub static SLIMED: CardTemplate = make_card_template(
     CardName::Slimed,
     CardKind::Status,
     CardColor::Colorless,
-    CardRarity::Special,
+    CardRarity::Common,
     1,
     CardCostKind::Fixed,
     false,

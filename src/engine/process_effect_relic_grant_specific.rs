@@ -17,13 +17,17 @@ pub fn process_effect_relic_grant_specific(
         (true, true) => RelicName::Circlet,
         (true, false) => return,
     };
-    if state.id_relics[target as usize].is_some() {
+
+    // An owned Circlet goes on to the adopt, which counts it
+    if target != RelicName::Circlet && state.id_relics[target as usize].is_some() {
         return;
     }
-    let id = push_entity(&mut state.entities, get_relic(target));
+
+    // Push
+    let id_relic = push_entity(&mut state.entities, get_relic(target));
     state.effect_queue.push_front(Effect {
         kind: EffectKind::RelicAdopt,
         id_source: None,
-        target: Target::Direct(Some(id)),
+        target: Target::Direct(Some(id_relic)),
     });
 }

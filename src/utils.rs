@@ -491,6 +491,32 @@ pub fn scale_block_gain(base: u16, dex_stacks: i16, is_frail: bool) -> u16 {
     value.max(0.0) as u16
 }
 
+// Strike Dummy: Strike-named Cards hit for 3 more
+pub fn strike_dummy_bonus(name: CardName, id_relics: &[Option<usize>; RelicName::COUNT]) -> u16 {
+    let strike = matches!(
+        name,
+        CardName::Strike | CardName::SneakyStrike | CardName::SwiftStrike
+    );
+    if strike && has_relic(id_relics, RelicName::StrikeDummy) {
+        3
+    } else {
+        0
+    }
+}
+
+// Wrist Blade: Attacks that cost 0 to play hit for 4 more
+pub fn wrist_blade_bonus(
+    card: &Entity,
+    cost_effective: u8,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+) -> u16 {
+    let applies = cost_effective == 0
+        && card.card_kind == CardKind::Attack
+        && !matches!(card.card_cost_kind, CardCostKind::XCost { .. })
+        && has_relic(id_relics, RelicName::WristBlade);
+    if applies { 4 } else { 0 }
+}
+
 // Relic tier from a roll against the caller's cuts
 pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier {
     if roll < th_common {
