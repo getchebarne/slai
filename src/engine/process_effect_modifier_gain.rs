@@ -11,6 +11,7 @@ use crate::modifier::modifier_apply;
 use crate::modifier::modifier_def;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::monsters::byrd;
 use crate::monsters::shelled_parasite;
 use crate::types::CardName;
 use crate::types::MonsterName;
@@ -106,6 +107,7 @@ pub fn process_effect_modifier_gain(
     }
 
     // Apply the delta
+    let had_flight = has_modifier(modifiers, ModifierKind::Flight);
     modifier_apply(modifiers, kind, stacks);
 
     // Shelled Parasite: stripping the last Plated Armor stack breaks the shell and stuns
@@ -117,6 +119,21 @@ pub fn process_effect_modifier_gain(
         state.effect_queue.push_front(Effect {
             kind: EffectKind::MoveUpdate {
                 move_override: Some(shelled_parasite::IDX_MOVE_STUNNED),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
+    }
+
+    // Byrd: losing its last Flight stack grounds it and stuns
+    if kind == ModifierKind::Flight
+        && had_flight
+        && !has_modifier(&state.entities[id_target].modifiers, ModifierKind::Flight)
+        && state.entities[id_target].monster_name == MonsterName::Byrd
+    {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::MoveUpdate {
+                move_override: Some(byrd::IDX_MOVE_STUNNED),
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),

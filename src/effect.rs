@@ -87,6 +87,9 @@ pub enum EffectKind {
     CardPlayFromDrawTop,
     CardPurge,
     CardRemove,
+    CardReplay {
+        energy: u8,
+    },
     CardRetain,
     CardSetupPick {
         free: bool,

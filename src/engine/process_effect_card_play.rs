@@ -1,12 +1,9 @@
 use std::collections::VecDeque;
 
 use rand::Rng;
-use strum::EnumCount;
 
-use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Amount;
-use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -25,7 +22,6 @@ use crate::types::Combat;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
-use crate::utils::attack_hit_damage;
 use crate::utils::detach_card;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::get_card_effective_cost;
@@ -49,9 +45,7 @@ pub fn process_effect_card_play(
     );
     let Combat {
         id_card_hand,
-        id_card_draw,
         id_monsters,
-        id_monster_picked,
         this_turn_discards,
         this_turn_attacks,
         this_turn_cards_played,
@@ -222,7 +216,7 @@ pub fn process_effect_card_play(
         });
     }
 
-    // Pain: each copy in hand bleeds 1 HP on any other Card play; HealthDelta ignores block
+    // Pain: each copy in hand bleeds 1 HP on any other Card play
     for idx in 0..id_card_hand.len() {
         if state.entities[id_card_hand[idx]].card_name == CardName::Pain {
             state.effect_buf.push(Effect {
@@ -311,8 +305,7 @@ pub fn process_effect_card_play(
         && !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) // X-cost never qualifies
         && has_relic(&state.id_relics, RelicName::WristBlade);
 
-    // X-cost repeats the effects inside the one play; Malaise instead scales its stacks
-    // into a single application whatever X is
+    // X-cost repeats the effects inside the one play
     for effect in card.card_effects[..card.card_effects_len as usize].iter() {
         let mut effect = Effect {
             id_source: Some(id_card), // Stamp the Card's ID
@@ -324,23 +317,14 @@ pub fn process_effect_card_play(
             *amount += 4;
         }
 
+        // `EffectKind::ModifierGain` scales its stacks into a single application whatever X is
         if let EffectKind::ModifierGain { stacks, .. } = &mut effect.kind {
             *stacks *= mul as i16;
             state.effect_buf.push(effect);
             continue;
         }
-
-        let (queued, num_queued) = bake_card_effect(
-            effect,
-            &state.entities,
-            &state.id_relics,
-            id_character,
-            id_monsters,
-            *id_monster_picked,
-            id_card_draw.len(),
-        );
         for _ in 0..mul {
-            state.effect_buf.extend_from_slice(&queued[..num_queued]);
+            state.effect_buf.push(effect);
         }
     }
 
@@ -501,15 +485,11 @@ pub fn process_effect_card_play(
         });
     }
 
-    // Burst / Duplication / Necronomicon each queue a full second play of the same
-    // Card; it runs once the original's chain has drained, as the card queue does
+    // Burst / Duplication / Necronomicon each queue a full second play of the same Card
     if !replay {
         for _ in 0..(burst as usize + duplication as usize + necronomicon as usize) {
             state.effect_buf.push(Effect {
-                kind: EffectKind::CardPlay {
-                    replay: true,
-                    energy,
-                },
+                kind: EffectKind::CardReplay { energy },
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             });
@@ -590,86 +570,4 @@ fn orange_pellets_track_and_sweep(
         id_source: None,
         target: Target::Direct(Some(id_character)),
     });
-}
-
-// Card damage is final at play: one hit per target, each carrying its own number.
-// Any other effect is queued unchanged
-fn bake_card_effect(
-    effect: Effect,
-    entities: &[Entity],
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    id_character: usize,
-    id_monsters: &[Option<usize>; MAX_MONSTERS],
-    id_monster_picked: Option<usize>,
-    draw_pile_size: usize,
-) -> ([Effect; MAX_MONSTERS], usize) {
-    let mut queued = [effect; MAX_MONSTERS];
-    let base = match effect.kind {
-        EffectKind::DamagePhysical { amount, .. } => amount,
-        EffectKind::DamagePhysicalIfPoisoned { amount } => amount,
-        EffectKind::DamageFinisher { damage } => damage,
-        EffectKind::DamageFlechettes { damage } => damage,
-        EffectKind::DamageMindBlast => draw_pile_size as u16,
-        _ => return (queued, 1),
-    };
-
-    // Single-target hits go to the picked Monster; area hits to every Monster alive now
-    let mut targets = [0usize; MAX_MONSTERS];
-    let mut num_targets = 0;
-    match effect.target {
-        Target::Resolve {
-            candidate_pool: CandidatePool::MonsterPicked,
-            ..
-        } => {
-            targets[0] = id_monster_picked.expect("Card damage needs a picked Monster");
-            num_targets = 1;
-        }
-        Target::Resolve {
-            candidate_pool: CandidatePool::Monsters,
-            ..
-        } => {
-            for &id_monster in id_monsters.iter().flatten() {
-                targets[num_targets] = id_monster;
-                num_targets += 1;
-            }
-        }
-        target => unreachable!("Card damage with an unexpected target: {target:?}"),
-    }
-
-    let id_card = effect
-        .id_source
-        .expect("Card effects carry the Card as id_source");
-    for idx in 0..num_targets {
-        let damage = attack_hit_damage(
-            entities,
-            id_relics,
-            id_character,
-            id_card,
-            targets[idx],
-            base,
-        );
-        let kind = match effect.kind {
-            EffectKind::DamagePhysical { lifesteal, .. } => EffectKind::DamagePhysical {
-                amount: damage,
-                lifesteal,
-            },
-            EffectKind::DamagePhysicalIfPoisoned { .. } => {
-                EffectKind::DamagePhysicalIfPoisoned { amount: damage }
-            }
-            EffectKind::DamageFinisher { .. } => EffectKind::DamageFinisher { damage },
-            EffectKind::DamageFlechettes { .. } => EffectKind::DamageFlechettes { damage },
-            // Mind Blast's number is the draw pile at play, so it becomes a plain hit
-            EffectKind::DamageMindBlast => EffectKind::DamagePhysical {
-                amount: damage,
-                lifesteal: false,
-            },
-            _ => unreachable!("only card damage kinds reach here"),
-        };
-        queued[idx] = Effect {
-            kind,
-            target: Target::Direct(Some(targets[idx])),
-            ..effect
-        };
-    }
-    (queued, num_targets)
 }

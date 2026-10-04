@@ -34,8 +34,7 @@ pub struct Combat {
     pub id_card_last_drawn: Option<usize>,
     pub id_card_nightmares: Vec<usize>, // One per Nightmare play; they never merge
     pub id_card_discover: Vec<usize>,
-    // (combat copy, deck original) pairs; mid-combat spawns have no entry
-    pub id_card_origins: Vec<(usize, usize)>,
+    pub id_card_origins: Vec<(usize, usize)>, // (combat_copy, original), for Ritual Dagger
 
     // Energy
     pub energy: Energy,

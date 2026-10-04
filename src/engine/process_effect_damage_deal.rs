@@ -12,11 +12,9 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_apply;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
-use crate::monsters::byrd;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
-use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
@@ -99,7 +97,7 @@ pub fn process_effect_damage_deal(
     }
 
     // Executes in reverse:
-    //     1. On-damage-taken triggers (Angry, Flight; CurlUp / Malleable tail-queue)
+    //     1. On-damage-taken triggers (Angry; CurlUp / Flight / Malleable tail-queue)
     //     2. HealthDelta
     //     3. ModifierGain Poison (Envenom)
     //     4. HealthDelta Gain (lifesteal)
@@ -179,7 +177,7 @@ fn fire_on_damage_taken(
     damage_over_block: u16,
     effect_queue: &mut VecDeque<Effect>,
 ) {
-    // CurlUp and Malleable skip a killing blow
+    // CurlUp, Flight and Malleable skip a killing blow
     let lives = damage_over_block < target.vitals.health;
 
     // CurlUp: gain block = stacks once per combat, then remove the modifier
@@ -208,22 +206,16 @@ fn fire_on_damage_taken(
         });
     }
 
-    // Flight: each landing hit removes a stack; at zero the flier is grounded and stunned
-    if has_modifier(&target.modifiers, ModifierKind::Flight) {
-        modifier_apply(&mut target.modifiers, ModifierKind::Flight, -1);
-        if !has_modifier(&target.modifiers, ModifierKind::Flight) {
-            let idx_stunned = match target.monster_name {
-                MonsterName::Byrd => byrd::IDX_MOVE_STUNNED,
-                _ => panic!("Flight on unexpected monster: {:?}", target.monster_name),
-            };
-            effect_queue.push_front(Effect {
-                kind: EffectKind::MoveUpdate {
-                    move_override: Some(idx_stunned),
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_target)),
-            });
-        }
+    // Flight: a landing hit queues the stack loss behind the rest of the attack
+    if lives && has_modifier(&target.modifiers, ModifierKind::Flight) {
+        effect_queue.push_back(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Flight,
+                stacks: -1,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
     }
 
     // Malleable: gain `stacks` block per hit taken, then escalate by one

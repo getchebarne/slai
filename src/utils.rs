@@ -44,7 +44,6 @@ use crate::game::GameState;
 use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
-use crate::modifier::modifier_stacks;
 use crate::relics::egg_upgrades_kind;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -472,78 +471,6 @@ pub fn scale_attack_damage(
         value *= 0.5;
     }
     value.max(0.0) as u16
-}
-
-// One attack hit's final damage: every attacker and target term, applied once
-pub fn attack_hit_damage(
-    entities: &[Entity],
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    id_character: usize,
-    id_source: usize,
-    id_target: usize,
-    amount: u16,
-) -> u16 {
-    let mut base_damage = amount as i16;
-
-    // Strike Dummy: Strike-tagged Cards get +3 base, before Strength/Weak/Vuln scaling
-    let source = &entities[id_source];
-    if source.kind == EntityKind::Card
-        && matches!(
-            source.card_name,
-            CardName::Strike | CardName::SneakyStrike | CardName::SwiftStrike
-        )
-        && has_relic(id_relics, RelicName::StrikeDummy)
-    {
-        base_damage += 3;
-    }
-
-    // The attacking actor (Character or Monster) and the target's modifiers
-    let id_actor = get_id_actor(entities, id_character, id_source);
-    let mods_actor = &entities[id_actor].modifiers;
-    let mods_target = &entities[id_target].modifiers;
-
-    // Vigor
-    if has_modifier(mods_actor, ModifierKind::Vigor) {
-        base_damage += modifier_stacks(mods_actor, ModifierKind::Vigor);
-    }
-
-    // Strength
-    let strength = if has_modifier(mods_actor, ModifierKind::Strength) {
-        modifier_stacks(mods_actor, ModifierKind::Strength)
-    } else {
-        0
-    };
-
-    // Paper Krane: Boosts Weak on Monster attackers
-    let weak_paper_krane = entities[id_actor].kind == EntityKind::Monster
-        && has_relic(id_relics, RelicName::PaperKrane);
-
-    // Odd Mushroom: softens Vulnerable when the Character is the target
-    let vuln_odd_mushroom = entities[id_target].kind == EntityKind::Character
-        && has_relic(id_relics, RelicName::OddMushroom);
-
-    let damage = scale_attack_damage(
-        base_damage.max(0) as u16,
-        strength,
-        has_modifier(mods_actor, ModifierKind::DoubleDamage),
-        has_modifier(mods_actor, ModifierKind::PenNib),
-        weak_factor(
-            has_modifier(mods_actor, ModifierKind::Weak),
-            weak_paper_krane,
-        ),
-        vuln_factor(
-            has_modifier(mods_target, ModifierKind::Vulnerable),
-            vuln_odd_mushroom,
-        ),
-        has_modifier(mods_target, ModifierKind::Flight),
-    );
-
-    // Intangible (target): clamps down, so a computed 0 stays 0
-    if has_modifier(mods_target, ModifierKind::Intangible) && damage > 1 {
-        1
-    } else {
-        damage
-    }
 }
 
 // Shared by the live block pipeline and the FFI Card snapshot
