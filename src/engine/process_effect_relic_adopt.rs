@@ -5,22 +5,22 @@ use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
+use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::relics::POOL_COMMON_RELIC;
-use crate::relics::POOL_RARE_RELIC;
-use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::get_relic;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
-use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::RelicName;
+use crate::types::RelicTier;
 use crate::types::reward_reset;
 use crate::utils::card_is_upgradable;
+use crate::utils::draw_relic_excluding;
+use crate::utils::has_relic;
 use crate::utils::increase_max_hp;
-use crate::utils::pick_relic_from_pool;
 use crate::utils::push_entity;
 
 pub fn process_effect_relic_adopt(id_target: Option<usize>, state: &mut GameState) {
@@ -92,10 +92,11 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
                 "Calling Bell adopts from a Reward context or Neow"
             );
 
-            // Roll one Relic for each rarity
+            // One screenless Relic per rarity
             let mut id_relics = Vec::with_capacity(3);
-            for pool in [POOL_COMMON_RELIC, POOL_UNCOMMON_RELIC, POOL_RARE_RELIC] {
-                if let Some(name) = pick_relic_from_pool(pool, &state.id_relics, &mut state.rng) {
+            for tier in [RelicTier::Common, RelicTier::Uncommon, RelicTier::Rare] {
+                let name = draw_relic_excluding(state, tier, RelicExclusion::Screenless);
+                if !has_relic(&state.id_relics, name) {
                     id_relics.push(push_entity(&mut state.entities, get_relic(name)));
                 }
             }
@@ -123,17 +124,19 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
         // Tiny House: upgrade 1 random Card, +5 max HP (healed), 50 gold, 1 random Potion
         RelicName::TinyHouse => {
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::PotionAddRandom { limited: false },
+                kind: EffectKind::RewardRollPotions {
+                    count: 1,
+                    trigger: RewardRollTrigger::TinyHouse,
+                },
                 id_source: None,
                 target: Target::Direct(None),
             });
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::GoldDelta {
-                    sign: DeltaSign::Gain,
+                kind: EffectKind::RewardRollGold {
                     amount: Amount::Absolute(50),
                 },
                 id_source: None,
-                target: Target::Direct(Some(id_character)),
+                target: Target::Direct(None),
             });
             increase_max_hp(state, id_character, 5);
             upgrade_random_cards(state, 1, None);

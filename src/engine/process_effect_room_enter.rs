@@ -23,7 +23,7 @@ use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::RelicName;
 use crate::types::RoomKind;
-use crate::utils::candidate_matches;
+use crate::utils::filter_candidates;
 use crate::utils::has_relic;
 
 pub fn process_effect_room_enter(state: &mut GameState) {
@@ -180,7 +180,15 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
     } else {
         let idx = state.rng.random_range(0..100) as i32;
         let chance_monster = (state.unknown_chance_monster * 100.0) as i32;
-        let chance_shop = (state.unknown_chance_shop * 100.0) as i32;
+
+        // A ? entered straight out of a Shop cannot roll another one
+        let left_shop = get_active_room_kind(&state.id_rooms, state.location_prev, &state.entities)
+            == Some(RoomKind::Shop);
+        let chance_shop = if left_shop {
+            0
+        } else {
+            (state.unknown_chance_shop * 100.0) as i32
+        };
         let chance_treasure = (state.unknown_chance_treasure * 100.0) as i32;
 
         if idx < chance_monster {
@@ -232,7 +240,7 @@ fn draw_random_event(state: &mut GameState) -> Option<EventName> {
 }
 
 fn draw_event(state: &mut GameState) -> Option<EventName> {
-    // Draw-gated events stay pooled until eligible (source: getEvent's filters)
+    // Draw-gated events stay pooled until eligible
     let gold = state.entities[state.id_character].character_gold;
     let floor = match state.location {
         Location::Overworld { y, .. } => y + 1,
@@ -267,14 +275,14 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
     let gold = state.entities[state.id_character].character_gold;
 
     // Calculate if there's any removable curses in the deck. This gates "The Divine Fountain"
-    let has_removable_curse = state.id_card_deck.iter().any(|&id| {
-        candidate_matches(
-            CandidateFilter::PurgeableCurse,
-            id,
-            &state.entities[id],
-            None,
-        )
-    });
+    let mut removable_curses = state.id_card_deck.clone();
+    filter_candidates(
+        CandidateFilter::PurgeableCurse,
+        &mut removable_curses,
+        &state.entities,
+        None,
+    );
+    let has_removable_curse = !removable_curses.is_empty();
 
     // Calculate eligible specials
     let eligible: Vec<usize> = state

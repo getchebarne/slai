@@ -9,6 +9,7 @@ use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::RelicPick;
 use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
@@ -31,14 +32,23 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     assert!(state.combat.active, "CombatEnd outside combat");
     let escaped_monster = state.combat.this_combat_escaped;
 
-    // Clear the Character's modifiers
+    // Clear the Character's modifiers and block
     modifier_clear(&mut state.entities[state.id_character].modifiers);
+    state.entities[state.id_character].vitals.block = 0;
 
     // The spent combat is closed here; what it reveals owns the aftermath
     state.combat.active = false;
 
-    // Smoke Bomb: no rewards, no victory hooks
+    // Smoke Bomb: no rewards; Potion drop chance still drifts and Relics still fire
     if escaped_character {
+        queue_effect_untargeted(
+            state,
+            EffectKind::RewardRollPotions {
+                count: 1,
+                trigger: RewardRollTrigger::SmokeBomb,
+            },
+        );
+        queue_combat_end_relics(state);
         if state.event.active {
             state.event.consumed = true;
         }
@@ -47,6 +57,17 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 
     // Queue order is RNG stream order: Cards, Relics, Potion, then gold
     if state.event.active {
+        // Colosseum's unpaid bout: the potion roll drifts, the stage is cleared
+        if fight_loot(&state.event).is_none() {
+            queue_effect_untargeted(
+                state,
+                EffectKind::RewardRollPotions {
+                    count: 1,
+                    trigger: RewardRollTrigger::EventFightUnpaid,
+                },
+            );
+        }
+
         // The fight belongs to the event it stacked over
         if let Some(loot) = fight_loot(&state.event) {
             state.event.consumed = true;
@@ -58,9 +79,21 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 },
             );
             for pick in loot.relics.into_iter().flatten() {
-                queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick });
+                queue_effect_untargeted(
+                    state,
+                    EffectKind::RewardRollRelic {
+                        pick,
+                        exclusion: RelicExclusion::Unfiltered,
+                    },
+                );
             }
-            queue_effect_untargeted(state, EffectKind::RewardRollPotion { eligible: true });
+            queue_effect_untargeted(
+                state,
+                EffectKind::RewardRollPotions {
+                    count: 1,
+                    trigger: RewardRollTrigger::EventFight,
+                },
+            );
             if let Some(amount) = loot.gold {
                 queue_effect_untargeted(state, EffectKind::RewardRollGold { amount });
             }
@@ -108,18 +141,18 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             state.reward.relics_exclusive = room_kind == RoomKind::CombatBoss;
             state.reward.active = true;
 
+            // The thieves' purse is its own reward item, without Golden Idol's bonus
+            if state.combat.gold_stolen > 0 {
+                state.reward.gold = Some(state.combat.gold_stolen);
+            }
+
             // Boss rewards draw from the rare pool only; Elites widen both bands
-            queue_effect_untargeted(
-                state,
-                EffectKind::RewardRollCards {
-                    bundles,
-                    trigger: match room_kind {
-                        RoomKind::CombatBoss => RewardRollTrigger::CombatBoss,
-                        RoomKind::CombatElite => RewardRollTrigger::CombatElite,
-                        _ => RewardRollTrigger::CombatMonster,
-                    },
-                },
-            );
+            let trigger = match room_kind {
+                RoomKind::CombatBoss => RewardRollTrigger::CombatBoss,
+                RoomKind::CombatElite => RewardRollTrigger::CombatElite,
+                _ => RewardRollTrigger::CombatMonster,
+            };
+            queue_effect_untargeted(state, EffectKind::RewardRollCards { bundles, trigger });
 
             // The boss offers three unique unowned Boss Relics; RewardTake keeps one
             if room_kind == RoomKind::CombatBoss {
@@ -128,6 +161,7 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                         state,
                         EffectKind::RewardRollRelic {
                             pick: RelicPick::Tier(RelicTier::Boss),
+                            exclusion: RelicExclusion::Unfiltered,
                         },
                     );
                 }
@@ -139,19 +173,25 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                     th_common: RELIC_TIER_TH_COMMON,
                     th_uncommon: RELIC_TIER_TH_UNCOMMON,
                 };
-                queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick });
+                queue_effect_untargeted(
+                    state,
+                    EffectKind::RewardRollRelic {
+                        pick,
+                        exclusion: RelicExclusion::Unfiltered,
+                    },
+                );
                 if has_relic(&state.id_relics, RelicName::BlackStar) {
-                    queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick });
+                    queue_effect_untargeted(
+                        state,
+                        EffectKind::RewardRollRelic {
+                            pick,
+                            exclusion: RelicExclusion::NonCampfire,
+                        },
+                    );
                 }
             }
 
-            // Escaped normal fights roll Potion chance 0 in the source
-            queue_effect_untargeted(
-                state,
-                EffectKind::RewardRollPotion {
-                    eligible: !(room_kind == RoomKind::CombatMonster && escaped_monster),
-                },
-            );
+            queue_effect_untargeted(state, EffectKind::RewardRollPotions { count: 1, trigger });
 
             if let Some(amount) = gold_amount {
                 queue_effect_untargeted(state, EffectKind::RewardRollGold { amount });
@@ -159,18 +199,16 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
     }
 
-    // Combat-end Relic effects, in acquisition order (Face of Cleric, etc.)
-    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-        .map(|(_, id)| id)
-        .collect();
-    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+    queue_combat_end_relics(state);
 
-    for id_relic in id_relics {
-        for &effect in state.entities[id_relic].relic_effects_combat_end {
-            state.effect_queue.push_back(effect);
-        }
+    // Final-act boss victory ends the run, resting on Map
+    if matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL {
+        state.game_over = true;
     }
+}
 
+// Combat-end Relic hooks: they fire on a victory and on a Smoke Bomb alike
+fn queue_combat_end_relics(state: &mut GameState) {
     // Meat on the Bone: ending combat at half HP or less heals 12
     if has_relic(&state.id_relics, RelicName::MeatOnTheBone) {
         let vitals = &state.entities[state.id_character].vitals;
@@ -186,8 +224,15 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
     }
 
-    // Final-act boss victory ends the run, resting on Map
-    if matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL {
-        state.game_over = true;
+    // Combat-end Relic effects, in acquisition order (Face of Cleric, etc.)
+    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
+        .map(|(_, id)| id)
+        .collect();
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+
+    for id_relic in id_relics {
+        for &effect in state.entities[id_relic].relic_effects_combat_end {
+            state.effect_queue.push_back(effect);
+        }
     }
 }

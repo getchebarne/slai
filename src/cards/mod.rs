@@ -142,8 +142,8 @@ use crate::types::CardColor;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
+use crate::utils::card_name_bound_curse;
 use crate::utils::card_name_healing;
-use crate::utils::card_name_never_obtainable;
 use crate::utils::shuffle;
 use strum::EnumCount;
 
@@ -161,10 +161,10 @@ const fn build_card_by_name() -> [&'static CardTemplate; CardName::COUNT] {
 static CARD_BY_NAME: [&'static CardTemplate; CardName::COUNT] = build_card_by_name();
 
 pub fn get_card(name: CardName, upgraded: bool) -> Entity {
-    instance_card_from_template(card_template(name, upgraded))
+    instance_card_from_template(get_card_template(name, upgraded))
 }
 
-pub fn card_template(name: CardName, upgraded: bool) -> &'static CardTemplate {
+pub fn get_card_template(name: CardName, upgraded: bool) -> &'static CardTemplate {
     if !upgraded {
         return CARD_BY_NAME[name as usize];
     }
@@ -467,7 +467,7 @@ const fn in_pool(card: &CardTemplate, rarity: CardRarity, color: CardColor) -> b
             card.kind,
             CardKind::Attack | CardKind::Skill | CardKind::Power | CardKind::Curse
         )
-        && !card_name_never_obtainable(card.name)
+        && !card_name_bound_curse(card.name)
 }
 
 const fn count_pool(rarity: CardRarity, color: CardColor) -> usize {
@@ -549,7 +549,7 @@ pub fn get_random_card_names(
             )
         })
         .filter(|card| card.kind != CardKind::Status)
-        .filter(|card| !card_name_never_obtainable(card.name))
+        .filter(|card| !card_name_bound_curse(card.name))
         .filter(|card| !exclude_healing || !card_name_healing(card.name))
         .filter(|card| !exclude.contains(&card.name))
         .collect();

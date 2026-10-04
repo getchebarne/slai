@@ -1,6 +1,7 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RewardRollTrigger;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -25,7 +26,7 @@ const fn buy(cost: u16, count: u8) -> [Effect; 3] {
         Effect {
             kind: EffectKind::RewardRollPotions {
                 count,
-                uniform: false,
+                trigger: RewardRollTrigger::WomanInBlue,
             },
             id_source: None,
             target: Target::Direct(None),

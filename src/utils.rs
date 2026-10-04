@@ -2,10 +2,12 @@ use rand::Rng;
 use strum::EnumCount;
 
 use crate::cards::POOL_COMMON_GREEN_CARD;
+use crate::cards::POOL_RARE_COLORLESS_CARD;
 use crate::cards::POOL_RARE_GREEN_CARD;
+use crate::cards::POOL_UNCOMMON_COLORLESS_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
-use crate::cards::card_template;
 use crate::cards::get_card;
+use crate::cards::get_card_template;
 use crate::consts::ASCENSION_CARD_UPGRADE_CUT_LEVEL;
 use crate::consts::CARD_REWARD_BASE_COUNT;
 use crate::consts::CARD_REWARD_ROLL_CHANCE_RARE;
@@ -26,6 +28,7 @@ use crate::consts::GOLD_BOSS_MIN;
 use crate::consts::MAX_CARD_REWARD_ROLL;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_HAND;
+use crate::consts::NEOW_UNCOMMON_CHANCE;
 use crate::consts::SHOP_CARD_CUT_RARE;
 use crate::consts::SHOP_CARD_CUT_UNCOMMON;
 use crate::effect::Amount;
@@ -33,6 +36,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
@@ -40,13 +44,9 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
+use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
-use crate::relics::POOL_BOSS_RELIC;
-use crate::relics::POOL_COMMON_RELIC;
-use crate::relics::POOL_RARE_RELIC;
-use crate::relics::POOL_SHOP_RELIC;
-use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::relics::egg_upgrades_kind;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -57,6 +57,7 @@ use crate::types::DeltaSign;
 use crate::types::Focus;
 use crate::types::RelicName;
 use crate::types::RelicTier;
+use crate::types::RoomKind;
 
 // Pop effect_buf back-to-front so effects pop in push order
 pub fn flush_effects_from_buf_to_queue_front(state: &mut GameState) {
@@ -150,7 +151,7 @@ pub fn card_damage_delta(card: &mut Entity, delta: i16) {
 }
 
 // Bound curses: never randomly obtainable, removable, or transformable
-pub const fn card_name_never_obtainable(name: CardName) -> bool {
+pub const fn card_name_bound_curse(name: CardName) -> bool {
     matches!(
         name,
         CardName::AscendersBane | CardName::CurseOfTheBell | CardName::Necronomicurse
@@ -165,22 +166,51 @@ pub const fn card_name_healing(name: CardName) -> bool {
     )
 }
 
-pub fn get_card_effective_cost(
-    card: &Entity,
-    this_turn_discards: u8,
-    this_combat_damage_instances_taken: u8,
-    energy_current: u8,
-) -> u8 {
+// Normality in hand caps the turn at 3 plays; Velvet Choker at 6
+pub fn play_cap_reached(
+    id_card_hand: &[usize],
+    entities: &[Entity],
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    this_turn_cards_played: u8,
+) -> bool {
+    let normality = this_turn_cards_played >= 3
+        && id_card_hand
+            .iter()
+            .any(|&id| entities[id].card_name == CardName::Normality);
+    let choker = this_turn_cards_played >= 6 && has_relic(id_relics, RelicName::VelvetChoker);
+    normality || choker
+}
+
+pub fn get_card_effective_cost(card: &Entity, this_turn_discards: u8, energy_current: u8) -> u8 {
     if let Some(cost_override) = card.card_cost_override {
         return cost_override.amount;
     }
     match card.card_cost_kind {
-        CardCostKind::Fixed => card.card_cost,
+        CardCostKind::Fixed | CardCostKind::GrowsOnDamageInstanceTaken => card.card_cost,
         CardCostKind::MinusDiscardsThisTurn => card.card_cost.saturating_sub(this_turn_discards),
-        CardCostKind::GrowsOnDamageInstanceTaken => card
-            .card_cost
-            .saturating_add(this_combat_damage_instances_taken),
         CardCostKind::XCost { .. } => energy_current,
+    }
+}
+
+pub fn cards_grow_on_damage(state: &mut GameState) {
+    for pile in [
+        &state.combat.id_card_hand,
+        &state.combat.id_card_draw,
+        &state.combat.id_card_discard,
+    ] {
+        for &id_card in pile.iter() {
+            let card = &mut state.entities[id_card];
+            if !matches!(
+                card.card_cost_kind,
+                CardCostKind::GrowsOnDamageInstanceTaken
+            ) {
+                continue;
+            }
+            card.card_cost = card.card_cost.saturating_add(1);
+            if let Some(cost_override) = &mut card.card_cost_override {
+                cost_override.amount = cost_override.amount.saturating_add(1);
+            }
+        }
     }
 }
 
@@ -225,22 +255,61 @@ pub fn card_is_purgeable(entity: &Entity) -> bool {
     if entity.kind != EntityKind::Card || entity.card_bottled {
         return false;
     }
-    !card_name_never_obtainable(entity.card_name)
+    !card_name_bound_curse(entity.card_name)
 }
 pub use card_is_purgeable as card_is_transformable;
 
 // Single source of truth for which candidates a Resolve admits, whatever the
 // pool. Entity predicates are total over the fat Entity; Picked / NotSource
 // compare `id` against the resolve context instead
-pub fn candidate_matches(
+// One filter pass over the whole candidate set; Costed and NotSource fall back on what
+// else survives, which no single-entity test can express
+pub fn filter_candidates(
     filter: CandidateFilter,
-    id: usize,
-    entity: &Entity,
+    candidates: &mut Vec<usize>,
+    entities: &[Entity],
     id_source: Option<usize>,
-) -> bool {
+) {
+    match filter {
+        // Printed cost is only the fallback tier when no Card has a live one
+        CandidateFilter::Costed => {
+            let live = |entity: &Entity| {
+                !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
+                    && entity
+                        .card_cost_override
+                        .map_or(entity.card_cost, |cost_override| cost_override.amount)
+                        > 0
+            };
+            let printed = |entity: &Entity| {
+                !matches!(entity.card_cost_kind, CardCostKind::XCost { .. }) && entity.card_cost > 0
+            };
+            if candidates.iter().any(|&id| live(&entities[id])) {
+                candidates.retain(|&id| live(&entities[id]));
+            } else {
+                candidates.retain(|&id| printed(&entities[id]));
+            }
+        }
+        // The last Monster standing falls back to targeting itself
+        CandidateFilter::NotSource => {
+            candidates.retain(|&id| Some(id) != id_source);
+            if candidates.is_empty()
+                && let Some(id_source) = id_source
+            {
+                candidates.push(id_source);
+            }
+        }
+        _ => candidates.retain(|&id| entity_matches(filter, &entities[id])),
+    }
+}
+
+fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
     match filter {
         CandidateFilter::Any => true,
         CandidateFilter::Purgeable => card_is_purgeable(entity),
+        // Astrolabe and Empty Cage may take bottled Cards; only the bound curses are off-limits
+        CandidateFilter::NotBoundCurse => {
+            entity.kind == EntityKind::Card && !card_name_bound_curse(entity.card_name)
+        }
         CandidateFilter::Upgradeable => card_is_upgradable(entity),
         CandidateFilter::Transformable => card_is_transformable(entity),
         CandidateFilter::PurgeableCurse => {
@@ -249,15 +318,9 @@ pub fn candidate_matches(
         CandidateFilter::KindAttack => entity.card_kind == CardKind::Attack,
         CandidateFilter::KindSkill => entity.card_kind == CardKind::Skill,
         CandidateFilter::KindPower => entity.card_kind == CardKind::Power,
-        CandidateFilter::Costed => {
-            !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
-                && entity.card_cost > 0
-                && entity
-                    .card_cost_override
-                    .map_or(entity.card_cost, |cost_override| cost_override.amount)
-                    > 0
+        CandidateFilter::Costed | CandidateFilter::NotSource => {
+            unreachable!("{filter:?} is set-level; filter_candidates handles it")
         }
-        CandidateFilter::NotSource => Some(id) != id_source,
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
         CandidateFilter::StarterStrike => entity.card_name == CardName::Strike,
         CandidateFilter::StarterUpgradeable => {
@@ -420,53 +483,112 @@ pub fn scale_block_gain(base: u16, dex_stacks: i16, is_frail: bool) -> u16 {
     value.max(0.0) as u16
 }
 
-// Tier-by-roll with cascade to higher tiers when the rolled pool is exhausted
-pub fn pick_relic_by_roll(
-    roll: u8,
-    th_common: u8,
-    th_uncommon: u8,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    rng: &mut impl Rng,
-) -> RelicName {
+// Relic tier from a roll against the caller's cuts
+pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier {
     if roll < th_common {
-        pick_relic_from_pool(POOL_COMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
-            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
-            .unwrap_or(RelicName::Circlet)
+        RelicTier::Common
     } else if roll < th_uncommon {
-        pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
-            .unwrap_or(RelicName::Circlet)
+        RelicTier::Uncommon
     } else {
-        pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        RelicTier::Rare
     }
 }
 
-// Fixed-tier uniform pick, cascading like pick_relic_by_roll when the pool is owned out
-pub fn pick_relic_by_tier(
-    tier: RelicTier,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    rng: &mut impl Rng,
-) -> RelicName {
-    match tier {
-        RelicTier::Common => pick_relic_from_pool(POOL_COMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng))
-            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
-            .unwrap_or(RelicName::Circlet),
-        RelicTier::Uncommon => pick_relic_from_pool(POOL_UNCOMMON_RELIC, id_relics, rng)
-            .or_else(|| pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng))
-            .unwrap_or(RelicName::Circlet),
-        RelicTier::Rare => {
-            pick_relic_from_pool(POOL_RARE_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+// Spawn gates for the Relics that have one
+pub fn relic_can_spawn(state: &GameState, name: RelicName) -> bool {
+    let deck_has = |pred: fn(&Entity) -> bool| {
+        state
+            .id_card_deck
+            .iter()
+            .any(|&id| pred(&state.entities[id]))
+    };
+    match name {
+        RelicName::BottledFlame => {
+            deck_has(|c| c.card_kind == CardKind::Attack && c.card_rarity != CardRarity::Basic)
         }
-        RelicTier::Boss => {
-            pick_relic_from_pool(POOL_BOSS_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        RelicName::BottledLightning => {
+            deck_has(|c| c.card_kind == CardKind::Skill && c.card_rarity != CardRarity::Basic)
         }
-        RelicTier::Shop => {
-            pick_relic_from_pool(POOL_SHOP_RELIC, id_relics, rng).unwrap_or(RelicName::Circlet)
+        RelicName::BottledTornado => deck_has(|c| c.card_kind == CardKind::Power),
+        RelicName::Girya | RelicName::PeacePipe | RelicName::Shovel => {
+            [RelicName::Girya, RelicName::PeacePipe, RelicName::Shovel]
+                .iter()
+                .filter(|&&campfire| has_relic(&state.id_relics, campfire))
+                .count()
+                < 2
         }
+        RelicName::RingOfTheSerpent => has_relic(&state.id_relics, RelicName::RingOfTheSnake),
+        RelicName::Ectoplasm => state.act <= 1,
+        RelicName::TheCourier
+        | RelicName::MawBank
+        | RelicName::OldCoin
+        | RelicName::SmilingMask => {
+            get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+                != Some(RoomKind::Shop)
+        }
+        _ => true,
+    }
+}
+
+// Pop the run pool for `tier`, cascading Common -> Uncommon -> Rare -> Circlet and
+// Shop -> Uncommon; a pick that fails its spawn gate is burned, the redraw from the back
+pub fn draw_relic(state: &mut GameState, tier: RelicTier, from_back: bool) -> RelicName {
+    let (pool, cascade) = match tier {
+        RelicTier::Common => (&mut state.pool_relic_common, Some(RelicTier::Uncommon)),
+        RelicTier::Uncommon => (&mut state.pool_relic_uncommon, Some(RelicTier::Rare)),
+        RelicTier::Rare => (&mut state.pool_relic_rare, None),
+        RelicTier::Shop => (&mut state.pool_relic_shop, Some(RelicTier::Uncommon)),
+        RelicTier::Boss => (&mut state.pool_relic_boss, None),
         RelicTier::Starter | RelicTier::Special => {
-            unreachable!("No random grants from tier {:?}", tier)
+            unreachable!("No random draws from tier {:?}", tier)
+        }
+    };
+    if pool.is_empty() {
+        return match cascade {
+            Some(next) => draw_relic(state, next, false),
+            None => RelicName::Circlet,
+        };
+    }
+
+    // The Boss pool pops the front from either entry point
+    let name = if from_back && tier != RelicTier::Boss {
+        pool.pop().unwrap()
+    } else {
+        pool.remove(0)
+    };
+    if relic_can_spawn(state, name) && !has_relic(&state.id_relics, name) {
+        name
+    } else {
+        draw_relic(state, tier, true)
+    }
+}
+
+// Front draws until the pick is outside the excluded set; rejected picks stay consumed
+pub fn draw_relic_excluding(
+    state: &mut GameState,
+    tier: RelicTier,
+    exclusion: RelicExclusion,
+) -> RelicName {
+    loop {
+        let name = draw_relic(state, tier, false);
+        let excluded = match exclusion {
+            RelicExclusion::Unfiltered => false,
+            RelicExclusion::Screenless => matches!(
+                name,
+                RelicName::BottledFlame
+                    | RelicName::BottledLightning
+                    | RelicName::BottledTornado
+                    | RelicName::Whetstone
+            ),
+            RelicExclusion::NonCampfire => {
+                matches!(
+                    name,
+                    RelicName::Girya | RelicName::PeacePipe | RelicName::Shovel
+                )
+            }
+        };
+        if !excluded {
+            return name;
         }
     }
 }
@@ -533,6 +655,20 @@ pub fn pick_relic_from_pool(
     }
 }
 
+pub fn purge_price(purge_cost_run: u16, id_relics: &[Option<usize>; RelicName::COUNT]) -> u16 {
+    if has_relic(id_relics, RelicName::SmilingMask) {
+        return 50;
+    }
+    let base = purge_cost_run as u32;
+    if has_relic(id_relics, RelicName::MembershipCard) {
+        ((base + 1) / 2) as u16
+    } else if has_relic(id_relics, RelicName::TheCourier) {
+        ((base * 4 + 2) / 5) as u16
+    } else {
+        purge_cost_run
+    }
+}
+
 // Question Card +1 and Busted Crown -2 fold over the base of 3
 pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize {
     let mut count = CARD_REWARD_BASE_COUNT;
@@ -545,17 +681,23 @@ pub fn card_reward_count(id_relics: &[Option<usize>; RelicName::COUNT]) -> usize
     count
 }
 
-const fn green_pool(rarity: CardRarity) -> &'static [CardName] {
-    match rarity {
-        CardRarity::Rare => POOL_RARE_GREEN_CARD,
-        CardRarity::Uncommon => POOL_UNCOMMON_GREEN_CARD,
-        _ => POOL_COMMON_GREEN_CARD,
+// Colorless offers never roll Common, so there is no Common colorless pool
+const fn card_pool(rarity: CardRarity, colorless: bool) -> &'static [CardName] {
+    match (rarity, colorless) {
+        (CardRarity::Rare, false) => POOL_RARE_GREEN_CARD,
+        (CardRarity::Uncommon, false) => POOL_UNCOMMON_GREEN_CARD,
+        (_, false) => POOL_COMMON_GREEN_CARD,
+        (CardRarity::Rare, true) => POOL_RARE_COLORLESS_CARD,
+        (CardRarity::Uncommon, true) => POOL_UNCOMMON_COLORLESS_CARD,
+        (_, true) => panic!("no Common colorless pool"),
     }
 }
 
 // Shop stock is not a reward, so it sits outside `RewardRollTrigger`
 pub const SHOP_STOCK_POLICY: RollPolicy = RollPolicy {
     cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)), // Own bands
+    colorless: false,
+    read_pity: true,
     alternation: false,
     write_pity: false, // Reads the pity without writing it
     dupe_rerolls_rarity: false,
@@ -569,7 +711,7 @@ pub fn roll_card_rarity(
     policy: &RollPolicy,
     id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> CardRarity {
-    let (base_rare, base_uncommon) = policy.cuts.expect("a Boss roll never picks a rarity");
+    let (base_rare, base_uncommon) = policy.cuts.expect("an all-Rare roll never picks a rarity");
     let alternation = policy.alternation;
 
     // N'loths Gift: Triple the chance of receiving rare Cards
@@ -579,8 +721,9 @@ pub fn roll_card_rarity(
         base_rare
     };
 
-    // Roll
-    let roll = rng.random_range(0i32..=99) + offset as i32;
+    // Roll; the pity offset only shifts it for consumers that read pity
+    let offset = if policy.read_pity { offset as i32 } else { 0 };
+    let roll = rng.random_range(0i32..=99) + offset;
     if roll < chance_rare {
         CardRarity::Rare
     } else if roll < chance_rare + (base_uncommon - base_rare) {
@@ -590,9 +733,11 @@ pub fn roll_card_rarity(
     }
 }
 
-// Cumulative Rare / Uncommon cuts; None is MonsterRoomBoss, which never rolls
+// Cumulative Rare / Uncommon cuts; None skips the roll and every Card is Rare
 pub struct RollPolicy {
     pub cuts: Option<(i32, i32)>,
+    pub colorless: bool,
+    pub read_pity: bool,
     pub alternation: bool,
     pub write_pity: bool,
     pub dupe_rerolls_rarity: bool,
@@ -608,6 +753,8 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
     match trigger {
         RewardRollTrigger::CombatMonster | RewardRollTrigger::EventFight => RollPolicy {
             cuts: CUTS_MONSTER,
+            colorless: false,
+            read_pity: true,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -618,6 +765,8 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
                 CARD_REWARD_ROLL_CHANCE_RARE_ELITE,
                 CARD_REWARD_ROLL_CHANCE_UNCOMMON_ELITE,
             )),
+            colorless: false,
+            read_pity: true,
             alternation: true,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -625,22 +774,28 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         },
         RewardRollTrigger::CombatBoss => RollPolicy {
             cuts: None,
+            colorless: false,
+            read_pity: true,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
         },
-        // RestRoom keeps the default bands but passes useAlternation = false
+        // Rest sites keep the default bands, but relics never widen them
         RewardRollTrigger::DreamCatcher => RollPolicy {
             cuts: CUTS_MONSTER,
+            colorless: false,
+            read_pity: true,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
         },
-        // Bought in a Shop, so the offer rolls ShopRoom's bands with no alternation
+        // Bought in a Shop, so the offer rolls the shop bands and relics never widen them
         RewardRollTrigger::Orrery => RollPolicy {
             cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
+            colorless: false,
+            read_pity: true,
             alternation: false,
             write_pity: true,
             dupe_rerolls_rarity: false,
@@ -648,11 +803,101 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
         },
         RewardRollTrigger::Library => RollPolicy {
             cuts: CUTS_MONSTER,
+            colorless: false,
+            read_pity: true,
             alternation: true,
             write_pity: false,
             dupe_rerolls_rarity: true,
             upgrade_roll: false,
         },
+        // Neow: Uncommon or Common, never Rare unless the offer says so; no pity, never upgraded
+        RewardRollTrigger::Neow => RollPolicy {
+            cuts: Some((0, NEOW_UNCOMMON_CHANCE)),
+            colorless: false,
+            read_pity: false,
+            alternation: false,
+            write_pity: false,
+            dupe_rerolls_rarity: false,
+            upgrade_roll: false,
+        },
+        RewardRollTrigger::NeowRare => RollPolicy {
+            cuts: None,
+            colorless: false,
+            read_pity: false,
+            alternation: false,
+            write_pity: false,
+            dupe_rerolls_rarity: false,
+            upgrade_roll: false,
+        },
+        // Neow's colorless offer is always Uncommon
+        RewardRollTrigger::NeowColorless => RollPolicy {
+            cuts: Some((0, 100)),
+            colorless: true,
+            read_pity: false,
+            alternation: false,
+            write_pity: false,
+            dupe_rerolls_rarity: false,
+            upgrade_roll: false,
+        },
+        RewardRollTrigger::NeowColorlessRare => RollPolicy {
+            cuts: None,
+            colorless: true,
+            read_pity: false,
+            alternation: false,
+            write_pity: false,
+            dupe_rerolls_rarity: false,
+            upgrade_roll: false,
+        },
+        RewardRollTrigger::EventFightUnpaid
+        | RewardRollTrigger::SmokeBomb
+        | RewardRollTrigger::Cauldron
+        | RewardRollTrigger::WomanInBlue
+        | RewardRollTrigger::Lab
+        | RewardRollTrigger::TinyHouse => panic!("no Card roll for this trigger"),
+    }
+}
+
+// How a Potion reward rolls: a drifting drop chance or a sure thing, rarity-weighted or flat
+pub struct PotionRollPolicy {
+    pub drop_chance: bool,
+    pub uniform: bool,
+    pub staged: bool,
+}
+
+// The one place a Potion consumer's roll rules live
+pub const fn potion_roll_policy(trigger: RewardRollTrigger) -> PotionRollPolicy {
+    match trigger {
+        // The end-of-combat drop: a drifting chance, rarity-weighted
+        RewardRollTrigger::CombatMonster
+        | RewardRollTrigger::CombatElite
+        | RewardRollTrigger::CombatBoss
+        | RewardRollTrigger::EventFight => PotionRollPolicy {
+            drop_chance: true,
+            uniform: false,
+            staged: true,
+        },
+        // The chance still drifts, but nothing is kept
+        RewardRollTrigger::SmokeBomb | RewardRollTrigger::EventFightUnpaid => PotionRollPolicy {
+            drop_chance: true,
+            uniform: false,
+            staged: false,
+        },
+        // Granted outright, flat-uniform
+        RewardRollTrigger::Cauldron
+        | RewardRollTrigger::Neow
+        | RewardRollTrigger::WomanInBlue
+        | RewardRollTrigger::Lab
+        | RewardRollTrigger::TinyHouse => PotionRollPolicy {
+            drop_chance: false,
+            uniform: true,
+            staged: true,
+        },
+        RewardRollTrigger::DreamCatcher
+        | RewardRollTrigger::Orrery
+        | RewardRollTrigger::Library
+        | RewardRollTrigger::NeowRare
+        | RewardRollTrigger::NeowColorless
+        | RewardRollTrigger::NeowColorlessRare => panic!("no Potion roll for this trigger"),
     }
 }
 
@@ -687,10 +932,13 @@ pub fn roll_card_rewards(
     for _ in 0..count {
         // Roll rarity
         let (mut pool, rarity) = if policy.cuts.is_none() {
-            (POOL_RARE_GREEN_CARD, CardRarity::Rare)
+            (
+                card_pool(CardRarity::Rare, policy.colorless),
+                CardRarity::Rare,
+            )
         } else {
             let rarity = roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics);
-            (green_pool(rarity), rarity)
+            (card_pool(rarity, policy.colorless), rarity)
         };
 
         // Pity: reset offset on Rare hit; decrement on Common (toward more rares)
@@ -709,12 +957,10 @@ pub fn roll_card_rewards(
         let mut name = pool[rng.random_range(0..pool.len())];
         while card_names_rolled[..out.len()].contains(&name) {
             if policy.dupe_rerolls_rarity {
-                pool = green_pool(roll_card_rarity(
-                    rng,
-                    character_reward_roll_offset,
-                    &policy,
-                    id_relics,
-                ));
+                pool = card_pool(
+                    roll_card_rarity(rng, character_reward_roll_offset, &policy, id_relics),
+                    policy.colorless,
+                );
             }
             name = pool[rng.random_range(0..pool.len())];
         }
@@ -724,7 +970,7 @@ pub fn roll_card_rewards(
         let card = get_card(
             name,
             // Eggs upgrade matching rewards at roll time, so the preview shows the truth
-            egg_upgrades_kind(card_template(name, false).kind, id_relics),
+            egg_upgrades_kind(get_card_template(name, false).kind, id_relics),
         );
         let id_card = push_entity(entities, card);
         out.push(id_card);

@@ -17,6 +17,7 @@ use crate::monsters::the_guardian;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
+use crate::utils::cards_grow_on_damage;
 use crate::utils::get_id_actor;
 use crate::utils::has_relic;
 use crate::utils::resolve_health_fraction;
@@ -50,6 +51,17 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     if state.entities[id_target].dead {
         return;
     }
+
+    // Intangible clamps every incoming instance, HP loss included
+    let amount = if amount > 1
+        && has_modifier(
+            &state.entities[id_target].modifiers,
+            ModifierKind::Intangible,
+        ) {
+        1
+    } else {
+        amount
+    };
 
     // Buffer: absorb one HP-loss instance outright, before anything reacts to it
     if amount > 0 {
@@ -89,12 +101,8 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         });
     }
 
-    // Bump number of damage instances taken this combat
     if id_target == state.id_character && amount > 0 && state.combat.active {
-        state.combat.this_combat_damage_instances_taken = state
-            .combat
-            .this_combat_damage_instances_taken
-            .saturating_add(1);
+        cards_grow_on_damage(state);
     }
 
     // Plated Armor: only foreign attack damage strips a stack
@@ -123,7 +131,11 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     }
 
     // Substract health
+    let health_lost = amount.min(target.vitals.health);
     target.vitals.health = target.vitals.health.saturating_sub(amount);
+    if state.combat.active {
+        state.combat.last_health_lost = health_lost;
+    }
 
     // Check if the target's dead. If so, queue death effect and return early
     if target.vitals.health == 0 {

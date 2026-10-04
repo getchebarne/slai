@@ -12,6 +12,7 @@ CostScope = _rs.CostScope
 PlayRestriction = _rs.PlayRestriction
 RoomKind = _rs.RoomKind
 RelicTier = _rs.RelicTier
+RelicExclusion = _rs.RelicExclusion
 CardName = _rs.CardName
 MonsterName = _rs.MonsterName
 MonsterEncounter = _rs.MonsterEncounter
@@ -210,6 +211,8 @@ EffectUnloadDiscard = _rs.EffectUnloadDiscard
 EffectStormOfSteelProc = _rs.EffectStormOfSteelProc
 EffectSneakyStrikeProc = _rs.EffectSneakyStrikeProc
 EffectBlockGain = _rs.EffectBlockGain
+EffectBombArm = _rs.EffectBombArm
+EffectLifestealHeal = _rs.EffectLifestealHeal
 EffectModifierGain = _rs.EffectModifierGain
 EffectModifierMultiply = _rs.EffectModifierMultiply
 EffectEnergyDelta = _rs.EffectEnergyDelta
@@ -252,12 +255,10 @@ EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
 EffectGamble = _rs.EffectGamble
 EffectCombatEnd = _rs.EffectCombatEnd
 EffectRelicLose = _rs.EffectRelicLose
-EffectRewardRollNeowCards = _rs.EffectRewardRollNeowCards
 EffectStrengthLoseTemp = _rs.EffectStrengthLoseTemp
 EffectMausoleumOpen = _rs.EffectMausoleumOpen
 EffectKnowingSkullCostBump = _rs.EffectKnowingSkullCostBump
 EffectJoustBet = _rs.EffectJoustBet
-EffectRewardRollLibraryCards = _rs.EffectRewardRollLibraryCards
 EffectRelicGrantPool = _rs.EffectRelicGrantPool
 EffectDebuffsClear = _rs.EffectDebuffsClear
 EffectGremlinSummon = _rs.EffectGremlinSummon
@@ -287,6 +288,8 @@ Effect = (
     | EffectStormOfSteelProc
     | EffectSneakyStrikeProc
     | EffectBlockGain
+    | EffectBombArm
+    | EffectLifestealHeal
     | EffectModifierGain
     | EffectModifierMultiply
     | EffectEnergyDelta
@@ -329,12 +332,10 @@ Effect = (
     | EffectGamble
     | EffectCombatEnd
     | EffectRelicLose
-    | EffectRewardRollNeowCards
     | EffectStrengthLoseTemp
     | EffectMausoleumOpen
     | EffectKnowingSkullCostBump
     | EffectJoustBet
-    | EffectRewardRollLibraryCards
     | EffectRelicGrantPool
     | EffectDebuffsClear
     | EffectGremlinSummon
@@ -498,6 +499,7 @@ __all__ = [
     "RoomKind",
     "RelicName",
     "RelicTier",
+    "RelicExclusion",
     "PotionName",
     "PotionRarity",
     "CardName",
@@ -535,6 +537,8 @@ __all__ = [
     "EffectStormOfSteelProc",
     "EffectSneakyStrikeProc",
     "EffectBlockGain",
+    "EffectBombArm",
+    "EffectLifestealHeal",
     "EffectModifierGain",
     "EffectModifierMultiply",
     "EffectEnergyDelta",
@@ -577,12 +581,10 @@ __all__ = [
     "EffectGamble",
     "EffectCombatEnd",
     "EffectRelicLose",
-    "EffectRewardRollNeowCards",
     "EffectStrengthLoseTemp",
     "EffectMausoleumOpen",
     "EffectKnowingSkullCostBump",
     "EffectJoustBet",
-    "EffectRewardRollLibraryCards",
     "EffectRelicGrantPool",
     "Amount",
     "AmountAbsolute",

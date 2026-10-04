@@ -43,20 +43,20 @@ const OPTION_IDOL: [Effect; 3] = [
 const fn sacrifice(numerator: u8) -> [Effect; 3] {
     [
         Effect {
+            kind: EffectKind::MaxHealthDelta {
+                sign: DeltaSign::Gain,
+                amount: Amount::Absolute(5),
+            },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        },
+        Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
                 amount: Amount::RelativeRounded {
                     numerator,
                     denominator: 100,
                 },
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-        Effect {
-            kind: EffectKind::MaxHealthDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(5),
             },
             id_source: None,
             target: TARGET_CHARACTER,

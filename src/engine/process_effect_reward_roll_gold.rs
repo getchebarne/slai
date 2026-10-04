@@ -18,6 +18,7 @@ pub fn process_effect_reward_roll_gold(state: &mut GameState, amount: Amount) {
         rolled += (rolled + 2) / 4;
     }
 
+    // Reward gold accumulates into one offer
     reward_ensure(&mut state.reward);
-    state.reward.gold = Some(rolled);
+    state.reward.gold = Some(state.reward.gold.unwrap_or(0) + rolled);
 }

@@ -26,9 +26,14 @@ pub fn process_effect_damage_physical(
     let id_source = id_source.expect("DamagePhysical requires id_source");
     let id_target = id_target.expect("DamagePhysical requires id_target");
 
-    // Check if the target is poisoned if `if_poisoned`. If not, early return
+    // A target killed by an earlier hit takes nothing more
     let target = &state.entities[id_target];
-    if if_poisoned && (target.dead || !has_modifier(&target.modifiers, ModifierKind::Poison)) {
+    if target.dead {
+        return;
+    }
+
+    // Bane: the second hit only lands if the target is still Poisoned
+    if if_poisoned && !has_modifier(&target.modifiers, ModifierKind::Poison) {
         return;
     }
 

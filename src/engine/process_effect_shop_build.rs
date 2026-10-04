@@ -1,47 +1,29 @@
 use rand::Rng;
-use strum::EnumCount;
 
 use crate::consts::ASCENSION_SHOP_PRICE_BUMP_LEVEL;
-use crate::consts::SHOP_PRICE_RELIC_COMMON;
-use crate::consts::SHOP_PRICE_RELIC_RARE;
 use crate::consts::SHOP_PRICE_RELIC_SHOP;
-use crate::consts::SHOP_PRICE_RELIC_UNCOMMON;
-use crate::consts::SHOP_RELIC_TH_COMMON;
-use crate::consts::SHOP_RELIC_TH_UNCOMMON;
 use crate::consts::SHOP_SALE_DIVISOR;
 use crate::consts::SHOP_SLOTS_CARD_COLORED;
 use crate::consts::SHOP_SLOTS_POTION;
 use crate::consts::bump_price_a16;
 use crate::engine::shop::apply_shop_discounts;
-use crate::engine::shop::get_shop_taken_relic_names;
 use crate::engine::shop::make_card_colored;
 use crate::engine::shop::make_card_colorless;
 use crate::engine::shop::make_potion;
 use crate::engine::shop::make_relic_with_price;
-use crate::entity::Entity;
+use crate::engine::shop::roll_shop_relic_tier;
 use crate::game::GameState;
-use crate::relics::POOL_COMMON_RELIC;
-use crate::relics::POOL_RARE_RELIC;
-use crate::relics::POOL_SHOP_RELIC;
-use crate::relics::POOL_UNCOMMON_RELIC;
 use crate::types::CardKind;
 use crate::types::CardRarity;
-use crate::types::RelicName;
+use crate::types::RelicTier;
 use crate::types::Shop;
 use crate::types::shop_reset;
-use crate::utils::has_relic;
-use crate::utils::pick_relic_from_pool;
+use crate::utils::draw_relic;
+use crate::utils::purge_price;
 
 pub fn process_effect_shop_build(state: &mut GameState) {
     // Stock builds straight into the context's retained buffers
     shop_reset(&mut state.shop);
-    let Shop {
-        id_cards_price,
-        id_relics_price,
-        id_potions_price,
-        ..
-    } = &mut state.shop;
-
     // Colored: 2 Attack + 2 Skill + 1 Power
     for kind in [
         CardKind::Attack,
@@ -53,45 +35,55 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         let card = make_card_colored(
             &mut state.entities,
             &mut state.rng,
-            id_cards_price,
+            &state.shop.id_cards_price,
             kind,
             state.id_character,
             &state.id_relics,
         );
-        id_cards_price.push(card);
+        state.shop.id_cards_price.push(card);
     }
 
     // Colorless: 1 Uncommon + 1 Rare
     for rarity in [CardRarity::Uncommon, CardRarity::Rare] {
-        let card = make_card_colorless(&mut state.entities, &mut state.rng, id_cards_price, rarity);
-        id_cards_price.push(card);
-    }
-
-    // Relics: 2 random-tier, 1 shop-tier. The tier roll stays per-slot for source parity
-    for _ in 0..2 {
-        let (pool, base_price) = roll_relic_tier(&mut state.rng);
-        push_relic(
+        let card = make_card_colorless(
             &mut state.entities,
             &mut state.rng,
-            &state.id_relics,
-            id_relics_price,
-            pool,
-            base_price,
+            &state.shop.id_cards_price,
+            rarity,
         );
+        state.shop.id_cards_price.push(card);
     }
-    push_relic(
+
+    // Relics: 2 random-tier, 1 shop-tier, each drawn off the back of its run pool
+    for _ in 0..2 {
+        let (tier, base_price) = roll_shop_relic_tier(&mut state.rng);
+        let name = draw_relic(state, tier, true);
+        let offer = make_relic_with_price(&mut state.entities, &mut state.rng, name, base_price);
+        state.shop.id_relics_price.push(offer);
+    }
+    let name = draw_relic(state, RelicTier::Shop, true);
+    let offer = make_relic_with_price(
         &mut state.entities,
         &mut state.rng,
-        &state.id_relics,
-        id_relics_price,
-        POOL_SHOP_RELIC,
+        name,
         SHOP_PRICE_RELIC_SHOP,
     );
+    state.shop.id_relics_price.push(offer);
 
     // Potions: 3 (rarity rolled by get_random_potion_name)
     for _ in 0..SHOP_SLOTS_POTION {
-        id_potions_price.push(make_potion(&mut state.entities, &mut state.rng));
+        state
+            .shop
+            .id_potions_price
+            .push(make_potion(&mut state.entities, &mut state.rng));
     }
+
+    let Shop {
+        id_cards_price,
+        id_relics_price,
+        id_potions_price,
+        ..
+    } = &mut state.shop;
 
     // Sale tag: one random colored Card 50% off, before the A16 markup
     let idx = state.rng.random_range(0..SHOP_SLOTS_CARD_COLORED);
@@ -117,39 +109,6 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         *price = apply_shop_discounts(*price, &state.id_relics);
     }
 
-    // Smiling Mask: the removal service is always 50 gold
-    let purge_cost = if has_relic(&state.id_relics, RelicName::SmilingMask) {
-        50
-    } else {
-        apply_shop_discounts(state.shop_purge_cost_run, &state.id_relics)
-    };
-
-    state.shop.purge_cost = purge_cost;
+    state.shop.purge_cost = purge_price(state.shop_purge_cost_run, &state.id_relics);
     state.shop.active = true;
-}
-
-fn roll_relic_tier(rng: &mut impl Rng) -> (&'static [RelicName], u16) {
-    let roll = rng.random_range(0..100) as u8;
-    if roll < SHOP_RELIC_TH_COMMON {
-        (POOL_COMMON_RELIC, SHOP_PRICE_RELIC_COMMON)
-    } else if roll < SHOP_RELIC_TH_UNCOMMON {
-        (POOL_UNCOMMON_RELIC, SHOP_PRICE_RELIC_UNCOMMON)
-    } else {
-        (POOL_RARE_RELIC, SHOP_PRICE_RELIC_RARE)
-    }
-}
-
-fn push_relic(
-    entities: &mut Vec<Entity>,
-    rng: &mut impl Rng,
-    id_relics: &[Option<usize>; RelicName::COUNT],
-    relics: &mut Vec<(usize, u16)>,
-    pool: &[RelicName],
-    base_price: u16,
-) {
-    let id_taken = get_shop_taken_relic_names(id_relics, entities, relics);
-    let Some(name) = pick_relic_from_pool(pool, &id_taken, rng) else {
-        return;
-    };
-    relics.push(make_relic_with_price(entities, rng, name, base_price));
 }

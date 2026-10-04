@@ -12,6 +12,8 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
+use crate::effect::RewardRollTrigger;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
@@ -85,7 +87,10 @@ const DRAWBACKS: [NeowDrawback; 4] = [
 
 const fn effect_relic_grant_random(tier: RelicTier) -> Effect {
     Effect {
-        kind: EffectKind::RelicGrantRandom { tier: Some(tier) },
+        kind: EffectKind::RelicGrantRandom {
+            tier: Some(tier),
+            exclusion: RelicExclusion::Unfiltered,
+        },
         id_source: None,
         target: Target::Direct(None),
     }
@@ -108,9 +113,14 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
             colorless,
             rare_only,
         } => Effect {
-            kind: EffectKind::RewardRollNeowCards {
-                colorless,
-                rare_only,
+            kind: EffectKind::RewardRollCards {
+                bundles: 1,
+                trigger: match (colorless, rare_only) {
+                    (false, false) => RewardRollTrigger::Neow,
+                    (false, true) => RewardRollTrigger::NeowRare,
+                    (true, false) => RewardRollTrigger::NeowColorless,
+                    (true, true) => RewardRollTrigger::NeowColorlessRare,
+                },
             },
             id_source: None,
             target: Target::Direct(None),
@@ -150,7 +160,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
         NeowBonus::ThreeSmallPotions => Effect {
             kind: EffectKind::RewardRollPotions {
                 count: NEOW_POTION_COUNT,
-                uniform: true,
+                trigger: RewardRollTrigger::Neow,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -363,11 +373,20 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
         let bonuses = bonus_for_drawback_cat2(drawback);
         let mut bdx = 0;
         while bdx < bonuses.len() {
-            let eot = [
-                EFFECT_EVENT_CONSUME,
-                effect_drawback(drawback, health_bonus, damage),
-                effect_bonus(bonuses[bdx], health_bonus),
-            ];
+            // The Curse drawback is obtained after the reward is consumed
+            let eot = if matches!(drawback, NeowDrawback::Curse) {
+                [
+                    EFFECT_EVENT_CONSUME,
+                    effect_bonus(bonuses[bdx], health_bonus),
+                    effect_drawback(drawback, health_bonus, damage),
+                ]
+            } else {
+                [
+                    EFFECT_EVENT_CONSUME,
+                    effect_drawback(drawback, health_bonus, damage),
+                    effect_bonus(bonuses[bdx], health_bonus),
+                ]
+            };
             eots[idx] = make_event_option_template(&eot);
 
             // Increment indexes

@@ -22,7 +22,10 @@ pub static ALCHEMIZE: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::PotionAddRandom { limited: true },
+        kind: EffectKind::PotionAddRandom {
+            limited: true,
+            uniform: false,
+        },
         id_source: None,
         target: Target::Direct(None),
     }],

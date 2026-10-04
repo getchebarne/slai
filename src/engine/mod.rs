@@ -2,6 +2,7 @@ pub mod process_effect_act_transition;
 pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
+pub mod process_effect_bomb_arm;
 pub mod process_effect_bonfire_offer;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
@@ -20,8 +21,10 @@ pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
 pub mod process_effect_card_play;
 pub mod process_effect_card_play_from_draw_top;
+pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
+pub mod process_effect_card_replay;
 pub mod process_effect_card_retain;
 pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_transform;
@@ -54,6 +57,7 @@ pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
 pub mod process_effect_knowing_skull_cost_bump;
+pub mod process_effect_lifesteal_heal;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_modifier_gain;
@@ -81,9 +85,6 @@ pub mod process_effect_relic_reward_remove_one;
 pub mod process_effect_rest_site_consume;
 pub mod process_effect_reward_roll_cards;
 pub mod process_effect_reward_roll_gold;
-pub mod process_effect_reward_roll_library_cards;
-pub mod process_effect_reward_roll_neow_cards;
-pub mod process_effect_reward_roll_potion;
 pub mod process_effect_reward_roll_potions;
 pub mod process_effect_reward_roll_relic;
 pub mod process_effect_reward_take;
@@ -113,6 +114,7 @@ use self::process_effect_act_transition::process_effect_act_transition;
 use self::process_effect_adventurer_search::process_effect_adventurer_search;
 use self::process_effect_block_gain::process_effect_block_gain;
 use self::process_effect_block_set::process_effect_block_set;
+use self::process_effect_bomb_arm::process_effect_bomb_arm;
 use self::process_effect_bonfire_offer::process_effect_bonfire_offer;
 use self::process_effect_card_add::process_effect_card_add;
 use self::process_effect_card_add_random::process_effect_card_add_random;
@@ -131,8 +133,10 @@ use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
 use self::process_effect_card_play::process_effect_card_play;
 use self::process_effect_card_play_from_draw_top::process_effect_card_play_from_draw_top;
+use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
 use self::process_effect_card_remove::process_effect_card_remove;
+use self::process_effect_card_replay::process_effect_card_replay;
 use self::process_effect_card_retain::process_effect_card_retain;
 use self::process_effect_card_setup_pick::process_effect_card_setup_pick;
 use self::process_effect_card_transform::process_effect_card_transform;
@@ -165,6 +169,7 @@ use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
 use self::process_effect_joust_bet::process_effect_joust_bet;
 use self::process_effect_knowing_skull_cost_bump::process_effect_knowing_skull_cost_bump;
+use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_modifier_gain::process_effect_modifier_gain;
@@ -192,9 +197,6 @@ use self::process_effect_relic_reward_remove_one::process_effect_relic_reward_re
 use self::process_effect_rest_site_consume::process_effect_rest_site_consume;
 use self::process_effect_reward_roll_cards::process_effect_reward_roll_cards;
 use self::process_effect_reward_roll_gold::process_effect_reward_roll_gold;
-use self::process_effect_reward_roll_library_cards::process_effect_reward_roll_library_cards;
-use self::process_effect_reward_roll_neow_cards::process_effect_reward_roll_neow_cards;
-use self::process_effect_reward_roll_potion::process_effect_reward_roll_potion;
 use self::process_effect_reward_roll_potions::process_effect_reward_roll_potions;
 use self::process_effect_reward_roll_relic::process_effect_reward_roll_relic;
 use self::process_effect_reward_take::process_effect_reward_take;
@@ -242,7 +244,7 @@ use crate::types::Combat;
 use crate::types::Event;
 use crate::types::EventName;
 use crate::types::RoomKind;
-use crate::utils::candidate_matches;
+use crate::utils::filter_candidates;
 use crate::utils::shuffle;
 use crate::utils::unceasing_top_fires;
 
@@ -415,18 +417,12 @@ fn resolve_or_halt(
     );
 
     // Stage 2: the filter retains
-    let entities = &state.entities;
-    state
-        .effect_candidate_buf
-        .retain(|&id| candidate_matches(filter, id, &entities[id], id_source));
-
-    // NotSource: the last Monster standing falls back to targeting itself
-    if filter == CandidateFilter::NotSource
-        && state.effect_candidate_buf.is_empty()
-        && let Some(id_source) = id_source
-    {
-        state.effect_candidate_buf.push(id_source);
-    }
+    filter_candidates(
+        filter,
+        &mut state.effect_candidate_buf,
+        &state.entities,
+        id_source,
+    );
 
     // Nothing survived: the effect resolves to no targets (guards Single's assert)
     if state.effect_candidate_buf.is_empty() {
@@ -467,7 +463,10 @@ fn dispatch_by_kind(
             process_effect_hand_of_greed_proc(id_target, state, gold)
         }
         EffectKind::CardDrawUpTo { amount } => process_effect_card_draw_up_to(state, amount),
-        EffectKind::CardPlay => process_effect_card_play(id_target, state),
+        EffectKind::CardPlay { replay, energy } => {
+            process_effect_card_play(id_target, state, replay, energy)
+        }
+        EffectKind::CardReplay { energy } => process_effect_card_replay(id_target, state, energy),
         EffectKind::CardAdd {
             card_name,
             pile,
@@ -491,7 +490,12 @@ fn dispatch_by_kind(
         EffectKind::CardNightmarePick => process_effect_card_nightmare_pick(id_target, state),
         EffectKind::CardNightmareSpawn => process_effect_card_nightmare_spawn(state),
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
-        EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(state),
+        EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(id_target, state),
+        EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
+        EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),
+        EffectKind::CardPlayRelocate { exhaust } => {
+            process_effect_card_play_relocate(id_target, state, exhaust)
+        }
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),
         EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
@@ -507,19 +511,13 @@ fn dispatch_by_kind(
             process_effect_reward_roll_cards(state, bundles, trigger)
         }
         EffectKind::RewardRollGold { amount } => process_effect_reward_roll_gold(state, amount),
-        EffectKind::RewardRollLibraryCards => process_effect_reward_roll_library_cards(state),
-        EffectKind::RewardRollNeowCards {
-            colorless,
-            rare_only,
-        } => process_effect_reward_roll_neow_cards(state, colorless, rare_only),
-        EffectKind::RewardRollPotion { eligible } => {
-            process_effect_reward_roll_potion(state, eligible)
-        }
-        EffectKind::RewardRollPotions { count, uniform } => {
-            process_effect_reward_roll_potions(state, count, uniform)
+        EffectKind::RewardRollPotions { count, trigger } => {
+            process_effect_reward_roll_potions(state, count, trigger)
         }
         EffectKind::RelicRewardRemoveOne => process_effect_relic_reward_remove_one(state),
-        EffectKind::RewardRollRelic { pick } => process_effect_reward_roll_relic(state, pick),
+        EffectKind::RewardRollRelic { pick, exclusion } => {
+            process_effect_reward_roll_relic(state, pick, exclusion)
+        }
         EffectKind::RitualDaggerProc { bump } => {
             process_effect_ritual_dagger_proc(id_source, id_target, state, bump)
         }
@@ -638,7 +636,9 @@ fn dispatch_by_kind(
         EffectKind::ShopBuy { slot } => process_effect_shop_buy(id_target, state, slot),
         EffectKind::ShopPurge => process_effect_shop_purge(state),
         EffectKind::PotionUse => process_effect_potion_use(id_target, state),
-        EffectKind::PotionAddRandom { limited } => process_effect_potion_add_random(state, limited),
+        EffectKind::PotionAddRandom { limited, uniform } => {
+            process_effect_potion_add_random(state, limited, uniform)
+        }
         EffectKind::PotionAdopt => process_effect_potion_adopt(id_target, state),
         EffectKind::CardDiscoverRoll {
             kind,
@@ -653,7 +653,9 @@ fn dispatch_by_kind(
             discards_before,
         } => process_effect_gamble(state, choose_discards, discards_before),
         EffectKind::RelicGrantPool { pool } => process_effect_relic_grant_pool(state, pool),
-        EffectKind::RelicGrantRandom { tier } => process_effect_relic_grant_random(state, tier),
+        EffectKind::RelicGrantRandom { tier, exclusion } => {
+            process_effect_relic_grant_random(state, tier, exclusion)
+        }
         EffectKind::RelicGrantSpecific {
             name,
             fallback_circlet,
@@ -666,9 +668,11 @@ fn dispatch_by_kind(
             advance_on_miss,
         } => process_effect_scrap_ooze_reach(state, chance, advance_on_miss),
         EffectKind::EventConsume => process_effect_event_consume(state),
-        EffectKind::CardDiscoverPick { cost_zero, pile } => {
-            process_effect_card_discover_pick(id_target, state, cost_zero, pile)
-        }
+        EffectKind::CardDiscoverPick {
+            cost_zero,
+            pile,
+            copies,
+        } => process_effect_card_discover_pick(id_target, state, cost_zero, pile, copies),
         EffectKind::NoOp => panic!("NoOp effect should never be dispatched"),
     }
 }

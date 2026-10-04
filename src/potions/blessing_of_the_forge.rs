@@ -17,7 +17,7 @@ pub static BLESSING_OF_THE_FORGE: PotionTemplate = PotionTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Hand,
-            filter: CandidateFilter::Any,
+            filter: CandidateFilter::Upgradeable,
             selection_kind: SelectionKind::All,
         },
     }],

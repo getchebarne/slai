@@ -26,7 +26,7 @@ const fn take_gold(gold: u16) -> [Effect; 2] {
     ]
 }
 
-// Damage lands before the dagger, as in the source
+// Damage lands before the dagger
 const OPTION_DAGGER: [Effect; 3] = [
     Effect {
         kind: EffectKind::HealthDelta {

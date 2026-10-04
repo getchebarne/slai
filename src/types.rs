@@ -32,10 +32,9 @@ pub struct Combat {
     pub id_card_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
     pub id_monster_picked: Option<usize>,
     pub id_card_last_drawn: Option<usize>,
-    pub id_card_nightmare: Option<usize>,
+    pub id_card_nightmares: Vec<usize>, // One per Nightmare play; they never merge
     pub id_card_discover: Vec<usize>,
-    // (combat copy, deck original) pairs; mid-combat spawns have no entry
-    pub id_card_origins: Vec<(usize, usize)>,
+    pub id_card_origins: Vec<(usize, usize)>, // (combat_copy, original), for Ritual Dagger
 
     // Energy
     pub energy: Energy,
@@ -47,11 +46,16 @@ pub struct Combat {
     pub this_turn_panache: u8,
 
     // Per-combat counters
-    pub this_combat_damage_instances_taken: u8,
+    pub turn: u16,
     pub this_combat_escaped: bool,
+    pub this_combat_monster_died: bool,
+    pub gold_stolen: u16,
 
-    // Bomb countdown
-    pub bomb_countdown: u8,
+    // The HP a target actually lost, after Buffer and Tungsten Rod
+    pub last_health_lost: u16,
+
+    // Live Bombs: (turns left, damage)
+    pub bombs: Vec<(u8, u16)>,
 }
 
 pub fn combat_reset(combat: &mut Combat) {
@@ -63,7 +67,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.id_card_stasis.fill(None);
     combat.id_monster_picked = None;
     combat.id_card_last_drawn = None;
-    combat.id_card_nightmare = None;
+    combat.id_card_nightmares.clear();
     combat.id_card_discover.clear();
     combat.id_card_origins.clear();
     combat.energy = Energy {
@@ -74,9 +78,12 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.this_turn_attacks = 0;
     combat.this_turn_cards_played = 0;
     combat.this_turn_panache = 0;
-    combat.this_combat_damage_instances_taken = 0;
+    combat.turn = 0;
     combat.this_combat_escaped = false;
-    combat.bomb_countdown = 0;
+    combat.this_combat_monster_died = false;
+    combat.gold_stolen = 0;
+    combat.last_health_lost = 0;
+    combat.bombs.clear();
 }
 
 #[derive(Debug, Clone)]
@@ -87,6 +94,7 @@ pub struct Reward {
     pub id_potions: Vec<usize>,
     pub gold: Option<u16>,
     pub relics_exclusive: bool, // Wether taking a Relic clears the rest (Boss rewards)
+    pub cards_forced: bool,     // The Library's grid: one pick, no skip and no Singing Bowl
 }
 
 pub fn reward_reset(reward: &mut Reward) {
@@ -95,6 +103,7 @@ pub fn reward_reset(reward: &mut Reward) {
     reward.id_potions.clear();
     reward.gold = None;
     reward.relics_exclusive = false;
+    reward.cards_forced = false;
 }
 
 // Find-or-create for the RewardRoll* effects: any roll may activate the context

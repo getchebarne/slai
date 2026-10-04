@@ -47,6 +47,7 @@ pub enum EffectKind {
     CardDiscoverPick {
         cost_zero: Option<CostScope>,
         pile: CardPile,
+        copies: u8,
     },
     CardDiscoverRoll {
         kind: Option<CardKind>,
@@ -71,10 +72,24 @@ pub enum EffectKind {
     },
     CardNightmarePick,
     CardNightmareSpawn,
-    CardPlay,
+    CardPlay {
+        replay: bool,
+        energy: u8,
+    },
+    BombArm {
+        turns: u8,
+        damage: u16,
+    },
+    LifestealHeal,
+    CardPlayRelocate {
+        exhaust: bool,
+    },
     CardPlayFromDrawTop,
     CardPurge,
     CardRemove,
+    CardReplay {
+        energy: u8,
+    },
     CardRetain,
     CardSetupPick {
         free: bool,
@@ -194,6 +209,7 @@ pub enum EffectKind {
     PoisonTick,
     PotionAddRandom {
         limited: bool,
+        uniform: bool,
     },
     PotionAdopt,
     PotionDiscard,
@@ -204,6 +220,7 @@ pub enum EffectKind {
     },
     RelicGrantRandom {
         tier: Option<RelicTier>,
+        exclusion: RelicExclusion,
     },
     RelicGrantSpecific {
         name: RelicName,
@@ -221,21 +238,14 @@ pub enum EffectKind {
     RewardRollGold {
         amount: Amount,
     },
-    RewardRollLibraryCards,
-    RewardRollNeowCards {
-        colorless: bool,
-        rare_only: bool,
-    },
-    RewardRollPotion {
-        eligible: bool,
-    },
     RewardRollPotions {
         count: u8,
-        uniform: bool,
+        trigger: RewardRollTrigger,
     },
     RelicRewardRemoveOne,
     RewardRollRelic {
         pick: RelicPick,
+        exclusion: RelicExclusion,
     },
     RewardTake {
         kind: RewardKind,
@@ -288,16 +298,34 @@ pub enum RelicPick {
     Name(RelicName),
 }
 
-// Who is asking for a Card roll
+// Redraw loops around the relic draw
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RelicExclusion {
+    Unfiltered,
+    Screenless,  // Skip Bottles and Whetstone
+    NonCampfire, // Skip Girya, Shovel, Peace Pipe
+}
+
+// Who is asking for a reward roll
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RewardRollTrigger {
     CombatMonster,
     CombatElite,
     CombatBoss,
     EventFight,
+    EventFightUnpaid,
+    SmokeBomb,
     DreamCatcher,
     Orrery,
     Library,
+    Neow,
+    NeowRare,
+    NeowColorless,
+    NeowColorlessRare,
+    Cauldron,
+    WomanInBlue,
+    Lab,
+    TinyHouse,
 }
 
 // Origin tag the CardDiscard handler branches on
@@ -368,6 +396,7 @@ pub enum CandidateFilter {
     KindSkill,
     KindPower,
     Costed,
+    NotBoundCurse,
 
     // Compare against the `Target::Resolve` context
     NotSource,
@@ -426,7 +455,11 @@ pub const TARGET_CHARACTER: Target = Target::Resolve {
 // Discover pick: choose 1 of the rolled Cards; cost break and destination vary by caller
 pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) -> Effect {
     Effect {
-        kind: EffectKind::CardDiscoverPick { cost_zero, pile },
+        kind: EffectKind::CardDiscoverPick {
+            cost_zero,
+            pile,
+            copies: 1,
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Discover,

@@ -93,10 +93,12 @@ pub fn get_next_move_shelled_parasite(
         .last()
         .expect("`move_history` cannot be empty here") as usize;
 
-    // The armor-break Stunned turn forces Fell next
-    if last == IDX_MOVE_STUNNED {
-        return IDX_MOVE_FELL;
-    }
+    // The armor-break Stunned turn stamps Fell into the history and rolls again
+    let last = if last == IDX_MOVE_STUNNED {
+        IDX_MOVE_FELL
+    } else {
+        last
+    };
 
     // Fell never repeats: a low roll re-rolls into the upper range instead
     let mut roll = rng.random_range(0..=99);

@@ -11,7 +11,10 @@ pub static ENTROPIC_BREW: PotionTemplate = PotionTemplate {
     rarity: PotionRarity::Rare,
     combat_only: false,
     effects: &[Effect {
-        kind: EffectKind::PotionAddRandom { limited: true },
+        kind: EffectKind::PotionAddRandom {
+            limited: true,
+            uniform: false,
+        },
         id_source: None,
         target: Target::Direct(None),
     }; POTION_SLOTS_MAX],

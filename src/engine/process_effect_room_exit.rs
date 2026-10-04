@@ -43,6 +43,7 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
             == Some(RoomKind::RestSite)
     {
+        state.location_prev = state.location;
         state.location = Location::BossRoom;
         state.effect_queue.push_front(Effect {
             kind: EffectKind::RoomEnter,

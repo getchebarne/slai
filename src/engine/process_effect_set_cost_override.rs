@@ -5,6 +5,7 @@ use crate::entity::CostOverride;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::types::CostScope;
+use crate::utils::get_card_effective_cost;
 
 pub fn process_effect_set_cost_override(
     id_target: Option<usize>,
@@ -32,7 +33,8 @@ pub fn process_effect_set_cost_override(
             return;
         }
         let roll = state.rng.random_range(0..=amount);
-        // Same-cost roll leaves any live per-turn override in place (StS parity)
+
+        // Same-cost roll leaves any live per-turn override in place
         if roll == state.entities[id_target].card_cost {
             return;
         }
@@ -41,16 +43,28 @@ pub fn process_effect_set_cost_override(
         amount
     };
 
+    // Get mutable Card reference
     let card = &mut state.entities[id_target];
 
-    // `only_reduce` guards against cost-increase (see Enlightment)
+    // Used to get the Card's effective cost
+    let (this_turn_discards, energy_current) = if state.combat.active {
+        (
+            state.combat.this_turn_discards,
+            state.combat.energy.energy_current,
+        )
+    } else {
+        (0, 0)
+    };
+
+    // Check for `only_reduce`
     if only_reduce {
         if matches!(card.card_cost_kind, CardCostKind::XCost { .. }) {
             return;
         }
-        let current = card
-            .card_cost_override
-            .map_or(card.card_cost, |cost_override| cost_override.amount);
+        let current = match scope {
+            CostScope::Combat => card.card_cost,
+            _ => get_card_effective_cost(card, this_turn_discards, energy_current),
+        };
         if current <= amount {
             return;
         }
@@ -59,7 +73,9 @@ pub fn process_effect_set_cost_override(
     match scope {
         CostScope::Combat => {
             card.card_cost = amount;
-            card.card_cost_override = None;
+            if !only_reduce {
+                card.card_cost_override = None;
+            }
         }
         scope => card.card_cost_override = Some(CostOverride { amount, scope }),
     }

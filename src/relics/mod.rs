@@ -224,6 +224,30 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::Necronomicon,
 ];
 
+// Front-queued combat-start relics: run before the turn-1 draw, newest pickup first
+pub const RELICS_COMBAT_START_TOP: &[RelicName] = &[
+    RelicName::Akabeko,
+    RelicName::BloodVial,
+    RelicName::BronzeScales,
+    RelicName::ClockworkSouvenir,
+    RelicName::Lantern,
+    RelicName::MutagenicStrength,
+    RelicName::OddlySmoothStone,
+    RelicName::ThreadAndNeedle,
+    RelicName::Vajra,
+];
+
+// Pre-draw combat-start relics: after the turn-1 energy, before the draw
+pub const RELICS_COMBAT_START_PRE_DRAW: &[RelicName] = &[
+    RelicName::Enchiridion,
+    RelicName::NinjaScroll,
+    RelicName::SneckoEye,
+];
+
+// Post-draw turn-start relics: after the draw and every back-queued combat-start relic
+pub const RELICS_TURN_START_POST_DRAW: &[RelicName] =
+    &[RelicName::GamblingChip, RelicName::WarpedTongs];
+
 // Per-combat Relic counters; reset at combat start only
 pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
     RelicName::StoneCalendar,

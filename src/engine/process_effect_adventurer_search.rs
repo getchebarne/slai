@@ -3,6 +3,7 @@ use rand::Rng;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -93,7 +94,10 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
     if !state.event.found_relic && idx == 0 {
         state.event.found_relic = true;
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::RelicGrantRandom { tier: None },
+            kind: EffectKind::RelicGrantRandom {
+                tier: None,
+                exclusion: RelicExclusion::Screenless,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

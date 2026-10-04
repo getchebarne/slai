@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardName;
@@ -21,7 +22,10 @@ pub fn process_effect_mausoleum_open(state: &mut GameState) {
         });
     }
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::RelicGrantRandom { tier: None },
+        kind: EffectKind::RelicGrantRandom {
+            tier: None,
+            exclusion: RelicExclusion::Screenless,
+        },
         id_source: None,
         target: Target::Direct(None),
     });

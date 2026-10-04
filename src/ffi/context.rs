@@ -54,7 +54,8 @@ pub struct PyCombat {
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
     pub discover: Vec<PyCard>,
-    pub bomb_countdown: u8,
+    pub bombs: Vec<(u8, u16)>,
+    pub nightmares: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
 }
 
 #[pyclass(
@@ -72,8 +73,8 @@ pub struct PyReward {
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
-    // Boss rewards roll mutually exclusive Relics: taking one discards the rest
-    pub relics_exclusive: bool,
+    pub relics_exclusive: bool, // Boss rewards roll mutually exclusive Relics
+    pub cards_forced: bool,     // Cannot skip Card rewards (The Library)
 }
 
 #[pyclass(
@@ -188,7 +189,12 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        bomb_countdown: combat.bomb_countdown,
+        bombs: combat.bombs.clone(),
+        nightmares: combat
+            .id_card_nightmares
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
     }
 }
 
@@ -212,6 +218,7 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
             .collect(),
         gold: reward.gold,
         relics_exclusive: reward.relics_exclusive,
+        cards_forced: reward.cards_forced,
     }
 }
 

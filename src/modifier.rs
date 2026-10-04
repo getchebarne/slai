@@ -53,7 +53,6 @@ pub enum ModifierKind {
     Panache,
     SadisticNature,
     Mayhem,
-    TheBomb,
     Regeneration,
     LoseStrength,
     LoseDexterity,
@@ -438,13 +437,6 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Mayhem,
-        is_buff: true,
-        stacks_duration: false,
-        stacks_min: 1,
-        stacks_max: 999,
-    },
-    ModifierDef {
-        kind: ModifierKind::TheBomb,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,

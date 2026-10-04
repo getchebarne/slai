@@ -1,20 +1,29 @@
-use crate::consts::MAX_COMBAT_CARD_REWARD;
+use crate::consts::LIBRARY_CARD_COUNT;
+use crate::consts::NEOW_CARD_COUNT;
 use crate::effect::RewardRollTrigger;
 use crate::game::GameState;
 use crate::types::reward_ensure;
 use crate::utils::card_reward_count;
 use crate::utils::roll_card_rewards;
 
-// Stage `bundles` combat-style Card bundles (Busted Crown and Question Card apply)
+// Stage `bundles` Card bundles; the trigger sets the roll rules, the bundle size and whether the pick is forced
 pub fn process_effect_reward_roll_cards(
     state: &mut GameState,
     bundles: u8,
     trigger: RewardRollTrigger,
 ) {
-    let cards_per_bundle = card_reward_count(&state.id_relics);
+    // Busted Crown and Question Card resize every offer but the Library's and Neow's
+    let cards_per_bundle = match trigger {
+        RewardRollTrigger::Library => LIBRARY_CARD_COUNT,
+        RewardRollTrigger::Neow
+        | RewardRollTrigger::NeowRare
+        | RewardRollTrigger::NeowColorless
+        | RewardRollTrigger::NeowColorlessRare => NEOW_CARD_COUNT,
+        _ => card_reward_count(&state.id_relics),
+    };
     let mut id_card_bundles: Vec<Vec<usize>> = Vec::with_capacity(bundles as usize);
     for _ in 0..bundles {
-        let mut id_cards: Vec<usize> = Vec::with_capacity(MAX_COMBAT_CARD_REWARD);
+        let mut id_cards: Vec<usize> = Vec::with_capacity(cards_per_bundle);
         roll_card_rewards(
             state.id_character,
             &mut state.entities,
@@ -31,4 +40,9 @@ pub fn process_effect_reward_roll_cards(
 
     reward_ensure(&mut state.reward);
     state.reward.id_cards.extend(id_card_bundles);
+
+    // The Library's offer can't be skipped
+    if trigger == RewardRollTrigger::Library {
+        state.reward.cards_forced = true;
+    }
 }
