@@ -1,3 +1,4 @@
+use crate::consts::MAX_MONSTER_MOVES;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
@@ -38,14 +39,12 @@ pub static GREMLIN_NOB: MonsterTemplate = MonsterTemplate {
 
 pub fn get_next_move_gremlin_nob(
     move_history: &[u8],
+    move_uses: &[u8; MAX_MONSTER_MOVES],
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
     // First turn: always Bellow
-    let bellow_used = move_history
-        .iter()
-        .any(|&idx_move| idx_move == IDX_MOVE_BELLOW as u8);
-    if !bellow_used {
+    if move_uses[IDX_MOVE_BELLOW] == 0 {
         return IDX_MOVE_BELLOW;
     }
 

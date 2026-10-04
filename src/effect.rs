@@ -126,6 +126,7 @@ pub enum EffectKind {
     },
     Death,
     DebuffsClear,
+    DeepBreathProc,
     DistractionAdd,
     EnergyDelta {
         sign: DeltaSign,

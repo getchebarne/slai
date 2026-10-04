@@ -1,3 +1,4 @@
+use crate::consts::MAX_MONSTER_MOVES;
 use crate::entity::Intent;
 use crate::entity::Move;
 use crate::modifier::ModifierKind;
@@ -45,15 +46,14 @@ pub static SLAVER_RED: MonsterTemplate = MonsterTemplate {
 pub fn get_next_move_slaver_red(
     move_current: Option<usize>,
     move_history: &[u8],
+    move_uses: &[u8; MAX_MONSTER_MOVES],
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
     if move_current.is_none() {
         return IDX_MOVE_STAB;
     }
-    let used_entangle = move_history
-        .iter()
-        .any(|&idx_move| idx_move == IDX_MOVE_ENTANGLE as u8);
+    let used_entangle = move_uses[IDX_MOVE_ENTANGLE] > 0;
 
     let roll = rng.random_range(0..=99);
     let last_two_stab = move_history.ends_with(&[IDX_MOVE_STAB as u8, IDX_MOVE_STAB as u8]);

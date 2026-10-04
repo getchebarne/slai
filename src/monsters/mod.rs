@@ -315,6 +315,10 @@ pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
         entity.monster_move_history.copy_within(1.., 0);
         entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
     }
+
+    // Use counts never drop a move: once-per-combat latches read them
+    entity.monster_move_uses[move_idx as usize] =
+        entity.monster_move_uses[move_idx as usize].saturating_add(1);
 }
 
 fn get_move_history_slice(entity: &Entity) -> &[u8] {
@@ -376,9 +380,12 @@ pub fn get_next_move(
             ascension_level,
             rng,
         ),
-        MonsterName::GremlinNob => {
-            gremlin_nob::get_next_move_gremlin_nob(history, ascension_level, rng)
-        }
+        MonsterName::GremlinNob => gremlin_nob::get_next_move_gremlin_nob(
+            history,
+            &entity.monster_move_uses,
+            ascension_level,
+            rng,
+        ),
         MonsterName::GremlinWizard => gremlin_wizard::get_next_move_gremlin_wizard(
             entity.monster_move_current,
             history,
@@ -421,6 +428,7 @@ pub fn get_next_move(
         MonsterName::SlaverRed => slaver_red::get_next_move_slaver_red(
             entity.monster_move_current,
             history,
+            &entity.monster_move_uses,
             ascension_level,
             rng,
         ),
@@ -476,17 +484,24 @@ pub fn get_next_move(
         MonsterName::BronzeAutomaton => {
             bronze_automaton::get_next_move_bronze_automaton(history, ascension_level)
         }
-        MonsterName::BronzeOrb => bronze_orb::get_next_move_bronze_orb(history, rng),
+        MonsterName::BronzeOrb => {
+            bronze_orb::get_next_move_bronze_orb(history, &entity.monster_move_uses, rng)
+        }
         MonsterName::Champ => champ::get_next_move_champ(
             history,
+            &entity.monster_move_uses,
             entity.vitals.health,
             entity.vitals.health_max,
             ascension_level,
             rng,
         ),
-        MonsterName::TheCollector => {
-            the_collector::get_next_move_the_collector(history, entities, id_monsters, rng)
-        }
+        MonsterName::TheCollector => the_collector::get_next_move_the_collector(
+            history,
+            &entity.monster_move_uses,
+            entities,
+            id_monsters,
+            rng,
+        ),
         MonsterName::TorchHead => 0,
         MonsterName::BanditBear => {
             bandit_bear::get_next_move_bandit_bear(entity.monster_move_current, history)

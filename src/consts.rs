@@ -1,5 +1,8 @@
 pub const MAX_MOVE_HISTORY: usize = 64;
 
+// The largest move table has 7 moves
+pub const MAX_MONSTER_MOVES: usize = 8;
+
 // Per-Card effect array cap; bump if any Card legitimately exceeds 8
 pub const MAX_EFFECTS_PER_CARD: usize = 6;
 

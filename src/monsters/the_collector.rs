@@ -1,3 +1,4 @@
+use crate::consts::MAX_MONSTER_MOVES;
 use crate::consts::MAX_MONSTERS;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -149,6 +150,7 @@ pub static THE_COLLECTOR: MonsterTemplate = MonsterTemplate {
 
 pub fn get_next_move_the_collector(
     move_history: &[u8],
+    move_uses: &[u8; MAX_MONSTER_MOVES],
     entities: &[Entity],
     id_monsters: &[Option<usize>; MAX_MONSTERS],
     rng: &mut impl Rng,
@@ -160,9 +162,7 @@ pub fn get_next_move_the_collector(
     }
 
     // The ultimate lands once, guaranteed on the fourth turn
-    let ult_used = move_history
-        .iter()
-        .any(|&idx_move| idx_move as usize == IDX_MOVE_MEGA_DEBUFF);
+    let ult_used = move_uses[IDX_MOVE_MEGA_DEBUFF] > 0;
     if move_history.len() >= 3 && !ult_used {
         return IDX_MOVE_MEGA_DEBUFF;
     }

@@ -228,7 +228,7 @@ EffectCardDrawUpTo = _rs.EffectCardDrawUpTo
 EffectCardDiscard = _rs.EffectCardDiscard
 EffectCardRetain = _rs.EffectCardRetain
 EffectDamageMindBlast = _rs.EffectDamageMindBlast
-EffectShuffleDiscardPileIntoDrawPile = _rs.EffectShuffleDiscardPileIntoDrawPile
+EffectDeepBreathProc = _rs.EffectDeepBreathProc
 EffectMaxHealthDelta = _rs.EffectMaxHealthDelta
 EffectHealthDelta = _rs.EffectHealthDelta
 EffectPotionAddRandom = _rs.EffectPotionAddRandom
@@ -305,7 +305,7 @@ Effect = (
     | EffectCardDiscard
     | EffectCardRetain
     | EffectDamageMindBlast
-    | EffectShuffleDiscardPileIntoDrawPile
+    | EffectDeepBreathProc
     | EffectMaxHealthDelta
     | EffectHealthDelta
     | EffectPotionAddRandom
@@ -554,7 +554,7 @@ __all__ = [
     "EffectCardDiscard",
     "EffectCardRetain",
     "EffectDamageMindBlast",
-    "EffectShuffleDiscardPileIntoDrawPile",
+    "EffectDeepBreathProc",
     "EffectMaxHealthDelta",
     "EffectHealthDelta",
     "EffectPotionAddRandom",
