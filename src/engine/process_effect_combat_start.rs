@@ -1,6 +1,5 @@
 use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::ENERGY_MAX_BASE;
-use crate::consts::MAX_SIZE_DECK;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -82,34 +81,23 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     }
 
     // Innate and bottled Cards sit on top of the draw pile, ahead of the shuffled rest
-    let mut ids_other: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
-    let mut num_other: usize = 0;
-    let mut ids_innate: [usize; MAX_SIZE_DECK] = [0; MAX_SIZE_DECK];
-    let mut num_innate: usize = 0;
-
+    let idx_other = id_card_draw.len();
+    let mut ids_innate: Vec<usize> = Vec::new();
     for idx in 0..state.id_card_deck.len() {
         let id_card_src = state.id_card_deck[idx];
         let card = state.entities[id_card_src];
         let id_card = push_entity(&mut state.entities, card);
         id_card_origins.push((id_card, id_card_src));
         if card.card_innate || card.card_bottled {
-            ids_innate[num_innate] = id_card;
-            num_innate += 1;
+            ids_innate.push(id_card);
         } else {
-            ids_other[num_other] = id_card;
-            num_other += 1;
+            id_card_draw.push(id_card);
         }
     }
 
-    shuffle(&mut ids_other[..num_other], &mut state.rng);
-    shuffle(&mut ids_innate[..num_innate], &mut state.rng);
-
-    for &id in &ids_other[..num_other] {
-        id_card_draw.push(id);
-    }
-    for &id in &ids_innate[..num_innate] {
-        id_card_draw.push(id);
-    }
+    shuffle(&mut id_card_draw[idx_other..], &mut state.rng);
+    shuffle(&mut ids_innate, &mut state.rng);
+    id_card_draw.extend_from_slice(&ids_innate);
 
     // Monster MoveUpdates already queued at MonsterSpawn; queue Character TurnStart
     state.effect_queue.push_front(Effect {

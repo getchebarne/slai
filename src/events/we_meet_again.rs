@@ -100,10 +100,11 @@ static EOTS_BASE: [EventOptionTemplate; GOLD_EOTS_LEN + 3] = {
     let mut refs: [EventOptionTemplate; GOLD_EOTS_LEN + 3] =
         [make_event_option_template(OPTION_ATTACK); GOLD_EOTS_LEN + 3];
     refs[IDX_GIVE_POTION] = make_event_option_template(&OPTION_GIVE_POTION);
-    let mut i = 0;
-    while i < GOLD_EOTS_LEN {
-        refs[IDX_GIVE_GOLD + i] = make_event_option_template(&GOLD_EOTS[i]);
-        i += 1;
+
+    let mut idx = 0;
+    while idx < GOLD_EOTS_LEN {
+        refs[IDX_GIVE_GOLD + idx] = make_event_option_template(&GOLD_EOTS[idx]);
+        idx += 1;
     }
     refs[IDX_GIVE_CARD] = make_event_option_template(&OPTION_GIVE_CARD);
     refs[IDX_ATTACK] = make_event_option_template(OPTION_ATTACK);

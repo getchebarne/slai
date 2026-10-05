@@ -23,7 +23,7 @@ pub fn process_effect_card_add_random(
     color: CardColor,
     kind: Option<CardKind>,
     pile: CardPile,
-    count: u8,
+    count: u16,
     cost_zero: Option<CostScope>,
     upgraded: bool,
     rarity: Option<CardRarity>,

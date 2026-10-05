@@ -1,7 +1,6 @@
 use rand::Rng;
 
 use crate::cards::get_card;
-use crate::consts::MAX_SIZE_DECK;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
 use crate::effect::Effect;
@@ -81,23 +80,17 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
 
         // Pandora's Box: every starter Strike / Defend becomes a random Card
         RelicName::PandorasBox => {
-            let mut id_starter = [0usize; MAX_SIZE_DECK];
-            let mut id_starter_num = 0;
             for &id in &state.id_card_deck {
                 if matches!(
                     state.entities[id].card_name,
                     CardName::Strike | CardName::Defend
                 ) {
-                    id_starter[id_starter_num] = id;
-                    id_starter_num += 1;
+                    state.effect_queue.push_front(Effect {
+                        kind: EffectKind::CardTransform { upgraded: false },
+                        id_source: None,
+                        target: Target::Direct(Some(id)),
+                    });
                 }
-            }
-            for &id in &id_starter[..id_starter_num] {
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::CardTransform { upgraded: false },
-                    id_source: None,
-                    target: Target::Direct(Some(id)),
-                });
             }
         }
 
@@ -173,26 +166,24 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
 
 // Upgrade `count` random upgradable Cards, optionally kind-filtered; without replacement
 fn upgrade_random_cards(state: &mut GameState, count: usize, kind: Option<CardKind>) {
-    let mut ids_valid = [0usize; MAX_SIZE_DECK];
-    let mut num = 0;
-    for &id in &state.id_card_deck {
-        let card = &state.entities[id];
-        if card_is_upgradable(card) && kind.is_none_or(|card_kind| card.card_kind == card_kind) {
-            ids_valid[num] = id;
-            num += 1;
-        }
-    }
+    let mut ids_valid: Vec<usize> = state
+        .id_card_deck
+        .iter()
+        .copied()
+        .filter(|&id| {
+            let card = &state.entities[id];
+            card_is_upgradable(card) && kind.is_none_or(|card_kind| card.card_kind == card_kind)
+        })
+        .collect();
 
-    for _ in 0..count.min(num) {
-        let idx = state.rng.random_range(0..num);
+    for _ in 0..count.min(ids_valid.len()) {
+        // Without replacement
+        let idx = state.rng.random_range(0..ids_valid.len());
+        let id = ids_valid.swap_remove(idx);
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardUpgrade,
             id_source: None,
-            target: Target::Direct(Some(ids_valid[idx])),
+            target: Target::Direct(Some(id)),
         });
-
-        // Without replacement
-        ids_valid[idx] = ids_valid[num - 1];
-        num -= 1;
     }
 }

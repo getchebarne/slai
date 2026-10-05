@@ -33,7 +33,7 @@ pub fn process_effect_card_play(
     id_target: Option<usize>,
     state: &mut GameState,
     replay: bool,
-    energy: u8,
+    energy: u16,
 ) {
     let id_card = id_target.expect("CardPlay requires id_target");
 
@@ -210,7 +210,7 @@ pub fn process_effect_card_play(
         state.effect_buf.push(Effect {
             kind: EffectKind::EnergyDelta {
                 sign: DeltaSign::Loss,
-                amount: (cost_effective) as u16,
+                amount: cost_effective,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -503,8 +503,8 @@ fn pick_random_costed_hand_card(
     entities: &[Entity],
     rng: &mut impl Rng,
     id_card_played: usize,
-    this_turn_discards: u8,
-    energy_current: u8,
+    this_turn_discards: u16,
+    energy_current: u16,
 ) -> Option<usize> {
     let mut cards_valid = [0usize; MAX_SIZE_HAND];
     let mut num = 0;

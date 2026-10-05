@@ -183,13 +183,15 @@ pub fn play_cap_reached(
     normality || choker
 }
 
-pub fn get_card_effective_cost(card: &Entity, this_turn_discards: u8, energy_current: u8) -> u8 {
+pub fn get_card_effective_cost(card: &Entity, this_turn_discards: u16, energy_current: u16) -> u16 {
     if let Some(cost_override) = card.card_cost_override {
-        return cost_override.amount;
+        return cost_override.amount as u16;
     }
     match card.card_cost_kind {
-        CardCostKind::Fixed | CardCostKind::GrowsOnDamageInstanceTaken => card.card_cost,
-        CardCostKind::MinusDiscardsThisTurn => card.card_cost.saturating_sub(this_turn_discards),
+        CardCostKind::Fixed | CardCostKind::GrowsOnDamageInstanceTaken => card.card_cost as u16,
+        CardCostKind::MinusDiscardsThisTurn => {
+            (card.card_cost as u16).saturating_sub(this_turn_discards)
+        }
         CardCostKind::XCost { .. } => energy_current,
     }
 }
@@ -507,7 +509,7 @@ pub fn strike_dummy_bonus(name: CardName, id_relics: &[Option<usize>; RelicName:
 // Wrist Blade: Attacks that cost 0 to play hit for 4 more
 pub fn wrist_blade_bonus(
     card: &Entity,
-    cost_effective: u8,
+    cost_effective: u16,
     id_relics: &[Option<usize>; RelicName::COUNT],
 ) -> u16 {
     let applies = cost_effective == 0

@@ -46,6 +46,7 @@ pub mod the_guardian;
 pub mod torch_head;
 
 use crate::consts::MAX_EFFECTS_PER_MOVE;
+use crate::consts::MAX_MONSTER_MOVES;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_MOVE_HISTORY;
 use crate::effect::EFFECT_ZERO;
@@ -161,19 +162,41 @@ const _: () = assert!(ALL_MONSTERS.len() == MonsterName::COUNT);
 
 // Tier tables are looked up by descending scan, so they must ascend by threshold
 const fn assert_tiers_ascend<T: Copy>(tiers: &[(u8, T)]) {
-    let mut i = 1;
-    while i < tiers.len() {
-        assert!(tiers[i - 1].0 < tiers[i].0, "monster tiers must ascend");
-        i += 1;
+    let mut idx = 1;
+    while idx < tiers.len() {
+        assert!(tiers[idx - 1].0 < tiers[idx].0, "monster tiers must ascend");
+        idx += 1;
     }
 }
 const _: () = {
-    let mut i = 0;
-    while i < ALL_MONSTERS.len() {
-        assert_tiers_ascend(ALL_MONSTERS[i].health_tiers);
-        assert_tiers_ascend(ALL_MONSTERS[i].move_tiers);
-        assert_tiers_ascend(ALL_MONSTERS[i].modifier_tiers);
-        i += 1;
+    let mut idx = 0;
+    while idx < ALL_MONSTERS.len() {
+        assert_tiers_ascend(ALL_MONSTERS[idx].health_tiers);
+        assert_tiers_ascend(ALL_MONSTERS[idx].move_tiers);
+        assert_tiers_ascend(ALL_MONSTERS[idx].modifier_tiers);
+        idx += 1;
+    }
+};
+
+// Move-use counts are indexed by move, so every move table must fit them
+const _: () = {
+    let mut idx = 0;
+    while idx < ALL_MONSTERS.len() {
+        let move_tiers = ALL_MONSTERS[idx].move_tiers;
+        let mut idx_tier = 0;
+        while idx_tier < move_tiers.len() {
+            let movesets = move_tiers[idx_tier].1;
+            let mut idx_set = 0;
+            while idx_set < movesets.len() {
+                assert!(
+                    movesets[idx_set].len() <= MAX_MONSTER_MOVES,
+                    "move table larger than MAX_MONSTER_MOVES"
+                );
+                idx_set += 1;
+            }
+            idx_tier += 1;
+        }
+        idx += 1;
     }
 };
 

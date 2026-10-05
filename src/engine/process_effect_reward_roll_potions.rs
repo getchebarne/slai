@@ -60,17 +60,16 @@ pub fn process_effect_reward_roll_potions(
 }
 
 // The drift shifts the base chance; only the chance clamps to 0..=100
-fn potion_drop_chance(potion_drop_mod: i8) -> u8 {
-    (POTION_DROP_CHANCE_BASE as i16 + potion_drop_mod as i16).clamp(0, 100) as u8
+fn potion_drop_chance(potion_drop_mod: i32) -> u8 {
+    (POTION_DROP_CHANCE_BASE + potion_drop_mod).clamp(0, 100) as u8
 }
 
 // +10 on miss, -10 on hit; the drift is unclamped
-fn roll_potion_drop(rng: &mut impl Rng, potion_drop_mod: &mut i8, chance: u8) -> bool {
+fn roll_potion_drop(rng: &mut impl Rng, potion_drop_mod: &mut i32, chance: u8) -> bool {
     let roll = rng.random_range(0..100) as u8;
 
     if roll < chance {
-        // White Beast Statue hits every roll, so the drift can fall past the i8 range
-        *potion_drop_mod = potion_drop_mod.saturating_add(POTION_DROP_CHANCE_MOD_HIT);
+        *potion_drop_mod += POTION_DROP_CHANCE_MOD_HIT;
         true
     } else {
         *potion_drop_mod += POTION_DROP_CHANCE_MOD_MISS;
