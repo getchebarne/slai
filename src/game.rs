@@ -122,7 +122,7 @@ pub struct GameState {
     pub pool_relic_boss: Vec<RelicName>,
 
     // Potion drop swing: chance = POTION_DROP_CHANCE_BASE + potion_drop_mod
-    pub potion_drop_mod: i8,
+    pub potion_drop_mod: i32,
 
     // Contexts: one active; all inactive = Focus::Map. See context_focus
     pub combat: Combat,

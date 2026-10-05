@@ -1,7 +1,7 @@
 pub const MAX_MOVE_HISTORY: usize = 64;
 
-// The largest move table has 7 moves
-pub const MAX_MONSTER_MOVES: usize = 8;
+// Book of Stabbing's table is the largest: 19 Multi-Stab hit counts plus Single Stab
+pub const MAX_MONSTER_MOVES: usize = 20;
 
 // Per-Card effect array cap; bump if any Card legitimately exceeds 8
 pub const MAX_EFFECTS_PER_CARD: usize = 6;
@@ -43,7 +43,8 @@ pub const MAX_SIZE_HAND: usize = 10;
 pub const MAX_SIZE_DECK: usize = 99;
 pub const MAX_ENTITIES: usize = 1024;
 pub const CARDS_DRAWN_PER_TURN: u16 = 5;
-pub const ENERGY_MAX_BASE: u8 = 3;
+pub const ENERGY_MAX_BASE: u16 = 3;
+pub const ENERGY_CAP: u16 = 999;
 
 // Capacity: base 3 plus Question Card's +1; the roll base is CARD_REWARD_BASE_COUNT
 pub const MAX_COMBAT_CARD_REWARD: usize = 4;
@@ -163,9 +164,9 @@ pub const POTION_SLOTS_DEFAULT_A11: u8 = 2;
 pub const POTION_SLOTS_MAX: usize = 5;
 
 // Potion drop swing: chance = base + mod; +10 on miss, -10 on hit
-pub const POTION_DROP_CHANCE_BASE: i8 = 40;
-pub const POTION_DROP_CHANCE_MOD_HIT: i8 = -10;
-pub const POTION_DROP_CHANCE_MOD_MISS: i8 = 10;
+pub const POTION_DROP_CHANCE_BASE: i32 = 40;
+pub const POTION_DROP_CHANCE_MOD_HIT: i32 = -10;
+pub const POTION_DROP_CHANCE_MOD_MISS: i32 = 10;
 
 // Potion rarity roll thresholds
 pub const POTION_TH_COMMON: u8 = 65;

@@ -31,8 +31,8 @@ mirror_enum!(PyChestKind from ChestKind, "ChestKind", {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyEnergy {
-    pub energy_current: u8,
-    pub energy_max: u8,
+    pub energy_current: u16,
+    pub energy_max: u16,
 }
 
 #[pyclass(

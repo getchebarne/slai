@@ -360,31 +360,16 @@ pub fn generate_act_monsters(
     rng: &mut impl Rng,
 ) {
     // Per-act pools and easy-fight count
-    let (pool_easy, pool_hard, pool_elite, num_easy_enc): (
-        &[MonsterEncounter],
-        &[MonsterEncounter],
-        &[MonsterEncounter],
-        usize,
-    ) = match act {
-        1 => (
-            &ENC_POOL_EASY,
-            &ENC_POOL_HARD,
-            &ENC_POOL_ELITE,
-            NUM_ENCOUNTERS_EASY,
-        ),
-        2 => (
-            &ENC_POOL_EASY2,
-            &ENC_POOL_HARD2,
-            &ENC_POOL_ELITE2,
-            NUM_ENCOUNTERS_EASY_ACT2,
-        ),
-        _ => unreachable!("no encounter pools for act {act}"),
-    };
+    let (pool_easy, pool_hard, num_easy_enc): (&[MonsterEncounter], &[MonsterEncounter], usize) =
+        match act {
+            1 => (&ENC_POOL_EASY, &ENC_POOL_HARD, NUM_ENCOUNTERS_EASY),
+            2 => (&ENC_POOL_EASY2, &ENC_POOL_HARD2, NUM_ENCOUNTERS_EASY_ACT2),
+            _ => unreachable!("no encounter pools for act {act}"),
+        };
 
     // Get normalized encounter tables for each pool
     let encounter_table_easy = normalize_weights(pool_easy);
     let encounter_table_hard = normalize_weights(pool_hard);
-    let encounter_table_elite = normalize_weights(pool_elite);
 
     // Sample easy encounters
     populate_encounter_list(
@@ -415,10 +400,19 @@ pub fn generate_act_monsters(
         rng,
     );
 
-    // Populate elites
+    generate_act_elites(act, elite_list, rng);
+}
+
+// One act's elite list; room entry rolls a fresh one when the act runs out
+pub fn generate_act_elites(act: u8, elite_list: &mut Vec<MonsterEncounter>, rng: &mut impl Rng) {
+    let pool_elite: &[MonsterEncounter] = match act {
+        1 => &ENC_POOL_ELITE,
+        2 => &ENC_POOL_ELITE2,
+        _ => unreachable!("no elite pool for act {act}"),
+    };
     populate_encounter_list(
         elite_list,
-        &encounter_table_elite,
+        &normalize_weights(pool_elite),
         NUM_ENCOUNTERS_ELITE,
         true,
         rng,

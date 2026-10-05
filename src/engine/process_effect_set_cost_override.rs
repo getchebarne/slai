@@ -62,10 +62,10 @@ pub fn process_effect_set_cost_override(
             return;
         }
         let current = match scope {
-            CostScope::Combat => card.card_cost,
+            CostScope::Combat => card.card_cost as u16,
             _ => get_card_effective_cost(card, this_turn_discards, energy_current),
         };
-        if current <= amount {
+        if current <= amount as u16 {
             return;
         }
     }

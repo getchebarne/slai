@@ -1,4 +1,5 @@
 use crate::consts::CARDS_DRAWN_PER_TURN;
+use crate::consts::ENERGY_CAP;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
@@ -240,7 +241,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                     color: CardColor::Colorless,
                     kind: None,
                     pile: CardPile::Hand,
-                    count: stacks.max(0) as u8,
+                    count: stacks.max(0) as u16,
                     cost_zero: None,
                     upgraded: false,
                     rarity: None,
@@ -252,7 +253,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
 
         // Energy is set to max, not topped up; Ice Cream adds a full bar instead
         energy.energy_current = if has_relic(&state.id_relics, RelicName::IceCream) {
-            energy.energy_current + energy.energy_max
+            (energy.energy_current + energy.energy_max).min(ENERGY_CAP)
         } else {
             energy.energy_max
         };

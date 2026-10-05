@@ -16,6 +16,7 @@ use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
+use crate::monsters::encounters::generate_act_elites;
 use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::relics::iter_owned_relics;
 use crate::types::ChestKind;
@@ -84,7 +85,10 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             spawn_encounter_monsters(state, encounter);
         }
         RoomKind::CombatElite => {
-            // Pop an encounter and spawn its Monsters
+            // Pop an encounter and spawn its Monsters; an act that runs out rolls a fresh list
+            if state.encounter_pool_elite.is_empty() {
+                generate_act_elites(state.act, &mut state.encounter_pool_elite, &mut state.rng);
+            }
             let encounter = state.encounter_pool_elite.remove(0);
             spawn_encounter_monsters(state, encounter);
         }

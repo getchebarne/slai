@@ -40,7 +40,7 @@ pub struct Combat {
     pub energy: Energy,
 
     // Per-turn counters
-    pub this_turn_discards: u8,
+    pub this_turn_discards: u16,
     pub this_turn_attacks: u8,
     pub this_turn_cards_played: u8,
     pub this_turn_panache: u8,
@@ -192,8 +192,8 @@ pub enum Focus {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Energy {
-    pub energy_current: u8,
-    pub energy_max: u8,
+    pub energy_current: u16,
+    pub energy_max: u16,
 }
 
 pub const VITALS_ZERO: Vitals = Vitals {

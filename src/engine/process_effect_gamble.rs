@@ -15,7 +15,7 @@ use crate::types::Combat;
 pub fn process_effect_gamble(
     state: &mut GameState,
     choose_discards: bool,
-    discards_before: Option<u8>,
+    discards_before: Option<u16>,
 ) {
     assert!(
         state.combat.active,
@@ -63,9 +63,7 @@ pub fn process_effect_gamble(
             let count = this_turn_discards.saturating_sub(before);
             if count > 0 {
                 state.effect_queue.push_front(Effect {
-                    kind: EffectKind::CardDraw {
-                        count: count as u16,
-                    },
+                    kind: EffectKind::CardDraw { count },
                     id_source: None,
                     target: Target::Direct(None),
                 });

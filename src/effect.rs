@@ -34,7 +34,7 @@ pub enum EffectKind {
         color: CardColor,
         kind: Option<CardKind>,
         pile: CardPile,
-        count: u8,
+        count: u16,
         cost_zero: Option<CostScope>,
         upgraded: bool,
         rarity: Option<CardRarity>,
@@ -74,7 +74,7 @@ pub enum EffectKind {
     CardNightmareSpawn,
     CardPlay {
         replay: bool,
-        energy: u8,
+        energy: u16,
     },
     BombArm {
         turns: u8,
@@ -88,7 +88,7 @@ pub enum EffectKind {
     CardPurge,
     CardRemove,
     CardReplay {
-        energy: u8,
+        energy: u16,
     },
     CardRetain,
     CardSetupPick {
@@ -141,7 +141,7 @@ pub enum EffectKind {
     EventConsume,
     Gamble {
         choose_discards: bool,
-        discards_before: Option<u8>,
+        discards_before: Option<u16>,
     },
     GiryaLift,
     GlassKnifeDecay {

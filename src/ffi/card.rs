@@ -119,7 +119,7 @@ pub struct PyCard {
     pub name: PyCardName,
 
     // Cost-related fields
-    pub cost: u8,
+    pub cost: u16,
     pub cost_base: u8,
     pub cost_override: Option<u8>,
     pub cost_override_scope: Option<PyCostScope>,
