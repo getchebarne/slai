@@ -880,19 +880,15 @@ fn push_potion_actions(state: &mut GameState) {
     } else {
         (false, 0)
     };
-    let in_we_meet_again = state.event.in_room && state.event.name == EventName::WeMeetAgain;
+    // A Room's event holds until the next Room is entered, even after its screen closes
+    let in_we_meet_again = state.room_kind_resolved == Some(RoomKind::EventRoom)
+        && state.event.name == EventName::WeMeetAgain;
     for s in 0..state.id_potions.len() {
         let id_potion = state.id_potions[s];
         let potion = &state.entities[id_potion];
 
-        // The We Meet Again Room locks every Potion except Entropic Brew
+        // The We Meet Again Room locks every Potion
         if in_we_meet_again {
-            if potion.potion_name == PotionName::EntropicBrew {
-                state.legal_actions.push(Action::PotionUse {
-                    idx_potion: s,
-                    idx_monster: None,
-                });
-            }
             continue;
         }
 

@@ -24,9 +24,6 @@ pub fn process_effect_room_select(id_target: Option<usize>, state: &mut GameStat
         relic.relic_used_up = relic.relic_counter == 0;
     }
 
-    // Leaving the Room leaves its event behind
-    state.event.in_room = false;
-
     let room = &state.entities[id_room];
     state.location = Location::Overworld {
         y: room.room_y,
