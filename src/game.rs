@@ -80,7 +80,9 @@ pub struct GameState {
 
     // Location
     pub location: Location,
-    pub location_prev: Location,
+
+    // What the last entered Room resolved into; a "?" keeps Unknown on the map
+    pub room_kind_resolved: Option<RoomKind>,
 
     // Entities and indices
     pub entities: Vec<Entity>,
@@ -229,7 +231,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         potion_slots_max,
         id_rooms,
         location,
-        location_prev: location,
+        room_kind_resolved: None,
         encounter_pool_normal,
         encounter_pool_elite,
         encounter_boss,

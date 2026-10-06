@@ -45,7 +45,6 @@ use crate::entity::Entity;
 use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
-use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::relics::egg_upgrades_kind;
@@ -530,8 +529,12 @@ pub fn relic_tier_by_roll(roll: u8, th_common: u8, th_uncommon: u8) -> RelicTier
     }
 }
 
-// Spawn gates for the Relics that have one
-pub fn relic_can_spawn(state: &GameState, name: RelicName) -> bool {
+// Spawn gates for the Relics that have one, read against the owned set `id_relics`
+pub fn relic_can_spawn(
+    state: &GameState,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    name: RelicName,
+) -> bool {
     let deck_has = |pred: fn(&Entity) -> bool| {
         state
             .id_card_deck
@@ -549,26 +552,28 @@ pub fn relic_can_spawn(state: &GameState, name: RelicName) -> bool {
         RelicName::Girya | RelicName::PeacePipe | RelicName::Shovel => {
             [RelicName::Girya, RelicName::PeacePipe, RelicName::Shovel]
                 .iter()
-                .filter(|&&campfire| has_relic(&state.id_relics, campfire))
+                .filter(|&&campfire| has_relic(id_relics, campfire))
                 .count()
                 < 2
         }
-        RelicName::RingOfTheSerpent => has_relic(&state.id_relics, RelicName::RingOfTheSnake),
+        RelicName::RingOfTheSerpent => has_relic(id_relics, RelicName::RingOfTheSnake),
         RelicName::Ectoplasm => state.act <= 1,
         RelicName::TheCourier
         | RelicName::MawBank
         | RelicName::OldCoin
-        | RelicName::SmilingMask => {
-            get_active_room_kind(&state.id_rooms, state.location, &state.entities)
-                != Some(RoomKind::Shop)
-        }
+        | RelicName::SmilingMask => state.room_kind_resolved != Some(RoomKind::Shop),
         _ => true,
     }
 }
 
 // Pop the run pool for `tier`, cascading Common -> Uncommon -> Rare -> Circlet and
 // Shop -> Uncommon; a pick that fails its spawn gate is burned, the redraw from the back
-pub fn draw_relic(state: &mut GameState, tier: RelicTier, from_back: bool) -> RelicName {
+pub fn draw_relic(
+    state: &mut GameState,
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    tier: RelicTier,
+    from_back: bool,
+) -> RelicName {
     let (pool, cascade) = match tier {
         RelicTier::Common => (&mut state.pool_relic_common, Some(RelicTier::Uncommon)),
         RelicTier::Uncommon => (&mut state.pool_relic_uncommon, Some(RelicTier::Rare)),
@@ -581,7 +586,7 @@ pub fn draw_relic(state: &mut GameState, tier: RelicTier, from_back: bool) -> Re
     };
     if pool.is_empty() {
         return match cascade {
-            Some(next) => draw_relic(state, next, false),
+            Some(next) => draw_relic(state, id_relics, next, false),
             None => RelicName::Circlet,
         };
     }
@@ -592,10 +597,10 @@ pub fn draw_relic(state: &mut GameState, tier: RelicTier, from_back: bool) -> Re
     } else {
         pool.remove(0)
     };
-    if relic_can_spawn(state, name) && !has_relic(&state.id_relics, name) {
+    if relic_can_spawn(state, id_relics, name) && !has_relic(id_relics, name) {
         name
     } else {
-        draw_relic(state, tier, true)
+        draw_relic(state, id_relics, tier, true)
     }
 }
 
@@ -605,8 +610,9 @@ pub fn draw_relic_excluding(
     tier: RelicTier,
     exclusion: RelicExclusion,
 ) -> RelicName {
+    let id_relics = state.id_relics;
     loop {
-        let name = draw_relic(state, tier, false);
+        let name = draw_relic(state, &id_relics, tier, false);
         let excluded = match exclusion {
             RelicExclusion::Unfiltered => false,
             RelicExclusion::Screenless => matches!(
@@ -735,8 +741,8 @@ pub const SHOP_STOCK_POLICY: RollPolicy = RollPolicy {
     colorless: false,
     read_pity: true,
     alternation: false,
-    write_pity: false, // Reads the pity without writing it
-    dupe_rerolls_rarity: false,
+    write_pity: false,         // Reads the pity without writing it
+    dupe_rerolls_rarity: true, // make_card_colored's loop re-rolls rarity and Card together
     upgrade_roll: false,
 };
 

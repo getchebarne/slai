@@ -56,10 +56,14 @@ pub fn process_effect_room_enter(state: &mut GameState) {
                 target: Target::Direct(None),
             });
         }
-        roll_unknown_room(state)
+
+        // The recorded kind is still the Room just left; this entry overwrites it below
+        let left_shop = state.room_kind_resolved == Some(RoomKind::Shop);
+        roll_unknown_room(state, left_shop)
     } else {
         room_kind
     };
+    state.room_kind_resolved = Some(room_kind_resolved);
 
     match room_kind_resolved {
         RoomKind::CombatBoss => {
@@ -160,7 +164,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
 }
 
 // Resolve a "?" Room into a concrete kind, then drift the running tallies
-fn roll_unknown_room(state: &mut GameState) -> RoomKind {
+fn roll_unknown_room(state: &mut GameState, left_shop: bool) -> RoomKind {
     // Tiny Chest: every 4th ? Room is forced Treasure; drift still runs as if rolled
     let force_treasure = if let Some(id) = state.id_relics[RelicName::TinyChest as usize] {
         // Increase counter
@@ -186,8 +190,6 @@ fn roll_unknown_room(state: &mut GameState) -> RoomKind {
         let chance_monster = (state.unknown_chance_monster * 100.0) as i32;
 
         // A ? entered straight out of a Shop cannot roll another one
-        let left_shop = get_active_room_kind(&state.id_rooms, state.location_prev, &state.entities)
-            == Some(RoomKind::Shop);
         let chance_shop = if left_shop {
             0
         } else {
