@@ -1,3 +1,5 @@
+use strum::EnumCount;
+
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::consts::ENERGY_CAP;
 use crate::effect::CandidateFilter;
@@ -7,12 +9,14 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::Entity;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
+use crate::relics::RELICS_COMBAT_START_FIRST;
 use crate::relics::RELICS_COMBAT_START_PRE_DRAW;
 use crate::relics::RELICS_COMBAT_START_TOP;
 use crate::relics::RELICS_TURN_START_POST_DRAW;
@@ -49,15 +53,6 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     let entity = &mut state.entities[id_actor];
     let modifiers = &mut entity.modifiers;
     let vitals = &mut entity.vitals;
-
-    // Poison: queue Poison Tick
-    if has_modifier(modifiers, ModifierKind::Poison) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::PoisonTick,
-            id_source: None,
-            target: Target::Direct(Some(id_actor)),
-        });
-    }
 
     // Blur: existing block skips turn-stat reset
     let mut new_block: u16 = 0;
@@ -117,8 +112,45 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             .collect();
         id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
-        // Turn 1: front-queued combat-start Relics run ahead of everything, newest pickup first
+        // Hand size: 5, Snecko Eye +2, Ring of the Serpent +1
+        let mut draw_count = CARDS_DRAWN_PER_TURN;
+        if has_relic(&state.id_relics, RelicName::SneckoEye) {
+            draw_count += 2;
+        }
+        if has_relic(&state.id_relics, RelicName::RingOfTheSerpent) {
+            draw_count += 1;
+        }
+
         if first_turn {
+            // Turn 1: the first combat-start Relics (Enchiridion, Snecko Eye)
+            for &id_relic in &id_relics {
+                let relic = &state.entities[id_relic];
+                if RELICS_COMBAT_START_FIRST.contains(&relic.relic_name) {
+                    for &effect in relic.relic_effects_combat_start {
+                        state.effect_buf.push(effect);
+                    }
+                }
+            }
+
+            // Innate and bottled Cards past the hand size draw extra, after the first Relics
+            let num_top = id_card_draw
+                .iter()
+                .filter(|&&id| {
+                    let card = &state.entities[id];
+                    card.card_innate || card.card_bottled
+                })
+                .count() as u16;
+            if num_top > draw_count {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::CardDraw {
+                        count: num_top - draw_count,
+                    },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
+
+            // Front-queued combat-start Relics, newest pickup first
             for &id_relic in id_relics.iter().rev() {
                 let relic = &state.entities[id_relic];
                 if RELICS_COMBAT_START_TOP.contains(&relic.relic_name) {
@@ -127,10 +159,8 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                     }
                 }
             }
-        }
-
-        // Round end: duration Modifiers tick (Character's, then Monsters')
-        if !first_turn {
+        } else {
+            // Round end: duration Modifiers tick (Character's, then Monsters')
             state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierTick,
                 id_source: None,
@@ -143,42 +173,14 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                     target: Target::Direct(Some(id_monster)),
                 });
             }
-        }
 
-        // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
-        for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
-            if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities) {
-                for &effect in state.entities[id].relic_effects_counter {
-                    state.effect_buf.push(effect);
-                }
-            }
-        }
-
-        // Horn Cleat and Captain's Wheel: one-shot turn counters
-        for name in [RelicName::HornCleat, RelicName::CaptainsWheel] {
-            if let Some(id) = state.id_relics[name as usize] {
-                let relic = &mut state.entities[id];
-                if relic.relic_counter >= 0 {
-                    relic.relic_counter += 1;
-                    if relic.relic_counter == relic.relic_counter_reset {
-                        // Use -1 so that it doesn't proc again
-                        relic.relic_counter = -1;
-                        for &effect in relic.relic_effects_counter {
-                            state.effect_buf.push(effect);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Turn-start Relic effects (Mercury Hourglass); post-draw ones wait for the draw
-        for &id_relic in &id_relics {
-            let relic = &state.entities[id_relic];
-            if !RELICS_TURN_START_POST_DRAW.contains(&relic.relic_name) {
-                for &effect in relic.relic_effects_turn_start {
-                    state.effect_buf.push(effect);
-                }
-            }
+            // Turn-start Relics run before the draw; turn 1 defers them past the back-queued Relics
+            push_relics_turn_start(
+                &id_relics,
+                &state.id_relics,
+                &mut state.entities,
+                &mut state.effect_buf,
+            );
         }
 
         // Next turn energy: apply and clear
@@ -251,43 +253,14 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
-        // Energy is set to max, not topped up; Ice Cream adds a full bar instead
-        energy.energy_current = if has_relic(&state.id_relics, RelicName::IceCream) {
+        // Energy resets to max; turn 1 and Ice Cream add a full bar instead
+        energy.energy_current = if first_turn || has_relic(&state.id_relics, RelicName::IceCream) {
             (energy.energy_current + energy.energy_max).min(ENERGY_CAP)
         } else {
             energy.energy_max
         };
 
-        // Hand size: 5, Snecko Eye +2, Ring of the Serpent +1
-        let mut draw_count = CARDS_DRAWN_PER_TURN;
-        if has_relic(&state.id_relics, RelicName::SneckoEye) {
-            draw_count += 2;
-        }
-        if has_relic(&state.id_relics, RelicName::RingOfTheSerpent) {
-            draw_count += 1;
-        }
-
-        // Innate and bottled Cards past the hand size draw extra on turn 1
-        if first_turn {
-            let n_top = id_card_draw
-                .iter()
-                .filter(|&&id| {
-                    let card = &state.entities[id];
-                    card.card_innate || card.card_bottled
-                })
-                .count() as u16;
-            if n_top > draw_count {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::CardDraw {
-                        count: n_top - draw_count,
-                    },
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
-            }
-        }
-
-        // Turn 1: pre-draw combat-start Relics (Ninja Scroll, Enchiridion)
+        // Turn 1: pre-draw combat-start Relics (Ninja Scroll, Toolbox)
         if first_turn {
             for &id_relic in &id_relics {
                 let relic = &state.entities[id_relic];
@@ -306,12 +279,13 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             target: Target::Direct(None),
         });
 
-        // Turn 1: back-queued combat-start Relics, acquisition order
         if first_turn {
+            // Turn 1: back-queued combat-start Relics, acquisition order
             for &id_relic in &id_relics {
                 let relic = &state.entities[id_relic];
                 let name = relic.relic_name;
                 if !RELICS_COMBAT_START_TOP.contains(&name)
+                    && !RELICS_COMBAT_START_FIRST.contains(&name)
                     && !RELICS_COMBAT_START_PRE_DRAW.contains(&name)
                     && !RELICS_TURN_START_POST_DRAW.contains(&name)
                 {
@@ -320,6 +294,28 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                     }
                 }
             }
+
+            // Pen Nib: a charge primed last combat (counter 9) re-applies after the opening draw
+            if let Some(id) = state.id_relics[RelicName::PenNib as usize]
+                && state.entities[id].relic_counter == 9
+            {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::PenNib,
+                        stacks: 1,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                });
+            }
+
+            // Turn 1: turn-start Relics follow the back-queued combat-start Relics and Pen Nib
+            push_relics_turn_start(
+                &id_relics,
+                &state.id_relics,
+                &mut state.entities,
+                &mut state.effect_buf,
+            );
         }
 
         // Post-draw Relics (Warped Tongs; Gambling Chip's first-turn Gamble)
@@ -410,4 +406,48 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
     }
 
     flush_effects_from_buf_to_queue_front(state);
+}
+
+// Turn-start Relics: counters advance and queue what fires, then effects in acquisition order
+fn push_relics_turn_start(
+    id_relics_by_seq: &[usize],
+    id_relics: &[Option<usize>; RelicName::COUNT],
+    entities: &mut [Entity],
+    effect_buf: &mut Vec<Effect>,
+) {
+    // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
+    for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
+        if let Some(id) = trigger_relic_counter(name, id_relics, entities) {
+            for &effect in entities[id].relic_effects_counter {
+                effect_buf.push(effect);
+            }
+        }
+    }
+
+    // Horn Cleat and Captain's Wheel: one-shot turn counters
+    for name in [RelicName::HornCleat, RelicName::CaptainsWheel] {
+        if let Some(id) = id_relics[name as usize] {
+            let relic = &mut entities[id];
+            if relic.relic_counter >= 0 {
+                relic.relic_counter += 1;
+                if relic.relic_counter == relic.relic_counter_reset {
+                    // Use -1 so that it doesn't proc again
+                    relic.relic_counter = -1;
+                    for &effect in relic.relic_effects_counter {
+                        effect_buf.push(effect);
+                    }
+                }
+            }
+        }
+    }
+
+    // Turn-start Relic effects (Mercury Hourglass); post-draw ones wait for the draw
+    for &id_relic in id_relics_by_seq {
+        let relic = &entities[id_relic];
+        if !RELICS_TURN_START_POST_DRAW.contains(&relic.relic_name) {
+            for &effect in relic.relic_effects_turn_start {
+                effect_buf.push(effect);
+            }
+        }
+    }
 }
