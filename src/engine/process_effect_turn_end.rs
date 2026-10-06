@@ -466,10 +466,17 @@ fn process_effect_turn_end_character(state: &mut GameState) {
         }
     }
 
-    // Every Monster's turn start, then every Monster acts and rolls, then every turn end
+    // Every Monster's turn start, then every Poison tick, then moves and rolls, then turn ends
     for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_buf.push(Effect {
             kind: EffectKind::TurnStart,
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
+        });
+    }
+    for id_monster in id_monsters.iter().flatten().copied() {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::PoisonTick,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });

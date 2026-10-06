@@ -237,12 +237,12 @@ pub const RELICS_COMBAT_START_TOP: &[RelicName] = &[
     RelicName::Vajra,
 ];
 
+// First combat-start relics: ahead of the innate overflow draw and the front-queued relics
+pub const RELICS_COMBAT_START_FIRST: &[RelicName] = &[RelicName::Enchiridion, RelicName::SneckoEye];
+
 // Pre-draw combat-start relics: after the turn-1 energy, before the draw
-pub const RELICS_COMBAT_START_PRE_DRAW: &[RelicName] = &[
-    RelicName::Enchiridion,
-    RelicName::NinjaScroll,
-    RelicName::SneckoEye,
-];
+pub const RELICS_COMBAT_START_PRE_DRAW: &[RelicName] =
+    &[RelicName::NinjaScroll, RelicName::Toolbox];
 
 // Post-draw turn-start relics: after the draw and every back-queued combat-start relic
 pub const RELICS_TURN_START_POST_DRAW: &[RelicName] =
