@@ -9,13 +9,10 @@ use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
-use crate::events::EFFECT_DECK_TRANSFORM_PICK_2;
 use crate::events::EFFECT_DECK_UPGRADE_PICK_1;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
-use crate::events::deck_has_purgeable;
-use crate::events::deck_has_two_transformable;
 use crate::events::deck_has_upgradable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
@@ -50,6 +47,17 @@ const fn upgrade_random(count: u8) -> Effect {
         },
     }
 }
+
+// Transform two chosen Cards
+const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
+    kind: EffectKind::CardTransform { upgraded: false },
+    id_source: None,
+    target: Target::Resolve {
+        candidate_pool: CandidatePool::Deck,
+        filter: CandidateFilter::Transformable,
+        selection_kind: SelectionKind::Input { count: 2 },
+    },
+};
 
 const fn punch(damage: u16) -> [Effect; 2] {
     [
@@ -183,21 +191,26 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     } else {
         (COST_ADJUST_A15, COST_CLEANUP_A15, COST_FULL_A15)
     };
+
+    // Clean Up and Full Service count every Card outside a bottle, bound curses included
+    let unbottled = state
+        .id_card_deck
+        .iter()
+        .filter(|&&id| !state.entities[id].card_bottled)
+        .count();
     match idx {
         0 => gold >= adjust_cost && deck_has_upgradable(state),
         1 => {
-            // The baked variant carries its own requirement: the remove pick
-            // needs a purgeable Card, the transform pair needs two
+            // The baked variant carries its own requirement: one unbottled Card
+            // to remove, two to transform
             let id_option = state.event.id_event_options[idx];
             match state.entities[id_option].event_option_effects[1].kind {
-                EffectKind::CardPurge => gold >= cleanup_cost && deck_has_purgeable(state),
-                EffectKind::CardTransform { .. } => {
-                    gold >= cleanup_cost && deck_has_two_transformable(state)
-                }
+                EffectKind::CardPurge => gold >= cleanup_cost && unbottled >= 1,
+                EffectKind::CardTransform { .. } => gold >= cleanup_cost && unbottled >= 2,
                 kind => unreachable!("Designer cleanup option with unexpected effect: {kind:?}"),
             }
         }
-        2 => gold >= full_cost && deck_has_purgeable(state),
+        2 => gold >= full_cost && unbottled >= 1,
         _ => true,
     }
 }

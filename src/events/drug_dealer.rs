@@ -1,16 +1,18 @@
+use crate::effect::CandidateFilter;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::events::EFFECT_DECK_TRANSFORM_PICK_2;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
-use crate::events::deck_has_two_transformable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::RelicName;
+use crate::utils::card_name_bound_curse;
 
 // J.A.X.: gain the Card
 const OPTION_JAX: [Effect; 2] = [
@@ -27,8 +29,19 @@ const OPTION_JAX: [Effect; 2] = [
     EFFECT_EVENT_CONSUME,
 ];
 
-// Transform: two chosen Cards
-const OPTION_TRANSFORM: [Effect; 2] = [EFFECT_DECK_TRANSFORM_PICK_2, EFFECT_EVENT_CONSUME];
+// Transform: two chosen Cards; bottled Cards are offered, only the bound curses are not
+const OPTION_TRANSFORM: [Effect; 2] = [
+    Effect {
+        kind: EffectKind::CardTransform { upgraded: false },
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::Deck,
+            filter: CandidateFilter::NotBoundCurse,
+            selection_kind: SelectionKind::Input { count: 2 },
+        },
+    },
+    EFFECT_EVENT_CONSUME,
+];
 
 // Mutagens: swap the Golden Idol for Toolbox
 const OPTION_MUTAGENS: [Effect; 2] = [
@@ -51,8 +64,13 @@ pub static EOTS_BASE: &[EventOptionTemplate] = &[
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
-        // Transforming two requires two transformable Cards
-        1 => deck_has_two_transformable(state),
+        // Transforming two requires two Cards the pick offers
+        1 => state
+            .id_card_deck
+            .iter()
+            .filter(|&&id| !card_name_bound_curse(state.entities[id].card_name))
+            .nth(1)
+            .is_some(),
         _ => true,
     }
 }

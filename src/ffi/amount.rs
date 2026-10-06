@@ -27,6 +27,10 @@ impl From<Amount> for PyAmount {
                 numerator,
                 denominator,
             }
+            | Amount::RelativeMinOne {
+                numerator,
+                denominator,
+            }
             | Amount::RelativeRounded {
                 numerator,
                 denominator,

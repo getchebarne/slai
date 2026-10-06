@@ -32,7 +32,7 @@ pub fn process_effect_health_delta(
     let id_target = id_target.expect("HealthDelta requires id_target");
 
     // Resolve amount
-    let amount = resolve_health_fraction(state.entities[id_target].vitals.health_max, amount, sign);
+    let amount = resolve_health_fraction(state.entities[id_target].vitals.health_max, amount);
 
     // Apply amount
     match sign {

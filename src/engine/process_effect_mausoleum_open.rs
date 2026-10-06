@@ -8,7 +8,15 @@ use crate::types::CardPile;
 use rand::Rng;
 
 pub fn process_effect_mausoleum_open(state: &mut GameState) {
-    // Executes in reverse: Relic first, then the curse
+    // Executes in reverse: the curse first, so Omamori judges it before the Relic arrives
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::RelicGrantRandom {
+            tier: None,
+            exclusion: RelicExclusion::Screenless,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    });
     if state.rng.random_bool(0.5) || state.ascension >= 15 {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardAdd {
@@ -21,12 +29,4 @@ pub fn process_effect_mausoleum_open(state: &mut GameState) {
             target: Target::Direct(None),
         });
     }
-    state.effect_queue.push_front(Effect {
-        kind: EffectKind::RelicGrantRandom {
-            tier: None,
-            exclusion: RelicExclusion::Screenless,
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    });
 }

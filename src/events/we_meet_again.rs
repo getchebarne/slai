@@ -117,9 +117,7 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
     &EOTS_BASE
 }
 
-// Spawn rolls the picks and the ask, then bakes them into the options;
-// availability re-validates the picks at selection (the offered Potion can be
-// drunk while standing here)
+// Spawn rolls the picks and the ask, then bakes them into the options
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     // Card offer: uniform among non-Basic, non-Curse deck Cards
     let id_card_eligible: Vec<usize> = state
@@ -179,11 +177,8 @@ fn baked_gold_ask(state: &GameState) -> u16 {
 
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     match idx {
-        0 => state
-            .event
-            .id_roll_potion
-            .first()
-            .is_some_and(|&id| state.id_potions.contains(&id)),
+        // The Room locks every Potion, so a rolled one is still on the belt
+        0 => !state.event.id_roll_potion.is_empty(),
         // A rolled ask is always <= the gold held at spawn, and nothing
         // reachable from here spends gold, so affordability needs no re-check
         1 => baked_gold_ask(state) > 0,

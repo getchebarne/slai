@@ -15,7 +15,7 @@ pub fn process_effect_card_duplicate(id_target: Option<usize>, state: &mut GameS
 
     // Push `CardAdopt` so that on-card-add Effects trigger (e.g., Ceramic Fish)
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::CardAdopt,
+        kind: EffectKind::CardAdopt { landing: false },
         id_source: None,
         target: Target::Direct(Some(id_card_copy)),
     });

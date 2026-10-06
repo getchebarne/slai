@@ -7,7 +7,7 @@ use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardRarity;
 
-// Necronomicon's companion curse; it never leaves the deck
+// Necronomicon's companion curse; it leaves the deck only with Necronomicon
 pub static NECRONOMICURSE: CardTemplate = make_card_template(
     CardName::Necronomicurse,
     CardKind::Curse,

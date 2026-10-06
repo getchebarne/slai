@@ -624,7 +624,7 @@ fn dispatch_by_kind(
         EffectKind::CardTransform { upgraded } => {
             process_effect_card_transform(id_target, state, upgraded)
         }
-        EffectKind::CardAdopt => process_effect_card_adopt(id_target, state),
+        EffectKind::CardAdopt { landing } => process_effect_card_adopt(id_target, state, landing),
         EffectKind::MaxHealthDelta { sign, amount } => {
             process_effect_max_health_delta(id_target, state, sign, amount)
         }

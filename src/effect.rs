@@ -39,7 +39,9 @@ pub enum EffectKind {
         upgraded: bool,
         rarity: Option<CardRarity>,
     },
-    CardAdopt,
+    CardAdopt {
+        landing: bool, // The second pass, which CardAdopt queues for itself
+    },
     CardBottle,
     CardDiscard {
         source: DiscardSource,
@@ -349,6 +351,7 @@ pub struct CardPlay {
 pub enum Amount {
     Absolute(u16),
     Relative { numerator: u8, denominator: u8 }, // Truncated
+    RelativeMinOne { numerator: u8, denominator: u8 }, // Truncated, then raised to at least 1
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },

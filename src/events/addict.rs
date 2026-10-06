@@ -36,22 +36,22 @@ const OPTION_PAY: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
 ];
 
-// Steal: the Relic, plus a Shame curse
+// Steal: the Relic, plus a Shame curse; Omamori judges the Shame before the Relic arrives
 const OPTION_STEAL: &[Effect] = &[
-    Effect {
-        kind: EffectKind::RelicGrantRandom {
-            tier: None,
-            exclusion: RelicExclusion::Screenless,
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    },
     Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Shame,
             pile: CardPile::Deck,
             count: 1,
             upgraded: false,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    },
+    Effect {
+        kind: EffectKind::RelicGrantRandom {
+            tier: None,
+            exclusion: RelicExclusion::Screenless,
         },
         id_source: None,
         target: Target::Direct(None),
