@@ -204,6 +204,7 @@ pub const SHOP_PRICE_RELIC_COMMON: u16 = 150;
 pub const SHOP_PRICE_RELIC_UNCOMMON: u16 = 250;
 pub const SHOP_PRICE_RELIC_RARE: u16 = 300;
 pub const SHOP_PRICE_RELIC_SHOP: u16 = 150;
+pub const SHOP_PRICE_RELIC_SPECIAL: u16 = 400;
 pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MIN: f32 = 0.95;
 pub const SHOP_PRICE_RELIC_POTION_VARIANCE_MAX: f32 = 1.05;
 
@@ -241,6 +242,7 @@ pub const SHOP_PRICE_CARD_MAX: u16 = bump_price_a16(price_sup(
     SHOP_PRICE_CARD_RARE * SHOP_PRICE_COLORLESS_NUMER / SHOP_PRICE_COLORLESS_DENOM,
     SHOP_PRICE_CARD_VARIANCE_MAX,
 ));
+// Circlet's Special price stays out: it reaches a shelf only once the Rare pool is spent
 pub const SHOP_PRICE_RELIC_MAX: u16 = bump_price_a16(price_sup(
     SHOP_PRICE_RELIC_RARE,
     SHOP_PRICE_RELIC_POTION_VARIANCE_MAX,

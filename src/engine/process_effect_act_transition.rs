@@ -37,7 +37,6 @@ pub fn process_effect_act_transition(state: &mut GameState) {
     // Fresh map; stale Room entities stay in the arena, unreachable via `id_rooms`
     let (id_rooms, location) = generate_map(&mut state.rng, &mut state.entities, state.ascension);
     state.id_rooms = id_rooms;
-    state.location_prev = location;
     state.location = location;
 
     // Re-roll the act's Encounter Pools and Boss

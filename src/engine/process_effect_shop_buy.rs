@@ -64,17 +64,14 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
         }
     }
 
-    // The Courier: the emptied slot restocks; buying the Courier itself restocks its own slot
-    let courier_bought = name_bought == Some(RelicName::TheCourier);
-    if courier_bought || has_relic(&state.id_relics, RelicName::TheCourier) {
+    // The Courier: the emptied slot restocks
+    if has_relic(&state.id_relics, RelicName::TheCourier) {
         match slot {
             ShopSlot::Card => {
                 let bought = &state.entities[id_bought];
                 let (color, kind) = (bought.card_color, bought.card_kind);
-                let (id_new, price) = make_card_restock(state, color, kind);
-                if id_new != usize::MAX {
-                    state.shop.id_cards_price.insert(idx, (id_new, price));
-                }
+                let offer = make_card_restock(state, color, kind);
+                state.shop.id_cards_price.insert(idx, offer);
             }
             ShopSlot::Potion => {
                 let (id_new, price) = make_potion(&mut state.entities, &mut state.rng);
@@ -82,7 +79,7 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
                 id_potions_price.insert(idx, (id_new, price));
             }
             ShopSlot::Relic => {
-                // Restock as if the sale settled: priced with the bought Relic, never re-offering it
+                // Restock as if the sale settled: the bought Relic counts for spawn gates and price
                 let mut id_relics_settled = state.id_relics;
                 id_relics_settled[name_bought.expect("Relic slot carries a name") as usize] =
                     Some(id_bought);

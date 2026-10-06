@@ -1,7 +1,6 @@
 use rand::Rng;
 
 use crate::consts::ASCENSION_SHOP_PRICE_BUMP_LEVEL;
-use crate::consts::SHOP_PRICE_RELIC_SHOP;
 use crate::consts::SHOP_SALE_DIVISOR;
 use crate::consts::SHOP_SLOTS_CARD_COLORED;
 use crate::consts::SHOP_SLOTS_POTION;
@@ -48,7 +47,6 @@ pub fn process_effect_shop_build(state: &mut GameState) {
         let card = make_card_colorless(
             &mut state.entities,
             &mut state.rng,
-            &state.shop.id_cards_price,
             rarity,
             &state.id_relics,
         );
@@ -56,19 +54,15 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     }
 
     // Relics: 2 random-tier, 1 shop-tier, each drawn off the back of its run pool
+    let id_relics = state.id_relics;
     for _ in 0..2 {
-        let (tier, base_price) = roll_shop_relic_tier(&mut state.rng);
-        let name = draw_relic(state, tier, true);
-        let offer = make_relic_with_price(&mut state.entities, &mut state.rng, name, base_price);
+        let tier = roll_shop_relic_tier(&mut state.rng);
+        let name = draw_relic(state, &id_relics, tier, true);
+        let offer = make_relic_with_price(&mut state.entities, &mut state.rng, name);
         state.shop.id_relics_price.push(offer);
     }
-    let name = draw_relic(state, RelicTier::Shop, true);
-    let offer = make_relic_with_price(
-        &mut state.entities,
-        &mut state.rng,
-        name,
-        SHOP_PRICE_RELIC_SHOP,
-    );
+    let name = draw_relic(state, &id_relics, RelicTier::Shop, true);
+    let offer = make_relic_with_price(&mut state.entities, &mut state.rng, name);
     state.shop.id_relics_price.push(offer);
 
     // Potions: 3 (rarity rolled by get_random_potion_name)
