@@ -159,7 +159,7 @@ pub enum EffectKind {
         sign: DeltaSign,
         amount: Amount,
     },
-    HealthSet {
+    HealthLowerTo {
         amount: Amount,
     },
     HeelHookProc,

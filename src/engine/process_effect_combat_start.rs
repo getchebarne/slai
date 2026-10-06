@@ -1,18 +1,14 @@
-use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::ENERGY_MAX_BASE;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::effect::effect_discover_pick;
 use crate::game::GameState;
 use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
-use crate::types::CardColor;
 use crate::types::CardKind;
-use crate::types::CardPile;
 use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::Energy;
@@ -99,30 +95,6 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     shuffle(&mut ids_innate, &mut state.rng);
     id_card_draw.extend_from_slice(&ids_innate);
 
-    // Monster MoveUpdates already queued at MonsterSpawn; queue Character TurnStart
-    state.effect_queue.push_front(Effect {
-        kind: EffectKind::TurnStart,
-        id_source: None,
-        target: Target::Direct(Some(state.id_character)),
-    });
-
-    // Toolbox: choose 1 of 3 colorless Cards
-    if has_relic(&state.id_relics, RelicName::Toolbox) {
-        state
-            .effect_queue
-            .push_front(effect_discover_pick(None, CardPile::Hand));
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardDiscoverRoll {
-                kind: None,
-                color: CardColor::Colorless,
-                exclude: &[],
-                count: DISCOVER_PICK_COUNT,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-    }
-
     // Ancient Tea Set: primed by the last rest site (counter 1), spends it for 2 energy
     if let Some(id) = state.id_relics[RelicName::AncientTeaSet as usize]
         && state.entities[id].relic_counter == 1
@@ -138,26 +110,11 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         });
     }
 
-    // Pen Nib: a charge primed at combat end (counter 9) survives as the counter but not
-    // the modifier, so re-apply the double-next-attack charge here
-    if let Some(id) = state.id_relics[RelicName::PenNib as usize]
-        && state.entities[id].relic_counter == 9
-    {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::PenNib,
-                stacks: 1,
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    // Preserved Insect: elite Monsters start at 3/4 HP
+    // Preserved Insect: elite Monsters above 3/4 HP drop to it
     if has_relic(&state.id_relics, RelicName::PreservedInsect) && is_fight_elite {
         for id in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::HealthSet {
+                kind: EffectKind::HealthLowerTo {
                     amount: Amount::Relative {
                         numerator: 3,
                         denominator: 4,
@@ -182,7 +139,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         // One effect for every spawned Monster
         for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::HealthSet {
+                kind: EffectKind::HealthLowerTo {
                     amount: Amount::Absolute(1),
                 },
                 id_source: None,
@@ -236,4 +193,11 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
             target: Target::Direct(Some(state.id_character)),
         });
     }
+
+    // The Character's first TurnStart waits for everything already queued for the combat start
+    state.effect_queue.push_back(Effect {
+        kind: EffectKind::TurnStart,
+        id_source: None,
+        target: Target::Direct(Some(state.id_character)),
+    });
 }
