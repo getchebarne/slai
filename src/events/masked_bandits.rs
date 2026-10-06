@@ -13,12 +13,12 @@ use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 
-const fn monster_spawn(name: MonsterName) -> Effect {
+const fn monster_spawn(name: MonsterName, x: i16) -> Effect {
     Effect {
         kind: EffectKind::MonsterSpawn {
             name,
             minion: false,
-            cap: None,
+            x,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -43,9 +43,9 @@ const OPTION_PAY: &[Effect] = &[
 
 // Fight: the whole gang, with the Red Mask and their pocket gold on the line
 const OPTION_FIGHT: &[Effect] = &[
-    monster_spawn(MonsterName::BanditPointy),
-    monster_spawn(MonsterName::BanditLeader),
-    monster_spawn(MonsterName::BanditBear),
+    monster_spawn(MonsterName::BanditPointy, -320),
+    monster_spawn(MonsterName::BanditLeader, -75),
+    monster_spawn(MonsterName::BanditBear, 150),
     Effect {
         kind: EffectKind::CombatStart { elite: false },
         id_source: None,

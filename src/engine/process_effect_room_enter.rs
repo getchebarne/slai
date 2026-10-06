@@ -69,7 +69,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::CombatBoss => {
             // Spawn boss
             let encounter = state.encounter_boss;
-            spawn_encounter_monsters(state, encounter);
+            spawn_encounter_monsters(state, encounter, false);
 
             // Pantograph: boss fights open with a 25 HP heal
             if has_relic(&state.id_relics, RelicName::Pantograph) {
@@ -86,7 +86,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
         RoomKind::CombatMonster => {
             // Pop an encounter and spawn its Monsters
             let encounter = state.encounter_pool_normal.remove(0);
-            spawn_encounter_monsters(state, encounter);
+            spawn_encounter_monsters(state, encounter, false);
         }
         RoomKind::CombatElite => {
             // Pop an encounter and spawn its Monsters; an act that runs out rolls a fresh list
@@ -94,7 +94,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
                 generate_act_elites(state.act, &mut state.encounter_pool_elite, &mut state.rng);
             }
             let encounter = state.encounter_pool_elite.remove(0);
-            spawn_encounter_monsters(state, encounter);
+            spawn_encounter_monsters(state, encounter, true);
         }
         RoomKind::RestSite => {
             state.rest_site.consumed = false;

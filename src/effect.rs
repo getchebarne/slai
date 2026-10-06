@@ -190,11 +190,11 @@ pub enum EffectKind {
     MonsterSpawn {
         name: MonsterName,
         minion: bool, // Gremlin Leader's summons
-        // Skip the spawn when `cap` of this name are already rostered (Torch Heads)
-        cap: Option<u8>,
+        x: i16,
     },
     MonsterSplit {
         name: MonsterName,
+        dx: i16,
     },
     MoveExecute,
     MoveUpdate {
@@ -410,6 +410,7 @@ pub enum CandidateFilter {
 
     // Compare against the `Target::Resolve` context
     NotSource,
+    NotSourceUnlessAlone,
     NotMinion,
 
     // Starter-Card predicates (Vampires, Back to Basics)

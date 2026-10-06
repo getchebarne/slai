@@ -93,7 +93,7 @@ const IDX_MOVE_SLEEP: usize = 0;
 const IDX_MOVE_WAKE_UP: usize = 1;
 pub const IDX_MOVE_STUNNED: usize = 2;
 const IDX_MOVE_ATTACK: usize = 3;
-pub const IDX_MOVE_SIPHON: usize = 4;
+const IDX_MOVE_SIPHON: usize = 4;
 
 pub static LAGAVULIN: MonsterTemplate = MonsterTemplate {
     name: MonsterName::Lagavulin,
@@ -119,9 +119,13 @@ pub fn get_next_move_lagavulin(
     move_history: &[u8],
     modifiers: &Modifiers,
 ) -> usize {
-    // Combat start: Sleep
+    // Combat start: Sleep, or Siphon Soul for the event copy that starts awake
     if move_current.is_none() {
-        return IDX_MOVE_SLEEP;
+        return if has_modifier(modifiers, ModifierKind::Asleep) {
+            IDX_MOVE_SLEEP
+        } else {
+            IDX_MOVE_SIPHON
+        };
     }
 
     if has_modifier(modifiers, ModifierKind::Asleep) {

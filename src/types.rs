@@ -488,6 +488,7 @@ pub enum MonsterEncounter {
 
     // Event-only (never pooled)
     ThreeFungiBeasts,
+    LagavulinEvent,
 
     // Act 2 easy
     SphericGuardian,

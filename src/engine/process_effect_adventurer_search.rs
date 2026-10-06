@@ -4,12 +4,9 @@ use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
-use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::modifier::ModifierKind;
 use crate::monsters::encounters::spawn_encounter_monsters;
-use crate::monsters::lagavulin;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::Focus;
@@ -31,37 +28,15 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
     let base: u16 = if state.ascension < 15 { 25 } else { 35 };
     let chance = base + 25 * state.event.stage as u16;
 
+    // The elite returns, and its fight counts as an elite fight
     if (state.rng.random_range(0..100) as u16) < chance {
         let encounter = match state.rng.random_range(0..3) {
             0 => MonsterEncounter::ThreeSentries,
             1 => MonsterEncounter::GremlinNob,
-            2 => MonsterEncounter::Lagavulin,
+            2 => MonsterEncounter::LagavulinEvent,
             roll => unreachable!("Adventurer enemy roll out of range: {roll}"),
         };
-        spawn_encounter_monsters(state, encounter);
-
-        // The event Lagavulin spawns awake: no sleep kit, opens with Siphon Soul
-        if encounter == MonsterEncounter::Lagavulin {
-            let target = TARGET_MONSTERS_ALL;
-            for kind in [
-                EffectKind::BlockSet { amount: 0 },
-                EffectKind::ModifierRemove {
-                    kind: ModifierKind::Asleep,
-                },
-                EffectKind::ModifierRemove {
-                    kind: ModifierKind::Metallicize,
-                },
-                EffectKind::MoveUpdate {
-                    move_override: Some(lagavulin::IDX_MOVE_SIPHON),
-                },
-            ] {
-                state.effect_queue.push_back(Effect {
-                    kind,
-                    id_source: None,
-                    target,
-                });
-            }
-        }
+        spawn_encounter_monsters(state, encounter, true);
         return;
     }
 

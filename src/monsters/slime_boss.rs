@@ -48,7 +48,9 @@ static MOVE_SLAM_38: Move = move_attack("Slam", 38, 1);
 static MOVE_SPLIT: Move = move_split(
     "Split",
     MonsterName::SlimeSpikeLarge,
+    -385,
     MonsterName::SlimeAcidLarge,
+    120,
 );
 
 static MOVES_ASC0: [Move; 4] = [MOVE_GOOP_SPRAY_3, MOVE_PREPARING, MOVE_SLAM_35, MOVE_SPLIT];

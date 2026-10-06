@@ -2,9 +2,9 @@ use crate::consts::ENERGY_MAX_BASE;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::map::get_active_room_kind;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
@@ -14,7 +14,6 @@ use crate::types::DeltaSign;
 use crate::types::Energy;
 use crate::types::MonsterKind;
 use crate::types::RelicName;
-use crate::types::RoomKind;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 use crate::utils::shuffle;
@@ -30,9 +29,6 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         ..
     } = &mut state.combat;
 
-    let is_fight_elite = get_active_room_kind(&state.id_rooms, state.location, &state.entities)
-        == Some(RoomKind::CombatElite)
-        || elite;
     let is_fight_boss = id_monsters
         .iter()
         .flatten()
@@ -56,7 +52,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     }
 
     // Slaver's Collar: +1 max energy in elite and boss fights only
-    if has_relic(&state.id_relics, RelicName::SlaversCollar) && (is_fight_elite || is_fight_boss) {
+    if has_relic(&state.id_relics, RelicName::SlaversCollar) && (elite || is_fight_boss) {
         energy_max += 1;
     }
 
@@ -95,6 +91,15 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     shuffle(&mut ids_innate, &mut state.rng);
     id_card_draw.extend_from_slice(&ids_innate);
 
+    // The whole opening roster stands now: its first moves roll ahead of everything
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::MoveUpdate {
+            move_override: None,
+        },
+        id_source: None,
+        target: TARGET_MONSTERS_ALL,
+    });
+
     // Ancient Tea Set: primed by the last rest site (counter 1), spends it for 2 energy
     if let Some(id) = state.id_relics[RelicName::AncientTeaSet as usize]
         && state.entities[id].relic_counter == 1
@@ -111,7 +116,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     }
 
     // Preserved Insect: elite Monsters above 3/4 HP drop to it
-    if has_relic(&state.id_relics, RelicName::PreservedInsect) && is_fight_elite {
+    if has_relic(&state.id_relics, RelicName::PreservedInsect) && elite {
         for id in id_monsters.iter().flatten().copied() {
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::HealthLowerTo {
@@ -183,7 +188,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     }
 
     // Sling of Courage: Elite fights open with 2 Strength
-    if has_relic(&state.id_relics, RelicName::SlingOfCourage) && is_fight_elite {
+    if has_relic(&state.id_relics, RelicName::SlingOfCourage) && elite {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Strength,

@@ -18,22 +18,31 @@ use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use rand::Rng;
 
-const TORCH_HEAD_COUNT: usize = 2;
+// The two Torch Head posts by screen x, in fill order, both left of the Collector
+const TORCH_HEAD_POSTS: [i16; 2] = [-285, -470];
 
-// Spawn and Revive top the roster back up to two Torch Heads: capped spawns skip
-// past the ones still standing
-const TORCH_HEAD_SPAWN: Effect = Effect {
-    kind: EffectKind::MonsterSpawn {
-        name: MonsterName::TorchHead,
-        minion: false,
-        cap: Some(TORCH_HEAD_COUNT as u8),
-    },
-    id_source: None,
-    target: Target::Direct(None),
-};
+const fn torch_head_spawn(x: i16) -> Effect {
+    Effect {
+        kind: EffectKind::MonsterSpawn {
+            name: MonsterName::TorchHead,
+            minion: false,
+            x,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }
+}
 
+// Spawn and Revive refill both posts: a post still held by a living Torch Head fizzles its spawn
 const fn move_torch_head_spawn(name: &'static str) -> Move {
-    make_move(name, &[TORCH_HEAD_SPAWN; TORCH_HEAD_COUNT], Intent::Unknown)
+    make_move(
+        name,
+        &[
+            torch_head_spawn(TORCH_HEAD_POSTS[0]),
+            torch_head_spawn(TORCH_HEAD_POSTS[1]),
+        ],
+        Intent::Unknown,
+    )
 }
 
 static MOVE_SPAWN: Move = move_torch_head_spawn("Spawn");
@@ -169,7 +178,7 @@ pub fn get_next_move_the_collector(
 
     let last = *move_history.last().unwrap() as usize;
     let roll = rng.random_range(0..=99);
-    if roll <= 25 && torch_heads_alive < TORCH_HEAD_COUNT && last != IDX_MOVE_REVIVE {
+    if roll <= 25 && torch_heads_alive < TORCH_HEAD_POSTS.len() && last != IDX_MOVE_REVIVE {
         IDX_MOVE_REVIVE
     } else if roll <= 70
         && !move_history.ends_with(&[IDX_MOVE_FIREBALL as u8, IDX_MOVE_FIREBALL as u8])

@@ -596,10 +596,12 @@ fn dispatch_by_kind(
         }
         EffectKind::MoveExecute => process_effect_move_execute(id_target, state),
         EffectKind::RoomEnter => process_effect_room_enter(state),
-        EffectKind::MonsterSpawn { name, minion, cap } => {
-            process_effect_monster_spawn(state, name, minion, cap)
+        EffectKind::MonsterSpawn { name, minion, x } => {
+            process_effect_monster_spawn(state, name, minion, x)
         }
-        EffectKind::MonsterSplit { name } => process_effect_monster_split(id_source, state, name),
+        EffectKind::MonsterSplit { name, dx } => {
+            process_effect_monster_split(id_source, state, name, dx)
+        }
         EffectKind::MonsterEscape => process_effect_monster_escape(id_target, state),
         EffectKind::MonsterRemove => process_effect_monster_remove(id_target, state),
         EffectKind::GoldSteal { amount } => process_effect_gold_steal(id_source, state, amount),
