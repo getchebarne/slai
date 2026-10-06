@@ -7,7 +7,7 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // See:
-//    - `process_effect_card_play.rs`
+//    - `process_card_play.rs`
 pub static SHURIKEN: RelicTemplate = RelicTemplate {
     name: RelicName::Shuriken,
     tier: RelicTier::Uncommon,

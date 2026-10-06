@@ -30,6 +30,7 @@ use crate::consts::SHOP_SLOTS_RELIC;
 use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
+use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::engine::process_effect_queue;
 use crate::entity::Entity;
@@ -67,6 +68,9 @@ pub struct GameState {
 
     // Engine state
     pub effect_queue: VecDeque<Effect>,
+
+    // Plays waiting their turn; the next one starts once effect_queue is empty
+    pub card_play_queue: VecDeque<CardPlay>,
 
     // Per-handler effect builder; drained back-to-front into queue front
     pub effect_buf: Vec<Effect>,
@@ -236,6 +240,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         encounter_pool_elite,
         encounter_boss,
         effect_queue,
+        card_play_queue: VecDeque::new(),
         effect_buf: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
@@ -341,10 +346,10 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
 }
 
 pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
-    // Handle the action. May enqueue elements to `state.effect_queue`
+    // Handle the action. May enqueue elements to `state.effect_queue` or `state.card_play_queue`
     handle_action(state, action)?;
 
-    // Process `state.effect_queue`
+    // Process `state.effect_queue`, starting each waiting Card play once it runs empty
     process_effect_queue(state);
 
     // Recompute legal actions

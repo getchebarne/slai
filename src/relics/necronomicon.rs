@@ -9,7 +9,7 @@ use crate::types::RelicTier;
 
 // The first Attack costing 2+ each turn is played twice; grants Necronomicurse on pickup
 // See:
-//    - `process_effect_card_play.rs`
+//    - `process_card_play.rs`
 //    - `process_effect_relic_adopt.rs`
 pub static NECRONOMICON: RelicTemplate = RelicTemplate {
     name: RelicName::Necronomicon,

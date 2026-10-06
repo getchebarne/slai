@@ -1,3 +1,4 @@
+pub mod process_card_play;
 pub mod process_effect_act_transition;
 pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
@@ -19,7 +20,6 @@ pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move;
 pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
-pub mod process_effect_card_play;
 pub mod process_effect_card_play_from_draw_top;
 pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
@@ -109,6 +109,7 @@ pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
+use self::process_card_play::process_card_play;
 use self::process_effect_act_transition::process_effect_act_transition;
 use self::process_effect_adventurer_search::process_effect_adventurer_search;
 use self::process_effect_block_gain::process_effect_block_gain;
@@ -130,7 +131,6 @@ use self::process_effect_card_exhaust::process_effect_card_exhaust;
 use self::process_effect_card_move::process_effect_card_move;
 use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick;
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
-use self::process_effect_card_play::process_effect_card_play;
 use self::process_effect_card_play_from_draw_top::process_effect_card_play_from_draw_top;
 use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
@@ -461,9 +461,6 @@ fn dispatch_by_kind(
             process_effect_hand_of_greed_proc(id_target, state, gold)
         }
         EffectKind::CardDrawUpTo { amount } => process_effect_card_draw_up_to(state, amount),
-        EffectKind::CardPlay { source, energy } => {
-            process_effect_card_play(id_source, id_target, state, source, energy)
-        }
         EffectKind::CardAdd {
             card_name,
             pile,
@@ -679,6 +676,12 @@ fn dispatch_by_kind(
 pub fn process_effect_queue(state: &mut GameState) {
     while !state.game_over {
         let Some(effect) = state.effect_queue.pop_front() else {
+            // The next waiting Card play starts once every queued effect has resolved
+            if let Some(card_play) = state.card_play_queue.pop_front() {
+                process_card_play(state, card_play);
+                continue;
+            }
+
             // Unceasing Top: an empty hand at queue rest draws 1 and keeps going
             if unceasing_top_fires(state) {
                 state.effect_queue.push_back(Effect {
@@ -689,7 +692,7 @@ pub fn process_effect_queue(state: &mut GameState) {
                 continue;
             }
             ensure_context_validity(state);
-            return; // Queue drained
+            return; // Both queues drained
         };
         if !process_effect(state, effect) {
             ensure_context_validity(state);
@@ -735,6 +738,12 @@ fn ensure_context_validity(state: &GameState) {
         !(state.combat.active
             && (state.shop.active || state.chest.active || state.rest_site.active)),
         "Combat active inside a non-event room context"
+    );
+
+    // Card plays wait only inside a combat
+    assert!(
+        state.combat.active || state.card_play_queue.is_empty(),
+        "Card plays queued outside combat"
     );
 
     // A Reward overlays a consumed event; a fight stacks over an unconsumed one

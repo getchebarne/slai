@@ -4,6 +4,7 @@ use rand::Rng;
 
 use crate::consts::MAX_SIZE_HAND;
 use crate::effect::Amount;
+use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
@@ -32,42 +33,26 @@ use crate::utils::is_play_restriction_satisfied;
 use crate::utils::play_cap_reached;
 use crate::utils::wrist_blade_bonus;
 
-// id_source is the played Card, id_target its Monster; a Replay plays the Card where it lies
-pub fn process_effect_card_play(
-    id_source: Option<usize>,
-    id_target: Option<usize>,
-    state: &mut GameState,
-    source: PlaySource,
-    energy: u16,
-) {
-    let id_card = id_source.expect("CardPlay requires id_source");
-
-    // A queued play waits for every queued non-play effect: the first of them moves ahead of it
-    if let Some(idx) = state
-        .effect_queue
-        .iter()
-        .position(|effect| !matches!(effect.kind, EffectKind::CardPlay { .. }))
-    {
-        let effect_first = state.effect_queue.remove(idx).unwrap();
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardPlay { source, energy },
-            id_source,
-            target: Target::Direct(id_target),
-        });
-        state.effect_queue.push_front(effect_first);
-        return;
-    }
+// Starts the next waiting Card play; a Replay plays the Card where it lies
+pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
+    let CardPlay {
+        id_card,
+        id_target,
+        play_source,
+        energy,
+    } = card_play;
 
     assert!(
         state.combat.active,
-        "process_effect_card_play outside the Combat frame"
+        "process_card_play outside the Combat frame"
     );
 
-    // A put-back pick needs a Card in hand as the play begins; a Card played from hand counts
-    let hand_held_card = !state.combat.id_card_hand.is_empty();
+    // Thinking Ahead puts back only if the hand held a Card as it was played, itself included;
+    // Setup and Forethought check at the pick, and nothing refills the hand before it: same result
+    let hand_nonempty_at_start = !state.combat.id_card_hand.is_empty();
 
     // A hand play leaves the hand up front; the Card stays pile-less until relocated
-    if source == PlaySource::Hand {
+    if play_source == PlaySource::Hand {
         detach_card(&mut state.combat, id_card);
     }
 
@@ -112,7 +97,7 @@ pub fn process_effect_card_play(
             *this_turn_cards_played,
         );
     if !playable {
-        match source {
+        match play_source {
             PlaySource::Hand => unreachable!("a hand play is legal when served"),
 
             // Routed to its pile untriggered
@@ -236,7 +221,7 @@ pub fn process_effect_card_play(
     }
 
     // Until-played overrides are consumed by this play; a draw-top play drops any override
-    if source == PlaySource::DrawTop
+    if play_source == PlaySource::DrawTop
         || matches!(
             card.card_cost_override,
             Some(CostOverride {
@@ -266,13 +251,13 @@ pub fn process_effect_card_play(
     }
 
     // Energy loss: only a hand play pays; a draw-top play counts as costing 0
-    let cost_effective = match source {
+    let cost_effective = match play_source {
         PlaySource::DrawTop => 0,
         PlaySource::Hand | PlaySource::Replay => {
             get_card_effective_cost(&card, this_turn_discards, energy)
         }
     };
-    if source == PlaySource::Hand {
+    if play_source == PlaySource::Hand {
         state.effect_buf.push(Effect {
             kind: EffectKind::EnergyDelta {
                 sign: DeltaSign::Loss,
@@ -331,7 +316,7 @@ pub fn process_effect_card_play(
     };
 
     // Necronomicon: the first Attack costing 2+ each turn is played twice
-    let necronomicon = if source != PlaySource::Replay
+    let necronomicon = if play_source != PlaySource::Replay
         && card.card_kind == CardKind::Attack
         && cost_effective >= 2
         && let Some(id) = state.id_relics[RelicName::Necronomicon as usize]
@@ -350,6 +335,7 @@ pub fn process_effect_card_play(
     let mul = match card.card_cost_kind {
         CardCostKind::XCost { offset } => {
             let x = (energy as i16 + offset as i16).max(0) as usize;
+
             // Chemical X: X+2 on effect reps; energy paid is unchanged
             if has_relic(&state.id_relics, RelicName::ChemicalX) {
                 x + 2
@@ -359,13 +345,13 @@ pub fn process_effect_card_play(
         }
         _ => 1,
     };
-    let burst = source != PlaySource::Replay
+    let burst = play_source != PlaySource::Replay
         && has_modifier(char_modifiers, ModifierKind::Burst)
         && card.card_kind == CardKind::Skill;
 
     // DuplicateNextCardPlay replays any Card kind; additive with Burst
     let stacks_duplication = modifier_stacks(char_modifiers, ModifierKind::DuplicateNextCardPlay);
-    let duplication = source != PlaySource::Replay && stacks_duplication > 0;
+    let duplication = play_source != PlaySource::Replay && stacks_duplication > 0;
 
     // Burst and Duplication spend their stack before the Card's effects resolve
     if burst {
@@ -394,7 +380,7 @@ pub fn process_effect_card_play(
 
     // X-cost repeats the effects inside the one play
     for effect in card.card_effects[..card.card_effects_len as usize].iter() {
-        if matches!(effect.kind, EffectKind::CardSetupPick { .. }) && !hand_held_card {
+        if matches!(effect.kind, EffectKind::CardSetupPick { .. }) && !hand_nonempty_at_start {
             continue;
         }
         let mut effect = Effect {
@@ -419,7 +405,7 @@ pub fn process_effect_card_play(
     }
 
     // Route the played Card to its pile; a replay leaves it where it lies
-    if source != PlaySource::Replay {
+    if play_source != PlaySource::Replay {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardPlayRelocate {
                 exhaust: card.card_exhaust || relic_exhaust,
@@ -429,7 +415,7 @@ pub fn process_effect_card_play(
         });
     }
 
-    // After Image
+    // After Image: gain `stacks` block on Card play
     if has_modifier(char_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
         state.effect_buf.push(Effect {
@@ -441,7 +427,7 @@ pub fn process_effect_card_play(
         });
     }
 
-    // Thousand Cuts
+    // Thousand Cuts: deal `stacks` damage to all Monsters on Card play
     if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
         for id_monster in id_monsters.iter().flatten().copied() {
@@ -565,15 +551,13 @@ pub fn process_effect_card_play(
     }
 
     // Burst / Duplication / Necronomicon each replay the Card against the same target, ahead of
-    // any play already queued; changes to the Card (Glass Knife, Ritual Dagger) carry over
+    // any play already waiting; changes to the Card (Glass Knife, Ritual Dagger) carry over
     for _ in 0..(burst as usize + duplication as usize + necronomicon as usize) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardPlay {
-                source: PlaySource::Replay,
-                energy,
-            },
-            id_source: Some(id_card),
-            target: Target::Direct(id_target),
+        state.card_play_queue.push_front(CardPlay {
+            id_card,
+            id_target,
+            play_source: PlaySource::Replay,
+            energy,
         });
     }
 

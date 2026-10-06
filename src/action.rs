@@ -4,6 +4,7 @@ use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
+use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
@@ -322,13 +323,11 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
     } else {
         None
     };
-    state.effect_buf.push(Effect {
-        kind: EffectKind::CardPlay {
-            source: PlaySource::Hand,
-            energy: state.combat.energy.energy_current,
-        },
-        id_source: Some(id_card),
-        target: Target::Direct(id_monster_target),
+    state.card_play_queue.push_back(CardPlay {
+        id_card,
+        id_target: id_monster_target,
+        play_source: PlaySource::Hand,
+        energy: state.combat.energy.energy_current,
     });
 }
 

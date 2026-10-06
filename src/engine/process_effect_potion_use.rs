@@ -9,6 +9,7 @@ use crate::game::GameState;
 use crate::potions::remove_potion;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 
 // id_source is the used Potion, id_target its Monster if it needs one
@@ -34,7 +35,7 @@ pub fn process_effect_potion_use(
     let potion = &state.entities[id_potion];
 
     // Push the Potions's on-use effects
-    for effect in potion.potion_effects.iter().rev() {
+    for effect in potion.potion_effects.iter() {
         let mut effect = Effect {
             id_source: Some(id_potion), // Stamp the Potion's ID
             ..*effect
@@ -87,16 +88,17 @@ pub fn process_effect_potion_use(
             }
         }
         for _ in 0..(1 + repeat as usize) {
-            // Distilled Chaos rolls all its targets up front, before any Card resolves
+            // Distilled Chaos rolls its targets in play order, all before any Card resolves
             if matches!(effect.kind, EffectKind::CardPlayFromDrawTop) {
                 let alive: Vec<usize> =
                     state.combat.id_monsters.iter().flatten().copied().collect();
                 let id_monster = alive[state.rng.random_range(0..alive.len())];
                 effect.target = Target::Direct(Some(id_monster));
             }
-            state.effect_queue.push_front(effect);
+            state.effect_buf.push(effect);
         }
     }
+    flush_effects_from_buf_to_queue_front(state);
 
     // Toy Ornithopter: any Potion use heals 5, in or out of combat
     if has_relic(&state.id_relics, RelicName::ToyOrnithopter) {

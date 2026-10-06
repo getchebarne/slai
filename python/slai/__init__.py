@@ -85,7 +85,7 @@ def create_action_spec(action_type: ActionType, *args: ArgSpec) -> ActionSpec:
 
 
 # Per-slot description strings
-_HAND_POS = "position in state.combat.hand"
+_HAND_POS = "position in state.combat.pile_hand"
 _MONSTER_POS = "position in the alive-monster list at dispatch time"
 _REWARD_BUNDLE_POS = "bundle in state.reward.cards"
 _REWARD_POS = "card within the bundle"

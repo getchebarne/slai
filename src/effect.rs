@@ -72,10 +72,6 @@ pub enum EffectKind {
     },
     CardNightmarePick,
     CardNightmareSpawn,
-    CardPlay {
-        source: PlaySource,
-        energy: u16,
-    },
     BombArm {
         turns: u8,
         damage: u16,
@@ -338,6 +334,15 @@ pub enum PlaySource {
     Hand,
     DrawTop,
     Replay,
+}
+
+// A Card play waiting in the card play queue; it starts once every queued effect has resolved
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CardPlay {
+    pub id_card: usize,
+    pub id_target: Option<usize>,
+    pub play_source: PlaySource,
+    pub energy: u16, // Fixed when queued; X-cost Cards read it as X
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

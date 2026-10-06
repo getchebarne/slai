@@ -1,3 +1,4 @@
+use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
@@ -39,15 +40,13 @@ pub fn process_effect_card_play_from_draw_top(id_target: Option<usize>, state: &
         return;
     }
 
-    // The top Card leaves the draw pile now, with X fixed at the current energy; it is gated
-    // and played after every queued non-play effect and the plays queued before it
+    // The top Card leaves the draw pile now, with X fixed at the current energy; it waits behind
+    // the plays already queued and is gated when it starts
     let id_card = id_card_draw.pop().unwrap();
-    state.effect_queue.push_back(Effect {
-        kind: EffectKind::CardPlay {
-            source: PlaySource::DrawTop,
-            energy: energy.energy_current,
-        },
-        id_source: Some(id_card),
-        target: Target::Direct(id_target),
+    state.card_play_queue.push_back(CardPlay {
+        id_card,
+        id_target,
+        play_source: PlaySource::DrawTop,
+        energy: energy.energy_current,
     });
 }

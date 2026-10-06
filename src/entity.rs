@@ -51,7 +51,7 @@ pub enum CardCostKind {
     Fixed,
     MinusDiscardsThisTurn,
     GrowsOnDamageInstanceTaken,
-    XCost { offset: i8 }, // offset is consumed by the per-play multiplier in `process_effect_card_play`
+    XCost { offset: i8 }, // offset is consumed by the per-play multiplier in `process_card_play`
 }
 
 // TODO: revisit implementation. Could be flat-enum and `damage: u16` and `instances: u8`

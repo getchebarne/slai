@@ -46,16 +46,17 @@ pub struct PyEnergy {
 )]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyCombat {
-    pub hand: Vec<PyCard>,
+    pub pile_hand: Vec<PyCard>,
     pub pile_draw: Vec<PyCard>,
     pub pile_discard: Vec<PyCard>,
     pub pile_exhaust: Vec<PyCard>,
     pub pile_stasis: Vec<PyCard>,
+    pub pile_queue: Vec<PyCard>,
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
-    pub discover: Vec<PyCard>,
+    pub pile_discover: Vec<PyCard>,
     pub bombs: Vec<(u8, u16)>,
-    pub nightmares: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
+    pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
 }
 
 #[pyclass(
@@ -153,7 +154,7 @@ pub struct PyChest {
 pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
     let combat = &state.combat;
     PyCombat {
-        hand: combat
+        pile_hand: combat
             .id_card_hand
             .iter()
             .map(|&id| snapshot_card(state, id))
@@ -179,18 +180,23 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .flatten()
             .map(|&id| snapshot_card(state, id))
             .collect(),
+        pile_queue: state
+            .card_play_queue
+            .iter()
+            .map(|card_play| snapshot_card(state, card_play.id_card))
+            .collect(),
         energy: PyEnergy {
             energy_current: combat.energy.energy_current,
             energy_max: combat.energy.energy_max,
         },
         monsters: snapshot_monsters(state),
-        discover: combat
+        pile_discover: combat
             .id_card_discover
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
         bombs: combat.bombs.clone(),
-        nightmares: combat
+        pile_nightmare: combat
             .id_card_nightmares
             .iter()
             .map(|&id| snapshot_card(state, id))
