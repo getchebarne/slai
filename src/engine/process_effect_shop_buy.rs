@@ -90,7 +90,7 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
 
     // Charge gold and hand the entity to its Adopt effect
     let kind_adopt = match slot {
-        ShopSlot::Card => EffectKind::CardAdopt,
+        ShopSlot::Card => EffectKind::CardAdopt { landing: false },
         ShopSlot::Relic => EffectKind::RelicAdopt,
         ShopSlot::Potion => EffectKind::PotionAdopt,
     };

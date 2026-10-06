@@ -20,7 +20,6 @@ pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move;
 pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
-pub mod process_effect_card_obtain;
 pub mod process_effect_card_play_from_draw_top;
 pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
@@ -132,7 +131,6 @@ use self::process_effect_card_exhaust::process_effect_card_exhaust;
 use self::process_effect_card_move::process_effect_card_move;
 use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick;
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
-use self::process_effect_card_obtain::process_effect_card_obtain;
 use self::process_effect_card_play_from_draw_top::process_effect_card_play_from_draw_top;
 use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
@@ -624,8 +622,7 @@ fn dispatch_by_kind(
         EffectKind::CardTransform { upgraded } => {
             process_effect_card_transform(id_target, state, upgraded)
         }
-        EffectKind::CardAdopt => process_effect_card_adopt(id_target, state),
-        EffectKind::CardObtain => process_effect_card_obtain(id_target, state),
+        EffectKind::CardAdopt { landing } => process_effect_card_adopt(id_target, state, landing),
         EffectKind::MaxHealthDelta { sign, amount } => {
             process_effect_max_health_delta(id_target, state, sign, amount)
         }

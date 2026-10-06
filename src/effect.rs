@@ -39,7 +39,9 @@ pub enum EffectKind {
         upgraded: bool,
         rarity: Option<CardRarity>,
     },
-    CardAdopt,
+    CardAdopt {
+        landing: bool, // The second pass, which CardAdopt queues for itself
+    },
     CardBottle,
     CardDiscard {
         source: DiscardSource,
@@ -72,7 +74,6 @@ pub enum EffectKind {
     },
     CardNightmarePick,
     CardNightmareSpawn,
-    CardObtain,
     BombArm {
         turns: u8,
         damage: u16,

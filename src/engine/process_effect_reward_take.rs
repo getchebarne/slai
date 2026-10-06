@@ -34,7 +34,7 @@ pub fn process_effect_reward_take(
                 .position(|bundle| bundle.contains(&id_card))
                 .expect("Taken Card is a staged bundle");
             bundles.remove(idx);
-            (id_card, EffectKind::CardAdopt)
+            (id_card, EffectKind::CardAdopt { landing: false })
         }
 
         // Relic: unstage the pick; RelicAdopt owns registration and pickup effects
