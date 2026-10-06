@@ -24,6 +24,7 @@ use crate::types::CardKind;
 use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::Event;
+use crate::types::EventName;
 use crate::types::Focus;
 use crate::types::PotionName;
 use crate::types::RelicName;
@@ -879,9 +880,21 @@ fn push_potion_actions(state: &mut GameState) {
     } else {
         (false, 0)
     };
+    let in_we_meet_again = state.event.in_room && state.event.name == EventName::WeMeetAgain;
     for s in 0..state.id_potions.len() {
         let id_potion = state.id_potions[s];
         let potion = &state.entities[id_potion];
+
+        // The We Meet Again Room locks every Potion except Entropic Brew
+        if in_we_meet_again {
+            if potion.potion_name == PotionName::EntropicBrew {
+                state.legal_actions.push(Action::PotionUse {
+                    idx_potion: s,
+                    idx_monster: None,
+                });
+            }
+            continue;
+        }
 
         // Fairy in a Bottle is never drinkable; it procs from the death hook
         if potion.potion_name == PotionName::Fairy {

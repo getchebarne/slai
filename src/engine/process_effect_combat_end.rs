@@ -52,7 +52,9 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             },
         );
         queue_combat_end_relics(state);
-        if state.event.active {
+
+        // A fled event fight spends its event; an unpaid bout resumes it as a won one does
+        if state.event.active && fight_loot(&state.event).is_some() {
             state.event.consumed = true;
         }
         return;

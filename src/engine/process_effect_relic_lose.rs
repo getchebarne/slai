@@ -1,5 +1,6 @@
 use crate::game::GameState;
 use crate::types::CardKind;
+use crate::types::CardName;
 use crate::types::RelicName;
 
 // Unregisters the targeted Relic; the entity stays orphaned in the arena
@@ -26,5 +27,15 @@ pub fn process_effect_relic_lose(id_target: Option<usize>, state: &mut GameState
                 card.card_bottled = false;
             }
         }
+    }
+
+    // Necronomicon leaving takes the first Necronomicurse out of the deck
+    if name == RelicName::Necronomicon
+        && let Some(pos) = state
+            .id_card_deck
+            .iter()
+            .position(|&id| state.entities[id].card_name == CardName::Necronomicurse)
+    {
+        state.id_card_deck.remove(pos);
     }
 }

@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Adding a Card to the deck grants 9 gold
 // See:
-//    - `process_effect_card_adopt.rs`
+//    - `process_effect_card_obtain.rs`
 pub static CERAMIC_FISH: RelicTemplate = RelicTemplate {
     name: RelicName::CeramicFish,
     tier: RelicTier::Common,

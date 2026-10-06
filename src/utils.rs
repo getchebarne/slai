@@ -315,7 +315,7 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
     match filter {
         CandidateFilter::Any => true,
         CandidateFilter::Purgeable => card_is_purgeable(entity),
-        // Astrolabe and Empty Cage may take bottled Cards; only the bound curses are off-limits
+        // Astrolabe, Empty Cage and Drug Dealer may take bottled Cards; only the bound curses are off-limits
         CandidateFilter::NotBoundCurse => {
             entity.kind == EntityKind::Card && !card_name_bound_curse(entity.card_name)
         }
@@ -646,10 +646,14 @@ pub fn roll_boss_gold(rng: &mut impl Rng, ascension: u8) -> u16 {
 }
 
 // Fraction-of-max resolution shared by HealthDelta and MaxHealthDelta
-pub fn resolve_health_fraction(health_max: u16, amount: Amount, sign: DeltaSign) -> u16 {
+pub fn resolve_health_fraction(health_max: u16, amount: Amount) -> u16 {
     match amount {
         Amount::Absolute(a) => a,
         Amount::Relative {
+            numerator,
+            denominator,
+        }
+        | Amount::RelativeMinOne {
             numerator,
             denominator,
         }
@@ -668,9 +672,9 @@ pub fn resolve_health_fraction(health_max: u16, amount: Amount, sign: DeltaSign)
                 _ => {}
             }
             let raw = raw as u32;
-            match sign {
-                DeltaSign::Loss => raw.max(1) as u16,
-                DeltaSign::Gain => raw as u16,
+            match amount {
+                Amount::RelativeMinOne { .. } => raw.max(1) as u16,
+                _ => raw as u16,
             }
         }
         _ => unreachable!("health amounts resolve Absolute or Relative forms"),

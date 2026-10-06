@@ -4,7 +4,6 @@ use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EOT_LEAVE;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
-use crate::events::deck_has_purgeable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
@@ -15,10 +14,10 @@ const OPTION_PRAY: &[Effect] = &[EFFECT_DECK_PURGE_PICK_1, EFFECT_EVENT_CONSUME]
 pub static EOTS_BASE: &[EventOptionTemplate] =
     &[make_event_option_template(OPTION_PRAY), EOT_LEAVE];
 
-pub fn option_available(state: &GameState, idx: usize) -> bool {
+// Pray stays open with nothing to purge; its empty pick resolves to nothing
+pub fn option_available(_state: &GameState, idx: usize) -> bool {
     match idx {
-        0 => deck_has_purgeable(state),
-        1 => true,
+        0 | 1 => true,
         _ => unreachable!("Purifier option out of range: {idx}"),
     }
 }

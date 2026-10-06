@@ -64,7 +64,6 @@ use crate::types::Event;
 use crate::types::EventName;
 use crate::types::event_reset;
 use crate::utils::card_is_purgeable;
-use crate::utils::card_is_transformable;
 use crate::utils::card_is_upgradable;
 use crate::utils::push_entity;
 
@@ -101,17 +100,6 @@ pub const EFFECT_DECK_TRANSFORM_PICK_1: Effect = Effect {
         candidate_pool: CandidatePool::Deck,
         filter: CandidateFilter::Transformable,
         selection_kind: SelectionKind::Input { count: 1 },
-    },
-};
-
-// Transform two chosen Cards (Designer's Clean Up, Drug Dealer)
-pub const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
-    kind: EffectKind::CardTransform { upgraded: false },
-    id_source: None,
-    target: Target::Resolve {
-        candidate_pool: CandidatePool::Deck,
-        filter: CandidateFilter::Transformable,
-        selection_kind: SelectionKind::Input { count: 2 },
     },
 };
 
@@ -355,15 +343,6 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::ForgottenAltar => forgotten_altar::option_available(state, idx),
         EventName::Nloth => nloth::option_available(state, idx),
     }
-}
-
-pub fn deck_has_two_transformable(state: &GameState) -> bool {
-    state
-        .id_card_deck
-        .iter()
-        .filter(|&&id| card_is_transformable(&state.entities[id]))
-        .nth(1)
-        .is_some()
 }
 
 pub fn deck_has_upgradable(state: &GameState) -> bool {

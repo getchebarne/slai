@@ -301,6 +301,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             consumed: false,
             stage: 0,
             id_event_options: Vec::new(),
+            in_room: false,
             id_roll_card: Vec::new(),
             id_roll_relic: Vec::new(),
             id_roll_potion: Vec::new(),
@@ -338,6 +339,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         state.event.name = EventName::Neow;
         state.event.id_event_options = id_event_options;
         state.event.active = true;
+        state.event.in_room = true;
     }
 
     // Settle on the resting focus — Neow's options, or the initial row-0 Room picks

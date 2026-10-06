@@ -89,13 +89,21 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
             } else {
                 COST_PURIFY_A15
             };
-            gold >= cost && deck_has_purgeable(state)
+            gold >= cost
         }
         2 => true,
         _ => unreachable!("The cleric option out of range: {idx}"),
     }
 }
 
+// With nothing purgeable, Purify charges nothing and just ends the event
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
-    bake_options(state, catalog(state.ascension))
+    let eots = catalog(state.ascension);
+    let purify = if deck_has_purgeable(state) {
+        eots[1]
+    } else {
+        EOT_LEAVE
+    };
+    let options = [eots[0], purify, eots[2]];
+    bake_options(state, &options)
 }

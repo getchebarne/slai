@@ -26,7 +26,7 @@ const fn touch(gold: u16) -> [Effect; 3] {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: Amount::Relative {
+                amount: Amount::RelativeMinOne {
                     numerator: 1,
                     denominator: 10,
                 },

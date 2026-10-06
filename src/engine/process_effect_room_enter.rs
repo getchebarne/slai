@@ -137,6 +137,7 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             state.event.name = name;
             state.event.id_event_options = id_event_options;
             state.event.active = true;
+            state.event.in_room = true;
         }
         // ShopBuild fills the shop context; until it runs the focus stays Map
         RoomKind::Shop => {

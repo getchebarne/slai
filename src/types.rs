@@ -122,6 +122,9 @@ pub struct Event {
     pub stage: u8,
     pub id_event_options: Vec<usize>,
 
+    // Unlike `active`, holds on the map until the next RoomSelect
+    pub in_room: bool,
+
     // Entities the spawn rolled; options target them via the EventRoll<...> pools
     pub id_roll_card: Vec<usize>,
     pub id_roll_relic: Vec<usize>,
@@ -133,7 +136,7 @@ pub struct Event {
     pub found_relic: bool,
 }
 
-// Runs before a spawn fills the context; the caller sets kind/options/active
+// Runs before a spawn fills the context; the caller sets kind/options/active/in_room
 pub fn event_reset(event: &mut Event) {
     event.consumed = false;
     event.stage = 0;

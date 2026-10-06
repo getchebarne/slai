@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -9,6 +11,12 @@ use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
+
+// Leave's gold loss roll; A15+ forfeits more
+const GOLD_LOSS_MIN: u16 = 20;
+const GOLD_LOSS_MAX: u16 = 50;
+const GOLD_LOSS_MIN_A15: u16 = 35;
+const GOLD_LOSS_MAX_A15: u16 = 75;
 
 // Gather
 const OPTION_GATHER: &[Effect] = &[
@@ -31,13 +39,13 @@ const OPTION_GATHER: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
 ];
 
-// Leave
-const fn leave(min: u16, max: u16) -> [Effect; 2] {
+// Leave: forfeit the gold rolled on entry
+const fn leave(gold: u16) -> [Effect; 2] {
     [
         Effect {
             kind: EffectKind::GoldDelta {
                 sign: DeltaSign::Loss,
-                amount: Amount::Range { min, max },
+                amount: Amount::Absolute(gold),
             },
             id_source: None,
             target: Target::Direct(None),
@@ -46,27 +54,49 @@ const fn leave(min: u16, max: u16) -> [Effect; 2] {
     ]
 }
 
-// Leave: forfeit a fifth of the gold
-const OPTION_LEAVE_BASE: [Effect; 2] = leave(20, 50);
+// Catalog layout: Gather, then Leave for every rollable loss
+const IDX_GATHER: usize = 0;
+const IDX_LEAVE: usize = 1;
+const EOTS_LEN: usize = IDX_LEAVE + (GOLD_LOSS_MAX - GOLD_LOSS_MIN) as usize + 1;
+const EOTS_LEN_A15: usize = IDX_LEAVE + (GOLD_LOSS_MAX_A15 - GOLD_LOSS_MIN_A15) as usize + 1;
 
-// Leave at A15+: forfeit 35%
-const OPTION_LEAVE_A15: [Effect; 2] = leave(35, 75);
-
-static EOTS_BASE: &[EventOptionTemplate] = &[
-    make_event_option_template(OPTION_GATHER),
-    make_event_option_template(&OPTION_LEAVE_BASE),
-];
-static EOTS_A15: &[EventOptionTemplate] = &[
-    make_event_option_template(OPTION_GATHER),
-    make_event_option_template(&OPTION_LEAVE_A15),
-];
-
-pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
-    if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
+const fn eots<const N: usize>(gold_loss_min: u16) -> [EventOptionTemplate; N] {
+    let mut eots = [make_event_option_template(OPTION_GATHER); N];
+    let mut idx = IDX_LEAVE;
+    while idx < N {
+        let option_leave = leave(gold_loss_min + (idx - IDX_LEAVE) as u16);
+        eots[idx] = make_event_option_template(&option_leave);
+        idx += 1;
+    }
+    eots
 }
 
+static EOTS_BASE: [EventOptionTemplate; EOTS_LEN] = eots(GOLD_LOSS_MIN);
+static EOTS_A15: [EventOptionTemplate; EOTS_LEN_A15] = eots(GOLD_LOSS_MIN_A15);
+
+pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
+    if ascension < 15 {
+        &EOTS_BASE
+    } else {
+        &EOTS_A15
+    }
+}
+
+// The loss rolls on entry so Leave shows it; the Room's entry gold lands after the
+// spawn, so the cap at the gold held is left to the loss itself
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
-    bake_options(state, catalog(state.ascension))
+    let (min, max) = if state.ascension < 15 {
+        (GOLD_LOSS_MIN, GOLD_LOSS_MAX)
+    } else {
+        (GOLD_LOSS_MIN_A15, GOLD_LOSS_MAX_A15)
+    };
+    let gold_loss = state.rng.random_range(min..=max);
+    let eots = catalog(state.ascension);
+    let options = [
+        eots[IDX_GATHER],
+        eots[IDX_LEAVE + (gold_loss - min) as usize],
+    ];
+    bake_options(state, &options)
 }
 
 pub fn option_available(_state: &GameState, _idx: usize) -> bool {

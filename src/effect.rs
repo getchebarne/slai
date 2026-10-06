@@ -72,6 +72,7 @@ pub enum EffectKind {
     },
     CardNightmarePick,
     CardNightmareSpawn,
+    CardObtain,
     BombArm {
         turns: u8,
         damage: u16,
@@ -349,6 +350,7 @@ pub struct CardPlay {
 pub enum Amount {
     Absolute(u16),
     Relative { numerator: u8, denominator: u8 }, // Truncated
+    RelativeMinOne { numerator: u8, denominator: u8 }, // Truncated, then raised to at least 1
     RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
     RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
     Range { min: u16, max: u16 },

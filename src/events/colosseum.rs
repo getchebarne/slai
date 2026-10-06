@@ -62,13 +62,14 @@ pub const FIGHT_LOOT_NOBS: EventLoot = EventLoot {
     ],
 };
 
+// After the first bout the exit is listed before the Nobs
 pub static EOTS_BASE: &[EventOptionTemplate] = &[
     make_event_option_template(OPTION_FIGHT),
-    make_event_option_template(OPTION_FIGHT_NOBS),
     make_event_option_template(&[EFFECT_EVENT_CONSUME]),
+    make_event_option_template(OPTION_FIGHT_NOBS),
 ];
 
-// Stage 0 offers only the first bout; stage 1 the Nobs or the exit
+// Stage 0 offers only the first bout; stage 1 the exit or the Nobs
 pub fn option_available(state: &GameState, idx: usize) -> bool {
     let stage = state.event.stage;
     match stage {

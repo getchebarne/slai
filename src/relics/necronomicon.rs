@@ -11,6 +11,7 @@ use crate::types::RelicTier;
 // See:
 //    - `process_card_play.rs`
 //    - `process_effect_relic_adopt.rs`
+//    - `process_effect_relic_lose.rs`
 pub static NECRONOMICON: RelicTemplate = RelicTemplate {
     name: RelicName::Necronomicon,
     tier: RelicTier::Special,

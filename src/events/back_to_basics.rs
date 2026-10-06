@@ -8,7 +8,6 @@ use crate::events::EFFECT_DECK_PURGE_PICK_1;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
-use crate::events::deck_has_purgeable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
@@ -34,11 +33,9 @@ pub static EOTS_BASE: &[EventOptionTemplate] = &[
     make_event_option_template(OPTION_SIMPLICITY),
 ];
 
-pub fn option_available(state: &GameState, idx: usize) -> bool {
-    match idx {
-        0 => deck_has_purgeable(state),
-        _ => true,
-    }
+// Elegance stays open with nothing to purge; its empty pick resolves to nothing
+pub fn option_available(_state: &GameState, _idx: usize) -> bool {
+    true
 }
 
 pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {

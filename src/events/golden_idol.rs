@@ -77,7 +77,7 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
         Effect {
             kind: EffectKind::MaxHealthDelta {
                 sign: DeltaSign::Loss,
-                amount: Amount::Relative {
+                amount: Amount::RelativeMinOne {
                     numerator,
                     denominator,
                 },

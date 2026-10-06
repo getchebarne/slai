@@ -118,8 +118,8 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
 }
 
 // Spawn rolls the picks and the ask, then bakes them into the options;
-// availability re-validates the picks at selection (the offered Potion can be
-// drunk while standing here)
+// availability re-validates the picks at selection (an offered Entropic Brew
+// can be drunk while standing here)
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     // Card offer: uniform among non-Basic, non-Curse deck Cards
     let id_card_eligible: Vec<usize> = state

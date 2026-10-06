@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Attack Cards are obtained upgraded
 // See:
-//    - `process_effect_card_adopt.rs`
+//    - `process_effect_card_obtain.rs`
 //    - `utils.rs`
 pub static EGG_MOLTEN: RelicTemplate = RelicTemplate {
     name: RelicName::EggMolten,
