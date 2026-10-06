@@ -342,38 +342,6 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
     }
 }
 
-// The live roster runs left to right by screen x: a new Monster lines up ahead of every live
-// Monster standing at or right of it. Live slots close ranks, each Stasis card with its holder
-pub fn place_monster(combat: &mut Combat, entities: &[Entity], id_monster: usize) {
-    assert!(
-        combat.id_monsters.iter().any(|slot| slot.is_none()),
-        "place_monster on a full roster"
-    );
-    let x = entities[id_monster].monster_x;
-    let mut roster = [(None, None); MAX_MONSTERS];
-    let mut len = 0;
-    let mut placed = false;
-    for (&id_slot, &id_card) in combat.id_monsters.iter().zip(&combat.id_card_stasis) {
-        let Some(id) = id_slot else {
-            continue;
-        };
-        if !placed && entities[id].monster_x >= x {
-            roster[len] = (Some(id_monster), None);
-            len += 1;
-            placed = true;
-        }
-        roster[len] = (Some(id), id_card);
-        len += 1;
-    }
-    if !placed {
-        roster[len] = (Some(id_monster), None);
-    }
-    for (slot, (id_slot, id_card)) in roster.into_iter().enumerate() {
-        combat.id_monsters[slot] = id_slot;
-        combat.id_card_stasis[slot] = id_card;
-    }
-}
-
 // Vacating a roster slot frees its Stasis hostage; mirrors place_card's hand-overflow rule
 pub fn release_stasis_card(
     slot: usize,

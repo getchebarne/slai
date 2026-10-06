@@ -691,13 +691,13 @@ pub const fn move_block_buff(name: &'static str, block: u16, strength: i16) -> M
     )
 }
 
-// Each child stands at its own offset from the parent's x
+// Each child lands at its own offset from the parent's slot; offset 0 takes over the parent's slot
 pub const fn move_split(
     name: &'static str,
     first: MonsterName,
-    first_dx: i16,
+    first_slot_offset: isize,
     second: MonsterName,
-    second_dx: i16,
+    second_slot_offset: isize,
 ) -> Move {
     make_move(
         name,
@@ -705,7 +705,7 @@ pub const fn move_split(
             Effect {
                 kind: EffectKind::MonsterSplit {
                     name: first,
-                    dx: first_dx,
+                    slot_offset: first_slot_offset,
                 },
                 id_source: None,
                 target: TARGET_SOURCE,
@@ -713,7 +713,7 @@ pub const fn move_split(
             Effect {
                 kind: EffectKind::MonsterSplit {
                     name: second,
-                    dx: second_dx,
+                    slot_offset: second_slot_offset,
                 },
                 id_source: None,
                 target: TARGET_SOURCE,

@@ -489,19 +489,19 @@ fn pick_humanoid_strong(rng: &mut impl Rng) -> MonsterName {
     }
 }
 
-fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName, x: i16) {
+fn push_monster_spawn(effects: &mut Vec<Effect>, name: MonsterName, slot: usize) {
     effects.push(Effect {
         kind: EffectKind::MonsterSpawn {
             name,
             minion: false,
-            x,
+            slot,
         },
         id_source: None,
         target: Target::Direct(None),
     });
 }
 
-// Queues the encounter's spawns, each at its screen x, followed by `EffectKind::CombatStart`
+// Queues the encounter's spawns, each into its roster slot, followed by `EffectKind::CombatStart`
 pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncounter, elite: bool) {
     state.effect_buf.clear();
     let effects = &mut state.effect_buf;
@@ -510,8 +510,8 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         MonsterEncounter::Cultist => push_monster_spawn(effects, MonsterName::Cultist, 0),
         MonsterEncounter::JawWorm => push_monster_spawn(effects, MonsterName::JawWorm, 0),
         MonsterEncounter::TwoLouse => {
-            for x in [-200, 80] {
-                push_monster_spawn(effects, pick_louse(rng), x);
+            for slot in 0..2 {
+                push_monster_spawn(effects, pick_louse(rng), slot);
             }
         }
         MonsterEncounter::SmallSlimes => {
@@ -520,19 +520,19 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             } else {
                 (MonsterName::SlimeAcidSmall, MonsterName::SlimeSpikeMedium)
             };
-            push_monster_spawn(effects, small, -230);
-            push_monster_spawn(effects, medium, 35);
+            push_monster_spawn(effects, small, 0);
+            push_monster_spawn(effects, medium, 1);
         }
         MonsterEncounter::BlueSlaver => push_monster_spawn(effects, MonsterName::SlaverBlue, 0),
         MonsterEncounter::RedSlaver => push_monster_spawn(effects, MonsterName::SlaverRed, 0),
         MonsterEncounter::Looter => push_monster_spawn(effects, MonsterName::Looter, 0),
         MonsterEncounter::TwoFungiBeasts => {
-            push_monster_spawn(effects, MonsterName::FungiBeast, -400);
-            push_monster_spawn(effects, MonsterName::FungiBeast, -40);
+            push_monster_spawn(effects, MonsterName::FungiBeast, 0);
+            push_monster_spawn(effects, MonsterName::FungiBeast, 1);
         }
         MonsterEncounter::ThreeLouse => {
-            for x in [-350, -125, 80] {
-                push_monster_spawn(effects, pick_louse(rng), x);
+            for slot in 0..3 {
+                push_monster_spawn(effects, pick_louse(rng), slot);
             }
         }
         MonsterEncounter::LargeSlime => {
@@ -541,7 +541,9 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
             } else {
                 MonsterName::SlimeSpikeLarge
             };
-            push_monster_spawn(effects, name, 0);
+
+            // Slot 1 leaves slot 0 free for the split's left child
+            push_monster_spawn(effects, name, 1);
         }
         MonsterEncounter::LotsOfSlimes => {
             let mut pool = [
@@ -552,38 +554,41 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
                 MonsterName::SlimeAcidSmall,
             ];
             shuffle(&mut pool, rng);
-            for (&name, x) in pool.iter().zip([-480, -320, -160, 10, 200]) {
-                push_monster_spawn(effects, name, x);
+            for (slot, &name) in pool.iter().enumerate() {
+                push_monster_spawn(effects, name, slot);
             }
         }
         MonsterEncounter::GremlinGang => {
             let mut pool = GREMLIN_POOL;
             shuffle(&mut pool, rng);
-            for (&name, x) in pool[..4].iter().zip([-320, -160, 25, 205]) {
-                push_monster_spawn(effects, name, x);
+            for (slot, &name) in pool[..4].iter().enumerate() {
+                push_monster_spawn(effects, name, slot);
             }
         }
         MonsterEncounter::ExordiumThugs => {
-            push_monster_spawn(effects, pick_wildlife_weak(rng), -160);
-            push_monster_spawn(effects, pick_humanoid_strong(rng), 130);
+            push_monster_spawn(effects, pick_wildlife_weak(rng), 0);
+            push_monster_spawn(effects, pick_humanoid_strong(rng), 1);
         }
         MonsterEncounter::ExordiumWildlife => {
-            push_monster_spawn(effects, pick_wildlife_strong(rng), -150);
-            push_monster_spawn(effects, pick_wildlife_weak(rng), 150);
+            push_monster_spawn(effects, pick_wildlife_strong(rng), 0);
+            push_monster_spawn(effects, pick_wildlife_weak(rng), 1);
         }
         MonsterEncounter::GremlinNob => push_monster_spawn(effects, MonsterName::GremlinNob, 0),
         MonsterEncounter::Lagavulin => push_monster_spawn(effects, MonsterName::Lagavulin, 0),
         MonsterEncounter::ThreeSentries => {
-            for x in [-330, -85, 140] {
-                push_monster_spawn(effects, MonsterName::Sentry, x);
+            for slot in 0..3 {
+                push_monster_spawn(effects, MonsterName::Sentry, slot);
             }
         }
-        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian, -50),
+        MonsterEncounter::TheGuardian => push_monster_spawn(effects, MonsterName::TheGuardian, 0),
         MonsterEncounter::Hexaghost => push_monster_spawn(effects, MonsterName::Hexaghost, 0),
-        MonsterEncounter::SlimeBoss => push_monster_spawn(effects, MonsterName::SlimeBoss, 0),
+        MonsterEncounter::SlimeBoss => {
+            // Slot 2 leaves room for the Larges in slots 1 and 3, and for their splits
+            push_monster_spawn(effects, MonsterName::SlimeBoss, 2)
+        }
         MonsterEncounter::ThreeFungiBeasts => {
-            for x in [-450, -145, 180] {
-                push_monster_spawn(effects, MonsterName::FungiBeast, x);
+            for slot in 0..3 {
+                push_monster_spawn(effects, MonsterName::FungiBeast, slot);
             }
         }
         MonsterEncounter::LagavulinEvent => {
@@ -610,43 +615,43 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
         }
         MonsterEncounter::Chosen => push_monster_spawn(effects, MonsterName::Chosen, 0),
         MonsterEncounter::ShelledParasite => {
-            push_monster_spawn(effects, MonsterName::ShelledParasite, -20)
+            push_monster_spawn(effects, MonsterName::ShelledParasite, 0)
         }
         MonsterEncounter::ThreeByrds => {
-            for x in [-360, -80, 200] {
-                push_monster_spawn(effects, MonsterName::Byrd, x);
+            for slot in 0..3 {
+                push_monster_spawn(effects, MonsterName::Byrd, slot);
             }
         }
         MonsterEncounter::TwoThieves => {
-            push_monster_spawn(effects, MonsterName::Looter, -200);
-            push_monster_spawn(effects, MonsterName::Mugger, 80);
+            push_monster_spawn(effects, MonsterName::Looter, 0);
+            push_monster_spawn(effects, MonsterName::Mugger, 1);
         }
-        MonsterEncounter::SnakePlant => push_monster_spawn(effects, MonsterName::SnakePlant, -30),
+        MonsterEncounter::SnakePlant => push_monster_spawn(effects, MonsterName::SnakePlant, 0),
         MonsterEncounter::CenturionAndHealer => {
-            push_monster_spawn(effects, MonsterName::Centurion, -200);
-            push_monster_spawn(effects, MonsterName::Healer, 120);
+            push_monster_spawn(effects, MonsterName::Centurion, 0);
+            push_monster_spawn(effects, MonsterName::Healer, 1);
         }
         MonsterEncounter::Snecko => push_monster_spawn(effects, MonsterName::Snecko, 0),
         MonsterEncounter::CultistAndChosen => {
-            push_monster_spawn(effects, MonsterName::Cultist, -230);
-            push_monster_spawn(effects, MonsterName::Chosen, 100);
+            push_monster_spawn(effects, MonsterName::Cultist, 0);
+            push_monster_spawn(effects, MonsterName::Chosen, 1);
         }
         MonsterEncounter::ThreeCultists => {
-            for x in [-465, -130, 200] {
-                push_monster_spawn(effects, MonsterName::Cultist, x);
+            for slot in 0..3 {
+                push_monster_spawn(effects, MonsterName::Cultist, slot);
             }
         }
         MonsterEncounter::ShelledParasiteAndFungi => {
-            push_monster_spawn(effects, MonsterName::ShelledParasite, -260);
-            push_monster_spawn(effects, MonsterName::FungiBeast, 120);
+            push_monster_spawn(effects, MonsterName::ShelledParasite, 0);
+            push_monster_spawn(effects, MonsterName::FungiBeast, 1);
         }
         MonsterEncounter::ChosenAndByrds => {
-            push_monster_spawn(effects, MonsterName::Byrd, -170);
-            push_monster_spawn(effects, MonsterName::Chosen, 80);
+            push_monster_spawn(effects, MonsterName::Byrd, 0);
+            push_monster_spawn(effects, MonsterName::Chosen, 1);
         }
         MonsterEncounter::SentryAndSphere => {
-            push_monster_spawn(effects, MonsterName::Sentry, -305);
-            push_monster_spawn(effects, MonsterName::SphericGuardian, 0);
+            push_monster_spawn(effects, MonsterName::Sentry, 0);
+            push_monster_spawn(effects, MonsterName::SphericGuardian, 1);
         }
         MonsterEncounter::GremlinLeader => {
             // Two weighted gremlins take the first two posts as Minions, then the leader
@@ -657,23 +662,25 @@ pub fn spawn_encounter_monsters(state: &mut GameState, encounter: MonsterEncount
                     target: Target::Direct(None),
                 });
             }
-            push_monster_spawn(effects, MonsterName::GremlinLeader, 35);
+            push_monster_spawn(effects, MonsterName::GremlinLeader, 3);
         }
         MonsterEncounter::Slavers => {
-            push_monster_spawn(effects, MonsterName::SlaverBlue, -385);
-            push_monster_spawn(effects, MonsterName::Taskmaster, -133);
-            push_monster_spawn(effects, MonsterName::SlaverRed, 125);
+            push_monster_spawn(effects, MonsterName::SlaverBlue, 0);
+            push_monster_spawn(effects, MonsterName::Taskmaster, 1);
+            push_monster_spawn(effects, MonsterName::SlaverRed, 2);
         }
         MonsterEncounter::BookOfStabbing => {
             push_monster_spawn(effects, MonsterName::BookOfStabbing, 0)
         }
         MonsterEncounter::BronzeAutomaton => {
-            push_monster_spawn(effects, MonsterName::BronzeAutomaton, -50)
+            // Slot 1 leaves slots 0 and 2 for the Orbs
+            push_monster_spawn(effects, MonsterName::BronzeAutomaton, 1)
         }
         MonsterEncounter::TheCollector => {
-            push_monster_spawn(effects, MonsterName::TheCollector, 60)
+            // Slot 2 leaves slots 0 and 1 for the Torch Heads
+            push_monster_spawn(effects, MonsterName::TheCollector, 2)
         }
-        MonsterEncounter::Champ => push_monster_spawn(effects, MonsterName::Champ, -90),
+        MonsterEncounter::Champ => push_monster_spawn(effects, MonsterName::Champ, 0),
     }
 
     effects.push(Effect {

@@ -18,15 +18,15 @@ use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use rand::Rng;
 
-// The two Torch Head posts by screen x, in fill order, both left of the Collector
-const TORCH_HEAD_POSTS: [i16; 2] = [-285, -470];
+// The two Torch Head posts' slots, in fill order, both left of the Collector's slot 2
+const TORCH_HEAD_POSTS: [usize; 2] = [1, 0];
 
-const fn torch_head_spawn(x: i16) -> Effect {
+const fn torch_head_spawn(slot: usize) -> Effect {
     Effect {
         kind: EffectKind::MonsterSpawn {
             name: MonsterName::TorchHead,
             minion: false,
-            x,
+            slot,
         },
         id_source: None,
         target: Target::Direct(None),

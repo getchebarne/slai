@@ -16,8 +16,8 @@ use crate::types::MonsterKind;
 use crate::types::MonsterName;
 use rand::Rng;
 
-// The three gremlin posts by screen x, in fill order, all left of the Leader
-pub const GREMLIN_POSTS: [i16; 3] = [-366, -170, -532];
+// The three gremlin posts' slots, in fill order, all left of the Leader's slot 3
+pub const GREMLIN_POSTS: [usize; 3] = [1, 2, 0];
 
 // Rally: two summons off the weighted gremlin pool
 static MOVE_RALLY: Move = make_move(

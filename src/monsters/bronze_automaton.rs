@@ -12,7 +12,7 @@ use crate::monsters::move_attack;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 
-// Spawn Orbs: one Orb on each side of the Automaton
+// Spawn Orbs: one Orb on each side of the Automaton's slot 1
 static MOVE_SPAWN_ORBS: Move = make_move(
     "Spawn Orbs",
     &[
@@ -20,7 +20,7 @@ static MOVE_SPAWN_ORBS: Move = make_move(
             kind: EffectKind::MonsterSpawn {
                 name: MonsterName::BronzeOrb,
                 minion: false,
-                x: -300,
+                slot: 0,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -29,7 +29,7 @@ static MOVE_SPAWN_ORBS: Move = make_move(
             kind: EffectKind::MonsterSpawn {
                 name: MonsterName::BronzeOrb,
                 minion: false,
-                x: 200,
+                slot: 2,
             },
             id_source: None,
             target: Target::Direct(None),

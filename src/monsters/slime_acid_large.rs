@@ -22,9 +22,9 @@ static MOVE_LICK: Move = move_debuff("Lick", ModifierKind::Weak, 2, Intent::Debu
 static MOVE_SPLIT: Move = move_split(
     "Split",
     MonsterName::SlimeAcidMedium,
-    -134,
+    -1,
     MonsterName::SlimeAcidMedium,
-    134,
+    0,
 );
 
 static MOVES_ASC0: [Move; 4] = [

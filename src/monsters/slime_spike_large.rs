@@ -21,9 +21,9 @@ static MOVE_LICK_FRAIL_3: Move = move_debuff("Lick", ModifierKind::Frail, 3, Int
 static MOVE_SPLIT: Move = move_split(
     "Split",
     MonsterName::SlimeSpikeMedium,
-    -134,
+    -1,
     MonsterName::SlimeSpikeMedium,
-    134,
+    0,
 );
 
 static MOVES_ASC0: [Move; 3] = [MOVE_FLAME_TACKLE_16, MOVE_LICK_FRAIL_2, MOVE_SPLIT];

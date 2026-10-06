@@ -16,12 +16,12 @@ use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 
-const fn spawn_fungi(x: i16) -> Effect {
+const fn spawn_fungi(slot: usize) -> Effect {
     Effect {
         kind: EffectKind::MonsterSpawn {
             name: MonsterName::FungiBeast,
             minion: false,
-            x,
+            slot,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -30,9 +30,9 @@ const fn spawn_fungi(x: i16) -> Effect {
 
 // Stomp: fight 3 Fungi Beasts — the reward roll gives gold and an Odd Mushroom
 const OPTION_STOMP: &[Effect] = &[
-    spawn_fungi(-450),
-    spawn_fungi(-145),
-    spawn_fungi(180),
+    spawn_fungi(0),
+    spawn_fungi(1),
+    spawn_fungi(2),
     Effect {
         kind: EffectKind::CombatStart { elite: false },
         id_source: None,

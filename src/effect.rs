@@ -190,11 +190,11 @@ pub enum EffectKind {
     MonsterSpawn {
         name: MonsterName,
         minion: bool, // Gremlin Leader's summons
-        x: i16,
+        slot: usize,
     },
     MonsterSplit {
         name: MonsterName,
-        dx: i16,
+        slot_offset: isize,
     },
     MoveExecute,
     MoveUpdate {

@@ -7,14 +7,13 @@ use crate::monsters::spawn_monster;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
-use crate::utils::place_monster;
 use crate::utils::push_entity;
 
 pub fn process_effect_monster_split(
     id_source: Option<usize>,
     state: &mut GameState,
     name: MonsterName,
-    dx: i16,
+    slot_offset: isize,
 ) {
     assert!(
         state.combat.active,
@@ -32,13 +31,27 @@ pub fn process_effect_monster_split(
         state.entities[id_source].monster_name,
     );
 
-    // Create the child with the parent's current health, standing `dx` right of the parent
+    // The child lands at the parent's slot plus its offset; offset 0 takes over the parent's slot
+    let slot_parent = state
+        .combat
+        .id_monsters
+        .iter()
+        .position(|&slot| slot == Some(id_source))
+        .expect("MonsterSplit parent must be on the roster");
+    let slot = slot_parent
+        .checked_add_signed(slot_offset)
+        .expect("MonsterSplit child slot must be on the roster");
+    assert!(
+        slot == slot_parent || state.combat.id_monsters[slot].is_none(),
+        "MonsterSplit child slot {slot} is taken"
+    );
+
+    // Create the child with the parent's current health
     let mut monster = spawn_monster(name, state.ascension, &mut state.rng);
     monster.vitals.health = state.entities[id_source].vitals.health;
     monster.vitals.health_max = state.entities[id_source].vitals.health;
-    monster.monster_x = state.entities[id_source].monster_x + dx;
     let id_monster = push_entity(&mut state.entities, monster);
-    place_monster(&mut state.combat, &state.entities, id_monster);
+    state.combat.id_monsters[slot] = Some(id_monster);
 
     // Philosopher's Stone: split children get the Strength too
     if has_relic(&state.id_relics, RelicName::PhilosopherStone) {
