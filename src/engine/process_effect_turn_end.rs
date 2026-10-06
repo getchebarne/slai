@@ -381,12 +381,21 @@ fn process_effect_turn_end_character(state: &mut GameState) {
             });
         }
     }
+
+    // DuplicateNextCardPlay ticks down one stack; a last stack is removed, never left at 0
     if has_modifier(mods_char, ModifierKind::DuplicateNextCardPlay) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierGain {
+        let kind = if modifier_stacks(mods_char, ModifierKind::DuplicateNextCardPlay) > 1 {
+            EffectKind::ModifierGain {
                 kind: ModifierKind::DuplicateNextCardPlay,
                 stacks: -1,
-            },
+            }
+        } else {
+            EffectKind::ModifierRemove {
+                kind: ModifierKind::DuplicateNextCardPlay,
+            }
+        };
+        state.effect_buf.push(Effect {
+            kind,
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
         });

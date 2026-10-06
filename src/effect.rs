@@ -73,7 +73,7 @@ pub enum EffectKind {
     CardNightmarePick,
     CardNightmareSpawn,
     CardPlay {
-        replay: bool,
+        source: PlaySource,
         energy: u16,
     },
     BombArm {
@@ -87,9 +87,6 @@ pub enum EffectKind {
     CardPlayFromDrawTop,
     CardPurge,
     CardRemove,
-    CardReplay {
-        energy: u16,
-    },
     CardRetain,
     CardSetupPick {
         free: bool,
@@ -178,6 +175,7 @@ pub enum EffectKind {
         sign: DeltaSign,
         amount: Amount,
     },
+    MayhemProc,
     ModifierGain {
         kind: ModifierKind,
         stacks: i16,
@@ -283,8 +281,6 @@ pub enum EffectKind {
     StrengthLoseTemp {
         stacks: i16,
     },
-    TargetClear,
-    TargetSet,
     TurnEnd,
     TurnStart,
     UnloadDiscard,
@@ -334,6 +330,14 @@ pub enum RewardRollTrigger {
 pub enum DiscardSource {
     Explicit,
     EndOfTurn,
+}
+
+// Origin tag the CardPlay handler branches on; Replay is a Burst / Duplication / Necronomicon replay
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum PlaySource {
+    Hand,
+    DrawTop,
+    Replay,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

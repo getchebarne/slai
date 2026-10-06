@@ -11,8 +11,22 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
-pub fn process_effect_potion_use(id_target: Option<usize>, state: &mut GameState) {
-    let id_potion = id_target.expect("PotionUse requires id_target");
+// id_source is the used Potion, id_target its Monster if it needs one
+pub fn process_effect_potion_use(
+    id_source: Option<usize>,
+    id_target: Option<usize>,
+    state: &mut GameState,
+) {
+    let id_potion = id_source.expect("PotionUse requires id_source");
+
+    // The Potion's picked-Monster effects resolve against this use's target
+    if id_target.is_some() {
+        assert!(
+            state.combat.active,
+            "Targeted Potion use outside the Combat frame"
+        );
+        state.combat.id_monster_picked = id_target;
+    }
 
     // Consume the Potion from its belt slot before its effects run
     remove_potion(&mut state.id_potions, id_potion);
