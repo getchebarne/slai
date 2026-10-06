@@ -148,7 +148,8 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         return;
     }
 
-    // Splittable: any damage at <= health_max / 2 overrides next move to Split
+    // Splittable: any damage at <= health_max / 2 overrides next move to Split. Splittable
+    // stays until the split; a pending Split keeps a multi-hit from retriggering it
     if has_modifier(&target.modifiers, ModifierKind::Splittable)
         && target.vitals.health <= target.vitals.health_max / 2
     {
@@ -161,27 +162,19 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
                 target.monster_name
             ),
         };
-        // Executes in reverse:
-        //     1. ModifierRemove Splittable
-        //     2. MoveUpdate (Split)
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::MoveUpdate {
-                move_override: Some(idx_split),
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_target)),
-        });
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::Splittable,
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_target)),
-        });
+        if target.monster_move_current != Some(idx_split) {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::MoveUpdate {
+                    move_override: Some(idx_split),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_target)),
+            });
+        }
     }
 
-    // Lagavulin: any HP loss wakes him up
-    if has_modifier(&target.modifiers, ModifierKind::Asleep) {
+    // Lagavulin: HP actually lost wakes him up
+    if health_lost > 0 && has_modifier(&target.modifiers, ModifierKind::Asleep) {
         let idx_stunned = match target.monster_name {
             MonsterName::Lagavulin => lagavulin::IDX_MOVE_STUNNED,
             _ => panic!(

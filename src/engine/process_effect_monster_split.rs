@@ -4,7 +4,6 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::monsters::spawn_monster;
-use crate::types::Combat;
 use crate::types::MonsterName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -14,12 +13,12 @@ pub fn process_effect_monster_split(
     id_source: Option<usize>,
     state: &mut GameState,
     name: MonsterName,
+    slot_offset: isize,
 ) {
     assert!(
         state.combat.active,
         "process_effect_monster_split outside the Combat frame"
     );
-    let Combat { id_monsters, .. } = &mut state.combat;
     let id_source = id_source.expect("MonsterSplit requires id_source");
 
     // Check that the split Monster is a slime
@@ -32,20 +31,27 @@ pub fn process_effect_monster_split(
         state.entities[id_source].monster_name,
     );
 
+    // The child lands at the parent's slot plus its offset; offset 0 takes over the parent's slot
+    let slot_parent = state
+        .combat
+        .id_monsters
+        .iter()
+        .position(|&slot| slot == Some(id_source))
+        .expect("MonsterSplit parent must be on the roster");
+    let slot = slot_parent
+        .checked_add_signed(slot_offset)
+        .expect("MonsterSplit child slot must be on the roster");
+    assert!(
+        slot == slot_parent || state.combat.id_monsters[slot].is_none(),
+        "MonsterSplit child slot {slot} is taken"
+    );
+
     // Create the child with the parent's current health
     let mut monster = spawn_monster(name, state.ascension, &mut state.rng);
     monster.vitals.health = state.entities[id_source].vitals.health;
     monster.vitals.health_max = state.entities[id_source].vitals.health;
-
-    // Push it
     let id_monster = push_entity(&mut state.entities, monster);
-
-    // Place it in the first empty Monster slot
-    let idx = id_monsters
-        .iter()
-        .position(|slot| slot.is_none())
-        .expect("MonsterSplit would overflow id_monsters: no empty idx");
-    id_monsters[idx] = Some(id_monster);
+    state.combat.id_monsters[slot] = Some(id_monster);
 
     // Philosopher's Stone: split children get the Strength too
     if has_relic(&state.id_relics, RelicName::PhilosopherStone) {

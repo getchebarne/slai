@@ -465,7 +465,7 @@ pub fn get_next_move(
             slime_boss::get_next_move_slime_boss(entity.monster_move_current, history)
         }
         MonsterName::SlimeSpikeLarge => {
-            slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
+            slime_spike_large::get_next_move_slime_spike_large(history, ascension_level, rng)
         }
         MonsterName::SlimeSpikeMedium => {
             slime_spike_medium::get_next_move_slime_spike(history, ascension_level, rng)
@@ -691,17 +691,30 @@ pub const fn move_block_buff(name: &'static str, block: u16, strength: i16) -> M
     )
 }
 
-pub const fn move_split(name: &'static str, first: MonsterName, second: MonsterName) -> Move {
+// Each child lands at its own offset from the parent's slot; offset 0 takes over the parent's slot
+pub const fn move_split(
+    name: &'static str,
+    first: MonsterName,
+    first_slot_offset: isize,
+    second: MonsterName,
+    second_slot_offset: isize,
+) -> Move {
     make_move(
         name,
         &[
             Effect {
-                kind: EffectKind::MonsterSplit { name: first },
+                kind: EffectKind::MonsterSplit {
+                    name: first,
+                    slot_offset: first_slot_offset,
+                },
                 id_source: None,
                 target: TARGET_SOURCE,
             },
             Effect {
-                kind: EffectKind::MonsterSplit { name: second },
+                kind: EffectKind::MonsterSplit {
+                    name: second,
+                    slot_offset: second_slot_offset,
+                },
                 id_source: None,
                 target: TARGET_SOURCE,
             },

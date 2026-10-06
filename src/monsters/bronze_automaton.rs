@@ -1,5 +1,6 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::TARGET_SOURCE;
 use crate::effect::Target;
 use crate::entity::Intent;
 use crate::entity::Move;
@@ -8,10 +9,10 @@ use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
 use crate::monsters::modifier_fixed;
 use crate::monsters::move_attack;
-use crate::monsters::move_block_buff;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 
+// Spawn Orbs: one Orb on each side of the Automaton's slot 1
 static MOVE_SPAWN_ORBS: Move = make_move(
     "Spawn Orbs",
     &[
@@ -19,7 +20,7 @@ static MOVE_SPAWN_ORBS: Move = make_move(
             kind: EffectKind::MonsterSpawn {
                 name: MonsterName::BronzeOrb,
                 minion: false,
-                cap: None,
+                slot: 0,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -28,7 +29,7 @@ static MOVE_SPAWN_ORBS: Move = make_move(
             kind: EffectKind::MonsterSpawn {
                 name: MonsterName::BronzeOrb,
                 minion: false,
-                cap: None,
+                slot: 2,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -41,9 +42,33 @@ static MOVE_FLAIL_7: Move = move_attack("Flail", 7, 2);
 static MOVE_FLAIL_8: Move = move_attack("Flail", 8, 2);
 static MOVE_HYPER_BEAM_45: Move = move_attack("Hyper Beam", 45, 1);
 static MOVE_HYPER_BEAM_50: Move = move_attack("Hyper Beam", 50, 1);
-static MOVE_BOOST_9_3: Move = move_block_buff("Boost", 9, 3);
-static MOVE_BOOST_9_4: Move = move_block_buff("Boost", 9, 4);
-static MOVE_BOOST_12_4: Move = move_block_buff("Boost", 12, 4);
+
+// Boost: block, then Strength
+const fn move_boost(block: u16, strength: i16) -> Move {
+    make_move(
+        "Boost",
+        &[
+            Effect {
+                kind: EffectKind::BlockGain { amount: block },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::ModifierGain {
+                    kind: ModifierKind::Strength,
+                    stacks: strength,
+                },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+        ],
+        Intent::BlockBuff,
+    )
+}
+
+static MOVE_BOOST_9_3: Move = move_boost(9, 3);
+static MOVE_BOOST_9_4: Move = move_boost(9, 4);
+static MOVE_BOOST_12_4: Move = move_boost(12, 4);
 
 static MOVES_ASC0: [Move; 5] = [
     MOVE_SPAWN_ORBS,

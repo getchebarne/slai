@@ -22,7 +22,9 @@ static MOVE_LICK: Move = move_debuff("Lick", ModifierKind::Weak, 2, Intent::Debu
 static MOVE_SPLIT: Move = move_split(
     "Split",
     MonsterName::SlimeAcidMedium,
+    -1,
     MonsterName::SlimeAcidMedium,
+    0,
 );
 
 static MOVES_ASC0: [Move; 4] = [
@@ -57,6 +59,11 @@ pub fn get_next_move_slime_acid_large(
     ascension_level: u8,
     rng: &mut impl Rng,
 ) -> usize {
+    // A Split forced during its own move survives the move's trailing roll
+    if move_history.last() == Some(&(IDX_MOVE_SPLIT as u8)) {
+        return IDX_MOVE_SPLIT;
+    }
+
     let roll = rng.random_range(0..=99);
     if ascension_level >= 17 {
         // Asc 17+ 40/30/30: Tackle no-3-row, Heavy no-3-row, Lick no-2-row

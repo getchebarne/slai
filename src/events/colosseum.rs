@@ -13,12 +13,12 @@ use crate::game::GameState;
 use crate::types::MonsterName;
 use crate::types::RelicTier;
 
-const fn monster_spawn(name: MonsterName) -> Effect {
+const fn monster_spawn(name: MonsterName, slot: usize) -> Effect {
     Effect {
         kind: EffectKind::MonsterSpawn {
             name,
             minion: false,
-            cap: None,
+            slot,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -32,8 +32,8 @@ const OPTION_FIGHT: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    monster_spawn(MonsterName::SlaverBlue),
-    monster_spawn(MonsterName::SlaverRed),
+    monster_spawn(MonsterName::SlaverBlue, 0),
+    monster_spawn(MonsterName::SlaverRed, 1),
     Effect {
         kind: EffectKind::CombatStart { elite: false },
         id_source: None,
@@ -44,8 +44,8 @@ const OPTION_FIGHT: &[Effect] = &[
 // Second bout: an elite pair with a rare+uncommon Relic purse and 100 gold
 const OPTION_FIGHT_NOBS: &[Effect] = &[
     EFFECT_EVENT_ADVANCE,
-    monster_spawn(MonsterName::Taskmaster),
-    monster_spawn(MonsterName::GremlinNob),
+    monster_spawn(MonsterName::Taskmaster, 0),
+    monster_spawn(MonsterName::GremlinNob, 1),
     Effect {
         kind: EffectKind::CombatStart { elite: true },
         id_source: None,

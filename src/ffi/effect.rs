@@ -517,7 +517,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::MonsterRemove => PyEffect::MonsterRemove(PyEffectMonsterRemove {
             target: require_target(target),
         }),
-        EffectKind::MonsterSplit { name } => PyEffect::MonsterSplit(PyEffectMonsterSplit {
+        EffectKind::MonsterSplit { name, .. } => PyEffect::MonsterSplit(PyEffectMonsterSplit {
             name: name.into(),
             target: require_target(target),
         }),

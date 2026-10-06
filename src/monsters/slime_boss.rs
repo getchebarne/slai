@@ -45,10 +45,13 @@ static MOVE_GOOP_SPRAY_5: Move = make_move(
 static MOVE_PREPARING: Move = make_move("Preparing", &[], Intent::Unknown);
 static MOVE_SLAM_35: Move = move_attack("Slam", 35, 1);
 static MOVE_SLAM_38: Move = move_attack("Slam", 38, 1);
+// The Larges flank the boss's slot 2, leaving each a free slot to its left for its own split
 static MOVE_SPLIT: Move = move_split(
     "Split",
     MonsterName::SlimeSpikeLarge,
+    -1,
     MonsterName::SlimeAcidLarge,
+    1,
 );
 
 static MOVES_ASC0: [Move; 4] = [MOVE_GOOP_SPRAY_3, MOVE_PREPARING, MOVE_SLAM_35, MOVE_SPLIT];

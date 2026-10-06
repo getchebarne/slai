@@ -23,7 +23,7 @@ const fn move_defend(block: u16) -> Move {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Monsters,
-                filter: CandidateFilter::NotSource,
+                filter: CandidateFilter::NotSourceUnlessAlone,
                 selection_kind: SelectionKind::Random { count: 1 },
             },
         }],

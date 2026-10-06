@@ -271,8 +271,8 @@ pub use card_is_purgeable as card_is_transformable;
 // Single source of truth for which candidates a Resolve admits, whatever the
 // pool. Entity predicates are total over the fat Entity; Picked / NotSource
 // compare `id` against the resolve context instead
-// One filter pass over the whole candidate set; Costed and NotSource fall back on what
-// else survives, which no single-entity test can express
+// One filter pass over the whole candidate set; Costed and NotSourceUnlessAlone fall back
+// on what else survives, which no single-entity test can express
 pub fn filter_candidates(
     filter: CandidateFilter,
     candidates: &mut Vec<usize>,
@@ -298,8 +298,9 @@ pub fn filter_candidates(
                 candidates.retain(|&id| printed(&entities[id]));
             }
         }
+        CandidateFilter::NotSource => candidates.retain(|&id| Some(id) != id_source),
         // The last Monster standing falls back to targeting itself
-        CandidateFilter::NotSource => {
+        CandidateFilter::NotSourceUnlessAlone => {
             candidates.retain(|&id| Some(id) != id_source);
             if candidates.is_empty()
                 && let Some(id_source) = id_source
@@ -327,7 +328,9 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
         CandidateFilter::KindAttack => entity.card_kind == CardKind::Attack,
         CandidateFilter::KindSkill => entity.card_kind == CardKind::Skill,
         CandidateFilter::KindPower => entity.card_kind == CardKind::Power,
-        CandidateFilter::Costed | CandidateFilter::NotSource => {
+        CandidateFilter::Costed
+        | CandidateFilter::NotSource
+        | CandidateFilter::NotSourceUnlessAlone => {
             unreachable!("{filter:?} is set-level; filter_candidates handles it")
         }
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
