@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Playing a Power heals 2 HP
 // See:
-//    - `process_effect_card_play.rs`
+//    - `process_card_play.rs`
 pub static BIRD_FACED_URN: RelicTemplate = RelicTemplate {
     name: RelicName::BirdFacedUrn,
     tier: RelicTier::Rare,

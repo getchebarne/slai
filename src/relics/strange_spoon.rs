@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Cards that would exhaust on play are discarded instead 50% of the time
 // See:
-//    - `process_effect_card_play.rs`
+//    - `process_effect_card_play_relocate.rs`
 pub static STRANGE_SPOON: RelicTemplate = RelicTemplate {
     name: RelicName::StrangeSpoon,
     tier: RelicTier::Shop,

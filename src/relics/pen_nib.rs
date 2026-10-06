@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Every 10th Attack deals double damage; counter persists across combats
 // See:
-//    - `process_effect_card_play.rs`
+//    - `process_card_play.rs`
 //    - `process_effect_turn_start.rs`
 pub static PEN_NIB: RelicTemplate = RelicTemplate {
     name: RelicName::PenNib,

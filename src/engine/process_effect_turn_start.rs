@@ -253,6 +253,22 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             });
         }
 
+        // Mayhem: each stack picks a living Monster before the draw; MayhemProc queues the play
+        if has_modifier(&modifiers, ModifierKind::Mayhem) {
+            let stacks = modifier_stacks(&modifiers, ModifierKind::Mayhem);
+            for _ in 0..stacks.max(0) {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::MayhemProc,
+                    id_source: None,
+                    target: Target::Resolve {
+                        candidate_pool: CandidatePool::Monsters,
+                        filter: CandidateFilter::Any,
+                        selection_kind: SelectionKind::Random { count: 1 },
+                    },
+                });
+            }
+        }
+
         // Energy resets to max; turn 1 and Ice Cream add a full bar instead
         energy.energy_current = if first_turn || has_relic(&state.id_relics, RelicName::IceCream) {
             (energy.energy_current + energy.energy_max).min(ENERGY_CAP)
@@ -390,18 +406,6 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                     },
                 },
             });
-        }
-
-        // Mayhem: the top-card play queues behind everything above
-        if has_modifier(&modifiers, ModifierKind::Mayhem) {
-            let stacks = modifier_stacks(&modifiers, ModifierKind::Mayhem);
-            for _ in 0..stacks.max(0) {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::CardPlayFromDrawTop,
-                    id_source: None,
-                    target: Target::Direct(None),
-                });
-            }
         }
     }
 

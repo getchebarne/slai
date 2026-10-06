@@ -1,3 +1,4 @@
+pub mod process_card_play;
 pub mod process_effect_act_transition;
 pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
@@ -19,12 +20,10 @@ pub mod process_effect_card_exhaust;
 pub mod process_effect_card_move;
 pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
-pub mod process_effect_card_play;
 pub mod process_effect_card_play_from_draw_top;
 pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
 pub mod process_effect_card_remove;
-pub mod process_effect_card_replay;
 pub mod process_effect_card_retain;
 pub mod process_effect_card_setup_pick;
 pub mod process_effect_card_transform;
@@ -61,6 +60,7 @@ pub mod process_effect_knowing_skull_cost_bump;
 pub mod process_effect_lifesteal_heal;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
+pub mod process_effect_mayhem_proc;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
@@ -104,13 +104,12 @@ pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_stasis_steal;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
-pub mod process_effect_target_clear;
-pub mod process_effect_target_set;
 pub mod process_effect_turn_end;
 pub mod process_effect_turn_start;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
+use self::process_card_play::process_card_play;
 use self::process_effect_act_transition::process_effect_act_transition;
 use self::process_effect_adventurer_search::process_effect_adventurer_search;
 use self::process_effect_block_gain::process_effect_block_gain;
@@ -132,12 +131,10 @@ use self::process_effect_card_exhaust::process_effect_card_exhaust;
 use self::process_effect_card_move::process_effect_card_move;
 use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick;
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
-use self::process_effect_card_play::process_effect_card_play;
 use self::process_effect_card_play_from_draw_top::process_effect_card_play_from_draw_top;
 use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
 use self::process_effect_card_remove::process_effect_card_remove;
-use self::process_effect_card_replay::process_effect_card_replay;
 use self::process_effect_card_retain::process_effect_card_retain;
 use self::process_effect_card_setup_pick::process_effect_card_setup_pick;
 use self::process_effect_card_transform::process_effect_card_transform;
@@ -174,6 +171,7 @@ use self::process_effect_knowing_skull_cost_bump::process_effect_knowing_skull_c
 use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
+use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
 use self::process_effect_modifier_gain::process_effect_modifier_gain;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
@@ -217,8 +215,6 @@ use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_stasis_steal::process_effect_stasis_steal;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
-use self::process_effect_target_clear::process_effect_target_clear;
-use self::process_effect_target_set::process_effect_target_set;
 use self::process_effect_turn_end::process_effect_turn_end;
 use self::process_effect_turn_start::process_effect_turn_start;
 use self::process_effect_unload_discard::process_effect_unload_discard;
@@ -465,10 +461,6 @@ fn dispatch_by_kind(
             process_effect_hand_of_greed_proc(id_target, state, gold)
         }
         EffectKind::CardDrawUpTo { amount } => process_effect_card_draw_up_to(state, amount),
-        EffectKind::CardPlay { replay, energy } => {
-            process_effect_card_play(id_target, state, replay, energy)
-        }
-        EffectKind::CardReplay { energy } => process_effect_card_replay(id_target, state, energy),
         EffectKind::CardAdd {
             card_name,
             pile,
@@ -527,8 +519,6 @@ fn dispatch_by_kind(
         EffectKind::RewardTake { kind } => process_effect_reward_take(id_target, state, kind),
         EffectKind::RoomExit => process_effect_room_exit(state),
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
-        EffectKind::TargetSet => process_effect_target_set(id_target, state),
-        EffectKind::TargetClear => process_effect_target_clear(state),
         EffectKind::DamagePhysical { amount, lifesteal } => {
             process_effect_damage_physical(id_source, id_target, state, amount, false, lifesteal)
         }
@@ -621,6 +611,7 @@ fn dispatch_by_kind(
             process_effect_knowing_skull_cost_bump(id_source, state)
         }
         EffectKind::MausoleumOpen => process_effect_mausoleum_open(state),
+        EffectKind::MayhemProc => process_effect_mayhem_proc(id_target, state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)
         }
@@ -640,7 +631,7 @@ fn dispatch_by_kind(
         EffectKind::ShopBuild => process_effect_shop_build(state),
         EffectKind::ShopBuy { slot } => process_effect_shop_buy(id_target, state, slot),
         EffectKind::ShopPurge => process_effect_shop_purge(state),
-        EffectKind::PotionUse => process_effect_potion_use(id_target, state),
+        EffectKind::PotionUse => process_effect_potion_use(id_source, id_target, state),
         EffectKind::PotionAddRandom { limited, uniform } => {
             process_effect_potion_add_random(state, limited, uniform)
         }
@@ -685,6 +676,12 @@ fn dispatch_by_kind(
 pub fn process_effect_queue(state: &mut GameState) {
     while !state.game_over {
         let Some(effect) = state.effect_queue.pop_front() else {
+            // The next waiting Card play starts once every queued effect has resolved
+            if let Some(card_play) = state.card_play_queue.pop_front() {
+                process_card_play(state, card_play);
+                continue;
+            }
+
             // Unceasing Top: an empty hand at queue rest draws 1 and keeps going
             if unceasing_top_fires(state) {
                 state.effect_queue.push_back(Effect {
@@ -695,7 +692,7 @@ pub fn process_effect_queue(state: &mut GameState) {
                 continue;
             }
             ensure_context_validity(state);
-            return; // Queue drained
+            return; // Both queues drained
         };
         if !process_effect(state, effect) {
             ensure_context_validity(state);
@@ -741,6 +738,12 @@ fn ensure_context_validity(state: &GameState) {
         !(state.combat.active
             && (state.shop.active || state.chest.active || state.rest_site.active)),
         "Combat active inside a non-event room context"
+    );
+
+    // Card plays wait only inside a combat
+    assert!(
+        state.combat.active || state.card_play_queue.is_empty(),
+        "Card plays queued outside combat"
     );
 
     // A Reward overlays a consumed event; a fight stacks over an unconsumed one

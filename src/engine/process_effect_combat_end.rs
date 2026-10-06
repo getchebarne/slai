@@ -36,6 +36,9 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     modifier_clear(&mut state.entities[state.id_character].modifiers);
     state.entities[state.id_character].vitals.block = 0;
 
+    // Card plays still waiting never start
+    state.card_play_queue.clear();
+
     // The spent combat is closed here; what it reveals owns the aftermath
     state.combat.active = false;
 

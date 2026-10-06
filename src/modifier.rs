@@ -467,7 +467,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         kind: ModifierKind::DuplicateNextCardPlay,
         is_buff: true,
         stacks_duration: false,
-        stacks_min: 1,
+        stacks_min: 0, // A spent stack lingers at 0 while its Card resolves
         stacks_max: 999,
     },
     ModifierDef {

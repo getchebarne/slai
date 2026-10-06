@@ -5,7 +5,7 @@ use crate::types::RelicTier;
 // Status Cards are playable and exhaust when played
 // See:
 //    - `entity.rs`
-//    - `process_effect_card_play.rs`
+//    - `process_card_play.rs`
 pub static MEDICAL_KIT: RelicTemplate = RelicTemplate {
     name: RelicName::MedicalKit,
     tier: RelicTier::Shop,

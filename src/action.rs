@@ -4,8 +4,10 @@ use crate::consts::MAP_WIDTH;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
+use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::PlaySource;
 use crate::effect::RelicExclusion;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
@@ -304,10 +306,12 @@ fn handle_pick_skip(state: &mut GameState) {
 fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<usize>) {
     assert!(state.combat.active, "handle_card_play outside combat");
     let id_card = state.combat.id_card_hand[idx_card];
-    if entity_requires_target(&state.entities[id_card]) {
+
+    // The play carries its own target: the picked Monster, if the Card needs one
+    let id_monster_target = if entity_requires_target(&state.entities[id_card]) {
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
-        let id_monster_target = state
+        let id_monster = state
             .combat
             .id_monsters
             .iter()
@@ -315,36 +319,16 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
             .copied()
             .nth(idx_monster)
             .expect("Enumerated monster idx is valid");
-
-        // TargetSet -> CardPlay -> TargetClear
-        state.effect_buf.push(Effect {
-            kind: EffectKind::TargetSet,
-            id_source: None,
-            target: Target::Direct(Some(id_monster_target)),
-        });
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardPlay {
-                replay: false,
-                energy: state.combat.energy.energy_current,
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
-        state.effect_buf.push(Effect {
-            kind: EffectKind::TargetClear,
-            id_source: None,
-            target: Target::Direct(None),
-        });
+        Some(id_monster)
     } else {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardPlay {
-                replay: false,
-                energy: state.combat.energy.energy_current,
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
-    }
+        None
+    };
+    state.card_play_queue.push_back(CardPlay {
+        id_card,
+        id_target: id_monster_target,
+        play_source: PlaySource::Hand,
+        energy: state.combat.energy.energy_current,
+    });
 }
 
 fn handle_chest_open(state: &mut GameState) {
@@ -382,11 +366,13 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
 
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
     let id_potion = state.id_potions[idx_potion];
-    if entity_requires_target(&state.entities[id_potion]) {
+
+    // The use carries its own target: the picked Monster, if the Potion needs one
+    let id_monster_target = if entity_requires_target(&state.entities[id_potion]) {
         assert!(state.combat.active, "Targeted Potion use outside combat");
         let idx_monster =
             idx_monster.expect("Missing `idx_monster` when `requires_target` is true");
-        let id_monster_target = state
+        let id_monster = state
             .combat
             .id_monsters
             .iter()
@@ -394,30 +380,15 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
             .copied()
             .nth(idx_monster)
             .expect("Enumerated monster idx is valid");
-
-        // TargetSet -> PotionUse -> TargetClear
-        state.effect_buf.push(Effect {
-            kind: EffectKind::TargetSet,
-            id_source: None,
-            target: Target::Direct(Some(id_monster_target)),
-        });
-        state.effect_buf.push(Effect {
-            kind: EffectKind::PotionUse,
-            id_source: Some(id_potion),
-            target: Target::Direct(Some(id_potion)),
-        });
-        state.effect_buf.push(Effect {
-            kind: EffectKind::TargetClear,
-            id_source: None,
-            target: Target::Direct(None),
-        });
+        Some(id_monster)
     } else {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::PotionUse,
-            id_source: Some(id_potion),
-            target: Target::Direct(Some(id_potion)),
-        });
-    }
+        None
+    };
+    state.effect_buf.push(Effect {
+        kind: EffectKind::PotionUse,
+        id_source: Some(id_potion),
+        target: Target::Direct(id_monster_target),
+    });
 }
 
 // Marks the site used; every rest-site option ends with this
