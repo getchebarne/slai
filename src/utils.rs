@@ -342,20 +342,21 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
     }
 }
 
-// Vacating a roster slot frees its Stasis hostage; mirrors place_card's hand-overflow rule
+// Vacating a roster slot frees its Stasis hostage, returning whether it reached the hand; mirrors place_card's hand-overflow rule
 pub fn release_stasis_card(
     slot: usize,
     id_card_stasis: &mut [Option<usize>; MAX_MONSTERS],
     id_card_hand: &mut Vec<usize>,
     id_card_discard: &mut Vec<usize>,
-) {
+) -> bool {
     if let Some(id_card) = id_card_stasis[slot].take() {
         if id_card_hand.len() < MAX_SIZE_HAND {
             id_card_hand.push(id_card);
-        } else {
-            id_card_discard.push(id_card);
+            return true;
         }
+        id_card_discard.push(id_card);
     }
+    false
 }
 
 pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool {

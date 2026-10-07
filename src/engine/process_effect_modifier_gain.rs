@@ -1,7 +1,9 @@
 use crate::consts::MODE_SHIFT_INCREASE_PER_CYCLE;
+use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::effect::effect_accuracy_resync;
 use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -13,10 +15,8 @@ use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
 use crate::monsters::shelled_parasite;
-use crate::types::CardName;
 use crate::types::MonsterName;
 use crate::types::RelicName;
-use crate::utils::card_damage_delta;
 use crate::utils::has_relic;
 use crate::utils::scale_block_gain;
 
@@ -51,19 +51,17 @@ pub fn process_effect_modifier_gain(
         stacks
     };
 
-    // Accuracy rewrites every Shiv already in play, across all piles
+    // Accuracy resets every Shiv in the hand and the draw, discard and exhaust piles; one held by Stasis or Nightmare keeps its damage
     if kind == ModifierKind::Accuracy && stacks != 0 && id_target == state.id_character {
-        let combat = &state.combat;
-        let mut ids: Vec<usize> = Vec::new();
-        ids.extend(&combat.id_card_hand);
-        ids.extend(&combat.id_card_draw);
-        ids.extend(&combat.id_card_discard);
-        ids.extend(&combat.id_card_exhaust);
-        ids.extend(combat.id_card_stasis.iter().flatten().copied());
-        for id_card in ids {
-            if state.entities[id_card].card_name == CardName::Shiv {
-                card_damage_delta(&mut state.entities[id_card], stacks);
-            }
+        for candidate_pool in [
+            CandidatePool::Hand,
+            CandidatePool::PileDraw,
+            CandidatePool::PileDiscard,
+            CandidatePool::PileExhaust,
+        ] {
+            state
+                .effect_queue
+                .push_front(effect_accuracy_resync(candidate_pool));
         }
     }
 

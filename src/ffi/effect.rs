@@ -83,7 +83,7 @@ flat_variants!(PyEffect {
     CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, copies: u8, target: PyTarget },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
-    CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { target: PyTarget },
+    CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { pile: PyCardPile, target: PyTarget },
     CardTransform => PyEffectCardTransform as "EffectCardTransform" { upgraded: bool, target: PyTarget },
     CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, pile: PyCardPile, count: u16, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity> },
     CardDrawIfNoAttacks => PyEffectCardDrawIfNoAttacks as "EffectCardDrawIfNoAttacks" { count: u16 },
@@ -358,7 +358,8 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardPurge => PyEffect::CardPurge(PyEffectCardPurge {
             target: require_target(target),
         }),
-        EffectKind::CardDuplicate => PyEffect::CardDuplicate(PyEffectCardDuplicate {
+        EffectKind::CardDuplicate { pile } => PyEffect::CardDuplicate(PyEffectCardDuplicate {
+            pile: pile.into(),
             target: require_target(target),
         }),
         EffectKind::CardTransform { upgraded } => PyEffect::CardTransform(PyEffectCardTransform {

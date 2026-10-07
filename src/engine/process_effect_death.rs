@@ -1,5 +1,6 @@
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
+use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -87,7 +88,18 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     state.entities[id_target].dead = true;
     if let Some(slot) = id_monsters.iter().position(|slot| *slot == Some(id_target)) {
         id_monsters[slot] = None; // Clear from `id_monsters` Vec
-        release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
+        let returned_to_hand =
+            release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
+
+        // Accuracy: a Stasis Card returning to the hand resets every Shiv in it
+        if returned_to_hand
+            && has_modifier(
+                &state.entities[id_character].modifiers,
+                ModifierKind::Accuracy,
+            )
+        {
+            state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
+        }
     }
 
     // Calculate if there're any Monsters left alive

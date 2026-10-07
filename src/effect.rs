@@ -16,6 +16,7 @@ use crate::types::ShopSlot;
 // EffectKind: the shared "what happens" enum
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EffectKind {
+    AccuracyResync,
     ActTransition,
     AdventurerSearch,
     BlockGain {
@@ -67,7 +68,9 @@ pub enum EffectKind {
     CardDrawUpTo {
         amount: u8,
     },
-    CardDuplicate,
+    CardDuplicate {
+        pile: CardPile,
+    },
     CardExhaust,
     CardMove {
         pile: CardPile,
@@ -476,6 +479,21 @@ pub const TARGET_CHARACTER: Target = Target::Resolve {
     filter: CandidateFilter::Any,
     selection_kind: SelectionKind::Single,
 };
+
+// Accuracy's sweep of one pool: every Shiv in it resets to its printed damage plus Accuracy
+pub const fn effect_accuracy_resync(candidate_pool: CandidatePool) -> Effect {
+    Effect {
+        kind: EffectKind::AccuracyResync,
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool,
+            filter: CandidateFilter::Any,
+            selection_kind: SelectionKind::All,
+        },
+    }
+}
+
+pub const EFFECT_ACCURACY_RESYNC_HAND: Effect = effect_accuracy_resync(CandidatePool::Hand);
 
 // Discover pick: choose 1 of the rolled Cards; cost break and destination vary by caller
 pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) -> Effect {

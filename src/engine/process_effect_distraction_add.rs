@@ -3,10 +3,13 @@ use crate::cards::POOL_RARE_GREEN_CARD;
 use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
 use crate::cards::get_card_template;
+use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::has_modifier;
 use crate::types::CardKind;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -42,7 +45,7 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
 
     let card_name = buf[state.rng.random_range(0..num)];
     let id_card = push_entity(&mut state.entities, get_card(card_name, false));
-    place_card(state, id_card, CardPile::Hand);
+    let placed = place_card(state, id_card, CardPile::Hand);
 
     // Costs 0 this turn
     state.effect_queue.push_front(Effect {
@@ -55,4 +58,14 @@ pub fn process_effect_distraction_add(state: &mut GameState) {
         id_source: None,
         target: Target::Direct(Some(id_card)),
     });
+
+    // Accuracy: a Card reaching the hand resets every Shiv in it
+    if placed
+        && has_modifier(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::Accuracy,
+        )
+    {
+        state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
+    }
 }

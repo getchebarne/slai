@@ -1,6 +1,7 @@
 use rand::Rng;
 
 use crate::consts::MAX_SIZE_HAND;
+use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -85,17 +86,6 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
         });
     }
 
-    // On-draw hooks run before any reshuffle, the last-drawn Card's first
-    for &id_card in &id_drawn[..id_drawn_num] {
-        let effects_on_draw = state.entities[id_card].card_effects_on_draw;
-        for effect in effects_on_draw.iter().rev() {
-            state.effect_queue.push_front(Effect {
-                id_source: Some(id_card),
-                ..*effect
-            });
-        }
-    }
-
     // Confusion (Snecko Eye, Snecko's Glare): every drawn Card's cost re-rolls to [0, 3]
     if has_modifier(
         &state.entities[state.id_character].modifiers,
@@ -111,23 +101,19 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
                 continue;
             }
             let card_cost = card.card_cost;
-
-            // Roll new cost
-            let new_cost: u8 = state.rng.random_range(0..=3);
-
-            // `CostOverride` is cleared whether or not the roll changed anything
-            if matches!(
-                state.entities[id_card].card_cost_override,
+            let free_until_played = matches!(
+                card.card_cost_override,
                 Some(CostOverride {
                     scope: CostScope::UntilPlayed,
                     ..
                 })
-            ) {
-                state.entities[id_card].card_cost_override = None;
-            }
+            );
 
-            // Only push it if it's different from the original
-            if new_cost != card_cost {
+            // Roll new cost
+            let new_cost: u8 = state.rng.random_range(0..=3);
+
+            // A new cost drops every override; an unchanged one still drops the free play
+            if new_cost != card_cost || free_until_played {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::SetCostOverride {
                         amount: new_cost,
@@ -140,5 +126,26 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
                 });
             }
         }
+    }
+
+    // On-draw hooks see each Card as drawn: ahead of its re-roll and any reshuffle, the last-drawn Card's first
+    for &id_card in &id_drawn[..id_drawn_num] {
+        let effects_on_draw = state.entities[id_card].card_effects_on_draw;
+        for effect in effects_on_draw.iter().rev() {
+            state.effect_queue.push_front(Effect {
+                id_source: Some(id_card),
+                ..*effect
+            });
+        }
+    }
+
+    // Accuracy: drawing resets every Shiv in the hand
+    if id_drawn_num > 0
+        && has_modifier(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::Accuracy,
+        )
+    {
+        state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
     }
 }

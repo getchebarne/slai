@@ -3,7 +3,7 @@ use crate::cards::make_card_template;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_MONSTER_PICKED;
-use crate::effect::Target;
+use crate::effect::TARGET_SOURCE;
 use crate::entity::CardCostKind;
 use crate::entity::PlayRestriction;
 use crate::types::CardColor;
@@ -32,15 +32,13 @@ pub static ENDLESS_AGONY: CardTemplate = make_card_template(
         target: TARGET_MONSTER_PICKED,
     }],
     &[],
+    // Drawing it adds a copy of it, as drawn, to the hand
     &[Effect {
-        kind: EffectKind::CardAdd {
-            card_name: CardName::EndlessAgony,
+        kind: EffectKind::CardDuplicate {
             pile: CardPile::Hand,
-            count: 1,
-            upgraded: false,
         },
         id_source: None,
-        target: Target::Direct(None),
+        target: TARGET_SOURCE,
     }],
     PlayRestriction::Always,
 );
@@ -55,15 +53,5 @@ pub static ENDLESS_AGONY_PLUS: CardTemplate = CardTemplate {
         }; // +2 damage
         effects
     },
-    effects_on_draw: &[Effect {
-        kind: EffectKind::CardAdd {
-            card_name: CardName::EndlessAgony,
-            pile: CardPile::Hand,
-            count: 1,
-            upgraded: true,
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    }],
     ..ENDLESS_AGONY
 };

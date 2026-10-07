@@ -1,7 +1,10 @@
+use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::has_modifier;
 use crate::types::CardPile;
 use crate::types::Combat;
 use crate::types::CostScope;
@@ -40,7 +43,8 @@ pub fn process_effect_card_discover_pick(
             target: Target::Direct(Some(id_card)),
         });
     }
-    place_card(state, id_card, pile);
+    let placed = place_card(state, id_card, pile);
+    let mut landed_in_hand = placed && pile == CardPile::Hand;
 
     // Sacred Bark's second copy is a stat-equivalent clone, costed the same way
     for _ in 1..copies {
@@ -58,6 +62,17 @@ pub fn process_effect_card_discover_pick(
                 target: Target::Direct(Some(id_copy)),
             });
         }
-        place_card(state, id_copy, pile);
+        let placed = place_card(state, id_copy, pile);
+        landed_in_hand |= placed && pile == CardPile::Hand;
+    }
+
+    // Accuracy: a Card reaching the hand resets every Shiv in it
+    if landed_in_hand
+        && has_modifier(
+            &state.entities[state.id_character].modifiers,
+            ModifierKind::Accuracy,
+        )
+    {
+        state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
     }
 }

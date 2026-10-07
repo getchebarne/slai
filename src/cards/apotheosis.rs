@@ -19,7 +19,7 @@ const fn upgrade_all(pool: CandidatePool) -> Effect {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: pool,
-            filter: CandidateFilter::Any,
+            filter: CandidateFilter::Upgradeable,
             selection_kind: SelectionKind::All,
         },
     }

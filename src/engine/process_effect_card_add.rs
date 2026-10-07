@@ -1,13 +1,13 @@
 use crate::cards::get_card;
+use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_stacks;
+use crate::modifier::has_modifier;
 use crate::types::CardName;
 use crate::types::CardPile;
-use crate::utils::card_damage_delta;
 use crate::utils::place_card;
 use crate::utils::push_entity;
 
@@ -32,22 +32,29 @@ pub fn process_effect_card_add(
         return;
     }
 
-    // Accuracy: Shivs gain +stacks damage
-    let accuracy_stacks = if card_name == CardName::Shiv && state.combat.active {
-        modifier_stacks(
-            &state.entities[state.id_character].modifiers,
-            ModifierKind::Accuracy,
-        )
-    } else {
-        0
-    };
-
+    let has_accuracy = has_modifier(
+        &state.entities[state.id_character].modifiers,
+        ModifierKind::Accuracy,
+    );
+    let mut landed_in_hand = false;
     for _ in 0..count {
         let card = get_card(card_name, upgraded);
         let id_card = push_entity(&mut state.entities, card);
-        if accuracy_stacks != 0 {
-            card_damage_delta(&mut state.entities[id_card], accuracy_stacks);
+        let placed = place_card(state, id_card, pile);
+        landed_in_hand |= placed && pile == CardPile::Hand;
+
+        // Accuracy: a new Shiv starts at its printed damage plus Accuracy, wherever it lands
+        if has_accuracy && card_name == CardName::Shiv {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::AccuracyResync,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
         }
-        place_card(state, id_card, pile);
+    }
+
+    // Accuracy: a Card reaching the hand resets every Shiv in it
+    if landed_in_hand && has_accuracy {
+        state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
     }
 }
