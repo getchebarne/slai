@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Unspent energy carries over between turns
 // See:
-//    - `process_effect_turn_start.rs`
+//    - `process_effect_turn_start_character.rs`
 pub static ICE_CREAM: RelicTemplate = RelicTemplate {
     name: RelicName::IceCream,
     tier: RelicTier::Rare,

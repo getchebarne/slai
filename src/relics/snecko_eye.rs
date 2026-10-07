@@ -7,7 +7,7 @@ use crate::types::RelicName;
 use crate::types::RelicTier;
 
 // See:
-//    - `process_effect_turn_start.rs` (the +2 hand size)
+//    - `process_effect_turn_start_character.rs` (the +2 hand size)
 pub static SNECKO_EYE: RelicTemplate = RelicTemplate {
     name: RelicName::SneckoEye,
     tier: RelicTier::Boss,

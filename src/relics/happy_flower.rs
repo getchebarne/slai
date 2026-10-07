@@ -8,7 +8,7 @@ use crate::types::RelicTier;
 
 // Every 3rd turn start grants 1 energy; counter persists across combats
 // See:
-//    - `process_effect_turn_start.rs`
+//    - `process_effect_turn_start_character.rs`
 pub static HAPPY_FLOWER: RelicTemplate = RelicTemplate {
     name: RelicName::HappyFlower,
     tier: RelicTier::Common,

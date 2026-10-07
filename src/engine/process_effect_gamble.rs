@@ -32,7 +32,7 @@ pub fn process_effect_gamble(
                 return;
             }
             let before = *this_turn_discards;
-            // Draw phase runs after the picks; push_front reverses, so push it first
+            // Draw phase runs after the discards; push_front reverses, so push it first
             state.effect_queue.push_front(Effect {
                 kind: EffectKind::Gamble {
                     choose_discards,
@@ -41,23 +41,33 @@ pub fn process_effect_gamble(
                 id_source: None,
                 target: Target::Direct(None),
             });
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardDiscard {
-                    source: DiscardSource::Explicit, // Triggers on-discard sinergies
-                },
-                id_source: None,
-                target: Target::Resolve {
-                    candidate_pool: CandidatePool::Hand,
-                    filter: CandidateFilter::Any,
-                    selection_kind: if choose_discards {
-                        SelectionKind::InputUpTo {
-                            count: MAX_SIZE_HAND as u16,
-                        }
-                    } else {
-                        SelectionKind::All
+            if choose_discards {
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::CardDiscard {
+                        source: DiscardSource::Explicit, // Triggers on-discard sinergies
                     },
-                },
-            });
+                    id_source: None,
+                    target: Target::Resolve {
+                        candidate_pool: CandidatePool::Hand,
+                        filter: CandidateFilter::Any,
+                        selection_kind: SelectionKind::InputUpTo {
+                            count: MAX_SIZE_HAND as u16,
+                        },
+                    },
+                });
+                return;
+            }
+
+            // The whole hand leaves from the right, so the leftmost Card ends on top of the discard pile
+            for &id_card in id_card_hand.iter() {
+                state.effect_queue.push_front(Effect {
+                    kind: EffectKind::CardDiscard {
+                        source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_card)),
+                });
+            }
         }
         Some(before) => {
             let count = this_turn_discards.saturating_sub(before);

@@ -11,7 +11,7 @@ use crate::types::RelicTier;
 
 // At combat start, choose 1 of 3 colorless Cards to add to the hand
 // See:
-//    - `process_effect_turn_start.rs`
+//    - `process_effect_turn_start_character.rs`
 pub static TOOLBOX: RelicTemplate = RelicTemplate {
     name: RelicName::Toolbox,
     tier: RelicTier::Shop,

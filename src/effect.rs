@@ -78,6 +78,7 @@ pub enum EffectKind {
         turns: u8,
         damage: u16,
     },
+    BombTick,
     LifestealHeal,
     CardPlayRelocate {
         exhaust: bool,
@@ -185,7 +186,6 @@ pub enum EffectKind {
     ModifierRemove {
         kind: ModifierKind,
     },
-    ModifierSetNotNew,
     ModifierTick,
     MonsterEscape,
     MonsterRemove,
@@ -279,8 +279,13 @@ pub enum EffectKind {
     StrengthLoseTemp {
         stacks: i16,
     },
-    TurnEnd,
-    TurnStart,
+    TurnEndCharacter {
+        landing: bool, // The second pass, which TurnEndCharacter queues for itself
+    },
+    TurnEndMonster,
+    TurnMonsters,
+    TurnStartCharacter,
+    TurnStartMonster,
     UnloadDiscard,
     WheelSpin,
 }
