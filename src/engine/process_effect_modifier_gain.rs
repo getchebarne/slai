@@ -34,15 +34,19 @@ pub fn process_effect_modifier_gain(
         return;
     }
 
-    // Dodge and Roll freezes the Dex/Frail-adjusted block at play time
+    // Dodge and Roll freezes the Dex/Frail-adjusted block at play time; No Block freezes 0
     let stacks = if kind == ModifierKind::NextTurnBlock
         && stacks > 0
         && id_source.is_some_and(|id| state.entities[id].kind == EntityKind::Card)
     {
         let mods = &state.entities[state.id_character].modifiers;
-        let dex_stacks = modifier_stacks(mods, ModifierKind::Dexterity);
-        let is_frail = has_modifier(mods, ModifierKind::Frail);
-        scale_block_gain(stacks as u16, dex_stacks, is_frail) as i16
+        if has_modifier(mods, ModifierKind::NoBlock) {
+            0
+        } else {
+            let dex_stacks = modifier_stacks(mods, ModifierKind::Dexterity);
+            let is_frail = has_modifier(mods, ModifierKind::Frail);
+            scale_block_gain(stacks as u16, dex_stacks, is_frail) as i16
+        }
     } else {
         stacks
     };
@@ -68,6 +72,13 @@ pub fn process_effect_modifier_gain(
         && stacks > 0
         && ((kind == ModifierKind::Weak && has_relic(&state.id_relics, RelicName::Ginger))
             || (kind == ModifierKind::Frail && has_relic(&state.id_relics, RelicName::Turnip)))
+    {
+        return;
+    }
+
+    // No Draw on a target already under it is refused outright, before Artifact is consumed
+    if kind == ModifierKind::NoDraw
+        && has_modifier(&state.entities[id_target].modifiers, ModifierKind::NoDraw)
     {
         return;
     }
@@ -141,8 +152,10 @@ pub fn process_effect_modifier_gain(
     }
 
     // Sadistic Nature: player-applied debuffs landing on a Monster proc THORNS-type damage
+    let from_monster = id_source.is_some_and(|id| state.entities[id].kind == EntityKind::Monster);
     if is_debuff_attempt
         && kind != ModifierKind::Shackled
+        && !from_monster
         && state.entities[id_target].kind == EntityKind::Monster
     {
         let mods_char = &state.entities[state.id_character].modifiers;
