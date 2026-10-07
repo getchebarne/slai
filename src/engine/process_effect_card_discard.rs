@@ -1,6 +1,7 @@
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
+use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -8,6 +9,8 @@ use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::has_modifier;
 use crate::types::Combat;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
@@ -120,5 +123,13 @@ pub fn process_effect_card_discard(
                 });
             }
         }
+    }
+
+    // Accuracy: a discard resets every Shiv in the hand
+    if has_modifier(
+        &state.entities[state.id_character].modifiers,
+        ModifierKind::Accuracy,
+    ) {
+        state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
     }
 }

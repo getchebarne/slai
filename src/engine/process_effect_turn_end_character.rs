@@ -345,7 +345,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         });
     }
 
-    // Ethereal Cards exhaust first, in random order; Cards drawn after this point stay in hand
+    // Ethereal Cards exhaust first, in random order, each spending its free play; Cards drawn after this point stay in hand
     let mut id_ethereal: Vec<usize> = id_card_hand
         .iter()
         .copied()
@@ -355,6 +355,11 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     for id_card in id_ethereal {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardExhaust,
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::CardFreePlaySpend,
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });

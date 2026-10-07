@@ -13,8 +13,6 @@ pub fn process_effect_monster_remove(id_target: Option<usize>, state: &mut GameS
     let Combat {
         id_monsters,
         id_card_stasis,
-        id_card_hand,
-        id_card_discard,
         ..
     } = &mut state.combat;
     let id_target = id_target.expect("MonsterRemove requires id_target");
@@ -28,8 +26,6 @@ pub fn process_effect_monster_remove(id_target: Option<usize>, state: &mut GameS
         release_stasis_card(
             slot,
             id_card_stasis,
-            id_card_hand,
-            id_card_discard,
             &state.entities,
             &mut state.effect_queue,
         );

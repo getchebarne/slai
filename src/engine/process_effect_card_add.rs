@@ -5,11 +5,10 @@ use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::modifier_stacks;
+use crate::modifier::has_modifier;
 use crate::types::CardName;
 use crate::types::CardPile;
-use crate::utils::card_damage_delta;
-use crate::utils::place_card;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_add(
@@ -33,31 +32,38 @@ pub fn process_effect_card_add(
         return;
     }
 
-    // Accuracy: Shivs gain +stacks damage
-    let accuracy_stacks = if card_name == CardName::Shiv && state.combat.active {
-        modifier_stacks(
-            &state.entities[state.id_character].modifiers,
-            ModifierKind::Accuracy,
-        )
-    } else {
-        0
-    };
-
+    // The Cards enter their pile in creation order
+    let has_accuracy = has_modifier(
+        &state.entities[state.id_character].modifiers,
+        ModifierKind::Accuracy,
+    );
+    state.effect_buf.clear();
     for _ in 0..count {
         let card = get_card(card_name, upgraded);
         let id_card = push_entity(&mut state.entities, card);
-        if accuracy_stacks != 0 {
-            card_damage_delta(&mut state.entities[id_card], accuracy_stacks);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardPlace { pile },
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
+
+        // Accuracy: a new Shiv starts at its printed damage plus Accuracy, wherever it lands
+        if has_accuracy && card_name == CardName::Shiv {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::AccuracyResync,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
         }
-        place_card(state, id_card, pile);
 
         // A created Eviscerate starts its cost this turn at its combat cost less this turn's discards
         if card.card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
-            state.effect_queue.push_front(Effect {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::CardCostMinusDiscards,
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             });
         }
     }
+    flush_effects_from_buf_to_queue_front(state);
 }

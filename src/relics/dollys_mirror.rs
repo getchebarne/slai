@@ -5,6 +5,7 @@ use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::relics::RelicTemplate;
+use crate::types::CardPile;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
@@ -21,7 +22,9 @@ pub static DOLLYS_MIRROR: RelicTemplate = RelicTemplate {
     effects_turn_end: &[],
     effects_combat_end: &[],
     effects_pickup: &[Effect {
-        kind: EffectKind::CardDuplicate,
+        kind: EffectKind::CardDuplicate {
+            pile: CardPile::Deck,
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,

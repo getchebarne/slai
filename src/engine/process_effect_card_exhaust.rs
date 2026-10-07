@@ -1,8 +1,11 @@
 use crate::cards::get_random_card_names;
+use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::has_modifier;
 use crate::types::CardColor;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -64,5 +67,13 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
             id_source: None,
             target: Target::Direct(None),
         });
+    }
+
+    // Accuracy: an exhaust resets every Shiv in the hand
+    if has_modifier(
+        &state.entities[state.id_character].modifiers,
+        ModifierKind::Accuracy,
+    ) {
+        state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
     }
 }

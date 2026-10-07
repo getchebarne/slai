@@ -347,31 +347,33 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
     }
 }
 
-// Vacating a roster slot frees its Stasis hostage; mirrors place_card's hand-overflow rule
+// Vacating a roster slot sends its Stasis hostage back to the hand
 pub fn release_stasis_card(
     slot: usize,
     id_card_stasis: &mut [Option<usize>; MAX_MONSTERS],
-    id_card_hand: &mut Vec<usize>,
-    id_card_discard: &mut Vec<usize>,
     entities: &[Entity],
     effect_queue: &mut VecDeque<Effect>,
 ) {
-    if let Some(id_card) = id_card_stasis[slot].take() {
-        if id_card_hand.len() < MAX_SIZE_HAND {
-            id_card_hand.push(id_card);
-        } else {
-            id_card_discard.push(id_card);
-        }
+    let Some(id_card) = id_card_stasis[slot].take() else {
+        return;
+    };
 
-        // A returned Eviscerate restarts its cost this turn at its combat cost less this turn's discards
-        if entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
-            effect_queue.push_front(Effect {
-                kind: EffectKind::CardCostMinusDiscards,
-                id_source: None,
-                target: Target::Direct(Some(id_card)),
-            });
-        }
+    // A returned Eviscerate restarts its cost this turn at its combat cost less this turn's discards
+    if entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
+        effect_queue.push_front(Effect {
+            kind: EffectKind::CardCostMinusDiscards,
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
     }
+
+    effect_queue.push_front(Effect {
+        kind: EffectKind::CardPlace {
+            pile: CardPile::Hand,
+        },
+        id_source: None,
+        target: Target::Direct(Some(id_card)),
+    });
 }
 
 pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool {

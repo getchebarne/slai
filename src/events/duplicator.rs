@@ -10,11 +10,14 @@ use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
+use crate::types::CardPile;
 
 // Pray
 const OPTION_PRAY: &[Effect] = &[
     Effect {
-        kind: EffectKind::CardDuplicate,
+        kind: EffectKind::CardDuplicate {
+            pile: CardPile::Deck,
+        },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,

@@ -1,4 +1,5 @@
 pub mod process_card_play;
+pub mod process_effect_accuracy_resync;
 pub mod process_effect_act_transition;
 pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
@@ -19,9 +20,11 @@ pub mod process_effect_card_draw_if_no_attacks;
 pub mod process_effect_card_draw_up_to;
 pub mod process_effect_card_duplicate;
 pub mod process_effect_card_exhaust;
+pub mod process_effect_card_free_play_spend;
 pub mod process_effect_card_move;
 pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
+pub mod process_effect_card_place;
 pub mod process_effect_card_play_from_draw_top;
 pub mod process_effect_card_play_relocate;
 pub mod process_effect_card_purge;
@@ -114,6 +117,7 @@ pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
 use self::process_card_play::process_card_play;
+use self::process_effect_accuracy_resync::process_effect_accuracy_resync;
 use self::process_effect_act_transition::process_effect_act_transition;
 use self::process_effect_adventurer_search::process_effect_adventurer_search;
 use self::process_effect_block_gain::process_effect_block_gain;
@@ -134,9 +138,11 @@ use self::process_effect_card_draw_if_no_attacks::process_effect_card_draw_if_no
 use self::process_effect_card_draw_up_to::process_effect_card_draw_up_to;
 use self::process_effect_card_duplicate::process_effect_card_duplicate;
 use self::process_effect_card_exhaust::process_effect_card_exhaust;
+use self::process_effect_card_free_play_spend::process_effect_card_free_play_spend;
 use self::process_effect_card_move::process_effect_card_move;
 use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick;
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
+use self::process_effect_card_place::process_effect_card_place;
 use self::process_effect_card_play_from_draw_top::process_effect_card_play_from_draw_top;
 use self::process_effect_card_play_relocate::process_effect_card_play_relocate;
 use self::process_effect_card_purge::process_effect_card_purge;
@@ -501,6 +507,7 @@ fn dispatch_by_kind(
         }
         EffectKind::CardNightmarePick => process_effect_card_nightmare_pick(id_target, state),
         EffectKind::CardNightmareSpawn => process_effect_card_nightmare_spawn(state),
+        EffectKind::CardPlace { pile } => process_effect_card_place(id_target, state, pile),
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
         EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(id_target, state),
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
@@ -517,12 +524,14 @@ fn dispatch_by_kind(
         EffectKind::CardCostMinusDiscards => {
             process_effect_card_cost_minus_discards(id_target, state)
         }
+        EffectKind::CardFreePlaySpend => process_effect_card_free_play_spend(id_target, state),
         EffectKind::GiryaLift => process_effect_girya_lift(state),
         EffectKind::SingingBowlProc { idx_bundle } => {
             process_effect_singing_bowl_proc(state, idx_bundle)
         }
         EffectKind::WheelSpin => process_effect_wheel_spin(state),
         EffectKind::CardUpgrade => process_effect_card_upgrade(id_target, state),
+        EffectKind::AccuracyResync => process_effect_accuracy_resync(id_target, state),
         EffectKind::RewardRollCards { bundles, trigger } => {
             process_effect_reward_roll_cards(state, bundles, trigger)
         }
@@ -647,7 +656,7 @@ fn dispatch_by_kind(
         EffectKind::GoldDelta { sign, amount } => process_effect_gold_delta(state, sign, amount),
         EffectKind::RoomSelect => process_effect_room_select(id_target, state),
         EffectKind::CardPurge => process_effect_card_purge(id_target, state),
-        EffectKind::CardDuplicate => process_effect_card_duplicate(id_target, state),
+        EffectKind::CardDuplicate { pile } => process_effect_card_duplicate(id_target, state, pile),
         EffectKind::CardTransform { upgraded } => {
             process_effect_card_transform(id_target, state, upgraded)
         }

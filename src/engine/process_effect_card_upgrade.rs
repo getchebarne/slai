@@ -10,7 +10,7 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
     let id_target = id_target.expect("CardUpgrade requires id_target");
     let card = state.entities[id_target];
 
-    // Early return if already upgraded (e.g., Apotheosis)
+    // A Card is upgraded at most once
     if card.card_upgraded {
         return;
     }
