@@ -6,25 +6,9 @@ use crate::relics::get_relic;
 use crate::types::RelicName;
 use crate::utils::push_entity;
 
-pub fn process_effect_relic_grant_specific(
-    state: &mut GameState,
-    name: RelicName,
-    fallback_circlet: bool,
-) {
-    let owns_target = state.id_relics[name as usize].is_some();
-    let target = match (owns_target, fallback_circlet) {
-        (false, _) => name,
-        (true, true) => RelicName::Circlet,
-        (true, false) => return,
-    };
-
-    // An owned Circlet goes on to the adopt, which counts it
-    if target != RelicName::Circlet && state.id_relics[target as usize].is_some() {
-        return;
-    }
-
+pub fn process_effect_relic_grant_specific(state: &mut GameState, name: RelicName) {
     // Push
-    let id_relic = push_entity(&mut state.entities, get_relic(target));
+    let id_relic = push_entity(&mut state.entities, get_relic(name));
     state.effect_queue.push_front(Effect {
         kind: EffectKind::RelicAdopt,
         id_source: None,

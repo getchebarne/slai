@@ -6,6 +6,8 @@ use crate::potions::belt_has_room;
 use crate::potions::get_potion;
 use crate::potions::get_random_potion_name;
 use crate::potions::get_random_potion_name_uniform;
+use crate::types::RelicName;
+use crate::utils::has_relic;
 use crate::utils::push_entity;
 
 pub fn process_effect_potion_add_random(state: &mut GameState, limited: bool, uniform: bool) {
@@ -21,7 +23,8 @@ pub fn process_effect_potion_add_random(state: &mut GameState, limited: bool, un
     };
 
     // Push
-    let id_potion = push_entity(&mut state.entities, get_potion(name));
+    let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
+    let id_potion = push_entity(&mut state.entities, get_potion(name, sacred_bark));
     state.effect_queue.push_front(Effect {
         kind: EffectKind::PotionAdopt,
         id_source: None,

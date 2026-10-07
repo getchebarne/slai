@@ -10,6 +10,7 @@ pub static STRENGTH: PotionTemplate = PotionTemplate {
     name: PotionName::Strength,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Strength,
@@ -18,4 +19,17 @@ pub static STRENGTH: PotionTemplate = PotionTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
+};
+// Doubled
+pub static STRENGTH_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Strength,
+            stacks: 4,
+        },
+        id_source: None,
+        target: TARGET_CHARACTER,
+    }],
+    ..STRENGTH
 };

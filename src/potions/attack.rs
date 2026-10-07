@@ -3,6 +3,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::potions::EFFECT_CARD_DISCOVER_PICK;
+use crate::potions::EFFECT_CARD_DISCOVER_PICK_DOUBLED;
 use crate::potions::PotionTemplate;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -13,6 +14,7 @@ pub static ATTACK: PotionTemplate = PotionTemplate {
     name: PotionName::Attack,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[
         Effect {
             kind: EffectKind::CardDiscoverRoll {
@@ -26,4 +28,22 @@ pub static ATTACK: PotionTemplate = PotionTemplate {
         },
         EFFECT_CARD_DISCOVER_PICK,
     ],
+};
+// Doubled
+pub static ATTACK_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[
+        Effect {
+            kind: EffectKind::CardDiscoverRoll {
+                kind: Some(CardKind::Attack),
+                color: CardColor::Green,
+                exclude: &[],
+                count: DISCOVER_PICK_COUNT,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+        EFFECT_CARD_DISCOVER_PICK_DOUBLED,
+    ],
+    ..ATTACK
 };

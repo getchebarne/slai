@@ -10,6 +10,7 @@ pub static ENTROPIC_BREW: PotionTemplate = PotionTemplate {
     name: PotionName::EntropicBrew,
     rarity: PotionRarity::Rare,
     combat_only: false,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::PotionAddRandom {
             limited: true,

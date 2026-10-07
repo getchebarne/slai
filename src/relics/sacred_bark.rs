@@ -2,9 +2,10 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Potion effects are doubled (discover Potions excluded)
+// Potions made while Bark is held, or in the belt when it is picked up, are their doubled variant for good
 // See:
-//    - `process_effect_potion_use.rs`
+//    - `potions/mod.rs`
+//    - `process_effect_relic_adopt.rs`
 pub static SACRED_BARK: RelicTemplate = RelicTemplate {
     name: RelicName::SacredBark,
     tier: RelicTier::Boss,

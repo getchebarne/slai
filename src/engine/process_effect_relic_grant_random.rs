@@ -27,10 +27,7 @@ pub fn process_effect_relic_grant_random(
     });
     let name = draw_relic_excluding(state, tier, exclusion);
 
-    // Exhausted pools fall back to a possibly owned Circlet
-    if state.id_relics[name as usize].is_some() {
-        return;
-    }
+    // Exhausted pools fall back to Circlet, which the adopt counts on one already held
     let id = push_entity(&mut state.entities, get_relic(name));
     state.effect_queue.push_front(Effect {
         kind: EffectKind::RelicAdopt,

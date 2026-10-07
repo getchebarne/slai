@@ -39,6 +39,7 @@ pub struct PyPotion {
     pub rarity: PyPotionRarity,
     pub requires_target: bool,
     pub combat_only: bool,
+    pub doubled: bool,
     pub effects: Vec<PyEffect>,
 }
 
@@ -49,6 +50,7 @@ pub(crate) fn snapshot_potion(id: usize, entity: &Entity) -> PyPotion {
         rarity: entity.potion_rarity.into(),
         requires_target: entity_requires_target(entity),
         combat_only: entity.potion_combat_only,
+        doubled: entity.potion_doubled,
         effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
     }
 }

@@ -615,7 +615,9 @@ fn dispatch_by_kind(
             process_effect_move_update(id_target, state, move_override)
         }
         EffectKind::MoveExecute => process_effect_move_execute(id_target, state),
-        EffectKind::RoomEnter => process_effect_room_enter(state),
+        EffectKind::RoomEnter { location, landing } => {
+            process_effect_room_enter(state, location, landing)
+        }
         EffectKind::MonsterSpawn { name, minion, slot } => {
             process_effect_monster_spawn(state, name, minion, slot)
         }
@@ -674,10 +676,7 @@ fn dispatch_by_kind(
         EffectKind::RelicGrantRandom { tier, exclusion } => {
             process_effect_relic_grant_random(state, tier, exclusion)
         }
-        EffectKind::RelicGrantSpecific {
-            name,
-            fallback_circlet,
-        } => process_effect_relic_grant_specific(state, name, fallback_circlet),
+        EffectKind::RelicGrantSpecific { name } => process_effect_relic_grant_specific(state, name),
         EffectKind::RelicLose => process_effect_relic_lose(id_target, state),
         EffectKind::RelicAdopt => process_effect_relic_adopt(id_target, state),
         EffectKind::EventAdvanceState { delta } => process_effect_event_advance_state(state, delta),

@@ -48,7 +48,6 @@ const OPTION_MUTAGENS: [Effect; 2] = [
     Effect {
         kind: EffectKind::RelicGrantSpecific {
             name: RelicName::MutagenicStrength,
-            fallback_circlet: true,
         },
         id_source: None,
         target: Target::Direct(None),

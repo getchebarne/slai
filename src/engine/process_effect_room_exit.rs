@@ -13,7 +13,13 @@ use crate::utils::context_focus;
 pub fn process_effect_room_exit(state: &mut GameState) {
     // Close the focused context
     match context_focus(state) {
-        Focus::Reward => state.reward.active = false,
+        Focus::Reward => {
+            // A boss chest left with its pick untaken closes again, holding the same Relics
+            if state.reward.relics_exclusive && !state.reward.id_relics.is_empty() {
+                state.chest.chest_opened = false;
+            }
+            state.reward.active = false;
+        }
         Focus::Combat => unreachable!("RoomExit during combat"),
         Focus::Shop => state.shop.active = false,
         Focus::Chest => state.chest.active = false,
@@ -28,14 +34,28 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         return;
     }
 
-    // Exiting a mid-run Boss Room starts the next act
-    if matches!(state.location, Location::BossRoom) && state.act < ACT_FINAL {
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::ActTransition,
-            id_source: None,
-            target: Target::Direct(None),
-        });
-        return;
+    // A mid-run Boss Room opens onto its treasure Room, whose exit starts the next act
+    match state.location {
+        Location::BossRoom if state.act < ACT_FINAL => {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::RoomEnter {
+                    location: Location::BossTreasure,
+                    landing: false,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            return;
+        }
+        Location::BossTreasure => {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::ActTransition,
+                id_source: None,
+                target: Target::Direct(None),
+            });
+            return;
+        }
+        _ => {}
     }
 
     // Final-row rest Room enters the boss instead of returning to the map
@@ -43,9 +63,11 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
             == Some(RoomKind::RestSite)
     {
-        state.location = Location::BossRoom;
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::RoomEnter,
+            kind: EffectKind::RoomEnter {
+                location: Location::BossRoom,
+                landing: false,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

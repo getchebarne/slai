@@ -14,6 +14,7 @@ pub static LIQUID_MEMORIES: PotionTemplate = PotionTemplate {
     name: PotionName::LiquidMemories,
     rarity: PotionRarity::Uncommon,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::CardMove {
             pile: CardPile::Hand,
@@ -26,4 +27,21 @@ pub static LIQUID_MEMORIES: PotionTemplate = PotionTemplate {
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
+};
+// Doubled
+pub static LIQUID_MEMORIES_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::CardMove {
+            pile: CardPile::Hand,
+            cost_zero: Some(CostScope::Turn),
+        },
+        id_source: None,
+        target: Target::Resolve {
+            candidate_pool: CandidatePool::PileDiscard,
+            filter: CandidateFilter::Any,
+            selection_kind: SelectionKind::Input { count: 2 },
+        },
+    }],
+    ..LIQUID_MEMORIES
 };

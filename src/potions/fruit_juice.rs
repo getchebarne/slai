@@ -12,6 +12,7 @@ pub static FRUIT_JUICE: PotionTemplate = PotionTemplate {
     name: PotionName::FruitJuice,
     rarity: PotionRarity::Rare,
     combat_only: false,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: DeltaSign::Gain,
@@ -20,4 +21,17 @@ pub static FRUIT_JUICE: PotionTemplate = PotionTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
+};
+// Doubled
+pub static FRUIT_JUICE_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::MaxHealthDelta {
+            sign: DeltaSign::Gain,
+            amount: Amount::Absolute(10),
+        },
+        id_source: None,
+        target: TARGET_CHARACTER,
+    }],
+    ..FRUIT_JUICE
 };

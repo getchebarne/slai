@@ -1,5 +1,6 @@
 use rand::Rng;
 
+use crate::consts::BOSS_RELIC_REWARD_COUNT;
 use crate::consts::CHEST_SMALL_PCT;
 use crate::consts::CHEST_SMALL_PLUS_MEDIUM_PCT;
 use crate::consts::EVENT_SPECIAL_CHANCE;
@@ -10,6 +11,7 @@ use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
 use crate::effect::Target;
 use crate::events::BEGGAR_COST_PURGE;
 use crate::events::spawn_event;
@@ -18,36 +20,43 @@ use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::monsters::encounters::generate_act_elites;
 use crate::monsters::encounters::spawn_encounter_monsters;
+use crate::relics::get_relic;
 use crate::relics::iter_owned_relics;
 use crate::types::ChestKind;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::RelicName;
+use crate::types::RelicTier;
 use crate::types::RoomKind;
+use crate::utils::draw_relic_excluding;
 use crate::utils::filter_candidates;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::push_entity;
 
-pub fn process_effect_room_enter(state: &mut GameState) {
-    // Maw Bank: 12 gold on every Room entry until deactivated
-    if let Some(id) = state.id_relics[RelicName::MawBank as usize]
-        && !state.entities[id].relic_used_up
-    {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::GoldDelta {
-                sign: DeltaSign::Gain,
-                amount: Amount::Absolute(12),
-            },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
+pub fn process_effect_room_enter(state: &mut GameState, location: Location, landing: bool) {
+    state.location = location;
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
-    let room_kind_resolved = if room_kind == RoomKind::Unknown {
+
+    // The entry Relics pay out first, so everything the Room generates sees their gold
+    if !landing {
+        // Maw Bank: 12 gold on every Room entry until deactivated
+        if let Some(id) = state.id_relics[RelicName::MawBank as usize]
+            && !state.entities[id].relic_used_up
+        {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::GoldDelta {
+                    sign: DeltaSign::Gain,
+                    amount: Amount::Absolute(12),
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+        }
+
         // Ssserpent Head: gain 50 gold on entering a "?" Room, whatever it resolves to
-        if has_relic(&state.id_relics, RelicName::SsserpentHead) {
-            state.effect_queue.push_back(Effect {
+        if room_kind == RoomKind::Unknown && has_relic(&state.id_relics, RelicName::SsserpentHead) {
+            state.effect_buf.push(Effect {
                 kind: EffectKind::GoldDelta {
                     sign: DeltaSign::Gain,
                     amount: Amount::Absolute(50),
@@ -56,7 +65,20 @@ pub fn process_effect_room_enter(state: &mut GameState) {
                 target: Target::Direct(None),
             });
         }
+        state.effect_buf.push(Effect {
+            kind: EffectKind::RoomEnter {
+                location,
+                landing: true,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+        flush_effects_from_buf_to_queue_front(state);
+        return;
+    }
 
+    // A "?" (Unknown) node resolves into a concrete kind on entry via drifting odds
+    let room_kind_resolved = if room_kind == RoomKind::Unknown {
         // The recorded kind is still the Room just left; this entry overwrites it below
         let left_shop = state.room_kind_resolved == Some(RoomKind::Shop);
         roll_unknown_room(state, left_shop)
@@ -119,15 +141,26 @@ pub fn process_effect_room_enter(state: &mut GameState) {
             }
         }
         RoomKind::Treasure => {
-            // Roll the chest kind into the context
-            let roll = state.rng.random_range(0..100) as u8;
-            state.chest.chest_kind = if roll < CHEST_SMALL_PCT {
-                ChestKind::Small
-            } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
-                ChestKind::Medium
+            // The Boss Room's treasure is the boss chest, holding three Boss Relics; any other rolls its kind
+            state.chest.id_relics.clear();
+            if state.location == Location::BossTreasure {
+                for _ in 0..BOSS_RELIC_REWARD_COUNT {
+                    let name =
+                        draw_relic_excluding(state, RelicTier::Boss, RelicExclusion::Unfiltered);
+                    let id_relic = push_entity(&mut state.entities, get_relic(name));
+                    state.chest.id_relics.push(id_relic);
+                }
+                state.chest.chest_kind = ChestKind::Boss;
             } else {
-                ChestKind::Large
-            };
+                let roll = state.rng.random_range(0..100) as u8;
+                state.chest.chest_kind = if roll < CHEST_SMALL_PCT {
+                    ChestKind::Small
+                } else if roll < CHEST_SMALL_PLUS_MEDIUM_PCT {
+                    ChestKind::Medium
+                } else {
+                    ChestKind::Large
+                };
+            }
             state.chest.chest_opened = false;
             state.chest.active = true;
         }

@@ -2,6 +2,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::modifier::ModifierKind;
+use crate::modifier::has_modifier;
 use crate::types::Combat;
 use crate::utils::release_stasis_card;
 
@@ -27,6 +29,11 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
         release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
     }
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
+
+    // A thief's escape lets a later Smoke Bomb keep the reward
+    if has_modifier(&state.entities[id_target].modifiers, ModifierKind::Thievery) {
+        state.combat.this_combat_thief_escaped = true;
+    }
 
     // A fight counts as escaped only if no Monster is left and none fell in battle
     if !any_alive && !state.combat.this_combat_monster_died {

@@ -9,6 +9,7 @@ pub static GAMBLERS_BREW: PotionTemplate = PotionTemplate {
     name: PotionName::GamblersBrew,
     rarity: PotionRarity::Uncommon,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::Gamble {
             choose_discards: true,

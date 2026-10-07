@@ -21,7 +21,6 @@ const OPTION_RUMMAGE: &[Effect] = &[
     Effect {
         kind: EffectKind::RelicGrantSpecific {
             name: RelicName::WarpedTongs,
-            fallback_circlet: false,
         },
         id_source: None,
         target: Target::Direct(None),

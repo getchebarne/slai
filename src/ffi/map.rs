@@ -84,7 +84,7 @@ pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
     let (y_current, x_current) = match state.location {
         Location::Start => (None, None),
         Location::Overworld { y, x } => (Some(y), Some(x)),
-        Location::BossRoom => (Some(MAP_HEIGHT), Some(0)),
+        Location::BossRoom | Location::BossTreasure => (Some(MAP_HEIGHT), Some(0)),
     };
     PyMap {
         rooms,

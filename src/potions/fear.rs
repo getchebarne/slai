@@ -10,6 +10,7 @@ pub static FEAR: PotionTemplate = PotionTemplate {
     name: PotionName::Fear,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Vulnerable,
@@ -18,4 +19,17 @@ pub static FEAR: PotionTemplate = PotionTemplate {
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
+};
+// Doubled
+pub static FEAR_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Vulnerable,
+            stacks: 6,
+        },
+        id_source: None,
+        target: TARGET_MONSTER_PICKED,
+    }],
+    ..FEAR
 };

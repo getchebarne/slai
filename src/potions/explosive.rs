@@ -9,6 +9,7 @@ pub static EXPLOSIVE: PotionTemplate = PotionTemplate {
     name: PotionName::Explosive,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::DamageDeal {
             amount: 10,
@@ -17,4 +18,17 @@ pub static EXPLOSIVE: PotionTemplate = PotionTemplate {
         id_source: None,
         target: TARGET_MONSTERS_ALL,
     }],
+};
+// Doubled
+pub static EXPLOSIVE_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::DamageDeal {
+            amount: 20,
+            lifesteal: false,
+        },
+        id_source: None,
+        target: TARGET_MONSTERS_ALL,
+    }],
+    ..EXPLOSIVE
 };

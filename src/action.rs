@@ -1,6 +1,8 @@
 use crate::consts::GIRYA_LIFT_MAX;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
+use crate::consts::RELIC_TIER_TH_COMMON;
+use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -9,6 +11,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::effect::RelicExclusion;
+use crate::effect::RelicPick;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::event_option_available;
@@ -78,6 +81,7 @@ pub enum Action {
         idx_card: usize,
     },
     RewardTakeGold,
+    RewardTakeGoldStolen,
     RewardTakePotion {
         idx: usize,
     },
@@ -136,6 +140,7 @@ pub fn handle_action(state: &mut GameState, action: Action) -> Result<(), String
             idx_card,
         } => handle_reward_take(state, RewardKind::Card, idx_bundle, idx_card),
         Action::RewardTakeGold => handle_reward_take(state, RewardKind::Gold, 0, 0),
+        Action::RewardTakeGoldStolen => handle_reward_take(state, RewardKind::GoldStolen, 0, 0),
         Action::RewardTakePotion { idx } => handle_reward_take(state, RewardKind::Potion, 0, idx),
         Action::RewardTakeRelic { idx } => handle_reward_take(state, RewardKind::Relic, 0, idx),
         Action::RoomExit => handle_room_exit(state),
@@ -470,17 +475,21 @@ fn handle_rest_smith(state: &mut GameState) {
     push_rest_site_consume(state);
 }
 
-// Shovel: spend the rest on a random Relic (granted directly, not staged)
+// Shovel: spend the rest on a random Relic, staged as a reward the player may leave
 fn handle_rest_dig(state: &mut GameState) {
+    // Consume first: the staged Reward overlays the site until RoomExit
+    push_rest_site_consume(state);
     state.effect_buf.push(Effect {
-        kind: EffectKind::RelicGrantRandom {
-            tier: None,
+        kind: EffectKind::RewardRollRelic {
+            pick: RelicPick::Thresholds {
+                th_common: RELIC_TIER_TH_COMMON,
+                th_uncommon: RELIC_TIER_TH_UNCOMMON,
+            },
             exclusion: RelicExclusion::Unfiltered,
         },
         id_source: None,
         target: Target::Direct(None),
     });
-    push_rest_site_consume(state);
 }
 
 // Singing Bowl: forfeit one Card bundle for +2 max HP
@@ -494,14 +503,14 @@ fn handle_reward_singing_bowl(state: &mut GameState, idx_bundle: usize) {
     });
 }
 
-// One processor handles all four kinds; the action layer only resolves idx -> id
+// One processor handles every kind; the action layer only resolves idx -> id
 fn handle_reward_take(state: &mut GameState, kind: RewardKind, idx_bundle: usize, idx: usize) {
     assert!(state.reward.active, "RewardTake outside the Reward context");
     let id_taken = match kind {
         RewardKind::Card => Some(state.reward.id_cards[idx_bundle][idx]),
         RewardKind::Relic => Some(state.reward.id_relics[idx]),
         RewardKind::Potion => Some(state.reward.id_potions[idx]),
-        RewardKind::Gold => None,
+        RewardKind::Gold | RewardKind::GoldStolen => None,
     };
     state.effect_buf.push(Effect {
         kind: EffectKind::RewardTake { kind },
@@ -524,7 +533,9 @@ fn handle_room_select(state: &mut GameState, idx: usize) {
     let y_next = match state.location {
         Location::Start => 0,
         Location::Overworld { y, .. } => y + 1,
-        Location::BossRoom => unreachable!("RoomSelect not enumerated from the boss room"),
+        Location::BossRoom | Location::BossTreasure => {
+            unreachable!("RoomSelect not enumerated from the boss rooms")
+        }
     };
     let id_room = state.id_rooms[y_next][idx].expect("Enumerated room exists");
     state.effect_buf.push(Effect {
@@ -658,6 +669,7 @@ fn fill_legal_actions_reward(state: &mut GameState) {
         id_relics,
         id_potions,
         gold,
+        gold_stolen,
         ..
     } = &state.reward;
 
@@ -694,6 +706,9 @@ fn fill_legal_actions_reward(state: &mut GameState) {
     }
     if gold.is_some() {
         state.legal_actions.push(Action::RewardTakeGold);
+    }
+    if gold_stolen.is_some() {
+        state.legal_actions.push(Action::RewardTakeGoldStolen);
     }
 
     // The Library's grid has no cancel button
@@ -869,7 +884,7 @@ fn push_room_select_actions(state: &mut GameState) {
                 }
             }
         }
-        Location::BossRoom => {}
+        Location::BossRoom | Location::BossTreasure => {}
     }
 }
 

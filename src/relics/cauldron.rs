@@ -7,7 +7,7 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// On purchase, brews 5 Potions staged as a reward over the shop
+// On purchase, brews 5 Potions staged as a reward over the shop; its Card roll is discarded
 // See:
 //    - `process_effect_relic_adopt.rs`
 pub static CAULDRON: RelicTemplate = RelicTemplate {
@@ -19,14 +19,24 @@ pub static CAULDRON: RelicTemplate = RelicTemplate {
     effects_turn_start: &[],
     effects_turn_end: &[],
     effects_combat_end: &[],
-    effects_pickup: &[Effect {
-        kind: EffectKind::RewardRollPotions {
-            count: CAULDRON_POTION_COUNT as u8,
-            trigger: RewardRollTrigger::Cauldron,
+    effects_pickup: &[
+        Effect {
+            kind: EffectKind::RewardRollPotions {
+                count: CAULDRON_POTION_COUNT as u8,
+                trigger: RewardRollTrigger::Cauldron,
+            },
+            id_source: None,
+            target: Target::Direct(None),
         },
-        id_source: None,
-        target: Target::Direct(None),
-    }],
+        Effect {
+            kind: EffectKind::RewardRollCards {
+                bundles: 1,
+                trigger: RewardRollTrigger::Cauldron,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        },
+    ],
     effects_rest: &[],
     effects_counter: &[],
 };

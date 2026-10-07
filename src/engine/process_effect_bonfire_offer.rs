@@ -31,7 +31,6 @@ pub fn process_effect_bonfire_offer(id_target: Option<usize>, state: &mut GameSt
         CardRarity::Curse => state.effect_queue.push_front(Effect {
             kind: EffectKind::RelicGrantSpecific {
                 name: RelicName::SpiritPoop,
-                fallback_circlet: true,
             },
             id_source: None,
             target: Target::Direct(None),

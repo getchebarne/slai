@@ -10,6 +10,7 @@ pub static STEROID: PotionTemplate = PotionTemplate {
     name: PotionName::Steroid,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[
         Effect {
             kind: EffectKind::ModifierGain {
@@ -28,4 +29,27 @@ pub static STEROID: PotionTemplate = PotionTemplate {
             target: TARGET_CHARACTER,
         },
     ],
+};
+// Doubled
+pub static STEROID_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[
+        Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Strength,
+                stacks: 10,
+            },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        },
+        Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::LoseStrength,
+                stacks: 10,
+            },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        },
+    ],
+    ..STEROID
 };

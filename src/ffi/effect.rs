@@ -5,6 +5,7 @@ use pyo3::type_object::PyTypeInfo;
 
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicPick;
 use crate::effect::Target;
 
 use super::amount::PyAmount;
@@ -28,8 +29,8 @@ use crate::effect::RewardRollTrigger;
 
 mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     CombatMonster, CombatElite, CombatBoss, EventFight, EventFightUnpaid, SmokeBomb, DreamCatcher,
-    Orrery, Library, Neow, NeowRare, NeowColorless, NeowColorlessRare, Cauldron, WomanInBlue, Lab,
-    TinyHouse,
+    Orrery, Library, Neow, NeowRare, NeowColorless, NeowColorlessRare, NeowPotions, Cauldron,
+    WomanInBlue, Lab, TinyHouse, CallingBell,
 });
 
 // Mirrors only EffectKind variants reachable from static Card/Monster defs; snapshot_effect panics on runtime-only variants
@@ -75,7 +76,7 @@ flat_variants!(PyEffect {
     MonsterSpawn => PyEffectMonsterSpawn as "EffectMonsterSpawn" { name: PyMonsterName },
     CombatStart => PyEffectCombatStart as "EffectCombatStart",
     AdventurerSearch => PyEffectAdventurerSearch as "EffectAdventurerSearch",
-    RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName, fallback_circlet: bool },
+    RelicGrantSpecific => PyEffectRelicGrantSpecific as "EffectRelicGrantSpecific" { name: PyRelicName },
     EventAdvanceState => PyEffectEventAdvanceState as "EffectEventAdvanceState" { delta: i8 },
     ScrapOozeReach => PyEffectScrapOozeReach as "EffectScrapOozeReach" { chance: u8, advance_on_miss: bool },
     EventConsume => PyEffectEventConsume as "EffectEventConsume",
@@ -108,6 +109,7 @@ flat_variants!(PyEffect {
     MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
     StasisSteal => PyEffectStasisSteal as "EffectStasisSteal",
     RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
+    RewardRollRelic => PyEffectRewardRollRelic as "EffectRewardRollRelic" { pool: Vec<PyRelicName> },
     DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
 });
 
@@ -205,6 +207,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::RelicGrantSpecific { .. }
                     | EffectKind::RewardRollCards { .. }
                     | EffectKind::RewardRollPotions { .. }
+                    | EffectKind::RewardRollRelic { .. }
                     | EffectKind::ScrapOozeReach { .. }
                     | EffectKind::SneakyStrikeProc { .. }
                     | EffectKind::StasisSteal
@@ -383,13 +386,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         }
         EffectKind::CombatStart { .. } => PyEffect::CombatStart(PyEffectCombatStart),
         EffectKind::AdventurerSearch => PyEffect::AdventurerSearch(PyEffectAdventurerSearch),
-        EffectKind::RelicGrantSpecific {
-            name,
-            fallback_circlet,
-        } => PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific {
-            name: name.into(),
-            fallback_circlet,
-        }),
+        EffectKind::RelicGrantSpecific { name } => {
+            PyEffect::RelicGrantSpecific(PyEffectRelicGrantSpecific { name: name.into() })
+        }
         EffectKind::EventAdvanceState { delta } => {
             PyEffect::EventAdvanceState(PyEffectEventAdvanceState { delta })
         }
@@ -528,6 +527,13 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 trigger: trigger.into(),
             })
         }
+        // Static defs stage only pool picks (Cursed Tome's book)
+        EffectKind::RewardRollRelic {
+            pick: RelicPick::Pool(pool),
+            ..
+        } => PyEffect::RewardRollRelic(PyEffectRewardRollRelic {
+            pool: pool.iter().map(|&relic_name| relic_name.into()).collect(),
+        }),
         EffectKind::DamageDeal { amount, lifesteal } => PyEffect::DamageDeal(PyEffectDamageDeal {
             amount,
             lifesteal,

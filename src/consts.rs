@@ -50,8 +50,8 @@ pub const ENERGY_CAP: u16 = 999;
 pub const MAX_COMBAT_CARD_REWARD: usize = 4;
 pub const CARD_REWARD_BASE_COUNT: usize = 3;
 
-// Most bundles a Reward frame can hold: Orrery's four
-pub const ORRERY_BUNDLE_COUNT: usize = 4;
+// Most bundles a Reward context can hold: Orrery's five
+pub const ORRERY_BUNDLE_COUNT: usize = 5;
 
 // Cauldron's brew, staged as Potion rewards
 pub const CAULDRON_POTION_COUNT: usize = 5;

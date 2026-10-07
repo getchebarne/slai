@@ -8,7 +8,9 @@ use crate::entity::Intent;
 use crate::events::options_catalog;
 use crate::monsters::monster_template;
 use crate::monsters::pick_tier;
-use crate::potions::get_potion;
+use crate::potions::PotionTemplate;
+use crate::potions::get_potion_template;
+use crate::potions::instance_potion_from_template;
 use crate::relics::relic_template;
 use crate::types::CardName;
 use crate::types::EventName;
@@ -106,6 +108,7 @@ pub struct PyPotionTemplate {
     pub rarity: PyPotionRarity,
     pub requires_target: bool,
     pub combat_only: bool,
+    pub doubled: bool,
     pub effects: Vec<PyEffect>,
 }
 
@@ -259,21 +262,33 @@ pub fn get_relic_templates() -> Vec<PyRelicTemplate> {
         .collect()
 }
 
-// Every Potion in enum declaration order
+// Every Potion in enum declaration order, each followed by its doubled variant when Sacred Bark changes it
 #[pyfunction]
 pub fn get_potion_templates() -> Vec<PyPotionTemplate> {
-    PotionName::iter()
-        .map(|name| {
-            let entity = get_potion(name);
-            PyPotionTemplate {
-                name: entity.potion_name.into(),
-                rarity: entity.potion_rarity.into(),
-                requires_target: entity_requires_target(&entity),
-                combat_only: entity.potion_combat_only,
-                effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
-            }
-        })
-        .collect()
+    let mut out = Vec::with_capacity(2 * PotionName::COUNT);
+    for name in PotionName::iter() {
+        // Normal
+        out.push(template_potion(get_potion_template(name, false)));
+
+        // Doubled
+        let doubled = get_potion_template(name, true);
+        if doubled.doubled {
+            out.push(template_potion(doubled));
+        }
+    }
+    out
+}
+
+fn template_potion(template: &PotionTemplate) -> PyPotionTemplate {
+    let entity = instance_potion_from_template(template);
+    PyPotionTemplate {
+        name: entity.potion_name.into(),
+        rarity: entity.potion_rarity.into(),
+        requires_target: entity_requires_target(&entity),
+        combat_only: entity.potion_combat_only,
+        doubled: template.doubled,
+        effects: entity.potion_effects.iter().map(snapshot_effect).collect(),
+    }
 }
 
 // Every Monster in enum declaration order

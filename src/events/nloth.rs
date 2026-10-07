@@ -28,7 +28,6 @@ const OPTION_TRADE: &[Effect] = &[
     Effect {
         kind: EffectKind::RelicGrantSpecific {
             name: RelicName::NlothsGift,
-            fallback_circlet: true,
         },
         id_source: None,
         target: Target::Direct(None),

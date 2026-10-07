@@ -31,7 +31,6 @@ const OPTION_IDOL: [Effect; 3] = [
     Effect {
         kind: EffectKind::RelicGrantSpecific {
             name: RelicName::BloodyIdol,
-            fallback_circlet: true,
         },
         id_source: None,
         target: Target::Direct(None),

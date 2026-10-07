@@ -9,9 +9,20 @@ pub static SWIFT: PotionTemplate = PotionTemplate {
     name: PotionName::Swift,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::CardDraw { count: 3 },
         id_source: None,
         target: Target::Direct(None),
     }],
+};
+// Doubled
+pub static SWIFT_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::CardDraw { count: 6 },
+        id_source: None,
+        target: Target::Direct(None),
+    }],
+    ..SWIFT
 };

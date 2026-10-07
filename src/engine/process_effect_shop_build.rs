@@ -14,10 +14,12 @@ use crate::engine::shop::roll_shop_relic_tier;
 use crate::game::GameState;
 use crate::types::CardKind;
 use crate::types::CardRarity;
+use crate::types::RelicName;
 use crate::types::RelicTier;
 use crate::types::Shop;
 use crate::types::shop_reset;
 use crate::utils::draw_relic;
+use crate::utils::has_relic;
 use crate::utils::purge_price;
 
 pub fn process_effect_shop_build(state: &mut GameState) {
@@ -66,11 +68,13 @@ pub fn process_effect_shop_build(state: &mut GameState) {
     state.shop.id_relics_price.push(offer);
 
     // Potions: 3 (rarity rolled by get_random_potion_name)
+    let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
     for _ in 0..SHOP_SLOTS_POTION {
-        state
-            .shop
-            .id_potions_price
-            .push(make_potion(&mut state.entities, &mut state.rng));
+        state.shop.id_potions_price.push(make_potion(
+            &mut state.entities,
+            &mut state.rng,
+            sacred_bark,
+        ));
     }
 
     let Shop {

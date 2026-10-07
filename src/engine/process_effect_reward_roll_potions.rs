@@ -52,7 +52,8 @@ pub fn process_effect_reward_roll_potions(
 
         // Sozu doesn't stop the roll: the staged Potion adopts to nothing
         if policy.staged {
-            let id_potion = push_entity(&mut state.entities, get_potion(name));
+            let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
+            let id_potion = push_entity(&mut state.entities, get_potion(name, sacred_bark));
             reward_ensure(&mut state.reward);
             state.reward.id_potions.push(id_potion);
         }

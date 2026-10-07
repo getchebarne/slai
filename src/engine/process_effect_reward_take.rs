@@ -20,6 +20,7 @@ pub fn process_effect_reward_take(
         id_relics,
         id_potions,
         gold,
+        gold_stolen,
         relics_exclusive,
         ..
     } = &mut state.reward;
@@ -64,9 +65,14 @@ pub fn process_effect_reward_take(
             (id_potion, EffectKind::PotionAdopt)
         }
 
-        // Gold: routed through GoldDelta so the MAX_GOLD cap and Ectoplasm apply
-        RewardKind::Gold => {
-            if let Some(amount) = gold.take() {
+        // Gold or the thieves' purse: routed through GoldDelta so the MAX_GOLD cap and Ectoplasm apply
+        RewardKind::Gold | RewardKind::GoldStolen => {
+            let offer = if kind == RewardKind::Gold {
+                gold
+            } else {
+                gold_stolen
+            };
+            if let Some(amount) = offer.take() {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::GoldDelta {
                         sign: DeltaSign::Gain,

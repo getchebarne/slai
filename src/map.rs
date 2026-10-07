@@ -62,6 +62,7 @@ pub fn get_active_room_kind(
     match location {
         Location::Start => None,
         Location::BossRoom => Some(RoomKind::CombatBoss),
+        Location::BossTreasure => Some(RoomKind::Treasure),
         Location::Overworld { y, x } => {
             room_at(id_rooms, entities, y, x).map(|room| room.room_kind)
         }
