@@ -50,24 +50,18 @@ pub fn process_effect_chest_open(state: &mut GameState) {
     let chest_kind = state.chest.chest_kind;
     state.chest.chest_opened = true;
 
-    // Cursed Key: opening a chest adds a random Curse to the deck
-    if has_relic(&state.id_relics, RelicName::CursedKey) {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::CardAddRandom {
-                color: CardColor::Curse,
-                kind: None,
-                pile: CardPile::Deck,
-                count: 1,
-                cost_zero: None,
-                upgraded: false,
-                rarity: Some(CardRarity::Curse),
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-    }
-
     let chest_params = match chest_kind {
+        // The boss chest offers its three Boss Relics to keep one of; no chest-opening Relic reacts to it
+        ChestKind::Boss => {
+            reward_reset(&mut state.reward);
+            state
+                .reward
+                .id_relics
+                .extend_from_slice(&state.chest.id_relics);
+            state.reward.relics_exclusive = true;
+            state.reward.active = true;
+            return;
+        }
         ChestKind::Small => ChestParams {
             gold_chance: CHEST_SMALL_GOLD_CHANCE,
             gold_base: CHEST_SMALL_GOLD_BASE,
@@ -87,6 +81,23 @@ pub fn process_effect_chest_open(state: &mut GameState) {
             th_uncommon: CHEST_LARGE_TH_UNCOMMON,
         },
     };
+
+    // Cursed Key: opening a chest adds a random Curse to the deck
+    if has_relic(&state.id_relics, RelicName::CursedKey) {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::CardAddRandom {
+                color: CardColor::Curse,
+                kind: None,
+                pile: CardPile::Deck,
+                count: 1,
+                cost_zero: None,
+                upgraded: false,
+                rarity: Some(CardRarity::Curse),
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
 
     // One d100 serves the gold chance and the Relic tier, keeping them correlated
     let roll = state.rng.random_range(0..100) as u8;

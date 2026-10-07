@@ -1,6 +1,5 @@
 use rand::Rng;
 
-use crate::cards::get_card;
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
 use crate::effect::Effect;
@@ -20,7 +19,6 @@ use crate::types::RelicTier;
 use crate::types::reward_reset;
 use crate::utils::card_is_upgradable;
 use crate::utils::draw_relic_excluding;
-use crate::utils::has_relic;
 use crate::utils::increase_max_hp;
 use crate::utils::push_entity;
 
@@ -68,13 +66,31 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
         RelicName::WarPaint => upgrade_random_cards(state, 2, Some(CardKind::Skill)),
         RelicName::Whetstone => upgrade_random_cards(state, 2, Some(CardKind::Attack)),
 
-        // An Egg picked up in a Shop upgrades the matching Cards still for sale
-        RelicName::EggFrozen | RelicName::EggMolten | RelicName::EggToxic if state.shop.active => {
-            for &(id_card, _) in state.shop.id_cards_price.iter() {
-                let card = state.entities[id_card];
+        // An Egg upgrades the matching Cards on offer: the Shop's stock and the staged bundles
+        RelicName::EggFrozen | RelicName::EggMolten | RelicName::EggToxic => {
+            let mut id_cards_offered: Vec<usize> = Vec::new();
+            if state.shop.active {
+                id_cards_offered.extend(state.shop.id_cards_price.iter().map(|&(id, _)| id));
+            }
+            if state.reward.active {
+                id_cards_offered.extend(state.reward.id_cards.iter().flatten());
+            }
+            for id_card in id_cards_offered {
+                let card = &state.entities[id_card];
                 if !card.card_upgraded && egg_upgrades_kind(card.card_kind, &state.id_relics) {
-                    state.entities[id_card] = get_card(card.card_name, true);
+                    state.effect_queue.push_front(Effect {
+                        kind: EffectKind::CardUpgrade,
+                        id_source: None,
+                        target: Target::Direct(Some(id_card)),
+                    });
                 }
+            }
+        }
+
+        // Sacred Bark: every Potion already in the belt doubles
+        RelicName::SacredBark => {
+            for &id_potion in state.id_potions.iter() {
+                state.entities[id_potion].potion_potency_doubled = true;
             }
         }
 
@@ -105,13 +121,11 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
                 "Calling Bell adopts from a Reward context or Neow"
             );
 
-            // One screenless Relic per rarity
+            // One screenless Relic per rarity; a fallback Circlet counts on one already held
             let mut id_relics = Vec::with_capacity(3);
             for tier in [RelicTier::Common, RelicTier::Uncommon, RelicTier::Rare] {
                 let name = draw_relic_excluding(state, tier, RelicExclusion::Screenless);
-                if !has_relic(&state.id_relics, name) {
-                    id_relics.push(push_entity(&mut state.entities, get_relic(name)));
-                }
+                id_relics.push(push_entity(&mut state.entities, get_relic(name)));
             }
 
             // The staged offer replaces the context it adopted from: a live

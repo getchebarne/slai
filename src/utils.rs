@@ -751,6 +751,7 @@ pub const SHOP_STOCK_POLICY: RollPolicy = RollPolicy {
     write_pity: false,         // Reads the pity without writing it
     dupe_rerolls_rarity: true, // make_card_colored's loop re-rolls rarity and Card together
     upgrade_roll: false,
+    staged: true, // Kept, on offer as stock
 };
 
 // The one rarity roll, shared by Card rewards and Shop stock
@@ -791,6 +792,7 @@ pub struct RollPolicy {
     pub write_pity: bool,
     pub dupe_rerolls_rarity: bool,
     pub upgrade_roll: bool,
+    pub staged: bool, // The rolled Cards are kept; a discarded roll only moves the pity offset
 }
 
 // The one place a consumer's roll rules live
@@ -808,6 +810,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: true,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
+            staged: true,
         },
         RewardRollTrigger::CombatElite => RollPolicy {
             cuts: Some((
@@ -820,6 +823,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: true,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
+            staged: true,
         },
         RewardRollTrigger::CombatBoss => RollPolicy {
             cuts: None,
@@ -829,6 +833,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: true,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
+            staged: true,
         },
         // Rest sites keep the default bands, but relics never widen them
         RewardRollTrigger::DreamCatcher => RollPolicy {
@@ -839,6 +844,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: true,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
+            staged: true,
         },
         // Bought in a Shop, so the offer rolls the shop bands and relics never widen them
         RewardRollTrigger::Orrery => RollPolicy {
@@ -849,6 +855,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: true,
             dupe_rerolls_rarity: false,
             upgrade_roll: true,
+            staged: true,
         },
         RewardRollTrigger::Library => RollPolicy {
             cuts: CUTS_MONSTER,
@@ -858,6 +865,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: false,
             dupe_rerolls_rarity: true,
             upgrade_roll: false,
+            staged: true,
         },
         // Neow: Uncommon or Common, never Rare unless the offer says so; no pity, never upgraded
         RewardRollTrigger::Neow => RollPolicy {
@@ -868,6 +876,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: false,
+            staged: true,
         },
         RewardRollTrigger::NeowRare => RollPolicy {
             cuts: None,
@@ -877,6 +886,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: false,
+            staged: true,
         },
         // Neow's colorless offer is always Uncommon
         RewardRollTrigger::NeowColorless => RollPolicy {
@@ -887,6 +897,7 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: false,
+            staged: true,
         },
         RewardRollTrigger::NeowColorlessRare => RollPolicy {
             cuts: None,
@@ -896,10 +907,32 @@ pub const fn roll_policy(trigger: RewardRollTrigger) -> RollPolicy {
             write_pity: false,
             dupe_rerolls_rarity: false,
             upgrade_roll: false,
+            staged: true,
+        },
+        // The reward screens of Neow's Potions and Calling Bell roll a Card reward and discard it
+        RewardRollTrigger::NeowPotions | RewardRollTrigger::CallingBell => RollPolicy {
+            cuts: CUTS_MONSTER,
+            colorless: false,
+            read_pity: true,
+            alternation: true,
+            write_pity: true,
+            dupe_rerolls_rarity: false,
+            upgrade_roll: true,
+            staged: false,
+        },
+        // Cauldron's screen does the same over a Shop, so its discarded roll uses the shop bands
+        RewardRollTrigger::Cauldron => RollPolicy {
+            cuts: Some((SHOP_CARD_CUT_RARE, SHOP_CARD_CUT_UNCOMMON)),
+            colorless: false,
+            read_pity: true,
+            alternation: false,
+            write_pity: true,
+            dupe_rerolls_rarity: false,
+            upgrade_roll: true,
+            staged: false,
         },
         RewardRollTrigger::EventFightUnpaid
         | RewardRollTrigger::SmokeBomb
-        | RewardRollTrigger::Cauldron
         | RewardRollTrigger::WomanInBlue
         | RewardRollTrigger::Lab
         | RewardRollTrigger::TinyHouse => panic!("no Card roll for this trigger"),
@@ -933,7 +966,7 @@ pub const fn potion_roll_policy(trigger: RewardRollTrigger) -> PotionRollPolicy 
         },
         // Granted outright, flat-uniform
         RewardRollTrigger::Cauldron
-        | RewardRollTrigger::Neow
+        | RewardRollTrigger::NeowPotions
         | RewardRollTrigger::WomanInBlue
         | RewardRollTrigger::Lab
         | RewardRollTrigger::TinyHouse => PotionRollPolicy {
@@ -944,9 +977,11 @@ pub const fn potion_roll_policy(trigger: RewardRollTrigger) -> PotionRollPolicy 
         RewardRollTrigger::DreamCatcher
         | RewardRollTrigger::Orrery
         | RewardRollTrigger::Library
+        | RewardRollTrigger::Neow
         | RewardRollTrigger::NeowRare
         | RewardRollTrigger::NeowColorless
-        | RewardRollTrigger::NeowColorlessRare => panic!("no Potion roll for this trigger"),
+        | RewardRollTrigger::NeowColorlessRare
+        | RewardRollTrigger::CallingBell => panic!("no Potion roll for this trigger"),
     }
 }
 

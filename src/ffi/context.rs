@@ -17,7 +17,7 @@ use super::relic::PyRelic;
 use super::relic::snapshot_relic;
 
 mirror_enum!(PyChestKind from ChestKind, "ChestKind", {
-    Small, Medium, Large,
+    Small, Medium, Large, Boss,
 });
 
 #[pyclass(
@@ -74,8 +74,9 @@ pub struct PyReward {
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub gold: Option<u16>,
-    pub relics_exclusive: bool, // Boss rewards roll mutually exclusive Relics
-    pub cards_forced: bool,     // Cannot skip Card rewards (The Library)
+    pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
+    pub relics_exclusive: bool,   // The boss chest's Relics are mutually exclusive
+    pub cards_forced: bool,       // Cannot skip Card rewards (The Library)
 }
 
 #[pyclass(
@@ -223,6 +224,7 @@ pub(crate) fn snapshot_reward(state: &GameState) -> PyReward {
             .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
         gold: reward.gold,
+        gold_stolen: reward.gold_stolen,
         relics_exclusive: reward.relics_exclusive,
         cards_forced: reward.cards_forced,
     }

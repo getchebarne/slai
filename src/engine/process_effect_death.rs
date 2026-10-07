@@ -36,7 +36,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         {
             remove_potion(&mut state.id_potions, id_potion);
             // Sacred Bark doubles the revive potency, like every other Potion
-            let factor = if has_relic(&state.id_relics, RelicName::SacredBark) {
+            let factor = if state.entities[id_potion].potion_potency_doubled {
                 0.60
             } else {
                 0.30

@@ -595,7 +595,7 @@ fn dispatch_by_kind(
             process_effect_move_update(id_target, state, move_override)
         }
         EffectKind::MoveExecute => process_effect_move_execute(id_target, state),
-        EffectKind::RoomEnter => process_effect_room_enter(state),
+        EffectKind::RoomEnter { landing } => process_effect_room_enter(state, landing),
         EffectKind::MonsterSpawn { name, minion, slot } => {
             process_effect_monster_spawn(state, name, minion, slot)
         }

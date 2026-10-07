@@ -30,7 +30,7 @@ pub fn process_effect_room_select(id_target: Option<usize>, state: &mut GameStat
         x: room.room_x,
     };
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::RoomEnter,
+        kind: EffectKind::RoomEnter { landing: false },
         id_source: None,
         target: Target::Direct(None),
     });

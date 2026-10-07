@@ -361,6 +361,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollPotions;
     #[pymodule_export]
+    use super::ffi::PyEffectRewardRollRelic;
+    #[pymodule_export]
     use super::ffi::PyEffectRitualDaggerProc;
     #[pymodule_export]
     use super::ffi::PyEffectScrapOozeReach;

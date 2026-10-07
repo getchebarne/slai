@@ -1,5 +1,6 @@
+use rand::Rng;
+
 use crate::consts::ACT_FINAL;
-use crate::consts::BOSS_RELIC_REWARD_COUNT;
 use crate::consts::GOLD_ELITE_MAX;
 use crate::consts::GOLD_ELITE_MIN;
 use crate::consts::GOLD_MONSTER_MAX;
@@ -21,16 +22,18 @@ use crate::modifier::modifier_clear;
 use crate::relics::iter_owned_relics;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
-use crate::types::RelicTier;
 use crate::types::RoomKind;
 use crate::types::reward_reset;
+use crate::utils::draw_relic_excluding;
 use crate::utils::has_relic;
 use crate::utils::queue_effect_untargeted;
+use crate::utils::relic_tier_by_roll;
 use crate::utils::roll_boss_gold;
 
 pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool) {
     assert!(state.combat.active, "CombatEnd outside combat");
     let escaped_monster = state.combat.this_combat_escaped;
+    let thief_escaped = state.combat.this_combat_thief_escaped;
 
     // Clear the Character's modifiers and block
     modifier_clear(&mut state.entities[state.id_character].modifiers);
@@ -42,8 +45,26 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     // The spent combat is closed here; what it reveals owns the aftermath
     state.combat.active = false;
 
-    // Smoke Bomb: no rewards; Potion drop chance still drifts and Relics still fire
-    if escaped_character {
+    // Smoke Bomb: no rewards, unless a thief got away first
+    if escaped_character && !thief_escaped {
+        // The Relics the fight drops are still drawn, and lost for the run
+        for (pick, exclusion) in relic_drops(state) {
+            let tier = match pick {
+                RelicPick::Thresholds {
+                    th_common,
+                    th_uncommon,
+                } => {
+                    relic_tier_by_roll(state.rng.random_range(0..100) as u8, th_common, th_uncommon)
+                }
+                RelicPick::Tier(tier) => tier,
+
+                // A named or pool pick takes nothing from the tier pools
+                RelicPick::Pool(_) | RelicPick::Name(_) => continue,
+            };
+            draw_relic_excluding(state, tier, exclusion);
+        }
+
+        // The Potion drop chance still drifts and the combat-end Relics still fire
         queue_effect_untargeted(
             state,
             EffectKind::RewardRollPotions {
@@ -83,14 +104,8 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                     trigger: RewardRollTrigger::EventFight,
                 },
             );
-            for pick in loot.relics.into_iter().flatten() {
-                queue_effect_untargeted(
-                    state,
-                    EffectKind::RewardRollRelic {
-                        pick,
-                        exclusion: RelicExclusion::Unfiltered,
-                    },
-                );
+            for (pick, exclusion) in relic_drops(state) {
+                queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick, exclusion });
             }
             queue_effect_untargeted(
                 state,
@@ -141,14 +156,13 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 1
             };
 
-            // The Reward context opens up front so the boss flag rides the reset
+            // The Reward context opens up front; the boss's Relics wait in its treasure Room
             reward_reset(&mut state.reward);
-            state.reward.relics_exclusive = room_kind == RoomKind::CombatBoss;
             state.reward.active = true;
 
             // The thieves' purse is its own reward item, without Golden Idol's bonus
             if state.combat.gold_stolen > 0 {
-                state.reward.gold = Some(state.combat.gold_stolen);
+                state.reward.gold_stolen = Some(state.combat.gold_stolen);
             }
 
             // Boss rewards draw from the rare pool only; Elites widen both bands
@@ -158,44 +172,9 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
                 _ => RewardRollTrigger::CombatMonster,
             };
             queue_effect_untargeted(state, EffectKind::RewardRollCards { bundles, trigger });
-
-            // The boss offers three unique unowned Boss Relics; RewardTake keeps one
-            if room_kind == RoomKind::CombatBoss {
-                for _ in 0..BOSS_RELIC_REWARD_COUNT {
-                    queue_effect_untargeted(
-                        state,
-                        EffectKind::RewardRollRelic {
-                            pick: RelicPick::Tier(RelicTier::Boss),
-                            exclusion: RelicExclusion::Unfiltered,
-                        },
-                    );
-                }
+            for (pick, exclusion) in relic_drops(state) {
+                queue_effect_untargeted(state, EffectKind::RewardRollRelic { pick, exclusion });
             }
-
-            // Elite drop; Black Star adds a second with an independent tier roll
-            if room_kind == RoomKind::CombatElite {
-                let pick = RelicPick::Thresholds {
-                    th_common: RELIC_TIER_TH_COMMON,
-                    th_uncommon: RELIC_TIER_TH_UNCOMMON,
-                };
-                queue_effect_untargeted(
-                    state,
-                    EffectKind::RewardRollRelic {
-                        pick,
-                        exclusion: RelicExclusion::Unfiltered,
-                    },
-                );
-                if has_relic(&state.id_relics, RelicName::BlackStar) {
-                    queue_effect_untargeted(
-                        state,
-                        EffectKind::RewardRollRelic {
-                            pick,
-                            exclusion: RelicExclusion::NonCampfire,
-                        },
-                    );
-                }
-            }
-
             queue_effect_untargeted(state, EffectKind::RewardRollPotions { count: 1, trigger });
 
             if let Some(amount) = gold_amount {
@@ -210,6 +189,37 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     if matches!(state.location, Location::BossRoom) && state.act >= ACT_FINAL {
         state.game_over = true;
     }
+}
+
+// The Relics a fight drops: its event's staked loot, or an Elite's
+fn relic_drops(state: &GameState) -> Vec<(RelicPick, RelicExclusion)> {
+    if state.event.active {
+        let Some(loot) = fight_loot(&state.event) else {
+            return Vec::new();
+        };
+        return loot
+            .relics
+            .into_iter()
+            .flatten()
+            .map(|pick| (pick, RelicExclusion::Unfiltered))
+            .collect();
+    }
+    if get_active_room_kind(&state.id_rooms, state.location, &state.entities)
+        != Some(RoomKind::CombatElite)
+    {
+        return Vec::new();
+    }
+    let pick = RelicPick::Thresholds {
+        th_common: RELIC_TIER_TH_COMMON,
+        th_uncommon: RELIC_TIER_TH_UNCOMMON,
+    };
+    let mut drops = vec![(pick, RelicExclusion::Unfiltered)];
+
+    // Black Star: a second drop with an independent tier roll
+    if has_relic(&state.id_relics, RelicName::BlackStar) {
+        drops.push((pick, RelicExclusion::NonCampfire));
+    }
+    drops
 }
 
 // Combat-end Relic hooks: they fire on a victory and on a Smoke Bomb alike

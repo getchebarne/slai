@@ -54,25 +54,25 @@ const fn leave(gold: u16) -> [Effect; 2] {
     ]
 }
 
-// Catalog layout: Gather, then Leave for every rollable loss
+// Catalog layout: Gather, then Leave for every loss up to the max (capping can go below the min)
 const IDX_GATHER: usize = 0;
 const IDX_LEAVE: usize = 1;
-const EOTS_LEN: usize = IDX_LEAVE + (GOLD_LOSS_MAX - GOLD_LOSS_MIN) as usize + 1;
-const EOTS_LEN_A15: usize = IDX_LEAVE + (GOLD_LOSS_MAX_A15 - GOLD_LOSS_MIN_A15) as usize + 1;
+const EOTS_LEN: usize = IDX_LEAVE + GOLD_LOSS_MAX as usize + 1;
+const EOTS_LEN_A15: usize = IDX_LEAVE + GOLD_LOSS_MAX_A15 as usize + 1;
 
-const fn eots<const N: usize>(gold_loss_min: u16) -> [EventOptionTemplate; N] {
+const fn eots<const N: usize>() -> [EventOptionTemplate; N] {
     let mut eots = [make_event_option_template(OPTION_GATHER); N];
     let mut idx = IDX_LEAVE;
     while idx < N {
-        let option_leave = leave(gold_loss_min + (idx - IDX_LEAVE) as u16);
+        let option_leave = leave((idx - IDX_LEAVE) as u16);
         eots[idx] = make_event_option_template(&option_leave);
         idx += 1;
     }
     eots
 }
 
-static EOTS_BASE: [EventOptionTemplate; EOTS_LEN] = eots(GOLD_LOSS_MIN);
-static EOTS_A15: [EventOptionTemplate; EOTS_LEN_A15] = eots(GOLD_LOSS_MIN_A15);
+static EOTS_BASE: [EventOptionTemplate; EOTS_LEN] = eots();
+static EOTS_A15: [EventOptionTemplate; EOTS_LEN_A15] = eots();
 
 pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
     if ascension < 15 {
@@ -82,20 +82,17 @@ pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
     }
 }
 
-// The loss rolls on entry so Leave shows it; the Room's entry gold lands after the
-// spawn, so the cap at the gold held is left to the loss itself
+// The loss rolls on entry, capped at the gold held, so Leave shows the exact amount
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     let (min, max) = if state.ascension < 15 {
         (GOLD_LOSS_MIN, GOLD_LOSS_MAX)
     } else {
         (GOLD_LOSS_MIN_A15, GOLD_LOSS_MAX_A15)
     };
-    let gold_loss = state.rng.random_range(min..=max);
+    let gold = state.entities[state.id_character].character_gold;
+    let gold_loss = state.rng.random_range(min..=max).min(gold);
     let eots = catalog(state.ascension);
-    let options = [
-        eots[IDX_GATHER],
-        eots[IDX_LEAVE + (gold_loss - min) as usize],
-    ];
+    let options = [eots[IDX_GATHER], eots[IDX_LEAVE + gold_loss as usize]];
     bake_options(state, &options)
 }
 

@@ -5,8 +5,9 @@ use crate::game::GameState;
 use crate::types::reward_ensure;
 use crate::utils::card_reward_count;
 use crate::utils::roll_card_rewards;
+use crate::utils::roll_policy;
 
-// Stage `bundles` Card bundles; the trigger sets the roll rules, the bundle size and whether the pick is forced
+// Roll `bundles` Card bundles; the trigger sets the rules, the size, whether they are kept and whether the pick is forced
 pub fn process_effect_reward_roll_cards(
     state: &mut GameState,
     bundles: u8,
@@ -38,6 +39,10 @@ pub fn process_effect_reward_roll_cards(
         id_card_bundles.push(id_cards);
     }
 
+    // A discarded roll still moved the pity offset
+    if !roll_policy(trigger).staged {
+        return;
+    }
     reward_ensure(&mut state.reward);
     state.reward.id_cards.extend(id_card_bundles);
 

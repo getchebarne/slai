@@ -1,5 +1,7 @@
 use rand::Rng;
 
+use crate::consts::RELIC_TIER_TH_COMMON;
+use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::consts::WHEEL_GOLD_PER_ACT;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
@@ -7,6 +9,7 @@ use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
+use crate::effect::RelicPick;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -27,9 +30,13 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
             id_source: None,
             target: Target::Direct(None),
         },
+        // The Relic is staged as a reward the player may leave
         1 => Effect {
-            kind: EffectKind::RelicGrantRandom {
-                tier: None,
+            kind: EffectKind::RewardRollRelic {
+                pick: RelicPick::Thresholds {
+                    th_common: RELIC_TIER_TH_COMMON,
+                    th_uncommon: RELIC_TIER_TH_UNCOMMON,
+                },
                 exclusion: RelicExclusion::Screenless,
             },
             id_source: None,

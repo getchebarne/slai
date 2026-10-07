@@ -9,6 +9,7 @@ use crate::action::handle_action;
 use crate::action::recompute_legal_actions;
 use crate::character::get_silent_starter_deck;
 use crate::character::spawn_silent;
+use crate::consts::BOSS_RELIC_REWARD_COUNT;
 use crate::consts::DISCOVER_PICK_COUNT;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_ELITE;
 use crate::consts::ENCOUNTER_POOL_CAPACITY_NORMAL;
@@ -54,6 +55,7 @@ pub enum Location {
     Start,
     Overworld { y: usize, x: usize },
     BossRoom,
+    BossTreasure, // The boss chest's Room, entered on leaving a mid-run Boss Room
 }
 
 // GameState: the single source of truth
@@ -281,6 +283,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             this_turn_panache: 0,
             turn: 0,
             this_combat_escaped: false,
+            this_combat_thief_escaped: false,
             this_combat_monster_died: false,
             gold_stolen: 0,
             last_health_lost: 0,
@@ -292,6 +295,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             id_relics: Vec::new(),
             id_potions: Vec::new(),
             gold: None,
+            gold_stolen: None,
             relics_exclusive: false,
             cards_forced: false,
         },
@@ -324,6 +328,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             active: false,
             chest_kind: ChestKind::Small,
             chest_opened: false,
+            id_relics: Vec::with_capacity(BOSS_RELIC_REWARD_COUNT),
         },
         game_over: false,
         shop_purge_cost_run: SHOP_PURGE_COST_BASE,

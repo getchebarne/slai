@@ -64,8 +64,12 @@ const fn build_potion_by_name() -> [&'static PotionTemplate; PotionName::COUNT] 
 
 static POTION_BY_NAME: [&'static PotionTemplate; PotionName::COUNT] = build_potion_by_name();
 
-pub fn get_potion(name: PotionName) -> Entity {
-    instance_potion_from_template(POTION_BY_NAME[name as usize])
+// Sacred Bark held when a Potion is made doubles its potency for good
+pub fn get_potion(name: PotionName, potency_doubled: bool) -> Entity {
+    Entity {
+        potion_potency_doubled: potency_doubled,
+        ..instance_potion_from_template(POTION_BY_NAME[name as usize])
+    }
 }
 
 pub const ALL_POTIONS: &[&'static PotionTemplate] = &[

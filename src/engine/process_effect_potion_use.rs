@@ -31,7 +31,6 @@ pub fn process_effect_potion_use(
 
     // Consume the Potion from its belt slot before its effects run
     remove_potion(&mut state.id_potions, id_potion);
-    let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
     let potion = &state.entities[id_potion];
 
     // Push the Potions's on-use effects
@@ -41,9 +40,9 @@ pub fn process_effect_potion_use(
             ..*effect
         };
 
-        // Sacred Bark: Potion effects double
+        // Sacred Bark: a Potion with doubled potency doubles its effects
         let mut repeat = false;
-        if sacred_bark {
+        if potion.potion_potency_doubled {
             match &mut effect.kind {
                 // Stacks (Strength, Poison, Regeneration, Speed, ...)
                 EffectKind::ModifierGain { stacks, .. } => *stacks *= 2,

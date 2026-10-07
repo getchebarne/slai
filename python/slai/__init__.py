@@ -140,6 +140,7 @@ ACTION_SPEC_REGISTRY = ActionSpecRegistry(
             ArgSpec("idx_card", _REWARD_POS),
         ),
         create_action_spec(ActionType.RewardTakeGold),
+        create_action_spec(ActionType.RewardTakeGoldStolen),
         create_action_spec(
             ActionType.RewardTakePotion, ArgSpec("idx", _REWARD_POTION_POS)
         ),
@@ -269,6 +270,7 @@ EffectMonsterRemove = _rs.EffectMonsterRemove
 EffectMonsterSplit = _rs.EffectMonsterSplit
 EffectStasisSteal = _rs.EffectStasisSteal
 EffectRewardRollCards = _rs.EffectRewardRollCards
+EffectRewardRollRelic = _rs.EffectRewardRollRelic
 EffectDamageDeal = _rs.EffectDamageDeal
 RewardRollTrigger = _rs.RewardRollTrigger
 Effect = (
@@ -346,6 +348,7 @@ Effect = (
     | EffectMonsterSplit
     | EffectStasisSteal
     | EffectRewardRollCards
+    | EffectRewardRollRelic
     | EffectDamageDeal
 )
 

@@ -85,6 +85,16 @@ const DRAWBACKS: [NeowDrawback; 4] = [
     NeowDrawback::PercentDamage,
 ];
 
+// The Potions' reward screen rolls a Card reward and discards it
+const EFFECT_POTIONS_CARD_ROLL: Effect = Effect {
+    kind: EffectKind::RewardRollCards {
+        bundles: 1,
+        trigger: RewardRollTrigger::NeowPotions,
+    },
+    id_source: None,
+    target: Target::Direct(None),
+};
+
 const fn effect_relic_grant_random(tier: RelicTier) -> Effect {
     Effect {
         kind: EffectKind::RelicGrantRandom {
@@ -160,7 +170,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
         NeowBonus::ThreeSmallPotions => Effect {
             kind: EffectKind::RewardRollPotions {
                 count: NEOW_POTION_COUNT,
-                trigger: RewardRollTrigger::Neow,
+                trigger: RewardRollTrigger::NeowPotions,
             },
             id_source: None,
             target: Target::Direct(None),
@@ -359,8 +369,15 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
         } else {
             BONUS_CAT_1[idx - IDX_CAT_1]
         };
-        let eot = [EFFECT_EVENT_CONSUME, effect_bonus(bonus, health_bonus)];
-        eots[idx] = make_event_option_template(&eot);
+        eots[idx] = if matches!(bonus, NeowBonus::ThreeSmallPotions) {
+            make_event_option_template(&[
+                EFFECT_EVENT_CONSUME,
+                effect_bonus(bonus, health_bonus),
+                EFFECT_POTIONS_CARD_ROLL,
+            ])
+        } else {
+            make_event_option_template(&[EFFECT_EVENT_CONSUME, effect_bonus(bonus, health_bonus)])
+        };
         idx += 1;
     }
 

@@ -1,5 +1,7 @@
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::RelicExclusion;
+use crate::effect::RelicPick;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_ADVANCE;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -30,15 +32,19 @@ const OPTION_PAGE_2: [Effect; 2] = [health_delta(2), EFFECT_EVENT_ADVANCE];
 // Page 3: 3 HP
 const OPTION_PAGE_3: [Effect; 2] = [health_delta(3), EFFECT_EVENT_ADVANCE];
 
+// The book is staged as a reward the player may leave; consume first, so it overlays the event
 const fn take_book(damage: u16) -> [Effect; 3] {
     [
         health_delta(damage),
+        EFFECT_EVENT_CONSUME,
         Effect {
-            kind: EffectKind::RelicGrantPool { pool: BOOK_POOL },
+            kind: EffectKind::RewardRollRelic {
+                pick: RelicPick::Pool(BOOK_POOL),
+                exclusion: RelicExclusion::Unfiltered,
+            },
             id_source: None,
             target: Target::Direct(None),
         },
-        EFFECT_EVENT_CONSUME,
     ]
 }
 

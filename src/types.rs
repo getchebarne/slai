@@ -48,6 +48,7 @@ pub struct Combat {
     // Per-combat counters
     pub turn: u16,
     pub this_combat_escaped: bool,
+    pub this_combat_thief_escaped: bool, // A Smoke Bomb then still keeps the reward
     pub this_combat_monster_died: bool,
     pub gold_stolen: u16,
 
@@ -80,6 +81,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.this_turn_panache = 0;
     combat.turn = 0;
     combat.this_combat_escaped = false;
+    combat.this_combat_thief_escaped = false;
     combat.this_combat_monster_died = false;
     combat.gold_stolen = 0;
     combat.last_health_lost = 0;
@@ -93,8 +95,9 @@ pub struct Reward {
     pub id_relics: Vec<usize>,
     pub id_potions: Vec<usize>,
     pub gold: Option<u16>,
-    pub relics_exclusive: bool, // Wether taking a Relic clears the rest (Boss rewards)
-    pub cards_forced: bool,     // The Library's grid: one pick, no skip and no Singing Bowl
+    pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
+    pub relics_exclusive: bool,   // Whether taking a Relic clears the rest (the boss chest)
+    pub cards_forced: bool,       // The Library's grid: one pick, no skip and no Singing Bowl
 }
 
 pub fn reward_reset(reward: &mut Reward) {
@@ -102,6 +105,7 @@ pub fn reward_reset(reward: &mut Reward) {
     reward.id_relics.clear();
     reward.id_potions.clear();
     reward.gold = None;
+    reward.gold_stolen = None;
     reward.relics_exclusive = false;
     reward.cards_forced = false;
 }
@@ -176,6 +180,7 @@ pub struct Chest {
     pub active: bool,
     pub chest_kind: ChestKind,
     pub chest_opened: bool,
+    pub id_relics: Vec<usize>, // The boss chest's three Boss Relics, offered again if it is reopened
 }
 
 // The focused context
@@ -582,6 +587,7 @@ pub enum ChestKind {
     Small,
     Medium,
     Large,
+    Boss,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -590,6 +596,7 @@ pub enum RewardKind {
     Relic,
     Potion,
     Gold,
+    GoldStolen,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

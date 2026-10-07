@@ -74,7 +74,8 @@ pub fn process_effect_shop_buy(id_target: Option<usize>, state: &mut GameState, 
                 state.shop.id_cards_price.insert(idx, offer);
             }
             ShopSlot::Potion => {
-                let (id_new, price) = make_potion(&mut state.entities, &mut state.rng);
+                let sacred_bark = has_relic(&state.id_relics, RelicName::SacredBark);
+                let (id_new, price) = make_potion(&mut state.entities, &mut state.rng, sacred_bark);
                 let price = apply_shop_discounts(price, &state.id_relics);
                 id_potions_price.insert(idx, (id_new, price));
             }

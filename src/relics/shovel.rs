@@ -2,7 +2,7 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// Dig at rest sites: gain a random Relic (granted directly, not staged as a reward)
+// Dig at rest sites: a random Relic, staged as a reward the player may leave
 // See:
 //    - `action.rs`
 pub static SHOVEL: RelicTemplate = RelicTemplate {

@@ -38,6 +38,7 @@ pub enum PyActionType {
     RestSmith,
     RewardSingingBowl,
     EffectPendingResolve,
+    RewardTakeGoldStolen,
 }
 
 #[pymethods]
@@ -126,6 +127,7 @@ pub fn to_internal_action(action: PyAction) -> Result<Action, String> {
         PyActionType::RewardTakeRelic => Action::RewardTakeRelic { idx: i0 },
         PyActionType::RewardTakePotion => Action::RewardTakePotion { idx: i0 },
         PyActionType::RewardTakeGold => Action::RewardTakeGold,
+        PyActionType::RewardTakeGoldStolen => Action::RewardTakeGoldStolen,
         PyActionType::EventOptionSelect => Action::EventOptionSelect { idx: i0 },
     };
 
@@ -183,6 +185,7 @@ pub fn from_internal_action(action: Action) -> PyAction {
         Action::RewardTakeRelic { idx } => (PyActionType::RewardTakeRelic, vec![idx]),
         Action::RewardTakePotion { idx } => (PyActionType::RewardTakePotion, vec![idx]),
         Action::RewardTakeGold => (PyActionType::RewardTakeGold, vec![]),
+        Action::RewardTakeGoldStolen => (PyActionType::RewardTakeGoldStolen, vec![]),
         Action::EventOptionSelect { idx } => (PyActionType::EventOptionSelect, vec![idx]),
     };
     PyAction { action_type, idxs }

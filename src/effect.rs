@@ -247,7 +247,9 @@ pub enum EffectKind {
     RewardTake {
         kind: RewardKind,
     },
-    RoomEnter,
+    RoomEnter {
+        landing: bool, // The second pass, which RoomEnter queues behind the entry Relics' gold
+    },
     RoomExit,
     RoomSelect,
     ScrapOozeReach {
@@ -290,6 +292,7 @@ pub enum EffectKind {
 pub enum RelicPick {
     Thresholds { th_common: u8, th_uncommon: u8 },
     Tier(RelicTier),
+    Pool(&'static [RelicName]), // Uniform over the unowned entries; Circlet when all are owned
     Name(RelicName),
 }
 
@@ -317,10 +320,12 @@ pub enum RewardRollTrigger {
     NeowRare,
     NeowColorless,
     NeowColorlessRare,
+    NeowPotions,
     Cauldron,
     WomanInBlue,
     Lab,
     TinyHouse,
+    CallingBell,
 }
 
 // Origin tag the CardDiscard handler branches on

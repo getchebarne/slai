@@ -264,7 +264,7 @@ pub fn get_relic_templates() -> Vec<PyRelicTemplate> {
 pub fn get_potion_templates() -> Vec<PyPotionTemplate> {
     PotionName::iter()
         .map(|name| {
-            let entity = get_potion(name);
+            let entity = get_potion(name, false);
             PyPotionTemplate {
                 name: entity.potion_name.into(),
                 rarity: entity.potion_rarity.into(),
