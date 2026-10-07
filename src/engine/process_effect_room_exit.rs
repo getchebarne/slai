@@ -37,9 +37,11 @@ pub fn process_effect_room_exit(state: &mut GameState) {
     // A mid-run Boss Room opens onto its treasure Room, whose exit starts the next act
     match state.location {
         Location::BossRoom if state.act < ACT_FINAL => {
-            state.location = Location::BossTreasure;
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::RoomEnter { landing: false },
+                kind: EffectKind::RoomEnter {
+                    location: Location::BossTreasure,
+                    landing: false,
+                },
                 id_source: None,
                 target: Target::Direct(None),
             });
@@ -61,9 +63,11 @@ pub fn process_effect_room_exit(state: &mut GameState) {
         && get_active_room_kind(&state.id_rooms, state.location, &state.entities)
             == Some(RoomKind::RestSite)
     {
-        state.location = Location::BossRoom;
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::RoomEnter { landing: false },
+            kind: EffectKind::RoomEnter {
+                location: Location::BossRoom,
+                landing: false,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

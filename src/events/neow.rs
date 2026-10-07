@@ -187,7 +187,6 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
         NeowBonus::ThreeEnemyKill => Effect {
             kind: EffectKind::RelicGrantSpecific {
                 name: RelicName::NeowsLament,
-                fallback_circlet: false,
             },
             id_source: None,
             target: Target::Direct(None),

@@ -11,6 +11,7 @@ pub static CUNNING: PotionTemplate = PotionTemplate {
     name: PotionName::Cunning,
     rarity: PotionRarity::Uncommon,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::CardAdd {
             card_name: CardName::Shiv,
@@ -21,4 +22,19 @@ pub static CUNNING: PotionTemplate = PotionTemplate {
         id_source: None,
         target: Target::Direct(None),
     }],
+};
+// Doubled
+pub static CUNNING_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::CardAdd {
+            card_name: CardName::Shiv,
+            pile: CardPile::Hand,
+            count: 6,
+            upgraded: true,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }],
+    ..CUNNING
 };

@@ -12,6 +12,7 @@ pub static BLESSING_OF_THE_FORGE: PotionTemplate = PotionTemplate {
     name: PotionName::BlessingOfTheForge,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::CardUpgrade,
         id_source: None,

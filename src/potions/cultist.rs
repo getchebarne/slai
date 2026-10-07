@@ -10,6 +10,7 @@ pub static CULTIST: PotionTemplate = PotionTemplate {
     name: PotionName::Cultist,
     rarity: PotionRarity::Rare,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Ritual,
@@ -18,4 +19,17 @@ pub static CULTIST: PotionTemplate = PotionTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
+};
+// Doubled
+pub static CULTIST_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Ritual,
+            stacks: 2,
+        },
+        id_source: None,
+        target: TARGET_CHARACTER,
+    }],
+    ..CULTIST
 };

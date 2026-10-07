@@ -31,20 +31,6 @@ const OPTION_IDOL: [Effect; 3] = [
     Effect {
         kind: EffectKind::RelicGrantSpecific {
             name: RelicName::BloodyIdol,
-            fallback_circlet: true,
-        },
-        id_source: None,
-        target: Target::Direct(None),
-    },
-    EFFECT_EVENT_CONSUME,
-];
-
-// Offer the Idol with Bloody Idol already owned: the Idol stays and the prize falls back to Circlet
-const OPTION_IDOL_PRIZE_OWNED: [Effect; 2] = [
-    Effect {
-        kind: EffectKind::RelicGrantSpecific {
-            name: RelicName::BloodyIdol,
-            fallback_circlet: true,
         },
         id_source: None,
         target: Target::Direct(None),
@@ -99,23 +85,16 @@ const OPTION_SACRIFICE_BASE: [Effect; 3] = sacrifice(25);
 // Sacrifice at A15+: 35% max HP
 const OPTION_SACRIFICE_A15: [Effect; 3] = sacrifice(35);
 
-// Catalog layout: Idol, Sacrifice, Decay, then the Idol offer with its prize owned
 static EOTS_BASE: &[EventOptionTemplate] = &[
     make_event_option_template(&OPTION_IDOL),
     make_event_option_template(&OPTION_SACRIFICE_BASE),
     make_event_option_template(&OPTION_DECAY),
-    make_event_option_template(&OPTION_IDOL_PRIZE_OWNED),
 ];
 static EOTS_A15: &[EventOptionTemplate] = &[
     make_event_option_template(&OPTION_IDOL),
     make_event_option_template(&OPTION_SACRIFICE_A15),
     make_event_option_template(&OPTION_DECAY),
-    make_event_option_template(&OPTION_IDOL_PRIZE_OWNED),
 ];
-const IDX_IDOL: usize = 0;
-const IDX_SACRIFICE: usize = 1;
-const IDX_DECAY: usize = 2;
-const IDX_IDOL_PRIZE_OWNED: usize = 3;
 
 pub fn catalog(ascension: u8) -> &'static [EventOptionTemplate] {
     if ascension < 15 { EOTS_BASE } else { EOTS_A15 }
@@ -128,17 +107,10 @@ pub fn option_available(state: &GameState, idx: usize) -> bool {
     }
 }
 
-// The Idol trade consumes the staked Relic unless its prize is owned; availability gates it on ownership
+// The Idol trade consumes the staked Relic; availability gates it on ownership
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     if let Some(id) = state.id_relics[RelicName::GoldenIdol as usize] {
         state.event.id_roll_relic.push(id);
     }
-    let eots = catalog(state.ascension);
-    let idx_idol = if has_relic(&state.id_relics, RelicName::BloodyIdol) {
-        IDX_IDOL_PRIZE_OWNED
-    } else {
-        IDX_IDOL
-    };
-    let options = [eots[idx_idol], eots[IDX_SACRIFICE], eots[IDX_DECAY]];
-    bake_options(state, &options)
+    bake_options(state, catalog(state.ascension))
 }

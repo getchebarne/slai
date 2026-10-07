@@ -34,7 +34,8 @@ use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::push_entity;
 
-pub fn process_effect_room_enter(state: &mut GameState, landing: bool) {
+pub fn process_effect_room_enter(state: &mut GameState, location: Location, landing: bool) {
+    state.location = location;
     let room_kind = get_active_room_kind(&state.id_rooms, state.location, &state.entities).unwrap();
 
     // The entry Relics pay out first, so everything the Room generates sees their gold
@@ -65,7 +66,10 @@ pub fn process_effect_room_enter(state: &mut GameState, landing: bool) {
             });
         }
         state.effect_buf.push(Effect {
-            kind: EffectKind::RoomEnter { landing: true },
+            kind: EffectKind::RoomEnter {
+                location,
+                landing: true,
+            },
             id_source: None,
             target: Target::Direct(None),
         });

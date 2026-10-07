@@ -38,6 +38,7 @@ use strum::EnumCount;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
 use crate::effect::Effect;
+use crate::effect::EffectKind;
 use crate::effect::effect_discover_pick;
 use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
@@ -50,6 +51,16 @@ use crate::types::PotionRarity;
 // Follows a CardDiscover roll; halts until the player picks from `id_discover`
 pub const EFFECT_CARD_DISCOVER_PICK: Effect =
     effect_discover_pick(Some(CostScope::Turn), CardPile::Hand);
+
+// The doubled Discover pick adds two copies of the chosen Card
+pub const EFFECT_CARD_DISCOVER_PICK_DOUBLED: Effect = Effect {
+    kind: EffectKind::CardDiscoverPick {
+        cost_zero: Some(CostScope::Turn),
+        pile: CardPile::Hand,
+        copies: 2,
+    },
+    ..EFFECT_CARD_DISCOVER_PICK
+};
 
 // Totality relies on the len == COUNT and no-duplicate asserts below
 const fn build_potion_by_name() -> [&'static PotionTemplate; PotionName::COUNT] {
@@ -64,11 +75,51 @@ const fn build_potion_by_name() -> [&'static PotionTemplate; PotionName::COUNT] 
 
 static POTION_BY_NAME: [&'static PotionTemplate; PotionName::COUNT] = build_potion_by_name();
 
-// Sacred Bark held when a Potion is made doubles its potency for good
-pub fn get_potion(name: PotionName, potency_doubled: bool) -> Entity {
-    Entity {
-        potion_potency_doubled: potency_doubled,
-        ..instance_potion_from_template(POTION_BY_NAME[name as usize])
+// Sacred Bark held when a Potion is made gives it the doubled variant for good
+pub fn get_potion(name: PotionName, doubled: bool) -> Entity {
+    instance_potion_from_template(get_potion_template(name, doubled))
+}
+
+pub fn get_potion_template(name: PotionName, doubled: bool) -> &'static PotionTemplate {
+    if !doubled {
+        return POTION_BY_NAME[name as usize];
+    }
+
+    // Named, not `_`, so a new PotionName missing its _DOUBLED arm stays a compile error
+    match name {
+        PotionName::Energy => &energy::ENERGY_DOUBLED,
+        PotionName::Block => &block::BLOCK_DOUBLED,
+        PotionName::Strength => &strength::STRENGTH_DOUBLED,
+        PotionName::Dexterity => &dexterity::DEXTERITY_DOUBLED,
+        PotionName::Fire => &fire::FIRE_DOUBLED,
+        PotionName::Explosive => &explosive::EXPLOSIVE_DOUBLED,
+        PotionName::Weak => &weak::WEAK_DOUBLED,
+        PotionName::Fear => &fear::FEAR_DOUBLED,
+        PotionName::Poison => &poison::POISON_DOUBLED,
+        PotionName::Swift => &swift::SWIFT_DOUBLED,
+        PotionName::Attack => &attack::ATTACK_DOUBLED,
+        PotionName::Skill => &skill::SKILL_DOUBLED,
+        PotionName::Power => &power::POWER_DOUBLED,
+        PotionName::FruitJuice => &fruit_juice::FRUIT_JUICE_DOUBLED,
+        PotionName::Ancient => &ancient::ANCIENT_DOUBLED,
+        PotionName::LiquidBronze => &liquid_bronze::LIQUID_BRONZE_DOUBLED,
+        PotionName::EssenceOfSteel => &essence_of_steel::ESSENCE_OF_STEEL_DOUBLED,
+        PotionName::GhostInAJar => &ghost_in_a_jar::GHOST_IN_A_JAR_DOUBLED,
+        PotionName::Cultist => &cultist::CULTIST_DOUBLED,
+        PotionName::Cunning => &cunning::CUNNING_DOUBLED,
+        PotionName::DistilledChaos => &distilled_chaos::DISTILLED_CHAOS_DOUBLED,
+        PotionName::Regeneration => &regeneration::REGENERATION_DOUBLED,
+        PotionName::Steroid => &steroid::STEROID_DOUBLED,
+        PotionName::Speed => &speed::SPEED_DOUBLED,
+        PotionName::Duplication => &duplication::DUPLICATION_DOUBLED,
+        PotionName::Colorless => &colorless::COLORLESS_DOUBLED,
+        PotionName::LiquidMemories => &liquid_memories::LIQUID_MEMORIES_DOUBLED,
+        PotionName::SneckoOil => &snecko_oil::SNECKO_OIL_DOUBLED,
+        PotionName::Fairy => &fairy::FAIRY_DOUBLED,
+        PotionName::BlessingOfTheForge
+        | PotionName::EntropicBrew
+        | PotionName::GamblersBrew
+        | PotionName::SmokeBomb => POTION_BY_NAME[name as usize],
     }
 }
 
@@ -209,6 +260,7 @@ pub struct PotionTemplate {
     pub name: PotionName,
     pub rarity: PotionRarity,
     pub combat_only: bool,
+    pub doubled: bool, // Sacred Bark's variant
     pub effects: &'static [Effect],
 }
 
@@ -218,6 +270,7 @@ pub const fn instance_potion_from_template(template: &PotionTemplate) -> Entity 
         potion_name: template.name,
         potion_rarity: template.rarity,
         potion_combat_only: template.combat_only,
+        potion_doubled: template.doubled,
         potion_effects: template.effects,
         ..ENTITY_ZERO
     }

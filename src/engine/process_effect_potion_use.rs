@@ -3,7 +3,6 @@ use rand::Rng;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
-use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::potions::remove_potion;
@@ -40,62 +39,13 @@ pub fn process_effect_potion_use(
             ..*effect
         };
 
-        // Sacred Bark: a Potion with doubled potency doubles its effects
-        let mut repeat = false;
-        if potion.potion_potency_doubled {
-            match &mut effect.kind {
-                // Stacks (Strength, Poison, Regeneration, Speed, ...)
-                EffectKind::ModifierGain { stacks, .. } => *stacks *= 2,
-
-                // Card count (Swift, Snecko Oil; Cunning's Shivs)
-                EffectKind::CardDraw { count } | EffectKind::CardAdd { count, .. } => *count *= 2,
-
-                // Intensity (Block, Fire, Explosive, Energy)
-                EffectKind::BlockGain { amount }
-                | EffectKind::DamagePhysical { amount, .. }
-                | EffectKind::DamageDeal { amount, .. }
-                | EffectKind::EnergyDelta { amount, .. } => *amount *= 2,
-
-                // Health (Fruit Juice); Relative amounts have no potency to scale
-                EffectKind::HealthDelta { amount, .. }
-                | EffectKind::MaxHealthDelta { amount, .. } => {
-                    if let Amount::Absolute(a) = amount {
-                        *a *= 2;
-                    }
-                }
-
-                // Liquid Memories: potency doubles to two picks
-                EffectKind::CardMove { .. } => {
-                    if let Target::Resolve {
-                        selection_kind: SelectionKind::Input { count },
-                        ..
-                    } = &mut effect.target
-                    {
-                        *count *= 2;
-                    }
-                }
-
-                // Distilled Chaos: one play per effect, so the potency doubles by repeating
-                EffectKind::CardPlayFromDrawTop => repeat = true,
-
-                // Discover potions: the doubled copies all go to hand
-                EffectKind::CardDiscoverPick { copies, .. } => *copies *= 2,
-
-                // No potency: Blessing of the Forge, Smoke Bomb, Gambler's Brew, Entropic
-                // Brew, Snecko Oil's randomize
-                _ => {}
-            }
+        // Distilled Chaos rolls its targets in play order, all before any Card resolves
+        if matches!(effect.kind, EffectKind::CardPlayFromDrawTop) {
+            let alive: Vec<usize> = state.combat.id_monsters.iter().flatten().copied().collect();
+            let id_monster = alive[state.rng.random_range(0..alive.len())];
+            effect.target = Target::Direct(Some(id_monster));
         }
-        for _ in 0..(1 + repeat as usize) {
-            // Distilled Chaos rolls its targets in play order, all before any Card resolves
-            if matches!(effect.kind, EffectKind::CardPlayFromDrawTop) {
-                let alive: Vec<usize> =
-                    state.combat.id_monsters.iter().flatten().copied().collect();
-                let id_monster = alive[state.rng.random_range(0..alive.len())];
-                effect.target = Target::Direct(Some(id_monster));
-            }
-            state.effect_buf.push(effect);
-        }
+        state.effect_buf.push(effect);
     }
     flush_effects_from_buf_to_queue_front(state);
 

@@ -10,6 +10,7 @@ pub static SPEED: PotionTemplate = PotionTemplate {
     name: PotionName::Speed,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[
         Effect {
             kind: EffectKind::ModifierGain {
@@ -28,4 +29,27 @@ pub static SPEED: PotionTemplate = PotionTemplate {
             target: TARGET_CHARACTER,
         },
     ],
+};
+// Doubled
+pub static SPEED_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[
+        Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Dexterity,
+                stacks: 10,
+            },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        },
+        Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::LoseDexterity,
+                stacks: 10,
+            },
+            id_source: None,
+            target: TARGET_CHARACTER,
+        },
+    ],
+    ..SPEED
 };

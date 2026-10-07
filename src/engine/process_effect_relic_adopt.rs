@@ -8,6 +8,7 @@ use crate::effect::RelicExclusion;
 use crate::effect::RewardRollTrigger;
 use crate::effect::Target;
 use crate::game::GameState;
+use crate::potions::get_potion;
 use crate::relics::egg_upgrades_kind;
 use crate::relics::get_relic;
 use crate::types::CardKind;
@@ -87,10 +88,11 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
             }
         }
 
-        // Sacred Bark: every Potion already in the belt doubles
+        // Sacred Bark: every Potion already in the belt becomes its doubled variant
         RelicName::SacredBark => {
             for &id_potion in state.id_potions.iter() {
-                state.entities[id_potion].potion_potency_doubled = true;
+                let name = state.entities[id_potion].potion_name;
+                state.entities[id_potion] = get_potion(name, true);
             }
         }
 

@@ -1,3 +1,4 @@
+use crate::game::Location;
 use crate::modifier::ModifierKind;
 use crate::types::CardColor;
 use crate::types::CardKind;
@@ -221,7 +222,6 @@ pub enum EffectKind {
     },
     RelicGrantSpecific {
         name: RelicName,
-        fallback_circlet: bool,
     },
     RelicLose,
     RestSiteConsume,
@@ -248,6 +248,7 @@ pub enum EffectKind {
         kind: RewardKind,
     },
     RoomEnter {
+        location: Location,
         landing: bool, // The second pass, which RoomEnter queues behind the entry Relics' gold
     },
     RoomExit,

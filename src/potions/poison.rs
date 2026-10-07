@@ -10,6 +10,7 @@ pub static POISON: PotionTemplate = PotionTemplate {
     name: PotionName::Poison,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Poison,
@@ -18,4 +19,17 @@ pub static POISON: PotionTemplate = PotionTemplate {
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
+};
+// Doubled
+pub static POISON_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Poison,
+            stacks: 12,
+        },
+        id_source: None,
+        target: TARGET_MONSTER_PICKED,
+    }],
+    ..POISON
 };

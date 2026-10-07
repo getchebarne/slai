@@ -10,6 +10,7 @@ pub static ENERGY: PotionTemplate = PotionTemplate {
     name: PotionName::Energy,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::EnergyDelta {
             sign: DeltaSign::Gain,
@@ -18,4 +19,17 @@ pub static ENERGY: PotionTemplate = PotionTemplate {
         id_source: None,
         target: Target::Direct(None),
     }],
+};
+// Doubled
+pub static ENERGY_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::EnergyDelta {
+            sign: DeltaSign::Gain,
+            amount: 4,
+        },
+        id_source: None,
+        target: Target::Direct(None),
+    }],
+    ..ENERGY
 };

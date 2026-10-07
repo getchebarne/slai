@@ -9,6 +9,7 @@ pub static FIRE: PotionTemplate = PotionTemplate {
     name: PotionName::Fire,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::DamageDeal {
             amount: 20,
@@ -17,4 +18,17 @@ pub static FIRE: PotionTemplate = PotionTemplate {
         id_source: None,
         target: TARGET_MONSTER_PICKED,
     }],
+};
+// Doubled
+pub static FIRE_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::DamageDeal {
+            amount: 40,
+            lifesteal: false,
+        },
+        id_source: None,
+        target: TARGET_MONSTER_PICKED,
+    }],
+    ..FIRE
 };

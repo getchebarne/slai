@@ -9,6 +9,7 @@ pub static SMOKE_BOMB: PotionTemplate = PotionTemplate {
     name: PotionName::SmokeBomb,
     rarity: PotionRarity::Rare,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::CombatEnd {
             escaped_character: true,

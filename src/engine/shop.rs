@@ -249,11 +249,11 @@ pub(super) fn make_relic_with_price(
 pub(super) fn make_potion(
     entities: &mut Vec<Entity>,
     rng: &mut impl Rng,
-    potency_doubled: bool,
+    sacred_bark: bool,
 ) -> (usize, u16) {
     // Sample Potion and its base price
     let name = get_random_potion_name(rng, false);
-    let entity = get_potion(name, potency_doubled);
+    let entity = get_potion(name, sacred_bark);
     let base_price = match entity.potion_rarity {
         PotionRarity::Common => SHOP_PRICE_POTION_COMMON,
         PotionRarity::Uncommon => SHOP_PRICE_POTION_UNCOMMON,

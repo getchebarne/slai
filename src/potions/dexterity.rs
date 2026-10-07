@@ -10,6 +10,7 @@ pub static DEXTERITY: PotionTemplate = PotionTemplate {
     name: PotionName::Dexterity,
     rarity: PotionRarity::Common,
     combat_only: true,
+    doubled: false,
     effects: &[Effect {
         kind: EffectKind::ModifierGain {
             kind: ModifierKind::Dexterity,
@@ -18,4 +19,17 @@ pub static DEXTERITY: PotionTemplate = PotionTemplate {
         id_source: None,
         target: TARGET_CHARACTER,
     }],
+};
+// Doubled
+pub static DEXTERITY_DOUBLED: PotionTemplate = PotionTemplate {
+    doubled: true,
+    effects: &[Effect {
+        kind: EffectKind::ModifierGain {
+            kind: ModifierKind::Dexterity,
+            stacks: 4,
+        },
+        id_source: None,
+        target: TARGET_CHARACTER,
+    }],
+    ..DEXTERITY
 };

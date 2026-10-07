@@ -152,8 +152,8 @@ pub struct Entity {
     pub potion_name: PotionName,
     pub potion_rarity: PotionRarity,
     pub potion_combat_only: bool,
+    pub potion_doubled: bool,
     pub potion_effects: &'static [Effect],
-    pub potion_potency_doubled: bool, // Sacred Bark's doubling, fixed when made or when Bark is picked up
 
     // EventOption-only
     pub event_option_effects: [Effect; MAX_EFFECTS_PER_EVENT_OPTION],
@@ -217,8 +217,8 @@ pub const ENTITY_ZERO: Entity = Entity {
     potion_name: PotionName::Energy,
     potion_rarity: PotionRarity::Common,
     potion_combat_only: true,
+    potion_doubled: false,
     potion_effects: &[],
-    potion_potency_doubled: false,
     event_option_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_EVENT_OPTION],
     event_option_effects_len: 0,
 };

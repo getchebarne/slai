@@ -25,12 +25,14 @@ pub fn process_effect_room_select(id_target: Option<usize>, state: &mut GameStat
     }
 
     let room = &state.entities[id_room];
-    state.location = Location::Overworld {
-        y: room.room_y,
-        x: room.room_x,
-    };
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::RoomEnter { landing: false },
+        kind: EffectKind::RoomEnter {
+            location: Location::Overworld {
+                y: room.room_y,
+                x: room.room_x,
+            },
+            landing: false,
+        },
         id_source: None,
         target: Target::Direct(None),
     });

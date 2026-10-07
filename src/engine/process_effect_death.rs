@@ -16,6 +16,7 @@ use crate::types::PotionName;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::release_stasis_card;
+use crate::utils::resolve_health_fraction;
 
 pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let id_target = id_target.expect("Death requires id_target");
@@ -27,7 +28,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
 
     // Character death: clear pending work, mark dead, signal game over
     if id_target == state.id_character {
-        // Fairy in a Bottle: consumed to revive at 30% max HP; checked before Lizard Tail
+        // Fairy in a Bottle: consumed to revive by its own heal (doubled with Sacred Bark); checked before Lizard Tail
         if let Some(id_potion) = state
             .id_potions
             .iter()
@@ -35,15 +36,13 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
             .find(|&id| state.entities[id].potion_name == PotionName::Fairy)
         {
             remove_potion(&mut state.id_potions, id_potion);
-            // Sacred Bark doubles the revive potency, like every other Potion
-            let factor = if state.entities[id_potion].potion_potency_doubled {
-                0.60
-            } else {
-                0.30
+            let EffectKind::HealthDelta { amount, .. } =
+                state.entities[id_potion].potion_effects[0].kind
+            else {
+                unreachable!("Fairy in a Bottle revives through its HealthDelta");
             };
             let vitals = &mut state.entities[state.id_character].vitals;
-            vitals.health = ((vitals.health_max as f32) * factor) as u16;
-            vitals.health = vitals.health.max(1);
+            vitals.health = resolve_health_fraction(vitals.health_max, amount);
             return;
         }
 
