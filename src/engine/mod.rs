@@ -70,7 +70,6 @@ pub mod process_effect_monster_escape;
 pub mod process_effect_monster_remove;
 pub mod process_effect_monster_spawn;
 pub mod process_effect_monster_split;
-pub mod process_effect_monster_turns;
 pub mod process_effect_move_execute;
 pub mod process_effect_move_update;
 pub mod process_effect_poison_tick;
@@ -105,9 +104,11 @@ pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_stasis_steal;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
-pub mod process_effect_turn_end;
-pub mod process_effect_turn_end_modifiers_and_discard;
-pub mod process_effect_turn_start;
+pub mod process_effect_turn_end_character;
+pub mod process_effect_turn_end_monster;
+pub mod process_effect_turn_monsters;
+pub mod process_effect_turn_start_character;
+pub mod process_effect_turn_start_monster;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
@@ -183,7 +184,6 @@ use self::process_effect_monster_escape::process_effect_monster_escape;
 use self::process_effect_monster_remove::process_effect_monster_remove;
 use self::process_effect_monster_spawn::process_effect_monster_spawn;
 use self::process_effect_monster_split::process_effect_monster_split;
-use self::process_effect_monster_turns::process_effect_monster_turns;
 use self::process_effect_move_execute::process_effect_move_execute;
 use self::process_effect_move_update::process_effect_move_update;
 use self::process_effect_poison_tick::process_effect_poison_tick;
@@ -218,9 +218,11 @@ use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_stasis_steal::process_effect_stasis_steal;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
-use self::process_effect_turn_end::process_effect_turn_end;
-use self::process_effect_turn_end_modifiers_and_discard::process_effect_turn_end_modifiers_and_discard;
-use self::process_effect_turn_start::process_effect_turn_start;
+use self::process_effect_turn_end_character::process_effect_turn_end_character;
+use self::process_effect_turn_end_monster::process_effect_turn_end_monster;
+use self::process_effect_turn_monsters::process_effect_turn_monsters;
+use self::process_effect_turn_start_character::process_effect_turn_start_character;
+use self::process_effect_turn_start_monster::process_effect_turn_start_monster;
 use self::process_effect_unload_discard::process_effect_unload_discard;
 use self::process_effect_wheel_spin::process_effect_wheel_spin;
 
@@ -602,12 +604,13 @@ fn dispatch_by_kind(
         EffectKind::CombatEnd { escaped_character } => {
             process_effect_combat_end(state, escaped_character)
         }
-        EffectKind::TurnStart => process_effect_turn_start(id_target, state),
-        EffectKind::TurnEnd => process_effect_turn_end(id_target, state),
-        EffectKind::TurnEndModifiersAndDiscard => {
-            process_effect_turn_end_modifiers_and_discard(state)
+        EffectKind::TurnStartCharacter => process_effect_turn_start_character(state),
+        EffectKind::TurnStartMonster => process_effect_turn_start_monster(id_target, state),
+        EffectKind::TurnEndCharacter { landing } => {
+            process_effect_turn_end_character(state, landing)
         }
-        EffectKind::MonsterTurns => process_effect_monster_turns(state),
+        EffectKind::TurnEndMonster => process_effect_turn_end_monster(id_target, state),
+        EffectKind::TurnMonsters => process_effect_turn_monsters(state),
         EffectKind::MoveUpdate { move_override } => {
             process_effect_move_update(id_target, state, move_override)
         }

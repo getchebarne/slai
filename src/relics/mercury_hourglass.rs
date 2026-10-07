@@ -7,7 +7,7 @@ use crate::types::RelicTier;
 
 // Every turn start deals 3 damage to all enemies
 // See:
-//    - `process_effect_turn_start.rs`
+//    - `process_effect_turn_start_character.rs`
 pub static MERCURY_HOURGLASS: RelicTemplate = RelicTemplate {
     name: RelicName::MercuryHourglass,
     tier: RelicTier::Uncommon,

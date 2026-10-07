@@ -14,19 +14,21 @@ pub fn process_effect_bomb_tick(state: &mut GameState) {
     let Combat {
         id_monsters, bombs, ..
     } = &mut state.combat;
+
+    // Clear Effect buffer
     state.effect_buf.clear();
-    let any_monster_alive = id_monsters.iter().any(|slot| slot.is_some());
+
     let mut idx = 0;
     while idx < bombs.len() {
+        // Decrease timer
         if bombs[idx].0 > 1 {
             bombs[idx].0 -= 1;
             idx += 1;
             continue;
         }
+
+        // Explode
         let (_, damage) = bombs.remove(idx);
-        if !any_monster_alive {
-            continue;
-        }
         for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::DamageDeal {

@@ -198,7 +198,6 @@ pub enum EffectKind {
         name: MonsterName,
         slot_offset: isize,
     },
-    MonsterTurns,
     MoveExecute,
     MoveUpdate {
         move_override: Option<usize>,
@@ -280,9 +279,13 @@ pub enum EffectKind {
     StrengthLoseTemp {
         stacks: i16,
     },
-    TurnEnd,
-    TurnEndModifiersAndDiscard,
-    TurnStart,
+    TurnEndCharacter {
+        landing: bool, // The second pass, which TurnEndCharacter queues for itself
+    },
+    TurnEndMonster,
+    TurnMonsters,
+    TurnStartCharacter,
+    TurnStartMonster,
     UnloadDiscard,
     WheelSpin,
 }

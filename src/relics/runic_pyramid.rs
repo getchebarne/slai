@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // The hand is kept at end of turn; ethereal still exhausts
 // See:
-//    - `process_effect_turn_end_modifiers_and_discard.rs`
+//    - `process_effect_turn_end_character.rs`
 pub static RUNIC_PYRAMID: RelicTemplate = RelicTemplate {
     name: RelicName::RunicPyramid,
     tier: RelicTier::Boss,

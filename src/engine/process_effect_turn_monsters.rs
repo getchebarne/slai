@@ -6,10 +6,10 @@ use crate::modifier::ModifierKind;
 use crate::types::Combat;
 
 // The Character's turn is over: every Monster takes its turn, then the Character's next turn starts
-pub fn process_effect_monster_turns(state: &mut GameState) {
+pub fn process_effect_turn_monsters(state: &mut GameState) {
     assert!(
         state.combat.active,
-        "process_effect_monster_turns outside the Combat frame"
+        "process_effect_turn_monsters outside the Combat frame"
     );
     let Combat { id_monsters, .. } = &state.combat;
 
@@ -19,7 +19,7 @@ pub fn process_effect_monster_turns(state: &mut GameState) {
     // Behind what the turn end left (Dead Branch's Card): Monster turn starts, Poison ticks, moves and rolls, turn ends
     for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::TurnStart,
+            kind: EffectKind::TurnStartMonster,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
@@ -47,7 +47,7 @@ pub fn process_effect_monster_turns(state: &mut GameState) {
     }
     for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::TurnEnd,
+            kind: EffectKind::TurnEndMonster,
             id_source: None,
             target: Target::Direct(Some(id_monster)),
         });
@@ -55,8 +55,8 @@ pub fn process_effect_monster_turns(state: &mut GameState) {
 
     // Queue Character's turn start
     state.effect_queue.push_back(Effect {
-        kind: EffectKind::TurnStart,
+        kind: EffectKind::TurnStartCharacter,
         id_source: None,
-        target: Target::Direct(Some(state.id_character)),
+        target: Target::Direct(None),
     });
 }

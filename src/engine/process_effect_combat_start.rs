@@ -199,10 +199,10 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         });
     }
 
-    // The Character's first TurnStart waits for everything already queued for the combat start
+    // The first TurnStartCharacter waits for everything already queued for the combat start
     state.effect_queue.push_back(Effect {
-        kind: EffectKind::TurnStart,
+        kind: EffectKind::TurnStartCharacter,
         id_source: None,
-        target: Target::Direct(Some(state.id_character)),
+        target: Target::Direct(None),
     });
 }
