@@ -80,6 +80,9 @@ pub enum EffectKind {
     },
     CardNightmarePick,
     CardNightmareSpawn,
+    CardPlace {
+        pile: CardPile,
+    },
     BombArm {
         turns: u8,
         damage: u16,

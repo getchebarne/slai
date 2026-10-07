@@ -1,12 +1,8 @@
-use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
-use crate::modifier::ModifierKind;
-use crate::modifier::has_modifier;
 use crate::types::CardPile;
-use crate::utils::place_card;
 use crate::utils::push_entity;
 
 pub fn process_effect_card_duplicate(
@@ -20,18 +16,11 @@ pub fn process_effect_card_duplicate(
     // A combat copy keeps every stat of the original
     if pile != CardPile::Deck {
         let id_card_copy = push_entity(&mut state.entities, card_copy);
-        let placed = place_card(state, id_card_copy, pile);
-
-        // Accuracy: a Card reaching the hand resets every Shiv in it
-        if placed
-            && pile == CardPile::Hand
-            && has_modifier(
-                &state.entities[state.id_character].modifiers,
-                ModifierKind::Accuracy,
-            )
-        {
-            state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
-        }
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardPlace { pile },
+            id_source: None,
+            target: Target::Direct(Some(id_card_copy)),
+        });
         return;
     }
 

@@ -1,6 +1,5 @@
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
-use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
@@ -75,8 +74,6 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let Combat {
         id_monsters,
         id_card_stasis,
-        id_card_hand,
-        id_card_discard,
         gold_stolen: gold_stolen_total,
         this_combat_monster_died,
         ..
@@ -86,26 +83,9 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
 
     // Mark the corpse dead, drop it from the live roster, and check if combat continues
     state.entities[id_target].dead = true;
-    if let Some(slot) = id_monsters.iter().position(|slot| *slot == Some(id_target)) {
+    let slot = id_monsters.iter().position(|slot| *slot == Some(id_target));
+    if let Some(slot) = slot {
         id_monsters[slot] = None; // Clear from `id_monsters` Vec
-        let returned_to_hand = release_stasis_card(
-            slot,
-            id_card_stasis,
-            id_card_hand,
-            id_card_discard,
-            &state.entities,
-            &mut state.effect_queue,
-        );
-
-        // Accuracy: a Stasis Card returning to the hand resets every Shiv in it
-        if returned_to_hand
-            && has_modifier(
-                &state.entities[id_character].modifiers,
-                ModifierKind::Accuracy,
-            )
-        {
-            state.effect_queue.push_front(EFFECT_ACCURACY_RESYNC_HAND);
-        }
     }
 
     // Calculate if there're any Monsters left alive
@@ -248,5 +228,16 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
                 });
             }
         }
+    }
+
+    // Stasis: pushed last, so the hostage is back before every on-death effect above; a death
+    // that ends the combat leaves it to the combat reset
+    if let Some(slot) = slot {
+        release_stasis_card(
+            slot,
+            id_card_stasis,
+            &state.entities,
+            &mut state.effect_queue,
+        );
     }
 }
