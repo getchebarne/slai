@@ -26,6 +26,15 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
     }
     id_card_exhaust.push(id_card);
 
+    // An exhausted Card's cost this turn drops back to its combat cost, after any waiting replay reads it
+    if !state
+        .card_play_queue
+        .iter()
+        .any(|card_play| card_play.id_card == id_card)
+    {
+        state.entities[id_card].card_cost_override = None;
+    }
+
     // Necronomicurse: exhausting it returns a copy to hand
     if state.entities[id_card].card_name == CardName::Necronomicurse {
         state.effect_queue.push_back(Effect {

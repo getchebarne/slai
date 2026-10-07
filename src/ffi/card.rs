@@ -79,7 +79,7 @@ mirror_enum!(PyCardPile from CardPile, "CardPile", {
 });
 
 mirror_enum!(PyCostScope from CostScope, "CostScope", {
-    Turn, Combat, UntilPlayed,
+    Turn, Combat,
 });
 
 mirror_enum!(PyCardName from CardName, "CardName", {
@@ -123,6 +123,7 @@ pub struct PyCard {
     pub cost_base: u8,
     pub cost_override: Option<u8>,
     pub cost_override_scope: Option<PyCostScope>,
+    pub free_to_play_once: bool,
     pub cost_kind: PyCardCostKind,
 
     // Categorical fields
@@ -291,11 +292,7 @@ pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec
 
     // Strike Dummy and Wrist Blade join the base damage before scaling, as in the engine
     let bonus = if state.combat.active {
-        let cost = get_card_effective_cost(
-            card,
-            state.combat.this_turn_discards,
-            state.combat.energy.energy_current,
-        );
+        let cost = get_card_effective_cost(card, state.combat.energy.energy_current);
         strike_dummy_bonus(card.card_name, &state.id_relics)
             + wrist_blade_bonus(card, cost, &state.id_relics)
     } else {
@@ -380,7 +377,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         ModifierKind::Entangled,
     );
     // Combat-only; outside combat defaults are permissive (Cards not played)
-    let (restriction_ok, this_turn_discards, energy_current) = if state.combat.active {
+    let (restriction_ok, energy_current) = if state.combat.active {
         (
             is_play_restriction_satisfied(
                 card.card_play_restriction,
@@ -388,14 +385,13 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
                 &state.combat.id_card_draw,
                 &state.id_relics,
             ),
-            state.combat.this_turn_discards,
             state.combat.energy.energy_current,
         )
     } else {
-        (true, 0, 0)
+        (true, 0)
     };
     let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
-    let cost = get_card_effective_cost(card, this_turn_discards, energy_current);
+    let cost = get_card_effective_cost(card, energy_current);
 
     let py_card = PyCard {
         id: id_card,
@@ -408,6 +404,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         cost_override_scope: card
             .card_cost_override
             .map(|cost_override| cost_override.scope.into()),
+        free_to_play_once: card.card_free_to_play_once,
         cost_kind: card.card_cost_kind.into(),
         kind: card.card_kind.into(),
         color: card.card_color.into(),

@@ -87,7 +87,14 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     state.entities[id_target].dead = true;
     if let Some(slot) = id_monsters.iter().position(|slot| *slot == Some(id_target)) {
         id_monsters[slot] = None; // Clear from `id_monsters` Vec
-        release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
+        release_stasis_card(
+            slot,
+            id_card_stasis,
+            id_card_hand,
+            id_card_discard,
+            &state.entities,
+            &mut state.effect_queue,
+        );
     }
 
     // Calculate if there're any Monsters left alive

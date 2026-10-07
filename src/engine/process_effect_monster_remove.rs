@@ -25,7 +25,14 @@ pub fn process_effect_monster_remove(id_target: Option<usize>, state: &mut GameS
     // Remove it
     if let Some(slot) = id_monsters.iter().position(|slot| *slot == Some(id_target)) {
         id_monsters[slot] = None;
-        release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
+        release_stasis_card(
+            slot,
+            id_card_stasis,
+            id_card_hand,
+            id_card_discard,
+            &state.entities,
+            &mut state.effect_queue,
+        );
     }
 
     // Check for combat end

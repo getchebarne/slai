@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use rand::Rng;
 use strum::EnumCount;
 
@@ -182,15 +184,21 @@ pub fn play_cap_reached(
     normality || choker
 }
 
-pub fn get_card_effective_cost(card: &Entity, this_turn_discards: u16, energy_current: u16) -> u16 {
-    if let Some(cost_override) = card.card_cost_override {
-        return cost_override.amount as u16;
+// The Card's cost this turn: its per-turn override, else its combat cost
+pub fn get_card_cost_this_turn(card: &Entity) -> u8 {
+    card.card_cost_override
+        .map_or(card.card_cost, |cost_override| cost_override.amount)
+}
+
+// The energy a play spends: none when free to play once, all of it for X-cost
+pub fn get_card_effective_cost(card: &Entity, energy_current: u16) -> u16 {
+    if card.card_free_to_play_once {
+        return 0;
     }
     match card.card_cost_kind {
-        CardCostKind::Fixed | CardCostKind::GrowsOnDamageInstanceTaken => card.card_cost as u16,
-        CardCostKind::MinusDiscardsThisTurn => {
-            (card.card_cost as u16).saturating_sub(this_turn_discards)
-        }
+        CardCostKind::Fixed
+        | CardCostKind::MinusDiscardsThisTurn
+        | CardCostKind::GrowsOnDamageInstanceTaken => get_card_cost_this_turn(card) as u16,
         CardCostKind::XCost { .. } => energy_current,
     }
 }
@@ -211,7 +219,7 @@ pub fn cards_grow_on_damage(state: &mut GameState) {
             }
             card.card_cost = card.card_cost.saturating_add(1);
 
-            // A per-turn override grows with the Card; a "costs 0 until played" stamp stays free
+            // A per-turn override grows with the Card
             if let Some(CostOverride {
                 amount,
                 scope: CostScope::Turn,
@@ -284,10 +292,7 @@ pub fn filter_candidates(
         CandidateFilter::Costed => {
             let live = |entity: &Entity| {
                 !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
-                    && entity
-                        .card_cost_override
-                        .map_or(entity.card_cost, |cost_override| cost_override.amount)
-                        > 0
+                    && get_card_cost_this_turn(entity) > 0
             };
             let printed = |entity: &Entity| {
                 !matches!(entity.card_cost_kind, CardCostKind::XCost { .. }) && entity.card_cost > 0
@@ -348,12 +353,23 @@ pub fn release_stasis_card(
     id_card_stasis: &mut [Option<usize>; MAX_MONSTERS],
     id_card_hand: &mut Vec<usize>,
     id_card_discard: &mut Vec<usize>,
+    entities: &[Entity],
+    effect_queue: &mut VecDeque<Effect>,
 ) {
     if let Some(id_card) = id_card_stasis[slot].take() {
         if id_card_hand.len() < MAX_SIZE_HAND {
             id_card_hand.push(id_card);
         } else {
             id_card_discard.push(id_card);
+        }
+
+        // A returned Eviscerate restarts its cost this turn at its combat cost less this turn's discards
+        if entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
+            effect_queue.push_front(Effect {
+                kind: EffectKind::CardCostMinusDiscards,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
         }
     }
 }

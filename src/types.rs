@@ -352,7 +352,6 @@ pub enum CardName {
 pub enum CostScope {
     Turn,
     Combat,
-    UntilPlayed,
 }
 
 // Destination for Card spawns and moves

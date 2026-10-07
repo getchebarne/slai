@@ -5,7 +5,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
-use crate::entity::CostOverride;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -115,16 +114,8 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             // Roll new cost
             let new_cost: u8 = state.rng.random_range(0..=3);
 
-            // `CostOverride` is cleared whether or not the roll changed anything
-            if matches!(
-                state.entities[id_card].card_cost_override,
-                Some(CostOverride {
-                    scope: CostScope::UntilPlayed,
-                    ..
-                })
-            ) {
-                state.entities[id_card].card_cost_override = None;
-            }
+            // Free-to-play-once is cleared whether or not the roll changed anything
+            state.entities[id_card].card_free_to_play_once = false;
 
             // Only push it if it's different from the original
             if new_cost != card_cost {
@@ -139,6 +130,17 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
                     target: Target::Direct(Some(id_card)),
                 });
             }
+        }
+    }
+
+    // A drawn Eviscerate restarts its cost this turn; pushed last so it runs ahead of the re-roll
+    for &id_card in &id_drawn[..id_drawn_num] {
+        if state.entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardCostMinusDiscards,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
         }
     }
 }
