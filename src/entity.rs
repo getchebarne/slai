@@ -122,6 +122,7 @@ pub struct Entity {
     pub card_play_restriction: PlayRestriction,
     pub card_cost_kind: CardCostKind,
     pub card_cost_override: Option<CostOverride>,
+    pub card_free_to_play_once: bool, // Setup / Forethought: the Card's next play costs 0, whatever its cost
     pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
     pub card_effects_len: u8,
     pub card_on_discard_effects: &'static [Effect],
@@ -193,6 +194,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     card_play_restriction: PlayRestriction::Always,
     card_cost_kind: CardCostKind::Fixed,
     card_cost_override: None,
+    card_free_to_play_once: false,
     card_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_CARD],
     card_effects_len: 0,
     card_on_discard_effects: &[],

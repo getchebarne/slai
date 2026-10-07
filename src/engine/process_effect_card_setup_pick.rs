@@ -1,10 +1,5 @@
-use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::Target;
-use crate::entity::CardCostKind;
 use crate::game::GameState;
 use crate::types::Combat;
-use crate::types::CostScope;
 
 pub fn process_effect_card_setup_pick(
     id_target: Option<usize>,
@@ -23,24 +18,9 @@ pub fn process_effect_card_setup_pick(
     } = &mut state.combat;
     let id_target = id_target.expect("CardSetupPick requires id_target");
 
-    // Do not set XCost cards as free
-    let free = free
-        && !matches!(
-            state.entities[id_target].card_cost_kind,
-            CardCostKind::XCost { .. }
-        );
-
-    if free {
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::SetCostOverride {
-                amount: 0,
-                only_reduce: false,
-                random: false,
-                scope: CostScope::UntilPlayed,
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_target)),
-        });
+    // Only a Card costing above 0 is made free; X-cost and unplayable Cards store cost 0
+    if free && state.entities[id_target].card_cost > 0 {
+        state.entities[id_target].card_free_to_play_once = true;
     }
     if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {
         id_card_hand.remove(pos);

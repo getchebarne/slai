@@ -11,6 +11,7 @@ pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
 pub mod process_effect_card_adopt;
 pub mod process_effect_card_bottle;
+pub mod process_effect_card_cost_minus_discards;
 pub mod process_effect_card_discard;
 pub mod process_effect_card_discover_pick;
 pub mod process_effect_card_discover_roll;
@@ -19,6 +20,7 @@ pub mod process_effect_card_draw_if_no_attacks;
 pub mod process_effect_card_draw_up_to;
 pub mod process_effect_card_duplicate;
 pub mod process_effect_card_exhaust;
+pub mod process_effect_card_free_play_spend;
 pub mod process_effect_card_move;
 pub mod process_effect_card_nightmare_pick;
 pub mod process_effect_card_nightmare_spawn;
@@ -126,6 +128,7 @@ use self::process_effect_card_add::process_effect_card_add;
 use self::process_effect_card_add_random::process_effect_card_add_random;
 use self::process_effect_card_adopt::process_effect_card_adopt;
 use self::process_effect_card_bottle::process_effect_card_bottle;
+use self::process_effect_card_cost_minus_discards::process_effect_card_cost_minus_discards;
 use self::process_effect_card_discard::process_effect_card_discard;
 use self::process_effect_card_discover_pick::process_effect_card_discover_pick;
 use self::process_effect_card_discover_roll::process_effect_card_discover_roll;
@@ -134,6 +137,7 @@ use self::process_effect_card_draw_if_no_attacks::process_effect_card_draw_if_no
 use self::process_effect_card_draw_up_to::process_effect_card_draw_up_to;
 use self::process_effect_card_duplicate::process_effect_card_duplicate;
 use self::process_effect_card_exhaust::process_effect_card_exhaust;
+use self::process_effect_card_free_play_spend::process_effect_card_free_play_spend;
 use self::process_effect_card_move::process_effect_card_move;
 use self::process_effect_card_nightmare_pick::process_effect_card_nightmare_pick;
 use self::process_effect_card_nightmare_spawn::process_effect_card_nightmare_spawn;
@@ -514,6 +518,10 @@ fn dispatch_by_kind(
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
         EffectKind::BonfireOffer => process_effect_bonfire_offer(id_target, state),
         EffectKind::CardBottle => process_effect_card_bottle(id_target, state),
+        EffectKind::CardCostMinusDiscards => {
+            process_effect_card_cost_minus_discards(id_target, state)
+        }
+        EffectKind::CardFreePlaySpend => process_effect_card_free_play_spend(id_target, state),
         EffectKind::GiryaLift => process_effect_girya_lift(state),
         EffectKind::SingingBowlProc { idx_bundle } => {
             process_effect_singing_bowl_proc(state, idx_bundle)

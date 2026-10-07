@@ -6,7 +6,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
-use crate::entity::CostOverride;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -101,19 +100,19 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
                 continue;
             }
             let card_cost = card.card_cost;
-            let free_until_played = matches!(
-                card.card_cost_override,
-                Some(CostOverride {
-                    scope: CostScope::UntilPlayed,
-                    ..
-                })
-            );
 
             // Roll new cost
             let new_cost: u8 = state.rng.random_range(0..=3);
 
-            // A new cost drops every override; an unchanged one still drops the free play
-            if new_cost != card_cost || free_until_played {
+            // Free-to-play-once is spent whether or not the roll changed anything, once the on-draw hooks have seen it
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardFreePlaySpend,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
+
+            // Only push it if it's different from the original
+            if new_cost != card_cost {
                 state.effect_queue.push_front(Effect {
                     kind: EffectKind::SetCostOverride {
                         amount: new_cost,
@@ -125,6 +124,17 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
                     target: Target::Direct(Some(id_card)),
                 });
             }
+        }
+    }
+
+    // A drawn Eviscerate restarts its cost this turn, ahead of the re-roll
+    for &id_card in &id_drawn[..id_drawn_num] {
+        if state.entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardCostMinusDiscards,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
         }
     }
 

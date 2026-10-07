@@ -10,7 +10,6 @@ use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
-use crate::entity::CostOverride;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -59,9 +58,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     let Combat {
         id_card_hand,
         id_card_draw,
+        id_card_exhaust,
         id_monsters,
         id_monster_picked,
-        this_turn_discards,
         this_turn_attacks,
         this_turn_cards_played,
         this_turn_panache,
@@ -70,8 +69,18 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
     // Read-only here: copied out so the body below can borrow the whole state
     let id_character = state.id_character;
-    let this_turn_discards = *this_turn_discards;
     let card = state.entities[id_card];
+
+    // Another play of this Card still waits, such as a second replay
+    let other_play_waits = state
+        .card_play_queue
+        .iter()
+        .any(|card_play| card_play.id_card == id_card);
+
+    // The last replay of an exhausted Card has read its cost this turn, which now drops
+    if id_card_exhaust.contains(&id_card) && !other_play_waits {
+        state.entities[id_card].card_cost_override = None;
+    }
 
     // The Card's picked-Monster effects resolve against this play's target
     *id_monster_picked = id_target;
@@ -97,6 +106,10 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             *this_turn_cards_played,
         );
     if !playable {
+        // A refused play still spends free-to-play-once, unless another play of the Card waits
+        if !other_play_waits {
+            state.entities[id_card].card_free_to_play_once = false;
+        }
         match play_source {
             PlaySource::Hand => unreachable!("a hand play is legal when served"),
 
@@ -194,7 +207,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                 &state.entities,
                 &mut state.rng,
                 id_card,
-                this_turn_discards,
                 energy,
             );
         }
@@ -220,19 +232,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         );
     }
 
-    // Until-played overrides are consumed by this play; a draw-top play drops any override
-    if play_source == PlaySource::DrawTop
-        || matches!(
-            card.card_cost_override,
-            Some(CostOverride {
-                scope: CostScope::UntilPlayed,
-                ..
-            })
-        )
-    {
-        state.entities[id_card].card_cost_override = None;
-    }
-
     // Clear effect buffer — prepare it to be filled
     state.effect_buf.clear();
 
@@ -250,13 +249,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Energy loss: only a hand play pays; a draw-top play counts as costing 0
-    let cost_effective = match play_source {
-        PlaySource::DrawTop => 0,
-        PlaySource::Hand | PlaySource::Replay => {
-            get_card_effective_cost(&card, this_turn_discards, energy)
-        }
-    };
+    // Energy loss: every play reads its cost (Wrist Blade, Necronomicon), only a hand play pays it
+    let cost_effective = get_card_effective_cost(&card, energy);
     if play_source == PlaySource::Hand {
         state.effect_buf.push(Effect {
             kind: EffectKind::EnergyDelta {
@@ -331,7 +325,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     let char_modifiers = &state.entities[id_character].modifiers;
 
     // Burst (skill-only) doubles; X-cost multiplies by X; they stack multiplicatively
-    // X-cost reads `energy`, not the effective cost, so Setup-flagged X-cost still scales
+    // X-cost reads `energy`, the X fixed when the play was queued
     let mul = match card.card_cost_kind {
         CardCostKind::XCost { offset } => {
             let x = (energy as i16 + offset as i16).max(0) as usize;
@@ -552,13 +546,19 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
     // Burst / Duplication / Necronomicon each replay the Card against the same target, ahead of
     // any play already waiting; changes to the Card (Glass Knife, Ritual Dagger) carry over
-    for _ in 0..(burst as usize + duplication as usize + necronomicon as usize) {
+    let replays = burst as usize + duplication as usize + necronomicon as usize;
+    for _ in 0..replays {
         state.card_play_queue.push_front(CardPlay {
             id_card,
             id_target,
             play_source: PlaySource::Replay,
             energy,
         });
+    }
+
+    // The Card's last waiting play spends free-to-play-once
+    if replays == 0 && !other_play_waits {
+        state.entities[id_card].card_free_to_play_once = false;
     }
 
     flush_effects_from_buf_to_queue_front(state);
@@ -570,7 +570,6 @@ fn pick_random_costed_hand_card(
     entities: &[Entity],
     rng: &mut impl Rng,
     id_card_played: usize,
-    this_turn_discards: u16,
     energy_current: u16,
 ) -> Option<usize> {
     let mut cards_valid = [0usize; MAX_SIZE_HAND];
@@ -585,7 +584,7 @@ fn pick_random_costed_hand_card(
         let card = &entities[id_card];
         let cost_base_positive =
             !matches!(card.card_cost_kind, CardCostKind::XCost { .. }) && card.card_cost > 0;
-        let cost_effective = get_card_effective_cost(card, this_turn_discards, energy_current);
+        let cost_effective = get_card_effective_cost(card, energy_current);
 
         // Only consider eligible if the base cost and effective costs are grater than zero (excludes X-cost)
         if cost_base_positive && cost_effective > 0 {
