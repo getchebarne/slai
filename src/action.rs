@@ -546,11 +546,10 @@ fn handle_room_select(state: &mut GameState, idx: usize) {
 }
 
 fn handle_turn_end(state: &mut GameState) {
-    let id_character = state.id_character;
     state.effect_buf.push(Effect {
-        kind: EffectKind::TurnEnd,
+        kind: EffectKind::TurnEndCharacter { landing: false },
         id_source: None,
-        target: Target::Direct(Some(id_character)),
+        target: Target::Direct(None),
     });
 }
 

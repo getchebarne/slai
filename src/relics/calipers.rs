@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // At turn start, lose 15 block instead of all of it
 // See:
-//    - `process_effect_turn_start.rs`
+//    - `process_effect_turn_start_character.rs`
 pub static CALIPERS: RelicTemplate = RelicTemplate {
     name: RelicName::Calipers,
     tier: RelicTier::Rare,

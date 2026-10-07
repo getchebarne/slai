@@ -8,7 +8,7 @@ use crate::types::RelicTier;
 
 // Every 6th turn start grants 1 Intangible; counter persists across combats
 // See:
-//    - `process_effect_turn_start.rs`
+//    - `process_effect_turn_start_character.rs`
 pub static INCENSE_BURNER: RelicTemplate = RelicTemplate {
     name: RelicName::IncenseBurner,
     tier: RelicTier::Rare,

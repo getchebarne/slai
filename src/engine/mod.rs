@@ -4,6 +4,7 @@ pub mod process_effect_adventurer_search;
 pub mod process_effect_block_gain;
 pub mod process_effect_block_set;
 pub mod process_effect_bomb_arm;
+pub mod process_effect_bomb_tick;
 pub mod process_effect_bonfire_offer;
 pub mod process_effect_card_add;
 pub mod process_effect_card_add_random;
@@ -64,7 +65,6 @@ pub mod process_effect_mayhem_proc;
 pub mod process_effect_modifier_gain;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
-pub mod process_effect_modifier_set_not_new;
 pub mod process_effect_modifier_tick;
 pub mod process_effect_monster_escape;
 pub mod process_effect_monster_remove;
@@ -104,8 +104,11 @@ pub mod process_effect_sneaky_strike_proc;
 pub mod process_effect_stasis_steal;
 pub mod process_effect_storm_of_steel_proc;
 pub mod process_effect_strength_lose_temp;
-pub mod process_effect_turn_end;
-pub mod process_effect_turn_start;
+pub mod process_effect_turn_end_character;
+pub mod process_effect_turn_end_monster;
+pub mod process_effect_turn_monsters;
+pub mod process_effect_turn_start_character;
+pub mod process_effect_turn_start_monster;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
@@ -115,6 +118,7 @@ use self::process_effect_adventurer_search::process_effect_adventurer_search;
 use self::process_effect_block_gain::process_effect_block_gain;
 use self::process_effect_block_set::process_effect_block_set;
 use self::process_effect_bomb_arm::process_effect_bomb_arm;
+use self::process_effect_bomb_tick::process_effect_bomb_tick;
 use self::process_effect_bonfire_offer::process_effect_bonfire_offer;
 use self::process_effect_card_add::process_effect_card_add;
 use self::process_effect_card_add_random::process_effect_card_add_random;
@@ -175,7 +179,6 @@ use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
 use self::process_effect_modifier_gain::process_effect_modifier_gain;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
-use self::process_effect_modifier_set_not_new::process_effect_modifier_set_not_new;
 use self::process_effect_modifier_tick::process_effect_modifier_tick;
 use self::process_effect_monster_escape::process_effect_monster_escape;
 use self::process_effect_monster_remove::process_effect_monster_remove;
@@ -215,8 +218,11 @@ use self::process_effect_sneaky_strike_proc::process_effect_sneaky_strike_proc;
 use self::process_effect_stasis_steal::process_effect_stasis_steal;
 use self::process_effect_storm_of_steel_proc::process_effect_storm_of_steel_proc;
 use self::process_effect_strength_lose_temp::process_effect_strength_lose_temp;
-use self::process_effect_turn_end::process_effect_turn_end;
-use self::process_effect_turn_start::process_effect_turn_start;
+use self::process_effect_turn_end_character::process_effect_turn_end_character;
+use self::process_effect_turn_end_monster::process_effect_turn_end_monster;
+use self::process_effect_turn_monsters::process_effect_turn_monsters;
+use self::process_effect_turn_start_character::process_effect_turn_start_character;
+use self::process_effect_turn_start_monster::process_effect_turn_start_monster;
 use self::process_effect_unload_discard::process_effect_unload_discard;
 use self::process_effect_wheel_spin::process_effect_wheel_spin;
 
@@ -428,11 +434,20 @@ fn resolve_or_halt(
     }
 
     // Stage 3: the selection picks. Returns `true` if the targets were resolved
-    resolve_selection_kind(
+    let resolved = resolve_selection_kind(
         &mut state.effect_candidate_buf,
         selection_kind,
         &mut state.rng,
-    )
+    );
+
+    // A Hand pick that takes every Card takes them from the right
+    if resolved
+        && candidate_pool == CandidatePool::Hand
+        && matches!(selection_kind, SelectionKind::Input { .. })
+    {
+        state.effect_candidate_buf.reverse();
+    }
+    resolved
 }
 
 fn dispatch_by_kind(
@@ -487,6 +502,7 @@ fn dispatch_by_kind(
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
         EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(id_target, state),
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
+        EffectKind::BombTick => process_effect_bomb_tick(state),
         EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),
         EffectKind::CardPlayRelocate { exhaust } => {
             process_effect_card_play_relocate(id_target, state, exhaust)
@@ -580,7 +596,6 @@ fn dispatch_by_kind(
         }
         EffectKind::ModifierTick => process_effect_modifier_tick(id_target, state),
         EffectKind::PoisonTick => process_effect_poison_tick(id_target, state),
-        EffectKind::ModifierSetNotNew => process_effect_modifier_set_not_new(state),
         EffectKind::Death => {
             // Character can die outside Combat; empty Monster slots make iter a no-op
             process_effect_death(id_target, state)
@@ -589,8 +604,13 @@ fn dispatch_by_kind(
         EffectKind::CombatEnd { escaped_character } => {
             process_effect_combat_end(state, escaped_character)
         }
-        EffectKind::TurnStart => process_effect_turn_start(id_target, state),
-        EffectKind::TurnEnd => process_effect_turn_end(id_target, state),
+        EffectKind::TurnStartCharacter => process_effect_turn_start_character(state),
+        EffectKind::TurnStartMonster => process_effect_turn_start_monster(id_target, state),
+        EffectKind::TurnEndCharacter { landing } => {
+            process_effect_turn_end_character(state, landing)
+        }
+        EffectKind::TurnEndMonster => process_effect_turn_end_monster(id_target, state),
+        EffectKind::TurnMonsters => process_effect_turn_monsters(state),
         EffectKind::MoveUpdate { move_override } => {
             process_effect_move_update(id_target, state, move_override)
         }

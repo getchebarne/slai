@@ -111,14 +111,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Artifact,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Asleep,
@@ -153,20 +153,20 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::CurlUp,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Dexterity,
         is_buff: true,
         stacks_duration: false,
-        stacks_min: -999,
+        stacks_min: -999, // Sums clamp here; Dexterity is removed at exactly 0 instead
         stacks_max: 999,
     },
     ModifierDef {
@@ -188,28 +188,28 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Entangled,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 1,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Envenom,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Frail,
         is_buff: false,
         stacks_duration: true,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::InfiniteBlades,
@@ -230,7 +230,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::ModeShift,
@@ -243,7 +243,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         kind: ModifierKind::NextTurnBlock,
         is_buff: true,
         stacks_duration: false,
-        stacks_min: 1,
+        stacks_min: 0, // A 0-block Dodge and Roll still lists it until the next turn start
         stacks_max: 999,
     },
     ModifierDef {
@@ -265,7 +265,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Phantasmal,
@@ -300,7 +300,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Shackled,
@@ -334,7 +334,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         kind: ModifierKind::Strength,
         is_buff: true,
         stacks_duration: false,
-        stacks_min: -999,
+        stacks_min: -999, // Sums clamp here; Strength is removed at exactly 0 instead
         stacks_max: 999,
     },
     ModifierDef {
@@ -377,14 +377,14 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: false,
         stacks_duration: true,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::Weak,
         is_buff: false,
         stacks_duration: true,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::WraithForm,
@@ -447,21 +447,21 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::LoseStrength,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::LoseDexterity,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
-        stacks_max: 999,
+        stacks_max: i16::MAX,
     },
     ModifierDef {
         kind: ModifierKind::DuplicateNextCardPlay,
@@ -560,7 +560,7 @@ pub fn active_modifier_kinds(active: u128) -> impl Iterator<Item = ModifierKind>
     })
 }
 
-// Sum onto the existing stacks (0 if absent); below stacks_min removes, above stacks_max saturates
+// Sum onto the existing stacks (0 if absent); Strength/Dexterity are removed at 0, every other kind below stacks_min; a surviving sum clamps to [stacks_min, stacks_max]
 pub fn modifier_apply(mods: &mut Modifiers, kind: ModifierKind, stacks: i16) {
     let mod_def = modifier_def(kind);
     let idx = kind as usize;
@@ -572,8 +572,11 @@ pub fn modifier_apply(mods: &mut Modifiers, kind: ModifierKind, stacks: i16) {
         stacks
     };
 
-    // Remove if below minimum stacks
-    if stacks_new < mod_def.stacks_min {
+    let remove = match kind {
+        ModifierKind::Strength | ModifierKind::Dexterity => stacks_new == 0,
+        _ => stacks_new < mod_def.stacks_min,
+    };
+    if remove {
         return modifier_remove(mods, kind);
     }
 
@@ -584,7 +587,7 @@ pub fn modifier_apply(mods: &mut Modifiers, kind: ModifierKind, stacks: i16) {
     }
 
     // Else, set new value
-    mods.stacks[idx] = stacks_new.min(mod_def.stacks_max);
+    mods.stacks[idx] = stacks_new.clamp(mod_def.stacks_min, mod_def.stacks_max);
 }
 
 pub fn modifier_remove(mods: &mut Modifiers, kind: ModifierKind) {

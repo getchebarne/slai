@@ -7,7 +7,7 @@ use crate::types::RelicTier;
 
 // At the start of turn 2 each combat, gain 14 block
 // See:
-//    - `process_effect_turn_start.rs`
+//    - `process_effect_turn_start_character.rs`
 pub static HORN_CLEAT: RelicTemplate = RelicTemplate {
     name: RelicName::HornCleat,
     tier: RelicTier::Uncommon,

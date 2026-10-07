@@ -160,8 +160,9 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     // CorpseExplosion: max_health to others; no source scaling, no Envenom proc
     let corpse_explosion =
         has_modifier(&target.modifiers, ModifierKind::CorpseExplosion).then(|| {
-            target.vitals.health_max
-                * modifier_stacks(&target.modifiers, ModifierKind::CorpseExplosion).max(0) as u16
+            target.vitals.health_max.saturating_mul(
+                modifier_stacks(&target.modifiers, ModifierKind::CorpseExplosion).max(0) as u16,
+            )
         });
 
     // The Specimen: the corpse's Poison moves to a random survivor

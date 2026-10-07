@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Ending the turn with 0 block grants 6 block
 // See:
-//    - `process_effect_turn_end.rs`
+//    - `process_effect_turn_end_character.rs`
 pub static ORICHALCUM: RelicTemplate = RelicTemplate {
     name: RelicName::Orichalcum,
     tier: RelicTier::Common,

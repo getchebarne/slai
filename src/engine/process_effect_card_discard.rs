@@ -11,7 +11,7 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
-// Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain/ethereal
+// Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain
 pub fn process_effect_card_discard(
     id_target: Option<usize>,
     state: &mut GameState,
@@ -33,21 +33,6 @@ pub fn process_effect_card_discard(
             // Clear retain flags
             if state.entities[id_target].card_retain {
                 state.entities[id_target].card_retain = false;
-                return;
-            }
-
-            // Exhaust ethereal Cards
-            if state.entities[id_target].card_ethereal {
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::CardExhaust,
-                    id_source: None,
-                    target: Target::Direct(Some(id_target)),
-                });
-                return;
-            }
-
-            // Runic Pyramid: unplayed Cards stay in hand at end of turn
-            if has_relic(&state.id_relics, RelicName::RunicPyramid) {
                 return;
             }
 
