@@ -5,10 +5,14 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::CardCostKind;
+use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::types::Combat;
+use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
+use crate::utils::get_card_cost_this_turn;
 use crate::utils::has_relic;
 
 // Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain
@@ -23,6 +27,7 @@ pub fn process_effect_card_discard(
     );
     let Combat {
         id_card_hand,
+        id_card_draw,
         id_card_discard,
         this_turn_discards,
         ..
@@ -48,6 +53,22 @@ pub fn process_effect_card_discard(
             }
             id_card_discard.push(id_target);
             *this_turn_discards = this_turn_discards.saturating_add(1);
+
+            // Eviscerate in hand, draw or discard costs 1 less this turn, down to 0
+            for &id_card in id_card_hand
+                .iter()
+                .chain(id_card_draw.iter())
+                .chain(id_card_discard.iter())
+            {
+                let card = &mut state.entities[id_card];
+                let cost = get_card_cost_this_turn(card);
+                if card.card_cost_kind == CardCostKind::MinusDiscardsThisTurn && cost > 0 {
+                    card.card_cost_override = Some(CostOverride {
+                        amount: cost - 1,
+                        scope: CostScope::Turn,
+                    });
+                }
+            }
 
             // Queued behind the rest so a batch's discards all land before any trigger
             let effects_on_discard = state.entities[id_target].card_on_discard_effects;

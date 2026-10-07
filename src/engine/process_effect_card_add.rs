@@ -2,6 +2,7 @@ use crate::cards::get_card;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::CardCostKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::modifier_stacks;
@@ -49,5 +50,14 @@ pub fn process_effect_card_add(
             card_damage_delta(&mut state.entities[id_card], accuracy_stacks);
         }
         place_card(state, id_card, pile);
+
+        // A created Eviscerate starts its cost this turn at its combat cost less this turn's discards
+        if card.card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardCostMinusDiscards,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
+        }
     }
 }

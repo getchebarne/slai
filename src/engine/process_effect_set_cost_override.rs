@@ -5,7 +5,7 @@ use crate::entity::CostOverride;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::types::CostScope;
-use crate::utils::get_card_effective_cost;
+use crate::utils::get_card_cost_this_turn;
 
 pub fn process_effect_set_cost_override(
     id_target: Option<usize>,
@@ -18,20 +18,15 @@ pub fn process_effect_set_cost_override(
     let id_target = id_target.expect("SetCostOverride requires id_target");
     let card = &state.entities[id_target];
 
-    // Ignore XCost cards
+    // X-cost and unplayable Cards keep their cost
     if matches!(card.card_cost_kind, CardCostKind::XCost { .. })
-        && matches!(scope, CostScope::Turn | CostScope::Combat)
+        || card.card_play_restriction == PlayRestriction::Never
     {
         return;
     }
 
-    // Snecko Oil: roll 0..=amount instead; X-cost and unplayables skip before rolling
+    // Snecko Oil: roll 0..=amount instead
     let amount = if random {
-        if matches!(card.card_cost_kind, CardCostKind::XCost { .. })
-            || card.card_play_restriction == PlayRestriction::Never
-        {
-            return;
-        }
         let roll = state.rng.random_range(0..=amount);
 
         // Same-cost roll leaves any live per-turn override in place
@@ -46,26 +41,13 @@ pub fn process_effect_set_cost_override(
     // Get mutable Card reference
     let card = &mut state.entities[id_target];
 
-    // Used to get the Card's effective cost
-    let (this_turn_discards, energy_current) = if state.combat.active {
-        (
-            state.combat.this_turn_discards,
-            state.combat.energy.energy_current,
-        )
-    } else {
-        (0, 0)
-    };
-
     // Check for `only_reduce`
     if only_reduce {
-        if matches!(card.card_cost_kind, CardCostKind::XCost { .. }) {
-            return;
-        }
         let current = match scope {
-            CostScope::Combat => card.card_cost as u16,
-            _ => get_card_effective_cost(card, this_turn_discards, energy_current),
+            CostScope::Combat => card.card_cost,
+            CostScope::Turn => get_card_cost_this_turn(card),
         };
-        if current <= amount as u16 {
+        if current <= amount {
             return;
         }
     }
@@ -77,6 +59,10 @@ pub fn process_effect_set_cost_override(
                 card.card_cost_override = None;
             }
         }
-        scope => card.card_cost_override = Some(CostOverride { amount, scope }),
+        // A cost this turn equal to the combat cost leaves no override
+        scope => {
+            card.card_cost_override =
+                (amount != card.card_cost).then_some(CostOverride { amount, scope })
+        }
     }
 }

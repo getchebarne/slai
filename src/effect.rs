@@ -44,6 +44,7 @@ pub enum EffectKind {
         landing: bool, // The second pass, which CardAdopt queues for itself
     },
     CardBottle,
+    CardCostMinusDiscards,
     CardDiscard {
         source: DiscardSource,
     },

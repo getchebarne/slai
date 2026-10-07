@@ -606,7 +606,6 @@ fn fill_legal_actions_combat(state: &mut GameState) {
         id_card_draw,
         id_monsters,
         energy,
-        this_turn_discards,
         this_turn_cards_played,
         ..
     } = &state.combat;
@@ -639,7 +638,7 @@ fn fill_legal_actions_combat(state: &mut GameState) {
         if !restriction_ok || entangled_blocks {
             continue;
         }
-        let cost = get_card_effective_cost(card, *this_turn_discards, energy.energy_current);
+        let cost = get_card_effective_cost(card, energy.energy_current);
         if cost > energy.energy_current {
             continue;
         }

@@ -26,7 +26,14 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
         id_monsters[slot] = None;
 
         // An escaping Stasis holder relinquishes its hostage (unreachable today)
-        release_stasis_card(slot, id_card_stasis, id_card_hand, id_card_discard);
+        release_stasis_card(
+            slot,
+            id_card_stasis,
+            id_card_hand,
+            id_card_discard,
+            &state.entities,
+            &mut state.effect_queue,
+        );
     }
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
 

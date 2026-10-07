@@ -16,7 +16,7 @@ use crate::utils::place_card;
 use crate::utils::push_entity;
 use rand::Rng;
 
-// Random Silent Skill into hand, free-to-play-once
+// Random Silent Skill into hand, costing 0 this turn
 pub fn process_effect_distraction_add(state: &mut GameState) {
     let mut buf = [CardName::Strike; 64];
     let mut num = 0;
