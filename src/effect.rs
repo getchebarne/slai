@@ -78,6 +78,7 @@ pub enum EffectKind {
         turns: u8,
         damage: u16,
     },
+    BombTick,
     LifestealHeal,
     CardPlayRelocate {
         exhaust: bool,
@@ -185,7 +186,6 @@ pub enum EffectKind {
     ModifierRemove {
         kind: ModifierKind,
     },
-    ModifierSetNotNew,
     ModifierTick,
     MonsterEscape,
     MonsterRemove,
@@ -198,6 +198,7 @@ pub enum EffectKind {
         name: MonsterName,
         slot_offset: isize,
     },
+    MonsterTurns,
     MoveExecute,
     MoveUpdate {
         move_override: Option<usize>,
@@ -280,6 +281,7 @@ pub enum EffectKind {
         stacks: i16,
     },
     TurnEnd,
+    TurnEndModifiersAndDiscard,
     TurnStart,
     UnloadDiscard,
     WheelSpin,

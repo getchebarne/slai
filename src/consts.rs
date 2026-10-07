@@ -78,7 +78,7 @@ pub const MATRYOSHKA_TH_UNCOMMON: u8 = 100;
 pub const MAX_BLOCK: u16 = 999;
 pub const NIGHTMARE_COPIES: u8 = 3;
 
-// The Bomb: lazily armed detonation timer (see process_effect_turn_end)
+// The Bomb: lazily armed detonation timer (see process_effect_bomb_tick)
 pub const BOMB_FUSE_TURNS: u8 = 3;
 
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`

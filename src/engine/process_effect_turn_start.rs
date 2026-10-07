@@ -42,6 +42,8 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         energy,
         id_card_nightmares,
         turn,
+        this_turn_attacks,
+        this_turn_cards_played,
         ..
     } = &mut state.combat;
     let id_actor = id_target.expect("TurnStart requires id_target");
@@ -100,11 +102,28 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
         modifiers.stacks[ModifierKind::Flight as usize] = byrd::flight_stacks(state.ascension);
     }
 
+    // Choke wears off at its Monster's turn start, before any Monster acts
+    if has_modifier(modifiers, ModifierKind::Choke) {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::Choke,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_actor)),
+        });
+    }
+
     // Character's turn start; turn 1 also slots in the combat-start Relics
     if id_actor == state.id_character {
         let first_turn = *turn == 0;
         *turn += 1;
         let modifiers = state.entities[id_actor].modifiers;
+
+        // Last turn's plays decide Art of War and Pocketwatch; this turn counts from zero
+        let art_of_war_energy = !first_turn && *this_turn_attacks == 0;
+        let pocketwatch_draw = !first_turn && *this_turn_cards_played <= 3;
+        *this_turn_attacks = 0;
+        *this_turn_cards_played = 0;
 
         // Owned Relics in acquisition order
         let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
@@ -180,6 +199,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 &state.id_relics,
                 &mut state.entities,
                 &mut state.effect_buf,
+                art_of_war_energy,
             );
         }
 
@@ -198,17 +218,6 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 &mut state.entities[id_actor].modifiers,
                 ModifierKind::NextTurnEnergy,
             );
-        }
-
-        // Choke auto-removes at the next player turn start
-        for id_monster in id_monsters.iter().flatten().copied() {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierRemove {
-                    kind: ModifierKind::Choke,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_monster)),
-            });
         }
 
         // Spawn nightmare copies
@@ -331,12 +340,22 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
                 &state.id_relics,
                 &mut state.entities,
                 &mut state.effect_buf,
+                art_of_war_energy,
             );
         }
 
         // Post-draw Relics (Warped Tongs; Gambling Chip's first-turn Gamble)
         for &id_relic in &id_relics {
             let relic = &state.entities[id_relic];
+
+            // Pocketwatch: 3 or fewer Cards played last turn draws 3 more
+            if relic.relic_name == RelicName::Pocketwatch && pocketwatch_draw {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::CardDraw { count: 3 },
+                    id_source: None,
+                    target: Target::Direct(None),
+                });
+            }
             if RELICS_TURN_START_POST_DRAW.contains(&relic.relic_name) {
                 for &effect in relic.relic_effects_turn_start {
                     state.effect_buf.push(effect);
@@ -364,7 +383,7 @@ pub fn process_effect_turn_start(id_target: Option<usize>, state: &mut GameState
             }
         }
 
-        // Draw Cards next turn (Predator, Pocketwatch): apply and clear
+        // Draw Cards next turn (Predator, Doppelganger): apply and clear
         if has_modifier(&modifiers, ModifierKind::DrawCardNextTurn) {
             let stacks = modifier_stacks(&modifiers, ModifierKind::DrawCardNextTurn);
             state.effect_buf.push(Effect {
@@ -418,6 +437,7 @@ fn push_relics_turn_start(
     id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &mut [Entity],
     effect_buf: &mut Vec<Effect>,
+    art_of_war_energy: bool,
 ) {
     // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
     for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
@@ -448,6 +468,18 @@ fn push_relics_turn_start(
     // Turn-start Relic effects (Mercury Hourglass); post-draw ones wait for the draw
     for &id_relic in id_relics_by_seq {
         let relic = &entities[id_relic];
+
+        // Art of War: a turn without Attacks gives 1 energy
+        if relic.relic_name == RelicName::ArtOfWar && art_of_war_energy {
+            effect_buf.push(Effect {
+                kind: EffectKind::EnergyDelta {
+                    sign: DeltaSign::Gain,
+                    amount: 1,
+                },
+                id_source: None,
+                target: Target::Direct(None),
+            });
+        }
         if !RELICS_TURN_START_POST_DRAW.contains(&relic.relic_name) {
             for &effect in relic.relic_effects_turn_start {
                 effect_buf.push(effect);

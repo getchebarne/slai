@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // If no Attack was played this turn, gain 1 energy next turn
 // See:
-//    - `process_effect_turn_end.rs`
+//    - `process_effect_turn_start.rs`
 pub static ART_OF_WAR: RelicTemplate = RelicTemplate {
     name: RelicName::ArtOfWar,
     tier: RelicTier::Common,
