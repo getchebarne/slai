@@ -2,11 +2,12 @@ use crate::consts::DISCOVER_PICK_COUNT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
-use crate::potions::EFFECT_CARD_DISCOVER_PICK;
-use crate::potions::EFFECT_CARD_DISCOVER_PICK_DOUBLED;
+use crate::effect::effect_discover_pick;
 use crate::potions::PotionTemplate;
 use crate::types::CardColor;
 use crate::types::CardKind;
+use crate::types::CardPile;
+use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
 
@@ -26,7 +27,7 @@ pub static SKILL: PotionTemplate = PotionTemplate {
             id_source: None,
             target: Target::Direct(None),
         },
-        EFFECT_CARD_DISCOVER_PICK,
+        effect_discover_pick(Some(CostScope::Turn), CardPile::Hand, 1, true),
     ],
 };
 // Doubled
@@ -43,7 +44,7 @@ pub static SKILL_DOUBLED: PotionTemplate = PotionTemplate {
             id_source: None,
             target: Target::Direct(None),
         },
-        EFFECT_CARD_DISCOVER_PICK_DOUBLED,
+        effect_discover_pick(Some(CostScope::Turn), CardPile::Hand, 2, true),
     ],
     ..SKILL
 };

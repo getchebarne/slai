@@ -233,6 +233,8 @@ pub enum EffectKind {
     },
     RelicLose,
     RestSiteConsume,
+    RestSmith,
+    RestToke,
     RitualDaggerProc {
         bump: u16,
     },
@@ -500,19 +502,29 @@ pub const fn effect_accuracy_resync(candidate_pool: CandidatePool) -> Effect {
 
 pub const EFFECT_ACCURACY_RESYNC_HAND: Effect = effect_accuracy_resync(CandidatePool::Hand);
 
-// Discover pick: choose 1 of the rolled Cards; cost break and destination vary by caller
-pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) -> Effect {
+// Discover pick: choose 1 of the rolled Cards, or none if skippable; cost break, destination and copies vary by caller
+pub const fn effect_discover_pick(
+    cost_zero: Option<CostScope>,
+    pile: CardPile,
+    copies: u8,
+    skippable: bool,
+) -> Effect {
+    let selection_kind = if skippable {
+        SelectionKind::InputUpTo { count: 1 }
+    } else {
+        SelectionKind::Input { count: 1 }
+    };
     Effect {
         kind: EffectKind::CardDiscoverPick {
             cost_zero,
             pile,
-            copies: 1,
+            copies,
         },
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Discover,
             filter: CandidateFilter::Any,
-            selection_kind: SelectionKind::Input { count: 1 },
+            selection_kind,
         },
     }
 }

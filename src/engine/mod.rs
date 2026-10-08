@@ -88,6 +88,8 @@ pub mod process_effect_relic_grant_specific;
 pub mod process_effect_relic_lose;
 pub mod process_effect_relic_reward_remove_one;
 pub mod process_effect_rest_site_consume;
+pub mod process_effect_rest_smith;
+pub mod process_effect_rest_toke;
 pub mod process_effect_reward_roll_cards;
 pub mod process_effect_reward_roll_gold;
 pub mod process_effect_reward_roll_potions;
@@ -206,6 +208,8 @@ use self::process_effect_relic_grant_specific::process_effect_relic_grant_specif
 use self::process_effect_relic_lose::process_effect_relic_lose;
 use self::process_effect_relic_reward_remove_one::process_effect_relic_reward_remove_one;
 use self::process_effect_rest_site_consume::process_effect_rest_site_consume;
+use self::process_effect_rest_smith::process_effect_rest_smith;
+use self::process_effect_rest_toke::process_effect_rest_toke;
 use self::process_effect_reward_roll_cards::process_effect_reward_roll_cards;
 use self::process_effect_reward_roll_gold::process_effect_reward_roll_gold;
 use self::process_effect_reward_roll_potions::process_effect_reward_roll_potions;
@@ -549,6 +553,8 @@ fn dispatch_by_kind(
         EffectKind::RewardTake { kind } => process_effect_reward_take(id_target, state, kind),
         EffectKind::RoomExit => process_effect_room_exit(state),
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
+        EffectKind::RestSmith => process_effect_rest_smith(id_target, state),
+        EffectKind::RestToke => process_effect_rest_toke(id_target, state),
         EffectKind::DamagePhysical { amount, lifesteal } => {
             process_effect_damage_physical(id_source, id_target, state, amount, false, lifesteal)
         }
