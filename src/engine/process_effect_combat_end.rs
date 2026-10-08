@@ -19,7 +19,6 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
-use crate::relics::iter_owned_relics;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RoomKind;
@@ -32,12 +31,6 @@ use crate::utils::roll_boss_gold;
 
 pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool) {
     assert!(state.combat.active, "CombatEnd outside combat");
-
-    // The combat closes only once nothing else is queued, so the work a last kill keeps settles inside it
-    if !state.effect_queue.is_empty() {
-        queue_effect_untargeted(state, EffectKind::CombatEnd { escaped_character });
-        return;
-    }
     let escaped_monster = state.combat.this_combat_escaped;
     let thief_escaped = state.combat.this_combat_thief_escaped;
 
@@ -246,9 +239,7 @@ fn queue_combat_end_relics(state: &mut GameState) {
     }
 
     // Combat-end Relic effects, in acquisition order (Face of Cleric, etc.)
-    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-        .map(|(_, id)| id)
-        .collect();
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
     for id_relic in id_relics {

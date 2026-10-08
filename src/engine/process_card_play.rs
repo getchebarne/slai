@@ -13,7 +13,6 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
-use crate::relics::iter_owned_relics;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -426,27 +425,24 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // On-use Relics count the play behind the Character's Modifier hooks, in pickup order
-    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-        .map(|(_, id)| id)
-        .collect();
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
     for id_relic in id_relics {
         match (state.entities[id_relic].relic_name, card.card_kind) {
             // Kunai, Shuriken, Ornamental Fan and Nunchaku count Attacks, Letter Opener Skills, Ink Bottle every Card
             (
-                name @ (RelicName::Kunai
+                RelicName::Kunai
                 | RelicName::Shuriken
                 | RelicName::OrnamentalFan
-                | RelicName::Nunchaku),
+                | RelicName::Nunchaku,
                 CardKind::Attack,
             )
-            | (name @ RelicName::LetterOpener, CardKind::Skill)
-            | (name @ RelicName::InkBottle, _) => {
-                if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities)
-                {
+            | (RelicName::LetterOpener, CardKind::Skill)
+            | (RelicName::InkBottle, _) => {
+                if trigger_relic_counter(&mut state.entities[id_relic]) {
                     state
                         .effect_buf
-                        .extend_from_slice(state.entities[id].relic_effects_counter);
+                        .extend_from_slice(state.entities[id_relic].relic_effects_counter);
                 }
             }
 

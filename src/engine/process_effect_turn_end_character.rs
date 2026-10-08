@@ -13,7 +13,6 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_set_not_new;
 use crate::modifier::modifier_stacks;
 use crate::relics::RELIC_COUNTERS_PER_TURN;
-use crate::relics::iter_owned_relics;
 use crate::types::CardName;
 use crate::types::Combat;
 use crate::types::CostScope;
@@ -88,9 +87,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         }
 
         // Turn-end Relic effects, in acquisition order (Stone Calendar's damage, Nilry's Codex discover)
-        let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-            .map(|(_, id)| id)
-            .collect();
+        let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
         id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
         for id_relic in id_relics {
