@@ -33,7 +33,7 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     WomanInBlue, Lab, TinyHouse, CallingBell,
 });
 
-// Mirrors only EffectKind variants reachable from static Card/Monster defs; snapshot_effect panics on runtime-only variants
+// Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted pick; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
     DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, lifesteal: bool, target: PyTarget },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: PyTarget },
@@ -83,6 +83,8 @@ flat_variants!(PyEffect {
     CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, copies: u8, target: PyTarget },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
+    RestSmith => PyEffectRestSmith as "EffectRestSmith" { target: PyTarget },
+    RestToke => PyEffectRestToke as "EffectRestToke" { target: PyTarget },
     CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { pile: PyCardPile, target: PyTarget },
     CardTransform => PyEffectCardTransform as "EffectCardTransform" { upgraded: bool, target: PyTarget },
     CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, pile: PyCardPile, count: u16, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity> },
@@ -128,7 +130,9 @@ flat_variants!(@enum PyEffectPending {
     CardSetupPick => PyEffectCardSetupPick,
     CardTransform => PyEffectCardTransform,
     CardUpgrade => PyEffectCardUpgrade,
-    RelicLose => PyEffectRelicLose
+    RelicLose => PyEffectRelicLose,
+    RestSmith => PyEffectRestSmith,
+    RestToke => PyEffectRestToke
 });
 
 pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
@@ -147,6 +151,8 @@ pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
         PyEffect::CardTransform(v) => PyEffectPending::CardTransform(v),
         PyEffect::CardUpgrade(v) => PyEffectPending::CardUpgrade(v),
         PyEffect::RelicLose(v) => PyEffectPending::RelicLose(v),
+        PyEffect::RestSmith(v) => PyEffectPending::RestSmith(v),
+        PyEffect::RestToke(v) => PyEffectPending::RestToke(v),
         other => unreachable!("effect kind cannot halt: {:?}", other),
     }
 }
@@ -427,6 +433,12 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             count,
         }),
         EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade {
+            target: require_target(target),
+        }),
+        EffectKind::RestSmith => PyEffect::RestSmith(PyEffectRestSmith {
+            target: require_target(target),
+        }),
+        EffectKind::RestToke => PyEffect::RestToke(PyEffectRestToke {
             target: require_target(target),
         }),
         EffectKind::CardDiscoverPick {

@@ -22,10 +22,14 @@ pub fn process_effect_card_discover_pick(
     let Combat {
         id_card_discover, ..
     } = &mut state.combat;
-    let id_card = id_target.expect("CardDiscoverPick Direct form must have target");
 
     // Clear discovered Cards
     id_card_discover.clear();
+
+    // A skipped pick adds nothing
+    let Some(id_card) = id_target else {
+        return;
+    };
 
     // The pick and its copies enter the pile in order; Discovery (Card) grants cost 0 this turn, Toolbox (Relic) keeps the printed cost
     state.effect_buf.clear();

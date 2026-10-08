@@ -9,7 +9,7 @@ use crate::types::CardPile;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// End of turn: discover a Card and shuffle it into the draw pile
+// End of turn: discover a Card and shuffle it into the draw pile, or skip it
 // See:
 //    - `process_effect_turn_end_character.rs`
 pub static NILRYS_CODEX: RelicTemplate = RelicTemplate {
@@ -30,7 +30,7 @@ pub static NILRYS_CODEX: RelicTemplate = RelicTemplate {
             id_source: None,
             target: Target::Direct(None),
         },
-        effect_discover_pick(None, CardPile::Draw),
+        effect_discover_pick(None, CardPile::Draw, 1, true),
     ],
     effects_combat_end: &[],
     effects_pickup: &[],

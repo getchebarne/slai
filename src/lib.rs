@@ -355,6 +355,10 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRelicLose;
     #[pymodule_export]
+    use super::ffi::PyEffectRestSmith;
+    #[pymodule_export]
+    use super::ffi::PyEffectRestToke;
+    #[pymodule_export]
     use super::ffi::PyEffectRewardRollCards;
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollPotions;
