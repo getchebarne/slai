@@ -311,6 +311,9 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             found_gold: false,
             found_nothing: false,
             found_relic: false,
+            id_match_flipped: None,
+            id_match_unseen: Vec::new(),
+            match_attempts: 0,
         },
         shop: Shop {
             active: false,

@@ -325,6 +325,10 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectLifestealHeal;
     #[pymodule_export]
+    use super::ffi::PyEffectMatchFlipSeen;
+    #[pymodule_export]
+    use super::ffi::PyEffectMatchFlipUnseen;
+    #[pymodule_export]
     use super::ffi::PyEffectMausoleumOpen;
     #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;

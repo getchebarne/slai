@@ -9,5 +9,5 @@ mirror_enum!(PyEventName from EventName, "EventName", {
     TheWomanInBlue, WheelOfChange, BonfireSpirits, OminousForge, FaceTrader, Mushrooms,
     GoldenIdol, ScrapOoze, WeMeetAgain, DeadAdventurer, Neow, Addict, Beggar, Ghosts,
     BackToBasics, MaskedBandits, TheJoust, TheLibrary, TheMausoleum, Vampires, Colosseum,
-    Designer, KnowingSkull, Nest, CursedTome, DrugDealer, ForgottenAltar, Nloth,
+    Designer, KnowingSkull, Nest, CursedTome, DrugDealer, ForgottenAltar, Nloth, MatchAndKeep,
 });

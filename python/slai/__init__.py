@@ -272,6 +272,8 @@ EffectStasisSteal = _rs.EffectStasisSteal
 EffectRewardRollCards = _rs.EffectRewardRollCards
 EffectRewardRollRelic = _rs.EffectRewardRollRelic
 EffectDamageDeal = _rs.EffectDamageDeal
+EffectMatchFlipSeen = _rs.EffectMatchFlipSeen
+EffectMatchFlipUnseen = _rs.EffectMatchFlipUnseen
 RewardRollTrigger = _rs.RewardRollTrigger
 Effect = (
     EffectDamagePhysical
@@ -350,6 +352,8 @@ Effect = (
     | EffectRewardRollCards
     | EffectRewardRollRelic
     | EffectDamageDeal
+    | EffectMatchFlipSeen
+    | EffectMatchFlipUnseen
 )
 
 # The kinds that can park in GameState.effect_pending. A halt only happens on a
@@ -370,6 +374,7 @@ PendingEffect = (
     | EffectCardSetupPick
     | EffectCardTransform
     | EffectCardUpgrade
+    | EffectMatchFlipSeen
     | EffectRelicLose
 )
 CandidatePool = _rs.CandidatePool

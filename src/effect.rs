@@ -177,6 +177,8 @@ pub enum EffectKind {
         on_owner: bool,
     },
     KnowingSkullCostBump,
+    MatchFlipSeen,
+    MatchFlipUnseen,
     MausoleumOpen,
     MaxHealthDelta {
         sign: DeltaSign,

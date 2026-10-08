@@ -95,12 +95,12 @@ mirror_enum!(PyCardName from CardName, "CardName", {
     Predator, Prepared, QuickSlash, Reflex, RiddleWithHoles, Setup, Shiv, Skewer, Slice,
     Slimed, SneakyStrike, StormOfSteel, Strike, SuckerPunch, Survivor, SwiftStrike, Tactician,
     Terror, ToolsOfTheTrade, Unload, WellLaidPlans, WraithForm, AscendersBane, Regret, Pain,
-    Doubt, Decay, Injury, Shame, Writhe, Parasite, Normality, Apparition, Bite, DarkShackles,
-    DramaticEntrance, Jax, Panacea, Trip, Apotheosis, Chrysalis, Discovery, Enlightenment,
-    HandOfGreed, Impatience, JackOfAllTrades, Madness, Magnetism, Metamorphosis, Panache,
-    PanicButton, SadisticNature, ThinkingAhead, Transmutation, Forethought, Mayhem, Purity,
-    SecretTechnique, SecretWeapon, TheBomb, Violence, CurseOfTheBell, Wound, RitualDagger,
-    Necronomicurse,
+    Doubt, Decay, Injury, Shame, Writhe, Parasite, Normality, Clumsy, Apparition, Bite,
+    DarkShackles, DramaticEntrance, Jax, Panacea, Trip, Apotheosis, Chrysalis, Discovery,
+    Enlightenment, HandOfGreed, Impatience, JackOfAllTrades, Madness, Magnetism, Metamorphosis,
+    Panache, PanicButton, SadisticNature, ThinkingAhead, Transmutation, Forethought, Mayhem,
+    Purity, SecretTechnique, SecretWeapon, TheBomb, Violence, CurseOfTheBell, Wound,
+    RitualDagger, Necronomicurse,
 });
 
 // Exposed structs
@@ -248,6 +248,7 @@ impl CardName {
             Self::Writhe => "Writhe",
             Self::Parasite => "Parasite",
             Self::Normality => "Normality",
+            Self::Clumsy => "Clumsy",
             Self::Apparition => "Apparition",
             Self::Bite => "Bite",
             Self::DarkShackles => "Dark Shackles",

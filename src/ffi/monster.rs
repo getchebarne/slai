@@ -139,10 +139,10 @@ pub struct PyMonster {
     pub health_max: u16,
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
-    pub intent: PyIntent,
+    pub intent: Option<PyIntent>,    // None while Runic Dome hides it
     pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
-    pub move_current: Option<u8>,    // Index into the spawn-rolled moveset
-    pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move
+    pub move_current: Option<u8>,    // Index into the spawn-rolled moveset; None when hidden
+    pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move, and under Runic Dome only moves that ran
     pub gold_stolen: u16,      // Only relevant for Looters and Muggers
 }
 
@@ -150,6 +150,9 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
     if !state.combat.active {
         return Vec::new();
     }
+
+    // Runic Dome hides every Monster's upcoming move; its history shows only the moves that ran
+    let move_hidden = has_relic(&state.id_relics, RelicName::RunicDome);
     let character = &state.entities[state.id_character];
     let mods_char = &character.modifiers;
     state
@@ -161,7 +164,23 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
         .map(|id_monster| {
             let monster = &state.entities[id_monster];
 
-            let (intent, move_effects) = if let Some(move_idx) = monster.monster_move_current {
+            let len_history = monster.monster_move_history_len as usize;
+            let move_history = &monster.monster_move_history[..len_history];
+            let move_history = if move_hidden {
+                // The upcoming move and any move replaced before it ran were never seen
+                move_history
+                    .iter()
+                    .zip(&monster.monster_move_history_ran[..len_history])
+                    .filter(|(_, ran)| **ran)
+                    .map(|(&move_idx, _)| move_idx)
+                    .collect()
+            } else {
+                move_history.to_vec()
+            };
+
+            let (intent, move_effects) = if move_hidden {
+                (None, Vec::new())
+            } else if let Some(move_idx) = monster.monster_move_current {
                 let mv = &monster.monster_moves[move_idx];
                 let (base_damage, instances) = match mv.intent {
                     Intent::Attack { damage, instances }
@@ -214,20 +233,20 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     .map(snapshot_effect)
                     .collect();
                 (
-                    PyIntent {
+                    Some(PyIntent {
                         kind: mv.intent.into(),
                         damage,
                         instances,
-                    },
+                    }),
                     move_effects,
                 )
             } else {
                 (
-                    PyIntent {
+                    Some(PyIntent {
                         kind: PyIntentKind::Unknown,
                         damage: None,
                         instances: None,
-                    },
+                    }),
                     Vec::new(),
                 )
             };
@@ -241,10 +260,12 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                 modifiers: snapshot_modifiers(&monster.modifiers),
                 intent,
                 move_effects,
-                move_current: monster.monster_move_current.map(|idx| idx as u8),
-                move_history: monster.monster_move_history
-                    [..monster.monster_move_history_len as usize]
-                    .to_vec(),
+                move_current: if move_hidden {
+                    None
+                } else {
+                    monster.monster_move_current.map(|idx| idx as u8)
+                },
+                move_history,
                 gold_stolen: monster.monster_gold_stolen,
             }
         })
