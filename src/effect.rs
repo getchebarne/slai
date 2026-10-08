@@ -89,9 +89,7 @@ pub enum EffectKind {
     },
     BombTick,
     LifestealHeal,
-    CardPlayRelocate {
-        exhaust: bool,
-    },
+    CardPlayRelocate,
     CardPlayFromDrawTop,
     CardPurge,
     CardRemove,
@@ -121,7 +119,9 @@ pub enum EffectKind {
     DamageFlechettes {
         damage: u16,
     },
-    DamageMindBlast,
+    DamageMindBlast {
+        bonus: u16, // Flat damage on top of the draw-pile count (Wrist Blade)
+    },
     DamagePhysical {
         amount: u16,
         lifesteal: bool, // Life Suck
@@ -131,7 +131,6 @@ pub enum EffectKind {
     },
     Death,
     DebuffsClear,
-    DeepBreathProc,
     DistractionAdd,
     EnergyDelta {
         sign: DeltaSign,
@@ -212,7 +211,9 @@ pub enum EffectKind {
         move_override: Option<usize>,
     },
     NoOp,
-    PoisonTick,
+    PoisonTick {
+        amount: u16,
+    },
     PotionAddRandom {
         limited: bool,
         uniform: bool,

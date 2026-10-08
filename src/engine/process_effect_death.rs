@@ -4,6 +4,7 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -14,11 +15,16 @@ use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::PotionName;
 use crate::types::RelicName;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
 use crate::utils::release_stasis_card;
 use crate::utils::resolve_health_fraction;
 
-pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
+pub fn process_effect_death(
+    id_source: Option<usize>,
+    id_target: Option<usize>,
+    state: &mut GameState,
+) {
     let id_target = id_target.expect("Death requires id_target");
 
     // Death is not re-entrant: a second pass would re-fire the on-death triggers
@@ -73,6 +79,7 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     );
     let Combat {
         id_monsters,
+        id_card_hand,
         id_card_stasis,
         gold_stolen: gold_stolen_total,
         this_combat_monster_died,
@@ -116,22 +123,20 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     let target = &state.entities[id_target];
 
     // A leader's death drains its minions: survivors that are all Minions escape or die
-    if !has_modifier(&target.modifiers, ModifierKind::Minion)
+    let drains_minions = !has_modifier(&target.modifiers, ModifierKind::Minion)
         && id_monsters
             .iter()
             .flatten()
-            .all(|&id| has_modifier(&state.entities[id].modifiers, ModifierKind::Minion))
-    {
-        let kind = if target.monster_name == MonsterName::GremlinLeader {
-            // Minions escaping here don't skip rewards because of `RoomKind::CombatElite`
-            EffectKind::MonsterEscape
-        } else {
-            EffectKind::Death
-        };
+            .all(|&id| has_modifier(&state.entities[id].modifiers, ModifierKind::Minion));
+    let gremlins_flee = drains_minions && target.monster_name == MonsterName::GremlinLeader;
+    let minions_fall = drains_minions && !gremlins_flee;
+
+    // A leader other than the Gremlin Leader takes its minions down at once
+    if minions_fall {
         for id_monster in id_monsters.iter() {
             if let Some(id) = *id_monster {
                 state.effect_queue.push_front(Effect {
-                    kind,
+                    kind: EffectKind::Death,
                     id_source: None,
                     target: Target::Direct(Some(id)),
                 });
@@ -139,47 +144,64 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         }
     }
 
-    // Spore Cloud: Character gains 2 stacks of Vulnerable
-    let spore_effect = if has_modifier(&target.modifiers, ModifierKind::SporeCloud) {
-        let stacks = modifier_stacks(&target.modifiers, ModifierKind::SporeCloud);
-        Some(Effect {
-            kind: EffectKind::ModifierGain {
-                kind: ModifierKind::Vulnerable,
-                stacks,
+    // The other on-death effects, staged in order
+    state.effect_buf.clear();
+
+    // Stasis: the hostage comes back ahead of the Relics' effects; a death that ends the combat leaves it to the combat reset
+    if let Some(slot) = slot {
+        release_stasis_card(
+            slot,
+            id_card_stasis,
+            id_card_hand,
+            &state.entities,
+            &mut state.effect_buf,
+        );
+    }
+
+    // CorpseExplosion: max_health to each survivor; no source scaling, no Envenom proc
+    if has_modifier(&target.modifiers, ModifierKind::CorpseExplosion) {
+        let damage = target.vitals.health_max.saturating_mul(
+            modifier_stacks(&target.modifiers, ModifierKind::CorpseExplosion).max(0) as u16,
+        );
+        for id_monster in id_monsters.iter() {
+            if let Some(id) = *id_monster {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: damage,
+                        lifesteal: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id)),
+                });
+            }
+        }
+    }
+
+    // Gremlin Horn: a Monster's death grants 1 energy and draws 1
+    if has_relic(&state.id_relics, RelicName::GremlinHorn) {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::EnergyDelta {
+                sign: DeltaSign::Gain,
+                amount: 1,
             },
             id_source: None,
-            target: Target::Direct(Some(id_character)),
-        })
-    } else {
-        None
-    };
-
-    // CorpseExplosion: max_health to others; no source scaling, no Envenom proc
-    let corpse_explosion =
-        has_modifier(&target.modifiers, ModifierKind::CorpseExplosion).then(|| {
-            target.vitals.health_max.saturating_mul(
-                modifier_stacks(&target.modifiers, ModifierKind::CorpseExplosion).max(0) as u16,
-            )
+            target: Target::Direct(None),
         });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardDraw { count: 1 },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
 
     // The Specimen: the corpse's Poison moves to a random survivor
-    let specimen_poison = (has_relic(&state.id_relics, RelicName::TheSpecimen)
-        && has_modifier(&target.modifiers, ModifierKind::Poison))
-    .then(|| modifier_stacks(&target.modifiers, ModifierKind::Poison));
-
-    // Mid-combat: push to front so on-death triggers fire before suspended chain
-    // (corpse already left id_monsters, so Monsters{All} resolves to survivors only)
-    // Executes in reverse:
-    //     1. GoldDelta (stolen-gold return)
-    //     2. DamageDeal per survivor (Corpse Explosion)
-    //     3. ModifierGain Vulnerable (Spore Cloud)
-    //     4. EnergyDelta then CardDraw (Gremlin Horn)
-    //     5. ModifierGain Poison (The Specimen)
-    if let Some(stacks) = specimen_poison {
-        state.effect_queue.push_front(Effect {
+    if has_relic(&state.id_relics, RelicName::TheSpecimen)
+        && has_modifier(&target.modifiers, ModifierKind::Poison)
+    {
+        state.effect_buf.push(Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Poison,
-                stacks,
+                stacks: modifier_stacks(&target.modifiers, ModifierKind::Poison),
             },
             id_source: None,
             target: Target::Resolve {
@@ -190,39 +212,12 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         });
     }
 
-    // Gremlin Horn: a Monster's death grants 1 energy and draws 1
-    if has_relic(&state.id_relics, RelicName::GremlinHorn) {
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardDraw { count: 1 },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::EnergyDelta {
-                sign: DeltaSign::Gain,
-                amount: 1,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
-    }
-
-    // Spore Cloud: ...
-    if let Some(e) = spore_effect {
-        state.effect_queue.push_front(e);
-    }
-
-    // Corpse Explosion: ...
-    if let Some(dmg) = corpse_explosion {
-        for id_monster in id_monsters.iter().rev() {
-            if let Some(id) = *id_monster
-                && id != id_target
-            {
-                state.effect_queue.push_front(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: dmg,
-                        lifesteal: false,
-                    },
+    // Gremlin Leader: its gremlins flee last; minions escaping here don't skip rewards because of `RoomKind::CombatElite`
+    if gremlins_flee {
+        for id_monster in id_monsters.iter() {
+            if let Some(id) = *id_monster {
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::MonsterEscape,
                     id_source: None,
                     target: Target::Direct(Some(id)),
                 });
@@ -230,14 +225,24 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
         }
     }
 
-    // Stasis: pushed last, so the hostage is back before every on-death effect above; a death
-    // that ends the combat leaves it to the combat reset
-    if let Some(slot) = slot {
-        release_stasis_card(
-            slot,
-            id_card_stasis,
-            &state.entities,
-            &mut state.effect_queue,
-        );
+    // A Card's kill lands the staged effects behind the rest of the Card; any other death, or one whose falling minions end the combat, lands them at once
+    let killed_by_card = id_source.is_some_and(|id| state.entities[id].kind == EntityKind::Card);
+    if killed_by_card && !minions_fall {
+        state.effect_queue.extend(state.effect_buf.drain(..));
+    } else {
+        flush_effects_from_buf_to_queue_front(state);
+    }
+
+    // Spore Cloud: the Character gains Vulnerable at once
+    let modifiers = &state.entities[id_target].modifiers;
+    if has_modifier(modifiers, ModifierKind::SporeCloud) {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::ModifierGain {
+                kind: ModifierKind::Vulnerable,
+                stacks: modifier_stacks(modifiers, ModifierKind::SporeCloud),
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
     }
 }

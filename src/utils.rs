@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use rand::Rng;
 use strum::EnumCount;
 
@@ -347,33 +345,36 @@ fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
     }
 }
 
-// Vacating a roster slot sends its Stasis hostage back to the hand
+// Vacating a roster slot sends its Stasis hostage back to the hand (the discard pile if full now), staged in `effect_buf`
 pub fn release_stasis_card(
     slot: usize,
     id_card_stasis: &mut [Option<usize>; MAX_MONSTERS],
+    id_card_hand: &[usize],
     entities: &[Entity],
-    effect_queue: &mut VecDeque<Effect>,
+    effect_buf: &mut Vec<Effect>,
 ) {
     let Some(id_card) = id_card_stasis[slot].take() else {
         return;
     };
+    let pile = if id_card_hand.len() < MAX_SIZE_HAND {
+        CardPile::Hand
+    } else {
+        CardPile::Discard
+    };
+    effect_buf.push(Effect {
+        kind: EffectKind::CardPlace { pile },
+        id_source: None,
+        target: Target::Direct(Some(id_card)),
+    });
 
     // A returned Eviscerate restarts its cost this turn at its combat cost less this turn's discards
     if entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
-        effect_queue.push_front(Effect {
+        effect_buf.push(Effect {
             kind: EffectKind::CardCostMinusDiscards,
             id_source: None,
             target: Target::Direct(Some(id_card)),
         });
     }
-
-    effect_queue.push_front(Effect {
-        kind: EffectKind::CardPlace {
-            pile: CardPile::Hand,
-        },
-        id_source: None,
-        target: Target::Direct(Some(id_card)),
-    });
 }
 
 pub fn place_card(state: &mut GameState, id_card: usize, pile: CardPile) -> bool {

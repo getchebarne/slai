@@ -3,6 +3,8 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::has_modifier;
+use crate::modifier::modifier_stacks;
 use crate::types::Combat;
 
 // The Character's turn is over: every Monster takes its turn, then the Character's next turn starts
@@ -24,12 +26,19 @@ pub fn process_effect_turn_monsters(state: &mut GameState) {
             target: Target::Direct(Some(id_monster)),
         });
     }
+
+    // Each tick deals the Poison its Monster holds now, as the turns begin
     for id_monster in id_monsters.iter().flatten().copied() {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::PoisonTick,
-            id_source: None,
-            target: Target::Direct(Some(id_monster)),
-        });
+        let modifiers = &state.entities[id_monster].modifiers;
+        if has_modifier(modifiers, ModifierKind::Poison) {
+            state.effect_queue.push_back(Effect {
+                kind: EffectKind::PoisonTick {
+                    amount: modifier_stacks(modifiers, ModifierKind::Poison) as u16,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        }
     }
     for id_monster in id_monsters.iter().flatten().copied() {
         state.effect_queue.push_back(Effect {

@@ -293,8 +293,6 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectDebuffsClear;
     #[pymodule_export]
-    use super::ffi::PyEffectDeepBreathProc;
-    #[pymodule_export]
     use super::ffi::PyEffectDistractionAdd;
     #[pymodule_export]
     use super::ffi::PyEffectEnergyDelta;
@@ -372,6 +370,8 @@ mod slai {
     use super::ffi::PyEffectScrapOozeReach;
     #[pymodule_export]
     use super::ffi::PyEffectSetCostOverride;
+    #[pymodule_export]
+    use super::ffi::PyEffectShuffleDiscardPileIntoDrawPile;
     #[pymodule_export]
     use super::ffi::PyEffectSneakyStrikeProc;
     #[pymodule_export]

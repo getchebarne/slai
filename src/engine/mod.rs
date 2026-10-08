@@ -43,7 +43,6 @@ pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_debuffs_clear;
-pub mod process_effect_deep_breath_proc;
 pub mod process_effect_distraction_add;
 pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
@@ -163,7 +162,6 @@ use self::process_effect_damage_mind_blast::process_effect_damage_mind_blast;
 use self::process_effect_damage_physical::process_effect_damage_physical;
 use self::process_effect_death::process_effect_death;
 use self::process_effect_debuffs_clear::process_effect_debuffs_clear;
-use self::process_effect_deep_breath_proc::process_effect_deep_breath_proc;
 use self::process_effect_distraction_add::process_effect_distraction_add;
 use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
@@ -498,13 +496,12 @@ fn dispatch_by_kind(
         EffectKind::CardMove { pile, cost_zero } => {
             process_effect_card_move(id_target, state, pile, cost_zero)
         }
-        EffectKind::DamageMindBlast => {
-            process_effect_damage_mind_blast(id_source, id_target, state)
+        EffectKind::DamageMindBlast { bonus } => {
+            process_effect_damage_mind_blast(id_source, id_target, state, bonus)
         }
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
             process_effect_shuffle_discard_pile_into_draw_pile(state)
         }
-        EffectKind::DeepBreathProc => process_effect_deep_breath_proc(state),
         EffectKind::CardRetain => process_effect_card_retain(id_target, state),
         EffectKind::CardSetupPick { free, bottom } => {
             process_effect_card_setup_pick(id_target, state, free, bottom)
@@ -517,9 +514,7 @@ fn dispatch_by_kind(
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
         EffectKind::BombTick => process_effect_bomb_tick(state),
         EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),
-        EffectKind::CardPlayRelocate { exhaust } => {
-            process_effect_card_play_relocate(id_target, state, exhaust)
-        }
+        EffectKind::CardPlayRelocate => process_effect_card_play_relocate(id_target, state),
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),
         EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
@@ -615,10 +610,10 @@ fn dispatch_by_kind(
             process_effect_modifier_remove(id_target, state, kind)
         }
         EffectKind::ModifierTick => process_effect_modifier_tick(id_target, state),
-        EffectKind::PoisonTick => process_effect_poison_tick(id_target, state),
+        EffectKind::PoisonTick { amount } => process_effect_poison_tick(id_target, state, amount),
         EffectKind::Death => {
             // Character can die outside Combat; empty Monster slots make iter a no-op
-            process_effect_death(id_target, state)
+            process_effect_death(id_source, id_target, state)
         }
         EffectKind::CombatStart { elite } => process_effect_combat_start(state, elite),
         EffectKind::CombatEnd { escaped_character } => {
