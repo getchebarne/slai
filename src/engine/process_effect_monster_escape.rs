@@ -5,6 +5,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::types::Combat;
+use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::release_stasis_card;
 
 // Mark dead WITHOUT firing the on-death hook chain
@@ -15,11 +16,13 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
     );
     let Combat {
         id_monsters,
+        id_card_hand,
         id_card_stasis,
         ..
     } = &mut state.combat;
     let id_target = id_target.expect("MonsterEscape requires id_target");
     state.entities[id_target].dead = true;
+    state.effect_buf.clear();
     if let Some(slot) = id_monsters.iter().position(|slot| *slot == Some(id_target)) {
         id_monsters[slot] = None;
 
@@ -27,11 +30,13 @@ pub fn process_effect_monster_escape(id_target: Option<usize>, state: &mut GameS
         release_stasis_card(
             slot,
             id_card_stasis,
+            id_card_hand,
             &state.entities,
-            &mut state.effect_queue,
+            &mut state.effect_buf,
         );
     }
     let any_alive = id_monsters.iter().any(|slot| slot.is_some());
+    flush_effects_from_buf_to_queue_front(state);
 
     // A thief's escape lets a later Smoke Bomb keep the reward
     if has_modifier(&state.entities[id_target].modifiers, ModifierKind::Thievery) {

@@ -10,10 +10,7 @@ use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_apply;
-use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
-use crate::types::CardName;
-use crate::types::CardPile;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::has_relic;
@@ -86,14 +83,21 @@ pub fn process_effect_damage_deal(
         && target.vitals.block == 0
         && has_relic(&state.id_relics, RelicName::HandDrill)
     {
-        state.effect_queue.push_front(Effect {
+        let effect_vuln = Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),
-        });
+        };
+
+        // A Card's break lands it behind the rest of the Card; any other break lands it at once, ahead of the queued Monster turns
+        if from_card {
+            state.effect_queue.push_back(effect_vuln);
+        } else {
+            state.effect_queue.push_front(effect_vuln);
+        }
     }
 
     // Executes in reverse:
@@ -124,7 +128,7 @@ pub fn process_effect_damage_deal(
             });
         }
 
-        // The killer's ID rides along so Death knows it (Ritual Dagger)
+        // The attacker's ID rides along: the HP loss and Death both read it
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
@@ -133,27 +137,6 @@ pub fn process_effect_damage_deal(
             id_source,
             target: Target::Direct(Some(id_target)),
         });
-
-        // Painful Stabs: each unblocked hit from the owner adds a Wound to the discard pile
-        if from_monster
-            && id_target == id_character
-            && let Some(id_source) = id_source
-            && has_modifier(
-                &state.entities[id_source].modifiers,
-                ModifierKind::PainfulStabs,
-            )
-        {
-            state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardAdd {
-                    card_name: CardName::Wound,
-                    pile: CardPile::Discard,
-                    count: 1,
-                    upgraded: false,
-                },
-                id_source: None,
-                target: Target::Direct(None),
-            });
-        }
 
         // On-attacked triggers respond to attack damage only
         if (from_card || from_monster) && id_source != Some(id_target) {
@@ -177,15 +160,25 @@ fn fire_on_damage_taken(
     // CurlUp, Flight and Malleable skip a killing blow
     let lives = damage_over_block < target.vitals.health;
 
-    // CurlUp: gain block = stacks once per combat, then remove the modifier
-    if lives && has_modifier(&target.modifiers, ModifierKind::CurlUp) {
+    // CurlUp: fires once, gaining block = stacks behind the rest of the attack; the spent modifier stays until then
+    if lives
+        && has_modifier(&target.modifiers, ModifierKind::CurlUp)
+        && !target.monster_curl_up_triggered
+    {
+        target.monster_curl_up_triggered = true;
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::CurlUp);
-        modifier_remove(&mut target.modifiers, ModifierKind::CurlUp);
         effect_queue.push_back(Effect {
             kind: EffectKind::BlockGain {
                 amount: stacks as u16,
             },
             id_source: Some(id_target),
+            target: Target::Direct(Some(id_target)),
+        });
+        effect_queue.push_back(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::CurlUp,
+            },
+            id_source: None,
             target: Target::Direct(Some(id_target)),
         });
     }

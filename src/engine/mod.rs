@@ -609,10 +609,10 @@ fn dispatch_by_kind(
             process_effect_modifier_remove(id_target, state, kind)
         }
         EffectKind::ModifierTick => process_effect_modifier_tick(id_target, state),
-        EffectKind::PoisonTick => process_effect_poison_tick(id_target, state),
+        EffectKind::PoisonTick { amount } => process_effect_poison_tick(id_target, state, amount),
         EffectKind::Death => {
             // Character can die outside Combat; empty Monster slots make iter a no-op
-            process_effect_death(id_target, state)
+            process_effect_death(id_source, id_target, state)
         }
         EffectKind::CombatStart { elite } => process_effect_combat_start(state, elite),
         EffectKind::CombatEnd { escaped_character } => {

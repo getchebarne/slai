@@ -14,6 +14,8 @@ use crate::monsters::slime_acid_large;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
 use crate::monsters::the_guardian;
+use crate::types::CardName;
+use crate::types::CardPile;
 use crate::types::DeltaSign;
 use crate::types::MonsterName;
 use crate::types::RelicName;
@@ -52,8 +54,13 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         return;
     }
 
-    // Intangible clamps every incoming instance, HP loss included
+    // A Card's hit on a Monster: its Intangible was clamped before block, ahead of The Boot's lift
+    let from_card = id_source.is_some_and(|id| state.entities[id].kind == EntityKind::Card);
+    let card_hit_on_monster = from_card && state.entities[id_target].kind == EntityKind::Monster;
+
+    // Intangible clamps every other incoming instance, HP loss included
     let amount = if amount > 1
+        && !card_hit_on_monster
         && has_modifier(
             &state.entities[id_target].modifiers,
             ModifierKind::Intangible,
@@ -63,7 +70,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
         amount
     };
 
-    // Buffer: absorb one HP-loss instance outright, before anything reacts to it
+    // Buffer: absorb one HP-loss instance outright, before anything reacts to it; nothing is lost
     if amount > 0 {
         let modifiers = &mut state.entities[id_target].modifiers;
         if has_modifier(modifiers, ModifierKind::Buffer) {
@@ -72,6 +79,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
             } else {
                 modifiers.stacks[ModifierKind::Buffer as usize] -= 1;
             }
+            state.combat.last_health_lost = 0;
             return;
         }
     }
@@ -85,6 +93,28 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     } else {
         amount
     };
+
+    // Painful Stabs: a Monster's hit that costs the Character HP adds a Wound, once the Puzzle's draw is done
+    if id_target == state.id_character
+        && amount > 0
+        && let Some(id_source) = id_source
+        && state.entities[id_source].kind == EntityKind::Monster
+        && has_modifier(
+            &state.entities[id_source].modifiers,
+            ModifierKind::PainfulStabs,
+        )
+    {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardAdd {
+                card_name: CardName::Wound,
+                pile: CardPile::Discard,
+                count: 1,
+                upgraded: false,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
 
     // Centennial Puzzle: the first actual HP loss each combat draws 3
     if id_target == state.id_character
@@ -120,14 +150,21 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     };
     let target = &mut state.entities[id_target];
     if from_attack && amount > 0 && has_modifier(&target.modifiers, ModifierKind::PlatedArmor) {
-        state.effect_queue.push_front(Effect {
+        let effect_strip = Effect {
             kind: EffectKind::ModifierGain {
                 kind: ModifierKind::PlatedArmor,
                 stacks: -1,
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),
-        });
+        };
+
+        // A Card's hit strips it behind the rest of the Card; a Monster's hit strips it at once, ahead of the queued Monster turns
+        if from_card {
+            state.effect_queue.push_back(effect_strip);
+        } else {
+            state.effect_queue.push_front(effect_strip);
+        }
     }
 
     // Substract health
@@ -139,7 +176,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
 
     // Check if the target's dead. If so, queue death effect and return early
     if target.vitals.health == 0 {
-        // Forward the killer's id (Ritual Dagger reads it in Death)
+        // Forward the killer's ID: Death queues a Card's kill effects behind the Card
         state.effect_queue.push_front(Effect {
             kind: EffectKind::Death,
             id_source,
