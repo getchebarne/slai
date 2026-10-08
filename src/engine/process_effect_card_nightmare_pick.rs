@@ -1,3 +1,4 @@
+use crate::cards::get_card_template;
 use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::types::Combat;
@@ -27,6 +28,9 @@ pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut 
     ) {
         card.card_cost_override = None;
     }
+
+    // The copy exhausts as its printed Card does, whatever a Relic made of the original
+    card.card_exhaust = get_card_template(card.card_name, card.card_upgraded).exhaust;
     let id = push_entity(&mut state.entities, card);
     id_card_nightmares.push(id);
 

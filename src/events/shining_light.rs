@@ -15,9 +15,19 @@ use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::DeltaSign;
 
-// Enter: 20% -> 30% max HP loss at A15
+// Enter: 20% -> 30% max HP loss at A15; the loss lands last, so a lethal Enter still upgrades and closes
 const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
     [
+        Effect {
+            kind: EffectKind::CardUpgrade,
+            id_source: None,
+            target: Target::Resolve {
+                candidate_pool: CandidatePool::Deck,
+                filter: CandidateFilter::Upgradeable,
+                selection_kind: SelectionKind::Random { count: 2 },
+            },
+        },
+        EFFECT_EVENT_CONSUME,
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
@@ -31,16 +41,6 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
             id_source: None,
             target: TARGET_CHARACTER,
         },
-        Effect {
-            kind: EffectKind::CardUpgrade,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Deck,
-                filter: CandidateFilter::Upgradeable,
-                selection_kind: SelectionKind::Random { count: 2 },
-            },
-        },
-        EFFECT_EVENT_CONSUME,
     ]
 }
 

@@ -25,7 +25,7 @@ const fn move_defensive_stance(block: u16, metallicize: i16) -> Move {
                 target: TARGET_SOURCE,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Metallicize,
                     stacks: metallicize,
                 },
@@ -51,7 +51,7 @@ const fn move_face_slap(damage: u16) -> Move {
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Frail,
                     stacks: 2,
                 },
@@ -59,7 +59,7 @@ const fn move_face_slap(damage: u16) -> Move {
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Vulnerable,
                     stacks: 2,
                 },
@@ -79,7 +79,7 @@ static MOVE_TAUNT: Move = make_move(
     "Taunt",
     &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
@@ -87,7 +87,7 @@ static MOVE_TAUNT: Move = make_move(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },
@@ -109,7 +109,7 @@ const fn move_anger(strength: i16) -> Move {
                 target: TARGET_SOURCE,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Strength,
                     stacks: strength,
                 },

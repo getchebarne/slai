@@ -46,8 +46,8 @@ pub static RIDDLE_WITH_HOLES: CardTemplate = make_card_template(
 // Upgraded
 pub static RIDDLE_WITH_HOLES_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = RIDDLE_WITH_HOLES.effects;
+    effects_play: {
+        let mut effects = RIDDLE_WITH_HOLES.effects_play;
         effects[0] = HIT_PLUS;
         effects[1] = HIT_PLUS;
         effects[2] = HIT_PLUS;

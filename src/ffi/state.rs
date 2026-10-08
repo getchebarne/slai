@@ -21,6 +21,7 @@ use super::context::snapshot_reward;
 use super::context::snapshot_shop;
 use super::effect::PyEffectPending;
 use super::effect::snapshot_effect_pending;
+use super::event::PyEventName;
 use super::map::PyMap;
 use super::map::snapshot_map;
 use super::potion::PyPotion;
@@ -52,6 +53,12 @@ pub struct PyGameState {
     pub relics: Vec<PyRelic>,
     pub potions: Vec<PyPotion>,
     pub potion_slots_max: u8,
+    pub potion_drop_mod: i32, // A combat's potion drop chance is 40 plus this, within 0..=100; a drop lowers it by 10, a miss raises it by 10
+    pub unknown_chance_monster: f32, // A "?" Room's odds; the event chance is what the three leave
+    pub unknown_chance_shop: f32,
+    pub unknown_chance_treasure: f32,
+    pub pool_events: Vec<PyEventName>, // Events a "?" can still become, regular then special; each is drawn without replacement
+    pub pool_event_special: Vec<PyEventName>,
     pub map: PyMap,
     pub effect_pending: Option<PyEffectPending>,
     pub effect_pending_selected: Vec<PyCard>,
@@ -84,6 +91,16 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
         potion_slots_max: state.potion_slots_max,
+        potion_drop_mod: state.potion_drop_mod,
+        unknown_chance_monster: state.unknown_chance_monster,
+        unknown_chance_shop: state.unknown_chance_shop,
+        unknown_chance_treasure: state.unknown_chance_treasure,
+        pool_events: state.pool_events.iter().map(|&name| name.into()).collect(),
+        pool_event_special: state
+            .pool_event_special
+            .iter()
+            .map(|&name| name.into())
+            .collect(),
         map: snapshot_map(state),
         effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
         effect_pending_selected: state

@@ -43,7 +43,6 @@ pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_debuffs_clear;
-pub mod process_effect_deep_breath_proc;
 pub mod process_effect_distraction_add;
 pub mod process_effect_du_vu_doll_recount;
 pub mod process_effect_energy_delta;
@@ -67,7 +66,7 @@ pub mod process_effect_lifesteal_heal;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_mayhem_proc;
-pub mod process_effect_modifier_gain;
+pub mod process_effect_modifier_delta;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_tick;
@@ -162,7 +161,6 @@ use self::process_effect_damage_mind_blast::process_effect_damage_mind_blast;
 use self::process_effect_damage_physical::process_effect_damage_physical;
 use self::process_effect_death::process_effect_death;
 use self::process_effect_debuffs_clear::process_effect_debuffs_clear;
-use self::process_effect_deep_breath_proc::process_effect_deep_breath_proc;
 use self::process_effect_distraction_add::process_effect_distraction_add;
 use self::process_effect_du_vu_doll_recount::process_effect_du_vu_doll_recount;
 use self::process_effect_energy_delta::process_effect_energy_delta;
@@ -186,7 +184,7 @@ use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
-use self::process_effect_modifier_gain::process_effect_modifier_gain;
+use self::process_effect_modifier_delta::process_effect_modifier_delta;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
 use self::process_effect_modifier_tick::process_effect_modifier_tick;
@@ -496,13 +494,12 @@ fn dispatch_by_kind(
         EffectKind::CardMove { pile, cost_zero } => {
             process_effect_card_move(id_target, state, pile, cost_zero)
         }
-        EffectKind::DamageMindBlast => {
-            process_effect_damage_mind_blast(id_source, id_target, state)
+        EffectKind::DamageMindBlast { bonus } => {
+            process_effect_damage_mind_blast(id_source, id_target, state, bonus)
         }
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
             process_effect_shuffle_discard_pile_into_draw_pile(state)
         }
-        EffectKind::DeepBreathProc => process_effect_deep_breath_proc(state),
         EffectKind::CardRetain => process_effect_card_retain(id_target, state),
         EffectKind::CardSetupPick { free, bottom } => {
             process_effect_card_setup_pick(id_target, state, free, bottom)
@@ -515,9 +512,7 @@ fn dispatch_by_kind(
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
         EffectKind::BombTick => process_effect_bomb_tick(state),
         EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),
-        EffectKind::CardPlayRelocate { exhaust } => {
-            process_effect_card_play_relocate(id_target, state, exhaust)
-        }
+        EffectKind::CardPlayRelocate => process_effect_card_play_relocate(id_target, state),
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),
         EffectKind::ActTransition => process_effect_act_transition(state),
         EffectKind::AdventurerSearch => process_effect_adventurer_search(state),
@@ -602,8 +597,8 @@ fn dispatch_by_kind(
         EffectKind::EnergyDelta { sign, amount } => {
             process_effect_energy_delta(state, sign, amount)
         }
-        EffectKind::ModifierGain { kind, stacks } => {
-            process_effect_modifier_gain(id_source, id_target, state, kind, stacks)
+        EffectKind::ModifierDelta { kind, stacks } => {
+            process_effect_modifier_delta(id_source, id_target, state, kind, stacks)
         }
         EffectKind::ModifierMultiply { kind, factor } => {
             process_effect_modifier_multiply(id_target, state, kind, factor)
@@ -612,10 +607,10 @@ fn dispatch_by_kind(
             process_effect_modifier_remove(id_target, state, kind)
         }
         EffectKind::ModifierTick => process_effect_modifier_tick(id_target, state),
-        EffectKind::PoisonTick => process_effect_poison_tick(id_target, state),
+        EffectKind::PoisonTick { amount } => process_effect_poison_tick(id_target, state, amount),
         EffectKind::Death => {
             // Character can die outside Combat; empty Monster slots make iter a no-op
-            process_effect_death(id_target, state)
+            process_effect_death(id_source, id_target, state)
         }
         EffectKind::CombatStart { elite } => process_effect_combat_start(state, elite),
         EffectKind::CombatEnd { escaped_character } => {

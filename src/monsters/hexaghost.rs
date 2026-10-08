@@ -135,7 +135,7 @@ static MOVE_INFLAME_2: Move = make_move(
             target: TARGET_SOURCE,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 2,
             },
@@ -154,7 +154,7 @@ static MOVE_INFLAME_3: Move = make_move(
             target: TARGET_SOURCE,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 3,
             },

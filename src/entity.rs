@@ -104,8 +104,9 @@ pub struct Entity {
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
     pub monster_move_history_len: u8,
     pub monster_move_uses: [u8; MAX_MONSTER_MOVES],
-    pub monster_cycle_count: u8,  // Only used by "The Guardian"
-    pub monster_gold_stolen: u16, // Only used by "Looter" and "Mugger"
+    pub monster_cycle_count: u8,         // Only used by "The Guardian"
+    pub monster_gold_stolen: u16,        // Only used by "Looter" and "Mugger"
+    pub monster_curl_up_triggered: bool, // Only used by "Green Louse" and "Red Louse"
 
     // Card-only
     pub card_name: CardName,
@@ -123,10 +124,10 @@ pub struct Entity {
     pub card_cost_kind: CardCostKind,
     pub card_cost_override: Option<CostOverride>,
     pub card_free_to_play_once: bool, // Setup / Forethought: the Card's next play costs 0, whatever its cost
-    pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
-    pub card_effects_len: u8,
-    pub card_on_discard_effects: &'static [Effect],
-    pub card_effects_on_draw: &'static [Effect],
+    pub card_effects_play: [Effect; MAX_EFFECTS_PER_CARD],
+    pub card_effects_play_len: u8,
+    pub card_effects_discard: &'static [Effect],
+    pub card_effects_draw: &'static [Effect],
 
     // Room-only
     pub room_y: usize,
@@ -170,6 +171,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     character_reward_roll_offset: 0,
     character_gold: 0,
     monster_gold_stolen: 0,
+    monster_curl_up_triggered: false,
     monster_name: MonsterName::Cultist,
     monster_kind: MonsterKind::Normal,
     monster_moves: &[],
@@ -195,10 +197,10 @@ pub const ENTITY_ZERO: Entity = Entity {
     card_cost_kind: CardCostKind::Fixed,
     card_cost_override: None,
     card_free_to_play_once: false,
-    card_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_CARD],
-    card_effects_len: 0,
-    card_on_discard_effects: &[],
-    card_effects_on_draw: &[],
+    card_effects_play: [EFFECT_ZERO; MAX_EFFECTS_PER_CARD],
+    card_effects_play_len: 0,
+    card_effects_discard: &[],
+    card_effects_draw: &[],
     room_y: 0,
     room_x: 0,
     room_kind: RoomKind::CombatBoss,

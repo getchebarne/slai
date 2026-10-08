@@ -21,7 +21,6 @@ use crate::relics::RELICS_COMBAT_START_FIRST;
 use crate::relics::RELICS_COMBAT_START_PRE_DRAW;
 use crate::relics::RELICS_COMBAT_START_TOP;
 use crate::relics::RELICS_TURN_START_POST_DRAW;
-use crate::relics::iter_owned_relics;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardColor;
 use crate::types::CardName;
@@ -85,7 +84,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     // Phantasmal: gains double damage
     if has_modifier(modifiers, ModifierKind::Phantasmal) {
         state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::DoubleDamage,
                 stacks: 1,
             },
@@ -113,9 +112,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     }
 
     // Owned Relics in acquisition order
-    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-        .map(|(_, id)| id)
-        .collect();
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
     // Hand size: 5, Snecko Eye +2, Ring of the Serpent +1
@@ -312,7 +309,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             && state.entities[id].relic_counter == 9
         {
             state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::PenNib,
                     stacks: 1,
                 },
@@ -360,7 +357,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         let stacks = modifier_stacks(&modifiers, ModifierKind::NoxiousFumes);
         for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Poison,
                     stacks,
                 },
@@ -427,7 +424,9 @@ fn push_relics_turn_start(
 ) {
     // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
     for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
-        if let Some(id) = trigger_relic_counter(name, id_relics, entities) {
+        if let Some(id) = id_relics[name as usize]
+            && trigger_relic_counter(&mut entities[id])
+        {
             for &effect in entities[id].relic_effects_counter {
                 effect_buf.push(effect);
             }

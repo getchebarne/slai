@@ -12,7 +12,7 @@ pub static WEAK: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Weak,
             stacks: 3,
         },
@@ -24,7 +24,7 @@ pub static WEAK: PotionTemplate = PotionTemplate {
 pub static WEAK_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Weak,
             stacks: 6,
         },

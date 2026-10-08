@@ -4,30 +4,27 @@ use crate::effect::EffectKind;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
-use crate::modifier::has_modifier;
-use crate::modifier::modifier_remove;
-use crate::modifier::modifier_stacks;
 use crate::types::DeltaSign;
 
-// HP loss = Poison stacks; then Poison -= 1 (remove on 0). Fires at turn start
-pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameState) {
+// HP loss = the stacks held when the tick was queued; then Poison -= 1 (removed at 0)
+pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameState, amount: u16) {
     let id_target = id_target.expect("PoisonTick requires id_target");
-    let modifiers = &mut state.entities[id_target].modifiers;
-    if !has_modifier(modifiers, ModifierKind::Poison) {
-        return;
-    }
-    let stacks = modifier_stacks(modifiers, ModifierKind::Poison);
 
-    if stacks <= 1 {
-        modifier_remove(modifiers, ModifierKind::Poison);
-    } else {
-        modifiers.stacks[ModifierKind::Poison as usize] = stacks - 1;
-    }
-
+    // Executes in reverse:
+    //     1. HealthDelta (a kill still holds every stack for The Specimen)
+    //     2. ModifierDelta Poison -1
+    state.effect_queue.push_front(Effect {
+        kind: EffectKind::ModifierDelta {
+            kind: ModifierKind::Poison,
+            stacks: -1,
+        },
+        id_source: None,
+        target: Target::Direct(Some(id_target)),
+    });
     state.effect_queue.push_front(Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::Absolute(stacks as u16),
+            amount: Amount::Absolute(amount),
         },
         id_source: None,
         target: Target::Direct(Some(id_target)),

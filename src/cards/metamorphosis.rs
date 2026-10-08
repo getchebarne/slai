@@ -43,8 +43,8 @@ pub static METAMORPHOSIS: CardTemplate = make_card_template(
 // Upgraded
 pub static METAMORPHOSIS_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = METAMORPHOSIS.effects;
+    effects_play: {
+        let mut effects = METAMORPHOSIS.effects_play;
         effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Green,
             kind: Some(CardKind::Attack),

@@ -38,11 +38,14 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         state.entities[id_card].card_cost_override = None;
     }
 
-    // Necronomicurse: exhausting it returns a copy to hand
-    if state.entities[id_card].card_name == CardName::Necronomicurse {
+    // Dead Branch: every exhaust conjures a random Silent Card into the hand
+    // (all green Cards are rewardable, so no kind/rarity filter is needed)
+    if has_relic(&state.id_relics, RelicName::DeadBranch) {
+        let card_name =
+            get_random_card_names(CardColor::Green, None, None, &[], true, 1, &mut state.rng)[0];
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAdd {
-                card_name: CardName::Necronomicurse,
+                card_name,
                 pile: CardPile::Hand,
                 count: 1,
                 upgraded: false,
@@ -52,14 +55,11 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
         });
     }
 
-    // Dead Branch: every exhaust conjures a random Silent Card into the hand
-    // (all green Cards are rewardable, so no kind/rarity filter is needed)
-    if has_relic(&state.id_relics, RelicName::DeadBranch) {
-        let card_name =
-            get_random_card_names(CardColor::Green, None, None, &[], true, 1, &mut state.rng)[0];
+    // Necronomicurse: exhausting it returns a copy to hand, behind Dead Branch's Card
+    if state.entities[id_card].card_name == CardName::Necronomicurse {
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAdd {
-                card_name,
+                card_name: CardName::Necronomicurse,
                 pile: CardPile::Hand,
                 count: 1,
                 upgraded: false,

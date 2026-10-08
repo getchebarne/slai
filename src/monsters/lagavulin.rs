@@ -20,7 +20,7 @@ const fn move_siphon_soul(stacks: i16) -> Move {
         "Siphon Soul",
         &[
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Dexterity,
                     stacks,
                 },
@@ -28,7 +28,7 @@ const fn move_siphon_soul(stacks: i16) -> Move {
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Strength,
                     stacks,
                 },

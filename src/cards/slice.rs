@@ -36,8 +36,8 @@ pub static SLICE: CardTemplate = make_card_template(
 // Upgraded
 pub static SLICE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = SLICE.effects;
+    effects_play: {
+        let mut effects = SLICE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 9,
             lifesteal: false,

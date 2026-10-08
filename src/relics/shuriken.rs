@@ -20,7 +20,7 @@ pub static SHURIKEN: RelicTemplate = RelicTemplate {
     effects_pickup: &[],
     effects_rest: &[],
     effects_counter: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Strength,
             stacks: 1,
         },

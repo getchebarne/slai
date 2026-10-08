@@ -32,7 +32,7 @@ pub static NEUTRALIZE: CardTemplate = make_card_template(
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 1,
             },
@@ -47,13 +47,13 @@ pub static NEUTRALIZE: CardTemplate = make_card_template(
 // Upgraded
 pub static NEUTRALIZE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = NEUTRALIZE.effects;
+    effects_play: {
+        let mut effects = NEUTRALIZE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 4,
             lifesteal: false,
         }; // +1 damage
-        effects[1].kind = EffectKind::ModifierGain {
+        effects[1].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Weak,
             stacks: 2, // +1 stack
         };

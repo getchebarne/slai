@@ -23,7 +23,7 @@ pub static MAGNETISM: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Magnetism,
             stacks: 1,
         },

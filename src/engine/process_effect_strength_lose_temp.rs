@@ -19,11 +19,11 @@ pub fn process_effect_strength_lose_temp(
     let modifiers = &state.entities[id_target].modifiers;
 
     // Executes in reverse:
-    //     1. ModifierGain Strength
-    //     2. ModifierGain Shackled (if no Artifact)
+    //     1. ModifierDelta Strength
+    //     2. ModifierDelta Shackled (if no Artifact)
     if !has_modifier(modifiers, ModifierKind::Artifact) {
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Shackled,
                 stacks,
             },
@@ -32,7 +32,7 @@ pub fn process_effect_strength_lose_temp(
         });
     }
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Strength,
             stacks: -stacks,
         },

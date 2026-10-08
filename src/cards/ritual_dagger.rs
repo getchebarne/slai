@@ -44,8 +44,8 @@ pub static RITUAL_DAGGER: CardTemplate = make_card_template(
 // Upgraded: only the on-kill bump grows (3 -> 5); base damage is unchanged
 pub static RITUAL_DAGGER_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = RITUAL_DAGGER.effects;
+    effects_play: {
+        let mut effects = RITUAL_DAGGER.effects_play;
         effects[1].kind = EffectKind::RitualDaggerProc { bump: 5 };
         effects
     },

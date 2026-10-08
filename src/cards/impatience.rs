@@ -33,8 +33,8 @@ pub static IMPATIENCE: CardTemplate = make_card_template(
 // Upgraded
 pub static IMPATIENCE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = IMPATIENCE.effects;
+    effects_play: {
+        let mut effects = IMPATIENCE.effects_play;
         effects[0].kind = EffectKind::CardDrawIfNoAttacks { count: 3 }; // +1 draw
         effects
     },

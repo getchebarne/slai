@@ -50,7 +50,7 @@ pub fn process_effect_monster_spawn(
     // Philosopher's Stone: every Monster (including mid-combat spawns) gains 1 Strength
     if has_relic(&state.id_relics, RelicName::PhilosopherStone) {
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 1,
             },

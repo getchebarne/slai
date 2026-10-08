@@ -153,7 +153,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         && state.entities[id].relic_counter > 0
     {
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: state.entities[id].relic_counter,
             },
@@ -167,7 +167,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         && state.entities[id].relic_counter > 0
     {
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: state.entities[id].relic_counter,
             },
@@ -179,7 +179,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
     // Sling of Courage: Elite fights open with 2 Strength
     if has_relic(&state.id_relics, RelicName::SlingOfCourage) && elite {
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 2,
             },

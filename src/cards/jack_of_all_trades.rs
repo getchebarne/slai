@@ -42,8 +42,8 @@ pub static JACK_OF_ALL_TRADES: CardTemplate = make_card_template(
 // Upgraded
 pub static JACK_OF_ALL_TRADES_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = JACK_OF_ALL_TRADES.effects;
+    effects_play: {
+        let mut effects = JACK_OF_ALL_TRADES.effects_play;
         effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,

@@ -43,8 +43,8 @@ pub static BANE: CardTemplate = make_card_template(
 // Upgraded
 pub static BANE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = BANE.effects;
+    effects_play: {
+        let mut effects = BANE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 10,
             lifesteal: false,

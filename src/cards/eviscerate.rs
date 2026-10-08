@@ -54,8 +54,8 @@ pub static EVISCERATE: CardTemplate = make_card_template(
 // Upgraded
 pub static EVISCERATE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = EVISCERATE.effects;
+    effects_play: {
+        let mut effects = EVISCERATE.effects_play;
         let upgraded_kind = EffectKind::DamagePhysical {
             amount: 9,
             lifesteal: false,

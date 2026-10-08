@@ -36,8 +36,8 @@ pub static STRIKE: CardTemplate = make_card_template(
 // Upgraded
 pub static STRIKE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = STRIKE.effects;
+    effects_play: {
+        let mut effects = STRIKE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 9,
             lifesteal: false,

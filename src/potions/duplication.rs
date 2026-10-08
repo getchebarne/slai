@@ -12,7 +12,7 @@ pub static DUPLICATION: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::DuplicateNextCardPlay,
             stacks: 1,
         },
@@ -24,7 +24,7 @@ pub static DUPLICATION: PotionTemplate = PotionTemplate {
 pub static DUPLICATION_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::DuplicateNextCardPlay,
             stacks: 2,
         },

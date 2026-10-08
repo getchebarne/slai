@@ -56,7 +56,7 @@ pub fn process_effect_monster_split(
     // Philosopher's Stone: split children get the Strength too
     if has_relic(&state.id_relics, RelicName::PhilosopherStone) {
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 1,
             },

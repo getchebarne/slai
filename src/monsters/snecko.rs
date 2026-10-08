@@ -26,7 +26,7 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
@@ -34,7 +34,7 @@ static MOVE_TAIL_WHIP_10_A17: Move = make_move(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },

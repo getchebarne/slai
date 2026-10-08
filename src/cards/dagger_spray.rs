@@ -46,8 +46,8 @@ pub static DAGGER_SPRAY: CardTemplate = make_card_template(
 // Upgraded
 pub static DAGGER_SPRAY_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DAGGER_SPRAY.effects;
+    effects_play: {
+        let mut effects = DAGGER_SPRAY.effects_play;
         effects[0] = HIT_PLUS;
         effects[1] = HIT_PLUS;
         effects

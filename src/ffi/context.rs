@@ -57,6 +57,7 @@ pub struct PyCombat {
     pub bombs: Vec<(u8, u16)>,
     pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
     pub panache_countdown: u8,       // Plays left until Panache's hit
+    pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
 }
 
 #[pyclass(
@@ -197,6 +198,7 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .map(|&id| snapshot_card(state, id))
             .collect(),
         panache_countdown: combat.panache_countdown,
+        this_turn_discards: combat.this_turn_discards,
     }
 }
 

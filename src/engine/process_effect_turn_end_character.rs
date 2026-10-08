@@ -12,7 +12,6 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_set_not_new;
 use crate::modifier::modifier_stacks;
-use crate::relics::iter_owned_relics;
 use crate::types::CardName;
 use crate::types::Combat;
 use crate::types::CostScope;
@@ -79,9 +78,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         }
 
         // Turn-end Relic effects, in acquisition order (Stone Calendar's damage, Nilry's Codex discover)
-        let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-            .map(|(_, id)| id)
-            .collect();
+        let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
         id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
         for id_relic in id_relics {
@@ -151,7 +148,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                 }
                 CardName::Doubt => {
                     state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierGain {
+                        kind: EffectKind::ModifierDelta {
                             kind: ModifierKind::Weak,
                             stacks: 1,
                         },
@@ -161,7 +158,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                 }
                 CardName::Shame => {
                     state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierGain {
+                        kind: EffectKind::ModifierDelta {
                             kind: ModifierKind::Frail,
                             stacks: 1,
                         },
@@ -172,9 +169,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                 _ => continue,
             }
             state.effect_buf.push(Effect {
-                kind: EffectKind::CardPlayRelocate {
-                    exhaust: card.card_exhaust,
-                },
+                kind: EffectKind::CardPlayRelocate,
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             });
@@ -213,7 +208,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             target: Target::Direct(Some(state.id_character)),
         });
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Regeneration,
                 stacks: -1,
             },
@@ -246,7 +241,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     if has_modifier(mods_char, ModifierKind::Ritual) {
         let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks,
             },
@@ -259,7 +254,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     if has_modifier(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Dexterity,
                 stacks: -stacks,
             },
@@ -276,7 +271,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         if has_modifier(mods_char, lose) {
             let stacks = modifier_stacks(mods_char, lose);
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: gain,
                     stacks: -stacks,
                 },
@@ -309,7 +304,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     // DuplicateNextCardPlay ticks down one stack; a last stack is removed, never left at 0
     if has_modifier(mods_char, ModifierKind::DuplicateNextCardPlay) {
         let effect_kind = if modifier_stacks(mods_char, ModifierKind::DuplicateNextCardPlay) > 1 {
-            EffectKind::ModifierGain {
+            EffectKind::ModifierDelta {
                 kind: ModifierKind::DuplicateNextCardPlay,
                 stacks: -1,
             }

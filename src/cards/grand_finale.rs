@@ -36,8 +36,8 @@ pub static GRAND_FINALE: CardTemplate = make_card_template(
 // Upgraded
 pub static GRAND_FINALE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = GRAND_FINALE.effects;
+    effects_play: {
+        let mut effects = GRAND_FINALE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 60,
             lifesteal: false,

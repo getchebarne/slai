@@ -23,7 +23,7 @@ pub static TOOLS_OF_THE_TRADE: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::ToolsOfTheTrade,
             stacks: 1,
         },

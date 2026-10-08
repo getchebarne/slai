@@ -12,7 +12,7 @@ pub static DEXTERITY: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Dexterity,
             stacks: 2,
         },
@@ -24,7 +24,7 @@ pub static DEXTERITY: PotionTemplate = PotionTemplate {
 pub static DEXTERITY_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Dexterity,
             stacks: 4,
         },

@@ -23,7 +23,7 @@ pub static MAYHEM: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Mayhem,
             stacks: 1,
         },

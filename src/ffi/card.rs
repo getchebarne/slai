@@ -35,7 +35,7 @@ use super::effect::PyEffectDamageMindBlast;
 use super::effect::PyEffectDamagePhysical;
 use super::effect::PyEffectDamagePhysicalIfPoisoned;
 use super::effect::PyEffectEscapePlanCheck;
-use super::effect::PyEffectModifierGain;
+use super::effect::PyEffectModifierDelta;
 use super::effect::snapshot_effect;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
@@ -147,8 +147,10 @@ pub struct PyCard {
     pub retain: bool,
     pub playable: bool,
 
-    // Effects, with Dex / Str / Vigor / etc. applied
-    pub effects: Vec<PyEffect>,
+    // Effects when played, with Dex / Str / Vigor / etc. applied
+    pub effects_play: Vec<PyEffect>,
+    pub effects_discard: Vec<PyEffect>, // When discarded from the hand
+    pub effects_draw: Vec<PyEffect>,    // When drawn
 }
 
 // Display-name lookups
@@ -353,7 +355,7 @@ pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec
         0
     };
 
-    card.card_effects[..card.card_effects_len as usize]
+    card.card_effects_play[..card.card_effects_play_len as usize]
         .iter()
         .map(snapshot_effect)
         .map(|effect| match effect {
@@ -398,11 +400,11 @@ pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec
                 })
             }
             // Dodge and Roll's next-turn block scales like its block
-            PyEffect::ModifierGain(PyEffectModifierGain {
+            PyEffect::ModifierDelta(PyEffectModifierDelta {
                 kind: PyModifierKind::NextTurnBlock,
                 stacks,
                 target,
-            }) => PyEffect::ModifierGain(PyEffectModifierGain {
+            }) => PyEffect::ModifierDelta(PyEffectModifierDelta {
                 kind: PyModifierKind::NextTurnBlock,
                 stacks: adjusted_block(stacks.max(0) as u16) as i16,
                 target,
@@ -475,7 +477,13 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
             && !entangled_blocks
             && !cap_reached
             && (!state.combat.active || cost <= energy_current),
-        effects: snapshot_adjusted_effects(state, card),
+        effects_play: snapshot_adjusted_effects(state, card),
+        effects_discard: card
+            .card_effects_discard
+            .iter()
+            .map(snapshot_effect)
+            .collect(),
+        effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
     };
     py_card
 }

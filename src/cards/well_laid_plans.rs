@@ -23,7 +23,7 @@ pub static WELL_LAID_PLANS: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Retain,
             stacks: 1,
         },
@@ -37,9 +37,9 @@ pub static WELL_LAID_PLANS: CardTemplate = make_card_template(
 // Upgraded
 pub static WELL_LAID_PLANS_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = WELL_LAID_PLANS.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = WELL_LAID_PLANS.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Retain,
             stacks: 2, // +1 stack
         };

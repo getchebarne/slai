@@ -23,7 +23,7 @@ pub static DEEP_BREATH: CardTemplate = make_card_template(
     false,
     &[
         Effect {
-            kind: EffectKind::DeepBreathProc,
+            kind: EffectKind::ShuffleDiscardPileIntoDrawPile,
             id_source: None,
             target: Target::Direct(None),
         },
@@ -40,8 +40,8 @@ pub static DEEP_BREATH: CardTemplate = make_card_template(
 // Upgraded
 pub static DEEP_BREATH_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DEEP_BREATH.effects;
+    effects_play: {
+        let mut effects = DEEP_BREATH.effects_play;
         effects[1].kind = EffectKind::CardDraw { count: 2 }; // +1 draw
         effects
     },

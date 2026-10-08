@@ -565,7 +565,7 @@ pub const fn move_buff(name: &'static str, kind: ModifierKind, stacks: i16) -> M
     make_move(
         name,
         &[Effect {
-            kind: EffectKind::ModifierGain { kind, stacks },
+            kind: EffectKind::ModifierDelta { kind, stacks },
             id_source: None,
             target: TARGET_SOURCE,
         }],
@@ -582,7 +582,7 @@ pub const fn move_debuff(
     make_move(
         name,
         &[Effect {
-            kind: EffectKind::ModifierGain { kind, stacks },
+            kind: EffectKind::ModifierDelta { kind, stacks },
             id_source: None,
             target: TARGET_CHARACTER,
         }],
@@ -608,7 +608,7 @@ pub const fn move_attack_debuff(
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::ModifierGain { kind, stacks },
+                kind: EffectKind::ModifierDelta { kind, stacks },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -674,7 +674,7 @@ pub const fn move_block_buff(name: &'static str, block: u16, strength: i16) -> M
         name,
         &[
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Strength,
                     stacks: strength,
                 },

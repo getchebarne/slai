@@ -32,8 +32,8 @@ pub fn process_effect_shuffle_discard_pile_into_draw_pile(state: &mut GameState)
     }
 
     // Persistent reshuffle counter
-    if let Some(id) =
-        trigger_relic_counter(RelicName::Sundial, &state.id_relics, &mut state.entities)
+    if let Some(id) = state.id_relics[RelicName::Sundial as usize]
+        && trigger_relic_counter(&mut state.entities[id])
     {
         for &effect in state.entities[id].relic_effects_counter {
             state.effect_queue.push_back(effect);

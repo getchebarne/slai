@@ -50,8 +50,8 @@ pub static PREPARED: CardTemplate = make_card_template(
 // Upgraded
 pub static PREPARED_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = PREPARED.effects;
+    effects_play: {
+        let mut effects = PREPARED.effects_play;
         effects[0].kind = EffectKind::CardDraw { count: 2 }; // +1 Card
         effects[1].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,

@@ -20,14 +20,14 @@ use crate::types::RelicName;
 use crate::utils::has_relic;
 use crate::utils::scale_block_gain;
 
-pub fn process_effect_modifier_gain(
+pub fn process_effect_modifier_delta(
     id_source: Option<usize>,
     id_target: Option<usize>,
     state: &mut GameState,
     kind: ModifierKind,
     stacks: i16,
 ) {
-    let id_target = id_target.expect("ModifierGain requires id_target");
+    let id_target = id_target.expect("ModifierDelta requires id_target");
 
     // A corpse takes no Powers, and its hooks (Snecko Skull, Sadistic Nature) must not fire
     if state.entities[id_target].dead {
@@ -117,11 +117,12 @@ pub fn process_effect_modifier_gain(
 
     // Apply the delta
     let had_flight = has_modifier(modifiers, ModifierKind::Flight);
+    let had_plated_armor = has_modifier(modifiers, ModifierKind::PlatedArmor);
     modifier_apply(modifiers, kind, stacks);
 
-    // Shelled Parasite: stripping the last Plated Armor stack breaks the shell and stuns
+    // Shelled Parasite: stripping the last Plated Armor stack breaks the shell and stuns; a strip queued past it does nothing
     if kind == ModifierKind::PlatedArmor
-        && stacks < 0
+        && had_plated_armor
         && !has_modifier(modifiers, ModifierKind::PlatedArmor)
         && state.entities[id_target].monster_name == MonsterName::ShelledParasite
     {

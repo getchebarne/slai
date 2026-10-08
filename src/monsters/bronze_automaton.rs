@@ -54,7 +54,7 @@ const fn move_boost(block: u16, strength: i16) -> Move {
                 target: TARGET_SOURCE,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Strength,
                     stacks: strength,
                 },

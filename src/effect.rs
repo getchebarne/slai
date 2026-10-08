@@ -89,9 +89,7 @@ pub enum EffectKind {
     },
     BombTick,
     LifestealHeal,
-    CardPlayRelocate {
-        exhaust: bool,
-    },
+    CardPlayRelocate,
     CardPlayFromDrawTop,
     CardPurge,
     CardRemove,
@@ -121,7 +119,9 @@ pub enum EffectKind {
     DamageFlechettes {
         damage: u16,
     },
-    DamageMindBlast,
+    DamageMindBlast {
+        bonus: u16, // Flat damage on top of the draw-pile count (Wrist Blade)
+    },
     DamagePhysical {
         amount: u16,
         lifesteal: bool, // Life Suck
@@ -131,7 +131,6 @@ pub enum EffectKind {
     },
     Death,
     DebuffsClear,
-    DeepBreathProc,
     DistractionAdd,
     DuVuDollRecount,
     EnergyDelta {
@@ -185,7 +184,7 @@ pub enum EffectKind {
         amount: Amount,
     },
     MayhemProc,
-    ModifierGain {
+    ModifierDelta {
         kind: ModifierKind,
         stacks: i16,
     },
@@ -213,7 +212,9 @@ pub enum EffectKind {
         move_override: Option<usize>,
     },
     NoOp,
-    PoisonTick,
+    PoisonTick {
+        amount: u16,
+    },
     PotionAddRandom {
         limited: bool,
         uniform: bool,
@@ -472,7 +473,7 @@ pub struct Effect {
     pub target: Target,
 }
 
-// Filler for slots past `card_effects_len` in Entity.card_effects
+// Filler for slots past `card_effects_play_len` in Entity.card_effects_play
 pub const EFFECT_ZERO: Effect = Effect {
     kind: EffectKind::NoOp,
     id_source: None,

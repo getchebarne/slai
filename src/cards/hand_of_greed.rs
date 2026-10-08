@@ -43,8 +43,8 @@ pub static HAND_OF_GREED: CardTemplate = make_card_template(
 // Upgraded
 pub static HAND_OF_GREED_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = HAND_OF_GREED.effects;
+    effects_play: {
+        let mut effects = HAND_OF_GREED.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 25,
             lifesteal: false,

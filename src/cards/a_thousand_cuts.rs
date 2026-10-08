@@ -23,7 +23,7 @@ pub static A_THOUSAND_CUTS: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::ThousandCuts,
             stacks: 1,
         },
@@ -37,9 +37,9 @@ pub static A_THOUSAND_CUTS: CardTemplate = make_card_template(
 // Upgraded
 pub static A_THOUSAND_CUTS_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = A_THOUSAND_CUTS.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = A_THOUSAND_CUTS.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::ThousandCuts,
             stacks: 2, // +1 stack
         };

@@ -29,7 +29,7 @@ pub static BLUR: CardTemplate = make_card_template(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Blur,
                 stacks: 1,
             },
@@ -44,8 +44,8 @@ pub static BLUR: CardTemplate = make_card_template(
 // Upgraded
 pub static BLUR_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = BLUR.effects;
+    effects_play: {
+        let mut effects = BLUR.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 8 }; // +3 block
         effects
     },

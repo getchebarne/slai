@@ -9,17 +9,13 @@ use crate::types::CardPile;
 use crate::types::RelicName;
 use crate::utils::has_relic;
 
-pub fn process_effect_card_play_relocate(
-    id_target: Option<usize>,
-    state: &mut GameState,
-    exhaust: bool,
-) {
+pub fn process_effect_card_play_relocate(id_target: Option<usize>, state: &mut GameState) {
     let id_card = id_target.expect("CardPlayRelocate requires id_target");
 
     let effect_kind = if state.entities[id_card].card_kind == CardKind::Power {
         // Powers are removed from play
         EffectKind::CardRemove
-    } else if exhaust
+    } else if state.entities[id_card].card_exhaust
         // Strange Spoon: exhausts have a 50% chance of being discarded instead
         && !(has_relic(&state.id_relics, RelicName::StrangeSpoon)
             && state.rng.random_range(0..100) < 50)

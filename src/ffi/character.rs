@@ -21,6 +21,7 @@ pub struct PyCharacter {
     pub block: u16,
     pub modifiers: Vec<PyModifier>,
     pub gold: u16,
+    pub reward_roll_offset: i8, // Card reward rarity offset: falls with each Common rolled, resets on a Rare
 }
 
 pub(crate) fn snapshot_character(state: &GameState) -> PyCharacter {
@@ -33,5 +34,6 @@ pub(crate) fn snapshot_character(state: &GameState) -> PyCharacter {
         block: character.vitals.block,
         modifiers: snapshot_modifiers(&character.modifiers),
         gold: character.character_gold,
+        reward_roll_offset: character.character_reward_roll_offset,
     }
 }

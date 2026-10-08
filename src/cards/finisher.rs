@@ -33,8 +33,8 @@ pub static FINISHER: CardTemplate = make_card_template(
 // Upgraded
 pub static FINISHER_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = FINISHER.effects;
+    effects_play: {
+        let mut effects = FINISHER.effects_play;
         effects[0].kind = EffectKind::DamageFinisher { damage: 8 }; // +2 damage
         effects
     },

@@ -22,7 +22,6 @@ use crate::map::has_edge;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::potions::belt_has_room;
-use crate::relics::iter_owned_relics;
 use crate::types::CardKind;
 use crate::types::Combat;
 use crate::types::DeltaSign;
@@ -425,9 +424,7 @@ fn handle_rest(state: &mut GameState) {
     push_rest_site_consume(state);
 
     // Rest Relic effects, in acquisition order, after the consume
-    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-        .map(|(_, id)| id)
-        .collect();
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
 
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
     for id_relic in id_relics {

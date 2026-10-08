@@ -33,8 +33,8 @@ pub static GOOD_INSTINCTS: CardTemplate = make_card_template(
 // Upgraded
 pub static GOOD_INSTINCTS_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = GOOD_INSTINCTS.effects;
+    effects_play: {
+        let mut effects = GOOD_INSTINCTS.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 9 }; // +3 block
         effects
     },

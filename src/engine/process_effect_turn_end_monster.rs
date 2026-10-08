@@ -20,7 +20,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
     if has_modifier(modifiers, ModifierKind::Shackled) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Shackled);
         // Executes in reverse:
-        //     1. ModifierGain Strength
+        //     1. ModifierDelta Strength
         //     2. ModifierRemove Shackled
         state.effect_queue.push_front(Effect {
             kind: EffectKind::ModifierRemove {
@@ -30,7 +30,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
             target: Target::Direct(Some(id_monster)),
         });
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks,
             },
@@ -56,7 +56,7 @@ pub fn process_effect_turn_end_monster(id_target: Option<usize>, state: &mut Gam
     if has_modifier(modifiers, ModifierKind::Malleable) {
         let stacks = modifier_stacks(modifiers, ModifierKind::Malleable);
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Malleable,
                 stacks: snake_plant::MALLEABLE_BASE - stacks,
             },

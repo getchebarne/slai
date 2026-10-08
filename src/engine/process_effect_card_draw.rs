@@ -140,8 +140,8 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
 
     // On-draw hooks see each Card as drawn: ahead of its re-roll and any reshuffle, the last-drawn Card's first
     for &id_card in &id_drawn[..id_drawn_num] {
-        let effects_on_draw = state.entities[id_card].card_effects_on_draw;
-        for effect in effects_on_draw.iter().rev() {
+        let effects_draw = state.entities[id_card].card_effects_draw;
+        for effect in effects_draw.iter().rev() {
             state.effect_queue.push_front(Effect {
                 id_source: Some(id_card),
                 ..*effect

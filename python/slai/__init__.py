@@ -214,7 +214,7 @@ EffectSneakyStrikeProc = _rs.EffectSneakyStrikeProc
 EffectBlockGain = _rs.EffectBlockGain
 EffectBombArm = _rs.EffectBombArm
 EffectLifestealHeal = _rs.EffectLifestealHeal
-EffectModifierGain = _rs.EffectModifierGain
+EffectModifierDelta = _rs.EffectModifierDelta
 EffectModifierMultiply = _rs.EffectModifierMultiply
 EffectEnergyDelta = _rs.EffectEnergyDelta
 EffectCardAdd = _rs.EffectCardAdd
@@ -229,7 +229,7 @@ EffectCardDrawUpTo = _rs.EffectCardDrawUpTo
 EffectCardDiscard = _rs.EffectCardDiscard
 EffectCardRetain = _rs.EffectCardRetain
 EffectDamageMindBlast = _rs.EffectDamageMindBlast
-EffectDeepBreathProc = _rs.EffectDeepBreathProc
+EffectShuffleDiscardPileIntoDrawPile = _rs.EffectShuffleDiscardPileIntoDrawPile
 EffectMaxHealthDelta = _rs.EffectMaxHealthDelta
 EffectHealthDelta = _rs.EffectHealthDelta
 EffectPotionAddRandom = _rs.EffectPotionAddRandom
@@ -292,7 +292,7 @@ Effect = (
     | EffectBlockGain
     | EffectBombArm
     | EffectLifestealHeal
-    | EffectModifierGain
+    | EffectModifierDelta
     | EffectModifierMultiply
     | EffectEnergyDelta
     | EffectCardAdd
@@ -307,7 +307,7 @@ Effect = (
     | EffectCardDiscard
     | EffectCardRetain
     | EffectDamageMindBlast
-    | EffectDeepBreathProc
+    | EffectShuffleDiscardPileIntoDrawPile
     | EffectMaxHealthDelta
     | EffectHealthDelta
     | EffectPotionAddRandom
@@ -542,7 +542,7 @@ __all__ = [
     "EffectBlockGain",
     "EffectBombArm",
     "EffectLifestealHeal",
-    "EffectModifierGain",
+    "EffectModifierDelta",
     "EffectModifierMultiply",
     "EffectEnergyDelta",
     "EffectCardAdd",
@@ -557,7 +557,7 @@ __all__ = [
     "EffectCardDiscard",
     "EffectCardRetain",
     "EffectDamageMindBlast",
-    "EffectDeepBreathProc",
+    "EffectShuffleDiscardPileIntoDrawPile",
     "EffectMaxHealthDelta",
     "EffectHealthDelta",
     "EffectPotionAddRandom",

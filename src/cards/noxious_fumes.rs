@@ -23,7 +23,7 @@ pub static NOXIOUS_FUMES: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::NoxiousFumes,
             stacks: 2,
         },
@@ -37,9 +37,9 @@ pub static NOXIOUS_FUMES: CardTemplate = make_card_template(
 // Upgraded
 pub static NOXIOUS_FUMES_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = NOXIOUS_FUMES.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = NOXIOUS_FUMES.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::NoxiousFumes,
             stacks: 3, // +1 poison
         };

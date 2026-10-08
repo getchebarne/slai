@@ -26,9 +26,9 @@ pub fn process_effect_modifier_multiply(
         return;
     }
 
-    // Enqueue `ModifierGain` so that Snecko Skull, Sadistic Nature, etc. also proc
+    // Enqueue `ModifierDelta` so that Snecko Skull, Sadistic Nature, etc. also proc
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind,
             stacks: delta.min(i16::MAX as i32) as i16,
         },

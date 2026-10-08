@@ -14,7 +14,7 @@ pub static CLOCKWORK_SOUVENIR: RelicTemplate = RelicTemplate {
     counter_init: 0,
     counter_reset: 0,
     effects_combat_start: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Artifact,
             stacks: 1,
         },

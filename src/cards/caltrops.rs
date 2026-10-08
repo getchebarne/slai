@@ -23,7 +23,7 @@ pub static CALTROPS: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Thorns,
             stacks: 3,
         },
@@ -37,9 +37,9 @@ pub static CALTROPS: CardTemplate = make_card_template(
 // Upgraded
 pub static CALTROPS_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = CALTROPS.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = CALTROPS.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Thorns,
             stacks: 5, // +2 stacks
         };
