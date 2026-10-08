@@ -182,9 +182,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                 _ => continue,
             }
             state.effect_buf.push(Effect {
-                kind: EffectKind::CardPlayRelocate {
-                    exhaust: card.card_exhaust,
-                },
+                kind: EffectKind::CardPlayRelocate,
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             });

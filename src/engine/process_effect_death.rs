@@ -96,11 +96,24 @@ pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState) {
     state.entities[id_target].monster_gold_stolen = 0;
 
     if !any_alive {
-        // Combat ends; keep damage-type actions so Hand Of Greed and Ritual Dagger still proc
+        // A kill inside the turn end drops the rest of its first pass, so the self-playing Cards never play
+        if let Some(idx_landing) = state
+            .effect_queue
+            .iter()
+            .position(|e| e.kind == EffectKind::TurnEndCharacter { landing: true })
+        {
+            state.effect_queue.drain(..idx_landing);
+        }
+
+        // Combat ends once the queued heals, block and damage resolve; Hand of Greed and Ritual Dagger still proc
         state.effect_queue.retain(|e| {
             matches!(
                 e.kind,
-                EffectKind::HandOfGreedProc { .. } | EffectKind::RitualDaggerProc { .. }
+                EffectKind::HealthDelta { .. }
+                    | EffectKind::BlockGain { .. }
+                    | EffectKind::DamageDeal { .. }
+                    | EffectKind::HandOfGreedProc { .. }
+                    | EffectKind::RitualDaggerProc { .. }
             )
         });
         state.effect_queue.push_back(Effect {

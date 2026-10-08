@@ -159,14 +159,27 @@ pub fn process_effect_modifier_gain(
         let mods_char = &state.entities[state.id_character].modifiers;
         if has_modifier(mods_char, ModifierKind::SadisticNature) {
             let dmg = modifier_stacks(mods_char, ModifierKind::SadisticNature);
-            state.effect_queue.push_front(Effect {
+            let effect = Effect {
                 kind: EffectKind::DamageDeal {
                     amount: dmg.max(0) as u16,
                     lifesteal: false,
                 },
                 id_source: None,
                 target: Target::Direct(Some(id_target)),
+            };
+
+            // The hit waits behind everything queued, but lands at once while the Monsters' turns or the turn end's landing are already queued
+            let turn_steps_queued = state.effect_queue.iter().any(|e| {
+                matches!(
+                    e.kind,
+                    EffectKind::TurnStartCharacter | EffectKind::TurnEndCharacter { landing: true }
+                )
             });
+            if turn_steps_queued {
+                state.effect_queue.push_front(effect);
+            } else {
+                state.effect_queue.push_back(effect);
+            }
         }
     }
 }

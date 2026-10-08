@@ -32,6 +32,12 @@ use crate::utils::roll_boss_gold;
 
 pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool) {
     assert!(state.combat.active, "CombatEnd outside combat");
+
+    // The combat closes only once nothing else is queued, so the work a last kill keeps settles inside it
+    if !state.effect_queue.is_empty() {
+        queue_effect_untargeted(state, EffectKind::CombatEnd { escaped_character });
+        return;
+    }
     let escaped_monster = state.combat.this_combat_escaped;
     let thief_escaped = state.combat.this_combat_thief_escaped;
 
