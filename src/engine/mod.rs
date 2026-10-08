@@ -45,6 +45,7 @@ pub mod process_effect_death;
 pub mod process_effect_debuffs_clear;
 pub mod process_effect_deep_breath_proc;
 pub mod process_effect_distraction_add;
+pub mod process_effect_du_vu_doll_recount;
 pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
@@ -163,6 +164,7 @@ use self::process_effect_death::process_effect_death;
 use self::process_effect_debuffs_clear::process_effect_debuffs_clear;
 use self::process_effect_deep_breath_proc::process_effect_deep_breath_proc;
 use self::process_effect_distraction_add::process_effect_distraction_add;
+use self::process_effect_du_vu_doll_recount::process_effect_du_vu_doll_recount;
 use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
@@ -559,6 +561,7 @@ fn dispatch_by_kind(
             process_effect_glass_knife_decay(id_target, state, delta)
         }
         EffectKind::DistractionAdd => process_effect_distraction_add(state),
+        EffectKind::DuVuDollRecount => process_effect_du_vu_doll_recount(state),
         EffectKind::SetCostOverride {
             amount,
             only_reduce,

@@ -133,6 +133,7 @@ pub enum EffectKind {
     DebuffsClear,
     DeepBreathProc,
     DistractionAdd,
+    DuVuDollRecount,
     EnergyDelta {
         sign: DeltaSign,
         amount: u16,
@@ -499,6 +500,13 @@ pub const fn effect_accuracy_resync(candidate_pool: CandidatePool) -> Effect {
 }
 
 pub const EFFECT_ACCURACY_RESYNC_HAND: Effect = effect_accuracy_resync(CandidatePool::Hand);
+
+// Du-Vu Doll's recount, queued by its pickup and by every Card landing in or purged from the deck
+pub const EFFECT_DU_VU_DOLL_RECOUNT: Effect = Effect {
+    kind: EffectKind::DuVuDollRecount,
+    id_source: None,
+    target: Target::Direct(None),
+};
 
 // Discover pick: choose 1 of the rolled Cards; cost break and destination vary by caller
 pub const fn effect_discover_pick(cost_zero: Option<CostScope>, pile: CardPile) -> Effect {

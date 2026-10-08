@@ -2,14 +2,15 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// +1 energy; no more than 6 Cards can be played per turn
+// +1 energy; no more than 6 Cards can be played per turn; the counter holds the turn's plays
 // See:
 //    - `process_effect_combat_start.rs`
-//    - `action.rs`
+//    - `process_card_play.rs`
+//    - `utils.rs` (`play_cap_reached`)
 pub static VELVET_CHOKER: RelicTemplate = RelicTemplate {
     name: RelicName::VelvetChoker,
     tier: RelicTier::Boss,
-    counter_init: 0,
+    counter_init: -1,
     counter_reset: 0,
     effects_combat_start: &[],
     effects_turn_start: &[],

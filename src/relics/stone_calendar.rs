@@ -5,13 +5,14 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// At the end of turn 7 each combat, deal 52 damage to all enemies
+// At the end of turn 7 each combat, deal 52 damage to all enemies; the counter holds the turn number
 // See:
+//    - `process_effect_turn_start_character.rs`
 //    - `process_effect_turn_end_character.rs`
 pub static STONE_CALENDAR: RelicTemplate = RelicTemplate {
     name: RelicName::StoneCalendar,
     tier: RelicTier::Rare,
-    counter_init: 0,
+    counter_init: -1,
     counter_reset: 7,
     effects_combat_start: &[],
     effects_turn_start: &[],

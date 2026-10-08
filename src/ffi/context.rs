@@ -50,13 +50,13 @@ pub struct PyCombat {
     pub pile_draw: Vec<PyCard>,
     pub pile_discard: Vec<PyCard>,
     pub pile_exhaust: Vec<PyCard>,
-    pub pile_stasis: Vec<PyCard>,
     pub pile_queue: Vec<PyCard>,
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
     pub pile_discover: Vec<PyCard>,
     pub bombs: Vec<(u8, u16)>,
     pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
+    pub panache_countdown: u8,       // Plays left until Panache's hit
 }
 
 #[pyclass(
@@ -175,12 +175,6 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        pile_stasis: combat
-            .id_card_stasis
-            .iter()
-            .flatten()
-            .map(|&id| snapshot_card(state, id))
-            .collect(),
         pile_queue: state
             .card_play_queue
             .iter()
@@ -202,6 +196,7 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
+        panache_countdown: combat.panache_countdown,
     }
 }
 

@@ -2,6 +2,7 @@ use strum::EnumCount;
 
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::consts::ENERGY_CAP;
+use crate::consts::PANACHE_PLAYS;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
@@ -15,6 +16,7 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
+use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::RELICS_COMBAT_START_FIRST;
 use crate::relics::RELICS_COMBAT_START_PRE_DRAW;
 use crate::relics::RELICS_COMBAT_START_TOP;
@@ -44,6 +46,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         turn,
         this_turn_attacks,
         this_turn_cards_played,
+        panache_countdown,
         ..
     } = &mut state.combat;
 
@@ -97,9 +100,17 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
 
     // Last turn's plays decide Art of War and Pocketwatch; this turn counts from zero
     let art_of_war_energy = !first_turn && *this_turn_attacks == 0;
-    let pocketwatch_draw = !first_turn && *this_turn_cards_played <= 3;
+    let pocketwatch_draw = !first_turn
+        && state.id_relics[RelicName::Pocketwatch as usize]
+            .is_some_and(|id| state.entities[id].relic_counter <= 3);
     *this_turn_attacks = 0;
     *this_turn_cards_played = 0;
+    *panache_countdown = PANACHE_PLAYS;
+    for &name in RELIC_COUNTERS_PER_TURN {
+        if let Some(id) = state.id_relics[name as usize] {
+            state.entities[id].relic_counter = 0;
+        }
+    }
 
     // Owned Relics in acquisition order
     let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
@@ -421,6 +432,11 @@ fn push_relics_turn_start(
                 effect_buf.push(effect);
             }
         }
+    }
+
+    // Stone Calendar: counts the combat's turns; it fires at the turn end
+    if let Some(id) = id_relics[RelicName::StoneCalendar as usize] {
+        entities[id].relic_counter += 1;
     }
 
     // Horn Cleat and Captain's Wheel: one-shot turn counters

@@ -12,7 +12,6 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_set_not_new;
 use crate::modifier::modifier_stacks;
-use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::relics::iter_owned_relics;
 use crate::types::CardName;
 use crate::types::Combat;
@@ -38,16 +37,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             id_card_exhaust,
             id_card_stasis,
             this_turn_discards,
-            this_turn_panache,
             ..
         } = &mut state.combat;
-
-        // Reset per-turn Relic counters
-        for &name in RELIC_COUNTERS_PER_TURN {
-            if let Some(id) = state.id_relics[name as usize] {
-                state.entities[id].relic_counter = 0;
-            }
-        }
 
         // Clear per-turn Card cost overrides
         for id_card in id_card_hand
@@ -94,15 +85,14 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
         for id_relic in id_relics {
-            let relic = &mut state.entities[id_relic];
+            let relic = &state.entities[id_relic];
 
-            // Stone Calendar: fires once at the reset threshold (end of turn 7), no reset
-            if relic.relic_name == RelicName::StoneCalendar {
-                relic.relic_counter += 1;
-                if relic.relic_counter == relic.relic_counter_reset {
-                    for &effect in relic.relic_effects_counter {
-                        state.effect_buf.push(effect);
-                    }
+            // Stone Calendar: fires once, at the end of the turn its counter reaches the reset threshold (turn 7)
+            if relic.relic_name == RelicName::StoneCalendar
+                && relic.relic_counter == relic.relic_counter_reset
+            {
+                for &effect in relic.relic_effects_counter {
+                    state.effect_buf.push(effect);
                 }
             }
             for &effect in relic.relic_effects_turn_end {
@@ -197,9 +187,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             target: Target::Direct(None),
         });
 
-        // Reset per-turn trackers; attacks and plays count on until the next turn start
+        // Reset per-turn trackers; attacks, plays and Panache's countdown run on until the next turn start
         *this_turn_discards = 0;
-        *this_turn_panache = 0;
 
         flush_effects_from_buf_to_queue_front(state);
         return;

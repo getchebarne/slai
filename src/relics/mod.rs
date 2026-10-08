@@ -212,8 +212,7 @@ pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::
     id_relics[egg as usize].is_some()
 }
 
-// Per-turn Relic counters; reset at Character turn end and at combat start
-// (combat can end mid-turn, so turn-end resets alone leak into the next combat)
+// Per-turn Relic counters; reset at the Character's turn start
 pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::Kunai,
     RelicName::Shuriken,
@@ -222,6 +221,8 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::OrangePellets,
     RelicName::HoveringKite,
     RelicName::Necronomicon,
+    RelicName::Pocketwatch,
+    RelicName::VelvetChoker,
 ];
 
 // Front-queued combat-start relics: run before the turn-1 draw, newest pickup first
@@ -248,13 +249,45 @@ pub const RELICS_COMBAT_START_PRE_DRAW: &[RelicName] =
 pub const RELICS_TURN_START_POST_DRAW: &[RelicName] =
     &[RelicName::GamblingChip, RelicName::WarpedTongs];
 
-// Per-combat Relic counters; reset at combat start only
+// Per-combat Relic counters; reset at combat start
 pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
     RelicName::StoneCalendar,
     RelicName::HornCleat,
     RelicName::CaptainsWheel,
     RelicName::CentennialPuzzle,
 ];
+
+// Relic counters that count only in combat; -1 hides them after every combat, and each one's template counter_init is -1 too
+pub const RELIC_COUNTERS_COMBAT_ONLY: &[RelicName] = &[
+    RelicName::Kunai,
+    RelicName::Shuriken,
+    RelicName::OrnamentalFan,
+    RelicName::LetterOpener,
+    RelicName::Pocketwatch,
+    RelicName::VelvetChoker,
+    RelicName::StoneCalendar,
+    RelicName::HornCleat,
+    RelicName::CaptainsWheel,
+];
+
+// Every combat-only Relic counter starts hidden
+const _: () = {
+    let mut idx = 0;
+    while idx < ALL_RELICS.len() {
+        let relic = ALL_RELICS[idx];
+        let mut jdx = 0;
+        while jdx < RELIC_COUNTERS_COMBAT_ONLY.len() {
+            if RELIC_COUNTERS_COMBAT_ONLY[jdx] as usize == relic.name as usize {
+                assert!(
+                    relic.counter_init == -1,
+                    "combat-only Relic counters start at -1"
+                );
+            }
+            jdx += 1;
+        }
+        idx += 1;
+    }
+};
 
 pub fn iter_owned_relics(
     id_relics: &[Option<usize>; RelicName::COUNT],

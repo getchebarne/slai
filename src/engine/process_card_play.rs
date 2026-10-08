@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 use rand::Rng;
 
 use crate::consts::MAX_SIZE_HAND;
+use crate::consts::PANACHE_PLAYS;
 use crate::effect::Amount;
 use crate::effect::CardPlay;
 use crate::effect::Effect;
@@ -63,7 +64,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         id_monster_picked,
         this_turn_attacks,
         this_turn_cards_played,
-        this_turn_panache,
+        panache_countdown,
         ..
     } = &mut state.combat;
 
@@ -130,6 +131,13 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
     // Increase this-turn-played-Cards counter
     *this_turn_cards_played = this_turn_cards_played.saturating_add(1);
+
+    // Pocketwatch and Velvet Choker count the turn's plays; the play cap stops Velvet Choker's at 6
+    for name in [RelicName::Pocketwatch, RelicName::VelvetChoker] {
+        if let Some(id) = state.id_relics[name as usize] {
+            state.entities[id].relic_counter += 1;
+        }
+    }
 
     if card.card_kind == CardKind::Attack {
         // Increase this-turn-played-attacks counter
@@ -438,9 +446,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
     // Panache: every 5th Card played while active hits all enemies for `stacks`
     if has_modifier(char_modifiers, ModifierKind::Panache) {
-        *this_turn_panache += 1;
-        if *this_turn_panache == 5 {
-            *this_turn_panache = 0;
+        *panache_countdown -= 1;
+        if *panache_countdown == 0 {
+            *panache_countdown = PANACHE_PLAYS;
             let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {

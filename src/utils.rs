@@ -169,7 +169,7 @@ pub const fn card_name_healing(name: CardName) -> bool {
     )
 }
 
-// Normality in hand caps the turn at 3 plays; Velvet Choker at 6
+// Normality in hand caps the turn at 3 plays; Velvet Choker's counter at 6
 pub fn play_cap_reached(
     id_card_hand: &[usize],
     entities: &[Entity],
@@ -180,7 +180,8 @@ pub fn play_cap_reached(
         && id_card_hand
             .iter()
             .any(|&id| entities[id].card_name == CardName::Normality);
-    let choker = this_turn_cards_played >= 6 && has_relic(id_relics, RelicName::VelvetChoker);
+    let choker = id_relics[RelicName::VelvetChoker as usize]
+        .is_some_and(|id| entities[id].relic_counter >= 6);
     normality || choker
 }
 

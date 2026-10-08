@@ -60,7 +60,7 @@ flat_variants!(PyEffect {
     CardDrawUpTo => PyEffectCardDrawUpTo as "EffectCardDrawUpTo" { amount: u8 },
     CardDiscard => PyEffectCardDiscard as "EffectCardDiscard" { target: PyTarget },
     CardRetain => PyEffectCardRetain as "EffectCardRetain" { target: PyTarget },
-    DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { target: PyTarget },
+    DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { damage: u16, target: PyTarget },
     DeepBreathProc => PyEffectDeepBreathProc as "EffectDeepBreathProc",
     MaxHealthDelta => PyEffectMaxHealthDelta as "EffectMaxHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
@@ -335,7 +335,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain {
             target: require_target(target),
         }),
+        // The draw pile sets the damage in combat; the Card's own base is 0
         EffectKind::DamageMindBlast => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
+            damage: 0,
             target: require_target(target),
         }),
         EffectKind::DeepBreathProc => PyEffect::DeepBreathProc(PyEffectDeepBreathProc),
