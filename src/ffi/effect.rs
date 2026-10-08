@@ -8,7 +8,7 @@ use crate::effect::EffectKind;
 use crate::effect::RelicPick;
 use crate::effect::Target;
 
-use super::amount::PyAmount;
+use super::amount::PyAmountGold;
 use super::amount::PyAmountScalar;
 use super::amount::PyDeltaSign;
 use super::card::PyCardColor;
@@ -68,7 +68,7 @@ flat_variants!(PyEffect {
     PotionDiscard => PyEffectPotionDiscard as "EffectPotionDiscard" { target: PyTarget },
     RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8, trigger: PyRewardRollTrigger },
     CardDiscoverRoll => PyEffectCardDiscoverRoll as "EffectCardDiscoverRoll" { kind: Option<PyCardKind>, color: PyCardColor, exclude: Vec<PyCardName>, count: u8 },
-    GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmount },
+    GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmountGold },
     RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, exclusion: PyRelicExclusion },
     WheelSpin => PyEffectWheelSpin as "EffectWheelSpin",
     BonfireOffer => PyEffectBonfireOffer as "EffectBonfireOffer" { target: PyTarget },

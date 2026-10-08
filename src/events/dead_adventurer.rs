@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
@@ -6,6 +8,7 @@ use crate::events::EventOptionTemplate;
 use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
+use crate::types::MonsterEncounter;
 
 // Search: escalating elite-return chance; the AdventurerSearch processor draws
 // the loot, advances the search count, and consumes after the third find
@@ -28,6 +31,13 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
 }
 
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
+    // The elite is fixed when the event opens, uniformly among the three
+    state.event.adventurer_elite = match state.rng.random_range(0..3) {
+        0 => MonsterEncounter::ThreeSentries,
+        1 => MonsterEncounter::GremlinNob,
+        2 => MonsterEncounter::LagavulinEvent,
+        roll => unreachable!("Adventurer elite roll out of range: {roll}"),
+    };
     bake_options(state, catalog(state.ascension))
 }
 

@@ -46,7 +46,7 @@ pub const FIGHT_LOOT: EventLoot = EventLoot {
     relics: [Some(RelicPick::Name(RelicName::OddMushroom)), None],
 };
 
-// Eat: heal 25% max HP and become Cursed w/ Parasite
+// Eat: heal 25% of the max HP when chosen, not at the open, and become Cursed w/ Parasite
 const OPTION_EAT: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {

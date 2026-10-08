@@ -209,6 +209,12 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyAmountRelative;
     #[pymodule_export]
+    use super::ffi::PyAmountRelativeCeil;
+    #[pymodule_export]
+    use super::ffi::PyAmountRelativeMinOne;
+    #[pymodule_export]
+    use super::ffi::PyAmountRelativeRounded;
+    #[pymodule_export]
     use super::ffi::PyCandidatePool;
     #[pymodule_export]
     use super::ffi::PyCardCostKindFixed;

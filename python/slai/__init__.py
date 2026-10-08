@@ -401,8 +401,18 @@ CardCostKind = (
 
 AmountAbsolute = _rs.AmountAbsolute
 AmountRelative = _rs.AmountRelative
+AmountRelativeMinOne = _rs.AmountRelativeMinOne
+AmountRelativeRounded = _rs.AmountRelativeRounded
+AmountRelativeCeil = _rs.AmountRelativeCeil
 AmountRange = _rs.AmountRange
-Amount = AmountAbsolute | AmountRelative | AmountRange
+Amount = (
+    AmountAbsolute
+    | AmountRelative
+    | AmountRelativeMinOne
+    | AmountRelativeRounded
+    | AmountRelativeCeil
+    | AmountRange
+)
 RestSite = _rs.RestSite
 Chest = _rs.Chest
 ChestKind = _rs.ChestKind
@@ -592,6 +602,9 @@ __all__ = [
     "Amount",
     "AmountAbsolute",
     "AmountRelative",
+    "AmountRelativeMinOne",
+    "AmountRelativeRounded",
+    "AmountRelativeCeil",
     "AmountRange",
     "RestSite",
     "Chest",

@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 
 use crate::game::GameState;
 use crate::types::ChestKind;
+use crate::types::EventName;
 
 use super::card::PyCard;
 use super::card::snapshot_card;
@@ -10,6 +11,7 @@ use super::effect::snapshot_effect;
 use super::event::PyEventName;
 use super::macros::mirror_enum;
 use super::monster::PyMonster;
+use super::monster::PyMonsterEncounter;
 use super::monster::snapshot_monsters;
 use super::potion::PyPotion;
 use super::potion::snapshot_potion;
@@ -115,9 +117,11 @@ pub struct PyEvent {
     pub consumed: bool,
     pub stage: u8,
     pub options: Vec<Vec<PyEffect>>,
+    pub health_max_at_open: u16,
     pub roll_cards: Vec<PyCard>,
     pub roll_relics: Vec<PyRelic>,
     pub roll_potions: Vec<PyPotion>,
+    pub adventurer_elite: Option<PyMonsterEncounter>, // Only while the event is Dead Adventurer
     pub found_gold: bool,
     pub found_nothing: bool,
     pub found_relic: bool,
@@ -287,7 +291,10 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
                     .collect()
             })
             .collect(),
+        health_max_at_open: event.health_max_at_open,
         consumed: event.consumed,
+        adventurer_elite: (event.name == EventName::DeadAdventurer)
+            .then_some(event.adventurer_elite.into()),
         roll_cards: event
             .id_roll_card
             .iter()
