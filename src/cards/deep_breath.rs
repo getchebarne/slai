@@ -23,7 +23,7 @@ pub static DEEP_BREATH: CardTemplate = make_card_template(
     false,
     &[
         Effect {
-            kind: EffectKind::DeepBreathProc,
+            kind: EffectKind::ShuffleDiscardPileIntoDrawPile,
             id_source: None,
             target: Target::Direct(None),
         },

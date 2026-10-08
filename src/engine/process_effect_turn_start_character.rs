@@ -19,7 +19,6 @@ use crate::relics::RELICS_COMBAT_START_FIRST;
 use crate::relics::RELICS_COMBAT_START_PRE_DRAW;
 use crate::relics::RELICS_COMBAT_START_TOP;
 use crate::relics::RELICS_TURN_START_POST_DRAW;
-use crate::relics::iter_owned_relics;
 use crate::relics::trigger_relic_counter;
 use crate::types::CardColor;
 use crate::types::CardName;
@@ -102,9 +101,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     *this_turn_cards_played = 0;
 
     // Owned Relics in acquisition order
-    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-        .map(|(_, id)| id)
-        .collect();
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
     // Hand size: 5, Snecko Eye +2, Ring of the Serpent +1
@@ -416,7 +413,9 @@ fn push_relics_turn_start(
 ) {
     // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
     for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
-        if let Some(id) = trigger_relic_counter(name, id_relics, entities) {
+        if let Some(id) = id_relics[name as usize]
+            && trigger_relic_counter(&mut entities[id])
+        {
             for &effect in entities[id].relic_effects_counter {
                 effect_buf.push(effect);
             }

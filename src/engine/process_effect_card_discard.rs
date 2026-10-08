@@ -11,6 +11,7 @@ use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
+use crate::types::CardName;
 use crate::types::Combat;
 use crate::types::CostScope;
 use crate::types::DeltaSign;
@@ -73,13 +74,19 @@ pub fn process_effect_card_discard(
                 }
             }
 
-            // Queued behind the rest so a batch's discards all land before any trigger
-            let effects_on_discard = state.entities[id_target].card_on_discard_effects;
-            for effect in effects_on_discard {
-                state.effect_queue.push_back(Effect {
+            // On-discard effects: Tactician's energy lands right after its own discard
+            let card = &state.entities[id_target];
+            for effect in card.card_on_discard_effects {
+                let effect = Effect {
                     id_source: Some(id_target),
                     ..*effect
-                });
+                };
+                if card.card_name == CardName::Tactician {
+                    state.effect_queue.push_front(effect);
+                } else {
+                    // Queued behind the rest so a batch's discards all land before any trigger
+                    state.effect_queue.push_back(effect);
+                }
             }
 
             // Tingsha: each discard deals 3 thorns-type damage (unscaled, no Envenom)

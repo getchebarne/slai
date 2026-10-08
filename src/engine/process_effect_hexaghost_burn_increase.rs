@@ -2,6 +2,7 @@ use crate::cards::get_card;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::Target;
+use crate::entity::Entity;
 use crate::game::GameState;
 use crate::types::CardName;
 use crate::types::CardPile;
@@ -19,13 +20,18 @@ pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) 
         id_card_discard,
         ..
     } = &mut state.combat;
+
+    // A Relic-made exhaust lasts through the upgrade
     let burn_upgraded = get_card(CardName::Burn, true);
     for idx in 0..id_card_draw.len() {
         let id_card = id_card_draw[idx];
         if state.entities[id_card].card_name == CardName::Burn
             && !state.entities[id_card].card_upgraded
         {
-            state.entities[id_card] = burn_upgraded;
+            state.entities[id_card] = Entity {
+                card_exhaust: state.entities[id_card].card_exhaust,
+                ..burn_upgraded
+            };
         }
     }
     for idx in 0..id_card_discard.len() {
@@ -33,7 +39,10 @@ pub fn process_effect_hexaghost_burn_increase(state: &mut GameState, count: u8) 
         if state.entities[id_card].card_name == CardName::Burn
             && !state.entities[id_card].card_upgraded
         {
-            state.entities[id_card] = burn_upgraded;
+            state.entities[id_card] = Entity {
+                card_exhaust: state.entities[id_card].card_exhaust,
+                ..burn_upgraded
+            };
         }
     }
 

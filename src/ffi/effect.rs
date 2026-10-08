@@ -61,7 +61,7 @@ flat_variants!(PyEffect {
     CardDiscard => PyEffectCardDiscard as "EffectCardDiscard" { target: PyTarget },
     CardRetain => PyEffectCardRetain as "EffectCardRetain" { target: PyTarget },
     DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { target: PyTarget },
-    DeepBreathProc => PyEffectDeepBreathProc as "EffectDeepBreathProc",
+    ShuffleDiscardPileIntoDrawPile => PyEffectShuffleDiscardPileIntoDrawPile as "EffectShuffleDiscardPileIntoDrawPile",
     MaxHealthDelta => PyEffectMaxHealthDelta as "EffectMaxHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     PotionAddRandom => PyEffectPotionAddRandom as "EffectPotionAddRandom" { limited: bool, uniform: bool },
@@ -188,7 +188,6 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::CardPlayFromDrawTop
                     | EffectKind::CombatEnd { .. }
                     | EffectKind::CombatStart { .. }
-                    | EffectKind::DeepBreathProc
                     | EffectKind::DistractionAdd
                     | EffectKind::EnergyDelta { .. }
                     | EffectKind::EventAdvanceState { .. }
@@ -209,6 +208,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::RewardRollPotions { .. }
                     | EffectKind::RewardRollRelic { .. }
                     | EffectKind::ScrapOozeReach { .. }
+                    | EffectKind::ShuffleDiscardPileIntoDrawPile
                     | EffectKind::SneakyStrikeProc { .. }
                     | EffectKind::StasisSteal
                     | EffectKind::StormOfSteelProc { .. }
@@ -335,10 +335,12 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain {
             target: require_target(target),
         }),
-        EffectKind::DamageMindBlast => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
+        EffectKind::DamageMindBlast { .. } => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
             target: require_target(target),
         }),
-        EffectKind::DeepBreathProc => PyEffect::DeepBreathProc(PyEffectDeepBreathProc),
+        EffectKind::ShuffleDiscardPileIntoDrawPile => {
+            PyEffect::ShuffleDiscardPileIntoDrawPile(PyEffectShuffleDiscardPileIntoDrawPile)
+        }
         EffectKind::GoldDelta { sign, amount } => PyEffect::GoldDelta(PyEffectGoldDelta {
             sign: sign.into(),
             amount: amount.into(),

@@ -19,7 +19,6 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
-use crate::relics::iter_owned_relics;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RoomKind;
@@ -240,9 +239,7 @@ fn queue_combat_end_relics(state: &mut GameState) {
     }
 
     // Combat-end Relic effects, in acquisition order (Face of Cleric, etc.)
-    let mut id_relics: Vec<usize> = iter_owned_relics(&state.id_relics)
-        .map(|(_, id)| id)
-        .collect();
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
     id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
     for id_relic in id_relics {

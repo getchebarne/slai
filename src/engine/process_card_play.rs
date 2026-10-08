@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use rand::Rng;
 
 use crate::consts::MAX_SIZE_HAND;
@@ -49,6 +47,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     // Thinking Ahead puts back only if the hand held a Card as it was played, itself included;
     // Setup and Forethought check at the pick, and nothing refills the hand before it: same result
     let hand_nonempty_at_start = !state.combat.id_card_hand.is_empty();
+
+    // A Card's reshuffle (Deep Breath) happens only if the discard pile held Cards as it was played
+    let discard_nonempty_at_start = !state.combat.id_card_discard.is_empty();
 
     // A hand play leaves the hand up front; the Card stays pile-less until relocated
     if play_source == PlaySource::Hand {
@@ -115,9 +116,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
             // Routed to its pile untriggered
             PlaySource::DrawTop => state.effect_queue.push_front(Effect {
-                kind: EffectKind::CardPlayRelocate {
-                    exhaust: card.card_exhaust,
-                },
+                kind: EffectKind::CardPlayRelocate,
                 id_source: None,
                 target: Target::Direct(Some(id_card)),
             }),
@@ -134,63 +133,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     if card.card_kind == CardKind::Attack {
         // Increase this-turn-played-attacks counter
         *this_turn_attacks = this_turn_attacks.saturating_add(1);
-
-        // Attack-count Relic counters (Kunai, Shuriken, Ornamental Fan, Nunchaku)
-        for name in [
-            RelicName::Kunai,
-            RelicName::Shuriken,
-            RelicName::OrnamentalFan,
-            RelicName::Nunchaku,
-        ] {
-            if let Some(id) = trigger_relic_counter(name, &state.id_relics, &mut state.entities) {
-                for &effect in state.entities[id].relic_effects_counter {
-                    state.effect_queue.push_back(effect);
-                }
-            }
-        }
-
-        // Pen Nib: every 10th Attack is doubled; 9 primes the charge, 10 consumes it
-        if let Some(id_pen_nib) = state.id_relics[RelicName::PenNib as usize] {
-            let counter = &mut state.entities[id_pen_nib].relic_counter;
-            *counter += 1;
-            match *counter {
-                // Consumed: this attack was doubled by the live charge. Remove it
-                10 => {
-                    *counter = 0;
-                    state.effect_queue.push_back(Effect {
-                        kind: EffectKind::ModifierRemove {
-                            kind: ModifierKind::PenNib,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(id_character)),
-                    });
-                }
-
-                // Prime the next attack
-                9 => state.effect_queue.push_back(Effect {
-                    kind: EffectKind::ModifierGain {
-                        kind: ModifierKind::PenNib,
-                        stacks: 1,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_character)),
-                }),
-                _ => {}
-            }
-        }
-    }
-
-    // Letter Opener: skill-count counter
-    if card.card_kind == CardKind::Skill
-        && let Some(id) = trigger_relic_counter(
-            RelicName::LetterOpener,
-            &state.id_relics,
-            &mut state.entities,
-        )
-    {
-        for &effect in state.entities[id].relic_effects_counter {
-            state.effect_queue.push_back(effect);
-        }
     }
 
     // On-power play triggers
@@ -210,26 +152,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                 energy,
             );
         }
-    }
-
-    // Ink Bottle: counts every Card played; counter persists across turns and combats
-    if let Some(id) =
-        trigger_relic_counter(RelicName::InkBottle, &state.id_relics, &mut state.entities)
-    {
-        for &effect in state.entities[id].relic_effects_counter {
-            state.effect_queue.push_back(effect);
-        }
-    }
-
-    // Orange Pellets: Attack + Skill + Power in one turn sweeps all debuffs
-    if let Some(id_relic_pellets) = state.id_relics[RelicName::OrangePellets as usize] {
-        orange_pellets_track_and_sweep(
-            &mut state.entities,
-            &mut state.effect_queue,
-            card.card_kind,
-            id_relic_pellets,
-            id_character,
-        );
     }
 
     // Clear effect buffer — prepare it to be filled
@@ -276,6 +198,24 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
+    // Enrage (enemy): a played Skill grants Strength ahead of the Skill's effects, behind Pain
+    if card.card_kind == CardKind::Skill {
+        for id_monster in id_monsters.iter().flatten().copied() {
+            let mods_monster = &state.entities[id_monster].modifiers;
+            if has_modifier(mods_monster, ModifierKind::Enrage) {
+                let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::ModifierGain {
+                        kind: ModifierKind::Strength,
+                        stacks,
+                    },
+                    id_source: Some(id_monster),
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+        }
+    }
+
     // Bird-Faced Urn's heal also runs ahead of the Card's effects, behind Pain
     if urn_heal {
         state.effect_buf.push(Effect {
@@ -288,10 +228,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Blue Candle / Medical Kit: Relic-enabled plays exhaust; the candle also costs 1 HP
-    let relic_exhaust = if card.card_kind == CardKind::Curse
-        && has_relic(&state.id_relics, RelicName::BlueCandle)
-    {
+    // Blue Candle / Medical Kit: a Relic-enabled play exhausts the Card for the rest of combat; the candle also costs 1 HP
+    if card.card_kind == CardKind::Curse && has_relic(&state.id_relics, RelicName::BlueCandle) {
         state.effect_buf.push(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
@@ -300,14 +238,12 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             id_source: None,
             target: Target::Direct(Some(id_character)),
         });
-        true
+        state.entities[id_card].card_exhaust = true;
     } else if card.card_kind == CardKind::Status
         && has_relic(&state.id_relics, RelicName::MedicalKit)
     {
-        true
-    } else {
-        false
-    };
+        state.entities[id_card].card_exhaust = true;
+    }
 
     // Necronomicon: the first Attack costing 2+ each turn is played twice
     let necronomicon = if play_source != PlaySource::Replay
@@ -377,14 +313,25 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         if matches!(effect.kind, EffectKind::CardSetupPick { .. }) && !hand_nonempty_at_start {
             continue;
         }
+        if matches!(effect.kind, EffectKind::ShuffleDiscardPileIntoDrawPile)
+            && !discard_nonempty_at_start
+        {
+            continue;
+        }
         let mut effect = Effect {
             id_source: Some(id_card), // Stamp the Card's ID
             ..*effect
         };
 
-        // Add Wrist Blade bonus
-        if let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
-            *amount += bonus_wrist_blade;
+        // Add Wrist Blade bonus to every hit of the Card's damage
+        match &mut effect.kind {
+            EffectKind::DamagePhysical { amount, .. }
+            | EffectKind::DamagePhysicalIfPoisoned { amount } => *amount += bonus_wrist_blade,
+            EffectKind::DamageFinisher { damage } | EffectKind::DamageFlechettes { damage } => {
+                *damage += bonus_wrist_blade
+            }
+            EffectKind::DamageMindBlast { bonus } => *bonus += bonus_wrist_blade,
+            _ => {}
         }
 
         // `EffectKind::ModifierGain` scales its stacks into a single application whatever X is (e.g., Malaise)
@@ -398,17 +345,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
-    // Route the played Card to its pile; a replay leaves it where it lies
-    if play_source != PlaySource::Replay {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardPlayRelocate {
-                exhaust: card.card_exhaust || relic_exhaust,
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
-    }
-
     // After Image: gain `stacks` block on Card play
     if has_modifier(char_modifiers, ModifierKind::AfterImage) {
         let stacks = modifier_stacks(char_modifiers, ModifierKind::AfterImage);
@@ -419,21 +355,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             id_source: Some(id_character),
             target: Target::Direct(Some(id_character)),
         });
-    }
-
-    // Thousand Cuts: deal `stacks` damage to all Monsters on Card play
-    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
-        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
-        for id_monster in id_monsters.iter().flatten().copied() {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::DamageDeal {
-                    amount: stacks as u16,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_monster)),
-            });
-        }
     }
 
     // Panache: every 5th Card played while active hits all enemies for `stacks`
@@ -450,24 +371,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                     },
                     id_source: None,
                     target: Target::Direct(Some(id_monster)),
-                });
-            }
-        }
-    }
-
-    // Sharp Hide (enemy)
-    if card.card_kind == CardKind::Attack {
-        for id_monster in id_monsters.iter().flatten().copied() {
-            let monster_modifiers = &state.entities[id_monster].modifiers;
-            if has_modifier(monster_modifiers, ModifierKind::SharpHide) {
-                let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: stacks as u16,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_character)),
                 });
             }
         }
@@ -495,6 +398,102 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
+    // Pen Nib: the doubled Attack spends the charge
+    if card.card_kind == CardKind::Attack && has_modifier(char_modifiers, ModifierKind::PenNib) {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::ModifierRemove {
+                kind: ModifierKind::PenNib,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_character)),
+        });
+    }
+
+    // Hex: playing a non-Attack shuffles Dazed into the draw pile
+    if card.card_kind != CardKind::Attack && has_modifier(char_modifiers, ModifierKind::Hex) {
+        let stacks = modifier_stacks(char_modifiers, ModifierKind::Hex);
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardAdd {
+                card_name: CardName::Dazed,
+                pile: CardPile::Draw,
+                count: stacks.max(0) as u16,
+                upgraded: false,
+            },
+            id_source: None,
+            target: Target::Direct(None),
+        });
+    }
+
+    // On-use Relics count the play behind the Character's Modifier hooks, in pickup order
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
+    for id_relic in id_relics {
+        match (state.entities[id_relic].relic_name, card.card_kind) {
+            // Kunai, Shuriken, Ornamental Fan and Nunchaku count Attacks, Letter Opener Skills, Ink Bottle every Card
+            (
+                RelicName::Kunai
+                | RelicName::Shuriken
+                | RelicName::OrnamentalFan
+                | RelicName::Nunchaku,
+                CardKind::Attack,
+            )
+            | (RelicName::LetterOpener, CardKind::Skill)
+            | (RelicName::InkBottle, _) => {
+                if trigger_relic_counter(&mut state.entities[id_relic]) {
+                    state
+                        .effect_buf
+                        .extend_from_slice(state.entities[id_relic].relic_effects_counter);
+                }
+            }
+
+            // Pen Nib: every 10th Attack is doubled; the 9th primes the charge, the 10th starts the count over
+            (RelicName::PenNib, CardKind::Attack) => {
+                let counter = &mut state.entities[id_relic].relic_counter;
+                *counter += 1;
+                if *counter == 10 {
+                    *counter = 0;
+                } else if *counter == 9 {
+                    state.effect_buf.push(Effect {
+                        kind: EffectKind::ModifierGain {
+                            kind: ModifierKind::PenNib,
+                            stacks: 1,
+                        },
+                        id_source: None,
+                        target: Target::Direct(Some(id_character)),
+                    });
+                }
+            }
+
+            // Orange Pellets: Attack + Skill + Power in one turn sweeps all debuffs
+            (RelicName::OrangePellets, _) => orange_pellets_track_and_sweep(
+                &mut state.entities,
+                &mut state.effect_buf,
+                card.card_kind,
+                id_relic,
+                id_character,
+            ),
+            _ => {}
+        }
+    }
+
+    // Sharp Hide (enemy)
+    if card.card_kind == CardKind::Attack {
+        for id_monster in id_monsters.iter().flatten().copied() {
+            let monster_modifiers = &state.entities[id_monster].modifiers;
+            if has_modifier(monster_modifiers, ModifierKind::SharpHide) {
+                let stacks = modifier_stacks(monster_modifiers, ModifierKind::SharpHide);
+                state.effect_buf.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: stacks as u16,
+                        lifesteal: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_character)),
+                });
+            }
+        }
+    }
+
     // Choke (enemy): pushed after card_effects so the played Card resolves first
     for id_monster in id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;
@@ -511,37 +510,29 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
-    // Enrage (enemy): gain strength on played skill
-    if card.card_kind == CardKind::Skill {
-        for id_monster in id_monsters.iter().flatten().copied() {
-            let mods_monster = &state.entities[id_monster].modifiers;
-            if has_modifier(mods_monster, ModifierKind::Enrage) {
-                let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::ModifierGain {
-                        kind: ModifierKind::Strength,
-                        stacks,
-                    },
-                    id_source: Some(id_monster),
-                    target: Target::Direct(Some(id_monster)),
-                });
-            }
-        }
+    // Route the played Card to its pile once every on-use hook has resolved; a replay leaves it where it lies
+    if play_source != PlaySource::Replay {
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardPlayRelocate,
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
     }
 
-    // Hex: playing a non-Attack shuffles Dazed into the draw pile
-    if card.card_kind != CardKind::Attack && has_modifier(char_modifiers, ModifierKind::Hex) {
-        let stacks = modifier_stacks(char_modifiers, ModifierKind::Hex);
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardAdd {
-                card_name: CardName::Dazed,
-                pile: CardPile::Draw,
-                count: stacks.max(0) as u16,
-                upgraded: false,
-            },
-            id_source: None,
-            target: Target::Direct(None),
-        });
+    // Thousand Cuts: deal `stacks` damage to all Monsters once the played Card is routed
+    let char_modifiers = &state.entities[id_character].modifiers;
+    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
+        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
+        for id_monster in id_monsters.iter().flatten().copied() {
+            state.effect_buf.push(Effect {
+                kind: EffectKind::DamageDeal {
+                    amount: stacks as u16,
+                    lifesteal: false,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        }
     }
 
     // Burst / Duplication / Necronomicon each replay the Card against the same target, ahead of
@@ -605,7 +596,7 @@ fn pick_random_costed_hand_card(
 // Relic counter; once all three are seen in a turn, clears the Character's debuffs and resets
 fn orange_pellets_track_and_sweep(
     entities: &mut [Entity],
-    effect_queue: &mut VecDeque<Effect>,
+    effect_buf: &mut Vec<Effect>,
     card_kind: CardKind,
     id_relic_pellets: usize,
     id_character: usize,
@@ -629,7 +620,7 @@ fn orange_pellets_track_and_sweep(
 
     // Else, reset the counter and queue the debuff sweep
     *counter = 0;
-    effect_queue.push_back(Effect {
+    effect_buf.push(Effect {
         kind: EffectKind::DebuffsClear,
         id_source: None,
         target: Target::Direct(Some(id_character)),
