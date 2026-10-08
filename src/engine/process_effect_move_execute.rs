@@ -43,7 +43,8 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
         {
             *amount = damage;
         }
-        state.effect_buf.push(effect);
+
+        // The gold goes ahead of each hit, so a Thorns kill banks it with the rest of the purse
         if let Some(amount) = stacks_thievery
             && matches!(effect.kind, EffectKind::DamagePhysical { .. })
         {
@@ -53,6 +54,7 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
                 target: Target::Direct(Some(state.id_character)),
             });
         }
+        state.effect_buf.push(effect);
     }
     flush_effects_from_buf_to_queue_front(state);
 }

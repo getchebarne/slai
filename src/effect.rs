@@ -211,7 +211,9 @@ pub enum EffectKind {
         move_override: Option<usize>,
     },
     NoOp,
-    PoisonTick,
+    PoisonTick {
+        amount: u16,
+    },
     PotionAddRandom {
         limited: bool,
         uniform: bool,

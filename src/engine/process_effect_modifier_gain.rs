@@ -117,11 +117,12 @@ pub fn process_effect_modifier_gain(
 
     // Apply the delta
     let had_flight = has_modifier(modifiers, ModifierKind::Flight);
+    let had_plated_armor = has_modifier(modifiers, ModifierKind::PlatedArmor);
     modifier_apply(modifiers, kind, stacks);
 
-    // Shelled Parasite: stripping the last Plated Armor stack breaks the shell and stuns
+    // Shelled Parasite: stripping the last Plated Armor stack breaks the shell and stuns; a strip queued past it does nothing
     if kind == ModifierKind::PlatedArmor
-        && stacks < 0
+        && had_plated_armor
         && !has_modifier(modifiers, ModifierKind::PlatedArmor)
         && state.entities[id_target].monster_name == MonsterName::ShelledParasite
     {
