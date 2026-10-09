@@ -3,6 +3,8 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
@@ -45,9 +47,11 @@ const OPTION_ACCEPT: &[Effect] = &[
     Effect {
         kind: EffectKind::MaxHealthDelta {
             sign: DeltaSign::Loss,
-            amount: Amount::RelativeCeil {
+            amount: Amount::Relative {
                 numerator: 3,
                 denominator: 10,
+                rounding: Rounding::Ceil,
+                read_at: ReadAt::EventOpen,
             },
         },
         id_source: None,

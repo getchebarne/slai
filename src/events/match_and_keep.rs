@@ -54,20 +54,19 @@ pub fn catalog(_ascension: u8) -> &'static [EventOptionTemplate] {
 pub fn spawn(state: &mut GameState) -> Vec<usize> {
     let ascension = state.ascension;
     let rng = &mut state.rng;
-    let mut pick = |pool: &[CardName]| pool[rng.random_range(0..pool.len())];
 
     // A Rare, an Uncommon and a Common Silent Card, a colorless Uncommon, a Curse and Neutralize
     let names = [
-        pick(POOL_RARE_GREEN_CARD),
-        pick(POOL_UNCOMMON_GREEN_CARD),
-        pick(POOL_COMMON_GREEN_CARD),
+        POOL_RARE_GREEN_CARD[rng.random_range(0..POOL_RARE_GREEN_CARD.len())],
+        POOL_UNCOMMON_GREEN_CARD[rng.random_range(0..POOL_UNCOMMON_GREEN_CARD.len())],
+        POOL_COMMON_GREEN_CARD[rng.random_range(0..POOL_COMMON_GREEN_CARD.len())],
         // A15+ deals a second Curse in place of the colorless Uncommon
         if ascension < 15 {
-            pick(POOL_UNCOMMON_COLORLESS_CARD)
+            POOL_UNCOMMON_COLORLESS_CARD[rng.random_range(0..POOL_UNCOMMON_COLORLESS_CARD.len())]
         } else {
-            pick(POOL_CURSE_CARD)
+            POOL_CURSE_CARD[rng.random_range(0..POOL_CURSE_CARD.len())]
         },
-        pick(POOL_CURSE_CARD),
+        POOL_CURSE_CARD[rng.random_range(0..POOL_CURSE_CARD.len())],
         CardName::Neutralize,
     ];
 

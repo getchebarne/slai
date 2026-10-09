@@ -3,6 +3,8 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
@@ -52,9 +54,11 @@ const fn sacrifice(numerator: u8) -> [Effect; 3] {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: Amount::RelativeRounded {
+                amount: Amount::Relative {
                     numerator,
                     denominator: 100,
+                    rounding: Rounding::HalfUp,
+                    read_at: ReadAt::EventOpen,
                 },
             },
             id_source: None,

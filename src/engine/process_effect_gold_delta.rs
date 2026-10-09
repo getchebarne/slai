@@ -4,6 +4,8 @@ use crate::consts::MAX_GOLD;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::DeltaSign;
@@ -19,12 +21,14 @@ pub fn process_effect_gold_delta(state: &mut GameState, sign: DeltaSign, amount:
         Amount::Relative {
             numerator,
             denominator,
+            rounding: Rounding::Truncate,
+            read_at: ReadAt::Now,
         } => {
             let gold = state.entities[state.id_character].character_gold;
             (gold as u32 * numerator as u32 / denominator as u32) as u16
         }
         _ => {
-            unreachable!("GoldDelta only resolves Absolute, Relative, or Range")
+            unreachable!("GoldDelta only resolves Absolute, truncated Relative read now, or Range")
         }
     };
 

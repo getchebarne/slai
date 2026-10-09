@@ -330,6 +330,7 @@ pub fn pick_gremlin(rng: &mut impl Rng) -> MonsterName {
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     let len = entity.monster_move_history_len as usize;
+
     // A newly chosen move hasn't run yet
     if len < MAX_MOVE_HISTORY {
         entity.monster_move_history[len] = move_idx;

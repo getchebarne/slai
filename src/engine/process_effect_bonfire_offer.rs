@@ -1,6 +1,8 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::CardRarity;
@@ -20,6 +22,8 @@ pub fn process_effect_bonfire_offer(id_target: Option<usize>, state: &mut GameSt
             amount: Amount::Relative {
                 numerator: 1,
                 denominator: 1,
+                rounding: Rounding::Truncate,
+                read_at: ReadAt::Now,
             },
         },
         id_source: None,

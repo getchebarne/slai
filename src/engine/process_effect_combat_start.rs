@@ -2,6 +2,8 @@ use crate::consts::ENERGY_MAX_BASE;
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::TARGET_MONSTERS_ALL;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -119,6 +121,8 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
                     amount: Amount::Relative {
                         numerator: 3,
                         denominator: 4,
+                        rounding: Rounding::Truncate,
+                        read_at: ReadAt::Now,
                     },
                 },
                 id_source: None,

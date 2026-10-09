@@ -3,6 +3,8 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
@@ -33,9 +35,11 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
                 sign: DeltaSign::Loss,
 
                 // Rounded, not truncated: this one damage roll rounds
-                amount: Amount::RelativeRounded {
+                amount: Amount::Relative {
                     numerator,
                     denominator,
+                    rounding: Rounding::HalfUp,
+                    read_at: ReadAt::EventOpen,
                 },
             },
             id_source: None,

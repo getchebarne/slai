@@ -1,6 +1,8 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -55,6 +57,8 @@ const fn smash(numerator: u8, denominator: u8) -> [Effect; 2] {
                 amount: Amount::Relative {
                     numerator,
                     denominator,
+                    rounding: Rounding::Truncate,
+                    read_at: ReadAt::EventOpen,
                 },
             },
             id_source: None,
@@ -76,9 +80,11 @@ const fn hide(numerator: u8, denominator: u8) -> [Effect; 2] {
         Effect {
             kind: EffectKind::MaxHealthDelta {
                 sign: DeltaSign::Loss,
-                amount: Amount::RelativeMinOne {
+                amount: Amount::Relative {
                     numerator,
                     denominator,
+                    rounding: Rounding::TruncateMinOne,
+                    read_at: ReadAt::EventOpen,
                 },
             },
             id_source: None,

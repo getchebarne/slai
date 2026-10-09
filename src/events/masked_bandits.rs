@@ -1,7 +1,9 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
 use crate::effect::RelicPick;
+use crate::effect::Rounding;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
 use crate::events::EventLoot;
@@ -33,6 +35,8 @@ const OPTION_PAY: &[Effect] = &[
             amount: Amount::Relative {
                 numerator: 1,
                 denominator: 1,
+                rounding: Rounding::Truncate,
+                read_at: ReadAt::Now,
             },
         },
         id_source: None,
