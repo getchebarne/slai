@@ -87,7 +87,9 @@ pub enum EffectKind {
         turns: u8,
         damage: u16,
     },
-    BombTick,
+    BombTick {
+        seq: u32, // The Bomb's stamp
+    },
     LifestealHeal,
     CardPlayRelocate,
     CardPlayFromDrawTop,

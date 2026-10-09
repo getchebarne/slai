@@ -12,6 +12,7 @@ use crate::effect::TurnMonstersStage;
 use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::PRIORITY_DEFAULT;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_set_not_new;
 use crate::modifier::modifier_stacks;
@@ -22,6 +23,7 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::hook_order;
 use crate::utils::shuffle;
 
 // The Character's turn ends in two passes: its Relics and Plated Armor now, then each self-playing Card as a waiting play; its other Modifiers and the discard wait behind all of it
@@ -176,6 +178,9 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         });
     }
 
+    // The other end-of-turn hooks fire by priority, then by stamp; each Bomb is its own hook
+    let mut hooks: Vec<((u8, u32), Effect)> = Vec::new();
+
     // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
     if has_modifier(mods_char, ModifierKind::Retain)
         && !id_card_hand.is_empty()
@@ -183,43 +188,52 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         && !has_relic(&state.id_relics, RelicName::RunicPyramid)
     {
         let stacks = modifier_stacks(mods_char, ModifierKind::Retain);
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::CardRetain,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
-                filter: CandidateFilter::Any,
-                selection_kind: SelectionKind::InputUpTo {
-                    count: stacks.max(0) as u16,
+        hooks.push((
+            hook_order(mods_char, ModifierKind::Retain),
+            Effect {
+                kind: EffectKind::CardRetain,
+                id_source: None,
+                target: Target::Resolve {
+                    candidate_pool: CandidatePool::Hand,
+                    filter: CandidateFilter::Any,
+                    selection_kind: SelectionKind::InputUpTo {
+                        count: stacks.max(0) as u16,
+                    },
                 },
             },
-        });
+        ));
     }
 
     // Ritual: gain `stacks` Strength each turn end; a Monster's Ritual gains at the round end instead
     if has_modifier(mods_char, ModifierKind::Ritual) {
         let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierDelta {
-                kind: ModifierKind::Strength,
-                stacks,
+        hooks.push((
+            hook_order(mods_char, ModifierKind::Ritual),
+            Effect {
+                kind: EffectKind::ModifierDelta {
+                    kind: ModifierKind::Strength,
+                    stacks,
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
             },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
+        ));
     }
 
-    // Wraith Form: lose `stacks` Dexterity each turn end, ahead of LoseStrength and LoseDexterity
+    // Wraith Form: lose `stacks` Dexterity each turn end
     if has_modifier(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierDelta {
-                kind: ModifierKind::Dexterity,
-                stacks: -stacks,
+        hooks.push((
+            hook_order(mods_char, ModifierKind::WraithForm),
+            Effect {
+                kind: EffectKind::ModifierDelta {
+                    kind: ModifierKind::Dexterity,
+                    stacks: -stacks,
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
             },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
+        ));
     }
 
     // Lose{Strength,Dexterity}: the borrowed stacks leave at turn end
@@ -229,19 +243,25 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     ] {
         if has_modifier(mods_char, lose) {
             let stacks = modifier_stacks(mods_char, lose);
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierDelta {
-                    kind: gain,
-                    stacks: -stacks,
+            hooks.push((
+                hook_order(mods_char, lose),
+                Effect {
+                    kind: EffectKind::ModifierDelta {
+                        kind: gain,
+                        stacks: -stacks,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
                 },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierRemove { kind: lose },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
+            ));
+            hooks.push((
+                hook_order(mods_char, lose),
+                Effect {
+                    kind: EffectKind::ModifierRemove { kind: lose },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                },
+            ));
         }
     }
 
@@ -252,15 +272,36 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         ModifierKind::Entangled,
     ] {
         if has_modifier(mods_char, kind) {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierRemove { kind },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
+            hooks.push((
+                hook_order(mods_char, kind),
+                Effect {
+                    kind: EffectKind::ModifierRemove { kind },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                },
+            ));
         }
     }
 
-    // DuplicateNextCardPlay ticks down one stack; a last stack is removed, never left at 0
+    // Each Bomb counts down and detonates at its own stamp; one stamped after Retain still shows its old fuse at the pick
+    for &(_, _, seq) in bombs.iter() {
+        hooks.push((
+            (PRIORITY_DEFAULT, seq),
+            Effect {
+                kind: EffectKind::BombTick { seq },
+                id_source: None,
+                target: Target::Direct(None),
+            },
+        ));
+    }
+
+    // A stable sort keeps each hook's own effects in order
+    hooks.sort_by_key(|&(order, _)| order);
+    state
+        .effect_queue
+        .extend(hooks.into_iter().map(|(_, effect)| effect));
+
+    // DuplicateNextCardPlay ticks down one stack after the turn-end hooks; a last stack is removed, never left at 0
     if has_modifier(mods_char, ModifierKind::DuplicateNextCardPlay) {
         let effect_kind = if modifier_stacks(mods_char, ModifierKind::DuplicateNextCardPlay) > 1 {
             EffectKind::ModifierDelta {
@@ -276,15 +317,6 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             kind: effect_kind,
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    // Bombs count down when their slot comes, so the Retain pick still shows the old fuses
-    if !bombs.is_empty() {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::BombTick,
-            id_source: None,
-            target: Target::Direct(None),
         });
     }
 

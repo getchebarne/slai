@@ -82,9 +82,13 @@ pub fn modifier_is_buff(kind: ModifierKind) -> bool {
     MODIFIER_DEFS[kind as usize].is_buff
 }
 
+// The hook priority of a Modifier, Bomb or pending Nightmare that sets none
+pub const PRIORITY_DEFAULT: u8 = 5;
+
 #[derive(Debug, Clone, Copy)]
 pub struct ModifierDef {
     pub kind: ModifierKind,
+    pub priority: u8, // Turn-start and turn-end hooks fire by priority, lowest first, then by stamp
     pub is_buff: bool,
     pub stacks_duration: bool,
     pub stacks_min: i16,
@@ -94,6 +98,7 @@ pub struct ModifierDef {
 static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     ModifierDef {
         kind: ModifierKind::Accuracy,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -101,6 +106,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::AfterImage,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -108,6 +114,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Angry,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -115,6 +122,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Artifact,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -122,6 +130,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Asleep,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -129,6 +138,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Blur,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
@@ -136,6 +146,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Burst,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -143,6 +154,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Choke,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -150,6 +162,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::CorpseExplosion,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -157,6 +170,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::CurlUp,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -164,6 +178,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Dexterity,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: -999, // Sums clamp here; Dexterity is removed at exactly 0 instead
@@ -171,6 +186,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::DoubleDamage,
+        priority: 6,
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
@@ -178,6 +194,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::DrawCardNextTurn,
+        priority: 20,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -185,6 +202,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Enrage,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -192,6 +210,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Entangled,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -199,6 +218,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Envenom,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -206,6 +226,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Frail,
+        priority: 10,
         is_buff: false,
         stacks_duration: true,
         stacks_min: 1,
@@ -213,6 +234,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::InfiniteBlades,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -220,6 +242,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Intangible,
+        priority: 75,
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
@@ -227,6 +250,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Metallicize,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -234,6 +258,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::ModeShift,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -241,6 +266,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::NextTurnBlock,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 0, // A 0-block Dodge and Roll still lists it until the next turn start
@@ -248,6 +274,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::NextTurnEnergy,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -255,6 +282,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::NoDraw,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -262,6 +290,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::NoxiousFumes,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -269,6 +298,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Phantasmal,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: true,
         stacks_min: 1,
@@ -276,6 +306,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::PlatedArmor,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -283,6 +314,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Poison,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -290,6 +322,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Retain,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -297,6 +330,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Ritual,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -304,6 +338,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Shackled,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -311,6 +346,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::SharpHide,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -318,6 +354,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Splittable,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -325,6 +362,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::SporeCloud,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -332,6 +370,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Strength,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: -999, // Sums clamp here; Strength is removed at exactly 0 instead
@@ -339,6 +378,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Thievery,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -346,6 +386,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Thorns,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -353,6 +394,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::ThousandCuts,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -360,6 +402,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::ToolsOfTheTrade,
+        priority: 25,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -367,6 +410,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Vigor,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -374,6 +418,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Vulnerable,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: true,
         stacks_min: 1,
@@ -381,6 +426,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Weak,
+        priority: 99,
         is_buff: false,
         stacks_duration: true,
         stacks_min: 1,
@@ -388,6 +434,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::WraithForm,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -395,6 +442,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Buffer,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -402,6 +450,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::PenNib,
+        priority: 6,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -409,6 +458,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Magnetism,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -416,6 +466,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::NoBlock,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: true,
         stacks_min: 1,
@@ -423,6 +474,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Panache,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -430,6 +482,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::SadisticNature,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -437,6 +490,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Mayhem,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -444,6 +498,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Regeneration,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -451,6 +506,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::LoseStrength,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -458,6 +514,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::LoseDexterity,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -465,6 +522,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::DuplicateNextCardPlay,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 0, // A spent stack lingers at 0 while its Card resolves
@@ -472,6 +530,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Flight,
+        priority: 50,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -479,6 +538,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Malleable,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -486,6 +546,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Barricade,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -493,6 +554,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Hex,
+        priority: PRIORITY_DEFAULT,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -500,6 +562,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Confusion,
+        priority: 0,
         is_buff: false,
         stacks_duration: false,
         stacks_min: 1,
@@ -507,6 +570,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::PainfulStabs,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -514,6 +578,7 @@ static MODIFIER_DEFS: [ModifierDef; MODIFIER_COUNT] = [
     },
     ModifierDef {
         kind: ModifierKind::Minion,
+        priority: PRIORITY_DEFAULT,
         is_buff: true,
         stacks_duration: false,
         stacks_min: 1,
@@ -526,6 +591,9 @@ pub struct Modifiers {
     pub stacks: [i16; MODIFIER_COUNT],
     pub is_new: [bool; MODIFIER_COUNT],
     pub active: u128, // bitmask
+
+    // Stamp from `Combat.modifier_seq_next`, taken when ModifierDelta makes the Modifier appear; stacking keeps it
+    pub seq: [u32; MODIFIER_COUNT],
 }
 
 pub fn modifier_def(kind: ModifierKind) -> &'static ModifierDef {
@@ -536,6 +604,7 @@ pub const MODIFIERS_ZERO: Modifiers = Modifiers {
     stacks: [0; MODIFIER_COUNT],
     is_new: [false; MODIFIER_COUNT],
     active: 0,
+    seq: [0; MODIFIER_COUNT],
 };
 
 pub fn modifier_stacks(mods: &Modifiers, kind: ModifierKind) -> i16 {
@@ -595,6 +664,7 @@ pub fn modifier_remove(mods: &mut Modifiers, kind: ModifierKind) {
     mods.stacks[idx] = 0;
     mods.is_new[idx] = false;
     mods.active &= !(1 << kind as u32);
+    mods.seq[idx] = 0;
 }
 
 pub fn modifier_tick(mods: &mut Modifiers) {
@@ -618,6 +688,7 @@ pub fn modifier_clear(mods: &mut Modifiers) {
     mods.stacks = [0; MODIFIER_COUNT];
     mods.is_new = [false; MODIFIER_COUNT];
     mods.active = 0;
+    mods.seq = [0; MODIFIER_COUNT];
 }
 
 // Check that modifier definitons are in the correct order

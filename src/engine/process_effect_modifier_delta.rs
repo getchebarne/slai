@@ -116,9 +116,16 @@ pub fn process_effect_modifier_delta(
     }
 
     // Apply the delta
+    let had_kind = has_modifier(modifiers, kind);
     let had_flight = has_modifier(modifiers, ModifierKind::Flight);
     let had_plated_armor = has_modifier(modifiers, ModifierKind::PlatedArmor);
     modifier_apply(modifiers, kind, stacks);
+
+    // A Modifier that appears takes the next stamp, so one removed and applied again goes last
+    if !had_kind && has_modifier(modifiers, kind) {
+        modifiers.seq[kind as usize] = state.combat.modifier_seq_next;
+        state.combat.modifier_seq_next += 1;
+    }
 
     // Shelled Parasite: stripping the last Plated Armor stack breaks the shell and stuns; a strip queued past it does nothing
     if kind == ModifierKind::PlatedArmor
@@ -160,6 +167,7 @@ pub fn process_effect_modifier_delta(
         let mods_char = &state.entities[state.id_character].modifiers;
         if has_modifier(mods_char, ModifierKind::SadisticNature) {
             let dmg = modifier_stacks(mods_char, ModifierKind::SadisticNature);
+
             // The hit waits behind everything queued
             state.effect_queue.push_back(Effect {
                 kind: EffectKind::DamageDeal {

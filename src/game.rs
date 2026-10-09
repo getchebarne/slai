@@ -294,6 +294,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             gold_stolen: 0,
             last_health_lost: 0,
             bombs: Vec::new(),
+            modifier_seq_next: 0,
         },
         reward: Reward {
             active: false,

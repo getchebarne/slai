@@ -13,6 +13,7 @@ use crate::effect::Target;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::PRIORITY_DEFAULT;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
@@ -30,6 +31,7 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::hook_order;
 
 // Character's turn start; turn 1 also slots in the combat-start Relics
 pub fn process_effect_turn_start_character(state: &mut GameState) {
@@ -208,63 +210,84 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         );
     }
 
-    // Spawn nightmare copies
-    if !id_card_nightmares.is_empty() {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardNightmareSpawn,
-            id_source: None,
-            target: Target::Direct(None),
-        });
+    // The Card hooks below fire by priority, then by stamp, so the hand fills in the order they appeared
+    let mut hooks: Vec<((u8, u32), Effect)> = Vec::new();
+
+    // Nightmare: each pending snapshot is its own hook and adds its copies
+    for &(id_snapshot, seq) in id_card_nightmares.iter() {
+        hooks.push((
+            (PRIORITY_DEFAULT, seq),
+            Effect {
+                kind: EffectKind::CardNightmareSpawn,
+                id_source: None,
+                target: Target::Direct(Some(id_snapshot)),
+            },
+        ));
     }
 
     // Infinite blades: add `stacks` Shivs
     if has_modifier(&modifiers, ModifierKind::InfiniteBlades) {
         let stacks = modifier_stacks(&modifiers, ModifierKind::InfiniteBlades);
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardAdd {
-                card_name: CardName::Shiv,
-                pile: CardPile::Hand,
-                count: stacks.max(0) as u16,
-                upgraded: false,
+        hooks.push((
+            hook_order(&modifiers, ModifierKind::InfiniteBlades),
+            Effect {
+                kind: EffectKind::CardAdd {
+                    card_name: CardName::Shiv,
+                    pile: CardPile::Hand,
+                    count: stacks.max(0) as u16,
+                    upgraded: false,
+                },
+                id_source: None,
+                target: Target::Direct(None),
             },
-            id_source: None,
-            target: Target::Direct(None),
-        });
+        ));
     }
 
     // Magnetism: add `stacks` random colorless Cards
     if has_modifier(&modifiers, ModifierKind::Magnetism) {
         let stacks = modifier_stacks(&modifiers, ModifierKind::Magnetism);
-        state.effect_buf.push(Effect {
-            kind: EffectKind::CardAddRandom {
-                color: CardColor::Colorless,
-                kind: None,
-                pile: CardPile::Hand,
-                count: stacks.max(0) as u16,
-                cost_zero: None,
-                upgraded: false,
-                rarity: None,
+        hooks.push((
+            hook_order(&modifiers, ModifierKind::Magnetism),
+            Effect {
+                kind: EffectKind::CardAddRandom {
+                    color: CardColor::Colorless,
+                    kind: None,
+                    pile: CardPile::Hand,
+                    count: stacks.max(0) as u16,
+                    cost_zero: None,
+                    upgraded: false,
+                    rarity: None,
+                },
+                id_source: None,
+                target: Target::Direct(None),
             },
-            id_source: None,
-            target: Target::Direct(None),
-        });
+        ));
     }
 
     // Mayhem: each stack picks a living Monster before the draw; MayhemProc queues the play
     if has_modifier(&modifiers, ModifierKind::Mayhem) {
         let stacks = modifier_stacks(&modifiers, ModifierKind::Mayhem);
         for _ in 0..stacks.max(0) {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::MayhemProc,
-                id_source: None,
-                target: Target::Resolve {
-                    candidate_pool: CandidatePool::Monsters,
-                    filter: CandidateFilter::Any,
-                    selection_kind: SelectionKind::Random { count: 1 },
+            hooks.push((
+                hook_order(&modifiers, ModifierKind::Mayhem),
+                Effect {
+                    kind: EffectKind::MayhemProc,
+                    id_source: None,
+                    target: Target::Resolve {
+                        candidate_pool: CandidatePool::Monsters,
+                        filter: CandidateFilter::Any,
+                        selection_kind: SelectionKind::Random { count: 1 },
+                    },
                 },
-            });
+            ));
         }
     }
+
+    // A stable sort keeps each hook's own effects in order
+    hooks.sort_by_key(|&(order, _)| order);
+    state
+        .effect_buf
+        .extend(hooks.into_iter().map(|(_, effect)| effect));
 
     // Energy resets to max; turn 1 and Ice Cream add a full bar instead
     energy.energy_current = if first_turn || has_relic(&state.id_relics, RelicName::IceCream) {
@@ -355,6 +378,8 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             }
         }
     }
+
+    // The post-draw hooks' priorities all differ, so this fixed order is their priority order
 
     // Noxius Fumes: Monsters get `stacks` poison stacks
     if has_modifier(&modifiers, ModifierKind::NoxiousFumes) {
