@@ -513,12 +513,12 @@ fn dispatch_by_kind(
             process_effect_card_setup_pick(id_target, state, free, bottom)
         }
         EffectKind::CardNightmarePick => process_effect_card_nightmare_pick(id_target, state),
-        EffectKind::CardNightmareSpawn => process_effect_card_nightmare_spawn(state),
+        EffectKind::CardNightmareSpawn => process_effect_card_nightmare_spawn(id_target, state),
         EffectKind::CardPlace { pile } => process_effect_card_place(id_target, state, pile),
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
         EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(id_target, state),
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
-        EffectKind::BombTick => process_effect_bomb_tick(state),
+        EffectKind::BombTick { seq } => process_effect_bomb_tick(state, seq),
         EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),
         EffectKind::CardPlayRelocate => process_effect_card_play_relocate(id_target, state),
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),

@@ -210,11 +210,15 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        bombs: combat.bombs.clone(),
+        bombs: combat
+            .bombs
+            .iter()
+            .map(|&(turns, damage, _)| (turns, damage))
+            .collect(),
         pile_nightmare: combat
             .id_card_nightmares
             .iter()
-            .map(|&id| snapshot_card(state, id))
+            .map(|&(id, _)| snapshot_card(state, id))
             .collect(),
         panache_countdown: combat.panache_countdown,
         this_turn_discards: combat.this_turn_discards,

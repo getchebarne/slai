@@ -13,6 +13,7 @@ pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut 
     let Combat {
         id_card_hand,
         id_card_nightmares,
+        modifier_seq_next,
         ..
     } = &mut state.combat;
     let id_target = id_target.expect("CardNightmarePick requires id_target");
@@ -32,7 +33,10 @@ pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut 
     // The copy exhausts as its printed Card does, whatever a Relic made of the original
     card.card_exhaust = get_card_template(card.card_name, card.card_upgraded).exhaust;
     let id = push_entity(&mut state.entities, card);
-    id_card_nightmares.push(id);
+
+    // Each Nightmare takes its own stamp, which places its copies among the turn-start hooks
+    id_card_nightmares.push((id, *modifier_seq_next));
+    *modifier_seq_next += 1;
 
     // The picked Card rejoins the hand at the end
     if let Some(pos) = id_card_hand

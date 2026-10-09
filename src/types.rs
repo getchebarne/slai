@@ -33,7 +33,7 @@ pub struct Combat {
     pub id_card_stasis: [Option<usize>; MAX_MONSTERS], // Slot-parallel to `id_monsters`
     pub id_monster_picked: Option<usize>,
     pub id_card_last_drawn: Option<usize>,
-    pub id_card_nightmares: Vec<usize>, // One per Nightmare play; they never merge
+    pub id_card_nightmares: Vec<(usize, u32)>, // (snapshot, seq), one per Nightmare play; they never merge
     pub id_card_discover: Vec<usize>,
     pub id_card_origins: Vec<(usize, usize)>, // (combat_copy, original), for Ritual Dagger
 
@@ -56,8 +56,11 @@ pub struct Combat {
     // The HP a target actually lost, after Buffer and Tungsten Rod
     pub last_health_lost: u16,
 
-    // Live Bombs: (turns left, damage)
-    pub bombs: Vec<(u8, u16)>,
+    // Live Bombs: (turns left, damage, seq)
+    pub bombs: Vec<(u8, u16, u32)>,
+
+    // Next stamp for a Modifier, Bomb or Nightmare that appears; the Character's turn hooks fire by priority, then by stamp
+    pub modifier_seq_next: u32,
 }
 
 pub fn combat_reset(combat: &mut Combat) {
@@ -87,6 +90,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.gold_stolen = 0;
     combat.last_health_lost = 0;
     combat.bombs.clear();
+    combat.modifier_seq_next = 0;
 }
 
 #[derive(Debug, Clone)]
