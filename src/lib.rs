@@ -194,6 +194,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyPotionTemplate;
     #[pymodule_export]
+    use super::ffi::PyReadAt;
+    #[pymodule_export]
     use super::ffi::PyRelicExclusion;
     #[pymodule_export]
     use super::ffi::PyRelicName;
@@ -201,6 +203,8 @@ mod slai {
     use super::ffi::PyRelicTier;
     #[pymodule_export]
     use super::ffi::PyRoomKind;
+    #[pymodule_export]
+    use super::ffi::PyRounding;
     // Flat variant classes (Python-side union aliases live in python/slai/__init__.py)
     #[pymodule_export]
     use super::ffi::PyAmountAbsolute;
@@ -208,12 +212,6 @@ mod slai {
     use super::ffi::PyAmountRange;
     #[pymodule_export]
     use super::ffi::PyAmountRelative;
-    #[pymodule_export]
-    use super::ffi::PyAmountRelativeCeil;
-    #[pymodule_export]
-    use super::ffi::PyAmountRelativeMinOne;
-    #[pymodule_export]
-    use super::ffi::PyAmountRelativeRounded;
     #[pymodule_export]
     use super::ffi::PyCandidatePool;
     #[pymodule_export]

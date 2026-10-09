@@ -8,8 +8,10 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
 use crate::effect::RelicExclusion;
 use crate::effect::RelicPick;
+use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::game::GameState;
@@ -48,6 +50,8 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
                 amount: Amount::Relative {
                     numerator: 1,
                     denominator: 1,
+                    rounding: Rounding::Truncate,
+                    read_at: ReadAt::Now,
                 },
             },
             id_source: None,
@@ -84,6 +88,8 @@ pub fn process_effect_wheel_spin(state: &mut GameState) {
                     amount: Amount::Relative {
                         numerator,
                         denominator,
+                        rounding: Rounding::Truncate,
+                        read_at: ReadAt::Now,
                     },
                 },
                 id_source: None,

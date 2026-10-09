@@ -36,8 +36,10 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
 use crate::effect::RelicExclusion;
 use crate::effect::RewardRollTrigger;
+use crate::effect::Rounding;
 use crate::effect::Target;
 use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
@@ -668,36 +670,26 @@ pub fn roll_boss_gold(rng: &mut impl Rng, ascension: u8) -> u16 {
     }
 }
 
-// Fraction-of-max resolution shared by HealthDelta and MaxHealthDelta
-pub fn resolve_health_fraction(health_max: u16, amount: Amount) -> u16 {
+// Fraction-of-max resolution shared by HealthDelta and MaxHealthDelta; an event's fraction may read the max HP it opened with
+pub fn resolve_health_fraction(health_max: u16, health_max_at_open: u16, amount: Amount) -> u16 {
     match amount {
         Amount::Absolute(a) => a,
         Amount::Relative {
             numerator,
             denominator,
-        }
-        | Amount::RelativeMinOne {
-            numerator,
-            denominator,
-        }
-        | Amount::RelativeRounded {
-            numerator,
-            denominator,
-        }
-        | Amount::RelativeCeil {
-            numerator,
-            denominator,
+            rounding,
+            read_at,
         } => {
-            let mut raw = health_max as f32 * (numerator as f32 / denominator as f32);
-            match amount {
-                Amount::RelativeRounded { .. } => raw += 0.5,
-                Amount::RelativeCeil { .. } => raw = raw.ceil(),
-                _ => {}
-            }
-            let raw = raw as u32;
-            match amount {
-                Amount::RelativeMinOne { .. } => raw.max(1) as u16,
-                _ => raw as u16,
+            let base = match read_at {
+                ReadAt::Now => health_max,
+                ReadAt::EventOpen => health_max_at_open,
+            };
+            let raw = base as f32 * (numerator as f32 / denominator as f32);
+            match rounding {
+                Rounding::Truncate => raw as u16,
+                Rounding::TruncateMinOne => (raw as u16).max(1),
+                Rounding::HalfUp => (raw + 0.5) as u16,
+                Rounding::Ceil => raw.ceil() as u16,
             }
         }
         _ => unreachable!("health amounts resolve Absolute or Relative forms"),

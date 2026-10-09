@@ -48,7 +48,8 @@ pub fn process_effect_death(
                 unreachable!("Fairy in a Bottle revives through its HealthDelta");
             };
             let vitals = &mut state.entities[state.id_character].vitals;
-            vitals.health = resolve_health_fraction(vitals.health_max, amount);
+            vitals.health =
+                resolve_health_fraction(vitals.health_max, state.event.health_max_at_open, amount);
             return;
         }
 

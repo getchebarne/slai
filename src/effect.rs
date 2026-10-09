@@ -370,14 +370,35 @@ pub struct CardPlay {
     pub energy: u16, // Fixed when queued; X-cost Cards read it as X
 }
 
+// Which value a Relative amount's fraction reads: the current one, or the one the event opened with
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ReadAt {
+    Now,
+    EventOpen,
+}
+
+// How a Relative amount rounds its fraction
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Rounding {
+    Truncate,       // Rounded down
+    TruncateMinOne, // Rounded down, then raised to at least 1
+    HalfUp,         // Rounded half-up
+    Ceil,           // Rounded up
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Amount {
     Absolute(u16),
-    Relative { numerator: u8, denominator: u8 }, // Truncated
-    RelativeMinOne { numerator: u8, denominator: u8 }, // Truncated, then raised to at least 1
-    RelativeRounded { numerator: u8, denominator: u8 }, // Rounded half-up instead of truncated
-    RelativeCeil { numerator: u8, denominator: u8 }, // Rounded up instead of truncated
-    Range { min: u16, max: u16 },
+    Relative {
+        numerator: u8,
+        denominator: u8,
+        rounding: Rounding,
+        read_at: ReadAt,
+    },
+    Range {
+        min: u16,
+        max: u16,
+    },
 }
 
 // Source pool for a Resolve effect

@@ -1,7 +1,9 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
 use crate::effect::RelicExclusion;
+use crate::effect::Rounding;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -21,6 +23,8 @@ const OPTION_BANANA: &[Effect] = &[
             amount: Amount::Relative {
                 numerator: 1,
                 denominator: 3,
+                rounding: Rounding::Truncate,
+                read_at: ReadAt::EventOpen,
             },
         },
         id_source: None,

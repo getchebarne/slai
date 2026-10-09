@@ -1,6 +1,8 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_DECK_PURGE_PICK_1;
@@ -33,6 +35,8 @@ const OPTION_HEAL: &[Effect] = &[
             amount: Amount::Relative {
                 numerator: 1,
                 denominator: 4,
+                rounding: Rounding::Truncate,
+                read_at: ReadAt::EventOpen,
             },
         },
         id_source: None,
