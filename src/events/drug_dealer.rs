@@ -36,7 +36,7 @@ const OPTION_TRANSFORM: [Effect; 2] = [
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::NotBoundCurse,
+            filters: &[CandidateFilter::NotBoundCurse],
             selection_kind: SelectionKind::Input { count: 2 },
         },
     },

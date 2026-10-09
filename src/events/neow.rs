@@ -153,7 +153,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Deck,
-                filter: CandidateFilter::Purgeable,
+                filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
                 selection_kind: SelectionKind::Input { count },
             },
         },
@@ -163,7 +163,7 @@ const fn effect_bonus(bonus: NeowBonus, health_bonus: u16) -> Effect {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Deck,
-                filter: CandidateFilter::Transformable,
+                filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
                 selection_kind: SelectionKind::Input { count },
             },
         },
@@ -353,7 +353,7 @@ const fn eots_for_asc(ascension: u8) -> [EventOptionTemplate; CATALOG_LEN] {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::EventRollRelic,
-                filter: CandidateFilter::Any,
+                filters: &[],
                 selection_kind: SelectionKind::Single,
             },
         },

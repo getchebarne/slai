@@ -69,6 +69,7 @@ use crate::utils::card_is_upgradable;
 use crate::utils::push_entity;
 
 pub use beggar::BEGGAR_COST_PURGE;
+pub use the_divine_fountain::FOUNTAIN_CURSE_FILTERS;
 pub use the_joust::JOUST_OWNER_WIN_CHANCE;
 pub use the_joust::JOUST_PAYOUT_MURDERER;
 pub use the_joust::JOUST_PAYOUT_OWNER;
@@ -79,7 +80,7 @@ pub const EFFECT_DECK_PURGE_PICK_1: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Deck,
-        filter: CandidateFilter::Purgeable,
+        filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
         selection_kind: SelectionKind::Input { count: 1 },
     },
 };
@@ -89,7 +90,7 @@ pub const EFFECT_DECK_UPGRADE_PICK_1: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Deck,
-        filter: CandidateFilter::Upgradeable,
+        filters: &[CandidateFilter::Upgradeable],
         selection_kind: SelectionKind::Input { count: 1 },
     },
 };
@@ -99,7 +100,7 @@ pub const EFFECT_DECK_TRANSFORM_PICK_1: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Deck,
-        filter: CandidateFilter::Transformable,
+        filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
         selection_kind: SelectionKind::Input { count: 1 },
     },
 };

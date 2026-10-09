@@ -1,4 +1,3 @@
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -23,7 +22,7 @@ pub static LIQUID_MEMORIES: PotionTemplate = PotionTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::PileDiscard,
-            filter: CandidateFilter::Any,
+            filters: &[],
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],
@@ -39,7 +38,7 @@ pub static LIQUID_MEMORIES_DOUBLED: PotionTemplate = PotionTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::PileDiscard,
-            filter: CandidateFilter::Any,
+            filters: &[],
             selection_kind: SelectionKind::Input { count: 2 },
         },
     }],

@@ -1,6 +1,5 @@
 use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -38,7 +37,7 @@ pub static THINKING_AHEAD: CardTemplate = make_card_template(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Hand,
-                filter: CandidateFilter::Any,
+                filters: &[],
                 selection_kind: SelectionKind::Input { count: 1 },
             },
         },

@@ -19,7 +19,7 @@ pub static WARPED_TONGS: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Hand,
-            filter: CandidateFilter::Upgradeable,
+            filters: &[CandidateFilter::Upgradeable],
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],

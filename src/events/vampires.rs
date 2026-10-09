@@ -26,7 +26,7 @@ const EFFECT_PURGE_STRIKES: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Deck,
-        filter: CandidateFilter::StarterStrike,
+        filters: &[CandidateFilter::Starter, CandidateFilter::KindAttack],
         selection_kind: SelectionKind::All,
     },
 };
@@ -69,7 +69,7 @@ const OPTION_VIAL: [Effect; 4] = [
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::EventRollRelic,
-            filter: CandidateFilter::Any,
+            filters: &[],
             selection_kind: SelectionKind::Single,
         },
     },

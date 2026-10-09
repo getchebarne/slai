@@ -35,7 +35,7 @@ pub static MADNESS: CardTemplate = make_card_template(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Hand,
-            filter: CandidateFilter::Costed,
+            filters: &[CandidateFilter::Costed],
             selection_kind: SelectionKind::Random { count: 1 },
         },
     }],

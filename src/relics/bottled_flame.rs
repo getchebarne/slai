@@ -27,7 +27,7 @@ pub static BOTTLED_FLAME: RelicTemplate = RelicTemplate {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::KindAttack,
+            filters: &[CandidateFilter::KindAttack],
             selection_kind: SelectionKind::Input { count: 1 },
         },
     }],

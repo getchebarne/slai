@@ -55,7 +55,7 @@ const fn move_encourage(strength: i16, block: u16) -> Move {
                 id_source: None,
                 target: Target::Resolve {
                     candidate_pool: CandidatePool::Monsters,
-                    filter: CandidateFilter::NotSource,
+                    filters: &[CandidateFilter::NotSource],
                     selection_kind: SelectionKind::All,
                 },
             },

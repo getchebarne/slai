@@ -11,6 +11,13 @@ use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
+// The removable curses: Drink purges them all, and the draw gate in `draw_event_special` needs one
+pub const FOUNTAIN_CURSE_FILTERS: &[CandidateFilter] = &[
+    CandidateFilter::NotBottled,
+    CandidateFilter::NotBoundCurse,
+    CandidateFilter::KindCurse,
+];
+
 // Drink: purge every removable curse at once
 const OPTION_DRINK: &[Effect] = &[
     Effect {
@@ -18,7 +25,7 @@ const OPTION_DRINK: &[Effect] = &[
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::PurgeableCurse,
+            filters: FOUNTAIN_CURSE_FILTERS,
             selection_kind: SelectionKind::All,
         },
     },

@@ -1,5 +1,4 @@
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::CardPlay;
 use crate::effect::DiscardSource;
@@ -195,7 +194,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                 id_source: None,
                 target: Target::Resolve {
                     candidate_pool: CandidatePool::Hand,
-                    filter: CandidateFilter::Any,
+                    filters: &[],
                     selection_kind: SelectionKind::InputUpTo {
                         count: stacks.max(0) as u16,
                     },

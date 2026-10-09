@@ -21,7 +21,7 @@ const fn move_protect(block: u16) -> Move {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Monsters,
-                filter: CandidateFilter::NotSourceUnlessAlone,
+                filters: &[CandidateFilter::NotSourceUnlessAlone],
                 selection_kind: SelectionKind::Random { count: 1 },
             },
         }],

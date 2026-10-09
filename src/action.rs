@@ -167,13 +167,13 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         // effect_pending is written only on the Target::Resolve halt path
         let Target::Resolve {
             candidate_pool,
-            filter,
+            filters,
             selection_kind,
         } = effect_pending.target
         else {
             unreachable!("effect_pending carries a Resolve target")
         };
-        fill_legal_actions_effect_pending(state, filter, candidate_pool);
+        fill_legal_actions_effect_pending(state, filters, candidate_pool);
         if matches!(selection_kind, SelectionKind::InputUpTo { .. }) {
             state.legal_actions.push(Action::PickSkip);
         }
@@ -204,7 +204,7 @@ fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
     // Validate the pending `Effect`'s target is `Target::Resolve`
     let Target::Resolve {
         candidate_pool,
-        filter,
+        filters,
         selection_kind,
     } = effect_pending.target
     else {
@@ -241,7 +241,7 @@ fn handle_effect_pending_resolve(state: &mut GameState, idx: usize) {
         id_source: effect_pending.id_source,
         target: Target::Resolve {
             candidate_pool,
-            filter,
+            filters,
             selection_kind,
         },
     });
@@ -475,7 +475,7 @@ fn handle_rest_toke(state: &mut GameState) {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::Purgeable,
+            filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
             selection_kind: SelectionKind::InputUpTo { count: 1 },
         },
     });
@@ -488,7 +488,7 @@ fn handle_rest_smith(state: &mut GameState) {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::Upgradeable,
+            filters: &[CandidateFilter::Upgradeable],
             selection_kind: SelectionKind::InputUpTo { count: 1 },
         },
     });
@@ -600,16 +600,16 @@ fn handle_shop_purge(state: &mut GameState) {
 // One uniform arm: idx enumerates the pending pool's collection, filter-gated
 fn fill_legal_actions_effect_pending(
     state: &mut GameState,
-    filter: CandidateFilter,
+    filters: &[CandidateFilter],
     pool: CandidatePool,
 ) {
     // Get `CandidatePool`'s instanced IDs
     let id_collection = pool_collection(pool, &state.combat, &state.event, &state.id_card_deck);
 
-    // Apply `CandidateFilter` over the whole set, then map survivors back to pool indices;
+    // Apply the filters over the whole set, then map survivors back to pool indices;
     // staged picks are out of the running
     let mut survivors = id_collection.to_vec();
-    filter_candidates(filter, &mut survivors, &state.entities, None);
+    filter_candidates(filters, &mut survivors, &state.entities, None);
     for (idx, &id) in id_collection.iter().enumerate() {
         if !state.effect_pending_selected.contains(&id) && survivors.contains(&id) {
             state
