@@ -10,7 +10,6 @@ use crate::monsters::encounters::spawn_encounter_monsters;
 use crate::types::DeltaSign;
 use crate::types::EventName;
 use crate::types::Focus;
-use crate::types::MonsterEncounter;
 use crate::utils::context_focus;
 
 // Dead Adventurer search: escalating chance an elite returns
@@ -30,13 +29,7 @@ pub fn process_effect_adventurer_search(state: &mut GameState) {
 
     // The elite returns, and its fight counts as an elite fight
     if (state.rng.random_range(0..100) as u16) < chance {
-        let encounter = match state.rng.random_range(0..3) {
-            0 => MonsterEncounter::ThreeSentries,
-            1 => MonsterEncounter::GremlinNob,
-            2 => MonsterEncounter::LagavulinEvent,
-            roll => unreachable!("Adventurer enemy roll out of range: {roll}"),
-        };
-        spawn_encounter_monsters(state, encounter, true);
+        spawn_encounter_monsters(state, state.event.adventurer_elite, true);
         return;
     }
 

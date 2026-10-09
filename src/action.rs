@@ -45,6 +45,7 @@ use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::is_play_restriction_satisfied;
 use crate::utils::play_cap_reached;
+use crate::utils::resolve_health_fraction;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
@@ -360,8 +361,23 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
     let id_option = state.event.id_event_options[idx];
     let effects = state.entities[id_option].event_option_effects;
     let effects_len = state.entities[id_option].event_option_effects_len as usize;
+
+    // Max-HP fractions are fixed at the max HP the event opened with, except Mushrooms' and Woman in Blue's
+    let fixed_at_open = !matches!(
+        state.event.name,
+        EventName::Mushrooms | EventName::TheWomanInBlue
+    );
+    let health_max_at_open = state.event.health_max_at_open;
     for effect in &effects[..effects_len] {
+        let mut kind = effect.kind;
+        if fixed_at_open
+            && let EffectKind::HealthDelta { amount, .. }
+            | EffectKind::MaxHealthDelta { amount, .. } = &mut kind
+        {
+            *amount = Amount::Absolute(resolve_health_fraction(health_max_at_open, *amount));
+        }
         state.effect_buf.push(Effect {
+            kind,
             id_source: Some(id_option),
             ..*effect
         });

@@ -127,10 +127,16 @@ pub struct Event {
     pub stage: u8,
     pub id_event_options: Vec<usize>,
 
+    // Max HP when the event opened; most options fix their max-HP fractions against it
+    pub health_max_at_open: u16,
+
     // Entities the spawn rolled; options target them via the EventRoll<...> pools
     pub id_roll_card: Vec<usize>,
     pub id_roll_relic: Vec<usize>,
     pub id_roll_potion: Vec<usize>,
+
+    // Dead Adventurer's elite, rolled when the event opens; a failed search fights it
+    pub adventurer_elite: MonsterEncounter,
 
     // Dead Adventurer's without-replacement loot draws
     pub found_gold: bool,
