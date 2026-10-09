@@ -214,7 +214,7 @@ EffectSneakyStrikeProc = _rs.EffectSneakyStrikeProc
 EffectBlockGain = _rs.EffectBlockGain
 EffectBombArm = _rs.EffectBombArm
 EffectLifestealHeal = _rs.EffectLifestealHeal
-EffectModifierGain = _rs.EffectModifierGain
+EffectModifierDelta = _rs.EffectModifierDelta
 EffectModifierMultiply = _rs.EffectModifierMultiply
 EffectEnergyDelta = _rs.EffectEnergyDelta
 EffectCardAdd = _rs.EffectCardAdd
@@ -294,7 +294,7 @@ Effect = (
     | EffectBlockGain
     | EffectBombArm
     | EffectLifestealHeal
-    | EffectModifierGain
+    | EffectModifierDelta
     | EffectModifierMultiply
     | EffectEnergyDelta
     | EffectCardAdd
@@ -548,7 +548,7 @@ __all__ = [
     "EffectBlockGain",
     "EffectBombArm",
     "EffectLifestealHeal",
-    "EffectModifierGain",
+    "EffectModifierDelta",
     "EffectModifierMultiply",
     "EffectEnergyDelta",
     "EffectCardAdd",

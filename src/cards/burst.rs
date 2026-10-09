@@ -23,7 +23,7 @@ pub static BURST: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Burst,
             stacks: 1,
         },
@@ -37,9 +37,9 @@ pub static BURST: CardTemplate = make_card_template(
 // Upgraded
 pub static BURST_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = BURST.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = BURST.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Burst,
             stacks: 2, // +1 stack
         };

@@ -36,8 +36,8 @@ pub static SHIV: CardTemplate = make_card_template(
 // Upgraded
 pub static SHIV_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = SHIV.effects;
+    effects_play: {
+        let mut effects = SHIV.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 6,
             lifesteal: false,

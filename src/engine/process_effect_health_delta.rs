@@ -151,7 +151,7 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     let target = &mut state.entities[id_target];
     if from_attack && amount > 0 && has_modifier(&target.modifiers, ModifierKind::PlatedArmor) {
         let effect_strip = Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::PlatedArmor,
                 stacks: -1,
             },

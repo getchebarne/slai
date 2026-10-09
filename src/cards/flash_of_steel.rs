@@ -44,8 +44,8 @@ pub static FLASH_OF_STEEL: CardTemplate = make_card_template(
 // Upgraded
 pub static FLASH_OF_STEEL_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = FLASH_OF_STEEL.effects;
+    effects_play: {
+        let mut effects = FLASH_OF_STEEL.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 6,
             lifesteal: false,

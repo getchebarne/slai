@@ -33,8 +33,8 @@ pub static DARK_SHACKLES: CardTemplate = make_card_template(
 // Upgraded
 pub static DARK_SHACKLES_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DARK_SHACKLES.effects;
+    effects_play: {
+        let mut effects = DARK_SHACKLES.effects_play;
         effects[0].kind = EffectKind::StrengthLoseTemp { stacks: 15 };
         effects
     },

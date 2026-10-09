@@ -12,7 +12,7 @@ pub static GHOST_IN_A_JAR: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Intangible,
             stacks: 1,
         },
@@ -24,7 +24,7 @@ pub static GHOST_IN_A_JAR: PotionTemplate = PotionTemplate {
 pub static GHOST_IN_A_JAR_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Intangible,
             stacks: 2,
         },

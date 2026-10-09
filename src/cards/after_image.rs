@@ -23,7 +23,7 @@ pub static AFTER_IMAGE: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::AfterImage,
             stacks: 1,
         },

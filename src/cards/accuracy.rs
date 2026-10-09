@@ -23,7 +23,7 @@ pub static ACCURACY: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Accuracy,
             stacks: 4,
         },
@@ -37,9 +37,9 @@ pub static ACCURACY: CardTemplate = make_card_template(
 // Upgraded
 pub static ACCURACY_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = ACCURACY.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = ACCURACY.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Accuracy,
             stacks: 6, // +2 stacks
         };

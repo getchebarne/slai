@@ -67,7 +67,9 @@ pub struct PyCardTemplate {
     pub requires_target: bool,
 
     // Effects
-    pub effects: Vec<PyEffect>,
+    pub effects_play: Vec<PyEffect>,
+    pub effects_discard: Vec<PyEffect>, // When discarded from the hand
+    pub effects_draw: Vec<PyEffect>,    // When drawn
 }
 
 #[pyclass(
@@ -181,7 +183,7 @@ pub struct PyEventOptionTemplate {
 }
 
 fn template_card(card: &CardTemplate) -> PyCardTemplate {
-    let effects = &card.effects[..card.effects_len as usize];
+    let effects = &card.effects_play[..card.effects_play_len as usize];
     PyCardTemplate {
         name: card.name.into(),
         cost_base: card.cost,
@@ -195,7 +197,9 @@ fn template_card(card: &CardTemplate) -> PyCardTemplate {
         ethereal: card.ethereal,
         innate: card.innate,
         requires_target: effects_require_target(effects),
-        effects: effects.iter().map(snapshot_effect).collect(),
+        effects_play: effects.iter().map(snapshot_effect).collect(),
+        effects_discard: card.effects_discard.iter().map(snapshot_effect).collect(),
+        effects_draw: card.effects_draw.iter().map(snapshot_effect).collect(),
     }
 }
 

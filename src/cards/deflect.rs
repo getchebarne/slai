@@ -33,8 +33,8 @@ pub static DEFLECT: CardTemplate = make_card_template(
 // Upgraded
 pub static DEFLECT_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DEFLECT.effects;
+    effects_play: {
+        let mut effects = DEFLECT.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 7 }; // +3 block
         effects
     },

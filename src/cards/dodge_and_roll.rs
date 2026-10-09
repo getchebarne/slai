@@ -29,7 +29,7 @@ pub static DODGE_AND_ROLL: CardTemplate = make_card_template(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::NextTurnBlock,
                 stacks: 4,
             },
@@ -44,10 +44,10 @@ pub static DODGE_AND_ROLL: CardTemplate = make_card_template(
 // Upgraded
 pub static DODGE_AND_ROLL_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DODGE_AND_ROLL.effects;
+    effects_play: {
+        let mut effects = DODGE_AND_ROLL.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 6 }; // +2 block
-        effects[1].kind = EffectKind::ModifierGain {
+        effects[1].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::NextTurnBlock,
             stacks: 6, // +2 next-turn block
         };

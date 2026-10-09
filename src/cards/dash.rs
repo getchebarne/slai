@@ -44,8 +44,8 @@ pub static DASH: CardTemplate = make_card_template(
 // Upgraded
 pub static DASH_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DASH.effects;
+    effects_play: {
+        let mut effects = DASH.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 13 }; // +3 block
         effects[1].kind = EffectKind::DamagePhysical {
             amount: 13,

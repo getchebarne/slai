@@ -12,7 +12,7 @@ pub static ESSENCE_OF_STEEL: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::PlatedArmor,
             stacks: 4,
         },
@@ -24,7 +24,7 @@ pub static ESSENCE_OF_STEEL: PotionTemplate = PotionTemplate {
 pub static ESSENCE_OF_STEEL_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::PlatedArmor,
             stacks: 8,
         },

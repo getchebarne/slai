@@ -25,7 +25,7 @@ pub static LEG_SWEEP: CardTemplate = make_card_template(
     false,
     &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
@@ -45,9 +45,9 @@ pub static LEG_SWEEP: CardTemplate = make_card_template(
 // Upgraded
 pub static LEG_SWEEP_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = LEG_SWEEP.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = LEG_SWEEP.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Weak,
             stacks: 3, // +1 stack
         };

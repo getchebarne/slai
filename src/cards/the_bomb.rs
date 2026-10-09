@@ -37,8 +37,8 @@ pub static THE_BOMB: CardTemplate = make_card_template(
 // Upgraded
 pub static THE_BOMB_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = THE_BOMB.effects;
+    effects_play: {
+        let mut effects = THE_BOMB.effects_play;
         effects[0].kind = EffectKind::BombArm {
             turns: BOMB_FUSE_TURNS,
             damage: 50, // +10 damage

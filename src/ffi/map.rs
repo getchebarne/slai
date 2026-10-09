@@ -40,6 +40,7 @@ pub struct PyMap {
     pub rooms: Vec<Vec<Option<PyRoom>>>,
     pub y_current: Option<usize>,
     pub x_current: Option<usize>,
+    pub room_kind_resolved: Option<PyRoomKind>, // What the current Room resolved into ("?" stays Unknown in `rooms`); a Shop rules out a Shop from the next "?"
     pub boss: PyMonsterEncounter,
     pub identity_hash: u64,
 }
@@ -90,6 +91,7 @@ pub(crate) fn snapshot_map(state: &GameState) -> PyMap {
         rooms,
         y_current,
         x_current,
+        room_kind_resolved: state.room_kind_resolved.map(Into::into),
         boss: state.encounter_boss.into(),
         identity_hash: map_identity_hash(state),
     }

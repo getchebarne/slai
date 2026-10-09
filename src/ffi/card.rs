@@ -19,6 +19,7 @@ use crate::types::CostScope;
 use crate::utils::entity_requires_target;
 use crate::utils::get_card_effective_cost;
 use crate::utils::is_play_restriction_satisfied;
+use crate::utils::play_cap_reached;
 use crate::utils::scale_attack_damage;
 use crate::utils::scale_block_gain;
 use crate::utils::strike_dummy_bonus;
@@ -28,9 +29,13 @@ use crate::utils::wrist_blade_bonus;
 
 use super::effect::PyEffect;
 use super::effect::PyEffectBlockGain;
+use super::effect::PyEffectDamageFinisher;
+use super::effect::PyEffectDamageFlechettes;
+use super::effect::PyEffectDamageMindBlast;
 use super::effect::PyEffectDamagePhysical;
+use super::effect::PyEffectDamagePhysicalIfPoisoned;
 use super::effect::PyEffectEscapePlanCheck;
-use super::effect::PyEffectModifierGain;
+use super::effect::PyEffectModifierDelta;
 use super::effect::snapshot_effect;
 use super::macros::flat_variants;
 use super::macros::mirror_enum;
@@ -142,8 +147,10 @@ pub struct PyCard {
     pub retain: bool,
     pub playable: bool,
 
-    // Effects, with Dex / Str / Vigor / etc. applied
-    pub effects: Vec<PyEffect>,
+    // Effects when played, with Dex / Str / Vigor / etc. applied
+    pub effects_play: Vec<PyEffect>,
+    pub effects_discard: Vec<PyEffect>, // When discarded from the hand
+    pub effects_draw: Vec<PyEffect>,    // When drawn
 }
 
 // Display-name lookups
@@ -317,8 +324,38 @@ pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec
         0
     };
     let frail = has_modifier(char_mods, ModifierKind::Frail);
+    let no_block = has_modifier(char_mods, ModifierKind::NoBlock);
 
-    card.card_effects[..card.card_effects_len as usize]
+    // Every hit of the Card shows the same scaled damage; Player attacker: Paper Krane never applies
+    let adjusted_damage = |base: u16| {
+        scale_attack_damage(
+            base.saturating_add(bonus).saturating_add(vigor),
+            str_stacks,
+            double,
+            pen_nib,
+            weak_factor(weak, false),
+            vuln_factor(false, false),
+            false,
+        )
+    };
+
+    // No Block zeroes every block the Card would grant
+    let adjusted_block = |base: u16| {
+        if no_block {
+            0
+        } else {
+            scale_block_gain(base, dex, frail)
+        }
+    };
+
+    // Mind Blast's base damage is the draw pile's size
+    let draw_pile_size = if state.combat.active {
+        state.combat.id_card_draw.len() as u16
+    } else {
+        0
+    };
+
+    card.card_effects_play[..card.card_effects_play_len as usize]
         .iter()
         .map(snapshot_effect)
         .map(|effect| match effect {
@@ -326,42 +363,55 @@ pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec
                 amount,
                 lifesteal,
                 target,
-            }) => {
-                // Player attacker: Paper Krane never applies
-                let damage = scale_attack_damage(
-                    amount.saturating_add(bonus).saturating_add(vigor),
-                    str_stacks,
-                    double,
-                    pen_nib,
-                    weak_factor(weak, false),
-                    vuln_factor(false, false),
-                    false,
-                );
-                PyEffect::DamagePhysical(PyEffectDamagePhysical {
-                    amount: damage,
-                    lifesteal,
+            }) => PyEffect::DamagePhysical(PyEffectDamagePhysical {
+                amount: adjusted_damage(amount),
+                lifesteal,
+                target,
+            }),
+            PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
+                amount,
+                target,
+            }) => PyEffect::DamagePhysicalIfPoisoned(PyEffectDamagePhysicalIfPoisoned {
+                amount: adjusted_damage(amount),
+                target,
+            }),
+            PyEffect::DamageFinisher(PyEffectDamageFinisher { damage, target }) => {
+                PyEffect::DamageFinisher(PyEffectDamageFinisher {
+                    damage: adjusted_damage(damage),
+                    target,
+                })
+            }
+            PyEffect::DamageFlechettes(PyEffectDamageFlechettes { damage, target }) => {
+                PyEffect::DamageFlechettes(PyEffectDamageFlechettes {
+                    damage: adjusted_damage(damage),
+                    target,
+                })
+            }
+            PyEffect::DamageMindBlast(PyEffectDamageMindBlast { target, .. }) => {
+                PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
+                    damage: adjusted_damage(draw_pile_size),
                     target,
                 })
             }
             PyEffect::BlockGain(PyEffectBlockGain { amount, target }) => {
                 PyEffect::BlockGain(PyEffectBlockGain {
-                    amount: scale_block_gain(amount, dex, frail),
+                    amount: adjusted_block(amount),
                     target,
                 })
             }
             // Dodge and Roll's next-turn block scales like its block
-            PyEffect::ModifierGain(PyEffectModifierGain {
+            PyEffect::ModifierDelta(PyEffectModifierDelta {
                 kind: PyModifierKind::NextTurnBlock,
                 stacks,
                 target,
-            }) => PyEffect::ModifierGain(PyEffectModifierGain {
+            }) => PyEffect::ModifierDelta(PyEffectModifierDelta {
                 kind: PyModifierKind::NextTurnBlock,
-                stacks: scale_block_gain(stacks.max(0) as u16, dex, frail) as i16,
+                stacks: adjusted_block(stacks.max(0) as u16) as i16,
                 target,
             }),
             PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck { block, target }) => {
                 PyEffect::EscapePlanCheck(PyEffectEscapePlanCheck {
-                    block: scale_block_gain(block, dex, frail),
+                    block: adjusted_block(block),
                     target,
                 })
             }
@@ -377,7 +427,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         ModifierKind::Entangled,
     );
     // Combat-only; outside combat defaults are permissive (Cards not played)
-    let (restriction_ok, energy_current) = if state.combat.active {
+    let (restriction_ok, energy_current, cap_reached) = if state.combat.active {
         (
             is_play_restriction_satisfied(
                 card.card_play_restriction,
@@ -386,9 +436,15 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
                 &state.id_relics,
             ),
             state.combat.energy.energy_current,
+            play_cap_reached(
+                &state.combat.id_card_hand,
+                &state.entities,
+                &state.id_relics,
+                state.combat.this_turn_cards_played,
+            ),
         )
     } else {
-        (true, 0)
+        (true, 0, false)
     };
     let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
     let cost = get_card_effective_cost(card, energy_current);
@@ -419,8 +475,15 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         retain: card.card_retain,
         playable: restriction_ok
             && !entangled_blocks
+            && !cap_reached
             && (!state.combat.active || cost <= energy_current),
-        effects: snapshot_adjusted_effects(state, card),
+        effects_play: snapshot_adjusted_effects(state, card),
+        effects_discard: card
+            .card_effects_discard
+            .iter()
+            .map(snapshot_effect)
+            .collect(),
+        effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
     };
     py_card
 }

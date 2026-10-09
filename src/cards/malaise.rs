@@ -24,7 +24,7 @@ pub static MALAISE: CardTemplate = make_card_template(
     false,
     &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: -1,
             },
@@ -32,7 +32,7 @@ pub static MALAISE: CardTemplate = make_card_template(
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 1,
             },

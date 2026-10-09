@@ -59,7 +59,7 @@ const fn move_buff_side(block: u16, strength: i16) -> Move {
                 target: TARGET_SOURCE,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Strength,
                     stacks: strength,
                 },
@@ -77,7 +77,7 @@ const fn move_mega_debuff(stacks: i16) -> Move {
         "Mega Debuff",
         &[
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Weak,
                     stacks,
                 },
@@ -85,7 +85,7 @@ const fn move_mega_debuff(stacks: i16) -> Move {
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Vulnerable,
                     stacks,
                 },
@@ -93,7 +93,7 @@ const fn move_mega_debuff(stacks: i16) -> Move {
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Frail,
                     stacks,
                 },

@@ -23,7 +23,7 @@ pub static ENVENOM: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Envenom,
             stacks: 1,
         },

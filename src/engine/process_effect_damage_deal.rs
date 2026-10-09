@@ -84,7 +84,7 @@ pub fn process_effect_damage_deal(
         && has_relic(&state.id_relics, RelicName::HandDrill)
     {
         let effect_vuln = Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },
@@ -103,7 +103,7 @@ pub fn process_effect_damage_deal(
     // Executes in reverse:
     //     1. On-damage-taken triggers (Angry; CurlUp / Flight / Malleable tail-queue)
     //     2. HealthDelta
-    //     3. ModifierGain Poison (Envenom)
+    //     3. ModifierDelta Poison (Envenom)
     //     4. HealthDelta Gain (lifesteal)
     if damage_over_block > 0 {
         if lifesteal && let Some(id_source) = id_source {
@@ -119,7 +119,7 @@ pub fn process_effect_damage_deal(
         if from_card && has_modifier(&mods_char, ModifierKind::Envenom) {
             let stacks = modifier_stacks(&mods_char, ModifierKind::Envenom);
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Poison,
                     stacks,
                 },
@@ -187,7 +187,7 @@ fn fire_on_damage_taken(
     if has_modifier(&target.modifiers, ModifierKind::Angry) {
         let stacks = modifier_stacks(&target.modifiers, ModifierKind::Angry);
         effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks,
             },
@@ -199,7 +199,7 @@ fn fire_on_damage_taken(
     // Flight: a landing hit queues the stack loss behind the rest of the attack
     if lives && has_modifier(&target.modifiers, ModifierKind::Flight) {
         effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Flight,
                 stacks: -1,
             },

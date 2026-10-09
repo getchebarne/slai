@@ -199,7 +199,7 @@ pub fn process_effect_death(
         && has_modifier(&target.modifiers, ModifierKind::Poison)
     {
         state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Poison,
                 stacks: modifier_stacks(&target.modifiers, ModifierKind::Poison),
             },
@@ -237,7 +237,7 @@ pub fn process_effect_death(
     let modifiers = &state.entities[id_target].modifiers;
     if has_modifier(modifiers, ModifierKind::SporeCloud) {
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Vulnerable,
                 stacks: modifier_stacks(modifiers, ModifierKind::SporeCloud),
             },

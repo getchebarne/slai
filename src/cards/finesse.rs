@@ -41,8 +41,8 @@ pub static FINESSE: CardTemplate = make_card_template(
 // Upgraded
 pub static FINESSE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = FINESSE.effects;
+    effects_play: {
+        let mut effects = FINESSE.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 4 }; // +2 block
         effects
     },

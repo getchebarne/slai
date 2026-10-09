@@ -14,7 +14,7 @@ pub static MUTAGENIC_STRENGTH: RelicTemplate = RelicTemplate {
     counter_reset: 0,
     effects_combat_start: &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 3,
             },
@@ -22,7 +22,7 @@ pub static MUTAGENIC_STRENGTH: RelicTemplate = RelicTemplate {
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::LoseStrength,
                 stacks: 3,
             },

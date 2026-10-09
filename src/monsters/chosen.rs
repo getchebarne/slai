@@ -19,7 +19,7 @@ static MOVE_DRAIN: Move = make_move(
     "Drain",
     &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 3,
             },
@@ -27,7 +27,7 @@ static MOVE_DRAIN: Move = make_move(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 3,
             },

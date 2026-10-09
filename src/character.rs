@@ -28,7 +28,12 @@ pub fn spawn_silent(ascension: u8) -> Entity {
 }
 
 pub fn get_silent_starter_deck(ascension: u8) -> Vec<Entity> {
-    let mut deck = vec![
+    // A10+: Ascender's Bane enters the empty deck ahead of the starters
+    let mut deck = Vec::new();
+    if ascension >= 10 {
+        deck.push(get_card(CardName::AscendersBane, false));
+    }
+    deck.extend([
         get_card(CardName::Strike, false),
         get_card(CardName::Strike, false),
         get_card(CardName::Strike, false),
@@ -41,10 +46,7 @@ pub fn get_silent_starter_deck(ascension: u8) -> Vec<Entity> {
         get_card(CardName::Defend, false),
         get_card(CardName::Survivor, false),
         get_card(CardName::Neutralize, false),
-    ];
-    if ascension >= 10 {
-        deck.push(get_card(CardName::AscendersBane, false));
-    }
+    ]);
     deck
 }
 

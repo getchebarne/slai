@@ -24,7 +24,7 @@ pub static TRIP: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Vulnerable,
             stacks: 2,
         },
@@ -38,8 +38,8 @@ pub static TRIP: CardTemplate = make_card_template(
 // Upgraded
 pub static TRIP_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = TRIP.effects;
+    effects_play: {
+        let mut effects = TRIP.effects_play;
         effects[0].target = TARGET_MONSTERS_ALL; // Targets all Monsters
         effects
     },

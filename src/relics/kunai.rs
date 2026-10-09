@@ -20,7 +20,7 @@ pub static KUNAI: RelicTemplate = RelicTemplate {
     effects_pickup: &[],
     effects_rest: &[],
     effects_counter: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Dexterity,
             stacks: 1,
         },

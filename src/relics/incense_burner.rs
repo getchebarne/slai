@@ -21,7 +21,7 @@ pub static INCENSE_BURNER: RelicTemplate = RelicTemplate {
     effects_pickup: &[],
     effects_rest: &[],
     effects_counter: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Intangible,
             stacks: 1,
         },

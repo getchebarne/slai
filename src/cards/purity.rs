@@ -40,8 +40,8 @@ pub static PURITY: CardTemplate = make_card_template(
 // Upgraded
 pub static PURITY_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = PURITY.effects;
+    effects_play: {
+        let mut effects = PURITY.effects_play;
         effects[0].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,
             filter: CandidateFilter::Any,

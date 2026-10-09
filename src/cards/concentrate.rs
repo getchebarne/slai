@@ -54,8 +54,8 @@ pub static CONCENTRATE: CardTemplate = make_card_template(
 // Upgraded
 pub static CONCENTRATE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = CONCENTRATE.effects;
+    effects_play: {
+        let mut effects = CONCENTRATE.effects_play;
         effects[0].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,
             filter: CandidateFilter::Any,

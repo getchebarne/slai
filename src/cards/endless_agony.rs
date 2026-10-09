@@ -45,8 +45,8 @@ pub static ENDLESS_AGONY: CardTemplate = make_card_template(
 // Upgraded
 pub static ENDLESS_AGONY_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = ENDLESS_AGONY.effects;
+    effects_play: {
+        let mut effects = ENDLESS_AGONY.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 6,
             lifesteal: false,

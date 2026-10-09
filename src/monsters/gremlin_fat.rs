@@ -24,7 +24,7 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 1,
             },
@@ -32,7 +32,7 @@ static MOVE_SMASH_5_W1_F1: Move = make_move(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Frail,
                 stacks: 1,
             },

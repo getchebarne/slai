@@ -2,6 +2,7 @@ use rand::Rng;
 
 use crate::consts::POTION_SLOTS_MAX;
 use crate::effect::Amount;
+use crate::effect::EFFECT_DU_VU_DOLL_RECOUNT;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
@@ -87,6 +88,9 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
                 }
             }
         }
+
+        // Du-Vu Doll: its counter starts at the deck's Curse count
+        RelicName::DuVuDoll => state.effect_queue.push_front(EFFECT_DU_VU_DOLL_RECOUNT),
 
         // Sacred Bark: every Potion already in the belt becomes its doubled variant
         RelicName::SacredBark => {

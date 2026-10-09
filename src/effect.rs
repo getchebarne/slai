@@ -132,6 +132,7 @@ pub enum EffectKind {
     Death,
     DebuffsClear,
     DistractionAdd,
+    DuVuDollRecount,
     EnergyDelta {
         sign: DeltaSign,
         amount: u16,
@@ -183,7 +184,7 @@ pub enum EffectKind {
         amount: Amount,
     },
     MayhemProc,
-    ModifierGain {
+    ModifierDelta {
         kind: ModifierKind,
         stacks: i16,
     },
@@ -474,7 +475,7 @@ pub struct Effect {
     pub target: Target,
 }
 
-// Filler for slots past `card_effects_len` in Entity.card_effects
+// Filler for slots past `card_effects_play_len` in Entity.card_effects_play
 pub const EFFECT_ZERO: Effect = Effect {
     kind: EffectKind::NoOp,
     id_source: None,
@@ -502,6 +503,13 @@ pub const fn effect_accuracy_resync(candidate_pool: CandidatePool) -> Effect {
 }
 
 pub const EFFECT_ACCURACY_RESYNC_HAND: Effect = effect_accuracy_resync(CandidatePool::Hand);
+
+// Du-Vu Doll's recount, queued by its pickup and by every Card landing in or purged from the deck
+pub const EFFECT_DU_VU_DOLL_RECOUNT: Effect = Effect {
+    kind: EffectKind::DuVuDollRecount,
+    id_source: None,
+    target: Target::Direct(None),
+};
 
 // Discover pick: choose 1 of the rolled Cards, or none if skippable; cost break, destination and copies vary by caller
 pub const fn effect_discover_pick(

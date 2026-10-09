@@ -23,7 +23,7 @@ pub static SADISTIC_NATURE: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::SadisticNature,
             stacks: 5,
         },
@@ -37,9 +37,9 @@ pub static SADISTIC_NATURE: CardTemplate = make_card_template(
 // Upgraded
 pub static SADISTIC_NATURE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = SADISTIC_NATURE.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = SADISTIC_NATURE.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::SadisticNature,
             stacks: 7, // +2 stacks
         };

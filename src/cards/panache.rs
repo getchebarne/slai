@@ -23,7 +23,7 @@ pub static PANACHE: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Panache,
             stacks: 10,
         },
@@ -37,9 +37,9 @@ pub static PANACHE: CardTemplate = make_card_template(
 // Upgraded
 pub static PANACHE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = PANACHE.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = PANACHE.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Panache,
             stacks: 14, // +4 damage
         };

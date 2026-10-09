@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // The Character can no longer become Weakened
 // See:
-//    - `process_effect_modifier_gain.rs`
+//    - `process_effect_modifier_delta.rs`
 pub static GINGER: RelicTemplate = RelicTemplate {
     name: RelicName::Ginger,
     tier: RelicTier::Rare,

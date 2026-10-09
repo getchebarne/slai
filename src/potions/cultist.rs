@@ -12,7 +12,7 @@ pub static CULTIST: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Ritual,
             stacks: 1,
         },
@@ -24,7 +24,7 @@ pub static CULTIST: PotionTemplate = PotionTemplate {
 pub static CULTIST_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Ritual,
             stacks: 2,
         },

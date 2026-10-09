@@ -51,8 +51,8 @@ pub static SURVIVOR: CardTemplate = make_card_template(
 // Upgraded
 pub static SURVIVOR_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = SURVIVOR.effects;
+    effects_play: {
+        let mut effects = SURVIVOR.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 11 }; // +3 block
         effects
     },

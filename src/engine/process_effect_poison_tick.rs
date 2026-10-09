@@ -12,9 +12,9 @@ pub fn process_effect_poison_tick(id_target: Option<usize>, state: &mut GameStat
 
     // Executes in reverse:
     //     1. HealthDelta (a kill still holds every stack for The Specimen)
-    //     2. ModifierGain Poison -1
+    //     2. ModifierDelta Poison -1
     state.effect_queue.push_front(Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Poison,
             stacks: -1,
         },

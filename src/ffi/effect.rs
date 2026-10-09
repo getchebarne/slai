@@ -52,7 +52,7 @@ flat_variants!(PyEffect {
     BlockGain => PyEffectBlockGain as "EffectBlockGain" { amount: u16, target: PyTarget },
     BombArm => PyEffectBombArm as "EffectBombArm" { turns: u8, damage: u16 },
     LifestealHeal => PyEffectLifestealHeal as "EffectLifestealHeal" { target: PyTarget },
-    ModifierGain => PyEffectModifierGain as "EffectModifierGain" { kind: PyModifierKind, stacks: i16, target: PyTarget },
+    ModifierDelta => PyEffectModifierDelta as "EffectModifierDelta" { kind: PyModifierKind, stacks: i16, target: PyTarget },
     ModifierMultiply => PyEffectModifierMultiply as "EffectModifierMultiply" { kind: PyModifierKind, factor: u8, target: PyTarget },
     EnergyDelta => PyEffectEnergyDelta as "EffectEnergyDelta" { sign: PyDeltaSign, amount: u16 },
     CardAdd => PyEffectCardAdd as "EffectCardAdd" { card_name: PyCardName, pile: PyCardPile, count: u16, upgraded: bool },
@@ -60,7 +60,7 @@ flat_variants!(PyEffect {
     CardDrawUpTo => PyEffectCardDrawUpTo as "EffectCardDrawUpTo" { amount: u8 },
     CardDiscard => PyEffectCardDiscard as "EffectCardDiscard" { target: PyTarget },
     CardRetain => PyEffectCardRetain as "EffectCardRetain" { target: PyTarget },
-    DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { target: PyTarget },
+    DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { damage: u16, target: PyTarget },
     ShuffleDiscardPileIntoDrawPile => PyEffectShuffleDiscardPileIntoDrawPile as "EffectShuffleDiscardPileIntoDrawPile",
     MaxHealthDelta => PyEffectMaxHealthDelta as "EffectMaxHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
@@ -304,11 +304,13 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             amount,
             target: require_target(target),
         }),
-        EffectKind::ModifierGain { kind, stacks } => PyEffect::ModifierGain(PyEffectModifierGain {
-            kind: kind.into(),
-            stacks,
-            target: require_target(target),
-        }),
+        EffectKind::ModifierDelta { kind, stacks } => {
+            PyEffect::ModifierDelta(PyEffectModifierDelta {
+                kind: kind.into(),
+                stacks,
+                target: require_target(target),
+            })
+        }
         EffectKind::ModifierMultiply { kind, factor } => {
             PyEffect::ModifierMultiply(PyEffectModifierMultiply {
                 kind: kind.into(),
@@ -341,7 +343,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain {
             target: require_target(target),
         }),
+        // The draw pile sets the damage in combat; the Card's own base is 0
         EffectKind::DamageMindBlast { .. } => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
+            damage: 0,
             target: require_target(target),
         }),
         EffectKind::ShuffleDiscardPileIntoDrawPile => {

@@ -16,6 +16,6 @@ pub fn process_effect_accuracy_resync(id_target: Option<usize>, state: &mut Game
         ModifierKind::Accuracy,
     );
     let card = &mut state.entities[id_card];
-    card.card_effects = get_card_template(CardName::Shiv, card.card_upgraded).effects;
+    card.card_effects_play = get_card_template(CardName::Shiv, card.card_upgraded).effects_play;
     card_damage_delta(card, accuracy);
 }

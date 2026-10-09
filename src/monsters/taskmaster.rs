@@ -37,7 +37,7 @@ static MOVE_SCOURING_WHIP_A18: Move = make_move(
             target: Target::Direct(None),
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 1,
             },

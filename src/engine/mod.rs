@@ -44,6 +44,7 @@ pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_debuffs_clear;
 pub mod process_effect_distraction_add;
+pub mod process_effect_du_vu_doll_recount;
 pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
@@ -65,7 +66,7 @@ pub mod process_effect_lifesteal_heal;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_mayhem_proc;
-pub mod process_effect_modifier_gain;
+pub mod process_effect_modifier_delta;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_tick;
@@ -163,6 +164,7 @@ use self::process_effect_damage_physical::process_effect_damage_physical;
 use self::process_effect_death::process_effect_death;
 use self::process_effect_debuffs_clear::process_effect_debuffs_clear;
 use self::process_effect_distraction_add::process_effect_distraction_add;
+use self::process_effect_du_vu_doll_recount::process_effect_du_vu_doll_recount;
 use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
@@ -184,7 +186,7 @@ use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
-use self::process_effect_modifier_gain::process_effect_modifier_gain;
+use self::process_effect_modifier_delta::process_effect_modifier_delta;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
 use self::process_effect_modifier_tick::process_effect_modifier_tick;
@@ -560,6 +562,7 @@ fn dispatch_by_kind(
             process_effect_glass_knife_decay(id_target, state, delta)
         }
         EffectKind::DistractionAdd => process_effect_distraction_add(state),
+        EffectKind::DuVuDollRecount => process_effect_du_vu_doll_recount(state),
         EffectKind::SetCostOverride {
             amount,
             only_reduce,
@@ -600,8 +603,8 @@ fn dispatch_by_kind(
         EffectKind::EnergyDelta { sign, amount } => {
             process_effect_energy_delta(state, sign, amount)
         }
-        EffectKind::ModifierGain { kind, stacks } => {
-            process_effect_modifier_gain(id_source, id_target, state, kind, stacks)
+        EffectKind::ModifierDelta { kind, stacks } => {
+            process_effect_modifier_delta(id_source, id_target, state, kind, stacks)
         }
         EffectKind::ModifierMultiply { kind, factor } => {
             process_effect_modifier_multiply(id_target, state, kind, factor)

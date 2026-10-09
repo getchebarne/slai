@@ -24,7 +24,7 @@ pub static CRIPPLING_POISON: CardTemplate = make_card_template(
     false,
     &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Poison,
                 stacks: 4,
             },
@@ -32,7 +32,7 @@ pub static CRIPPLING_POISON: CardTemplate = make_card_template(
             target: TARGET_MONSTERS_ALL,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },
@@ -47,9 +47,9 @@ pub static CRIPPLING_POISON: CardTemplate = make_card_template(
 // Upgraded
 pub static CRIPPLING_POISON_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = CRIPPLING_POISON.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = CRIPPLING_POISON.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Poison,
             stacks: 7, // +3 poison
         };

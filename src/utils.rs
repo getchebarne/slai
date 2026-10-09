@@ -143,8 +143,8 @@ pub fn card_is_non_basic_non_curse(entity: &Entity) -> bool {
 
 // Shift every DamagePhysical amount on the Card, clamped at 0 (Glass Knife, Ritual Dagger)
 pub fn card_damage_delta(card: &mut Entity, delta: i16) {
-    let num_effects = card.card_effects_len as usize;
-    for effect in card.card_effects[..num_effects].iter_mut() {
+    let num_effects = card.card_effects_play_len as usize;
+    for effect in card.card_effects_play[..num_effects].iter_mut() {
         if let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind {
             *amount = (*amount as i32 + delta as i32).clamp(0, u16::MAX as i32) as u16;
         }
@@ -167,7 +167,7 @@ pub const fn card_name_healing(name: CardName) -> bool {
     )
 }
 
-// Normality in hand caps the turn at 3 plays; Velvet Choker at 6
+// Normality in hand caps the turn at 3 plays; Velvet Choker's counter at 6
 pub fn play_cap_reached(
     id_card_hand: &[usize],
     entities: &[Entity],
@@ -178,7 +178,8 @@ pub fn play_cap_reached(
         && id_card_hand
             .iter()
             .any(|&id| entities[id].card_name == CardName::Normality);
-    let choker = this_turn_cards_played >= 6 && has_relic(id_relics, RelicName::VelvetChoker);
+    let choker = id_relics[RelicName::VelvetChoker as usize]
+        .is_some_and(|id| entities[id].relic_counter >= 6);
     normality || choker
 }
 
@@ -261,7 +262,7 @@ pub fn effects_require_target(effects: &[Effect]) -> bool {
 }
 
 pub fn entity_requires_target(entity: &Entity) -> bool {
-    effects_require_target(&entity.card_effects[..entity.card_effects_len as usize])
+    effects_require_target(&entity.card_effects_play[..entity.card_effects_play_len as usize])
         || effects_require_target(entity.potion_effects)
 }
 

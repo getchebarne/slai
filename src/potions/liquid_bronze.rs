@@ -12,7 +12,7 @@ pub static LIQUID_BRONZE: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Thorns,
             stacks: 3,
         },
@@ -24,7 +24,7 @@ pub static LIQUID_BRONZE: PotionTemplate = PotionTemplate {
 pub static LIQUID_BRONZE_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Thorns,
             stacks: 6,
         },

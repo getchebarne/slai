@@ -44,8 +44,8 @@ pub static SNEAKY_STRIKE: CardTemplate = make_card_template(
 // Upgraded
 pub static SNEAKY_STRIKE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = SNEAKY_STRIKE.effects;
+    effects_play: {
+        let mut effects = SNEAKY_STRIKE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 16,
             lifesteal: false,

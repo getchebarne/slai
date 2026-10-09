@@ -5,6 +5,7 @@ use super::macros::mirror_enum;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
+use crate::effect::EffectKind;
 use crate::entity::Intent;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -209,9 +210,18 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     scaled
                 });
 
+                // Divider's locked damage replaces the template's placeholder, as MoveExecute does
                 let move_effects = mv.effects[..mv.effects_len as usize]
                     .iter()
-                    .map(snapshot_effect)
+                    .map(|&effect| {
+                        let mut effect = effect;
+                        if let Some(damage) = monster.monster_move_damage_override
+                            && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
+                        {
+                            *amount = damage;
+                        }
+                        snapshot_effect(&effect)
+                    })
                     .collect();
                 (
                     PyIntent {

@@ -24,7 +24,7 @@ pub static DOPPELGANGER: CardTemplate = make_card_template(
     false,
     &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::DrawCardNextTurn,
                 stacks: 1,
             },
@@ -32,7 +32,7 @@ pub static DOPPELGANGER: CardTemplate = make_card_template(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::NextTurnEnergy,
                 stacks: 1,
             },

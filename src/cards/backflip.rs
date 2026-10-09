@@ -41,8 +41,8 @@ pub static BACKFLIP: CardTemplate = make_card_template(
 // Upgraded
 pub static BACKFLIP_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = BACKFLIP.effects;
+    effects_play: {
+        let mut effects = BACKFLIP.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 8 }; // +3 block
         effects
     },

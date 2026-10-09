@@ -33,8 +33,8 @@ pub static EXPERTISE: CardTemplate = make_card_template(
 // Upgraded
 pub static EXPERTISE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = EXPERTISE.effects;
+    effects_play: {
+        let mut effects = EXPERTISE.effects_play;
         effects[0].kind = EffectKind::CardDrawUpTo { amount: 7 }; // +1 draw
         effects
     },

@@ -76,7 +76,7 @@ pub fn process_effect_card_discard(
 
             // On-discard effects: Tactician's energy lands right after its own discard
             let card = &state.entities[id_target];
-            for effect in card.card_on_discard_effects {
+            for effect in card.card_effects_discard {
                 let effect = Effect {
                     id_source: Some(id_target),
                     ..*effect

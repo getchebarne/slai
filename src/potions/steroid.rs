@@ -13,7 +13,7 @@ pub static STEROID: PotionTemplate = PotionTemplate {
     doubled: false,
     effects: &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 5,
             },
@@ -21,7 +21,7 @@ pub static STEROID: PotionTemplate = PotionTemplate {
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::LoseStrength,
                 stacks: 5,
             },
@@ -35,7 +35,7 @@ pub static STEROID_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 10,
             },
@@ -43,7 +43,7 @@ pub static STEROID_DOUBLED: PotionTemplate = PotionTemplate {
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::LoseStrength,
                 stacks: 10,
             },

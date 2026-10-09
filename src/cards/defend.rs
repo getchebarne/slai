@@ -33,8 +33,8 @@ pub static DEFEND: CardTemplate = make_card_template(
 // Upgraded
 pub static DEFEND_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DEFEND.effects;
+    effects_play: {
+        let mut effects = DEFEND.effects_play;
         effects[0].kind = EffectKind::BlockGain { amount: 8 }; // +3 block
         effects
     },

@@ -33,7 +33,7 @@ pub static REFLEX: CardTemplate = make_card_template(
 // Upgraded
 pub static REFLEX_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    on_discard_effects: &[Effect {
+    effects_discard: &[Effect {
         kind: EffectKind::CardDraw { count: 3 }, // +1 draw
         id_source: None,
         target: Target::Direct(None),

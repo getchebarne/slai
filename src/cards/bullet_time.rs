@@ -43,7 +43,7 @@ pub static BULLET_TIME: CardTemplate = make_card_template(
             },
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::NoDraw,
                 stacks: 1,
             },

@@ -25,7 +25,7 @@ pub static TERROR: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Vulnerable,
             stacks: STACKS_TERROR,
         },

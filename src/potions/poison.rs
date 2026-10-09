@@ -12,7 +12,7 @@ pub static POISON: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Poison,
             stacks: 6,
         },
@@ -24,7 +24,7 @@ pub static POISON: PotionTemplate = PotionTemplate {
 pub static POISON_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Poison,
             stacks: 12,
         },

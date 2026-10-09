@@ -7,8 +7,6 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::relics::RELIC_COUNTERS_PER_COMBAT;
-use crate::relics::RELIC_COUNTERS_PER_TURN;
-use crate::types::CardKind;
 use crate::types::Combat;
 use crate::types::DeltaSign;
 use crate::types::Energy;
@@ -62,11 +60,8 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         energy_max,
     };
 
-    // Combat can end mid-turn, skipping the turn-end reset
-    for &name in RELIC_COUNTERS_PER_TURN
-        .iter()
-        .chain(RELIC_COUNTERS_PER_COMBAT)
-    {
+    // Per-combat Relic counters start from zero; the per-turn ones reset at the turn start
+    for &name in RELIC_COUNTERS_PER_COMBAT {
         if let Some(id) = state.id_relics[name as usize] {
             state.entities[id].relic_counter = 0;
         }
@@ -158,7 +153,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         && state.entities[id].relic_counter > 0
     {
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: state.entities[id].relic_counter,
             },
@@ -167,30 +162,24 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         });
     }
 
-    // Du-Vu Doll: combat starts with 1 Strength per Curse in the deck
-    if has_relic(&state.id_relics, RelicName::DuVuDoll) {
-        let num_curses = state
-            .id_card_deck
-            .iter()
-            .filter(|&&id| state.entities[id].card_kind == CardKind::Curse)
-            .count();
-
-        if num_curses > 0 {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierGain {
-                    kind: ModifierKind::Strength,
-                    stacks: num_curses as i16,
-                },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
-        }
+    // Du-Vu Doll: combat starts with 1 Strength per Curse its counter holds
+    if let Some(id) = state.id_relics[RelicName::DuVuDoll as usize]
+        && state.entities[id].relic_counter > 0
+    {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::ModifierDelta {
+                kind: ModifierKind::Strength,
+                stacks: state.entities[id].relic_counter,
+            },
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
     }
 
     // Sling of Courage: Elite fights open with 2 Strength
     if has_relic(&state.id_relics, RelicName::SlingOfCourage) && elite {
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: 2,
             },

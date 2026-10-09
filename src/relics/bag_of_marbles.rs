@@ -14,7 +14,7 @@ pub static BAG_OF_MARBLES: RelicTemplate = RelicTemplate {
     counter_init: 0,
     counter_reset: 0,
     effects_combat_start: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Vulnerable,
             stacks: 1,
         },

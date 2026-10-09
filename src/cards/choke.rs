@@ -32,7 +32,7 @@ pub static CHOKE: CardTemplate = make_card_template(
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Choke,
                 stacks: 3,
             },
@@ -47,9 +47,9 @@ pub static CHOKE: CardTemplate = make_card_template(
 // Upgraded
 pub static CHOKE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = CHOKE.effects;
-        effects[1].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = CHOKE.effects_play;
+        effects[1].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Choke,
             stacks: 5, // +2 stacks
         };

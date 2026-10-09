@@ -44,8 +44,8 @@ pub static QUICK_SLASH: CardTemplate = make_card_template(
 // Upgraded
 pub static QUICK_SLASH_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = QUICK_SLASH.effects;
+    effects_play: {
+        let mut effects = QUICK_SLASH.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 12,
             lifesteal: false,

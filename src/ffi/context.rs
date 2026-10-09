@@ -50,13 +50,15 @@ pub struct PyCombat {
     pub pile_draw: Vec<PyCard>,
     pub pile_discard: Vec<PyCard>,
     pub pile_exhaust: Vec<PyCard>,
-    pub pile_stasis: Vec<PyCard>,
     pub pile_queue: Vec<PyCard>,
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
+    pub pile_stasis: Vec<Option<PyCard>>, // Parallel to `monsters`: the Card each one holds in Stasis
     pub pile_discover: Vec<PyCard>,
     pub bombs: Vec<(u8, u16)>,
     pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
+    pub panache_countdown: u8,       // Plays left until Panache's hit
+    pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
 }
 
 #[pyclass(
@@ -175,12 +177,6 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        pile_stasis: combat
-            .id_card_stasis
-            .iter()
-            .flatten()
-            .map(|&id| snapshot_card(state, id))
-            .collect(),
         pile_queue: state
             .card_play_queue
             .iter()
@@ -191,6 +187,15 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             energy_max: combat.energy.energy_max,
         },
         monsters: snapshot_monsters(state),
+        // Walks the filled roster slots as `monsters` does, so the two line up
+        pile_stasis: combat
+            .id_monsters
+            .iter()
+            .zip(&combat.id_card_stasis)
+            .filter_map(|(&id_monster, &id_card)| {
+                id_monster.map(|_| id_card.map(|id_card| snapshot_card(state, id_card)))
+            })
+            .collect(),
         pile_discover: combat
             .id_card_discover
             .iter()
@@ -202,6 +207,8 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
+        panache_countdown: combat.panache_countdown,
+        this_turn_discards: combat.this_turn_discards,
     }
 }
 

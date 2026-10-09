@@ -23,7 +23,7 @@ pub static DEADLY_POISON: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Poison,
             stacks: 5,
         },
@@ -37,9 +37,9 @@ pub static DEADLY_POISON: CardTemplate = make_card_template(
 // Upgraded
 pub static DEADLY_POISON_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DEADLY_POISON.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = DEADLY_POISON.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Poison,
             stacks: 7, // +2 poison
         };

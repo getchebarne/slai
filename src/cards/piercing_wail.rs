@@ -33,8 +33,8 @@ pub static PIERCING_WAIL: CardTemplate = make_card_template(
 // Upgraded
 pub static PIERCING_WAIL_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = PIERCING_WAIL.effects;
+    effects_play: {
+        let mut effects = PIERCING_WAIL.effects_play;
         effects[0].kind = EffectKind::StrengthLoseTemp { stacks: 8 };
         effects
     },

@@ -59,8 +59,8 @@ pub static DAGGER_THROW: CardTemplate = make_card_template(
 // Upgraded
 pub static DAGGER_THROW_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DAGGER_THROW.effects;
+    effects_play: {
+        let mut effects = DAGGER_THROW.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 12,
             lifesteal: false,

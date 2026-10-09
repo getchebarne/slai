@@ -2,6 +2,7 @@ use strum::EnumCount;
 use strum::EnumIter;
 
 use crate::consts::MAX_MONSTERS;
+use crate::consts::PANACHE_PLAYS;
 
 // Vitals: physical combat state. Shared by Character and Monsters
 #[derive(Debug, Clone, Copy)]
@@ -43,7 +44,7 @@ pub struct Combat {
     pub this_turn_discards: u16,
     pub this_turn_attacks: u8,
     pub this_turn_cards_played: u8,
-    pub this_turn_panache: u8,
+    pub panache_countdown: u8, // Plays left until Panache's hit
 
     // Per-combat counters
     pub turn: u16,
@@ -78,7 +79,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.this_turn_discards = 0;
     combat.this_turn_attacks = 0;
     combat.this_turn_cards_played = 0;
-    combat.this_turn_panache = 0;
+    combat.panache_countdown = PANACHE_PLAYS;
     combat.turn = 0;
     combat.this_combat_escaped = false;
     combat.this_combat_thief_escaped = false;

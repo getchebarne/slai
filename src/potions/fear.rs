@@ -12,7 +12,7 @@ pub static FEAR: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Vulnerable,
             stacks: 3,
         },
@@ -24,7 +24,7 @@ pub static FEAR: PotionTemplate = PotionTemplate {
 pub static FEAR_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Vulnerable,
             stacks: 6,
         },
