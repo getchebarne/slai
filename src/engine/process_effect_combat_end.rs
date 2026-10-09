@@ -46,8 +46,9 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
         }
     }
 
-    // Card plays still waiting never start
+    // Card plays and turn phases still waiting never start
     state.card_play_queue.clear();
+    state.phase_queue.clear();
 
     // The spent combat is closed here; what it reveals owns the aftermath
     state.combat.active = false;

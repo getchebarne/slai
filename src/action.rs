@@ -177,6 +177,9 @@ pub fn recompute_legal_actions(state: &mut GameState) {
         if matches!(selection_kind, SelectionKind::InputUpTo { .. }) {
             state.legal_actions.push(Action::PickSkip);
         }
+
+        // A pick leaves the belt usable: any discard, and a drink that needs no target
+        push_potion_actions(state);
         return;
     }
     match context_focus(state) {
@@ -377,6 +380,11 @@ fn handle_potion_discard(state: &mut GameState, idx: usize) {
         id_source: Some(id_potion),
         target: Target::Direct(Some(id_potion)),
     });
+
+    // At a pick, the pick halts again behind the Potion
+    if let Some(effect_pending) = state.effect_pending.take() {
+        state.effect_buf.push(effect_pending);
+    }
 }
 
 fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Option<usize>) {
@@ -404,6 +412,11 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
         id_source: Some(id_potion),
         target: Target::Direct(id_monster_target),
     });
+
+    // At a pick, the pick halts again behind the Potion
+    if let Some(effect_pending) = state.effect_pending.take() {
+        state.effect_buf.push(effect_pending);
+    }
 }
 
 fn push_rest_site_consume(state: &mut GameState) {
@@ -899,6 +912,10 @@ fn push_potion_actions(state: &mut GameState) {
     } else {
         (false, 0)
     };
+    // A pick takes no aimed drink
+    let at_pick = state.effect_pending.is_some();
+    let turn_ended = in_combat && state.combat.turn_ended;
+
     // A Room's event holds until the next Room is entered, even after its screen closes
     let in_we_meet_again = state.room_kind_resolved == Some(RoomKind::EventRoom)
         && state.event.name == EventName::WeMeetAgain;
@@ -908,6 +925,12 @@ fn push_potion_actions(state: &mut GameState) {
 
         // The We Meet Again Room locks every Potion
         if in_we_meet_again {
+            continue;
+        }
+
+        // Once the turn has ended, a Potion can only be discarded
+        if turn_ended {
+            state.legal_actions.push(Action::PotionDiscard { idx: s });
             continue;
         }
 
@@ -935,7 +958,7 @@ fn push_potion_actions(state: &mut GameState) {
 
         // Target-requiring Potions
         if entity_requires_target(potion) {
-            if in_combat {
+            if in_combat && !at_pick {
                 for m in 0..alive_count {
                     state.legal_actions.push(Action::PotionUse {
                         idx_potion: s,

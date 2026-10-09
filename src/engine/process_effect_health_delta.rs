@@ -6,14 +6,12 @@ use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
-use crate::modifier::modifier_def;
 use crate::modifier::modifier_remove;
 use crate::modifier::modifier_stacks;
 use crate::monsters::lagavulin;
 use crate::monsters::slime_acid_large;
 use crate::monsters::slime_boss;
 use crate::monsters::slime_spike_large;
-use crate::monsters::the_guardian;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::DeltaSign;
@@ -154,21 +152,15 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
     };
     let target = &mut state.entities[id_target];
     if from_attack && amount > 0 && has_modifier(&target.modifiers, ModifierKind::PlatedArmor) {
-        let effect_strip = Effect {
+        // The strip lands behind everything queued, the rest of a Card included
+        state.effect_queue.push_back(Effect {
             kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::PlatedArmor,
                 stacks: -1,
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),
-        };
-
-        // A Card's hit strips it behind the rest of the Card; a Monster's hit strips it at once, ahead of the queued Monster turns
-        if from_card {
-            state.effect_queue.push_back(effect_strip);
-        } else {
-            state.effect_queue.push_front(effect_strip);
-        }
+        });
     }
 
     // Substract health
@@ -180,10 +172,9 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
 
     // Check if the target's dead. If so, queue death effect and return early
     if target.vitals.health == 0 {
-        // Forward the killer's ID: Death queues a Card's kill effects behind the Card
         state.effect_queue.push_front(Effect {
-            kind: EffectKind::Death,
-            id_source,
+            kind: EffectKind::Death { with_leader: false },
+            id_source: None,
             target: Target::Direct(Some(id_target)),
         });
         return;
@@ -224,9 +215,8 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
             ),
         };
         // Executes in reverse:
-        //     1. ModifierRemove Metallicize
-        //     2. ModifierRemove Asleep
-        //     3. MoveUpdate (stunned)
+        //     1. ModifierRemove Asleep
+        //     2. MoveUpdate (stunned)
         state.effect_queue.push_front(Effect {
             kind: EffectKind::MoveUpdate {
                 move_override: Some(idx_stunned),
@@ -241,42 +231,27 @@ fn apply_loss(id_source: Option<usize>, id_target: usize, state: &mut GameState,
             id_source: None,
             target: Target::Direct(Some(id_target)),
         });
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::ModifierRemove {
-                kind: ModifierKind::Metallicize,
-            },
+
+        // It comes out of its shell behind everything queued; its Metallicize stays until the removal the wake queues
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::LagavulinWake,
             id_source: None,
             target: Target::Direct(Some(id_target)),
         });
     }
 
-    // Frame Shift (The Guardian): Damage reduces stacks, triggers move update on break
+    // Mode Shift (The Guardian): HP lost counts it down; the loss that spends it queues the switch behind everything queued, and the spent counter stays on, counting nothing more, until the removal the switch queues lands
     if has_modifier(&target.modifiers, ModifierKind::ModeShift) {
-        let new_stacks =
-            modifier_stacks(&target.modifiers, ModifierKind::ModeShift) - amount as i16;
-
-        if new_stacks < modifier_def(ModifierKind::ModeShift).stacks_min {
-            modifier_remove(&mut target.modifiers, ModifierKind::ModeShift);
-            if id_target != state.id_character {
+        let stacks = modifier_stacks(&target.modifiers, ModifierKind::ModeShift);
+        if stacks > 0 {
+            target.modifiers.stacks[ModifierKind::ModeShift as usize] = stacks - amount as i16;
+            if stacks <= amount as i16 {
                 state.effect_queue.push_back(Effect {
-                    kind: EffectKind::MoveUpdate {
-                        move_override: None,
-                    },
+                    kind: EffectKind::DefensiveMode,
                     id_source: None,
                     target: Target::Direct(Some(id_target)),
                 });
-                state.effect_queue.push_back(Effect {
-                    kind: EffectKind::BlockGain {
-                        amount: the_guardian::DEFENSIVE_MODE_BLOCK,
-                    },
-                    id_source: Some(id_target),
-                    target: Target::Direct(Some(id_target)),
-                });
-            } else {
-                panic!("Tried to remove ModeShift from the Character")
             }
-        } else {
-            target.modifiers.stacks[ModifierKind::ModeShift as usize] = new_stacks;
         }
     }
 }

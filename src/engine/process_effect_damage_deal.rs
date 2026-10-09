@@ -83,21 +83,15 @@ pub fn process_effect_damage_deal(
         && target.vitals.block == 0
         && has_relic(&state.id_relics, RelicName::HandDrill)
     {
-        let effect_vuln = Effect {
+        // It lands behind everything queued, the rest of a Card included
+        state.effect_queue.push_back(Effect {
             kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },
             id_source: None,
             target: Target::Direct(Some(id_target)),
-        };
-
-        // A Card's break lands it behind the rest of the Card; any other break lands it at once, ahead of the queued Monster turns
-        if from_card {
-            state.effect_queue.push_back(effect_vuln);
-        } else {
-            state.effect_queue.push_front(effect_vuln);
-        }
+        });
     }
 
     // Executes in reverse:
@@ -128,7 +122,7 @@ pub fn process_effect_damage_deal(
             });
         }
 
-        // The attacker's ID rides along: the HP loss and Death both read it
+        // The attacker's ID rides along: the HP loss reads it
         state.effect_queue.push_front(Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,

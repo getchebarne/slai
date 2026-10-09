@@ -45,6 +45,48 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         "process_card_play outside the Combat frame"
     );
 
+    // A Card playing itself out of hand at the turn end leaves the hand, resolves its effect, then goes to its pile; no play hook fires
+    if let PlaySource::TurnEnd { hand_size } = play_source {
+        detach_card(&mut state.combat, id_card);
+        let card = &state.entities[id_card];
+        let kind = match card.card_name {
+            CardName::Burn => EffectKind::DamageDeal {
+                amount: if card.card_upgraded { 4 } else { 2 },
+                lifesteal: false,
+            },
+            CardName::Decay => EffectKind::DamageDeal {
+                amount: 2,
+                lifesteal: false,
+            },
+            CardName::Regret => EffectKind::HealthDelta {
+                sign: DeltaSign::Loss,
+                amount: Amount::Absolute(hand_size),
+            },
+            CardName::Doubt => EffectKind::ModifierDelta {
+                kind: ModifierKind::Weak,
+                stacks: 1,
+            },
+            CardName::Shame => EffectKind::ModifierDelta {
+                kind: ModifierKind::Frail,
+                stacks: 1,
+            },
+            name => unreachable!("{name:?} never plays itself at the turn end"),
+        };
+        state.effect_buf.clear();
+        state.effect_buf.push(Effect {
+            kind,
+            id_source: None,
+            target: Target::Direct(Some(state.id_character)),
+        });
+        state.effect_buf.push(Effect {
+            kind: EffectKind::CardPlayRelocate,
+            id_source: None,
+            target: Target::Direct(Some(id_card)),
+        });
+        flush_effects_from_buf_to_queue_front(state);
+        return;
+    }
+
     // Thinking Ahead puts back only if the hand held a Card as it was played, itself included;
     // Setup and Forethought check at the pick, and nothing refills the hand before it: same result
     let hand_nonempty_at_start = !state.combat.id_card_hand.is_empty();
@@ -65,6 +107,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         id_monster_picked,
         this_turn_attacks,
         this_turn_cards_played,
+        turn_ended,
         panache_countdown,
         ..
     } = &mut state.combat;
@@ -87,7 +130,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     // The Card's picked-Monster effects resolve against this play's target
     *id_monster_picked = id_target;
 
-    // Draw-top plays and replays are re-gated when served; a Card needing a target needs it alive
+    // Draw-top plays and replays are re-gated when served; a Card needing a target needs it alive, and none plays once the turn has ended
     let target_gone = entity_requires_target(&card)
         && id_target.is_some_and(|id| !id_monsters.contains(&Some(id)));
     let entangled = has_modifier(
@@ -101,6 +144,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         &state.id_relics,
     ) && !(entangled && card.card_kind == CardKind::Attack)
         && !target_gone
+        && !*turn_ended
         && !play_cap_reached(
             id_card_hand,
             &state.entities,
@@ -124,6 +168,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
             // The replay fizzles: no counters, no hooks
             PlaySource::Replay => {}
+
+            PlaySource::TurnEnd { .. } => unreachable!("a turn-end play starts before the gate"),
         }
         return;
     }

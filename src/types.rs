@@ -44,6 +44,7 @@ pub struct Combat {
     pub this_turn_discards: u16,
     pub this_turn_attacks: u8,
     pub this_turn_cards_played: u8,
+    pub turn_ended: bool, // From the first Monster turn start to the Character's next turn start
     pub panache_countdown: u8, // Plays left until Panache's hit
 
     // Per-combat counters
@@ -79,6 +80,7 @@ pub fn combat_reset(combat: &mut Combat) {
     combat.this_turn_discards = 0;
     combat.this_turn_attacks = 0;
     combat.this_turn_cards_played = 0;
+    combat.turn_ended = false;
     combat.panache_countdown = PANACHE_PLAYS;
     combat.turn = 0;
     combat.this_combat_escaped = false;

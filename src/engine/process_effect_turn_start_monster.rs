@@ -4,6 +4,7 @@ use crate::effect::Target;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
+use crate::modifier::modifier_stacks;
 use crate::monsters::byrd;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
@@ -13,6 +14,18 @@ pub fn process_effect_turn_start_monster(id_target: Option<usize>, state: &mut G
         "process_effect_turn_start_monster outside the Combat frame"
     );
     let id_monster = id_target.expect("TurnStartMonster requires id_target");
+
+    // A Monster that died before its turn came starts nothing
+    if state.entities[id_monster].dead {
+        return;
+    }
+
+    // The first Monster turn start ends the Character's turn: a Vulnerable skips its first round end only if applied after it; Doubt's Weak and Shame's Frail still skip
+    if !state.combat.turn_ended {
+        state.combat.turn_ended = true;
+        state.entities[state.id_character].modifiers.is_new[ModifierKind::Vulnerable as usize] =
+            false;
+    }
 
     // Clear effect buffer
     state.effect_buf.clear();
@@ -43,6 +56,17 @@ pub fn process_effect_turn_start_monster(id_target: Option<usize>, state: &mut G
         state.effect_buf.push(Effect {
             kind: EffectKind::ModifierRemove {
                 kind: ModifierKind::Choke,
+            },
+            id_source: None,
+            target: Target::Direct(Some(id_monster)),
+        });
+    }
+
+    // Poison ticks behind every Monster's turn start, for the stacks the Monster holds now
+    if has_modifier(modifiers, ModifierKind::Poison) {
+        state.effect_queue.push_back(Effect {
+            kind: EffectKind::PoisonTick {
+                amount: modifier_stacks(modifiers, ModifierKind::Poison) as u16,
             },
             id_source: None,
             target: Target::Direct(Some(id_monster)),

@@ -75,6 +75,9 @@ pub struct GameState {
     // Plays waiting their turn; the next one starts once effect_queue is empty
     pub card_play_queue: VecDeque<CardPlay>,
 
+    // Turn phases, and the last kill's CombatEnd, waiting their turn; the next one starts once effect_queue and card_play_queue are empty
+    pub phase_queue: VecDeque<Effect>,
+
     // Per-handler effect builder; drained back-to-front into queue front
     pub effect_buf: Vec<Effect>,
 
@@ -244,6 +247,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
         encounter_boss,
         effect_queue,
         card_play_queue: VecDeque::new(),
+        phase_queue: VecDeque::new(),
         effect_buf: Vec::with_capacity(MAX_EFFECTS_PER_HANDLER),
         effect_candidate_buf: Vec::with_capacity(MAX_CANDIDATES),
         effect_pending: None,
@@ -281,6 +285,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             this_turn_discards: 0,
             this_turn_attacks: 0,
             this_turn_cards_played: 0,
+            turn_ended: false,
             panache_countdown: PANACHE_PLAYS,
             turn: 0,
             this_combat_escaped: false,
@@ -360,7 +365,7 @@ pub fn step(state: &mut GameState, action: Action) -> Result<(), String> {
     // Handle the action. May enqueue elements to `state.effect_queue` or `state.card_play_queue`
     handle_action(state, action)?;
 
-    // Process `state.effect_queue`, starting each waiting Card play once it runs empty
+    // Process `state.effect_queue`, starting each waiting Card play, then each waiting turn phase, once it runs empty
     process_effect_queue(state);
 
     // Recompute legal actions

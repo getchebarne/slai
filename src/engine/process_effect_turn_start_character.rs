@@ -37,6 +37,10 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         state.combat.active,
         "process_effect_turn_start_character outside the Combat frame"
     );
+
+    // The Character's turn is under way again
+    state.combat.turn_ended = false;
+
     let Combat {
         id_monsters,
         id_card_draw,

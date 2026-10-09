@@ -160,7 +160,8 @@ pub fn process_effect_modifier_delta(
         let mods_char = &state.entities[state.id_character].modifiers;
         if has_modifier(mods_char, ModifierKind::SadisticNature) {
             let dmg = modifier_stacks(mods_char, ModifierKind::SadisticNature);
-            state.effect_queue.push_front(Effect {
+            // The hit waits behind everything queued
+            state.effect_queue.push_back(Effect {
                 kind: EffectKind::DamageDeal {
                     amount: dmg.max(0) as u16,
                     lifesteal: false,
