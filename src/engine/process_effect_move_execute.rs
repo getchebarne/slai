@@ -60,5 +60,14 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
         }
         state.effect_buf.push(effect);
     }
+
+    // The next move is rolled right behind this one, ahead of what the move sets off at the back
+    state.effect_buf.push(Effect {
+        kind: EffectKind::MoveUpdate {
+            move_override: None,
+        },
+        id_source: None,
+        target: Target::Direct(Some(id_monster)),
+    });
     flush_effects_from_buf_to_queue_front(state);
 }

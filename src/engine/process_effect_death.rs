@@ -3,7 +3,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
-use crate::entity::EntityKind;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
@@ -19,11 +18,7 @@ use crate::utils::has_relic;
 use crate::utils::release_stasis_card;
 use crate::utils::resolve_health_fraction;
 
-pub fn process_effect_death(
-    id_source: Option<usize>,
-    id_target: Option<usize>,
-    state: &mut GameState,
-) {
+pub fn process_effect_death(id_target: Option<usize>, state: &mut GameState, with_leader: bool) {
     let id_target = id_target.expect("Death requires id_target");
 
     // Death is not re-entrant: a second pass would re-fire the on-death triggers
@@ -65,10 +60,12 @@ pub fn process_effect_death(
             return;
         }
 
-        // Mark Character as dead, set `game_over` flag, and clear the effect queue
+        // Mark Character as dead, set `game_over` flag, and clear the queued work: effects, waiting Card plays, turn phases
         state.entities[state.id_character].dead = true;
         state.game_over = true;
         state.effect_queue.clear();
+        state.card_play_queue.clear();
+        state.phase_queue.clear();
         return;
     }
 
@@ -103,14 +100,29 @@ pub fn process_effect_death(
     state.entities[id_target].monster_gold_stolen = 0;
 
     if !any_alive {
-        // Combat ends; keep damage-type actions so Hand Of Greed and Ritual Dagger still proc
+        // The last kill ends the combat: no waiting Card play or turn phase starts, and only the queued heals, block and damage resolve, Hand of Greed and Ritual Dagger with them
+        state.card_play_queue.clear();
+        state.phase_queue.clear();
         state.effect_queue.retain(|e| {
             matches!(
                 e.kind,
-                EffectKind::HandOfGreedProc { .. } | EffectKind::RitualDaggerProc { .. }
+                EffectKind::HealthDelta { .. }
+                    | EffectKind::LifestealHeal
+                    | EffectKind::BlockGain { .. }
+                    | EffectKind::DamageDeal { .. }
+                    | EffectKind::DamagePhysical { .. }
+                    | EffectKind::DamagePhysicalIfPoisoned { .. }
+                    | EffectKind::DamageFinisher { .. }
+                    | EffectKind::DamageFlechettes { .. }
+                    | EffectKind::DamageMindBlast { .. }
+                    | EffectKind::PoisonTick { .. }
+                    | EffectKind::HandOfGreedProc { .. }
+                    | EffectKind::RitualDaggerProc { .. }
             )
         });
-        state.effect_queue.push_back(Effect {
+
+        // The combat closes once that work and all it sets off have resolved
+        state.phase_queue.push_back(Effect {
             kind: EffectKind::CombatEnd {
                 escaped_character: false,
             },
@@ -136,7 +148,7 @@ pub fn process_effect_death(
         for id_monster in id_monsters.iter() {
             if let Some(id) = *id_monster {
                 state.effect_queue.push_front(Effect {
-                    kind: EffectKind::Death,
+                    kind: EffectKind::Death { with_leader: true },
                     id_source: None,
                     target: Target::Direct(Some(id)),
                 });
@@ -225,12 +237,11 @@ pub fn process_effect_death(
         }
     }
 
-    // A Card's kill lands the staged effects behind the rest of the Card; any other death, or one whose falling minions end the combat, lands them at once
-    let killed_by_card = id_source.is_some_and(|id| state.entities[id].kind == EntityKind::Card);
-    if killed_by_card && !minions_fall {
-        state.effect_queue.extend(state.effect_buf.drain(..));
-    } else {
+    // The staged effects land behind everything queued; while minions fall with their leader, its death and theirs land them at once
+    if minions_fall || with_leader {
         flush_effects_from_buf_to_queue_front(state);
+    } else {
+        state.effect_queue.extend(state.effect_buf.drain(..));
     }
 
     // Spore Cloud: the Character gains Vulnerable at once

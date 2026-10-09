@@ -48,7 +48,9 @@ use crate::entity::EntityKind;
 use crate::entity::PlayRestriction;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::Modifiers;
 use crate::modifier::has_modifier;
+use crate::modifier::modifier_def;
 use crate::relics::egg_upgrades_kind;
 use crate::types::CardKind;
 use crate::types::CardName;
@@ -128,6 +130,11 @@ pub fn get_id_actor(entities: &[Entity], id_character: usize, id_source: usize) 
 
 pub fn has_relic(id_relics: &[Option<usize>; RelicName::COUNT], name: RelicName) -> bool {
     id_relics[name as usize].is_some()
+}
+
+// A Modifier's turn hook fires by its priority, then by the stamp it took when it appeared
+pub fn hook_order(modifiers: &Modifiers, kind: ModifierKind) -> (u8, u32) {
+    (modifier_def(kind).priority, modifiers.seq[kind as usize])
 }
 
 pub fn card_is_upgradable(entity: &Entity) -> bool {

@@ -1,13 +1,17 @@
 use crate::effect::Amount;
 use crate::effect::CandidatePool;
+use crate::effect::CardPlay;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::PlaySource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::TurnMonstersStage;
 use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
+use crate::modifier::PRIORITY_DEFAULT;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_set_not_new;
 use crate::modifier::modifier_stacks;
@@ -18,9 +22,10 @@ use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 use crate::utils::has_relic;
+use crate::utils::hook_order;
 use crate::utils::shuffle;
 
-// The Character's turn ends in two passes: its Relics, Plated Armor and self-playing Cards now; its other Modifiers and the discard land behind what those set off
+// The Character's turn ends in two passes: its Relics and Plated Armor now, then each self-playing Card as a waiting play; its other Modifiers and the discard wait behind all of it
 pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     assert!(
         state.combat.active,
@@ -35,6 +40,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             id_card_exhaust,
             id_card_stasis,
             this_turn_discards,
+            energy,
             ..
         } = &mut state.combat;
 
@@ -58,11 +64,10 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             }
         }
 
-        // Clear effect buffer. The Relic and Card effects below go through effect_buf so they
-        // resolve in order, ahead of the landing pass
+        // Clear effect buffer. The Relic and Plated Armor effects below go through effect_buf so they resolve in order
         state.effect_buf.clear();
 
-        // What the turn applied stops being new before Doubt and Shame land; TurnMonsters re-clears Vulnerable
+        // What the turn applied stops being new before Doubt and Shame land; the first Monster turn start re-clears Vulnerable
         modifier_set_not_new(&mut state.entities[state.id_character].modifiers);
 
         // Orichalcum: Character gains 6 block if it has none, ahead of the other turn-end Relics
@@ -110,72 +115,28 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             });
         }
 
-        // Burn / Decay / Regret / Doubt / Shame play themselves out of hand
+        // Burn / Decay / Regret / Doubt / Shame play themselves out of hand, each once everything queued before it has resolved
+        let hand_size = id_card_hand.len() as u16;
         for &id_card in id_card_hand.iter() {
-            let card = &state.entities[id_card];
-            match card.card_name {
-                CardName::Burn => {
-                    let damage: u16 = if card.card_upgraded { 4 } else { 2 };
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::DamageDeal {
-                            amount: damage,
-                            lifesteal: false,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                CardName::Decay => {
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::DamageDeal {
-                            amount: 2,
-                            lifesteal: false,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                CardName::Regret => {
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::HealthDelta {
-                            sign: DeltaSign::Loss,
-                            amount: Amount::Absolute(id_card_hand.len() as u16),
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                CardName::Doubt => {
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierDelta {
-                            kind: ModifierKind::Weak,
-                            stacks: 1,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                CardName::Shame => {
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierDelta {
-                            kind: ModifierKind::Frail,
-                            stacks: 1,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                _ => continue,
+            if matches!(
+                state.entities[id_card].card_name,
+                CardName::Burn
+                    | CardName::Decay
+                    | CardName::Regret
+                    | CardName::Doubt
+                    | CardName::Shame
+            ) {
+                state.card_play_queue.push_back(CardPlay {
+                    id_card,
+                    id_target: None,
+                    play_source: PlaySource::TurnEnd { hand_size },
+                    energy: energy.energy_current,
+                });
             }
-            state.effect_buf.push(Effect {
-                kind: EffectKind::CardPlayRelocate,
-                id_source: None,
-                target: Target::Direct(Some(id_card)),
-            });
         }
 
-        // The end-of-turn Modifiers and the discard wait for the Cards above
-        state.effect_buf.push(Effect {
+        // The end-of-turn Modifiers and the discard wait for the Cards above and all they set off
+        state.phase_queue.push_back(Effect {
             kind: EffectKind::TurnEndCharacter { landing: true },
             id_source: None,
             target: Target::Direct(None),
@@ -216,6 +177,9 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         });
     }
 
+    // The other end-of-turn hooks fire by priority, then by stamp; each Bomb is its own hook
+    let mut hooks: Vec<((u8, u32), Effect)> = Vec::new();
+
     // Retain: pick up to `stacks` Cards to keep through the end-of-turn discard
     if has_modifier(mods_char, ModifierKind::Retain)
         && !id_card_hand.is_empty()
@@ -223,43 +187,52 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         && !has_relic(&state.id_relics, RelicName::RunicPyramid)
     {
         let stacks = modifier_stacks(mods_char, ModifierKind::Retain);
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::CardRetain,
-            id_source: None,
-            target: Target::Resolve {
-                candidate_pool: CandidatePool::Hand,
-                filters: &[],
-                selection_kind: SelectionKind::InputUpTo {
-                    count: stacks.max(0) as u16,
+        hooks.push((
+            hook_order(mods_char, ModifierKind::Retain),
+            Effect {
+                kind: EffectKind::CardRetain,
+                id_source: None,
+                target: Target::Resolve {
+                    candidate_pool: CandidatePool::Hand,
+                    filters: &[],
+                    selection_kind: SelectionKind::InputUpTo {
+                        count: stacks.max(0) as u16,
+                    },
                 },
             },
-        });
+        ));
     }
 
     // Ritual: gain `stacks` Strength each turn end; a Monster's Ritual gains at the round end instead
     if has_modifier(mods_char, ModifierKind::Ritual) {
         let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierDelta {
-                kind: ModifierKind::Strength,
-                stacks,
+        hooks.push((
+            hook_order(mods_char, ModifierKind::Ritual),
+            Effect {
+                kind: EffectKind::ModifierDelta {
+                    kind: ModifierKind::Strength,
+                    stacks,
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
             },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
+        ));
     }
 
-    // Wraith Form: lose `stacks` Dexterity each turn end, ahead of LoseStrength and LoseDexterity
+    // Wraith Form: lose `stacks` Dexterity each turn end
     if has_modifier(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierDelta {
-                kind: ModifierKind::Dexterity,
-                stacks: -stacks,
+        hooks.push((
+            hook_order(mods_char, ModifierKind::WraithForm),
+            Effect {
+                kind: EffectKind::ModifierDelta {
+                    kind: ModifierKind::Dexterity,
+                    stacks: -stacks,
+                },
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
             },
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
+        ));
     }
 
     // Lose{Strength,Dexterity}: the borrowed stacks leave at turn end
@@ -269,19 +242,25 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     ] {
         if has_modifier(mods_char, lose) {
             let stacks = modifier_stacks(mods_char, lose);
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierDelta {
-                    kind: gain,
-                    stacks: -stacks,
+            hooks.push((
+                hook_order(mods_char, lose),
+                Effect {
+                    kind: EffectKind::ModifierDelta {
+                        kind: gain,
+                        stacks: -stacks,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
                 },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierRemove { kind: lose },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
+            ));
+            hooks.push((
+                hook_order(mods_char, lose),
+                Effect {
+                    kind: EffectKind::ModifierRemove { kind: lose },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                },
+            ));
         }
     }
 
@@ -292,15 +271,36 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         ModifierKind::Entangled,
     ] {
         if has_modifier(mods_char, kind) {
-            state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierRemove { kind },
-                id_source: None,
-                target: Target::Direct(Some(state.id_character)),
-            });
+            hooks.push((
+                hook_order(mods_char, kind),
+                Effect {
+                    kind: EffectKind::ModifierRemove { kind },
+                    id_source: None,
+                    target: Target::Direct(Some(state.id_character)),
+                },
+            ));
         }
     }
 
-    // DuplicateNextCardPlay ticks down one stack; a last stack is removed, never left at 0
+    // Each Bomb counts down and detonates at its own stamp; one stamped after Retain still shows its old fuse at the pick
+    for &(_, _, seq) in bombs.iter() {
+        hooks.push((
+            (PRIORITY_DEFAULT, seq),
+            Effect {
+                kind: EffectKind::BombTick { seq },
+                id_source: None,
+                target: Target::Direct(None),
+            },
+        ));
+    }
+
+    // A stable sort keeps each hook's own effects in order
+    hooks.sort_by_key(|&(order, _)| order);
+    state
+        .effect_queue
+        .extend(hooks.into_iter().map(|(_, effect)| effect));
+
+    // DuplicateNextCardPlay ticks down one stack after the turn-end hooks; a last stack is removed, never left at 0
     if has_modifier(mods_char, ModifierKind::DuplicateNextCardPlay) {
         let effect_kind = if modifier_stacks(mods_char, ModifierKind::DuplicateNextCardPlay) > 1 {
             EffectKind::ModifierDelta {
@@ -316,15 +316,6 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             kind: effect_kind,
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
-        });
-    }
-
-    // Bombs count down when their slot comes, so the Retain pick still shows the old fuses
-    if !bombs.is_empty() {
-        state.effect_queue.push_back(Effect {
-            kind: EffectKind::BombTick,
-            id_source: None,
-            target: Target::Direct(None),
         });
     }
 
@@ -364,9 +355,11 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         }
     }
 
-    // The Monsters' turns wait for the exhausts and discards and what they set off (Dead Branch's Card)
+    // The Monster turns start as an ordinary effect behind the exhausts and discards (Dead Branch's Card), not a phase: what is queued before it runs lands ahead of them, what is queued after lands behind
     state.effect_queue.push_back(Effect {
-        kind: EffectKind::TurnMonsters,
+        kind: EffectKind::TurnMonsters {
+            stage: TurnMonstersStage::TurnStarts,
+        },
         id_source: None,
         target: Target::Direct(None),
     });

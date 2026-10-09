@@ -43,6 +43,7 @@ pub mod process_effect_damage_mind_blast;
 pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_debuffs_clear;
+pub mod process_effect_defensive_mode;
 pub mod process_effect_distraction_add;
 pub mod process_effect_du_vu_doll_recount;
 pub mod process_effect_energy_delta;
@@ -62,6 +63,7 @@ pub mod process_effect_heel_hook_proc;
 pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
 pub mod process_effect_knowing_skull_cost_bump;
+pub mod process_effect_lagavulin_wake;
 pub mod process_effect_lifesteal_heal;
 pub mod process_effect_match_flip_seen;
 pub mod process_effect_match_flip_unseen;
@@ -165,6 +167,7 @@ use self::process_effect_damage_mind_blast::process_effect_damage_mind_blast;
 use self::process_effect_damage_physical::process_effect_damage_physical;
 use self::process_effect_death::process_effect_death;
 use self::process_effect_debuffs_clear::process_effect_debuffs_clear;
+use self::process_effect_defensive_mode::process_effect_defensive_mode;
 use self::process_effect_distraction_add::process_effect_distraction_add;
 use self::process_effect_du_vu_doll_recount::process_effect_du_vu_doll_recount;
 use self::process_effect_energy_delta::process_effect_energy_delta;
@@ -184,6 +187,7 @@ use self::process_effect_heel_hook_proc::process_effect_heel_hook_proc;
 use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_increase;
 use self::process_effect_joust_bet::process_effect_joust_bet;
 use self::process_effect_knowing_skull_cost_bump::process_effect_knowing_skull_cost_bump;
+use self::process_effect_lagavulin_wake::process_effect_lagavulin_wake;
 use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
 use self::process_effect_match_flip_seen::process_effect_match_flip_seen;
 use self::process_effect_match_flip_unseen::process_effect_match_flip_unseen;
@@ -401,6 +405,14 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
                     &mut state.effect_queue,
                 );
             } else {
+                // A hand pick drops the waiting plays of Cards still in the hand
+                if candidate_pool == CandidatePool::Hand {
+                    let id_card_hand = &state.combat.id_card_hand;
+                    state
+                        .card_play_queue
+                        .retain(|card_play| !id_card_hand.contains(&card_play.id_card));
+                }
+
                 // Effect needs player input to be resolved
                 state.effect_pending = Some(effect);
             }
@@ -513,12 +525,12 @@ fn dispatch_by_kind(
             process_effect_card_setup_pick(id_target, state, free, bottom)
         }
         EffectKind::CardNightmarePick => process_effect_card_nightmare_pick(id_target, state),
-        EffectKind::CardNightmareSpawn => process_effect_card_nightmare_spawn(state),
+        EffectKind::CardNightmareSpawn => process_effect_card_nightmare_spawn(id_target, state),
         EffectKind::CardPlace { pile } => process_effect_card_place(id_target, state, pile),
         EffectKind::CardExhaust => process_effect_card_exhaust(id_target, state),
         EffectKind::CardPlayFromDrawTop => process_effect_card_play_from_draw_top(id_target, state),
         EffectKind::BombArm { turns, damage } => process_effect_bomb_arm(state, turns, damage),
-        EffectKind::BombTick => process_effect_bomb_tick(state),
+        EffectKind::BombTick { seq } => process_effect_bomb_tick(state, seq),
         EffectKind::LifestealHeal => process_effect_lifesteal_heal(id_target, state),
         EffectKind::CardPlayRelocate => process_effect_card_play_relocate(id_target, state),
         EffectKind::CardRemove => process_effect_card_remove(id_target, state),
@@ -618,10 +630,12 @@ fn dispatch_by_kind(
         }
         EffectKind::ModifierTick => process_effect_modifier_tick(id_target, state),
         EffectKind::PoisonTick { amount } => process_effect_poison_tick(id_target, state, amount),
-        EffectKind::Death => {
+        EffectKind::Death { with_leader } => {
             // Character can die outside Combat; empty Monster slots make iter a no-op
-            process_effect_death(id_source, id_target, state)
+            process_effect_death(id_target, state, with_leader)
         }
+        EffectKind::DefensiveMode => process_effect_defensive_mode(id_target, state),
+        EffectKind::LagavulinWake => process_effect_lagavulin_wake(id_target, state),
         EffectKind::CombatStart { elite } => process_effect_combat_start(state, elite),
         EffectKind::CombatEnd { escaped_character } => {
             process_effect_combat_end(state, escaped_character)
@@ -632,7 +646,7 @@ fn dispatch_by_kind(
             process_effect_turn_end_character(state, landing)
         }
         EffectKind::TurnEndMonster => process_effect_turn_end_monster(id_target, state),
-        EffectKind::TurnMonsters => process_effect_turn_monsters(state),
+        EffectKind::TurnMonsters { stage } => process_effect_turn_monsters(state, stage),
         EffectKind::MoveUpdate { move_override } => {
             process_effect_move_update(id_target, state, move_override)
         }
@@ -727,6 +741,12 @@ pub fn process_effect_queue(state: &mut GameState) {
                 continue;
             }
 
+            // The next turn phase starts once every queued effect and waiting Card play has resolved
+            if let Some(phase) = state.phase_queue.pop_front() {
+                state.effect_queue.push_back(phase);
+                continue;
+            }
+
             // Unceasing Top: an empty hand at queue rest draws 1 and keeps going
             if unceasing_top_fires(state) {
                 state.effect_queue.push_back(Effect {
@@ -737,7 +757,7 @@ pub fn process_effect_queue(state: &mut GameState) {
                 continue;
             }
             ensure_context_validity(state);
-            return; // Both queues drained
+            return; // Every queue drained
         };
         if !process_effect(state, effect) {
             ensure_context_validity(state);
@@ -785,10 +805,14 @@ fn ensure_context_validity(state: &GameState) {
         "Combat active inside a non-event room context"
     );
 
-    // Card plays wait only inside a combat
+    // Card plays and turn phases wait only inside a combat
     assert!(
         state.combat.active || state.card_play_queue.is_empty(),
         "Card plays queued outside combat"
+    );
+    assert!(
+        state.combat.active || state.phase_queue.is_empty(),
+        "Turn phases queued outside combat"
     );
 
     // A Reward overlays a consumed event; a fight stacks over an unconsumed one
