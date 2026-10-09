@@ -45,6 +45,7 @@ pub fn process_effect_combat_start(state: &mut GameState, elite: bool) {
         RelicName::BustedCrown,
         RelicName::Ectoplasm,
         RelicName::VelvetChoker,
+        RelicName::RunicDome,
     ] {
         if has_relic(&state.id_relics, name) {
             energy_max += 1;

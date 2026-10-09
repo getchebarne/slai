@@ -330,13 +330,18 @@ pub fn pick_gremlin(rng: &mut impl Rng) -> MonsterName {
 
 pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     let len = entity.monster_move_history_len as usize;
+
+    // A newly chosen move hasn't run yet
     if len < MAX_MOVE_HISTORY {
         entity.monster_move_history[len] = move_idx;
+        entity.monster_move_history_exec[len] = false;
         entity.monster_move_history_len += 1;
     } else {
         // Marathon combat: drop the oldest, keep the last `MAX_MOVE_HISTORY` moves
         entity.monster_move_history.copy_within(1.., 0);
         entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
+        entity.monster_move_history_exec.copy_within(1.., 0);
+        entity.monster_move_history_exec[MAX_MOVE_HISTORY - 1] = false;
     }
 
     // Use counts never drop a move: once-per-combat latches read them

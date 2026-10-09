@@ -102,6 +102,7 @@ pub struct Entity {
     pub monster_move_damage_override: Option<u16>, // Only used by "Hexaghost"
     pub monster_move_current: Option<usize>,
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
+    pub monster_move_history_exec: [bool; MAX_MOVE_HISTORY], // Per history entry: the chosen move executed; a replaced one never does
     pub monster_move_history_len: u8,
     pub monster_move_uses: [u8; MAX_MONSTER_MOVES],
     pub monster_cycle_count: u8,         // Only used by "The Guardian"
@@ -178,6 +179,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     monster_move_damage_override: None,
     monster_move_current: None,
     monster_move_history: [0; MAX_MOVE_HISTORY],
+    monster_move_history_exec: [false; MAX_MOVE_HISTORY],
     monster_move_history_len: 0,
     monster_move_uses: [0; MAX_MONSTER_MOVES],
     monster_cycle_count: 0,

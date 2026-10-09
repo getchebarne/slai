@@ -29,6 +29,10 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
         None
     };
 
+    // The current move is the history's last entry, and it executes now
+    let entity = &mut state.entities[id_monster];
+    entity.monster_move_history_exec[entity.monster_move_history_len as usize - 1] = true;
+
     // Copy the Move out so effect_buf/queue mutations below don't hold `entities` borrowed
     let move_current = state.entities[id_monster].monster_moves[move_idx];
     let damage_override = state.entities[id_monster].monster_move_damage_override;

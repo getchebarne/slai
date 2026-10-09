@@ -43,6 +43,7 @@ mod enchiridion;
 mod eternal_feather;
 mod face_of_cleric;
 mod fossilized_helix;
+mod frozen_eye;
 mod fusion_hammer;
 mod gambling_chip;
 mod ginger;
@@ -104,6 +105,7 @@ mod red_mask;
 mod regal_pillow;
 mod ring_of_the_serpent;
 mod ring_of_the_snake;
+mod runic_dome;
 mod runic_pyramid;
 mod sacred_bark;
 mod shovel;
@@ -415,6 +417,8 @@ pub const ALL_RELICS: &[&'static RelicTemplate] = &[
     &mutagenic_strength::MUTAGENIC_STRENGTH,
     &nloths_gift::NLOTHS_GIFT,
     &bloody_idol::BLOODY_IDOL,
+    &frozen_eye::FROZEN_EYE,
+    &runic_dome::RUNIC_DOME,
 ];
 // Assert all Relics are included without duplicates
 const _: () = assert!(ALL_RELICS.len() == RelicName::COUNT);

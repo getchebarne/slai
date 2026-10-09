@@ -130,7 +130,7 @@ pub struct Event {
     // Max HP when the event opened; a fraction read at `ReadAt::EventOpen` resolves against it
     pub health_max_at_open: u16,
 
-    // Entities the spawn rolled; options target them via the EventRoll<...> pools
+    // Entities an event stakes; options target them via the EventRoll<...> pools
     pub id_roll_card: Vec<usize>,
     pub id_roll_relic: Vec<usize>,
     pub id_roll_potion: Vec<usize>,
@@ -142,6 +142,11 @@ pub struct Event {
     pub found_gold: bool,
     pub found_nothing: bool,
     pub found_relic: bool,
+
+    // Match and Keep!'s board; the seen face-down Cards sit in `id_roll_card`
+    pub id_match_flipped: Option<usize>, // The attempt's first flip, face up
+    pub id_match_unseen: Vec<usize>,     // Never flipped, in board order; not in the snapshot
+    pub match_attempts: u8,              // Attempts left
 }
 
 // Runs before a spawn fills the context; the caller sets kind/options/active
@@ -154,6 +159,9 @@ pub fn event_reset(event: &mut Event) {
     event.found_gold = false;
     event.found_nothing = false;
     event.found_relic = false;
+    event.id_match_flipped = None;
+    event.id_match_unseen.clear();
+    event.match_attempts = 0;
 }
 
 #[derive(Debug, Clone)]
@@ -317,6 +325,7 @@ pub enum CardName {
     Writhe,
     Parasite,
     Normality,
+    Clumsy,
 
     // Colorless
     Apparition,
@@ -586,6 +595,7 @@ pub enum EventName {
     DrugDealer,
     ForgottenAltar,
     Nloth,
+    MatchAndKeep,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -806,6 +816,8 @@ pub enum RelicName {
     MutagenicStrength,
     NlothsGift,
     BloodyIdol,
+    FrozenEye,
+    RunicDome,
 }
 
 pub fn relic_name_from_u8(v: u8) -> RelicName {

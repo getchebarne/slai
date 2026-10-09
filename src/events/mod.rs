@@ -17,6 +17,7 @@ mod golden_shrine;
 mod knowing_skull;
 mod living_wall;
 mod masked_bandits;
+mod match_and_keep;
 mod mushrooms;
 mod neow;
 mod nest;
@@ -198,6 +199,7 @@ pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
         EventName::DrugDealer => drug_dealer::spawn(state),
         EventName::ForgottenAltar => forgotten_altar::spawn(state),
         EventName::Nloth => nloth::spawn(state),
+        EventName::MatchAndKeep => match_and_keep::spawn(state),
     }
 }
 
@@ -246,6 +248,7 @@ pub fn options_catalog(name: EventName, ascension: u8) -> &'static [EventOptionT
         EventName::DrugDealer => drug_dealer::catalog(ascension),
         EventName::ForgottenAltar => forgotten_altar::catalog(ascension),
         EventName::Nloth => nloth::catalog(ascension),
+        EventName::MatchAndKeep => match_and_keep::catalog(ascension),
     }
 }
 
@@ -343,6 +346,7 @@ pub fn event_option_available(state: &GameState, idx: usize) -> bool {
         EventName::DrugDealer => drug_dealer::option_available(state, idx),
         EventName::ForgottenAltar => forgotten_altar::option_available(state, idx),
         EventName::Nloth => nloth::option_available(state, idx),
+        EventName::MatchAndKeep => match_and_keep::option_available(state, idx),
     }
 }
 
@@ -413,6 +417,7 @@ pub const POOL_EVENT_ACT1_SPECIAL: &[EventName] = &[
     EventName::OminousForge,
     EventName::FaceTrader,
     EventName::WeMeetAgain,
+    EventName::MatchAndKeep,
 ];
 
 // Beggar is draw-gated in `draw_event` (gold 75+)
@@ -439,6 +444,7 @@ pub const POOL_EVENT_SHRINES: &[EventName] = &[
     EventName::Transmogrifier,
     EventName::UpgradeShrine,
     EventName::WheelOfChange,
+    EventName::MatchAndKeep,
 ];
 
 // One-time specials first reachable in act 2

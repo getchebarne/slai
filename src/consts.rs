@@ -85,7 +85,7 @@ pub const BOMB_FUSE_TURNS: u8 = 3;
 pub const PANACHE_PLAYS: u8 = 5;
 
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
-pub const MAX_EVENT_ROLL_CARDS: usize = 1; // We Meet Again
+pub const MAX_EVENT_ROLL_CARDS: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
 pub const MAX_EVENT_ROLL_RELICS: usize = 2; // N'loth's two owned relics
 pub const MAX_EVENT_ROLL_POTIONS: usize = 1; // We Meet Again
 
@@ -189,6 +189,9 @@ pub const NEOW_LAMENT_COMBATS: i16 = 3;
 // We Meet Again: gold ask rolled MIN..=gold.min(MAX); option unavailable below MIN
 pub const WE_MEET_AGAIN_GOLD_ASK_MIN: u16 = 50;
 pub const WE_MEET_AGAIN_GOLD_ASK_MAX: u16 = 150;
+
+// Match and Keep!: attempts of two flips each
+pub const MATCH_AND_KEEP_ATTEMPTS: u8 = 5;
 
 // Shop pricing — Cards: base x U[0.9, 1.1], colorless x 1.2
 pub const SHOP_PRICE_CARD_COMMON: u16 = 50;

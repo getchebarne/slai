@@ -127,6 +127,11 @@ pub struct PyEvent {
     pub found_gold: bool,
     pub found_nothing: bool,
     pub found_relic: bool,
+
+    // Match and Keep!: the face-up first flip, the count of Cards never flipped, the attempts left
+    pub match_flipped: Option<PyCard>,
+    pub match_unseen_count: u8,
+    pub match_attempts: u8,
 }
 
 #[pyclass(
@@ -317,6 +322,9 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
             .iter()
             .map(|&id| snapshot_potion(id, &state.entities[id]))
             .collect(),
+        match_flipped: event.id_match_flipped.map(|id| snapshot_card(state, id)),
+        match_unseen_count: event.id_match_unseen.len() as u8,
+        match_attempts: event.match_attempts,
     }
 }
 

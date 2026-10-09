@@ -63,6 +63,8 @@ pub mod process_effect_hexaghost_burn_increase;
 pub mod process_effect_joust_bet;
 pub mod process_effect_knowing_skull_cost_bump;
 pub mod process_effect_lifesteal_heal;
+pub mod process_effect_match_flip_seen;
+pub mod process_effect_match_flip_unseen;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_mayhem_proc;
@@ -183,6 +185,8 @@ use self::process_effect_hexaghost_burn_increase::process_effect_hexaghost_burn_
 use self::process_effect_joust_bet::process_effect_joust_bet;
 use self::process_effect_knowing_skull_cost_bump::process_effect_knowing_skull_cost_bump;
 use self::process_effect_lifesteal_heal::process_effect_lifesteal_heal;
+use self::process_effect_match_flip_seen::process_effect_match_flip_seen;
+use self::process_effect_match_flip_unseen::process_effect_match_flip_unseen;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
@@ -653,6 +657,8 @@ fn dispatch_by_kind(
             process_effect_knowing_skull_cost_bump(id_source, state)
         }
         EffectKind::MausoleumOpen => process_effect_mausoleum_open(state),
+        EffectKind::MatchFlipSeen => process_effect_match_flip_seen(id_target, state),
+        EffectKind::MatchFlipUnseen => process_effect_match_flip_unseen(state),
         EffectKind::MayhemProc => process_effect_mayhem_proc(id_target, state),
         EffectKind::HexaghostBurnIncrease { count } => {
             process_effect_hexaghost_burn_increase(state, count)

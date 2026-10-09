@@ -113,6 +113,8 @@ flat_variants!(PyEffect {
     RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
     RewardRollRelic => PyEffectRewardRollRelic as "EffectRewardRollRelic" { pool: Vec<PyRelicName> },
     DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
+    MatchFlipSeen => PyEffectMatchFlipSeen as "EffectMatchFlipSeen" { target: PyTarget },
+    MatchFlipUnseen => PyEffectMatchFlipUnseen as "EffectMatchFlipUnseen",
 });
 
 // The kinds that can park in `state.effect_pending`
@@ -130,6 +132,7 @@ flat_variants!(@enum PyEffectPending {
     CardSetupPick => PyEffectCardSetupPick,
     CardTransform => PyEffectCardTransform,
     CardUpgrade => PyEffectCardUpgrade,
+    MatchFlipSeen => PyEffectMatchFlipSeen,
     RelicLose => PyEffectRelicLose,
     RestSmith => PyEffectRestSmith,
     RestToke => PyEffectRestToke
@@ -150,6 +153,7 @@ pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
         PyEffect::CardSetupPick(v) => PyEffectPending::CardSetupPick(v),
         PyEffect::CardTransform(v) => PyEffectPending::CardTransform(v),
         PyEffect::CardUpgrade(v) => PyEffectPending::CardUpgrade(v),
+        PyEffect::MatchFlipSeen(v) => PyEffectPending::MatchFlipSeen(v),
         PyEffect::RelicLose(v) => PyEffectPending::RelicLose(v),
         PyEffect::RestSmith(v) => PyEffectPending::RestSmith(v),
         PyEffect::RestToke(v) => PyEffectPending::RestToke(v),
@@ -558,6 +562,10 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             lifesteal,
             target: require_target(target),
         }),
+        EffectKind::MatchFlipSeen => PyEffect::MatchFlipSeen(PyEffectMatchFlipSeen {
+            target: require_target(target),
+        }),
+        EffectKind::MatchFlipUnseen => PyEffect::MatchFlipUnseen(PyEffectMatchFlipUnseen),
         other => unreachable!(
             "snapshot_effect: unexpected EffectKind on static Card effect: {:?}",
             other

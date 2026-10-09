@@ -26,6 +26,7 @@ mod catalyst;
 mod choke;
 mod chrysalis;
 mod cloak_and_dagger;
+mod clumsy;
 mod concentrate;
 mod corpse_explosion;
 mod crippling_poison;
@@ -301,6 +302,7 @@ pub fn get_card_template(name: CardName, upgraded: bool) -> &'static CardTemplat
         | CardName::Writhe
         | CardName::Parasite
         | CardName::Normality
+        | CardName::Clumsy
         | CardName::Necronomicurse => CARD_BY_NAME[name as usize],
     }
 }
@@ -404,6 +406,7 @@ pub const ALL_CARDS: &[&'static CardTemplate] = &[
     &writhe::WRITHE,
     &parasite::PARASITE,
     &normality::NORMALITY,
+    &clumsy::CLUMSY,
     &apparition::APPARITION,
     &bite::BITE,
     &dark_shackles::DARK_SHACKLES,
