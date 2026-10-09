@@ -45,6 +45,7 @@ use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::is_play_restriction_satisfied;
 use crate::utils::play_cap_reached;
+use crate::utils::resolve_health_fraction;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
@@ -305,6 +306,14 @@ fn handle_pick_skip(state: &mut GameState) {
         .effect_pending
         .take()
         .expect("PickSkip requires a pending effect");
+
+    // A skipped discover pick still runs, with no Card, so its rolled Cards are cleared
+    if matches!(effect_pending.kind, EffectKind::CardDiscoverPick { .. }) {
+        state.effect_buf.push(Effect {
+            target: Target::Direct(None),
+            ..effect_pending
+        });
+    }
     flush_pending_picks(state, effect_pending.kind, effect_pending.id_source);
 }
 
@@ -352,8 +361,23 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
     let id_option = state.event.id_event_options[idx];
     let effects = state.entities[id_option].event_option_effects;
     let effects_len = state.entities[id_option].event_option_effects_len as usize;
+
+    // Max-HP fractions are fixed at the max HP the event opened with, except Mushrooms' and Woman in Blue's
+    let fixed_at_open = !matches!(
+        state.event.name,
+        EventName::Mushrooms | EventName::TheWomanInBlue
+    );
+    let health_max_at_open = state.event.health_max_at_open;
     for effect in &effects[..effects_len] {
+        let mut kind = effect.kind;
+        if fixed_at_open
+            && let EffectKind::HealthDelta { amount, .. }
+            | EffectKind::MaxHealthDelta { amount, .. } = &mut kind
+        {
+            *amount = Amount::Absolute(resolve_health_fraction(health_max_at_open, *amount));
+        }
         state.effect_buf.push(Effect {
+            kind,
             id_source: Some(id_option),
             ..*effect
         });
@@ -396,7 +420,6 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
     });
 }
 
-// Marks the site used; every rest-site option ends with this
 fn push_rest_site_consume(state: &mut GameState) {
     state.effect_buf.push(Effect {
         kind: EffectKind::RestSiteConsume,
@@ -444,32 +467,30 @@ fn handle_rest_lift(state: &mut GameState) {
     push_rest_site_consume(state);
 }
 
-// Peace Pipe: spend the rest on purging a Card (halting deck pick)
+// Peace Pipe: spend the rest on purging a Card; skipping the deck pick cancels back to the site
 fn handle_rest_toke(state: &mut GameState) {
     state.effect_buf.push(Effect {
-        kind: EffectKind::CardPurge,
+        kind: EffectKind::RestToke,
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
             filter: CandidateFilter::Purgeable,
-            selection_kind: SelectionKind::Input { count: 1 },
+            selection_kind: SelectionKind::InputUpTo { count: 1 },
         },
     });
-    push_rest_site_consume(state);
 }
 
-// Smith mirrors Toke: queue the deck pick, let the halt resolve it
+// Smith mirrors Toke: the picked Card is upgraded, and a skip cancels back to the site
 fn handle_rest_smith(state: &mut GameState) {
     state.effect_buf.push(Effect {
-        kind: EffectKind::CardUpgrade,
+        kind: EffectKind::RestSmith,
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
             filter: CandidateFilter::Upgradeable,
-            selection_kind: SelectionKind::Input { count: 1 },
+            selection_kind: SelectionKind::InputUpTo { count: 1 },
         },
     });
-    push_rest_site_consume(state);
 }
 
 // Shovel: spend the rest on a random Relic, staged as a reward the player may leave
@@ -690,9 +711,9 @@ fn fill_legal_actions_reward(state: &mut GameState) {
             .push(Action::RewardTakeRelic { idx: idx });
     }
 
-    // Sozu: Potion rewards can't be taken (mirrors the shop gate)
+    // Sozu: taking a Potion reward removes it and obtains nothing, so a full belt doesn't block it
     if belt_has_room(&state.id_potions, state.potion_slots_max)
-        && !has_relic(&state.id_relics, RelicName::Sozu)
+        || has_relic(&state.id_relics, RelicName::Sozu)
     {
         for idx in 0..id_potions.len() {
             state

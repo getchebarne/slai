@@ -203,8 +203,7 @@ pub fn egg_upgrades_kind(kind: CardKind, id_relics: &[Option<usize>; RelicName::
     id_relics[egg as usize].is_some()
 }
 
-// Per-turn Relic counters; reset at Character turn end and at combat start
-// (combat can end mid-turn, so turn-end resets alone leak into the next combat)
+// Per-turn Relic counters; reset at the Character's turn start
 pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::Kunai,
     RelicName::Shuriken,
@@ -213,6 +212,8 @@ pub const RELIC_COUNTERS_PER_TURN: &[RelicName] = &[
     RelicName::OrangePellets,
     RelicName::HoveringKite,
     RelicName::Necronomicon,
+    RelicName::Pocketwatch,
+    RelicName::VelvetChoker,
 ];
 
 // Front-queued combat-start relics: run before the turn-1 draw, newest pickup first
@@ -239,12 +240,25 @@ pub const RELICS_COMBAT_START_PRE_DRAW: &[RelicName] =
 pub const RELICS_TURN_START_POST_DRAW: &[RelicName] =
     &[RelicName::GamblingChip, RelicName::WarpedTongs];
 
-// Per-combat Relic counters; reset at combat start only
+// Per-combat Relic counters; reset at combat start
 pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
     RelicName::StoneCalendar,
     RelicName::HornCleat,
     RelicName::CaptainsWheel,
     RelicName::CentennialPuzzle,
+];
+
+// Relic counters that count only in combat; they read 0 between combats
+pub const RELIC_COUNTERS_COMBAT_ONLY: &[RelicName] = &[
+    RelicName::Kunai,
+    RelicName::Shuriken,
+    RelicName::OrnamentalFan,
+    RelicName::LetterOpener,
+    RelicName::Pocketwatch,
+    RelicName::VelvetChoker,
+    RelicName::StoneCalendar,
+    RelicName::HornCleat,
+    RelicName::CaptainsWheel,
 ];
 
 pub fn iter_owned_relics(

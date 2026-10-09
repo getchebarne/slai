@@ -33,8 +33,8 @@ pub static FLECHETTES: CardTemplate = make_card_template(
 // Upgraded
 pub static FLECHETTES_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = FLECHETTES.effects;
+    effects_play: {
+        let mut effects = FLECHETTES.effects_play;
         effects[0].kind = EffectKind::DamageFlechettes { damage: 6 }; // +2 damage
         effects
     },

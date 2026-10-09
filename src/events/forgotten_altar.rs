@@ -38,7 +38,7 @@ const OPTION_IDOL: [Effect; 3] = [
     EFFECT_EVENT_CONSUME,
 ];
 
-// Damage resolves before the max-HP gain so the fraction reads the old maximum
+// Sacrifice: gain 5 max HP, then lose the fraction of the max HP the event opened with
 const fn sacrifice(numerator: u8) -> [Effect; 3] {
     [
         Effect {
@@ -79,7 +79,7 @@ const OPTION_DECAY: [Effect; 2] = [
     EFFECT_EVENT_CONSUME,
 ];
 
-// Sacrifice: 25% max HP for Bloody Idol
+// Sacrifice: 25% max HP
 const OPTION_SACRIFICE_BASE: [Effect; 3] = sacrifice(25);
 
 // Sacrifice at A15+: 35% max HP

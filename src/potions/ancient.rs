@@ -12,7 +12,7 @@ pub static ANCIENT: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Artifact,
             stacks: 1,
         },
@@ -24,7 +24,7 @@ pub static ANCIENT: PotionTemplate = PotionTemplate {
 pub static ANCIENT_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Artifact,
             stacks: 2,
         },

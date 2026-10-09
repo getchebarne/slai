@@ -44,6 +44,7 @@ pub mod process_effect_damage_physical;
 pub mod process_effect_death;
 pub mod process_effect_debuffs_clear;
 pub mod process_effect_distraction_add;
+pub mod process_effect_du_vu_doll_recount;
 pub mod process_effect_energy_delta;
 pub mod process_effect_escape_plan_check;
 pub mod process_effect_event_advance_state;
@@ -67,7 +68,7 @@ pub mod process_effect_match_flip_unseen;
 pub mod process_effect_mausoleum_open;
 pub mod process_effect_max_health_delta;
 pub mod process_effect_mayhem_proc;
-pub mod process_effect_modifier_gain;
+pub mod process_effect_modifier_delta;
 pub mod process_effect_modifier_multiply;
 pub mod process_effect_modifier_remove;
 pub mod process_effect_modifier_tick;
@@ -89,6 +90,8 @@ pub mod process_effect_relic_grant_specific;
 pub mod process_effect_relic_lose;
 pub mod process_effect_relic_reward_remove_one;
 pub mod process_effect_rest_site_consume;
+pub mod process_effect_rest_smith;
+pub mod process_effect_rest_toke;
 pub mod process_effect_reward_roll_cards;
 pub mod process_effect_reward_roll_gold;
 pub mod process_effect_reward_roll_potions;
@@ -163,6 +166,7 @@ use self::process_effect_damage_physical::process_effect_damage_physical;
 use self::process_effect_death::process_effect_death;
 use self::process_effect_debuffs_clear::process_effect_debuffs_clear;
 use self::process_effect_distraction_add::process_effect_distraction_add;
+use self::process_effect_du_vu_doll_recount::process_effect_du_vu_doll_recount;
 use self::process_effect_energy_delta::process_effect_energy_delta;
 use self::process_effect_escape_plan_check::process_effect_escape_plan_check;
 use self::process_effect_event_advance_state::process_effect_event_advance_state;
@@ -186,7 +190,7 @@ use self::process_effect_match_flip_unseen::process_effect_match_flip_unseen;
 use self::process_effect_mausoleum_open::process_effect_mausoleum_open;
 use self::process_effect_max_health_delta::process_effect_max_health_delta;
 use self::process_effect_mayhem_proc::process_effect_mayhem_proc;
-use self::process_effect_modifier_gain::process_effect_modifier_gain;
+use self::process_effect_modifier_delta::process_effect_modifier_delta;
 use self::process_effect_modifier_multiply::process_effect_modifier_multiply;
 use self::process_effect_modifier_remove::process_effect_modifier_remove;
 use self::process_effect_modifier_tick::process_effect_modifier_tick;
@@ -208,6 +212,8 @@ use self::process_effect_relic_grant_specific::process_effect_relic_grant_specif
 use self::process_effect_relic_lose::process_effect_relic_lose;
 use self::process_effect_relic_reward_remove_one::process_effect_relic_reward_remove_one;
 use self::process_effect_rest_site_consume::process_effect_rest_site_consume;
+use self::process_effect_rest_smith::process_effect_rest_smith;
+use self::process_effect_rest_toke::process_effect_rest_toke;
 use self::process_effect_reward_roll_cards::process_effect_reward_roll_cards;
 use self::process_effect_reward_roll_gold::process_effect_reward_roll_gold;
 use self::process_effect_reward_roll_potions::process_effect_reward_roll_potions;
@@ -548,6 +554,8 @@ fn dispatch_by_kind(
         EffectKind::RewardTake { kind } => process_effect_reward_take(id_target, state, kind),
         EffectKind::RoomExit => process_effect_room_exit(state),
         EffectKind::RestSiteConsume => process_effect_rest_site_consume(state),
+        EffectKind::RestSmith => process_effect_rest_smith(id_target, state),
+        EffectKind::RestToke => process_effect_rest_toke(id_target, state),
         EffectKind::DamagePhysical { amount, lifesteal } => {
             process_effect_damage_physical(id_source, id_target, state, amount, false, lifesteal)
         }
@@ -558,6 +566,7 @@ fn dispatch_by_kind(
             process_effect_glass_knife_decay(id_target, state, delta)
         }
         EffectKind::DistractionAdd => process_effect_distraction_add(state),
+        EffectKind::DuVuDollRecount => process_effect_du_vu_doll_recount(state),
         EffectKind::SetCostOverride {
             amount,
             only_reduce,
@@ -598,8 +607,8 @@ fn dispatch_by_kind(
         EffectKind::EnergyDelta { sign, amount } => {
             process_effect_energy_delta(state, sign, amount)
         }
-        EffectKind::ModifierGain { kind, stacks } => {
-            process_effect_modifier_gain(id_source, id_target, state, kind, stacks)
+        EffectKind::ModifierDelta { kind, stacks } => {
+            process_effect_modifier_delta(id_source, id_target, state, kind, stacks)
         }
         EffectKind::ModifierMultiply { kind, factor } => {
             process_effect_modifier_multiply(id_target, state, kind, factor)

@@ -43,8 +43,8 @@ pub static CHRYSALIS: CardTemplate = make_card_template(
 // Upgraded
 pub static CHRYSALIS_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = CHRYSALIS.effects;
+    effects_play: {
+        let mut effects = CHRYSALIS.effects_play;
         effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Green,
             kind: Some(CardKind::Skill),

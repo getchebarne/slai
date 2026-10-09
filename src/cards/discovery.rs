@@ -35,7 +35,7 @@ pub static DISCOVERY: CardTemplate = make_card_template(
             id_source: None,
             target: Target::Direct(None),
         },
-        effect_discover_pick(Some(CostScope::Turn), CardPile::Hand),
+        effect_discover_pick(Some(CostScope::Turn), CardPile::Hand, 1, false),
     ],
     &[],
     &[],

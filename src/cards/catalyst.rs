@@ -37,8 +37,8 @@ pub static CATALYST: CardTemplate = make_card_template(
 // Upgraded: triples instead of doubles
 pub static CATALYST_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = CATALYST.effects;
+    effects_play: {
+        let mut effects = CATALYST.effects_play;
         effects[0].kind = EffectKind::ModifierMultiply {
             kind: ModifierKind::Poison,
             factor: 3, // +1 factor

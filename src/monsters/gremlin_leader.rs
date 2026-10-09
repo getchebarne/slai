@@ -43,7 +43,7 @@ const fn move_encourage(strength: i16, block: u16) -> Move {
         "Encourage",
         &[
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Strength,
                     stacks: strength,
                 },

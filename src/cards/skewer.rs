@@ -36,8 +36,8 @@ pub static SKEWER: CardTemplate = make_card_template(
 // Upgraded
 pub static SKEWER_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = SKEWER.effects;
+    effects_play: {
+        let mut effects = SKEWER.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 10,
             lifesteal: false,

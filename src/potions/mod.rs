@@ -38,29 +38,11 @@ use strum::EnumCount;
 use crate::consts::POTION_TH_COMMON;
 use crate::consts::POTION_TH_UNCOMMON;
 use crate::effect::Effect;
-use crate::effect::EffectKind;
-use crate::effect::effect_discover_pick;
 use crate::entity::ENTITY_ZERO;
 use crate::entity::Entity;
 use crate::entity::EntityKind;
-use crate::types::CardPile;
-use crate::types::CostScope;
 use crate::types::PotionName;
 use crate::types::PotionRarity;
-
-// Follows a CardDiscover roll; halts until the player picks from `id_discover`
-pub const EFFECT_CARD_DISCOVER_PICK: Effect =
-    effect_discover_pick(Some(CostScope::Turn), CardPile::Hand);
-
-// The doubled Discover pick adds two copies of the chosen Card
-pub const EFFECT_CARD_DISCOVER_PICK_DOUBLED: Effect = Effect {
-    kind: EffectKind::CardDiscoverPick {
-        cost_zero: Some(CostScope::Turn),
-        pile: CardPile::Hand,
-        copies: 2,
-    },
-    ..EFFECT_CARD_DISCOVER_PICK
-};
 
 // Totality relies on the len == COUNT and no-duplicate asserts below
 const fn build_potion_by_name() -> [&'static PotionTemplate; PotionName::COUNT] {

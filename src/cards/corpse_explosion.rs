@@ -24,7 +24,7 @@ pub static CORPSE_EXPLOSION: CardTemplate = make_card_template(
     false,
     &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Poison,
                 stacks: 6,
             },
@@ -32,7 +32,7 @@ pub static CORPSE_EXPLOSION: CardTemplate = make_card_template(
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::CorpseExplosion,
                 stacks: 1,
             },
@@ -47,9 +47,9 @@ pub static CORPSE_EXPLOSION: CardTemplate = make_card_template(
 // Upgraded
 pub static CORPSE_EXPLOSION_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = CORPSE_EXPLOSION.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = CORPSE_EXPLOSION.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Poison,
             stacks: 9, // +3 poison
         };

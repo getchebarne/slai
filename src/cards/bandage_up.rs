@@ -38,8 +38,8 @@ pub static BANDAGE_UP: CardTemplate = make_card_template(
 // Upgraded
 pub static BANDAGE_UP_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = BANDAGE_UP.effects;
+    effects_play: {
+        let mut effects = BANDAGE_UP.effects_play;
         effects[0].kind = EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
             amount: Amount::Absolute(6),

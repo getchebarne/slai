@@ -36,7 +36,7 @@ pub static TACTICIAN: CardTemplate = make_card_template(
 );
 pub static TACTICIAN_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    on_discard_effects: &[Effect {
+    effects_discard: &[Effect {
         kind: EffectKind::EnergyDelta {
             sign: DeltaSign::Gain,
             amount: 2,

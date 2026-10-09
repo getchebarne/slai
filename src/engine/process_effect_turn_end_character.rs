@@ -12,7 +12,6 @@ use crate::modifier::ModifierKind;
 use crate::modifier::has_modifier;
 use crate::modifier::modifier_set_not_new;
 use crate::modifier::modifier_stacks;
-use crate::relics::RELIC_COUNTERS_PER_TURN;
 use crate::types::CardName;
 use crate::types::Combat;
 use crate::types::CostScope;
@@ -37,16 +36,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             id_card_exhaust,
             id_card_stasis,
             this_turn_discards,
-            this_turn_panache,
             ..
         } = &mut state.combat;
-
-        // Reset per-turn Relic counters
-        for &name in RELIC_COUNTERS_PER_TURN {
-            if let Some(id) = state.id_relics[name as usize] {
-                state.entities[id].relic_counter = 0;
-            }
-        }
 
         // Clear per-turn Card cost overrides
         for id_card in id_card_hand
@@ -91,15 +82,14 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
 
         for id_relic in id_relics {
-            let relic = &mut state.entities[id_relic];
+            let relic = &state.entities[id_relic];
 
-            // Stone Calendar: fires once at the reset threshold (end of turn 7), no reset
-            if relic.relic_name == RelicName::StoneCalendar {
-                relic.relic_counter += 1;
-                if relic.relic_counter == relic.relic_counter_reset {
-                    for &effect in relic.relic_effects_counter {
-                        state.effect_buf.push(effect);
-                    }
+            // Stone Calendar: fires once, at the end of the turn its counter reaches the reset threshold (turn 7)
+            if relic.relic_name == RelicName::StoneCalendar
+                && relic.relic_counter == relic.relic_counter_reset
+            {
+                for &effect in relic.relic_effects_counter {
+                    state.effect_buf.push(effect);
                 }
             }
             for &effect in relic.relic_effects_turn_end {
@@ -158,7 +148,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                 }
                 CardName::Doubt => {
                     state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierGain {
+                        kind: EffectKind::ModifierDelta {
                             kind: ModifierKind::Weak,
                             stacks: 1,
                         },
@@ -168,7 +158,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                 }
                 CardName::Shame => {
                     state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierGain {
+                        kind: EffectKind::ModifierDelta {
                             kind: ModifierKind::Frail,
                             stacks: 1,
                         },
@@ -192,9 +182,8 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             target: Target::Direct(None),
         });
 
-        // Reset per-turn trackers; attacks and plays count on until the next turn start
+        // Reset per-turn trackers; attacks, plays and Panache's countdown run on until the next turn start
         *this_turn_discards = 0;
-        *this_turn_panache = 0;
 
         flush_effects_from_buf_to_queue_front(state);
         return;
@@ -219,7 +208,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             target: Target::Direct(Some(state.id_character)),
         });
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Regeneration,
                 stacks: -1,
             },
@@ -252,7 +241,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     if has_modifier(mods_char, ModifierKind::Ritual) {
         let stacks = modifier_stacks(mods_char, ModifierKind::Ritual);
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks,
             },
@@ -265,7 +254,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     if has_modifier(mods_char, ModifierKind::WraithForm) {
         let stacks = modifier_stacks(mods_char, ModifierKind::WraithForm);
         state.effect_queue.push_back(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Dexterity,
                 stacks: -stacks,
             },
@@ -282,7 +271,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         if has_modifier(mods_char, lose) {
             let stacks = modifier_stacks(mods_char, lose);
             state.effect_queue.push_back(Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: gain,
                     stacks: -stacks,
                 },
@@ -315,7 +304,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     // DuplicateNextCardPlay ticks down one stack; a last stack is removed, never left at 0
     if has_modifier(mods_char, ModifierKind::DuplicateNextCardPlay) {
         let effect_kind = if modifier_stacks(mods_char, ModifierKind::DuplicateNextCardPlay) > 1 {
-            EffectKind::ModifierGain {
+            EffectKind::ModifierDelta {
                 kind: ModifierKind::DuplicateNextCardPlay,
                 stacks: -1,
             }

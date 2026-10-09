@@ -18,7 +18,7 @@ pub fn process_effect_modifier_tick(id_target: Option<usize>, state: &mut GameSt
             && !modifiers.is_new[ModifierKind::Ritual as usize]
         {
             state.effect_queue.push_front(Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Strength,
                     stacks: modifier_stacks(modifiers, ModifierKind::Ritual),
                 },

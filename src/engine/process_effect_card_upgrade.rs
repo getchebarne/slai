@@ -20,11 +20,14 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
     let mut card_upgraded = get_card(card.card_name, true);
 
     // Add to the live instance, so in-combat growth and decay survive it
-    let slots = (card_upgraded.card_effects_len as usize)
-        .min(card_template.effects_len as usize)
-        .min(card.card_effects_len as usize);
+    let slots = (card_upgraded.card_effects_play_len as usize)
+        .min(card_template.effects_play_len as usize)
+        .min(card.card_effects_play_len as usize);
     for idx in 0..slots {
-        let delta = match (card_template.effects[idx].kind, card.card_effects[idx].kind) {
+        let delta = match (
+            card_template.effects_play[idx].kind,
+            card.card_effects_play[idx].kind,
+        ) {
             (
                 EffectKind::DamagePhysical { amount: base, .. },
                 EffectKind::DamagePhysical { amount: live, .. },
@@ -37,7 +40,7 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
         if delta == 0 {
             continue;
         }
-        match &mut card_upgraded.card_effects[idx].kind {
+        match &mut card_upgraded.card_effects_play[idx].kind {
             EffectKind::DamagePhysical { amount, .. } | EffectKind::BlockGain { amount } => {
                 *amount = (*amount as i32 + delta).clamp(0, u16::MAX as i32) as u16;
             }

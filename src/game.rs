@@ -21,6 +21,7 @@ use crate::consts::MAX_ENTITIES;
 use crate::consts::MAX_MONSTERS;
 use crate::consts::MAX_SIZE_DECK;
 use crate::consts::MAX_SIZE_HAND;
+use crate::consts::PANACHE_PLAYS;
 use crate::consts::POTION_SLOTS_DEFAULT;
 use crate::consts::POTION_SLOTS_DEFAULT_A11;
 use crate::consts::POTION_SLOTS_MAX;
@@ -280,7 +281,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             this_turn_discards: 0,
             this_turn_attacks: 0,
             this_turn_cards_played: 0,
-            this_turn_panache: 0,
+            panache_countdown: PANACHE_PLAYS,
             turn: 0,
             this_combat_escaped: false,
             this_combat_thief_escaped: false,
@@ -305,9 +306,11 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             consumed: false,
             stage: 0,
             id_event_options: Vec::new(),
+            health_max_at_open: 0,
             id_roll_card: Vec::new(),
             id_roll_relic: Vec::new(),
             id_roll_potion: Vec::new(),
+            adventurer_elite: MonsterEncounter::ThreeSentries,
             found_gold: false,
             found_nothing: false,
             found_relic: false,

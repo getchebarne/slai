@@ -591,10 +591,10 @@ pub struct CardTemplate {
     pub ethereal: bool,
     pub innate: bool,
     pub play_restriction: PlayRestriction,
-    pub effects: [Effect; MAX_EFFECTS_PER_CARD],
-    pub effects_len: u8,
-    pub on_discard_effects: &'static [Effect],
-    pub effects_on_draw: &'static [Effect],
+    pub effects_play: [Effect; MAX_EFFECTS_PER_CARD],
+    pub effects_play_len: u8,
+    pub effects_discard: &'static [Effect],
+    pub effects_draw: &'static [Effect],
 }
 
 pub const fn make_card_template(
@@ -608,15 +608,15 @@ pub const fn make_card_template(
     exhaust: bool,
     ethereal: bool,
     innate: bool,
-    effects: &[Effect],
-    on_discard_effects: &'static [Effect],
-    on_draw_effects: &'static [Effect],
+    effects_play: &[Effect],
+    effects_discard: &'static [Effect],
+    effects_draw: &'static [Effect],
     play_restriction: PlayRestriction,
 ) -> CardTemplate {
     let mut arr = [EFFECT_ZERO; MAX_EFFECTS_PER_CARD];
     let mut idx = 0;
-    while idx < effects.len() {
-        arr[idx] = effects[idx];
+    while idx < effects_play.len() {
+        arr[idx] = effects_play[idx];
         idx += 1;
     }
     CardTemplate {
@@ -631,10 +631,10 @@ pub const fn make_card_template(
         ethereal,
         innate,
         play_restriction,
-        effects: arr,
-        effects_len: effects.len() as u8,
-        on_discard_effects,
-        effects_on_draw: on_draw_effects,
+        effects_play: arr,
+        effects_play_len: effects_play.len() as u8,
+        effects_discard,
+        effects_draw,
     }
 }
 
@@ -652,10 +652,10 @@ pub const fn instance_card_from_template(template: &CardTemplate) -> Entity {
         card_ethereal: template.ethereal,
         card_innate: template.innate,
         card_play_restriction: template.play_restriction,
-        card_effects: template.effects,
-        card_effects_len: template.effects_len,
-        card_on_discard_effects: template.on_discard_effects,
-        card_effects_on_draw: template.effects_on_draw,
+        card_effects_play: template.effects_play,
+        card_effects_play_len: template.effects_play_len,
+        card_effects_discard: template.effects_discard,
+        card_effects_draw: template.effects_draw,
         ..ENTITY_ZERO
     }
 }

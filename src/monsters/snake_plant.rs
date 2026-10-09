@@ -19,7 +19,7 @@ static MOVE_SPORES: Move = make_move(
     "Enfeebling Spores",
     &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Frail,
                 stacks: 2,
             },
@@ -27,7 +27,7 @@ static MOVE_SPORES: Move = make_move(
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Weak,
                 stacks: 2,
             },

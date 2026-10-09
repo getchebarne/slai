@@ -33,7 +33,7 @@ pub static FLYING_KNEE: CardTemplate = make_card_template(
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::NextTurnEnergy,
                 stacks: 1,
             },
@@ -48,8 +48,8 @@ pub static FLYING_KNEE: CardTemplate = make_card_template(
 // Upgraded
 pub static FLYING_KNEE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = FLYING_KNEE.effects;
+    effects_play: {
+        let mut effects = FLYING_KNEE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 11,
             lifesteal: false,

@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // The Character can no longer become Frail
 // See:
-//    - `process_effect_modifier_gain.rs`
+//    - `process_effect_modifier_delta.rs`
 pub static TURNIP: RelicTemplate = RelicTemplate {
     name: RelicName::Turnip,
     tier: RelicTier::Rare,

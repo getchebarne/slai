@@ -23,7 +23,7 @@ pub static PANACEA: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Artifact,
             stacks: 1,
         },
@@ -37,9 +37,9 @@ pub static PANACEA: CardTemplate = make_card_template(
 // Upgraded
 pub static PANACEA_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = PANACEA.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = PANACEA.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Artifact,
             stacks: 2,
         }; // +1 artifact

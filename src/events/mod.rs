@@ -154,6 +154,7 @@ pub const EOT_LEAVE: EventOptionTemplate = make_event_option_template(&[EFFECT_E
 pub fn spawn_event(state: &mut GameState, name: EventName) -> Vec<usize> {
     // Clear last visit's staged picks before this spawn stakes its own
     event_reset(&mut state.event);
+    state.event.health_max_at_open = state.entities[state.id_character].vitals.health_max;
 
     match name {
         EventName::BigFish => big_fish::spawn(state),
@@ -374,7 +375,7 @@ fn card_has_damage_at_least(entity: &Entity, min_base: u16) -> bool {
     if entity.kind != EntityKind::Card || entity.card_kind != CardKind::Attack {
         return false;
     }
-    for effect in entity.card_effects[..entity.card_effects_len as usize].iter() {
+    for effect in entity.card_effects_play[..entity.card_effects_play_len as usize].iter() {
         let amount = match effect.kind {
             EffectKind::DamagePhysical { amount, .. } => amount,
             EffectKind::DamagePhysicalIfPoisoned { amount } => amount,

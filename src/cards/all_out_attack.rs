@@ -54,8 +54,8 @@ pub static ALL_OUT_ATTACK: CardTemplate = make_card_template(
 // Upgraded
 pub static ALL_OUT_ATTACK_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = ALL_OUT_ATTACK.effects;
+    effects_play: {
+        let mut effects = ALL_OUT_ATTACK.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 14,
             lifesteal: false,

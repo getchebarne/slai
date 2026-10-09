@@ -8,7 +8,7 @@ use crate::effect::EffectKind;
 use crate::effect::RelicPick;
 use crate::effect::Target;
 
-use super::amount::PyAmount;
+use super::amount::PyAmountGold;
 use super::amount::PyAmountScalar;
 use super::amount::PyDeltaSign;
 use super::card::PyCardColor;
@@ -33,7 +33,7 @@ mirror_enum!(PyRewardRollTrigger from RewardRollTrigger, "RewardRollTrigger", {
     WomanInBlue, Lab, TinyHouse, CallingBell,
 });
 
-// Mirrors only EffectKind variants reachable from static Card/Monster defs; snapshot_effect panics on runtime-only variants
+// Mirrors only EffectKind variants reachable from static Card/Monster defs or a halted pick; snapshot_effect panics on runtime-only variants
 flat_variants!(PyEffect {
     DamagePhysical => PyEffectDamagePhysical as "EffectDamagePhysical" { amount: u16, lifesteal: bool, target: PyTarget },
     DamagePhysicalIfPoisoned => PyEffectDamagePhysicalIfPoisoned as "EffectDamagePhysicalIfPoisoned" { amount: u16, target: PyTarget },
@@ -52,7 +52,7 @@ flat_variants!(PyEffect {
     BlockGain => PyEffectBlockGain as "EffectBlockGain" { amount: u16, target: PyTarget },
     BombArm => PyEffectBombArm as "EffectBombArm" { turns: u8, damage: u16 },
     LifestealHeal => PyEffectLifestealHeal as "EffectLifestealHeal" { target: PyTarget },
-    ModifierGain => PyEffectModifierGain as "EffectModifierGain" { kind: PyModifierKind, stacks: i16, target: PyTarget },
+    ModifierDelta => PyEffectModifierDelta as "EffectModifierDelta" { kind: PyModifierKind, stacks: i16, target: PyTarget },
     ModifierMultiply => PyEffectModifierMultiply as "EffectModifierMultiply" { kind: PyModifierKind, factor: u8, target: PyTarget },
     EnergyDelta => PyEffectEnergyDelta as "EffectEnergyDelta" { sign: PyDeltaSign, amount: u16 },
     CardAdd => PyEffectCardAdd as "EffectCardAdd" { card_name: PyCardName, pile: PyCardPile, count: u16, upgraded: bool },
@@ -60,7 +60,7 @@ flat_variants!(PyEffect {
     CardDrawUpTo => PyEffectCardDrawUpTo as "EffectCardDrawUpTo" { amount: u8 },
     CardDiscard => PyEffectCardDiscard as "EffectCardDiscard" { target: PyTarget },
     CardRetain => PyEffectCardRetain as "EffectCardRetain" { target: PyTarget },
-    DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { target: PyTarget },
+    DamageMindBlast => PyEffectDamageMindBlast as "EffectDamageMindBlast" { damage: u16, target: PyTarget },
     ShuffleDiscardPileIntoDrawPile => PyEffectShuffleDiscardPileIntoDrawPile as "EffectShuffleDiscardPileIntoDrawPile",
     MaxHealthDelta => PyEffectMaxHealthDelta as "EffectMaxHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
     HealthDelta => PyEffectHealthDelta as "EffectHealthDelta" { sign: PyDeltaSign, amount: PyAmountScalar, target: PyTarget },
@@ -68,7 +68,7 @@ flat_variants!(PyEffect {
     PotionDiscard => PyEffectPotionDiscard as "EffectPotionDiscard" { target: PyTarget },
     RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8, trigger: PyRewardRollTrigger },
     CardDiscoverRoll => PyEffectCardDiscoverRoll as "EffectCardDiscoverRoll" { kind: Option<PyCardKind>, color: PyCardColor, exclude: Vec<PyCardName>, count: u8 },
-    GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmount },
+    GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmountGold },
     RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, exclusion: PyRelicExclusion },
     WheelSpin => PyEffectWheelSpin as "EffectWheelSpin",
     BonfireOffer => PyEffectBonfireOffer as "EffectBonfireOffer" { target: PyTarget },
@@ -83,6 +83,8 @@ flat_variants!(PyEffect {
     CardDiscoverPick => PyEffectCardDiscoverPick as "EffectCardDiscoverPick" { cost_zero: Option<PyCostScope>, pile: PyCardPile, copies: u8, target: PyTarget },
     CardPurge => PyEffectCardPurge as "EffectCardPurge" { target: PyTarget },
     CardUpgrade => PyEffectCardUpgrade as "EffectCardUpgrade" { target: PyTarget },
+    RestSmith => PyEffectRestSmith as "EffectRestSmith" { target: PyTarget },
+    RestToke => PyEffectRestToke as "EffectRestToke" { target: PyTarget },
     CardDuplicate => PyEffectCardDuplicate as "EffectCardDuplicate" { pile: PyCardPile, target: PyTarget },
     CardTransform => PyEffectCardTransform as "EffectCardTransform" { upgraded: bool, target: PyTarget },
     CardAddRandom => PyEffectCardAddRandom as "EffectCardAddRandom" { color: PyCardColor, kind: Option<PyCardKind>, pile: PyCardPile, count: u16, cost_zero: Option<PyCostScope>, upgraded: bool, rarity: Option<PyCardRarity> },
@@ -131,7 +133,9 @@ flat_variants!(@enum PyEffectPending {
     CardTransform => PyEffectCardTransform,
     CardUpgrade => PyEffectCardUpgrade,
     MatchFlipSeen => PyEffectMatchFlipSeen,
-    RelicLose => PyEffectRelicLose
+    RelicLose => PyEffectRelicLose,
+    RestSmith => PyEffectRestSmith,
+    RestToke => PyEffectRestToke
 });
 
 pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
@@ -151,6 +155,8 @@ pub(crate) fn snapshot_effect_pending(effect: &Effect) -> PyEffectPending {
         PyEffect::CardUpgrade(v) => PyEffectPending::CardUpgrade(v),
         PyEffect::MatchFlipSeen(v) => PyEffectPending::MatchFlipSeen(v),
         PyEffect::RelicLose(v) => PyEffectPending::RelicLose(v),
+        PyEffect::RestSmith(v) => PyEffectPending::RestSmith(v),
+        PyEffect::RestToke(v) => PyEffectPending::RestToke(v),
         other => unreachable!("effect kind cannot halt: {:?}", other),
     }
 }
@@ -302,11 +308,13 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             amount,
             target: require_target(target),
         }),
-        EffectKind::ModifierGain { kind, stacks } => PyEffect::ModifierGain(PyEffectModifierGain {
-            kind: kind.into(),
-            stacks,
-            target: require_target(target),
-        }),
+        EffectKind::ModifierDelta { kind, stacks } => {
+            PyEffect::ModifierDelta(PyEffectModifierDelta {
+                kind: kind.into(),
+                stacks,
+                target: require_target(target),
+            })
+        }
         EffectKind::ModifierMultiply { kind, factor } => {
             PyEffect::ModifierMultiply(PyEffectModifierMultiply {
                 kind: kind.into(),
@@ -339,7 +347,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardRetain => PyEffect::CardRetain(PyEffectCardRetain {
             target: require_target(target),
         }),
+        // The draw pile sets the damage in combat; the Card's own base is 0
         EffectKind::DamageMindBlast { .. } => PyEffect::DamageMindBlast(PyEffectDamageMindBlast {
+            damage: 0,
             target: require_target(target),
         }),
         EffectKind::ShuffleDiscardPileIntoDrawPile => {
@@ -431,6 +441,12 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             count,
         }),
         EffectKind::CardUpgrade => PyEffect::CardUpgrade(PyEffectCardUpgrade {
+            target: require_target(target),
+        }),
+        EffectKind::RestSmith => PyEffect::RestSmith(PyEffectRestSmith {
+            target: require_target(target),
+        }),
+        EffectKind::RestToke => PyEffect::RestToke(PyEffectRestToke {
             target: require_target(target),
         }),
         EffectKind::CardDiscoverPick {

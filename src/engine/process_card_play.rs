@@ -1,6 +1,7 @@
 use rand::Rng;
 
 use crate::consts::MAX_SIZE_HAND;
+use crate::consts::PANACHE_PLAYS;
 use crate::effect::Amount;
 use crate::effect::CardPlay;
 use crate::effect::Effect;
@@ -64,7 +65,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         id_monster_picked,
         this_turn_attacks,
         this_turn_cards_played,
-        this_turn_panache,
+        panache_countdown,
         ..
     } = &mut state.combat;
 
@@ -129,6 +130,13 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
     // Increase this-turn-played-Cards counter
     *this_turn_cards_played = this_turn_cards_played.saturating_add(1);
+
+    // Pocketwatch and Velvet Choker count the turn's plays; the play cap stops Velvet Choker's at 6
+    for name in [RelicName::Pocketwatch, RelicName::VelvetChoker] {
+        if let Some(id) = state.id_relics[name as usize] {
+            state.entities[id].relic_counter += 1;
+        }
+    }
 
     if card.card_kind == CardKind::Attack {
         // Increase this-turn-played-attacks counter
@@ -205,7 +213,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             if has_modifier(mods_monster, ModifierKind::Enrage) {
                 let stacks = modifier_stacks(mods_monster, ModifierKind::Enrage);
                 state.effect_buf.push(Effect {
-                    kind: EffectKind::ModifierGain {
+                    kind: EffectKind::ModifierDelta {
                         kind: ModifierKind::Strength,
                         stacks,
                     },
@@ -286,7 +294,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     // Burst and Duplication spend their stack before the Card's effects resolve
     if burst {
         state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Burst,
                 stacks: -1,
             },
@@ -296,7 +304,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
     if duplication {
         state.effect_buf.push(Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::DuplicateNextCardPlay,
                 stacks: -1,
             },
@@ -309,7 +317,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     let bonus_wrist_blade = wrist_blade_bonus(&card, cost_effective, &state.id_relics);
 
     // X-cost repeats the effects inside the one play
-    for effect in card.card_effects[..card.card_effects_len as usize].iter() {
+    for effect in card.card_effects_play[..card.card_effects_play_len as usize].iter() {
         if matches!(effect.kind, EffectKind::CardSetupPick { .. }) && !hand_nonempty_at_start {
             continue;
         }
@@ -334,8 +342,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             _ => {}
         }
 
-        // `EffectKind::ModifierGain` scales its stacks into a single application whatever X is (e.g., Malaise)
-        if let EffectKind::ModifierGain { stacks, .. } = &mut effect.kind {
+        // `EffectKind::ModifierDelta` scales its stacks into a single application whatever X is (e.g., Malaise)
+        if let EffectKind::ModifierDelta { stacks, .. } = &mut effect.kind {
             *stacks *= mul as i16;
             state.effect_buf.push(effect);
             continue;
@@ -359,9 +367,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
     // Panache: every 5th Card played while active hits all enemies for `stacks`
     if has_modifier(char_modifiers, ModifierKind::Panache) {
-        *this_turn_panache += 1;
-        if *this_turn_panache == 5 {
-            *this_turn_panache = 0;
+        *panache_countdown -= 1;
+        if *panache_countdown == 0 {
+            *panache_countdown = PANACHE_PLAYS;
             let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
             for id_monster in id_monsters.iter().flatten().copied() {
                 state.effect_buf.push(Effect {
@@ -454,7 +462,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                     *counter = 0;
                 } else if *counter == 9 {
                     state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierGain {
+                        kind: EffectKind::ModifierDelta {
                             kind: ModifierKind::PenNib,
                             stacks: 1,
                         },
@@ -494,7 +502,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
     }
 
-    // Choke (enemy): pushed after card_effects so the played Card resolves first
+    // Choke (enemy): pushed after card_effects_play so the played Card resolves first
     for id_monster in id_monsters.iter().flatten().copied() {
         let mods_monster = &state.entities[id_monster].modifiers;
         if has_modifier(mods_monster, ModifierKind::Choke) {

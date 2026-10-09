@@ -43,8 +43,8 @@ pub static TRANSMUTATION: CardTemplate = make_card_template(
 // Upgraded
 pub static TRANSMUTATION_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = TRANSMUTATION.effects;
+    effects_play: {
+        let mut effects = TRANSMUTATION.effects_play;
         effects[0].kind = EffectKind::CardAddRandom {
             color: CardColor::Colorless,
             kind: None,

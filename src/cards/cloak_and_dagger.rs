@@ -47,8 +47,8 @@ pub static CLOAK_AND_DAGGER: CardTemplate = make_card_template(
 // Upgraded
 pub static CLOAK_AND_DAGGER_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = CLOAK_AND_DAGGER.effects;
+    effects_play: {
+        let mut effects = CLOAK_AND_DAGGER.effects_play;
         effects[1].kind = EffectKind::CardAdd {
             card_name: CardName::Shiv,
             pile: CardPile::Hand,

@@ -46,7 +46,7 @@ const OPTION_BUY_3: [Effect; 3] = buy(40, 3);
 // Leave: free below A15; costs ceil(5% max HP) at A15+
 const OPTION_LEAVE_BASE: &[Effect] = &[EFFECT_EVENT_CONSUME];
 
-// Leave at A15+: costs max HP
+// Leave at A15+: costs 5% of the max HP when chosen, not at the open
 const OPTION_LEAVE_A15: &[Effect] = &[
     Effect {
         kind: EffectKind::HealthDelta {

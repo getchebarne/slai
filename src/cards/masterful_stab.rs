@@ -36,8 +36,8 @@ pub static MASTERFUL_STAB: CardTemplate = make_card_template(
 // Upgraded
 pub static MASTERFUL_STAB_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = MASTERFUL_STAB.effects;
+    effects_play: {
+        let mut effects = MASTERFUL_STAB.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 16,
             lifesteal: false,

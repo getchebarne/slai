@@ -15,7 +15,7 @@ use crate::types::CardName;
 use crate::types::CardRarity;
 
 const BOUNCE: Effect = Effect {
-    kind: EffectKind::ModifierGain {
+    kind: EffectKind::ModifierDelta {
         kind: ModifierKind::Poison,
         stacks: 3,
     },
@@ -46,11 +46,11 @@ pub static BOUNCING_FLASK: CardTemplate = make_card_template(
 // Upgraded: one more bounce
 pub static BOUNCING_FLASK_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = BOUNCING_FLASK.effects;
+    effects_play: {
+        let mut effects = BOUNCING_FLASK.effects_play;
         effects[3] = BOUNCE; // +1 bounce
         effects
     },
-    effects_len: 4,
+    effects_play_len: 4,
     ..BOUNCING_FLASK
 };

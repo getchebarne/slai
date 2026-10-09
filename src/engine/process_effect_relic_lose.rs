@@ -29,7 +29,7 @@ pub fn process_effect_relic_lose(id_target: Option<usize>, state: &mut GameState
         }
     }
 
-    // Necronomicon leaving takes the first Necronomicurse out of the deck
+    // Necronomicon leaving takes the first Necronomicurse out of the deck; Du-Vu Doll's counter stays stale until the next deck change
     if name == RelicName::Necronomicon
         && let Some(pos) = state
             .id_card_deck

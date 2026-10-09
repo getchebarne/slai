@@ -4,7 +4,7 @@ use crate::types::RelicTier;
 
 // Applying Poison to an enemy applies 1 more
 // See:
-//    - `process_effect_modifier_gain.rs`
+//    - `process_effect_modifier_delta.rs`
 pub static SNECKO_SKULL: RelicTemplate = RelicTemplate {
     name: RelicName::SneckoSkull,
     tier: RelicTier::Common,

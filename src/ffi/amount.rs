@@ -16,6 +16,9 @@ mirror_enum!(PyDeltaSign from DeltaSign, "DeltaSign", {
 flat_variants!(PyAmount {
     Absolute => PyAmountAbsolute as "AmountAbsolute" { amount: u16 },
     Relative => PyAmountRelative as "AmountRelative" { numerator: u8, denominator: u8 },
+    RelativeMinOne => PyAmountRelativeMinOne as "AmountRelativeMinOne" { numerator: u8, denominator: u8 },
+    RelativeRounded => PyAmountRelativeRounded as "AmountRelativeRounded" { numerator: u8, denominator: u8 },
+    RelativeCeil => PyAmountRelativeCeil as "AmountRelativeCeil" { numerator: u8, denominator: u8 },
     Range => PyAmountRange as "AmountRange" { min: u16, max: u16 },
 });
 
@@ -26,19 +29,28 @@ impl From<Amount> for PyAmount {
             Amount::Relative {
                 numerator,
                 denominator,
-            }
-            | Amount::RelativeMinOne {
-                numerator,
-                denominator,
-            }
-            | Amount::RelativeRounded {
-                numerator,
-                denominator,
-            }
-            | Amount::RelativeCeil {
-                numerator,
-                denominator,
             } => Self::Relative(PyAmountRelative {
+                numerator,
+                denominator,
+            }),
+            Amount::RelativeMinOne {
+                numerator,
+                denominator,
+            } => Self::RelativeMinOne(PyAmountRelativeMinOne {
+                numerator,
+                denominator,
+            }),
+            Amount::RelativeRounded {
+                numerator,
+                denominator,
+            } => Self::RelativeRounded(PyAmountRelativeRounded {
+                numerator,
+                denominator,
+            }),
+            Amount::RelativeCeil {
+                numerator,
+                denominator,
+            } => Self::RelativeCeil(PyAmountRelativeCeil {
                 numerator,
                 denominator,
             }),
@@ -48,34 +60,45 @@ impl From<Amount> for PyAmount {
 }
 
 // Health / MaxHealth deltas never carry Range; the narrower union keeps the stub truthful
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PyAmountScalar {
-    Absolute(PyAmountAbsolute),
-    Relative(PyAmountRelative),
-}
-
-impl<'py> IntoPyObject<'py> for PyAmountScalar {
-    type Target = PyAny;
-    type Output = Bound<'py, PyAny>;
-    type Error = PyErr;
-    const OUTPUT_TYPE: PyStaticExpr = type_hint_union!(
-        <PyAmountAbsolute as PyTypeInfo>::TYPE_HINT,
-        <PyAmountRelative as PyTypeInfo>::TYPE_HINT
-    );
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        Ok(match self {
-            Self::Absolute(v) => Bound::new(py, v)?.into_any(),
-            Self::Relative(v) => Bound::new(py, v)?.into_any(),
-        })
-    }
-}
+flat_variants!(@enum PyAmountScalar {
+    Absolute => PyAmountAbsolute,
+    Relative => PyAmountRelative,
+    RelativeMinOne => PyAmountRelativeMinOne,
+    RelativeRounded => PyAmountRelativeRounded,
+    RelativeCeil => PyAmountRelativeCeil
+});
 
 impl From<Amount> for PyAmountScalar {
     fn from(amount: Amount) -> Self {
         match PyAmount::from(amount) {
-            PyAmount::Absolute(absolute) => Self::Absolute(absolute),
-            PyAmount::Relative(relative) => Self::Relative(relative),
+            PyAmount::Absolute(v) => Self::Absolute(v),
+            PyAmount::Relative(v) => Self::Relative(v),
+            PyAmount::RelativeMinOne(v) => Self::RelativeMinOne(v),
+            PyAmount::RelativeRounded(v) => Self::RelativeRounded(v),
+            PyAmount::RelativeCeil(v) => Self::RelativeCeil(v),
             PyAmount::Range(_) => unreachable!("health deltas never carry Amount::Range"),
+        }
+    }
+}
+
+// Gold deltas only truncate their fractions; the narrower union keeps the stub truthful
+flat_variants!(@enum PyAmountGold {
+    Absolute => PyAmountAbsolute,
+    Relative => PyAmountRelative,
+    Range => PyAmountRange
+});
+
+impl From<Amount> for PyAmountGold {
+    fn from(amount: Amount) -> Self {
+        match PyAmount::from(amount) {
+            PyAmount::Absolute(v) => Self::Absolute(v),
+            PyAmount::Relative(v) => Self::Relative(v),
+            PyAmount::Range(v) => Self::Range(v),
+            PyAmount::RelativeMinOne(_)
+            | PyAmount::RelativeRounded(_)
+            | PyAmount::RelativeCeil(_) => {
+                unreachable!("gold deltas carry only Absolute, Relative or Range")
+            }
         }
     }
 }

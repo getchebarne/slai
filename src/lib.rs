@@ -209,6 +209,12 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyAmountRelative;
     #[pymodule_export]
+    use super::ffi::PyAmountRelativeCeil;
+    #[pymodule_export]
+    use super::ffi::PyAmountRelativeMinOne;
+    #[pymodule_export]
+    use super::ffi::PyAmountRelativeRounded;
+    #[pymodule_export]
     use super::ffi::PyCandidatePool;
     #[pymodule_export]
     use super::ffi::PyCardCostKindFixed;
@@ -333,7 +339,7 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectMaxHealthDelta;
     #[pymodule_export]
-    use super::ffi::PyEffectModifierGain;
+    use super::ffi::PyEffectModifierDelta;
     #[pymodule_export]
     use super::ffi::PyEffectModifierMultiply;
     #[pymodule_export]
@@ -358,6 +364,10 @@ mod slai {
     use super::ffi::PyEffectRelicGrantSpecific;
     #[pymodule_export]
     use super::ffi::PyEffectRelicLose;
+    #[pymodule_export]
+    use super::ffi::PyEffectRestSmith;
+    #[pymodule_export]
+    use super::ffi::PyEffectRestToke;
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollCards;
     #[pymodule_export]

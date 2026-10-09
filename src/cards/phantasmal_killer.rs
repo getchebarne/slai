@@ -23,7 +23,7 @@ pub static PHANTASMAL_KILLER: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Phantasmal,
             stacks: 1,
         },

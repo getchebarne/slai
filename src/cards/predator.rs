@@ -33,7 +33,7 @@ pub static PREDATOR: CardTemplate = make_card_template(
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::DrawCardNextTurn,
                 stacks: 2,
             },
@@ -48,8 +48,8 @@ pub static PREDATOR: CardTemplate = make_card_template(
 // Upgraded
 pub static PREDATOR_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = PREDATOR.effects;
+    effects_play: {
+        let mut effects = PREDATOR.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 20,
             lifesteal: false,

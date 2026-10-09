@@ -23,7 +23,7 @@ pub static APPARITION: CardTemplate = make_card_template(
     true,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Intangible,
             stacks: 1,
         },

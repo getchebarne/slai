@@ -19,7 +19,7 @@ const fn move_go_airborne(flight: i16) -> Move {
     make_move(
         "Go Airborne",
         &[Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Flight,
                 stacks: flight,
             },

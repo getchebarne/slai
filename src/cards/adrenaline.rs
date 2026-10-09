@@ -44,8 +44,8 @@ pub static ADRENALINE: CardTemplate = make_card_template(
 // Upgraded
 pub static ADRENALINE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = ADRENALINE.effects;
+    effects_play: {
+        let mut effects = ADRENALINE.effects_play;
         effects[0].kind = EffectKind::EnergyDelta {
             sign: DeltaSign::Gain,
             amount: 2,

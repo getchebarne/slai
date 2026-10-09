@@ -214,7 +214,7 @@ EffectSneakyStrikeProc = _rs.EffectSneakyStrikeProc
 EffectBlockGain = _rs.EffectBlockGain
 EffectBombArm = _rs.EffectBombArm
 EffectLifestealHeal = _rs.EffectLifestealHeal
-EffectModifierGain = _rs.EffectModifierGain
+EffectModifierDelta = _rs.EffectModifierDelta
 EffectModifierMultiply = _rs.EffectModifierMultiply
 EffectEnergyDelta = _rs.EffectEnergyDelta
 EffectCardAdd = _rs.EffectCardAdd
@@ -250,6 +250,8 @@ EffectEventConsume = _rs.EffectEventConsume
 EffectCardDiscoverPick = _rs.EffectCardDiscoverPick
 EffectCardPurge = _rs.EffectCardPurge
 EffectCardUpgrade = _rs.EffectCardUpgrade
+EffectRestSmith = _rs.EffectRestSmith
+EffectRestToke = _rs.EffectRestToke
 EffectCardDuplicate = _rs.EffectCardDuplicate
 EffectCardTransform = _rs.EffectCardTransform
 EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
@@ -294,7 +296,7 @@ Effect = (
     | EffectBlockGain
     | EffectBombArm
     | EffectLifestealHeal
-    | EffectModifierGain
+    | EffectModifierDelta
     | EffectModifierMultiply
     | EffectEnergyDelta
     | EffectCardAdd
@@ -330,6 +332,8 @@ Effect = (
     | EffectCardDiscoverPick
     | EffectCardPurge
     | EffectCardUpgrade
+    | EffectRestSmith
+    | EffectRestToke
     | EffectCardDuplicate
     | EffectCardTransform
     | EffectCardPlayFromDrawTop
@@ -376,6 +380,8 @@ PendingEffect = (
     | EffectCardUpgrade
     | EffectMatchFlipSeen
     | EffectRelicLose
+    | EffectRestSmith
+    | EffectRestToke
 )
 CandidatePool = _rs.CandidatePool
 SelectionKindAll = _rs.SelectionKindAll
@@ -406,8 +412,18 @@ CardCostKind = (
 
 AmountAbsolute = _rs.AmountAbsolute
 AmountRelative = _rs.AmountRelative
+AmountRelativeMinOne = _rs.AmountRelativeMinOne
+AmountRelativeRounded = _rs.AmountRelativeRounded
+AmountRelativeCeil = _rs.AmountRelativeCeil
 AmountRange = _rs.AmountRange
-Amount = AmountAbsolute | AmountRelative | AmountRange
+Amount = (
+    AmountAbsolute
+    | AmountRelative
+    | AmountRelativeMinOne
+    | AmountRelativeRounded
+    | AmountRelativeCeil
+    | AmountRange
+)
 RestSite = _rs.RestSite
 Chest = _rs.Chest
 ChestKind = _rs.ChestKind
@@ -547,7 +563,7 @@ __all__ = [
     "EffectBlockGain",
     "EffectBombArm",
     "EffectLifestealHeal",
-    "EffectModifierGain",
+    "EffectModifierDelta",
     "EffectModifierMultiply",
     "EffectEnergyDelta",
     "EffectCardAdd",
@@ -583,6 +599,8 @@ __all__ = [
     "EffectCardDiscoverPick",
     "EffectCardPurge",
     "EffectCardUpgrade",
+    "EffectRestSmith",
+    "EffectRestToke",
     "EffectCardDuplicate",
     "EffectCardTransform",
     "EffectCardPlayFromDrawTop",
@@ -597,6 +615,9 @@ __all__ = [
     "Amount",
     "AmountAbsolute",
     "AmountRelative",
+    "AmountRelativeMinOne",
+    "AmountRelativeRounded",
+    "AmountRelativeCeil",
     "AmountRange",
     "RestSite",
     "Chest",

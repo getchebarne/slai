@@ -34,7 +34,7 @@ const fn move_buff_all(strength: i16) -> Move {
     make_move(
         "Buff",
         &[Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Strength,
                 stacks: strength,
             },

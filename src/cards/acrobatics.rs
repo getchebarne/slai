@@ -50,8 +50,8 @@ pub static ACROBATICS: CardTemplate = make_card_template(
 // Upgraded
 pub static ACROBATICS_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = ACROBATICS.effects;
+    effects_play: {
+        let mut effects = ACROBATICS.effects_play;
         effects[0].kind = EffectKind::CardDraw { count: 4 }; // +1 draw
         effects
     },

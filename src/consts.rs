@@ -81,6 +81,9 @@ pub const NIGHTMARE_COPIES: u8 = 3;
 // The Bomb: lazily armed detonation timer (see process_effect_bomb_tick)
 pub const BOMB_FUSE_TURNS: u8 = 3;
 
+// Panache hits all enemies on every 5th Card played while it is active; the count restarts each turn
+pub const PANACHE_PLAYS: u8 = 5;
+
 // Event roll-pool stakes: the widest offer any event places in `id_roll_*`
 pub const MAX_EVENT_ROLL_CARDS: usize = 2 * MATCH_AND_KEEP_ATTEMPTS as usize; // Match and Keep!
 pub const MAX_EVENT_ROLL_RELICS: usize = 2; // N'loth's two owned relics

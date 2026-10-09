@@ -5,6 +5,7 @@ use super::macros::mirror_enum;
 
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
+use crate::effect::EffectKind;
 use crate::entity::Intent;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -142,7 +143,7 @@ pub struct PyMonster {
     pub intent: Option<PyIntent>,    // None while Runic Dome hides it
     pub move_effects: Vec<PyEffect>, // The current move's Effect payload; empty when the intent is hidden
     pub move_current: Option<u8>,    // Index into the spawn-rolled moveset; None when hidden
-    pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move, and under Runic Dome only moves that ran
+    pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move, and under Runic Dome only executed moves
     pub gold_stolen: u16,      // Only relevant for Looters and Muggers
 }
 
@@ -151,7 +152,7 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
         return Vec::new();
     }
 
-    // Runic Dome hides every Monster's upcoming move; its history shows only the moves that ran
+    // Runic Dome hides every Monster's upcoming move; its history shows only the executed moves
     let move_hidden = has_relic(&state.id_relics, RelicName::RunicDome);
     let character = &state.entities[state.id_character];
     let mods_char = &character.modifiers;
@@ -167,11 +168,11 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
             let len_history = monster.monster_move_history_len as usize;
             let move_history = &monster.monster_move_history[..len_history];
             let move_history = if move_hidden {
-                // The upcoming move and any move replaced before it ran were never seen
+                // The upcoming move and any move replaced before it executed were never seen
                 move_history
                     .iter()
-                    .zip(&monster.monster_move_history_ran[..len_history])
-                    .filter(|(_, ran)| **ran)
+                    .zip(&monster.monster_move_history_exec[..len_history])
+                    .filter(|(_, executed)| **executed)
                     .map(|(&move_idx, _)| move_idx)
                     .collect()
             } else {
@@ -228,9 +229,18 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     scaled
                 });
 
+                // Divider's locked damage replaces the template's placeholder, as MoveExecute does
                 let move_effects = mv.effects[..mv.effects_len as usize]
                     .iter()
-                    .map(snapshot_effect)
+                    .map(|&effect| {
+                        let mut effect = effect;
+                        if let Some(damage) = monster.monster_move_damage_override
+                            && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
+                        {
+                            *amount = damage;
+                        }
+                        snapshot_effect(&effect)
+                    })
                     .collect();
                 (
                     Some(PyIntent {

@@ -41,8 +41,8 @@ pub static ESCAPE_PLAN: CardTemplate = make_card_template(
 // Upgraded
 pub static ESCAPE_PLAN_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = ESCAPE_PLAN.effects;
+    effects_play: {
+        let mut effects = ESCAPE_PLAN.effects_play;
         effects[1].kind = EffectKind::EscapePlanCheck { block: 5 }; // +2 block
         effects
     },

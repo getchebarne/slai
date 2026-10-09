@@ -13,7 +13,7 @@ pub static SPEED: PotionTemplate = PotionTemplate {
     doubled: false,
     effects: &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Dexterity,
                 stacks: 5,
             },
@@ -21,7 +21,7 @@ pub static SPEED: PotionTemplate = PotionTemplate {
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::LoseDexterity,
                 stacks: 5,
             },
@@ -35,7 +35,7 @@ pub static SPEED_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Dexterity,
                 stacks: 10,
             },
@@ -43,7 +43,7 @@ pub static SPEED_DOUBLED: PotionTemplate = PotionTemplate {
             target: TARGET_CHARACTER,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::LoseDexterity,
                 stacks: 10,
             },

@@ -23,7 +23,7 @@ pub static FOOTWORK: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Dexterity,
             stacks: 2,
         },
@@ -37,9 +37,9 @@ pub static FOOTWORK: CardTemplate = make_card_template(
 // Upgraded
 pub static FOOTWORK_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = FOOTWORK.effects;
-        effects[0].kind = EffectKind::ModifierGain {
+    effects_play: {
+        let mut effects = FOOTWORK.effects_play;
+        effects[0].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Dexterity,
             stacks: 3, // +1 dexterity
         };

@@ -43,8 +43,8 @@ pub static HEEL_HOOK: CardTemplate = make_card_template(
 // Upgraded
 pub static HEEL_HOOK_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = HEEL_HOOK.effects;
+    effects_play: {
+        let mut effects = HEEL_HOOK.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 8,
             lifesteal: false,

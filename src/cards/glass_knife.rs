@@ -52,8 +52,8 @@ pub static GLASS_KNIFE: CardTemplate = make_card_template(
 // Upgraded
 pub static GLASS_KNIFE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = GLASS_KNIFE.effects;
+    effects_play: {
+        let mut effects = GLASS_KNIFE.effects_play;
         let upgraded_kind = EffectKind::DamagePhysical {
             amount: 12,
             lifesteal: false,

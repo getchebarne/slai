@@ -333,14 +333,14 @@ pub fn push_move_history(entity: &mut Entity, move_idx: u8) {
     // A newly chosen move hasn't run yet
     if len < MAX_MOVE_HISTORY {
         entity.monster_move_history[len] = move_idx;
-        entity.monster_move_history_ran[len] = false;
+        entity.monster_move_history_exec[len] = false;
         entity.monster_move_history_len += 1;
     } else {
         // Marathon combat: drop the oldest, keep the last `MAX_MOVE_HISTORY` moves
         entity.monster_move_history.copy_within(1.., 0);
         entity.monster_move_history[MAX_MOVE_HISTORY - 1] = move_idx;
-        entity.monster_move_history_ran.copy_within(1.., 0);
-        entity.monster_move_history_ran[MAX_MOVE_HISTORY - 1] = false;
+        entity.monster_move_history_exec.copy_within(1.., 0);
+        entity.monster_move_history_exec[MAX_MOVE_HISTORY - 1] = false;
     }
 
     // Use counts never drop a move: once-per-combat latches read them
@@ -569,7 +569,7 @@ pub const fn move_buff(name: &'static str, kind: ModifierKind, stacks: i16) -> M
     make_move(
         name,
         &[Effect {
-            kind: EffectKind::ModifierGain { kind, stacks },
+            kind: EffectKind::ModifierDelta { kind, stacks },
             id_source: None,
             target: TARGET_SOURCE,
         }],
@@ -586,7 +586,7 @@ pub const fn move_debuff(
     make_move(
         name,
         &[Effect {
-            kind: EffectKind::ModifierGain { kind, stacks },
+            kind: EffectKind::ModifierDelta { kind, stacks },
             id_source: None,
             target: TARGET_CHARACTER,
         }],
@@ -612,7 +612,7 @@ pub const fn move_attack_debuff(
                 target: TARGET_CHARACTER,
             },
             Effect {
-                kind: EffectKind::ModifierGain { kind, stacks },
+                kind: EffectKind::ModifierDelta { kind, stacks },
                 id_source: None,
                 target: TARGET_CHARACTER,
             },
@@ -678,7 +678,7 @@ pub const fn move_block_buff(name: &'static str, block: u16, strength: i16) -> M
         name,
         &[
             Effect {
-                kind: EffectKind::ModifierGain {
+                kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::Strength,
                     stacks: strength,
                 },

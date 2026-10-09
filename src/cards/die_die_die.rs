@@ -36,8 +36,8 @@ pub static DIE_DIE_DIE: CardTemplate = make_card_template(
 // Upgraded
 pub static DIE_DIE_DIE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DIE_DIE_DIE.effects;
+    effects_play: {
+        let mut effects = DIE_DIE_DIE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 17,
             lifesteal: false,

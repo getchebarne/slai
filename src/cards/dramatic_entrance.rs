@@ -36,8 +36,8 @@ pub static DRAMATIC_ENTRANCE: CardTemplate = make_card_template(
 // Upgraded
 pub static DRAMATIC_ENTRANCE_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = DRAMATIC_ENTRANCE.effects;
+    effects_play: {
+        let mut effects = DRAMATIC_ENTRANCE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 12,
             lifesteal: false,

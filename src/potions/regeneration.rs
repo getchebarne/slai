@@ -12,7 +12,7 @@ pub static REGENERATION: PotionTemplate = PotionTemplate {
     combat_only: true,
     doubled: false,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Regeneration,
             stacks: 5,
         },
@@ -24,7 +24,7 @@ pub static REGENERATION: PotionTemplate = PotionTemplate {
 pub static REGENERATION_DOUBLED: PotionTemplate = PotionTemplate {
     doubled: true,
     effects: &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Regeneration,
             stacks: 10,
         },

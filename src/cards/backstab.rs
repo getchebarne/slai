@@ -36,8 +36,8 @@ pub static BACKSTAB: CardTemplate = make_card_template(
 // Upgraded
 pub static BACKSTAB_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = BACKSTAB.effects;
+    effects_play: {
+        let mut effects = BACKSTAB.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 15,
             lifesteal: false,

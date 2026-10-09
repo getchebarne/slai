@@ -2,6 +2,7 @@ use pyo3::prelude::*;
 
 use crate::game::GameState;
 use crate::types::ChestKind;
+use crate::types::EventName;
 
 use super::card::PyCard;
 use super::card::snapshot_card;
@@ -10,6 +11,7 @@ use super::effect::snapshot_effect;
 use super::event::PyEventName;
 use super::macros::mirror_enum;
 use super::monster::PyMonster;
+use super::monster::PyMonsterEncounter;
 use super::monster::snapshot_monsters;
 use super::potion::PyPotion;
 use super::potion::snapshot_potion;
@@ -50,13 +52,15 @@ pub struct PyCombat {
     pub pile_draw: Vec<PyCard>,
     pub pile_discard: Vec<PyCard>,
     pub pile_exhaust: Vec<PyCard>,
-    pub pile_stasis: Vec<PyCard>,
     pub pile_queue: Vec<PyCard>,
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
+    pub pile_stasis: Vec<Option<PyCard>>, // Parallel to `monsters`: the Card each one holds in Stasis
     pub pile_discover: Vec<PyCard>,
     pub bombs: Vec<(u8, u16)>,
     pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
+    pub panache_countdown: u8,       // Plays left until Panache's hit
+    pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
 }
 
 #[pyclass(
@@ -115,9 +119,11 @@ pub struct PyEvent {
     pub consumed: bool,
     pub stage: u8,
     pub options: Vec<Vec<PyEffect>>,
+    pub health_max_at_open: u16,
     pub roll_cards: Vec<PyCard>,
     pub roll_relics: Vec<PyRelic>,
     pub roll_potions: Vec<PyPotion>,
+    pub adventurer_elite: Option<PyMonsterEncounter>, // Only while the event is Dead Adventurer
     pub found_gold: bool,
     pub found_nothing: bool,
     pub found_relic: bool,
@@ -180,12 +186,6 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        pile_stasis: combat
-            .id_card_stasis
-            .iter()
-            .flatten()
-            .map(|&id| snapshot_card(state, id))
-            .collect(),
         pile_queue: state
             .card_play_queue
             .iter()
@@ -196,6 +196,15 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             energy_max: combat.energy.energy_max,
         },
         monsters: snapshot_monsters(state),
+        // Walks the filled roster slots as `monsters` does, so the two line up
+        pile_stasis: combat
+            .id_monsters
+            .iter()
+            .zip(&combat.id_card_stasis)
+            .filter_map(|(&id_monster, &id_card)| {
+                id_monster.map(|_| id_card.map(|id_card| snapshot_card(state, id_card)))
+            })
+            .collect(),
         pile_discover: combat
             .id_card_discover
             .iter()
@@ -207,6 +216,8 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
+        panache_countdown: combat.panache_countdown,
+        this_turn_discards: combat.this_turn_discards,
     }
 }
 
@@ -292,7 +303,10 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
                     .collect()
             })
             .collect(),
+        health_max_at_open: event.health_max_at_open,
         consumed: event.consumed,
+        adventurer_elite: (event.name == EventName::DeadAdventurer)
+            .then_some(event.adventurer_elite.into()),
         roll_cards: event
             .id_roll_card
             .iter()

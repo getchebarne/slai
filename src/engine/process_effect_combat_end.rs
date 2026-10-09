@@ -19,6 +19,7 @@ use crate::game::GameState;
 use crate::game::Location;
 use crate::map::get_active_room_kind;
 use crate::modifier::modifier_clear;
+use crate::relics::RELIC_COUNTERS_COMBAT_ONLY;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::types::RoomKind;
@@ -37,6 +38,13 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
     // Clear the Character's modifiers and block
     modifier_clear(&mut state.entities[state.id_character].modifiers);
     state.entities[state.id_character].vitals.block = 0;
+
+    // Combat-only Relic counters read 0 until the next combat
+    for &name in RELIC_COUNTERS_COMBAT_ONLY {
+        if let Some(id) = state.id_relics[name as usize] {
+            state.entities[id].relic_counter = 0;
+        }
+    }
 
     // Card plays still waiting never start
     state.card_play_queue.clear();

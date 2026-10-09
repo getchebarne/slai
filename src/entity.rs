@@ -102,7 +102,7 @@ pub struct Entity {
     pub monster_move_damage_override: Option<u16>, // Only used by "Hexaghost"
     pub monster_move_current: Option<usize>,
     pub monster_move_history: [u8; MAX_MOVE_HISTORY],
-    pub monster_move_history_ran: [bool; MAX_MOVE_HISTORY], // Per history entry: the chosen move ran; a replaced one never does
+    pub monster_move_history_exec: [bool; MAX_MOVE_HISTORY], // Per history entry: the chosen move executed; a replaced one never does
     pub monster_move_history_len: u8,
     pub monster_move_uses: [u8; MAX_MONSTER_MOVES],
     pub monster_cycle_count: u8,         // Only used by "The Guardian"
@@ -125,10 +125,10 @@ pub struct Entity {
     pub card_cost_kind: CardCostKind,
     pub card_cost_override: Option<CostOverride>,
     pub card_free_to_play_once: bool, // Setup / Forethought: the Card's next play costs 0, whatever its cost
-    pub card_effects: [Effect; MAX_EFFECTS_PER_CARD],
-    pub card_effects_len: u8,
-    pub card_on_discard_effects: &'static [Effect],
-    pub card_effects_on_draw: &'static [Effect],
+    pub card_effects_play: [Effect; MAX_EFFECTS_PER_CARD],
+    pub card_effects_play_len: u8,
+    pub card_effects_discard: &'static [Effect],
+    pub card_effects_draw: &'static [Effect],
 
     // Room-only
     pub room_y: usize,
@@ -179,7 +179,7 @@ pub const ENTITY_ZERO: Entity = Entity {
     monster_move_damage_override: None,
     monster_move_current: None,
     monster_move_history: [0; MAX_MOVE_HISTORY],
-    monster_move_history_ran: [false; MAX_MOVE_HISTORY],
+    monster_move_history_exec: [false; MAX_MOVE_HISTORY],
     monster_move_history_len: 0,
     monster_move_uses: [0; MAX_MONSTER_MOVES],
     monster_cycle_count: 0,
@@ -199,10 +199,10 @@ pub const ENTITY_ZERO: Entity = Entity {
     card_cost_kind: CardCostKind::Fixed,
     card_cost_override: None,
     card_free_to_play_once: false,
-    card_effects: [EFFECT_ZERO; MAX_EFFECTS_PER_CARD],
-    card_effects_len: 0,
-    card_on_discard_effects: &[],
-    card_effects_on_draw: &[],
+    card_effects_play: [EFFECT_ZERO; MAX_EFFECTS_PER_CARD],
+    card_effects_play_len: 0,
+    card_effects_discard: &[],
+    card_effects_draw: &[],
     room_y: 0,
     room_x: 0,
     room_kind: RoomKind::CombatBoss,

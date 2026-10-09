@@ -32,7 +32,7 @@ pub static POISONED_STAB: CardTemplate = make_card_template(
             target: TARGET_MONSTER_PICKED,
         },
         Effect {
-            kind: EffectKind::ModifierGain {
+            kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Poison,
                 stacks: 3,
             },
@@ -47,13 +47,13 @@ pub static POISONED_STAB: CardTemplate = make_card_template(
 // Upgraded: +2 damage, +1 poison
 pub static POISONED_STAB_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = POISONED_STAB.effects;
+    effects_play: {
+        let mut effects = POISONED_STAB.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 8,
             lifesteal: false,
         }; // +2 damage
-        effects[1].kind = EffectKind::ModifierGain {
+        effects[1].kind = EffectKind::ModifierDelta {
             kind: ModifierKind::Poison,
             stacks: 4, // +1 poison
         };

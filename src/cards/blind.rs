@@ -24,7 +24,7 @@ pub static BLIND: CardTemplate = make_card_template(
     false,
     false,
     &[Effect {
-        kind: EffectKind::ModifierGain {
+        kind: EffectKind::ModifierDelta {
             kind: ModifierKind::Weak,
             stacks: 2,
         },
@@ -38,8 +38,8 @@ pub static BLIND: CardTemplate = make_card_template(
 // Upgraded
 pub static BLIND_PLUS: CardTemplate = CardTemplate {
     upgraded: true,
-    effects: {
-        let mut effects = BLIND.effects;
+    effects_play: {
+        let mut effects = BLIND.effects_play;
         effects[0].target = TARGET_MONSTERS_ALL; // Targets all Monsters
         effects
     },
