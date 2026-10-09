@@ -20,27 +20,11 @@ const MODE_SHIFT_STACKS_35: i16 = 35;
 const MODE_SHIFT_STACKS_40: i16 = 40;
 pub const DEFENSIVE_MODE_BLOCK: u16 = 20;
 
-// Twin Slam: two hits, ModeShift refresh, SharpHide drop
+// Twin Slam: Mode Shift arms ahead of the two hits, so their Thorns count; Sharp Hide drops; a count short of a break starts over from the full threshold
 const fn move_twin_slam(mode_shift_stacks: i16) -> Move {
     make_move(
         "Twin Slam",
         &[
-            Effect {
-                kind: EffectKind::DamagePhysical {
-                    amount: 8,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: TARGET_CHARACTER,
-            },
-            Effect {
-                kind: EffectKind::DamagePhysical {
-                    amount: 8,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: TARGET_CHARACTER,
-            },
             Effect {
                 kind: EffectKind::ModifierDelta {
                     kind: ModifierKind::ModeShift,
@@ -50,8 +34,39 @@ const fn move_twin_slam(mode_shift_stacks: i16) -> Move {
                 target: TARGET_SOURCE,
             },
             Effect {
+                kind: EffectKind::DamagePhysical {
+                    amount: 8,
+                    lifesteal: false,
+                },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
+                kind: EffectKind::DamagePhysical {
+                    amount: 8,
+                    lifesteal: false,
+                },
+                id_source: None,
+                target: TARGET_CHARACTER,
+            },
+            Effect {
                 kind: EffectKind::ModifierRemove {
                     kind: ModifierKind::SharpHide,
+                },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::ModifierRemove {
+                    kind: ModifierKind::ModeShift,
+                },
+                id_source: None,
+                target: TARGET_SOURCE,
+            },
+            Effect {
+                kind: EffectKind::ModifierDelta {
+                    kind: ModifierKind::ModeShift,
+                    stacks: mode_shift_stacks,
                 },
                 id_source: None,
                 target: TARGET_SOURCE,
@@ -186,7 +201,7 @@ const IDX_MOVE_CHARGING_UP: usize = 0;
 const IDX_MOVE_FIERCE_BASH: usize = 1;
 const IDX_MOVE_VENT_STEAM: usize = 2;
 const IDX_MOVE_WHIRLWIND: usize = 3;
-const IDX_MOVE_DEFENSIVE_MODE: usize = 4;
+pub const IDX_MOVE_DEFENSIVE_MODE: usize = 4;
 const IDX_MOVE_ROLL_ATTACK: usize = 5;
 pub const IDX_MOVE_TWIN_SLAM: usize = 6;
 

@@ -1,11 +1,14 @@
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
+use crate::effect::CardPlay;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::PlaySource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::effect::TurnMonstersStage;
 use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -23,7 +26,7 @@ use crate::utils::has_relic;
 use crate::utils::hook_order;
 use crate::utils::shuffle;
 
-// The Character's turn ends in two passes: its Relics, Plated Armor and self-playing Cards now; its other Modifiers and the discard land behind what those set off
+// The Character's turn ends in two passes: its Relics and Plated Armor now, then each self-playing Card as a waiting play; its other Modifiers and the discard wait behind all of it
 pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     assert!(
         state.combat.active,
@@ -38,6 +41,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             id_card_exhaust,
             id_card_stasis,
             this_turn_discards,
+            energy,
             ..
         } = &mut state.combat;
 
@@ -61,11 +65,10 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             }
         }
 
-        // Clear effect buffer. The Relic and Card effects below go through effect_buf so they
-        // resolve in order, ahead of the landing pass
+        // Clear effect buffer. The Relic and Plated Armor effects below go through effect_buf so they resolve in order
         state.effect_buf.clear();
 
-        // What the turn applied stops being new before Doubt and Shame land; TurnMonsters re-clears Vulnerable
+        // What the turn applied stops being new before Doubt and Shame land; the first Monster turn start re-clears Vulnerable
         modifier_set_not_new(&mut state.entities[state.id_character].modifiers);
 
         // Orichalcum: Character gains 6 block if it has none, ahead of the other turn-end Relics
@@ -113,72 +116,28 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             });
         }
 
-        // Burn / Decay / Regret / Doubt / Shame play themselves out of hand
+        // Burn / Decay / Regret / Doubt / Shame play themselves out of hand, each once everything queued before it has resolved
+        let hand_size = id_card_hand.len() as u16;
         for &id_card in id_card_hand.iter() {
-            let card = &state.entities[id_card];
-            match card.card_name {
-                CardName::Burn => {
-                    let damage: u16 = if card.card_upgraded { 4 } else { 2 };
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::DamageDeal {
-                            amount: damage,
-                            lifesteal: false,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                CardName::Decay => {
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::DamageDeal {
-                            amount: 2,
-                            lifesteal: false,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                CardName::Regret => {
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::HealthDelta {
-                            sign: DeltaSign::Loss,
-                            amount: Amount::Absolute(id_card_hand.len() as u16),
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                CardName::Doubt => {
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierDelta {
-                            kind: ModifierKind::Weak,
-                            stacks: 1,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                CardName::Shame => {
-                    state.effect_buf.push(Effect {
-                        kind: EffectKind::ModifierDelta {
-                            kind: ModifierKind::Frail,
-                            stacks: 1,
-                        },
-                        id_source: None,
-                        target: Target::Direct(Some(state.id_character)),
-                    });
-                }
-                _ => continue,
+            if matches!(
+                state.entities[id_card].card_name,
+                CardName::Burn
+                    | CardName::Decay
+                    | CardName::Regret
+                    | CardName::Doubt
+                    | CardName::Shame
+            ) {
+                state.card_play_queue.push_back(CardPlay {
+                    id_card,
+                    id_target: None,
+                    play_source: PlaySource::TurnEnd { hand_size },
+                    energy: energy.energy_current,
+                });
             }
-            state.effect_buf.push(Effect {
-                kind: EffectKind::CardPlayRelocate,
-                id_source: None,
-                target: Target::Direct(Some(id_card)),
-            });
         }
 
-        // The end-of-turn Modifiers and the discard wait for the Cards above
-        state.effect_buf.push(Effect {
+        // The end-of-turn Modifiers and the discard wait for the Cards above and all they set off
+        state.phase_queue.push_back(Effect {
             kind: EffectKind::TurnEndCharacter { landing: true },
             id_source: None,
             target: Target::Direct(None),
@@ -397,9 +356,11 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         }
     }
 
-    // The Monsters' turns wait for the exhausts and discards and what they set off (Dead Branch's Card)
+    // The Monster turns start as an ordinary effect behind the exhausts and discards (Dead Branch's Card), not a phase: what is queued before it runs lands ahead of them, what is queued after lands behind
     state.effect_queue.push_back(Effect {
-        kind: EffectKind::TurnMonsters,
+        kind: EffectKind::TurnMonsters {
+            stage: TurnMonstersStage::TurnStarts,
+        },
         id_source: None,
         target: Target::Direct(None),
     });

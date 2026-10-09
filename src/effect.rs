@@ -131,8 +131,11 @@ pub enum EffectKind {
     DamagePhysicalIfPoisoned {
         amount: u16,
     },
-    Death,
+    Death {
+        with_leader: bool, // A Minion its leader's death takes down
+    },
     DebuffsClear,
+    DefensiveMode,
     DistractionAdd,
     DuVuDollRecount,
     EnergyDelta {
@@ -180,6 +183,7 @@ pub enum EffectKind {
         on_owner: bool,
     },
     KnowingSkullCostBump,
+    LagavulinWake,
     MatchFlipSeen,
     MatchFlipUnseen,
     MausoleumOpen,
@@ -302,7 +306,9 @@ pub enum EffectKind {
         landing: bool, // The second pass, which TurnEndCharacter queues for itself
     },
     TurnEndMonster,
-    TurnMonsters,
+    TurnMonsters {
+        stage: TurnMonstersStage,
+    },
     TurnStartCharacter,
     TurnStartMonster,
     UnloadDiscard,
@@ -363,6 +369,15 @@ pub enum PlaySource {
     Hand,
     DrawTop,
     Replay,
+    TurnEnd { hand_size: u16 }, // A Card playing itself out of hand; Regret loses the hand size as the turn ended
+}
+
+// The Monsters' half of the round, each stage waiting for everything queued before it
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TurnMonstersStage {
+    TurnStarts, // Every Monster's turn starts, its Poison tick with it
+    Moves,      // The Monsters still standing act one at a time
+    RoundEnd,   // Every Monster's turn ends, then the Character's next turn starts
 }
 
 // A Card play waiting in the card play queue; it starts once every queued effect has resolved
