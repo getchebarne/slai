@@ -12,7 +12,7 @@ use crate::types::RelicTier;
 pub static STONE_CALENDAR: RelicTemplate = RelicTemplate {
     name: RelicName::StoneCalendar,
     tier: RelicTier::Rare,
-    counter_init: -1,
+    counter_init: 0,
     counter_reset: 7,
     effects_combat_start: &[],
     effects_turn_start: &[],

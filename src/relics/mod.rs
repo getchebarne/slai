@@ -246,7 +246,7 @@ pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
     RelicName::CentennialPuzzle,
 ];
 
-// Relic counters that count only in combat; -1 hides them after every combat, and each one's template counter_init is -1 too
+// Relic counters that count only in combat; they read 0 between combats
 pub const RELIC_COUNTERS_COMBAT_ONLY: &[RelicName] = &[
     RelicName::Kunai,
     RelicName::Shuriken,
@@ -258,25 +258,6 @@ pub const RELIC_COUNTERS_COMBAT_ONLY: &[RelicName] = &[
     RelicName::HornCleat,
     RelicName::CaptainsWheel,
 ];
-
-// Every combat-only Relic counter starts hidden
-const _: () = {
-    let mut idx = 0;
-    while idx < ALL_RELICS.len() {
-        let relic = ALL_RELICS[idx];
-        let mut jdx = 0;
-        while jdx < RELIC_COUNTERS_COMBAT_ONLY.len() {
-            if RELIC_COUNTERS_COMBAT_ONLY[jdx] as usize == relic.name as usize {
-                assert!(
-                    relic.counter_init == -1,
-                    "combat-only Relic counters start at -1"
-                );
-            }
-            jdx += 1;
-        }
-        idx += 1;
-    }
-};
 
 pub fn iter_owned_relics(
     id_relics: &[Option<usize>; RelicName::COUNT],

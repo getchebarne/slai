@@ -11,7 +11,7 @@ use crate::types::RelicTier;
 pub static KUNAI: RelicTemplate = RelicTemplate {
     name: RelicName::Kunai,
     tier: RelicTier::Uncommon,
-    counter_init: -1,
+    counter_init: 0,
     counter_reset: 3,
     effects_combat_start: &[],
     effects_turn_start: &[],

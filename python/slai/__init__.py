@@ -250,6 +250,8 @@ EffectEventConsume = _rs.EffectEventConsume
 EffectCardDiscoverPick = _rs.EffectCardDiscoverPick
 EffectCardPurge = _rs.EffectCardPurge
 EffectCardUpgrade = _rs.EffectCardUpgrade
+EffectRestSmith = _rs.EffectRestSmith
+EffectRestToke = _rs.EffectRestToke
 EffectCardDuplicate = _rs.EffectCardDuplicate
 EffectCardTransform = _rs.EffectCardTransform
 EffectCardPlayFromDrawTop = _rs.EffectCardPlayFromDrawTop
@@ -328,6 +330,8 @@ Effect = (
     | EffectCardDiscoverPick
     | EffectCardPurge
     | EffectCardUpgrade
+    | EffectRestSmith
+    | EffectRestToke
     | EffectCardDuplicate
     | EffectCardTransform
     | EffectCardPlayFromDrawTop
@@ -371,6 +375,8 @@ PendingEffect = (
     | EffectCardTransform
     | EffectCardUpgrade
     | EffectRelicLose
+    | EffectRestSmith
+    | EffectRestToke
 )
 CandidatePool = _rs.CandidatePool
 SelectionKindAll = _rs.SelectionKindAll
@@ -578,6 +584,8 @@ __all__ = [
     "EffectCardDiscoverPick",
     "EffectCardPurge",
     "EffectCardUpgrade",
+    "EffectRestSmith",
+    "EffectRestToke",
     "EffectCardDuplicate",
     "EffectCardTransform",
     "EffectCardPlayFromDrawTop",

@@ -11,7 +11,7 @@ use crate::types::RelicTier;
 pub static CAPTAINS_WHEEL: RelicTemplate = RelicTemplate {
     name: RelicName::CaptainsWheel,
     tier: RelicTier::Rare,
-    counter_init: -1,
+    counter_init: 0,
     counter_reset: 3,
     effects_combat_start: &[],
     effects_turn_start: &[],

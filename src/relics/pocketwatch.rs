@@ -9,7 +9,7 @@ use crate::types::RelicTier;
 pub static POCKETWATCH: RelicTemplate = RelicTemplate {
     name: RelicName::Pocketwatch,
     tier: RelicTier::Rare,
-    counter_init: -1,
+    counter_init: 0,
     counter_reset: 0,
     effects_combat_start: &[],
     effects_turn_start: &[],

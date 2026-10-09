@@ -2,13 +2,12 @@ use crate::relics::RelicTemplate;
 use crate::types::RelicName;
 use crate::types::RelicTier;
 
-// The counter holds its one charge; spent, it reads -2
 // See:
 //    - `process_effect_chest_open.rs` (the next chest opened is empty)
 pub static NLOTHS_HUNGRY_FACE: RelicTemplate = RelicTemplate {
     name: RelicName::NlothsHungryFace,
     tier: RelicTier::Special,
-    counter_init: 1,
+    counter_init: 0,
     counter_reset: 0,
     effects_combat_start: &[],
     effects_turn_start: &[],

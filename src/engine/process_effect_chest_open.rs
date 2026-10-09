@@ -148,13 +148,11 @@ pub fn process_effect_chest_open(state: &mut GameState) {
         },
     );
 
-    // N'loth's Hungry Face: its one charge empties the chest of a Relic; spent, it reads -2
+    // N'loth's Hungry Face: its one charge empties the chest of a Relic, which uses it up
     if let Some(id) = state.id_relics[RelicName::NlothsHungryFace as usize]
         && !state.entities[id].relic_used_up
     {
-        let relic = &mut state.entities[id];
-        relic.relic_counter = -2;
-        relic.relic_used_up = true;
+        state.entities[id].relic_used_up = true;
         queue_effect_untargeted(state, EffectKind::RelicRewardRemoveOne);
     }
 }

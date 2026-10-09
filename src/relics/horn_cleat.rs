@@ -11,7 +11,7 @@ use crate::types::RelicTier;
 pub static HORN_CLEAT: RelicTemplate = RelicTemplate {
     name: RelicName::HornCleat,
     tier: RelicTier::Uncommon,
-    counter_init: -1,
+    counter_init: 0,
     counter_reset: 2,
     effects_combat_start: &[],
     effects_turn_start: &[],

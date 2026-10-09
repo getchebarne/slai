@@ -28,7 +28,7 @@ pub static TOOLBOX: RelicTemplate = RelicTemplate {
             id_source: None,
             target: Target::Direct(None),
         },
-        effect_discover_pick(None, CardPile::Hand),
+        effect_discover_pick(None, CardPile::Hand, 1, false),
     ],
     effects_turn_start: &[],
     effects_turn_end: &[],

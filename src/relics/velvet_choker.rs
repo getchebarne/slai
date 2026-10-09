@@ -10,7 +10,7 @@ use crate::types::RelicTier;
 pub static VELVET_CHOKER: RelicTemplate = RelicTemplate {
     name: RelicName::VelvetChoker,
     tier: RelicTier::Boss,
-    counter_init: -1,
+    counter_init: 0,
     counter_reset: 0,
     effects_combat_start: &[],
     effects_turn_start: &[],

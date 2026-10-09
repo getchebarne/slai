@@ -11,7 +11,7 @@ use crate::types::RelicTier;
 pub static LETTER_OPENER: RelicTemplate = RelicTemplate {
     name: RelicName::LetterOpener,
     tier: RelicTier::Uncommon,
-    counter_init: -1,
+    counter_init: 0,
     counter_reset: 3,
     effects_combat_start: &[],
     effects_turn_start: &[],

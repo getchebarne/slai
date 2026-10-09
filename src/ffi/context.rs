@@ -53,6 +53,7 @@ pub struct PyCombat {
     pub pile_queue: Vec<PyCard>,
     pub energy: PyEnergy,
     pub monsters: Vec<PyMonster>,
+    pub pile_stasis: Vec<Option<PyCard>>, // Parallel to `monsters`: the Card each one holds in Stasis
     pub pile_discover: Vec<PyCard>,
     pub bombs: Vec<(u8, u16)>,
     pub pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
@@ -186,6 +187,15 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             energy_max: combat.energy.energy_max,
         },
         monsters: snapshot_monsters(state),
+        // Walks the filled roster slots as `monsters` does, so the two line up
+        pile_stasis: combat
+            .id_monsters
+            .iter()
+            .zip(&combat.id_card_stasis)
+            .filter_map(|(&id_monster, &id_card)| {
+                id_monster.map(|_| id_card.map(|id_card| snapshot_card(state, id_card)))
+            })
+            .collect(),
         pile_discover: combat
             .id_card_discover
             .iter()

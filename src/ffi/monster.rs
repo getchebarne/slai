@@ -3,8 +3,6 @@ use strum::IntoEnumIterator;
 
 use super::macros::mirror_enum;
 
-use super::card::PyCard;
-use super::card::snapshot_card;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 use crate::effect::EffectKind;
@@ -147,7 +145,6 @@ pub struct PyMonster {
     pub move_current: Option<u8>,    // Index into the spawn-rolled moveset
     pub move_history: Vec<u8>, // Selection-ordered move indices; the last entry IS the current move
     pub gold_stolen: u16,      // Only relevant for Looters and Muggers
-    pub card_stasis: Option<PyCard>, // The Card a Bronze Orb holds in Stasis
 }
 
 pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
@@ -156,17 +153,13 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
     }
     let character = &state.entities[state.id_character];
     let mods_char = &character.modifiers;
-
-    // A roster slot's Stasis Card belongs to the Monster standing in it
     state
         .combat
         .id_monsters
         .iter()
-        .zip(&state.combat.id_card_stasis)
-        .filter_map(|(&id_monster, &id_card_stasis)| {
-            id_monster.map(|id_monster| (id_monster, id_card_stasis))
-        })
-        .map(|(id_monster, id_card_stasis)| {
+        .flatten()
+        .copied()
+        .map(|id_monster| {
             let monster = &state.entities[id_monster];
 
             let (intent, move_effects) = if let Some(move_idx) = monster.monster_move_current {
@@ -263,7 +256,6 @@ pub(crate) fn snapshot_monsters(state: &GameState) -> Vec<PyMonster> {
                     [..monster.monster_move_history_len as usize]
                     .to_vec(),
                 gold_stolen: monster.monster_gold_stolen,
-                card_stasis: id_card_stasis.map(|id_card| snapshot_card(state, id_card)),
             }
         })
         .collect()
