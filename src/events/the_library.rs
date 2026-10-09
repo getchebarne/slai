@@ -1,7 +1,9 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
 use crate::effect::RewardRollTrigger;
+use crate::effect::Rounding;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -30,9 +32,11 @@ const fn sleep(numerator: u8, denominator: u8) -> [Effect; 2] {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,
-                amount: Amount::RelativeRounded {
+                amount: Amount::Relative {
                     numerator,
                     denominator,
+                    rounding: Rounding::HalfUp,
+                    read_at: ReadAt::EventOpen,
                 },
             },
             id_source: None,

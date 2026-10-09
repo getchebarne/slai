@@ -407,18 +407,8 @@ CardCostKind = (
 
 AmountAbsolute = _rs.AmountAbsolute
 AmountRelative = _rs.AmountRelative
-AmountRelativeMinOne = _rs.AmountRelativeMinOne
-AmountRelativeRounded = _rs.AmountRelativeRounded
-AmountRelativeCeil = _rs.AmountRelativeCeil
 AmountRange = _rs.AmountRange
-Amount = (
-    AmountAbsolute
-    | AmountRelative
-    | AmountRelativeMinOne
-    | AmountRelativeRounded
-    | AmountRelativeCeil
-    | AmountRange
-)
+Amount = AmountAbsolute | AmountRelative | AmountRange
 RestSite = _rs.RestSite
 Chest = _rs.Chest
 ChestKind = _rs.ChestKind
@@ -428,6 +418,8 @@ Shop = _rs.Shop
 Event = _rs.Event
 
 DeltaSign = _rs.DeltaSign
+ReadAt = _rs.ReadAt
+Rounding = _rs.Rounding
 
 
 # Constants surface: load-bearing engine tunables (the engine's own roll/formula
@@ -610,9 +602,6 @@ __all__ = [
     "Amount",
     "AmountAbsolute",
     "AmountRelative",
-    "AmountRelativeMinOne",
-    "AmountRelativeRounded",
-    "AmountRelativeCeil",
     "AmountRange",
     "RestSite",
     "Chest",
@@ -622,6 +611,8 @@ __all__ = [
     "Shop",
     "Event",
     "DeltaSign",
+    "ReadAt",
+    "Rounding",
     # Potion
     "Potion",
     # Content catalog

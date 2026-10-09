@@ -127,7 +127,7 @@ pub struct Event {
     pub stage: u8,
     pub id_event_options: Vec<usize>,
 
-    // Max HP when the event opened; most options fix their max-HP fractions against it
+    // Max HP when the event opened; a fraction read at `ReadAt::EventOpen` resolves against it
     pub health_max_at_open: u16,
 
     // Entities the spawn rolled; options target them via the EventRoll<...> pools

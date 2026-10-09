@@ -1,6 +1,8 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::TARGET_CHARACTER;
 use crate::effect::Target;
 use crate::events::EFFECT_EVENT_CONSUME;
@@ -26,9 +28,11 @@ const fn touch(gold: u16) -> [Effect; 3] {
         Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Loss,
-                amount: Amount::RelativeMinOne {
+                amount: Amount::Relative {
                     numerator: 1,
                     denominator: 10,
+                    rounding: Rounding::TruncateMinOne,
+                    read_at: ReadAt::EventOpen,
                 },
             },
             id_source: None,

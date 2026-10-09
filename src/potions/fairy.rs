@@ -1,6 +1,8 @@
 use crate::effect::Amount;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::ReadAt;
+use crate::effect::Rounding;
 use crate::effect::TARGET_CHARACTER;
 use crate::potions::PotionTemplate;
 use crate::types::DeltaSign;
@@ -16,9 +18,11 @@ pub static FAIRY: PotionTemplate = PotionTemplate {
     effects: &[Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
-            amount: Amount::RelativeMinOne {
+            amount: Amount::Relative {
                 numerator: 30,
                 denominator: 100,
+                rounding: Rounding::TruncateMinOne,
+                read_at: ReadAt::Now,
             },
         },
         id_source: None,
@@ -31,9 +35,11 @@ pub static FAIRY_DOUBLED: PotionTemplate = PotionTemplate {
     effects: &[Effect {
         kind: EffectKind::HealthDelta {
             sign: DeltaSign::Gain,
-            amount: Amount::RelativeMinOne {
+            amount: Amount::Relative {
                 numerator: 60,
                 denominator: 100,
+                rounding: Rounding::TruncateMinOne,
+                read_at: ReadAt::Now,
             },
         },
         id_source: None,

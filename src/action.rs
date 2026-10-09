@@ -10,8 +10,10 @@ use crate::effect::CardPlay;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
+use crate::effect::ReadAt;
 use crate::effect::RelicExclusion;
 use crate::effect::RelicPick;
+use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::events::event_option_available;
@@ -45,7 +47,6 @@ use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::is_play_restriction_satisfied;
 use crate::utils::play_cap_reached;
-use crate::utils::resolve_health_fraction;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Action {
@@ -361,23 +362,8 @@ fn handle_event_option_select(state: &mut GameState, idx: usize) {
     let id_option = state.event.id_event_options[idx];
     let effects = state.entities[id_option].event_option_effects;
     let effects_len = state.entities[id_option].event_option_effects_len as usize;
-
-    // Max-HP fractions are fixed at the max HP the event opened with, except Mushrooms' and Woman in Blue's
-    let fixed_at_open = !matches!(
-        state.event.name,
-        EventName::Mushrooms | EventName::TheWomanInBlue
-    );
-    let health_max_at_open = state.event.health_max_at_open;
     for effect in &effects[..effects_len] {
-        let mut kind = effect.kind;
-        if fixed_at_open
-            && let EffectKind::HealthDelta { amount, .. }
-            | EffectKind::MaxHealthDelta { amount, .. } = &mut kind
-        {
-            *amount = Amount::Absolute(resolve_health_fraction(health_max_at_open, *amount));
-        }
         state.effect_buf.push(Effect {
-            kind,
             id_source: Some(id_option),
             ..*effect
         });
@@ -438,6 +424,8 @@ fn handle_rest(state: &mut GameState) {
             amount: Amount::Relative {
                 numerator: 3,
                 denominator: 10,
+                rounding: Rounding::Truncate,
+                read_at: ReadAt::Now,
             },
         },
         id_source: None,
