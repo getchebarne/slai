@@ -3,7 +3,6 @@ use rand::Rng;
 use crate::consts::WE_MEET_AGAIN_GOLD_ASK_MAX;
 use crate::consts::WE_MEET_AGAIN_GOLD_ASK_MIN;
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -37,7 +36,7 @@ const OPTION_GIVE_POTION: [Effect; 3] = [
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::EventRollPotion,
-            filter: CandidateFilter::Any,
+            filters: &[],
             selection_kind: SelectionKind::Single,
         },
     },
@@ -67,7 +66,7 @@ const OPTION_GIVE_CARD: [Effect; 3] = [
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::EventRollCard,
-            filter: CandidateFilter::Any,
+            filters: &[],
             selection_kind: SelectionKind::Single,
         },
     },

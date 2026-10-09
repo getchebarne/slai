@@ -446,15 +446,13 @@ pub const fn is_multi_pick(selection_kind: SelectionKind) -> bool {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CandidateFilter {
     // Compare against `Entity` fields
-    Any,
-    Purgeable,
     Upgradeable,
-    Transformable,
-    PurgeableCurse,
     KindAttack,
     KindSkill,
     KindPower,
+    KindCurse,
     Costed,
+    NotBottled,
     NotBoundCurse,
 
     // Compare against the `Target::Resolve` context
@@ -463,8 +461,7 @@ pub enum CandidateFilter {
     NotMinion,
 
     // Starter-Card predicates (Vampires, Back to Basics)
-    StarterStrike,
-    StarterUpgradeable,
+    Starter, // Strike or Defend
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -485,7 +482,8 @@ pub enum Target {
     // Resolved against live state at dequeue via `resolve_selection_kind`.
     Resolve {
         candidate_pool: CandidatePool,
-        filter: CandidateFilter,
+        // Left to right, Costed and NotSourceUnlessAlone last; an empty list keeps every candidate
+        filters: &'static [CandidateFilter],
         selection_kind: SelectionKind,
     },
 }
@@ -508,7 +506,7 @@ pub const EFFECT_ZERO: Effect = Effect {
 // The Resolve shapes static defs use almost everywhere
 pub const TARGET_CHARACTER: Target = Target::Resolve {
     candidate_pool: CandidatePool::Character,
-    filter: CandidateFilter::Any,
+    filters: &[],
     selection_kind: SelectionKind::Single,
 };
 
@@ -519,7 +517,7 @@ pub const fn effect_accuracy_resync(candidate_pool: CandidatePool) -> Effect {
         id_source: None,
         target: Target::Resolve {
             candidate_pool,
-            filter: CandidateFilter::Any,
+            filters: &[],
             selection_kind: SelectionKind::All,
         },
     }
@@ -555,7 +553,7 @@ pub const fn effect_discover_pick(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Discover,
-            filter: CandidateFilter::Any,
+            filters: &[],
             selection_kind,
         },
     }
@@ -564,18 +562,18 @@ pub const fn effect_discover_pick(
 // The pick outlives the roster slot, so a lethal hit still resolves a target
 pub const TARGET_MONSTER_PICKED: Target = Target::Resolve {
     candidate_pool: CandidatePool::MonsterPicked,
-    filter: CandidateFilter::Any,
+    filters: &[],
     selection_kind: SelectionKind::Single,
 };
 
 pub const TARGET_SOURCE: Target = Target::Resolve {
     candidate_pool: CandidatePool::Source,
-    filter: CandidateFilter::Any,
+    filters: &[],
     selection_kind: SelectionKind::Single,
 };
 
 pub const TARGET_MONSTERS_ALL: Target = Target::Resolve {
     candidate_pool: CandidatePool::Monsters,
-    filter: CandidateFilter::Any,
+    filters: &[],
     selection_kind: SelectionKind::All,
 };

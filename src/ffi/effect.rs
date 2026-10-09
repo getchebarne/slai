@@ -67,6 +67,7 @@ flat_variants!(PyEffect {
     PotionAddRandom => PyEffectPotionAddRandom as "EffectPotionAddRandom" { limited: bool, uniform: bool },
     PotionDiscard => PyEffectPotionDiscard as "EffectPotionDiscard" { target: PyTarget },
     RewardRollPotions => PyEffectRewardRollPotions as "EffectRewardRollPotions" { count: u8, trigger: PyRewardRollTrigger },
+    RewardRollGold => PyEffectRewardRollGold as "EffectRewardRollGold" { amount: PyAmount },
     CardDiscoverRoll => PyEffectCardDiscoverRoll as "EffectCardDiscoverRoll" { kind: Option<PyCardKind>, color: PyCardColor, exclude: Vec<PyCardName>, count: u8 },
     GoldDelta => PyEffectGoldDelta as "EffectGoldDelta" { sign: PyDeltaSign, amount: PyAmount },
     RelicGrantRandom => PyEffectRelicGrantRandom as "EffectRelicGrantRandom" { tier: Option<PyRelicTier>, exclusion: PyRelicExclusion },
@@ -165,11 +166,11 @@ pub(crate) fn snapshot_effect(effect: &Effect) -> PyEffect {
     let target = match effect.target {
         Target::Resolve {
             candidate_pool,
-            filter,
+            filters,
             selection_kind,
         } => Some(PyTarget {
             candidate_pool: candidate_pool.into(),
-            filter: filter.into(),
+            filters: filters.iter().map(|&filter| filter.into()).collect(),
             selection_kind: selection_kind.into(),
         }),
         Target::Direct(None) => None,
@@ -215,6 +216,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::RelicGrantRandom { .. }
                     | EffectKind::RelicGrantSpecific { .. }
                     | EffectKind::RewardRollCards { .. }
+                    | EffectKind::RewardRollGold { .. }
                     | EffectKind::RewardRollPotions { .. }
                     | EffectKind::RewardRollRelic { .. }
                     | EffectKind::ScrapOozeReach { .. }
@@ -429,6 +431,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                 trigger: trigger.into(),
             })
         }
+        EffectKind::RewardRollGold { amount } => PyEffect::RewardRollGold(PyEffectRewardRollGold {
+            amount: amount.into(),
+        }),
         EffectKind::CardDiscoverRoll {
             kind,
             color,

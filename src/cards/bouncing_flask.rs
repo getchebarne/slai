@@ -1,6 +1,5 @@
 use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -22,7 +21,7 @@ const BOUNCE: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Monsters,
-        filter: CandidateFilter::Any,
+        filters: &[],
         selection_kind: SelectionKind::Random { count: 1 },
     },
 };

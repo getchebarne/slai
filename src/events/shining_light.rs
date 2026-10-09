@@ -25,7 +25,7 @@ const fn enter(numerator: u8, denominator: u8) -> [Effect; 3] {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Deck,
-                filter: CandidateFilter::Upgradeable,
+                filters: &[CandidateFilter::Upgradeable],
                 selection_kind: SelectionKind::Random { count: 2 },
             },
         },

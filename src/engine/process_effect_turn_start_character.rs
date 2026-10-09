@@ -3,7 +3,6 @@ use strum::EnumCount;
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::consts::ENERGY_CAP;
 use crate::consts::PANACHE_PLAYS;
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
@@ -255,7 +254,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
                 id_source: None,
                 target: Target::Resolve {
                     candidate_pool: CandidatePool::Monsters,
-                    filter: CandidateFilter::Any,
+                    filters: &[],
                     selection_kind: SelectionKind::Random { count: 1 },
                 },
             });
@@ -403,7 +402,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Hand,
-                filter: CandidateFilter::Any,
+                filters: &[],
                 selection_kind: SelectionKind::Input {
                     count: stacks.max(0) as u16,
                 },

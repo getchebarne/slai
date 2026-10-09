@@ -382,14 +382,14 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
         Target::Direct(id_target) => id_target,
         Target::Resolve {
             candidate_pool,
-            filter,
+            filters,
             selection_kind,
         } => {
             let resolved = resolve_or_halt(
                 state,
                 effect.id_source,
                 candidate_pool,
-                filter,
+                filters,
                 selection_kind,
             );
             if resolved {
@@ -416,7 +416,7 @@ fn resolve_or_halt(
     state: &mut GameState,
     id_source: Option<usize>,
     candidate_pool: CandidatePool,
-    filter: CandidateFilter,
+    filters: &[CandidateFilter],
     selection_kind: SelectionKind,
 ) -> bool {
     assert!(
@@ -436,9 +436,9 @@ fn resolve_or_halt(
         &state.id_card_deck,
     );
 
-    // Stage 2: the filter retains
+    // Stage 2: the filters retain
     filter_candidates(
-        filter,
+        filters,
         &mut state.effect_candidate_buf,
         &state.entities,
         id_source,

@@ -42,7 +42,7 @@ const fn upgrade_random(count: u8) -> Effect {
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::Upgradeable,
+            filters: &[CandidateFilter::Upgradeable],
             selection_kind: SelectionKind::Random { count },
         },
     }
@@ -54,7 +54,7 @@ const EFFECT_DECK_TRANSFORM_PICK_2: Effect = Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::Deck,
-        filter: CandidateFilter::Transformable,
+        filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
         selection_kind: SelectionKind::Input { count: 2 },
     },
 };

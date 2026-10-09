@@ -268,83 +268,74 @@ pub fn entity_requires_target(entity: &Entity) -> bool {
         || effects_require_target(entity.potion_effects)
 }
 
+// Availability checks admit what the purge and transform picks' [NotBottled, NotBoundCurse] admit
 pub fn card_is_purgeable(entity: &Entity) -> bool {
-    // Bottled Cards can't be removed or transformed while bottled
-    if entity.kind != EntityKind::Card || entity.card_bottled {
-        return false;
-    }
-    !card_name_bound_curse(entity.card_name)
+    entity_matches(CandidateFilter::NotBottled, entity)
+        && entity_matches(CandidateFilter::NotBoundCurse, entity)
 }
-pub use card_is_purgeable as card_is_transformable;
 
 // Single source of truth for which candidates a Resolve admits, whatever the
 // pool. Entity predicates are total over the fat Entity; Picked / NotSource
 // compare `id` against the resolve context instead
-// One filter pass over the whole candidate set; Costed and NotSourceUnlessAlone fall back
-// on what else survives, which no single-entity test can express
+// One pass per filter, left to right; Costed and NotSourceUnlessAlone fall back on what survives
 pub fn filter_candidates(
-    filter: CandidateFilter,
+    filters: &[CandidateFilter],
     candidates: &mut Vec<usize>,
     entities: &[Entity],
     id_source: Option<usize>,
 ) {
-    match filter {
-        // Printed cost is only the fallback tier when no Card has a live one
-        CandidateFilter::Costed => {
-            let live = |entity: &Entity| {
-                !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
-                    && get_card_cost_this_turn(entity) > 0
-            };
-            let printed = |entity: &Entity| {
-                !matches!(entity.card_cost_kind, CardCostKind::XCost { .. }) && entity.card_cost > 0
-            };
-            if candidates.iter().any(|&id| live(&entities[id])) {
-                candidates.retain(|&id| live(&entities[id]));
-            } else {
-                candidates.retain(|&id| printed(&entities[id]));
+    for &filter in filters {
+        match filter {
+            // Printed cost is only the fallback tier when no Card has a live one
+            CandidateFilter::Costed => {
+                let live = |entity: &Entity| {
+                    !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
+                        && get_card_cost_this_turn(entity) > 0
+                };
+                let printed = |entity: &Entity| {
+                    !matches!(entity.card_cost_kind, CardCostKind::XCost { .. })
+                        && entity.card_cost > 0
+                };
+                if candidates.iter().any(|&id| live(&entities[id])) {
+                    candidates.retain(|&id| live(&entities[id]));
+                } else {
+                    candidates.retain(|&id| printed(&entities[id]));
+                }
             }
-        }
-        CandidateFilter::NotSource => candidates.retain(|&id| Some(id) != id_source),
-        // The last Monster standing falls back to targeting itself
-        CandidateFilter::NotSourceUnlessAlone => {
-            candidates.retain(|&id| Some(id) != id_source);
-            if candidates.is_empty()
-                && let Some(id_source) = id_source
-            {
-                candidates.push(id_source);
+            CandidateFilter::NotSource => candidates.retain(|&id| Some(id) != id_source),
+            // The last Monster standing falls back to targeting itself
+            CandidateFilter::NotSourceUnlessAlone => {
+                candidates.retain(|&id| Some(id) != id_source);
+                if candidates.is_empty()
+                    && let Some(id_source) = id_source
+                {
+                    candidates.push(id_source);
+                }
             }
+            _ => candidates.retain(|&id| entity_matches(filter, &entities[id])),
         }
-        _ => candidates.retain(|&id| entity_matches(filter, &entities[id])),
     }
 }
 
 fn entity_matches(filter: CandidateFilter, entity: &Entity) -> bool {
     match filter {
-        CandidateFilter::Any => true,
-        CandidateFilter::Purgeable => card_is_purgeable(entity),
+        CandidateFilter::NotBottled => entity.kind == EntityKind::Card && !entity.card_bottled,
         // Astrolabe, Empty Cage and Drug Dealer may take bottled Cards; only the bound curses are off-limits
         CandidateFilter::NotBoundCurse => {
             entity.kind == EntityKind::Card && !card_name_bound_curse(entity.card_name)
         }
         CandidateFilter::Upgradeable => card_is_upgradable(entity),
-        CandidateFilter::Transformable => card_is_transformable(entity),
-        CandidateFilter::PurgeableCurse => {
-            entity.card_kind == CardKind::Curse && card_is_purgeable(entity)
-        }
         CandidateFilter::KindAttack => entity.card_kind == CardKind::Attack,
         CandidateFilter::KindSkill => entity.card_kind == CardKind::Skill,
         CandidateFilter::KindPower => entity.card_kind == CardKind::Power,
+        CandidateFilter::KindCurse => entity.card_kind == CardKind::Curse,
         CandidateFilter::Costed
         | CandidateFilter::NotSource
         | CandidateFilter::NotSourceUnlessAlone => {
             unreachable!("{filter:?} is set-level; filter_candidates handles it")
         }
         CandidateFilter::NotMinion => !has_modifier(&entity.modifiers, ModifierKind::Minion),
-        CandidateFilter::StarterStrike => entity.card_name == CardName::Strike,
-        CandidateFilter::StarterUpgradeable => {
-            matches!(entity.card_name, CardName::Strike | CardName::Defend)
-                && card_is_upgradable(entity)
-        }
+        CandidateFilter::Starter => matches!(entity.card_name, CardName::Strike | CardName::Defend),
     }
 }
 

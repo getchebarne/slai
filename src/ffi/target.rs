@@ -17,9 +17,8 @@ mirror_enum!(PyCandidatePool from CandidatePool, "CandidatePool", {
 });
 
 mirror_enum!(PyCandidateFilter from CandidateFilter, "CandidateFilter", {
-    Any, Purgeable, Upgradeable, Transformable, PurgeableCurse, KindAttack, KindSkill,
-    KindPower, Costed, NotBoundCurse, NotSource, NotSourceUnlessAlone, NotMinion,
-    StarterStrike, StarterUpgradeable,
+    Upgradeable, KindAttack, KindSkill, KindPower, KindCurse, Costed, NotBottled, NotBoundCurse,
+    NotSource, NotSourceUnlessAlone, NotMinion, Starter,
 });
 
 flat_variants!(PySelectionKind {
@@ -56,6 +55,6 @@ impl From<SelectionKind> for PySelectionKind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PyTarget {
     pub candidate_pool: PyCandidatePool,
-    pub filter: PyCandidateFilter,
+    pub filters: Vec<PyCandidateFilter>,
     pub selection_kind: PySelectionKind,
 }

@@ -18,7 +18,7 @@ const OPTION_SIMPLICITY: &[Effect] = &[
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::StarterUpgradeable,
+            filters: &[CandidateFilter::Starter, CandidateFilter::Upgradeable],
             selection_kind: SelectionKind::All,
         },
     },

@@ -1,4 +1,3 @@
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::EFFECT_ACCURACY_RESYNC_HAND;
@@ -99,7 +98,7 @@ pub fn process_effect_card_discard(
                     id_source: None,
                     target: Target::Resolve {
                         candidate_pool: CandidatePool::Monsters,
-                        filter: CandidateFilter::Any,
+                        filters: &[],
                         selection_kind: SelectionKind::Random { count: 1 },
                     },
                 });

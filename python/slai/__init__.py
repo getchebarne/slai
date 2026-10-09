@@ -174,7 +174,7 @@ Monster = _rs.Monster
 Relic = _rs.Relic
 Potion = _rs.Potion
 
-# Plain struct view: how a target gets chosen (pool + filter + selection)
+# Plain struct view: how a target gets chosen (pool + filters + selection)
 Target = _rs.Target
 
 # Content catalog: immutable template views over the static definitions plus
@@ -235,6 +235,7 @@ EffectHealthDelta = _rs.EffectHealthDelta
 EffectPotionAddRandom = _rs.EffectPotionAddRandom
 EffectPotionDiscard = _rs.EffectPotionDiscard
 EffectRewardRollPotions = _rs.EffectRewardRollPotions
+EffectRewardRollGold = _rs.EffectRewardRollGold
 EffectCardDiscoverRoll = _rs.EffectCardDiscoverRoll
 EffectGoldDelta = _rs.EffectGoldDelta
 EffectRelicGrantRandom = _rs.EffectRelicGrantRandom
@@ -317,6 +318,7 @@ Effect = (
     | EffectPotionAddRandom
     | EffectPotionDiscard
     | EffectRewardRollPotions
+    | EffectRewardRollGold
     | EffectCardDiscoverRoll
     | EffectGoldDelta
     | EffectRelicGrantRandom
@@ -576,6 +578,7 @@ __all__ = [
     "EffectPotionAddRandom",
     "EffectPotionDiscard",
     "EffectRewardRollPotions",
+    "EffectRewardRollGold",
     "EffectCardDiscoverRoll",
     "EffectGoldDelta",
     "EffectRelicGrantRandom",

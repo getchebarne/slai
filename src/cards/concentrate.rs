@@ -1,6 +1,5 @@
 use crate::cards::CardTemplate;
 use crate::cards::make_card_template;
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::DiscardSource;
 use crate::effect::Effect;
@@ -34,7 +33,7 @@ pub static CONCENTRATE: CardTemplate = make_card_template(
             id_source: None,
             target: Target::Resolve {
                 candidate_pool: CandidatePool::Hand,
-                filter: CandidateFilter::Any,
+                filters: &[],
                 selection_kind: SelectionKind::Input { count: 3 },
             },
         },
@@ -58,7 +57,7 @@ pub static CONCENTRATE_PLUS: CardTemplate = CardTemplate {
         let mut effects = CONCENTRATE.effects_play;
         effects[0].target = Target::Resolve {
             candidate_pool: CandidatePool::Hand,
-            filter: CandidateFilter::Any,
+            filters: &[],
             selection_kind: SelectionKind::Input { count: 2 }, // -1 discard
         };
         effects

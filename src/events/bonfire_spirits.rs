@@ -17,7 +17,7 @@ const OPTION_OFFER: &[Effect] = &[
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Deck,
-            filter: CandidateFilter::Purgeable,
+            filters: &[CandidateFilter::NotBottled, CandidateFilter::NotBoundCurse],
             selection_kind: SelectionKind::Input { count: 1 },
         },
     },

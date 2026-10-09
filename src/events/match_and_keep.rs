@@ -8,7 +8,6 @@ use crate::cards::POOL_UNCOMMON_GREEN_CARD;
 use crate::cards::get_card;
 use crate::cards::get_card_template;
 use crate::consts::MATCH_AND_KEEP_ATTEMPTS;
-use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
@@ -36,7 +35,7 @@ const OPTION_FLIP_SEEN: &[Effect] = &[Effect {
     id_source: None,
     target: Target::Resolve {
         candidate_pool: CandidatePool::EventRollCard,
-        filter: CandidateFilter::Any,
+        filters: &[],
         selection_kind: SelectionKind::Input { count: 1 },
     },
 }];

@@ -8,12 +8,12 @@ use crate::consts::UNKNOWN_CHANCE_BASE_MONSTER;
 use crate::consts::UNKNOWN_CHANCE_BASE_SHOP;
 use crate::consts::UNKNOWN_CHANCE_BASE_TREASURE;
 use crate::effect::Amount;
-use crate::effect::CandidateFilter;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::RelicExclusion;
 use crate::effect::Target;
 use crate::events::BEGGAR_COST_PURGE;
+use crate::events::FOUNTAIN_CURSE_FILTERS;
 use crate::events::spawn_event;
 use crate::game::GameState;
 use crate::game::Location;
@@ -323,7 +323,7 @@ fn draw_event_special(state: &mut GameState) -> Option<EventName> {
     // Calculate if there's any removable curses in the deck. This gates "The Divine Fountain"
     let mut removable_curses = state.id_card_deck.clone();
     filter_candidates(
-        CandidateFilter::PurgeableCurse,
+        FOUNTAIN_CURSE_FILTERS,
         &mut removable_curses,
         &state.entities,
         None,

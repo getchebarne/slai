@@ -34,7 +34,7 @@ static MOVE_SUPPORT_BEAM: Move = make_move(
         id_source: None,
         target: Target::Resolve {
             candidate_pool: CandidatePool::Monsters,
-            filter: CandidateFilter::NotMinion,
+            filters: &[CandidateFilter::NotMinion],
             selection_kind: SelectionKind::All,
         },
     }],

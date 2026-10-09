@@ -369,6 +369,8 @@ mod slai {
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollCards;
     #[pymodule_export]
+    use super::ffi::PyEffectRewardRollGold;
+    #[pymodule_export]
     use super::ffi::PyEffectRewardRollPotions;
     #[pymodule_export]
     use super::ffi::PyEffectRewardRollRelic;
