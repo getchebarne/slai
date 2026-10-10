@@ -33,10 +33,12 @@ pub fn process_effect_potion_use(
     remove_potion(&mut state.id_potions, id_potion);
     let potion = &state.entities[id_potion];
 
-    // Smoke Bomb ends the combat at once: the pick parked behind it and every queued effect are dropped, and its CombatEnd drops the waiting plays and phases
+    // Smoke Bomb drops at once the pick parked behind it, every queued effect, and the waiting Card plays and turn phases
     if potion.potion_name == PotionName::SmokeBomb {
         state.effect_queue.clear();
         state.effect_pending_selected.clear();
+        state.card_play_queue.clear();
+        state.phase_queue.clear();
     }
 
     // In combat a drink waits behind the work in progress, such as a pick's chain; out of combat, and Fruit Juice anywhere, it lands at once
@@ -55,6 +57,9 @@ pub fn process_effect_potion_use(
         }
         if at_once {
             state.effect_buf.push(effect);
+        } else if matches!(effect.kind, EffectKind::CombatEnd { .. }) {
+            // Smoke Bomb's escape waits as a phase, so the work the drink sets off, Toy Ornithopter's heal included, resolves first
+            state.phase_queue.push_back(effect);
         } else {
             state.effect_queue.push_back(effect);
         }

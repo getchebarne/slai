@@ -1,7 +1,6 @@
 use pyo3::prelude::*;
 
 use crate::game::GameState;
-use crate::relics::iter_owned_relics;
 
 use super::card::PyCard;
 use super::card::snapshot_card;
@@ -82,8 +81,11 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        relics: iter_owned_relics(&state.id_relics)
-            .map(|(_name, id)| snapshot_relic(id, &state.entities[id]))
+        relics: state
+            .id_relics
+            .iter()
+            .flatten()
+            .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
         potions: state
             .id_potions

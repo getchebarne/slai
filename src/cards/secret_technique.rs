@@ -39,7 +39,7 @@ pub static SECRET_TECHNIQUE: CardTemplate = make_card_template(
     }],
     &[],
     &[],
-    PlayRestriction::Always,
+    PlayRestriction::DrawPileHasSkill,
 );
 // Upgraded
 pub static SECRET_TECHNIQUE_PLUS: CardTemplate = CardTemplate {

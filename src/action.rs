@@ -651,6 +651,7 @@ fn fill_legal_actions_combat(state: &mut GameState) {
             card.card_play_restriction,
             card.card_kind,
             &id_card_draw,
+            &state.entities,
             &state.id_relics,
         );
         let entangled_blocks = entangled && card.card_kind == CardKind::Attack;

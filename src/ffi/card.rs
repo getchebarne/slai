@@ -76,7 +76,7 @@ impl From<CardCostKind> for PyCardCostKind {
 }
 
 mirror_enum!(PyPlayRestriction from PlayRestriction, "PlayRestriction", {
-    Always, Never, DrawPileEmpty,
+    Always, Never, DrawPileEmpty, DrawPileHasAttack, DrawPileHasSkill,
 });
 
 mirror_enum!(PyCardPile from CardPile, "CardPile", {
@@ -436,6 +436,7 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
                 card.card_play_restriction,
                 card.card_kind,
                 &state.combat.id_card_draw,
+                &state.entities,
                 &state.id_relics,
             ),
             state.combat.energy.energy_current,

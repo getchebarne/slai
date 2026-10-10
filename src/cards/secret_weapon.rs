@@ -39,7 +39,7 @@ pub static SECRET_WEAPON: CardTemplate = make_card_template(
     }],
     &[],
     &[],
-    PlayRestriction::Always,
+    PlayRestriction::DrawPileHasAttack,
 );
 // Upgraded
 pub static SECRET_WEAPON_PLUS: CardTemplate = CardTemplate {

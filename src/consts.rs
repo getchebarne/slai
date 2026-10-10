@@ -3,7 +3,7 @@ pub const MAX_MOVE_HISTORY: usize = 64;
 // Hexaghost's, The Guardian's and The Champ's tables are the largest: 7 moves
 pub const MAX_MONSTER_MOVES: usize = 7;
 
-// Per-Card effect array cap; bump if any Card legitimately exceeds 8
+// Per-Card effect array cap; bump if any Card legitimately exceeds 6
 pub const MAX_EFFECTS_PER_CARD: usize = 6;
 
 // Per-move effect array cap; Twin Slam's 5 effects are the longest list

@@ -1853,6 +1853,8 @@ class MonsterTemplate:
 class PlayRestriction:
     Always: Final[PlayRestriction]
     DrawPileEmpty: Final[PlayRestriction]
+    DrawPileHasAttack: Final[PlayRestriction]
+    DrawPileHasSkill: Final[PlayRestriction]
     Never: Final[PlayRestriction]
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self, /) -> int: ...
