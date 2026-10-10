@@ -24,7 +24,6 @@ pub static CALCULATED_GAMBLE: CardTemplate = make_card_template(
     &[Effect {
         kind: EffectKind::Gamble {
             choose_discards: false,
-            discards_before: None,
         },
         id_source: None,
         target: Target::Direct(None),

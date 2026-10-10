@@ -110,7 +110,7 @@ flat_variants!(PyEffect {
     MonsterEscape => PyEffectMonsterEscape as "EffectMonsterEscape" { target: PyTarget },
     MonsterRemove => PyEffectMonsterRemove as "EffectMonsterRemove" { target: PyTarget },
     MonsterSplit => PyEffectMonsterSplit as "EffectMonsterSplit" { name: PyMonsterName, target: PyTarget },
-    StasisSteal => PyEffectStasisSteal as "EffectStasisSteal",
+    CardStasisSteal => PyEffectCardStasisSteal as "EffectCardStasisSteal",
     RewardRollCards => PyEffectRewardRollCards as "EffectRewardRollCards" { bundles: u8, trigger: PyRewardRollTrigger },
     RewardRollRelic => PyEffectRewardRollRelic as "EffectRewardRollRelic" { pool: Vec<PyRelicName> },
     DamageDeal => PyEffectDamageDeal as "EffectDamageDeal" { amount: u16, lifesteal: bool, target: PyTarget },
@@ -197,6 +197,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::CardDrawIfNoAttacks { .. }
                     | EffectKind::CardDrawUpTo { .. }
                     | EffectKind::CardPlayFromDrawTop
+                    | EffectKind::CardStasisSteal
                     | EffectKind::CombatEnd { .. }
                     | EffectKind::CombatStart { .. }
                     | EffectKind::DistractionAdd
@@ -222,7 +223,6 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
                     | EffectKind::ScrapOozeReach { .. }
                     | EffectKind::ShuffleDiscardPileIntoDrawPile
                     | EffectKind::SneakyStrikeProc { .. }
-                    | EffectKind::StasisSteal
                     | EffectKind::StormOfSteelProc { .. }
                     | EffectKind::UnloadDiscard
                     | EffectKind::WheelSpin
@@ -510,9 +510,9 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
         EffectKind::CardPlayFromDrawTop => {
             PyEffect::CardPlayFromDrawTop(PyEffectCardPlayFromDrawTop)
         }
-        EffectKind::Gamble {
-            choose_discards, ..
-        } => PyEffect::Gamble(PyEffectGamble { choose_discards }),
+        EffectKind::Gamble { choose_discards } => {
+            PyEffect::Gamble(PyEffectGamble { choose_discards })
+        }
         EffectKind::CombatEnd { escaped_character } => {
             PyEffect::CombatEnd(PyEffectCombatEnd { escaped_character })
         }
@@ -551,7 +551,7 @@ fn snapshot_effect_rows(effect: &Effect, target: Option<PyTarget>) -> PyEffect {
             name: name.into(),
             target: require_target(target),
         }),
-        EffectKind::StasisSteal => PyEffect::StasisSteal(PyEffectStasisSteal),
+        EffectKind::CardStasisSteal => PyEffect::CardStasisSteal(PyEffectCardStasisSteal),
         EffectKind::RewardRollCards { bundles, trigger } => {
             PyEffect::RewardRollCards(PyEffectRewardRollCards {
                 bundles,

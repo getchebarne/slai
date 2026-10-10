@@ -19,7 +19,7 @@ use rand::Rng;
 static MOVE_STASIS: Move = make_move(
     "Stasis",
     &[Effect {
-        kind: EffectKind::StasisSteal,
+        kind: EffectKind::CardStasisSteal,
         id_source: None,
         target: Target::Direct(None),
     }],

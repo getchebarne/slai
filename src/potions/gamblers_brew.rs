@@ -13,7 +13,6 @@ pub static GAMBLERS_BREW: PotionTemplate = PotionTemplate {
     effects: &[Effect {
         kind: EffectKind::Gamble {
             choose_discards: true,
-            discards_before: None,
         },
         id_source: None,
         target: Target::Direct(None),
