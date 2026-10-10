@@ -49,14 +49,14 @@ pub fn process_effect_card_upgrade(id_target: Option<usize>, state: &mut GameSta
     }
 
     // Snapshot runtime-preserved fields: cost, cost override, free-to-play-once, bottled status
-    let (cost, cost_override) = if card_upgraded.card_cost == card_template.cost {
+    let (cost, cost_override) = if card_upgraded.card_cost == u16::from(card_template.cost) {
         (card.card_cost, card.card_cost_override)
     } else {
         // The combat cost becomes the new printed cost and the cost this turn keeps its offset; 0 stays 0
         let cost = card_upgraded.card_cost;
         let cost_this_turn = match get_card_cost_this_turn(&card) {
             0 => 0,
-            old => (cost as i16 + old as i16 - card.card_cost as i16).max(0) as u8,
+            old => (cost as i32 + old as i32 - card.card_cost as i32).max(0) as u16,
         };
         let cost_override = (cost_this_turn != cost).then_some(CostOverride {
             amount: cost_this_turn,

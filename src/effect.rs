@@ -287,7 +287,7 @@ pub enum EffectKind {
         advance_on_miss: bool,
     },
     SetCostOverride {
-        amount: u8,
+        amount: u16,
         only_reduce: bool,
         random: bool,
         scope: CostScope,
@@ -373,12 +373,13 @@ pub enum DiscardSource {
     EndOfTurn,
 }
 
-// Origin tag the CardPlay handler branches on; Replay is a Burst / Duplication / Necronomicon replay
+// Origin tag the CardPlay handler branches on; Replay is a Burst / Duplication replay of the Card itself
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PlaySource {
     Hand,
     DrawTop,
     Replay,
+    ReplayCopy { id_card_original: usize }, // Necronomicon's replay of a copy of the Card; the copy's changes to itself land on the original
     TurnEnd { hand_size: u16 }, // A Card playing itself out of hand; Regret loses the hand size as the turn ended
 }
 
@@ -397,6 +398,7 @@ pub struct CardPlay {
     pub id_target: Option<usize>,
     pub play_source: PlaySource,
     pub energy: u16,         // Fixed when queued; X-cost Cards read it as X
+    pub cost_effective: u16, // Fixed when queued; the play's cost, which a hand play pays and Wrist Blade and Necronomicon read
     pub draw_pile_size: u16, // Fixed when queued; Mind Blast hits for it
 }
 

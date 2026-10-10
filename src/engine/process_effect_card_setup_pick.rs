@@ -22,6 +22,10 @@ pub fn process_effect_card_setup_pick(
     if free && state.entities[id_target].card_cost > 0 {
         state.entities[id_target].card_free_to_play_once = true;
     }
+
+    // A Card moved into the draw pile costs its combat cost again this turn; free-to-play-once survives
+    state.entities[id_target].card_cost_override = None;
+
     if let Some(pos) = id_card_pile_hand.iter().position(|&id| id == id_target) {
         id_card_pile_hand.remove(pos);
     }

@@ -24,7 +24,7 @@ pub fn process_effect_damage_finisher(
         state.effect_queue.push_front(Effect {
             kind: EffectKind::DamagePhysical {
                 amount: damage,
-                instances: num_attacks as u16,
+                instances: num_attacks,
                 lifesteal: false,
             },
             id_source,

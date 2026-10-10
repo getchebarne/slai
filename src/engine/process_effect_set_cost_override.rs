@@ -10,7 +10,7 @@ use crate::utils::get_card_cost_this_turn;
 pub fn process_effect_set_cost_override(
     id_target: Option<usize>,
     state: &mut GameState,
-    amount: u8,
+    amount: u16,
     only_reduce: bool,
     random: bool,
     scope: CostScope,

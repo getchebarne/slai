@@ -102,7 +102,7 @@ pub fn process_effect_card_draw(state: &mut GameState, count: u16) {
             let card_cost = card.card_cost;
 
             // Roll new cost
-            let new_cost: u8 = state.rng.random_range(0..=3);
+            let new_cost: u16 = state.rng.random_range(0..=3);
 
             // Free-to-play-once is spent whether or not the roll changed anything, once the on-draw hooks have seen it
             state.effect_queue.push_front(Effect {

@@ -34,7 +34,12 @@ pub fn process_effect_card_move(
     // Place in new one
     let placed = place_card(state, id_target, pile);
 
-    // Only a placed Card takes the cost break; one a full hand reroutes to discard keeps its cost
+    // A Card moved into the draw or discard pile costs its combat cost again this turn
+    if matches!(pile, CardPile::Draw | CardPile::Discard) || !placed {
+        state.entities[id_target].card_cost_override = None;
+    }
+
+    // Only a placed Card takes the cost break; one a full hand reroutes to discard takes none
     if placed && let Some(scope) = cost_zero {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::SetCostOverride {

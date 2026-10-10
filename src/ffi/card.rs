@@ -125,8 +125,8 @@ pub struct PyCard {
 
     // Cost-related fields
     pub cost: u16,
-    pub cost_base: u8,
-    pub cost_override: Option<u8>,
+    pub cost_base: u16,
+    pub cost_override: Option<u16>,
     pub cost_override_scope: Option<PyCostScope>,
     pub free_to_play_once: bool,
     pub cost_kind: PyCardCostKind,
@@ -293,16 +293,16 @@ impl CardName {
     }
 }
 
-// A combat Card's effects with the Character's Modifiers and Relic bonuses folded into the damage and block amounts; Mind Blast's base is `draw_pile_size`
+// A combat Card's effects with the Character's Modifiers and Relic bonuses folded into the damage and block amounts; Wrist Blade reads `cost`, Mind Blast's base is `draw_pile_size`
 pub(crate) fn snapshot_adjusted_effects(
     state: &GameState,
     card: &Entity,
+    cost: u16,
     draw_pile_size: u16,
 ) -> Vec<PyEffect> {
     let char_mods = &state.entities[state.id_character].modifiers;
 
     // Strike Dummy and Wrist Blade join the base damage before scaling, as in the engine
-    let cost = get_card_effective_cost(card, state.combat.energy.energy_current);
     let bonus = strike_dummy_bonus(card.card_name, &state.id_relics)
         + wrist_blade_bonus(card, cost, &state.id_relics);
     let vigor = if has_modifier(char_mods, ModifierKind::Vigor) {
@@ -438,13 +438,25 @@ pub(crate) fn snapshot_card_combat(
     id_card_pile_draw: &[usize],
     draw_pile_size: u16,
 ) -> PyCard {
+    let cost =
+        get_card_effective_cost(&state.entities[id_card], state.combat.energy.energy_current);
+    snapshot_card_combat_at_cost(state, id_card, cost, id_card_pile_draw, draw_pile_size)
+}
+
+// A Card of the fight priced at `cost`; a waiting play carries the cost it was queued at
+pub(crate) fn snapshot_card_combat_at_cost(
+    state: &GameState,
+    id_card: usize,
+    cost: u16,
+    id_card_pile_draw: &[usize],
+    draw_pile_size: u16,
+) -> PyCard {
     let card = &state.entities[id_card];
     let energy_current = state.combat.energy.energy_current;
     let entangled = has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::Entangled,
     );
-    let cost = get_card_effective_cost(card, energy_current);
     let playable = is_play_restriction_satisfied(
         card.card_play_restriction,
         card.card_kind,
@@ -464,7 +476,7 @@ pub(crate) fn snapshot_card_combat(
         card,
         cost,
         playable,
-        snapshot_adjusted_effects(state, card, draw_pile_size),
+        snapshot_adjusted_effects(state, card, cost, draw_pile_size),
     )
 }
 

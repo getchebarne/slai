@@ -7,6 +7,7 @@ use crate::types::EventName;
 use super::card::PyCard;
 use super::card::snapshot_card;
 use super::card::snapshot_card_combat;
+use super::card::snapshot_card_combat_at_cost;
 use super::effect::PyEffect;
 use super::effect::snapshot_effect;
 use super::event::PyEventName;
@@ -62,7 +63,7 @@ pub struct PyCombat {
     pub card_pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
     pub panache_countdown: u8,            // Plays left until Panache's hit
     pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
-    pub this_turn_attacks: u8,   // Attacks played this turn (Finisher's hits, Art of War's energy)
+    pub this_turn_attacks: u16,  // Attacks played this turn (Finisher's hits, Art of War's energy)
     pub this_turn_cards_played: u8, // Cards played this turn (Normality's cap)
     pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
     pub orange_pellets_played_skill: bool,
@@ -177,7 +178,7 @@ pub struct PyChest {
 pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
     let combat = &state.combat;
 
-    // A Card played now has Mind Blast hit for the draw pile as it stands; a waiting play keeps the size it was queued with
+    // A Card played now has Mind Blast hit for the draw pile as it stands; a waiting play keeps the cost and size it was queued with
     let draw_pile_size = combat.id_card_pile_draw.len() as u16;
     PyCombat {
         card_pile_hand: combat
@@ -214,9 +215,10 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .card_play_queue
             .iter()
             .map(|card_play| {
-                snapshot_card_combat(
+                snapshot_card_combat_at_cost(
                     state,
                     card_play.id_card,
+                    card_play.cost_effective,
                     &combat.id_card_pile_draw,
                     card_play.draw_pile_size,
                 )

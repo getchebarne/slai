@@ -5,6 +5,7 @@ use crate::effect::PlaySource;
 use crate::effect::Target;
 use crate::game::GameState;
 use crate::types::Combat;
+use crate::utils::get_card_effective_cost;
 
 pub fn process_effect_card_play_from_card_pile_draw_top(
     id_target: Option<usize>,
@@ -43,14 +44,14 @@ pub fn process_effect_card_play_from_card_pile_draw_top(
         return;
     }
 
-    // The top Card leaves the draw pile now, with X and the draw pile's size fixed as it leaves; it waits behind
-    // the plays already queued and is gated when it starts
+    // The top Card leaves the draw pile now with X, its cost and the draw pile's size fixed; it waits behind the plays already queued and is gated when it starts
     let id_card = id_card_pile_draw.pop().unwrap();
     state.card_play_queue.push_back(CardPlay {
         id_card,
         id_target,
         play_source: PlaySource::DrawTop,
         energy: energy.energy_current,
+        cost_effective: get_card_effective_cost(&state.entities[id_card], energy.energy_current),
         draw_pile_size: id_card_pile_draw.len() as u16,
     });
 }

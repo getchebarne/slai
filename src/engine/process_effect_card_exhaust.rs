@@ -29,14 +29,8 @@ pub fn process_effect_card_exhaust(id_target: Option<usize>, state: &mut GameSta
     }
     id_card_pile_exhaust.push(id_card);
 
-    // An exhausted Card's cost this turn drops back to its combat cost, after any waiting replay reads it
-    if !state
-        .card_play_queue
-        .iter()
-        .any(|card_play| card_play.id_card == id_card)
-    {
-        state.entities[id_card].card_cost_override = None;
-    }
+    // An exhausted Card's cost this turn drops back to its combat cost
+    state.entities[id_card].card_cost_override = None;
 
     // Dead Branch: every exhaust while a Monster is left conjures a random Silent Card into the hand
     // (all green Cards are rewardable, so no kind/rarity filter is needed)

@@ -68,6 +68,9 @@ pub fn process_effect_card_discard(
         }
     }
 
+    // A discarded Card costs its combat cost again this turn, whatever discount its own discard set off
+    state.entities[id_target].card_cost_override = None;
+
     // Accuracy: a discard resets every Shiv in the hand
     if has_modifier(
         &state.entities[state.id_character].modifiers,
