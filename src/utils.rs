@@ -417,7 +417,7 @@ pub fn shuffle<T>(slice: &mut [T], rng: &mut impl Rng) {
     }
 }
 
-// Unceasing Top: queue rest in Combat means the player is about to act; a drawable Card ends the loop
+// Unceasing Top: an empty hand at a rest in Combat (the player's queue rest or the turn end's) draws 1; a drawable Card ends the loop
 pub fn unceasing_top_fires(state: &GameState) -> bool {
     if context_focus(state) != Focus::Combat {
         return false;

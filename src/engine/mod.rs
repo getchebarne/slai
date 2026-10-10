@@ -121,6 +121,7 @@ pub mod process_effect_turn_end_monster;
 pub mod process_effect_turn_monsters;
 pub mod process_effect_turn_start_character;
 pub mod process_effect_turn_start_monster;
+pub mod process_effect_unceasing_top_draw;
 pub mod process_effect_unload_discard;
 pub mod process_effect_wheel_spin;
 
@@ -247,6 +248,7 @@ use self::process_effect_turn_end_monster::process_effect_turn_end_monster;
 use self::process_effect_turn_monsters::process_effect_turn_monsters;
 use self::process_effect_turn_start_character::process_effect_turn_start_character;
 use self::process_effect_turn_start_monster::process_effect_turn_start_monster;
+use self::process_effect_unceasing_top_draw::process_effect_unceasing_top_draw;
 use self::process_effect_unload_discard::process_effect_unload_discard;
 use self::process_effect_wheel_spin::process_effect_wheel_spin;
 
@@ -659,6 +661,7 @@ fn dispatch_by_kind(
         }
         EffectKind::TurnEndMonster => process_effect_turn_end_monster(id_target, state),
         EffectKind::TurnMonsters { stage } => process_effect_turn_monsters(state, stage),
+        EffectKind::UnceasingTopDraw => process_effect_unceasing_top_draw(state),
         EffectKind::MoveUpdate { move_override } => {
             process_effect_move_update(id_target, state, move_override)
         }

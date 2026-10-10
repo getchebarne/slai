@@ -43,7 +43,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         // Clear effect buffer. The Relic and Plated Armor effects below go through effect_buf so they resolve in order
         state.effect_buf.clear();
 
-        // What the turn applied stops being new before Doubt and Shame land; the first Monster turn start re-clears Vulnerable
+        // What the turn applied stops being new before Doubt and Shame land; the first Monster turn start re-clears all but Weak and Frail
         modifier_set_not_new(&mut state.entities[state.id_character].modifiers);
 
         // Orichalcum: Character gains 6 block if it has none, ahead of the other turn-end Relics
@@ -93,6 +93,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
 
         // Burn / Decay / Regret / Doubt / Shame play themselves out of hand, each once everything queued before it has resolved
         let hand_size = id_card_pile_hand.len() as u16;
+        let mut card_played_itself = false;
         for &id_card in id_card_pile_hand.iter() {
             if matches!(
                 state.entities[id_card].card_name,
@@ -102,6 +103,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                     | CardName::Doubt
                     | CardName::Shame
             ) {
+                card_played_itself = true;
                 state.card_play_queue.push_back(CardPlay {
                     id_card,
                     id_target: None,
@@ -110,6 +112,15 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                     draw_pile_size: id_card_pile_draw.len() as u16,
                 });
             }
+        }
+
+        // Unceasing Top: the turn end's rest draws 1 into an empty hand unless a Card played itself out of hand
+        if has_relic(&state.id_relics, RelicName::UnceasingTop) && !card_played_itself {
+            state.phase_queue.push_back(Effect {
+                kind: EffectKind::UnceasingTopDraw,
+                id_source: None,
+                target: Target::Direct(None),
+            });
         }
 
         // The end-of-turn Modifiers and the discard wait for the Cards above and all they set off

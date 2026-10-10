@@ -5,6 +5,8 @@ use crate::types::RelicTier;
 // An empty hand during your turn draws 1 Card
 // See:
 //    - `engine/mod.rs`
+//    - `engine/process_effect_turn_end_character.rs`
+//    - `engine/process_effect_unceasing_top_draw.rs`
 //    - `utils.rs`
 pub static UNCEASING_TOP: RelicTemplate = RelicTemplate {
     name: RelicName::UnceasingTop,

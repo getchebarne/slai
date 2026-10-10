@@ -318,6 +318,7 @@ pub enum EffectKind {
     },
     TurnStartCharacter,
     TurnStartMonster,
+    UnceasingTopDraw,
     UnloadDiscard,
     WheelSpin,
 }
