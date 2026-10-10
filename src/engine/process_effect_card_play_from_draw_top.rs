@@ -40,7 +40,7 @@ pub fn process_effect_card_play_from_draw_top(id_target: Option<usize>, state: &
         return;
     }
 
-    // The top Card leaves the draw pile now, with X fixed at the current energy; it waits behind
+    // The top Card leaves the draw pile now, with X and the draw pile's size fixed as it leaves; it waits behind
     // the plays already queued and is gated when it starts
     let id_card = id_card_draw.pop().unwrap();
     state.card_play_queue.push_back(CardPlay {
@@ -48,5 +48,6 @@ pub fn process_effect_card_play_from_draw_top(id_target: Option<usize>, state: &
         id_target,
         play_source: PlaySource::DrawTop,
         energy: energy.energy_current,
+        draw_pile_size: id_card_draw.len() as u16,
     });
 }

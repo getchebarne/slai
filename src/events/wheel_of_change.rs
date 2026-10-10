@@ -7,14 +7,14 @@ use crate::events::bake_options;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
-// Spin
+// Spin; consume first, so the result (a purge pick included) lands over the spent event
 const OPTION_SPIN: &[Effect] = &[
+    EFFECT_EVENT_CONSUME,
     Effect {
         kind: EffectKind::WheelSpin,
         id_source: None,
         target: Target::Direct(None),
     },
-    EFFECT_EVENT_CONSUME,
 ];
 
 // Spin is mandatory, there's no "Leave" option

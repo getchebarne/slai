@@ -38,6 +38,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         id_target,
         play_source,
         energy,
+        draw_pile_size,
     } = card_play;
 
     assert!(
@@ -107,6 +108,9 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         id_monster_picked,
         this_turn_attacks,
         this_turn_cards_played,
+        this_turn_played_attack,
+        this_turn_played_skill,
+        this_turn_played_power,
         turn_ended,
         panache_countdown,
         ..
@@ -378,6 +382,15 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             ..*effect
         };
 
+        // Mind Blast hits for the draw pile's size fixed when the play was queued; a replay keeps its first play's
+        if matches!(effect.kind, EffectKind::DamageMindBlast) {
+            effect.kind = EffectKind::DamagePhysical {
+                amount: draw_pile_size,
+                instances: 1,
+                lifesteal: false,
+            };
+        }
+
         // Add Wrist Blade bonus to every hit of the Card's damage
         match &mut effect.kind {
             EffectKind::DamagePhysical { amount, .. }
@@ -385,7 +398,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             EffectKind::DamageFinisher { damage } | EffectKind::DamageFlechettes { damage } => {
                 *damage += bonus_wrist_blade
             }
-            EffectKind::DamageMindBlast { bonus } => *bonus += bonus_wrist_blade,
             _ => {}
         }
 
@@ -530,10 +542,11 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
 
             // Orange Pellets: Attack + Skill + Power in one turn sweeps all debuffs
             (RelicName::OrangePellets, _) => orange_pellets_track_and_sweep(
-                &mut state.entities,
+                this_turn_played_attack,
+                this_turn_played_skill,
+                this_turn_played_power,
                 &mut state.effect_buf,
                 card.card_kind,
-                id_relic,
                 id_character,
             ),
             _ => {}
@@ -600,7 +613,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Burst / Duplication / Necronomicon each replay the Card against the same target, ahead of
-    // any play already waiting; changes to the Card (Glass Knife, Ritual Dagger) carry over
+    // any play already waiting; changes to the Card (Glass Knife, Ritual Dagger) carry over, X and the draw pile's size stay the first play's
     let replays = burst as usize + duplication as usize + necronomicon as usize;
     for _ in 0..replays {
         state.card_play_queue.push_front(CardPlay {
@@ -608,6 +621,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             id_target,
             play_source: PlaySource::Replay,
             energy,
+            draw_pile_size,
         });
     }
 
@@ -656,34 +670,28 @@ fn pick_random_costed_hand_card(
     }
 }
 
-// Tracks the played kind in a seen-kinds bitmask (Attack=1, Skill=2, Power=4) on the
-// Relic counter; once all three are seen in a turn, clears the Character's debuffs and resets
+// Marks the played kind for Orange Pellets; once all three are marked, clears the marks and queues the Character's debuff sweep
 fn orange_pellets_track_and_sweep(
-    entities: &mut [Entity],
+    played_attack: &mut bool,
+    played_skill: &mut bool,
+    played_power: &mut bool,
     effect_buf: &mut Vec<Effect>,
     card_kind: CardKind,
-    id_relic_pellets: usize,
     id_character: usize,
 ) {
-    // Get bit
-    let bit = match card_kind {
-        CardKind::Attack => 1,
-        CardKind::Skill => 2,
-        CardKind::Power => 4,
+    match card_kind {
+        CardKind::Attack => *played_attack = true,
+        CardKind::Skill => *played_skill = true,
+        CardKind::Power => *played_power = true,
         _ => return,
-    };
-
-    // Increase `relic_counter`
-    let counter = &mut entities[id_relic_pellets].relic_counter;
-    *counter |= bit;
-
-    // If all three types (Attack, Skill, Power) have not been played yet, return
-    if *counter != 7 {
-        return;
     }
 
-    // Else, reset the counter and queue the debuff sweep
-    *counter = 0;
+    if !(*played_attack && *played_skill && *played_power) {
+        return;
+    }
+    *played_attack = false;
+    *played_skill = false;
+    *played_power = false;
     effect_buf.push(Effect {
         kind: EffectKind::DebuffsClear,
         id_source: None,

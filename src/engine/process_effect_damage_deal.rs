@@ -83,13 +83,13 @@ pub fn process_effect_damage_deal(
         && target.vitals.block == 0
         && has_relic(&state.id_relics, RelicName::HandDrill)
     {
-        // It lands behind everything queued, the rest of a Card included
+        // The Character applies it behind everything queued, the rest of a Card included
         state.effect_queue.push_back(Effect {
             kind: EffectKind::ModifierDelta {
                 kind: ModifierKind::Vulnerable,
                 stacks: 2,
             },
-            id_source: None,
+            id_source: Some(id_character),
             target: Target::Direct(Some(id_target)),
         });
     }

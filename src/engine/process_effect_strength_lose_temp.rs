@@ -18,7 +18,7 @@ pub fn process_effect_strength_lose_temp(
     }
     let modifiers = &state.entities[id_target].modifiers;
 
-    // Executes in reverse:
+    // Executes in reverse, both applied by the Character:
     //     1. ModifierDelta Strength
     //     2. ModifierDelta Shackled (if no Artifact)
     if !has_modifier(modifiers, ModifierKind::Artifact) {
@@ -27,7 +27,7 @@ pub fn process_effect_strength_lose_temp(
                 kind: ModifierKind::Shackled,
                 stacks,
             },
-            id_source: None,
+            id_source: Some(state.id_character),
             target: Target::Direct(Some(id_target)),
         });
     }
@@ -36,7 +36,7 @@ pub fn process_effect_strength_lose_temp(
             kind: ModifierKind::Strength,
             stacks: -stacks,
         },
-        id_source: None,
+        id_source: Some(state.id_character),
         target: Target::Direct(Some(id_target)),
     });
 }

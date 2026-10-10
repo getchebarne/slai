@@ -293,19 +293,18 @@ impl CardName {
     }
 }
 
-// Snapshot a Card's effects with the Character's Modifiers and Relic bonuses folded into the damage and
-// block amounts
-pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec<PyEffect> {
+// A combat Card's effects with the Character's Modifiers and Relic bonuses folded into the damage and block amounts; Mind Blast's base is `draw_pile_size`
+pub(crate) fn snapshot_adjusted_effects(
+    state: &GameState,
+    card: &Entity,
+    draw_pile_size: u16,
+) -> Vec<PyEffect> {
     let char_mods = &state.entities[state.id_character].modifiers;
 
     // Strike Dummy and Wrist Blade join the base damage before scaling, as in the engine
-    let bonus = if state.combat.active {
-        let cost = get_card_effective_cost(card, state.combat.energy.energy_current);
-        strike_dummy_bonus(card.card_name, &state.id_relics)
-            + wrist_blade_bonus(card, cost, &state.id_relics)
-    } else {
-        0
-    };
+    let cost = get_card_effective_cost(card, state.combat.energy.energy_current);
+    let bonus = strike_dummy_bonus(card.card_name, &state.id_relics)
+        + wrist_blade_bonus(card, cost, &state.id_relics);
     let vigor = if has_modifier(char_mods, ModifierKind::Vigor) {
         modifier_stacks(char_mods, ModifierKind::Vigor).max(0) as u16
     } else {
@@ -347,13 +346,6 @@ pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec
         } else {
             scale_block_gain(base, dex, frail)
         }
-    };
-
-    // Mind Blast's base damage is the draw pile's size
-    let draw_pile_size = if state.combat.active {
-        state.combat.id_card_draw.len() as u16
-    } else {
-        0
     };
 
     card.card_effects_play[..card.card_effects_play_len as usize]
@@ -423,37 +415,67 @@ pub(crate) fn snapshot_adjusted_effects(state: &GameState, card: &Entity) -> Vec
         .collect()
 }
 
+// A Card outside the fight (the master deck, a reward, the shop, an event) shows its own cost and effects, and counts as playable
 pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     let card = &state.entities[id_card];
+    let effects_play = card.card_effects_play[..card.card_effects_play_len as usize]
+        .iter()
+        .map(snapshot_effect)
+        .collect();
+    build_py_card(
+        id_card,
+        card,
+        get_card_effective_cost(card, 0),
+        true,
+        effects_play,
+    )
+}
+
+// A Card of the fight: what playing it would cost and do, Mind Blast hitting for `draw_pile_size`, and whether it can be played now
+pub(crate) fn snapshot_card_combat(
+    state: &GameState,
+    id_card: usize,
+    draw_pile_size: u16,
+) -> PyCard {
+    let card = &state.entities[id_card];
+    let energy_current = state.combat.energy.energy_current;
     let entangled = has_modifier(
         &state.entities[state.id_character].modifiers,
         ModifierKind::Entangled,
     );
-    // Combat-only; outside combat defaults are permissive (Cards not played)
-    let (restriction_ok, energy_current, cap_reached) = if state.combat.active {
-        (
-            is_play_restriction_satisfied(
-                card.card_play_restriction,
-                card.card_kind,
-                &state.combat.id_card_draw,
-                &state.entities,
-                &state.id_relics,
-            ),
-            state.combat.energy.energy_current,
-            play_cap_reached(
-                &state.combat.id_card_hand,
-                &state.entities,
-                &state.id_relics,
-                state.combat.this_turn_cards_played,
-            ),
-        )
-    } else {
-        (true, 0, false)
-    };
-    let entangled_blocks = entangled && card.card_kind == CardKind::Attack;
     let cost = get_card_effective_cost(card, energy_current);
+    let playable = is_play_restriction_satisfied(
+        card.card_play_restriction,
+        card.card_kind,
+        &state.combat.id_card_draw,
+        &state.entities,
+        &state.id_relics,
+    ) && !(entangled && card.card_kind == CardKind::Attack)
+        && !play_cap_reached(
+            &state.combat.id_card_hand,
+            &state.entities,
+            &state.id_relics,
+            state.combat.this_turn_cards_played,
+        )
+        && cost <= energy_current;
+    build_py_card(
+        id_card,
+        card,
+        cost,
+        playable,
+        snapshot_adjusted_effects(state, card, draw_pile_size),
+    )
+}
 
-    let py_card = PyCard {
+// The Card's own fields, with the cost, playability and play effects its place decides
+fn build_py_card(
+    id_card: usize,
+    card: &Entity,
+    cost: u16,
+    playable: bool,
+    effects_play: Vec<PyEffect>,
+) -> PyCard {
+    PyCard {
         id: id_card,
         name: card.card_name.into(),
         cost,
@@ -477,17 +499,13 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
         bottled: card.card_bottled,
         requires_target: entity_requires_target(card),
         retain: card.card_retain,
-        playable: restriction_ok
-            && !entangled_blocks
-            && !cap_reached
-            && (!state.combat.active || cost <= energy_current),
-        effects_play: snapshot_adjusted_effects(state, card),
+        playable,
+        effects_play,
         effects_discard: card
             .card_effects_discard
             .iter()
             .map(snapshot_effect)
             .collect(),
         effects_draw: card.card_effects_draw.iter().map(snapshot_effect).collect(),
-    };
-    py_card
+    }
 }

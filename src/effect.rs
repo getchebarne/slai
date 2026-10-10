@@ -125,9 +125,7 @@ pub enum EffectKind {
     DamageFlechettes {
         damage: u16,
     },
-    DamageMindBlast {
-        bonus: u16, // Flat damage on top of the draw-pile count (Wrist Blade)
-    },
+    DamageMindBlast, // Mind Blast's hit; its play turns it into a DamagePhysical for the draw pile's size
     DamagePhysical {
         amount: u16,
         instances: u16, // Hits on one target, resolved one at a time; an X-cost Card's X can pass 255
@@ -249,6 +247,7 @@ pub enum EffectKind {
         name: RelicName,
     },
     RelicLose,
+    RestDig,
     RestSiteConsume,
     RestSmith,
     RestToke,
@@ -392,7 +391,8 @@ pub struct CardPlay {
     pub id_card: usize,
     pub id_target: Option<usize>,
     pub play_source: PlaySource,
-    pub energy: u16, // Fixed when queued; X-cost Cards read it as X
+    pub energy: u16,         // Fixed when queued; X-cost Cards read it as X
+    pub draw_pile_size: u16, // Fixed when queued; Mind Blast hits for it
 }
 
 // Which value a Relative amount's fraction reads: the current one, or the one the event opened with

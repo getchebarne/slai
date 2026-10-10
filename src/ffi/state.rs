@@ -4,6 +4,7 @@ use crate::game::GameState;
 
 use super::card::PyCard;
 use super::card::snapshot_card;
+use super::card::snapshot_card_combat;
 use super::character::PyCharacter;
 use super::character::snapshot_character;
 use super::context::PyChest;
@@ -105,10 +106,17 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .collect(),
         map: snapshot_map(state),
         effect_pending: state.effect_pending.as_ref().map(snapshot_effect_pending),
+        // A fight's picks stage its own Cards
         effect_pending_selected: state
             .effect_pending_selected
             .iter()
-            .map(|&id| snapshot_card(state, id))
+            .map(|&id| {
+                if state.combat.active {
+                    snapshot_card_combat(state, id, state.combat.id_card_draw.len() as u16)
+                } else {
+                    snapshot_card(state, id)
+                }
+            })
             .collect(),
     }
 }

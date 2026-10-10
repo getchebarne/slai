@@ -81,12 +81,16 @@ pub fn process_effect_modifier_delta(
         return;
     }
 
+    // A debuff is the Character's unless a Monster's own effect applies it
+    let from_monster = id_source.is_some_and(|id| state.entities[id].kind == EntityKind::Monster);
+
     // Get mutable target reference
     let target = &mut state.entities[id_target];
 
-    // Snecko Skull: +1 to any positive Poison application on a Monster
+    // Snecko Skull: +1 to any positive Poison the Character applies to a Monster
     let stacks = if kind == ModifierKind::Poison
         && stacks > 0
+        && !from_monster
         && matches!(target.kind, EntityKind::Monster)
         && has_relic(&state.id_relics, RelicName::SneckoSkull)
     {
@@ -158,7 +162,6 @@ pub fn process_effect_modifier_delta(
     }
 
     // Sadistic Nature: player-applied debuffs landing on a Monster proc THORNS-type damage
-    let from_monster = id_source.is_some_and(|id| state.entities[id].kind == EntityKind::Monster);
     if is_debuff_attempt
         && kind != ModifierKind::Shackled
         && !from_monster

@@ -1,5 +1,3 @@
-use strum::EnumCount;
-
 use crate::consts::CARDS_DRAWN_PER_TURN;
 use crate::consts::ENERGY_CAP;
 use crate::consts::PANACHE_PLAYS;
@@ -9,6 +7,8 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
+use crate::entity::CardCostKind;
+use crate::entity::CostOverride;
 use crate::entity::Entity;
 use crate::game::GameState;
 use crate::modifier::ModifierKind;
@@ -26,6 +26,7 @@ use crate::types::CardColor;
 use crate::types::CardName;
 use crate::types::CardPile;
 use crate::types::Combat;
+use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
@@ -44,12 +45,18 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
 
     let Combat {
         id_monsters,
+        id_card_hand,
         id_card_draw,
+        id_card_discard,
         energy,
         id_card_nightmares,
         turn,
         this_turn_attacks,
         this_turn_cards_played,
+        this_turn_discards,
+        this_turn_played_attack,
+        this_turn_played_skill,
+        this_turn_played_power,
         panache_countdown,
         ..
     } = &mut state.combat;
@@ -109,10 +116,34 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             .is_some_and(|id| state.entities[id].relic_counter <= 3);
     *this_turn_attacks = 0;
     *this_turn_cards_played = 0;
+    *this_turn_discards = 0;
+    *this_turn_played_attack = false;
+    *this_turn_played_skill = false;
+    *this_turn_played_power = false;
     *panache_countdown = PANACHE_PLAYS;
     for &name in RELIC_COUNTERS_PER_TURN {
         if let Some(id) = state.id_relics[name as usize] {
             state.entities[id].relic_counter = 0;
+        }
+    }
+
+    // Eviscerate's cost this turn restarts at its combat cost; one the Monsters' half returned was priced by last turn's discards
+    for &id_card in id_card_draw
+        .iter()
+        .chain(id_card_hand.iter())
+        .chain(id_card_discard.iter())
+    {
+        let card = &mut state.entities[id_card];
+        if card.card_cost_kind == CardCostKind::MinusDiscardsThisTurn
+            && matches!(
+                card.card_cost_override,
+                Some(CostOverride {
+                    scope: CostScope::Turn,
+                    ..
+                })
+            )
+        {
+            card.card_cost_override = None;
         }
     }
 
@@ -174,6 +205,25 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
             id_source: None,
             target: Target::Direct(Some(state.id_character)),
         });
+
+        // DuplicateNextCardPlay ticks down one stack at the round end; a last stack is removed, never left at 0
+        if has_modifier(&modifiers, ModifierKind::DuplicateNextCardPlay) {
+            let kind = if modifier_stacks(&modifiers, ModifierKind::DuplicateNextCardPlay) > 1 {
+                EffectKind::ModifierDelta {
+                    kind: ModifierKind::DuplicateNextCardPlay,
+                    stacks: -1,
+                }
+            } else {
+                EffectKind::ModifierRemove {
+                    kind: ModifierKind::DuplicateNextCardPlay,
+                }
+            };
+            state.effect_buf.push(Effect {
+                kind,
+                id_source: None,
+                target: Target::Direct(Some(state.id_character)),
+            });
+        }
         for id_monster in id_monsters.iter().flatten().copied() {
             state.effect_buf.push(Effect {
                 kind: EffectKind::ModifierTick,
@@ -185,7 +235,6 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         // Turn-start Relics run before the draw; turn 1 defers them past the back-queued Relics
         push_relics_turn_start(
             &id_relics,
-            &state.id_relics,
             &mut state.entities,
             &mut state.effect_buf,
             art_of_war_energy,
@@ -347,7 +396,6 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
         // Turn 1: turn-start Relics follow the back-queued combat-start Relics and Pen Nib
         push_relics_turn_start(
             &id_relics,
-            &state.id_relics,
             &mut state.entities,
             &mut state.effect_buf,
             art_of_war_energy,
@@ -380,7 +428,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
 
     // The post-draw hooks' priorities all differ, so this fixed order is their priority order
 
-    // Noxius Fumes: Monsters get `stacks` poison stacks
+    // Noxius Fumes: the Character gives Monsters `stacks` poison stacks
     if has_modifier(&modifiers, ModifierKind::NoxiousFumes) {
         let stacks = modifier_stacks(&modifiers, ModifierKind::NoxiousFumes);
         for id_monster in id_monsters.iter().flatten().copied() {
@@ -389,7 +437,7 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
                     kind: ModifierKind::Poison,
                     stacks,
                 },
-                id_source: None,
+                id_source: Some(state.id_character),
                 target: Target::Direct(Some(id_monster)),
             });
         }
@@ -442,66 +490,53 @@ pub fn process_effect_turn_start_character(state: &mut GameState) {
     flush_effects_from_buf_to_queue_front(state);
 }
 
-// Turn-start Relics: counters advance and queue what fires, then effects in acquisition order
+// Turn-start Relics in acquisition order: each advances its counter and queues what fires; post-draw ones wait for the draw
 fn push_relics_turn_start(
     id_relics_by_seq: &[usize],
-    id_relics: &[Option<usize>; RelicName::COUNT],
     entities: &mut [Entity],
     effect_buf: &mut Vec<Effect>,
     art_of_war_energy: bool,
 ) {
-    // Persistent turn counters (Happy Flower, Incense Burner), spanning combats
-    for name in [RelicName::HappyFlower, RelicName::IncenseBurner] {
-        if let Some(id) = id_relics[name as usize]
-            && trigger_relic_counter(&mut entities[id])
-        {
-            for &effect in entities[id].relic_effects_counter {
-                effect_buf.push(effect);
+    for &id_relic in id_relics_by_seq {
+        let relic = &mut entities[id_relic];
+        match relic.relic_name {
+            // Persistent turn counters, spanning combats
+            RelicName::HappyFlower | RelicName::IncenseBurner => {
+                if trigger_relic_counter(relic) {
+                    effect_buf.extend_from_slice(relic.relic_effects_counter);
+                }
             }
-        }
-    }
 
-    // Stone Calendar: counts the combat's turns; it fires at the turn end
-    if let Some(id) = id_relics[RelicName::StoneCalendar as usize] {
-        entities[id].relic_counter += 1;
-    }
+            // Stone Calendar: counts the combat's turns; it fires at the turn end
+            RelicName::StoneCalendar => relic.relic_counter += 1,
 
-    // Horn Cleat and Captain's Wheel: one-shot turn counters
-    for name in [RelicName::HornCleat, RelicName::CaptainsWheel] {
-        if let Some(id) = id_relics[name as usize] {
-            let relic = &mut entities[id];
-            if relic.relic_counter >= 0 {
-                relic.relic_counter += 1;
-                if relic.relic_counter == relic.relic_counter_reset {
-                    // Use -1 so that it doesn't proc again
-                    relic.relic_counter = -1;
-                    for &effect in relic.relic_effects_counter {
-                        effect_buf.push(effect);
+            // Horn Cleat and Captain's Wheel: one-shot turn counters
+            RelicName::HornCleat | RelicName::CaptainsWheel => {
+                if relic.relic_counter >= 0 {
+                    relic.relic_counter += 1;
+                    if relic.relic_counter == relic.relic_counter_reset {
+                        // Use -1 so that it doesn't proc again
+                        relic.relic_counter = -1;
+                        effect_buf.extend_from_slice(relic.relic_effects_counter);
                     }
                 }
             }
-        }
-    }
 
-    // Turn-start Relic effects (Mercury Hourglass); post-draw ones wait for the draw
-    for &id_relic in id_relics_by_seq {
-        let relic = &entities[id_relic];
-
-        // Art of War: a turn without Attacks gives 1 energy
-        if relic.relic_name == RelicName::ArtOfWar && art_of_war_energy {
-            effect_buf.push(Effect {
+            // Art of War: a turn without Attacks gives 1 energy
+            RelicName::ArtOfWar if art_of_war_energy => effect_buf.push(Effect {
                 kind: EffectKind::EnergyDelta {
                     sign: DeltaSign::Gain,
                     amount: 1,
                 },
                 id_source: None,
                 target: Target::Direct(None),
-            });
+            }),
+            _ => {}
         }
+
+        // Turn-start Relic effects (Mercury Hourglass)
         if !RELICS_TURN_START_POST_DRAW.contains(&relic.relic_name) {
-            for &effect in relic.relic_effects_turn_start {
-                effect_buf.push(effect);
-            }
+            effect_buf.extend_from_slice(relic.relic_effects_turn_start);
         }
     }
 }

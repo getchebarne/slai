@@ -18,7 +18,7 @@ use crate::types::RelicName;
 use crate::utils::get_card_cost_this_turn;
 use crate::utils::has_relic;
 
-// Branches on `source`: Explicit bumps counter and fires on-discard; EndOfTurn honors retain
+// Both sources bump the counter; Explicit also fires the on-discard hooks, EndOfTurn honors retain
 pub fn process_effect_card_discard(
     id_target: Option<usize>,
     state: &mut GameState,
@@ -49,6 +49,9 @@ pub fn process_effect_card_discard(
                 id_card_hand.remove(pos);
             }
             id_card_discard.push(id_target);
+
+            // The turn end's discards count too, though they set nothing off
+            *this_turn_discards = this_turn_discards.saturating_add(1);
         }
         DiscardSource::Explicit => {
             if let Some(pos) = id_card_hand.iter().position(|&id| id == id_target) {

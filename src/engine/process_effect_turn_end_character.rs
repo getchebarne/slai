@@ -25,7 +25,7 @@ use crate::utils::has_relic;
 use crate::utils::hook_order;
 use crate::utils::shuffle;
 
-// The Character's turn ends in two passes: its Relics and Plated Armor now, then each self-playing Card as a waiting play; its other Modifiers and the discard wait behind all of it
+// The Character's turn ends in two passes: its Relics and Plated Armor now, then each self-playing Card as a waiting play; the per-turn cost resets, its other Modifiers and the discard wait behind all of it
 pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     assert!(
         state.combat.active,
@@ -36,33 +36,9 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
         let Combat {
             id_card_hand,
             id_card_draw,
-            id_card_discard,
-            id_card_exhaust,
-            id_card_stasis,
-            this_turn_discards,
             energy,
             ..
-        } = &mut state.combat;
-
-        // Clear per-turn Card cost overrides
-        for id_card in id_card_hand
-            .iter()
-            .chain(id_card_draw.iter())
-            .chain(id_card_discard.iter())
-            .chain(id_card_exhaust.iter())
-            .chain(id_card_stasis.iter().flatten())
-        {
-            let entity = &mut state.entities[*id_card];
-            if matches!(
-                entity.card_cost_override,
-                Some(CostOverride {
-                    scope: CostScope::Turn,
-                    ..
-                })
-            ) {
-                entity.card_cost_override = None;
-            }
-        }
+        } = &state.combat;
 
         // Clear effect buffer. The Relic and Plated Armor effects below go through effect_buf so they resolve in order
         state.effect_buf.clear();
@@ -131,6 +107,7 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                     id_target: None,
                     play_source: PlaySource::TurnEnd { hand_size },
                     energy: energy.energy_current,
+                    draw_pile_size: id_card_draw.len() as u16,
                 });
             }
         }
@@ -142,18 +119,36 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
             target: Target::Direct(None),
         });
 
-        // Reset per-turn trackers; attacks, plays and Panache's countdown run on until the next turn start
-        *this_turn_discards = 0;
-
         flush_effects_from_buf_to_queue_front(state);
         return;
     }
 
     let Combat {
         id_card_hand,
+        id_card_draw,
+        id_card_discard,
         bombs,
         ..
     } = &state.combat;
+
+    // Per-turn Card cost overrides clear in the hand and the draw and discard piles, ahead of every hook below; exhausted and Stasis-held Cards keep theirs
+    for &id_card in id_card_hand
+        .iter()
+        .chain(id_card_draw.iter())
+        .chain(id_card_discard.iter())
+    {
+        let card = &mut state.entities[id_card];
+        if matches!(
+            card.card_cost_override,
+            Some(CostOverride {
+                scope: CostScope::Turn,
+                ..
+            })
+        ) {
+            card.card_cost_override = None;
+        }
+    }
+
     let mods_char = &state.entities[state.id_character].modifiers;
 
     // Regeneration: heal `stacks`, then decrement by 1 (removed at 0); ahead of every other Modifier
@@ -299,25 +294,6 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
     state
         .effect_queue
         .extend(hooks.into_iter().map(|(_, effect)| effect));
-
-    // DuplicateNextCardPlay ticks down one stack after the turn-end hooks; a last stack is removed, never left at 0
-    if has_modifier(mods_char, ModifierKind::DuplicateNextCardPlay) {
-        let effect_kind = if modifier_stacks(mods_char, ModifierKind::DuplicateNextCardPlay) > 1 {
-            EffectKind::ModifierDelta {
-                kind: ModifierKind::DuplicateNextCardPlay,
-                stacks: -1,
-            }
-        } else {
-            EffectKind::ModifierRemove {
-                kind: ModifierKind::DuplicateNextCardPlay,
-            }
-        };
-        state.effect_queue.push_back(Effect {
-            kind: effect_kind,
-            id_source: None,
-            target: Target::Direct(Some(state.id_character)),
-        });
-    }
 
     // Ethereal Cards exhaust first, in random order, each spending its free play; Cards drawn after this point stay in hand
     let mut id_ethereal: Vec<usize> = id_card_hand

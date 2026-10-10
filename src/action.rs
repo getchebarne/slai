@@ -1,8 +1,6 @@
 use crate::consts::GIRYA_LIFT_MAX;
 use crate::consts::MAP_HEIGHT;
 use crate::consts::MAP_WIDTH;
-use crate::consts::RELIC_TIER_TH_COMMON;
-use crate::consts::RELIC_TIER_TH_UNCOMMON;
 use crate::effect::Amount;
 use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
@@ -11,8 +9,6 @@ use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::PlaySource;
 use crate::effect::ReadAt;
-use crate::effect::RelicExclusion;
-use crate::effect::RelicPick;
 use crate::effect::Rounding;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
@@ -346,6 +342,7 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
         id_target: id_monster_target,
         play_source: PlaySource::Hand,
         energy: state.combat.energy.energy_current,
+        draw_pile_size: state.combat.id_card_draw.len() as u16,
     });
 }
 
@@ -496,16 +493,8 @@ fn handle_rest_smith(state: &mut GameState) {
 
 // Shovel: spend the rest on a random Relic, staged as a reward the player may leave
 fn handle_rest_dig(state: &mut GameState) {
-    // Consume first: the staged Reward overlays the site until RoomExit
-    push_rest_site_consume(state);
     state.effect_buf.push(Effect {
-        kind: EffectKind::RewardRollRelic {
-            pick: RelicPick::Thresholds {
-                th_common: RELIC_TIER_TH_COMMON,
-                th_uncommon: RELIC_TIER_TH_UNCOMMON,
-            },
-            exclusion: RelicExclusion::Unfiltered,
-        },
+        kind: EffectKind::RestDig,
         id_source: None,
         target: Target::Direct(None),
     });
