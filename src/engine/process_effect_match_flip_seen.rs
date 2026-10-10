@@ -35,9 +35,10 @@ pub fn process_effect_match_flip_seen(id_target: Option<usize>, state: &mut Game
         return;
     };
 
-    // The second flip ends the attempt; a pair adds a fresh copy to the deck
+    // The second flip ends the attempt; a pair joins the matched pairs and adds a fresh copy to the deck
     let card_name = state.entities[id_card].card_name;
     if state.entities[id_card_first].card_name == card_name {
+        event.id_card_match_pairs.push(id_card_first);
         state.effect_queue.push_back(Effect {
             kind: EffectKind::CardAdd {
                 card_name,

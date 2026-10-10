@@ -50,7 +50,7 @@ pub struct PyGameState {
     pub act: u8,
     pub character: PyCharacter,
     pub card_pile_deck: Vec<PyCard>,
-    pub relics: Vec<PyRelic>,
+    pub relics: Vec<PyRelic>, // In pickup order
     pub potions: Vec<PyPotion>,
     pub potion_slots_max: u8,
     pub potion_drop_mod: i32, // A combat's potion drop chance is 40 plus this, within 0..=100; a drop lowers it by 10, a miss raises it by 10
@@ -66,6 +66,9 @@ pub struct PyGameState {
 
 // Snapshot builders
 pub fn snapshot_state(state: &GameState) -> PyGameState {
+    // Owned Relics in pickup order
+    let mut id_relics: Vec<usize> = state.id_relics.iter().flatten().copied().collect();
+    id_relics.sort_unstable_by_key(|&id| state.entities[id].relic_seq);
     PyGameState {
         combat: state.combat.active.then(|| snapshot_combat(state)),
         reward: state.reward.active.then(|| snapshot_reward(state)),
@@ -82,10 +85,8 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .iter()
             .map(|&id| snapshot_card(state, id))
             .collect(),
-        relics: state
-            .id_relics
+        relics: id_relics
             .iter()
-            .flatten()
             .map(|&id| snapshot_relic(id, &state.entities[id]))
             .collect(),
         potions: state
@@ -112,7 +113,12 @@ pub fn snapshot_state(state: &GameState) -> PyGameState {
             .iter()
             .map(|&id| {
                 if state.combat.active {
-                    snapshot_card_combat(state, id, state.combat.id_card_pile_draw.len() as u16)
+                    snapshot_card_combat(
+                        state,
+                        id,
+                        &state.combat.id_card_pile_draw,
+                        state.combat.id_card_pile_draw.len() as u16,
+                    )
                 } else {
                     snapshot_card(state, id)
                 }

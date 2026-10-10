@@ -158,6 +158,7 @@ pub struct Event {
     // Match and Keep!'s board; the seen face-down Cards sit in `id_card_pile_event_roll`
     pub id_card_match_flipped: Option<usize>, // The attempt's first flip, face up
     pub id_card_match_unseen: Vec<usize>,     // Never flipped, in board order; not in the snapshot
+    pub id_card_match_pairs: Vec<usize>,      // One Card per matched pair, in match order
     pub match_attempts: u8,                   // Attempts left
 }
 
@@ -173,6 +174,7 @@ pub fn event_reset(event: &mut Event) {
     event.found_relic = false;
     event.id_card_match_flipped = None;
     event.id_card_match_unseen.clear();
+    event.id_card_match_pairs.clear();
     event.match_attempts = 0;
 }
 
