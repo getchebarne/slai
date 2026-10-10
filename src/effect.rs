@@ -234,7 +234,9 @@ pub enum EffectKind {
     },
     PotionAdopt,
     PotionDiscard,
-    PotionUse,
+    PotionUse {
+        at_pick: bool, // Drunk while a pick waits
+    },
     RelicAdopt,
     RelicGrantPool {
         pool: &'static [RelicName],
@@ -365,6 +367,7 @@ pub enum RewardRollTrigger {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum DiscardSource {
     Explicit,
+    ExplicitRelicsFirst, // Unload and the Gamble pick: the discard Relics fire before the Card's own discard effects
     EndOfTurn,
 }
 

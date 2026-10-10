@@ -710,7 +710,9 @@ fn dispatch_by_kind(
         EffectKind::ShopBuild => process_effect_shop_build(state),
         EffectKind::ShopBuy { slot } => process_effect_shop_buy(id_target, state, slot),
         EffectKind::ShopPurge => process_effect_shop_purge(state),
-        EffectKind::PotionUse => process_effect_potion_use(id_source, id_target, state),
+        EffectKind::PotionUse { at_pick } => {
+            process_effect_potion_use(id_source, id_target, state, at_pick)
+        }
         EffectKind::PotionAddRandom { limited, uniform } => {
             process_effect_potion_add_random(state, limited, uniform)
         }

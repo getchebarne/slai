@@ -17,6 +17,7 @@ pub fn process_effect_potion_use(
     id_source: Option<usize>,
     id_target: Option<usize>,
     state: &mut GameState,
+    at_pick: bool,
 ) {
     let id_potion = id_source.expect("PotionUse requires id_source");
 
@@ -55,10 +56,21 @@ pub fn process_effect_potion_use(
             let id_monster = alive[state.rng.random_range(0..alive.len())];
             effect.target = Target::Direct(Some(id_monster));
         }
+
+        // Gambler's Brew reads the hand as it is drunk; Cards picked at the open pick have left it
+        if matches!(effect.kind, EffectKind::Gamble { .. })
+            && state
+                .combat
+                .id_card_pile_hand
+                .iter()
+                .all(|id| state.effect_pending_selected.contains(id))
+        {
+            continue;
+        }
         if at_once {
             state.effect_buf.push(effect);
         } else if matches!(effect.kind, EffectKind::CombatEnd { .. }) {
-            // Smoke Bomb's escape waits as a phase, so the work the drink sets off, Toy Ornithopter's heal included, resolves first
+            // Smoke Bomb's escape waits as a phase, so the work the drink sets off resolves first
             state.phase_queue.push_back(effect);
         } else {
             state.effect_queue.push_back(effect);
@@ -66,7 +78,10 @@ pub fn process_effect_potion_use(
     }
 
     // Toy Ornithopter: any Potion use heals 5; in combat behind everything queued, out of combat at once
-    if has_relic(&state.id_relics, RelicName::ToyOrnithopter) {
+    // At a pick Smoke Bomb's escape preempts everything queued, Toy Ornithopter's heal included
+    if has_relic(&state.id_relics, RelicName::ToyOrnithopter)
+        && !(at_pick && potion.potion_name == PotionName::SmokeBomb)
+    {
         let heal = Effect {
             kind: EffectKind::HealthDelta {
                 sign: DeltaSign::Gain,

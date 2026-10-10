@@ -34,7 +34,7 @@ pub fn process_effect_gamble(state: &mut GameState, choose_discards: bool) {
     if choose_discards {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::CardDiscard {
-                source: DiscardSource::Explicit, // Triggers on-discard sinergies
+                source: DiscardSource::ExplicitRelicsFirst, // Triggers on-discard sinergies
             },
             id_source: None,
             target: Target::Resolve {
