@@ -325,6 +325,7 @@ pub fn create_game_state(ascension: u8, seed: u64, fast_mode: bool, neow: bool) 
             found_relic: false,
             id_card_match_flipped: None,
             id_card_match_unseen: Vec::new(),
+            id_card_match_pairs: Vec::new(),
             match_attempts: 0,
         },
         shop: Shop {

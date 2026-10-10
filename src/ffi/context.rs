@@ -62,9 +62,14 @@ pub struct PyCombat {
     pub card_pile_nightmare: Vec<PyCard>, // Each arrives NIGHTMARE_COPIES times next turn
     pub panache_countdown: u8,            // Plays left until Panache's hit
     pub this_turn_discards: u16, // Cards discarded this turn (Sneaky Strike's refund, Eviscerate's discount)
+    pub this_turn_attacks: u8,   // Attacks played this turn (Finisher's hits, Art of War's energy)
+    pub this_turn_cards_played: u8, // Cards played this turn (Normality's cap)
     pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
     pub orange_pellets_played_skill: bool,
     pub orange_pellets_played_power: bool,
+    pub this_combat_thief_escaped: bool, // A Smoke Bomb then still keeps the reward
+    pub this_combat_monster_died: bool, // Monsters escaping afterwards no longer cost a normal fight its gold and Potion roll
+    pub gold_stolen: u16, // The killed thieves' purse, claimed apart from the room's gold
 }
 
 #[pyclass(
@@ -132,9 +137,10 @@ pub struct PyEvent {
     pub found_nothing: bool,
     pub found_relic: bool,
 
-    // Match and Keep!: the face-up first flip, the count of Cards never flipped, the attempts left
+    // Match and Keep!: the face-up first flip, the count of Cards never flipped, one Card per matched pair, the attempts left
     pub card_match_flipped: Option<PyCard>,
     pub card_match_unseen_count: u8,
+    pub card_match_pairs: Vec<PyCard>,
     pub match_attempts: u8,
 }
 
@@ -176,28 +182,43 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         card_pile_hand: combat
             .id_card_pile_hand
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
+            .map(|&id| snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size))
             .collect(),
+
+        // A draw-pile Card is judged as if it had left the draw pile
         card_pile_draw: combat
             .id_card_pile_draw
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
+            .map(|&id| {
+                let id_card_pile_draw_rest: Vec<usize> = combat
+                    .id_card_pile_draw
+                    .iter()
+                    .copied()
+                    .filter(|&id_other| id_other != id)
+                    .collect();
+                snapshot_card_combat(state, id, &id_card_pile_draw_rest, draw_pile_size - 1)
+            })
             .collect(),
         card_pile_discard: combat
             .id_card_pile_discard
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
+            .map(|&id| snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size))
             .collect(),
         card_pile_exhaust: combat
             .id_card_pile_exhaust
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
+            .map(|&id| snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size))
             .collect(),
         card_play_queue: state
             .card_play_queue
             .iter()
             .map(|card_play| {
-                snapshot_card_combat(state, card_play.id_card, card_play.draw_pile_size)
+                snapshot_card_combat(
+                    state,
+                    card_play.id_card,
+                    &combat.id_card_pile_draw,
+                    card_play.draw_pile_size,
+                )
             })
             .collect(),
         energy: PyEnergy {
@@ -212,14 +233,21 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
             .zip(&combat.id_card_pile_stasis)
             .filter_map(|(&id_monster, &id_card)| {
                 id_monster.map(|_| {
-                    id_card.map(|id_card| snapshot_card_combat(state, id_card, draw_pile_size))
+                    id_card.map(|id_card| {
+                        snapshot_card_combat(
+                            state,
+                            id_card,
+                            &combat.id_card_pile_draw,
+                            draw_pile_size,
+                        )
+                    })
                 })
             })
             .collect(),
         card_pile_discover: combat
             .id_card_pile_discover
             .iter()
-            .map(|&id| snapshot_card_combat(state, id, draw_pile_size))
+            .map(|&id| snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size))
             .collect(),
         bombs: combat
             .bombs
@@ -229,13 +257,20 @@ pub(crate) fn snapshot_combat(state: &GameState) -> PyCombat {
         card_pile_nightmare: combat
             .id_card_pile_nightmare
             .iter()
-            .map(|&(id, _)| snapshot_card_combat(state, id, draw_pile_size))
+            .map(|&(id, _)| {
+                snapshot_card_combat(state, id, &combat.id_card_pile_draw, draw_pile_size)
+            })
             .collect(),
         panache_countdown: combat.panache_countdown,
         this_turn_discards: combat.this_turn_discards,
+        this_turn_attacks: combat.this_turn_attacks,
+        this_turn_cards_played: combat.this_turn_cards_played,
         orange_pellets_played_attack: combat.orange_pellets_played_attack,
         orange_pellets_played_skill: combat.orange_pellets_played_skill,
         orange_pellets_played_power: combat.orange_pellets_played_power,
+        this_combat_thief_escaped: combat.this_combat_thief_escaped,
+        this_combat_monster_died: combat.this_combat_monster_died,
+        gold_stolen: combat.gold_stolen,
     }
 }
 
@@ -344,6 +379,11 @@ pub(crate) fn snapshot_event(state: &GameState) -> PyEvent {
             .id_card_match_flipped
             .map(|id| snapshot_card(state, id)),
         card_match_unseen_count: event.id_card_match_unseen.len() as u8,
+        card_match_pairs: event
+            .id_card_match_pairs
+            .iter()
+            .map(|&id| snapshot_card(state, id))
+            .collect(),
         match_attempts: event.match_attempts,
     }
 }

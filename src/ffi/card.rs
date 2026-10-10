@@ -431,10 +431,11 @@ pub(crate) fn snapshot_card(state: &GameState, id_card: usize) -> PyCard {
     )
 }
 
-// A Card of the fight: what playing it would cost and do, Mind Blast hitting for `draw_pile_size`, and whether it can be played now
+// A Card of the fight: what playing it would cost and do, Mind Blast hitting for `draw_pile_size`, and whether it can be played now against the draw pile `id_card_pile_draw`
 pub(crate) fn snapshot_card_combat(
     state: &GameState,
     id_card: usize,
+    id_card_pile_draw: &[usize],
     draw_pile_size: u16,
 ) -> PyCard {
     let card = &state.entities[id_card];
@@ -447,7 +448,7 @@ pub(crate) fn snapshot_card_combat(
     let playable = is_play_restriction_satisfied(
         card.card_play_restriction,
         card.card_kind,
-        &state.combat.id_card_pile_draw,
+        id_card_pile_draw,
         &state.entities,
         &state.id_relics,
     ) && !(entangled && card.card_kind == CardKind::Attack)
