@@ -405,7 +405,9 @@ fn handle_potion_use(state: &mut GameState, idx_potion: usize, idx_monster: Opti
         None
     };
     state.effect_buf.push(Effect {
-        kind: EffectKind::PotionUse,
+        kind: EffectKind::PotionUse {
+            at_pick: state.effect_pending.is_some(),
+        },
         id_source: Some(id_potion),
         target: Target::Direct(id_monster_target),
     });
