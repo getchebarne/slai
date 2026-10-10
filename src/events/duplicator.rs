@@ -11,8 +11,9 @@ use crate::events::make_event_option_template;
 use crate::game::GameState;
 use crate::types::CardPile;
 
-// Pray
+// Pray; consume first, so the pick lands over the spent event
 const OPTION_PRAY: &[Effect] = &[
+    EFFECT_EVENT_CONSUME,
     Effect {
         kind: EffectKind::CardDuplicate {
             card_pile: CardPile::Deck,
@@ -24,7 +25,6 @@ const OPTION_PRAY: &[Effect] = &[
             selection_kind: SelectionKind::Input { count: 1 },
         },
     },
-    EFFECT_EVENT_CONSUME,
 ];
 
 // Leave

@@ -162,6 +162,7 @@ pub fn process_effect_room_enter(state: &mut GameState, location: Location, land
                 };
             }
             state.chest.chest_opened = false;
+            state.chest.chest_relics_seen = false;
             state.chest.active = true;
         }
         RoomKind::EventRoom => {

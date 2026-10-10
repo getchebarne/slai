@@ -25,8 +25,8 @@ const OPTION_SIMPLICITY: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
 ];
 
-// Elegance: purge a Card
-const OPTION_ELEGANCE: &[Effect] = &[EFFECT_DECK_PURGE_PICK_1, EFFECT_EVENT_CONSUME];
+// Elegance: purge a Card; consume first, so the pick lands over the spent event
+const OPTION_ELEGANCE: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_PURGE_PICK_1];
 
 pub static EOTS_BASE: &[EventOptionTemplate] = &[
     make_event_option_template(OPTION_ELEGANCE),

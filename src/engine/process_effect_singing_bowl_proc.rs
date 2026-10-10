@@ -14,6 +14,11 @@ pub fn process_effect_singing_bowl_proc(state: &mut GameState, idx_bundle: u8) {
     // Remove bundle
     state.reward.id_cards.remove(idx_bundle as usize);
 
+    // A pick screen closes on Singing Bowl as on a take
+    if state.reward.closes_on_pick {
+        state.reward.active = false;
+    }
+
     // Push effect for max health gain
     state.effect_queue.push_front(Effect {
         kind: EffectKind::MaxHealthDelta {

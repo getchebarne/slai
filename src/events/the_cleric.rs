@@ -45,7 +45,7 @@ const OPTION_HEAL: &[Effect] = &[
     EFFECT_EVENT_CONSUME,
 ];
 
-// Purify: +25 gold cost at A15
+// Purify: +25 gold cost at A15; consume after the cost, so the pick lands over the spent event
 const fn purify(cost: u16) -> [Effect; 3] {
     [
         Effect {
@@ -56,8 +56,8 @@ const fn purify(cost: u16) -> [Effect; 3] {
             id_source: None,
             target: Target::Direct(None),
         },
-        EFFECT_DECK_PURGE_PICK_1,
         EFFECT_EVENT_CONSUME,
+        EFFECT_DECK_PURGE_PICK_1,
     ]
 }
 

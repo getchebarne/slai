@@ -109,8 +109,9 @@ pub struct Reward {
     pub id_potions: Vec<usize>,
     pub gold: Option<u16>,
     pub gold_stolen: Option<u16>, // The thieves' purse, claimed apart from the room's gold
-    pub relics_exclusive: bool,   // Whether taking a Relic clears the rest (the boss chest)
+    pub relics_exclusive: bool,   // The boss chest's pick-one offer; a skip shuts the chest again
     pub cards_forced: bool,       // The Library's grid: one pick, no skip and no Singing Bowl
+    pub closes_on_pick: bool,     // A take or Singing Bowl closes it (boss chest, Dream Catcher)
 }
 
 pub fn reward_reset(reward: &mut Reward) {
@@ -121,6 +122,7 @@ pub fn reward_reset(reward: &mut Reward) {
     reward.gold_stolen = None;
     reward.relics_exclusive = false;
     reward.cards_forced = false;
+    reward.closes_on_pick = false;
 }
 
 // Find-or-create for the RewardRoll* effects: any roll may activate the context
@@ -207,6 +209,7 @@ pub struct Chest {
     pub active: bool,
     pub chest_kind: ChestKind,
     pub chest_opened: bool,
+    pub chest_relics_seen: bool, // The boss chest was opened this visit, so its Relics are known
     pub id_relics: Vec<usize>, // The boss chest's three Boss Relics, offered again if it is reopened
 }
 

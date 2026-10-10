@@ -39,6 +39,9 @@ pub fn process_effect_act_transition(state: &mut GameState) {
     state.id_rooms = id_rooms;
     state.location = location;
 
+    // No Room is current at Location::Start
+    state.room_kind_resolved = None;
+
     // Re-roll the act's Encounter Pools and Boss
     state.encounter_pool_normal.clear();
     state.encounter_pool_elite.clear();

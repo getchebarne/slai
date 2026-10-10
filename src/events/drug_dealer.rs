@@ -31,6 +31,8 @@ const OPTION_JAX: [Effect; 2] = [
 
 // Transform: two chosen Cards; bottled Cards are offered, only the bound curses are not
 const OPTION_TRANSFORM: [Effect; 2] = [
+    // Consume first, so the pick lands over the spent event
+    EFFECT_EVENT_CONSUME,
     Effect {
         kind: EffectKind::CardTransform { upgraded: false },
         id_source: None,
@@ -40,7 +42,6 @@ const OPTION_TRANSFORM: [Effect; 2] = [
             selection_kind: SelectionKind::Input { count: 2 },
         },
     },
-    EFFECT_EVENT_CONSUME,
 ];
 
 // Mutagens: swap the Golden Idol for Toolbox

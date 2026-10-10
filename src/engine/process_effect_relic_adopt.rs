@@ -10,6 +10,7 @@ use crate::relics::egg_upgrades_kind;
 use crate::relics::get_relic;
 use crate::types::CardName;
 use crate::types::CardPile;
+use crate::types::ChestKind;
 use crate::types::EventName;
 use crate::types::RelicName;
 use crate::types::RelicTier;
@@ -106,13 +107,14 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
 
         // Calling Bell: gain Curse of the Bell plus a Common, an Uncommon, and a Rare Relic
         RelicName::CallingBell => {
-            // The bell arrives from a Reward context or Neow's consumed blessing
+            // The bell arrives from the boss chest's closed pick or Neow's consumed blessing
             assert!(
-                state.reward.active
-                    || (state.event.active
-                        && matches!(state.event.name, EventName::Neow)
-                        && state.event.consumed),
-                "Calling Bell adopts from a Reward context or Neow"
+                !state.reward.active
+                    && ((state.chest.active && state.chest.chest_kind == ChestKind::Boss)
+                        || (state.event.active
+                            && matches!(state.event.name, EventName::Neow)
+                            && state.event.consumed)),
+                "Calling Bell adopts from the boss chest or Neow"
             );
 
             // One screenless Relic per rarity; a fallback Circlet counts on one already held
@@ -122,11 +124,9 @@ fn queue_pickup_effects(state: &mut GameState, id_relic: usize) {
                 id_relics.push(push_entity(&mut state.entities, get_relic(name)));
             }
 
-            // The staged offer replaces the context it adopted from: a live
-            // Reward loses its remaining contents; Neow's blessing closes
-            if !state.reward.active {
-                state.event.active = false;
-            }
+            // The staged offer replaces the host it came from: the boss chest or Neow's blessing closes
+            state.chest.active = false;
+            state.event.active = false;
             reward_reset(&mut state.reward);
             state.reward.id_relics = id_relics;
             state.reward.active = true;

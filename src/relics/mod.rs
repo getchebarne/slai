@@ -247,7 +247,7 @@ pub const RELIC_COUNTERS_PER_COMBAT: &[RelicName] = &[
     RelicName::CentennialPuzzle,
 ];
 
-// Relic counters that count only in combat; they read 0 between combats
+// Relic counters and latches that move only in combat; they read 0 between combats
 pub const RELIC_COUNTERS_COMBAT_ONLY: &[RelicName] = &[
     RelicName::Kunai,
     RelicName::Shuriken,
@@ -258,6 +258,9 @@ pub const RELIC_COUNTERS_COMBAT_ONLY: &[RelicName] = &[
     RelicName::StoneCalendar,
     RelicName::HornCleat,
     RelicName::CaptainsWheel,
+    RelicName::HoveringKite,
+    RelicName::Necronomicon,
+    RelicName::CentennialPuzzle,
 ];
 
 pub fn iter_owned_relics(

@@ -11,14 +11,14 @@ use crate::events::deck_has_upgradable;
 use crate::events::make_event_option_template;
 use crate::game::GameState;
 
-// Forget
-const OPTION_FORGET: &[Effect] = &[EFFECT_DECK_PURGE_PICK_1, EFFECT_EVENT_CONSUME];
+// Forget; each option consumes first, so its pick lands over the spent event
+const OPTION_FORGET: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_PURGE_PICK_1];
 
 // Change
-const OPTION_CHANGE: &[Effect] = &[EFFECT_DECK_TRANSFORM_PICK_1, EFFECT_EVENT_CONSUME];
+const OPTION_CHANGE: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_TRANSFORM_PICK_1];
 
 // Grow
-const OPTION_GROW: &[Effect] = &[EFFECT_DECK_UPGRADE_PICK_1, EFFECT_EVENT_CONSUME];
+const OPTION_GROW: &[Effect] = &[EFFECT_EVENT_CONSUME, EFFECT_DECK_UPGRADE_PICK_1];
 
 // The last row is Grow's stand-in when nothing is purgeable
 pub static EOTS_BASE: &[EventOptionTemplate] = &[

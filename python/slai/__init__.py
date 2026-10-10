@@ -248,6 +248,7 @@ EffectRelicGrantSpecific = _rs.EffectRelicGrantSpecific
 EffectEventAdvanceState = _rs.EffectEventAdvanceState
 EffectScrapOozeReach = _rs.EffectScrapOozeReach
 EffectEventConsume = _rs.EffectEventConsume
+EffectEventClose = _rs.EffectEventClose
 EffectCardDiscoverPick = _rs.EffectCardDiscoverPick
 EffectCardPurge = _rs.EffectCardPurge
 EffectCardUpgrade = _rs.EffectCardUpgrade
@@ -331,6 +332,7 @@ Effect = (
     | EffectEventAdvanceState
     | EffectScrapOozeReach
     | EffectEventConsume
+    | EffectEventClose
     | EffectCardDiscoverPick
     | EffectCardPurge
     | EffectCardUpgrade
@@ -591,6 +593,7 @@ __all__ = [
     "EffectEventAdvanceState",
     "EffectScrapOozeReach",
     "EffectEventConsume",
+    "EffectEventClose",
     "EffectCardDiscoverPick",
     "EffectCardPurge",
     "EffectCardUpgrade",

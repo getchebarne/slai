@@ -104,7 +104,6 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
 
         // The fight belongs to the event it stacked over
         if let Some(loot) = fight_loot(&state.event) {
-            state.event.consumed = true;
             queue_effect_untargeted(
                 state,
                 EffectKind::RewardRollCards {
@@ -125,6 +124,9 @@ pub fn process_effect_combat_end(state: &mut GameState, escaped_character: bool)
             if let Some(amount) = loot.gold {
                 queue_effect_untargeted(state, EffectKind::RewardRollGold { amount });
             }
+
+            // A won fight that pays loot spends its event: leaving its Reward leaves the Room
+            state.event.active = false;
         }
     } else {
         // Final boss: the run ends below; every other fight rolls its reward

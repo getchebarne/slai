@@ -14,7 +14,7 @@ use crate::types::DeltaSign;
 // The draw gate in `draw_event` requires this much gold before the event can spawn
 pub const BEGGAR_COST_PURGE: u16 = 75;
 
-// Give: 75 gold buys a Card purge
+// Give: 75 gold buys a Card purge; consume after the cost, so the pick lands over the spent event
 const OPTION_GIVE: &[Effect] = &[
     Effect {
         kind: EffectKind::GoldDelta {
@@ -24,8 +24,8 @@ const OPTION_GIVE: &[Effect] = &[
         id_source: None,
         target: Target::Direct(None),
     },
-    EFFECT_DECK_PURGE_PICK_1,
     EFFECT_EVENT_CONSUME,
+    EFFECT_DECK_PURGE_PICK_1,
 ];
 
 pub static EOTS_BASE: &[EventOptionTemplate] =
