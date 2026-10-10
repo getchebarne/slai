@@ -645,7 +645,7 @@ pub const fn instance_card_from_template(template: &CardTemplate) -> Entity {
         card_kind: template.kind,
         card_color: template.color,
         card_rarity: template.rarity,
-        card_cost: template.cost,
+        card_cost: template.cost as u16,
         card_cost_kind: template.cost_kind,
         card_upgraded: template.upgraded,
         card_exhaust: template.exhaust,

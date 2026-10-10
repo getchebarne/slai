@@ -337,11 +337,13 @@ fn handle_card_play(state: &mut GameState, idx_card: usize, idx_monster: Option<
     } else {
         None
     };
+    let energy = state.combat.energy.energy_current;
     state.card_play_queue.push_back(CardPlay {
         id_card,
         id_target: id_monster_target,
         play_source: PlaySource::Hand,
-        energy: state.combat.energy.energy_current,
+        energy,
+        cost_effective: get_card_effective_cost(&state.entities[id_card], energy),
         draw_pile_size: state.combat.id_card_pile_draw.len() as u16,
     });
 }

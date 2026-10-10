@@ -1,4 +1,8 @@
 use crate::cards::get_card_template;
+use crate::effect::Effect;
+use crate::effect::EffectKind;
+use crate::effect::Target;
+use crate::entity::CardCostKind;
 use crate::entity::CostOverride;
 use crate::game::GameState;
 use crate::types::Combat;
@@ -45,5 +49,14 @@ pub fn process_effect_card_nightmare_pick(id_target: Option<usize>, state: &mut 
     {
         id_card_pile_hand.remove(pos);
         id_card_pile_hand.push(id_target);
+    }
+
+    // Copying an Eviscerate restarts its cost this turn at its combat cost less this turn's discards
+    if state.entities[id_target].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::CardCostMinusDiscards,
+            id_source: None,
+            target: Target::Direct(Some(id_target)),
+        });
     }
 }

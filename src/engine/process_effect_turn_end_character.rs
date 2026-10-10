@@ -21,6 +21,7 @@ use crate::types::CostScope;
 use crate::types::DeltaSign;
 use crate::types::RelicName;
 use crate::utils::flush_effects_from_buf_to_queue_front;
+use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::hook_order;
 use crate::utils::shuffle;
@@ -109,6 +110,10 @@ pub fn process_effect_turn_end_character(state: &mut GameState, landing: bool) {
                     id_target: None,
                     play_source: PlaySource::TurnEnd { hand_size },
                     energy: energy.energy_current,
+                    cost_effective: get_card_effective_cost(
+                        &state.entities[id_card],
+                        energy.energy_current,
+                    ),
                     draw_pile_size: id_card_pile_draw.len() as u16,
                 });
             }

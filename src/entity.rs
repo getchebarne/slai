@@ -44,7 +44,7 @@ pub enum PlayRestriction {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CostOverride {
-    pub amount: u8,
+    pub amount: u16,
     pub scope: CostScope,
 }
 
@@ -117,7 +117,7 @@ pub struct Entity {
     pub card_kind: CardKind,
     pub card_color: CardColor,
     pub card_rarity: CardRarity,
-    pub card_cost: u8,
+    pub card_cost: u16,
     pub card_upgraded: bool,
     pub card_exhaust: bool,
     pub card_ethereal: bool,

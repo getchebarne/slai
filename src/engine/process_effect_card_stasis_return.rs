@@ -17,17 +17,19 @@ pub fn process_effect_card_stasis_return(
     );
     let id_card = id_target.expect("CardStasisReturn requires id_target");
 
-    // A returned Eviscerate restarts its cost this turn at its combat cost less this turn's discards; push_front reverses, so push it first
-    if state.entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
-        state.effect_queue.push_front(Effect {
-            kind: EffectKind::CardCostMinusDiscards,
-            id_source: None,
-            target: Target::Direct(Some(id_card)),
-        });
-    }
     let pile = if hand_full {
+        // A hostage returned to the discard pile costs its combat cost this turn
+        state.entities[id_card].card_cost_override = None;
         CardPile::Discard
     } else {
+        // An Eviscerate returned to the hand restarts its cost this turn at its combat cost less this turn's discards; push_front reverses, so push it first
+        if state.entities[id_card].card_cost_kind == CardCostKind::MinusDiscardsThisTurn {
+            state.effect_queue.push_front(Effect {
+                kind: EffectKind::CardCostMinusDiscards,
+                id_source: None,
+                target: Target::Direct(Some(id_card)),
+            });
+        }
         CardPile::Hand
     };
     state.effect_queue.push_front(Effect {

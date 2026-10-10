@@ -192,7 +192,7 @@ pub fn play_cap_reached(
 }
 
 // The Card's cost this turn: its per-turn override, else its combat cost
-pub fn get_card_cost_this_turn(card: &Entity) -> u8 {
+pub fn get_card_cost_this_turn(card: &Entity) -> u16 {
     card.card_cost_override
         .map_or(card.card_cost, |cost_override| cost_override.amount)
 }
@@ -205,7 +205,7 @@ pub fn get_card_effective_cost(card: &Entity, energy_current: u16) -> u16 {
     match card.card_cost_kind {
         CardCostKind::Fixed
         | CardCostKind::MinusDiscardsThisTurn
-        | CardCostKind::GrowsOnDamageInstanceTaken => get_card_cost_this_turn(card) as u16,
+        | CardCostKind::GrowsOnDamageInstanceTaken => get_card_cost_this_turn(card),
         CardCostKind::XCost { .. } => energy_current,
     }
 }

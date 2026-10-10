@@ -43,7 +43,7 @@ flat_variants!(PyEffect {
     CardSetupPick => PyEffectCardSetupPick as "EffectCardSetupPick" { free: bool, bottom: bool, target: PyTarget },
     CardNightmarePick => PyEffectCardNightmarePick as "EffectCardNightmarePick" { target: PyTarget },
     DistractionAdd => PyEffectDistractionAdd as "EffectDistractionAdd",
-    SetCostOverride => PyEffectSetCostOverride as "EffectSetCostOverride" { amount: u8, only_reduce: bool, random: bool, scope: PyCostScope, target: PyTarget },
+    SetCostOverride => PyEffectSetCostOverride as "EffectSetCostOverride" { amount: u16, only_reduce: bool, random: bool, scope: PyCostScope, target: PyTarget },
     DamageFinisher => PyEffectDamageFinisher as "EffectDamageFinisher" { damage: u16, target: PyTarget },
     DamageFlechettes => PyEffectDamageFlechettes as "EffectDamageFlechettes" { damage: u16, target: PyTarget },
     UnloadDiscard => PyEffectUnloadDiscard as "EffectUnloadDiscard",

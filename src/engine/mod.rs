@@ -265,6 +265,7 @@ use crate::effect::CandidateFilter;
 use crate::effect::CandidatePool;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
+use crate::effect::PlaySource;
 use crate::effect::SelectionKind;
 use crate::effect::Target;
 use crate::effect::is_multi_pick;
@@ -413,12 +414,15 @@ pub fn process_effect(state: &mut GameState, effect: Effect) -> bool {
                     &mut state.effect_queue,
                 );
             } else {
-                // A hand pick drops the waiting plays of Cards still in the hand
+                // A hand pick drops the waiting plays of Cards still in the hand; a replay is kept wherever its Card lies
                 if candidate_pool == CandidatePool::CardPileHand {
                     let id_card_pile_hand = &state.combat.id_card_pile_hand;
-                    state
-                        .card_play_queue
-                        .retain(|card_play| !id_card_pile_hand.contains(&card_play.id_card));
+                    state.card_play_queue.retain(|card_play| {
+                        matches!(
+                            card_play.play_source,
+                            PlaySource::Replay | PlaySource::ReplayCopy { .. }
+                        ) || !id_card_pile_hand.contains(&card_play.id_card)
+                    });
                 }
 
                 // Effect needs player input to be resolved

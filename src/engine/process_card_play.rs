@@ -29,15 +29,17 @@ use crate::utils::get_card_effective_cost;
 use crate::utils::has_relic;
 use crate::utils::is_play_restriction_satisfied;
 use crate::utils::play_cap_reached;
+use crate::utils::push_entity;
 use crate::utils::wrist_blade_bonus;
 
-// Starts the next waiting Card play; a Replay plays the Card where it lies
+// Starts the next waiting Card play; a replay plays the Card, or Necronomicon's copy of it, where it lies
 pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     let CardPlay {
         id_card,
         id_target,
         play_source,
         energy,
+        cost_effective,
         draw_pile_size,
     } = card_play;
 
@@ -100,10 +102,18 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         detach_card(&mut state.combat, id_card);
     }
 
+    // A play from the hand or the draw pile spends free-to-play-once, whether or not it goes ahead; a replay never does
+    let replay = matches!(
+        play_source,
+        PlaySource::Replay | PlaySource::ReplayCopy { .. }
+    );
+    if !replay {
+        state.entities[id_card].card_free_to_play_once = false;
+    }
+
     let Combat {
         id_card_pile_hand,
         id_card_pile_draw,
-        id_card_pile_exhaust,
         id_monsters,
         id_monster_picked,
         this_turn_attacks,
@@ -119,17 +129,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     // Read-only here: copied out so the body below can borrow the whole state
     let id_character = state.id_character;
     let card = state.entities[id_card];
-
-    // Another play of this Card still waits, such as a second replay
-    let other_play_waits = state
-        .card_play_queue
-        .iter()
-        .any(|card_play| card_play.id_card == id_card);
-
-    // The last replay of an exhausted Card has read its cost this turn, which now drops
-    if id_card_pile_exhaust.contains(&id_card) && !other_play_waits {
-        state.entities[id_card].card_cost_override = None;
-    }
 
     // The Card's picked-Monster effects resolve against this play's target
     *id_monster_picked = id_target;
@@ -159,10 +158,6 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             *this_turn_cards_played,
         );
     if !playable {
-        // A refused play still spends free-to-play-once, unless another play of the Card waits
-        if !other_play_waits {
-            state.entities[id_card].card_free_to_play_once = false;
-        }
         match play_source {
             PlaySource::Hand => unreachable!("a hand play is legal when served"),
 
@@ -174,7 +169,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             }),
 
             // The replay fizzles: no counters, no hooks
-            PlaySource::Replay => {}
+            PlaySource::Replay | PlaySource::ReplayCopy { .. } => {}
 
             PlaySource::TurnEnd { .. } => unreachable!("a turn-end play starts before the gate"),
         }
@@ -232,8 +227,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Energy loss: every play reads its cost (Wrist Blade, Necronomicon), only a hand play pays it
-    let cost_effective = get_card_effective_cost(&card, energy);
+    // Energy loss: only a hand play pays the cost its play carries
     if play_source == PlaySource::Hand {
         state.effect_buf.push(Effect {
             kind: EffectKind::EnergyDelta {
@@ -289,16 +283,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Blue Candle / Medical Kit: a Relic-enabled play exhausts the Card for the rest of combat; the candle also costs 1 HP
+    // Blue Candle / Medical Kit: a Relic-enabled play exhausts the Card for the rest of combat
     if card.card_kind == CardKind::Curse && has_relic(&state.id_relics, RelicName::BlueCandle) {
-        state.effect_buf.push(Effect {
-            kind: EffectKind::HealthDelta {
-                sign: DeltaSign::Loss,
-                amount: Amount::Absolute(1),
-            },
-            id_source: None,
-            target: Target::Direct(Some(id_character)),
-        });
         state.entities[id_card].card_exhaust = true;
     } else if card.card_kind == CardKind::Status
         && has_relic(&state.id_relics, RelicName::MedicalKit)
@@ -307,7 +293,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Necronomicon: the first Attack costing 2+ each turn is played twice
-    let necronomicon = if play_source != PlaySource::Replay
+    let necronomicon = if !replay
         && card.card_kind == CardKind::Attack
         && cost_effective >= 2
         && let Some(id) = state.id_relics[RelicName::Necronomicon as usize]
@@ -336,13 +322,13 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         }
         _ => 1,
     };
-    let burst = play_source != PlaySource::Replay
+    let burst = !replay
         && has_modifier(char_modifiers, ModifierKind::Burst)
         && card.card_kind == CardKind::Skill;
 
     // DuplicateNextCardPlay replays any Card kind; additive with Burst
     let stacks_duplication = modifier_stacks(char_modifiers, ModifierKind::DuplicateNextCardPlay);
-    let duplication = play_source != PlaySource::Replay && stacks_duplication > 0;
+    let duplication = !replay && stacks_duplication > 0;
 
     // Burst and Duplication spend their stack before the Card's effects resolve
     if burst {
@@ -366,6 +352,48 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
+    // Panache: every 5th Card played while active hits all enemies for `stacks`
+    let mut sweep_panache = Vec::new();
+    if has_modifier(char_modifiers, ModifierKind::Panache) {
+        *panache_countdown -= 1;
+        if *panache_countdown == 0 {
+            *panache_countdown = PANACHE_PLAYS;
+            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
+            for id_monster in id_monsters.iter().flatten().copied() {
+                sweep_panache.push(Effect {
+                    kind: EffectKind::DamageDeal {
+                        amount: stacks.max(0) as u16,
+                        lifesteal: false,
+                    },
+                    id_source: None,
+                    target: Target::Direct(Some(id_monster)),
+                });
+            }
+        }
+    }
+
+    // Thousand Cuts: every Card played hits all enemies for `stacks`
+    let mut sweep_thousand_cuts = Vec::new();
+    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
+        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
+        for id_monster in id_monsters.iter().flatten().copied() {
+            sweep_thousand_cuts.push(Effect {
+                kind: EffectKind::DamageDeal {
+                    amount: stacks as u16,
+                    lifesteal: false,
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_monster)),
+            });
+        }
+    }
+
+    // Skewer's hits land behind Panache's and Thousand Cuts' sweeps, which spend the target's block first
+    if card.card_name == CardName::Skewer {
+        state.effect_buf.append(&mut sweep_panache);
+        state.effect_buf.append(&mut sweep_thousand_cuts);
+    }
+
     // Wrist Blade: attacks that cost 0 deal +4 per hit
     let bonus_wrist_blade = wrist_blade_bonus(&card, cost_effective, &state.id_relics);
 
@@ -386,7 +414,18 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             ..*effect
         };
 
-        // Mind Blast hits for the draw pile's size fixed when the play was queued; a replay keeps its first play's
+        // A Necronomicon copy's changes to itself land on its original: Glass Knife's decay and Ritual Dagger's growth
+        if let PlaySource::ReplayCopy { id_card_original } = play_source {
+            match effect.kind {
+                EffectKind::GlassKnifeDecay { .. } => {
+                    effect.target = Target::Direct(Some(id_card_original))
+                }
+                EffectKind::RitualDaggerProc { .. } => effect.id_source = Some(id_card_original),
+                _ => {}
+            }
+        }
+
+        // Mind Blast hits for the draw pile's size its CardPlay carries
         if matches!(effect.kind, EffectKind::DamageMindBlast) {
             effect.kind = EffectKind::DamagePhysical {
                 amount: draw_pile_size,
@@ -437,24 +476,8 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Panache: every 5th Card played while active hits all enemies for `stacks`
-    if has_modifier(char_modifiers, ModifierKind::Panache) {
-        *panache_countdown -= 1;
-        if *panache_countdown == 0 {
-            *panache_countdown = PANACHE_PLAYS;
-            let stacks = modifier_stacks(char_modifiers, ModifierKind::Panache);
-            for id_monster in id_monsters.iter().flatten().copied() {
-                state.effect_buf.push(Effect {
-                    kind: EffectKind::DamageDeal {
-                        amount: stacks.max(0) as u16,
-                        lifesteal: false,
-                    },
-                    id_source: None,
-                    target: Target::Direct(Some(id_monster)),
-                });
-            }
-        }
-    }
+    // Panache's sweep lands behind After Image, unless Skewer staged it ahead of its hits
+    state.effect_buf.append(&mut sweep_panache);
 
     // A spent DuplicateNextCardPlay stays at 0 stacks until the Card's effects have resolved
     if duplication && stacks_duplication == 1 {
@@ -544,6 +567,16 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
                 }
             }
 
+            // Blue Candle: a played Curse costs 1 HP
+            (RelicName::BlueCandle, CardKind::Curse) => state.effect_buf.push(Effect {
+                kind: EffectKind::HealthDelta {
+                    sign: DeltaSign::Loss,
+                    amount: Amount::Absolute(1),
+                },
+                id_source: None,
+                target: Target::Direct(Some(id_character)),
+            }),
+
             // Orange Pellets: Attack + Skill + Power in one turn sweeps all debuffs
             (RelicName::OrangePellets, _) => orange_pellets_track_and_sweep(
                 orange_pellets_played_attack,
@@ -592,7 +625,7 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
     }
 
     // Route the played Card to its pile once every on-use hook has resolved; a replay leaves it where it lies
-    if play_source != PlaySource::Replay {
+    if !replay {
         state.effect_buf.push(Effect {
             kind: EffectKind::CardPlayRelocate,
             id_source: None,
@@ -600,38 +633,34 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
         });
     }
 
-    // Thousand Cuts: deal `stacks` damage to all Monsters once the played Card is routed
-    let char_modifiers = &state.entities[id_character].modifiers;
-    if has_modifier(char_modifiers, ModifierKind::ThousandCuts) {
-        let stacks = modifier_stacks(char_modifiers, ModifierKind::ThousandCuts);
-        for id_monster in id_monsters.iter().flatten().copied() {
-            state.effect_buf.push(Effect {
-                kind: EffectKind::DamageDeal {
-                    amount: stacks as u16,
-                    lifesteal: false,
-                },
-                id_source: None,
-                target: Target::Direct(Some(id_monster)),
-            });
-        }
-    }
+    // Thousand Cuts' sweep lands once the played Card is routed, unless Skewer staged it ahead of its hits
+    state.effect_buf.append(&mut sweep_thousand_cuts);
 
-    // Burst / Duplication / Necronomicon each replay the Card against the same target, ahead of
-    // any play already waiting; changes to the Card (Glass Knife, Ritual Dagger) carry over, X and the draw pile's size stay the first play's
-    let replays = burst as usize + duplication as usize + necronomicon as usize;
-    for _ in 0..replays {
+    // Burst and Duplication replay the Card itself ahead of any waiting play, with this play's target, X, cost and draw pile size; its changes (Glass Knife, Ritual Dagger) carry over
+    for _ in 0..burst as usize + duplication as usize {
         state.card_play_queue.push_front(CardPlay {
             id_card,
             id_target,
             play_source: PlaySource::Replay,
             energy,
+            cost_effective,
             draw_pile_size,
         });
     }
 
-    // The Card's last waiting play spends free-to-play-once
-    if replays == 0 && !other_play_waits {
-        state.entities[id_card].card_free_to_play_once = false;
+    // Necronomicon replays a copy of the Card as this play started, kept in no pile and pushed last so it plays first; its Mind Blast reads the draw pile as this play starts
+    if necronomicon {
+        let id_copy = push_entity(&mut state.entities, card);
+        state.card_play_queue.push_front(CardPlay {
+            id_card: id_copy,
+            id_target,
+            play_source: PlaySource::ReplayCopy {
+                id_card_original: id_card,
+            },
+            energy,
+            cost_effective,
+            draw_pile_size: state.combat.id_card_pile_draw.len() as u16,
+        });
     }
 
     flush_effects_from_buf_to_queue_front(state);

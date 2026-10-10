@@ -42,7 +42,7 @@ pub struct Combat {
 
     // Per-turn counters
     pub this_turn_discards: u16,
-    pub this_turn_attacks: u8,
+    pub this_turn_attacks: u16,
     pub this_turn_cards_played: u8,
     pub orange_pellets_played_attack: bool, // Card kinds played since Orange Pellets last fired this turn
     pub orange_pellets_played_skill: bool,
