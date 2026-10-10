@@ -394,6 +394,15 @@ pub fn process_card_play(state: &mut GameState, card_play: CardPlay) {
             state.effect_buf.push(effect);
             continue;
         }
+
+        // `EffectKind::DamagePhysical` scales its hits into a single attack, and an X of 0 deals none (e.g., Skewer)
+        if let EffectKind::DamagePhysical { instances, .. } = &mut effect.kind {
+            *instances *= mul as u16;
+            if *instances > 0 {
+                state.effect_buf.push(effect);
+            }
+            continue;
+        }
         for _ in 0..mul {
             state.effect_buf.push(effect);
         }

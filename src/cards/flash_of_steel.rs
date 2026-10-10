@@ -26,6 +26,7 @@ pub static FLASH_OF_STEEL: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 3,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -48,6 +49,7 @@ pub static FLASH_OF_STEEL_PLUS: CardTemplate = CardTemplate {
         let mut effects = FLASH_OF_STEEL.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 6,
+            instances: 1,
             lifesteal: false,
         }; // +3 damage
         effects

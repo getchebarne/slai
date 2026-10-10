@@ -24,6 +24,7 @@ pub static DIE_DIE_DIE: CardTemplate = make_card_template(
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 13,
+            instances: 1,
             lifesteal: false,
         },
         id_source: None,
@@ -40,6 +41,7 @@ pub static DIE_DIE_DIE_PLUS: CardTemplate = CardTemplate {
         let mut effects = DIE_DIE_DIE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 17,
+            instances: 1,
             lifesteal: false,
         }; // +4 damage
         effects

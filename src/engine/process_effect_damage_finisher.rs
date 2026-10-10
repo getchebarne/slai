@@ -20,10 +20,11 @@ pub fn process_effect_damage_finisher(
     } = &mut state.combat;
     let id_target = id_target.expect("DamageFinisher requires id_target");
     let num_attacks = this_turn_attacks.saturating_sub(1);
-    for _ in 0..num_attacks {
+    if num_attacks > 0 {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::DamagePhysical {
                 amount: damage,
+                instances: num_attacks as u16,
                 lifesteal: false,
             },
             id_source,

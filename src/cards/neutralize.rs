@@ -26,6 +26,7 @@ pub static NEUTRALIZE: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 3,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -51,6 +52,7 @@ pub static NEUTRALIZE_PLUS: CardTemplate = CardTemplate {
         let mut effects = NEUTRALIZE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 4,
+            instances: 1,
             lifesteal: false,
         }; // +1 damage
         effects[1].kind = EffectKind::ModifierDelta {

@@ -26,6 +26,7 @@ pub static SNEAKY_STRIKE: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 12,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -48,6 +49,7 @@ pub static SNEAKY_STRIKE_PLUS: CardTemplate = CardTemplate {
         let mut effects = SNEAKY_STRIKE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 16,
+            instances: 1,
             lifesteal: false,
         }; // +4 damage
         effects

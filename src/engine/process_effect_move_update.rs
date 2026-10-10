@@ -1,5 +1,7 @@
 use crate::consts::HEXAGHOST_DIVIDER_DIVISOR;
+use crate::effect::EffectKind;
 use crate::game::GameState;
+use crate::monsters::book_of_stabbing;
 use crate::monsters::get_next_move;
 use crate::monsters::hexaghost;
 use crate::monsters::is_cycle_boundary;
@@ -40,10 +42,33 @@ pub fn process_effect_move_update(
     let entity = &mut state.entities[id_target];
     entity.monster_move_current = Some(move_next);
 
-    // Divider damage locks in at selection; later HP changes don't move it
-    entity.monster_move_damage_override = (entity.monster_name == MonsterName::Hexaghost
+    // The Monster keeps its own copy of the chosen move's effects
+    let move_chosen = entity.monster_moves[move_next];
+    entity.monster_move_effects = move_chosen.effects;
+    entity.monster_move_effects_len = move_chosen.effects_len;
+
+    // Divider's damage locks in at selection; later HP changes don't move it
+    let damage_locked = (entity.monster_name == MonsterName::Hexaghost
         && move_next == hexaghost::IDX_MOVE_DIVIDER)
         .then(|| character_health / HEXAGHOST_DIVIDER_DIVISOR + 1);
+
+    // Multi-Stab's hit count locks in at selection, from the moves chosen before it
+    let instances_locked = (entity.monster_name == MonsterName::BookOfStabbing
+        && move_next == book_of_stabbing::IDX_MOVE_MULTI_STAB)
+        .then(|| {
+            book_of_stabbing::multi_stab_instances(&entity.monster_move_uses, state.ascension)
+        });
+
+    // The locked values replace the template's placeholders in the copy
+    for effect in entity.monster_move_effects[..move_chosen.effects_len as usize].iter_mut() {
+        if let EffectKind::DamagePhysical {
+            amount, instances, ..
+        } = &mut effect.kind
+        {
+            *amount = damage_locked.unwrap_or(*amount);
+            *instances = instances_locked.map_or(*instances, u16::from);
+        }
+    }
 
     let move_idx = move_next as u8;
     push_move_history(entity, move_idx);

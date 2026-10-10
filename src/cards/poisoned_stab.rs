@@ -26,6 +26,7 @@ pub static POISONED_STAB: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 6,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -51,6 +52,7 @@ pub static POISONED_STAB_PLUS: CardTemplate = CardTemplate {
         let mut effects = POISONED_STAB.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 8,
+            instances: 1,
             lifesteal: false,
         }; // +2 damage
         effects[1].kind = EffectKind::ModifierDelta {

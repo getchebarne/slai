@@ -29,6 +29,7 @@ pub static ALL_OUT_ATTACK: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 10,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -57,6 +58,7 @@ pub static ALL_OUT_ATTACK_PLUS: CardTemplate = CardTemplate {
         let mut effects = ALL_OUT_ATTACK.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 14,
+            instances: 1,
             lifesteal: false,
         }; // +4 damage
         effects

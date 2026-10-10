@@ -1,6 +1,4 @@
 use crate::consts::HEXAGHOST_DIVIDER_HITS;
-use crate::consts::MAX_EFFECTS_PER_MOVE;
-use crate::effect::EFFECT_ZERO;
 use crate::effect::Effect;
 use crate::effect::EffectKind;
 use crate::effect::TARGET_CHARACTER;
@@ -11,120 +9,54 @@ use crate::entity::Move;
 use crate::modifier::ModifierKind;
 use crate::monsters::MonsterTemplate;
 use crate::monsters::make_move;
+use crate::monsters::move_attack;
 use crate::monsters::move_attack_card_add;
 use crate::types::CardName;
 use crate::types::MonsterKind;
 use crate::types::MonsterName;
 
 // First move: essentially a no-op
-const INFERNO_HITS: usize = 6;
+const INFERNO_HITS: u8 = 6;
 
-// Inferno: six hits then the burn upgrade; fills all MAX_EFFECTS_PER_MOVE slots
+// Inferno: six hits then the burn upgrade
 const fn move_inferno(damage: u16) -> Move {
-    let mut effects = [EFFECT_ZERO; MAX_EFFECTS_PER_MOVE];
-    let mut idx = 0;
-    while idx < INFERNO_HITS {
-        effects[idx] = Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: damage,
-                lifesteal: false,
+    make_move(
+        "Inferno",
+        &[
+            Effect {
+                kind: EffectKind::DamagePhysical {
+                    amount: damage,
+                    instances: INFERNO_HITS as u16,
+                    lifesteal: false,
+                },
+                id_source: None,
+                target: TARGET_CHARACTER,
             },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        };
-        idx += 1;
-    }
-    effects[INFERNO_HITS] = Effect {
-        kind: EffectKind::HexaghostBurnIncrease { count: 3 },
-        id_source: None,
-        target: Target::Direct(None),
-    };
-    Move {
-        name: "Inferno",
-        effects,
-        effects_len: (INFERNO_HITS + 1) as u8,
-        intent: Intent::AttackDebuff {
+            Effect {
+                kind: EffectKind::HexaghostBurnIncrease { count: 3 },
+                id_source: None,
+                target: Target::Direct(None),
+            },
+        ],
+        Intent::AttackDebuff {
             damage,
-            instances: INFERNO_HITS as u8,
+            instances: INFERNO_HITS,
         },
-    }
+    )
 }
 
 static MOVE_ACTIVATE: Move = make_move("Activate", &[], Intent::Unknown);
 
-// Divider true damage (HP/12+1 x 6); amounts and intent locked in at move selection
-static DIVIDER_HIT: Effect = Effect {
-    kind: EffectKind::DamagePhysical {
-        amount: 0,
-        lifesteal: false,
-    },
-    id_source: None,
-    target: TARGET_CHARACTER,
-};
-static MOVE_DIVIDER: Move = make_move(
-    "Divider",
-    &[DIVIDER_HIT; HEXAGHOST_DIVIDER_HITS as usize],
-    Intent::Attack {
-        damage: 0, // Placeholder
-        instances: HEXAGHOST_DIVIDER_HITS,
-    },
-);
+// Divider damage (HP/12+1 x 6); the 0 damage is a placeholder, locked in at move selection
+static MOVE_DIVIDER: Move = move_attack("Divider", 0, HEXAGHOST_DIVIDER_HITS);
 
 static MOVE_SEAR_BURN_1_NORMAL: Move = move_attack_card_add("Sear", 6, CardName::Burn, 1, false);
 static MOVE_SEAR_BURN_1_UPGRADED: Move = move_attack_card_add("Sear", 6, CardName::Burn, 1, true);
 static MOVE_SEAR_BURN_2_NORMAL: Move = move_attack_card_add("Sear", 6, CardName::Burn, 2, false);
 static MOVE_SEAR_BURN_2_UPGRADED: Move = move_attack_card_add("Sear", 6, CardName::Burn, 2, true);
 
-static MOVE_TACKLE_5: Move = make_move(
-    "Tackle",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 5,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-    ],
-    Intent::Attack {
-        damage: 5,
-        instances: 2,
-    },
-);
-static MOVE_TACKLE_6: Move = make_move(
-    "Tackle",
-    &[
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 6,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-        Effect {
-            kind: EffectKind::DamagePhysical {
-                amount: 6,
-                lifesteal: false,
-            },
-            id_source: None,
-            target: TARGET_CHARACTER,
-        },
-    ],
-    Intent::Attack {
-        damage: 6,
-        instances: 2,
-    },
-);
+static MOVE_TACKLE_5: Move = move_attack("Tackle", 5, 2);
+static MOVE_TACKLE_6: Move = move_attack("Tackle", 6, 2);
 
 static MOVE_INFLAME_2: Move = make_move(
     "Inflame",

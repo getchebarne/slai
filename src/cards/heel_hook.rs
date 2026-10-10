@@ -25,6 +25,7 @@ pub static HEEL_HOOK: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 5,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -47,6 +48,7 @@ pub static HEEL_HOOK_PLUS: CardTemplate = CardTemplate {
         let mut effects = HEEL_HOOK.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 8,
+            instances: 1,
             lifesteal: false,
         }; // +3 damage
         effects

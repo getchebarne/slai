@@ -13,6 +13,7 @@ use crate::types::CardRarity;
 const HIT: Effect = Effect {
     kind: EffectKind::DamagePhysical {
         amount: 4,
+        instances: 1,
         lifesteal: false,
     },
     id_source: None,
@@ -21,6 +22,7 @@ const HIT: Effect = Effect {
 const HIT_PLUS: Effect = Effect {
     kind: EffectKind::DamagePhysical {
         amount: 6,
+        instances: 1,
         lifesteal: false,
     }, // +2 damage
     id_source: None,
@@ -38,6 +40,7 @@ pub static DAGGER_SPRAY: CardTemplate = make_card_template(
     false,
     false,
     false,
+    // Two sweeps: every Monster takes the first hit before any takes the second
     &[HIT, HIT],
     &[],
     &[],

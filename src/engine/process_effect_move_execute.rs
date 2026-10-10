@@ -7,7 +7,7 @@ use crate::modifier::has_modifier;
 use crate::modifier::modifier_stacks;
 use crate::utils::flush_effects_from_buf_to_queue_front;
 
-// Reads move_current at dispatch (late binding); mid-turn overrides (split, wake) take effect
+// Reads the current move's effects at dispatch (late binding); mid-turn overrides (split, wake) take effect
 pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameState) {
     let id_monster = id_target.expect("MoveExecute requires id_target");
     let monster = &state.entities[id_monster];
@@ -18,9 +18,10 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
     }
 
     // A live Monster with no rolled move is a broken spawn/roll invariant
-    let Some(move_idx) = monster.monster_move_current else {
-        unreachable!("MoveExecute on a monster with no rolled move");
-    };
+    assert!(
+        monster.monster_move_current.is_some(),
+        "MoveExecute on a monster with no rolled move"
+    );
 
     // Gold steal (Looters)
     let stacks_thievery = if has_modifier(&monster.modifiers, ModifierKind::Thievery) {
@@ -33,25 +34,21 @@ pub fn process_effect_move_execute(id_target: Option<usize>, state: &mut GameSta
     let entity = &mut state.entities[id_monster];
     entity.monster_move_history_exec[entity.monster_move_history_len as usize - 1] = true;
 
-    // Copy the Move out so effect_buf/queue mutations below don't hold `entities` borrowed
-    let move_current = state.entities[id_monster].monster_moves[move_idx];
-    let damage_override = state.entities[id_monster].monster_move_damage_override;
+    // Copy the Monster's move effects out so effect_buf/queue mutations below don't hold `entities` borrowed
+    let move_effects = state.entities[id_monster].monster_move_effects;
+    let move_effects_len = state.entities[id_monster].monster_move_effects_len as usize;
     state.effect_buf.clear();
-    for effect in move_current.effects[..move_current.effects_len as usize].iter() {
-        let mut effect = Effect {
+    for effect in move_effects[..move_effects_len].iter() {
+        let effect = Effect {
             id_source: Some(id_monster),
             ..*effect
         };
-        if let Some(damage) = damage_override
-            && let EffectKind::DamagePhysical { amount, .. } = &mut effect.kind
-        {
-            *amount = damage;
-        }
 
-        // The gold goes ahead of each hit, so a Thorns kill banks it with the rest of the purse
+        // The gold goes ahead of the hit, so a Thorns kill banks it with the rest of the purse
         if let Some(amount) = stacks_thievery
-            && matches!(effect.kind, EffectKind::DamagePhysical { .. })
+            && let EffectKind::DamagePhysical { instances, .. } = effect.kind
         {
+            assert_eq!(instances, 1, "a thief's attack is a single hit");
             state.effect_buf.push(Effect {
                 kind: EffectKind::GoldSteal { amount },
                 id_source: Some(id_monster),

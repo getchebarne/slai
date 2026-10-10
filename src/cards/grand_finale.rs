@@ -24,6 +24,7 @@ pub static GRAND_FINALE: CardTemplate = make_card_template(
     &[Effect {
         kind: EffectKind::DamagePhysical {
             amount: 50,
+            instances: 1,
             lifesteal: false,
         },
         id_source: None,
@@ -40,6 +41,7 @@ pub static GRAND_FINALE_PLUS: CardTemplate = CardTemplate {
         let mut effects = GRAND_FINALE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 60,
+            instances: 1,
             lifesteal: false,
         }; // +10 damage
         effects

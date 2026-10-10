@@ -28,6 +28,7 @@ pub static BITE: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 7,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -53,6 +54,7 @@ pub static BITE_PLUS: CardTemplate = CardTemplate {
         let mut effects = BITE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 8,
+            instances: 1,
             lifesteal: false,
         }; // +1 damage
         effects[1].kind = EffectKind::HealthDelta {

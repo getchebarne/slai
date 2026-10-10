@@ -29,6 +29,7 @@ pub static DAGGER_THROW: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 9,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -62,6 +63,7 @@ pub static DAGGER_THROW_PLUS: CardTemplate = CardTemplate {
         let mut effects = DAGGER_THROW.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 12,
+            instances: 1,
             lifesteal: false,
         }; // +3 damage
         effects

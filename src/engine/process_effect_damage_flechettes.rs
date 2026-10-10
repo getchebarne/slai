@@ -22,10 +22,11 @@ pub fn process_effect_damage_flechettes(
         .iter()
         .filter(|&&id| state.entities[id].card_kind == CardKind::Skill)
         .count();
-    for _ in 0..num_skills_in_hand {
+    if num_skills_in_hand > 0 {
         state.effect_queue.push_front(Effect {
             kind: EffectKind::DamagePhysical {
                 amount: damage,
+                instances: num_skills_in_hand as u16,
                 lifesteal: false,
             },
             id_source,

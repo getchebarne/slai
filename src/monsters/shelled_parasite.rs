@@ -21,6 +21,7 @@ const fn move_suck(damage: u16) -> Move {
         &[Effect {
             kind: EffectKind::DamagePhysical {
                 amount: damage,
+                instances: 1,
                 lifesteal: true,
             },
             id_source: None,

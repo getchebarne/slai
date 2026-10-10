@@ -27,6 +27,7 @@ pub static FLYING_KNEE: CardTemplate = make_card_template(
         Effect {
             kind: EffectKind::DamagePhysical {
                 amount: 8,
+                instances: 1,
                 lifesteal: false,
             },
             id_source: None,
@@ -52,6 +53,7 @@ pub static FLYING_KNEE_PLUS: CardTemplate = CardTemplate {
         let mut effects = FLYING_KNEE.effects_play;
         effects[0].kind = EffectKind::DamagePhysical {
             amount: 11,
+            instances: 1,
             lifesteal: false,
         }; // +3 damage
         effects

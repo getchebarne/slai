@@ -14,17 +14,19 @@ use crate::utils::strike_dummy_bonus;
 use crate::utils::vuln_factor;
 use crate::utils::weak_factor;
 
-// Physical damage: if_poisoned bails unless target Poisoned; Str+Vigor+Weak/Vuln scale, x2 DoubleDmg, Intangible clamp, Thorns reflect
+// Physical damage, one hit at a time: if_poisoned bails unless target Poisoned; Str+Vigor+Weak/Vuln scale, x2 DoubleDmg, Intangible clamp, Thorns reflect
 pub fn process_effect_damage_physical(
     id_source: Option<usize>,
     id_target: Option<usize>,
     state: &mut GameState,
     amount: u16,
+    instances: u16,
     if_poisoned: bool, // Bane
     lifesteal: bool,   // Life Suck
 ) {
     let id_source = id_source.expect("DamagePhysical requires id_source");
     let id_target = id_target.expect("DamagePhysical requires id_target");
+    assert!(instances > 0, "DamagePhysical requires at least one hit");
 
     // A target killed by an earlier hit takes nothing more
     let target = &state.entities[id_target];
@@ -103,6 +105,19 @@ pub fn process_effect_damage_physical(
     // Executes in reverse:
     //     1. DamageDeal (attack)
     //     2. DamageDeal (Thorns reflect)
+    //     3. DamagePhysical (the remaining hits)
+    if instances > 1 {
+        state.effect_queue.push_front(Effect {
+            kind: EffectKind::DamagePhysical {
+                amount,
+                instances: instances - 1,
+                lifesteal,
+            },
+            id_source: Some(id_source),
+            target: Target::Direct(Some(id_target)),
+        });
+    }
+
     // Thorns: triggers per attack instance regardless of damage actually dealt
     if id_actor != id_target && has_modifier(mods_target, ModifierKind::Thorns) {
         let stacks = modifier_stacks(mods_target, ModifierKind::Thorns);
